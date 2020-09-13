@@ -97,6 +97,11 @@ impl Server {
     #[allow(clippy::expect_fun_call)] // TODO: Pending review in #587
     #[allow(clippy::needless_update)] // TODO: Pending review in #587
     pub fn new(settings: ServerSettings) -> Result<Self, Error> {
+        let (chunk_gen_metrics, registry_chunk) = metrics::ChunkGenMetrics::new().unwrap();
+        let (network_request_metrics, registry_network) =
+            metrics::NetworkRequestMetrics::new().unwrap();
+        let (player_metrics, registry_player) = metrics::PlayerMetrics::new().unwrap();
+
         let mut state = State::default();
         state.ecs_mut().insert(settings.clone());
         state.ecs_mut().insert(EventBus::<ServerEvent>::default());
@@ -104,7 +109,11 @@ impl Server {
             .ecs_mut()
             .insert(LoginProvider::new(settings.auth_server_address.clone()));
         state.ecs_mut().insert(Tick(0));
-        state.ecs_mut().insert(ChunkGenerator::new());
+        state.ecs_mut().insert(network_request_metrics);
+        state.ecs_mut().insert(player_metrics);
+        state
+            .ecs_mut()
+            .insert(ChunkGenerator::new(chunk_gen_metrics));
         state
             .ecs_mut()
             .insert(CharacterUpdater::new(settings.persistence_db_dir.clone()));
@@ -275,11 +284,12 @@ impl Server {
 
         let mut metrics = ServerMetrics::new();
         // register all metrics submodules here
-        let tick_metrics = TickMetrics::new(metrics.tick_clone())
+        let (tick_metrics, registry_tick) = TickMetrics::new(metrics.tick_clone())
             .expect("Failed to initialize server tick metrics submodule.");
-        tick_metrics
-            .register(&metrics.registry())
-            .expect("failed to register tick metrics");
+        registry_chunk(&metrics.registry()).expect("failed to register chunk gen metrics");
+        registry_network(&metrics.registry()).expect("failed to register network request metrics");
+        registry_player(&metrics.registry()).expect("failed to register player metrics");
+        registry_tick(&metrics.registry()).expect("failed to register tick metrics");
 
         let thread_pool = ThreadPoolBuilder::new()
             .name("veloren-worker".to_string())
@@ -647,9 +657,6 @@ impl Server {
 
         // Report other info
         self.tick_metrics
-            .player_online
-            .set(self.state.ecs().read_storage::<Client>().join().count() as i64);
-        self.tick_metrics
             .time_of_day
             .set(self.state.ecs().read_resource::<TimeOfDay>().0);
         if self.tick_metrics.is_100th_tick() {
@@ -813,7 +820,9 @@ impl Server {
             .is_some()
     }
 
-    pub fn number_of_players(&self) -> i64 { self.tick_metrics.player_online.get() }
+    pub fn number_of_players(&self) -> i64 {
+        self.state.ecs().read_storage::<Client>().join().count() as i64
+    }
 }
 
 impl Drop for Server {

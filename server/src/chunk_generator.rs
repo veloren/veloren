@@ -1,3 +1,4 @@
+use crate::metrics::ChunkGenMetrics;
 #[cfg(not(feature = "worldgen"))]
 use crate::test_world::{IndexOwned, World};
 use common::{generation::ChunkSupplement, terrain::TerrainChunk};
@@ -21,15 +22,17 @@ pub struct ChunkGenerator {
     chunk_tx: channel::Sender<ChunkGenResult>,
     chunk_rx: channel::Receiver<ChunkGenResult>,
     pending_chunks: HashMap<Vec2<i32>, Arc<AtomicBool>>,
+    metrics: Arc<ChunkGenMetrics>,
 }
 impl ChunkGenerator {
     #[allow(clippy::new_without_default)] // TODO: Pending review in #587
-    pub fn new() -> Self {
+    pub fn new(metrics: ChunkGenMetrics) -> Self {
         let (chunk_tx, chunk_rx) = channel::unbounded();
         Self {
             chunk_tx,
             chunk_rx,
             pending_chunks: HashMap::new(),
+            metrics: Arc::new(metrics),
         }
     }
 
@@ -49,6 +52,7 @@ impl ChunkGenerator {
         let cancel = Arc::new(AtomicBool::new(false));
         v.insert(Arc::clone(&cancel));
         let chunk_tx = self.chunk_tx.clone();
+        self.metrics.chunks_requested.inc();
         thread_pool.execute(move || {
             let index = index.as_index_ref();
             let payload = world
@@ -61,6 +65,7 @@ impl ChunkGenerator {
     pub fn recv_new_chunk(&mut self) -> Option<ChunkGenResult> {
         if let Ok((key, res)) = self.chunk_rx.try_recv() {
             self.pending_chunks.remove(&key);
+            self.metrics.chunks_served.inc();
             // TODO: do anything else if res is an Err?
             Some((key, res))
         } else {
@@ -75,12 +80,15 @@ impl ChunkGenerator {
     pub fn cancel_if_pending(&mut self, key: Vec2<i32>) {
         if let Some(cancel) = self.pending_chunks.remove(&key) {
             cancel.store(true, Ordering::Relaxed);
+            self.metrics.chunks_canceled.inc();
         }
     }
 
     pub fn cancel_all(&mut self) {
+        let metrics = self.metrics.clone();
         self.pending_chunks.drain().for_each(|(_, cancel)| {
             cancel.store(true, Ordering::Relaxed);
+            metrics.chunks_canceled.inc();
         });
     }
 }

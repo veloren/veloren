@@ -1,7 +1,11 @@
 use super::SysTimer;
 use crate::{
-    alias_validator::AliasValidator, client::Client, login_provider::LoginProvider,
-    persistence::character::CharacterLoader, ServerSettings,
+    alias_validator::AliasValidator,
+    client::Client,
+    login_provider::LoginProvider,
+    metrics::{NetworkRequestMetrics, PlayerMetrics},
+    persistence::character::CharacterLoader,
+    ServerSettings,
 };
 use common::{
     comp::{
@@ -43,6 +47,8 @@ impl Sys {
         cnt: &mut u64,
         character_loader: &ReadExpect<'_, CharacterLoader>,
         terrain: &ReadExpect<'_, TerrainGrid>,
+        network_metrics: &ReadExpect<'_, NetworkRequestMetrics>,
+        player_metrics: &ReadExpect<'_, PlayerMetrics>,
         uids: &ReadStorage<'_, Uid>,
         can_build: &ReadStorage<'_, CanBuild>,
         force_updates: &ReadStorage<'_, ForceUpdate>,
@@ -133,6 +139,7 @@ impl Sys {
 
                             // Add to list to notify all clients of the new player
                             new_players.push(entity);
+                            player_metrics.players_connected.inc();
                         },
                         // Use RequestState instead (No need to send `player` again).
                         _ => client.error_state(RequestStateError::Impossible),
@@ -312,6 +319,7 @@ impl Sys {
                 },
                 ClientMsg::TerrainChunkRequest { key } => match client.client_state {
                     ClientState::Connected | ClientState::Registered => {
+                        network_metrics.chunks_request_dropped.inc();
                         client.error_state(RequestStateError::Impossible);
                     },
                     ClientState::Spectator | ClientState::Character => {
@@ -329,12 +337,20 @@ impl Sys {
                         };
                         if in_vd {
                             match terrain.get_key(key) {
-                                Some(chunk) => client.notify(ServerMsg::TerrainChunkUpdate {
-                                    key,
-                                    chunk: Ok(Box::new(chunk.clone())),
-                                }),
-                                None => server_emitter.emit(ServerEvent::ChunkRequest(entity, key)),
+                                Some(chunk) => {
+                                    network_metrics.chunks_served_from_cache.inc();
+                                    client.notify(ServerMsg::TerrainChunkUpdate {
+                                        key,
+                                        chunk: Ok(Box::new(chunk.clone())),
+                                    })
+                                },
+                                None => {
+                                    network_metrics.chunks_generation_triggered.inc();
+                                    server_emitter.emit(ServerEvent::ChunkRequest(entity, key))
+                                },
                             }
+                        } else {
+                            network_metrics.chunks_request_dropped.inc();
                         }
                     },
                     ClientState::Pending => {},
@@ -347,6 +363,10 @@ impl Sys {
                 },
                 ClientMsg::Terminate => {
                     debug!(?entity, "Client send message to termitate session");
+                    player_metrics
+                        .players_disconnected
+                        .with_label_values(&["gracefully"])
+                        .inc();
                     server_emitter.emit(ServerEvent::ClientDisconnect(entity));
                     break Ok(());
                 },
@@ -408,6 +428,8 @@ impl<'a> System<'a> for Sys {
         Read<'a, Time>,
         ReadExpect<'a, CharacterLoader>,
         ReadExpect<'a, TerrainGrid>,
+        ReadExpect<'a, NetworkRequestMetrics>,
+        ReadExpect<'a, PlayerMetrics>,
         Write<'a, SysTimer<Self>>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, CanBuild>,
@@ -439,6 +461,8 @@ impl<'a> System<'a> for Sys {
             time,
             character_loader,
             terrain,
+            network_metrics,
+            player_metrics,
             mut timer,
             uids,
             can_build,
@@ -489,9 +513,7 @@ impl<'a> System<'a> for Sys {
 
             let network_err: Result<(), crate::error::Error> = block_on(async {
                 //TIMEOUT 0.02 ms for msg handling
-                select!(
-                    _ = Delay::new(std::time::Duration::from_micros(20)).fuse() => Ok(()),
-                    err = Self::handle_client_msg(
+                let work_future = Self::handle_client_msg(
                     &mut server_emitter,
                     &mut new_chat_msgs,
                     &player_list,
@@ -499,9 +521,10 @@ impl<'a> System<'a> for Sys {
                     entity,
                     client,
                     &mut cnt,
-
                     &character_loader,
                     &terrain,
+                    &network_metrics,
+                    &player_metrics,
                     &uids,
                     &can_build,
                     &force_updates,
@@ -518,7 +541,10 @@ impl<'a> System<'a> for Sys {
                     &mut controllers,
                     &settings,
                     &alias_validator,
-                    ).fuse() => err,
+                );
+                select!(
+                    _ = Delay::new(std::time::Duration::from_micros(20)).fuse() => Ok(()),
+                    err = work_future.fuse() => err,
                 )
             });
 
@@ -529,11 +555,19 @@ impl<'a> System<'a> for Sys {
             // Timeout
             {
                 info!(?entity, "timeout error with client, disconnecting");
+                player_metrics
+                    .players_disconnected
+                    .with_label_values(&["timeout"])
+                    .inc();
                 server_emitter.emit(ServerEvent::ClientDisconnect(entity));
             } else if network_err.is_err()
             // Postbox error
             {
                 debug!(?entity, "postbox error with client, disconnecting");
+                player_metrics
+                    .players_disconnected
+                    .with_label_values(&["network_error"])
+                    .inc();
                 server_emitter.emit(ServerEvent::ClientDisconnect(entity));
             } else if time.0 - client.last_ping > settings.client_timeout.as_secs() as f64 * 0.5 {
                 // Try pinging the client if the timeout is nearing.
