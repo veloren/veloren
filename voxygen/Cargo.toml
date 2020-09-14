@@ -35,8 +35,8 @@ winit = {version = "0.22.2", features = ["serde"]}
 conrod_core = {git = "https://gitlab.com/veloren/conrod.git", branch="copypasta_0.7"}
 conrod_winit = {git = "https://gitlab.com/veloren/conrod.git", branch="copypasta_0.7"}
 euc = {git = "https://github.com/zesterer/euc.git"}
-iced = {package = "iced_native", git = "https://github.com/hecrj/iced", rev = "b5d842f"}
-iced_winit = {git = "https://github.com/hecrj/iced", rev = "b5d842f"}
+iced = {package = "iced_native", git = "https://github.com/hecrj/iced", rev = "4f2962d"}
+iced_winit = {git = "https://github.com/hecrj/iced", rev = "4f2962d"}
 window_clipboard = "0.1.1"
 glyph_brush = "0.7.0"
 

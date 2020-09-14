@@ -152,11 +152,13 @@ impl IcedUi {
         );
 
         let messages = user_interface.update(
-            self.events.drain(..),
+            &self.events,
             cursor_position,
             Some(&self.clipboard),
             &mut self.renderer,
         );
+        // Clear events
+        self.events.clear();
 
         let (primitive, mouse_interaction) =
             user_interface.draw(&mut self.renderer, cursor_position);

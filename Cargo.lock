@@ -1847,9 +1847,9 @@ dependencies = [
 
 [[package]]
 name = "glam"
-version = "0.8.7"
+version = "0.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b00572b5b10070ac495be20a25b4c8d379d20bcdec8ea0c870022b620ec79b20"
+checksum = "8637c7ec4fd0776c51eeab3e0d5d1aa7e440ece3fc2ee7d674e13c957287bfc1"
 
 [[package]]
 name = "glob"
@@ -2158,12 +2158,12 @@ dependencies = [
 [[package]]
 name = "iced_core"
 version = "0.2.1"
-source = "git+https://github.com/hecrj/iced?rev=b5d842f#b5d842f877145c78f5d595a87cc1927bb6f5b86a"
+source = "git+https://github.com/hecrj/iced?rev=4f2962d#4f2962d73f3bdeeca8a11817e404c45e91e2c2cc"
 
 [[package]]
 name = "iced_futures"
 version = "0.1.2"
-source = "git+https://github.com/hecrj/iced?rev=b5d842f#b5d842f877145c78f5d595a87cc1927bb6f5b86a"
+source = "git+https://github.com/hecrj/iced?rev=4f2962d#4f2962d73f3bdeeca8a11817e404c45e91e2c2cc"
 dependencies = [
  "futures 0.3.5",
  "log",
@@ -2173,19 +2173,20 @@ dependencies = [
 [[package]]
 name = "iced_graphics"
 version = "0.1.0"
-source = "git+https://github.com/hecrj/iced?rev=b5d842f#b5d842f877145c78f5d595a87cc1927bb6f5b86a"
+source = "git+https://github.com/hecrj/iced?rev=4f2962d#4f2962d73f3bdeeca8a11817e404c45e91e2c2cc"
 dependencies = [
  "bytemuck",
  "glam",
  "iced_native",
  "iced_style",
  "raw-window-handle",
+ "thiserror",
 ]
 
 [[package]]
 name = "iced_native"
 version = "0.2.2"
-source = "git+https://github.com/hecrj/iced?rev=b5d842f#b5d842f877145c78f5d595a87cc1927bb6f5b86a"
+source = "git+https://github.com/hecrj/iced?rev=4f2962d#4f2962d73f3bdeeca8a11817e404c45e91e2c2cc"
 dependencies = [
  "iced_core",
  "iced_futures",
@@ -2197,7 +2198,7 @@ dependencies = [
 [[package]]
 name = "iced_style"
 version = "0.1.0"
-source = "git+https://github.com/hecrj/iced?rev=b5d842f#b5d842f877145c78f5d595a87cc1927bb6f5b86a"
+source = "git+https://github.com/hecrj/iced?rev=4f2962d#4f2962d73f3bdeeca8a11817e404c45e91e2c2cc"
 dependencies = [
  "iced_core",
 ]
@@ -2205,11 +2206,13 @@ dependencies = [
 [[package]]
 name = "iced_winit"
 version = "0.1.1"
-source = "git+https://github.com/hecrj/iced?rev=b5d842f#b5d842f877145c78f5d595a87cc1927bb6f5b86a"
+source = "git+https://github.com/hecrj/iced?rev=4f2962d#4f2962d73f3bdeeca8a11817e404c45e91e2c2cc"
 dependencies = [
+ "iced_futures",
  "iced_graphics",
  "iced_native",
  "log",
+ "thiserror",
  "winapi 0.3.9",
  "window_clipboard",
  "winit",
