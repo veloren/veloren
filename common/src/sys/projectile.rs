@@ -4,12 +4,15 @@ use crate::{
         Loadout, Ori, PhysicsState, Pos, Projectile, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
+    metrics::SysMetrics,
     span,
     state::DeltaTime,
     sync::UidAllocator,
     util::Dir,
 };
-use specs::{saveload::MarkerAllocator, Entities, Join, Read, ReadStorage, System, WriteStorage};
+use specs::{
+    saveload::MarkerAllocator, Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage,
+};
 use std::time::Duration;
 use vek::*;
 
@@ -23,6 +26,7 @@ impl<'a> System<'a> for Sys {
         Read<'a, UidAllocator>,
         Read<'a, EventBus<LocalEvent>>,
         Read<'a, EventBus<ServerEvent>>,
+        ReadExpect<'a, SysMetrics>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, PhysicsState>,
         ReadStorage<'a, Vel>,
@@ -40,6 +44,7 @@ impl<'a> System<'a> for Sys {
             uid_allocator,
             local_bus,
             server_bus,
+            sys_metrics,
             positions,
             physics_states,
             velocities,
@@ -49,6 +54,7 @@ impl<'a> System<'a> for Sys {
             loadouts,
         ): Self::SystemData,
     ) {
+        let start_time = std::time::Instant::now();
         span!(_guard, "run", "projectile::Sys::run");
         let mut local_emitter = local_bus.emitter();
         let mut server_emitter = server_bus.emitter();
@@ -190,5 +196,9 @@ impl<'a> System<'a> for Sys {
                 .checked_sub(Duration::from_secs_f32(dt.0))
                 .unwrap_or_default();
         }
+        sys_metrics.projectile_ns.store(
+            start_time.elapsed().as_nanos() as i64,
+            std::sync::atomic::Ordering::Relaxed,
+        );
     }
 }

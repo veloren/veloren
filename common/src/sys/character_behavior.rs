@@ -4,6 +4,7 @@ use crate::{
         Loadout, Mounting, Ori, PhysicsState, Pos, StateUpdate, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
+    metrics::SysMetrics,
     span,
     state::DeltaTime,
     states,
@@ -13,7 +14,8 @@ use crate::{
 use specs::{
     hibitset,
     storage::{PairedStorage, SequentialRestriction},
-    Entities, Entity, FlaggedStorage, Join, LazyUpdate, Read, ReadStorage, System, WriteStorage,
+    Entities, Entity, FlaggedStorage, Join, LazyUpdate, Read, ReadExpect, ReadStorage, System,
+    WriteStorage,
 };
 use specs_idvs::IdvStorage;
 
@@ -144,6 +146,7 @@ impl<'a> System<'a> for Sys {
         Read<'a, EventBus<LocalEvent>>,
         Read<'a, DeltaTime>,
         Read<'a, LazyUpdate>,
+        ReadExpect<'a, SysMetrics>,
         WriteStorage<'a, CharacterState>,
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
@@ -169,6 +172,7 @@ impl<'a> System<'a> for Sys {
             local_bus,
             dt,
             updater,
+            sys_metrics,
             mut character_states,
             mut positions,
             mut velocities,
@@ -184,6 +188,7 @@ impl<'a> System<'a> for Sys {
             mountings,
         ): Self::SystemData,
     ) {
+        let start_time = std::time::Instant::now();
         span!(_guard, "run", "character_behavior::Sys::run");
         let mut server_emitter = server_bus.emitter();
         let mut local_emitter = local_bus.emitter();
@@ -287,5 +292,9 @@ impl<'a> System<'a> for Sys {
             server_emitter.append(&mut state_update.server_events);
             incorporate_update(&mut tuple, state_update);
         }
+        sys_metrics.character_behavior_ns.store(
+            start_time.elapsed().as_nanos() as i64,
+            std::sync::atomic::Ordering::Relaxed,
+        );
     }
 }
