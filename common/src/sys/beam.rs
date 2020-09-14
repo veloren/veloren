@@ -189,36 +189,44 @@ impl<'a> System<'a> for Sys {
                         damage.modify_damage(block, loadout);
                     }
 
-                    if damage.healthchange != 0.0 {
-                        let cause = if is_heal {
-                            HealthSource::Healing { by: beam.owner }
-                        } else {
-                            HealthSource::Energy { owner: beam.owner }
-                        };
+                    if is_damage {
                         server_emitter.emit(ServerEvent::Damage {
                             uid: *uid_b,
                             change: HealthChange {
                                 amount: damage.healthchange as i32,
-                                cause,
+                                cause: HealthSource::Energy { owner: beam.owner },
                             },
                         });
-                        if is_damage && beam.lifesteal_eff > 0.0 {
-                            server_emitter.emit(ServerEvent::Damage {
-                                uid: beam.owner.unwrap_or(*uid),
-                                change: HealthChange {
-                                    amount: (-damage.healthchange * beam.lifesteal_eff) as i32,
-                                    cause: HealthSource::Healing { by: beam.owner },
-                                },
-                            });
+                        server_emitter.emit(ServerEvent::Damage {
+                            uid: beam.owner.unwrap_or(*uid),
+                            change: HealthChange {
+                                amount: (-damage.healthchange * beam.lifesteal_eff) as i32,
+                                cause: HealthSource::Healing { by: beam.owner },
+                            },
+                        });
+                        if let Some(energy_mut) = beam
+                            .owner
+                            .and_then(|o| uid_allocator.retrieve_entity_internal(o.into()))
+                            .and_then(|o| energies.get_mut(o))
+                        {
+                            energy_mut
+                                .change_by(beam.energy_regen as i32, EnergySource::HitEnemy);
                         }
-                        if is_damage || stats_b.health.current() != stats_b.health.maximum() {
-                            if let Some(energy_mut) = beam
-                                .owner
-                                .and_then(|o| uid_allocator.retrieve_entity_internal(o.into()))
-                                .and_then(|o| energies.get_mut(o))
-                            {
-                                energy_mut
-                                    .change_by(beam.energy_regen as i32, EnergySource::HitEnemy);
+                    }
+                    if is_heal {
+                        if let Some(energy_mut) = beam
+                            .owner
+                            .and_then(|o| uid_allocator.retrieve_entity_internal(o.into()))
+                            .and_then(|o| energies.get_mut(o))
+                        {
+                            if energy_mut.try_change_by(-(beam.energy_regen as i32), EnergySource::Ability).is_ok() {
+                                server_emitter.emit(ServerEvent::Damage {
+                                    uid: *uid_b,
+                                    change: HealthChange {
+                                        amount: damage.healthchange as i32,
+                                        cause: HealthSource::Healing { by: beam.owner },
+                                    },
+                                });
                             }
                         }
                     }

@@ -46,6 +46,11 @@ impl CharacterBehavior for Data {
         handle_move(data, &mut update, 0.4);
         handle_jump(data, &mut update);
 
+        if unwrap_tool_data(data).is_none() {
+            update.character = CharacterState::Idle;
+            return update;
+        }
+
         if self.buildup_duration != Duration::default() {
             // Build up
             update.character = CharacterState::BasicBeam(Data {
