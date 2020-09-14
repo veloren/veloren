@@ -10,6 +10,7 @@ use crate::{
         Vel,
     },
     event::{EventBus, ServerEvent},
+    metrics::SysMetrics,
     path::{Chaser, TraversalConfig},
     span,
     state::{DeltaTime, Time},
@@ -34,6 +35,7 @@ impl<'a> System<'a> for Sys {
         Read<'a, Time>,
         Read<'a, DeltaTime>,
         Read<'a, group::GroupManager>,
+        ReadExpect<'a, SysMetrics>,
         Write<'a, EventBus<ServerEvent>>,
         Entities<'a>,
         ReadStorage<'a, Pos>,
@@ -63,6 +65,7 @@ impl<'a> System<'a> for Sys {
             time,
             dt,
             group_manager,
+            sys_metrics,
             event_bus,
             entities,
             positions,
@@ -84,6 +87,7 @@ impl<'a> System<'a> for Sys {
             invites,
         ): Self::SystemData,
     ) {
+        let start_time = std::time::Instant::now();
         span!(_guard, "run", "agent::Sys::run");
         for (
             entity,
@@ -572,5 +576,9 @@ impl<'a> System<'a> for Sys {
                     .push(ControlEvent::GroupManip(GroupManip::Decline));
             }
         }
+        sys_metrics.agent_ns.store(
+            start_time.elapsed().as_nanos() as i64,
+            std::sync::atomic::Ordering::Relaxed,
+        );
     }
 }

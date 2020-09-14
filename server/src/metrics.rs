@@ -1,5 +1,6 @@
 use prometheus::{
-    Encoder, Gauge, IntCounter, IntCounterVec, IntGauge, IntGaugeVec, Opts, Registry, TextEncoder,
+    Encoder, Gauge, HistogramOpts, HistogramVec, IntCounter, IntCounterVec, IntGauge, IntGaugeVec,
+    Opts, Registry, TextEncoder,
 };
 use std::{
     convert::TryInto,
@@ -16,6 +17,13 @@ use tracing::{debug, error};
 
 type RegistryFn = Box<dyn FnOnce(&Registry) -> Result<(), prometheus::Error>>;
 
+pub struct StateTickMetrics {
+    // Counter will only give us granularity on pool speed (2s?) for actuall spike detection we
+    // need the Historgram
+    pub state_tick_time_hist: HistogramVec,
+    pub state_tick_time_count: IntCounterVec,
+}
+
 pub struct PlayerMetrics {
     pub players_connected: IntCounter,
     pub players_disconnected: IntCounterVec, // timeout, network_error, gracefully
@@ -23,7 +31,7 @@ pub struct PlayerMetrics {
 
 pub struct NetworkRequestMetrics {
     pub chunks_request_dropped: IntCounter,
-    pub chunks_served_from_cache: IntCounter,
+    pub chunks_served_from_memory: IntCounter,
     pub chunks_generation_triggered: IntCounter,
 }
 
@@ -50,6 +58,57 @@ pub struct ServerMetrics {
     handle: Option<thread::JoinHandle<()>>,
     registry: Option<Registry>,
     tick: Arc<AtomicU64>,
+}
+
+impl StateTickMetrics {
+    pub fn new() -> Result<(Self, RegistryFn), prometheus::Error> {
+        let bucket = vec![
+            Duration::from_micros(1).as_secs_f64(),
+            Duration::from_micros(10).as_secs_f64(),
+            Duration::from_micros(100).as_secs_f64(),
+            Duration::from_micros(200).as_secs_f64(),
+            Duration::from_micros(400).as_secs_f64(),
+            Duration::from_millis(2).as_secs_f64(),
+            Duration::from_millis(5).as_secs_f64(),
+            Duration::from_millis(10).as_secs_f64(),
+            Duration::from_millis(20).as_secs_f64(),
+            Duration::from_millis(30).as_secs_f64(),
+            Duration::from_millis(50).as_secs_f64(),
+            Duration::from_millis(100).as_secs_f64(),
+        ];
+        let state_tick_time_hist = HistogramVec::new(
+            HistogramOpts::new(
+                "state_tick_time_hist",
+                "shows the number of clients joined to the server",
+            )
+            .buckets(bucket),
+            &["system"],
+        )?;
+        let state_tick_time_count = IntCounterVec::new(
+            Opts::new(
+                "state_tick_time_count",
+                "shows the detailed time inside the `state_tick` for each system",
+            ),
+            &["system"],
+        )?;
+
+        let state_tick_time_hist_clone = state_tick_time_hist.clone();
+        let state_tick_time_count_clone = state_tick_time_count.clone();
+
+        let f = |registry: &Registry| {
+            registry.register(Box::new(state_tick_time_hist_clone))?;
+            registry.register(Box::new(state_tick_time_count_clone))?;
+            Ok(())
+        };
+
+        Ok((
+            Self {
+                state_tick_time_hist,
+                state_tick_time_count,
+            },
+            Box::new(f),
+        ))
+    }
 }
 
 impl PlayerMetrics {
@@ -91,8 +150,8 @@ impl NetworkRequestMetrics {
             "chunks_request_dropped",
             "number of all chunk request dropped, e.g because the player was to far away",
         ))?;
-        let chunks_served_from_cache = IntCounter::with_opts(Opts::new(
-            "chunks_served_from_cache",
+        let chunks_served_from_memory = IntCounter::with_opts(Opts::new(
+            "chunks_served_from_memory",
             "number of all requested chunks already generated and could be served out of cache",
         ))?;
         let chunks_generation_triggered = IntCounter::with_opts(Opts::new(
@@ -101,12 +160,12 @@ impl NetworkRequestMetrics {
         ))?;
 
         let chunks_request_dropped_clone = chunks_request_dropped.clone();
-        let chunks_served_from_cache_clone = chunks_served_from_cache.clone();
+        let chunks_served_from_memory_clone = chunks_served_from_memory.clone();
         let chunks_generation_triggered_clone = chunks_generation_triggered.clone();
 
         let f = |registry: &Registry| {
             registry.register(Box::new(chunks_request_dropped_clone))?;
-            registry.register(Box::new(chunks_served_from_cache_clone))?;
+            registry.register(Box::new(chunks_served_from_memory_clone))?;
             registry.register(Box::new(chunks_generation_triggered_clone))?;
             Ok(())
         };
@@ -114,7 +173,7 @@ impl NetworkRequestMetrics {
         Ok((
             Self {
                 chunks_request_dropped,
-                chunks_served_from_cache,
+                chunks_served_from_memory,
                 chunks_generation_triggered,
             },
             Box::new(f),

@@ -4,6 +4,7 @@ use crate::{
         Sticky, Vel,
     },
     event::{EventBus, ServerEvent},
+    metrics::SysMetrics,
     span,
     state::DeltaTime,
     sync::{Uid, UidAllocator},
@@ -55,6 +56,7 @@ impl<'a> System<'a> for Sys {
         ReadExpect<'a, TerrainGrid>,
         Read<'a, DeltaTime>,
         Read<'a, UidAllocator>,
+        ReadExpect<'a, SysMetrics>,
         Read<'a, EventBus<ServerEvent>>,
         ReadStorage<'a, Scale>,
         ReadStorage<'a, Sticky>,
@@ -80,6 +82,7 @@ impl<'a> System<'a> for Sys {
             terrain,
             dt,
             uid_allocator,
+            sys_metrics,
             event_bus,
             scales,
             stickies,
@@ -95,6 +98,7 @@ impl<'a> System<'a> for Sys {
             projectiles,
         ): Self::SystemData,
     ) {
+        let start_time = std::time::Instant::now();
         span!(_guard, "run", "phys::Sys::run");
         let mut event_emitter = event_bus.emitter();
 
@@ -658,5 +662,9 @@ impl<'a> System<'a> for Sys {
         land_on_grounds.into_iter().for_each(|(entity, vel)| {
             event_emitter.emit(ServerEvent::LandOnGround { entity, vel: vel.0 });
         });
+        sys_metrics.phys_ns.store(
+            start_time.elapsed().as_nanos() as i64,
+            std::sync::atomic::Ordering::Relaxed,
+        );
     }
 }

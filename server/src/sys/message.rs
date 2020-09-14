@@ -338,7 +338,7 @@ impl Sys {
                         if in_vd {
                             match terrain.get_key(key) {
                                 Some(chunk) => {
-                                    network_metrics.chunks_served_from_cache.inc();
+                                    network_metrics.chunks_served_from_memory.inc();
                                     client.notify(ServerMsg::TerrainChunkUpdate {
                                         key,
                                         chunk: Ok(Box::new(chunk.clone())),

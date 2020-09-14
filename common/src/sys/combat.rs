@@ -4,11 +4,12 @@ use crate::{
         Loadout, Ori, Pos, Scale, Stats,
     },
     event::{EventBus, LocalEvent, ServerEvent},
+    metrics::SysMetrics,
     span,
     sync::Uid,
     util::Dir,
 };
-use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
 use vek::*;
 
 pub const BLOCK_EFFICIENCY: f32 = 0.9;
@@ -23,6 +24,7 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         Read<'a, EventBus<ServerEvent>>,
         Read<'a, EventBus<LocalEvent>>,
+        ReadExpect<'a, SysMetrics>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Ori>,
@@ -41,6 +43,7 @@ impl<'a> System<'a> for Sys {
             entities,
             server_bus,
             local_bus,
+            sys_metrics,
             uids,
             positions,
             orientations,
@@ -53,6 +56,7 @@ impl<'a> System<'a> for Sys {
             character_states,
         ): Self::SystemData,
     ) {
+        let start_time = std::time::Instant::now();
         span!(_guard, "run", "combat::Sys::run");
         let mut server_emitter = server_bus.emitter();
         let mut local_emitter = local_bus.emitter();
@@ -160,5 +164,9 @@ impl<'a> System<'a> for Sys {
                 }
             }
         }
+        sys_metrics.combat_ns.store(
+            start_time.elapsed().as_nanos() as i64,
+            std::sync::atomic::Ordering::Relaxed,
+        );
     }
 }
