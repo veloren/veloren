@@ -9,7 +9,7 @@ use common::{
     cmd::{ChatCommand, CHAT_COMMANDS, CHAT_SHORTCUTS},
     comp::{self, item::ItemAsset, ChatType, Item, LightEmitter, WaypointArea},
     event::{EventBus, ServerEvent},
-    msg::{Notification, PlayerListUpdate, ServerMsg},
+    msg::{DisconnectReason, Notification, PlayerListUpdate, ServerMsg},
     npc::{self, get_npc_name},
     state::TimeOfDay,
     sync::{Uid, WorldSyncExt},
@@ -1821,7 +1821,10 @@ fn kick_player(server: &mut Server, target_player: EcsEntity, reason: &str) {
         .ecs()
         .read_resource::<EventBus<ServerEvent>>()
         .emit_now(ServerEvent::ClientDisconnect(target_player));
-    server.notify_client(target_player, ServerMsg::Kicked(reason.to_string()));
+    server.notify_client(
+        target_player,
+        ServerMsg::Disconnect(DisconnectReason::Kicked(reason.to_string())),
+    );
 }
 
 fn handle_kick(

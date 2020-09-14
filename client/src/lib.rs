@@ -23,9 +23,9 @@ use common::{
         InventoryManip, InventoryUpdateEvent,
     },
     msg::{
-        validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, InviteAnswer,
-        Notification, PlayerInfo, PlayerListUpdate, RegisterError, RequestStateError, ServerInfo,
-        ServerMsg, MAX_BYTES_CHAT_MSG,
+        validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, DisconnectReason,
+        InviteAnswer, Notification, PlayerInfo, PlayerListUpdate, RegisterError, RequestStateError,
+        ServerInfo, ServerMsg, MAX_BYTES_CHAT_MSG,
     },
     outcome::Outcome,
     recipe::RecipeBook,
@@ -1110,7 +1110,20 @@ impl Client {
                 ServerMsg::TooManyPlayers => {
                     return Err(Error::ServerWentMad);
                 },
-                ServerMsg::Shutdown => return Err(Error::ServerShutdown),
+                ServerMsg::Disconnect(reason) => match reason {
+                    DisconnectReason::Shutdown => return Err(Error::ServerShutdown),
+                    DisconnectReason::Requested => {
+                        debug!("finally sending ClientMsg::Terminate");
+                        frontend_events.push(Event::Disconnect);
+                        self.singleton_stream.send(ClientMsg::Terminate)?;
+                        break Ok(());
+                    },
+                    DisconnectReason::Kicked(reason) => {
+                        debug!("sending ClientMsg::Terminate because we got kicked");
+                        frontend_events.push(Event::Kicked(reason.clone()));
+                        self.singleton_stream.send(ClientMsg::Terminate)?;
+                    },
+                },
                 ServerMsg::InitialSync { .. } => return Err(Error::ServerWentMad),
                 ServerMsg::PlayerListUpdate(PlayerListUpdate::Init(list)) => {
                     self.player_list = list
@@ -1389,16 +1402,6 @@ impl Client {
                         "StateAnswer: {:?}. Server thinks client is in state {:?}.",
                         error, state
                     );
-                },
-                ServerMsg::Disconnect => {
-                    debug!("finally sending ClientMsg::Terminate");
-                    frontend_events.push(Event::Disconnect);
-                    self.singleton_stream.send(ClientMsg::Terminate)?;
-                    break Ok(());
-                },
-                ServerMsg::Kicked(reason) => {
-                    frontend_events.push(Event::Kicked(reason.clone()));
-                    self.singleton_stream.send(ClientMsg::Terminate)?;
                 },
                 ServerMsg::CharacterListUpdate(character_list) => {
                     self.character_list.characters = character_list;

@@ -11,7 +11,8 @@ use common::{
     event::{EventBus, ServerEvent},
     msg::{
         validate_chat_msg, CharacterInfo, ChatMsgValidationError, ClientMsg, ClientState,
-        PlayerInfo, PlayerListUpdate, RequestStateError, ServerMsg, MAX_BYTES_CHAT_MSG,
+        DisconnectReason, PlayerInfo, PlayerListUpdate, RequestStateError, ServerMsg,
+        MAX_BYTES_CHAT_MSG,
     },
     span,
     state::{BlockChange, Time},
@@ -342,7 +343,7 @@ impl Sys {
                 ClientMsg::Ping => client.notify(ServerMsg::Pong),
                 ClientMsg::Pong => {},
                 ClientMsg::Disconnect => {
-                    client.notify(ServerMsg::Disconnect);
+                    client.notify(ServerMsg::Disconnect(DisconnectReason::Requested));
                 },
                 ClientMsg::Terminate => {
                     debug!(?entity, "Client send message to termitate session");
