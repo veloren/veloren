@@ -1,4 +1,4 @@
-use authc::{AuthClient, AuthToken, Uuid};
+use authc::{AuthClient, AuthClientError, AuthToken, Uuid};
 use common::msg::RegisterError;
 use hashbrown::HashMap;
 use std::str::FromStr;
@@ -53,12 +53,19 @@ impl LoginProvider {
         &mut self,
         username_or_token: &str,
         whitelist: &[String],
+        banlist: &HashMap<Uuid, (String, String)>,
     ) -> Result<(String, Uuid), RegisterError> {
         self
             // resolve user information
             .query(username_or_token)
             // if found, check name against whitelist or if user is admin
             .and_then(|(username, uuid)| {
+                // user cannot join if they are listed on the banlist
+                if let Some(ban_record) = banlist.get(&uuid) {
+                    // Pull reason string out of ban record and send a copy of it
+                    return Err(RegisterError::Banned(ban_record.1.clone()));
+                }
+
                 // user can only join if he is admin, the whitelist is empty (everyone can join)
                 // or his name is in the whitelist
                 if !whitelist.is_empty() && !whitelist.contains(&username) {
@@ -95,5 +102,12 @@ impl LoginProvider {
                 Ok((username.to_string(), uuid))
             },
         }
+    }
+
+    pub fn username_to_uuid(&self, username: &str) -> Result<Uuid, AuthClientError> {
+        self.auth_server.as_ref().map_or_else(
+            || Ok(derive_uuid(username)),
+            |auth| auth.username_to_uuid(&username),
+        )
     }
 }
