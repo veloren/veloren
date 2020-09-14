@@ -1,3 +1,5 @@
+use authc::Uuid;
+use hashbrown::HashMap;
 use portpicker::pick_unused_port;
 use serde::{Deserialize, Serialize};
 use std::{fs, io::prelude::*, net::SocketAddr, path::PathBuf, time::Duration};
@@ -20,6 +22,7 @@ pub struct ServerSettings {
     pub start_time: f64,
     pub admins: Vec<String>,
     pub whitelist: Vec<String>,
+    pub banlist: HashMap<Uuid, (String, String)>,
     /// When set to None, loads the default map file (if available); otherwise,
     /// uses the value of the file options to decide how to proceed.
     pub map_file: Option<FileOpts>,
@@ -44,6 +47,7 @@ impl Default for ServerSettings {
             map_file: None,
             admins: Vec::new(),
             whitelist: Vec::new(),
+            banlist: HashMap::new(),
             persistence_db_dir: "saves".to_owned(),
             max_view_distance: Some(30),
             banned_words_files: Vec::new(),

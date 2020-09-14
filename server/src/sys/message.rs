@@ -11,7 +11,8 @@ use common::{
     event::{EventBus, ServerEvent},
     msg::{
         validate_chat_msg, CharacterInfo, ChatMsgValidationError, ClientMsg, ClientState,
-        PlayerInfo, PlayerListUpdate, RequestStateError, ServerMsg, MAX_BYTES_CHAT_MSG,
+        DisconnectReason, PlayerInfo, PlayerListUpdate, RequestStateError, ServerMsg,
+        MAX_BYTES_CHAT_MSG,
     },
     span,
     state::{BlockChange, Time},
@@ -88,14 +89,17 @@ impl Sys {
                     view_distance,
                     token_or_username,
                 } => {
-                    let (username, uuid) =
-                        match login_provider.try_login(&token_or_username, &settings.whitelist) {
-                            Err(err) => {
-                                client.error_state(RequestStateError::RegisterDenied(err));
-                                break Ok(());
-                            },
-                            Ok((username, uuid)) => (username, uuid),
-                        };
+                    let (username, uuid) = match login_provider.try_login(
+                        &token_or_username,
+                        &settings.whitelist,
+                        &settings.banlist,
+                    ) {
+                        Err(err) => {
+                            client.error_state(RequestStateError::RegisterDenied(err));
+                            break Ok(());
+                        },
+                        Ok((username, uuid)) => (username, uuid),
+                    };
 
                     let vd =
                         view_distance.map(|vd| vd.min(settings.max_view_distance.unwrap_or(vd)));
@@ -339,7 +343,7 @@ impl Sys {
                 ClientMsg::Ping => client.notify(ServerMsg::Pong),
                 ClientMsg::Pong => {},
                 ClientMsg::Disconnect => {
-                    client.notify(ServerMsg::Disconnect);
+                    client.notify(ServerMsg::Disconnect(DisconnectReason::Requested));
                 },
                 ClientMsg::Terminate => {
                     debug!(?entity, "Client send message to termitate session");

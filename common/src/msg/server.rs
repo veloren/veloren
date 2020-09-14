@@ -182,6 +182,16 @@ pub enum Notification {
     WaypointSaved,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum DisconnectReason {
+    /// Server shut down
+    Shutdown,
+    /// Client sent disconnect message
+    Requested,
+    /// Client was kicked
+    Kicked(String),
+}
+
 /// Messages sent from the server to the client
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ServerMsg {
@@ -238,8 +248,7 @@ pub enum ServerMsg {
         chunk: Result<Box<TerrainChunk>, ()>,
     },
     TerrainBlockUpdates(HashMap<Vec3<i32>, Block>),
-    Disconnect,
-    Shutdown,
+    Disconnect(DisconnectReason),
     TooManyPlayers,
     /// Send a popup notification such as "Waypoint Saved"
     Notification(Notification),
@@ -260,6 +269,7 @@ pub enum RequestStateError {
 pub enum RegisterError {
     AlreadyLoggedIn,
     AuthError(String),
+    Banned(String),
     InvalidCharacter,
     NotOnWhitelist,
     //TODO: InvalidAlias,

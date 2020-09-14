@@ -7,8 +7,8 @@ pub use self::{
     client::ClientMsg,
     ecs_packet::EcsCompPacket,
     server::{
-        CharacterInfo, InviteAnswer, Notification, PlayerInfo, PlayerListUpdate, RegisterError,
-        RequestStateError, ServerInfo, ServerMsg,
+        CharacterInfo, DisconnectReason, InviteAnswer, Notification, PlayerInfo, PlayerListUpdate,
+        RegisterError, RequestStateError, ServerInfo, ServerMsg,
     },
 };
 use serde::{Deserialize, Serialize};

@@ -125,6 +125,11 @@ impl PlayState for MainMenuState {
                             client::Error::NotOnWhitelist => {
                                 localized_strings.get("main.login.not_on_whitelist").into()
                             },
+                            client::Error::Banned(reason) => format!(
+                                "{}: {}",
+                                localized_strings.get("main.login.banned"),
+                                reason
+                            ),
                             client::Error::InvalidCharacter => {
                                 localized_strings.get("main.login.invalid_character").into()
                             },

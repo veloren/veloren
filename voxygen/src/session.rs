@@ -163,6 +163,14 @@ impl SessionState {
                         message,
                     });
                 },
+                client::Event::Kicked(reason) => {
+                    global_state.info_message = Some(format!(
+                        "{}: {}",
+                        self.voxygen_i18n.get("main.login.kicked").to_string(),
+                        reason
+                    ));
+                    return Ok(TickAction::Disconnect);
+                },
                 client::Event::Notification(n) => {
                     self.hud.new_notification(n);
                 },

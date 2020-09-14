@@ -34,7 +34,7 @@ use common::{
     cmd::ChatCommand,
     comp::{self, ChatType},
     event::{EventBus, ServerEvent},
-    msg::{server::WorldMapMsg, ClientState, ServerInfo, ServerMsg},
+    msg::{server::WorldMapMsg, ClientState, DisconnectReason, ServerInfo, ServerMsg},
     outcome::Outcome,
     recipe::default_recipe_book,
     state::{State, TimeOfDay},
@@ -817,5 +817,8 @@ impl Server {
 }
 
 impl Drop for Server {
-    fn drop(&mut self) { self.state.notify_registered_clients(ServerMsg::Shutdown); }
+    fn drop(&mut self) {
+        self.state
+            .notify_registered_clients(ServerMsg::Disconnect(DisconnectReason::Shutdown));
+    }
 }
