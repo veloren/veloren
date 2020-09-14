@@ -1,7 +1,7 @@
 use super::super::{super::Rotation, style, IcedRenderer, Primitive};
 use common::util::srgba_to_linear;
-use iced::{slider, mouse, Rectangle, Point};
 use core::ops::RangeInclusive;
+use iced::{mouse, slider, Point, Rectangle};
 use style::slider::{Bar, Cursor, Style};
 
 const CURSOR_WIDTH: f32 = 10.0;
@@ -10,7 +10,9 @@ const BAR_HEIGHT: f32 = 18.0;
 
 impl slider::Renderer for IcedRenderer {
     type Style = Style;
-    fn height(&self) -> u32 { 20 }
+
+    const DEFAULT_HEIGHT: u16 = 20;
+
     fn draw(
         &mut self,
         bounds: Rectangle,
@@ -18,9 +20,8 @@ impl slider::Renderer for IcedRenderer {
         range: RangeInclusive<f32>,
         value: f32,
         is_dragging: bool,
-        style: &Self::Style
+        style: &Self::Style,
     ) -> Self::Output {
-
         let bar_bounds = Rectangle {
             height: BAR_HEIGHT,
             ..bounds
@@ -38,7 +39,7 @@ impl slider::Renderer for IcedRenderer {
         };
 
         let (max, min) = range.into_inner();
-        let offset = bounds.width as f32 * (max - min ) / (value - min);
+        let offset = bounds.width as f32 * (max - min) / (value - min);
         let cursor_bounds = Rectangle {
             x: bounds.x + offset - CURSOR_WIDTH / 2.0,
             y: bounds.y + if is_dragging { 2.0 } else { 0.0 },
@@ -74,6 +75,6 @@ impl slider::Renderer for IcedRenderer {
             // TODO Cursor text label
             vec![bar, cursor]
         };
-        (Primitive::Group{primitives}, interaction)
+        (Primitive::Group { primitives }, interaction)
     }
 }

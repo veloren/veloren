@@ -781,6 +781,29 @@ impl iced::Renderer for IcedRenderer {
 
         node
     }
+
+    fn overlay(
+        &mut self,
+        (base_primitive, base_interaction): Self::Output,
+        (overlay_primitive, overlay_interaction): Self::Output,
+        overlay_bounds: iced::Rectangle,
+    ) -> Self::Output {
+        (
+            Primitive::Group {
+                primitives: vec![base_primitive, Primitive::Clip {
+                    bounds: iced::Rectangle {
+                        // TODO: do we need this + 0.5?
+                        width: overlay_bounds.width + 0.5,
+                        height: overlay_bounds.height + 0.5,
+                        ..overlay_bounds
+                    },
+                    offset: Vec2::new(0, 0),
+                    content: Box::new(overlay_primitive),
+                }],
+            },
+            base_interaction.max(overlay_interaction),
+        )
+    }
 }
 
 // TODO: impl Debugger

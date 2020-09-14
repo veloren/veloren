@@ -11,13 +11,7 @@ const CURSOR_WIDTH: f32 = 2.0;
 const EXTRA_OFFSET: f32 = 10.0;
 
 impl text_input::Renderer for IcedRenderer {
-    type Font = FontId;
     type Style = ();
-
-    fn default_size(&self) -> u16 {
-        // TODO: make configurable
-        20
-    }
 
     fn measure_value(&self, value: &str, size: u16, font: Self::Font) -> f32 {
         // Using the physical scale might make this cached info usable below?
