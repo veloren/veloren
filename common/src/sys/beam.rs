@@ -209,8 +209,7 @@ impl<'a> System<'a> for Sys {
                             .and_then(|o| uid_allocator.retrieve_entity_internal(o.into()))
                             .and_then(|o| energies.get_mut(o))
                         {
-                            energy_mut
-                                .change_by(beam.energy_regen as i32, EnergySource::HitEnemy);
+                            energy_mut.change_by(beam.energy_regen as i32, EnergySource::HitEnemy);
                         }
                     }
                     if is_heal {
@@ -219,7 +218,13 @@ impl<'a> System<'a> for Sys {
                             .and_then(|o| uid_allocator.retrieve_entity_internal(o.into()))
                             .and_then(|o| energies.get_mut(o))
                         {
-                            if energy_mut.try_change_by(-(beam.energy_regen as i32), EnergySource::Ability).is_ok() {
+                            if energy_mut
+                                .try_change_by(
+                                    -(beam.energy_regen as i32 * 2), // Stamina use
+                                    EnergySource::Ability,
+                                )
+                                .is_ok()
+                            {
                                 server_emitter.emit(ServerEvent::Damage {
                                     uid: *uid_b,
                                     change: HealthChange {
