@@ -1255,7 +1255,7 @@ impl Hud {
                             + 100.0;
                         // Timer sets text transparency
                         let fade = ((crate::ecs::sys::floater::HP_SHOWTIME - timer) * 0.25) + 0.2;
-                        if hp_damage < 10 {
+                        if hp_damage.abs() < 10 {
                             // Damage and heal below 10/10 are shown as decimals
                             Text::new(&format!("{}", hp_damage.abs() as f32 / 10.0))
                                 .font_size(font_size)
@@ -1328,7 +1328,7 @@ impl Hud {
                                 + 0.2;
                             if floater.hp_change.abs() < 10 {
                                 // Damage and heal below 10/10 are shown as decimals
-                                Text::new(&format!("{}", (floater.hp_change as f32 / 10.0)))
+                                Text::new(&format!("{}", (floater.hp_change.abs() as f32 / 10.0)))
                                     .font_size(font_size)
                                     .font_id(self.fonts.cyri.conrod_id)
                                     .color(if floater.hp_change < 0 {
@@ -1339,7 +1339,7 @@ impl Hud {
                                     .x_y(0.0, y - 3.0)
                                     .position_ingame(ingame_pos)
                                     .set(sct_bg_id, ui_widgets);
-                                Text::new(&format!("{}", (floater.hp_change as f32 / 10.0)))
+                                Text::new(&format!("{}", (floater.hp_change.abs() as f32 / 10.0)))
                                     .font_size(font_size)
                                     .font_id(self.fonts.cyri.conrod_id)
                                     .x_y(0.0, y)
