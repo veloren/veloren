@@ -220,7 +220,7 @@ impl<'a> System<'a> for Sys {
                         {
                             if energy_mut
                                 .try_change_by(
-                                    -(beam.energy_regen as i32 * 2), // Stamina use
+                                    -(beam.energy_drain as i32), // Stamina use
                                     EnergySource::Ability,
                                 )
                                 .is_ok()

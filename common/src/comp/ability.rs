@@ -161,6 +161,7 @@ pub enum CharacterAbility {
         max_angle: f32,
         lifesteal_eff: f32,
         energy_regen: u32,
+        energy_drain: u32,
     },
 }
 
@@ -529,6 +530,7 @@ impl From<&CharacterAbility> for CharacterState {
                 max_angle,
                 lifesteal_eff,
                 energy_regen,
+                energy_drain,
             } => CharacterState::BasicBeam(basic_beam::Data {
                 exhausted: false,
                 particle_ori: None::<Vec3<f32>>,
@@ -543,6 +545,7 @@ impl From<&CharacterAbility> for CharacterState {
                 max_angle: *max_angle,
                 lifesteal_eff: *lifesteal_eff,
                 energy_regen: *energy_regen,
+                energy_drain: *energy_drain,
             }),
         }
     }

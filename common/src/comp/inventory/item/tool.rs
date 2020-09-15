@@ -313,7 +313,8 @@ impl Tool {
                             range: 25.0,
                             max_angle: 1.0,
                             lifesteal_eff: 0.25,
-                            energy_regen: 100,
+                            energy_regen: 50,
+                            energy_drain: 100,
                         },
                         BasicRanged {
                             energy_cost: 800,

@@ -35,8 +35,10 @@ pub struct Data {
     /// Lifesteal efficiency (0 gives 0% conversion of damage to health, 1 gives
     /// 100% conversion of damage to health)
     pub lifesteal_eff: f32,
-    /// Energy regened per second
+    /// Energy regened per second for damage ticks
     pub energy_regen: u32,
+    /// Energy consumed per second for heal ticks
+    pub energy_drain: u32,
 }
 
 impl CharacterBehavior for Data {
@@ -70,11 +72,13 @@ impl CharacterBehavior for Data {
                 max_angle: self.max_angle,
                 lifesteal_eff: self.lifesteal_eff,
                 energy_regen: self.energy_regen,
+                energy_drain: self.energy_drain,
             });
         } else if data.inputs.primary.is_pressed() && !self.exhausted {
             let damage = (self.base_dps as f32 / self.tick_rate) as u32;
             let heal = (self.base_hps as f32 / self.tick_rate) as u32;
-            let energy = (self.energy_regen as f32 / self.tick_rate) as u32;
+            let energy_regen = (self.energy_regen as f32 / self.tick_rate) as u32;
+            let energy_drain = (self.energy_drain as f32 / self.tick_rate) as u32;
             let speed = self.range / self.beam_duration.as_secs_f32();
             let properties = beam::Properties {
                 angle: self.max_angle.to_radians(),
@@ -82,7 +86,8 @@ impl CharacterBehavior for Data {
                 damage,
                 heal,
                 lifesteal_eff: self.lifesteal_eff,
-                energy_regen: energy,
+                energy_regen,
+                energy_drain,
                 duration: self.beam_duration,
                 owner: Some(*data.uid),
             };
@@ -108,6 +113,7 @@ impl CharacterBehavior for Data {
                 max_angle: self.max_angle,
                 lifesteal_eff: self.lifesteal_eff,
                 energy_regen: self.energy_regen,
+                energy_drain: self.energy_drain,
             });
         } else if data.inputs.primary.is_pressed() && self.cooldown_duration != Duration::default()
         {
@@ -129,6 +135,7 @@ impl CharacterBehavior for Data {
                 max_angle: self.max_angle,
                 lifesteal_eff: self.lifesteal_eff,
                 energy_regen: self.energy_regen,
+                energy_drain: self.energy_drain,
             });
         } else if data.inputs.primary.is_pressed() {
             update.character = CharacterState::BasicBeam(Data {
@@ -145,6 +152,7 @@ impl CharacterBehavior for Data {
                 max_angle: self.max_angle,
                 lifesteal_eff: self.lifesteal_eff,
                 energy_regen: self.energy_regen,
+                energy_drain: self.energy_drain,
             });
         } else if self.recover_duration != Duration::default() {
             // Recovery
@@ -165,6 +173,7 @@ impl CharacterBehavior for Data {
                 max_angle: self.max_angle,
                 lifesteal_eff: self.lifesteal_eff,
                 energy_regen: self.energy_regen,
+                energy_drain: self.energy_drain,
             });
         } else {
             // Done
