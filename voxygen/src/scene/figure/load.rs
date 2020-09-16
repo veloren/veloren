@@ -1916,11 +1916,7 @@ impl TheropodCentralSpec {
         (central, Vec3::from(spec.chest_back.offset))
     }
 
-    fn mesh_tail_front(
-        &self,
-        species: TSpecies,
-        body_type: TBodyType,
-    ) -> BoneMeshes {
+    fn mesh_tail_front(&self, species: TSpecies, body_type: TBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -1936,11 +1932,7 @@ impl TheropodCentralSpec {
         (central, Vec3::from(spec.tail_front.offset))
     }
 
-    fn mesh_tail_back(
-        &self,
-        species: TSpecies,
-        body_type: TBodyType,
-    ) -> BoneMeshes {
+    fn mesh_tail_back(&self, species: TSpecies, body_type: TBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -1957,11 +1949,7 @@ impl TheropodCentralSpec {
     }
 }
 impl TheropodLateralSpec {
-    fn mesh_hand_l(
-        &self,
-        species: TSpecies,
-        body_type: TBodyType,
-    ) -> BoneMeshes {
+    fn mesh_hand_l(&self, species: TSpecies, body_type: TBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -1977,11 +1965,7 @@ impl TheropodLateralSpec {
         (lateral, Vec3::from(spec.hand_l.offset))
     }
 
-    fn mesh_hand_r(
-        &self,
-        species: TSpecies,
-        body_type: TBodyType,
-    ) -> BoneMeshes {
+    fn mesh_hand_r(&self, species: TSpecies, body_type: TBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -1997,11 +1981,7 @@ impl TheropodLateralSpec {
         (lateral, Vec3::from(spec.hand_r.offset))
     }
 
-    fn mesh_leg_l(
-        &self,
-        species: TSpecies,
-        body_type: TBodyType,
-    ) -> BoneMeshes {
+    fn mesh_leg_l(&self, species: TSpecies, body_type: TBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -2017,11 +1997,7 @@ impl TheropodLateralSpec {
         (lateral, Vec3::from(spec.leg_l.offset))
     }
 
-    fn mesh_leg_r(
-        &self,
-        species: TSpecies,
-        body_type: TBodyType,
-    ) -> BoneMeshes {
+    fn mesh_leg_r(&self, species: TSpecies, body_type: TBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -2037,11 +2013,7 @@ impl TheropodLateralSpec {
         (lateral, Vec3::from(spec.leg_r.offset))
     }
 
-    fn mesh_foot_l(
-        &self,
-        species: TSpecies,
-        body_type: TBodyType,
-    ) -> BoneMeshes {
+    fn mesh_foot_l(&self, species: TSpecies, body_type: TBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -2057,11 +2029,7 @@ impl TheropodLateralSpec {
         (lateral, Vec3::from(spec.foot_l.offset))
     }
 
-    fn mesh_foot_r(
-        &self,
-        species: TSpecies,
-        body_type: TBodyType,
-    ) -> BoneMeshes {
+    fn mesh_foot_r(&self, species: TSpecies, body_type: TBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3103,11 +3071,7 @@ impl GolemCentralSpec {
         (central, Vec3::from(spec.torso_upper.offset))
     }
 
-    pub fn mesh_torso_lower(
-        &self,
-        species: GSpecies,
-        body_type: GBodyType,
-    ) -> BoneMeshes {
+    pub fn mesh_torso_lower(&self, species: GSpecies, body_type: GBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {

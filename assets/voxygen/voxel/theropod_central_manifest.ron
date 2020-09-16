@@ -59,14 +59,14 @@
             central: ("npc.archaeos.male.tail_back"),
         ),
     ),
-    (Odontotyrannos, Male): (
+    (Odonto, Male): (
         head: (
             offset: (-10.5, 0.0, -8.0),
-            central: ("npc.odontotyrannos.male.head"),
+            central: ("npc.odonto.male.head"),
         ),
         jaw: (
             offset: (-6.5, 0.0, -3.0),
-            central: ("npc.odontotyrannos.male.jaw"),
+            central: ("npc.odonto.male.jaw"),
         ),
         neck: (
             offset: (0.0, 0.0, 0.0),
@@ -74,29 +74,29 @@
         ),
         chest_front: (
             offset: (-5.5, -5.0, -6.0),
-            central: ("npc.odontotyrannos.male.chest_front"),
+            central: ("npc.odonto.male.chest_front"),
         ),
         chest_back: (
             offset: (-6.5, -8.0, -8.5),
-            central: ("npc.odontotyrannos.male.chest_back"),
+            central: ("npc.odonto.male.chest_back"),
         ),
         tail_front: (
             offset: (-3.5, -8.0, -5.5),
-            central: ("npc.odontotyrannos.male.tail_front"),
+            central: ("npc.odonto.male.tail_front"),
         ),
         tail_back: (
-            offset: (-2.5, -23.0, -3.0),
-            central: ("npc.odontotyrannos.male.tail_back"),
+            offset: (-2.5, -19.0, -5.0),
+            central: ("npc.odonto.male.tail_back"),
         ),
     ),
-    (Odontotyrannos, Female): (
+    (Odonto, Female): (
         head: (
             offset: (-10.5, 0.0, -8.0),
-            central: ("npc.odontotyrannos.male.head"),
+            central: ("npc.odonto.male.head"),
         ),
         jaw: (
             offset: (-6.5, 0.0, -3.0),
-            central: ("npc.odontotyrannos.male.jaw"),
+            central: ("npc.odonto.male.jaw"),
         ),
         neck: (
             offset: (0.0, 0.0, 0.0),
@@ -104,19 +104,19 @@
         ),
         chest_front: (
             offset: (-5.5, -5.0, -6.0),
-            central: ("npc.odontotyrannos.male.chest_front"),
+            central: ("npc.odonto.male.chest_front"),
         ),
         chest_back: (
             offset: (-6.5, -8.0, -8.5),
-            central: ("npc.odontotyrannos.male.chest_back"),
+            central: ("npc.odonto.male.chest_back"),
         ),
         tail_front: (
             offset: (-3.5, -8.0, -5.5),
-            central: ("npc.odontotyrannos.male.tail_front"),
+            central: ("npc.odonto.male.tail_front"),
         ),
         tail_back: (
-            offset: (-2.5, -8.0, -3.0),
-            central: ("npc.odontotyrannos.male.tail_back"),
+            offset: (-2.5, -19.0, -5.0),
+            central: ("npc.odonto.male.tail_back"),
         ),
     ),
 })

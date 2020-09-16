@@ -116,43 +116,43 @@ impl<'a> From<&'a Body> for SkeletonAttr {
         Self {
             head: match (body.species, body.body_type) {
                 (Archaeos, _) => (8.0, 4.0),
-                (Odontotyrannos, _) => (-2.5, 3.0),
+                (Odonto, _) => (-1.0, 5.0),
             },
             jaw: match (body.species, body.body_type) {
                 (Archaeos, _) => (1.0, -7.0),
-                (Odontotyrannos, _) => (1.0, -7.0),
+                (Odonto, _) => (2.0, -7.0),
             },
             neck: match (body.species, body.body_type) {
                 (Archaeos, _) => (4.5, -2.0),
-                (Odontotyrannos, _) => (4.5, -2.0),
+                (Odonto, _) => (4.5, -2.0),
             },
             chest_front: match (body.species, body.body_type) {
                 (Archaeos, _) => (0.0, 20.0),
-                (Odontotyrannos, _) => (0.0, 9.0),
+                (Odonto, _) => (0.0, 13.0),
             },
             chest_back: match (body.species, body.body_type) {
                 (Archaeos, _) => (-5.5, -1.0),
-                (Odontotyrannos, _) => (-5.0, 2.0),
+                (Odonto, _) => (-5.0, 2.0),
             },
             tail_front: match (body.species, body.body_type) {
                 (Archaeos, _) => (-9.0, -1.5),
-                (Odontotyrannos, _) => (-8.0, -1.0),
+                (Odonto, _) => (-7.0, -1.0),
             },
             tail_back: match (body.species, body.body_type) {
                 (Archaeos, _) => (-8.0, -0.5),
-                (Odontotyrannos, _) => (-12.0, -1.5),
+                (Odonto, _) => (-8.0, 0.5),
             },
             hand: match (body.species, body.body_type) {
                 (Archaeos, _) => (3.0, 0.0, -4.0),
-                (Odontotyrannos, _) => (3.5, 3.0, -4.0),
+                (Odonto, _) => (3.5, 3.0, -4.0),
             },
             leg: match (body.species, body.body_type) {
                 (Archaeos, _) => (4.5, -3.0, -4.0),
-                (Odontotyrannos, _) => (5.5, -2.5, -2.0),
+                (Odonto, _) => (5.5, -2.5, -4.0),
             },
             foot: match (body.species, body.body_type) {
                 (Archaeos, _) => (1.0, -0.5, -7.0),
-                (Odontotyrannos, _) => (-1.0, -6.5, -3.0),
+                (Odonto, _) => (2.0, -6.5, -3.0),
             },
         }
     }

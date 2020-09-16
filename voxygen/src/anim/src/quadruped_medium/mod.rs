@@ -6,7 +6,8 @@ pub mod run;
 
 // Reexports
 pub use self::{
-    alpha::AlphaAnimation, feed::FeedAnimation, idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation,
+    alpha::AlphaAnimation, feed::FeedAnimation, idle::IdleAnimation, jump::JumpAnimation,
+    run::RunAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};
@@ -288,7 +289,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             feet_b: match (body.species, body.body_type) {
                 (Grolgar, _) => (0.5, -1.5, -3.0),
                 (Saber, _) => (1.0, -1.0, -1.0),
-                (Tuskram, _) => (0.5,-1.0, -2.5),
+                (Tuskram, _) => (0.5, -1.0, -2.5),
                 (Lion, _) => (0.5, -1.0, -3.0),
                 (Tarasque, _) => (1.5, -1.0, -2.5),
                 (Tiger, _) => (0.5, -1.0, -4.0),

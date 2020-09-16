@@ -115,7 +115,7 @@ impl Animation for IdleAnimation {
         next.foot_l.position = Vec3::new(
             -skeleton_attr.foot.0,
             skeleton_attr.foot.1,
-            skeleton_attr.foot.2 + breathe * -0.35,
+            skeleton_attr.foot.2 + breathe * -0.15,
         );
         next.foot_l.orientation = Quaternion::rotation_z(0.0);
         next.foot_l.scale = Vec3::one() * 1.02;
@@ -123,7 +123,7 @@ impl Animation for IdleAnimation {
         next.foot_r.position = Vec3::new(
             skeleton_attr.foot.0,
             skeleton_attr.foot.1,
-            skeleton_attr.foot.2 + breathe * -0.45,
+            skeleton_attr.foot.2 + breathe * -0.15,
         );
         next.foot_r.orientation = Quaternion::rotation_z(0.0);
         next.foot_r.scale = Vec3::one() * 1.02;
