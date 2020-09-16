@@ -1,10 +1,11 @@
 use crate::{
     comp::{CharacterState, Energy, EnergySource, HealthSource, Stats},
     event::{EventBus, ServerEvent},
+    metrics::SysMetrics,
     span,
     state::DeltaTime,
 };
-use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
 
 const ENERGY_REGEN_ACCEL: f32 = 10.0;
 
@@ -16,6 +17,7 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         Read<'a, DeltaTime>,
         Read<'a, EventBus<ServerEvent>>,
+        ReadExpect<'a, SysMetrics>,
         ReadStorage<'a, CharacterState>,
         WriteStorage<'a, Stats>,
         WriteStorage<'a, Energy>,
@@ -23,8 +25,9 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         &mut self,
-        (entities, dt, server_event_bus, character_states, mut stats, mut energies): Self::SystemData,
+        (entities, dt, server_event_bus, sys_metrics, character_states, mut stats, mut energies): Self::SystemData,
     ) {
+        let start_time = std::time::Instant::now();
         span!(_guard, "run", "stats::Sys::run");
         let mut server_event_emitter = server_event_bus.emitter();
 
@@ -133,5 +136,9 @@ impl<'a> System<'a> for Sys {
                 CharacterState::Roll { .. } | CharacterState::Climb { .. } => {},
             }
         }
+        sys_metrics.stats_ns.store(
+            start_time.elapsed().as_nanos() as i64,
+            std::sync::atomic::Ordering::Relaxed,
+        );
     }
 }

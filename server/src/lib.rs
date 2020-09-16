@@ -45,14 +45,14 @@ use common::{
 use futures_executor::block_on;
 use futures_timer::Delay;
 use futures_util::{select, FutureExt};
-use metrics::{ServerMetrics, TickMetrics};
+use metrics::{ServerMetrics, StateTickMetrics, TickMetrics};
 use network::{Network, Pid, ProtocolAddr};
 use persistence::character::{CharacterLoader, CharacterLoaderResponseType, CharacterUpdater};
 use specs::{join::Join, Builder, Entity as EcsEntity, RunNow, SystemData, WorldExt};
 use std::{
     i32,
     ops::{Deref, DerefMut},
-    sync::Arc,
+    sync::{atomic::Ordering, Arc},
     time::{Duration, Instant},
 };
 #[cfg(not(feature = "worldgen"))]
@@ -90,6 +90,7 @@ pub struct Server {
 
     metrics: ServerMetrics,
     tick_metrics: TickMetrics,
+    state_tick_metrics: StateTickMetrics,
 }
 
 impl Server {
@@ -97,6 +98,11 @@ impl Server {
     #[allow(clippy::expect_fun_call)] // TODO: Pending review in #587
     #[allow(clippy::needless_update)] // TODO: Pending review in #587
     pub fn new(settings: ServerSettings) -> Result<Self, Error> {
+        let (chunk_gen_metrics, registry_chunk) = metrics::ChunkGenMetrics::new().unwrap();
+        let (network_request_metrics, registry_network) =
+            metrics::NetworkRequestMetrics::new().unwrap();
+        let (player_metrics, registry_player) = metrics::PlayerMetrics::new().unwrap();
+
         let mut state = State::default();
         state.ecs_mut().insert(settings.clone());
         state.ecs_mut().insert(EventBus::<ServerEvent>::default());
@@ -104,7 +110,11 @@ impl Server {
             .ecs_mut()
             .insert(LoginProvider::new(settings.auth_server_address.clone()));
         state.ecs_mut().insert(Tick(0));
-        state.ecs_mut().insert(ChunkGenerator::new());
+        state.ecs_mut().insert(network_request_metrics);
+        state.ecs_mut().insert(player_metrics);
+        state
+            .ecs_mut()
+            .insert(ChunkGenerator::new(chunk_gen_metrics));
         state
             .ecs_mut()
             .insert(CharacterUpdater::new(settings.persistence_db_dir.clone()));
@@ -275,11 +285,15 @@ impl Server {
 
         let mut metrics = ServerMetrics::new();
         // register all metrics submodules here
-        let tick_metrics = TickMetrics::new(metrics.tick_clone())
+        let (tick_metrics, registry_tick) = TickMetrics::new(metrics.tick_clone())
             .expect("Failed to initialize server tick metrics submodule.");
-        tick_metrics
-            .register(&metrics.registry())
-            .expect("failed to register tick metrics");
+        let (state_tick_metrics, registry_state) = StateTickMetrics::new().unwrap();
+
+        registry_chunk(&metrics.registry()).expect("failed to register chunk gen metrics");
+        registry_network(&metrics.registry()).expect("failed to register network request metrics");
+        registry_player(&metrics.registry()).expect("failed to register player metrics");
+        registry_tick(&metrics.registry()).expect("failed to register tick metrics");
+        registry_state(&metrics.registry()).expect("failed to register state metrics");
 
         let thread_pool = ThreadPoolBuilder::new()
             .name("veloren-worker".to_string())
@@ -303,6 +317,7 @@ impl Server {
 
             metrics,
             tick_metrics,
+            state_tick_metrics,
         };
 
         // Run pending DB migrations (if any)
@@ -645,10 +660,60 @@ impl Server {
             .with_label_values(&["persistence:stats"])
             .set(stats_persistence_nanos);
 
+        //detailed state metrics
+        {
+            let res = self
+                .state
+                .ecs()
+                .read_resource::<common::metrics::SysMetrics>();
+            let c = &self.state_tick_metrics.state_tick_time_count;
+            let agent_ns = res.agent_ns.load(Ordering::Relaxed);
+            let mount_ns = res.mount_ns.load(Ordering::Relaxed);
+            let controller_ns = res.controller_ns.load(Ordering::Relaxed);
+            let character_behavior_ns = res.character_behavior_ns.load(Ordering::Relaxed);
+            let stats_ns = res.stats_ns.load(Ordering::Relaxed);
+            let phys_ns = res.phys_ns.load(Ordering::Relaxed);
+            let projectile_ns = res.projectile_ns.load(Ordering::Relaxed);
+            let combat_ns = res.combat_ns.load(Ordering::Relaxed);
+
+            c.with_label_values(&[common::sys::AGENT_SYS])
+                .inc_by(agent_ns);
+            c.with_label_values(&[common::sys::MOUNT_SYS])
+                .inc_by(mount_ns);
+            c.with_label_values(&[common::sys::CONTROLLER_SYS])
+                .inc_by(controller_ns);
+            c.with_label_values(&[common::sys::CHARACTER_BEHAVIOR_SYS])
+                .inc_by(character_behavior_ns);
+            c.with_label_values(&[common::sys::STATS_SYS])
+                .inc_by(stats_ns);
+            c.with_label_values(&[common::sys::PHYS_SYS])
+                .inc_by(phys_ns);
+            c.with_label_values(&[common::sys::PROJECTILE_SYS])
+                .inc_by(projectile_ns);
+            c.with_label_values(&[common::sys::COMBAT_SYS])
+                .inc_by(combat_ns);
+
+            const NANOSEC_PER_SEC: f64 = Duration::from_secs(1).as_nanos() as f64;
+            let h = &self.state_tick_metrics.state_tick_time_hist;
+            h.with_label_values(&[common::sys::AGENT_SYS])
+                .observe(agent_ns as f64 / NANOSEC_PER_SEC);
+            h.with_label_values(&[common::sys::MOUNT_SYS])
+                .observe(mount_ns as f64 / NANOSEC_PER_SEC);
+            h.with_label_values(&[common::sys::CONTROLLER_SYS])
+                .observe(controller_ns as f64 / NANOSEC_PER_SEC);
+            h.with_label_values(&[common::sys::CHARACTER_BEHAVIOR_SYS])
+                .observe(character_behavior_ns as f64 / NANOSEC_PER_SEC);
+            h.with_label_values(&[common::sys::STATS_SYS])
+                .observe(stats_ns as f64 / NANOSEC_PER_SEC);
+            h.with_label_values(&[common::sys::PHYS_SYS])
+                .observe(phys_ns as f64 / NANOSEC_PER_SEC);
+            h.with_label_values(&[common::sys::PROJECTILE_SYS])
+                .observe(projectile_ns as f64 / NANOSEC_PER_SEC);
+            h.with_label_values(&[common::sys::COMBAT_SYS])
+                .observe(combat_ns as f64 / NANOSEC_PER_SEC);
+        }
+
         // Report other info
-        self.tick_metrics
-            .player_online
-            .set(self.state.ecs().read_storage::<Client>().join().count() as i64);
         self.tick_metrics
             .time_of_day
             .set(self.state.ecs().read_resource::<TimeOfDay>().0);
@@ -813,7 +878,9 @@ impl Server {
             .is_some()
     }
 
-    pub fn number_of_players(&self) -> i64 { self.tick_metrics.player_online.get() }
+    pub fn number_of_players(&self) -> i64 {
+        self.state.ecs().read_storage::<Client>().join().count() as i64
+    }
 }
 
 impl Drop for Server {

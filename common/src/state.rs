@@ -1,6 +1,7 @@
 use crate::{
     comp,
     event::{EventBus, LocalEvent, ServerEvent},
+    metrics::SysMetrics,
     region::RegionMap,
     sync::WorldSyncExt,
     sys,
@@ -176,6 +177,7 @@ impl State {
         ecs.insert(EventBus::<ServerEvent>::default());
         ecs.insert(comp::group::GroupManager::default());
         ecs.insert(RegionMap::new());
+        ecs.insert(SysMetrics::default());
 
         ecs
     }
