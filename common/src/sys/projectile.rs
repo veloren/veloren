@@ -75,7 +75,7 @@ impl<'a> System<'a> for Sys {
                     continue;
                 }
 
-                for effect in projectile.hit_entity.iter().cloned() {
+                for effect in projectile.hit_entity.drain(..) {
                     match effect {
                         projectile::Effect::Damage(healthchange) => {
                             let owner_uid = projectile.owner.unwrap();
