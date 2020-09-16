@@ -84,6 +84,10 @@ impl Animation for AlphaAnimation {
             next.main.orientation = Quaternion::rotation_x(-0.1)
                 * Quaternion::rotation_y(0.0)
                 * Quaternion::rotation_z(0.0);
+            
+            next.head.position = Vec3::new(0.0, skeleton_attr.head.0+0.0, skeleton_attr.head.1);
+
+
 
             if let Some(stage_section) = stage_section {
                 match stage_section {
@@ -100,7 +104,7 @@ impl Animation for AlphaAnimation {
                     },
                     StageSection::Swing => {
                         //println!("{:.3} swing", anim_time);
-                        next.control.position = Vec3::new(-7.0, 3.0 + movement * 8.0, 3.0);
+                        next.control.position = Vec3::new(-7.0, 3.0 + movement * 16.0, 3.0);
                         next.control.orientation =
                             Quaternion::rotation_x(-0.5 + movement * -1.0 * 0.0)
                                 * Quaternion::rotation_y(-1.0 + movement * -0.6)
@@ -121,15 +125,16 @@ impl Animation for AlphaAnimation {
                     },
                     StageSection::Recover => {
                         //println!("{:.3} recover", anim_time);
-                        next.control.position = Vec3::new(-7.0, 7.0, 2.0);
-                        next.control.orientation = Quaternion::rotation_x(0.0)
+                        next.control.position = Vec3::new(-7.0, 15.0, 2.0);
+                        next.control.orientation = Quaternion::rotation_x(-0.5)
                             * Quaternion::rotation_y(-1.57 + movement * 1.0)
                             * Quaternion::rotation_z(0.0);
                         next.control.scale = Vec3::one();
                         next.chest.orientation = Quaternion::rotation_y(0.0)
                             * Quaternion::rotation_z(-1.57 + movement * 0.5);
+
                         next.head.orientation =
-                            Quaternion::rotation_y(0.0) * Quaternion::rotation_z(1.57);
+                            Quaternion::rotation_y(0.0) * Quaternion::rotation_z(1.57+movement*-0.5);
                     },
                     _ => {},
                 }

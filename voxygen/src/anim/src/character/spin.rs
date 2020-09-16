@@ -54,6 +54,9 @@ impl Animation for SpinAnimation {
         let movement = anim_time as f32 * 1.0;
         let test = (anim_time as f32 * 8.0).sin();
         let test2 = (anim_time as f32 * 1.0).sin();
+        
+        next.head.position = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1);
+
 
         if let Some(ToolKind::Sword(_)) = active_tool_kind {
             next.l_hand.position = Vec3::new(-0.75, -1.0, 2.5);
