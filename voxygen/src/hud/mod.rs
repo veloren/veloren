@@ -696,11 +696,7 @@ impl Hud {
         self.pulse = self.pulse + dt.as_secs_f32();
         // FPS
         let fps = global_state.clock.get_tps();
-        let version = format!(
-            "{}-{}",
-            env!("CARGO_PKG_VERSION"),
-            common::util::GIT_VERSION.to_string()
-        );
+        let version = common::util::DISPLAY_VERSION_LONG.clone();
 
         if self.show.ingame {
             let ecs = client.state().ecs();
@@ -736,7 +732,7 @@ impl Hud {
                         .set(self.ids.hurt_bg, ui_widgets);
                 }
                 // Alpha Disclaimer
-                Text::new(&format!("Veloren Pre-Alpha {}", env!("CARGO_PKG_VERSION")))
+                Text::new(&format!("Veloren Pre-Alpha {}", &version))
                     .font_id(self.fonts.cyri.conrod_id)
                     .font_size(self.fonts.cyri.scale(10))
                     .color(TEXT_COLOR)
