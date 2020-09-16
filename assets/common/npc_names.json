@@ -602,9 +602,9 @@
                 "keyword": "archaeos",
                 "generic": "Archaeos"
             },
-            "odontotyrannos": {
-                "keyword": "odontotyrannos",
-                "generic": "Odontotyrannos"
+            "odonto": {
+                "keyword": "odonto",
+                "generic": "Odonto"
             }
         }
     },

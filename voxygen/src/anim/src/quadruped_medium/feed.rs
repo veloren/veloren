@@ -61,9 +61,10 @@ impl Animation for FeedAnimation {
                 skeleton_attr.head.0,
                 skeleton_attr.head.1 + slower * 0.2,
             );
-            next.head.orientation =
-                Quaternion::rotation_z(0.3 * look.x) 
-                * Quaternion::rotation_x(fast * 0.05 + faster * 0.08 + 0.8 * skeleton_attr.feed.1 * transition);
+            next.head.orientation = Quaternion::rotation_z(0.3 * look.x)
+                * Quaternion::rotation_x(
+                    fast * 0.05 + faster * 0.08 + 0.8 * skeleton_attr.feed.1 * transition,
+                );
             next.head.scale = Vec3::one();
 
             next.neck.position = Vec3::new(
@@ -71,7 +72,8 @@ impl Animation for FeedAnimation {
                 skeleton_attr.neck.0,
                 skeleton_attr.neck.1 + slower * 0.1 - 4.0 * transition,
             );
-            next.neck.orientation =Quaternion::rotation_x(-2.5 * skeleton_attr.feed.1 * transition);
+            next.neck.orientation =
+                Quaternion::rotation_x(-2.5 * skeleton_attr.feed.1 * transition);
             next.neck.scale = Vec3::one() * 1.02;
 
             next.jaw.position = Vec3::new(
@@ -90,7 +92,7 @@ impl Animation for FeedAnimation {
             next.head.orientation =
                 Quaternion::rotation_z(0.3 * look.x) * Quaternion::rotation_x(0.3 * look.y);
             next.head.scale = Vec3::one();
-    
+
             next.neck.position = Vec3::new(
                 0.0,
                 skeleton_attr.neck.0,
@@ -98,14 +100,14 @@ impl Animation for FeedAnimation {
             );
             next.neck.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
             next.neck.scale = Vec3::one() * 1.02;
-    
+
             next.jaw.position = Vec3::new(
                 0.0,
                 skeleton_attr.jaw.0 - slower * 0.12,
                 skeleton_attr.jaw.1 + slow * 0.2 + 0.5,
             );
             next.jaw.orientation = Quaternion::rotation_x(slow * 0.05 - 0.08);
-            next.jaw.scale = Vec3::one() * 1.02;    
+            next.jaw.scale = Vec3::one() * 1.02;
         }
 
         next.tail.position = Vec3::new(0.0, skeleton_attr.tail.0, skeleton_attr.tail.1);

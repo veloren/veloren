@@ -1,5 +1,5 @@
 use crate::{
-    comp::{humanoid, quadruped_low, quadruped_medium, quadruped_small, theropod, Body},
+    comp::{humanoid, quadruped_low, quadruped_medium, quadruped_small, Body},
     path::Chaser,
     sync::Uid,
 };
