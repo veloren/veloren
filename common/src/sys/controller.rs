@@ -4,13 +4,14 @@ use crate::{
         CharacterState, ControlEvent, Controller, InventoryManip,
     },
     event::{EventBus, LocalEvent, ServerEvent},
+    metrics::SysMetrics,
     span,
     state::DeltaTime,
     sync::{Uid, UidAllocator},
 };
 use specs::{
     saveload::{Marker, MarkerAllocator},
-    Entities, Join, Read, ReadStorage, System, WriteStorage,
+    Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage,
 };
 
 // const CHARGE_COST: i32 = 200;
@@ -26,6 +27,7 @@ impl<'a> System<'a> for Sys {
         Read<'a, EventBus<ServerEvent>>,
         Read<'a, EventBus<LocalEvent>>,
         Read<'a, DeltaTime>,
+        ReadExpect<'a, SysMetrics>,
         WriteStorage<'a, Controller>,
         WriteStorage<'a, CharacterState>,
         ReadStorage<'a, Uid>,
@@ -39,11 +41,13 @@ impl<'a> System<'a> for Sys {
             server_bus,
             _local_bus,
             _dt,
+            sys_metrics,
             mut controllers,
             mut character_states,
             uids,
         ): Self::SystemData,
     ) {
+        let start_time = std::time::Instant::now();
         span!(_guard, "run", "controller::Sys::run");
         let mut server_emitter = server_bus.emitter();
 
@@ -105,5 +109,9 @@ impl<'a> System<'a> for Sys {
                 }
             }
         }
+        sys_metrics.controller_ns.store(
+            start_time.elapsed().as_nanos() as i64,
+            std::sync::atomic::Ordering::Relaxed,
+        );
     }
 }
