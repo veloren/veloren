@@ -51,12 +51,19 @@ fn main() -> io::Result<()> {
     let (mut tui, msg_r) = Tui::new();
 
     // Init logging
+    let base_exceptions = |env: EnvFilter| {
+        env.add_directive("veloren_world::sim=info".parse().unwrap())
+            .add_directive("veloren_world::civ=info".parse().unwrap())
+            .add_directive("uvth=warn".parse().unwrap())
+            .add_directive("tiny_http=warn".parse().unwrap())
+            .add_directive("mio::sys::windows=debug".parse().unwrap())
+            .add_directive(LevelFilter::INFO.into())
+    };
+
     #[cfg(not(feature = "tracy"))]
     let filter = match std::env::var_os(RUST_LOG_ENV).map(|s| s.into_string()) {
         Some(Ok(env)) => {
-            let mut filter = EnvFilter::new("veloren_world::sim=info")
-                .add_directive("veloren_world::civ=info".parse().unwrap())
-                .add_directive(LevelFilter::INFO.into());
+            let mut filter = base_exceptions(EnvFilter::new(""));
             for s in env.split(',').into_iter() {
                 match s.parse() {
                     Ok(d) => filter = filter.add_directive(d),
@@ -65,10 +72,7 @@ fn main() -> io::Result<()> {
             }
             filter
         },
-        _ => EnvFilter::from_env(RUST_LOG_ENV)
-            .add_directive("veloren_world::sim=info".parse().unwrap())
-            .add_directive("veloren_world::civ=info".parse().unwrap())
-            .add_directive(LevelFilter::INFO.into()),
+        _ => base_exceptions(EnvFilter::from_env(RUST_LOG_ENV)),
     };
 
     #[cfg(feature = "tracy")]
