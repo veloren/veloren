@@ -62,6 +62,7 @@ impl Screen {
         selected_language_index: Option<usize>,
         language_metadatas: &[crate::i18n::LanguageMetadata],
         button_style: style::button::Style,
+        version: &str,
     ) -> Element<Message> {
         let buttons = Column::with_children(vec![
             neat_button(
@@ -94,7 +95,7 @@ impl Screen {
             ),
         ])
         .width(Length::Fill)
-        .max_width(200)
+        .max_width(160)
         .spacing(5);
 
         let buttons = Container::new(buttons)
@@ -176,7 +177,18 @@ impl Screen {
             .center_x()
             .center_y();
 
-        let right_column = Space::new(Length::Fill, Length::Fill);
+        let v_logo = Container::new(Image::new(imgs.v_logo).fix_aspect_ratio())
+            .padding(3)
+            .width(Length::Units(230));
+
+        let version = iced::Text::new(version).size(fonts.cyri.scale(15));
+
+        let right_column = Container::new(
+            Column::with_children(vec![v_logo.into(), version.into()]).align_items(Align::Center),
+        )
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .align_x(Align::End);
 
         Row::with_children(vec![
             left_column,
@@ -338,11 +350,6 @@ impl LoginBanner {
         let input_text_size = fonts.cyri.scale(INPUT_TEXT_SIZE);
 
         let banner_content = Column::with_children(vec![
-            Container::new(Image::new(imgs.v_logo).fix_aspect_ratio())
-                .padding(10)
-                .height(Length::FillPortion(25))
-                .into(),
-            // TODO: i18n
             Column::with_children(vec![
                 BackgroundContainer::new(
                     Image::new(imgs.input_bg)
@@ -391,10 +398,10 @@ impl LoginBanner {
                 .padding(Padding::new().horizontal(7).top(5))
                 .into(),
             ])
-            .spacing(10)
-            .height(Length::FillPortion(35))
+            .spacing(5)
+            //.height(Length::Units(200))
             .into(),
-            Space::new(Length::Fill, Length::FillPortion(2)).into(),
+            Space::new(Length::Fill, Length::Units(8)).into(),
             Column::with_children(vec![
                 neat_button(
                     &mut self.multiplayer_button,
@@ -413,28 +420,18 @@ impl LoginBanner {
                 ),
             ])
             .max_width(200)
-            .height(Length::FillPortion(38))
+            .height(Length::Units(200))
             .spacing(8)
             .into(),
         ])
         .width(Length::Fill)
-        .height(Length::Fill)
         .align_items(Align::Center);
 
-        let banner = BackgroundContainer::new(
-            CompoundGraphic::from_graphics(vec![
-                Graphic::image(imgs.banner_top, [138, 17], [0, 0]),
-                Graphic::rect(Rgba::new(0, 0, 0, 230), [130, 165], [4, 17]),
-                // TODO: use non image gradient
-                Graphic::gradient(Rgba::new(0, 0, 0, 230), Rgba::zero(), [130, 50], [4, 182]),
-            ])
-            .fix_aspect_ratio()
-            .height(Length::Fill),
-            banner_content,
-        )
-        .padding(Padding::new().horizontal(8).vertical(15))
-        .max_width(350);
-
-        banner.into()
+        Container::new(banner_content)
+            .height(Length::Fill)
+            .center_y()
+            .into()
+        //.padding(Padding::new().horizontal(8).vertical(15))
+        //.max_width(350);
     }
 }

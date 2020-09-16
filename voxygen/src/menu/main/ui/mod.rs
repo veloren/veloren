@@ -253,11 +253,6 @@ impl Controls {
             .text_color(TEXT_COLOR)
             .disabled_text_color(DISABLED_TEXT_COLOR);
 
-        let version = iced::Text::new(&self.version)
-            .size(self.fonts.cyri.scale(15))
-            .width(Length::Fill)
-            .horizontal_alignment(HorizontalAlignment::Right);
-
         let alpha = iced::Text::new(&self.alpha)
             .size(self.fonts.cyri.scale(12))
             .width(Length::Fill)
@@ -266,7 +261,16 @@ impl Controls {
         let top_text = Row::with_children(vec![
             Space::new(Length::Fill, Length::Shrink).into(),
             alpha.into(),
-            version.into(),
+            if matches!(&self.screen, Screen::Login { .. }) {
+                // Login screen shows the Velroen logo over the version
+                Space::new(Length::Fill, Length::Shrink).into()
+            } else {
+                iced::Text::new(&self.version)
+                    .size(self.fonts.cyri.scale(15))
+                    .width(Length::Fill)
+                    .horizontal_alignment(HorizontalAlignment::Right)
+                    .into()
+            },
         ])
         .width(Length::Fill);
 
@@ -292,6 +296,7 @@ impl Controls {
                 self.selected_language_index,
                 &language_metadatas,
                 button_style,
+                &self.version,
             ),
             Screen::Servers { screen } => screen.view(
                 &self.fonts,
