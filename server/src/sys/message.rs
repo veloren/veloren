@@ -122,6 +122,7 @@ impl Sys {
                         ClientState::Connected => {
                             // Add Player component to this client
                             let _ = players.insert(entity, player);
+                            player_metrics.players_connected.inc();
 
                             // Give the Admin component to the player if their name exists in
                             // admin list
@@ -139,7 +140,6 @@ impl Sys {
 
                             // Add to list to notify all clients of the new player
                             new_players.push(entity);
-                            player_metrics.players_connected.inc();
                         },
                         // Use RequestState instead (No need to send `player` again).
                         _ => client.error_state(RequestStateError::Impossible),
@@ -364,7 +364,7 @@ impl Sys {
                 ClientMsg::Terminate => {
                     debug!(?entity, "Client send message to termitate session");
                     player_metrics
-                        .players_disconnected
+                        .clients_disconnected
                         .with_label_values(&["gracefully"])
                         .inc();
                     server_emitter.emit(ServerEvent::ClientDisconnect(entity));
@@ -556,7 +556,7 @@ impl<'a> System<'a> for Sys {
             {
                 info!(?entity, "timeout error with client, disconnecting");
                 player_metrics
-                    .players_disconnected
+                    .clients_disconnected
                     .with_label_values(&["timeout"])
                     .inc();
                 server_emitter.emit(ServerEvent::ClientDisconnect(entity));
@@ -565,7 +565,7 @@ impl<'a> System<'a> for Sys {
             {
                 debug!(?entity, "postbox error with client, disconnecting");
                 player_metrics
-                    .players_disconnected
+                    .clients_disconnected
                     .with_label_values(&["network_error"])
                     .inc();
                 server_emitter.emit(ServerEvent::ClientDisconnect(entity));
