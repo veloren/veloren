@@ -267,11 +267,7 @@ impl<'a> MainMenuUi {
         );
         let tip_show = global_state.settings.gameplay.loading_tips;
         let mut rng = thread_rng();
-        let version = format!(
-            "{}-{}",
-            env!("CARGO_PKG_VERSION"),
-            common::util::GIT_VERSION.to_string()
-        );
+        let version = common::util::DISPLAY_VERSION_LONG.clone();
         let scale = 0.8;
         const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
         const TEXT_COLOR_2: Color = Color::Rgba(1.0, 1.0, 1.0, 0.2);
@@ -364,12 +360,15 @@ impl<'a> MainMenuUi {
             .font_size(self.fonts.cyri.scale(14))
             .set(self.ids.version, ui_widgets);
         // Alpha Disclaimer
-        Text::new(&format!("Veloren Pre-Alpha {}", env!("CARGO_PKG_VERSION")))
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(10))
-            .color(TEXT_COLOR)
-            .mid_top_with_margin_on(ui_widgets.window, 2.0)
-            .set(self.ids.alpha_text, ui_widgets);
+        Text::new(&format!(
+            "Veloren Pre-Alpha {}",
+            common::util::DISPLAY_VERSION.as_str()
+        ))
+        .font_id(self.fonts.cyri.conrod_id)
+        .font_size(self.fonts.cyri.scale(10))
+        .color(TEXT_COLOR)
+        .mid_top_with_margin_on(ui_widgets.window, 2.0)
+        .set(self.ids.alpha_text, ui_widgets);
         // Popup (Error/Info/AuthTrustPrompt)
         let mut change_popup = None;
         if let Some(PopupData { msg, popup_type }) = &self.popup {
