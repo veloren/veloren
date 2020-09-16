@@ -801,6 +801,11 @@ impl Server {
                     .create_entity_synced()
                     .with(client)
                     .build();
+                self.state
+                    .ecs()
+                    .read_resource::<metrics::PlayerMetrics>()
+                    .clients_connected
+                    .inc();
                 // Send client all the tracked components currently attached to its entity as
                 // well as synced resources (currently only `TimeOfDay`)
                 debug!("Starting initial sync with client.");

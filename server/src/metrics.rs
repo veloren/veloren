@@ -25,8 +25,9 @@ pub struct StateTickMetrics {
 }
 
 pub struct PlayerMetrics {
+    pub clients_connected: IntCounter,
     pub players_connected: IntCounter,
-    pub players_disconnected: IntCounterVec, // timeout, network_error, gracefully
+    pub clients_disconnected: IntCounterVec, // timeout, network_error, gracefully
 }
 
 pub struct NetworkRequestMetrics {
@@ -113,31 +114,39 @@ impl StateTickMetrics {
 
 impl PlayerMetrics {
     pub fn new() -> Result<(Self, RegistryFn), prometheus::Error> {
-        let players_connected = IntCounter::with_opts(Opts::new(
-            "players_connected",
+        let clients_connected = IntCounter::with_opts(Opts::new(
+            "clients_connected",
             "shows the number of clients joined to the server",
         ))?;
-        let players_disconnected = IntCounterVec::new(
+        let players_connected = IntCounter::with_opts(Opts::new(
+            "players_connected",
+            "shows the number of players joined to the server. A player is a client, that \
+             registers itself. Bots are not players (but clients)",
+        ))?;
+        let clients_disconnected = IntCounterVec::new(
             Opts::new(
-                "players_disconnected",
+                "clients_disconnected",
                 "shows the number of clients disconnected from the server and the reason",
             ),
             &["reason"],
         )?;
 
+        let clients_connected_clone = clients_connected.clone();
         let players_connected_clone = players_connected.clone();
-        let players_disconnected_clone = players_disconnected.clone();
+        let clients_disconnected_clone = clients_disconnected.clone();
 
         let f = |registry: &Registry| {
+            registry.register(Box::new(clients_connected_clone))?;
             registry.register(Box::new(players_connected_clone))?;
-            registry.register(Box::new(players_disconnected_clone))?;
+            registry.register(Box::new(clients_disconnected_clone))?;
             Ok(())
         };
 
         Ok((
             Self {
+                clients_connected,
                 players_connected,
-                players_disconnected,
+                clients_disconnected,
             },
             Box::new(f),
         ))
