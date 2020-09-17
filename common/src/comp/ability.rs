@@ -106,10 +106,17 @@ pub enum CharacterAbility {
         base_damage: u32,
     },
     SpinMelee {
-        energy_cost: u32,
         buildup_duration: Duration,
+        swing_duration: Duration,
         recover_duration: Duration,
         base_damage: u32,
+        knockback: f32,
+        range: f32,
+        energy_cost: u32,
+        is_infinite: bool,
+        is_helicopter: bool,
+        forward_speed: f32,
+        num_spins: u32,
     },
     ChargedRanged {
         energy_cost: u32,
@@ -402,24 +409,34 @@ impl From<&CharacterAbility> for CharacterState {
                 base_damage: *base_damage,
             }),
             CharacterAbility::SpinMelee {
-                energy_cost,
                 buildup_duration,
+                swing_duration,
                 recover_duration,
                 base_damage,
+                knockback,
+                range,
+                energy_cost,
+                is_infinite,
+                is_helicopter,
+                forward_speed,
+                num_spins,
             } => CharacterState::SpinMelee(spin_melee::Data {
-                exhausted: false,
-                energy_cost: *energy_cost,
-                buildup_duration: *buildup_duration,
-                buildup_duration_default: *buildup_duration,
-                recover_duration: *recover_duration,
-                recover_duration_default: *recover_duration,
-                base_damage: *base_damage,
-                // This isn't needed for it's continuous implementation, but is left in should this
-                // skill be moved to the skillbar
-                hits_remaining: 1,
-                hits_remaining_default: 1, /* Should be the same value as hits_remaining, also
-                                            * this value can be removed if ability moved to
-                                            * skillbar */
+                static_data: spin_melee::StaticData {
+                    buildup_duration: *buildup_duration,
+                    swing_duration: *swing_duration,
+                    recover_duration: *recover_duration,
+                    base_damage: *base_damage,
+                    knockback: *knockback,
+                    range: *range,
+                    energy_cost: *energy_cost,
+                    is_infinite: *is_infinite,
+                    is_helicopter: *is_helicopter,
+                    forward_speed: *forward_speed,
+                    num_spins: *num_spins,
+                },
+                timer: Duration::default(),
+                spins_remaining: *num_spins - 1,
+                stage_section: StageSection::Buildup,
             }),
             CharacterAbility::ChargedRanged {
                 energy_cost: _,
