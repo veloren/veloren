@@ -69,7 +69,7 @@ impl Animation for BetaAnimation {
                 * Quaternion::rotation_y(0.0)
                 * Quaternion::rotation_z(0.0);
 
-                next.head.position = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1);
+            next.head.position = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1);
 
             if let Some(stage_section) = stage_section {
                 match stage_section {

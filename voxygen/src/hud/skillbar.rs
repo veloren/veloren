@@ -805,7 +805,7 @@ impl<'a> Widget for Skillbar<'a> {
                                 )),
                                 ToolKind::Sword(_) => Some((
                                     "Whirlwind",
-                                    "\nMove forward while spinning with \n your sword."
+                                    "\nMove forward while spinning with \n your sword.",
                                 )),
                                 ToolKind::Debug(kind) => match kind.as_ref() {
                                     "Boost" => Some((

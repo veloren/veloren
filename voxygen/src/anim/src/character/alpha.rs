@@ -84,10 +84,8 @@ impl Animation for AlphaAnimation {
             next.main.orientation = Quaternion::rotation_x(-0.1)
                 * Quaternion::rotation_y(0.0)
                 * Quaternion::rotation_z(0.0);
-            
-            next.head.position = Vec3::new(0.0, skeleton_attr.head.0+0.0, skeleton_attr.head.1);
 
-
+            next.head.position = Vec3::new(0.0, skeleton_attr.head.0 + 0.0, skeleton_attr.head.1);
 
             if let Some(stage_section) = stage_section {
                 match stage_section {
@@ -133,8 +131,8 @@ impl Animation for AlphaAnimation {
                         next.chest.orientation = Quaternion::rotation_y(0.0)
                             * Quaternion::rotation_z(-1.57 + movement * 0.5);
 
-                        next.head.orientation =
-                            Quaternion::rotation_y(0.0) * Quaternion::rotation_z(1.57+movement*-0.5);
+                        next.head.orientation = Quaternion::rotation_y(0.0)
+                            * Quaternion::rotation_z(1.57 + movement * -0.5);
                     },
                     _ => {},
                 }

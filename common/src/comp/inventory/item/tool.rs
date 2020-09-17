@@ -127,8 +127,8 @@ impl Tool {
                             knockback: 10.0,
                             range: 4.0,
                             angle: 30.0,
-                            base_buildup_duration: Duration::from_millis(500),
-                            base_swing_duration: Duration::from_millis(200),
+                            base_buildup_duration: Duration::from_millis(350),
+                            base_swing_duration: Duration::from_millis(100),
                             base_recover_duration: Duration::from_millis(400),
                             forward_movement: 0.5,
                         },
@@ -176,7 +176,7 @@ impl Tool {
                     angle: 45.0,
                     energy_drain: 500,
                     forward_speed: 4.0,
-                    buildup_duration: Duration::from_millis(200),
+                    buildup_duration: Duration::from_millis(250),
                     charge_duration: Duration::from_millis(400),
                     swing_duration: Duration::from_millis(100),
                     recover_duration: Duration::from_millis(500),
@@ -195,7 +195,7 @@ impl Tool {
                     is_helicopter: false,
                     forward_speed: 1.0,
                     num_spins: 3,
-                }
+                },
             ],
             Axe(_) => vec![
                 BasicMelee {

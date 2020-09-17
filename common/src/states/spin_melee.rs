@@ -52,8 +52,7 @@ impl CharacterBehavior for Data {
         let mut update = StateUpdate::from(data);
 
         if self.static_data.is_helicopter {
-            update.vel.0 =
-                Vec3::new(data.inputs.move_dir.x, data.inputs.move_dir.y, 0.0) * 5.0;
+            update.vel.0 = Vec3::new(data.inputs.move_dir.x, data.inputs.move_dir.y, 0.0) * 5.0;
         } else {
             handle_orientation(data, &mut update, 1.0);
             forward_move(data, &mut update, 0.1, self.static_data.forward_speed);
@@ -90,7 +89,7 @@ impl CharacterBehavior for Data {
                 knockback: self.static_data.knockback,
             });
         } else if self.stage_section == StageSection::Swing
-        && self.timer < self.static_data.swing_duration
+            && self.timer < self.static_data.swing_duration
         {
             // Swings
             update.character = CharacterState::SpinMelee(Data {
@@ -111,7 +110,7 @@ impl CharacterBehavior for Data {
                 stage_section: StageSection::Recover,
             })
         } else if self.stage_section == StageSection::Recover
-        && self.timer < self.static_data.recover_duration
+            && self.timer < self.static_data.recover_duration
         {
             // Recover
             update.character = CharacterState::SpinMelee(Data {
@@ -123,7 +122,10 @@ impl CharacterBehavior for Data {
                 spins_remaining: self.spins_remaining,
                 stage_section: self.stage_section,
             })
-        } else if update.energy.current() >= self.static_data.energy_cost && (self.spins_remaining != 0 || (self.static_data.is_infinite && data.inputs.secondary.is_pressed())) {
+        } else if update.energy.current() >= self.static_data.energy_cost
+            && (self.spins_remaining != 0
+                || (self.static_data.is_infinite && data.inputs.secondary.is_pressed()))
+        {
             let new_spins_remaining = if self.static_data.is_infinite {
                 self.spins_remaining
             } else {
@@ -136,9 +138,10 @@ impl CharacterBehavior for Data {
                 stage_section: StageSection::Buildup,
             });
             // Consumes energy if there's enough left and RMB is held down
-            update
-                .energy
-                .change_by(-(self.static_data.energy_cost as i32), EnergySource::Ability);
+            update.energy.change_by(
+                -(self.static_data.energy_cost as i32),
+                EnergySource::Ability,
+            );
         } else {
             // Done
             update.character = CharacterState::Wielding;

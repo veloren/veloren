@@ -68,7 +68,7 @@ impl Animation for SpinMeleeAnimation {
                         _ => {},
                     }
                 }
-            }
+            },
             Some(ToolKind::Axe(_)) => {
                 next.l_hand.position = Vec3::new(-0.5, 0.0, 4.0);
                 next.l_hand.orientation = Quaternion::rotation_x(PI / 2.0)
