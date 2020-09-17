@@ -183,6 +183,19 @@ impl Tool {
                     infinite_charge: true,
                     is_interruptible: true,
                 },
+                SpinMelee {
+                    buildup_duration: Duration::from_millis(150),
+                    swing_duration: Duration::from_millis(100),
+                    recover_duration: Duration::from_millis(150),
+                    base_damage: (100.0 * self.base_power()) as u32,
+                    knockback: 0.0,
+                    range: 3.5,
+                    energy_cost: 200,
+                    is_infinite: false,
+                    is_helicopter: false,
+                    forward_speed: 1.0,
+                    num_spins: 3,
+                }
             ],
             Axe(_) => vec![
                 BasicMelee {
@@ -195,10 +208,17 @@ impl Tool {
                     max_angle: 20.0,
                 },
                 SpinMelee {
-                    energy_cost: 100,
-                    buildup_duration: Duration::from_millis(125),
-                    recover_duration: Duration::from_millis(125),
+                    buildup_duration: Duration::from_millis(100),
+                    swing_duration: Duration::from_millis(50),
+                    recover_duration: Duration::from_millis(100),
                     base_damage: (60.0 * self.base_power()) as u32,
+                    knockback: 0.0,
+                    range: 3.5,
+                    energy_cost: 100,
+                    is_infinite: true,
+                    is_helicopter: true,
+                    forward_speed: 0.0,
+                    num_spins: 1,
                 },
             ],
             Hammer(_) => vec![
