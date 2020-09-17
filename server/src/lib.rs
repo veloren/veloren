@@ -4,6 +4,7 @@
 #![cfg_attr(not(feature = "worldgen"), feature(const_panic))]
 
 pub mod alias_validator;
+mod character_creator;
 pub mod chunk_generator;
 pub mod client;
 pub mod cmd;
@@ -47,7 +48,10 @@ use futures_timer::Delay;
 use futures_util::{select, FutureExt};
 use metrics::{ServerMetrics, StateTickMetrics, TickMetrics};
 use network::{Network, Pid, ProtocolAddr};
-use persistence::character::{CharacterLoader, CharacterLoaderResponseType, CharacterUpdater};
+use persistence::{
+    character_loader::{CharacterLoader, CharacterLoaderResponseType},
+    character_updater::CharacterUpdater,
+};
 use specs::{join::Join, Builder, Entity as EcsEntity, RunNow, SystemData, WorldExt};
 use std::{
     i32,
@@ -98,6 +102,12 @@ impl Server {
     #[allow(clippy::expect_fun_call)] // TODO: Pending review in #587
     #[allow(clippy::needless_update)] // TODO: Pending review in #587
     pub fn new(settings: ServerSettings) -> Result<Self, Error> {
+        // Run pending DB migrations (if any)
+        debug!("Running DB migrations...");
+        if let Some(e) = persistence::run_migrations(&settings.persistence_db_dir).err() {
+            panic!("Migration error: {:?}", e);
+        }
+
         let (chunk_gen_metrics, registry_chunk) = metrics::ChunkGenMetrics::new().unwrap();
         let (network_request_metrics, registry_network) =
             metrics::NetworkRequestMetrics::new().unwrap();
@@ -117,15 +127,10 @@ impl Server {
             .insert(ChunkGenerator::new(chunk_gen_metrics));
         state
             .ecs_mut()
-            .insert(CharacterUpdater::new(settings.persistence_db_dir.clone()));
+            .insert(CharacterUpdater::new(settings.persistence_db_dir.clone())?);
         state
             .ecs_mut()
-            .insert(CharacterLoader::new(settings.persistence_db_dir.clone()));
-        state
-            .ecs_mut()
-            .insert(persistence::character::CharacterUpdater::new(
-                settings.persistence_db_dir.clone(),
-            ));
+            .insert(CharacterLoader::new(settings.persistence_db_dir.clone())?);
         state
             .ecs_mut()
             .insert(comp::AdminList(settings.admins.clone()));
@@ -320,13 +325,6 @@ impl Server {
             state_tick_metrics,
         };
 
-        // Run pending DB migrations (if any)
-        debug!("Running DB migrations...");
-
-        if let Some(e) = persistence::run_migrations(&settings.persistence_db_dir).err() {
-            info!(?e, "Migration error");
-        }
-
         debug!(?settings, "created veloren server with");
 
         let git_hash = *common::util::GIT_HASH;
@@ -477,7 +475,7 @@ impl Server {
         // Get character-related database responses and notify the requesting client
         self.state
             .ecs()
-            .read_resource::<persistence::character::CharacterLoader>()
+            .read_resource::<persistence::character_loader::CharacterLoader>()
             .messages()
             .for_each(|query_result| match query_result.result {
                 CharacterLoaderResponseType::CharacterList(result) => match result {

@@ -1,57 +1,47 @@
 table! {
-    body (character_id) {
-        character_id -> Integer,
-        species -> SmallInt,
-        body_type -> SmallInt,
-        hair_style -> SmallInt,
-        beard -> SmallInt,
-        eyes -> SmallInt,
-        accessory -> SmallInt,
-        hair_color -> SmallInt,
-        skin -> SmallInt,
-        eye_color -> SmallInt,
+    body (body_id) {
+        body_id -> BigInt,
+        variant -> Text,
+        body_data -> Text,
     }
 }
 
 table! {
-    character (id) {
-        id -> Integer,
+    character (character_id) {
+        character_id -> BigInt,
         player_uuid -> Text,
         alias -> Text,
-        tool -> Nullable<Text>,
     }
 }
 
 table! {
-    inventory (character_id) {
-        character_id -> Integer,
-        items -> Text,
+    entity (entity_id) {
+        entity_id -> BigInt,
     }
 }
 
 table! {
-    loadout (id) {
-        id -> Integer,
-        character_id -> Integer,
-        items -> Text,
+    item (item_id) {
+        item_id -> BigInt,
+        parent_container_item_id -> BigInt,
+        item_definition_id -> Text,
+        stack_size -> Integer,
+        position -> Text,
     }
 }
 
 table! {
-    stats (character_id) {
-        character_id -> Integer,
+    stats (stats_id) {
+        stats_id -> BigInt,
         level -> Integer,
         exp -> Integer,
         endurance -> Integer,
         fitness -> Integer,
         willpower -> Integer,
-        skills -> Text,
     }
 }
 
-joinable!(body -> character (character_id));
-joinable!(inventory -> character (character_id));
-joinable!(loadout -> character (character_id));
-joinable!(stats -> character (character_id));
+joinable!(character -> body (character_id));
+joinable!(character -> stats (character_id));
 
-allow_tables_to_appear_in_same_query!(body, character, inventory, loadout, stats);
+allow_tables_to_appear_in_same_query!(body, character, entity, item, stats,);

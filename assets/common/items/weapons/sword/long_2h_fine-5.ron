@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Fine Longsword",
     description: "It shines when you hold it up to the light.",
     kind: Tool(

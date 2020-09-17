@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Leafy Shoulders",
     description: "Spaulders made from tied twigs and leaves.",
     kind: Armor(

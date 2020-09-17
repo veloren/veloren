@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Morning Star",
     description: "Forged with steel.",
     kind: Tool(

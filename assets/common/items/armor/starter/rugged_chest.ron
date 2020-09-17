@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Rugged Shirt",
     description: "Smells like Adventure.",
     kind: Armor(

@@ -30,7 +30,7 @@ pub enum ItemKey {
 }
 impl From<&Item> for ItemKey {
     fn from(item: &Item) -> Self {
-        match &item.kind {
+        match &item.kind() {
             ItemKind::Tool(Tool { kind, .. }) => ItemKey::Tool(kind.clone()),
             ItemKind::Lantern(Lantern { kind, .. }) => ItemKey::Lantern(kind.clone()),
             ItemKind::Armor(Armor { kind, .. }) => ItemKey::Armor(kind.clone()),
@@ -82,7 +82,7 @@ struct ItemImagesSpec(HashMap<ItemKey, ImageSpec>);
 impl Asset for ItemImagesSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
 
-    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+    fn parse(buf_reader: BufReader<File>, _specifier: &str) -> Result<Self, assets::Error> {
         ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
     }
 }

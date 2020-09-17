@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Leather Pauldrons",
     description: "Shoulder pads made of leather.",
     kind: Armor(

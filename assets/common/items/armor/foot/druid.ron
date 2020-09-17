@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Druid's Slippers",
     description: "For treading softly through the woods.",
     kind: Armor(

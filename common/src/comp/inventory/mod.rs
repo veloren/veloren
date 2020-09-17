@@ -1,20 +1,20 @@
 pub mod item;
 pub mod slot;
 
-use crate::{assets::Asset, recipe::Recipe};
-use item::{Item, ItemAsset, ItemKind};
+use crate::recipe::Recipe;
+use core::ops::Not;
+use item::Item;
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage, HashMapStorage};
 use specs_idvs::IdvStorage;
-use std::ops::Not;
 
 // The limit on distance between the entity and a collectible (squared)
 pub const MAX_PICKUP_RANGE_SQR: f32 = 64.0;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Inventory {
-    pub slots: Vec<Option<Item>>,
-    pub amount: u32,
+    slots: Vec<Option<Item>>,
+    amount: u32,
 }
 
 /// Errors which the methods on `Inventory` produce
@@ -27,9 +27,19 @@ pub enum Error {
 
 #[allow(clippy::len_without_is_empty)] // TODO: Pending review in #587
 impl Inventory {
+    pub fn new_empty() -> Inventory {
+        Inventory {
+            slots: vec![None; 36],
+            amount: 0,
+        }
+    }
+
     pub fn slots(&self) -> &[Option<Item>] { &self.slots }
 
     pub fn len(&self) -> usize { self.slots.len() }
+
+    /// Total number of occupied slots in the inventory.
+    pub fn amount(&self) -> u32 { self.amount }
 
     pub fn recount_items(&mut self) {
         self.amount = self.slots.iter().filter(|i| i.is_some()).count() as u32;
@@ -38,135 +48,23 @@ impl Inventory {
     /// Adds a new item to the first fitting group of the inventory or starts a
     /// new group. Returns the item again if no space was found.
     pub fn push(&mut self, item: Item) -> Option<Item> {
-        let item = match &item.kind {
-            ItemKind::Tool(_) | ItemKind::Armor { .. } | ItemKind::Lantern(_) => {
-                self.add_to_first_empty(item)
-            },
-            ItemKind::Utility {
-                kind: item_kind,
-                amount: new_amount,
-            } => {
-                for slot in &mut self.slots {
-                    if slot
-                        .as_ref()
-                        .map(|s| s.name() == item.name())
-                        .unwrap_or(false)
-                        && slot
-                            .as_ref()
-                            .map(|s| s.description() == item.description())
-                            .unwrap_or(false)
-                    {
-                        if let Some(Item {
-                            kind: ItemKind::Utility { kind, amount },
-                            ..
-                        }) = slot
-                        {
-                            if *item_kind == *kind {
-                                *amount += new_amount;
-                                self.recount_items();
-                                return None;
-                            }
-                        }
-                    }
-                }
-                // It didn't work
-                self.add_to_first_empty(item)
-            },
-            ItemKind::Consumable {
-                kind: item_kind,
-                amount: new_amount,
-                ..
-            } => {
-                for slot in &mut self.slots {
-                    if slot
-                        .as_ref()
-                        .map(|s| s.name() == item.name())
-                        .unwrap_or(false)
-                        && slot
-                            .as_ref()
-                            .map(|s| s.description() == item.description())
-                            .unwrap_or(false)
-                    {
-                        if let Some(Item {
-                            kind: ItemKind::Consumable { kind, amount, .. },
-                            ..
-                        }) = slot
-                        {
-                            if *item_kind == *kind {
-                                *amount += new_amount;
-                                self.recount_items();
-                                return None;
-                            }
-                        }
-                    }
-                }
-                // It didn't work
-                self.add_to_first_empty(item)
-            },
-            ItemKind::Throwable {
-                kind: item_kind,
-                amount: new_amount,
-                ..
-            } => {
-                for slot in &mut self.slots {
-                    if slot
-                        .as_ref()
-                        .map(|s| s.name() == item.name())
-                        .unwrap_or(false)
-                        && slot
-                            .as_ref()
-                            .map(|s| s.description() == item.description())
-                            .unwrap_or(false)
-                    {
-                        if let Some(Item {
-                            kind: ItemKind::Throwable { kind, amount, .. },
-                            ..
-                        }) = slot
-                        {
-                            if *item_kind == *kind {
-                                *amount += new_amount;
-                                self.recount_items();
-                                return None;
-                            }
-                        }
-                    }
-                }
-                // It didn't work
-                self.add_to_first_empty(item)
-            },
-            ItemKind::Ingredient {
-                kind: item_kind,
-                amount: new_amount,
-            } => {
-                for slot in &mut self.slots {
-                    if slot
-                        .as_ref()
-                        .map(|s| s.name() == item.name())
-                        .unwrap_or(false)
-                        && slot
-                            .as_ref()
-                            .map(|s| s.description() == item.description())
-                            .unwrap_or(false)
-                    {
-                        if let Some(Item {
-                            kind: ItemKind::Ingredient { kind, amount },
-                            ..
-                        }) = slot
-                        {
-                            if *item_kind == *kind {
-                                *amount += new_amount;
-                                self.recount_items();
-                                return None;
-                            }
-                        }
-                    }
-                }
-                // It didn't work
-                self.add_to_first_empty(item)
-            },
-        };
-        self.recount_items();
-        item
+        if item.is_stackable() {
+            if let Some(slot_item) = self
+                .slots
+                .iter_mut()
+                .filter_map(Option::as_mut)
+                .find(|s| *s == &item)
+            {
+                return slot_item
+                    .increase_amount(item.amount())
+                    .err()
+                    .and(Some(item));
+            }
+        }
+
+        // No existing item to stack with or item not stackable, put the item in a new
+        // slot
+        self.add_to_first_empty(item)
     }
 
     /// Adds a new item to the first empty slot of the inventory. Returns the
@@ -193,7 +91,6 @@ impl Inventory {
                 leftovers.push(item);
             }
         }
-        self.recount_items();
         if !leftovers.is_empty() {
             Err(Error::Full(leftovers))
         } else {
@@ -229,9 +126,10 @@ impl Inventory {
     pub fn insert(&mut self, cell: usize, item: Item) -> Result<Option<Item>, Item> {
         match self.slots.get_mut(cell) {
             Some(slot) => {
-                let old = slot.take();
-                *slot = Some(item);
-                self.recount_items();
+                let old = core::mem::replace(slot, Some(item));
+                if old.is_some() {
+                    self.recount_items();
+                }
                 Ok(old)
             },
             None => Err(item),
@@ -241,126 +139,25 @@ impl Inventory {
     /// Checks if inserting item exists in given cell. Inserts an item if it
     /// exists.
     pub fn insert_or_stack(&mut self, cell: usize, item: Item) -> Result<Option<Item>, Item> {
-        match &item.kind {
-            ItemKind::Tool(_) | ItemKind::Armor { .. } | ItemKind::Lantern(_) => {
-                self.insert(cell, item)
-            },
-            ItemKind::Utility {
-                amount: new_amount, ..
-            } => match self.slots.get_mut(cell) {
+        if item.is_stackable() {
+            match self.slots.get_mut(cell) {
                 Some(Some(slot_item)) => {
-                    if slot_item.name() == item.name()
-                        && slot_item.description() == item.description()
-                    {
-                        if let Item {
-                            kind: ItemKind::Utility { amount, .. },
-                            ..
-                        } = slot_item
-                        {
-                            *amount += *new_amount;
-                            self.recount_items();
-                            Ok(None)
-                        } else {
-                            let old_item = std::mem::replace(slot_item, item);
-                            self.recount_items();
-                            Ok(Some(old_item))
-                        }
+                    Ok(if slot_item == &item {
+                        slot_item
+                            .increase_amount(item.amount())
+                            .err()
+                            .and(Some(item))
                     } else {
-                        let old_item = std::mem::replace(slot_item, item);
-                        self.recount_items();
-                        Ok(Some(old_item))
-                    }
+                        let old_item = core::mem::replace(slot_item, item);
+                        // No need to recount--we know the count is the same.
+                        Some(old_item)
+                    })
                 },
                 Some(None) => self.insert(cell, item),
                 None => Err(item),
-            },
-            ItemKind::Ingredient {
-                amount: new_amount, ..
-            } => match self.slots.get_mut(cell) {
-                Some(Some(slot_item)) => {
-                    if slot_item.name() == item.name()
-                        && slot_item.description() == item.description()
-                    {
-                        if let Item {
-                            kind: ItemKind::Ingredient { amount, .. },
-                            ..
-                        } = slot_item
-                        {
-                            *amount += *new_amount;
-                            self.recount_items();
-                            Ok(None)
-                        } else {
-                            let old_item = std::mem::replace(slot_item, item);
-                            self.recount_items();
-                            Ok(Some(old_item))
-                        }
-                    } else {
-                        let old_item = std::mem::replace(slot_item, item);
-                        self.recount_items();
-                        Ok(Some(old_item))
-                    }
-                },
-                Some(None) => self.insert(cell, item),
-                None => Err(item),
-            },
-            ItemKind::Consumable {
-                amount: new_amount, ..
-            } => match self.slots.get_mut(cell) {
-                Some(Some(slot_item)) => {
-                    if slot_item.name() == item.name()
-                        && slot_item.description() == item.description()
-                    {
-                        if let Item {
-                            kind: ItemKind::Consumable { amount, .. },
-                            ..
-                        } = slot_item
-                        {
-                            *amount += *new_amount;
-                            self.recount_items();
-                            Ok(None)
-                        } else {
-                            let old_item = std::mem::replace(slot_item, item);
-                            self.recount_items();
-                            Ok(Some(old_item))
-                        }
-                    } else {
-                        let old_item = std::mem::replace(slot_item, item);
-                        self.recount_items();
-                        Ok(Some(old_item))
-                    }
-                },
-                Some(None) => self.insert(cell, item),
-                None => Err(item),
-            },
-            ItemKind::Throwable {
-                amount: new_amount, ..
-            } => match self.slots.get_mut(cell) {
-                Some(Some(slot_item)) => {
-                    if slot_item.name() == item.name()
-                        && slot_item.description() == item.description()
-                    {
-                        if let Item {
-                            kind: ItemKind::Throwable { amount, .. },
-                            ..
-                        } = slot_item
-                        {
-                            *amount += *new_amount;
-                            self.recount_items();
-                            Ok(None)
-                        } else {
-                            let old_item = std::mem::replace(slot_item, item);
-                            self.recount_items();
-                            Ok(Some(old_item))
-                        }
-                    } else {
-                        let old_item = std::mem::replace(slot_item, item);
-                        self.recount_items();
-                        Ok(Some(old_item))
-                    }
-                },
-                Some(None) => self.insert(cell, item),
-                None => Err(item),
-            },
+            }
+        } else {
+            self.insert(cell, item)
         }
     }
 
@@ -396,68 +193,17 @@ impl Inventory {
     /// Remove just one item from the slot
     pub fn take(&mut self, cell: usize) -> Option<Item> {
         if let Some(Some(item)) = self.slots.get_mut(cell) {
-            let mut return_item = item.clone();
-            match &mut item.kind {
-                ItemKind::Tool(_) | ItemKind::Armor { .. } | ItemKind::Lantern(_) => {
-                    self.remove(cell)
-                },
-                ItemKind::Utility { kind, amount } => {
-                    if *amount <= 1 {
-                        self.remove(cell)
-                    } else {
-                        *amount -= 1;
-                        return_item.kind = ItemKind::Utility {
-                            kind: *kind,
-                            amount: 1,
-                        };
-                        self.recount_items();
-                        Some(return_item)
-                    }
-                },
-                ItemKind::Consumable {
-                    kind,
-                    amount,
-                    effect,
-                } => {
-                    if *amount <= 1 {
-                        self.remove(cell)
-                    } else {
-                        *amount -= 1;
-                        return_item.kind = ItemKind::Consumable {
-                            kind: kind.clone(),
-                            effect: *effect,
-                            amount: 1,
-                        };
-                        self.recount_items();
-                        Some(return_item)
-                    }
-                },
-                ItemKind::Throwable { kind, amount } => {
-                    if *amount <= 1 {
-                        self.remove(cell)
-                    } else {
-                        *amount -= 1;
-                        return_item.kind = ItemKind::Throwable {
-                            kind: *kind,
-                            amount: 1,
-                        };
-                        self.recount_items();
-                        Some(return_item)
-                    }
-                },
-                ItemKind::Ingredient { kind, amount } => {
-                    if *amount <= 1 {
-                        self.remove(cell)
-                    } else {
-                        *amount -= 1;
-                        return_item.kind = ItemKind::Ingredient {
-                            kind: kind.clone(),
-                            amount: 1,
-                        };
-                        self.recount_items();
-                        Some(return_item)
-                    }
-                },
+            let mut return_item = item.duplicate();
+
+            if item.is_stackable() && item.amount() > 1 {
+                item.decrease_amount(1).ok()?;
+                return_item
+                    .set_amount(1)
+                    .expect("Items duplicated from a stackable item must be stackable.");
+                self.recount_items();
+                Some(return_item)
+            } else {
+                self.remove(cell)
             }
         } else {
             None
@@ -465,12 +211,12 @@ impl Inventory {
     }
 
     /// Determine how many of a particular item there is in the inventory.
-    pub fn item_count(&self, item: &Item) -> usize {
+    pub fn item_count(&self, item: &Item) -> u64 {
         self.slots()
             .iter()
             .flatten()
             .filter(|it| it.superficially_eq(item))
-            .map(|it| it.amount() as usize)
+            .map(|it| u64::from(it.amount()))
             .sum()
     }
 
@@ -482,7 +228,7 @@ impl Inventory {
     pub fn contains_ingredients<'a>(
         &self,
         recipe: &'a Recipe,
-    ) -> Result<Vec<usize>, Vec<(&'a Item, usize)>> {
+    ) -> Result<Vec<u32>, Vec<(&'a Item, u32)>> {
         let mut slot_claims = vec![0; self.slots.len()];
         let mut missing = Vec::new();
 
@@ -491,7 +237,7 @@ impl Inventory {
 
             for (i, slot) in self.slots().iter().enumerate() {
                 if let Some(item) = slot.as_ref().filter(|item| item.superficially_eq(input)) {
-                    let can_claim = (item.amount() as usize - slot_claims[i]).min(needed);
+                    let can_claim = (item.amount() - slot_claims[i]).min(needed);
                     slot_claims[i] += can_claim;
                     needed -= can_claim;
                     contains_any = true;
@@ -517,8 +263,8 @@ impl Default for Inventory {
             slots: vec![None; 36],
             amount: 0,
         };
-        inventory.push(ItemAsset::load_expect_cloned("common.items.food.cheese"));
-        inventory.push(ItemAsset::load_expect_cloned("common.items.food.apple"));
+        inventory.push(Item::new_from_asset_expect("common.items.food.cheese"));
+        inventory.push(Item::new_from_asset_expect("common.items.food.apple"));
         inventory
     }
 }

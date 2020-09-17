@@ -8,7 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-
 - New level of detail feature, letting you see all the world's terrain at any view distance.
 - Point and directional lights now cast realistic shadows, using shadow mapping.
 - Added leaf and chimney particles
@@ -35,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved projectile physics
 - Improved overhead aiming
 - Figure meshing no longer blocks the main thread.
+- Overhauled persistence layer including no longer storing serialized JSON items in the database
 
 ### Removed
 

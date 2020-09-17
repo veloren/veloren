@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Mjolnir",
     description: "It's crackling with lightning.",
     kind: Tool(

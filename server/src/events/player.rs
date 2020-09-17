@@ -140,7 +140,7 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
         state.read_storage::<comp::Loadout>().get(entity),
         state
             .ecs()
-            .read_resource::<persistence::character::CharacterUpdater>(),
+            .read_resource::<persistence::character_updater::CharacterUpdater>(),
     ) {
         if let Some(character_id) = player.character_id {
             updater.update(character_id, stats, inventory, loadout);

@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Worn out Sandals",
     description: "Loyal companions.",
     kind: Armor(

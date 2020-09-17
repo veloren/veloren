@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Horse Bow",
     description: "Works on the ground too.",  
     kind: Tool(

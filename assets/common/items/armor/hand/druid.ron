@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Druid's Gloves",
     description: "Soft, strong, and flexible.",
     kind: Armor(

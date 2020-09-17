@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Druid Shoulders",
     description: "Forged for protectors of the wild.",
     kind: Armor(

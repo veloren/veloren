@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Damaged Greatsword",
     description: "The blade has been chipped quite a few times.",
     kind: Tool(

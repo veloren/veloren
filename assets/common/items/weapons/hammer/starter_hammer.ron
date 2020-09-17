@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Sturdy Old Hammer",
     description: "'Property of...' The rest is missing.",
     kind: Tool(

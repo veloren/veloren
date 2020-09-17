@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Battered Sword",
     description: "Held together by Rust and hope.",
     kind: Tool(

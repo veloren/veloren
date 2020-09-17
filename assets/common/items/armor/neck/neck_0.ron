@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Plain Necklace",
     description: "It's become tarnished with age.",
     kind: Armor(

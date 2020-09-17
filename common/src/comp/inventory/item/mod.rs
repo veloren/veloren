@@ -5,15 +5,22 @@ pub mod tool;
 pub use tool::{Hands, Tool, ToolCategory, ToolKind};
 
 use crate::{
-    assets::{self, Asset, Ron},
+    assets::{self, Asset, Error},
     effect::Effect,
     lottery::Lottery,
     terrain::{Block, BlockKind},
 };
+use crossbeam::atomic::AtomicCell;
 use rand::prelude::*;
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
+use std::{
+    fs::File,
+    io::BufReader,
+    num::{NonZeroU32, NonZeroU64},
+    sync::Arc,
+};
 use vek::Rgb;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -51,8 +58,6 @@ impl Lantern {
     pub fn color(&self) -> Rgb<f32> { self.color.map(|c| c as f32 / 255.0) }
 }
 
-fn default_amount() -> u32 { 1 }
-
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum ItemKind {
     /// Something wieldable
@@ -62,85 +67,211 @@ pub enum ItemKind {
     Consumable {
         kind: String,
         effect: Effect,
-        #[serde(default = "default_amount")]
-        amount: u32,
     },
     Throwable {
         kind: Throwable,
-        #[serde(default = "default_amount")]
-        amount: u32,
     },
     Utility {
         kind: Utility,
-        #[serde(default = "default_amount")]
-        amount: u32,
     },
     Ingredient {
         kind: String,
-        #[serde(default = "default_amount")]
-        amount: u32,
     },
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub type ItemId = AtomicCell<Option<NonZeroU64>>;
+
+/* /// The only way to access an item id outside this module is to mutably, atomically update it using
+/// this structure.  It has a single method, `try_assign_id`, which attempts to set the id if and
+/// only if it's not already set.
+pub struct CreateDatabaseItemId {
+    item_id: Arc<ItemId>,
+}
+
+pub struct CreateDatabaseItemId {
+    item_id: Arc<ItemId>,
+} */
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Item {
-    name: String,
-    description: String,
+    /// item_id is hidden because it represents the persistent, storage entity
+    /// ID for any item that has been saved to the database.  Additionally,
+    /// it (currently) holds interior mutable state, making it very
+    /// dangerous to expose.  We will work to eliminate this issue soon; for
+    /// now, we try to make the system as foolproof as possible by greatly
+    /// restricting opportunities for cloning the item_id.
+    #[serde(skip)]
+    item_id: Arc<ItemId>,
+    /// item_def is hidden because changing the item definition for an item
+    /// could change invariants like whether it was stackable (invalidating
+    /// the amount).
+    item_def: Arc<ItemDef>,
+    /// amount is hidden because it needs to maintain the invariant that only
+    /// stackable items can have > 1 amounts.
+    amount: NonZeroU32,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ItemDef {
+    #[serde(skip)]
+    item_definition_id: String,
+    pub name: String,
+    pub description: String,
     pub kind: ItemKind,
 }
 
-pub type ItemAsset = Ron<Item>;
+impl ItemDef {
+    pub fn is_stackable(&self) -> bool {
+        matches!(self.kind, ItemKind::Consumable { .. }
+            | ItemKind::Ingredient { .. }
+            | ItemKind::Throwable { .. }
+            | ItemKind::Utility { .. })
+    }
+}
+
+impl PartialEq for Item {
+    fn eq(&self, other: &Self) -> bool {
+        self.item_def.item_definition_id == other.item_def.item_definition_id
+    }
+}
+
+impl Asset for ItemDef {
+    const ENDINGS: &'static [&'static str] = &["ron"];
+
+    fn parse(buf_reader: BufReader<File>, specifier: &str) -> Result<Self, assets::Error> {
+        let item: Result<Self, Error> =
+            ron::de::from_reader(buf_reader).map_err(Error::parse_error);
+
+        // Some commands like /give_item provide the asset specifier separated with \
+        // instead of .
+        let specifier = specifier.replace('\\', ".");
+
+        item.map(|item| ItemDef {
+            item_definition_id: specifier,
+            ..item
+        })
+    }
+}
 
 impl Item {
     // TODO: consider alternatives such as default abilities that can be added to a
     // loadout when no weapon is present
-    pub fn empty() -> Self {
-        Self {
-            name: "Empty Item".to_owned(),
-            description: "This item may grant abilities, but is invisible".to_owned(),
-            kind: ItemKind::Tool(Tool::empty()),
+    pub fn empty() -> Self { Item::new(ItemDef::load_expect("common.items.weapons.empty.empty")) }
+
+    pub fn new(inner_item: Arc<ItemDef>) -> Self {
+        Item {
+            item_id: Arc::new(AtomicCell::new(None)),
+            item_def: inner_item,
+            amount: NonZeroU32::new(1).unwrap(),
         }
     }
 
-    pub fn expect_from_asset(asset: &str) -> Self { (*ItemAsset::load_expect(asset)).clone() }
+    /// Creates a new instance of an `Item` from the provided asset identifier
+    /// Panics if the asset does not exist.
+    pub fn new_from_asset_expect(asset_specifier: &str) -> Self {
+        let inner_item = ItemDef::load_expect(asset_specifier);
+        Item::new(inner_item)
+    }
+
+    /// Creates a Vec containing one of each item that matches the provided
+    /// asset glob pattern
+    pub fn new_from_asset_glob(asset_glob: &str) -> Result<Vec<Self>, Error> {
+        let items = ItemDef::load_glob(asset_glob)?;
+
+        let result = items
+            .iter()
+            .map(|item_def| Item::new(Arc::clone(item_def)))
+            .collect::<Vec<_>>();
+
+        Ok(result)
+    }
+
+    /// Creates a new instance of an `Item from the provided asset identifier if
+    /// it exists
+    pub fn new_from_asset(asset: &str) -> Result<Self, Error> {
+        let inner_item = ItemDef::load(asset)?;
+        Ok(Item::new(inner_item))
+    }
+
+    /// Duplicates an item, creating an exact copy but with a new item ID
+    pub fn duplicate(&self) -> Self { Item::new(Arc::clone(&self.item_def)) }
+
+    /// FIXME: HACK: In order to set the entity ID asynchronously, we currently
+    /// start it at None, and then atomically set it when it's saved for the
+    /// first time in the database.  Because this requires shared mutable
+    /// state if these aren't synchronized by the program structure,
+    /// currently we use an Atomic inside an Arc; this is clearly very
+    /// dangerous, so in the future we will hopefully have a better way of
+    /// dealing with this.
+    #[doc(hidden)]
+    pub fn get_item_id_for_database(&self) -> Arc<ItemId> { Arc::clone(&self.item_id) }
+
+    /// Resets the item's item ID to None, giving it a new identity. Used when
+    /// dropping items into the world so that a new database record is
+    /// created when they are picked up again.
+    ///
+    /// NOTE: The creation of a new `Arc` when resetting the item ID is critical
+    /// because every time a new `Item` instance is created, it is cloned from
+    /// a single asset which results in an `Arc` pointing to the same value in
+    /// memory. Therefore, every time an item instance is created this
+    /// method must be called in order to give it a unique identity.
+    fn reset_item_id(&mut self) {
+        if let Some(item_id) = Arc::get_mut(&mut self.item_id) {
+            *item_id = AtomicCell::new(None);
+        } else {
+            self.item_id = Arc::new(AtomicCell::new(None));
+        }
+    }
+
+    /// Removes the unique identity of an item - used when dropping an item on
+    /// the floor. In the future this will need to be changed if we want to
+    /// maintain a unique ID for an item even when it's dropped and picked
+    /// up by another player.
+    pub fn put_in_world(&mut self) { self.reset_item_id() }
+
+    pub fn increase_amount(&mut self, increase_by: u32) -> Result<(), assets::Error> {
+        let amount = u32::from(self.amount);
+        self.amount = amount
+            .checked_add(increase_by)
+            .and_then(NonZeroU32::new)
+            .ok_or(assets::Error::InvalidType)?;
+        Ok(())
+    }
+
+    pub fn decrease_amount(&mut self, decrease_by: u32) -> Result<(), assets::Error> {
+        let amount = u32::from(self.amount);
+        self.amount = amount
+            .checked_sub(decrease_by)
+            .and_then(NonZeroU32::new)
+            .ok_or(assets::Error::InvalidType)?;
+        Ok(())
+    }
 
     pub fn set_amount(&mut self, give_amount: u32) -> Result<(), assets::Error> {
-        use ItemKind::*;
-        match self.kind {
-            Consumable { ref mut amount, .. }
-            | Throwable { ref mut amount, .. }
-            | Utility { ref mut amount, .. }
-            | Ingredient { ref mut amount, .. } => {
-                *amount = give_amount;
-                Ok(())
-            },
-            Tool { .. } | Lantern { .. } | Armor { .. } => {
-                // Tools and armor don't stack
-                Err(assets::Error::InvalidType)
-            },
+        if give_amount == 1 || self.item_def.is_stackable() {
+            self.amount = NonZeroU32::new(give_amount).ok_or(assets::Error::InvalidType)?;
+            Ok(())
+        } else {
+            Err(assets::Error::InvalidType)
         }
     }
 
-    pub fn name(&self) -> &str { &self.name }
+    pub fn item_definition_id(&self) -> &str { &self.item_def.item_definition_id }
 
-    pub fn description(&self) -> &str { &self.description }
+    pub fn is_stackable(&self) -> bool { self.item_def.is_stackable() }
 
-    pub fn amount(&self) -> u32 {
-        match &self.kind {
-            ItemKind::Tool(_) => 1,
-            ItemKind::Lantern(_) => 1,
-            ItemKind::Armor { .. } => 1,
-            ItemKind::Consumable { amount, .. } => *amount,
-            ItemKind::Throwable { amount, .. } => *amount,
-            ItemKind::Utility { amount, .. } => *amount,
-            ItemKind::Ingredient { amount, .. } => *amount,
-        }
-    }
+    pub fn name(&self) -> &str { &self.item_def.name }
+
+    pub fn description(&self) -> &str { &self.item_def.description }
+
+    pub fn kind(&self) -> &ItemKind { &self.item_def.kind }
+
+    pub fn amount(&self) -> u32 { u32::from(self.amount) }
 
     pub fn try_reclaim_from_block(block: Block) -> Option<Self> {
         let chosen;
         let mut rng = rand::thread_rng();
-        Some(ItemAsset::load_expect_cloned(match block.kind() {
+        Some(Item::new_from_asset_expect(match block.kind() {
             BlockKind::Apple => "common.items.food.apple",
             BlockKind::Mushroom => "common.items.food.mushroom",
             BlockKind::Velorite => "common.items.ore.velorite",
@@ -182,7 +313,7 @@ impl Item {
     /// (i.e: one may be substituted for the other in crafting recipes or
     /// item possession checks).
     pub fn superficially_eq(&self, other: &Self) -> bool {
-        match (&self.kind, &other.kind) {
+        match (&self.kind(), &other.kind()) {
             (ItemKind::Tool(a), ItemKind::Tool(b)) => a.superficially_eq(b),
             // TODO: Differentiate between lantern colors?
             (ItemKind::Lantern(_), ItemKind::Lantern(_)) => true,

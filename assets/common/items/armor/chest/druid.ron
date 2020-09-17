@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Druid's Vest",
     description: "Druidic chest wrappings.",
     kind: Armor(

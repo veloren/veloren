@@ -6,18 +6,24 @@
 //! - [`diesel-cli`](https://github.com/diesel-rs/diesel/tree/master/diesel_cli/)
 //!   for generating and testing migrations
 
-pub mod character;
-
+pub(in crate::persistence) mod character;
+pub mod character_loader;
+pub mod character_updater;
 mod error;
+mod json_models;
 mod models;
 mod schema;
 
 extern crate diesel;
 
+use common::comp;
 use diesel::{connection::SimpleConnection, prelude::*};
 use diesel_migrations::embed_migrations;
 use std::{env, fs, path::PathBuf};
 use tracing::{info, warn};
+
+/// A tuple of the components that are persisted to the DB for each character
+pub type PersistedComponents = (comp::Body, comp::Stats, comp::Inventory, comp::Loadout);
 
 // See: https://docs.rs/diesel_migrations/1.4.0/diesel_migrations/macro.embed_migrations.html
 // This macro is called at build-time, and produces the necessary migration info
@@ -44,15 +50,48 @@ pub fn run_migrations(db_dir: &str) -> Result<(), diesel_migrations::RunMigratio
     let _ = fs::create_dir(format!("{}/", db_dir));
 
     embedded_migrations::run_with_output(
-        &establish_connection(db_dir).expect(
-            "If we cannot execute migrations, we should not be allowed to launch the server, so \
-             we don't populate it with bad data.",
-        ),
+        &establish_connection(db_dir)
+            .expect(
+                "If we cannot execute migrations, we should not be allowed to launch the server, \
+                 so we don't populate it with bad data.",
+            )
+            .0,
         &mut std::io::LineWriter::new(TracingOut),
     )
 }
 
-fn establish_connection(db_dir: &str) -> QueryResult<SqliteConnection> {
+/// A database connection blessed by Veloren.
+pub struct VelorenConnection(SqliteConnection);
+
+/// A transaction blessed by Veloren.
+#[derive(Clone, Copy)]
+pub struct VelorenTransaction<'a>(&'a SqliteConnection);
+
+impl VelorenConnection {
+    /// Open a transaction in order to be able to run a set of queries against
+    /// the database. We require the use of a transaction, rather than
+    /// allowing direct session access, so that (1) we can control things
+    /// like the retry process (at a future date), and (2) to avoid
+    /// accidentally forgetting to open or reuse a transaction.
+    ///
+    /// We could make things even more foolproof, but we restrict ourselves to
+    /// this for now.
+    pub fn transaction<T, E, F>(&mut self, f: F) -> Result<T, E>
+    where
+        F: for<'a> FnOnce(VelorenTransaction<'a>) -> Result<T, E>,
+        E: From<diesel::result::Error>,
+    {
+        self.0.transaction(|| f(VelorenTransaction(&self.0)))
+    }
+}
+
+impl<'a> core::ops::Deref for VelorenTransaction<'a> {
+    type Target = SqliteConnection;
+
+    fn deref(&self) -> &Self::Target { &self.0 }
+}
+
+pub fn establish_connection(db_dir: &str) -> QueryResult<VelorenConnection> {
     let db_dir = &apply_saves_dir_override(db_dir);
     let database_url = format!("{}/db.sqlite", db_dir);
 
@@ -61,23 +100,21 @@ fn establish_connection(db_dir: &str) -> QueryResult<SqliteConnection> {
 
     // Use Write-Ahead-Logging for improved concurrency: https://sqlite.org/wal.html
     // Set a busy timeout (in ms): https://sqlite.org/c3ref/busy_timeout.html
-    if let Err(e) = connection.batch_execute(
-        "
+    connection
+        .batch_execute(
+            "
         PRAGMA foreign_keys = ON;
         PRAGMA journal_mode = WAL;
-        PRAGMA busy_timeout = 250; 
+        PRAGMA busy_timeout = 250;
         ",
-    ) {
-        warn!(
-            ?e,
+        )
+        .expect(
             "Failed adding PRAGMA statements while establishing sqlite connection, including \
              enabling foreign key constraints.  We will not allow connecting to the server under \
-             these conditions."
+             these conditions.",
         );
-        return Err(e);
-    }
 
-    Ok(connection)
+    Ok(VelorenConnection(connection))
 }
 
 fn apply_saves_dir_override(db_dir: &str) -> String {

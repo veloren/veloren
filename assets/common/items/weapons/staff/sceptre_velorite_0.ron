@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Velorite Sceptre",
     description: "Heals your allies with the mystical Velorite aura.",      
     kind: Tool(

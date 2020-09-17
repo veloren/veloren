@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Swift Shoulderpads",
     description: "Swift like the wind.",
     kind: Armor(

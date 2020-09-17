@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Iron and Leather Spaulders",
     description: "Robust spaulders made from iron and leather.",
     kind: Armor(

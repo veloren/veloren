@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Runic Hammer",
     description: "There are strange runes inscribed into it.",
     kind: Tool(

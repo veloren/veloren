@@ -1,4 +1,4 @@
-use crate::{comp, sync::Uid, util::Dir};
+use crate::{character::CharacterId, comp, sync::Uid, util::Dir};
 use comp::item::{Item, Reagent};
 use parking_lot::Mutex;
 use specs::Entity as EcsEntity;
@@ -59,7 +59,7 @@ pub enum ServerEvent {
     /// Inserts default components for a character when loading into the game
     InitCharacterData {
         entity: EcsEntity,
-        character_id: i32,
+        character_id: CharacterId,
     },
     UpdateCharacterData {
         entity: EcsEntity,

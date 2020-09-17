@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Flowery Belt",
     description: "A belt woven from twigs and flowers.",
     kind: Armor(

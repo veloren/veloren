@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Iron Feet",
     description: "Boots forged from iron.",
     kind: Armor(

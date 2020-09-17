@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Crude Mallet",
     description: "Breaks bones like sticks and stones.",
     kind: Tool(

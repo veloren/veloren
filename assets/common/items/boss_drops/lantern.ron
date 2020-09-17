@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Magic Lantern",
     description: "Illuminates even the darkest dungeon\nA great monster was slain for this item",
     kind: Lantern(
