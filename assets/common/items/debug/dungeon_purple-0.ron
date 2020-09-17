@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Purple Admin Cape",
     description: "Where did I put my banhammer again?",
     kind: Armor(

@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Forest Spirit",
     description: "The resin glows.",
     kind: Tool(

@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Basalt Sledgehammer",
     description: "It seems brittle.",
     kind: Tool(

@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Spade Axe",
     description: "Forged from steel.",
     kind: Tool(

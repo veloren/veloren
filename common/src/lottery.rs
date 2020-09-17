@@ -12,7 +12,7 @@ pub struct Lottery<T> {
 impl<T: DeserializeOwned + Send + Sync> Asset for Lottery<T> {
     const ENDINGS: &'static [&'static str] = &["ron"];
 
-    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+    fn parse(buf_reader: BufReader<File>, _specifier: &str) -> Result<Self, assets::Error> {
         ron::de::from_reader::<BufReader<File>, Vec<(f32, T)>>(buf_reader)
             .map(|items| Lottery::from_rates(items.into_iter()))
             .map_err(assets::Error::parse_error)
@@ -48,16 +48,17 @@ impl<T> Lottery<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::comp::item::ItemAsset;
+    use crate::{assets::Asset, comp::Item};
+
     #[test]
     fn test_loot_table() {
         let test = Lottery::<String>::load_expect("common.loot_tables.loot_table");
 
-        for (_, item) in test.iter() {
+        for (_, item_asset_specifier) in test.iter() {
             assert!(
-                ItemAsset::load(item).is_ok(),
+                Item::new_from_asset(item_asset_specifier).is_ok(),
                 "Invalid loot table item '{}'",
-                item
+                item_asset_specifier
             );
         }
     }

@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Gnarled Rod",
     description: "Smells like resin and magic.",
     kind: Tool(

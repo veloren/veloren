@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Leather Strips",
     description: "Shoulder wraps made from leather strips.",
     kind: Armor(

@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Black Lantern",
     description: "Used by city guards.",
     kind: Lantern(

@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Rake",
     description: "Held together with twine.",
     kind: Tool (

@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Soldier's Bow",
     description: "Has an insignia on it.",  
     kind: Tool(

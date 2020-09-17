@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "White flower",
     description: "Pure and precious.",
     kind: Ingredient(

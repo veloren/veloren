@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Humble Stick",
     description: "Walking stick with a sharpened end.",
     kind: Tool(

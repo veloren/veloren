@@ -321,7 +321,7 @@ impl<'a> Widget for Crafting<'a> {
             .and_then(|r| self.client.recipe_book().get(r.as_str()))
         {
             // Title
-            Text::new(&recipe.output.0.name().to_string())
+            Text::new(&recipe.output.0.name())
                 .mid_top_with_margin_on(state.ids.align_ing, -22.0)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
@@ -364,7 +364,8 @@ impl<'a> Widget for Crafting<'a> {
             // Widget generation for every ingredient
             for (i, (item, amount)) in recipe.inputs.iter().enumerate() {
                 // Grey color for images and text if their amount is too low to craft the item
-                let col = if self.inventory.item_count(item) as f32 / *amount as f32 >= 1.0 {
+                let item_count_in_inventory = self.inventory.item_count(item);
+                let col = if item_count_in_inventory >= u64::from(*amount) {
                     TEXT_COLOR
                 } else {
                     TEXT_DULL_RED_COLOR
@@ -402,7 +403,7 @@ impl<'a> Widget for Crafting<'a> {
                 // Ingredients text and amount
                 // Don't show inventory amounts above 999 to avoid the widget clipping
                 let over9k = "99+";
-                let in_inv: &str = &self.inventory.item_count(item).to_string();
+                let in_inv: &str = &item_count_in_inventory.to_string();
                 // Show Ingredients
                 // Align "Required" Text below last ingredient
                 if *amount == 0 {
@@ -413,7 +414,7 @@ impl<'a> Widget for Crafting<'a> {
                         .font_size(self.fonts.cyri.scale(14))
                         .color(col)
                         .set(state.ids.req_text[i], ui);
-                    Text::new(item.name())
+                    Text::new(&item.name())
                         .right_from(state.ids.ingredient_frame[i], 10.0)
                         .font_id(self.fonts.cyri.conrod_id)
                         .font_size(self.fonts.cyri.scale(14))
@@ -424,8 +425,8 @@ impl<'a> Widget for Crafting<'a> {
                     let input = format!(
                         "{}x {} ({})",
                         amount,
-                        item.name(),
-                        if self.inventory.item_count(item) > 99 {
+                        &item.name(),
+                        if item_count_in_inventory > 99 {
                             over9k
                         } else {
                             in_inv

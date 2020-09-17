@@ -1,6 +1,6 @@
 use crate::{
     assets::{self, Asset},
-    comp::{item::ItemAsset, Inventory, Item},
+    comp::{Inventory, Item},
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
@@ -8,17 +8,14 @@ use std::{fs::File, io::BufReader, sync::Arc};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Recipe {
-    pub output: (Item, usize),
-    pub inputs: Vec<(Item, usize)>,
+    pub output: (Item, u32),
+    pub inputs: Vec<(Item, u32)>,
 }
 
 #[allow(clippy::type_complexity)]
 impl Recipe {
     /// Perform a recipe, returning a list of missing items on failure
-    pub fn perform(
-        &self,
-        inv: &mut Inventory,
-    ) -> Result<Option<(Item, usize)>, Vec<(&Item, usize)>> {
+    pub fn perform(&self, inv: &mut Inventory) -> Result<Option<(Item, u32)>, Vec<(&Item, u32)>> {
         // Get ingredient cells from inventory,
         inv.contains_ingredients(self)?
             .into_iter()
@@ -30,7 +27,7 @@ impl Recipe {
             });
 
         for i in 0..self.output.1 {
-            if let Some(item) = inv.push(self.output.0.clone()) {
+            if let Some(item) = inv.push(self.output.0.duplicate()) {
                 return Ok(Some((item, self.output.1 - i)));
             }
         }
@@ -38,7 +35,7 @@ impl Recipe {
         Ok(None)
     }
 
-    pub fn inputs(&self) -> impl ExactSizeIterator<Item = (&Item, usize)> {
+    pub fn inputs(&self) -> impl ExactSizeIterator<Item = (&Item, u32)> {
         self.inputs.iter().map(|(item, amount)| (item, *amount))
     }
 }
@@ -65,10 +62,10 @@ impl RecipeBook {
 impl Asset for RecipeBook {
     const ENDINGS: &'static [&'static str] = &["ron"];
 
-    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+    fn parse(buf_reader: BufReader<File>, _specifier: &str) -> Result<Self, assets::Error> {
         ron::de::from_reader::<
             BufReader<File>,
-            HashMap<String, ((String, usize), Vec<(String, usize)>)>,
+            HashMap<String, ((String, u32), Vec<(String, u32)>)>,
         >(buf_reader)
         .map_err(assets::Error::parse_error)
         .and_then(|recipes| {
@@ -78,13 +75,11 @@ impl Asset for RecipeBook {
                     .map::<Result<(String, Recipe), assets::Error>, _>(
                         |(name, ((output, amount), inputs))| {
                             Ok((name, Recipe {
-                                output: ((&*ItemAsset::load(&output)?).clone(), amount),
+                                output: (Item::new_from_asset(&output)?, amount),
                                 inputs: inputs
                                     .into_iter()
-                                    .map::<Result<(Item, usize), assets::Error>, _>(
-                                        |(name, amount)| {
-                                            Ok(((&*ItemAsset::load(&name)?).clone(), amount))
-                                        },
+                                    .map::<Result<(Item, u32), assets::Error>, _>(
+                                        |(name, amount)| Ok((Item::new_from_asset(&name)?, amount)),
                                     )
                                     .collect::<Result<_, _>>()?,
                             }))

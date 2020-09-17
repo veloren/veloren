@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Purple Linen Coat",
     description: "A warm coat.",
     kind: Armor(

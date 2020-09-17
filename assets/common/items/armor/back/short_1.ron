@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Green Blanket",
     description: "Keeps your shoulders warm.",
     kind: Armor(

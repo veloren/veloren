@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Hoe",
     description: "It's stained with dirt.",
     kind: Tool (

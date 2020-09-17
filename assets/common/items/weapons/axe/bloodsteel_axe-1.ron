@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Executioner's Axe",
     description: "An axe forged from steel that thirsts for blood.",
     kind: Tool(

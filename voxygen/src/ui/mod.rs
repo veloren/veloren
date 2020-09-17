@@ -105,7 +105,7 @@ pub struct Font(text::Font);
 impl assets::Asset for Font {
     const ENDINGS: &'static [&'static str] = &["ttf"];
 
-    fn parse(mut buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+    fn parse(mut buf_reader: BufReader<File>, _specifier: &str) -> Result<Self, assets::Error> {
         let mut buf = Vec::new();
         buf_reader.read_to_end(&mut buf)?;
         Ok(Font(text::Font::from_bytes(buf).unwrap()))

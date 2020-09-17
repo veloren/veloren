@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Iron Spiked Pauldrons",
     description: "Iron shoulder pads with spikes attached.",
     kind: Armor(

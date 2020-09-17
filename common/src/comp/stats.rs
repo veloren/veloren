@@ -204,6 +204,33 @@ impl Stats {
         stats
     }
 
+    /// Creates an empty `Stats` instance - used during character loading from
+    /// the database
+    pub fn empty() -> Self {
+        Self {
+            name: "".to_owned(),
+            health: Health {
+                current: 0,
+                maximum: 0,
+                last_change: (0.0, HealthChange {
+                    amount: 0,
+                    cause: HealthSource::Revive,
+                }),
+            },
+            level: Level { amount: 1 },
+            exp: Exp {
+                current: 0,
+                maximum: 50,
+            },
+            skill_set: SkillSet::default(),
+            endurance: 0,
+            fitness: 0,
+            willpower: 0,
+            is_dead: false,
+            body_type: comp::Body::Humanoid(comp::body::humanoid::Body::random()),
+        }
+    }
+
     pub fn with_max_health(mut self, amount: u32) -> Self {
         self.health.maximum = amount;
         self.health.current = amount;
