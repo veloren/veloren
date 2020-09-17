@@ -127,7 +127,7 @@ impl<
 {
     const ENDINGS: &'static [&'static str] = &["json"];
 
-    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+    fn parse(buf_reader: BufReader<File>, _specifier: &str) -> Result<Self, assets::Error> {
         serde_json::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
     }
 }

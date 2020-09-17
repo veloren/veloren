@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Pitchfork",
     description: "One of the prongs is broken.",
     kind: Tool (

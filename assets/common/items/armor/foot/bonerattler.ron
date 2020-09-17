@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Bonerattler Boots",
     description: "Made from the strongest bones.",
     kind: Armor(

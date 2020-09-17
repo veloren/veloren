@@ -9,8 +9,8 @@ use super::EventMapper;
 
 use common::{
     comp::{
-        item::{Item, ItemKind, ToolCategory},
-        CharacterAbilityType, CharacterState, ItemConfig, Loadout, Pos,
+        item::{ItemKind, ToolCategory},
+        CharacterAbilityType, CharacterState, Loadout, Pos,
     },
     event::EventBus,
     state::State,
@@ -135,32 +135,30 @@ impl CombatEventMapper {
         loadout: Option<&Loadout>,
     ) -> SfxEvent {
         if let Some(active_loadout) = loadout {
-            if let Some(ItemConfig {
-                item:
-                    Item {
-                        kind: ItemKind::Tool(data),
-                        ..
-                    },
-                ..
-            }) = &active_loadout.active_item
-            {
-                // Check for attacking states
-                if character_state.is_attack() {
-                    return SfxEvent::Attack(
-                        CharacterAbilityType::from(character_state),
-                        ToolCategory::from(&data.kind),
-                    );
-                } else if let Some(wield_event) = match (
-                    previous_state.weapon_drawn,
-                    character_state.is_dodge(),
-                    Self::weapon_drawn(character_state),
-                ) {
-                    (false, false, true) => Some(SfxEvent::Wield(ToolCategory::from(&data.kind))),
-                    (true, false, false) => Some(SfxEvent::Unwield(ToolCategory::from(&data.kind))),
-                    _ => None,
-                } {
-                    return wield_event;
+            if let Some(item_config) = &active_loadout.active_item {
+                if let ItemKind::Tool(data) = item_config.item.kind() {
+                    if character_state.is_attack() {
+                        return SfxEvent::Attack(
+                            CharacterAbilityType::from(character_state),
+                            ToolCategory::from(&data.kind),
+                        );
+                    } else if let Some(wield_event) = match (
+                        previous_state.weapon_drawn,
+                        character_state.is_dodge(),
+                        Self::weapon_drawn(character_state),
+                    ) {
+                        (false, false, true) => {
+                            Some(SfxEvent::Wield(ToolCategory::from(&data.kind)))
+                        },
+                        (true, false, false) => {
+                            Some(SfxEvent::Unwield(ToolCategory::from(&data.kind)))
+                        },
+                        _ => None,
+                    } {
+                        return wield_event;
+                    }
                 }
+                // Check for attacking states
             }
         }
 

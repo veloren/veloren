@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Hardwood Mallet",
     description: "Seems sturdy enough.",
     kind: Tool(

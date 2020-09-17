@@ -1,10 +1,11 @@
 use super::SysTimer;
 use crate::{
     alias_validator::AliasValidator,
+    character_creator,
     client::Client,
     login_provider::LoginProvider,
     metrics::{NetworkRequestMetrics, PlayerMetrics},
-    persistence::character::CharacterLoader,
+    persistence::character_loader::CharacterLoader,
     ServerSettings,
 };
 use common::{
@@ -380,12 +381,13 @@ impl Sys {
                         debug!(?error, ?alias, "denied alias as it contained a banned word");
                         client.notify(ServerMsg::CharacterActionError(error.to_string()));
                     } else if let Some(player) = players.get(entity) {
-                        character_loader.create_character(
+                        character_creator::create_character(
                             entity,
                             player.uuid().to_string(),
                             alias,
                             tool,
                             body,
+                            character_loader,
                         );
                     }
                 },

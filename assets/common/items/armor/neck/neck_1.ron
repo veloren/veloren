@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Gem of lesser Protection",
     description: "Surrounded by a discrete magical glow.",
     kind: Armor(

@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Admin's Cape",
     description: "With great power comes\ngreat responsibility.",
     kind: Armor(

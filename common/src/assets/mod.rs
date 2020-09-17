@@ -65,7 +65,7 @@ fn reload<A: Asset>(specifier: &str) -> Result<(), Error>
 where
     A::Output: Send + Sync + 'static,
 {
-    let asset = Arc::new(A::parse(load_file(specifier, A::ENDINGS)?)?);
+    let asset = Arc::new(A::parse(load_file(specifier, A::ENDINGS)?, specifier)?);
     let mut assets_write = ASSETS.write().unwrap();
     match assets_write.get_mut(specifier) {
         Some(a) => *a = asset,
@@ -84,7 +84,7 @@ pub trait Asset: Sized {
 
     const ENDINGS: &'static [&'static str];
     /// Parse the input file and return the correct Asset.
-    fn parse(buf_reader: BufReader<File>) -> Result<Self::Output, Error>;
+    fn parse(buf_reader: BufReader<File>, specifier: &str) -> Result<Self::Output, Error>;
 
     // TODO: Remove this function. It's only used in world/ in a really ugly way.To
     // do this properly assets should have all their necessary data in one file. A
@@ -108,12 +108,15 @@ pub trait Asset: Sized {
     where
         Self::Output: Send + Sync + 'static,
     {
-        let assets_write = ASSETS.read().unwrap();
-        match assets_write.get(specifier) {
+        let assets_read = ASSETS.read().unwrap();
+        match assets_read.get(specifier) {
             Some(asset) => Ok(Arc::clone(asset).downcast()?),
             None => {
-                drop(assets_write); // Drop the asset hashmap to permit recursive loading
-                let asset = Arc::new(f(Self::parse(load_file(specifier, Self::ENDINGS)?)?));
+                drop(assets_read); // Drop the asset hashmap to permit recursive loading
+                let asset = Arc::new(f(Self::parse(
+                    load_file(specifier, Self::ENDINGS)?,
+                    specifier,
+                )?));
                 let clone = Arc::clone(&asset);
                 ASSETS.write().unwrap().insert(specifier.to_owned(), clone);
                 Ok(asset)
@@ -129,27 +132,13 @@ pub trait Asset: Sized {
             return Ok(Arc::clone(assets).downcast()?);
         }
 
-        // Get glob matches
-        let glob_matches = read_dir(specifier.trim_end_matches(".*")).map(|dir| {
-            dir.filter_map(|direntry| {
-                direntry.ok().and_then(|file| {
-                    file.file_name()
-                        .to_string_lossy()
-                        .rsplitn(2, '.')
-                        .last()
-                        .map(|s| s.to_owned())
-                })
-            })
-            .collect::<Vec<_>>()
-        });
-
-        match glob_matches {
+        match get_glob_matches(specifier) {
             Ok(glob_matches) => {
                 let assets = Arc::new(
                     glob_matches
                         .into_iter()
                         .filter_map(|name| {
-                            Self::load(&specifier.replace("*", &name))
+                            Self::load(&name)
                                 .map_err(|e| {
                                     error!(
                                         ?e,
@@ -168,6 +157,25 @@ pub trait Asset: Sized {
                 assets_write.insert(specifier.to_owned(), clone);
                 Ok(assets)
             },
+            Err(error) => Err(error),
+        }
+    }
+
+    fn load_glob_cloned(specifier: &str) -> Result<Vec<(Self::Output, String)>, Error>
+    where
+        Self::Output: Clone + Send + Sync + 'static,
+    {
+        match get_glob_matches(specifier) {
+            Ok(glob_matches) => Ok(glob_matches
+                .into_iter()
+                .map(|name| {
+                    let full_specifier = &specifier.replace("*", &name);
+                    (
+                        Self::load_expect_cloned(full_specifier),
+                        full_specifier.to_string(),
+                    )
+                })
+                .collect::<Vec<_>>()),
             Err(error) => Err(error),
         }
     }
@@ -267,7 +275,7 @@ pub trait Asset: Sized {
 impl Asset for DynamicImage {
     const ENDINGS: &'static [&'static str] = &["png", "jpg"];
 
-    fn parse(mut buf_reader: BufReader<File>) -> Result<Self, Error> {
+    fn parse(mut buf_reader: BufReader<File>, _specifier: &str) -> Result<Self, Error> {
         let mut buf = Vec::new();
         buf_reader.read_to_end(&mut buf)?;
         image::load_from_memory(&buf).map_err(Error::parse_error)
@@ -277,7 +285,7 @@ impl Asset for DynamicImage {
 impl Asset for DotVoxData {
     const ENDINGS: &'static [&'static str] = &["vox"];
 
-    fn parse(mut buf_reader: BufReader<File>) -> Result<Self, Error> {
+    fn parse(mut buf_reader: BufReader<File>, _specifier: &str) -> Result<Self, Error> {
         let mut buf = Vec::new();
         buf_reader.read_to_end(&mut buf)?;
         dot_vox::load_bytes(&buf).map_err(Error::parse_error)
@@ -288,12 +296,12 @@ impl Asset for DotVoxData {
 impl Asset for Value {
     const ENDINGS: &'static [&'static str] = &["json"];
 
-    fn parse(buf_reader: BufReader<File>) -> Result<Self, Error> {
+    fn parse(buf_reader: BufReader<File>, _specifier: &str) -> Result<Self, Error> {
         serde_json::from_reader(buf_reader).map_err(Error::parse_error)
     }
 }
 
-/// Load fron an arbitrary RON file.
+/// Load from an arbitrary RON file.
 pub struct Ron<T>(pub PhantomData<T>);
 
 impl<T: Send + Sync + for<'de> Deserialize<'de>> Asset for Ron<T> {
@@ -301,7 +309,7 @@ impl<T: Send + Sync + for<'de> Deserialize<'de>> Asset for Ron<T> {
 
     const ENDINGS: &'static [&'static str] = &["ron"];
 
-    fn parse(buf_reader: BufReader<File>) -> Result<T, Error> {
+    fn parse(buf_reader: BufReader<File>, _specifier: &str) -> Result<T, Error> {
         ron::de::from_reader(buf_reader).map_err(Error::parse_error)
     }
 }
@@ -463,4 +471,38 @@ pub fn read_dir(specifier: &str) -> Result<ReadDir, Error> {
     } else {
         Err(Error::NotFound(dir_name.to_string_lossy().into_owned()))
     }
+}
+
+// Finds all files matching the provided glob specifier - includes files from
+// subdirectories
+fn get_glob_matches(specifier: &str) -> Result<Vec<String>, Error> {
+    let specifier = specifier.trim_end_matches(".*");
+    read_dir(specifier).map(|dir| {
+        dir.filter_map(|direntry| {
+            direntry.ok().and_then(|dir_entry| {
+                if dir_entry.path().is_dir() {
+                    let sub_dir_glob = format!(
+                        "{}.{}.*",
+                        specifier.to_string(),
+                        dir_entry.file_name().to_string_lossy()
+                    );
+                    Some(get_glob_matches(&sub_dir_glob).ok()?)
+                } else {
+                    Some(vec![format!(
+                        "{}.{}",
+                        specifier,
+                        dir_entry
+                            .file_name()
+                            .to_string_lossy()
+                            .rsplitn(2, '.')
+                            .last()
+                            .map(|s| s.to_owned())
+                            .unwrap()
+                    )])
+                }
+            })
+        })
+        .flat_map(|x| x)
+        .collect::<Vec<_>>()
+    })
 }

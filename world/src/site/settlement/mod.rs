@@ -13,9 +13,8 @@ use crate::{
     IndexRef,
 };
 use common::{
-    assets::Asset,
     astar::Astar,
-    comp::{self, bird_medium, humanoid, item::ItemAsset, object, quadruped_small},
+    comp::{self, bird_medium, humanoid, object, quadruped_small, Item},
     generation::{ChunkSupplement, EntityInfo},
     path::Path,
     spiral::Spiral2d,
@@ -904,7 +903,7 @@ impl Settlement {
                             comp::Alignment::Tame
                         })
                         .do_if(is_human && rng.gen(), |entity| {
-                            entity.with_main_tool(ItemAsset::load_expect_cloned(
+                            entity.with_main_tool(Item::new_from_asset_expect(
                                 match rng.gen_range(0, 7) {
                                     0 => "common.items.npc_weapons.tool.broom",
                                     1 => "common.items.npc_weapons.tool.hoe",

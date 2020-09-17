@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Horn Bow",
     description: "You don't recognize the creature these horns belong to.",  
     kind: Tool(

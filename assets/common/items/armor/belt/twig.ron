@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Twig Belt",
     description: "A belt made from woven from twigs.",
     kind: Armor(

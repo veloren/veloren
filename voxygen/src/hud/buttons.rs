@@ -191,8 +191,8 @@ impl<'a> Widget for Buttons<'a> {
                 .set(state.ids.bag_text, ui);
         }
         if !self.show_bag {
-            let space_used = inventory.amount;
-            let space_max = inventory.slots.len();
+            let space_used = inventory.amount();
+            let space_max = inventory.slots().len();
             let bag_space = format!("{}/{}", space_used, space_max);
             let bag_space_percentage = space_used as f32 / space_max as f32;
             Text::new(&bag_space)

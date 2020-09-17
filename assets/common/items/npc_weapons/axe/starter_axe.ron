@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Notched Axe",
     description: "Every dent tells the story of a chopped tree.",
     kind: Tool(

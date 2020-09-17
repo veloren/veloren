@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Brute's Hammer",
     description: "Forged with steel.",
     kind: Tool(

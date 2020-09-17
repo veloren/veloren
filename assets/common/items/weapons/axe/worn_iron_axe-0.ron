@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Worn Dwarven Axe",
     description: "Hopefully it's previous owner won't miss it.",
     kind: Tool(

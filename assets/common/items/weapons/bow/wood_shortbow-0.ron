@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Hunting Bow",
     description: "Strips of leather are wrapped around the handle.",  
     kind: Tool(

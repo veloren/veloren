@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Assassin Shoulder Guard",
     description: "Only the best for a member of the creed.",
     kind: Armor(

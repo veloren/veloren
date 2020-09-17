@@ -5,9 +5,8 @@
 use crate::{client::Client, Server, StateExt};
 use chrono::{NaiveTime, Timelike};
 use common::{
-    assets::Asset,
     cmd::{ChatCommand, CHAT_COMMANDS, CHAT_SHORTCUTS},
-    comp::{self, item::ItemAsset, ChatType, Item, LightEmitter, WaypointArea},
+    comp::{self, ChatType, Item, LightEmitter, WaypointArea},
     event::{EventBus, ServerEvent},
     msg::{DisconnectReason, Notification, PlayerListUpdate, ServerMsg},
     npc::{self, get_npc_name},
@@ -121,7 +120,7 @@ fn handle_give_item(
         scan_fmt_some!(&args, &action.arg_fmt(), String, u32)
     {
         let give_amount = give_amount_opt.unwrap_or(1);
-        if let Ok(item) = ItemAsset::load_cloned(&item_name) {
+        if let Ok(item) = Item::new_from_asset(&item_name) {
             let mut item: Item = item;
             if let Ok(()) = item.set_amount(give_amount.min(2000)) {
                 server
@@ -149,7 +148,7 @@ fn handle_give_item(
                     .get_mut(target)
                     .map(|inv| {
                         for i in 0..give_amount {
-                            if inv.push(item.clone()).is_some() {
+                            if inv.push(item.duplicate()).is_some() {
                                 server.notify_client(
                                     client,
                                     ChatType::CommandError.server_msg(format!(
@@ -1644,14 +1643,13 @@ fn handle_debug(
     _args: String,
     _action: &ChatCommand,
 ) {
-    if let Ok(items) = ItemAsset::load_glob("common.items.debug.*") {
+    if let Ok(items) = comp::Item::new_from_asset_glob("common.items.debug.*") {
         server
             .state()
             .ecs()
             .write_storage::<comp::Inventory>()
             .get_mut(target)
-            // TODO: Consider writing a `load_glob_cloned` in `assets` and using that here
-            .map(|inv| inv.push_all_unique(items.iter().map(|item| item.as_ref().clone())));
+            .map(|inv| inv.push_all_unique(items.into_iter()));
         let _ = server
             .state
             .ecs()

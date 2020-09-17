@@ -165,6 +165,26 @@ pub struct ItemConfig {
     pub dodge_ability: Option<CharacterAbility>,
 }
 
+impl From<Item> for ItemConfig {
+    fn from(item: Item) -> Self {
+        if let ItemKind::Tool(tool) = &item.kind() {
+            let mut abilities = tool.get_abilities();
+            let mut ability_drain = abilities.drain(..);
+
+            return ItemConfig {
+                item,
+                ability1: ability_drain.next(),
+                ability2: ability_drain.next(),
+                ability3: ability_drain.next(),
+                block_ability: Some(CharacterAbility::BasicBlock),
+                dodge_ability: Some(CharacterAbility::Roll),
+            };
+        }
+
+        unimplemented!("ItemConfig is currently only supported for Tools")
+    }
+}
+
 #[derive(Arraygen, Clone, PartialEq, Default, Debug, Serialize, Deserialize)]
 #[gen_array(pub fn get_armor: &Option<Item>)]
 pub struct Loadout {
@@ -204,7 +224,7 @@ impl Loadout {
             .iter()
             .flat_map(|armor| armor.as_ref())
             .filter_map(|item| {
-                if let ItemKind::Armor(armor) = &item.kind {
+                if let ItemKind::Armor(armor) = &item.kind() {
                     Some(armor.get_protection())
                 } else {
                     None

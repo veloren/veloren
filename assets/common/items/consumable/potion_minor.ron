@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Minor Potion",
     description: "Restores 50 Health\n\n<Right-Click to use>",
     kind: Consumable(

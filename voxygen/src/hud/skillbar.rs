@@ -600,7 +600,7 @@ impl<'a> Widget for Skillbar<'a> {
         Image::new(self.imgs.skillbar_slot_big_bg)
             .w_h(38.0 * scale, 38.0 * scale)
             .color(
-                match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
+                match self.loadout.active_item.as_ref().map(|i| i.item.kind()) {
                     Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
                         ToolKind::Bow(_) => Some(BG_COLOR_2),
                         ToolKind::Staff(_) => Some(BG_COLOR_2),
@@ -612,7 +612,7 @@ impl<'a> Widget for Skillbar<'a> {
             .middle_of(state.ids.m1_slot)
             .set(state.ids.m1_slot_bg, ui);
         Button::image(
-            match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
+            match self.loadout.active_item.as_ref().map(|i| i.item.kind()) {
                 Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
                     ToolKind::Sword(_) => self.imgs.twohsword_m1,
                     ToolKind::Dagger(_) => self.imgs.onehdagger_m1,
@@ -663,12 +663,12 @@ impl<'a> Widget for Skillbar<'a> {
             },
         }
 
-        let active_tool_kind = match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
+        let active_tool_kind = match self.loadout.active_item.as_ref().map(|i| i.item.kind()) {
             Some(ItemKind::Tool(Tool { kind, .. })) => Some(kind),
             _ => None,
         };
 
-        let second_tool_kind = match self.loadout.second_item.as_ref().map(|i| &i.item.kind) {
+        let second_tool_kind = match self.loadout.second_item.as_ref().map(|i| i.item.kind()) {
             Some(ItemKind::Tool(Tool { kind, .. })) => Some(kind),
             _ => None,
         };
@@ -795,7 +795,7 @@ impl<'a> Widget for Skillbar<'a> {
                         .2
                         .active_item
                         .as_ref()
-                        .map(|i| &i.item.kind)
+                        .map(|i| i.item.kind())
                         .and_then(|kind| match kind {
                             ItemKind::Tool(Tool { kind, .. }) => match kind {
                                 ToolKind::Staff(_) => Some((

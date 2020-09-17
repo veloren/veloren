@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Cool Blue Lantern",
     description: "This lantern is surprisingly cold when lit.",
     kind: Lantern(

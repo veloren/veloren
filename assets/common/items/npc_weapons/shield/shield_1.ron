@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "A Tattered Targe",
     description: "Should withstand a few more hits, hopefully...",
     kind: Tool (

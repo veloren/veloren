@@ -4,9 +4,8 @@ use common::{
     comp::{
         self,
         chat::{KillSource, KillType},
-        item::ItemAsset,
-        object, Alignment, Body, Damage, DamageSource, Group, HealthChange, HealthSource, Player,
-        Pos, Stats,
+        object, Alignment, Body, Damage, DamageSource, Group, HealthChange, HealthSource, Item,
+        Player, Pos, Stats,
     },
     lottery::Lottery,
     msg::{PlayerListUpdate, ServerMsg},
@@ -334,7 +333,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         let item = {
             let mut item_drops = state.ecs().write_storage::<comp::ItemDrop>();
             item_drops.remove(entity).map_or_else(
-                || ItemAsset::load_expect_cloned(lottery().choose()),
+                || Item::new_from_asset_expect(lottery().choose()),
                 |item_drop| item_drop.0,
             )
         };

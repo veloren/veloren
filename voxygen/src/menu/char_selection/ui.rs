@@ -12,8 +12,8 @@ use crate::{
 use client::Client;
 use common::{
     assets::Asset,
-    character::{Character, CharacterItem, MAX_CHARACTERS_PER_PLAYER},
-    comp::{self, humanoid, item::ItemAsset},
+    character::{Character, CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER},
+    comp::{self, humanoid},
     LoadoutBuilder,
 };
 use conrod_core::{
@@ -255,7 +255,7 @@ pub enum Event {
         tool: Option<String>,
         body: comp::Body,
     },
-    DeleteCharacter(i32),
+    DeleteCharacter(CharacterId),
 }
 
 const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
@@ -353,13 +353,17 @@ impl CharSelectionUi {
                     character: Character {
                         id: None,
                         alias: name.clone(),
-                        tool: tool.map(|specifier| specifier.to_string()),
                     },
                     body,
                     level: 1,
                     loadout: LoadoutBuilder::new()
                         .defaults()
-                        .active_item(LoadoutBuilder::default_item_config_from_str(*tool))
+                        .active_item(Some(LoadoutBuilder::default_item_config_from_str(
+                            (*tool).expect(
+                                "Attempted to create character with non-existent \
+                                 item_definition_id for tool",
+                            ),
+                        )))
                         .build(),
                 }])
             },
@@ -378,23 +382,23 @@ impl CharSelectionUi {
             Mode::Create { loadout, tool, .. } => {
                 loadout.active_item = tool.map(|tool| comp::ItemConfig {
                     // FIXME: Error gracefully.
-                    item: (*ItemAsset::load_expect(tool)).clone(),
+                    item: comp::Item::new_from_asset_expect(tool),
                     ability1: None,
                     ability2: None,
                     ability3: None,
                     block_ability: None,
                     dodge_ability: None,
                 });
-                // FIXME: Error gracefully.
-                loadout.chest = Some(ItemAsset::load_expect_cloned(
+                // FIXME: Error gracefully
+                loadout.chest = Some(comp::Item::new_from_asset_expect(
                     "common.items.armor.starter.rugged_chest",
                 ));
-                // FIXME: Error gracefully.
-                loadout.pants = Some(ItemAsset::load_expect_cloned(
+                // FIXME: Error gracefully
+                loadout.pants = Some(comp::Item::new_from_asset_expect(
                     "common.items.armor.starter.rugged_pants",
                 ));
-                // FIXME: Error gracefully.
-                loadout.foot = Some(ItemAsset::load_expect_cloned(
+                // FIXME: Error gracefully
+                loadout.foot = Some(comp::Item::new_from_asset_expect(
                     "common.items.armor.starter.sandals_0",
                 ));
                 Some(loadout.clone())

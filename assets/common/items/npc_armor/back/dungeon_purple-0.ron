@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Purple Cultist Cape",
     description: "Smells like dark magic and candles.",
     kind: Armor(
