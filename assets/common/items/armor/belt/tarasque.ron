@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Tarasque Belt",
     description: "As strong as a tarasque shell.",
     kind: Armor(

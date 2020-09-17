@@ -1,10 +1,9 @@
 use super::SysTimer;
 use crate::{chunk_generator::ChunkGenerator, client::Client, Tick};
 use common::{
-    assets::Asset,
     comp::{
         self, bird_medium,
-        item::{self, ItemAsset},
+        item::{self},
         Alignment, CharacterAbility, ItemConfig, Player, Pos,
     },
     event::{EventBus, ServerEvent},
@@ -125,44 +124,45 @@ impl<'a> System<'a> for Sys {
                 // let damage = stats.level.level() as i32; TODO: Make NPC base damage
                 // non-linearly depend on their level
 
-                let active_item =
-                    if let Some(item::ItemKind::Tool(tool)) = main_tool.as_ref().map(|i| &i.kind) {
-                        let mut abilities = tool.get_abilities();
-                        let mut ability_drain = abilities.drain(..);
+                let active_item = if let Some(item::ItemKind::Tool(tool)) =
+                    main_tool.as_ref().map(|i| i.kind())
+                {
+                    let mut abilities = tool.get_abilities();
+                    let mut ability_drain = abilities.drain(..);
 
-                        main_tool.map(|item| comp::ItemConfig {
-                            item,
-                            ability1: ability_drain.next(),
-                            ability2: ability_drain.next(),
-                            ability3: ability_drain.next(),
-                            block_ability: None,
-                            dodge_ability: Some(comp::CharacterAbility::Roll),
-                        })
-                    } else {
-                        Some(ItemConfig {
-                            // We need the empty item so npcs can attack
-                            item: ItemAsset::load_expect_cloned("common.items.weapons.empty.empty"),
-                            ability1: Some(CharacterAbility::BasicMelee {
-                                energy_cost: 0,
-                                buildup_duration: Duration::from_millis(0),
-                                recover_duration: Duration::from_millis(400),
-                                base_healthchange: -40,
-                                range: 3.5,
-                                max_angle: 15.0,
-                            }),
-                            ability2: None,
-                            ability3: None,
-                            block_ability: None,
-                            dodge_ability: None,
-                        })
-                    };
+                    main_tool.map(|item| comp::ItemConfig {
+                        item,
+                        ability1: ability_drain.next(),
+                        ability2: ability_drain.next(),
+                        ability3: ability_drain.next(),
+                        block_ability: None,
+                        dodge_ability: Some(comp::CharacterAbility::Roll),
+                    })
+                } else {
+                    Some(ItemConfig {
+                        // We need the empty item so npcs can attack
+                        item: comp::Item::new_from_asset_expect("common.items.weapons.empty.empty"),
+                        ability1: Some(CharacterAbility::BasicMelee {
+                            energy_cost: 0,
+                            buildup_duration: Duration::from_millis(0),
+                            recover_duration: Duration::from_millis(400),
+                            base_healthchange: -40,
+                            range: 3.5,
+                            max_angle: 15.0,
+                        }),
+                        ability2: None,
+                        ability3: None,
+                        block_ability: None,
+                        dodge_ability: None,
+                    })
+                };
 
                 let mut loadout = match alignment {
                     comp::Alignment::Npc => comp::Loadout {
                         active_item,
                         second_item: None,
                         shoulder: None,
-                        chest: Some(ItemAsset::load_expect_cloned(
+                        chest: Some(comp::Item::new_from_asset_expect(
                             match rand::thread_rng().gen_range(0, 10) {
                                 0 => "common.items.npc_armor.chest.worker_green_0",
                                 1 => "common.items.npc_armor.chest.worker_green_1",
@@ -176,14 +176,14 @@ impl<'a> System<'a> for Sys {
                                 _ => "common.items.npc_armor.chest.worker_orange_1",
                             },
                         )),
-                        belt: Some(ItemAsset::load_expect_cloned(
+                        belt: Some(comp::Item::new_from_asset_expect(
                             "common.items.armor.belt.leather_0",
                         )),
                         hand: None,
-                        pants: Some(ItemAsset::load_expect_cloned(
+                        pants: Some(comp::Item::new_from_asset_expect(
                             "common.items.armor.pants.worker_blue_0",
                         )),
-                        foot: Some(ItemAsset::load_expect_cloned(
+                        foot: Some(comp::Item::new_from_asset_expect(
                             match rand::thread_rng().gen_range(0, 2) {
                                 0 => "common.items.armor.foot.leather_0",
                                 _ => "common.items.armor.starter.sandals_0",
@@ -199,30 +199,30 @@ impl<'a> System<'a> for Sys {
                     comp::Alignment::Enemy => comp::Loadout {
                         active_item,
                         second_item: None,
-                        shoulder: Some(ItemAsset::load_expect_cloned(
+                        shoulder: Some(comp::Item::new_from_asset_expect(
                             "common.items.npc_armor.shoulder.cultist_shoulder_purple",
                         )),
-                        chest: Some(ItemAsset::load_expect_cloned(
+                        chest: Some(comp::Item::new_from_asset_expect(
                             "common.items.npc_armor.chest.cultist_chest_purple",
                         )),
-                        belt: Some(ItemAsset::load_expect_cloned(
+                        belt: Some(comp::Item::new_from_asset_expect(
                             "common.items.npc_armor.belt.cultist_belt",
                         )),
-                        hand: Some(ItemAsset::load_expect_cloned(
+                        hand: Some(comp::Item::new_from_asset_expect(
                             "common.items.npc_armor.hand.cultist_hands_purple",
                         )),
-                        pants: Some(ItemAsset::load_expect_cloned(
+                        pants: Some(comp::Item::new_from_asset_expect(
                             "common.items.npc_armor.pants.cultist_legs_purple",
                         )),
-                        foot: Some(ItemAsset::load_expect_cloned(
+                        foot: Some(comp::Item::new_from_asset_expect(
                             "common.items.npc_armor.foot.cultist_boots",
                         )),
-                        back: Some(ItemAsset::load_expect_cloned(
+                        back: Some(comp::Item::new_from_asset_expect(
                             "common.items.npc_armor.back.dungeon_purple-0",
                         )),
                         ring: None,
                         neck: None,
-                        lantern: Some(ItemAsset::load_expect_cloned(
+                        lantern: Some(comp::Item::new_from_asset_expect(
                             "common.items.lantern.black_0",
                         )),
                         head: None,
@@ -267,7 +267,7 @@ impl<'a> System<'a> for Sys {
                     }
                     loadout = comp::Loadout {
                         active_item: Some(comp::ItemConfig {
-                            item: ItemAsset::load_expect_cloned(
+                            item: comp::Item::new_from_asset_expect(
                                 "common.items.npc_weapons.sword.zweihander_sword_0",
                             ),
                             ability1: Some(CharacterAbility::BasicMelee {
@@ -284,22 +284,22 @@ impl<'a> System<'a> for Sys {
                             dodge_ability: None,
                         }),
                         second_item: None,
-                        shoulder: Some(ItemAsset::load_expect_cloned(
+                        shoulder: Some(comp::Item::new_from_asset_expect(
                             "common.items.armor.shoulder.plate_0",
                         )),
-                        chest: Some(ItemAsset::load_expect_cloned(
+                        chest: Some(comp::Item::new_from_asset_expect(
                             "common.items.armor.chest.plate_green_0",
                         )),
-                        belt: Some(ItemAsset::load_expect_cloned(
+                        belt: Some(comp::Item::new_from_asset_expect(
                             "common.items.armor.belt.plate_0",
                         )),
-                        hand: Some(ItemAsset::load_expect_cloned(
+                        hand: Some(comp::Item::new_from_asset_expect(
                             "common.items.armor.hand.plate_0",
                         )),
-                        pants: Some(ItemAsset::load_expect_cloned(
+                        pants: Some(comp::Item::new_from_asset_expect(
                             "common.items.armor.pants.plate_green_0",
                         )),
-                        foot: Some(ItemAsset::load_expect_cloned(
+                        foot: Some(comp::Item::new_from_asset_expect(
                             "common.items.armor.foot.plate_0",
                         )),
                         back: None,

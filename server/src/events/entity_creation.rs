@@ -1,5 +1,6 @@
 use crate::{sys, Server, StateExt};
 use common::{
+    character::CharacterId,
     comp::{
         self, Agent, Alignment, Body, Gravity, Item, ItemDrop, LightEmitter, Loadout, Pos,
         Projectile, Scale, Stats, Vel, WaypointArea,
@@ -11,7 +12,11 @@ use comp::group;
 use specs::{Builder, Entity as EcsEntity, WorldExt};
 use vek::{Rgb, Vec3};
 
-pub fn handle_initialize_character(server: &mut Server, entity: EcsEntity, character_id: i32) {
+pub fn handle_initialize_character(
+    server: &mut Server,
+    entity: EcsEntity,
+    character_id: CharacterId,
+) {
     server.state.initialize_character_data(entity, character_id);
 }
 

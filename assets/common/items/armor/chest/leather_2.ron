@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Leather Cuirass",
     description: "A cuirass made of simple leather.",
     kind: Armor(

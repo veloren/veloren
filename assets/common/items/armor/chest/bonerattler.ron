@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Bonerattler Cuirass",
     description: "Made from the strongest bones.",
     kind: Armor(

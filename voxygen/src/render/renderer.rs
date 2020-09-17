@@ -103,7 +103,7 @@ impl Asset for Glsl {
 
     const ENDINGS: &'static [&'static str] = &["glsl"];
 
-    fn parse(mut buf_reader: BufReader<File>) -> Result<String, assets::Error> {
+    fn parse(mut buf_reader: BufReader<File>, _specifier: &str) -> Result<String, assets::Error> {
         let mut string = String::new();
         buf_reader.read_to_string(&mut string)?;
         Ok(string)

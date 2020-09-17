@@ -100,8 +100,8 @@ impl ReadVol for Structure {
 impl Asset for Structure {
     const ENDINGS: &'static [&'static str] = &["vox"];
 
-    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
-        let dot_vox_data = DotVoxData::parse(buf_reader)?;
+    fn parse(buf_reader: BufReader<File>, specifier: &str) -> Result<Self, assets::Error> {
+        let dot_vox_data = DotVoxData::parse(buf_reader, specifier)?;
 
         if let Some(model) = dot_vox_data.models.get(0) {
             let palette = dot_vox_data

@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Green Linen Belt",
     description: "Soft and warm.",
     kind: Armor(

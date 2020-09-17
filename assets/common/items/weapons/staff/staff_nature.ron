@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Sceptre of Regeneration",
     description: "Heals your allies with the power of nature.",      
     kind: Tool(

@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Spiked Maul",
     description: "Forged with iron.",
     kind: Tool(

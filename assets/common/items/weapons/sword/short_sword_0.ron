@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Vicious Gladius",
     description: "There's blood encrusted on the blade.",
     kind: Tool(

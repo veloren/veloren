@@ -10,7 +10,7 @@ use crate::{
 use common::{
     assets::Asset,
     astar::Astar,
-    comp::{self, item::ItemAsset},
+    comp::{self},
     generation::{ChunkSupplement, EntityInfo},
     lottery::Lottery,
     npc,
@@ -476,8 +476,8 @@ impl Floor {
                         .with_alignment(comp::Alignment::Enemy)
                         .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
                         .with_automatic_name()
-                        .with_loot_drop(ItemAsset::load_expect_cloned(chosen))
-                        .with_main_tool(ItemAsset::load_expect_cloned(match rng.gen_range(0, 6) {
+                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
+                        .with_main_tool(comp::Item::new_from_asset_expect(match rng.gen_range(0, 6) {
                             0 => "common.items.npc_weapons.axe.malachite_axe-0",
                             1 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
                             2 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
@@ -517,7 +517,7 @@ impl Floor {
                                     "Cult Leader {}",
                                     npc::get_npc_name(npc::NpcKind::Humanoid)
                                 ))
-                                .with_main_tool(ItemAsset::load_expect_cloned(
+                                .with_main_tool(comp::Item::new_from_asset_expect(
                                     match rng.gen_range(0, 1) {
                                         //Add more possible cult leader npc_weapons here
                                         _ => {
@@ -525,7 +525,7 @@ impl Floor {
                                         },
                                     },
                                 ))
-                                .with_loot_drop(ItemAsset::load_expect_cloned(chosen));
+                                .with_loot_drop(comp::Item::new_from_asset_expect(chosen));
 
                             supplement.add_entity(entity);
                         }

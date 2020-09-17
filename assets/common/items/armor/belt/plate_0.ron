@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Iron Belt",
     description: "A belt with a buckle forged from iron.",
     kind: Armor(

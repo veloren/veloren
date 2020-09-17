@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Druid's Belt",
     description: "Twisted vines to keep everything secure.",
     kind: Armor(

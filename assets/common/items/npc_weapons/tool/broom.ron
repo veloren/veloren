@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Broom",
     description: "It's beginning to fall apart.",
     kind: Tool (

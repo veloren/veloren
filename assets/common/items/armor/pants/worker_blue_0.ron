@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Blue Worker Pants",
     description: "Pants used by a farmer, until recently.",
     kind: Armor(

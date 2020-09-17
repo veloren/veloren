@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Craftsman Hammer",
     description: "Used to craft various items.",
     kind: Ingredient(

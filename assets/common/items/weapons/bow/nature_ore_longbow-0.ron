@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Velorite Bow",
     description: "Infused with Velorite power.",  
     kind: Tool(

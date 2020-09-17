@@ -38,13 +38,7 @@ impl SlotKey<Inventory, ItemImgs> for InventorySlot {
     fn amount(&self, source: &Inventory) -> Option<u32> {
         source
             .get(self.0)
-            .and_then(|item| match item.kind {
-                ItemKind::Tool { .. } | ItemKind::Lantern(_) | ItemKind::Armor { .. } => None,
-                ItemKind::Utility { amount, .. }
-                | ItemKind::Consumable { amount, .. }
-                | ItemKind::Throwable { amount, .. }
-                | ItemKind::Ingredient { amount, .. } => Some(amount),
-            })
+            .map(|item| item.amount())
             .filter(|amount| *amount > 1)
     }
 
@@ -109,7 +103,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
             hotbar::SlotContents::Ability3 => loadout
                 .active_item
                 .as_ref()
-                .map(|i| &i.item.kind)
+                .map(|i| i.item.kind())
                 .and_then(|kind| {
                     match kind {
                         ItemKind::Tool(Tool { kind, .. }) => match kind {
@@ -139,13 +133,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                 hotbar::SlotContents::Inventory(idx) => inventory.get(idx),
                 hotbar::SlotContents::Ability3 => None,
             })
-            .and_then(|item| match item.kind {
-                ItemKind::Tool { .. } | ItemKind::Lantern(_) | ItemKind::Armor { .. } => None,
-                ItemKind::Utility { amount, .. }
-                | ItemKind::Consumable { amount, .. }
-                | ItemKind::Throwable { amount, .. }
-                | ItemKind::Ingredient { amount, .. } => Some(amount),
-            })
+            .map(|item| item.amount())
             .filter(|amount| *amount > 1)
     }
 

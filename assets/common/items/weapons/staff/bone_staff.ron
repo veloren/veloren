@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Bone Staff",
     description: "There's a red gem suspended in the bones.",
     kind: Tool(

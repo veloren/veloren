@@ -19,7 +19,7 @@ pub fn loadout_slot_text<'a>(
 }
 
 pub fn item_text<'a>(item: &'a Item) -> (&'_ str, Cow<'a, str>) {
-    let desc = match &item.kind {
+    let desc: Cow<str> = match item.kind() {
         ItemKind::Armor(armor) => Cow::Owned(armor_desc(&armor, item.description())),
         ItemKind::Tool(tool) => Cow::Owned(tool_desc(&tool, item.description())),
         /*ItemKind::Consumable(kind, effect, ..) => {
@@ -55,13 +55,6 @@ fn armor_desc(armor: &Armor, desc: &str) -> String {
         Protection::Invincible => "Inf".to_string(),
     };
 
-    // TODO: remove when legacy descriptions are fixed by persistence overhaul
-    let desc = if desc.contains("<Right-Click to use>") {
-        "Legacy item."
-    } else {
-        desc
-    };
-
     if !desc.is_empty() {
         format!(
             "{}\n\nArmor: {}\n\n{}\n\n<Right-Click to use>",
@@ -87,13 +80,6 @@ fn tool_desc(tool: &Tool, desc: &str) -> String {
         ToolKind::Empty => "Empty",
     };
     let power = tool.base_power();
-
-    // TODO: remove when legacy descriptions are fixed by persistence overhaul
-    let desc = if desc.contains("<Right-Click to use>") {
-        "Legacy item."
-    } else {
-        desc
-    };
 
     if !desc.is_empty() {
         format!(

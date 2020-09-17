@@ -271,7 +271,7 @@ impl<'a> System<'a> for Sys {
                         }
 
                         let tactic = match loadout.active_item.as_ref().and_then(|ic| {
-                            if let ItemKind::Tool(tool) = &ic.item.kind {
+                            if let ItemKind::Tool(tool) = &ic.item.kind() {
                                 Some(&tool.kind)
                             } else {
                                 None

@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Giant's Fist",
     description: "Forged with iron.",
     kind: Tool(

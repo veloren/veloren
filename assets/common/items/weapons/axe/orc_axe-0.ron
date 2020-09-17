@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Beast Cleaver",
     description: "Created by orcs to cleave beasts in 2.",
     kind: Tool(

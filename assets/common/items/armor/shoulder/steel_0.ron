@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Steel Shoulder Pad",
     description: "A simple shoulder pad made of steel.",
     kind: Armor(

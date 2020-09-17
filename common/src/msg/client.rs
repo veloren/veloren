@@ -1,4 +1,5 @@
 use crate::{
+    character::CharacterId,
     comp,
     comp::{Skill, SkillGroupType},
     terrain::block::Block,
@@ -19,8 +20,8 @@ pub enum ClientMsg {
         tool: Option<String>,
         body: comp::Body,
     },
-    DeleteCharacter(i32),
-    Character(i32),
+    DeleteCharacter(CharacterId),
+    Character(CharacterId),
     /// Request `ClientState::Registered` from an ingame state
     ExitIngame,
     /// Request `ClientState::Spectator` from a registered or ingame state

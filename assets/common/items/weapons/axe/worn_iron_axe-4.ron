@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Beetle Axe",
     description: "The blade is in the shape of a beetle.",
     kind: Tool(

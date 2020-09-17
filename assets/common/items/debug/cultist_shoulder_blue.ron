@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Blue Cultist Mantle",
     description: "Ceremonial attire used by members.",
     kind: Armor(

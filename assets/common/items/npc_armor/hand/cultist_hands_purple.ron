@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Purple Cultist Gloves",
     description: "Ceremonial attire used by members.",
     kind: Armor(

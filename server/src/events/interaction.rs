@@ -3,7 +3,6 @@ use crate::{
     Server,
 };
 use common::{
-    assets::Asset,
     comp::{self, item},
     msg::ServerMsg,
     sync::{Uid, WorldSyncExt},
@@ -29,7 +28,7 @@ pub fn handle_lantern(server: &mut Server, entity: EcsEntity) {
             .get(entity)
             .and_then(|loadout| loadout.lantern.as_ref())
             .and_then(|item| {
-                if let comp::item::ItemKind::Lantern(l) = &item.kind {
+                if let comp::item::ItemKind::Lantern(l) = item.kind() {
                     Some(l)
                 } else {
                     None
@@ -125,8 +124,8 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
                     .expect("Could not read loadouts component while possessing")
                     .or_insert(comp::Loadout::default());
 
-                let item = item::ItemAsset::load_expect_cloned("common.items.debug.possess");
-                if let item::ItemKind::Tool(tool) = &item.kind {
+                let item = comp::Item::new_from_asset_expect("common.items.debug.possess");
+                if let item::ItemKind::Tool(tool) = item.kind() {
                     let mut abilities = tool.get_abilities();
                     let mut ability_drain = abilities.drain(..);
                     let debug_item = comp::ItemConfig {

@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Stones",
     description: "Pebbles from the ground.",
     kind: Ingredient(

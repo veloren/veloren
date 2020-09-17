@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Pickaxe",
     description: "It has a chipped edge.",
     kind: Tool (

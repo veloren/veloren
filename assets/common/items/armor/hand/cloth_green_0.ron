@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Green Linen Wrists",
     description: "A strip of cloth.",
     kind: Armor(

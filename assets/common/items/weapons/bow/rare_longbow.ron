@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Enchanted Longbow",
     description: "You can sense power resting in the bow.",  
     kind: Tool(

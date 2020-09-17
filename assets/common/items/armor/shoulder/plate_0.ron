@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Iron Shoulderguards",
     description: "Shoulderguards forged from iron.",
     kind: Armor(

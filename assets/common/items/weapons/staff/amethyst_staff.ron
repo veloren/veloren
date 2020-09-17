@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Amethyst Staff",
     description: "The amethyst faintly glows.",
     kind: Tool(

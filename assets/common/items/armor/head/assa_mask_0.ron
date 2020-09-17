@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Dark Assassin Mask",
     description: "Used to obscure your face.",
     kind: Armor(

@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Short leather Cape",
     description: "Probably made of the finest leather.",
     kind: Armor(

@@ -1,5 +1,5 @@
 use crate::{
-    persistence::character,
+    persistence::character_updater,
     sys::{SysScheduler, SysTimer},
 };
 use common::{
@@ -17,7 +17,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Stats>,
         ReadStorage<'a, Inventory>,
         ReadStorage<'a, Loadout>,
-        ReadExpect<'a, character::CharacterUpdater>,
+        ReadExpect<'a, character_updater::CharacterUpdater>,
         Write<'a, SysScheduler<Self>>,
         Write<'a, SysTimer<Self>>,
     );
