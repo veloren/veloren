@@ -16,6 +16,7 @@ pub enum ToolKind {
     Bow(String),
     Dagger(String),
     Staff(String),
+    Sceptre(String),
     Shield(String),
     NpcWeapon(String),
     Debug(String),
@@ -33,6 +34,7 @@ impl ToolKind {
             ToolKind::Bow(_) => Hands::TwoHand,
             ToolKind::Dagger(_) => Hands::OneHand,
             ToolKind::Staff(_) => Hands::TwoHand,
+            ToolKind::Sceptre(_) => Hands::TwoHand,
             ToolKind::Shield(_) => Hands::OneHand,
             ToolKind::NpcWeapon(_) => Hands::TwoHand,
             ToolKind::Debug(_) => Hands::TwoHand,
@@ -55,6 +57,7 @@ pub enum ToolCategory {
     Bow,
     Dagger,
     Staff,
+    Sceptre,
     Shield,
     NpcWeapon,
     Debug,
@@ -71,6 +74,7 @@ impl From<&ToolKind> for ToolCategory {
             ToolKind::Bow(_) => ToolCategory::Bow,
             ToolKind::Dagger(_) => ToolCategory::Dagger,
             ToolKind::Staff(_) => ToolCategory::Staff,
+            ToolKind::Sceptre(_) => ToolCategory::Sceptre,
             ToolKind::Shield(_) => ToolCategory::Shield,
             ToolKind::NpcWeapon(_) => ToolCategory::NpcWeapon,
             ToolKind::Debug(_) => ToolCategory::Debug,
@@ -299,128 +303,121 @@ impl Tool {
                 range: 3.5,
                 max_angle: 20.0,
             }],
-            Staff(kind) => {
-                if kind == "Sceptre" || kind == "SceptreVelorite" || kind == "StarterSceptre" {
-                    vec![
-                        BasicBeam {
-                            energy_cost: 0,
-                            buildup_duration: Duration::from_millis(250),
-                            recover_duration: Duration::from_millis(250),
-                            beam_duration: Duration::from_secs(1),
-                            base_hps: (60.0 * self.base_power()) as u32,
-                            base_dps: (40.0 * self.base_power()) as u32,
-                            tick_rate: 2.0,
-                            range: 25.0,
-                            max_angle: 1.0,
-                            lifesteal_eff: 0.25,
-                            energy_regen: 50,
-                            energy_drain: 100,
-                        },
-                        BasicRanged {
-                            energy_cost: 800,
-                            holdable: true,
-                            prepare_duration: Duration::from_millis(800),
-                            recover_duration: Duration::from_millis(50),
-                            projectile: Projectile {
-                                hit_solid: vec![
-                                    projectile::Effect::Explode {
-                                        power: 1.4 * self.base_power(),
-                                        percent_damage: 0.2,
-                                    },
-                                    projectile::Effect::Vanish,
-                                ],
-                                hit_entity: vec![
-                                    projectile::Effect::Explode {
-                                        power: 1.4 * self.base_power(),
-                                        percent_damage: 0.2,
-                                    },
-                                    projectile::Effect::Vanish,
-                                ],
-                                time_left: Duration::from_secs(20),
-                                owner: None,
-                                ignore_group: true,
+            Sceptre(_) => vec![
+                BasicBeam {
+                    energy_cost: 0,
+                    buildup_duration: Duration::from_millis(250),
+                    recover_duration: Duration::from_millis(250),
+                    beam_duration: Duration::from_secs(1),
+                    base_hps: (60.0 * self.base_power()) as u32,
+                    base_dps: (40.0 * self.base_power()) as u32,
+                    tick_rate: 2.0,
+                    range: 25.0,
+                    max_angle: 1.0,
+                    lifesteal_eff: 0.25,
+                    energy_regen: 50,
+                    energy_drain: 100,
+                },
+                BasicRanged {
+                    energy_cost: 800,
+                    holdable: true,
+                    prepare_duration: Duration::from_millis(800),
+                    recover_duration: Duration::from_millis(50),
+                    projectile: Projectile {
+                        hit_solid: vec![
+                            projectile::Effect::Explode {
+                                power: 1.4 * self.base_power(),
+                                percent_damage: 0.2,
                             },
-                            projectile_body: Body::Object(object::Body::BoltNature),
-                            projectile_light: Some(LightEmitter {
-                                col: (0.0, 1.0, 0.0).into(),
-                                ..Default::default()
-                            }),
-                            projectile_gravity: Some(Gravity(1.0)),
-                            projectile_speed: 25.0,
-                        },
-                    ]
-                } else {
-                    vec![
-                        BasicMelee {
-                            energy_cost: 0,
-                            buildup_duration: Duration::from_millis(100),
-                            recover_duration: Duration::from_millis(300),
-                            base_healthchange: (-40.0 * self.base_power()) as i32,
-                            knockback: 0.0,
-                            range: 3.5,
-                            max_angle: 20.0,
-                        },
-                        BasicRanged {
-                            energy_cost: 0,
-                            holdable: false,
-                            prepare_duration: Duration::from_millis(250),
-                            recover_duration: Duration::from_millis(600),
-                            projectile: Projectile {
-                                hit_solid: vec![projectile::Effect::Vanish],
-                                hit_entity: vec![
-                                    projectile::Effect::Damage((-40.0 * self.base_power()) as i32),
-                                    projectile::Effect::RewardEnergy(150),
-                                    projectile::Effect::Vanish,
-                                ],
-                                time_left: Duration::from_secs(20),
-                                owner: None,
-                                ignore_group: true,
+                            projectile::Effect::Vanish,
+                        ],
+                        hit_entity: vec![
+                            projectile::Effect::Explode {
+                                power: 1.4 * self.base_power(),
+                                percent_damage: 0.2,
                             },
-                            projectile_body: Body::Object(object::Body::BoltFire),
-                            projectile_light: Some(LightEmitter {
-                                col: (0.85, 0.5, 0.11).into(),
-                                ..Default::default()
-                            }),
-
-                            projectile_gravity: None,
-                            projectile_speed: 100.0,
-                        },
-                        BasicRanged {
-                            energy_cost: 400,
-                            holdable: true,
-                            prepare_duration: Duration::from_millis(800),
-                            recover_duration: Duration::from_millis(50),
-                            projectile: Projectile {
-                                hit_solid: vec![
-                                    projectile::Effect::Explode {
-                                        power: 1.4 * self.base_power(),
-                                        percent_damage: 1.0,
-                                    },
-                                    projectile::Effect::Vanish,
-                                ],
-                                hit_entity: vec![
-                                    projectile::Effect::Explode {
-                                        power: 1.4 * self.base_power(),
-                                        percent_damage: 1.0,
-                                    },
-                                    projectile::Effect::Vanish,
-                                ],
-                                time_left: Duration::from_secs(20),
-                                owner: None,
-                                ignore_group: true,
+                            projectile::Effect::Vanish,
+                        ],
+                        time_left: Duration::from_secs(20),
+                        owner: None,
+                        ignore_group: true,
+                    },
+                    projectile_body: Body::Object(object::Body::BoltNature),
+                    projectile_light: Some(LightEmitter {
+                        col: (0.0, 1.0, 0.0).into(),
+                        ..Default::default()
+                    }),
+                    projectile_gravity: Some(Gravity(1.0)),
+                    projectile_speed: 25.0,
+                },
+            ],
+            Staff(_) => vec![
+                BasicMelee {
+                    energy_cost: 0,
+                    buildup_duration: Duration::from_millis(100),
+                    recover_duration: Duration::from_millis(300),
+                    base_healthchange: (-40.0 * self.base_power()) as i32,
+                    knockback: 0.0,
+                    range: 3.5,
+                    max_angle: 20.0,
+                },
+                BasicRanged {
+                    energy_cost: 0,
+                    holdable: false,
+                    prepare_duration: Duration::from_millis(250),
+                    recover_duration: Duration::from_millis(600),
+                    projectile: Projectile {
+                        hit_solid: vec![projectile::Effect::Vanish],
+                        hit_entity: vec![
+                            projectile::Effect::Damage((-40.0 * self.base_power()) as i32),
+                            projectile::Effect::RewardEnergy(150),
+                            projectile::Effect::Vanish,
+                        ],
+                        time_left: Duration::from_secs(20),
+                        owner: None,
+                        ignore_group: true,
+                    },
+                    projectile_body: Body::Object(object::Body::BoltFire),
+                    projectile_light: Some(LightEmitter {
+                        col: (0.85, 0.5, 0.11).into(),
+                        ..Default::default()
+                    }),
+                    projectile_gravity: None,
+                    projectile_speed: 100.0,
+                },
+                BasicRanged {
+                    energy_cost: 400,
+                    holdable: true,
+                    prepare_duration: Duration::from_millis(800),
+                    recover_duration: Duration::from_millis(50),
+                    projectile: Projectile {
+                        hit_solid: vec![
+                            projectile::Effect::Explode {
+                                power: 1.4 * self.base_power(),
+                                percent_damage: 1.0,
                             },
-                            projectile_body: Body::Object(object::Body::BoltFireBig),
-                            projectile_light: Some(LightEmitter {
-                                col: (1.0, 0.75, 0.11).into(),
-                                ..Default::default()
-                            }),
-
-                            projectile_gravity: None,
-                            projectile_speed: 100.0,
-                        },
-                    ]
-                }
-            },
+                            projectile::Effect::Vanish,
+                        ],
+                        hit_entity: vec![
+                            projectile::Effect::Explode {
+                                power: 1.4 * self.base_power(),
+                                percent_damage: 1.0,
+                            },
+                            projectile::Effect::Vanish,
+                        ],
+                        time_left: Duration::from_secs(20),
+                        owner: None,
+                        ignore_group: true,
+                    },
+                    projectile_body: Body::Object(object::Body::BoltFireBig),
+                    projectile_light: Some(LightEmitter {
+                        col: (1.0, 0.75, 0.11).into(),
+                        ..Default::default()
+                    }),
+                    projectile_gravity: None,
+                    projectile_speed: 100.0,
+                },
+            ],
             Shield(_) => vec![
                 BasicMelee {
                     energy_cost: 0,

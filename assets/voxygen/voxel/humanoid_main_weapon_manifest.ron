@@ -547,15 +547,15 @@
         color: None
     ),
     // Healing staff
-    Staff("StarterSceptre"): (
+    Sceptre("StarterSceptre"): (
         vox_spec: ("weapon.sceptre.wood-simple", (-1.0, -6.0, -6.0)),
         color: None
     ),
-    Staff("Sceptre"): (
+    Sceptre("Sceptre"): (
         vox_spec: ("weapon.sceptre.wood-nature", (-1.0, -6.0, -5.0)),
         color: None
     ),
-    Staff("SceptreVelorite"): (
+    Sceptre("SceptreVelorite"): (
         vox_spec: ("weapon.sceptre.ore-nature", (-2.0, -6.0, -5.0)),
         color: None
     ),

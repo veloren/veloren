@@ -373,7 +373,7 @@ impl Animation for AlphaAnimation {
                 next.torso.orientation = Quaternion::rotation_z(0.0);
                 next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
             },
-            Some(ToolKind::Staff(_)) => {
+            Some(ToolKind::Staff(_)) | Some(ToolKind::Sceptre(_)) => {
                 next.head.orientation =
                     Quaternion::rotation_x(staff * 0.2) * Quaternion::rotation_z(staff * 0.2);
                 next.l_hand.position = Vec3::new(11.0, 5.0, -4.0);

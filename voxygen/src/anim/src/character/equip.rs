@@ -103,7 +103,7 @@ impl Animation for EquipAnimation {
                     Quaternion::rotation_x(0.0) * Quaternion::rotation_y(1.35 + 2.5);
                 next.control.scale = Vec3::one();
             },
-            Some(ToolKind::Staff(_)) => {
+            Some(ToolKind::Staff(_)) | Some(ToolKind::Sceptre(_)) => {
                 next.l_hand.position = Vec3::new(1.0, -2.0, -5.0);
                 next.l_hand.orientation =
                     Quaternion::rotation_x(1.47) * Quaternion::rotation_y(-0.3);

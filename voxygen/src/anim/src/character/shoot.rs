@@ -65,7 +65,7 @@ impl Animation for ShootAnimation {
 
         match active_tool_kind {
             //TODO: Inventory
-            Some(ToolKind::Staff(_)) => {
+            Some(ToolKind::Staff(_)) | Some(ToolKind::Sceptre(_)) => {
                 next.l_hand.position = Vec3::new(11.0, 5.0, -4.0);
                 next.l_hand.orientation =
                     Quaternion::rotation_x(1.27) * Quaternion::rotation_y(0.0);
