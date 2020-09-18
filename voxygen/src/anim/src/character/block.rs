@@ -127,7 +127,7 @@ impl Animation for BlockAnimation {
                     * Quaternion::rotation_z(-0.85);
                 next.main.scale = Vec3::one();
             },
-            Some(ToolKind::Staff(_)) => {
+            Some(ToolKind::Staff(_)) | Some(ToolKind::Sceptre(_)) => {
                 next.l_hand.position = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
                     3.5 + wave_ultra_slow_cos * 0.5,

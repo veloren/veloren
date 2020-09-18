@@ -97,7 +97,7 @@ impl Animation for ChargeAnimation {
 
         match active_tool_kind {
             //TODO: Inventory
-            Some(ToolKind::Staff(_)) => {
+            Some(ToolKind::Staff(_)) | Some(ToolKind::Sceptre(_)) => {
                 next.l_hand.position = Vec3::new(11.0, 5.0, -4.0);
                 next.l_hand.orientation = Quaternion::rotation_x(1.27);
                 next.l_hand.scale = Vec3::one() * 1.05;
