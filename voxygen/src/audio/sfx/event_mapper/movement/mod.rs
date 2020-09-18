@@ -75,7 +75,7 @@ impl EventMapper for MovementEventMapper {
                     | Body::BirdMedium(_)
                     | Body::BirdSmall(_)
                     | Body::BipedLarge(_) => Self::map_non_humanoid_movement_event(physics, vel.0),
-                    _ => SfxEvent::Idle, // Ignore fish, critters, etc...
+                    _ => SfxEvent::Idle, // Ignore fish, etc...
                 };
 
                 // Check for SFX config entry for this movement
