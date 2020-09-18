@@ -69,8 +69,8 @@
             central: ("npc.odonto.male.jaw"),
         ),
         neck: (
-            offset: (0.0, 0.0, 0.0),
-            central: ("armor.empty"),
+            offset: (-5.5, 0.0, -6.5),
+            central: ("npc.odonto.male.neck"),
         ),
         chest_front: (
             offset: (-5.5, -5.0, -6.0),
@@ -99,8 +99,8 @@
             central: ("npc.odonto.male.jaw"),
         ),
         neck: (
-            offset: (0.0, 0.0, 0.0),
-            central: ("armor.empty"),
+            offset: (-5.5, 0.0, -6.5),
+            central: ("npc.odonto.male.neck"),
         ),
         chest_front: (
             offset: (-5.5, -5.0, -6.0),
