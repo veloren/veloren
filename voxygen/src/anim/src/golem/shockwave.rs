@@ -37,7 +37,7 @@ impl Animation for ShockwaveAnimation {
             + 1.0;
         next.head.position = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1) * 1.02;
         next.head.orientation =
-            Quaternion::rotation_z((-twist * 2.0).max(-3.14)) * Quaternion::rotation_x(0.0);
+            Quaternion::rotation_z((-twist * 2.0).max(-PI)) * Quaternion::rotation_x(0.0);
         next.head.scale = Vec3::one() * 1.02;
 
         next.upper_torso.position = Vec3::new(
@@ -46,7 +46,7 @@ impl Animation for ShockwaveAnimation {
             skeleton_attr.upper_torso.1 + slower * -3.0 + breathe * 1.0,
         ) / 8.0;
         next.upper_torso.orientation =
-            Quaternion::rotation_z((twist * 2.0).min(3.14)) * Quaternion::rotation_x(0.0);
+            Quaternion::rotation_z((twist * 2.0).min(PI)) * Quaternion::rotation_x(0.0);
         next.upper_torso.scale = Vec3::one() / 8.0;
 
         next.lower_torso.position = Vec3::new(
@@ -55,7 +55,7 @@ impl Animation for ShockwaveAnimation {
             skeleton_attr.lower_torso.1 + slower * 1.0,
         );
         next.lower_torso.orientation =
-            Quaternion::rotation_z((-twist * 2.0).max(-3.14)) * Quaternion::rotation_x(0.0);
+            Quaternion::rotation_z((-twist * 2.0).max(-PI)) * Quaternion::rotation_x(0.0);
         next.lower_torso.scale = Vec3::one();
 
         next.shoulder_l.position = Vec3::new(

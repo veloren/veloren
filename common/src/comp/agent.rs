@@ -124,9 +124,7 @@ impl<'a> From<&'a Body> for Psyche {
                 Body::BipedLarge(_) => 1.0,
                 Body::Object(_) => 1.0,
                 Body::Golem(_) => 1.0,
-                Body::Theropod(theropod) => match theropod.species {
-                    _ => 0.4,
-                },
+                Body::Theropod(_) => 1.0,
                 Body::Dragon(_) => 1.0,
             },
         }
