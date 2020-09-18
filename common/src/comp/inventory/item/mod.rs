@@ -11,6 +11,7 @@ use crate::{
     terrain::{Block, SpriteKind},
 };
 use crossbeam::atomic::AtomicCell;
+use hashbrown::HashMap;
 use rand::prelude::*;
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
@@ -146,21 +147,27 @@ impl PartialEq for Item {
 }
 
 impl Asset for ItemDef {
+    
+}
+
+impl Asset for ItemSet {
     const ENDINGS: &'static [&'static str] = &["ron"];
 
     fn parse(buf_reader: BufReader<File>, specifier: &str) -> Result<Self, assets::Error> {
         let item: Result<Self, Error> =
             ron::de::from_reader(buf_reader).map_err(Error::parse_error);
-
-        // Some commands like /give_item provide the asset specifier separated with \
-        // instead of .
-        let specifier = specifier.replace('\\', ".");
+        
+        let asset_specifier = specifier.replace('\\', ".");
+        let db_specifier = 
 
         item.map(|item| ItemDef {
-            item_definition_id: specifier,
-            ..item
+            asset_path_to_db: specifier,
+            db_to_asset_path: 
         })
     }
+    /*fn reverse_path() -> Self {
+        self.asset_path_to_db = self.db_to_asset_path.iter().map(|(key, value)| (value, key)).collect();
+    }*/
 }
 
 impl Item {

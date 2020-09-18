@@ -275,7 +275,7 @@ common.items.weapons.bow.wood_longbow-1,Recurve Bow,WoodLongbow1
 common.items.weapons.bow.wood_shortbow-0,Hunting Bow,WoodShortbow0
 common.items.weapons.bow.wood_shortbow-1,Horse Bow,WoodShortbow1
 common.items.weapons.dagger.starter_dagger,Rusty Dagger,BasicDagger
-common.items.weapons.empty.empty,Empty,
+common.items.weapons.empty.empty,Empty Item,
 common.items.weapons.hammer.bronze_hammer-0,Bronze Hammer,BronzeHammer0
 common.items.weapons.hammer.bronze_hammer-1,Bronze Club,BronzeHammer1
 common.items.weapons.hammer.cobalt_hammer-0,Cobalt Hammer,CobaltHammer0
@@ -311,13 +311,14 @@ common.items.weapons.hammer.worn_iron_hammer-0,Worn Dwarven Hammer,WornIronHamme
 common.items.weapons.hammer.worn_iron_hammer-1,Worn Elven Hammer,WornIronHammer1
 common.items.weapons.hammer.worn_iron_hammer-2,Worn Human Mace,WornIronHammer2
 common.items.weapons.hammer.worn_iron_hammer-3,Worn Orcish Hammer,WornIronHammer3
+common.items.weapons.sceptre.sceptre_velorite_0,Velorite Sceptre,SceptreVelorite
+common.items.weapons.sceptre.staff_nature,Sceptre of Regeneration,Sceptre
+common.items.weapons.sceptre.starter_sceptre,Naturalist Walking Stick,StarterSceptre
 common.items.weapons.shield.shield_1,A Tattered Targe,BasicShield
 common.items.weapons.staff.amethyst_staff,Amethyst Staff,AmethystStaff
 common.items.weapons.staff.bone_staff,Bone Staff,BoneStaff
 common.items.weapons.staff.cultist_staff,Cultist Staff,CultistStaff
-common.items.weapons.staff.sceptre_velorite_0,Velorite Sceptre,SceptreVelorite
 common.items.weapons.staff.staff_1,Humble Stick,BasicStaff
-common.items.weapons.staff.staff_nature,Sceptre of Regeneration,Sceptre
 common.items.weapons.staff.starter_staff,Gnarled Rod,BasicStaff
 common.items.weapons.sword.cultist_purp_2h-0,Magical Cultist Greatsword,CultPurp0
 common.items.weapons.sword.greatsword_2h_dam-0,Damaged Greatsword,GreatswordDam0
