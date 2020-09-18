@@ -71,6 +71,14 @@ VoxygenLocalization(
         "common.decline": "Ablehnen",
         "common.you": "Ihr",
         "common.automatic": "Auto",
+        "common.rand_appearance": "Zufälliges Aussehen und Name",
+        // Settings Window title
+        "common.interface_settings": "Interface Einstellungen",
+        "common.gameplay_settings": "Spiel Einstellungen",
+        "common.controls_settings": "Steuerung",
+        "common.video_settings": "Grafik Einstellungen",
+        "common.sound_settings": "Audio Einstellungen",
+        "common.language_settings": "Sprache",
         /// End Common section
 
          // Message when connection to the server is lost
@@ -97,6 +105,7 @@ VoxygenLocalization(
         "main.creating_world": "Erschaffe Welt ",
         "main.tip": "Tipp:",
         "hud.settings.loading_tips": "Ladebildschirm-Tipps",
+        "hud.settings.ambiance": "Umgebungs Beleuchtung",
 
 
         /// Start Main screen section
@@ -141,6 +150,8 @@ https://account.veloren.net.
         "main.login.invalid_character": "Ungültiger Charakter",
         "main.login.client_crashed": "Client abgestürzt",
         "main.login.not_on_whitelist": "Ihr braucht einen Whitelist Eintrag durch den Server Admin",
+        "main.login.banned": "Ihr wurdet aus folgendem Grund gebannt",
+        "main.login.kicked": "Ihr wurdet aus folgendem Grund gekickt",
 
         /// End Main screen section
 
@@ -160,11 +171,24 @@ https://account.veloren.net.
 
         // Chat outputs
         "hud.chat.online_msg": "[{name}] ist jetzt online.", 
-        "hud.chat.offline_msg": "[{name}] ist jetzt offline.", 
+        "hud.chat.offline_msg": "{name} ist jetzt offline.", 
         "hud.chat.loot_msg": "Ihr erhaltet [{item}]",        
         "hud.chat.loot_fail": "Euer Inventar ist voll!",
         "hud.chat.goodbye": "Verbindung getrennt.",
         "hud.chat.connection_lost": "Verbindung unterbrochen. Trenne Verbindung in {time} Sekunden.",
+        
+        "hud.chat.default_death_msg": "[{name}] ist gestorben",
+        "hud.chat.environmental_kill_msg": "[{name}] starb durch {environment}",
+        "hud.chat.fall_kill_msg": "[{name}] starb durch Fallschaden",
+        "hud.chat.suicide_msg": "[{name}] hat sich selbst getötet",
+
+        "hud.chat.pvp_melee_kill_msg": "[{attacker}] hat [{victim}] besiegt",
+        "hud.chat.pvp_ranged_kill_msg": "[{attacker}] hat [{victim}] aus der Ferne getötet",
+        "hud.chat.pvp_explosion_kill_msg": "[{attacker}] hat [{victim}] hochgejagt",
+
+        "hud.chat.npc_melee_kill_msg": "{attacker} tötete [{victim}]",
+        "hud.chat.npc_ranged_kill_msg": "{attacker} tötete [{victim}]",
+        "hud.chat.npc_explosion_kill_msg": "{attacker} hat [{victim}] hochgejagt",
 
         // SCT outputs
         "hud.sct.experience": "{amount} Erf",
@@ -303,7 +327,10 @@ magischen Gegenstände ergattern?"#,
         "hud.settings.resolution": "Auflösung",
         "hud.settings.bit_depth": "Bittiefe",
         "hud.settings.refresh_rate": "Bildwiederholrate",
-        "hud.settings.fullscreen": "Vollbild",
+        "hud.settings.fullscreen": "Vollbild",        
+        "hud.settings.fullscreen_mode": "Vollbild-Modus",
+        "hud.settings.fullscreen_mode.exclusive": "Exklusiv",
+        "hud.settings.fullscreen_mode.borderless": "Rahmenlos",
         "hud.settings.lighting_rendering_mode": "Beleuchtung",
         "hud.settings.lighting_rendering_mode.ashikhmin": "Typ A",
         "hud.settings.lighting_rendering_mode.blinnphong": "Typ B",
@@ -314,6 +341,7 @@ magischen Gegenstände ergattern?"#,
         "hud.settings.shadow_rendering_mode.map": "Voll",
         "hud.settings.lod_detail": "LoD Detail",
         "hud.settings.save_window_size": "Größe speichern",
+        "hud.settings.shadow_rendering_mode.map.resolution": "Auflösung",
 
         "hud.settings.music_volume": "Musiklautstärke",
         "hud.settings.sound_effect_volume": "Geräuschlautstärke",

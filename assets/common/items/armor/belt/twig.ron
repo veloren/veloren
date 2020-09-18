@@ -5,7 +5,7 @@ ItemDef(
         (
             kind: Belt("Twig"),
             stats: (
-                protection: Normal(0.0),
+                protection: Normal(2.0),
             ),
         )
     ),

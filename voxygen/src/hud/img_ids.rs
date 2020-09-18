@@ -206,8 +206,8 @@ image_ids! {
         window_3: "voxygen.element.frames.window_3",
         esc_frame: "voxygen.element.frames.esc_menu",
         // Settings
-        settings_frame_r: "voxygen.element.frames.settings_r",
-        settings_frame_l: "voxygen.element.frames.settings_l",
+        settings_bg: "voxygen.element.misc_bg.settings_bg",
+        settings_frame: "voxygen.element.misc_bg.settings_frame",
 
         // Close-Button
         close_btn: "voxygen.element.buttons.close_btn",
