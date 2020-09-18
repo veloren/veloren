@@ -45,6 +45,8 @@ pub struct Data {
     pub spins_remaining: u32,
     /// What section the character stage is in
     pub stage_section: StageSection,
+    /// Whether the state can deal damage
+    pub exhausted: bool,
 }
 
 impl CharacterBehavior for Data {
@@ -70,6 +72,7 @@ impl CharacterBehavior for Data {
                     .unwrap_or_default(),
                 spins_remaining: self.spins_remaining,
                 stage_section: self.stage_section,
+                exhausted: self.exhausted
             });
         } else if self.stage_section == StageSection::Buildup {
             // Transitions to swing section of stage
@@ -78,6 +81,15 @@ impl CharacterBehavior for Data {
                 timer: Duration::default(),
                 spins_remaining: self.spins_remaining,
                 stage_section: StageSection::Swing,
+                exhausted: self.exhausted
+            });
+        } else if !self.exhausted {
+            update.character = CharacterState::SpinMelee(Data {
+                static_data: self.static_data,
+                timer: Duration::default(),
+                spins_remaining: self.spins_remaining,
+                stage_section: self.stage_section,
+                exhausted: true,
             });
             // Hit attempt
             data.updater.insert(data.entity, Attacking {
@@ -100,14 +112,37 @@ impl CharacterBehavior for Data {
                     .unwrap_or_default(),
                 spins_remaining: self.spins_remaining,
                 stage_section: self.stage_section,
+                exhausted: self.exhausted
             });
-        } else if self.stage_section == StageSection::Swing {
+        } else if update.energy.current() >= self.static_data.energy_cost
+        && (self.spins_remaining != 0
+            || (self.static_data.is_infinite && data.inputs.secondary.is_pressed()))
+    {
+        let new_spins_remaining = if self.static_data.is_infinite {
+            self.spins_remaining
+        } else {
+            self.spins_remaining - 1
+        };
+        update.character = CharacterState::SpinMelee(Data {
+            static_data: self.static_data,
+            timer: Duration::default(),
+            spins_remaining: new_spins_remaining,
+            stage_section: self.stage_section,
+            exhausted: false,
+        });
+        // Consumes energy if there's enough left and RMB is held down
+        update.energy.change_by(
+            -(self.static_data.energy_cost as i32),
+            EnergySource::Ability,
+        );
+    } else if self.stage_section == StageSection::Swing {
             // Transitions to recover section of stage
             update.character = CharacterState::SpinMelee(Data {
                 static_data: self.static_data,
                 timer: Duration::default(),
                 spins_remaining: self.spins_remaining,
                 stage_section: StageSection::Recover,
+                exhausted: self.exhausted
             })
         } else if self.stage_section == StageSection::Recover
             && self.timer < self.static_data.recover_duration
@@ -121,27 +156,8 @@ impl CharacterBehavior for Data {
                     .unwrap_or_default(),
                 spins_remaining: self.spins_remaining,
                 stage_section: self.stage_section,
+                exhausted: self.exhausted
             })
-        } else if update.energy.current() >= self.static_data.energy_cost
-            && (self.spins_remaining != 0
-                || (self.static_data.is_infinite && data.inputs.secondary.is_pressed()))
-        {
-            let new_spins_remaining = if self.static_data.is_infinite {
-                self.spins_remaining
-            } else {
-                self.spins_remaining - 1
-            };
-            update.character = CharacterState::SpinMelee(Data {
-                static_data: self.static_data,
-                timer: Duration::default(),
-                spins_remaining: new_spins_remaining,
-                stage_section: StageSection::Buildup,
-            });
-            // Consumes energy if there's enough left and RMB is held down
-            update.energy.change_by(
-                -(self.static_data.energy_cost as i32),
-                EnergySource::Ability,
-            );
         } else {
             // Done
             update.character = CharacterState::Wielding;
