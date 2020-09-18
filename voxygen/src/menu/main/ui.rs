@@ -18,6 +18,7 @@ use conrod_core::{
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
 use image::DynamicImage;
+//use inline_tweak::*;
 use rand::{seq::SliceRandom, thread_rng, Rng};
 use std::time::Duration;
 
@@ -83,6 +84,10 @@ widget_ids! {
         // Loading Screen Tips
         tip_txt_bg,
         tip_txt,
+        // Loading Screen Artwork
+        mid,
+        left,
+        right,
     }
 }
 
@@ -103,6 +108,9 @@ image_ids! {
         button_press: "voxygen.element.buttons.button_press",
         input_bg: "voxygen.element.misc_bg.textbox_mid",
         //disclaimer: "voxygen.element.frames.disclaimer",
+        loading_art: "voxygen.element.frames.loading_screen.loading_bg",
+        loading_art_l: "voxygen.element.frames.loading_screen.loading_bg_l",
+        loading_art_r: "voxygen.element.frames.loading_screen.loading_bg_r",
         // Animation
         f1: "voxygen.element.animation.gears.1",
         f2: "voxygen.element.animation.gears.2",
@@ -188,11 +196,11 @@ impl<'a> MainMenuUi {
             "voxygen.background.bg_7",
             "voxygen.background.bg_8",
             "voxygen.background.bg_9",
-            "voxygen.background.bg_10",
+            //"voxygen.background.bg_10",
             "voxygen.background.bg_11",
-            "voxygen.background.bg_12",
+            //"voxygen.background.bg_12",
             "voxygen.background.bg_13",
-            "voxygen.background.bg_14",
+            //"voxygen.background.bg_14",
             "voxygen.background.bg_15",
             "voxygen.background.bg_16",
         ];
@@ -301,6 +309,21 @@ impl<'a> MainMenuUi {
         .set(self.ids.bg, ui_widgets);
 
         if self.connect {
+            // Artwork
+            Image::new(self.imgs.loading_art)
+                .h(100.0)
+                .w_of(self.ids.bg)
+                .mid_bottom_of(self.ids.bg)
+                .set(self.ids.mid, ui_widgets);
+            Image::new(self.imgs.loading_art_l)
+                .w_h(12.0, 10.0)
+                .top_left_with_margins_on(self.ids.mid, 2.0, 0.0)
+                .set(self.ids.left, ui_widgets);
+            Image::new(self.imgs.loading_art_r)
+                .w_h(12.0, 10.0)
+                .top_right_with_margins_on(self.ids.mid, 2.0, 0.0)
+                .set(self.ids.right, ui_widgets);
+            // Gears Animation
             self.anim_timer = (self.anim_timer + dt.as_secs_f32()) * 1.05; // Linear time function with Anim-Speed Factor
             if self.anim_timer >= 4.0 {
                 self.anim_timer = 0.0 // Reset timer at last frame to loop
@@ -313,12 +336,13 @@ impl<'a> MainMenuUi {
                 _ => self.imgs.f5,
             })
             .w_h(74.0, 62.0)
-            .bottom_left_with_margins_on(self.ids.bg, 10.0, 10.0)
+            .bottom_right_with_margins_on(self.ids.mid, 10.0, 10.0)
             .set(self.ids.gears, ui_widgets);
             if tip_show {
+                // Tips
                 Text::new(&tip_msg)
                     .color(TEXT_BG)
-                    .mid_bottom_with_margin_on(ui_widgets.window, 80.0)
+                    .mid_bottom_with_margin_on(self.ids.mid, 60.0)
                     .font_id(self.fonts.cyri.conrod_id)
                     .font_size(self.fonts.cyri.scale(20))
                     .set(self.ids.tip_txt_bg, ui_widgets);

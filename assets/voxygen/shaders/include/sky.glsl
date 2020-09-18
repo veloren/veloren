@@ -3,6 +3,7 @@
 #include <cloud.glsl>
 #include <srgb.glsl>
 #include <shadows.glsl>
+#include <globals.glsl>
 
 // Information about an approximately directional light, like the sun or moon.
 struct DirectionalLight {
@@ -307,8 +308,7 @@ float get_sun_diffuse2(DirectionalLight sun_info, DirectionalLight moon_info, ve
     // float ambient_sides = 0.5 - 0.5 * min(abs(dot(-norm, sun_dir)), abs(dot(-norm, moon_dir)));
     // float ambient_sides = clamp(mix(0.5, 0.0, abs(dot(-norm, sun_dir)) * mix(0.0, 1.0, abs(sun_dir.z) * 10000.0) * 10000.0), 0.0, 0.5);
     // float ambient_sides = clamp(mix(0.5, 0.0, abs(dot(-norm, sun_dir)) * mix(0.0, 1.0, abs(sun_dir.z) * 10000.0) * 10000.0), 0.0, 0.5);
-
-    emitted_light = light_frac + k_a * PERSISTENT_AMBIANCE * MU_SCATTER;
+    emitted_light = light_frac + k_a * PERSISTENT_AMBIANCE * ambiance * 0.1 * MU_SCATTER;
     // emitted_light = k_a * light_frac * (/*ambient_sides + */SUN_AMBIANCE * /*sun_light*/sun_chroma + /*vec3(moon_light)*/MOON_AMBIANCE * moon_chroma) + PERSISTENT_AMBIANCE;
 
     reflected_light = R_t_r * (

@@ -109,6 +109,7 @@ pub struct SceneData<'a> {
     pub tick: u64,
     pub thread_pool: &'a uvth::ThreadPool,
     pub gamma: f32,
+    pub ambiance: f32,
     pub mouse_smoothing: bool,
     pub sprite_render_distance: f32,
     pub particles_enabled: bool,
@@ -638,6 +639,7 @@ impl Scene {
                     .unwrap_or(BlockKind::Air),
                 self.select_pos.map(|e| e - focus_off.map(|e| e as i32)),
                 scene_data.gamma,
+                scene_data.ambiance,
                 self.camera.get_mode(),
                 scene_data.sprite_render_distance as f32 - 20.0,
             )])
