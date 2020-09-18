@@ -1,17 +1,19 @@
-use super::{ConnectionState, Message};
+use super::{ConnectionState, Imgs, Message};
 use crate::{
     i18n::Localization,
     ui::{
         fonts::IcedFonts as Fonts,
-        ice::{component::neat_button, style, Element},
+        ice::{component::neat_button, style, widget::Image, Element},
     },
 };
-use iced::{button, Align, Color, Column, Container, Length, Row, Space, Text};
+use iced::{button, Align, Column, Container, Length, Row, Space, Text};
 
+const GEAR_ANIMATION_SPEED_FACTOR: f64 = 10.0;
 /// Connecting screen for the main menu
 pub struct Screen {
     cancel_button: button::State,
     add_button: button::State,
+    tip_number: u16,
 }
 
 impl Screen {
@@ -19,49 +21,76 @@ impl Screen {
         Self {
             cancel_button: Default::default(),
             add_button: Default::default(),
+            tip_number: rand::random(),
         }
     }
 
     pub(super) fn view(
         &mut self,
         fonts: &Fonts,
+        imgs: &Imgs,
         connection_state: &ConnectionState,
-        time: f32,
+        time: f64,
         i18n: &Localization,
         button_style: style::button::Style,
+        show_tip: bool,
     ) -> Element<Message> {
-        let fade_msg = (time * 2.0).sin() * 0.5 + 0.51;
+        let gear_anim_time = time * GEAR_ANIMATION_SPEED_FACTOR;
+        // TODO: add built in support for animated images
+        let gear_anim_image = match (gear_anim_time % 5.0).trunc() as u8 {
+            0 => imgs.f1,
+            1 => imgs.f2,
+            2 => imgs.f3,
+            3 => imgs.f4,
+            _ => imgs.f5,
+        };
 
         let children = match connection_state {
-            ConnectionState::InProgress { status } => {
-                let status = Text::new(status)
-                    .size(fonts.alkhemi.scale(80))
-                    .font(fonts.alkhemi.id)
-                    .color(Color::from_rgba(1.0, 1.0, 1.0, fade_msg));
+            ConnectionState::InProgress => {
+                let tip = if show_tip {
+                    let tip = format!(
+                        "{} {}",
+                        &i18n.get("main.tip"),
+                        &i18n.get_variation("loading.tips", self.tip_number)
+                    );
+                    Container::new(Text::new(tip).size(fonts.cyri.scale(25)))
+                        .width(Length::Fill)
+                        .height(Length::Fill)
+                        .center_x()
+                        .align_y(Align::End)
+                        .into()
+                } else {
+                    Space::new(Length::Fill, Length::Fill).into()
+                };
 
-                let status = Container::new(Row::with_children(vec![
-                    Space::new(Length::Units(80), Length::Shrink).into(),
-                    status.into(),
-                ]))
-                .width(Length::Fill)
-                .height(Length::Fill)
-                .align_y(Align::End);
+                let gear = Container::new(
+                    Image::new(gear_anim_image)
+                        .width(Length::Units(74))
+                        .height(Length::Units(62)),
+                )
+                .width(Length::Fill);
 
-                let cancel = neat_button(
+                let cancel = Container::new(neat_button(
                     &mut self.cancel_button,
                     i18n.get("common.cancel"),
                     0.7,
                     button_style,
                     Some(Message::CancelConnect),
-                );
+                ))
+                .width(Length::Fill)
+                .height(Length::Units(fonts.cyri.scale(50)))
+                .center_x()
+                .padding(3);
 
-                let cancel = Container::new(cancel)
-                    .width(Length::Fill)
-                    .height(Length::Units(fonts.cyri.scale(50)))
-                    .center_x()
-                    .padding(3);
+                let gear_cancel = Row::with_children(vec![
+                    gear.into(),
+                    cancel.into(),
+                    Space::new(Length::Fill, Length::Shrink).into(),
+                ])
+                .width(Length::Fill)
+                .align_items(Align::End);
 
-                vec![status.into(), cancel.into()]
+                vec![tip, gear_cancel.into()]
             },
             ConnectionState::AuthTrustPrompt { msg, .. } => {
                 let text = Text::new(msg).size(fonts.cyri.scale(25));

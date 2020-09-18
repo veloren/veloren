@@ -54,6 +54,13 @@ image_ids_ice! {
         selection: "voxygen.element.frames.selection",
         selection_hover: "voxygen.element.frames.selection_hover",
         selection_press: "voxygen.element.frames.selection_press",
+
+        // Animation
+        f1: "voxygen.element.animation.gears.1",
+        f2: "voxygen.element.animation.gears.2",
+        f3: "voxygen.element.animation.gears.3",
+        f4: "voxygen.element.animation.gears.4",
+        f5: "voxygen.element.animation.gears.5",
     }
 }
 
@@ -100,23 +107,8 @@ pub struct LoginInfo {
 }
 
 enum ConnectionState {
-    InProgress {
-        status: String,
-    },
-    AuthTrustPrompt {
-        auth_server: String,
-        msg: String,
-        // To remember when we switch back
-        status: String,
-    },
-}
-impl ConnectionState {
-    fn take_status_string(&mut self) -> String {
-        std::mem::take(match self {
-            Self::InProgress { status } => status,
-            Self::AuthTrustPrompt { status, .. } => status,
-        })
-    }
+    InProgress,
+    AuthTrustPrompt { auth_server: String, msg: String },
 }
 
 enum Screen {
@@ -153,7 +145,7 @@ struct Controls {
     is_selecting_language: bool,
     selected_language_index: Option<usize>,
 
-    time: f32,
+    time: f64,
 
     screen: Screen,
 }
@@ -244,7 +236,7 @@ impl Controls {
     }
 
     fn view(&mut self, settings: &Settings, dt: f32) -> Element<Message> {
-        self.time = self.time + dt;
+        self.time = self.time + dt as f64;
 
         // TODO: consider setting this as the default in the renderer
         let button_style = style::button::Style::new(self.imgs.button)
@@ -311,10 +303,12 @@ impl Controls {
                 connection_state,
             } => screen.view(
                 &self.fonts,
+                &self.imgs,
                 &connection_state,
                 self.time,
                 &self.i18n,
                 button_style,
+                settings.gameplay.loading_tips,
             ),
         };
 
@@ -354,19 +348,14 @@ impl Controls {
             Message::Singleplayer => {
                 self.screen = Screen::Connecting {
                     screen: connecting::Screen::new(),
-                    connection_state: ConnectionState::InProgress {
-                        status: [self.i18n.get("main.creating_world"), "..."].concat(),
-                    },
+                    connection_state: ConnectionState::InProgress,
                 };
-
                 events.push(Event::StartSingleplayer);
             },
             Message::Multiplayer => {
                 self.screen = Screen::Connecting {
                     screen: connecting::Screen::new(),
-                    connection_state: ConnectionState::InProgress {
-                        status: [self.i18n.get("main.connecting"), "..."].concat(),
-                    },
+                    connection_state: ConnectionState::InProgress,
                 };
 
                 events.push(Event::LoginAttempt {
@@ -406,15 +395,13 @@ impl Controls {
                 {
                     if let ConnectionState::AuthTrustPrompt {
                         auth_server,
-                        status,
                         ..
                     } = connection_state
                     {
                         let auth_server = std::mem::take(auth_server);
-                        let status = std::mem::take(status);
                         let added = matches!(msg, Message::TrustPromptAdd);
 
-                        *connection_state = ConnectionState::InProgress { status };
+                        *connection_state = ConnectionState::InProgress;
                         events.push(Event::AuthServerTrust(auth_server, added));
                     }
                 }
@@ -462,11 +449,7 @@ impl Controls {
                 &auth_server
             );
 
-            *connection_state = ConnectionState::AuthTrustPrompt {
-                auth_server,
-                msg,
-                status: connection_state.take_status_string(),
-            };
+            *connection_state = ConnectionState::AuthTrustPrompt { auth_server, msg };
         }
     }
 
