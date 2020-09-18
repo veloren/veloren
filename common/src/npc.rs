@@ -14,7 +14,7 @@ pub enum NpcKind {
     Pig,
     Duck,
     Ogre,
-    Rat,
+    Archaeos,
     StoneGolem,
     Reddragon,
     Crocodile,
@@ -26,7 +26,7 @@ pub const ALL_NPCS: [NpcKind; 9] = [
     NpcKind::Pig,
     NpcKind::Duck,
     NpcKind::Ogre,
-    NpcKind::Rat,
+    NpcKind::Archaeos,
     NpcKind::StoneGolem,
     NpcKind::Reddragon,
     NpcKind::Crocodile,
@@ -94,7 +94,7 @@ pub fn kind_to_body(kind: NpcKind) -> Body {
         NpcKind::Wolf => comp::quadruped_medium::Body::random().into(),
         NpcKind::Duck => comp::bird_medium::Body::random().into(),
         NpcKind::Ogre => comp::biped_large::Body::random().into(),
-        NpcKind::Rat => comp::critter::Body::random().into(),
+        NpcKind::Archaeos => comp::theropod::Body::random().into(),
         NpcKind::StoneGolem => comp::golem::Body::random().into(),
         NpcKind::Reddragon => comp::dragon::Body::random().into(),
         NpcKind::Crocodile => comp::quadruped_low::Body::random().into(),
@@ -206,9 +206,9 @@ impl NpcBody {
             .or_else(|| {
                 parse(
                     s,
-                    NpcKind::Rat,
-                    &npc_names.critter,
-                    comp::critter::Body::random_with,
+                    NpcKind::Archaeos,
+                    &npc_names.theropod,
+                    comp::theropod::Body::random_with,
                 )
             })
             .or_else(|| {

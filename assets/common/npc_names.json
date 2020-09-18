@@ -286,6 +286,14 @@
             "bonerattler": {
                 "keyword": "bonerattler",
                 "generic": "Bonerattler"
+            },
+            "deer": {
+                "keyword": "deer",
+                "generic": "Deer"
+            },
+            "hirdrasil": {
+                "keyword": "hirdrasil",
+                "generic": "Hirdrasil"
             }
         }
     },
@@ -461,6 +469,38 @@
             "frog": {
                 "keyword": "frog",
                 "generic": "Frog"
+            },
+            "rat": {
+                "keyword": "rat",
+                "generic": "Rat"
+            },
+            "axolotl": {
+                "keyword": "axolotl",
+                "generic": "Axolotl"
+            },
+            "gecko": {
+                "keyword": "gecko",
+                "generic": "Gecko"
+            },
+            "turtle": {
+                "keyword": "turtle",
+                "generic": "Turtle"
+            },
+            "squirrel": {
+                "keyword": "squirrel",
+                "generic": "Squirrel"
+            },
+            "fungome": {
+                "keyword": "fungome",
+                "generic": "Fungome"
+            },
+            "porcupine": {
+                "keyword": "porcupine",
+                "generic": "Porcupine"
+            },
+            "beaver": {
+                "keyword": "beaver",
+                "generic": "Beaver"
             }
         }
     },
@@ -550,37 +590,21 @@
             }
         }
     },
-    "critter": {
+    "theropod": {
         "body": {
-            "keyword": "critter",
+            "keyword": "theropod",
             "names": [
                 "Remy"
             ]
         },
         "species": {
-            "rat": {
-                "keyword": "rat",
-                "generic": "Rat"
+            "archaeos": {
+                "keyword": "archaeos",
+                "generic": "Archaeos"
             },
-            "axolotl": {
-                "keyword": "axolotl",
-                "generic": "Axolotl"
-            },
-            "gecko": {
-                "keyword": "gecko",
-                "generic": "Gecko"
-            },
-            "turtle": {
-                "keyword": "turtle",
-                "generic": "Turtle"
-            },
-            "squirrel": {
-                "keyword": "squirrel",
-                "generic": "Squirrel"
-            },
-            "fungome": {
-                "keyword": "fungome",
-                "generic": "Fungome"
+            "odonto": {
+                "keyword": "odonto",
+                "generic": "Odonto"
             }
         }
     },

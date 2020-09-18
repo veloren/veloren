@@ -43,6 +43,7 @@ pub fn convert_items_to_database_items(
         ("neck", loadout.neck.as_ref()),
         ("head", loadout.head.as_ref()),
         ("tabard", loadout.tabard.as_ref()),
+        ("glider", loadout.glider.as_ref()),
     ];
 
     let loadout = loadout
@@ -254,6 +255,7 @@ pub fn convert_loadout_from_database_items(database_items: &[Item]) -> Result<Lo
             "neck" => loadout = loadout.neck(Some(item)),
             "head" => loadout = loadout.head(Some(item)),
             "tabard" => loadout = loadout.tabard(Some(item)),
+            "glider" => loadout = loadout.glider(Some(item)),
             _ => {
                 return Err(Error::ConversionError(format!(
                     "Unknown loadout position on item: {}",

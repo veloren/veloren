@@ -1,5 +1,5 @@
 use crate::{
-    comp::{critter, humanoid, quadruped_low, quadruped_medium, quadruped_small, Body},
+    comp::{humanoid, quadruped_low, quadruped_medium, quadruped_small, Body},
     path::Chaser,
     sync::Uid,
 };
@@ -97,6 +97,7 @@ impl<'a> From<&'a Body> for Psyche {
                     quadruped_small::Species::Rabbit => 0.1,
                     quadruped_small::Species::Truffler => 0.8,
                     quadruped_small::Species::Frog => 0.6,
+                    _ => 1.0,
                 },
                 Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
                     quadruped_medium::Species::Tuskram => 0.8,
@@ -123,12 +124,7 @@ impl<'a> From<&'a Body> for Psyche {
                 Body::BipedLarge(_) => 1.0,
                 Body::Object(_) => 1.0,
                 Body::Golem(_) => 1.0,
-                Body::Critter(critter) => match critter.species {
-                    critter::Species::Axolotl => 1.0,
-                    critter::Species::Turtle => 1.0,
-                    critter::Species::Fungome => 1.0,
-                    _ => 0.4,
-                },
+                Body::Theropod(_) => 1.0,
                 Body::Dragon(_) => 1.0,
             },
         }

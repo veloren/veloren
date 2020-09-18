@@ -29,24 +29,23 @@ impl From<Body> for super::Body {
     fn from(body: Body) -> Self { super::Body::QuadrupedMedium(body) }
 }
 
-make_case_elim!(
-    species,
-    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-    #[repr(u32)]
-    pub enum Species {
-        Grolgar = 0,
-        Saber = 1,
-        Tiger = 2,
-        Tuskram = 3,
-        Lion = 6,
-        Tarasque = 7,
-        Wolf = 8,
-        Frostfang = 9,
-        Mouflon = 10,
-        Catoblepas = 11,
-        Bonerattler = 12,
-    }
-);
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
+pub enum Species {
+    Grolgar = 0,
+    Saber = 1,
+    Tiger = 2,
+    Tuskram = 3,
+    Lion = 6,
+    Tarasque = 7,
+    Wolf = 8,
+    Frostfang = 9,
+    Mouflon = 10,
+    Catoblepas = 11,
+    Bonerattler = 12,
+    Deer = 13,
+    Hirdrasil = 14,
+}
 
 /// Data representing per-species generic data.
 ///
@@ -64,6 +63,8 @@ pub struct AllSpecies<SpeciesMeta> {
     pub mouflon: SpeciesMeta,
     pub catoblepas: SpeciesMeta,
     pub bonerattler: SpeciesMeta,
+    pub deer: SpeciesMeta,
+    pub hirdrasil: SpeciesMeta,
 }
 
 impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> {
@@ -83,11 +84,13 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
             Species::Mouflon => &self.mouflon,
             Species::Catoblepas => &self.catoblepas,
             Species::Bonerattler => &self.bonerattler,
+            Species::Deer => &self.deer,
+            Species::Hirdrasil => &self.hirdrasil,
         }
     }
 }
 
-pub const ALL_SPECIES: [Species; 11] = [
+pub const ALL_SPECIES: [Species; 13] = [
     Species::Grolgar,
     Species::Saber,
     Species::Tiger,
@@ -99,6 +102,8 @@ pub const ALL_SPECIES: [Species; 11] = [
     Species::Mouflon,
     Species::Catoblepas,
     Species::Bonerattler,
+    Species::Deer,
+    Species::Hirdrasil,
 ];
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
