@@ -185,7 +185,7 @@ impl Tool {
                 },
                 SpinMelee {
                     buildup_duration: Duration::from_millis(150),
-                    swing_duration: Duration::from_millis(100),
+                    swing_duration: Duration::from_millis(500),
                     recover_duration: Duration::from_millis(150),
                     base_damage: (100.0 * self.base_power()) as u32,
                     knockback: 0.0,
@@ -209,7 +209,7 @@ impl Tool {
                 },
                 SpinMelee {
                     buildup_duration: Duration::from_millis(100),
-                    swing_duration: Duration::from_millis(50),
+                    swing_duration: Duration::from_millis(250),
                     recover_duration: Duration::from_millis(100),
                     base_damage: (60.0 * self.base_power()) as u32,
                     knockback: 0.0,

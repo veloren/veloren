@@ -437,6 +437,7 @@ impl From<&CharacterAbility> for CharacterState {
                 timer: Duration::default(),
                 spins_remaining: *num_spins - 1,
                 stage_section: StageSection::Buildup,
+                exhausted: false,
             }),
             CharacterAbility::ChargedRanged {
                 energy_cost: _,
