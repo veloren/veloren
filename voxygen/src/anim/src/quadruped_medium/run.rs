@@ -67,14 +67,14 @@ impl Animation for RunAnimation {
             (anim_time as f32 * (16.0) * lab as f32 * speedmult + 0.0 + canceler * 0.05 + shift1)
                 .sin(); //1.5
         let foot1b =
-            (anim_time as f32 * (16.0) * lab as f32 * speedmult + 1.57 + canceler * 0.05 + shift1)
+            (anim_time as f32 * (16.0) * lab as f32 * speedmult + 1.1 + canceler * 0.05 + shift1)
                 .sin(); //1.9
         //FR
         let foot2a = (anim_time as f32 * (16.0) * lab as f32 * speedmult + shift2).sin(); //1.2
         let foot2b = (anim_time as f32 * (16.0) * lab as f32 * speedmult + 1.1 + shift2).sin(); //1.6
         //BL
         let foot3a = (anim_time as f32 * (16.0) * lab as f32 * speedmult + shift3).sin(); //0.0
-        let foot3b = (anim_time as f32 * (16.0) * lab as f32 * speedmult + 1.1 + shift3).sin(); //0.4
+        let foot3b = (anim_time as f32 * (16.0) * lab as f32 * speedmult + 1.57 + shift3).sin(); //0.4
         //BR
         let foot4a =
             (anim_time as f32 * (16.0) * lab as f32 * speedmult + 0.0 + canceler * 0.05 + shift4)

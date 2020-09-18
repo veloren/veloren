@@ -116,7 +116,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
         Self {
             head: match (body.species, body.body_type) {
                 (Archaeos, _) => (8.0, 4.0),
-                (Odonto, _) => (-1.0, 5.0),
+                (Odonto, _) => (6.0, 5.0),
             },
             jaw: match (body.species, body.body_type) {
                 (Archaeos, _) => (1.0, -7.0),
@@ -124,7 +124,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             },
             neck: match (body.species, body.body_type) {
                 (Archaeos, _) => (4.5, -2.0),
-                (Odonto, _) => (4.5, -2.0),
+                (Odonto, _) => (3.0, -3.0),
             },
             chest_front: match (body.species, body.body_type) {
                 (Archaeos, _) => (0.0, 20.0),
