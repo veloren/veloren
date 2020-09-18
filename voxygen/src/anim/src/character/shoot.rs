@@ -66,19 +66,18 @@ impl Animation for ShootAnimation {
         match active_tool_kind {
             //TODO: Inventory
             Some(ToolKind::Staff(_)) => {
-                next.l_hand.position = Vec3::new(1.5, 0.5, -4.0);
+                next.l_hand.position = Vec3::new(11.0, 5.0, -4.0);
                 next.l_hand.orientation =
-                    Quaternion::rotation_x(1.47) * Quaternion::rotation_y(-0.3);
+                    Quaternion::rotation_x(1.27) * Quaternion::rotation_y(0.0);
                 next.l_hand.scale = Vec3::one() * 1.05;
-                next.r_hand.position = Vec3::new(8.0, 4.0, 2.0);
-                next.r_hand.orientation = Quaternion::rotation_x(1.8)
-                    * Quaternion::rotation_y(0.5)
-                    * Quaternion::rotation_z(-0.27);
+                next.r_hand.position = Vec3::new(12.0, 5.5, 2.0);
+                next.r_hand.orientation =
+                    Quaternion::rotation_x(1.57) * Quaternion::rotation_y(0.2);
                 next.r_hand.scale = Vec3::one() * 1.05;
-                next.main.position = Vec3::new(9.2, 8.4, 13.2);
-                next.main.orientation = Quaternion::rotation_x(-0.3)
-                    * Quaternion::rotation_y(3.14 + 0.3)
-                    * Quaternion::rotation_z(0.9);
+                next.main.position = Vec3::new(12.0, 8.5, 13.2);
+                next.main.orientation = Quaternion::rotation_x(0.0)
+                    * Quaternion::rotation_y(3.14)
+                    * Quaternion::rotation_z(0.0);
 
                 next.control.position = Vec3::new(-7.0, 6.0, 6.0 - exp * 5.0);
                 next.control.orientation = Quaternion::rotation_x(exp * 1.3)

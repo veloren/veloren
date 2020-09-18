@@ -58,12 +58,18 @@ impl Lantern {
     pub fn color(&self) -> Rgb<f32> { self.color.map(|c| c as f32 / 255.0) }
 }
 
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct Glider {
+    pub kind: String,
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum ItemKind {
     /// Something wieldable
     Tool(tool::Tool),
     Lantern(Lantern),
     Armor(armor::Armor),
+    Glider(Glider),
     Consumable {
         kind: String,
         effect: Effect,
@@ -317,6 +323,7 @@ impl Item {
             (ItemKind::Tool(a), ItemKind::Tool(b)) => a.superficially_eq(b),
             // TODO: Differentiate between lantern colors?
             (ItemKind::Lantern(_), ItemKind::Lantern(_)) => true,
+            (ItemKind::Glider(_), ItemKind::Glider(_)) => true,
             (ItemKind::Armor(a), ItemKind::Armor(b)) => a.superficially_eq(b),
             (ItemKind::Consumable { kind: a, .. }, ItemKind::Consumable { kind: b, .. }) => a == b,
             (ItemKind::Throwable { kind: a, .. }, ItemKind::Throwable { kind: b, .. }) => a == b,

@@ -281,7 +281,7 @@ pub fn apply_caves_supplement<'a>(
                             };
                             comp::quadruped_low::Body::random_with(rng, &species).into()
                         },
-                        3 => {
+                        _ => {
                             is_hostile = true;
                             let species = match rng.gen_range(0, 8) {
                                 0 => comp::biped_large::Species::Ogre,
@@ -290,14 +290,6 @@ pub fn apply_caves_supplement<'a>(
                                 _ => comp::biped_large::Species::Troll,
                             };
                             comp::biped_large::Body::random_with(rng, &species).into()
-                        },
-                        _ => {
-                            is_hostile = false;
-                            let species = match rng.gen_range(0, 5) {
-                                0 => comp::critter::Species::Fungome,
-                                _ => comp::critter::Species::Rat,
-                            };
-                            comp::critter::Body::random_with(rng, &species).into()
                         },
                     })
                     .with_alignment(if is_hostile {

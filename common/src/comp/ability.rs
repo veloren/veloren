@@ -192,6 +192,7 @@ pub struct Loadout {
     pub second_item: Option<ItemConfig>,
 
     pub lantern: Option<Item>,
+    pub glider: Option<Item>,
 
     #[in_array(get_armor)]
     pub shoulder: Option<Item>,

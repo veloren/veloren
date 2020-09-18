@@ -22,15 +22,13 @@ impl Animation for JumpAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        next.head_upper.position =
-            Vec3::new(0.0, skeleton_attr.head_upper.0, skeleton_attr.head_upper.1);
-        next.head_upper.orientation = Quaternion::rotation_z(0.4) * Quaternion::rotation_x(0.3);
-        next.head_upper.scale = Vec3::one();
+        next.head.position = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1);
+        next.head.orientation = Quaternion::rotation_z(0.4) * Quaternion::rotation_x(0.3);
+        next.head.scale = Vec3::one();
 
-        next.head_lower.position =
-            Vec3::new(0.0, skeleton_attr.head_lower.0, skeleton_attr.head_lower.1);
-        next.head_lower.orientation = Quaternion::rotation_z(0.2) * Quaternion::rotation_x(0.3);
-        next.head_lower.scale = Vec3::one() * 1.02;
+        next.neck.position = Vec3::new(0.0, skeleton_attr.neck.0, skeleton_attr.neck.1);
+        next.neck.orientation = Quaternion::rotation_z(0.2) * Quaternion::rotation_x(0.3);
+        next.neck.scale = Vec3::one() * 1.02;
 
         next.jaw.position = Vec3::new(0.0, skeleton_attr.jaw.0, skeleton_attr.jaw.1);
         next.jaw.orientation = Quaternion::rotation_x(-0.4);
