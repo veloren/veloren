@@ -1,10 +1,7 @@
 use super::SysTimer;
 use crate::{chunk_generator::ChunkGenerator, client::Client, Tick};
 use common::{
-    comp::{
-        self, bird_medium,
-        Alignment, CharacterAbility, Player, Pos,
-    },
+    comp::{self, bird_medium, Alignment, CharacterAbility, Player, Pos},
     event::{EventBus, ServerEvent},
     generation::get_npc_name,
     msg::ServerMsg,
