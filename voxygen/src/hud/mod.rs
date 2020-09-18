@@ -74,7 +74,6 @@ const TEXT_GRAY_COLOR: Color = Color::Rgba(0.5, 0.5, 0.5, 1.0);
 const TEXT_DULL_RED_COLOR: Color = Color::Rgba(0.56, 0.2, 0.2, 1.0);
 const TEXT_BG: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
 const TEXT_COLOR_GREY: Color = Color::Rgba(1.0, 1.0, 1.0, 0.5);
-const MENU_BG: Color = Color::Rgba(0.0, 0.0, 0.0, 0.4);
 //const TEXT_COLOR_2: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
 const TEXT_COLOR_3: Color = Color::Rgba(1.0, 1.0, 1.0, 0.1);
 const TEXT_BIND_CONFLICT_COLOR: Color = Color::Rgba(1.0, 0.0, 0.0, 1.0);
@@ -122,6 +121,8 @@ const DEFAULT_NPC: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
 const UI_MAIN: Color = Color::Rgba(0.61, 0.70, 0.70, 1.0); // Greenish Blue
 //const UI_MAIN: Color = Color::Rgba(0.1, 0.1, 0.1, 0.97); // Dark
 const UI_HIGHLIGHT_0: Color = Color::Rgba(0.79, 1.09, 1.09, 1.0);
+// Pull-Down menu BG color
+const MENU_BG: Color = Color::Rgba(0.1, 0.12, 0.12, 1.0);
 //const UI_DARK_0: Color = Color::Rgba(0.25, 0.37, 0.37, 1.0);
 
 /// Distance at which nametags are visible for group members
@@ -283,6 +284,7 @@ pub enum Event {
     ChangeMaxFPS(u32),
     ChangeFOV(u16),
     ChangeGamma(f32),
+    ChangeAmbiance(f32),
     MapZoom(f64),
     AdjustWindowSize([u16; 2]),
     ChangeFullscreenMode(FullScreenSettings),
@@ -564,6 +566,7 @@ pub struct Hud {
     tab_complete: Option<String>,
     pulse: f32,
     velocity: f32,
+    fps: f32,
     voxygen_i18n: std::sync::Arc<VoxygenLocalization>,
     slot_manager: slots::SlotManager,
     hotbar: hotbar::State,
@@ -659,6 +662,7 @@ impl Hud {
             force_chat_cursor: None,
             tab_complete: None,
             pulse: 0.0,
+            fps: 0.0,
             velocity: 0.0,
             voxygen_i18n,
             slot_manager,
@@ -690,7 +694,10 @@ impl Hud {
         let (ref mut ui_widgets, ref mut tooltip_manager) = self.ui.set_widgets();
         // pulse time for pulsating elements
         self.pulse = self.pulse + dt.as_secs_f32();
-
+        // FPS
+        // TODO Get actual FPS from session.rs instead of TPS from the client as they
+        // may be different in the future
+        self.fps = 1.0 / client.state().get_delta_time();
         let version = format!(
             "{}-{}",
             env!("CARGO_PKG_VERSION"),
@@ -1865,6 +1872,7 @@ impl Hud {
                 &self.imgs,
                 &self.fonts,
                 &self.voxygen_i18n,
+                self.fps,
             )
             .set(self.ids.settings_window, ui_widgets)
             {
@@ -1967,6 +1975,9 @@ impl Hud {
                     },
                     settings_window::Event::AdjustGamma(new_gamma) => {
                         events.push(Event::ChangeGamma(new_gamma));
+                    },
+                    settings_window::Event::AdjustAmbiance(new_ambiance) => {
+                        events.push(Event::ChangeAmbiance(new_ambiance));
                     },
                     settings_window::Event::ChangeRenderMode(new_render_mode) => {
                         events.push(Event::ChangeRenderMode(new_render_mode));

@@ -46,6 +46,7 @@ gfx_defines! {
         medium: [u32; 4] = "medium",
         select_pos: [i32; 4] = "select_pos",
         gamma: [f32; 4] = "gamma",
+        ambiance: f32 = "ambiance",
         cam_mode: u32 = "cam_mode",
         sprite_render_distance: f32 = "sprite_render_distance",
     }
@@ -82,6 +83,7 @@ impl Globals {
         medium: BlockKind,
         select_pos: Option<Vec3<i32>>,
         gamma: f32,
+        ambiance: f32,
         cam_mode: CameraMode,
         sprite_render_distance: f32,
     ) -> Self {
@@ -122,6 +124,7 @@ impl Globals {
                 .unwrap_or(Vec4::zero())
                 .into_array(),
             gamma: [gamma; 4],
+            ambiance,
             cam_mode: cam_mode as u32,
             sprite_render_distance,
         }
@@ -162,6 +165,7 @@ impl Default for Globals {
             0,
             BlockKind::Air,
             None,
+            1.0,
             1.0,
             CameraMode::ThirdPerson,
             250.0,

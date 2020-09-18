@@ -1370,10 +1370,11 @@ impl Client {
                 ServerMsg::ExitIngameCleanup => {
                     self.clean_state();
                 },
-                ServerMsg::InventoryUpdate(inventory, event) => {
+                ServerMsg::InventoryUpdate(mut inventory, event) => {
                     match event {
                         InventoryUpdateEvent::CollectFailed => {},
                         _ => {
+                            inventory.recount_items();
                             // Push the updated inventory component to the client
                             self.state.write_component(self.entity, inventory);
                         },

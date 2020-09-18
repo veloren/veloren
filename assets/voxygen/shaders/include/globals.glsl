@@ -17,6 +17,7 @@ uniform u_globals {
 	uvec4 medium;
 	ivec4 select_pos;
 	vec4 gamma;
+	float ambiance;
 	// 0 - FirstPerson
 	// 1 - ThirdPerson
 	uint cam_mode;

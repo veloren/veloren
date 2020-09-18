@@ -56,6 +56,7 @@ VoxygenLocalization(
         "common.controls": "Controls",
         "common.video": "Graphics",
         "common.sound": "Sound",
+        "common.languages": "Languages",
         "common.resume": "Resume",
         "common.characters": "Characters",
         "common.close": "Close",
@@ -73,6 +74,14 @@ VoxygenLocalization(
         "common.fatal_error": "Fatal Error",
         "common.you": "You",
         "common.automatic": "Auto",
+        "common.random": "Random",
+        // Settings Window title
+        "common.interface_settings": "Interface Settings",
+        "common.gameplay_settings": "Gameplay Settings",
+        "common.controls_settings": "Controls Settings",
+        "common.video_settings": "Graphics Settings",
+        "common.sound_settings": "Sound Settings",
+        "common.language_settings": "Language Settings",
 
         // Message when connection to the server is lost
         "common.connection_lost": r#"Connection lost!
@@ -92,6 +101,7 @@ Is the client up to date?"#,
         "common.weapons.staff": "Staff",
         "common.weapons.bow": "Bow",
         "common.weapons.hammer": "Hammer",
+        "common.rand_appearance": "Random appearance and name",
         /// End Common section
 
 
@@ -161,15 +171,15 @@ https://account.veloren.net."#,
         "hud.press_key_to_toggle_debug_info_fmt": "Press {key} to toggle debug info",
 
         // Chat outputs
-        "hud.chat.online_msg": "[{name}] came online",
-        "hud.chat.offline_msg": "[{name}] went offline",
+        "hud.chat.online_msg": "[{name}] is online now",
+        "hud.chat.offline_msg": "{name} went offline",
 
         "hud.chat.default_death_msg": "[{name}] died",
         "hud.chat.environmental_kill_msg": "[{name}] died in {environment}",
         "hud.chat.fall_kill_msg": "[{name}] died from fall damage",
         "hud.chat.suicide_msg": "[{name}] died from self-inflicted wounds",
 
-        "hud.chat.pvp_melee_kill_msg": "[{attacker}] killed [{victim}]",
+        "hud.chat.pvp_melee_kill_msg": "[{attacker}] defeated [{victim}]",
         "hud.chat.pvp_ranged_kill_msg": "[{attacker}] shot [{victim}]",
         "hud.chat.pvp_explosion_kill_msg": "[{attacker}] blew up [{victim}]",
 
@@ -262,7 +272,7 @@ magically infused items?"#,
         "hud.map.map_title": "Map",
         "hud.map.qlog_title": "Quests",
 
-        // Settings
+        // Settings        
         "hud.settings.general": "General",
         "hud.settings.none": "None",
         "hud.settings.press_behavior.toggle": "Toggle",
@@ -309,6 +319,7 @@ magically infused items?"#,
         "hud.settings.maximum_fps": "Maximum FPS",
         "hud.settings.fov": "Field of View (deg)",
         "hud.settings.gamma": "Gamma",
+        "hud.settings.ambiance": "Ambiance Brightness",
         "hud.settings.antialiasing_mode": "AntiAliasing Mode",
         "hud.settings.cloud_rendering_mode": "Cloud Rendering Mode",
         "hud.settings.fluid_rendering_mode": "Fluid Rendering Mode",
@@ -514,7 +525,7 @@ Protection
             "Veloren is still in Pre-Alpha. We do our best to improve it every day!",
             "If you want to join the Dev-Team or just have a chat with us join our Discord-Server.", 
             "You can toggle showing your amount of health on the healthbar in the settings.",
-            "In order to see your stats click the 'Stats' button in your inventory.",           
+            "In order to see your stats click the 'Stats' button in the inventory.",           
         ],         
         "npc.speech.villager_under_attack": [
             "Help, I'm under attack!",
