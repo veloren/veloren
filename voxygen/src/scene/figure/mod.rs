@@ -2115,6 +2115,15 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
+                        CharacterState::GroundShockwave(_) => {
+                            anim::golem::ShockwaveAnimation::update_skeleton(
+                                &target_base,
+                                (vel.0.magnitude(), time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         // TODO!
                         _ => target_base,
                     };

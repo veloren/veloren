@@ -357,7 +357,7 @@ impl Tool {
                             recover_duration: Duration::from_millis(250),
                             knockback: 25.0,
                             base_healthchange: -200,
-                            range: 10.0,
+                            range: 5.0,
                             max_angle: 120.0,
                         },
                         GroundShockwave {

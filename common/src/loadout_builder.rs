@@ -1,9 +1,7 @@
-use crate::{
-    comp::{
-        golem,
-        item::{Item, ItemKind},
-        Alignment, Body, CharacterAbility, ItemConfig, Loadout,
-    },
+use crate::comp::{
+    golem,
+    item::{Item, ItemKind},
+    Alignment, Body, CharacterAbility, ItemConfig, Loadout,
 };
 use rand::Rng;
 use std::time::Duration;
@@ -81,38 +79,37 @@ impl LoadoutBuilder {
             _ => {},
         };
 
-        let active_item =
-            if let Some(ItemKind::Tool(tool)) = main_tool.as_ref().map(|i| i.kind()) {
-                let mut abilities = tool.get_abilities();
-                let mut ability_drain = abilities.drain(..);
+        let active_item = if let Some(ItemKind::Tool(tool)) = main_tool.as_ref().map(|i| i.kind()) {
+            let mut abilities = tool.get_abilities();
+            let mut ability_drain = abilities.drain(..);
 
-                main_tool.map(|item| ItemConfig {
-                    item,
-                    ability1: ability_drain.next(),
-                    ability2: ability_drain.next(),
-                    ability3: ability_drain.next(),
-                    block_ability: None,
-                    dodge_ability: Some(CharacterAbility::Roll),
-                })
-            } else {
-                Some(ItemConfig {
-                    // We need the empty item so npcs can attack
-                    item: Item::new_from_asset_expect("common.items.weapons.empty.empty"),
-                    ability1: Some(CharacterAbility::BasicMelee {
-                        energy_cost: 0,
-                        buildup_duration: Duration::from_millis(0),
-                        recover_duration: Duration::from_millis(400),
-                        base_healthchange: -40,
-                        knockback: 0.0,
-                        range: 3.5,
-                        max_angle: 15.0,
-                    }),
-                    ability2: None,
-                    ability3: None,
-                    block_ability: None,
-                    dodge_ability: None,
-                })
-            };
+            main_tool.map(|item| ItemConfig {
+                item,
+                ability1: ability_drain.next(),
+                ability2: ability_drain.next(),
+                ability3: ability_drain.next(),
+                block_ability: None,
+                dodge_ability: Some(CharacterAbility::Roll),
+            })
+        } else {
+            Some(ItemConfig {
+                // We need the empty item so npcs can attack
+                item: Item::new_from_asset_expect("common.items.weapons.empty.empty"),
+                ability1: Some(CharacterAbility::BasicMelee {
+                    energy_cost: 0,
+                    buildup_duration: Duration::from_millis(0),
+                    recover_duration: Duration::from_millis(400),
+                    base_healthchange: -40,
+                    knockback: 0.0,
+                    range: 3.5,
+                    max_angle: 15.0,
+                }),
+                ability2: None,
+                ability3: None,
+                block_ability: None,
+                dodge_ability: None,
+            })
+        };
 
         let loadout = match body {
             Body::Humanoid(_) => match alignment {
