@@ -1,4 +1,4 @@
-Item(
+ItemDef(
     name: "Swift Glider",
     description: "Thank goodness for big pockets",
     kind: Glider(
