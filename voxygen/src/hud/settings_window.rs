@@ -1,6 +1,7 @@
 use super::{
     img_ids::Imgs, BarNumbers, CrosshairType, PressBehavior, ShortcutNumbers, Show, XpBar,
-    ERROR_COLOR, MENU_BG, TEXT_BIND_CONFLICT_COLOR, TEXT_COLOR,
+    CRITICAL_HP_COLOR, ERROR_COLOR, HP_COLOR, LOW_HP_COLOR, MANA_COLOR, MENU_BG,
+    TEXT_BIND_CONFLICT_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
     i18n::{list_localizations, LanguageMetadata, VoxygenLocalization},
@@ -18,6 +19,7 @@ use conrod_core::{
 };
 use core::convert::TryFrom;
 
+use inline_tweak::*;
 use itertools::Itertools;
 use std::iter::once;
 use winit::monitor::VideoMode;
@@ -26,6 +28,9 @@ const FPS_CHOICES: [u32; 11] = [15, 30, 40, 50, 60, 90, 120, 144, 240, 300, 500]
 
 widget_ids! {
     struct Ids {
+        frame,
+        tabs_align,
+        icon,
         settings_content,
         settings_content_r,
         settings_icon,
@@ -53,6 +58,7 @@ widget_ids! {
         gameplay,
         controls,
         languages,
+        language_list[],
         languages_list,
         rectangle,
         general_txt,
@@ -92,6 +98,8 @@ widget_ids! {
         sound,
         test,
         video,
+        language,
+        fps_counter,
         vd_slider,
         vd_text,
         vd_value,
@@ -113,6 +121,9 @@ widget_ids! {
         gamma_slider,
         gamma_text,
         gamma_value,
+        ambiance_slider,
+        ambiance_text,
+        ambiance_value,
         aa_mode_text,
         aa_mode_list,
         cloud_mode_text,
@@ -204,6 +215,7 @@ pub enum SettingsTab {
     Sound,
     Gameplay,
     Controls,
+    Lang,
 }
 
 #[derive(WidgetCommon)]
@@ -213,6 +225,7 @@ pub struct SettingsWindow<'a> {
     imgs: &'a Imgs,
     fonts: &'a ConrodVoxygenFonts,
     localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+    fps: f32,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
@@ -224,6 +237,7 @@ impl<'a> SettingsWindow<'a> {
         imgs: &'a Imgs,
         fonts: &'a ConrodVoxygenFonts,
         localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+        fps: f32,
     ) -> Self {
         Self {
             global_state,
@@ -231,6 +245,7 @@ impl<'a> SettingsWindow<'a> {
             imgs,
             fonts,
             localized_strings,
+            fps,
             common: widget::CommonBuilder::default(),
         }
     }
@@ -260,6 +275,7 @@ pub enum Event {
     AdjustFOV(u16),
     AdjustLodDetail(u32),
     AdjustGamma(f32),
+    AdjustAmbiance(f32),
     AdjustWindowSize([u16; 2]),
     ChangeFullscreenMode(FullScreenSettings),
     ToggleParticlesEnabled(bool),
@@ -311,77 +327,88 @@ impl<'a> Widget for SettingsWindow<'a> {
 
         let mut events = Vec::new();
         let bar_values = self.global_state.settings.gameplay.bar_numbers;
+        let tab_font_scale = 18;
 
         //let mut xp_bar = self.global_state.settings.gameplay.xp_bar;
 
-        // Frame Alignment
-        Rectangle::fill_with([824.0, 488.0], color::TRANSPARENT)
-            .middle_of(ui.window)
-            .set(state.ids.settings_bg, ui);
         // Frame
-        Image::new(self.imgs.settings_frame_l)
-            .top_left_with_margins_on(state.ids.settings_bg, 0.0, 0.0)
-            .w_h(412.0, 488.0)
-            .set(state.ids.settings_l, ui);
-        Image::new(self.imgs.settings_frame_r)
-            .right_from(state.ids.settings_l, 0.0)
-            .parent(state.ids.settings_bg)
-            .w_h(412.0, 488.0)
-            .set(state.ids.settings_r, ui);
+        Image::new(self.imgs.settings_bg)
+            .w_h(1052.0, 886.0)
+            .mid_top_with_margin_on(ui.window, 5.0)
+            .color(Some(UI_MAIN))
+            .set(state.ids.settings_bg, ui);
+
+        Image::new(self.imgs.settings_frame)
+            .w_h(1052.0, 886.0)
+            .middle_of(state.ids.settings_bg)
+            .color(Some(UI_HIGHLIGHT_0))
+            .set(state.ids.frame, ui);
+
         // Content Alignment
-        Rectangle::fill_with([198.0 * 4.0, 97.0 * 4.0], color::TRANSPARENT)
-            .top_right_with_margins_on(state.ids.settings_r, 21.0 * 4.0, 4.0 * 4.0)
+        Rectangle::fill_with([814.0, 834.0], color::TRANSPARENT)
+            .top_right_with_margins_on(state.ids.frame, 46.0, 2.0)
             .scroll_kids()
             .scroll_kids_vertically()
             .set(state.ids.settings_content, ui);
-        Rectangle::fill_with([198.0 * 4.0 * 0.5, 97.0 * 4.0], color::TRANSPARENT)
+        Rectangle::fill_with([814.0 / 2.0, 834.0], color::TRANSPARENT)
             .top_right_with_margins_on(state.ids.settings_content, 0.0, 0.0)
-            .parent(state.ids.settings_content)
             .set(state.ids.settings_content_r, ui);
         Scrollbar::y_axis(state.ids.settings_content)
             .thickness(5.0)
             .rgba(0.33, 0.33, 0.33, 1.0)
             .set(state.ids.settings_scrollbar, ui);
+
+        // Tabs Content Alignment
+        Rectangle::fill_with([232.0, 814.0], color::TRANSPARENT)
+            .top_left_with_margins_on(state.ids.frame, 44.0, 2.0)
+            .scroll_kids()
+            .scroll_kids_vertically()
+            .set(state.ids.tabs_align, ui);
+
+        // Icon
+        Image::new(self.imgs.settings)
+            .w_h(29.0 * 1.5, 25.0 * 1.5)
+            .top_left_with_margins_on(state.ids.frame, 2.0, 1.0)
+            .set(state.ids.icon, ui);
+        // Title
+        Text::new(match self.show.settings_tab {
+            SettingsTab::Interface => self.localized_strings.get("common.interface_settings"),
+            SettingsTab::Gameplay => self.localized_strings.get("common.gameplay_settings"),
+            SettingsTab::Controls => self.localized_strings.get("common.controls_settings"),
+            SettingsTab::Video => self.localized_strings.get("common.video_settings"),
+            SettingsTab::Sound => self.localized_strings.get("common.sound_settings"),
+            SettingsTab::Lang => self.localized_strings.get("common.language_settings"),
+        })
+        .mid_top_with_margin_on(state.ids.frame, 3.0)
+        .font_id(self.fonts.cyri.conrod_id)
+        .font_size(self.fonts.cyri.scale(29))
+        .color(TEXT_COLOR)
+        .set(state.ids.settings_title, ui);
+
         // X-Button
         if Button::image(self.imgs.close_button)
-            .w_h(28.0, 28.0)
-            .hover_image(self.imgs.close_button_hover)
-            .press_image(self.imgs.close_button_press)
-            .top_right_with_margins_on(state.ids.settings_r, 0.0, 0.0)
+            .w_h(24.0, 25.0)
+            .hover_image(self.imgs.close_btn_hover)
+            .press_image(self.imgs.close_btn_press)
+            .top_right_with_margins_on(state.ids.frame, 0.0, 0.0)
             .set(state.ids.settings_close, ui)
             .was_clicked()
         {
             events.push(Event::Close);
         }
 
-        // Title
-        Text::new(&self.localized_strings.get("common.settings"))
-            .mid_top_with_margin_on(state.ids.settings_bg, 5.0)
-            .font_size(self.fonts.cyri.scale(14))
-            .font_id(self.fonts.cyri.conrod_id)
-            .color(TEXT_COLOR)
-            .set(state.ids.settings_title, ui);
-
         // 1) Interface Tab -------------------------------
         if Button::image(if let SettingsTab::Interface = self.show.settings_tab {
-            self.imgs.settings_button_pressed
+            self.imgs.selection
         } else {
-            self.imgs.settings_button
+            self.imgs.nothing
         })
-        .w_h(31.0 * 4.0, 12.0 * 4.0)
-        .hover_image(if let SettingsTab::Interface = self.show.settings_tab {
-            self.imgs.settings_button_pressed
-        } else {
-            self.imgs.settings_button_hover
-        })
-        .press_image(if let SettingsTab::Interface = self.show.settings_tab {
-            self.imgs.settings_button_pressed
-        } else {
-            self.imgs.settings_button_press
-        })
-        .top_left_with_margins_on(state.ids.settings_l, 8.0 * 4.0, 2.0 * 4.0)
+        .w_h(230.0, 48.0)
+        .hover_image(self.imgs.selection_hover)
+        .press_image(self.imgs.selection_press)
+        .mid_top_with_margin_on(state.ids.tabs_align, 28.0)
         .label(&self.localized_strings.get("common.interface"))
-        .label_font_size(self.fonts.cyri.scale(14))
+        .label_font_size(self.fonts.cyri.scale(tab_font_scale))
         .label_font_id(self.fonts.cyri.conrod_id)
         .label_color(TEXT_COLOR)
         .set(state.ids.interface, ui)
@@ -1219,61 +1246,21 @@ impl<'a> Widget for SettingsWindow<'a> {
             .set(state.ids.chat_char_name_text, ui);
 
             // TODO Show account name in chat
-
-            // TODO Show account names in social window
-
-            // Language select drop down
-            Text::new(&self.localized_strings.get("common.languages"))
-                .down_from(state.ids.chat_char_name_button, 20.0)
-                .font_size(self.fonts.cyri.scale(18))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(state.ids.language_text, ui);
-
-            let selected_language = &self.global_state.settings.language.selected_language;
-            let language_list = list_localizations();
-            let language_list_str: Vec<String> = language_list
-                .iter()
-                .map(|e| e.language_name.clone())
-                .collect();
-            let selected = language_list
-                .iter()
-                .position(|x| x.language_identifier.contains(selected_language));
-
-            if let Some(clicked) = DropDownList::new(&language_list_str, selected)
-                .down_from(state.ids.language_text, 8.0)
-                .w_h(200.0, 22.0)
-                .color(MENU_BG)
-                .label_color(TEXT_COLOR)
-                .label_font_id(self.fonts.cyri.conrod_id)
-                .set(state.ids.languages_list, ui)
-            {
-                events.push(Event::ChangeLanguage(Box::new(
-                    language_list[clicked].to_owned(),
-                )));
-            }
         }
 
         // 2) Gameplay Tab --------------------------------
         if Button::image(if let SettingsTab::Gameplay = self.show.settings_tab {
-            self.imgs.settings_button_pressed
+            self.imgs.selection
         } else {
-            self.imgs.settings_button
+            self.imgs.nothing
         })
-        .w_h(31.0 * 4.0, 12.0 * 4.0)
-        .hover_image(if let SettingsTab::Gameplay = self.show.settings_tab {
-            self.imgs.settings_button_pressed
-        } else {
-            self.imgs.settings_button_hover
-        })
-        .press_image(if let SettingsTab::Gameplay = self.show.settings_tab {
-            self.imgs.settings_button_pressed
-        } else {
-            self.imgs.settings_button_press
-        })
-        .right_from(state.ids.interface, 0.0)
+        .w_h(230.0, 48.0)
+        .hover_image(self.imgs.selection_hover)
+        .press_image(self.imgs.selection_press)
+        .down_from(state.ids.interface, 0.0)
+        .parent(state.ids.tabs_align)
         .label(&self.localized_strings.get("common.gameplay"))
-        .label_font_size(self.fonts.cyri.scale(14))
+        .label_font_size(self.fonts.cyri.scale(tab_font_scale))
         .label_font_id(self.fonts.cyri.conrod_id)
         .label_color(TEXT_COLOR)
         .set(state.ids.gameplay, ui)
@@ -1546,24 +1533,17 @@ impl<'a> Widget for SettingsWindow<'a> {
 
         // 3) Controls Tab --------------------------------
         if Button::image(if let SettingsTab::Controls = self.show.settings_tab {
-            self.imgs.settings_button_pressed
+            self.imgs.selection
         } else {
-            self.imgs.settings_button
+            self.imgs.nothing
         })
-        .w_h(31.0 * 4.0, 12.0 * 4.0)
-        .hover_image(if let SettingsTab::Controls = self.show.settings_tab {
-            self.imgs.settings_button_pressed
-        } else {
-            self.imgs.settings_button_hover
-        })
-        .press_image(if let SettingsTab::Controls = self.show.settings_tab {
-            self.imgs.settings_button_pressed
-        } else {
-            self.imgs.settings_button_press
-        })
-        .right_from(state.ids.gameplay, 0.0)
+        .w_h(230.0, 48.0)
+        .hover_image(self.imgs.selection_hover)
+        .press_image(self.imgs.selection_press)
+        .down_from(state.ids.gameplay, 0.0)
+        .parent(state.ids.tabs_align)
         .label(&self.localized_strings.get("common.controls"))
-        .label_font_size(self.fonts.cyri.scale(14))
+        .label_font_size(self.fonts.cyri.scale(tab_font_scale))
         .label_font_id(self.fonts.cyri.conrod_id)
         .label_color(TEXT_COLOR)
         .set(state.ids.controls, ui)
@@ -1685,25 +1665,17 @@ impl<'a> Widget for SettingsWindow<'a> {
 
         // 4) Video Tab -----------------------------------
         if Button::image(if let SettingsTab::Video = self.show.settings_tab {
-            self.imgs.settings_button_pressed
+            self.imgs.selection
         } else {
-            self.imgs.settings_button
+            self.imgs.nothing
         })
-        .w_h(31.0 * 4.0, 12.0 * 4.0)
-        .hover_image(if let SettingsTab::Video = self.show.settings_tab {
-            self.imgs.settings_button_pressed
-        } else {
-            self.imgs.settings_button_hover
-        })
-        .press_image(if let SettingsTab::Video = self.show.settings_tab {
-            self.imgs.settings_button_pressed
-        } else {
-            self.imgs.settings_button_press
-        })
-        .right_from(state.ids.controls, 0.0)
+        .w_h(230.0, 48.0)
+        .hover_image(self.imgs.selection_hover)
+        .press_image(self.imgs.selection_press)
+        .down_from(state.ids.controls, 0.0)
+        .parent(state.ids.tabs_align)
         .label(&self.localized_strings.get("common.video"))
-        .parent(state.ids.settings_r)
-        .label_font_size(self.fonts.cyri.scale(14))
+        .label_font_size(self.fonts.cyri.scale(tab_font_scale))
         .label_font_id(self.fonts.cyri.conrod_id)
         .label_color(TEXT_COLOR)
         .set(state.ids.video, ui)
@@ -1714,6 +1686,20 @@ impl<'a> Widget for SettingsWindow<'a> {
 
         // Contents
         if let SettingsTab::Video = self.show.settings_tab {
+            // FPS/TPS Counter
+            //let text_col = match
+            let fps_col = match self.fps as i32 {
+                0..=14 => CRITICAL_HP_COLOR,
+                15..=29 => LOW_HP_COLOR,
+                30..=50 => HP_COLOR,
+                _ => MANA_COLOR,
+            };
+            Text::new(&format!("FPS: {:.0}", self.fps))
+                .color(fps_col)
+                .top_right_with_margins_on(state.ids.settings_content_r, 10.0, 10.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(18))
+                .set(state.ids.fps_counter, ui);
             // View Distance
             Text::new(&self.localized_strings.get("hud.settings.view_distance"))
                 .top_left_with_margins_on(state.ids.settings_content, 10.0, 10.0)
@@ -1882,12 +1868,52 @@ impl<'a> Widget for SettingsWindow<'a> {
                 events.push(Event::AdjustGamma(2.0f32.powf(new_val as f32 / 8.0)));
             }
 
-            Text::new(&format!("{}", self.global_state.settings.graphics.gamma))
+            Text::new(&format!("{:.2}", self.global_state.settings.graphics.gamma))
                 .right_from(state.ids.gamma_slider, 8.0)
                 .font_size(self.fonts.cyri.scale(14))
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.gamma_value, ui);
+
+            //Ambiance Brightness
+            // 320.0 = maximum brightness in shaders
+            let min_ambiance = 10.0;
+            let max_ambiance = 80.0;
+            if let Some(new_val) = ImageSlider::discrete(
+                self.global_state.settings.graphics.ambiance.round() as i32,
+                min_ambiance as i32,
+                max_ambiance as i32,
+                self.imgs.slider_indicator,
+                self.imgs.slider,
+            )
+            .w_h(104.0, 22.0)
+            .right_from(state.ids.gamma_slider, 50.0)
+            .track_breadth(12.0)
+            .slider_length(10.0)
+            .pad_track((5.0, 5.0))
+            .set(state.ids.ambiance_slider, ui)
+            {
+                events.push(Event::AdjustAmbiance(new_val as f32));
+            }
+            Text::new(&self.localized_strings.get("hud.settings.ambiance"))
+                .up_from(state.ids.ambiance_slider, 8.0)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(TEXT_COLOR)
+                .set(state.ids.ambiance_text, ui);
+            Text::new(&format!(
+                "{:.0}%",
+                ((self.global_state.settings.graphics.ambiance - min_ambiance)
+                    / (max_ambiance - min_ambiance)
+                    * 100.0)
+                    .round()
+            ))
+            .right_from(state.ids.ambiance_slider, 8.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.ambiance_value, ui);
+
             // Sprites VD
             if let Some(new_val) = ImageSlider::discrete(
                 self.global_state.settings.graphics.sprite_render_distance,
@@ -2485,15 +2511,16 @@ impl<'a> Widget for SettingsWindow<'a> {
             }
 
             // Save current screen size
-            if Button::image(self.imgs.settings_button)
+            if Button::image(self.imgs.button)
                 .w_h(31.0 * 5.0, 12.0 * 2.0)
-                .hover_image(self.imgs.settings_button_hover)
-                .press_image(self.imgs.settings_button_press)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
                 .down_from(state.ids.fullscreen_mode_list, 12.0)
                 .label(&self.localized_strings.get("hud.settings.save_window_size"))
                 .label_font_size(self.fonts.cyri.scale(14))
                 .label_color(TEXT_COLOR)
                 .label_font_id(self.fonts.cyri.conrod_id)
+                .label_y(Relative::Scalar(2.0))
                 .set(state.ids.save_window_size_button, ui)
                 .was_clicked()
             {
@@ -2509,25 +2536,17 @@ impl<'a> Widget for SettingsWindow<'a> {
 
         // 5) Sound Tab -----------------------------------
         if Button::image(if let SettingsTab::Sound = self.show.settings_tab {
-            self.imgs.settings_button_pressed
+            self.imgs.selection
         } else {
-            self.imgs.settings_button
+            self.imgs.nothing
         })
-        .w_h(31.0 * 4.0, 12.0 * 4.0)
-        .hover_image(if let SettingsTab::Sound = self.show.settings_tab {
-            self.imgs.settings_button_pressed
-        } else {
-            self.imgs.settings_button_hover
-        })
-        .press_image(if let SettingsTab::Sound = self.show.settings_tab {
-            self.imgs.settings_button_pressed
-        } else {
-            self.imgs.settings_button_press
-        })
-        .right_from(state.ids.video, 0.0)
-        .parent(state.ids.settings_r)
+        .w_h(230.0, 48.0)
+        .hover_image(self.imgs.selection_hover)
+        .press_image(self.imgs.selection_press)
+        .down_from(state.ids.video, 0.0)
+        .parent(state.ids.tabs_align)
         .label(&self.localized_strings.get("common.sound"))
-        .label_font_size(self.fonts.cyri.scale(14))
+        .label_font_size(self.fonts.cyri.scale(tab_font_scale))
         .label_font_id(self.fonts.cyri.conrod_id)
         .label_color(TEXT_COLOR)
         .set(state.ids.sound, ui)
@@ -2617,6 +2636,70 @@ impl<'a> Widget for SettingsWindow<'a> {
                 events.push(Event::ChangeAudioDevice(new_val));
             }
         }
+
+        // 5) Languages Tab -----------------------------------
+        if Button::image(if let SettingsTab::Lang = self.show.settings_tab {
+            self.imgs.selection
+        } else {
+            self.imgs.nothing
+        })
+        .w_h(230.0, 48.0)
+        .hover_image(self.imgs.selection_hover)
+        .press_image(self.imgs.selection_press)
+        .down_from(state.ids.sound, 0.0)
+        .parent(state.ids.tabs_align)
+        .label(&self.localized_strings.get("common.languages"))
+        .label_font_size(self.fonts.cyri.scale(tab_font_scale))
+        .label_font_id(self.fonts.cyri.conrod_id)
+        .label_color(TEXT_COLOR)
+        .set(state.ids.language, ui)
+        .was_clicked()
+        {
+            events.push(Event::ChangeTab(SettingsTab::Lang));
+        }
+
+        // Contents
+        if let SettingsTab::Lang = self.show.settings_tab {
+            // List available languages
+            let selected_language = &self.global_state.settings.language.selected_language;
+            let language_list = list_localizations();
+            if state.ids.language_list.len() < language_list.len() {
+                state.update(|state| {
+                    state
+                        .ids
+                        .language_list
+                        .resize(language_list.len(), &mut ui.widget_id_generator())
+                });
+            };
+            for (i, language) in language_list.iter().enumerate() {
+                let button_w = tweak!(400.0);
+                let button_h = tweak!(50.0);
+                let button = Button::image(if selected_language == &language.language_identifier {
+                    self.imgs.selection
+                } else {
+                    self.imgs.nothing
+                });
+                let button = if i == 0 {
+                    button.mid_top_with_margin_on(state.ids.settings_content, 20.0)
+                } else {
+                    button.mid_bottom_with_margin_on(state.ids.language_list[i - 1], -button_h)
+                };
+                if button
+                    .label(&language.language_name)
+                    .w_h(button_w, button_h)
+                    .hover_image(self.imgs.selection_hover)
+                    .press_image(self.imgs.selection_press)
+                    .label_color(TEXT_COLOR)
+                    .label_font_size(self.fonts.cyri.scale(tweak!(22)))
+                    .label_font_id(self.fonts.cyri.conrod_id)
+                    .label_y(conrod_core::position::Relative::Scalar(2.0))
+                    .set(state.ids.language_list[i], ui)
+                    .was_clicked()
+                {
+                    events.push(Event::ChangeLanguage(Box::new(language.to_owned())));
+                }
+            }
+        };
 
         events
     }

@@ -127,7 +127,7 @@ impl Inventory {
         match self.slots.get_mut(cell) {
             Some(slot) => {
                 let old = core::mem::replace(slot, Some(item));
-                if old.is_some() {
+                if old.is_none() {
                     self.recount_items();
                 }
                 Ok(old)

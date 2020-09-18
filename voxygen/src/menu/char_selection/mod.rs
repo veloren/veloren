@@ -130,6 +130,7 @@ impl PlayState for CharSelectionState {
                     thread_pool: client.thread_pool(),
                     body: humanoid_body,
                     gamma: global_state.settings.graphics.gamma,
+                    ambiance: global_state.settings.graphics.ambiance,
                     mouse_smoothing: global_state.settings.gameplay.smooth_pan_enable,
                     figure_lod_render_distance: global_state
                         .settings

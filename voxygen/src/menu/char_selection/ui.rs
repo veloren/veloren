@@ -14,7 +14,7 @@ use common::{
     assets::Asset,
     character::{Character, CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER},
     comp::{self, humanoid},
-    LoadoutBuilder,
+    npc, LoadoutBuilder,
 };
 use conrod_core::{
     color,
@@ -25,6 +25,8 @@ use conrod_core::{
     widget::{text_box::Event as TextBoxEvent, Button, Image, Rectangle, Scrollbar, Text, TextBox},
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget,
 };
+//use inline_tweak::*;
+use rand::{thread_rng, Rng};
 use std::sync::Arc;
 
 const STARTER_HAMMER: &str = "common.items.weapons.hammer.starter_hammer";
@@ -33,6 +35,7 @@ const STARTER_AXE: &str = "common.items.weapons.axe.starter_axe";
 const STARTER_STAFF: &str = "common.items.weapons.staff.starter_staff";
 const STARTER_SWORD: &str = "common.items.weapons.sword.starter_sword";
 const STARTER_DAGGER: &str = "common.items.weapons.dagger.starter_dagger";
+//const STARTER_SCEPTRE: &str = "common.items.weapons.dagger.starter_dagger";
 
 // UI Color-Theme
 const UI_MAIN: Color = Color::Rgba(0.61, 0.70, 0.70, 1.0); // Greenish Blue
@@ -151,6 +154,7 @@ widget_ids! {
         species_6,
         body_type_1,
         body_type_2,
+        random_button,
 
         // Tools
         sword,
@@ -208,6 +212,11 @@ image_ids! {
         hammer: "voxygen.element.icons.hammer",
         bow: "voxygen.element.icons.bow",
         staff: "voxygen.element.icons.staff",
+
+        // Dice icons
+        dice: "voxygen.element.icons.dice",
+        dice_hover: "voxygen.element.icons.dice_hover",
+        dice_press: "voxygen.element.icons.dice_press",
 
         // Species Icons
         human_m: "voxygen.element.icons.human_m",
@@ -858,6 +867,7 @@ impl CharSelectionUi {
                 loadout: _,
                 tool,
             } => {
+                let mut rng = thread_rng();
                 let mut to_select = false;
                 // Back Button
                 if Button::image(self.imgs.button)
@@ -1358,6 +1368,31 @@ impl CharSelectionUi {
                 .was_clicked()
                 {
                     *tool = Some(STARTER_AXE);
+                }
+                // Random button
+                if Button::image(self.imgs.dice)
+                    .wh([35.0; 2])
+                    .bottom_left_with_margins_on(self.ids.name_input, 15.0, -45.0)
+                    .hover_image(self.imgs.dice_hover)
+                    .press_image(self.imgs.dice_press)
+                    .with_tooltip(
+                        tooltip_manager,
+                        &self.voxygen_i18n.get("common.rand_appearance"),
+                        "",
+                        &tooltip_human,
+                    )
+                    .set(self.ids.random_button, ui_widgets)
+                    .was_clicked()
+                {
+                    body.hair_style =
+                        rng.gen_range(0, body.species.num_hair_styles(body.body_type));
+                    body.beard = rng.gen_range(0, body.species.num_beards(body.body_type));
+                    body.accessory = rng.gen_range(0, body.species.num_accessories(body.body_type));
+                    body.hair_color = rng.gen_range(0, body.species.num_hair_colors());
+                    body.skin = rng.gen_range(0, body.species.num_skin_colors());
+                    body.eye_color = rng.gen_range(0, body.species.num_eye_colors());
+                    body.eyes = rng.gen_range(0, body.species.num_eyes(body.body_type));
+                    *name = npc::get_npc_name(npc::NpcKind::Humanoid).to_string();
                 }
                 // Sliders
                 let (cyri, cyri_size, slider_indicator, slider_range) = (
