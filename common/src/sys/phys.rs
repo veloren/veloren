@@ -158,6 +158,7 @@ impl<'a> System<'a> for Sys {
 
             // Group to ignore collisions with
             let ignore_group = projectile
+                .filter(|p| p.ignore_group)
                 .and_then(|p| p.owner)
                 .and_then(|uid| uid_allocator.retrieve_entity_internal(uid.into()))
                 .and_then(|e| groups.get(e));
@@ -185,7 +186,7 @@ impl<'a> System<'a> for Sys {
             )
                 .join()
             {
-                if ignore_group.is_some() && ignore_group == group {
+                if entity == entity_other || (ignore_group.is_some() && ignore_group == group) {
                     continue;
                 }
 
@@ -237,7 +238,7 @@ impl<'a> System<'a> for Sys {
                         }
 
                         if diff.magnitude_squared() > 0.0 {
-                            let force = 40.0 * (collision_dist - diff.magnitude()) * mass_other
+                            let force = 400.0 * (collision_dist - diff.magnitude()) * mass_other
                                 / (mass + mass_other);
 
                             vel_delta += Vec3::from(diff.normalized()) * force * step_delta;
