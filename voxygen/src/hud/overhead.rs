@@ -54,6 +54,9 @@ pub struct Info<'a> {
     pub energy: Option<&'a Energy>,
 }
 
+/// Determines whether to show the healthbar
+pub fn show_healthbar(stats: &Stats) -> bool { stats.health.current() != stats.health.maximum() }
+
 /// ui widget containing everything that goes over a character's head
 /// (Speech bubble, Name, Level, HP/energy bars, etc.)
 #[derive(WidgetCommon)]
@@ -122,9 +125,7 @@ impl<'a> Ingameable for Overhead<'a> {
         // - 1 Image::new for icon
         // - 10 Image::new for speech bubble (9-slice + tail)
         self.info.map_or(0, |info| {
-            2 + if f64::from(info.stats.health.current()) / f64::from(info.stats.health.maximum())
-                < 1.0
-            {
+            2 + if show_healthbar(info.stats) {
                 5 + if info.energy.is_some() { 1 } else { 0 }
             } else {
                 0
@@ -206,7 +207,7 @@ impl<'a> Widget for Overhead<'a> {
                 .parent(id)
                 .set(state.ids.name, ui);
 
-            if hp_percentage < 100.0 {
+            if show_healthbar(stats) {
                 // Show HP Bar
                 let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 1.0; //Animation timer
                 let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);

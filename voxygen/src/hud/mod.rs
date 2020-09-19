@@ -710,7 +710,6 @@ impl Hud {
             let hp_floater_lists = ecs.read_storage::<vcomp::HpFloaterList>();
             let uids = ecs.read_storage::<common::sync::Uid>();
             let interpolated = ecs.read_storage::<vcomp::Interpolated>();
-            let players = ecs.read_storage::<comp::Player>();
             let scales = ecs.read_storage::<comp::Scale>();
             let bodies = ecs.read_storage::<comp::Body>();
             let items = ecs.read_storage::<comp::Item>();
@@ -1078,14 +1077,15 @@ impl Hud {
                     .set(overitem_id, ui_widgets);
             }
 
+            let speech_bubbles = &self.speech_bubbles;
+
             // Render overhead name tags and health bars
-            for (pos, info, display_bubble, stats, height_offset, hpfl, uid, in_group) in (
+            for (pos, info, bubble, stats, height_offset, hpfl, in_group) in (
                 &entities,
                 &pos,
                 interpolated.maybe(),
                 &stats,
                 energy.maybe(),
-                players.maybe(),
                 scales.maybe(),
                 &bodies,
                 &hp_floater_lists,
@@ -1098,7 +1098,7 @@ impl Hud {
                     entity != me && !stats.is_dead
                 })
                 .filter_map(
-                    |(entity, pos, interpolated, stats, energy, player, scale, body, hpfl, uid)| {
+                    |(entity, pos, interpolated, stats, energy, scale, body, hpfl, uid)| {
                         // Use interpolated position if available
                         let pos = interpolated.map_or(pos.0, |i| i.pos);
                         let in_group = client.group_members().contains_key(uid);
@@ -1110,7 +1110,7 @@ impl Hud {
                         let display_overhead_info =
                             (info.target_entity.map_or(false, |e| e == entity)
                                 || info.selected_entity.map_or(false, |s| s.0 == entity)
-                                || stats.health.current() != stats.health.maximum()
+                                || overhead::show_healthbar(stats)
                                 || in_group)
                                 && dist_sqr
                                     < (if in_group {
@@ -1125,50 +1125,31 @@ impl Hud {
                                     })
                                     .powi(2);
 
-                        let info = display_overhead_info.then(|| {
-                            // TODO: This is temporary
-                            // If the player used the default character name display their name
-                            // instead
-                            let name = if stats.name == "Character Name" {
-                                player.map_or(&stats.name, |p| &p.alias)
-                            } else {
-                                &stats.name
-                            };
-
-                            overhead::Info {
-                                name,
-                                stats,
-                                energy,
-                            }
+                        let info = display_overhead_info.then(|| overhead::Info {
+                            name: &stats.name,
+                            stats,
+                            energy,
                         });
-                        let display_bubble = dist_sqr < SPEECH_BUBBLE_RANGE.powi(2);
+                        let bubble = if dist_sqr < SPEECH_BUBBLE_RANGE.powi(2) {
+                            speech_bubbles.get(uid)
+                        } else {
+                            None
+                        };
 
-                        (info.is_some() || display_bubble).then(|| {
+                        (info.is_some() || bubble.is_some()).then(|| {
                             (
                                 pos,
                                 info,
-                                display_bubble,
+                                bubble,
                                 stats,
                                 body.height() * scale.map_or(1.0, |s| s.0) + 0.5,
                                 hpfl,
-                                uid,
                                 in_group,
                             )
                         })
                     },
                 )
             {
-                let bubble = if display_bubble {
-                    self.speech_bubbles.get(uid)
-                } else {
-                    None
-                };
-
-                // Skip if no bubble and doesn't meet the criteria to display nametag
-                if bubble.is_none() && info.is_none() {
-                    continue;
-                }
-
                 let overhead_id = overhead_walker.next(
                     &mut self.ids.overheads,
                     &mut ui_widgets.widget_id_generator(),
