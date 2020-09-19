@@ -23,10 +23,10 @@ use crate::{
     settings::Settings,
     window::{AnalogGameInput, Event},
 };
-use anim::character::SkeletonAttr;
 use client::Client;
 use common::{
     comp,
+    comp::humanoid::DEFAULT_HUMANOID_EYE_HEIGHT,
     outcome::Outcome,
     span,
     state::{DeltaTime, State},
@@ -456,8 +456,18 @@ impl Scene {
             .read_storage::<comp::Body>()
             .get(scene_data.player_entity)
         {
-            Some(comp::Body::Humanoid(body)) => SkeletonAttr::calculate_scale(body),
+            Some(comp::Body::Humanoid(body)) => body.scale(),
             _ => 1_f32,
+        };
+
+        let eye_height = match scene_data
+            .state
+            .ecs()
+            .read_storage::<comp::Body>()
+            .get(scene_data.player_entity)
+        {
+            Some(comp::Body::Humanoid(body)) => body.eye_height(),
+            _ => DEFAULT_HUMANOID_EYE_HEIGHT,
         };
 
         // Add the analog input to camera
@@ -475,13 +485,13 @@ impl Scene {
                 if player_rolling {
                     player_scale * 0.8
                 } else if is_running && on_ground.unwrap_or(false) {
-                    player_scale * 1.65 + (scene_data.state.get_time() as f32 * 17.0).sin() * 0.05
+                    eye_height + (scene_data.state.get_time() as f32 * 17.0).sin() * 0.05
                 } else {
-                    player_scale * 1.65
+                    eye_height
                 }
             },
             CameraMode::ThirdPerson if scene_data.is_aiming => player_scale * 2.2,
-            CameraMode::ThirdPerson => player_scale * 1.65,
+            CameraMode::ThirdPerson => eye_height,
             CameraMode::Freefly => 0.0,
         };
 

@@ -6,7 +6,7 @@ use crate::{
     key_state::KeyState,
     menu::char_selection::CharSelectionState,
     render::Renderer,
-    scene::{camera, Scene, SceneData},
+    scene::{camera, CameraMode, Scene, SceneData},
     settings::{AudioOutput, ControlSettings, Settings},
     window::{AnalogGameInput, Event, GameInput},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
@@ -248,7 +248,7 @@ impl PlayState for SessionState {
 
                 (
                     is_aiming,
-                    if is_aiming {
+                    if is_aiming && self.scene.camera().get_mode() == CameraMode::ThirdPerson {
                         Vec3::unit_z() * 0.05
                     } else {
                         Vec3::zero()

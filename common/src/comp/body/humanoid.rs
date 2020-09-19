@@ -63,7 +63,32 @@ impl Body {
             .accessory
             .min(self.species.num_accessories(self.body_type) - 1);
     }
+
+    /// Returns a scale value relative to the average humanoid
+    pub fn scale(&self) -> f32 {
+        use BodyType::*;
+        use Species::*;
+        match (self.species, self.body_type) {
+            (Orc, Male) => 1.14,
+            (Orc, Female) => 1.02,
+            (Human, Male) => 1.02,
+            (Human, Female) => 0.96,
+            (Elf, Male) => 1.02,
+            (Elf, Female) => 0.96,
+            (Dwarf, Male) => 0.84,
+            (Dwarf, Female) => 0.78,
+            (Undead, Male) => 0.96,
+            (Undead, Female) => 0.9,
+            (Danari, Male) => 0.696,
+            (Danari, Female) => 0.696,
+        }
+    }
+
+    /// Returns the eye height for this humanoid.
+    pub fn eye_height(&self) -> f32 { DEFAULT_HUMANOID_EYE_HEIGHT * self.scale() }
 }
+
+pub const DEFAULT_HUMANOID_EYE_HEIGHT: f32 = 1.65;
 
 impl From<Body> for super::Body {
     fn from(body: Body) -> Self { super::Body::Humanoid(body) }
