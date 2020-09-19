@@ -134,6 +134,8 @@ const NAMETAG_RANGE: f32 = 40.0;
 const NAMETAG_DMG_TIME: f32 = 60.0;
 /// Range damaged triggered nametags can be seen
 const NAMETAG_DMG_RANGE: f32 = 120.0;
+/// Range to display speech-bubbles at
+const SPEECH_BUBBLE_RANGE: f32 = NAMETAG_RANGE;
 
 widget_ids! {
     struct Ids {
@@ -1077,7 +1079,7 @@ impl Hud {
             }
 
             // Render overhead name tags and health bars
-            for (pos, name, stats, energy, height_offset, hpfl, uid, in_group) in (
+            for (pos, info, display_bubble, stats, height_offset, hpfl, uid, in_group) in (
                 &entities,
                 &pos,
                 interpolated.maybe(),
@@ -1090,78 +1092,82 @@ impl Hud {
                 &uids,
             )
                 .join()
-                .map(|(a, b, c, d, e, f, g, h, i, uid)| {
-                    (
-                        a,
-                        b,
-                        c,
-                        d,
-                        e,
-                        f,
-                        g,
-                        h,
-                        i,
-                        uid,
-                        client.group_members().contains_key(uid),
-                    )
+                .filter(|t| {
+                    let stats = t.3;
+                    let entity = t.0;
+                    entity != me && !stats.is_dead
                 })
-                .filter(|(entity, pos, _, stats, _, _, _, _, hpfl, _, in_group)| {
-                    *entity != me && !stats.is_dead
-                    && (stats.health.current() != stats.health.maximum()
-                         || info.target_entity.map_or(false, |e| e == *entity)
-                         || info.selected_entity.map_or(false, |s| s.0 == *entity)
-                         || *in_group
-                    )
-                    // Don't show outside a certain range
-                     && pos.0.distance_squared(player_pos)
-                        < (if *in_group
-                        {
-                            NAMETAG_GROUP_RANGE
-                        } else if hpfl
-                            .time_since_last_dmg_by_me
-                            .map_or(false, |t| t < NAMETAG_DMG_TIME)
-                        {
-                            NAMETAG_DMG_RANGE
-                        } else {
-                            NAMETAG_RANGE
+                .filter_map(
+                    |(entity, pos, interpolated, stats, energy, player, scale, body, hpfl, uid)| {
+                        // Use interpolated position if available
+                        let pos = interpolated.map_or(pos.0, |i| i.pos);
+                        let in_group = client.group_members().contains_key(uid);
+                        let dist_sqr = pos.distance_squared(player_pos);
+                        // Determine whether to display nametag and healthbar based on whether the
+                        // entity has been damaged, is targeted/selected, or is in your group
+                        // Note: even if this passes the healthbar can be hidden in some cases if it
+                        // is at maximum
+                        let display_overhead_info =
+                            (info.target_entity.map_or(false, |e| e == entity)
+                                || info.selected_entity.map_or(false, |s| s.0 == entity)
+                                || stats.health.current() != stats.health.maximum()
+                                || in_group)
+                                && dist_sqr
+                                    < (if in_group {
+                                        NAMETAG_GROUP_RANGE
+                                    } else if hpfl
+                                        .time_since_last_dmg_by_me
+                                        .map_or(false, |t| t < NAMETAG_DMG_TIME)
+                                    {
+                                        NAMETAG_DMG_RANGE
+                                    } else {
+                                        NAMETAG_RANGE
+                                    })
+                                    .powi(2);
+
+                        let info = display_overhead_info.then(|| {
+                            // TODO: This is temporary
+                            // If the player used the default character name display their name
+                            // instead
+                            let name = if stats.name == "Character Name" {
+                                player.map_or(&stats.name, |p| &p.alias)
+                            } else {
+                                &stats.name
+                            };
+
+                            overhead::Info {
+                                name,
+                                stats,
+                                energy,
+                            }
+                        });
+                        let display_bubble = dist_sqr < SPEECH_BUBBLE_RANGE.powi(2);
+
+                        (info.is_some() || display_bubble).then(|| {
+                            (
+                                pos,
+                                info,
+                                display_bubble,
+                                stats,
+                                body.height() * scale.map_or(1.0, |s| s.0) + 0.5,
+                                hpfl,
+                                uid,
+                                in_group,
+                            )
                         })
-                        .powi(2)
-                })
-                .map(
-                    |(
-                        _,
-                        pos,
-                        interpolated,
-                        stats,
-                        energy,
-                        player,
-                        scale,
-                        body,
-                        hpfl,
-                        uid,
-                        in_group,
-                    )| {
-                        // TODO: This is temporary
-                        // If the player used the default character name display their name instead
-                        let name = if stats.name == "Character Name" {
-                            player.map_or(&stats.name, |p| &p.alias)
-                        } else {
-                            &stats.name
-                        };
-                        (
-                            interpolated.map_or(pos.0, |i| i.pos),
-                            name,
-                            stats,
-                            energy,
-                            body.height() * scale.map_or(1.0, |s| s.0) + 0.5,
-                            hpfl,
-                            uid,
-                            in_group,
-                        )
                     },
                 )
             {
-                let bubble = self.speech_bubbles.get(uid);
+                let bubble = if display_bubble {
+                    self.speech_bubbles.get(uid)
+                } else {
+                    None
+                };
+
+                // Skip if no bubble and doesn't meet the criteria to display nametag
+                if bubble.is_none() && info.is_none() {
+                    continue;
+                }
 
                 let overhead_id = overhead_walker.next(
                     &mut self.ids.overheads,
@@ -1174,10 +1180,8 @@ impl Hud {
 
                 // Speech bubble, name, level, and hp bars
                 overhead::Overhead::new(
-                    &name,
+                    info,
                     bubble,
-                    stats,
-                    energy,
                     own_level,
                     in_group,
                     &global_state.settings.gameplay,
