@@ -1,21 +1,18 @@
 use crate::{
     comp::{
-        BeamSegment, Collider, Gravity, Group, Mass, Mounting, Ori, PhysicsState, Pos, Projectile,
-        Scale, Sticky, Vel,
+        BeamSegment, Collider, Gravity, Mass, Mounting, Ori, PhysicsState, Pos, Projectile, Scale,
+        Sticky, Vel,
     },
     event::{EventBus, ServerEvent},
     metrics::SysMetrics,
     span,
     state::DeltaTime,
-    sync::{Uid, UidAllocator},
+    sync::Uid,
     terrain::{Block, TerrainGrid},
     vol::ReadVol,
 };
 use rayon::iter::ParallelIterator;
-use specs::{
-    saveload::MarkerAllocator, Entities, Join, ParJoin, Read, ReadExpect, ReadStorage, System,
-    WriteStorage,
-};
+use specs::{Entities, Join, ParJoin, Read, ReadExpect, ReadStorage, System, WriteStorage};
 use std::ops::Range;
 use vek::*;
 
@@ -55,7 +52,6 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Uid>,
         ReadExpect<'a, TerrainGrid>,
         Read<'a, DeltaTime>,
-        Read<'a, UidAllocator>,
         ReadExpect<'a, SysMetrics>,
         Read<'a, EventBus<ServerEvent>>,
         ReadStorage<'a, Scale>,
@@ -68,7 +64,6 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
         ReadStorage<'a, Mounting>,
-        ReadStorage<'a, Group>,
         ReadStorage<'a, Projectile>,
         ReadStorage<'a, BeamSegment>,
     );
@@ -82,7 +77,6 @@ impl<'a> System<'a> for Sys {
             uids,
             terrain,
             dt,
-            uid_allocator,
             sys_metrics,
             event_bus,
             scales,
@@ -95,7 +89,6 @@ impl<'a> System<'a> for Sys {
             mut velocities,
             mut orientations,
             mountings,
-            groups,
             projectiles,
             beams,
         ): Self::SystemData,
@@ -161,12 +154,7 @@ impl<'a> System<'a> for Sys {
             // Resets touch_entities in physics
             physics.touch_entities.clear();
 
-            // Group to ignore collisions with
-            let ignore_group = projectile
-                .filter(|p| p.ignore_group)
-                .and_then(|p| p.owner)
-                .and_then(|uid| uid_allocator.retrieve_entity_internal(uid.into()))
-                .and_then(|e| groups.get(e));
+            let is_projectile = projectile.is_some();
 
             let mut vel_delta = Vec3::zero();
 
@@ -178,7 +166,7 @@ impl<'a> System<'a> for Sys {
                 mass_other,
                 collider_other,
                 _,
-                group_b,
+                _,
                 _,
             ) in (
                 &entities,
@@ -187,13 +175,13 @@ impl<'a> System<'a> for Sys {
                 scales.maybe(),
                 masses.maybe(),
                 colliders.maybe(),
+                !&projectiles,
                 !&mountings,
-                groups.maybe(),
                 !&beams,
             )
                 .join()
             {
-                if entity == entity_other || (ignore_group.is_some() && ignore_group == group_b) {
+                if entity == entity_other {
                     continue;
                 }
 
@@ -244,7 +232,8 @@ impl<'a> System<'a> for Sys {
                             physics.touch_entities.push(*other);
                         }
 
-                        if diff.magnitude_squared() > 0.0 {
+                        // Don't apply repulsive force to projectiles
+                        if diff.magnitude_squared() > 0.0 && !is_projectile {
                             let force = 400.0 * (collision_dist - diff.magnitude()) * mass_other
                                 / (mass + mass_other);
 
