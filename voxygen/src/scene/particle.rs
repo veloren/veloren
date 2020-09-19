@@ -447,28 +447,24 @@ impl ParticleMgr {
             // 1 / 3 the size of terrain voxel
             let scale = 1.0 / 3.0;
 
-            let freqency_millis = shockwave.properties.speed * scale;
+            let scaled_speed = shockwave.properties.speed * scale;
 
             for heartbeat in 0..self
                 .scheduler
-                .heartbeats(Duration::from_millis(freqency_millis as u64))
+                .heartbeats(Duration::from_millis(scaled_speed as u64))
             {
-                let sub_tick_interpolation = freqency_millis * 1000.0 * heartbeat as f32;
+                let sub_tick_interpolation = scaled_speed * 1000.0 * heartbeat as f32;
 
                 let distance =
                     shockwave.properties.speed * (elapsed as f32 - sub_tick_interpolation);
 
                 for d in 0..((distance / scale) as i32) {
-                    let arc_position = (theta - (radians / 2.0)) + (dtheta * d as f32 * scale);
+                    let arc_position = theta - radians / 2.0 + dtheta * d as f32 * scale;
 
-                    let position = pos.0
-                        + Vec3::new(
-                            distance * arc_position.cos(),
-                            distance * arc_position.sin(),
-                            0.0,
-                        );
+                    let position =
+                        pos.0 + distance * Vec3::new(arc_position.cos(), arc_position.sin(), 0.0);
 
-                    let position_snapped = (position / scale).round() * scale;
+                    let position_snapped = ((position / scale).floor() + 0.5) * scale;
 
                     self.particles.push(Particle::new(
                         Duration::from_millis(250),

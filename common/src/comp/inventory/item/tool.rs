@@ -369,6 +369,7 @@ impl Tool {
                             shockwave_angle: 90.0,
                             shockwave_speed: 20.0,
                             shockwave_duration: Duration::from_millis(2000),
+                            requires_ground: true,
                         },
                     ]
                 } else {

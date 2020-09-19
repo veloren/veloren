@@ -390,11 +390,9 @@ impl State {
                         vel.0.z = HUMANOID_JUMP_ACCEL;
                     }
                 },
-                LocalEvent::ApplyForce { entity, force } => {
-                    // TODO: this sets the velocity directly to the value of `force`, consider
-                    // renaming the event or changing the behavior
+                LocalEvent::ApplyImpulse { entity, impulse } => {
                     if let Some(vel) = velocities.get_mut(entity) {
-                        vel.0 = force;
+                        vel.0 = impulse;
                     }
                 },
                 LocalEvent::WallLeap { entity, wall_dir } => {

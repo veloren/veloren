@@ -11,8 +11,11 @@ use vek::*;
 pub enum LocalEvent {
     /// Applies upward force to entity's `Vel`
     Jump(EcsEntity),
-    /// Applies the `force` to `entity`'s `Vel`
-    ApplyForce { entity: EcsEntity, force: Vec3<f32> },
+    /// Applies the `impulse` to `entity`'s `Vel`
+    ApplyImpulse {
+        entity: EcsEntity,
+        impulse: Vec3<f32>,
+    },
     /// Applies leaping force to `entity`'s `Vel` away from `wall_dir` direction
     WallLeap {
         entity: EcsEntity,
@@ -58,7 +61,7 @@ pub enum ServerEvent {
     },
     Knockback {
         entity: EcsEntity,
-        force: Vec3<f32>,
+        impulse: Vec3<f32>,
     },
     LandOnGround {
         entity: EcsEntity,

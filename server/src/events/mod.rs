@@ -75,7 +75,9 @@ impl Server {
                     pos,
                     ori,
                 } => handle_shockwave(self, properties, pos, ori),
-                ServerEvent::Knockback { entity, force } => handle_knockback(&self, entity, force),
+                ServerEvent::Knockback { entity, impulse } => {
+                    handle_knockback(&self, entity, impulse)
+                },
                 ServerEvent::Damage { uid, change } => handle_damage(&self, uid, change),
                 ServerEvent::Destroy { entity, cause } => handle_destroy(self, entity, cause),
                 ServerEvent::InventoryManip(entity, manip) => handle_inventory(self, entity, manip),

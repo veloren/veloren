@@ -1427,13 +1427,13 @@ impl Client {
                 ServerMsg::Outcomes(outcomes) => {
                     frontend_events.extend(outcomes.into_iter().map(Event::Outcome))
                 },
-                ServerMsg::Knockback(force) => {
+                ServerMsg::Knockback(impulse) => {
                     self.state
                         .ecs()
                         .read_resource::<EventBus<LocalEvent>>()
-                        .emit_now(LocalEvent::ApplyForce {
+                        .emit_now(LocalEvent::ApplyImpulse {
                             entity: self.entity,
-                            force,
+                            impulse,
                         });
                 },
             }

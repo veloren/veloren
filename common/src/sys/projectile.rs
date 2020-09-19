@@ -117,9 +117,9 @@ impl<'a> System<'a> for Sys {
                             if let Some(entity) =
                                 uid_allocator.retrieve_entity_internal(other.into())
                             {
-                                local_emitter.emit(LocalEvent::ApplyForce {
+                                local_emitter.emit(LocalEvent::ApplyImpulse {
                                     entity,
-                                    force: knockback
+                                    impulse: knockback
                                         * *Dir::slerp(ori.0, Dir::new(Vec3::unit_z()), 0.5),
                                 });
                             }
