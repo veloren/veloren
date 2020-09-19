@@ -176,6 +176,7 @@ impl Tool {
                         ],
                         time_left: Duration::from_secs(15),
                         owner: None,
+                        ignore_group: true,
                     },
                     projectile_body: Body::Object(object::Body::Arrow),
                     projectile_light: None,
@@ -274,6 +275,7 @@ impl Tool {
                                 ],
                                 time_left: Duration::from_secs(20),
                                 owner: None,
+                                ignore_group: true,
                             },
                             projectile_body: Body::Object(object::Body::BoltFire),
                             projectile_light: Some(LightEmitter {
@@ -303,6 +305,7 @@ impl Tool {
                                 ],
                                 time_left: Duration::from_secs(20),
                                 owner: None,
+                                ignore_group: true,
                             },
                             projectile_body: Body::Object(object::Body::BoltFireBig),
                             projectile_light: Some(LightEmitter {
@@ -350,6 +353,7 @@ impl Tool {
                                 ],
                                 time_left: Duration::from_secs(10),
                                 owner: None,
+                                ignore_group: false,
                             },
                             projectile_body: Body::Object(object::Body::ArrowSnake),
                             projectile_light: Some(LightEmitter {
