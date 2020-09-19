@@ -566,7 +566,6 @@ pub struct Hud {
     tab_complete: Option<String>,
     pulse: f32,
     velocity: f32,
-    fps: f32,
     voxygen_i18n: std::sync::Arc<VoxygenLocalization>,
     slot_manager: slots::SlotManager,
     hotbar: hotbar::State,
@@ -662,7 +661,6 @@ impl Hud {
             force_chat_cursor: None,
             tab_complete: None,
             pulse: 0.0,
-            fps: 0.0,
             velocity: 0.0,
             voxygen_i18n,
             slot_manager,
@@ -695,9 +693,7 @@ impl Hud {
         // pulse time for pulsating elements
         self.pulse = self.pulse + dt.as_secs_f32();
         // FPS
-        // TODO Get actual FPS from session.rs instead of TPS from the client as they
-        // may be different in the future
-        self.fps = 1.0 / client.state().get_delta_time();
+        let fps = global_state.clock.get_tps();
         let version = format!(
             "{}-{}",
             env!("CARGO_PKG_VERSION"),
@@ -1872,7 +1868,7 @@ impl Hud {
                 &self.imgs,
                 &self.fonts,
                 &self.voxygen_i18n,
-                self.fps,
+                fps as f32,
             )
             .set(self.ids.settings_window, ui_widgets)
             {
