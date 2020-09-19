@@ -47,14 +47,19 @@ widget_ids! {
     }
 }
 
+#[derive(Clone, Copy)]
+pub struct Info<'a> {
+    pub name: &'a str,
+    pub stats: &'a Stats,
+    pub energy: Option<&'a Energy>,
+}
+
 /// ui widget containing everything that goes over a character's head
 /// (Speech bubble, Name, Level, HP/energy bars, etc.)
 #[derive(WidgetCommon)]
 pub struct Overhead<'a> {
-    name: &'a str,
+    info: Option<Info<'a>>,
     bubble: Option<&'a SpeechBubble>,
-    stats: &'a Stats,
-    energy: Option<&'a Energy>,
     own_level: u32,
     in_group: bool,
     settings: &'a GameplaySettings,
@@ -70,10 +75,8 @@ pub struct Overhead<'a> {
 impl<'a> Overhead<'a> {
     #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn new(
-        name: &'a str,
+        info: Option<Info<'a>>,
         bubble: Option<&'a SpeechBubble>,
-        stats: &'a Stats,
-        energy: Option<&'a Energy>,
         own_level: u32,
         in_group: bool,
         settings: &'a GameplaySettings,
@@ -83,10 +86,8 @@ impl<'a> Overhead<'a> {
         fonts: &'a ConrodVoxygenFonts,
     ) -> Self {
         Self {
-            name,
+            info,
             bubble,
-            stats,
-            energy,
             own_level,
             in_group,
             settings,
@@ -120,14 +121,15 @@ impl<'a> Ingameable for Overhead<'a> {
         // - 2 Text::new for speech bubble
         // - 1 Image::new for icon
         // - 10 Image::new for speech bubble (9-slice + tail)
-        2 + if self.bubble.is_some() { 13 } else { 0 }
-            + if f64::from(self.stats.health.current()) / f64::from(self.stats.health.maximum())
+        self.info.map_or(0, |info| {
+            2 + if f64::from(info.stats.health.current()) / f64::from(info.stats.health.maximum())
                 < 1.0
             {
-                5 + if self.energy.is_some() { 1 } else { 0 }
+                5 + if info.energy.is_some() { 1 } else { 0 }
             } else {
                 0
             }
+        }) + if self.bubble.is_some() { 13 } else { 0 }
     }
 }
 
@@ -142,62 +144,179 @@ impl<'a> Widget for Overhead<'a> {
         }
     }
 
-    #[allow(clippy::unused_unit)] // TODO: Pending review in #587
-    fn style(&self) -> Self::Style { () }
+    fn style(&self) -> Self::Style {}
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { id, state, ui, .. } = args;
         const BARSIZE: f64 = 2.0; // Scaling
         const MANA_BAR_HEIGHT: f64 = BARSIZE * 1.5;
         const MANA_BAR_Y: f64 = MANA_BAR_HEIGHT / 2.0;
-        // Used to set healthbar colours based on hp_percentage
-        let hp_percentage =
-            self.stats.health.current() as f64 / self.stats.health.maximum() as f64 * 100.0;
-        // Compare levels to decide if a skull is shown
-        let level_comp = self.stats.level.level() as i64 - self.own_level as i64;
-        let health_current = (self.stats.health.current() / 10) as f64;
-        let health_max = (self.stats.health.maximum() / 10) as f64;
-        let name_y = if (health_current - health_max).abs() < 1e-6 {
-            MANA_BAR_Y + 20.0
-        } else if level_comp > 9 && !self.in_group {
-            MANA_BAR_Y + 38.0
-        } else {
-            MANA_BAR_Y + 32.0
-        };
-        let font_size = if hp_percentage.abs() > 99.9 { 24 } else { 20 };
-        // Show K for numbers above 10^3 and truncate them
-        // Show M for numbers above 10^6 and truncate them
-        let health_cur_txt = match health_current as u32 {
-            0..=999 => format!("{:.0}", health_current.max(1.0)),
-            1000..=999999 => format!("{:.0}K", (health_current / 1000.0).max(1.0)),
-            _ => format!("{:.0}M", (health_current as f64 / 1.0e6).max(1.0)),
-        };
-        let health_max_txt = match health_max as u32 {
-            0..=999 => format!("{:.0}", health_max.max(1.0)),
-            1000..=999999 => format!("{:.0}K", (health_max / 1000.0).max(1.0)),
-            _ => format!("{:.0}M", (health_max as f64 / 1.0e6).max(1.0)),
-        };
-        // Name
-        Text::new(&self.name)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(font_size)
-            .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
-            .x_y(-1.0, name_y)
-            .parent(id)
-            .set(state.ids.name_bg, ui);
-        Text::new(&self.name)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(font_size)
-            .color(if self.in_group {
-                GROUP_MEMBER
-            /*} else if targets player { //TODO: Add a way to see if the entity is trying to attack the player, their pet(s) or a member of their group and recolour their nametag accordingly
-            DEFAULT_NPC*/
+        if let Some(Info {
+            name,
+            stats,
+            energy,
+        }) = self.info
+        {
+            // Used to set healthbar colours based on hp_percentage
+            let hp_percentage =
+                stats.health.current() as f64 / stats.health.maximum() as f64 * 100.0;
+            // Compare levels to decide if a skull is shown
+            let level_comp = stats.level.level() as i64 - self.own_level as i64;
+            let health_current = (stats.health.current() / 10) as f64;
+            let health_max = (stats.health.maximum() / 10) as f64;
+            let name_y = if (health_current - health_max).abs() < 1e-6 {
+                MANA_BAR_Y + 20.0
+            } else if level_comp > 9 && !self.in_group {
+                MANA_BAR_Y + 38.0
             } else {
-                DEFAULT_NPC
-            })
-            .x_y(0.0, name_y + 1.0)
-            .parent(id)
-            .set(state.ids.name, ui);
+                MANA_BAR_Y + 32.0
+            };
+            let font_size = if hp_percentage.abs() > 99.9 { 24 } else { 20 };
+            // Show K for numbers above 10^3 and truncate them
+            // Show M for numbers above 10^6 and truncate them
+            let health_cur_txt = match health_current as u32 {
+                0..=999 => format!("{:.0}", health_current.max(1.0)),
+                1000..=999999 => format!("{:.0}K", (health_current / 1000.0).max(1.0)),
+                _ => format!("{:.0}M", (health_current as f64 / 1.0e6).max(1.0)),
+            };
+            let health_max_txt = match health_max as u32 {
+                0..=999 => format!("{:.0}", health_max.max(1.0)),
+                1000..=999999 => format!("{:.0}K", (health_max / 1000.0).max(1.0)),
+                _ => format!("{:.0}M", (health_max as f64 / 1.0e6).max(1.0)),
+            };
+            // Name
+            Text::new(name)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(font_size)
+                .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+                .x_y(-1.0, name_y)
+                .parent(id)
+                .set(state.ids.name_bg, ui);
+            Text::new(name)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(font_size)
+                .color(if self.in_group {
+                    GROUP_MEMBER
+                /*} else if targets player { //TODO: Add a way to see if the entity is trying to attack the player, their pet(s) or a member of their group and recolour their nametag accordingly
+                DEFAULT_NPC*/
+                } else {
+                    DEFAULT_NPC
+                })
+                .x_y(0.0, name_y + 1.0)
+                .parent(id)
+                .set(state.ids.name, ui);
+
+            if hp_percentage < 100.0 {
+                // Show HP Bar
+                let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 1.0; //Animation timer
+                let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
+
+                // Background
+                Image::new(self.imgs.enemy_health_bg)
+                .w_h(84.0 * BARSIZE, 10.0 * BARSIZE)
+                .x_y(0.0, MANA_BAR_Y + 6.5) //-25.5)
+                .color(Some(Color::Rgba(0.1, 0.1, 0.1, 0.8)))
+                .parent(id)
+                .set(state.ids.health_bar_bg, ui);
+
+                // % HP Filling
+                Image::new(self.imgs.enemy_bar)
+                    .w_h(73.0 * (hp_percentage / 100.0) * BARSIZE, 6.0 * BARSIZE)
+                    .x_y(
+                        (4.5 + (hp_percentage / 100.0 * 36.45 - 36.45)) * BARSIZE,
+                        MANA_BAR_Y + 7.5,
+                    )
+                    .color(Some(if hp_percentage <= 25.0 {
+                        crit_hp_color
+                    } else if hp_percentage <= 50.0 {
+                        LOW_HP_COLOR
+                    } else {
+                        HP_COLOR
+                    }))
+                    .parent(id)
+                    .set(state.ids.health_bar, ui);
+                let mut txt = format!("{}/{}", health_cur_txt, health_max_txt);
+                if stats.is_dead {
+                    txt = self.voxygen_i18n.get("hud.group.dead").to_string()
+                };
+                Text::new(&txt)
+                    .mid_top_with_margin_on(state.ids.health_bar_bg, 2.0)
+                    .font_size(10)
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(TEXT_COLOR)
+                    .parent(id)
+                    .set(state.ids.health_txt, ui);
+
+                // % Mana Filling
+                if let Some(energy) = energy {
+                    let energy_factor = energy.current() as f64 / energy.maximum() as f64;
+
+                    Rectangle::fill_with(
+                        [72.0 * energy_factor * BARSIZE, MANA_BAR_HEIGHT],
+                        MANA_COLOR,
+                    )
+                    .x_y(
+                        ((3.5 + (energy_factor * 36.5)) - 36.45) * BARSIZE,
+                        MANA_BAR_Y, //-32.0,
+                    )
+                    .parent(id)
+                    .set(state.ids.mana_bar, ui);
+                }
+
+                // Foreground
+                Image::new(self.imgs.enemy_health)
+                .w_h(84.0 * BARSIZE, 10.0 * BARSIZE)
+                .x_y(0.0, MANA_BAR_Y + 6.5) //-25.5)
+                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.99)))
+                .parent(id)
+                .set(state.ids.health_bar_fg, ui);
+
+                // Level
+                const LOW: Color = Color::Rgba(0.54, 0.81, 0.94, 0.4);
+                const HIGH: Color = Color::Rgba(1.0, 0.0, 0.0, 1.0);
+                const EQUAL: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
+                // Change visuals of the level display depending on the player level/opponent
+                // level
+                let level_comp = stats.level.level() as i64 - self.own_level as i64;
+                // + 10 level above player -> skull
+                // + 5-10 levels above player -> high
+                // -5 - +5 levels around player level -> equal
+                // - 5 levels below player -> low
+                if level_comp > 9 && !self.in_group {
+                    let skull_ani = ((self.pulse * 0.7/* speed factor */).cos() * 0.5 + 0.5) * 10.0; //Animation timer
+                    Image::new(if skull_ani as i32 == 1 && rand::random::<f32>() < 0.9 {
+                        self.imgs.skull_2
+                    } else {
+                        self.imgs.skull
+                    })
+                    .w_h(18.0 * BARSIZE, 18.0 * BARSIZE)
+                    .x_y(-39.0 * BARSIZE, MANA_BAR_Y + 7.0)
+                    .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
+                    .parent(id)
+                    .set(state.ids.level_skull, ui);
+                } else {
+                    let fnt_size = match stats.level.level() {
+                        0..=9 => 15,
+                        10..=99 => 12,
+                        100..=999 => 9,
+                        _ => 2,
+                    };
+                    Text::new(&format!("{}", stats.level.level()))
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .font_size(fnt_size)
+                        .color(if level_comp > 4 {
+                            HIGH
+                        } else if level_comp < -5 {
+                            LOW
+                        } else {
+                            EQUAL
+                        })
+                        .x_y(-37.0 * BARSIZE, MANA_BAR_Y + 9.0)
+                        .parent(id)
+                        .set(state.ids.level, ui);
+                }
+            }
+        }
 
         // Speech bubble
         if let Some(bubble) = self.bubble {
@@ -346,119 +465,6 @@ impl<'a> Widget for Overhead<'a> {
                 // TODO: Figure out whether this should be parented.
                 // .parent(id)
                 .set(state.ids.speech_bubble_icon, ui);
-        }
-
-        if hp_percentage < 100.0 {
-            // Show HP Bar
-            let hp_percentage =
-                self.stats.health.current() as f64 / self.stats.health.maximum() as f64 * 100.0;
-            let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 1.0; //Animation timer
-            let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
-
-            // Background
-            Image::new(self.imgs.enemy_health_bg)
-            .w_h(84.0 * BARSIZE, 10.0 * BARSIZE)
-            .x_y(0.0, MANA_BAR_Y + 6.5) //-25.5)
-            .color(Some(Color::Rgba(0.1, 0.1, 0.1, 0.8)))
-            .parent(id)
-            .set(state.ids.health_bar_bg, ui);
-
-            // % HP Filling
-            Image::new(self.imgs.enemy_bar)
-                .w_h(73.0 * (hp_percentage / 100.0) * BARSIZE, 6.0 * BARSIZE)
-                .x_y(
-                    (4.5 + (hp_percentage / 100.0 * 36.45 - 36.45)) * BARSIZE,
-                    MANA_BAR_Y + 7.5,
-                )
-                .color(Some(if hp_percentage <= 25.0 {
-                    crit_hp_color
-                } else if hp_percentage <= 50.0 {
-                    LOW_HP_COLOR
-                } else {
-                    HP_COLOR
-                }))
-                .parent(id)
-                .set(state.ids.health_bar, ui);
-            let mut txt = format!("{}/{}", health_cur_txt, health_max_txt);
-            if self.stats.is_dead {
-                txt = self.voxygen_i18n.get("hud.group.dead").to_string()
-            };
-            Text::new(&txt)
-                .mid_top_with_margin_on(state.ids.health_bar_bg, 2.0)
-                .font_size(10)
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .parent(id)
-                .set(state.ids.health_txt, ui);
-
-            // % Mana Filling
-            if let Some(energy) = self.energy {
-                let energy_factor = energy.current() as f64 / energy.maximum() as f64;
-
-                Rectangle::fill_with(
-                    [72.0 * energy_factor * BARSIZE, MANA_BAR_HEIGHT],
-                    MANA_COLOR,
-                )
-                .x_y(
-                    ((3.5 + (energy_factor * 36.5)) - 36.45) * BARSIZE,
-                    MANA_BAR_Y, //-32.0,
-                )
-                .parent(id)
-                .set(state.ids.mana_bar, ui);
-            }
-
-            // Foreground
-            Image::new(self.imgs.enemy_health)
-            .w_h(84.0 * BARSIZE, 10.0 * BARSIZE)
-            .x_y(0.0, MANA_BAR_Y + 6.5) //-25.5)
-            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.99)))
-            .parent(id)
-            .set(state.ids.health_bar_fg, ui);
-
-            // Level
-            const LOW: Color = Color::Rgba(0.54, 0.81, 0.94, 0.4);
-            const HIGH: Color = Color::Rgba(1.0, 0.0, 0.0, 1.0);
-            const EQUAL: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
-            // Change visuals of the level display depending on the player level/opponent
-            // level
-            let level_comp = self.stats.level.level() as i64 - self.own_level as i64;
-            // + 10 level above player -> skull
-            // + 5-10 levels above player -> high
-            // -5 - +5 levels around player level -> equal
-            // - 5 levels below player -> low
-            if level_comp > 9 && !self.in_group {
-                let skull_ani = ((self.pulse * 0.7/* speed factor */).cos() * 0.5 + 0.5) * 10.0; //Animation timer
-                Image::new(if skull_ani as i32 == 1 && rand::random::<f32>() < 0.9 {
-                    self.imgs.skull_2
-                } else {
-                    self.imgs.skull
-                })
-                .w_h(18.0 * BARSIZE, 18.0 * BARSIZE)
-                .x_y(-39.0 * BARSIZE, MANA_BAR_Y + 7.0)
-                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
-                .parent(id)
-                .set(state.ids.level_skull, ui);
-            } else {
-                let fnt_size = match self.stats.level.level() {
-                    0..=9 => 15,
-                    10..=99 => 12,
-                    100..=999 => 9,
-                    _ => 2,
-                };
-                Text::new(&format!("{}", self.stats.level.level()))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .font_size(fnt_size)
-                    .color(if level_comp > 4 {
-                        HIGH
-                    } else if level_comp < -5 {
-                        LOW
-                    } else {
-                        EQUAL
-                    })
-                    .x_y(-37.0 * BARSIZE, MANA_BAR_Y + 9.0)
-                    .parent(id)
-                    .set(state.ids.level, ui);
-            }
         }
     }
 }
