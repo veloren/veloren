@@ -618,11 +618,13 @@ impl<'a> System<'a> for Sys {
                     .map(|block_aabb| block_aabb.max.z - pos.0.z);
                 },
                 Collider::Point => {
-                    let (dist, block) = terrain.ray(pos.0, pos.0 + pos_delta).ignore_error().cast();
+                    let (dist, block) = terrain.ray(pos.0, pos.0 + pos_delta)
+                        .until(|vox| !vox.is_air() && !vox.is_fluid())
+                        .ignore_error().cast();
 
                     pos.0 += pos_delta.try_normalized().unwrap_or(Vec3::zero()) * dist;
 
-                    // Can't fair since we do ignore_error above
+                    // Can't fail since we do ignore_error above
                     if block.unwrap().is_some() {
                         let block_center = pos.0.map(|e| e.floor()) + 0.5;
                         let block_rpos = (pos.0 - block_center)
@@ -650,6 +652,10 @@ impl<'a> System<'a> for Sys {
                                 });
                         }
                     }
+
+                    physics_state.in_fluid = terrain.get(pos.0.map(|e| e.floor() as i32))
+                        .ok()
+                        .and_then(|vox| vox.is_fluid().then_some(1.0));
                 },
             }
 
