@@ -582,7 +582,7 @@ fn handle_spawn(
                                 .create_npc(
                                     pos,
                                     comp::Stats::new(get_npc_name(id).into(), body),
-                                    LoadoutBuilder::animal(body).build(),
+                                    LoadoutBuilder::build_loadout(body, alignment, None).build(),
                                     body,
                                 )
                                 .with(comp::Vel(vel))

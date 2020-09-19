@@ -8,7 +8,7 @@ use crate::{
 };
 use common::{
     assets::Asset,
-    comp::{item::Reagent, object, Body, CharacterState, Pos},
+    comp::{item::Reagent, object, Body, CharacterState, Ori, Pos, Shockwave},
     figure::Segment,
     outcome::Outcome,
     span,
@@ -113,6 +113,7 @@ impl ParticleMgr {
             self.maintain_body_particles(scene_data);
             self.maintain_boost_particles(scene_data);
             self.maintain_block_particles(scene_data, terrain);
+            self.maintain_shockwave_particles(scene_data);
         } else {
             // remove all particle lifespans
             self.particles.clear();
@@ -416,6 +417,65 @@ impl ParticleMgr {
                             )
                         })
                 });
+            }
+        }
+    }
+
+    fn maintain_shockwave_particles(&mut self, scene_data: &SceneData) {
+        let state = scene_data.state;
+        let ecs = state.ecs();
+        let time = state.get_time();
+
+        for (_i, (_entity, pos, ori, shockwave)) in (
+            &ecs.entities(),
+            &ecs.read_storage::<Pos>(),
+            &ecs.read_storage::<Ori>(),
+            &ecs.read_storage::<Shockwave>(),
+        )
+            .join()
+            .enumerate()
+        {
+            let elapsed = time - shockwave.creation.unwrap_or_default();
+
+            let distance = shockwave.properties.speed * elapsed as f32;
+
+            let radians = shockwave.properties.angle.to_radians();
+
+            let theta = ori.0.y.atan2(ori.0.x);
+            let dtheta = radians / distance;
+
+            // 1 / 3 the size of terrain voxel
+            let scale = 1.0 / 3.0;
+
+            let scaled_speed = shockwave.properties.speed * scale;
+
+            let heartbeats = self
+                .scheduler
+                .heartbeats(Duration::from_millis(scaled_speed as u64));
+            let new_particle_count = distance / scale * heartbeats as f32;
+            self.particles.reserve(new_particle_count as usize);
+
+            for heartbeat in 0..heartbeats {
+                let sub_tick_interpolation = scaled_speed * 1000.0 * heartbeat as f32;
+
+                let distance =
+                    shockwave.properties.speed * (elapsed as f32 - sub_tick_interpolation);
+
+                for d in 0..((distance / scale) as i32) {
+                    let arc_position = theta - radians / 2.0 + dtheta * d as f32 * scale;
+
+                    let position =
+                        pos.0 + distance * Vec3::new(arc_position.cos(), arc_position.sin(), 0.0);
+
+                    let position_snapped = ((position / scale).floor() + 0.5) * scale;
+
+                    self.particles.push(Particle::new(
+                        Duration::from_millis(250),
+                        time,
+                        ParticleMode::GroundShockwave,
+                        position_snapped,
+                    ));
+                }
             }
         }
     }

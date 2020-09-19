@@ -268,6 +268,7 @@ impl<'a> System<'a> for Sys {
                             Melee,
                             RangedPowerup,
                             Staff,
+                            StoneGolemBoss,
                         }
 
                         let tactic = match loadout.active_item.as_ref().and_then(|ic| {
@@ -279,6 +280,13 @@ impl<'a> System<'a> for Sys {
                         }) {
                             Some(ToolKind::Bow(_)) => Tactic::RangedPowerup,
                             Some(ToolKind::Staff(_)) => Tactic::Staff,
+                            Some(ToolKind::NpcWeapon(kind)) => {
+                                if kind == "StoneGolemsFist" {
+                                    Tactic::StoneGolemBoss
+                                } else {
+                                    Tactic::Melee
+                                }
+                            },
                             _ => Tactic::Melee,
                         };
 
@@ -355,7 +363,9 @@ impl<'a> System<'a> for Sys {
                                     * 0.1;
 
                                 match tactic {
-                                    Tactic::Melee | Tactic::Staff => inputs.primary.set_state(true),
+                                    Tactic::Melee | Tactic::Staff | Tactic::StoneGolemBoss => {
+                                        inputs.primary.set_state(true)
+                                    },
                                     Tactic::RangedPowerup => inputs.roll.set_state(true),
                                 }
                             } else if dist_sqrd < MAX_CHASE_DIST.powf(2.0)
@@ -385,6 +395,13 @@ impl<'a> System<'a> for Sys {
                                         }
 
                                         inputs.secondary.set_state(true);
+                                    } else if let Tactic::StoneGolemBoss = tactic {
+                                        if *powerup > 5.0 {
+                                            inputs.secondary.set_state(true);
+                                            *powerup = 0.0;
+                                        } else {
+                                            *powerup += dt.0;
+                                        }
                                     }
                                 }
 

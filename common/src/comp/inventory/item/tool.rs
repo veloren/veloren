@@ -16,6 +16,7 @@ pub enum ToolKind {
     Dagger(String),
     Staff(String),
     Shield(String),
+    NpcWeapon(String),
     Debug(String),
     Farming(String),
     /// This is an placeholder item, it is used by non-humanoid npcs to attack
@@ -32,6 +33,7 @@ impl ToolKind {
             ToolKind::Dagger(_) => Hands::OneHand,
             ToolKind::Staff(_) => Hands::TwoHand,
             ToolKind::Shield(_) => Hands::OneHand,
+            ToolKind::NpcWeapon(_) => Hands::TwoHand,
             ToolKind::Debug(_) => Hands::TwoHand,
             ToolKind::Farming(_) => Hands::TwoHand,
             ToolKind::Empty => Hands::OneHand,
@@ -53,6 +55,7 @@ pub enum ToolCategory {
     Dagger,
     Staff,
     Shield,
+    NpcWeapon,
     Debug,
     Farming,
     Empty,
@@ -68,6 +71,7 @@ impl From<&ToolKind> for ToolCategory {
             ToolKind::Dagger(_) => ToolCategory::Dagger,
             ToolKind::Staff(_) => ToolCategory::Staff,
             ToolKind::Shield(_) => ToolCategory::Shield,
+            ToolKind::NpcWeapon(_) => ToolCategory::NpcWeapon,
             ToolKind::Debug(_) => ToolCategory::Debug,
             ToolKind::Farming(_) => ToolCategory::Farming,
             ToolKind::Empty => ToolCategory::Empty,
@@ -141,6 +145,7 @@ impl Tool {
                     buildup_duration: Duration::from_millis(700),
                     recover_duration: Duration::from_millis(300),
                     base_healthchange: (-120.0 * self.base_power()) as i32,
+                    knockback: 0.0,
                     range: 3.5,
                     max_angle: 20.0,
                 },
@@ -157,6 +162,7 @@ impl Tool {
                 buildup_duration: Duration::from_millis(700),
                 recover_duration: Duration::from_millis(150),
                 base_healthchange: (-50.0 * self.base_power()) as i32,
+                knockback: 0.0,
                 range: 3.5,
                 max_angle: 20.0,
             }],
@@ -181,6 +187,7 @@ impl Tool {
                     projectile_body: Body::Object(object::Body::Arrow),
                     projectile_light: None,
                     projectile_gravity: Some(Gravity(0.2)),
+                    projectile_speed: 100.0,
                 },
                 ChargedRanged {
                     energy_cost: 0,
@@ -194,6 +201,9 @@ impl Tool {
                     recover_duration: Duration::from_millis(500),
                     projectile_body: Body::Object(object::Body::MultiArrow),
                     projectile_light: None,
+                    projectile_gravity: Some(Gravity(0.2)),
+                    initial_projectile_speed: 100.0,
+                    max_projectile_speed: 500.0,
                 },
             ],
             Dagger(_) => vec![
@@ -202,6 +212,7 @@ impl Tool {
                     buildup_duration: Duration::from_millis(100),
                     recover_duration: Duration::from_millis(400),
                     base_healthchange: (-50.0 * self.base_power()) as i32,
+                    knockback: 0.0,
                     range: 3.5,
                     max_angle: 20.0,
                 },
@@ -220,6 +231,7 @@ impl Tool {
                             buildup_duration: Duration::from_millis(0),
                             recover_duration: Duration::from_millis(300),
                             base_healthchange: (-10.0 * self.base_power()) as i32,
+                            knockback: 0.0,
                             range: 5.0,
                             max_angle: 20.0,
                         },
@@ -228,6 +240,7 @@ impl Tool {
                             buildup_duration: Duration::from_millis(0),
                             recover_duration: Duration::from_millis(1000),
                             base_healthchange: (150.0 * self.base_power()) as i32,
+                            knockback: 0.0,
                             range: 100.0,
                             max_angle: 90.0,
                         },
@@ -239,6 +252,7 @@ impl Tool {
                             buildup_duration: Duration::from_millis(0),
                             recover_duration: Duration::from_millis(300),
                             base_healthchange: (-10.0 * self.base_power()) as i32,
+                            knockback: 0.0,
                             range: 5.0,
                             max_angle: 20.0,
                         },
@@ -247,6 +261,7 @@ impl Tool {
                             buildup_duration: Duration::from_millis(0),
                             recover_duration: Duration::from_millis(1000),
                             base_healthchange: (350.0 * self.base_power()) as i32,
+                            knockback: 0.0,
                             range: 100.0,
                             max_angle: 90.0,
                         },
@@ -258,6 +273,7 @@ impl Tool {
                             buildup_duration: Duration::from_millis(100),
                             recover_duration: Duration::from_millis(300),
                             base_healthchange: (-40.0 * self.base_power()) as i32,
+                            knockback: 0.0,
                             range: 3.5,
                             max_angle: 20.0,
                         },
@@ -284,6 +300,7 @@ impl Tool {
                             }),
 
                             projectile_gravity: None,
+                            projectile_speed: 100.0,
                         },
                         BasicRanged {
                             energy_cost: 400,
@@ -314,6 +331,7 @@ impl Tool {
                             }),
 
                             projectile_gravity: None,
+                            projectile_speed: 100.0,
                         },
                     ]
                 }
@@ -324,11 +342,48 @@ impl Tool {
                     buildup_duration: Duration::from_millis(100),
                     recover_duration: Duration::from_millis(400),
                     base_healthchange: (-40.0 * self.base_power()) as i32,
+                    knockback: 0.0,
                     range: 3.0,
                     max_angle: 120.0,
                 },
                 BasicBlock,
             ],
+            NpcWeapon(kind) => {
+                if kind == "StoneGolemsFist" {
+                    vec![
+                        BasicMelee {
+                            energy_cost: 0,
+                            buildup_duration: Duration::from_millis(500),
+                            recover_duration: Duration::from_millis(250),
+                            knockback: 25.0,
+                            base_healthchange: -200,
+                            range: 5.0,
+                            max_angle: 120.0,
+                        },
+                        GroundShockwave {
+                            energy_cost: 0,
+                            buildup_duration: Duration::from_millis(500),
+                            recover_duration: Duration::from_millis(1000),
+                            damage: 500,
+                            knockback: -40.0,
+                            shockwave_angle: 90.0,
+                            shockwave_speed: 20.0,
+                            shockwave_duration: Duration::from_millis(2000),
+                            requires_ground: true,
+                        },
+                    ]
+                } else {
+                    vec![BasicMelee {
+                        energy_cost: 0,
+                        buildup_duration: Duration::from_millis(100),
+                        recover_duration: Duration::from_millis(300),
+                        base_healthchange: -10,
+                        knockback: 0.0,
+                        range: 1.0,
+                        max_angle: 30.0,
+                    }]
+                }
+            },
             Debug(kind) => {
                 if kind == "Boost" {
                     vec![
@@ -361,6 +416,7 @@ impl Tool {
                                 ..Default::default()
                             }),
                             projectile_gravity: None,
+                            projectile_speed: 100.0,
                         },
                     ]
                 } else {
@@ -372,6 +428,7 @@ impl Tool {
                 buildup_duration: Duration::from_millis(0),
                 recover_duration: Duration::from_millis(1000),
                 base_healthchange: -20,
+                knockback: 0.0,
                 range: 3.5,
                 max_angle: 15.0,
             }],

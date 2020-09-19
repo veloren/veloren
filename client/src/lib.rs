@@ -22,6 +22,7 @@ use common::{
         group, ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip,
         InventoryManip, InventoryUpdateEvent,
     },
+    event::{EventBus, LocalEvent},
     msg::{
         validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, DisconnectReason,
         InviteAnswer, Notification, PlayerInfo, PlayerListUpdate, RegisterError, RequestStateError,
@@ -1425,6 +1426,15 @@ impl Client {
                 },
                 ServerMsg::Outcomes(outcomes) => {
                     frontend_events.extend(outcomes.into_iter().map(Event::Outcome))
+                },
+                ServerMsg::Knockback(impulse) => {
+                    self.state
+                        .ecs()
+                        .read_resource::<EventBus<LocalEvent>>()
+                        .emit_now(LocalEvent::ApplyImpulse {
+                            entity: self.entity,
+                            impulse,
+                        });
                 },
             }
         }

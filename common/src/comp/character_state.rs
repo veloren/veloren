@@ -69,6 +69,8 @@ pub enum CharacterState {
     SpinMelee(spin_melee::Data),
     /// A charged ranged attack (e.g. bow)
     ChargedRanged(charged_ranged::Data),
+    /// A ground shockwave attack
+    GroundShockwave(ground_shockwave::Data),
 }
 
 impl CharacterState {
@@ -83,6 +85,7 @@ impl CharacterState {
             | CharacterState::LeapMelee(_)
             | CharacterState::SpinMelee(_)
             | CharacterState::ChargedRanged(_)
+            | CharacterState::GroundShockwave(_)
         )
     }
 
@@ -95,6 +98,7 @@ impl CharacterState {
             | CharacterState::LeapMelee(_)
             | CharacterState::SpinMelee(_)
             | CharacterState::ChargedRanged(_)
+            | CharacterState::GroundShockwave(_)
         )
     }
 
@@ -107,6 +111,7 @@ impl CharacterState {
             | CharacterState::BasicBlock
             | CharacterState::LeapMelee(_)
             | CharacterState::ChargedRanged(_)
+            | CharacterState::GroundShockwave(_)
         )
     }
 

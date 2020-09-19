@@ -254,6 +254,7 @@ pub enum ServerMsg {
     Notification(Notification),
     SetViewDistance(u32),
     Outcomes(Vec<Outcome>),
+    Knockback(Vec3<f32>),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

@@ -5,11 +5,11 @@ use common::{
 };
 use entity_creation::{
     handle_create_npc, handle_create_waypoint, handle_initialize_character,
-    handle_loaded_character_data, handle_shoot,
+    handle_loaded_character_data, handle_shockwave, handle_shoot,
 };
 use entity_manipulation::{
-    handle_damage, handle_destroy, handle_explosion, handle_land_on_ground, handle_level_up,
-    handle_respawn,
+    handle_damage, handle_destroy, handle_explosion, handle_knockback, handle_land_on_ground,
+    handle_level_up, handle_respawn,
 };
 use group_manip::handle_group;
 use interaction::{handle_lantern, handle_mount, handle_possess, handle_unmount};
@@ -68,7 +68,16 @@ impl Server {
                     light,
                     projectile,
                     gravity,
-                } => handle_shoot(self, entity, dir, body, light, projectile, gravity),
+                    speed,
+                } => handle_shoot(self, entity, dir, body, light, projectile, gravity, speed),
+                ServerEvent::Shockwave {
+                    properties,
+                    pos,
+                    ori,
+                } => handle_shockwave(self, properties, pos, ori),
+                ServerEvent::Knockback { entity, impulse } => {
+                    handle_knockback(&self, entity, impulse)
+                },
                 ServerEvent::Damage { uid, change } => handle_damage(&self, uid, change),
                 ServerEvent::Destroy { entity, cause } => handle_destroy(self, entity, cause),
                 ServerEvent::InventoryManip(entity, manip) => handle_inventory(self, entity, manip),

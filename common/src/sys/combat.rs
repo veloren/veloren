@@ -33,8 +33,8 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Stats>,
         ReadStorage<'a, Loadout>,
         ReadStorage<'a, group::Group>,
+        ReadStorage<'a, CharacterState>,
         WriteStorage<'a, Attacking>,
-        WriteStorage<'a, CharacterState>,
     );
 
     fn run(
@@ -52,14 +52,14 @@ impl<'a> System<'a> for Sys {
             stats,
             loadouts,
             groups,
-            mut attacking_storage,
             character_states,
+            mut attacking_storage,
         ): Self::SystemData,
     ) {
         let start_time = std::time::Instant::now();
         span!(_guard, "run", "combat::Sys::run");
         let mut server_emitter = server_bus.emitter();
-        let mut local_emitter = local_bus.emitter();
+        let mut _local_emitter = local_bus.emitter();
         // Attacks
         for (entity, uid, pos, ori, scale_maybe, attack) in (
             &entities,
@@ -152,11 +152,10 @@ impl<'a> System<'a> for Sys {
                             },
                         });
                     }
-
-                    if attack.knockback != 0.0 {
-                        local_emitter.emit(LocalEvent::ApplyForce {
+                    if attack.knockback != 0.0 && damage.healthchange != 0.0 {
+                        server_emitter.emit(ServerEvent::Knockback {
                             entity: b,
-                            force: attack.knockback
+                            impulse: attack.knockback
                                 * *Dir::slerp(ori.0, Dir::new(Vec3::new(0.0, 0.0, 1.0)), 0.5),
                         });
                     }

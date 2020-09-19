@@ -24,6 +24,7 @@ pub enum CharacterAbilityType {
     TripleStrike(Stage),
     LeapMelee,
     SpinMelee,
+    GroundShockwave,
 }
 
 impl From<&CharacterState> for CharacterAbilityType {
@@ -38,6 +39,7 @@ impl From<&CharacterState> for CharacterAbilityType {
             CharacterState::TripleStrike(data) => Self::TripleStrike(data.stage),
             CharacterState::SpinMelee(_) => Self::SpinMelee,
             CharacterState::ChargedRanged(_) => Self::ChargedRanged,
+            CharacterState::GroundShockwave(_) => Self::ChargedRanged,
             _ => Self::BasicMelee,
         }
     }
@@ -50,6 +52,7 @@ pub enum CharacterAbility {
         buildup_duration: Duration,
         recover_duration: Duration,
         base_healthchange: i32,
+        knockback: f32,
         range: f32,
         max_angle: f32,
     },
@@ -62,6 +65,7 @@ pub enum CharacterAbility {
         projectile_body: Body,
         projectile_light: Option<LightEmitter>,
         projectile_gravity: Option<Gravity>,
+        projectile_speed: f32,
     },
     Boost {
         duration: Duration,
@@ -104,6 +108,20 @@ pub enum CharacterAbility {
         recover_duration: Duration,
         projectile_body: Body,
         projectile_light: Option<LightEmitter>,
+        projectile_gravity: Option<Gravity>,
+        initial_projectile_speed: f32,
+        max_projectile_speed: f32,
+    },
+    GroundShockwave {
+        energy_cost: u32,
+        buildup_duration: Duration,
+        recover_duration: Duration,
+        damage: u32,
+        knockback: f32,
+        shockwave_angle: f32,
+        shockwave_speed: f32,
+        shockwave_duration: Duration,
+        requires_ground: bool,
     },
 }
 
@@ -147,6 +165,10 @@ impl CharacterAbility {
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
             CharacterAbility::ChargedRanged { energy_cost, .. } => update
+                .energy
+                .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
+                .is_ok(),
+            CharacterAbility::GroundShockwave { energy_cost, .. } => update
                 .energy
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
@@ -250,6 +272,7 @@ impl From<&CharacterAbility> for CharacterState {
                 buildup_duration,
                 recover_duration,
                 base_healthchange,
+                knockback,
                 range,
                 max_angle,
                 energy_cost: _,
@@ -258,6 +281,7 @@ impl From<&CharacterAbility> for CharacterState {
                 buildup_duration: *buildup_duration,
                 recover_duration: *recover_duration,
                 base_healthchange: *base_healthchange,
+                knockback: *knockback,
                 range: *range,
                 max_angle: *max_angle,
             }),
@@ -269,6 +293,7 @@ impl From<&CharacterAbility> for CharacterState {
                 projectile_body,
                 projectile_light,
                 projectile_gravity,
+                projectile_speed,
                 energy_cost: _,
             } => CharacterState::BasicRanged(basic_ranged::Data {
                 exhausted: false,
@@ -280,6 +305,7 @@ impl From<&CharacterAbility> for CharacterState {
                 projectile_body: *projectile_body,
                 projectile_light: *projectile_light,
                 projectile_gravity: *projectile_gravity,
+                projectile_speed: *projectile_speed,
             }),
             CharacterAbility::Boost { duration, only_up } => CharacterState::Boost(boost::Data {
                 duration: *duration,
@@ -363,6 +389,9 @@ impl From<&CharacterAbility> for CharacterState {
                 recover_duration,
                 projectile_body,
                 projectile_light,
+                projectile_gravity,
+                initial_projectile_speed,
+                max_projectile_speed,
             } => CharacterState::ChargedRanged(charged_ranged::Data {
                 exhausted: false,
                 energy_drain: *energy_drain,
@@ -376,6 +405,30 @@ impl From<&CharacterAbility> for CharacterState {
                 recover_duration: *recover_duration,
                 projectile_body: *projectile_body,
                 projectile_light: *projectile_light,
+                projectile_gravity: *projectile_gravity,
+                initial_projectile_speed: *initial_projectile_speed,
+                max_projectile_speed: *max_projectile_speed,
+            }),
+            CharacterAbility::GroundShockwave {
+                energy_cost: _,
+                buildup_duration,
+                recover_duration,
+                damage,
+                knockback,
+                shockwave_angle,
+                shockwave_speed,
+                shockwave_duration,
+                requires_ground,
+            } => CharacterState::GroundShockwave(ground_shockwave::Data {
+                exhausted: false,
+                buildup_duration: *buildup_duration,
+                recover_duration: *recover_duration,
+                damage: *damage,
+                knockback: *knockback,
+                shockwave_angle: *shockwave_angle,
+                shockwave_speed: *shockwave_speed,
+                shockwave_duration: *shockwave_duration,
+                requires_ground: *requires_ground,
             }),
         }
     }
