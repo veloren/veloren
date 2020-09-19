@@ -23,6 +23,9 @@ pub struct Projectile {
     /// Time left until the projectile will despawn
     pub time_left: Duration,
     pub owner: Option<Uid>,
+    /// Whether projectile collides with entities in the same group as its
+    /// owner
+    pub ignore_group: bool,
 }
 
 impl Component for Projectile {
