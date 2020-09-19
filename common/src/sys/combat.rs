@@ -155,7 +155,7 @@ impl<'a> System<'a> for Sys {
                     if attack.knockback != 0.0 && damage.healthchange != 0.0 {
                         server_emitter.emit(ServerEvent::Knockback {
                             entity: b,
-                            force: attack.knockback
+                            impulse: attack.knockback
                                 * *Dir::slerp(ori.0, Dir::new(Vec3::new(0.0, 0.0, 1.0)), 0.5),
                         });
                     }

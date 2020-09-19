@@ -32,16 +32,15 @@ pub fn handle_damage(server: &Server, uid: Uid, change: HealthChange) {
     }
 }
 
-pub fn handle_knockback(server: &Server, entity: EcsEntity, force: Vec3<f32>) {
+pub fn handle_knockback(server: &Server, entity: EcsEntity, impulse: Vec3<f32>) {
     let state = &server.state;
-    let ecs = state.ecs();
-    let mut velocities = ecs.write_storage::<comp::Vel>();
+    let mut velocities = state.ecs().write_storage::<comp::Vel>();
     if let Some(vel) = velocities.get_mut(entity) {
-        vel.0 = force;
+        vel.0 = impulse;
     }
     let mut clients = state.ecs().write_storage::<Client>();
     if let Some(client) = clients.get_mut(entity) {
-        client.notify(ServerMsg::Knockback(force));
+        client.notify(ServerMsg::Knockback(impulse));
     }
 }
 

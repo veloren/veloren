@@ -25,6 +25,8 @@ pub struct Data {
     pub shockwave_speed: f32,
     /// How long the shockwave travels for
     pub shockwave_duration: Duration,
+    /// Whether the shockwave requires the target to be on the ground
+    pub requires_ground: bool,
 }
 
 impl CharacterBehavior for Data {
@@ -47,6 +49,7 @@ impl CharacterBehavior for Data {
                 shockwave_angle: self.shockwave_angle,
                 shockwave_speed: self.shockwave_speed,
                 shockwave_duration: self.shockwave_duration,
+                requires_ground: self.requires_ground,
             });
         } else if !self.exhausted {
             // Attack
@@ -56,7 +59,7 @@ impl CharacterBehavior for Data {
                 duration: self.shockwave_duration,
                 damage: self.damage,
                 knockback: self.knockback,
-                requires_ground: true,
+                requires_ground: self.requires_ground,
                 owner: Some(*data.uid),
             };
             update.server_events.push_front(ServerEvent::Shockwave {
@@ -74,6 +77,7 @@ impl CharacterBehavior for Data {
                 shockwave_angle: self.shockwave_angle,
                 shockwave_speed: self.shockwave_speed,
                 shockwave_duration: self.shockwave_duration,
+                requires_ground: self.requires_ground,
             });
         } else if self.recover_duration != Duration::default() {
             // Recovery
@@ -89,6 +93,7 @@ impl CharacterBehavior for Data {
                 shockwave_angle: self.shockwave_angle,
                 shockwave_speed: self.shockwave_speed,
                 shockwave_duration: self.shockwave_duration,
+                requires_ground: self.requires_ground,
             });
         } else {
             // Done

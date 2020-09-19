@@ -121,6 +121,7 @@ pub enum CharacterAbility {
         shockwave_angle: f32,
         shockwave_speed: f32,
         shockwave_duration: Duration,
+        requires_ground: bool,
     },
 }
 
@@ -417,6 +418,7 @@ impl From<&CharacterAbility> for CharacterState {
                 shockwave_angle,
                 shockwave_speed,
                 shockwave_duration,
+                requires_ground,
             } => CharacterState::GroundShockwave(ground_shockwave::Data {
                 exhausted: false,
                 buildup_duration: *buildup_duration,
@@ -426,6 +428,7 @@ impl From<&CharacterAbility> for CharacterState {
                 shockwave_angle: *shockwave_angle,
                 shockwave_speed: *shockwave_speed,
                 shockwave_duration: *shockwave_duration,
+                requires_ground: *requires_ground,
             }),
         }
     }
