@@ -136,6 +136,7 @@ impl CharacterBehavior for Data {
                 ],
                 time_left: Duration::from_secs(15),
                 owner: None,
+                ignore_group: true,
             };
             projectile.owner = Some(*data.uid);
             update.server_events.push_front(ServerEvent::Shoot {
