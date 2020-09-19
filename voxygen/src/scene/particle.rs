@@ -449,10 +449,13 @@ impl ParticleMgr {
 
             let scaled_speed = shockwave.properties.speed * scale;
 
-            for heartbeat in 0..self
+            let heartbeats = self
                 .scheduler
-                .heartbeats(Duration::from_millis(scaled_speed as u64))
-            {
+                .heartbeats(Duration::from_millis(scaled_speed as u64));
+            let new_particle_count = distance / scale * heartbeats as f32;
+            self.particles.reserve(new_particle_count as usize);
+
+            for heartbeat in 0..heartbeats {
                 let sub_tick_interpolation = scaled_speed * 1000.0 * heartbeat as f32;
 
                 let distance =
