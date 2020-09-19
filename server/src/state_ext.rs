@@ -39,6 +39,13 @@ pub trait StateExt {
         body: comp::Body,
         projectile: comp::Projectile,
     ) -> EcsEntityBuilder;
+    /// Build a shockwave entity
+    fn create_shockwave(
+        &mut self,
+        properties: comp::shockwave::Properties,
+        pos: comp::Pos,
+        ori: comp::Ori,
+    ) -> EcsEntityBuilder;
     /// Insert common/default components for a new character joining the server
     fn initialize_character_data(&mut self, entity: EcsEntity, character_id: CharacterId);
     /// Update the components associated with the entity's current character.
@@ -132,6 +139,22 @@ impl StateExt for State {
             .with(body)
             .with(projectile)
             .with(comp::Sticky)
+    }
+
+    fn create_shockwave(
+        &mut self,
+        properties: comp::shockwave::Properties,
+        pos: comp::Pos,
+        ori: comp::Ori,
+    ) -> EcsEntityBuilder {
+        self.ecs_mut()
+            .create_entity_synced()
+            .with(pos)
+            .with(ori)
+            .with(comp::Shockwave {
+                properties,
+                creation: None,
+            })
     }
 
     fn initialize_character_data(&mut self, entity: EcsEntity, character_id: CharacterId) {

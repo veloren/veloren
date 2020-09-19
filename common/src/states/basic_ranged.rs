@@ -21,6 +21,7 @@ pub struct Data {
     pub projectile_body: Body,
     pub projectile_light: Option<LightEmitter>,
     pub projectile_gravity: Option<Gravity>,
+    pub projectile_speed: f32,
     /// Whether the attack fired already
     pub exhausted: bool,
 }
@@ -49,6 +50,7 @@ impl CharacterBehavior for Data {
                 projectile_body: self.projectile_body,
                 projectile_light: self.projectile_light,
                 projectile_gravity: self.projectile_gravity,
+                projectile_speed: self.projectile_speed,
                 exhausted: false,
             });
         } else if !self.exhausted {
@@ -62,6 +64,7 @@ impl CharacterBehavior for Data {
                 projectile,
                 light: self.projectile_light,
                 gravity: self.projectile_gravity,
+                speed: self.projectile_speed,
             });
 
             update.character = CharacterState::BasicRanged(Data {
@@ -73,6 +76,7 @@ impl CharacterBehavior for Data {
                 projectile_body: self.projectile_body,
                 projectile_light: self.projectile_light,
                 projectile_gravity: self.projectile_gravity,
+                projectile_speed: self.projectile_speed,
                 exhausted: true,
             });
         } else if self.recover_duration != Duration::default() {
@@ -89,6 +93,7 @@ impl CharacterBehavior for Data {
                 projectile_body: self.projectile_body,
                 projectile_light: self.projectile_light,
                 projectile_gravity: self.projectile_gravity,
+                projectile_speed: self.projectile_speed,
                 exhausted: true,
             });
             return update;

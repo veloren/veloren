@@ -2,8 +2,9 @@ use crate::{sys, Server, StateExt};
 use common::{
     character::CharacterId,
     comp::{
-        self, humanoid::DEFAULT_HUMANOID_EYE_HEIGHT, Agent, Alignment, Body, Gravity, Item,
-        ItemDrop, LightEmitter, Loadout, Pos, Projectile, Scale, Stats, Vel, WaypointArea,
+        self, humanoid::DEFAULT_HUMANOID_EYE_HEIGHT, shockwave, Agent, Alignment, Body, Gravity,
+        Item, ItemDrop, LightEmitter, Loadout, Ori, Pos, Projectile, Scale, Stats, Vel,
+        WaypointArea,
     },
     outcome::Outcome,
     util::Dir,
@@ -79,6 +80,7 @@ pub fn handle_create_npc(
     entity.build();
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn handle_shoot(
     server: &mut Server,
     entity: EcsEntity,
@@ -87,6 +89,7 @@ pub fn handle_shoot(
     light: Option<LightEmitter>,
     projectile: Projectile,
     gravity: Option<Gravity>,
+    speed: f32,
 ) {
     let state = server.state_mut();
 
@@ -97,7 +100,7 @@ pub fn handle_shoot(
         .expect("Failed to fetch entity")
         .0;
 
-    let vel = *dir * 100.0;
+    let vel = *dir * speed;
 
     // Add an outcome
     state
@@ -121,6 +124,16 @@ pub fn handle_shoot(
     }
 
     builder.build();
+}
+
+pub fn handle_shockwave(
+    server: &mut Server,
+    properties: shockwave::Properties,
+    pos: Pos,
+    ori: Ori,
+) {
+    let state = server.state_mut();
+    state.create_shockwave(properties, pos, ori).build();
 }
 
 pub fn handle_create_waypoint(server: &mut Server, pos: Vec3<f32>) {

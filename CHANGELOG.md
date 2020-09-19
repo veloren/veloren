@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fireflies
 - Fullscreen modes now show two options (exclusive and borderless)
 - Added banlist and `/ban`, `/unban`, and `/kick` commands for admins
+- A new dungeon boss (venture there and discover it yourself)
 
 ### Changed
 

@@ -13,7 +13,6 @@ use common::{
     comp::{self},
     generation::{ChunkSupplement, EntityInfo},
     lottery::Lottery,
-    npc,
     store::{Id, Store},
     terrain::{Block, BlockKind, Structure, TerrainChunkSize},
     vol::{BaseVol, ReadVol, RectSizedVol, RectVolSize, Vox, WriteVol},
@@ -509,22 +508,13 @@ impl Floor {
                             );
                             let chosen = chosen.choose();
                             let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                .with_scale(4.0)
-                                .with_level(rng.gen_range(75, 100))
+                                .with_level(rng.gen_range(1, 5))
                                 .with_alignment(comp::Alignment::Enemy)
-                                .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
-                                .with_name(format!(
-                                    "Cult Leader {}",
-                                    npc::get_npc_name(npc::NpcKind::Humanoid)
-                                ))
-                                .with_main_tool(comp::Item::new_from_asset_expect(
-                                    match rng.gen_range(0, 1) {
-                                        //Add more possible cult leader npc_weapons here
-                                        _ => {
-                                            "common.items.npc_weapons.sword.cultist_purp_2h_boss-0"
-                                        },
-                                    },
-                                ))
+                                .with_body(comp::Body::Golem(comp::golem::Body::random_with(
+                                    rng,
+                                    &comp::golem::Species::StoneGolem,
+                                )))
+                                .with_name("Stonework Defender".to_string())
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen));
 
                             supplement.add_entity(entity);

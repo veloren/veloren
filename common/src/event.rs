@@ -1,5 +1,8 @@
 use crate::{character::CharacterId, comp, sync::Uid, util::Dir};
-use comp::item::{Item, Reagent};
+use comp::{
+    item::{Item, Reagent},
+    Ori, Pos,
+};
 use parking_lot::Mutex;
 use specs::Entity as EcsEntity;
 use std::{collections::VecDeque, ops::DerefMut};
@@ -8,8 +11,11 @@ use vek::*;
 pub enum LocalEvent {
     /// Applies upward force to entity's `Vel`
     Jump(EcsEntity),
-    /// Applies the `force` to `entity`'s `Vel`
-    ApplyForce { entity: EcsEntity, force: Vec3<f32> },
+    /// Applies the `impulse` to `entity`'s `Vel`
+    ApplyImpulse {
+        entity: EcsEntity,
+        impulse: Vec3<f32>,
+    },
     /// Applies leaping force to `entity`'s `Vel` away from `wall_dir` direction
     WallLeap {
         entity: EcsEntity,
@@ -46,6 +52,16 @@ pub enum ServerEvent {
         light: Option<comp::LightEmitter>,
         projectile: comp::Projectile,
         gravity: Option<comp::Gravity>,
+        speed: f32,
+    },
+    Shockwave {
+        properties: comp::shockwave::Properties,
+        pos: Pos,
+        ori: Ori,
+    },
+    Knockback {
+        entity: EcsEntity,
+        impulse: Vec3<f32>,
     },
     LandOnGround {
         entity: EcsEntity,
