@@ -64,7 +64,7 @@ pub struct TerrainChunkData {
 struct ChunkMeshState {
     pos: Vec2<i32>,
     started_tick: u64,
-    active_worker: Option<u64>,
+    is_worker_active: bool,
 }
 
 /// A type produced by mesh worker threads corresponding to the position and
@@ -517,7 +517,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                             self.mesh_todo.insert(pos, ChunkMeshState {
                                 pos,
                                 started_tick: current_tick,
-                                active_worker: None,
+                                is_worker_active: false,
                             });
                         }
                     }
@@ -562,7 +562,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                         self.mesh_todo.insert(neighbour_chunk_pos, ChunkMeshState {
                             pos: neighbour_chunk_pos,
                             started_tick: current_tick,
-                            active_worker: None,
+                            is_worker_active: false,
                         });
                     }
                 }
@@ -577,12 +577,8 @@ impl<V: RectRasterableVol> Terrain<V> {
         for (todo, chunk) in self
             .mesh_todo
             .values_mut()
-            .filter(|todo| {
-                todo.active_worker
-                    .map(|worker_tick| worker_tick < todo.started_tick)
-                    .unwrap_or(true)
-            })
-            .min_by_key(|todo| todo.active_worker.unwrap_or(todo.started_tick))
+            .filter(|todo| !todo.is_worker_active)
+            .min_by_key(|todo| todo.started_tick)
             // Find a reference to the actual `TerrainChunk` we're meshing
             .and_then(|todo| {
                 let pos = todo.pos;
@@ -658,7 +654,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     &sprite_config,
                 ));
             });
-            todo.active_worker = Some(todo.started_tick);
+            todo.is_worker_active = true;
         }
         drop(guard);
 
