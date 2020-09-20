@@ -8,8 +8,7 @@ use common::{
     msg::ServerMsg,
     recipe::default_recipe_book,
     sync::{Uid, WorldSyncExt},
-    terrain::block::Block,
-    vol::{ReadVol, Vox},
+    vol::ReadVol,
 };
 use comp::LightEmitter;
 use rand::Rng;
