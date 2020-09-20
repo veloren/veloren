@@ -1,5 +1,6 @@
 #![deny(unsafe_code)]
 #![deny(clippy::clone_on_ref_ptr)]
+#![feature(bool_to_option)]
 
 mod shutdown_coordinator;
 mod tui_runner;
@@ -47,16 +48,22 @@ fn main() -> io::Result<()> {
                 .help("Disables the tui")
                 .takes_value(false),
         )
+        .arg(
+            Arg::with_name("interactive")
+                .short("i")
+                .long("interactive")
+                .help("Enables command input for basic mode")
+                .takes_value(false),
+        )
         .get_matches();
 
     let basic = matches.is_present("basic");
+    let interactive = matches.is_present("interactive");
 
     let sigusr1_signal = Arc::new(AtomicBool::new(false));
 
     #[cfg(any(target_os = "linux", target_os = "macos"))]
     let _ = signal_hook::flag::register(SIGUSR1, Arc::clone(&sigusr1_signal));
-
-    let (mut tui, msg_r) = Tui::new();
 
     // Init logging
     let base_exceptions = |env: EnvFilter| {
@@ -111,7 +118,7 @@ fn main() -> io::Result<()> {
         hook(info);
     }));
 
-    tui.run(basic);
+    let tui = (!basic || interactive).then(|| Tui::run(basic));
 
     info!("Starting server...");
 
@@ -156,22 +163,25 @@ fn main() -> io::Result<()> {
         #[cfg(feature = "tracy")]
         common::util::tracy_client::finish_continuous_frame!();
 
-        match msg_r.try_recv() {
-            Ok(msg) => match msg {
-                Message::AbortShutdown => shutdown_coordinator.abort_shutdown(&mut server),
-                Message::Shutdown { grace_period } => {
-                    // TODO: The TUI parser doesn't support quoted strings so it is not currently
-                    // possible to provide a shutdown reason from the console.
-                    let message = "The server is shutting down".to_owned();
-                    shutdown_coordinator.initiate_shutdown(&mut server, grace_period, message);
+        if let Some(tui) = tui.as_ref() {
+            match tui.msg_r.try_recv() {
+                Ok(msg) => match msg {
+                    Message::AbortShutdown => shutdown_coordinator.abort_shutdown(&mut server),
+                    Message::Shutdown { grace_period } => {
+                        // TODO: The TUI parser doesn't support quoted strings so it is not
+                        // currently possible to provide a shutdown reason
+                        // from the console.
+                        let message = "The server is shutting down".to_owned();
+                        shutdown_coordinator.initiate_shutdown(&mut server, grace_period, message);
+                    },
+                    Message::Quit => {
+                        info!("Closing the server");
+                        break;
+                    },
                 },
-                Message::Quit => {
-                    info!("Closing the server");
-                    break;
-                },
-            },
-            Err(mpsc::TryRecvError::Empty) | Err(mpsc::TryRecvError::Disconnected) => {},
-        };
+                Err(mpsc::TryRecvError::Empty) | Err(mpsc::TryRecvError::Disconnected) => {},
+            }
+        }
 
         // Wait for the next tick.
         clock.tick(Duration::from_millis(1000 / TPS));
