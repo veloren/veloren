@@ -25,7 +25,7 @@ use common::character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER};
 use core::ops::Range;
 use diesel::{prelude::*, sql_query, sql_types::BigInt};
 use std::sync::Arc;
-use tracing::{debug, error};
+use tracing::{error, trace};
 
 /// Private module for very tightly coupled database conversion methods.  In
 /// general, these have many invariants that need to be maintained when they're
@@ -444,7 +444,7 @@ fn get_new_entity_ids(
         )));
     }
 
-    debug!(
+    trace!(
         "Created {} new persistence entity_ids: {}",
         new_ids.end - new_ids.start,
         new_ids
@@ -533,7 +533,7 @@ pub fn update(
     })?;
 
     // Next, delete any slots we aren't upserting.
-    debug!("Deleting items for character_id {}", char_id);
+    trace!("Deleting items for character_id {}", char_id);
     let existing_items = parent_container_item_id
         .eq(pseudo_containers.inventory_container_id)
         .or(parent_container_item_id.eq(pseudo_containers.loadout_container_id));
@@ -546,7 +546,7 @@ pub fn update(
 
     let delete_count = diesel::delete(item.filter(existing_items.and(non_upserted_items)))
         .execute(&*connection)?;
-    debug!("Deleted {} items", delete_count);
+    trace!("Deleted {} items", delete_count);
 
     // Upsert items
     let expected_upsert_count = upserts.len();
@@ -557,9 +557,10 @@ pub fn update(
             .map(|model_pair| (model_pair.model, model_pair.comp))
             .unzip();
         upserted_comps = upserted_comps_;
-        debug!(
+        trace!(
             "Upserting items {:?} for character_id {}",
-            upserted_items, char_id
+            upserted_items,
+            char_id
         );
 
         let upsert_count = diesel::replace_into(item)
