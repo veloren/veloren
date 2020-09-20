@@ -669,7 +669,7 @@ impl FigureMgr {
                 .unwrap_or(vek::Rgba::broadcast(1.0))
             // Highlight targeted collectible entities
             * if item.is_some() && scene_data.target_entity.map_or(false, |e| e == entity) {
-                vek::Rgba::new(2.0, 2.0, 2.0, 1.0)
+                vek::Rgba::new(5.0, 5.0, 5.0, 1.0)
             } else {
                 vek::Rgba::one()
             };
