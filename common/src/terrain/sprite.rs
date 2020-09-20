@@ -170,39 +170,39 @@ impl SpriteKind {
     }
 
     pub fn has_ori(&self) -> bool {
-        match self {
+        matches!(
+            self,
             SpriteKind::Window1
-            | SpriteKind::Window2
-            | SpriteKind::Window3
-            | SpriteKind::Window4
-            | SpriteKind::Bed
-            | SpriteKind::Bench
-            | SpriteKind::ChairSingle
-            | SpriteKind::ChairDouble
-            | SpriteKind::CoatRack
-            | SpriteKind::Crate
-            | SpriteKind::DrawerLarge
-            | SpriteKind::DrawerMedium
-            | SpriteKind::DrawerSmall
-            | SpriteKind::DungeonWallDecor
-            | SpriteKind::HangingBasket
-            | SpriteKind::HangingSign
-            | SpriteKind::WallLamp
-            | SpriteKind::Planter
-            | SpriteKind::Shelf
-            | SpriteKind::TableSide
-            | SpriteKind::TableDining
-            | SpriteKind::TableDouble
-            | SpriteKind::WardrobeSingle
-            | SpriteKind::WardrobeDouble
-            | SpriteKind::Pot
-            | SpriteKind::Chest
-            | SpriteKind::DropGate
-            | SpriteKind::DropGateBottom
-            | SpriteKind::Door
-            | SpriteKind::Beehive => true,
-            _ => false,
-        }
+                | SpriteKind::Window2
+                | SpriteKind::Window3
+                | SpriteKind::Window4
+                | SpriteKind::Bed
+                | SpriteKind::Bench
+                | SpriteKind::ChairSingle
+                | SpriteKind::ChairDouble
+                | SpriteKind::CoatRack
+                | SpriteKind::Crate
+                | SpriteKind::DrawerLarge
+                | SpriteKind::DrawerMedium
+                | SpriteKind::DrawerSmall
+                | SpriteKind::DungeonWallDecor
+                | SpriteKind::HangingBasket
+                | SpriteKind::HangingSign
+                | SpriteKind::WallLamp
+                | SpriteKind::Planter
+                | SpriteKind::Shelf
+                | SpriteKind::TableSide
+                | SpriteKind::TableDining
+                | SpriteKind::TableDouble
+                | SpriteKind::WardrobeSingle
+                | SpriteKind::WardrobeDouble
+                | SpriteKind::Pot
+                | SpriteKind::Chest
+                | SpriteKind::DropGate
+                | SpriteKind::DropGateBottom
+                | SpriteKind::Door
+                | SpriteKind::Beehive
+        )
     }
 }
 

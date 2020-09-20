@@ -50,21 +50,11 @@ make_case_elim!(
 );
 
 impl BlockKind {
-    pub const fn is_air(&self) -> bool {
-        match self {
-            BlockKind::Air => true,
-            _ => false,
-        }
-    }
+    pub const fn is_air(&self) -> bool { matches!(self, BlockKind::Air) }
 
     pub const fn is_fluid(&self) -> bool { *self as u8 & 0xF0 == 0x00 }
 
-    pub const fn is_liquid(&self) -> bool {
-        match self {
-            BlockKind::Water => true,
-            _ => false,
-        }
-    }
+    pub const fn is_liquid(&self) -> bool { self.is_fluid() && !self.is_air() }
 
     pub const fn is_filled(&self) -> bool { !self.is_fluid() }
 }
@@ -199,7 +189,7 @@ impl Block {
         self
     }
 
-    /// If this block can have orientation, replace its sprite.
+    /// If this block can have orientation, give it a new orientation.
     pub fn with_ori(mut self, ori: u8) -> Self {
         if self.get_sprite().map(|s| s.has_ori()).unwrap_or(false) {
             self.attr[1] = (self.attr[1] & !0b111) | (ori & 0b111);
@@ -208,7 +198,7 @@ impl Block {
     }
 
     /// Remove the terrain sprite or solid aspects of a block
-    pub fn into_vacant(mut self) -> Self {
+    pub fn into_vacant(self) -> Self {
         if self.is_fluid() {
             Block::new(self.kind(), Rgb::zero())
         } else {

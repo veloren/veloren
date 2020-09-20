@@ -283,7 +283,7 @@ pub fn apply_scatter_to<'a>(
             )
         }),
         // Underwater chests
-        (Chest, true, |c, col| (MUSH_FACT * 0.25, None)),
+        (Chest, true, |_, _| (MUSH_FACT * 0.1, None)),
     ];
 
     for y in 0..vol.size_xy().y as i32 {

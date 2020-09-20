@@ -16,7 +16,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     // Setup: Create chunk and fill it (dense) for z in [140, 220).
     let mut chunk = TerrainChunk::new(
         MIN_Z,
-        Block::new(BlockKind::Dense, Default::default()),
+        Block::new(BlockKind::Rock, Default::default()),
         Block::empty(),
         TerrainChunkMeta::void(),
     );
@@ -29,7 +29,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         ),
     ) {
         chunk
-            .set(pos, Block::new(BlockKind::Dense, Default::default()))
+            .set(pos, Block::new(BlockKind::Rock, Default::default()))
             .unwrap();
     }
 
@@ -118,7 +118,7 @@ fn criterion_benchmark(c: &mut Criterion) {
                     MAX_Z,
                 ),
             ) {
-                let _ = chunk.set(pos, Block::new(BlockKind::Dense, Default::default()));
+                let _ = chunk.set(pos, Block::new(BlockKind::Rock, Default::default()));
             }
         })
     });
