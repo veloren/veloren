@@ -41,24 +41,26 @@ fn main() -> io::Result<()> {
         .version(common::util::DISPLAY_VERSION_LONG.as_str())
         .author("The veloren devs <https://gitlab.com/veloren/veloren>")
         .about("The veloren server cli provides an easy to use interface to start a veloren server")
-        .arg(
+        .args(&[
             Arg::with_name("basic")
                 .short("b")
                 .long("basic")
                 .help("Disables the tui")
                 .takes_value(false),
-        )
-        .arg(
             Arg::with_name("interactive")
                 .short("i")
                 .long("interactive")
                 .help("Enables command input for basic mode")
                 .takes_value(false),
-        )
+            Arg::with_name("no-auth")
+                .long("no-auth")
+                .help("Runs without auth enabled"),
+        ])
         .get_matches();
 
     let basic = matches.is_present("basic");
     let interactive = matches.is_present("interactive");
+    let no_auth = matches.is_present("no-auth");
 
     let sigusr1_signal = Arc::new(AtomicBool::new(false));
 
@@ -126,7 +128,12 @@ fn main() -> io::Result<()> {
     let mut clock = Clock::start();
 
     // Load settings
-    let settings = ServerSettings::load();
+    let mut settings = ServerSettings::load();
+    // TODO: make settings file immutable so that this does not overwrite the
+    // settings
+    if no_auth {
+        settings.auth_server_address = None;
+    }
     let server_port = &settings.gameserver_address.port();
     let metrics_port = &settings.metrics_address.port();
     // Create server
