@@ -120,7 +120,9 @@ impl<'a> System<'a> for Sys {
                 // let damage = stats.level.level() as i32; TODO: Make NPC base damage
                 // non-linearly depend on their level
 
-                let loadout = LoadoutBuilder::build_loadout(body, alignment, main_tool, entity.is_giant).build();
+                let loadout =
+                    LoadoutBuilder::build_loadout(body, alignment, main_tool, entity.is_giant)
+                        .build();
 
                 let mut scale = entity.scale;
 
