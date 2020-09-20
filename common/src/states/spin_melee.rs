@@ -57,7 +57,6 @@ impl CharacterBehavior for Data {
             update.vel.0 = Vec3::new(data.inputs.move_dir.x, data.inputs.move_dir.y, 0.0) * 5.0;
         } else {
             handle_orientation(data, &mut update, 1.0);
-            forward_move(data, &mut update, 0.1, self.static_data.forward_speed);
         }
 
         if self.stage_section == StageSection::Buildup
@@ -103,6 +102,8 @@ impl CharacterBehavior for Data {
         } else if self.stage_section == StageSection::Swing
             && self.timer < self.static_data.swing_duration
         {
+            forward_move(data, &mut update, 0.1, self.static_data.forward_speed);
+
             // Swings
             update.character = CharacterState::SpinMelee(Data {
                 static_data: self.static_data,
