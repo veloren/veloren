@@ -81,7 +81,9 @@ impl State {
                             kind != "Sceptre" && kind != "SceptreVelorite"
                         } else if let ToolKind::Debug(kind) = &kind.kind {
                             kind == "Boost"
-                        } else {matches!(&kind.kind, ToolKind::Sword(_))}
+                        } else {
+                            matches!(&kind.kind, ToolKind::Sword(_))
+                        }
                     } else {
                         false
                     }

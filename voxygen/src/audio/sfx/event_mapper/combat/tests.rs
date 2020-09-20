@@ -114,7 +114,10 @@ fn matches_ability_stage() {
 
     let result = CombatEventMapper::map_event(
         &CharacterState::ComboMelee(states::combo_melee::Data {
-            stage_data: vec![combo_melee::Stage {
+            stage: 1,
+            num_stages: 1,
+            combo: 0,
+            stage_data: vec![states::combo_melee::Stage {
                 stage: 1,
                 base_damage: 100,
                 max_damage: 120,
@@ -130,6 +133,9 @@ fn matches_ability_stage() {
             initial_energy_gain: 0,
             max_energy_gain: 100,
             energy_increase: 20,
+            timer: Duration::default(),
+            stage_section: states::utils::StageSection::Swing,
+            next_stage: false,
             speed_increase: 0.05,
             max_speed_increase: 1.8,
             is_interruptible: true,
@@ -166,7 +172,10 @@ fn ignores_different_ability_stage() {
 
     let result = CombatEventMapper::map_event(
         &CharacterState::ComboMelee(states::combo_melee::Data {
-            stage_data: vec![combo_melee::Stage {
+            stage: 1,
+            num_stages: 1,
+            combo: 0,
+            stage_data: vec![states::combo_melee::Stage {
                 stage: 1,
                 base_damage: 100,
                 max_damage: 120,
@@ -182,6 +191,9 @@ fn ignores_different_ability_stage() {
             initial_energy_gain: 0,
             max_energy_gain: 100,
             energy_increase: 20,
+            timer: Duration::default(),
+            stage_section: states::utils::StageSection::Swing,
+            next_stage: false,
             speed_increase: 0.05,
             max_speed_increase: 1.8,
             is_interruptible: true,
@@ -197,7 +209,7 @@ fn ignores_different_ability_stage() {
     assert_ne!(
         result,
         SfxEvent::Attack(
-            CharacterAbilityType::ComboMelee(states::utils::StageSection::Swing, 1),
+            CharacterAbilityType::ComboMelee(states::utils::StageSection::Swing, 2),
             ToolCategory::Sword
         )
     );
