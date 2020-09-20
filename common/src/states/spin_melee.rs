@@ -28,6 +28,8 @@ pub struct StaticData {
     pub is_infinite: bool,
     /// Used to maintain classic axe spin physics
     pub is_helicopter: bool,
+    /// Whether the state can be interrupted by other abilities
+    pub is_interruptible: bool,
     /// Used for forced forward movement
     pub forward_speed: f32,
     /// Number of spins
@@ -55,8 +57,17 @@ impl CharacterBehavior for Data {
 
         if self.static_data.is_helicopter {
             update.vel.0 = Vec3::new(data.inputs.move_dir.x, data.inputs.move_dir.y, 0.0) * 5.0;
-        } else {
-            handle_orientation(data, &mut update, 1.0);
+        }
+
+        // Allows for other states to interrupt this state
+        if self.static_data.is_interruptible && !data.inputs.ability3.is_pressed() {
+            handle_interrupt(data, &mut update);
+            match update.character {
+                CharacterState::SpinMelee(_) => {},
+                _ => {
+                    return update;
+                },
+            }
         }
 
         if self.stage_section == StageSection::Buildup
@@ -71,7 +82,7 @@ impl CharacterBehavior for Data {
                     .unwrap_or_default(),
                 spins_remaining: self.spins_remaining,
                 stage_section: self.stage_section,
-                exhausted: self.exhausted
+                exhausted: self.exhausted,
             });
         } else if self.stage_section == StageSection::Buildup {
             // Transitions to swing section of stage
@@ -80,7 +91,7 @@ impl CharacterBehavior for Data {
                 timer: Duration::default(),
                 spins_remaining: self.spins_remaining,
                 stage_section: StageSection::Swing,
-                exhausted: self.exhausted
+                exhausted: self.exhausted,
             });
         } else if !self.exhausted {
             update.character = CharacterState::SpinMelee(Data {
@@ -102,7 +113,10 @@ impl CharacterBehavior for Data {
         } else if self.stage_section == StageSection::Swing
             && self.timer < self.static_data.swing_duration
         {
-            forward_move(data, &mut update, 0.1, self.static_data.forward_speed);
+            if !self.static_data.is_helicopter {
+                forward_move(data, &mut update, 0.1, self.static_data.forward_speed);
+                handle_orientation(data, &mut update, 1.0);
+            }
 
             // Swings
             update.character = CharacterState::SpinMelee(Data {
@@ -113,37 +127,37 @@ impl CharacterBehavior for Data {
                     .unwrap_or_default(),
                 spins_remaining: self.spins_remaining,
                 stage_section: self.stage_section,
-                exhausted: self.exhausted
+                exhausted: self.exhausted,
             });
         } else if update.energy.current() >= self.static_data.energy_cost
-        && (self.spins_remaining != 0
-            || (self.static_data.is_infinite && data.inputs.secondary.is_pressed()))
-    {
-        let new_spins_remaining = if self.static_data.is_infinite {
-            self.spins_remaining
-        } else {
-            self.spins_remaining - 1
-        };
-        update.character = CharacterState::SpinMelee(Data {
-            static_data: self.static_data,
-            timer: Duration::default(),
-            spins_remaining: new_spins_remaining,
-            stage_section: self.stage_section,
-            exhausted: false,
-        });
-        // Consumes energy if there's enough left and RMB is held down
-        update.energy.change_by(
-            -(self.static_data.energy_cost as i32),
-            EnergySource::Ability,
-        );
-    } else if self.stage_section == StageSection::Swing {
+            && (self.spins_remaining != 0
+                || (self.static_data.is_infinite && data.inputs.secondary.is_pressed()))
+        {
+            let new_spins_remaining = if self.static_data.is_infinite {
+                self.spins_remaining
+            } else {
+                self.spins_remaining - 1
+            };
+            update.character = CharacterState::SpinMelee(Data {
+                static_data: self.static_data,
+                timer: Duration::default(),
+                spins_remaining: new_spins_remaining,
+                stage_section: self.stage_section,
+                exhausted: false,
+            });
+            // Consumes energy if there's enough left and RMB is held down
+            update.energy.change_by(
+                -(self.static_data.energy_cost as i32),
+                EnergySource::Ability,
+            );
+        } else if self.stage_section == StageSection::Swing {
             // Transitions to recover section of stage
             update.character = CharacterState::SpinMelee(Data {
                 static_data: self.static_data,
                 timer: Duration::default(),
                 spins_remaining: self.spins_remaining,
                 stage_section: StageSection::Recover,
-                exhausted: self.exhausted
+                exhausted: self.exhausted,
             })
         } else if self.stage_section == StageSection::Recover
             && self.timer < self.static_data.recover_duration
@@ -157,7 +171,7 @@ impl CharacterBehavior for Data {
                     .unwrap_or_default(),
                 spins_remaining: self.spins_remaining,
                 stage_section: self.stage_section,
-                exhausted: self.exhausted
+                exhausted: self.exhausted,
             })
         } else {
             // Done

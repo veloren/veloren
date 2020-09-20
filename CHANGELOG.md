@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Figure meshing no longer blocks the main thread.
 - Overhauled persistence layer including no longer storing serialized JSON items in the database
 - Overhauled representation of blocks to permit fluid and sprite coexistence
+- Overhauled sword
 
 ### Removed
 

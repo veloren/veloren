@@ -77,8 +77,7 @@ impl CharacterBehavior for Data {
 
         // Allows for other states to interrupt this state
         if self.is_interruptible && !data.inputs.primary.is_pressed() {
-            handle_dodge_input(data, &mut update);
-            handle_ability2_input(data, &mut update);
+            handle_interrupt(data, &mut update);
             match update.character {
                 CharacterState::ComboMelee(_) => {},
                 _ => {

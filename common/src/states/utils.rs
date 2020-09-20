@@ -347,6 +347,13 @@ pub fn unwrap_tool_data<'a>(data: &'a JoinData) -> Option<&'a Tool> {
     }
 }
 
+pub fn handle_interrupt(data: &JoinData, update: &mut StateUpdate) {
+    handle_ability1_input(data, update);
+    handle_ability2_input(data, update);
+    handle_ability3_input(data, update);
+    handle_dodge_input(data, update);
+}
+
 /// Determines what portion a state is in. Used in all attacks (eventually). Is
 /// used to control aspects of animation code, as well as logic within the
 /// character states.

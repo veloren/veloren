@@ -115,6 +115,7 @@ pub enum CharacterAbility {
         energy_cost: u32,
         is_infinite: bool,
         is_helicopter: bool,
+        is_interruptible: bool,
         forward_speed: f32,
         num_spins: u32,
     },
@@ -418,6 +419,7 @@ impl From<&CharacterAbility> for CharacterState {
                 energy_cost,
                 is_infinite,
                 is_helicopter,
+                is_interruptible,
                 forward_speed,
                 num_spins,
             } => CharacterState::SpinMelee(spin_melee::Data {
@@ -431,6 +433,7 @@ impl From<&CharacterAbility> for CharacterState {
                     energy_cost: *energy_cost,
                     is_infinite: *is_infinite,
                     is_helicopter: *is_helicopter,
+                    is_interruptible: *is_interruptible,
                     forward_speed: *forward_speed,
                     num_spins: *num_spins,
                 },

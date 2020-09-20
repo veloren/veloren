@@ -66,7 +66,12 @@ impl LoadoutBuilder {
     }
 
     /// Builds loadout of creature when spawned
-    pub fn build_loadout(body: Body, alignment: Alignment, mut main_tool: Option<Item>, is_giant: bool) -> Self {
+    pub fn build_loadout(
+        body: Body,
+        alignment: Alignment,
+        mut main_tool: Option<Item>,
+        is_giant: bool,
+    ) -> Self {
         #![allow(clippy::single_match)] // For when this is done to more than just golems.
         match body {
             Body::Golem(golem) => match golem.species {
@@ -76,10 +81,12 @@ impl LoadoutBuilder {
                     ));
                 },
             },
-            Body::Humanoid(_) => if is_giant {
-                main_tool = Some(Item::new_from_asset_expect(
-                    "common.items.npc_weapons.sword.zweihander_sword_0",
-                ));
+            Body::Humanoid(_) => {
+                if is_giant {
+                    main_tool = Some(Item::new_from_asset_expect(
+                        "common.items.npc_weapons.sword.zweihander_sword_0",
+                    ));
+                }
             },
             _ => {},
         };
@@ -219,7 +226,7 @@ impl LoadoutBuilder {
                         tabard: None,
                     },
                     _ => LoadoutBuilder::animal(body).build(),
-                }
+                },
             },
             Body::Golem(golem) => match golem.species {
                 golem::Species::StoneGolem => Loadout {
