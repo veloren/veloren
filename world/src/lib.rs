@@ -116,7 +116,7 @@ impl World {
 
         let air = Block::empty();
         let stone = Block::new(
-            BlockKind::Dense,
+            BlockKind::Rock,
             zcache_grid
                 .get(grid_border + TerrainChunkSize::RECT_SIZE.map(|e| e as i32) / 2)
                 .and_then(|zcache| zcache.as_ref())

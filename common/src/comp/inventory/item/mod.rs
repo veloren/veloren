@@ -8,7 +8,7 @@ use crate::{
     assets::{self, Asset, Error},
     effect::Effect,
     lottery::Lottery,
-    terrain::{Block, BlockKind},
+    terrain::{Block, SpriteKind},
 };
 use crossbeam::atomic::AtomicCell;
 use rand::prelude::*;
@@ -277,23 +277,23 @@ impl Item {
     pub fn try_reclaim_from_block(block: Block) -> Option<Self> {
         let chosen;
         let mut rng = rand::thread_rng();
-        Some(Item::new_from_asset_expect(match block.kind() {
-            BlockKind::Apple => "common.items.food.apple",
-            BlockKind::Mushroom => "common.items.food.mushroom",
-            BlockKind::Velorite => "common.items.ore.velorite",
-            BlockKind::VeloriteFrag => "common.items.ore.veloritefrag",
-            BlockKind::BlueFlower => "common.items.flowers.blue",
-            BlockKind::PinkFlower => "common.items.flowers.pink",
-            BlockKind::PurpleFlower => "common.items.flowers.purple",
-            BlockKind::RedFlower => "common.items.flowers.red",
-            BlockKind::WhiteFlower => "common.items.flowers.white",
-            BlockKind::YellowFlower => "common.items.flowers.yellow",
-            BlockKind::Sunflower => "common.items.flowers.sun",
-            BlockKind::LongGrass => "common.items.grasses.long",
-            BlockKind::MediumGrass => "common.items.grasses.medium",
-            BlockKind::ShortGrass => "common.items.grasses.short",
-            BlockKind::Coconut => "common.items.food.coconut",
-            BlockKind::Chest => {
+        Some(Item::new_from_asset_expect(match block.get_sprite()? {
+            SpriteKind::Apple => "common.items.food.apple",
+            SpriteKind::Mushroom => "common.items.food.mushroom",
+            SpriteKind::Velorite => "common.items.ore.velorite",
+            SpriteKind::VeloriteFrag => "common.items.ore.veloritefrag",
+            SpriteKind::BlueFlower => "common.items.flowers.blue",
+            SpriteKind::PinkFlower => "common.items.flowers.pink",
+            SpriteKind::PurpleFlower => "common.items.flowers.purple",
+            SpriteKind::RedFlower => "common.items.flowers.red",
+            SpriteKind::WhiteFlower => "common.items.flowers.white",
+            SpriteKind::YellowFlower => "common.items.flowers.yellow",
+            SpriteKind::Sunflower => "common.items.flowers.sun",
+            SpriteKind::LongGrass => "common.items.grasses.long",
+            SpriteKind::MediumGrass => "common.items.grasses.medium",
+            SpriteKind::ShortGrass => "common.items.grasses.short",
+            SpriteKind::Coconut => "common.items.food.coconut",
+            SpriteKind::Chest => {
                 chosen = Lottery::<String>::load_expect(match rng.gen_range(0, 7) {
                     0 => "common.loot_tables.loot_table_weapon_uncommon",
                     1 => "common.loot_tables.loot_table_weapon_common",
@@ -304,13 +304,13 @@ impl Item {
                 });
                 chosen.choose()
             },
-            BlockKind::Crate => {
+            SpriteKind::Crate => {
                 chosen = Lottery::<String>::load_expect("common.loot_tables.loot_table_food");
                 chosen.choose()
             },
-            BlockKind::Stones => "common.items.crafting_ing.stones",
-            BlockKind::Twigs => "common.items.crafting_ing.twigs",
-            BlockKind::ShinyGem => "common.items.crafting_ing.shiny_gem",
+            SpriteKind::Stones => "common.items.crafting_ing.stones",
+            SpriteKind::Twigs => "common.items.crafting_ing.twigs",
+            SpriteKind::ShinyGem => "common.items.crafting_ing.shiny_gem",
             _ => return None,
         }))
     }

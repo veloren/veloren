@@ -19,7 +19,7 @@ use common::{
     path::Path,
     spiral::Spiral2d,
     store::{Id, Store},
-    terrain::{Block, BlockKind, TerrainChunkSize},
+    terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
     vol::{BaseVol, ReadVol, RectSizedVol, RectVolSize, Vox, WriteVol},
 };
 use fxhash::FxHasher64;
@@ -611,7 +611,7 @@ impl Settlement {
                 }
 
                 {
-                    let mut surface_block = None;
+                    let mut surface_sprite = None;
 
                     let roll =
                         |seed, n| self.noise.get(Vec3::new(wpos2d.x, wpos2d.y, seed * 5)) % n;
@@ -637,8 +637,7 @@ impl Settlement {
                                 if (col_sample.path.map(|(dist, _, _, _)| dist > 6.0 && dist < 7.0).unwrap_or(false) && is_lamp) //roll(0, 50) == 0)
                                     || (roll(0, 2000) == 0 && col_sample.path.map(|(dist, _, _, _)| dist > 20.0).unwrap_or(true))
                                 {
-                                    surface_block =
-                                        Some(Block::new(BlockKind::StreetLamp, Rgb::white()));
+                                    surface_sprite = Some(SpriteKind::StreetLamp);
                                 }
                             }
 
@@ -676,41 +675,38 @@ impl Settlement {
 
                             if in_furrow {
                                 if roll(0, 5) == 0 {
-                                    surface_block = match crop {
-                                        Crop::Corn => Some(BlockKind::Corn),
+                                    surface_sprite = match crop {
+                                        Crop::Corn => Some(SpriteKind::Corn),
                                         Crop::Wheat if roll(1, 2) == 0 => {
-                                            Some(BlockKind::WheatYellow)
+                                            Some(SpriteKind::WheatYellow)
                                         },
-                                        Crop::Wheat => Some(BlockKind::WheatGreen),
+                                        Crop::Wheat => Some(SpriteKind::WheatGreen),
                                         Crop::Cabbage if roll(2, 2) == 0 => {
-                                            Some(BlockKind::Cabbage)
+                                            Some(SpriteKind::Cabbage)
                                         },
                                         Crop::Pumpkin if roll(3, 2) == 0 => {
-                                            Some(BlockKind::Pumpkin)
+                                            Some(SpriteKind::Pumpkin)
                                         },
-                                        Crop::Flax if roll(4, 2) == 0 => Some(BlockKind::Flax),
-                                        Crop::Carrot if roll(5, 2) == 0 => Some(BlockKind::Carrot),
-                                        Crop::Tomato if roll(6, 2) == 0 => Some(BlockKind::Tomato),
-                                        Crop::Radish if roll(7, 2) == 0 => Some(BlockKind::Radish),
-                                        Crop::Turnip if roll(8, 2) == 0 => Some(BlockKind::Turnip),
-                                        Crop::Sunflower => Some(BlockKind::Sunflower),
-                                        _ => None,
+                                        Crop::Flax if roll(4, 2) == 0 => Some(SpriteKind::Flax),
+                                        Crop::Carrot if roll(5, 2) == 0 => Some(SpriteKind::Carrot),
+                                        Crop::Tomato if roll(6, 2) == 0 => Some(SpriteKind::Tomato),
+                                        Crop::Radish if roll(7, 2) == 0 => Some(SpriteKind::Radish),
+                                        Crop::Turnip if roll(8, 2) == 0 => Some(SpriteKind::Turnip),
+                                        Crop::Sunflower => Some(SpriteKind::Sunflower),
+                                        _ => surface_sprite,
                                     }
                                     .or_else(|| {
                                         if roll(9, 400) == 0 {
-                                            Some(BlockKind::Scarecrow)
+                                            Some(SpriteKind::Scarecrow)
                                         } else {
                                             None
                                         }
-                                    })
-                                    .map(|kind| Block::new(kind, Rgb::white()));
+                                    });
                                 }
                             } else if roll(0, 20) == 0 {
-                                surface_block =
-                                    Some(Block::new(BlockKind::ShortGrass, Rgb::white()));
+                                surface_sprite = Some(SpriteKind::ShortGrass);
                             } else if roll(1, 30) == 0 {
-                                surface_block =
-                                    Some(Block::new(BlockKind::MediumGrass, Rgb::white()));
+                                surface_sprite = Some(SpriteKind::MediumGrass);
                             }
 
                             Some(if in_furrow { dirt } else { mound })
@@ -732,12 +728,20 @@ impl Settlement {
                                 let pos = Vec3::new(offs.x, offs.y, surface_z + z);
                                 let block = vol.get(pos).ok().copied().unwrap_or_else(Block::empty);
 
-                                if block.kind() == BlockKind::Air {
+                                if block.is_empty() {
                                     break;
                                 }
 
-                                if let (0, Some(block)) = (z, surface_block) {
-                                    let _ = vol.set(pos, block);
+                                if let (0, Some(sprite)) = (z, surface_sprite) {
+                                    let _ = vol.set(
+                                        pos,
+                                        if block.is_fluid() {
+                                            block
+                                        } else {
+                                            Block::empty()
+                                        }
+                                        .with_sprite(sprite),
+                                    );
                                 } else if z >= 0 {
                                     if block.kind() != BlockKind::Water {
                                         let _ = vol.set(pos, Block::empty());
@@ -745,7 +749,7 @@ impl Settlement {
                                 } else {
                                     let _ = vol.set(
                                         pos,
-                                        Block::new(BlockKind::Normal, noisy_color(color, 4)),
+                                        Block::new(BlockKind::Earth, noisy_color(color, 4)),
                                     );
                                 }
                             }
@@ -773,7 +777,7 @@ impl Settlement {
                         if dist / WayKind::Wall.width() < ((1.0 - z as f32 / 12.0) * 2.0).min(1.0) {
                             let _ = vol.set(
                                 Vec3::new(offs.x, offs.y, surface_z + z),
-                                Block::new(BlockKind::Normal, color),
+                                Block::new(BlockKind::Wood, color),
                             );
                         }
                     }
@@ -784,7 +788,7 @@ impl Settlement {
                     for z in -2..16 {
                         let _ = vol.set(
                             Vec3::new(offs.x, offs.y, surface_z + z),
-                            Block::new(BlockKind::Normal, colors.tower_color.into()),
+                            Block::new(BlockKind::Rock, colors.tower_color.into()),
                         );
                     }
                 }

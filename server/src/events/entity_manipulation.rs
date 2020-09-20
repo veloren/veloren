@@ -569,7 +569,7 @@ pub fn handle_explosion(
         let terrain = ecs.read_resource::<TerrainGrid>();
         let _ = terrain
             .ray(pos, pos + dir * power)
-            .until(|block| block.is_fluid() || rand::random::<f32>() < 0.05)
+            .until(|block| block.is_liquid() || rand::random::<f32>() < 0.05)
             .for_each(|block: &Block, pos| {
                 if block.is_explodable() {
                     block_change.set(pos, Block::empty());

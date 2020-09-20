@@ -1,6 +1,6 @@
 use crate::{column::ColumnSample, sim::SimChunk, util::RandomField, IndexRef, CONFIG};
 use common::{
-    terrain::{Block, BlockKind},
+    terrain::{Block, SpriteKind},
     vol::{BaseVol, ReadVol, RectSizedVol, WriteVol},
 };
 use noise::NoiseFn;
@@ -18,7 +18,7 @@ pub fn apply_scatter_to<'a>(
     index: IndexRef,
     chunk: &SimChunk,
 ) {
-    use BlockKind::*;
+    use SpriteKind::*;
     #[allow(clippy::type_complexity)]
     // TODO: Add back all sprites we had before
     let scatter: &[(
@@ -282,6 +282,8 @@ pub fn apply_scatter_to<'a>(
                 Some((128.0, 0.5)),
             )
         }),
+        // Underwater chests
+        (Chest, true, |c, col| (MUSH_FACT * 0.25, None)),
     ];
 
     for y in 0..vol.size_xy().y as i32 {
@@ -299,10 +301,10 @@ pub fn apply_scatter_to<'a>(
 
             let underwater = col_sample.water_level > col_sample.alt;
 
-            let bk = scatter
+            let kind = scatter
                 .iter()
                 .enumerate()
-                .find_map(|(i, (bk, is_underwater, f))| {
+                .find_map(|(i, (kind, is_underwater, f))| {
                     let (density, patch) = f(chunk, col_sample);
                     let is_patch = patch
                         .map(|(wavelen, threshold)| {
@@ -324,13 +326,13 @@ pub fn apply_scatter_to<'a>(
                             .chance(Vec3::new(wpos2d.x, wpos2d.y, 0), density)
                         && underwater == *is_underwater
                     {
-                        Some(*bk)
+                        Some(*kind)
                     } else {
                         None
                     }
                 });
 
-            if let Some(bk) = bk {
+            if let Some(kind) = kind {
                 let alt = col_sample.alt as i32;
 
                 // Find the intersection between ground and air, if there is one near the
@@ -349,10 +351,9 @@ pub fn apply_scatter_to<'a>(
                         })
                     })
                 {
-                    let _ = vol.set(
-                        Vec3::new(offs.x, offs.y, alt + solid_end),
-                        Block::new(bk, Rgb::broadcast(0)),
-                    );
+                    let _ = vol.map(Vec3::new(offs.x, offs.y, alt + solid_end), |block| {
+                        block.with_sprite(kind)
+                    });
                 }
             }
         }

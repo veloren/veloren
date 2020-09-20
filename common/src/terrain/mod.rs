@@ -2,6 +2,7 @@ pub mod biome;
 pub mod block;
 pub mod chonk;
 pub mod map;
+pub mod sprite;
 pub mod structure;
 
 // Reexports
@@ -9,6 +10,7 @@ pub use self::{
     biome::BiomeKind,
     block::{Block, BlockKind},
     map::MapSizeLg,
+    sprite::SpriteKind,
     structure::Structure,
 };
 use roots::find_roots_cubic;
