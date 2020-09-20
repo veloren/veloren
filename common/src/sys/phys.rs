@@ -619,7 +619,7 @@ impl<'a> System<'a> for Sys {
                 },
                 Collider::Point => {
                     let (dist, block) = terrain.ray(pos.0, pos.0 + pos_delta)
-                        .until(|vox| !vox.is_air() && !vox.is_fluid())
+                        .until(|vox| !vox.is_air() && !vox.is_liquid())
                         .ignore_error().cast();
 
                     pos.0 += pos_delta.try_normalized().unwrap_or(Vec3::zero()) * dist;
@@ -655,7 +655,7 @@ impl<'a> System<'a> for Sys {
 
                     physics_state.in_fluid = terrain.get(pos.0.map(|e| e.floor() as i32))
                         .ok()
-                        .and_then(|vox| vox.is_fluid().then_some(1.0));
+                        .and_then(|vox| vox.is_liquid().then_some(1.0));
                 },
             }
 
