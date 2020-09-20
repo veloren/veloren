@@ -17,7 +17,7 @@ use common::{
     figure::Segment,
     span,
     spiral::Spiral2d,
-    terrain::{block, Block, BlockKind, TerrainChunk},
+    terrain::{sprite, Block, SpriteKind, TerrainChunk},
     vol::{BaseVol, ReadVol, RectRasterableVol, SampleVol, Vox},
     volumes::vol_grid_2d::{VolGrid2d, VolGrid2dError},
 };
@@ -49,7 +49,7 @@ pub struct TerrainChunkData {
     opaque_model: Model<TerrainPipeline>,
     fluid_model: Option<Model<FluidPipeline>>,
     col_lights: guillotiere::AllocId,
-    sprite_instances: HashMap<(BlockKind, usize), Instances<SpriteInstance>>,
+    sprite_instances: HashMap<(SpriteKind, usize), Instances<SpriteInstance>>,
     locals: Consts<TerrainLocals>,
     pub blocks_of_interest: BlocksOfInterest,
 
@@ -75,7 +75,7 @@ struct MeshWorkerResponse {
     opaque_mesh: Mesh<TerrainPipeline>,
     fluid_mesh: Mesh<FluidPipeline>,
     col_lights_info: ColLightInfo,
-    sprite_instances: HashMap<(BlockKind, usize), Vec<SpriteInstance>>,
+    sprite_instances: HashMap<(SpriteKind, usize), Vec<SpriteInstance>>,
     started_tick: u64,
     blocks_of_interest: BlocksOfInterest,
 }
@@ -94,7 +94,7 @@ struct SpriteModelConfig<Model> {
 
 #[derive(Deserialize)]
 /// Configuration data for a group of sprites (currently associated with a
-/// particular BlockKind).
+/// particular SpriteKind).
 struct SpriteConfig<Model> {
     /// All possible model variations for this sprite.
     // NOTE: Could make constant per sprite type, but eliminating this indirection and
@@ -109,7 +109,7 @@ struct SpriteConfig<Model> {
 /// Configuration data for all sprite models.
 ///
 /// NOTE: Model is an asset path to the appropriate sprite .vox model.
-type SpriteSpec = block::block_kind::PureCases<Option<SpriteConfig<String>>>;
+type SpriteSpec = sprite::sprite_kind::PureCases<Option<SpriteConfig<String>>>;
 
 /// Function executed by worker threads dedicated to chunk meshing.
 #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
@@ -122,7 +122,7 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
     max_texture_size: u16,
     chunk: Arc<TerrainChunk>,
     range: Aabb<i32>,
-    sprite_data: &HashMap<(BlockKind, usize), Vec<SpriteData>>,
+    sprite_data: &HashMap<(SpriteKind, usize), Vec<SpriteData>>,
     sprite_config: &SpriteSpec,
 ) -> MeshWorkerResponse {
     span!(_guard, "mesh_worker");
@@ -146,14 +146,19 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
                         let wpos = Vec3::from(pos * V::RECT_SIZE.map(|e: u32| e as i32)) + rel_pos;
 
                         let block = volume.get(wpos).ok().copied().unwrap_or(Block::empty());
+                        let sprite = if let Some(sprite) = block.get_sprite() {
+                            sprite
+                        } else {
+                            continue;
+                        };
 
-                        if let Some(cfg) = block.kind().elim_case_pure(&sprite_config) {
+                        if let Some(cfg) = sprite.elim_case_pure(&sprite_config) {
                             let seed = wpos.x as u64 * 3
                                 + wpos.y as u64 * 7
                                 + wpos.x as u64 * wpos.y as u64; // Awful PRNG
                             let ori = (block.get_ori().unwrap_or((seed % 4) as u8 * 2)) & 0b111;
                             let variation = seed as usize % cfg.variations.len();
-                            let key = (block.kind(), variation);
+                            let key = (sprite, variation);
                             // NOTE: Safe because we called sprite_config_for already.
                             // NOTE: Safe because 0 ≤ ori < 8
                             let sprite_data = &sprite_data[&key][0];
@@ -218,7 +223,7 @@ pub struct Terrain<V: RectRasterableVol> {
     mesh_todo: HashMap<Vec2<i32>, ChunkMeshState>,
 
     // GPU data
-    sprite_data: Arc<HashMap<(BlockKind, usize), Vec<SpriteData>>>,
+    sprite_data: Arc<HashMap<(SpriteKind, usize), Vec<SpriteData>>>,
     sprite_col_lights: Texture<ColLightFmt>,
     col_lights: Texture<ColLightFmt>,
     waves: Texture,
@@ -254,7 +259,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         let sprite_config_ = &sprite_config;
         // NOTE: Tracks the start vertex of the next model to be meshed.
 
-        let sprite_data: HashMap<(BlockKind, usize), _> = BlockKind::into_enum_iter()
+        let sprite_data: HashMap<(SpriteKind, usize), _> = SpriteKind::into_enum_iter()
             .filter_map(|kind| Some((kind, kind.elim_case_pure(&sprite_config_).as_ref()?)))
             .flat_map(|(kind, sprite_config)| {
                 let wind_sway = sprite_config.wind_sway;

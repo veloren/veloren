@@ -97,7 +97,7 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
                 if vol
                     .get(outer.min + pos)
                     .ok()
-                    .map_or(false, |b| b.is_air() || b.is_fluid())
+                    .map_or(false, |b| b.is_fluid())
                 {
                     *dest = src - 1;
                     // Can't propagate further
@@ -127,14 +127,14 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
             // Down is special cased and we know up is a ray
             // Special cased ray propagation
             let pos = Vec3::new(pos.x, pos.y, pos.z - 1);
-            let (is_air, is_fluid) = vol_cached
+            let (is_air, is_liquid) = vol_cached
                 .get(outer.min + pos)
                 .ok()
-                .map_or((false, false), |b| (b.is_air(), b.is_fluid()));
+                .map_or((false, false), |b| (b.is_air(), b.is_liquid()));
             light_map[lm_idx(pos.x, pos.y, pos.z)] = if is_air {
                 prop_que.push_back((pos.x as u8, pos.y as u8, pos.z as u16));
                 SUNLIGHT
-            } else if is_fluid {
+            } else if is_liquid {
                 prop_que.push_back((pos.x as u8, pos.y as u8, pos.z as u16));
                 SUNLIGHT - 1
             } else {
@@ -268,7 +268,7 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
                                 opaque_limits = opaque_limits
                                     .map(|l| l.including(z))
                                     .or_else(|| Some(Limits::from_value(z)));
-                            } else if block.is_fluid() {
+                            } else if block.is_liquid() {
                                 fluid_limits = fluid_limits
                                     .map(|l| l.including(z))
                                     .or_else(|| Some(Limits::from_value(z)));
@@ -412,15 +412,15 @@ fn should_draw_greedy(
     let to = flat_get(pos);
     let from_opaque = from.is_opaque();
     if from_opaque == to.is_opaque() {
-        // Check the interface of fluid and non-tangible non-fluids (e.g. air).
-        let from_fluid = from.is_fluid();
-        if from_fluid == to.is_fluid() || from.is_tangible() || to.is_tangible() {
+        // Check the interface of liquid and non-tangible non-liquid (e.g. air).
+        let from_liquid = from.is_liquid();
+        if from_liquid == to.is_liquid() || from.is_opaque() || to.is_opaque() {
             None
         } else {
-            // While fluid is not culled, we still try to keep a consistent orientation as
-            // we do for land; if going from fluid to non-fluid,
+            // While liquid is not culled, we still try to keep a consistent orientation as
+            // we do for land; if going from liquid to non-liquid,
             // forwards-facing; otherwise, backwards-facing.
-            Some((from_fluid, FaceKind::Fluid))
+            Some((from_liquid, FaceKind::Fluid))
         }
     } else {
         // If going from transparent to opaque, backward facing; otherwise, forward
@@ -428,9 +428,9 @@ fn should_draw_greedy(
         Some((
             from_opaque,
             FaceKind::Opaque(if from_opaque {
-                to.is_fluid()
+                to.is_liquid()
             } else {
-                from.is_fluid()
+                from.is_liquid()
             }),
         ))
     }

@@ -118,7 +118,7 @@ impl Globals {
                 0.0,
                 0.0,
             ],
-            medium: [if medium.is_fluid() { 1 } else { 0 }; 4],
+            medium: [if medium.is_liquid() { 1 } else { 0 }; 4],
             select_pos: select_pos
                 .map(|sp| Vec4::from(sp) + Vec4::unit_w())
                 .unwrap_or(Vec4::zero())

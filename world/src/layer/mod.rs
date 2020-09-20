@@ -12,7 +12,7 @@ use common::{
     comp,
     generation::{ChunkSupplement, EntityInfo},
     lottery::Lottery,
-    terrain::{Block, BlockKind},
+    terrain::{Block, BlockKind, SpriteKind},
     vol::{BaseVol, ReadVol, RectSizedVol, Vox, WriteVol},
 };
 use noise::NoiseFn;
@@ -98,14 +98,14 @@ pub fn apply_paths_to<'a>(
                         Vec3::new(offs.x, offs.y, surface_z + z),
                         if bridge_offset >= 2.0 && path_dist >= 3.0 || z < inset - 1 {
                             Block::new(
-                                BlockKind::Normal,
+                                BlockKind::Rock,
                                 noisy_color(index.colors.layer.bridge.into(), 8),
                             )
                         } else {
                             let path_color = path.surface_color(
                                 col_sample.sub_surface_color.map(|e| (e * 255.0) as u8),
                             );
-                            Block::new(BlockKind::Normal, noisy_color(path_color, 8))
+                            Block::new(BlockKind::Earth, noisy_color(path_color, 8))
                         },
                     );
                 }
@@ -184,7 +184,7 @@ pub fn apply_caves_to<'a>(
                 for z in cave_roof - stalagtites..cave_roof {
                     let _ = vol.set(
                         Vec3::new(offs.x, offs.y, z),
-                        Block::new(BlockKind::Rock, index.colors.layer.stalagtite.into()),
+                        Block::new(BlockKind::WeakRock, index.colors.layer.stalagtite.into()),
                     );
                 }
 
@@ -195,12 +195,11 @@ pub fn apply_caves_to<'a>(
                 if RandomField::new(index.seed).chance(wpos2d.into(), 0.001 * difficulty.powf(1.5))
                     && cave_base < surface_z as i32 - 25
                 {
-                    let kind = *Lottery::<BlockKind>::load_expect("common.cave_scatter")
+                    let kind = *Lottery::<SpriteKind>::load_expect("common.cave_scatter")
                         .choose_seeded(RandomField::new(index.seed + 1).get(wpos2d.into()));
-                    let _ = vol.set(
-                        Vec3::new(offs.x, offs.y, cave_base),
-                        Block::new(kind, Rgb::zero()),
-                    );
+                    let _ = vol.map(Vec3::new(offs.x, offs.y, cave_base), |block| {
+                        block.with_sprite(kind)
+                    });
                 }
             }
         }
