@@ -222,7 +222,7 @@ void main() {
     // f_light = 1.0;
     // if (select_pos.w > 0) */{
         vec3 sprite_pos = /*round*/floor(((inst_mat * vec4(-offs.xyz, 1)).xyz) * SCALE/* - vec3(0.5, 0.5, 0.0)*/) + inst_offs;
-        f_light = (select_pos.w > 0 && select_pos.xyz == sprite_pos/* - vec3(0.5, 0.5, 0.0) * SCALE*/) ? 1.0 / PERSISTENT_AMBIANCE : 1.0;
+        f_light = (select_pos.w > 0 && select_pos.xyz == sprite_pos/* - vec3(0.5, 0.5, 0.0) * SCALE*/) ? 5.0 : 1.0;
     // }
 
     gl_Position =
