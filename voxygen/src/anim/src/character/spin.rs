@@ -52,8 +52,8 @@ impl Animation for SpinAnimation {
         let recover = (anim_time as f32 * 8.0).sin();
 
         let movement = anim_time as f32 * 1.0;
-        let test = (anim_time as f32 * 8.0).sin();
-        let test2 = (anim_time as f32 * 1.0).sin();
+        let stab = (anim_time as f32 * 8.0).sin();
+        let rotate = (anim_time as f32 * 1.0).sin();
 
         next.head.position = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1);
 
@@ -91,20 +91,20 @@ impl Animation for SpinAnimation {
                         //println!("{:.3} swing", anim_time);
                         next.control.position = Vec3::new(
                             7.0 + movement * -8.0,
-                            11.0 + test * 3.0,
-                            2.0 + test * 3.5 + movement * 3.0,
+                            11.0 + stab * 3.0,
+                            2.0 + stab * 3.5 + movement * 3.0,
                         );
                         next.control.orientation =
-                            Quaternion::rotation_x(-1.57 + movement * -0.6 + test * -0.25)
+                            Quaternion::rotation_x(-1.57 + movement * -0.6 + stab * -0.25)
                                 * Quaternion::rotation_y(2.8 + movement * -2.0)
                                 * Quaternion::rotation_z(1.0 + movement * 1.0);
-                        next.head.orientation = Quaternion::rotation_z(-test * 0.8);
-                        next.chest.orientation = Quaternion::rotation_x(test * 0.15)
+                        next.head.orientation = Quaternion::rotation_z(-stab * 0.8);
+                        next.chest.orientation = Quaternion::rotation_x(stab * 0.15)
                             * Quaternion::rotation_y(movement * 0.3)
                             * Quaternion::rotation_z(movement * 1.5);
-                        next.belt.orientation = Quaternion::rotation_z(test2 * 0.5);
-                        next.shorts.orientation = Quaternion::rotation_z(test2 * 1.5);
-                        next.torso.orientation = Quaternion::rotation_z(test2 * 7.2);
+                        next.belt.orientation = Quaternion::rotation_z(rotate * 0.5);
+                        next.shorts.orientation = Quaternion::rotation_z(rotate * 1.5);
+                        next.torso.orientation = Quaternion::rotation_z(rotate * 7.2);
                     },
                     StageSection::Recover => {
                         //println!("{:.3} recover", anim_time);

@@ -55,7 +55,7 @@ impl Animation for BetaAnimation {
         let recover = (anim_time as f32 * 8.0).sin();
 
         let movement = anim_time as f32 * 1.0;
-        let test = (anim_time as f32 * 2.5).sin();
+        let stab = (anim_time as f32 * 2.5).sin();
 
         if let Some(ToolKind::Sword(_)) = active_tool_kind {
             next.l_hand.position = Vec3::new(-0.75, -1.0, 2.5);
@@ -77,8 +77,8 @@ impl Animation for BetaAnimation {
                         //println!("{:.3} recover", anim_time);
                         next.control.position = Vec3::new(
                             -8.0 + movement * -5.0,
-                            4.0 - recover * 0.8 + movement * 2.0,
-                            6.0 - recover * 0.4,
+                            1.0 - recover * 0.8 + movement * 2.0,
+                            2.0 - recover * 0.4,
                         );
                         next.control.orientation = Quaternion::rotation_x(-1.57)
                             * Quaternion::rotation_y(0.0 + movement * 1.5)
@@ -91,14 +91,14 @@ impl Animation for BetaAnimation {
                     StageSection::Swing => {
                         //println!("{:.3} swing", anim_time);
                         next.control.position =
-                            Vec3::new(-8.0 + test * 30.0, 6.0 + movement * 2.0, 6.0);
+                            Vec3::new(-8.0 + stab * 30.0, 6.0 + movement * 2.0, 6.0);
                         next.control.orientation = Quaternion::rotation_x(-1.57)
-                            * Quaternion::rotation_y(1.5 + test * 0.5)
-                            * Quaternion::rotation_z(1.0 + test * 1.0);
+                            * Quaternion::rotation_y(1.5 + stab * 0.5)
+                            * Quaternion::rotation_z(1.0 + stab * 1.0);
                         next.chest.orientation = Quaternion::rotation_y(-0.1)
-                            * Quaternion::rotation_z(1.9 + test * -0.5);
+                            * Quaternion::rotation_z(1.9 + stab * -0.5);
                         next.head.orientation = Quaternion::rotation_y(0.1)
-                            * Quaternion::rotation_z(-1.2 + test * -0.5);
+                            * Quaternion::rotation_z(-1.2 + stab * -0.5);
                     },
                     StageSection::Recover => {
                         next.control.position = Vec3::new(10.0 + movement * -5.0, 8.0, 6.0);
