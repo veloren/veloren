@@ -45,18 +45,32 @@ make_case_elim!(
         // Covers all other cases (we sometimes have bizarrely coloured misc blocks, and also we
         // often want to experiment with new kinds of block without allocating them a
         // dedicated block kind.
-        Misc = 0xFF,
+        Misc = 0xFE,
     }
 );
 
 impl BlockKind {
+    #[inline]
     pub const fn is_air(&self) -> bool { matches!(self, BlockKind::Air) }
 
+    /// Determine whether the block kind is a gas or a liquid. This does not
+    /// consider any sprites that may occupy the block (the definition of
+    /// fluid is 'a substance that deforms to fit containers')
+    #[inline]
     pub const fn is_fluid(&self) -> bool { *self as u8 & 0xF0 == 0x00 }
 
+    #[inline]
     pub const fn is_liquid(&self) -> bool { self.is_fluid() && !self.is_air() }
 
+    /// Determine whether the block is filled (i.e: fully solid). Right now,
+    /// this is the opposite of being a fluid.
+    #[inline]
     pub const fn is_filled(&self) -> bool { !self.is_fluid() }
+
+    /// Determine whether the block has an RGB color storaged in the attribute
+    /// fields.
+    #[inline]
+    pub const fn has_color(&self) -> bool { self.is_filled() }
 }
 
 impl fmt::Display for BlockKind {
@@ -76,7 +90,6 @@ impl<'a> TryFrom<&'a str> for BlockKind {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[repr(packed)]
 pub struct Block {
     kind: BlockKind,
     attr: [u8; 3],
@@ -114,14 +127,23 @@ impl Block {
         }
     }
 
+    pub const fn air(sprite: SpriteKind) -> Self {
+        Self {
+            kind: BlockKind::Air,
+            attr: [sprite as u8, 0, 0],
+        }
+    }
+
+    #[inline]
     pub fn get_color(&self) -> Option<Rgb<u8>> {
-        if self.is_filled() {
+        if self.has_color() {
             Some(self.attr.into())
         } else {
             None
         }
     }
 
+    #[inline]
     pub fn get_sprite(&self) -> Option<SpriteKind> {
         if !self.is_filled() {
             SpriteKind::from_u8(self.attr[0])
@@ -130,6 +152,7 @@ impl Block {
         }
     }
 
+    #[inline]
     pub fn get_ori(&self) -> Option<u8> {
         if self.get_sprite()?.has_ori() {
             // TODO: Formalise this a bit better
@@ -139,6 +162,7 @@ impl Block {
         }
     }
 
+    #[inline]
     pub fn get_glow(&self) -> Option<u8> {
         // TODO: When we have proper volumetric lighting
         // match self.get_sprite()? {
@@ -149,39 +173,46 @@ impl Block {
         None
     }
 
+    #[inline]
     pub fn is_solid(&self) -> bool {
         self.get_sprite()
             .map(|s| s.solid_height().is_some())
             .unwrap_or(true)
     }
 
+    #[inline]
     pub fn is_explodable(&self) -> bool {
         match self.kind() {
             BlockKind::Leaves | BlockKind::Grass | BlockKind::WeakRock => true,
-            // Explodable means that the terrain sprite will get removed anyway, so is good for
-            // empty fluids TODO: Handle the case of terrain sprites we don't want to
-            // have explode
+            // Explodable means that the terrain sprite will get removed anyway, so all is good for
+            // empty fluids.
+            // TODO: Handle the case of terrain sprites we don't want to have explode
             _ => true,
         }
     }
 
+    #[inline]
     pub fn is_collectible(&self) -> bool {
         self.get_sprite()
             .map(|s| s.is_collectible())
             .unwrap_or(false)
     }
 
+    #[inline]
     pub fn is_opaque(&self) -> bool { self.kind().is_filled() }
 
+    #[inline]
     pub fn solid_height(&self) -> f32 {
         self.get_sprite()
             .map(|s| s.solid_height().unwrap_or(0.0))
             .unwrap_or(1.0)
     }
 
+    #[inline]
     pub fn kind(&self) -> BlockKind { self.kind }
 
     /// If this block is a fluid, replace its sprite.
+    #[inline]
     pub fn with_sprite(mut self, sprite: SpriteKind) -> Self {
         if !self.is_filled() {
             self.attr[0] = sprite as u8;
@@ -190,14 +221,18 @@ impl Block {
     }
 
     /// If this block can have orientation, give it a new orientation.
-    pub fn with_ori(mut self, ori: u8) -> Self {
+    #[inline]
+    pub fn with_ori(mut self, ori: u8) -> Option<Self> {
         if self.get_sprite().map(|s| s.has_ori()).unwrap_or(false) {
             self.attr[1] = (self.attr[1] & !0b111) | (ori & 0b111);
+            Some(self)
+        } else {
+            None
         }
-        self
     }
 
     /// Remove the terrain sprite or solid aspects of a block
+    #[inline]
     pub fn into_vacant(self) -> Self {
         if self.is_fluid() {
             Block::new(self.kind(), Rgb::zero())

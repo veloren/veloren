@@ -296,16 +296,15 @@ impl Archetype for House {
         let empty = BlockMask::nothing();
         let internal = BlockMask::new(Block::empty(), internal_layer);
         let end_window = BlockMask::new(
-            Block::empty().with_sprite(attr.window).with_ori(match ori {
-                Ori::East => 2,
-                Ori::North => 0,
-            }),
+            Block::air(attr.window)
+                .with_ori(match ori {
+                    Ori::East => 2,
+                    Ori::North => 0,
+                })
+                .unwrap(),
             structural_layer,
         );
-        let fire = BlockMask::new(
-            Block::empty().with_sprite(SpriteKind::Ember),
-            foundation_layer,
-        );
+        let fire = BlockMask::new(Block::air(SpriteKind::Ember), foundation_layer);
 
         let storey_height = 6;
         let storey = ((z - 1) / storey_height).min(attr.levels - 1);
@@ -436,16 +435,18 @@ impl Archetype for House {
                                 // Doors on first floor only
                                 if profile.y == foundation_height + 1 {
                                     BlockMask::new(
-                                        Block::empty().with_sprite(SpriteKind::Door).with_ori(
-                                            match ori {
-                                                Ori::East => 2,
-                                                Ori::North => 0,
-                                            } + if bound_offset.x == (width - 1) / 2 {
-                                                0
-                                            } else {
-                                                4
-                                            },
-                                        ),
+                                        Block::air(SpriteKind::Door)
+                                            .with_ori(
+                                                match ori {
+                                                    Ori::East => 2,
+                                                    Ori::North => 0,
+                                                } + if bound_offset.x == (width - 1) / 2 {
+                                                    0
+                                                } else {
+                                                    4
+                                                },
+                                            )
+                                            .unwrap(),
                                         structural_layer,
                                     )
                                 } else {
@@ -558,7 +559,7 @@ impl Archetype for House {
                         };
 
                         return Some(BlockMask::new(
-                            Block::empty().with_sprite(furniture).with_ori(edge_ori),
+                            Block::air(furniture).with_ori(edge_ori).unwrap(),
                             internal_layer,
                         ));
                     } else {
@@ -587,9 +588,7 @@ impl Archetype for House {
                         };
 
                     Some(BlockMask::new(
-                        Block::empty()
-                            .with_sprite(ornament)
-                            .with_ori((edge_ori + 4) % 8),
+                        Block::air(ornament).with_ori((edge_ori + 4) % 8).unwrap(),
                         internal_layer,
                     ))
                 } else {

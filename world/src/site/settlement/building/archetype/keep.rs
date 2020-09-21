@@ -150,12 +150,12 @@ impl Archetype for Keep {
             stone_color.2 + brick_tex,
         );
         let window = BlockMask::new(
-            Block::empty()
-                .with_sprite(SpriteKind::Window1)
+            Block::air(SpriteKind::Window1)
                 .with_ori(match ori {
                     Ori::East => 2,
                     Ori::North => 0,
-                }),
+                })
+                .unwrap(),
             normal_layer,
         );
         let floor = make_block(
