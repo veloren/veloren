@@ -59,6 +59,7 @@ pub enum ChatCommand {
     Lantern,
     Light,
     MakeBlock,
+    MakeSprite,
     Motd,
     Object,
     Players,
@@ -105,6 +106,7 @@ pub static CHAT_COMMANDS: &[ChatCommand] = &[
     ChatCommand::Lantern,
     ChatCommand::Light,
     ChatCommand::MakeBlock,
+    ChatCommand::MakeSprite,
     ChatCommand::Motd,
     ChatCommand::Object,
     ChatCommand::Players,
@@ -158,6 +160,11 @@ lazy_static! {
     .collect();
 
     static ref BLOCK_KINDS: Vec<String> = terrain::block::BLOCK_KINDS
+        .keys()
+        .cloned()
+        .collect();
+
+    static ref SPRITE_KINDS: Vec<String> = terrain::sprite::SPRITE_KINDS
         .keys()
         .cloned()
         .collect();
@@ -306,7 +313,12 @@ impl ChatCommand {
             ),
             ChatCommand::MakeBlock => cmd(
                 vec![Enum("block", BLOCK_KINDS.clone(), Required)],
-                "Make a block",
+                "Make a block at your location",
+                Admin,
+            ),
+            ChatCommand::MakeSprite => cmd(
+                vec![Enum("sprite", SPRITE_KINDS.clone(), Required)],
+                "Make a sprite at your location",
                 Admin,
             ),
             ChatCommand::Motd => cmd(
@@ -422,6 +434,7 @@ impl ChatCommand {
             ChatCommand::Lantern => "lantern",
             ChatCommand::Light => "light",
             ChatCommand::MakeBlock => "make_block",
+            ChatCommand::MakeSprite => "make_sprite",
             ChatCommand::Motd => "motd",
             ChatCommand::Object => "object",
             ChatCommand::Players => "players",
