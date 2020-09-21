@@ -803,6 +803,10 @@ impl<'a> Widget for Skillbar<'a> {
                                     "\nWhirls a big fireball into the air. \nExplodes the ground \
                                      and does\na big amount of damage",
                                 )),
+                                ToolKind::Sword(_) => Some((
+                                    "Whirlwind",
+                                    "\nMove forward while spinning with \n your sword.",
+                                )),
                                 ToolKind::Debug(kind) => match kind.as_ref() {
                                     "Boost" => Some((
                                         "Possessing Arrow",

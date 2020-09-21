@@ -1,8 +1,9 @@
 // Note: If you changes here "break" old character saves you can change the
 // version in voxygen\src\meta.rs in order to reset save files to being empty
 
-use crate::comp::{
-    body::object, projectile, Body, CharacterAbility, Gravity, LightEmitter, Projectile,
+use crate::{
+    comp::{body::object, projectile, Body, CharacterAbility, Gravity, LightEmitter, Projectile},
+    states::combo_melee,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -116,27 +117,110 @@ impl Tool {
 
         match &self.kind {
             Sword(_) => vec![
-                TripleStrike {
-                    base_damage: (60.0 * self.base_power()) as u32,
-                    needs_timing: false,
+                ComboMelee {
+                    stage_data: vec![
+                        combo_melee::Stage {
+                            stage: 1,
+                            base_damage: (100.0 * self.base_power()) as u32,
+                            max_damage: (120.0 * self.base_power()) as u32,
+                            damage_increase: (10.0 * self.base_power()) as u32,
+                            knockback: 10.0,
+                            range: 4.0,
+                            angle: 30.0,
+                            base_buildup_duration: Duration::from_millis(350),
+                            base_swing_duration: Duration::from_millis(100),
+                            base_recover_duration: Duration::from_millis(400),
+                            forward_movement: 0.5,
+                        },
+                        combo_melee::Stage {
+                            stage: 2,
+                            base_damage: (80.0 * self.base_power()) as u32,
+                            max_damage: (110.0 * self.base_power()) as u32,
+                            damage_increase: (15.0 * self.base_power()) as u32,
+                            knockback: 12.0,
+                            range: 3.5,
+                            angle: 180.0,
+                            base_buildup_duration: Duration::from_millis(400),
+                            base_swing_duration: Duration::from_millis(600),
+                            base_recover_duration: Duration::from_millis(400),
+                            forward_movement: 0.0,
+                        },
+                        combo_melee::Stage {
+                            stage: 3,
+                            base_damage: (130.0 * self.base_power()) as u32,
+                            max_damage: (170.0 * self.base_power()) as u32,
+                            damage_increase: (20.0 * self.base_power()) as u32,
+                            knockback: 14.0,
+                            range: 6.0,
+                            angle: 10.0,
+                            base_buildup_duration: Duration::from_millis(500),
+                            base_swing_duration: Duration::from_millis(200),
+                            base_recover_duration: Duration::from_millis(300),
+                            forward_movement: 1.2,
+                        },
+                    ],
+                    initial_energy_gain: 0,
+                    max_energy_gain: 100,
+                    energy_increase: 20,
+                    speed_increase: 0.05,
+                    max_speed_increase: 1.8,
+                    is_interruptible: true,
                 },
                 DashMelee {
-                    energy_cost: 700,
-                    buildup_duration: Duration::from_millis(500),
-                    recover_duration: Duration::from_millis(500),
+                    energy_cost: 200,
                     base_damage: (120.0 * self.base_power()) as u32,
+                    max_damage: (260.0 * self.base_power()) as u32,
+                    base_knockback: 10.0,
+                    max_knockback: 20.0,
+                    range: 5.0,
+                    angle: 45.0,
+                    energy_drain: 500,
+                    forward_speed: 4.0,
+                    buildup_duration: Duration::from_millis(250),
+                    charge_duration: Duration::from_millis(400),
+                    swing_duration: Duration::from_millis(100),
+                    recover_duration: Duration::from_millis(500),
+                    infinite_charge: true,
+                    is_interruptible: true,
+                },
+                SpinMelee {
+                    buildup_duration: Duration::from_millis(750),
+                    swing_duration: Duration::from_millis(500),
+                    recover_duration: Duration::from_millis(500),
+                    base_damage: (140.0 * self.base_power()) as u32,
+                    knockback: 10.0,
+                    range: 3.5,
+                    energy_cost: 200,
+                    is_infinite: false,
+                    is_helicopter: false,
+                    is_interruptible: true,
+                    forward_speed: 1.0,
+                    num_spins: 3,
                 },
             ],
             Axe(_) => vec![
-                TripleStrike {
-                    base_damage: (80.0 * self.base_power()) as u32,
-                    needs_timing: true,
+                BasicMelee {
+                    energy_cost: 0,
+                    buildup_duration: Duration::from_millis(700),
+                    recover_duration: Duration::from_millis(300),
+                    base_healthchange: (-120.0 * self.base_power()) as i32,
+                    knockback: 0.0,
+                    range: 3.5,
+                    max_angle: 20.0,
                 },
                 SpinMelee {
-                    energy_cost: 100,
-                    buildup_duration: Duration::from_millis(125),
-                    recover_duration: Duration::from_millis(125),
+                    buildup_duration: Duration::from_millis(100),
+                    swing_duration: Duration::from_millis(250),
+                    recover_duration: Duration::from_millis(100),
                     base_damage: (60.0 * self.base_power()) as u32,
+                    knockback: 0.0,
+                    range: 3.5,
+                    energy_cost: 100,
+                    is_infinite: true,
+                    is_helicopter: true,
+                    is_interruptible: false,
+                    forward_speed: 0.0,
+                    num_spins: 1,
                 },
             ],
             Hammer(_) => vec![
@@ -206,23 +290,15 @@ impl Tool {
                     max_projectile_speed: 500.0,
                 },
             ],
-            Dagger(_) => vec![
-                BasicMelee {
-                    energy_cost: 0,
-                    buildup_duration: Duration::from_millis(100),
-                    recover_duration: Duration::from_millis(400),
-                    base_healthchange: (-50.0 * self.base_power()) as i32,
-                    knockback: 0.0,
-                    range: 3.5,
-                    max_angle: 20.0,
-                },
-                DashMelee {
-                    energy_cost: 700,
-                    buildup_duration: Duration::from_millis(500),
-                    recover_duration: Duration::from_millis(500),
-                    base_damage: (100.0 * self.base_power()) as u32,
-                },
-            ],
+            Dagger(_) => vec![BasicMelee {
+                energy_cost: 0,
+                buildup_duration: Duration::from_millis(100),
+                recover_duration: Duration::from_millis(400),
+                base_healthchange: (-50.0 * self.base_power()) as i32,
+                knockback: 0.0,
+                range: 3.5,
+                max_angle: 20.0,
+            }],
             Staff(kind) => {
                 if kind == "Sceptre" {
                     vec![

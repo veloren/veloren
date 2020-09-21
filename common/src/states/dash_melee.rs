@@ -1,93 +1,256 @@
 use crate::{
-    comp::{Attacking, CharacterState, StateUpdate},
-    states::utils::*,
+    comp::{Attacking, CharacterState, EnergySource, StateUpdate},
+    states::utils::{StageSection, *},
     sys::character_behavior::*,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use vek::Vec3;
 
-const DASH_SPEED: f32 = 19.0;
-
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct Data {
+/// Separated out to condense update portions of character state
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct StaticData {
+    /// How much damage the attack initially does
+    pub base_damage: u32,
+    /// How much damage the attack does at max charge distance
+    pub max_damage: u32,
+    /// How much the attack knocks the target back initially
+    pub base_knockback: f32,
+    /// How much knockback happens at max charge distance
+    pub max_knockback: f32,
+    /// Range of the attack
+    pub range: f32,
+    /// Angle of the attack
+    pub angle: f32,
+    /// Rate of energy drain
+    pub energy_drain: u32,
+    /// How quickly dasher moves forward
+    pub forward_speed: f32,
+    /// Whether state keeps charging after reaching max charge duration
+    pub infinite_charge: bool,
     /// How long until state should deal damage
     pub buildup_duration: Duration,
+    /// How long the state charges for until it reaches max damage
+    pub charge_duration: Duration,
+    /// Suration of state spent in swing
+    pub swing_duration: Duration,
     /// How long the state has until exiting
     pub recover_duration: Duration,
-    /// Base damage
-    pub base_damage: u32,
-    /// Whether the attack can deal more damage
+    /// Whether the state can be interrupted by other abilities
+    pub is_interruptible: bool,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Data {
+    /// Struct containing data that does not change over the course of the
+    /// character state
+    pub static_data: StaticData,
+    /// Whether the charge should end
+    pub end_charge: bool,
+    /// Timer for each stage
+    pub timer: Duration,
+    /// What section the character stage is in
+    pub stage_section: StageSection,
+    /// Whether the state should attempt attacking again
     pub exhausted: bool,
-    pub initialize: bool,
 }
 
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        if self.initialize {
-            update.vel.0 = *data.inputs.look_dir * 20.0;
-            if let Some(dir) = Vec3::from(data.inputs.look_dir.xy()).try_normalized() {
-                update.ori.0 = dir.into();
+        handle_orientation(data, &mut update, 1.0);
+        handle_move(data, &mut update, 0.1);
+
+        // Allows for other states to interrupt this state
+        if self.static_data.is_interruptible && !data.inputs.secondary.is_pressed() {
+            handle_interrupt(data, &mut update);
+            match update.character {
+                CharacterState::DashMelee(_) => {},
+                _ => {
+                    return update;
+                },
             }
         }
 
-        if self.buildup_duration != Duration::default() && data.physics.touch_entities.is_empty() {
-            // Build up (this will move you forward)
-            update.vel.0 = Vec3::new(0.0, 0.0, update.vel.0.z)
-                + (update.vel.0 * Vec3::new(1.0, 1.0, 0.0)
-                    + 1.5 * data.inputs.move_dir.try_normalized().unwrap_or_default())
-                .try_normalized()
-                .unwrap_or_default()
-                    * DASH_SPEED;
+        match self.stage_section {
+            StageSection::Buildup => {
+                if self.timer < self.static_data.buildup_duration {
+                    // Build up
+                    update.character = CharacterState::DashMelee(Data {
+                        static_data: self.static_data,
+                        end_charge: self.end_charge,
+                        timer: self
+                            .timer
+                            .checked_add(Duration::from_secs_f32(data.dt.0))
+                            .unwrap_or_default(),
+                        stage_section: self.stage_section,
+                        exhausted: self.exhausted,
+                    });
+                } else {
+                    // Transitions to charge section of stage
+                    update.character = CharacterState::DashMelee(Data {
+                        static_data: self.static_data,
+                        end_charge: self.end_charge,
+                        timer: Duration::default(),
+                        stage_section: StageSection::Charge,
+                        exhausted: self.exhausted,
+                    });
+                }
+            },
+            StageSection::Charge => {
+                if (self.timer < self.static_data.charge_duration
+                    || (self.static_data.infinite_charge && data.inputs.secondary.is_pressed()))
+                    && update.energy.current() > 0
+                    && !self.end_charge
+                {
+                    // Forward movement
+                    forward_move(data, &mut update, 0.1, self.static_data.forward_speed);
 
-            update.character = CharacterState::DashMelee(Data {
-                buildup_duration: self
-                    .buildup_duration
-                    .checked_sub(Duration::from_secs_f32(data.dt.0))
-                    .unwrap_or_default(),
-                recover_duration: self.recover_duration,
-                base_damage: self.base_damage,
-                exhausted: false,
-                initialize: false,
-            });
-        } else if !self.exhausted {
-            // Hit attempt
-            data.updater.insert(data.entity, Attacking {
-                base_healthchange: -(self.base_damage as i32),
-                range: 3.5,
-                max_angle: 45_f32.to_radians(),
-                applied: false,
-                hit_count: 0,
-                knockback: 0.0,
-            });
+                    // Hit attempt (also checks if player is moving)
+                    if !self.exhausted && update.vel.0.distance_squared(Vec3::zero()) > 1.0 {
+                        let charge_frac = (self.timer.as_secs_f32()
+                            / self.static_data.charge_duration.as_secs_f32())
+                        .min(1.0);
+                        let damage = (self.static_data.max_damage as f32
+                            - self.static_data.base_damage as f32)
+                            * charge_frac
+                            + self.static_data.base_damage as f32;
+                        let knockback = (self.static_data.max_knockback
+                            - self.static_data.base_knockback)
+                            * charge_frac
+                            + self.static_data.base_knockback;
+                        data.updater.insert(data.entity, Attacking {
+                            base_healthchange: -damage as i32,
+                            range: self.static_data.range,
+                            max_angle: self.static_data.angle.to_radians(),
+                            applied: false,
+                            hit_count: 0,
+                            knockback,
+                        });
+                    }
 
-            update.character = CharacterState::DashMelee(Data {
-                buildup_duration: Duration::default(),
-                recover_duration: self.recover_duration,
-                base_damage: self.base_damage,
-                exhausted: true,
-                initialize: false,
-            });
-        } else if self.recover_duration != Duration::default() {
-            // Recovery
-            handle_move(data, &mut update, 0.7);
-            update.character = CharacterState::DashMelee(Data {
-                buildup_duration: self.buildup_duration,
-                recover_duration: self
-                    .recover_duration
-                    .checked_sub(Duration::from_secs_f32(data.dt.0))
-                    .unwrap_or_default(),
-                base_damage: self.base_damage,
-                exhausted: true,
-                initialize: false,
-            });
-        } else {
-            // Done
-            update.character = CharacterState::Wielding;
-            // Make sure attack component is removed
-            data.updater.remove::<Attacking>(data.entity);
+                    // This logic basically just decides if a charge should end, and prevents the
+                    // character state spamming attacks while checking if it has hit something
+                    if !self.exhausted {
+                        update.character = CharacterState::DashMelee(Data {
+                            static_data: self.static_data,
+                            end_charge: self.end_charge,
+                            timer: self
+                                .timer
+                                .checked_add(Duration::from_secs_f32(data.dt.0))
+                                .unwrap_or_default(),
+                            stage_section: StageSection::Charge,
+                            exhausted: true,
+                        })
+                    } else if let Some(attack) = data.attacking {
+                        if attack.applied && attack.hit_count > 0 {
+                            update.character = CharacterState::DashMelee(Data {
+                                static_data: self.static_data,
+                                end_charge: !self.static_data.infinite_charge,
+                                timer: self
+                                    .timer
+                                    .checked_add(Duration::from_secs_f32(data.dt.0))
+                                    .unwrap_or_default(),
+                                stage_section: StageSection::Charge,
+                                exhausted: false,
+                            })
+                        } else if attack.applied {
+                            update.character = CharacterState::DashMelee(Data {
+                                static_data: self.static_data,
+                                end_charge: self.end_charge,
+                                timer: self
+                                    .timer
+                                    .checked_add(Duration::from_secs_f32(data.dt.0))
+                                    .unwrap_or_default(),
+                                stage_section: StageSection::Charge,
+                                exhausted: false,
+                            })
+                        } else {
+                            update.character = CharacterState::DashMelee(Data {
+                                static_data: self.static_data,
+                                end_charge: !self.static_data.infinite_charge,
+                                timer: self
+                                    .timer
+                                    .checked_add(Duration::from_secs_f32(data.dt.0))
+                                    .unwrap_or_default(),
+                                stage_section: StageSection::Charge,
+                                exhausted: self.exhausted,
+                            })
+                        }
+                    } else {
+                        update.character = CharacterState::DashMelee(Data {
+                            static_data: self.static_data,
+                            end_charge: !self.static_data.infinite_charge,
+                            timer: self
+                                .timer
+                                .checked_add(Duration::from_secs_f32(data.dt.0))
+                                .unwrap_or_default(),
+                            stage_section: StageSection::Charge,
+                            exhausted: self.exhausted,
+                        })
+                    }
+
+                    // Consumes energy if there's enough left and charge has not stopped
+                    update.energy.change_by(
+                        -(self.static_data.energy_drain as f32 * data.dt.0) as i32,
+                        EnergySource::Ability,
+                    );
+                } else {
+                    // Transitions to swing section of stage
+                    update.character = CharacterState::DashMelee(Data {
+                        static_data: self.static_data,
+                        end_charge: self.end_charge,
+                        timer: Duration::default(),
+                        stage_section: StageSection::Swing,
+                        exhausted: self.exhausted,
+                    });
+                }
+            },
+            StageSection::Swing => {
+                if self.timer < self.static_data.swing_duration {
+                    // Swings
+                    update.character = CharacterState::DashMelee(Data {
+                        static_data: self.static_data,
+                        end_charge: self.end_charge,
+                        timer: self
+                            .timer
+                            .checked_add(Duration::from_secs_f32(data.dt.0))
+                            .unwrap_or_default(),
+                        stage_section: self.stage_section,
+                        exhausted: self.exhausted,
+                    });
+                } else {
+                    // Transitions to recover section of stage
+                    update.character = CharacterState::DashMelee(Data {
+                        static_data: self.static_data,
+                        end_charge: self.end_charge,
+                        timer: Duration::default(),
+                        stage_section: StageSection::Recover,
+                        exhausted: self.exhausted,
+                    });
+                }
+            },
+            StageSection::Recover => {
+                if self.timer < self.static_data.recover_duration {
+                    // Recover
+                    update.character = CharacterState::DashMelee(Data {
+                        static_data: self.static_data,
+                        end_charge: self.end_charge,
+                        timer: self
+                            .timer
+                            .checked_add(Duration::from_secs_f32(data.dt.0))
+                            .unwrap_or_default(),
+                        stage_section: self.stage_section,
+                        exhausted: self.exhausted,
+                    });
+                } else {
+                    // Done
+                    update.character = CharacterState::Wielding;
+                    // Make sure attack component is removed
+                    data.updater.remove::<Attacking>(data.entity);
+                }
+            },
         }
 
         update
