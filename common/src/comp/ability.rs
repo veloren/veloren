@@ -86,6 +86,7 @@ pub enum CharacterAbility {
         projectile_speed: f32,
         repetitions: u32,
         current_rep: u32,
+        leap: bool,
     },
     Boost {
         duration: Duration,
@@ -587,6 +588,7 @@ impl From<&CharacterAbility> for CharacterState {
                 projectile_speed,
                 repetitions,
                 current_rep,
+                leap,
             } => CharacterState::RepeaterRanged(repeater_ranged::Data {
                 exhausted: false,
                 prepare_timer: Duration::default(),
@@ -602,6 +604,7 @@ impl From<&CharacterAbility> for CharacterState {
                 repetitions: *repetitions,
                 current_rep: *current_rep,
                 initialize: true,
+                leap: *leap,
             }),
             CharacterAbility::GroundShockwave {
                 energy_cost: _,
