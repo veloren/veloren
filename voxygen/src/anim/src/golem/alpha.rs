@@ -44,7 +44,6 @@ impl Animation for AlphaAnimation {
             / 10.0;
 
         let switch = if random > 0.5 { 1.0 } else { -1.0 };
-        println!("{:?}", random);
         if switch > 0.0 {
             next.head.position = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1) * 1.02;
             next.head.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(-0.2);
