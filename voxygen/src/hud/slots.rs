@@ -145,7 +145,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
             HotbarImage::Item(key) => item_imgs.img_id_or_not_found_img(key.clone()),
             HotbarImage::SnakeArrow => imgs.snake_arrow_0,
             HotbarImage::Fireball => imgs.fire_spell_1,
-            HotbarImage::SwordWhirlwind => imgs.sowrd_whirlwind,
+            HotbarImage::SwordWhirlwind => imgs.sword_whirlwind,
         }
     }
 }

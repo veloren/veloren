@@ -193,10 +193,6 @@ impl<'a> System<'a> for Sys {
                     continue;
                 }
 
-                if entity_other == entity {
-                    continue;
-                }
-
                 let scale_other = scale_other.map(|s| s.0).unwrap_or(1.0);
                 let radius_other = collider_other.map(|c| c.get_radius()).unwrap_or(0.5);
                 let z_limits_other = collider_other
