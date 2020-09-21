@@ -1,13 +1,5 @@
 #![enable(unwrap_newtypes)]
 (
-// Non-sprites
-Air: None,
-Normal: None,
-Dense: None,
-Rock: None,
-Leaves: None,
-Water: None,
-
 // Windows
 Window1: Some((
     variations: [
