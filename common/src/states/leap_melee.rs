@@ -7,9 +7,8 @@ use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use vek::Vec3;
 
-const LEAP_SPEED: f32 = 24.0;
-
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+//#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct Data {
     /// How long the state is moving
     pub movement_duration: Duration,
@@ -21,6 +20,14 @@ pub struct Data {
     pub base_damage: u32,
     /// Whether the attack can deal more damage
     pub exhausted: bool,
+    /// Max range
+    pub range: f32,
+    /// Max angle (45.0 will give you a 90.0 angle window)
+    pub max_angle: f32,
+    /// Leap speed
+    pub leap_speed: f32,
+    /// Leap vertical speed?
+    pub leap_vert_speed: f32,
     pub initialize: bool,
 }
 
@@ -37,13 +44,17 @@ impl CharacterBehavior for Data {
 
         if self.movement_duration != Duration::default() {
             // Jumping
-            update.vel.0 = Vec3::new(data.inputs.look_dir.x, data.inputs.look_dir.y, 8.0)
-                * ((self.movement_duration.as_millis() as f32) / 250.0)
+            //update.vel.0 = Vec3::new(data.inputs.look_dir.x, data.inputs.look_dir.y, 8.0)
+            update.vel.0 = Vec3::new(
+                data.inputs.look_dir.x,
+                data.inputs.look_dir.y,
+                self.leap_vert_speed,
+            ) * ((self.movement_duration.as_millis() as f32) / 250.0)
                 + (update.vel.0 * Vec3::new(2.0, 2.0, 0.0)
                     + 0.25 * data.inputs.move_dir.try_normalized().unwrap_or_default())
                 .try_normalized()
                 .unwrap_or_default()
-                    * LEAP_SPEED
+                    * self.leap_speed
                     * (1.0 - data.inputs.look_dir.z.abs());
 
             update.character = CharacterState::LeapMelee(Data {
@@ -55,6 +66,10 @@ impl CharacterBehavior for Data {
                 recover_duration: self.recover_duration,
                 base_damage: self.base_damage,
                 exhausted: false,
+                range: self.range,
+                max_angle: self.max_angle,
+                leap_speed: self.leap_speed,
+                leap_vert_speed: self.leap_vert_speed,
                 initialize: false,
             });
         } else if self.buildup_duration != Duration::default() && !data.physics.on_ground {
@@ -68,6 +83,10 @@ impl CharacterBehavior for Data {
                 recover_duration: self.recover_duration,
                 base_damage: self.base_damage,
                 exhausted: false,
+                range: self.range,
+                max_angle: self.max_angle,
+                leap_speed: self.leap_speed,
+                leap_vert_speed: self.leap_vert_speed,
                 initialize: false,
             });
         } else if !self.exhausted {
@@ -75,8 +94,9 @@ impl CharacterBehavior for Data {
             data.updater.insert(data.entity, Attacking {
                 base_damage: self.base_damage,
                 base_heal: 0,
-                range: 4.5,
-                max_angle: 360_f32.to_radians(),
+                range: self.range,
+                //range: 4.5,
+                max_angle: self.max_angle.to_radians(),
                 applied: false,
                 hit_count: 0,
                 knockback: 25.0,
@@ -88,6 +108,10 @@ impl CharacterBehavior for Data {
                 recover_duration: self.recover_duration,
                 base_damage: self.base_damage,
                 exhausted: true,
+                range: self.range,
+                max_angle: self.max_angle,
+                leap_speed: self.leap_speed,
+                leap_vert_speed: self.leap_vert_speed,
                 initialize: false,
             });
         } else if self.recover_duration != Duration::default() {
@@ -102,6 +126,10 @@ impl CharacterBehavior for Data {
                     .unwrap_or_default(),
                 base_damage: self.base_damage,
                 exhausted: true,
+                range: self.range,
+                max_angle: self.max_angle,
+                leap_speed: self.leap_speed,
+                leap_vert_speed: self.leap_vert_speed,
                 initialize: false,
             });
         } else {
