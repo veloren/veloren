@@ -187,7 +187,7 @@ impl Block {
             // Explodable means that the terrain sprite will get removed anyway, so all is good for
             // empty fluids.
             // TODO: Handle the case of terrain sprites we don't want to have explode
-            _ => true,
+            _ => self.get_sprite().is_some(),
         }
     }
 
