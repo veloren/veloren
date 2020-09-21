@@ -84,6 +84,7 @@ pub enum HotbarImage {
     Item(ItemKey),
     Fireball,
     SnakeArrow,
+    SwordWhirlwind,
 }
 
 type HotbarSource<'a> = (&'a hotbar::State, &'a Inventory, &'a Loadout, &'a Energy);
@@ -113,6 +114,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                                 "Boost" => Some(HotbarImage::SnakeArrow),
                                 _ => None,
                             },
+                            ToolKind::Sword(_) => Some(HotbarImage::SwordWhirlwind),
                             _ => None,
                         },
                         _ => None,
@@ -143,6 +145,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
             HotbarImage::Item(key) => item_imgs.img_id_or_not_found_img(key.clone()),
             HotbarImage::SnakeArrow => imgs.snake_arrow_0,
             HotbarImage::Fireball => imgs.fire_spell_1,
+            HotbarImage::SwordWhirlwind => imgs.sowrd_whirlwind,
         }
     }
 }
