@@ -978,19 +978,19 @@ impl FigureMgr {
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
                                     stage_time
-                                        / s.stage_data[stage_index]
+                                        / s.static_data.stage_data[stage_index]
                                             .base_buildup_duration
                                             .as_secs_f64()
                                 },
                                 StageSection::Swing => {
                                     stage_time
-                                        / s.stage_data[stage_index]
+                                        / s.static_data.stage_data[stage_index]
                                             .base_swing_duration
                                             .as_secs_f64()
                                 },
                                 StageSection::Recover => {
                                     stage_time
-                                        / s.stage_data[stage_index]
+                                        / s.static_data.stage_data[stage_index]
                                             .base_recover_duration
                                             .as_secs_f64()
                                 },

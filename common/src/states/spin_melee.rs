@@ -70,114 +70,124 @@ impl CharacterBehavior for Data {
             }
         }
 
-        if self.stage_section == StageSection::Buildup
-            && self.timer < self.static_data.buildup_duration
-        {
-            // Build up
-            update.character = CharacterState::SpinMelee(Data {
-                static_data: self.static_data,
-                timer: self
-                    .timer
-                    .checked_add(Duration::from_secs_f32(data.dt.0))
-                    .unwrap_or_default(),
-                spins_remaining: self.spins_remaining,
-                stage_section: self.stage_section,
-                exhausted: self.exhausted,
-            });
-        } else if self.stage_section == StageSection::Buildup {
-            // Transitions to swing section of stage
-            update.character = CharacterState::SpinMelee(Data {
-                static_data: self.static_data,
-                timer: Duration::default(),
-                spins_remaining: self.spins_remaining,
-                stage_section: StageSection::Swing,
-                exhausted: self.exhausted,
-            });
-        } else if !self.exhausted {
-            update.character = CharacterState::SpinMelee(Data {
-                static_data: self.static_data,
-                timer: Duration::default(),
-                spins_remaining: self.spins_remaining,
-                stage_section: self.stage_section,
-                exhausted: true,
-            });
-            // Hit attempt
-            data.updater.insert(data.entity, Attacking {
-                base_healthchange: -(self.static_data.base_damage as i32),
-                range: self.static_data.range,
-                max_angle: 180_f32.to_radians(),
-                applied: false,
-                hit_count: 0,
-                knockback: self.static_data.knockback,
-            });
-        } else if self.stage_section == StageSection::Swing
-            && self.timer < self.static_data.swing_duration
-        {
-            if !self.static_data.is_helicopter {
-                forward_move(data, &mut update, 0.1, self.static_data.forward_speed);
-                handle_orientation(data, &mut update, 1.0);
-            }
+        match self.stage_section {
+            StageSection::Buildup => {
+                if self.timer < self.static_data.buildup_duration {
+                    // Build up
+                    update.character = CharacterState::SpinMelee(Data {
+                        static_data: self.static_data,
+                        timer: self
+                            .timer
+                            .checked_add(Duration::from_secs_f32(data.dt.0))
+                            .unwrap_or_default(),
+                        spins_remaining: self.spins_remaining,
+                        stage_section: self.stage_section,
+                        exhausted: self.exhausted,
+                    });
+                } else {
+                    // Transitions to swing section of stage
+                    update.character = CharacterState::SpinMelee(Data {
+                        static_data: self.static_data,
+                        timer: Duration::default(),
+                        spins_remaining: self.spins_remaining,
+                        stage_section: StageSection::Swing,
+                        exhausted: self.exhausted,
+                    });
+                }
+            },
+            StageSection::Swing => {
+                if !self.exhausted {
+                    update.character = CharacterState::SpinMelee(Data {
+                        static_data: self.static_data,
+                        timer: Duration::default(),
+                        spins_remaining: self.spins_remaining,
+                        stage_section: self.stage_section,
+                        exhausted: true,
+                    });
+                    // Hit attempt
+                    data.updater.insert(data.entity, Attacking {
+                        base_healthchange: -(self.static_data.base_damage as i32),
+                        range: self.static_data.range,
+                        max_angle: 180_f32.to_radians(),
+                        applied: false,
+                        hit_count: 0,
+                        knockback: self.static_data.knockback,
+                    });
+                } else if self.timer < self.static_data.swing_duration {
+                    if !self.static_data.is_helicopter {
+                        forward_move(data, &mut update, 0.1, self.static_data.forward_speed);
+                        handle_orientation(data, &mut update, 1.0);
+                    }
 
-            // Swings
-            update.character = CharacterState::SpinMelee(Data {
-                static_data: self.static_data,
-                timer: self
-                    .timer
-                    .checked_add(Duration::from_secs_f32(data.dt.0))
-                    .unwrap_or_default(),
-                spins_remaining: self.spins_remaining,
-                stage_section: self.stage_section,
-                exhausted: self.exhausted,
-            });
-        } else if update.energy.current() >= self.static_data.energy_cost
-            && (self.spins_remaining != 0
-                || (self.static_data.is_infinite && data.inputs.secondary.is_pressed()))
-        {
-            let new_spins_remaining = if self.static_data.is_infinite {
-                self.spins_remaining
-            } else {
-                self.spins_remaining - 1
-            };
-            update.character = CharacterState::SpinMelee(Data {
-                static_data: self.static_data,
-                timer: Duration::default(),
-                spins_remaining: new_spins_remaining,
-                stage_section: self.stage_section,
-                exhausted: false,
-            });
-            // Consumes energy if there's enough left and RMB is held down
-            update.energy.change_by(
-                -(self.static_data.energy_cost as i32),
-                EnergySource::Ability,
-            );
-        } else if self.stage_section == StageSection::Swing {
-            // Transitions to recover section of stage
-            update.character = CharacterState::SpinMelee(Data {
-                static_data: self.static_data,
-                timer: Duration::default(),
-                spins_remaining: self.spins_remaining,
-                stage_section: StageSection::Recover,
-                exhausted: self.exhausted,
-            })
-        } else if self.stage_section == StageSection::Recover
-            && self.timer < self.static_data.recover_duration
-        {
-            // Recover
-            update.character = CharacterState::SpinMelee(Data {
-                static_data: self.static_data,
-                timer: self
-                    .timer
-                    .checked_add(Duration::from_secs_f32(data.dt.0))
-                    .unwrap_or_default(),
-                spins_remaining: self.spins_remaining,
-                stage_section: self.stage_section,
-                exhausted: self.exhausted,
-            })
-        } else {
-            // Done
-            update.character = CharacterState::Wielding;
-            // Make sure attack component is removed
-            data.updater.remove::<Attacking>(data.entity);
+                    // Swings
+                    update.character = CharacterState::SpinMelee(Data {
+                        static_data: self.static_data,
+                        timer: self
+                            .timer
+                            .checked_add(Duration::from_secs_f32(data.dt.0))
+                            .unwrap_or_default(),
+                        spins_remaining: self.spins_remaining,
+                        stage_section: self.stage_section,
+                        exhausted: self.exhausted,
+                    });
+                } else if update.energy.current() >= self.static_data.energy_cost
+                    && (self.spins_remaining != 0
+                        || (self.static_data.is_infinite && data.inputs.secondary.is_pressed()))
+                {
+                    let new_spins_remaining = if self.static_data.is_infinite {
+                        self.spins_remaining
+                    } else {
+                        self.spins_remaining - 1
+                    };
+                    update.character = CharacterState::SpinMelee(Data {
+                        static_data: self.static_data,
+                        timer: Duration::default(),
+                        spins_remaining: new_spins_remaining,
+                        stage_section: self.stage_section,
+                        exhausted: false,
+                    });
+                    // Consumes energy if there's enough left and RMB is held down
+                    update.energy.change_by(
+                        -(self.static_data.energy_cost as i32),
+                        EnergySource::Ability,
+                    );
+                } else {
+                    // Transitions to recover section of stage
+                    update.character = CharacterState::SpinMelee(Data {
+                        static_data: self.static_data,
+                        timer: Duration::default(),
+                        spins_remaining: self.spins_remaining,
+                        stage_section: StageSection::Recover,
+                        exhausted: self.exhausted,
+                    });
+                }
+            },
+            StageSection::Recover => {
+                if self.timer < self.static_data.recover_duration {
+                    // Recover
+                    update.character = CharacterState::SpinMelee(Data {
+                        static_data: self.static_data,
+                        timer: self
+                            .timer
+                            .checked_add(Duration::from_secs_f32(data.dt.0))
+                            .unwrap_or_default(),
+                        spins_remaining: self.spins_remaining,
+                        stage_section: self.stage_section,
+                        exhausted: self.exhausted,
+                    });
+                } else {
+                    // Done
+                    update.character = CharacterState::Wielding;
+                    // Make sure attack component is removed
+                    data.updater.remove::<Attacking>(data.entity);
+                }
+            },
+            _ => {
+                // If it somehow ends up in an incorrect stage section
+                update.character = CharacterState::Wielding;
+                // Make sure attack component is removed
+                data.updater.remove::<Attacking>(data.entity);
+            },
         }
 
         update
