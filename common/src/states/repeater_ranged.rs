@@ -32,6 +32,8 @@ pub struct Data {
     /// Current repetition
     pub current_rep: u32,
     pub initialize: bool,
+    /// Whether there should be a jump
+    pub leap: bool,
 }
 
 impl CharacterBehavior for Data {
@@ -64,10 +66,13 @@ impl CharacterBehavior for Data {
                 repetitions: self.repetitions,
                 current_rep: self.current_rep,
                 initialize: false,
+                leap: self.leap,
             });
         } else if self.movement_duration != Duration::default() {
             // Jumping
-            update.vel.0 = Vec3::new(data.vel.0[0], data.vel.0[1], 10.0);
+            if self.leap {
+                update.vel.0 = Vec3::new(data.vel.0[0], data.vel.0[1], 10.0);
+            }
 
             update.character = CharacterState::RepeaterRanged(Data {
                 movement_duration: self
@@ -87,6 +92,7 @@ impl CharacterBehavior for Data {
                 repetitions: self.repetitions,
                 current_rep: self.current_rep,
                 initialize: false,
+                leap: self.leap,
             });
         } else if !self.exhausted && self.current_rep < self.repetitions {
             let mut projectile = self.projectile.clone();
@@ -120,6 +126,7 @@ impl CharacterBehavior for Data {
                 repetitions: self.repetitions,
                 current_rep: self.current_rep + 1,
                 initialize: false,
+                leap: self.leap,
             });
         } else if self.recover_duration != Duration::default() {
             // Recovery
@@ -141,6 +148,7 @@ impl CharacterBehavior for Data {
                 repetitions: self.repetitions,
                 current_rep: 0,
                 initialize: false,
+                leap: self.leap,
             });
             return update;
         } else {

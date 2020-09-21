@@ -322,10 +322,10 @@ impl Tool {
                     max_projectile_speed: 500.0,
                 },
                 RepeaterRanged {
-                    energy_cost: 400,
+                    energy_cost: 200,
                     holdable: true,
                     movement_duration: Duration::from_millis(200),
-                    prepare_duration: Duration::from_millis(1000),
+                    prepare_duration: Duration::from_millis(500),
                     recover_duration: Duration::from_millis(1000),
                     projectile: Projectile {
                         hit_solid: vec![projectile::Effect::Stick],
@@ -345,6 +345,7 @@ impl Tool {
                     projectile_speed: 100.0,
                     repetitions: 4,
                     current_rep: 0,
+                    leap: true,
                 },
             ],
             Dagger(_) => vec![BasicMelee {

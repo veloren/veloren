@@ -81,6 +81,9 @@ impl State {
                             ToolKind::Staff(_) => true,
                             ToolKind::Debug(kind) => kind == "Boost",
                             ToolKind::Sword(_) => true,
+                            ToolKind::Hammer(_) => true,
+                            ToolKind::Axe(_) => true,
+                            ToolKind::Bow(_) => true,
                             _ => false,
                         }
                     } else {
