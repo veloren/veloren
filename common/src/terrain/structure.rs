@@ -148,14 +148,14 @@ impl Asset for Structure {
                 center: Vec3::zero(),
                 vol,
                 empty: StructureBlock::empty(),
-                default_kind: BlockKind::Normal,
+                default_kind: BlockKind::Misc,
             })
         } else {
             Ok(Self {
                 center: Vec3::zero(),
                 vol: Dyna::filled(Vec3::zero(), StructureBlock::empty(), ()),
                 empty: StructureBlock::empty(),
-                default_kind: BlockKind::Normal,
+                default_kind: BlockKind::Misc,
             })
         }
     }

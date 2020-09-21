@@ -434,7 +434,7 @@ where
     V: BaseVol<Vox = Block> + ReadVol,
 {
     vol.get(pos - Vec3::new(0, 0, 1))
-        .map(|b| b.is_solid() && b.get_height() == 1.0)
+        .map(|b| b.is_solid() && b.solid_height() == 1.0)
         .unwrap_or(false)
         && vol
             .get(pos + Vec3::new(0, 0, 0))

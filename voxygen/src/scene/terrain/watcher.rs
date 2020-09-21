@@ -1,6 +1,6 @@
 use common::{
     span,
-    terrain::{BlockKind, TerrainChunk},
+    terrain::{BlockKind, SpriteKind, TerrainChunk},
     vol::{IntoVolIterator, RectRasterableVol},
 };
 use rand::prelude::*;
@@ -45,16 +45,18 @@ impl BlocksOfInterest {
                         grass.push(pos)
                     }
                 },
-                BlockKind::Ember => embers.push(pos),
-                BlockKind::Beehive => beehives.push(pos),
-                BlockKind::Reed => reeds.push(pos),
-                BlockKind::PinkFlower => flowers.push(pos),
-                BlockKind::PurpleFlower => flowers.push(pos),
-                BlockKind::RedFlower => flowers.push(pos),
-                BlockKind::WhiteFlower => flowers.push(pos),
-                BlockKind::YellowFlower => flowers.push(pos),
-                BlockKind::Sunflower => flowers.push(pos),
-                _ => {},
+                _ => match block.get_sprite() {
+                    Some(SpriteKind::Ember) => embers.push(pos),
+                    Some(SpriteKind::Beehive) => beehives.push(pos),
+                    Some(SpriteKind::Reed) => reeds.push(pos),
+                    Some(SpriteKind::PinkFlower) => flowers.push(pos),
+                    Some(SpriteKind::PurpleFlower) => flowers.push(pos),
+                    Some(SpriteKind::RedFlower) => flowers.push(pos),
+                    Some(SpriteKind::WhiteFlower) => flowers.push(pos),
+                    Some(SpriteKind::YellowFlower) => flowers.push(pos),
+                    Some(SpriteKind::Sunflower) => flowers.push(pos),
+                    _ => {},
+                },
             });
 
         Self {

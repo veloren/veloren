@@ -7,7 +7,7 @@ use crate::{
     sys,
     terrain::{Block, TerrainChunk, TerrainGrid},
     time::DayPeriod,
-    vol::WriteVol,
+    vol::{ReadVol, WriteVol},
 };
 use hashbrown::{HashMap, HashSet};
 use rayon::{ThreadPool, ThreadPoolBuilder};
@@ -263,6 +263,11 @@ impl State {
 
     /// Get a writable reference to this state's terrain.
     pub fn terrain_mut(&self) -> FetchMut<TerrainGrid> { self.ecs.write_resource() }
+
+    /// Get a block in this state's terrain.
+    pub fn get_block(&self, pos: Vec3<i32>) -> Option<Block> {
+        self.terrain().get(pos).ok().copied()
+    }
 
     /// Set a block in this state's terrain.
     pub fn set_block(&mut self, pos: Vec3<i32>, block: Block) {

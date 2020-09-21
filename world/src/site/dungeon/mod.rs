@@ -14,7 +14,7 @@ use common::{
     generation::{ChunkSupplement, EntityInfo},
     lottery::Lottery,
     store::{Id, Store},
-    terrain::{Block, BlockKind, Structure, TerrainChunkSize},
+    terrain::{Block, BlockKind, SpriteKind, Structure, TerrainChunkSize},
     vol::{BaseVol, ReadVol, RectSizedVol, RectVolSize, Vox, WriteVol},
 };
 use core::{f32, hash::BuildHasherDefault};
@@ -564,13 +564,7 @@ impl Floor {
         let empty = BlockMask::new(Block::empty(), 1);
 
         let make_staircase = move |pos: Vec3<i32>, radius: f32, inner_radius: f32, stretch: f32| {
-            let stone = BlockMask::new(
-                Block::new(
-                    BlockKind::Normal,
-                    /* Rgb::new(150, 150, 175) */ colors.stone.into(),
-                ),
-                5,
-            );
+            let stone = BlockMask::new(Block::new(BlockKind::Rock, colors.stone.into()), 5);
 
             if (pos.xy().magnitude_squared() as f32) < inner_radius.powf(2.0) {
                 stone
@@ -599,15 +593,14 @@ impl Floor {
 
         let floor_sprite = if RandomField::new(7331).chance(Vec3::from(pos), 0.00005) {
             BlockMask::new(
-                Block::new(
+                Block::air(
                     match (RandomField::new(1337).get(Vec3::from(pos)) / 2) % 20 {
-                        0 => BlockKind::Apple,
-                        1 => BlockKind::VeloriteFrag,
-                        2 => BlockKind::Velorite,
-                        3..=8 => BlockKind::Mushroom,
-                        _ => BlockKind::ShortGrass,
+                        0 => SpriteKind::Apple,
+                        1 => SpriteKind::VeloriteFrag,
+                        2 => SpriteKind::Velorite,
+                        3..=8 => SpriteKind::Mushroom,
+                        _ => SpriteKind::ShortGrass,
                     },
-                    Rgb::white(),
                 ),
                 1,
             )
@@ -616,7 +609,7 @@ impl Floor {
         {
             let room = &self.rooms[*room];
             if RandomField::new(room.seed).chance(Vec3::from(pos), room.loot_density * 0.5) {
-                BlockMask::new(Block::new(BlockKind::Chest, Rgb::white()), 1)
+                BlockMask::new(Block::air(SpriteKind::Chest), 1)
             } else {
                 empty
             }

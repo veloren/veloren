@@ -8,7 +8,7 @@ use crate::{
     span,
     state::DeltaTime,
     sync::{Uid, UidAllocator},
-    terrain::{Block, BlockKind, TerrainGrid},
+    terrain::{Block, TerrainGrid},
     vol::ReadVol,
 };
 use rayon::iter::ParallelIterator;
@@ -341,7 +341,7 @@ impl<'a> System<'a> for Sys {
                     let near_iter = (-hdist..hdist + 1)
                         .map(move |i| {
                             (-hdist..hdist + 1).map(move |j| {
-                                (1 - BlockKind::MAX_HEIGHT.ceil() as i32 + z_min.floor() as i32
+                                (1 - Block::MAX_HEIGHT.ceil() as i32 + z_min.floor() as i32
                                     ..z_max.ceil() as i32 + 1)
                                     .map(move |k| (i, j, k))
                             })
@@ -370,7 +370,7 @@ impl<'a> System<'a> for Sys {
                                 let block_aabb = Aabb {
                                     min: block_pos.map(|e| e as f32),
                                     max: block_pos.map(|e| e as f32)
-                                        + Vec3::new(1.0, 1.0, block.get_height()),
+                                        + Vec3::new(1.0, 1.0, block.solid_height()),
                                 };
 
                                 if player_aabb.collides_with_aabb(block_aabb) {
@@ -442,9 +442,9 @@ impl<'a> System<'a> for Sys {
                                             block_pos,
                                             Aabb {
                                                 min: block_pos.map(|e| e as f32),
-                                                max: block_pos.map(|e| e as f32) + Vec3::new(1.0, 1.0, block.get_height()),
+                                                max: block_pos.map(|e| e as f32) + Vec3::new(1.0, 1.0, block.solid_height()),
                                             },
-                                            block.get_height(),
+                                            block.solid_height(),
                                         ))
                                     } else {
                                         None
@@ -557,7 +557,7 @@ impl<'a> System<'a> for Sys {
                             &terrain,
                             &|block| {
                                 block.is_solid()
-                                    && block.get_height() >= (pos.0.z - 0.05).rem_euclid(1.0)
+                                    && block.solid_height() >= (pos.0.z - 0.05).rem_euclid(1.0)
                             },
                             near_iter.clone(),
                             radius,
@@ -571,7 +571,7 @@ impl<'a> System<'a> for Sys {
                             )
                             .ok()
                             .filter(|block| block.is_solid())
-                            .map(|block| block.get_height())
+                            .map(|block| block.solid_height())
                             .unwrap_or(0.0);
                         pos.0.z = (pos.0.z - 0.05).floor() + snap_height;
                         physics_state.on_ground = true;
@@ -609,7 +609,7 @@ impl<'a> System<'a> for Sys {
                     physics_state.in_fluid = collision_iter(
                         pos.0,
                         &terrain,
-                        &|block| block.is_fluid(),
+                        &|block| block.is_liquid(),
                         near_iter.clone(),
                         radius,
                         z_min..z_max,
@@ -619,7 +619,7 @@ impl<'a> System<'a> for Sys {
                 },
                 Collider::Point => {
                     let (dist, block) = terrain.ray(pos.0, pos.0 + pos_delta)
-                        .until(|vox| !vox.is_air() && !vox.is_fluid())
+                        .until(|vox| !vox.is_air() && !vox.is_liquid())
                         .ignore_error().cast();
 
                     pos.0 += pos_delta.try_normalized().unwrap_or(Vec3::zero()) * dist;
@@ -655,7 +655,7 @@ impl<'a> System<'a> for Sys {
 
                     physics_state.in_fluid = terrain.get(pos.0.map(|e| e.floor() as i32))
                         .ok()
-                        .and_then(|vox| vox.is_fluid().then_some(1.0));
+                        .and_then(|vox| vox.is_liquid().then_some(1.0));
                 },
             }
 

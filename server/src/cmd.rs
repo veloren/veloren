@@ -12,9 +12,9 @@ use common::{
     npc::{self, get_npc_name},
     state::TimeOfDay,
     sync::{Uid, WorldSyncExt},
-    terrain::{Block, BlockKind, TerrainChunkSize},
+    terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
     util::Dir,
-    vol::RectVolSize,
+    vol::{RectVolSize, Vox},
     LoadoutBuilder,
 };
 use rand::Rng;
@@ -87,6 +87,7 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::Lantern => handle_lantern,
         ChatCommand::Light => handle_light,
         ChatCommand::MakeBlock => handle_make_block,
+        ChatCommand::MakeSprite => handle_make_sprite,
         ChatCommand::Motd => handle_motd,
         ChatCommand::Object => handle_object,
         ChatCommand::Players => handle_players,
@@ -207,6 +208,44 @@ fn handle_make_block(
             server.notify_client(
                 client,
                 ChatType::CommandError.server_msg(format!("Invalid block kind: {}", block_name)),
+            );
+        }
+    } else {
+        server.notify_client(
+            client,
+            ChatType::CommandError.server_msg(action.help_string()),
+        );
+    }
+}
+
+fn handle_make_sprite(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    args: String,
+    action: &ChatCommand,
+) {
+    if let Some(sprite_name) = scan_fmt_some!(&args, &action.arg_fmt(), String) {
+        if let Ok(sk) = SpriteKind::try_from(sprite_name.as_str()) {
+            match server.state.read_component_copied::<comp::Pos>(target) {
+                Some(pos) => {
+                    let pos = pos.0.map(|e| e.floor() as i32);
+                    let new_block = server
+                        .state
+                        .get_block(pos)
+                        .unwrap_or_else(Block::empty)
+                        .with_sprite(sk);
+                    server.state.set_block(pos, new_block);
+                },
+                None => server.notify_client(
+                    client,
+                    ChatType::CommandError.server_msg(String::from("You have no position.")),
+                ),
+            }
+        } else {
+            server.notify_client(
+                client,
+                ChatType::CommandError.server_msg(format!("Invalid sprite kind: {}", sprite_name)),
             );
         }
     } else {
