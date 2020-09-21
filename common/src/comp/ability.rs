@@ -1,10 +1,9 @@
 use crate::{
     comp::{
-        ability::Stage,
         item::{armor::Protection, Item, ItemKind},
         Body, CharacterState, EnergySource, Gravity, LightEmitter, Projectile, StateUpdate,
     },
-    states::{triple_strike::*, *},
+    states::{utils::StageSection, *},
     sys::character_behavior::JoinData,
 };
 use arraygen::Arraygen;
@@ -21,7 +20,7 @@ pub enum CharacterAbilityType {
     ChargedRanged,
     DashMelee,
     BasicBlock,
-    TripleStrike(Stage),
+    ComboMelee(StageSection, u32),
     LeapMelee,
     SpinMelee,
     GroundShockwave,
@@ -36,7 +35,7 @@ impl From<&CharacterState> for CharacterAbilityType {
             CharacterState::DashMelee(_) => Self::DashMelee,
             CharacterState::BasicBlock => Self::BasicBlock,
             CharacterState::LeapMelee(_) => Self::LeapMelee,
-            CharacterState::TripleStrike(data) => Self::TripleStrike(data.stage),
+            CharacterState::ComboMelee(data) => Self::ComboMelee(data.stage_section, data.stage),
             CharacterState::SpinMelee(_) => Self::SpinMelee,
             CharacterState::ChargedRanged(_) => Self::ChargedRanged,
             CharacterState::GroundShockwave(_) => Self::ChargedRanged,
@@ -73,15 +72,31 @@ pub enum CharacterAbility {
     },
     DashMelee {
         energy_cost: u32,
-        buildup_duration: Duration,
-        recover_duration: Duration,
         base_damage: u32,
+        max_damage: u32,
+        base_knockback: f32,
+        max_knockback: f32,
+        range: f32,
+        angle: f32,
+        energy_drain: u32,
+        forward_speed: f32,
+        buildup_duration: Duration,
+        charge_duration: Duration,
+        swing_duration: Duration,
+        recover_duration: Duration,
+        infinite_charge: bool,
+        is_interruptible: bool,
     },
     BasicBlock,
     Roll,
-    TripleStrike {
-        base_damage: u32,
-        needs_timing: bool,
+    ComboMelee {
+        stage_data: Vec<combo_melee::Stage>,
+        initial_energy_gain: u32,
+        max_energy_gain: u32,
+        energy_increase: u32,
+        speed_increase: f32,
+        max_speed_increase: f32,
+        is_interruptible: bool,
     },
     LeapMelee {
         energy_cost: u32,
@@ -91,10 +106,18 @@ pub enum CharacterAbility {
         base_damage: u32,
     },
     SpinMelee {
-        energy_cost: u32,
         buildup_duration: Duration,
+        swing_duration: Duration,
         recover_duration: Duration,
         base_damage: u32,
+        knockback: f32,
+        range: f32,
+        energy_cost: u32,
+        is_infinite: bool,
+        is_helicopter: bool,
+        is_interruptible: bool,
+        forward_speed: f32,
+        num_spins: u32,
     },
     ChargedRanged {
         energy_cost: u32,
@@ -130,11 +153,6 @@ impl CharacterAbility {
     /// applicable.
     pub fn requirements_paid(&self, data: &JoinData, update: &mut StateUpdate) -> bool {
         match self {
-            CharacterAbility::TripleStrike { .. } => {
-                data.physics.on_ground
-                    && data.body.is_humanoid()
-                    && data.inputs.look_dir.xy().magnitude_squared() > 0.01
-            },
             CharacterAbility::Roll => {
                 data.physics.on_ground
                     && data.body.is_humanoid()
@@ -313,35 +331,71 @@ impl From<&CharacterAbility> for CharacterState {
             }),
             CharacterAbility::DashMelee {
                 energy_cost: _,
-                buildup_duration,
-                recover_duration,
                 base_damage,
+                max_damage,
+                base_knockback,
+                max_knockback,
+                range,
+                angle,
+                energy_drain,
+                forward_speed,
+                buildup_duration,
+                charge_duration,
+                swing_duration,
+                recover_duration,
+                infinite_charge,
+                is_interruptible,
             } => CharacterState::DashMelee(dash_melee::Data {
-                initialize: true,
+                static_data: dash_melee::StaticData {
+                    base_damage: *base_damage,
+                    max_damage: *max_damage,
+                    base_knockback: *base_knockback,
+                    max_knockback: *max_knockback,
+                    range: *range,
+                    angle: *angle,
+                    energy_drain: *energy_drain,
+                    forward_speed: *forward_speed,
+                    infinite_charge: *infinite_charge,
+                    buildup_duration: *buildup_duration,
+                    charge_duration: *charge_duration,
+                    swing_duration: *swing_duration,
+                    recover_duration: *recover_duration,
+                    is_interruptible: *is_interruptible,
+                },
+                end_charge: false,
+                timer: Duration::default(),
+                stage_section: StageSection::Buildup,
                 exhausted: false,
-                buildup_duration: *buildup_duration,
-                recover_duration: *recover_duration,
-                base_damage: *base_damage,
             }),
             CharacterAbility::BasicBlock => CharacterState::BasicBlock,
             CharacterAbility::Roll => CharacterState::Roll(roll::Data {
                 remaining_duration: Duration::from_millis(500),
                 was_wielded: false, // false by default. utils might set it to true
             }),
-            CharacterAbility::TripleStrike {
-                base_damage,
-                needs_timing,
-            } => CharacterState::TripleStrike(triple_strike::Data {
-                base_damage: *base_damage,
-                stage: triple_strike::Stage::First,
-                stage_exhausted: false,
-                stage_time_active: Duration::default(),
-                initialized: false,
-                transition_style: if *needs_timing {
-                    TransitionStyle::Timed(TimingState::NotPressed)
-                } else {
-                    TransitionStyle::Hold(HoldingState::Holding)
+            CharacterAbility::ComboMelee {
+                stage_data,
+                initial_energy_gain,
+                max_energy_gain,
+                energy_increase,
+                speed_increase,
+                max_speed_increase,
+                is_interruptible,
+            } => CharacterState::ComboMelee(combo_melee::Data {
+                static_data: combo_melee::StaticData {
+                    num_stages: stage_data.len() as u32,
+                    stage_data: stage_data.clone(),
+                    initial_energy_gain: *initial_energy_gain,
+                    max_energy_gain: *max_energy_gain,
+                    energy_increase: *energy_increase,
+                    speed_increase: 1.0 - *speed_increase,
+                    max_speed_increase: *max_speed_increase - 1.0,
+                    is_interruptible: *is_interruptible,
                 },
+                stage: 1,
+                combo: 0,
+                timer: Duration::default(),
+                stage_section: StageSection::Buildup,
+                next_stage: false,
             }),
             CharacterAbility::LeapMelee {
                 energy_cost: _,
@@ -358,24 +412,37 @@ impl From<&CharacterAbility> for CharacterState {
                 base_damage: *base_damage,
             }),
             CharacterAbility::SpinMelee {
-                energy_cost,
                 buildup_duration,
+                swing_duration,
                 recover_duration,
                 base_damage,
+                knockback,
+                range,
+                energy_cost,
+                is_infinite,
+                is_helicopter,
+                is_interruptible,
+                forward_speed,
+                num_spins,
             } => CharacterState::SpinMelee(spin_melee::Data {
+                static_data: spin_melee::StaticData {
+                    buildup_duration: *buildup_duration,
+                    swing_duration: *swing_duration,
+                    recover_duration: *recover_duration,
+                    base_damage: *base_damage,
+                    knockback: *knockback,
+                    range: *range,
+                    energy_cost: *energy_cost,
+                    is_infinite: *is_infinite,
+                    is_helicopter: *is_helicopter,
+                    is_interruptible: *is_interruptible,
+                    forward_speed: *forward_speed,
+                    num_spins: *num_spins,
+                },
+                timer: Duration::default(),
+                spins_remaining: *num_spins - 1,
+                stage_section: StageSection::Buildup,
                 exhausted: false,
-                energy_cost: *energy_cost,
-                buildup_duration: *buildup_duration,
-                buildup_duration_default: *buildup_duration,
-                recover_duration: *recover_duration,
-                recover_duration_default: *recover_duration,
-                base_damage: *base_damage,
-                // This isn't needed for it's continuous implementation, but is left in should this
-                // skill be moved to the skillbar
-                hits_remaining: 1,
-                hits_remaining_default: 1, /* Should be the same value as hits_remaining, also
-                                            * this value can be removed if ability moved to
-                                            * skillbar */
             }),
             CharacterAbility::ChargedRanged {
                 energy_cost: _,

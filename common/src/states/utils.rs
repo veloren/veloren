@@ -8,6 +8,7 @@ use crate::{
     sys::{character_behavior::JoinData, phys::GRAVITY},
     util::Dir,
 };
+use serde::{Deserialize, Serialize};
 use vek::*;
 
 pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;
@@ -87,6 +88,21 @@ fn basic_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
         update.vel.0 + Vec2::broadcast(data.dt.0) * data.inputs.move_dir * accel * efficiency;
 
     handle_orientation(data, update, data.body.base_ori_rate());
+}
+
+/// Similar to basic_move function, but with forced forward movement
+pub fn forward_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32, forward: f32) {
+    let accel = if data.physics.on_ground {
+        data.body.base_accel()
+    } else {
+        BASE_HUMANOID_AIR_ACCEL
+    };
+
+    update.vel.0 += Vec2::broadcast(data.dt.0)
+        * accel
+        * (data.inputs.move_dir * efficiency + (*update.ori.0).xy() * forward);
+
+    handle_orientation(data, update, data.body.base_ori_rate() * efficiency);
 }
 
 pub fn handle_orientation(data: &JoinData, update: &mut StateUpdate, rate: f32) {
@@ -329,4 +345,22 @@ pub fn unwrap_tool_data<'a>(data: &'a JoinData) -> Option<&'a Tool> {
     } else {
         None
     }
+}
+
+pub fn handle_interrupt(data: &JoinData, update: &mut StateUpdate) {
+    handle_ability1_input(data, update);
+    handle_ability2_input(data, update);
+    handle_ability3_input(data, update);
+    handle_dodge_input(data, update);
+}
+
+/// Determines what portion a state is in. Used in all attacks (eventually). Is
+/// used to control aspects of animation code, as well as logic within the
+/// character states.
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
+pub enum StageSection {
+    Buildup,
+    Swing,
+    Recover,
+    Charge,
 }

@@ -113,15 +113,34 @@ fn matches_ability_stage() {
     });
 
     let result = CombatEventMapper::map_event(
-        &CharacterState::TripleStrike(states::triple_strike::Data {
-            base_damage: 10,
-            stage: states::triple_strike::Stage::First,
-            stage_time_active: Duration::default(),
-            stage_exhausted: false,
-            initialized: true,
-            transition_style: states::triple_strike::TransitionStyle::Hold(
-                states::triple_strike::HoldingState::Released,
-            ),
+        &CharacterState::ComboMelee(states::combo_melee::Data {
+            static_data: states::combo_melee::StaticData {
+                num_stages: 1,
+                stage_data: vec![states::combo_melee::Stage {
+                    stage: 1,
+                    base_damage: 100,
+                    max_damage: 120,
+                    damage_increase: 10,
+                    knockback: 10.0,
+                    range: 4.0,
+                    angle: 30.0,
+                    base_buildup_duration: Duration::from_millis(500),
+                    base_swing_duration: Duration::from_millis(200),
+                    base_recover_duration: Duration::from_millis(400),
+                    forward_movement: 0.5,
+                }],
+                initial_energy_gain: 0,
+                max_energy_gain: 100,
+                energy_increase: 20,
+                speed_increase: 0.05,
+                max_speed_increase: 1.8,
+                is_interruptible: true,
+            },
+            stage: 1,
+            combo: 0,
+            timer: Duration::default(),
+            stage_section: states::utils::StageSection::Swing,
+            next_stage: false,
         }),
         &PreviousEntityState {
             event: SfxEvent::Idle,
@@ -134,7 +153,7 @@ fn matches_ability_stage() {
     assert_eq!(
         result,
         SfxEvent::Attack(
-            CharacterAbilityType::TripleStrike(states::triple_strike::Stage::First),
+            CharacterAbilityType::ComboMelee(states::utils::StageSection::Swing, 1),
             ToolCategory::Sword
         )
     );
@@ -154,15 +173,34 @@ fn ignores_different_ability_stage() {
     });
 
     let result = CombatEventMapper::map_event(
-        &CharacterState::TripleStrike(states::triple_strike::Data {
-            base_damage: 10,
-            stage: states::triple_strike::Stage::Second,
-            stage_time_active: Duration::default(),
-            stage_exhausted: false,
-            initialized: true,
-            transition_style: states::triple_strike::TransitionStyle::Hold(
-                states::triple_strike::HoldingState::Released,
-            ),
+        &CharacterState::ComboMelee(states::combo_melee::Data {
+            static_data: states::combo_melee::StaticData {
+                num_stages: 1,
+                stage_data: vec![states::combo_melee::Stage {
+                    stage: 1,
+                    base_damage: 100,
+                    max_damage: 120,
+                    damage_increase: 10,
+                    knockback: 10.0,
+                    range: 4.0,
+                    angle: 30.0,
+                    base_buildup_duration: Duration::from_millis(500),
+                    base_swing_duration: Duration::from_millis(200),
+                    base_recover_duration: Duration::from_millis(400),
+                    forward_movement: 0.5,
+                }],
+                initial_energy_gain: 0,
+                max_energy_gain: 100,
+                energy_increase: 20,
+                speed_increase: 0.05,
+                max_speed_increase: 1.8,
+                is_interruptible: true,
+            },
+            stage: 1,
+            combo: 0,
+            timer: Duration::default(),
+            stage_section: states::utils::StageSection::Swing,
+            next_stage: false,
         }),
         &PreviousEntityState {
             event: SfxEvent::Idle,
@@ -175,7 +213,7 @@ fn ignores_different_ability_stage() {
     assert_ne!(
         result,
         SfxEvent::Attack(
-            CharacterAbilityType::TripleStrike(states::triple_strike::Stage::First),
+            CharacterAbilityType::ComboMelee(states::utils::StageSection::Swing, 2),
             ToolCategory::Sword
         )
     );

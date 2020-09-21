@@ -82,7 +82,7 @@ impl State {
                         } else if let ToolKind::Debug(kind) = &kind.kind {
                             kind == "Boost"
                         } else {
-                            false
+                            matches!(&kind.kind, ToolKind::Sword(_))
                         }
                     } else {
                         false
