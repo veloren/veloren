@@ -8,7 +8,7 @@ use crate::{
 };
 use common::{
     make_case_elim,
-    terrain::{Block, BlockKind},
+    terrain::{Block, BlockKind, SpriteKind},
     vol::Vox,
 };
 use rand::prelude::*;
@@ -145,7 +145,7 @@ pub struct Attr {
     pub mansard: i32,
     pub pillar: Pillar,
     pub levels: i32,
-    pub window: BlockKind,
+    pub window: SpriteKind,
 }
 
 impl Attr {
@@ -169,10 +169,10 @@ impl Attr {
             },
             levels: rng.gen_range(1, 3),
             window: match rng.gen_range(0, 4) {
-                0 => BlockKind::Window1,
-                1 => BlockKind::Window2,
-                2 => BlockKind::Window3,
-                _ => BlockKind::Window4,
+                0 => SpriteKind::Window1,
+                1 => SpriteKind::Window2,
+                2 => SpriteKind::Window3,
+                _ => SpriteKind::Window4,
             },
         }
     }
@@ -267,24 +267,13 @@ impl Archetype for House {
 
         let profile = Vec2::new(bound_offset.x, z);
 
-        let make_meta = |ori| {
-            Rgb::new(
-                match ori {
-                    Ori::East => 0,
-                    Ori::North => 2,
-                },
-                0,
-                0,
-            )
-        };
-
         let make_block = |(r, g, b)| {
             let nz = self
                 .noise
                 .get(Vec3::new(center_offset.x, center_offset.y, z * 8));
             BlockMask::new(
                 Block::new(
-                    BlockKind::Normal,
+                    BlockKind::Misc,
                     // TODO: Clarify exactly how this affects the color.
                     Rgb::new(r, g, b)
                         .map(|e: u8| e.saturating_add((nz & 0x0F) as u8).saturating_sub(8)),
@@ -307,10 +296,15 @@ impl Archetype for House {
         let empty = BlockMask::nothing();
         let internal = BlockMask::new(Block::empty(), internal_layer);
         let end_window = BlockMask::new(
-            Block::new(attr.window, make_meta(ori.flip())),
+            Block::air(attr.window)
+                .with_ori(match ori {
+                    Ori::East => 2,
+                    Ori::North => 0,
+                })
+                .unwrap(),
             structural_layer,
         );
-        let fire = BlockMask::new(Block::new(BlockKind::Ember, Rgb::white()), foundation_layer);
+        let fire = BlockMask::new(Block::air(SpriteKind::Ember), foundation_layer);
 
         let storey_height = 6;
         let storey = ((z - 1) / storey_height).min(attr.levels - 1);
@@ -441,14 +435,18 @@ impl Archetype for House {
                                 // Doors on first floor only
                                 if profile.y == foundation_height + 1 {
                                     BlockMask::new(
-                                        Block::new(
-                                            BlockKind::Door,
-                                            if bound_offset.x == (width - 1) / 2 {
-                                                make_meta(ori.flip())
-                                            } else {
-                                                make_meta(ori.flip()) + Rgb::new(4, 0, 0)
-                                            },
-                                        ),
+                                        Block::air(SpriteKind::Door)
+                                            .with_ori(
+                                                match ori {
+                                                    Ori::East => 2,
+                                                    Ori::North => 0,
+                                                } + if bound_offset.x == (width - 1) / 2 {
+                                                    0
+                                                } else {
+                                                    4
+                                                },
+                                            )
+                                            .unwrap(),
                                         structural_layer,
                                     )
                                 } else {
@@ -542,26 +540,26 @@ impl Archetype for House {
                             z + 100,
                         )) % 11
                         {
-                            0 => BlockKind::Planter,
-                            1 => BlockKind::ChairSingle,
-                            2 => BlockKind::ChairDouble,
-                            3 => BlockKind::CoatRack,
+                            0 => SpriteKind::Planter,
+                            1 => SpriteKind::ChairSingle,
+                            2 => SpriteKind::ChairDouble,
+                            3 => SpriteKind::CoatRack,
                             4 => {
                                 if rng.gen_range(0, 8) == 0 {
-                                    BlockKind::Chest
+                                    SpriteKind::Chest
                                 } else {
-                                    BlockKind::Crate
+                                    SpriteKind::Crate
                                 }
                             },
-                            6 => BlockKind::DrawerMedium,
-                            7 => BlockKind::DrawerSmall,
-                            8 => BlockKind::TableSide,
-                            9 => BlockKind::WardrobeSingle,
-                            _ => BlockKind::Pot,
+                            6 => SpriteKind::DrawerMedium,
+                            7 => SpriteKind::DrawerSmall,
+                            8 => SpriteKind::TableSide,
+                            9 => SpriteKind::WardrobeSingle,
+                            _ => SpriteKind::Pot,
                         };
 
                         return Some(BlockMask::new(
-                            Block::new(furniture, Rgb::new(edge_ori, 0, 0)),
+                            Block::air(furniture).with_ori(edge_ori).unwrap(),
                             internal_layer,
                         ));
                     } else {
@@ -584,13 +582,13 @@ impl Archetype for House {
                             .get(Vec3::new(center_offset.x, center_offset.y, z + 100))
                             % 4
                         {
-                            0 => BlockKind::HangingSign,
-                            1 | 2 | 3 => BlockKind::HangingBasket,
-                            _ => BlockKind::DungeonWallDecor,
+                            0 => SpriteKind::HangingSign,
+                            1 | 2 | 3 => SpriteKind::HangingBasket,
+                            _ => SpriteKind::DungeonWallDecor,
                         };
 
                     Some(BlockMask::new(
-                        Block::new(ornament, Rgb::new((edge_ori + 4) % 8, 0, 0)),
+                        Block::air(ornament).with_ori((edge_ori + 4) % 8).unwrap(),
                         internal_layer,
                     ))
                 } else {

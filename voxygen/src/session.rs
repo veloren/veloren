@@ -86,7 +86,7 @@ impl SessionState {
             key_state: KeyState::default(),
             inputs: comp::ControllerInputs::default(),
             hud,
-            selected_block: Block::new(BlockKind::Normal, Rgb::broadcast(255)),
+            selected_block: Block::new(BlockKind::Misc, Rgb::broadcast(255)),
             voxygen_i18n,
             walk_forward_dir,
             walk_right_dir,
@@ -1161,7 +1161,7 @@ fn under_cursor(
 
     let cam_ray = terrain
         .ray(cam_pos, cam_pos + cam_dir * 100.0)
-        .until(|block| block.is_tangible())
+        .until(|block| block.is_filled() || block.is_collectible())
         .cast();
 
     let cam_dist = cam_ray.0;

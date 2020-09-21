@@ -131,6 +131,22 @@ pub trait WriteVol: BaseVol {
     /// Set the voxel at the provided position in the volume to the provided
     /// value.
     fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<(), Self::Error>;
+
+    /// Map a voxel to another using the provided function.
+    // TODO: Is `map` the right name? Implies a change in type.
+    fn map<F: FnOnce(Self::Vox) -> Self::Vox>(
+        &mut self,
+        pos: Vec3<i32>,
+        f: F,
+    ) -> Result<(), Self::Error>
+    where
+        Self: ReadVol,
+        Self::Vox: Clone,
+    {
+        // This is *deliberately* not using a get_mut since this might trigger a
+        // repr change of the underlying volume
+        self.set(pos, f(self.get(pos)?.clone()))
+    }
 }
 
 /// A volume (usually rather a reference to a volume) that is convertible into

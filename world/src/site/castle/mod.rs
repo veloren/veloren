@@ -208,7 +208,7 @@ impl Castle {
                             let _ = vol.set(
                                 pos,
                                 Block::new(
-                                    BlockKind::Normal,
+                                    BlockKind::Earth,
                                     col_sample.sub_surface_color.map(|e| (e * 255.0) as u8),
                                 ),
                             );

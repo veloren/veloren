@@ -8,8 +8,7 @@ use common::{
     msg::ServerMsg,
     recipe::default_recipe_book,
     sync::{Uid, WorldSyncExt},
-    terrain::block::Block,
-    vol::{ReadVol, Vox},
+    vol::ReadVol,
 };
 use comp::LightEmitter;
 use rand::Rng;
@@ -132,7 +131,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                             state.write_component(entity, event);
                             if item_was_added {
                                 // we made sure earlier the block was not already modified this tick
-                                state.set_block(pos, Block::empty())
+                                state.set_block(pos, block.into_vacant())
                             };
                         }
                     } else {

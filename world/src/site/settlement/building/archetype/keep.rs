@@ -6,7 +6,7 @@ use crate::{
 };
 use common::{
     make_case_elim,
-    terrain::{Block, BlockKind},
+    terrain::{Block, BlockKind, SpriteKind},
     vol::Vox,
 };
 use rand::prelude::*;
@@ -134,23 +134,8 @@ impl Archetype for Keep {
         let important_layer = normal_layer + 1;
         let internal_layer = important_layer + 1;
 
-        let make_meta = |ori| {
-            Rgb::new(
-                match ori {
-                    Ori::East => 0,
-                    Ori::North => 2,
-                },
-                0,
-                0,
-            )
-        };
-
-        let make_block = |r, g, b| {
-            BlockMask::new(
-                Block::new(BlockKind::Normal, Rgb::new(r, g, b)),
-                normal_layer,
-            )
-        };
+        let make_block =
+            |r, g, b| BlockMask::new(Block::new(BlockKind::Rock, Rgb::new(r, g, b)), normal_layer);
 
         let brick_tex_pos = (pos + Vec3::new(pos.z, pos.z, 0)) / Vec3::new(2, 2, 1);
         let brick_tex = RandomField::new(0).get(brick_tex_pos) as u8 % 24;
@@ -165,7 +150,12 @@ impl Archetype for Keep {
             stone_color.2 + brick_tex,
         );
         let window = BlockMask::new(
-            Block::new(BlockKind::Window1, make_meta(ori.flip())),
+            Block::air(SpriteKind::Window1)
+                .with_ori(match ori {
+                    Ori::East => 2,
+                    Ori::North => 0,
+                })
+                .unwrap(),
             normal_layer,
         );
         let floor = make_block(
@@ -182,7 +172,7 @@ impl Archetype for Keep {
         let empty = BlockMask::nothing();
 
         let make_staircase = move |pos: Vec3<i32>, radius: f32, inner_radius: f32, stretch: f32| {
-            let stone = BlockMask::new(Block::new(BlockKind::Normal, dungeon_stone.into()), 5);
+            let stone = BlockMask::new(Block::new(BlockKind::Rock, dungeon_stone.into()), 5);
 
             if (pos.xy().magnitude_squared() as f32) < inner_radius.powf(2.0) {
                 stone

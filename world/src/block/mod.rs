@@ -8,7 +8,7 @@ use crate::{
 use common::{
     terrain::{
         structure::{self, StructureBlock},
-        Block, BlockKind, Structure,
+        Block, BlockKind, SpriteKind, Structure,
     },
     vol::{ReadVol, Vox},
 };
@@ -254,15 +254,19 @@ impl<'a> BlockGen<'a> {
 
             let grass_depth = (1.5 + 2.0 * chaos).min(height - basement_height);
             let block = if (wposf.z as f32) < height - grass_depth {
+                let stone_factor = (height - grass_depth - wposf.z as f32) * 0.15;
                 let col = Lerp::lerp(
                     sub_surface_color,
                     stone_col.map(|e| e as f32 / 255.0),
-                    (height - grass_depth - wposf.z as f32) * 0.15,
+                    stone_factor,
                 )
                 .map(|e| (e * 255.0) as u8);
 
-                // Underground
-                Some(Block::new(BlockKind::Normal, col))
+                if stone_factor >= 0.5 {
+                    Some(Block::new(BlockKind::Rock, col))
+                } else {
+                    Some(Block::new(BlockKind::Earth, col))
+                }
             } else if (wposf.z as f32) < height {
                 let grass_factor = (wposf.z as f32 - (height - grass_depth))
                     .div(grass_depth)
@@ -273,81 +277,10 @@ impl<'a> BlockGen<'a> {
                     if grass_factor > 0.7 {
                         BlockKind::Grass
                     } else {
-                        BlockKind::Normal
+                        BlockKind::Earth
                     },
                     col.map(|e| (e * 255.0) as u8),
                 ))
-            // } else if (wposf.z as f32) < height + 0.9
-            //     && temp < CONFIG.desert_temp
-            //     && (wposf.z as f32 > water_height + 3.0)
-            //     && marble > 0.6
-            //     && marble_small > 0.55
-            //     && (marble * 3173.7).fract() < 0.6
-            //     && humidity > CONFIG.desert_hum
-            //     && false
-            // {
-            //     let treasures = [BlockKind::Chest, BlockKind::Velorite];
-
-            //     let flowers = [
-            //         BlockKind::BlueFlower,
-            //         BlockKind::PinkFlower,
-            //         BlockKind::PurpleFlower,
-            //         BlockKind::RedFlower,
-            //         BlockKind::WhiteFlower,
-            //         BlockKind::YellowFlower,
-            //         BlockKind::Sunflower,
-            //         BlockKind::Mushroom, //TODO: Better spawnrules
-            //         BlockKind::LeafyPlant,
-            //         BlockKind::Blueberry,
-            //         BlockKind::LingonBerry,
-            //         BlockKind::Fern,
-            //         /*BlockKind::Twigs,    // TODO: Better spawnrules
-            //          *BlockKind::Stones,   // TODO: Better spawnrules
-            //          *BlockKind::ShinyGem, // TODO: Better spawnrules */
-            //     ];
-            //     let grasses = [
-            //         BlockKind::LongGrass,
-            //         BlockKind::MediumGrass,
-            //         BlockKind::ShortGrass,
-            //     ];
-
-            //     Some(Block::new(
-            //         if on_cliff && (height * 1271.0).fract() < 0.015 {
-            //             treasures[(height * 731.3) as usize %
-            // treasures.len()]         } else if (height *
-            // 1271.0).fract() < 0.1 {             flowers[(height *
-            // 0.2) as usize % flowers.len()]         } else {
-            //             grasses[(height * 103.3) as usize % grasses.len()]
-            //         },
-            //         Rgb::broadcast(0),
-            //     ))
-            // } else if (wposf.z as f32) < height + 0.9
-            //     && temp > CONFIG.desert_temp
-            //     && (marble * 4423.5).fract() < 0.0005
-            //     && false
-            // {
-            //     let large_cacti = [
-            //         BlockKind::LargeCactus,
-            //         BlockKind::MedFlatCactus,
-            //         BlockKind::Welwitch,
-            //     ];
-
-            //     let small_cacti = [
-            //         BlockKind::BarrelCactus,
-            //         BlockKind::RoundCactus,
-            //         BlockKind::ShortCactus,
-            //         BlockKind::ShortFlatCactus,
-            //         BlockKind::DeadBush,
-            //     ];
-
-            //     Some(Block::new(
-            //         if (height * 1271.0).fract() < 0.5 {
-            //             large_cacti[(height * 0.2) as usize %
-            // large_cacti.len()]         } else {
-            //             small_cacti[(height * 0.3) as usize %
-            // small_cacti.len()]         },
-            //         Rgb::broadcast(0),
-            //     ))
             } else {
                 None
             }
@@ -360,7 +293,7 @@ impl<'a> BlockGen<'a> {
                     let field2 = RandomField::new(world.seed + 2);
 
                     Some(Block::new(
-                        BlockKind::Rock,
+                        BlockKind::WeakRock,
                         stone_col.map2(
                             Rgb::new(
                                 field0.get(wpos) as u8 % 16,
@@ -510,7 +443,7 @@ impl StructureInfo {
                             .reduce_max()
                 {
                     Some(Block::new(
-                        BlockKind::Dense,
+                        BlockKind::Rock,
                         index.colors.block.pyramid.into(),
                     ))
                 } else {
@@ -558,11 +491,11 @@ pub fn block_from_structure(
         StructureBlock::None => None,
         StructureBlock::Hollow => Some(Block::empty()),
         StructureBlock::Grass => Some(Block::new(
-            BlockKind::Normal,
+            BlockKind::Grass,
             sample.surface_color.map(|e| (e * 255.0) as u8),
         )),
         StructureBlock::Normal(color) => {
-            Some(Block::new(BlockKind::Normal, color)).filter(|block| !block.is_empty())
+            Some(Block::new(BlockKind::Misc, color)).filter(|block| !block.is_empty())
         },
         // Water / sludge throw away their color bits currently, so we don't set anyway.
         StructureBlock::Water => Some(Block::new(BlockKind::Water, Rgb::zero())),
@@ -573,23 +506,23 @@ pub fn block_from_structure(
         )),
         // None of these BlockKinds has an orientation, so we just use zero for the other color
         // bits.
-        StructureBlock::Liana => Some(Block::new(BlockKind::Liana, Rgb::zero())),
+        StructureBlock::Liana => Some(Block::air(SpriteKind::Liana)),
         StructureBlock::Fruit => Some(if field.get(pos + structure_pos) % 24 == 0 {
-            Block::new(BlockKind::Beehive, Rgb::zero())
+            Block::air(SpriteKind::Beehive)
         } else if field.get(pos + structure_pos + 1) % 3 == 0 {
-            Block::new(BlockKind::Apple, Rgb::zero())
+            Block::air(SpriteKind::Apple)
         } else {
             Block::empty()
         }),
         StructureBlock::Coconut => Some(if field.get(pos + structure_pos) % 3 > 0 {
             Block::empty()
         } else {
-            Block::new(BlockKind::Coconut, Rgb::zero())
+            Block::air(SpriteKind::Coconut)
         }),
         StructureBlock::Chest => Some(if structure_seed % 10 < 7 {
             Block::empty()
         } else {
-            Block::new(BlockKind::Chest, Rgb::zero())
+            Block::air(SpriteKind::Chest)
         }),
         // We interpolate all these BlockKinds as needed.
         StructureBlock::TemperateLeaves
