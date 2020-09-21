@@ -18,6 +18,7 @@ pub enum CharacterAbilityType {
     BasicMelee,
     BasicRanged,
     Boost,
+    ChargedMelee,
     ChargedRanged,
     DashMelee,
     BasicBlock,
@@ -26,6 +27,7 @@ pub enum CharacterAbilityType {
     SpinMelee,
     GroundShockwave,
     BasicBeam,
+    RepeaterRanged,
 }
 
 impl From<&CharacterState> for CharacterAbilityType {
@@ -39,9 +41,11 @@ impl From<&CharacterState> for CharacterAbilityType {
             CharacterState::LeapMelee(_) => Self::LeapMelee,
             CharacterState::ComboMelee(data) => Self::ComboMelee(data.stage_section, data.stage),
             CharacterState::SpinMelee(_) => Self::SpinMelee,
+            CharacterState::ChargedMelee(_) => Self::ChargedMelee,
             CharacterState::ChargedRanged(_) => Self::ChargedRanged,
             CharacterState::GroundShockwave(_) => Self::ChargedRanged,
             CharacterState::BasicBeam(_) => Self::BasicBeam,
+            CharacterState::RepeaterRanged(_) => Self::RepeaterRanged,
             _ => Self::BasicMelee,
         }
     }
@@ -68,6 +72,20 @@ pub enum CharacterAbility {
         projectile_light: Option<LightEmitter>,
         projectile_gravity: Option<Gravity>,
         projectile_speed: f32,
+    },
+    RepeaterRanged {
+        movement_duration: Duration,
+        energy_cost: u32,
+        holdable: bool,
+        prepare_duration: Duration,
+        recover_duration: Duration,
+        projectile: Projectile,
+        projectile_body: Body,
+        projectile_light: Option<LightEmitter>,
+        projectile_gravity: Option<Gravity>,
+        projectile_speed: f32,
+        repetitions: u32,
+        current_rep: u32,
     },
     Boost {
         duration: Duration,
@@ -107,6 +125,10 @@ pub enum CharacterAbility {
         buildup_duration: Duration,
         recover_duration: Duration,
         base_damage: u32,
+        range: f32,
+        max_angle: f32,
+        leap_speed: f32,
+        leap_vert_speed: f32,
     },
     SpinMelee {
         buildup_duration: Duration,
@@ -121,6 +143,19 @@ pub enum CharacterAbility {
         is_interruptible: bool,
         forward_speed: f32,
         num_spins: u32,
+    },
+    ChargedMelee {
+        energy_cost: u32,
+        energy_drain: u32,
+        initial_damage: u32,
+        max_damage: u32,
+        initial_knockback: f32,
+        max_knockback: f32,
+        prepare_duration: Duration,
+        charge_duration: Duration,
+        recover_duration: Duration,
+        range: f32,
+        max_angle: f32,
     },
     ChargedRanged {
         energy_cost: u32,
@@ -200,6 +235,14 @@ impl CharacterAbility {
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
             CharacterAbility::ChargedRanged { energy_cost, .. } => update
+                .energy
+                .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
+                .is_ok(),
+            CharacterAbility::ChargedMelee { energy_cost, .. } => update
+                .energy
+                .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
+                .is_ok(),
+            CharacterAbility::RepeaterRanged { energy_cost, .. } => update
                 .energy
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
@@ -424,6 +467,10 @@ impl From<&CharacterAbility> for CharacterState {
                 buildup_duration,
                 recover_duration,
                 base_damage,
+                range,
+                max_angle,
+                leap_speed,
+                leap_vert_speed,
             } => CharacterState::LeapMelee(leap_melee::Data {
                 initialize: true,
                 exhausted: false,
@@ -431,6 +478,10 @@ impl From<&CharacterAbility> for CharacterState {
                 buildup_duration: *buildup_duration,
                 recover_duration: *recover_duration,
                 base_damage: *base_damage,
+                range: *range,
+                max_angle: *max_angle,
+                leap_speed: *leap_speed,
+                leap_vert_speed: *leap_vert_speed,
             }),
             CharacterAbility::SpinMelee {
                 buildup_duration,
@@ -465,6 +516,32 @@ impl From<&CharacterAbility> for CharacterState {
                 stage_section: StageSection::Buildup,
                 exhausted: false,
             }),
+            CharacterAbility::ChargedMelee {
+                energy_cost: _,
+                energy_drain,
+                initial_damage,
+                max_damage,
+                initial_knockback,
+                max_knockback,
+                prepare_duration,
+                charge_duration,
+                recover_duration,
+                range,
+                max_angle,
+            } => CharacterState::ChargedMelee(charged_melee::Data {
+                exhausted: false,
+                energy_drain: *energy_drain,
+                initial_damage: *initial_damage,
+                max_damage: *max_damage,
+                initial_knockback: *initial_knockback,
+                max_knockback: *max_knockback,
+                prepare_duration: *prepare_duration,
+                charge_duration: *charge_duration,
+                charge_timer: Duration::default(),
+                recover_duration: *recover_duration,
+                range: *range,
+                max_angle: *max_angle,
+            }),
             CharacterAbility::ChargedRanged {
                 energy_cost: _,
                 energy_drain,
@@ -496,6 +573,35 @@ impl From<&CharacterAbility> for CharacterState {
                 projectile_gravity: *projectile_gravity,
                 initial_projectile_speed: *initial_projectile_speed,
                 max_projectile_speed: *max_projectile_speed,
+            }),
+            CharacterAbility::RepeaterRanged {
+                energy_cost: _,
+                movement_duration,
+                holdable,
+                prepare_duration,
+                recover_duration,
+                projectile,
+                projectile_body,
+                projectile_light,
+                projectile_gravity,
+                projectile_speed,
+                repetitions,
+                current_rep,
+            } => CharacterState::RepeaterRanged(repeater_ranged::Data {
+                exhausted: false,
+                prepare_timer: Duration::default(),
+                holdable: *holdable,
+                movement_duration: *movement_duration,
+                prepare_duration: *prepare_duration,
+                recover_duration: *recover_duration,
+                projectile: projectile.clone(),
+                projectile_body: *projectile_body,
+                projectile_light: *projectile_light,
+                projectile_gravity: *projectile_gravity,
+                projectile_speed: *projectile_speed,
+                repetitions: *repetitions,
+                current_rep: *current_rep,
+                initialize: true,
             }),
             CharacterAbility::GroundShockwave {
                 energy_cost: _,

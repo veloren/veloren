@@ -724,6 +724,13 @@ impl<'a> Widget for Skillbar<'a> {
                     Color::Rgba(0.3, 0.3, 0.3, 0.8)
                 }
             },
+            Some(ToolKind::Axe(_)) => {
+                if self.energy.current() as f64 >= 100.0 {
+                    Color::Rgba(1.0, 1.0, 1.0, 1.0)
+                } else {
+                    Color::Rgba(0.3, 0.3, 0.3, 0.8)
+                }
+            },
             _ => Color::Rgba(1.0, 1.0, 1.0, 1.0),
         })
         .set(state.ids.m2_content, ui);
@@ -785,6 +792,14 @@ impl<'a> Widget for Skillbar<'a> {
                         .map(|i| i.item.kind())
                         .and_then(|kind| match kind {
                             ItemKind::Tool(Tool { kind, .. }) => match kind {
+                                ToolKind::Hammer(_) => Some((
+                                    "Smash of Doom",
+                                    "\nAn AOE attack with knockback. \nLeaps to position of \
+                                     cursor.",
+                                )),
+                                ToolKind::Axe(_) => {
+                                    Some(("Spin Leap", "\nA slashing running spin leap."))
+                                },
                                 ToolKind::Staff(_) => Some((
                                     "Firebomb",
                                     "\nWhirls a big fireball into the air. \nExplodes the ground \
