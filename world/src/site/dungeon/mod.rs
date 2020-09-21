@@ -593,7 +593,7 @@ impl Floor {
 
         let floor_sprite = if RandomField::new(7331).chance(Vec3::from(pos), 0.00005) {
             BlockMask::new(
-                Block::empty().with_sprite(
+                Block::air(
                     match (RandomField::new(1337).get(Vec3::from(pos)) / 2) % 20 {
                         0 => SpriteKind::Apple,
                         1 => SpriteKind::VeloriteFrag,
@@ -609,7 +609,7 @@ impl Floor {
         {
             let room = &self.rooms[*room];
             if RandomField::new(room.seed).chance(Vec3::from(pos), room.loot_density * 0.5) {
-                BlockMask::new(Block::empty().with_sprite(SpriteKind::Chest), 1)
+                BlockMask::new(Block::air(SpriteKind::Chest), 1)
             } else {
                 empty
             }

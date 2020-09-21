@@ -506,23 +506,23 @@ pub fn block_from_structure(
         )),
         // None of these BlockKinds has an orientation, so we just use zero for the other color
         // bits.
-        StructureBlock::Liana => Some(Block::empty().with_sprite(SpriteKind::Liana)),
+        StructureBlock::Liana => Some(Block::air(SpriteKind::Liana)),
         StructureBlock::Fruit => Some(if field.get(pos + structure_pos) % 24 == 0 {
-            Block::empty().with_sprite(SpriteKind::Beehive)
+            Block::air(SpriteKind::Beehive)
         } else if field.get(pos + structure_pos + 1) % 3 == 0 {
-            Block::empty().with_sprite(SpriteKind::Apple)
+            Block::air(SpriteKind::Apple)
         } else {
             Block::empty()
         }),
         StructureBlock::Coconut => Some(if field.get(pos + structure_pos) % 3 > 0 {
             Block::empty()
         } else {
-            Block::empty().with_sprite(SpriteKind::Coconut)
+            Block::air(SpriteKind::Coconut)
         }),
         StructureBlock::Chest => Some(if structure_seed % 10 < 7 {
             Block::empty()
         } else {
-            Block::empty().with_sprite(SpriteKind::Chest)
+            Block::air(SpriteKind::Chest)
         }),
         // We interpolate all these BlockKinds as needed.
         StructureBlock::TemperateLeaves
