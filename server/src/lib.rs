@@ -328,8 +328,11 @@ impl Server {
         debug!(?settings, "created veloren server with");
 
         let git_hash = *common::util::GIT_HASH;
-        let git_date = *common::util::GIT_DATE;
-        info!(?git_hash, ?git_date, "Server version",);
+        let git_date = common::util::GIT_DATE.clone();
+        let git_time = *common::util::GIT_TIME;
+        let version = common::util::DISPLAY_VERSION_LONG.clone();
+        info!(?version, "Server version");
+        debug!(?git_hash, ?git_date, ?git_time, "detailed Server version");
 
         Ok(this)
     }

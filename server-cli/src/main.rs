@@ -28,14 +28,7 @@ lazy_static! {
 
 fn main() -> io::Result<()> {
     let matches = App::new("Veloren server cli")
-        .version(
-            format!(
-                "{}-{}",
-                env!("CARGO_PKG_VERSION"),
-                common::util::GIT_HASH.to_string()
-            )
-            .as_str(),
-        )
+        .version(common::util::DISPLAY_VERSION_LONG.as_str())
         .author("The veloren devs <https://gitlab.com/veloren/veloren>")
         .about("The veloren server cli provides an easy to use interface to start a veloren server")
         .arg(
