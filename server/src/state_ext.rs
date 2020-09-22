@@ -1,6 +1,5 @@
 use crate::{
-    client::Client, persistence::PersistedComponents, settings::ServerSettings,
-    sys::sentinel::DeletedEntities, SpawnPoint,
+    client::Client, persistence::PersistedComponents, sys::sentinel::DeletedEntities, SpawnPoint,
 };
 use common::{
     character::CharacterId,
@@ -191,18 +190,6 @@ impl StateExt for State {
             .map(|player| {
                 player.character_id = Some(character_id);
             });
-
-        // Give the Admin component to the player if their name exists in admin list
-        if self.ecs().fetch::<ServerSettings>().admins.contains(
-            &self
-                .ecs()
-                .read_storage::<comp::Player>()
-                .get(entity)
-                .expect("Failed to fetch entity.")
-                .alias,
-        ) {
-            self.write_component(entity, comp::Admin);
-        }
 
         // Tell the client its request was successful.
         if let Some(client) = self.ecs().write_storage::<Client>().get_mut(entity) {
