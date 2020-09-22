@@ -79,7 +79,7 @@ impl Animation for FeedAnimation {
             next.jaw.position = Vec3::new(
                 0.0,
                 skeleton_attr.jaw.0 - slower * 0.12,
-                skeleton_attr.jaw.1 + slow * 0.2 + 0.5,
+                skeleton_attr.jaw.1 + slow * 0.2,
             );
             next.jaw.orientation = Quaternion::rotation_x((fast * 0.18 + faster * 0.26).min(0.0));
             next.jaw.scale = Vec3::one() * 1.02;

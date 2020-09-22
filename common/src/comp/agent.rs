@@ -104,6 +104,8 @@ impl<'a> From<&'a Body> for Psyche {
                     quadruped_medium::Species::Frostfang => 0.9,
                     quadruped_medium::Species::Mouflon => 0.8,
                     quadruped_medium::Species::Catoblepas => 0.8,
+                    quadruped_medium::Species::Deer => 0.6,
+                    quadruped_medium::Species::Hirdrasil => 0.7,
                     _ => 1.0,
                 },
                 Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
