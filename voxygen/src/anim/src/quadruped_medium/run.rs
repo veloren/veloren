@@ -27,10 +27,10 @@ impl Animation for RunAnimation {
         //let increasefreqtest = (((1.0/speed)*3.0).round()).min(5.0);
         let lab = 0.72; //0.72
         let amplitude = (speed / 24.0).max(0.25);
-        let amplitude2 = (speed * 1.4 / 24.0).max(0.6);
-        let amplitude3 = (speed / 24.0).max(0.35);
+        let amplitude2 = (speed * 1.4 / 24.0).powf(0.5).max(0.6);
+        let amplitude3 = (speed / 24.0).powf(0.5).max(0.35);
         let speedmult = skeleton_attr.tempo;
-        let canceler = speed / 24.0;
+        let canceler = (speed / 24.0).powf(0.5);
         let short = (((1.0)
             / (0.72
                 + 0.28
