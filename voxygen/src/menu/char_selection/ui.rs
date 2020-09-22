@@ -442,11 +442,7 @@ impl CharSelectionUi {
             }
         }
         let (ref mut ui_widgets, ref mut tooltip_manager) = self.ui.set_widgets();
-        let version = format!(
-            "{}-{}",
-            env!("CARGO_PKG_VERSION"),
-            common::util::GIT_VERSION.to_string()
-        );
+        let version = common::util::DISPLAY_VERSION_LONG.clone();
 
         // Tooltip
         let tooltip_human = Tooltip::new({
@@ -720,12 +716,15 @@ impl CharSelectionUi {
                     .color(TEXT_COLOR)
                     .set(self.ids.version, ui_widgets);
                 // Alpha Disclaimer
-                Text::new(&format!("Veloren Pre-Alpha {}", env!("CARGO_PKG_VERSION")))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .font_size(self.fonts.cyri.scale(10))
-                    .color(TEXT_COLOR)
-                    .mid_top_with_margin_on(ui_widgets.window, 2.0)
-                    .set(self.ids.alpha_text, ui_widgets);
+                Text::new(&format!(
+                    "Veloren {}",
+                    common::util::DISPLAY_VERSION.as_str()
+                ))
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(10))
+                .color(TEXT_COLOR)
+                .mid_top_with_margin_on(ui_widgets.window, 2.0)
+                .set(self.ids.alpha_text, ui_widgets);
 
                 // Resize character selection widgets
                 self.ids
