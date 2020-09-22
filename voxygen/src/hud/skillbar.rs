@@ -724,9 +724,7 @@ impl<'a> Widget for Skillbar<'a> {
                     Color::Rgba(0.3, 0.3, 0.3, 0.8)
                 }
             },
-            _ => {
-                Color::Rgba(1.0, 1.0, 1.0, 1.0)
-            },
+            _ => Color::Rgba(1.0, 1.0, 1.0, 1.0),
         })
         .set(state.ids.m2_content, ui);
         // Slots
