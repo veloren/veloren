@@ -2,8 +2,8 @@ use crate::{sys, Server, StateExt};
 use common::{
     character::CharacterId,
     comp::{
-        self, beam, humanoid::DEFAULT_HUMANOID_EYE_HEIGHT, shockwave, Agent, Alignment, Body, Gravity,
-        Item, ItemDrop, LightEmitter, Loadout, Ori, Pos, Projectile, Scale, Stats, Vel,
+        self, beam, humanoid::DEFAULT_HUMANOID_EYE_HEIGHT, shockwave, Agent, Alignment, Body,
+        Gravity, Item, ItemDrop, LightEmitter, Loadout, Ori, Pos, Projectile, Scale, Stats, Vel,
         WaypointArea,
     },
     outcome::Outcome,

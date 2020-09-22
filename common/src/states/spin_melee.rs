@@ -106,7 +106,8 @@ impl CharacterBehavior for Data {
                     });
                     // Hit attempt
                     data.updater.insert(data.entity, Attacking {
-                        base_healthchange: -(self.static_data.base_damage as i32),
+                        base_damage: self.static_data.base_damage,
+                        base_heal: 0,
                         range: self.static_data.range,
                         max_angle: 180_f32.to_radians(),
                         applied: false,

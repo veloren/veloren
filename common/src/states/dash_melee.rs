@@ -121,7 +121,8 @@ impl CharacterBehavior for Data {
                             * charge_frac
                             + self.static_data.base_knockback;
                         data.updater.insert(data.entity, Attacking {
-                            base_healthchange: -damage as i32,
+                            base_damage: damage as u32,
+                            base_heal: 0,
                             range: self.static_data.range,
                             max_angle: self.static_data.angle.to_radians(),
                             applied: false,
