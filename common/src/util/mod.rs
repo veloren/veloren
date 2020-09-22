@@ -4,6 +4,7 @@ mod option;
 
 pub const GIT_VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/githash"));
 pub const GIT_TAG: &str = include_str!(concat!(env!("OUT_DIR"), "/gittag"));
+pub const VELOREN_VERSION_STAGE: &str = "Pre-Alpha";
 
 lazy_static::lazy_static! {
     pub static ref GIT_HASH: &'static str = GIT_VERSION.split('/').next().expect("failed to retrieve git_hash!");
@@ -11,9 +12,9 @@ lazy_static::lazy_static! {
     pub static ref GIT_DATE: String = GIT_DATETIME.split('-').take(3).collect::<Vec<&str>>().join("-");
     pub static ref GIT_TIME: &'static str = GIT_DATETIME.split('-').nth(3).expect("failed to retrieve git_time!");
     pub static ref DISPLAY_VERSION: String = if GIT_TAG == "" {
-        format!("nightly-{}", GIT_DATE.to_string())
+        format!("{}-{}", VELOREN_VERSION_STAGE, GIT_DATE.to_string())
     } else {
-        format!("stable-{}", GIT_TAG.to_string())
+        format!("{}-{}", VELOREN_VERSION_STAGE, GIT_TAG.to_string())
     };
     pub static ref DISPLAY_VERSION_LONG: String = if GIT_TAG == "" {
         format!("{} ({})", DISPLAY_VERSION.as_str(), GIT_HASH.to_string())

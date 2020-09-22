@@ -361,7 +361,7 @@ impl<'a> MainMenuUi {
             .set(self.ids.version, ui_widgets);
         // Alpha Disclaimer
         Text::new(&format!(
-            "Veloren Pre-Alpha {}",
+            "Veloren {}",
             common::util::DISPLAY_VERSION.as_str()
         ))
         .font_id(self.fonts.cyri.conrod_id)
