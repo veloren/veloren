@@ -312,6 +312,10 @@ fn sphere_wedge_cylinder_collision(
             // cylinder, in which case all positions on edge are equally close.
             Vec3::new(rad_b, 0.0, 0.0)
         };
+        // Gets position on opposite edge of same endcap
+        let opp_end_edge_pos = Vec3::new(-edge_pos.x, -edge_pos.y, height);
+        // Gets position on same edge of opposite endcap
+        let bot_end_edge_pos = Vec3::new(edge_pos.x, edge_pos.y, -height);
         // Gets point on line between sphere and cylinder centers that the z value is
         // equal to the endcap z location
         let intersect_point = Vec2::new(pos.x * intersect_frac, pos.y * intersect_frac);
@@ -321,32 +325,31 @@ fn sphere_wedge_cylinder_collision(
             let distance_squared =
                 Vec3::new(intersect_point.x, intersect_point.y, height).distance_squared(pos);
             in_range = distance_squared < max_rad.powi(2) && distance_squared > min_rad.powi(2);
-            // Changes position so I can compare this with origin instead of original
-            // position with top of cylinder
-            let mod_pos = Vec3::new(pos.x, pos.y, pos.z - height);
-            // Angle between (line between center of endcap and sphere center) and (line
-            // between edge of endcap and sphere center)
-            let angle2 = (pos_b - mod_pos).angle_between(edge_pos - mod_pos);
-            // The 1.25 gives margin for error
-            in_angle = mod_pos.angle_between(-ori) < angle + (angle2 * 1.25);
+            // Angle between (line between centers of cylinder and sphere) and either (line
+            // between opposite edge of endcap and sphere center) or (line between close
+            // edge of endcap on bottom of cylinder and sphere center). Whichever angle is
+            // largest is used.
+            let angle2 = (pos_b - pos)
+                .angle_between(opp_end_edge_pos - pos)
+                .max((pos_b - pos).angle_between(bot_end_edge_pos - pos));
+            in_angle = pos.angle_between(-ori) < angle + angle2;
         } else {
             // TODO: Handle collision for this case more accurately
             // For this case, the nearest point will be the edge of the endcap
             let endcap_edge_pos = Vec3::new(edge_pos.x, edge_pos.y, height);
             let distance_squared = endcap_edge_pos.distance_squared(pos);
             in_range = distance_squared > min_rad.powi(2) && distance_squared < max_rad.powi(2);
-            // Gets position on opposite edge of same endcap
-            let opp_end_edge_pos = Vec3::new(-edge_pos.x, -edge_pos.y, height);
-            // Gets position on same edge of opposite endcap
-            let bot_end_edge_pos = Vec3::new(edge_pos.x, edge_pos.y, -height);
             // Gets side positions on same endcap
             let side_end_edge_pos_1 = Vec3::new(edge_pos.y, -edge_pos.x, height);
             let side_end_edge_pos_2 = Vec3::new(-edge_pos.y, edge_pos.x, height);
-            // Gets whichever angle is bigger, between half of sphere center and both
-            // opposite edge and bottom edge, or sphere center and both the side edges
-            let angle2 = (opp_end_edge_pos - pos)
-                .angle_between(bot_end_edge_pos - pos)
-                .min((side_end_edge_pos_1 - pos).angle_between(side_end_edge_pos_2 - pos));
+            // Gets whichever angle is bigger, between sphere center and opposite edge,
+            // sphere center and bottom edge, or half of sphere center and both the side
+            // edges
+            let angle2 = (pos_b - pos).angle_between(opp_end_edge_pos - pos).max(
+                (pos_b - pos).angle_between(bot_end_edge_pos - pos).max(
+                    (side_end_edge_pos_1 - pos).angle_between(side_end_edge_pos_2 - pos) / 2.0,
+                ),
+            );
             // Will be somewhat inaccurate, tends towards hitting when it shouldn't
             // Checks angle between orientation and line between sphere and cylinder centers
             in_angle = pos.angle_between(-ori) < angle + angle2;
