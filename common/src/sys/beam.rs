@@ -1,6 +1,6 @@
 use crate::{
     comp::{
-        group, Beam, Body, CharacterState, Damage, DamageSource, Energy, EnergySource,
+        group, Beam, BeamSegment, Body, CharacterState, Damage, DamageSource, Energy, EnergySource,
         HealthChange, HealthSource, Last, Loadout, Ori, Pos, Scale, Stats,
     },
     event::{EventBus, ServerEvent},
@@ -8,12 +8,12 @@ use crate::{
     sync::{Uid, UidAllocator},
 };
 use specs::{saveload::MarkerAllocator, Entities, Join, Read, ReadStorage, System, WriteStorage};
+use std::time::Duration;
 use vek::*;
 
 pub const BLOCK_ANGLE: f32 = 180.0;
 
-/// This system is responsible for handling accepted inputs like moving or
-/// attacking
+/// This system is responsible for handling beams that heal or do damage
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
@@ -34,6 +34,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, group::Group>,
         ReadStorage<'a, CharacterState>,
         WriteStorage<'a, Energy>,
+        WriteStorage<'a, BeamSegment>,
         WriteStorage<'a, Beam>,
     );
 
@@ -56,6 +57,7 @@ impl<'a> System<'a> for Sys {
             groups,
             character_states,
             mut energies,
+            mut beam_segments,
             mut beams,
         ): Self::SystemData,
     ) {
@@ -65,16 +67,16 @@ impl<'a> System<'a> for Sys {
         let dt = dt.0;
 
         // Beams
-        for (entity, uid, pos, ori, beam) in
-            (&entities, &uids, &positions, &orientations, &beams).join()
+        for (entity, uid, pos, ori, beam_segment) in
+            (&entities, &uids, &positions, &orientations, &beam_segments).join()
         {
-            let creation_time = match beam.creation {
+            let creation_time = match beam_segment.creation {
                 Some(time) => time,
                 // Skip newly created beam segments
                 None => continue,
             };
 
-            let end_time = creation_time + beam.duration.as_secs_f64();
+            let end_time = creation_time + beam_segment.duration.as_secs_f64();
 
             // If beam segment is out of time emit destroy event but still continue since it
             // may have traveled and produced effects a bit before reaching it's
@@ -94,15 +96,23 @@ impl<'a> System<'a> for Sys {
 
             // Note: min() probably uneeded
             let time_since_creation = (time - creation_time) as f32;
-            let frame_start_dist = (beam.speed * (time_since_creation - frame_time)).max(0.0);
-            let frame_end_dist = (beam.speed * time_since_creation).max(frame_start_dist);
+            let frame_start_dist =
+                (beam_segment.speed * (time_since_creation - frame_time)).max(0.0);
+            let frame_end_dist = (beam_segment.speed * time_since_creation).max(frame_start_dist);
+
+            let beam_owner = beam_segment
+                .owner
+                .and_then(|uid| uid_allocator.retrieve_entity_internal(uid.into()));
 
             // Group to ignore collisions with
             // Might make this more nuanced if beams are used for non damage effects
-            let group = beam
-                .owner
-                .and_then(|uid| uid_allocator.retrieve_entity_internal(uid.into()))
-                .and_then(|e| groups.get(e));
+            let group = beam_owner.and_then(|e| groups.get(e));
+
+            let hit_entities = if let Some(beam) = beam_owner.and_then(|e| beams.get_mut(e)) {
+                &mut beam.hit_entities
+            } else {
+                continue;
+            };
 
             // Go through all other effectable entities
             for (
@@ -129,6 +139,11 @@ impl<'a> System<'a> for Sys {
             )
                 .join()
             {
+                // Check to see if entity has already been hit recently
+                if hit_entities.iter().any(|&uid| uid == *uid_b) {
+                    continue;
+                }
+
                 // Scales
                 let scale_b = scale_b_maybe.map_or(1.0, |s| s.0);
                 let rad_b = body_b.radius() * scale_b;
@@ -138,26 +153,26 @@ impl<'a> System<'a> for Sys {
                 let hit = entity != b
                     && !stats_b.is_dead
                     // Collision shapes
-                    && (sphere_wedge_cylinder_collision(pos.0, frame_start_dist, frame_end_dist, *ori.0, beam.angle, pos_b.0, rad_b, height_b)
-                    || last_pos_b_maybe.map_or(false, |pos_maybe| {sphere_wedge_cylinder_collision(pos.0, frame_start_dist, frame_end_dist, *ori.0, beam.angle, (pos_maybe.0).0, rad_b, height_b)}));
+                    && (sphere_wedge_cylinder_collision(pos.0, frame_start_dist, frame_end_dist, *ori.0, beam_segment.angle, pos_b.0, rad_b, height_b)
+                    || last_pos_b_maybe.map_or(false, |pos_maybe| {sphere_wedge_cylinder_collision(pos.0, frame_start_dist, frame_end_dist, *ori.0, beam_segment.angle, (pos_maybe.0).0, rad_b, height_b)}));
 
                 if hit {
                     // See if entities are in the same group
                     let same_group = group
                         .map(|group_a| Some(group_a) == groups.get(b))
-                        .unwrap_or(Some(*uid_b) == beam.owner);
+                        .unwrap_or(Some(*uid_b) == beam_segment.owner);
 
                     // If owner, shouldn't heal or damage
-                    if Some(*uid_b) == beam.owner {
+                    if Some(*uid_b) == beam_segment.owner {
                         continue;
                     }
                     // Don't heal if outside group
                     // Don't damage in the same group
                     let (mut is_heal, mut is_damage) = (false, false);
-                    if !same_group && (beam.damage > 0) {
+                    if !same_group && (beam_segment.damage > 0) {
                         is_damage = true;
                     }
-                    if same_group && (beam.heal > 0) {
+                    if same_group && (beam_segment.heal > 0) {
                         is_heal = true;
                     }
                     if !is_heal && !is_damage {
@@ -171,9 +186,9 @@ impl<'a> System<'a> for Sys {
                         DamageSource::Energy
                     };
                     let healthchange = if is_heal {
-                        beam.heal as f32
+                        beam_segment.heal as f32
                     } else {
-                        -(beam.damage as f32)
+                        -(beam_segment.damage as f32)
                     };
 
                     let mut damage = Damage {
@@ -194,33 +209,40 @@ impl<'a> System<'a> for Sys {
                             uid: *uid_b,
                             change: HealthChange {
                                 amount: damage.healthchange as i32,
-                                cause: HealthSource::Energy { owner: beam.owner },
+                                cause: HealthSource::Energy {
+                                    owner: beam_segment.owner,
+                                },
                             },
                         });
                         server_emitter.emit(ServerEvent::Damage {
-                            uid: beam.owner.unwrap_or(*uid),
+                            uid: beam_segment.owner.unwrap_or(*uid),
                             change: HealthChange {
-                                amount: (-damage.healthchange * beam.lifesteal_eff) as i32,
-                                cause: HealthSource::Healing { by: beam.owner },
+                                amount: (-damage.healthchange * beam_segment.lifesteal_eff) as i32,
+                                cause: HealthSource::Healing {
+                                    by: beam_segment.owner,
+                                },
                             },
                         });
-                        if let Some(energy_mut) = beam
+                        if let Some(energy_mut) = beam_segment
                             .owner
                             .and_then(|o| uid_allocator.retrieve_entity_internal(o.into()))
                             .and_then(|o| energies.get_mut(o))
                         {
-                            energy_mut.change_by(beam.energy_regen as i32, EnergySource::HitEnemy);
+                            energy_mut.change_by(
+                                beam_segment.energy_regen as i32,
+                                EnergySource::HitEnemy,
+                            );
                         }
                     }
                     if is_heal {
-                        if let Some(energy_mut) = beam
+                        if let Some(energy_mut) = beam_segment
                             .owner
                             .and_then(|o| uid_allocator.retrieve_entity_internal(o.into()))
                             .and_then(|o| energies.get_mut(o))
                         {
                             if energy_mut
                                 .try_change_by(
-                                    -(beam.energy_drain as i32), // Stamina use
+                                    -(beam_segment.energy_drain as i32), // Stamina use
                                     EnergySource::Ability,
                                 )
                                 .is_ok()
@@ -229,25 +251,41 @@ impl<'a> System<'a> for Sys {
                                     uid: *uid_b,
                                     change: HealthChange {
                                         amount: damage.healthchange as i32,
-                                        cause: HealthSource::Healing { by: beam.owner },
+                                        cause: HealthSource::Healing {
+                                            by: beam_segment.owner,
+                                        },
                                     },
                                 });
                             }
                         }
                     }
+                    // Adds entities that were hit to the hit_entities list on the beam, sees if it
+                    // needs to purge the hit_entities list
+                    hit_entities.push(*uid_b);
                 }
+            }
+        }
+
+        for beam in (&mut beams).join() {
+            beam.timer = beam
+                .timer
+                .checked_add(Duration::from_secs_f32(dt))
+                .unwrap_or(beam.tick_dur);
+            if beam.timer >= beam.tick_dur {
+                beam.hit_entities.clear();
+                beam.timer = beam.timer.checked_sub(beam.tick_dur).unwrap_or_default();
             }
         }
 
         // Set start time on new beams
         // This change doesn't need to be recorded as it is not sent to the client
-        beams.set_event_emission(false);
-        (&mut beams).join().for_each(|beam| {
-            if beam.creation.is_none() {
-                beam.creation = Some(time);
+        beam_segments.set_event_emission(false);
+        (&mut beam_segments).join().for_each(|beam_segment| {
+            if beam_segment.creation.is_none() {
+                beam_segment.creation = Some(time);
             }
         });
-        beams.set_event_emission(true);
+        beam_segments.set_event_emission(true);
     }
 }
 

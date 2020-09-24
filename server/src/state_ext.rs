@@ -173,7 +173,7 @@ impl StateExt for State {
             .create_entity_synced()
             .with(pos)
             .with(ori)
-            .with(comp::Beam {
+            .with(comp::BeamSegment {
                 properties,
                 creation: None,
             })

@@ -64,7 +64,7 @@ pub enum ServerEvent {
         entity: EcsEntity,
         impulse: Vec3<f32>,
     },
-    Beam {
+    BeamSegment {
         properties: comp::beam::Properties,
         pos: Pos,
         ori: Ori,

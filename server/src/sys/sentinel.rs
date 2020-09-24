@@ -1,9 +1,9 @@
 use super::SysTimer;
 use common::{
     comp::{
-        Beam, Body, CanBuild, CharacterState, Collider, Energy, Gravity, Group, Item, LightEmitter,
-        Loadout, Mass, MountState, Mounting, Ori, Player, Pos, Scale, Shockwave, Stats, Sticky,
-        Vel,
+        BeamSegment, Body, CanBuild, CharacterState, Collider, Energy, Gravity, Group, Item,
+        LightEmitter, Loadout, Mass, MountState, Mounting, Ori, Player, Pos, Scale, Shockwave,
+        Stats, Sticky, Vel,
     },
     msg::EcsCompPacket,
     span,
@@ -59,7 +59,7 @@ pub struct TrackedComps<'a> {
     pub loadout: ReadStorage<'a, Loadout>,
     pub character_state: ReadStorage<'a, CharacterState>,
     pub shockwave: ReadStorage<'a, Shockwave>,
-    pub beam: ReadStorage<'a, Beam>,
+    pub beam_segment: ReadStorage<'a, BeamSegment>,
 }
 impl<'a> TrackedComps<'a> {
     pub fn create_entity_package(
@@ -139,7 +139,10 @@ impl<'a> TrackedComps<'a> {
             .get(entity)
             .cloned()
             .map(|c| comps.push(c.into()));
-        self.beam.get(entity).cloned().map(|c| comps.push(c.into()));
+        self.beam_segment
+            .get(entity)
+            .cloned()
+            .map(|c| comps.push(c.into()));
         // Add untracked comps
         pos.map(|c| comps.push(c.into()));
         vel.map(|c| comps.push(c.into()));
@@ -169,7 +172,7 @@ pub struct ReadTrackers<'a> {
     pub loadout: ReadExpect<'a, UpdateTracker<Loadout>>,
     pub character_state: ReadExpect<'a, UpdateTracker<CharacterState>>,
     pub shockwave: ReadExpect<'a, UpdateTracker<Shockwave>>,
-    pub beam: ReadExpect<'a, UpdateTracker<Beam>>,
+    pub beam_segment: ReadExpect<'a, UpdateTracker<BeamSegment>>,
 }
 impl<'a> ReadTrackers<'a> {
     pub fn create_sync_packages(
@@ -209,7 +212,7 @@ impl<'a> ReadTrackers<'a> {
                 filter,
             )
             .with_component(&comps.uid, &*self.shockwave, &comps.shockwave, filter)
-            .with_component(&comps.uid, &*self.beam, &comps.beam, filter);
+            .with_component(&comps.uid, &*self.beam_segment, &comps.beam_segment, filter);
 
         (entity_sync_package, comp_sync_package)
     }
@@ -236,7 +239,7 @@ pub struct WriteTrackers<'a> {
     loadout: WriteExpect<'a, UpdateTracker<Loadout>>,
     character_state: WriteExpect<'a, UpdateTracker<CharacterState>>,
     shockwave: WriteExpect<'a, UpdateTracker<Shockwave>>,
-    beam: WriteExpect<'a, UpdateTracker<Beam>>,
+    beam: WriteExpect<'a, UpdateTracker<BeamSegment>>,
 }
 
 fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
@@ -262,7 +265,7 @@ fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
         .character_state
         .record_changes(&comps.character_state);
     trackers.shockwave.record_changes(&comps.shockwave);
-    trackers.beam.record_changes(&comps.beam);
+    trackers.beam.record_changes(&comps.beam_segment);
     // Debug how many updates are being sent
     /*
     macro_rules! log_counts {
@@ -319,7 +322,7 @@ pub fn register_trackers(world: &mut World) {
     world.register_tracker::<Loadout>();
     world.register_tracker::<CharacterState>();
     world.register_tracker::<Shockwave>();
-    world.register_tracker::<Beam>();
+    world.register_tracker::<BeamSegment>();
 }
 
 /// Deleted entities grouped by region
