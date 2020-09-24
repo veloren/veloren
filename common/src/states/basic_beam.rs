@@ -2,6 +2,7 @@ use crate::{
     comp::{beam, CharacterState, Ori, Pos, StateUpdate},
     event::ServerEvent,
     states::utils::*,
+    sync::Uid,
     sys::character_behavior::*,
 };
 use serde::{Deserialize, Serialize};
@@ -54,6 +55,12 @@ impl CharacterBehavior for Data {
         }
 
         if self.buildup_duration != Duration::default() {
+            // Creates beam
+            data.updater.insert(data.entity, beam::Beam {
+                hit_entities: Vec::<Uid>::new(),
+                tick_dur: Duration::from_secs_f32(1.0 / self.tick_rate),
+                timer: Duration::default(),
+            });
             // Build up
             update.character = CharacterState::BasicBeam(Data {
                 exhausted: self.exhausted,
@@ -93,7 +100,7 @@ impl CharacterBehavior for Data {
             };
             let pos = Pos(data.pos.0 + Vec3::new(0.0, 0.0, 1.0));
             // Create beam segment
-            update.server_events.push_front(ServerEvent::Beam {
+            update.server_events.push_front(ServerEvent::BeamSegment {
                 properties,
                 pos,
                 ori: Ori(data.inputs.look_dir),
@@ -104,7 +111,7 @@ impl CharacterBehavior for Data {
                 particle_ori: Some(*data.inputs.look_dir),
                 buildup_duration: self.buildup_duration,
                 recover_duration: self.recover_duration,
-                cooldown_duration: Duration::from_secs_f32(1.0 / self.tick_rate),
+                cooldown_duration: Duration::from_secs_f32(1.0 / self.tick_rate / 10.0),
                 beam_duration: self.beam_duration,
                 base_hps: self.base_hps,
                 base_dps: self.base_dps,
@@ -178,6 +185,8 @@ impl CharacterBehavior for Data {
         } else {
             // Done
             update.character = CharacterState::Wielding;
+            // Make sure beam component is removed
+            data.updater.remove::<beam::Beam>(data.entity);
         }
 
         update

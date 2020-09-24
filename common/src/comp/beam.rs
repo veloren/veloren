@@ -1,6 +1,6 @@
 use crate::sync::Uid;
 use serde::{Deserialize, Serialize};
-use specs::{Component, FlaggedStorage};
+use specs::{Component, FlaggedStorage, VecStorage};
 use specs_idvs::IdvStorage;
 use std::time::Duration;
 
@@ -18,7 +18,7 @@ pub struct Properties {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Beam {
+pub struct BeamSegment {
     pub properties: Properties,
     #[serde(skip)]
     /// Time that the beam segment was created at
@@ -27,12 +27,23 @@ pub struct Beam {
     pub creation: Option<f64>,
 }
 
-impl Component for Beam {
+impl Component for BeamSegment {
     type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }
 
-impl std::ops::Deref for Beam {
+impl std::ops::Deref for BeamSegment {
     type Target = Properties;
 
     fn deref(&self) -> &Properties { &self.properties }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Beam {
+    pub hit_entities: Vec<Uid>,
+    pub tick_dur: Duration,
+    pub timer: Duration,
+}
+
+impl Component for Beam {
+    type Storage = VecStorage<Self>;
 }

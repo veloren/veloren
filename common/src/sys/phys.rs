@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        Beam, Collider, Gravity, Group, Mass, Mounting, Ori, PhysicsState, Pos, Projectile, Scale,
-        Sticky, Vel,
+        BeamSegment, Collider, Gravity, Group, Mass, Mounting, Ori, PhysicsState, Pos, Projectile,
+        Scale, Sticky, Vel,
     },
     event::{EventBus, ServerEvent},
     metrics::SysMetrics,
@@ -70,7 +70,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Mounting>,
         ReadStorage<'a, Group>,
         ReadStorage<'a, Projectile>,
-        ReadStorage<'a, Beam>,
+        ReadStorage<'a, BeamSegment>,
     );
 
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587

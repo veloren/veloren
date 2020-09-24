@@ -26,7 +26,7 @@ pub mod visual;
 pub use ability::{CharacterAbility, CharacterAbilityType, ItemConfig, Loadout};
 pub use admin::{Admin, AdminList};
 pub use agent::{Agent, Alignment};
-pub use beam::Beam;
+pub use beam::{Beam, BeamSegment};
 pub use body::{
     biped_large, bird_medium, bird_small, dragon, fish_medium, fish_small, golem, humanoid, object,
     quadruped_low, quadruped_medium, quadruped_small, theropod, AllBodies, Body, BodyData,

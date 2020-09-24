@@ -127,7 +127,7 @@ impl State {
         ecs.register::<comp::Object>();
         ecs.register::<comp::Group>();
         ecs.register::<comp::Shockwave>();
-        ecs.register::<comp::Beam>();
+        ecs.register::<comp::BeamSegment>();
 
         // Register components send from clients -> server
         ecs.register::<comp::Controller>();
@@ -164,6 +164,7 @@ impl State {
         ecs.register::<comp::Faction>();
         ecs.register::<comp::group::Invite>();
         ecs.register::<comp::group::PendingInvites>();
+        ecs.register::<comp::Beam>();
 
         // Register synced resources used by the ECS.
         ecs.insert(TimeOfDay(0.0));

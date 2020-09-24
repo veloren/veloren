@@ -84,7 +84,7 @@ impl Server {
                     pos,
                     ori,
                 } => handle_shockwave(self, properties, pos, ori),
-                ServerEvent::Beam {
+                ServerEvent::BeamSegment {
                     properties,
                     pos,
                     ori,
