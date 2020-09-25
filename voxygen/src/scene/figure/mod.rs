@@ -852,7 +852,13 @@ impl FigureMgr {
                             if data.exhausted {
                                 anim::character::AlphaAnimation::update_skeleton(
                                     &target_base,
-                                    (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
+                                    (
+                                        active_tool_kind,
+                                        second_tool_kind,
+                                        vel.0.magnitude(),
+                                        time,
+                                        None,
+                                    ),
                                     state.state_time,
                                     &mut state_animation_rate,
                                     skeleton_attr,
