@@ -1,7 +1,7 @@
 use crate::{
-    comp::{beam, CharacterState, Ori, Pos, StateUpdate},
+    comp::{beam, humanoid, Body, CharacterState, Ori, Pos, StateUpdate},
     event::ServerEvent,
-    states::utils::*,
+    states::utils::{StageSection, *},
     sync::Uid,
     sys::character_behavior::*,
 };
@@ -9,16 +9,11 @@ use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use vek::Vec3;
 
+/// Separated out to condense update portions of character state
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Data {
-    /// Whether the attack can currently deal damage
-    pub exhausted: bool,
-    /// Used for particle stuffs
-    pub particle_ori: Option<Vec3<f32>>,
+pub struct StaticData {
     /// How long until state should deal damage or heal
     pub buildup_duration: Duration,
-    /// How long until weapon can deal another tick of damage
-    pub cooldown_duration: Duration,
     /// How long the state has until exiting
     pub recover_duration: Duration,
     /// How long each beam segment persists for
@@ -42,6 +37,21 @@ pub struct Data {
     pub energy_drain: u32,
 }
 
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Data {
+    /// Struct containing data that does not change over the course of the
+    /// character state
+    pub static_data: StaticData,
+    /// Timer for each stage
+    pub timer: Duration,
+    /// What section the character stage is in
+    pub stage_section: StageSection,
+    /// Used for particle stuffs
+    pub particle_ori: Option<Vec3<f32>>,
+    /// Used to offset beam and particles
+    pub offset: f32,
+}
+
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
@@ -54,139 +64,110 @@ impl CharacterBehavior for Data {
             return update;
         }
 
-        if self.buildup_duration != Duration::default() {
-            // Creates beam
-            data.updater.insert(data.entity, beam::Beam {
-                hit_entities: Vec::<Uid>::new(),
-                tick_dur: Duration::from_secs_f32(1.0 / self.tick_rate),
-                timer: Duration::default(),
-            });
-            // Build up
-            update.character = CharacterState::BasicBeam(Data {
-                exhausted: self.exhausted,
-                particle_ori: Some(*data.inputs.look_dir),
-                buildup_duration: self
-                    .buildup_duration
-                    .checked_sub(Duration::from_secs_f32(data.dt.0))
-                    .unwrap_or_default(),
-                cooldown_duration: self.cooldown_duration,
-                recover_duration: self.recover_duration,
-                beam_duration: self.beam_duration,
-                base_hps: self.base_hps,
-                base_dps: self.base_dps,
-                tick_rate: self.tick_rate,
-                range: self.range,
-                max_angle: self.max_angle,
-                lifesteal_eff: self.lifesteal_eff,
-                energy_regen: self.energy_regen,
-                energy_drain: self.energy_drain,
-            });
-        } else if data.inputs.primary.is_pressed() && !self.exhausted {
-            let damage = (self.base_dps as f32 / self.tick_rate) as u32;
-            let heal = (self.base_hps as f32 / self.tick_rate) as u32;
-            let energy_regen = (self.energy_regen as f32 / self.tick_rate) as u32;
-            let energy_drain = (self.energy_drain as f32 / self.tick_rate) as u32;
-            let speed = self.range / self.beam_duration.as_secs_f32();
-            let properties = beam::Properties {
-                angle: self.max_angle.to_radians(),
-                speed,
-                damage,
-                heal,
-                lifesteal_eff: self.lifesteal_eff,
-                energy_regen,
-                energy_drain,
-                duration: self.beam_duration,
-                owner: Some(*data.uid),
-            };
-            let pos = Pos(data.pos.0 + Vec3::new(0.0, 0.0, 1.0));
-            // Create beam segment
-            update.server_events.push_front(ServerEvent::BeamSegment {
-                properties,
-                pos,
-                ori: Ori(data.inputs.look_dir),
-            });
+        match self.stage_section {
+            StageSection::Buildup => {
+                if self.timer < self.static_data.buildup_duration {
+                    // Build up
+                    update.character = CharacterState::BasicBeam(Data {
+                        static_data: self.static_data,
+                        timer: self
+                            .timer
+                            .checked_add(Duration::from_secs_f32(data.dt.0))
+                            .unwrap_or_default(),
+                        stage_section: self.stage_section,
+                        particle_ori: Some(*data.inputs.look_dir),
+                        offset: self.offset,
+                    });
+                } else {
+                    // Creates beam
+                    data.updater.insert(data.entity, beam::Beam {
+                        hit_entities: Vec::<Uid>::new(),
+                        tick_dur: Duration::from_secs_f32(1.0 / self.static_data.tick_rate),
+                        timer: Duration::default(),
+                    });
+                    // Gets offset
+                    let eye_height = match data.body {
+                        Body::Humanoid(body) => body.eye_height(),
+                        _ => humanoid::DEFAULT_HUMANOID_EYE_HEIGHT,
+                    };
+                    // Build up
+                    update.character = CharacterState::BasicBeam(Data {
+                        static_data: self.static_data,
+                        timer: Duration::default(),
+                        stage_section: StageSection::Cast,
+                        particle_ori: Some(*data.inputs.look_dir),
+                        offset: eye_height * 0.9,
 
-            update.character = CharacterState::BasicBeam(Data {
-                exhausted: true,
-                particle_ori: Some(*data.inputs.look_dir),
-                buildup_duration: self.buildup_duration,
-                recover_duration: self.recover_duration,
-                cooldown_duration: Duration::from_secs_f32(1.0 / self.tick_rate / 10.0),
-                beam_duration: self.beam_duration,
-                base_hps: self.base_hps,
-                base_dps: self.base_dps,
-                tick_rate: self.tick_rate,
-                range: self.range,
-                max_angle: self.max_angle,
-                lifesteal_eff: self.lifesteal_eff,
-                energy_regen: self.energy_regen,
-                energy_drain: self.energy_drain,
-            });
-        } else if data.inputs.primary.is_pressed() && self.cooldown_duration != Duration::default()
-        {
-            // Cooldown until next tick of damage
-            update.character = CharacterState::BasicBeam(Data {
-                exhausted: self.exhausted,
-                particle_ori: Some(*data.inputs.look_dir),
-                buildup_duration: self.buildup_duration,
-                cooldown_duration: self
-                    .cooldown_duration
-                    .checked_sub(Duration::from_secs_f32(data.dt.0))
-                    .unwrap_or_default(),
-                recover_duration: self.recover_duration,
-                beam_duration: self.beam_duration,
-                base_hps: self.base_hps,
-                base_dps: self.base_dps,
-                tick_rate: self.tick_rate,
-                range: self.range,
-                max_angle: self.max_angle,
-                lifesteal_eff: self.lifesteal_eff,
-                energy_regen: self.energy_regen,
-                energy_drain: self.energy_drain,
-            });
-        } else if data.inputs.primary.is_pressed() {
-            update.character = CharacterState::BasicBeam(Data {
-                exhausted: false,
-                particle_ori: Some(*data.inputs.look_dir),
-                buildup_duration: self.buildup_duration,
-                recover_duration: self.recover_duration,
-                cooldown_duration: self.cooldown_duration,
-                beam_duration: self.beam_duration,
-                base_hps: self.base_hps,
-                base_dps: self.base_dps,
-                tick_rate: self.tick_rate,
-                range: self.range,
-                max_angle: self.max_angle,
-                lifesteal_eff: self.lifesteal_eff,
-                energy_regen: self.energy_regen,
-                energy_drain: self.energy_drain,
-            });
-        } else if self.recover_duration != Duration::default() {
-            // Recovery
-            update.character = CharacterState::BasicBeam(Data {
-                exhausted: self.exhausted,
-                particle_ori: Some(*data.inputs.look_dir),
-                buildup_duration: self.buildup_duration,
-                cooldown_duration: self.cooldown_duration,
-                recover_duration: self
-                    .recover_duration
-                    .checked_sub(Duration::from_secs_f32(data.dt.0))
-                    .unwrap_or_default(),
-                beam_duration: self.beam_duration,
-                base_hps: self.base_hps,
-                base_dps: self.base_dps,
-                tick_rate: self.tick_rate,
-                range: self.range,
-                max_angle: self.max_angle,
-                lifesteal_eff: self.lifesteal_eff,
-                energy_regen: self.energy_regen,
-                energy_drain: self.energy_drain,
-            });
-        } else {
-            // Done
-            update.character = CharacterState::Wielding;
-            // Make sure beam component is removed
-            data.updater.remove::<beam::Beam>(data.entity);
+                    });
+                }
+            },
+            StageSection::Cast => {
+                if data.inputs.primary.is_pressed() {
+                    let damage = (self.static_data.base_dps as f32 / self.static_data.tick_rate) as u32;
+                    let heal = (self.static_data.base_hps as f32 / self.static_data.tick_rate) as u32;
+                    let energy_regen = (self.static_data.energy_regen as f32 / self.static_data.tick_rate) as u32;
+                    let energy_drain = (self.static_data.energy_drain as f32 / self.static_data.tick_rate) as u32;
+                    let speed = self.static_data.range / self.static_data.beam_duration.as_secs_f32();
+                    let properties = beam::Properties {
+                        angle: self.static_data.max_angle.to_radians(),
+                        speed,
+                        damage,
+                        heal,
+                        lifesteal_eff: self.static_data.lifesteal_eff,
+                        energy_regen,
+                        energy_drain,
+                        duration: self.static_data.beam_duration,
+                        owner: Some(*data.uid),
+                    };
+                    let pos = Pos(data.pos.0 + Vec3::new(0.0, 0.0, self.offset));
+                    // Create beam segment
+                    update.server_events.push_front(ServerEvent::BeamSegment {
+                        properties,
+                        pos,
+                        ori: Ori(data.inputs.look_dir),
+                    });
+                    update.character = CharacterState::BasicBeam(Data {
+                        static_data: self.static_data,
+                        timer: self.timer,
+                        stage_section: self.stage_section,
+                        particle_ori: Some(*data.inputs.look_dir),
+                        offset: self.offset,
+                    });
+                } else {
+                    update.character = CharacterState::BasicBeam(Data {
+                        static_data: self.static_data,
+                        timer: Duration::default(),
+                        stage_section: StageSection::Recover,
+                        particle_ori: Some(*data.inputs.look_dir),
+                        offset: self.offset,
+                    });
+                }
+            },
+            StageSection::Recover => {
+                if self.timer < self.static_data.recover_duration {
+                    update.character = CharacterState::BasicBeam(Data {
+                        static_data: self.static_data,
+                        timer: self
+                            .timer
+                            .checked_add(Duration::from_secs_f32(data.dt.0))
+                            .unwrap_or_default(),
+                        stage_section: self.stage_section,
+                        particle_ori: Some(*data.inputs.look_dir),
+                        offset: self.offset,
+                    });
+                } else {
+                    // Done
+                    update.character = CharacterState::Wielding;
+                    // Make sure attack component is removed
+                    data.updater.remove::<beam::Beam>(data.entity);
+                }
+            },
+            _ => {
+                // If it somehow ends up in an incorrect stage section
+                update.character = CharacterState::Wielding;
+                // Make sure attack component is removed
+                data.updater.remove::<beam::Beam>(data.entity);
+            },
         }
 
         update

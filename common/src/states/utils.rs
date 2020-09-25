@@ -363,4 +363,5 @@ pub enum StageSection {
     Swing,
     Recover,
     Charge,
+    Cast,
 }

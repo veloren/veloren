@@ -14,6 +14,7 @@ use common::{
     span,
     spiral::Spiral2d,
     state::DeltaTime,
+    states::utils::StageSection,
     terrain::TerrainChunk,
     vol::{RectRasterableVol, SizedVol},
 };
@@ -352,17 +353,14 @@ impl ParticleMgr {
         {
             if let CharacterState::BasicBeam(b) = character_state {
                 let particle_ori = b.particle_ori.unwrap_or(*ori.vec());
-                for i in 0..self.scheduler.heartbeats(Duration::from_millis(1)) {
-                    if b.buildup_duration == Duration::default() {
+                if b.stage_section == StageSection::Cast {
+                    for i in 0..self.scheduler.heartbeats(Duration::from_millis(1)) {
                         self.particles.push(Particle::new_beam(
-                            b.beam_duration,
-                            time + (i as f64) / 1000.0,
+                            b.static_data.beam_duration,
+                            time + i as f64 / 1000.0,
                             ParticleMode::HealingBeam,
-                            pos.0
-                                + (i as f32 / b.beam_duration.as_millis() as f32)
-                                    * particle_ori
-                                    * b.range,
-                            pos.0 + particle_ori * b.range,
+                            pos.0 + particle_ori * 0.5 + Vec3::new(0.0, 0.0, b.offset),
+                            pos.0 + particle_ori * b.static_data.range + Vec3::new(0.0, 0.0, b.offset),
                         ));
                     }
                 }

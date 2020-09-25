@@ -180,6 +180,7 @@ impl Animation for DashAnimation {
                                 Quaternion::rotation_x(-1.5) * Quaternion::rotation_y(-1.0);
                             next.control.scale = Vec3::one();
                         },
+                        _ => {},
                     }
                 }
             },

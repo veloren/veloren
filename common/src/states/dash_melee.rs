@@ -252,6 +252,12 @@ impl CharacterBehavior for Data {
                     data.updater.remove::<Attacking>(data.entity);
                 }
             },
+            _ => {
+                // If it somehow ends up in an incorrect stage section
+                update.character = CharacterState::Wielding;
+                // Make sure attack component is removed
+                data.updater.remove::<Attacking>(data.entity);
+            },
         }
 
         update
