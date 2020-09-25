@@ -913,6 +913,7 @@ impl FigureMgr {
                                 StageSection::Recover => {
                                     stage_time / s.static_data.recover_duration.as_secs_f64()
                                 },
+                                _ => 0.0,
                             };
                             anim::character::DashAnimation::update_skeleton(
                                 &target_base,
