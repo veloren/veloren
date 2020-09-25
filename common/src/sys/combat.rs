@@ -125,15 +125,10 @@ impl<'a> System<'a> for Sys {
                     }
 
                     // Weapon gives base damage
-                    let source = if is_heal {
-                        DamageSource::Healing
+                    let (source, healthchange) = if is_heal {
+                        (DamageSource::Healing, attack.base_heal as f32)
                     } else {
-                        DamageSource::Melee
-                    };
-                    let healthchange = if is_heal {
-                        attack.base_heal as f32
-                    } else {
-                        -(attack.base_damage as f32)
+                        (DamageSource::Melee, -(attack.base_damage as f32))
                     };
                     let mut damage = Damage {
                         healthchange,
