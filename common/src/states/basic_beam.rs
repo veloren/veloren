@@ -97,17 +97,21 @@ impl CharacterBehavior for Data {
                         stage_section: StageSection::Cast,
                         particle_ori: Some(*data.inputs.look_dir),
                         offset: eye_height * 0.9,
-
                     });
                 }
             },
             StageSection::Cast => {
                 if data.inputs.primary.is_pressed() {
-                    let damage = (self.static_data.base_dps as f32 / self.static_data.tick_rate) as u32;
-                    let heal = (self.static_data.base_hps as f32 / self.static_data.tick_rate) as u32;
-                    let energy_regen = (self.static_data.energy_regen as f32 / self.static_data.tick_rate) as u32;
-                    let energy_drain = (self.static_data.energy_drain as f32 / self.static_data.tick_rate) as u32;
-                    let speed = self.static_data.range / self.static_data.beam_duration.as_secs_f32();
+                    let damage =
+                        (self.static_data.base_dps as f32 / self.static_data.tick_rate) as u32;
+                    let heal =
+                        (self.static_data.base_hps as f32 / self.static_data.tick_rate) as u32;
+                    let energy_regen =
+                        (self.static_data.energy_regen as f32 / self.static_data.tick_rate) as u32;
+                    let energy_drain =
+                        (self.static_data.energy_drain as f32 / self.static_data.tick_rate) as u32;
+                    let speed =
+                        self.static_data.range / self.static_data.beam_duration.as_secs_f32();
                     let properties = beam::Properties {
                         angle: self.static_data.max_angle.to_radians(),
                         speed,

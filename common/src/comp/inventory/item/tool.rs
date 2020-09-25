@@ -347,8 +347,8 @@ impl Tool {
                         col: (0.0, 1.0, 0.0).into(),
                         ..Default::default()
                     }),
-                    projectile_gravity: Some(Gravity(1.0)),
-                    projectile_speed: 25.0,
+                    projectile_gravity: Some(Gravity(0.5)),
+                    projectile_speed: 40.0,
                 },
             ],
             Staff(_) => vec![
