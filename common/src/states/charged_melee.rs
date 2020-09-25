@@ -42,7 +42,7 @@ impl CharacterBehavior for Data {
         handle_jump(data, &mut update);
 
         if self.prepare_duration != Duration::default() {
-            // Prepare (draw the bow)
+            // Prepare (draw back weapon)
             update.character = CharacterState::ChargedMelee(Data {
                 exhausted: self.exhausted,
                 energy_drain: self.energy_drain,
