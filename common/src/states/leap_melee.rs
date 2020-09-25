@@ -24,6 +24,8 @@ pub struct Data {
     pub range: f32,
     /// Max angle (45.0 will give you a 90.0 angle window)
     pub max_angle: f32,
+    /// Knockback
+    pub knockback: f32,
     /// Leap speed
     pub leap_speed: f32,
     /// Leap vertical speed?
@@ -44,12 +46,11 @@ impl CharacterBehavior for Data {
 
         if self.movement_duration != Duration::default() {
             // Jumping
-            //update.vel.0 = Vec3::new(data.inputs.look_dir.x, data.inputs.look_dir.y, 8.0)
             update.vel.0 = Vec3::new(
                 data.inputs.look_dir.x,
                 data.inputs.look_dir.y,
                 self.leap_vert_speed,
-            ) * ((self.movement_duration.as_millis() as f32) / 250.0)
+            ) * (2.0)
                 + (update.vel.0 * Vec3::new(2.0, 2.0, 0.0)
                     + 0.25 * data.inputs.move_dir.try_normalized().unwrap_or_default())
                 .try_normalized()
@@ -68,6 +69,7 @@ impl CharacterBehavior for Data {
                 exhausted: false,
                 range: self.range,
                 max_angle: self.max_angle,
+                knockback: self.knockback,
                 leap_speed: self.leap_speed,
                 leap_vert_speed: self.leap_vert_speed,
                 initialize: false,
@@ -85,6 +87,7 @@ impl CharacterBehavior for Data {
                 exhausted: false,
                 range: self.range,
                 max_angle: self.max_angle,
+                knockback: self.knockback,
                 leap_speed: self.leap_speed,
                 leap_vert_speed: self.leap_vert_speed,
                 initialize: false,
@@ -95,11 +98,10 @@ impl CharacterBehavior for Data {
                 base_damage: self.base_damage,
                 base_heal: 0,
                 range: self.range,
-                //range: 4.5,
                 max_angle: self.max_angle.to_radians(),
                 applied: false,
                 hit_count: 0,
-                knockback: 25.0,
+                knockback: self.knockback,
             });
 
             update.character = CharacterState::LeapMelee(Data {
@@ -110,6 +112,7 @@ impl CharacterBehavior for Data {
                 exhausted: true,
                 range: self.range,
                 max_angle: self.max_angle,
+                knockback: self.knockback,
                 leap_speed: self.leap_speed,
                 leap_vert_speed: self.leap_vert_speed,
                 initialize: false,
@@ -128,6 +131,7 @@ impl CharacterBehavior for Data {
                 exhausted: true,
                 range: self.range,
                 max_angle: self.max_angle,
+                knockback: self.knockback,
                 leap_speed: self.leap_speed,
                 leap_vert_speed: self.leap_vert_speed,
                 initialize: false,

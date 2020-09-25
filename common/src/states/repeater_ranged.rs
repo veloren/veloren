@@ -3,6 +3,7 @@ use crate::{
     event::ServerEvent,
     states::utils::*,
     sys::character_behavior::*,
+    util::dir::*,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -25,13 +26,10 @@ pub struct Data {
     pub projectile_light: Option<LightEmitter>,
     pub projectile_gravity: Option<Gravity>,
     pub projectile_speed: f32,
-    /// Whether the attack fired already
-    pub exhausted: bool,
     /// How many times to repeat
     pub repetitions: u32,
     /// Current repetition
     pub current_rep: u32,
-    pub initialize: bool,
     /// Whether there should be a jump
     pub leap: bool,
 }
@@ -43,7 +41,7 @@ impl CharacterBehavior for Data {
         handle_move(data, &mut update, 1.0);
         handle_jump(data, &mut update);
 
-        if !self.exhausted
+        if self.current_rep <= self.repetitions
             && if self.holdable {
                 data.inputs.holding_ability_key() || self.prepare_timer < self.prepare_duration
             } else {
@@ -62,10 +60,8 @@ impl CharacterBehavior for Data {
                 projectile_light: self.projectile_light,
                 projectile_gravity: self.projectile_gravity,
                 projectile_speed: self.projectile_speed,
-                exhausted: false,
                 repetitions: self.repetitions,
                 current_rep: self.current_rep,
-                initialize: false,
                 leap: self.leap,
             });
         } else if self.movement_duration != Duration::default() {
@@ -88,18 +84,58 @@ impl CharacterBehavior for Data {
                 projectile_light: self.projectile_light,
                 projectile_gravity: self.projectile_gravity,
                 projectile_speed: self.projectile_speed,
-                exhausted: false,
                 repetitions: self.repetitions,
                 current_rep: self.current_rep,
-                initialize: false,
                 leap: self.leap,
             });
-        } else if !self.exhausted && self.current_rep < self.repetitions {
+        } else if self.recover_duration != Duration::default() {
+            // Hover
+            update.vel.0 = Vec3::new(data.vel.0[0], data.vel.0[1], 0.0);
+
+            // Recovery
+            update.character = CharacterState::RepeaterRanged(Data {
+                movement_duration: Duration::default(),
+                prepare_timer: self.prepare_timer,
+                holdable: self.holdable,
+                prepare_duration: self.prepare_duration,
+                recover_duration: self
+                    .recover_duration
+                    .checked_sub(Duration::from_secs_f32(data.dt.0))
+                    .unwrap_or_default(),
+                projectile: self.projectile.clone(),
+                projectile_body: self.projectile_body,
+                projectile_light: self.projectile_light,
+                projectile_gravity: self.projectile_gravity,
+                projectile_speed: self.projectile_speed,
+                repetitions: self.repetitions,
+                current_rep: self.current_rep,
+                leap: self.leap,
+            });
+        } else if self.current_rep < self.repetitions {
+            // Hover
+            update.vel.0 = Vec3::new(data.vel.0[0], data.vel.0[1], 0.0);
+
+            // Fire
             let mut projectile = self.projectile.clone();
             projectile.owner = Some(*data.uid);
             update.server_events.push_front(ServerEvent::Shoot {
                 entity: data.entity,
-                dir: data.inputs.look_dir,
+                dir: Dir::from_unnormalized(Vec3::new(
+                    data.inputs.look_dir[0]
+                        + (if self.current_rep % 2 == 0 {
+                            self.current_rep as f32 / 400.0
+                        } else {
+                            -1.0 * self.current_rep as f32 / 400.0
+                        }),
+                    data.inputs.look_dir[1]
+                        + (if self.current_rep % 2 == 0 {
+                            -1.0 * self.current_rep as f32 / 400.0
+                        } else {
+                            self.current_rep as f32 / 400.0
+                        }),
+                    data.inputs.look_dir[2],
+                ))
+                .expect("That didn't work"),
                 body: self.projectile_body,
                 projectile,
                 light: self.projectile_light,
@@ -122,32 +158,8 @@ impl CharacterBehavior for Data {
                 projectile_light: self.projectile_light,
                 projectile_gravity: self.projectile_gravity,
                 projectile_speed: self.projectile_speed,
-                exhausted: false,
                 repetitions: self.repetitions,
                 current_rep: self.current_rep + 1,
-                initialize: false,
-                leap: self.leap,
-            });
-        } else if self.recover_duration != Duration::default() {
-            // Recovery
-            update.character = CharacterState::RepeaterRanged(Data {
-                movement_duration: Duration::default(),
-                prepare_timer: self.prepare_timer,
-                holdable: self.holdable,
-                prepare_duration: self.prepare_duration,
-                recover_duration: self
-                    .recover_duration
-                    .checked_sub(Duration::from_secs_f32(data.dt.0))
-                    .unwrap_or_default(),
-                projectile: self.projectile.clone(),
-                projectile_body: self.projectile_body,
-                projectile_light: self.projectile_light,
-                projectile_gravity: self.projectile_gravity,
-                projectile_speed: self.projectile_speed,
-                exhausted: true,
-                repetitions: self.repetitions,
-                current_rep: 0,
-                initialize: false,
                 leap: self.leap,
             });
             return update;

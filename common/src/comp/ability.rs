@@ -128,6 +128,7 @@ pub enum CharacterAbility {
         base_damage: u32,
         range: f32,
         max_angle: f32,
+        knockback: f32,
         leap_speed: f32,
         leap_vert_speed: f32,
     },
@@ -470,6 +471,7 @@ impl From<&CharacterAbility> for CharacterState {
                 base_damage,
                 range,
                 max_angle,
+                knockback,
                 leap_speed,
                 leap_vert_speed,
             } => CharacterState::LeapMelee(leap_melee::Data {
@@ -481,6 +483,7 @@ impl From<&CharacterAbility> for CharacterState {
                 base_damage: *base_damage,
                 range: *range,
                 max_angle: *max_angle,
+                knockback: *knockback,
                 leap_speed: *leap_speed,
                 leap_vert_speed: *leap_vert_speed,
             }),
@@ -590,7 +593,6 @@ impl From<&CharacterAbility> for CharacterState {
                 current_rep,
                 leap,
             } => CharacterState::RepeaterRanged(repeater_ranged::Data {
-                exhausted: false,
                 prepare_timer: Duration::default(),
                 holdable: *holdable,
                 movement_duration: *movement_duration,
@@ -603,7 +605,6 @@ impl From<&CharacterAbility> for CharacterState {
                 projectile_speed: *projectile_speed,
                 repetitions: *repetitions,
                 current_rep: *current_rep,
-                initialize: true,
                 leap: *leap,
             }),
             CharacterAbility::GroundShockwave {
