@@ -11,7 +11,6 @@ use crate::{
     terrain::{Block, SpriteKind},
 };
 use crossbeam::atomic::AtomicCell;
-use hashbrown::HashMap;
 use rand::prelude::*;
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
