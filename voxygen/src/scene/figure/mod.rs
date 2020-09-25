@@ -901,7 +901,7 @@ impl FigureMgr {
                             }
                         },
                         CharacterState::RepeaterRanged(data) => {
-                            if data.current_rep != 0 {
+                            if data.reps_remaining > 0 {
                                 anim::character::ShootAnimation::update_skeleton(
                                     &target_base,
                                     (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
