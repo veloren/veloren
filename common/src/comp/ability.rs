@@ -84,8 +84,7 @@ pub enum CharacterAbility {
         projectile_light: Option<LightEmitter>,
         projectile_gravity: Option<Gravity>,
         projectile_speed: f32,
-        repetitions: u32,
-        current_rep: u32,
+        reps_remaining: u32,
         leap: bool,
     },
     Boost {
@@ -589,8 +588,7 @@ impl From<&CharacterAbility> for CharacterState {
                 projectile_light,
                 projectile_gravity,
                 projectile_speed,
-                repetitions,
-                current_rep,
+                reps_remaining,
                 leap,
             } => CharacterState::RepeaterRanged(repeater_ranged::Data {
                 prepare_timer: Duration::default(),
@@ -603,8 +601,7 @@ impl From<&CharacterAbility> for CharacterState {
                 projectile_light: *projectile_light,
                 projectile_gravity: *projectile_gravity,
                 projectile_speed: *projectile_speed,
-                repetitions: *repetitions,
-                current_rep: *current_rep,
+                reps_remaining: *reps_remaining,
                 leap: *leap,
             }),
             CharacterAbility::GroundShockwave {
