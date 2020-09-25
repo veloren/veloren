@@ -85,8 +85,10 @@ impl CharacterBehavior for Data {
                 leap: self.leap,
             });
         } else if self.recover_duration != Duration::default() {
-            // Hover
-            update.vel.0 = Vec3::new(data.vel.0[0], data.vel.0[1], 0.0);
+            if self.leap {
+                // Hover
+                update.vel.0 = Vec3::new(data.vel.0[0], data.vel.0[1], data.vel.0[2] + 0.5);
+            }
 
             // Recovery
             update.character = CharacterState::RepeaterRanged(Data {
@@ -107,8 +109,10 @@ impl CharacterBehavior for Data {
                 leap: self.leap,
             });
         } else if self.reps_remaining > 0 {
-            // Hover
-            update.vel.0 = Vec3::new(data.vel.0[0], data.vel.0[1], 0.0);
+            if self.leap {
+                // Hover
+                update.vel.0 = Vec3::new(data.vel.0[0], data.vel.0[1], data.vel.0[2] + 0.5);
+            }
 
             // Fire
             let mut projectile = self.projectile.clone();

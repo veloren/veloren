@@ -233,12 +233,10 @@ impl Tool {
                     recover_duration: Duration::from_millis(600),
                     base_damage: (160.0 * self.base_power()) as u32,
                     range: 3.5,
-                    max_angle: 120.0,
+                    max_angle: 100.0,
                     knockback: 15.0,
-                    //leap_speed: 20.0,
                     leap_speed: 16.0,
                     leap_vert_speed: 6.0,
-                    //leap_vert_speed: 16.0,
                 },
             ],
             Hammer(_) => vec![
@@ -274,9 +272,7 @@ impl Tool {
                     max_angle: 360.0,
                     knockback: 25.0,
                     leap_speed: 24.0,
-                    //leap_speed: 24.0,
                     leap_vert_speed: 4.0,
-                    //leap_vert_speed: 8.0,
                 },
             ],
             Farming(_) => vec![BasicMelee {
@@ -328,7 +324,7 @@ impl Tool {
                     max_projectile_speed: 500.0,
                 },
                 RepeaterRanged {
-                    energy_cost: 10,
+                    energy_cost: 450,
                     holdable: true,
                     movement_duration: Duration::from_millis(200),
                     prepare_duration: Duration::from_millis(50),
