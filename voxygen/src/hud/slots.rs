@@ -140,7 +140,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                         ),
                         HotbarImage::BowJumpBurst => (
                             image_key,
-                            (energy.current() < 200).then_some(Color::Rgba(0.3, 0.3, 0.3, 0.8)),
+                            (energy.current() < 450).then_some(Color::Rgba(0.3, 0.3, 0.3, 0.8)),
                         ),
                         _ => (
                             image_key,
