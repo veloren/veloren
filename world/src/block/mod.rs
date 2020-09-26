@@ -10,7 +10,7 @@ use common::{
         structure::{self, StructureBlock},
         Block, BlockKind, SpriteKind, Structure,
     },
-    vol::{ReadVol, Vox},
+    vol::ReadVol,
 };
 use core::ops::{Div, Mul, Range};
 use serde::Deserialize;
@@ -164,7 +164,8 @@ impl<'a> BlockGen<'a> {
         } = self;
         let world = column_gen.sim;
 
-        let sample = &z_cache?.sample;
+        let z_cache = z_cache?;
+        let sample = &z_cache.sample;
         let &ColumnSample {
             alt,
             basement,
@@ -188,7 +189,7 @@ impl<'a> BlockGen<'a> {
             ..
         } = sample;
 
-        let structures = &z_cache?.structures;
+        let structures = &z_cache.structures;
 
         let wposf = wpos.map(|e| e as f64);
 
@@ -330,7 +331,7 @@ impl<'a> BlockGen<'a> {
             })
             .or(block);
 
-        Some(block.unwrap_or_else(Block::empty))
+        block
     }
 }
 
@@ -467,6 +468,8 @@ impl StructureInfo {
                             self.pos.into(),
                             self.seed,
                             sample,
+                            // TODO: Take environment into account.
+                            Block::air,
                         )
                     })
             },
@@ -481,49 +484,55 @@ pub fn block_from_structure(
     structure_pos: Vec2<i32>,
     structure_seed: u32,
     sample: &ColumnSample,
+    mut with_sprite: impl FnMut(SpriteKind) -> Block,
 ) -> Option<Block> {
     let field = RandomField::new(structure_seed);
 
     let lerp = ((field.get(Vec3::from(structure_pos)).rem_euclid(256)) as f32 / 255.0) * 0.85
         + ((field.get(pos + std::i32::MAX / 2).rem_euclid(256)) as f32 / 255.0) * 0.15;
 
+    const EMPTY_SPRITE: Rgb<u8> = Rgb::new(SpriteKind::Empty as u8, 0, 0);
+
     match sblock {
         StructureBlock::None => None,
-        StructureBlock::Hollow => Some(Block::empty()),
+        StructureBlock::Hollow => Some(with_sprite(SpriteKind::Empty)),
         StructureBlock::Grass => Some(Block::new(
             BlockKind::Grass,
             sample.surface_color.map(|e| (e * 255.0) as u8),
         )),
-        StructureBlock::Normal(color) => {
-            Some(Block::new(BlockKind::Misc, color)).filter(|block| !block.is_empty())
-        },
-        // Water / sludge throw away their color bits currently, so we don't set anyway.
-        StructureBlock::Water => Some(Block::new(BlockKind::Water, Rgb::zero())),
+        StructureBlock::Normal(color) => Some(Block::new(BlockKind::Misc, color)),
+        StructureBlock::Water => Some(Block::new(BlockKind::Water, EMPTY_SPRITE)),
         StructureBlock::GreenSludge => Some(Block::new(
-            BlockKind::Water,
             // TODO: If/when liquid supports other colors again, revisit this.
-            Rgb::zero(),
+            BlockKind::Water,
+            EMPTY_SPRITE,
         )),
         // None of these BlockKinds has an orientation, so we just use zero for the other color
         // bits.
-        StructureBlock::Liana => Some(Block::air(SpriteKind::Liana)),
-        StructureBlock::Fruit => Some(if field.get(pos + structure_pos) % 24 == 0 {
-            Block::air(SpriteKind::Beehive)
-        } else if field.get(pos + structure_pos + 1) % 3 == 0 {
-            Block::air(SpriteKind::Apple)
-        } else {
-            Block::empty()
-        }),
-        StructureBlock::Coconut => Some(if field.get(pos + structure_pos) % 3 > 0 {
-            Block::empty()
-        } else {
-            Block::air(SpriteKind::Coconut)
-        }),
-        StructureBlock::Chest => Some(if structure_seed % 10 < 7 {
-            Block::empty()
-        } else {
-            Block::air(SpriteKind::Chest)
-        }),
+        StructureBlock::Liana => Some(with_sprite(SpriteKind::Liana)),
+        StructureBlock::Fruit => {
+            if field.get(pos + structure_pos) % 24 == 0 {
+                Some(with_sprite(SpriteKind::Beehive))
+            } else if field.get(pos + structure_pos + 1) % 3 == 0 {
+                Some(with_sprite(SpriteKind::Apple))
+            } else {
+                None
+            }
+        },
+        StructureBlock::Coconut => {
+            if field.get(pos + structure_pos) % 3 > 0 {
+                None
+            } else {
+                Some(with_sprite(SpriteKind::Coconut))
+            }
+        },
+        StructureBlock::Chest => {
+            if structure_seed % 10 < 7 {
+                None
+            } else {
+                Some(with_sprite(SpriteKind::Chest))
+            }
+        },
         // We interpolate all these BlockKinds as needed.
         StructureBlock::TemperateLeaves
         | StructureBlock::PineLeaves

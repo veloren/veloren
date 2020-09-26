@@ -22,7 +22,7 @@ pub trait Vox: Sized + Clone + PartialEq {
 
 /// A volume that contains voxel data.
 pub trait BaseVol {
-    type Vox: Vox;
+    type Vox;
     type Error: Debug;
 
     fn scaled_by(self, scale: Vec3<f32>) -> Scaled<Self>
@@ -98,6 +98,9 @@ pub trait ReadVol: BaseVol {
     fn get<'a>(&'a self, pos: Vec3<i32>) -> Result<&'a Self::Vox, Self::Error>;
 
     #[allow(clippy::type_complexity)] // TODO: Pending review in #587
+    /// NOTE: By default, this ray will simply run from `from` to `to` without
+    /// stopping.  To make something interesting happen, call `until` or
+    /// `for_each`.
     fn ray<'a>(
         &'a self,
         from: Vec3<f32>,
@@ -106,7 +109,7 @@ pub trait ReadVol: BaseVol {
     where
         Self: Sized,
     {
-        Ray::new(self, from, to, |vox| !vox.is_empty())
+        Ray::new(self, from, to, |_| true)
     }
 }
 

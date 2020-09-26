@@ -1,7 +1,9 @@
 use common::{
     generation::{ChunkSupplement, EntityInfo},
-    terrain::{Block, BlockKind, MapSizeLg, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
-    vol::{ReadVol, RectVolSize, Vox, WriteVol},
+    terrain::{
+        Block, BlockKind, MapSizeLg, SpriteKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize,
+    },
+    vol::{ReadVol, RectVolSize, WriteVol},
 };
 use rand::{prelude::*, rngs::SmallRng};
 use std::time::Duration;
@@ -60,7 +62,7 @@ impl World {
             TerrainChunk::new(
                 256 + if rng.gen::<u8>() < 64 { height } else { 0 },
                 Block::new(BlockKind::Grass, Rgb::new(11, 102, 35)),
-                Block::empty(),
+                Block::air(SpriteKind::Empty),
                 TerrainChunkMeta::void(),
             ),
             supplement,

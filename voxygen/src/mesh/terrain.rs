@@ -9,7 +9,7 @@ use common::{
     span,
     terrain::Block,
     util::either_with,
-    vol::{ReadVol, RectRasterableVol, Vox},
+    vol::{ReadVol, RectRasterableVol},
     volumes::vol_grid_2d::{CachedVolGrid2d, VolGrid2d},
 };
 use std::{collections::VecDeque, fmt::Debug};
@@ -255,7 +255,12 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
             let d = d + 2;
             let flat = {
                 let mut volume = self.cached();
-                let mut flat = vec![Block::empty(); (w * h * d) as usize];
+
+                const AIR: Block = Block::air(common::terrain::sprite::SpriteKind::Empty);
+
+                // TODO: Once we can manage it sensibly, consider using something like
+                // Option<Block> instead of just assuming air.
+                let mut flat = vec![AIR; (w * h * d) as usize];
                 let mut i = 0;
                 for x in 0..range.size().w {
                     for y in 0..range.size().h {
@@ -263,7 +268,9 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
                             let block = volume
                                 .get(range.min + Vec3::new(x, y, z))
                                 .map(|b| *b)
-                                .unwrap_or(Block::empty());
+                                // TODO: Replace with None or some other more reasonable value,
+                                // since it's not clear this will work properly with liquid.
+                                .unwrap_or(AIR);
                             if block.is_opaque() {
                                 opaque_limits = opaque_limits
                                     .map(|l| l.including(z))

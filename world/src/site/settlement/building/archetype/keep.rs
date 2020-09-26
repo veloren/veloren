@@ -7,7 +7,6 @@ use crate::{
 use common::{
     make_case_elim,
     terrain::{Block, BlockKind, SpriteKind},
-    vol::Vox,
 };
 use rand::prelude::*;
 use serde::Deserialize;
@@ -168,8 +167,9 @@ impl Archetype for Keep {
             make_block(colors.pole.0, colors.pole.1, colors.pole.2).with_priority(important_layer);
         let flag =
             make_block(flag_color.0, flag_color.1, flag_color.2).with_priority(important_layer);
-        let internal = BlockMask::new(Block::empty(), internal_layer);
-        let empty = BlockMask::nothing();
+        const AIR: Block = Block::air(SpriteKind::Empty);
+        const EMPTY: BlockMask = BlockMask::nothing();
+        let internal = BlockMask::new(AIR, internal_layer);
 
         let make_staircase = move |pos: Vec3<i32>, radius: f32, inner_radius: f32, stretch: f32| {
             let stone = BlockMask::new(Block::new(BlockKind::Rock, dungeon_stone.into()), 5);
@@ -187,7 +187,7 @@ impl Archetype for Keep {
                     internal
                 }
             } else {
-                BlockMask::nothing()
+                EMPTY
             }
         };
 
@@ -255,21 +255,21 @@ impl Archetype for Keep {
                 {
                     flag
                 } else {
-                    empty
+                    EMPTY
                 }
             } else if min_dist <= rampart_width {
                 if profile.y < rampart_height {
                     wall
                 } else {
-                    empty
+                    EMPTY
                 }
             } else {
-                empty
+                EMPTY
             }
         } else if profile.y < roof_height && min_dist < width {
             internal
         } else {
-            empty
+            EMPTY
         }
         .resolve_with(
             if attr.is_tower && profile.y > 0 && profile.y <= roof_height {
@@ -280,7 +280,7 @@ impl Archetype for Keep {
                     9.0,
                 )
             } else {
-                BlockMask::nothing()
+                EMPTY
             },
         )
     }
