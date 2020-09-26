@@ -518,7 +518,7 @@ impl KeyMouse {
 }
 
 pub struct Window {
-    renderer: Renderer,
+    renderer: Renderer<'static>,
     window: winit::window::Window,
     cursor_grabbed: bool,
     pub pan_sensitivity: u32,
@@ -574,7 +574,7 @@ impl Window {
         //         .map_err(|err| Error::BackendError(Box::new(err)))?
         //         .init_gfx::<WinColorFmt, WinDepthFmt>();
 
-        let window = win_builder.build(&event_loop)?;
+        let window = win_builder.build(&event_loop).unwrap();
 
         let renderer = Renderer::new(&window, settings.graphics.render_mode.clone())?;
 
@@ -658,7 +658,7 @@ impl Window {
 
     pub fn renderer(&self) -> &Renderer { &self.renderer }
 
-    pub fn renderer_mut(&mut self) -> &mut Renderer { &mut self.renderer }
+    pub fn renderer_mut(&mut self) -> &mut Renderer<'static> { &mut self.renderer }
 
     pub fn resolve_deduplicated_events(&mut self, settings: &mut Settings) {
         // Handle screenshots and toggling fullscreen
@@ -938,9 +938,9 @@ impl Window {
         match event {
             WindowEvent::CloseRequested => self.events.push(Event::Close),
             WindowEvent::Resized(physical) => {
-                let (mut color_view, mut depth_view) = self.renderer.win_views_mut();
-                self.window.resize(physical);
-                self.window.update_gfx(&mut color_view, &mut depth_view);
+                // let (mut color_view, mut depth_view) = self.renderer.win_views_mut();
+                // self.window.resize(physical);
+                // self.window.update_gfx(&mut color_view, &mut depth_view);
                 self.renderer.on_resize().unwrap();
                 // TODO: update users of this event with the fact that it is now the physical
                 // size
@@ -1085,32 +1085,24 @@ impl Window {
     /// Moves cursor by an offset
     pub fn offset_cursor(&self, d: Vec2<f32>) {
         if d != Vec2::zero() {
-            if let Err(err) =
-                self.window
-                    .window()
-                    .set_cursor_position(winit::dpi::LogicalPosition::new(
-                        d.x as f64 + self.cursor_position.x,
-                        d.y as f64 + self.cursor_position.y,
-                    ))
+            if let Err(err) = self
+                .window
+                .set_cursor_position(winit::dpi::LogicalPosition::new(
+                    d.x as f64 + self.cursor_position.x,
+                    d.y as f64 + self.cursor_position.y,
+                ))
             {
                 error!("Error setting cursor position: {:?}", err);
             }
         }
     }
 
-    pub fn swap_buffers(&self) -> Result<(), Error> {
-        span!(_guard, "swap_buffers", "Window::swap_buffers");
-        self.window
-            .swap_buffers()
-            .map_err(|err| Error::BackendError(Box::new(err)))
-    }
-
     pub fn is_cursor_grabbed(&self) -> bool { self.cursor_grabbed }
 
     pub fn grab_cursor(&mut self, grab: bool) {
         self.cursor_grabbed = grab;
-        self.window.window().set_cursor_visible(!grab);
-        let _ = self.window.window().set_cursor_grab(grab);
+        self.window.set_cursor_visible(!grab);
+        let _ = self.window.set_cursor_grab(grab);
     }
 
     /// Moves mouse cursor to center of screen
@@ -1156,8 +1148,7 @@ impl Window {
         // the correct resolution already, load that value, otherwise filter it
         // in this iteration
         let correct_res = correct_res.unwrap_or_else(|| {
-            let window = self.window.window();
-            window
+            self.window
                 .current_monitor()
                 .unwrap()
                 .video_modes()
@@ -1309,7 +1300,6 @@ impl Window {
 
                 self
                     .window
-                    .window()
                     .current_monitor().unwrap()
                     .video_modes()
                     // Prefer bit depth over refresh rate
@@ -1321,7 +1311,7 @@ impl Window {
     }
 
     pub fn set_fullscreen_mode(&mut self, fullscreen: FullScreenSettings) {
-        let window = self.window.window();
+        let window = self.window;
         self.fullscreen = fullscreen;
         window.set_fullscreen(fullscreen.enabled.then(|| match fullscreen.mode {
             FullscreenMode::Exclusive => {
@@ -1343,20 +1333,17 @@ impl Window {
     pub fn logical_size(&self) -> Vec2<f64> {
         let (w, h) = self
             .window
-            .window()
             .inner_size()
-            .to_logical::<f64>(self.window.window().scale_factor())
+            .to_logical::<f64>(self.window.scale_factor())
             .into();
         Vec2::new(w, h)
     }
 
     pub fn set_size(&mut self, new_size: Vec2<u16>) {
-        self.window
-            .window()
-            .set_inner_size(winit::dpi::LogicalSize::new(
-                new_size.x as f64,
-                new_size.y as f64,
-            ));
+        self.window.set_inner_size(winit::dpi::LogicalSize::new(
+            new_size.x as f64,
+            new_size.y as f64,
+        ));
     }
 
     pub fn send_event(&mut self, event: Event) { self.events.push(event) }

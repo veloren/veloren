@@ -1,9 +1,9 @@
 use super::super::{AaMode, GlobalsLayouts};
-use bytemuck::Pod;
+use bytemuck::{Pod, Zeroable};
 use vek::*;
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug, Pod)]
+#[derive(Copy, Clone, Debug, Zeroable, Pod)]
 pub struct Vertex {
     pos: [f32; 3],
     // ____BBBBBBBBGGGGGGGGRRRRRRRR
@@ -79,7 +79,7 @@ impl ParticleMode {
 }
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug, Pod)]
+#[derive(Copy, Clone, Debug, Zeroable, Pod)]
 pub struct Instance {
     // created_at time, so we can calculate time relativity, needed for relative animation.
     // can save 32 bits per instance, for particles that are not relatively animated.

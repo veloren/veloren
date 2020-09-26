@@ -1,9 +1,9 @@
 use super::super::{AaMode, GlobalsLayouts, Renderer, Texture};
-use bytemuck::Pod;
+use bytemuck::{Pod, Zeroable};
 use vek::*;
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug, Pod)]
+#[derive(Copy, Clone, Debug, Zeroable, Pod)]
 pub struct Vertex {
     pos: [f32; 2],
 }
@@ -39,7 +39,7 @@ pub struct LodData {
 impl LodData {
     pub fn new(
         renderer: &mut Renderer,
-        map_size: Vec2<u16>,
+        map_size: Vec2<u32>,
         lod_base: &[u32],
         lod_alt: &[u32],
         lod_horizon: &[u32],
@@ -72,28 +72,41 @@ impl LodData {
             ..Default::default()
         };
 
+        let mut view_info = wgpu::TextureViewDescriptor {
+            label: None,
+            format: Some(wgpu::TextureFormat::Rgba8UnormSrgb),
+            dimension: Some(wgpu::TextureViewDimension::D2),
+            aspect: wgpu::TextureAspect::All,
+            base_mip_level: 0,
+            level_count: None,
+            base_array_layer: 0,
+            array_layer_count: None,
+        };
+
         let map = renderer.create_texture_with_data_raw(
             &texture_info,
+            &view_info,
             &sampler_info,
             map_size.x * 4,
-            [map_size.x, map_size.y],
-            lod_base.as_bytes(),
+            bytemuck::cast_slice(lod_base),
         );
-        texture_info = wgpu::TextureFormat::Rg16Uint;
+        texture_info.format = wgpu::TextureFormat::Rg16Uint;
+        view_info.format = Some(wgpu::TextureFormat::Rg16Uint);
         let alt = renderer.create_texture_with_data_raw(
             &texture_info,
+            &view_info,
             &sampler_info,
             map_size.x * 4,
-            [map_size.x, map_size.y],
-            lod_base.as_bytes(),
+            bytemuck::cast_slice(lod_base),
         );
-        texture_info = wgpu::TextureFormat::Rgba8Unorm;
+        texture_info.format = wgpu::TextureFormat::Rgba8Unorm;
+        view_info.format = Some(wgpu::TextureFormat::Rg16Uint);
         let horizon = renderer.create_texture_with_data_raw(
             &texture_info,
+            &view_info,
             &sampler_info,
             map_size.x * 4,
-            [map_size.x, map_size.y],
-            lod_base.as_bytes(),
+            bytemuck::cast_slice(lod_base),
         );
 
         Self {

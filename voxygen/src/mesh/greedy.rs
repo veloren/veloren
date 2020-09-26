@@ -1,8 +1,6 @@
-use crate::render::{self, mesh::Quad, ColLightFmt, ColLightInfo, TerrainPipeline};
+use crate::render::{mesh::Quad, ColLightInfo, TerrainVertex, Vertex};
 use common_base::span;
 use vek::*;
-
-type TerrainVertex = <TerrainPipeline as render::Pipeline>::Vertex;
 
 type TodoRect = (
     Vec3<i32>,
@@ -84,7 +82,7 @@ pub type SuspendedMesh<'a> = dyn for<'r> FnOnce(&'r mut ColLightInfo) + 'a;
 /// For an explanation of why we want this, see `SuspendedMesh`.
 pub struct GreedyMesh<'a> {
     atlas: guillotiere::SimpleAtlasAllocator,
-    col_lights_size: Vec2<u16>,
+    col_lights_size: Vec2<u32>,
     max_size: guillotiere::Size,
     suspended: Vec<Box<SuspendedMesh<'a>>>,
 }
@@ -123,7 +121,7 @@ impl<'a> GreedyMesh<'a> {
                 small_size_threshold,
                 large_size_threshold,
             });
-        let col_lights_size = Vec2::new(1u16, 1u16);
+        let col_lights_size = Vec2::new(1, 1);
         Self {
             atlas,
             col_lights_size,
@@ -178,7 +176,7 @@ impl<'a> GreedyMesh<'a> {
         let cur_size = self.col_lights_size;
         let col_lights = vec![
             TerrainVertex::make_col_light(254, 0, Rgb::broadcast(254));
-            usize::from(cur_size.x) * usize::from(cur_size.y)
+            cur_size.x as usize * cur_size.y as usize
         ];
         let mut col_lights_info = (col_lights, cur_size);
         self.suspended.into_iter().for_each(|cont| {
@@ -192,7 +190,7 @@ impl<'a> GreedyMesh<'a> {
 
 fn greedy_mesh<'a, M: PartialEq, D: 'a, FL, FG, FO, FS, FP, FT>(
     atlas: &mut guillotiere::SimpleAtlasAllocator,
-    col_lights_size: &mut Vec2<u16>,
+    col_lights_size: &mut Vec2<u32>,
     max_size: guillotiere::Size,
     GreedyConfig {
         mut data,
@@ -430,7 +428,7 @@ fn add_to_atlas(
     norm: Vec3<i16>,
     faces_forward: bool,
     max_size: guillotiere::Size,
-    cur_size: &mut Vec2<u16>,
+    cur_size: &mut Vec2<u32>,
 ) -> guillotiere::Rectangle {
     // TODO: Check this conversion.
     let atlas_rect;
@@ -475,8 +473,8 @@ fn add_to_atlas(
     // a u16 and we never grew the atlas, meaning all valid coordinates within the
     // atlas also fit into a u16.
     *cur_size = Vec2::new(
-        cur_size.x.max(atlas_rect.max.x as u16),
-        cur_size.y.max(atlas_rect.max.y as u16),
+        cur_size.x.max(atlas_rect.max.x as u32),
+        cur_size.y.max(atlas_rect.max.y as u32),
     );
 
     // NOTE: pos can be converted safely from usize to i32 because all legal block
@@ -507,7 +505,7 @@ fn draw_col_lights<D>(
     mut get_light: impl FnMut(&mut D, Vec3<i32>) -> f32,
     mut get_glow: impl FnMut(&mut D, Vec3<i32>) -> f32,
     mut get_opacity: impl FnMut(&mut D, Vec3<i32>) -> bool,
-    mut make_face_texel: impl FnMut(&mut D, Vec3<i32>, u8, u8) -> <<ColLightFmt as gfx::format::Formatted>::Surface as gfx::format::SurfaceTyped>::DataType,
+    mut make_face_texel: impl FnMut(&mut D, Vec3<i32>, u8, u8) -> [u8; 4],
 ) {
     todo_rects.into_iter().for_each(|(pos, uv, rect, delta)| {
         // NOTE: Conversions are safe because width, height, and offset must be
@@ -520,7 +518,7 @@ fn draw_col_lights<D>(
         let uv = uv.map(|e| e.map(i32::from));
         let pos = pos + draw_delta;
         (0..height).for_each(|v| {
-            let start = usize::from(cur_size.x) * usize::from(top + v) + usize::from(left);
+            let start = cur_size.x as usize * usize::from(top + v) + usize::from(left);
             (0..width)
                 .zip(&mut col_lights[start..start + usize::from(width)])
                 .for_each(|(u, col_light)| {
@@ -622,14 +620,14 @@ fn create_quad_greedy<M>(
     push_quad(atlas_pos, dim, origin, draw_dim, norm, meta);
 }
 
-pub fn create_quad<O: render::Pipeline, M>(
+pub fn create_quad<O: Vertex, M>(
     atlas_pos: Vec2<u16>,
     dim: Vec2<Vec2<u16>>,
     origin: Vec3<f32>,
     draw_dim: Vec2<Vec3<f32>>,
     norm: Vec3<f32>,
     meta: &M,
-    create_vertex: impl Fn(Vec2<u16>, Vec3<f32>, Vec3<f32>, &M) -> O::Vertex,
+    create_vertex: impl Fn(Vec2<u16>, Vec3<f32>, Vec3<f32>, &M) -> O,
 ) -> Quad<O> {
     Quad::new(
         create_vertex(atlas_pos, origin, norm, meta),

@@ -584,9 +584,7 @@ impl Scene {
         );
         lights.sort_by_key(|light| light.get_pos().distance_squared(player_pos) as i32);
         lights.truncate(MAX_LIGHT_COUNT);
-        renderer
-            .update_consts(&mut self.data.lights, &lights)
-            .expect("Failed to update light constants");
+        renderer.update_consts(&mut self.data.lights, &lights);
 
         // Update event lights
         let dt = ecs.fetch::<DeltaTime>().0;
@@ -623,9 +621,7 @@ impl Scene {
             .collect::<Vec<_>>();
         shadows.sort_by_key(|shadow| shadow.get_pos().distance_squared(player_pos) as i32);
         shadows.truncate(MAX_SHADOW_COUNT);
-        renderer
-            .update_consts(&mut self.data.shadows, &shadows)
-            .expect("Failed to update light constants");
+        renderer.update_consts(&mut self.data.shadows, &shadows);
 
         // Remember to put the new loaded distance back in the scene.
         self.loaded_distance = loaded_distance;
@@ -636,48 +632,42 @@ impl Scene {
         let focus_off = focus_pos.map(|e| e.trunc());
 
         // Update global constants.
-        renderer
-            .update_consts(&mut self.data.globals, &[Globals::new(
-                view_mat,
-                proj_mat,
-                cam_pos,
-                focus_pos,
-                self.loaded_distance,
-                self.lod.get_data().tgt_detail as f32,
-                self.map_bounds,
-                time_of_day,
-                scene_data.state.get_time(),
-                renderer.get_resolution(),
-                Vec2::new(SHADOW_NEAR, SHADOW_FAR),
-                lights.len(),
-                shadows.len(),
-                NUM_DIRECTED_LIGHTS,
-                scene_data
-                    .state
-                    .terrain()
-                    .get((cam_pos + focus_off).map(|e| e.floor() as i32))
-                    .map(|b| b.kind())
-                    .unwrap_or(BlockKind::Air),
-                self.select_pos.map(|e| e - focus_off.map(|e| e as i32)),
-                scene_data.gamma,
-                scene_data.exposure,
-                scene_data.ambiance,
-                self.camera.get_mode(),
-                scene_data.sprite_render_distance as f32 - 20.0,
-            )])
-            .expect("Failed to update global constants");
-        renderer
-            .update_consts(&mut self.clouds.locals, &[CloudsLocals::new(
-                proj_mat_inv,
-                view_mat_inv,
-            )])
-            .expect("Failed to update cloud locals");
-        renderer
-            .update_consts(&mut self.postprocess.locals, &[PostProcessLocals::new(
-                proj_mat_inv,
-                view_mat_inv,
-            )])
-            .expect("Failed to update post-process locals");
+        renderer.update_consts(&mut self.data.globals, &[Globals::new(
+            view_mat,
+            proj_mat,
+            cam_pos,
+            focus_pos,
+            self.loaded_distance,
+            self.lod.get_data().tgt_detail as f32,
+            self.map_bounds,
+            time_of_day,
+            scene_data.state.get_time(),
+            renderer.get_resolution().as_(),
+            Vec2::new(SHADOW_NEAR, SHADOW_FAR),
+            lights.len(),
+            shadows.len(),
+            NUM_DIRECTED_LIGHTS,
+            scene_data
+                .state
+                .terrain()
+                .get((cam_pos + focus_off).map(|e| e.floor() as i32))
+                .map(|b| b.kind())
+                .unwrap_or(BlockKind::Air),
+            self.select_pos.map(|e| e - focus_off.map(|e| e as i32)),
+            scene_data.gamma,
+            scene_data.exposure,
+            scene_data.ambiance,
+            self.camera.get_mode(),
+            scene_data.sprite_render_distance as f32 - 20.0,
+        )]);
+        renderer.update_consts(&mut self.clouds.locals, &[CloudsLocals::new(
+            proj_mat_inv,
+            view_mat_inv,
+        )]);
+        renderer.update_consts(&mut self.postprocess.locals, &[PostProcessLocals::new(
+            proj_mat_inv,
+            view_mat_inv,
+        )]);
 
         // Maintain LoD.
         self.lod.maintain(renderer);
@@ -985,9 +975,7 @@ impl Scene {
                 })
             }));
 
-            renderer
-                .update_consts(&mut self.data.shadow_mats, &shadow_mats)
-                .expect("Failed to update light constants");
+            renderer.update_consts(&mut self.data.shadow_mats, &shadow_mats);
         }
 
         // Remove unused figures.
@@ -1028,10 +1016,10 @@ impl Scene {
 
         // would instead have this as an extension.
         if renderer.render_mode().shadow.is_map() && (is_daylight || !light_data.1.is_empty()) {
-            if is_daylight {
-                // Set up shadow mapping.
-                renderer.start_shadows();
-            }
+            // if is_daylight {
+            //     // Set up shadow mapping.
+            //     renderer.start_shadows();
+            // }
 
             // Render terrain shadows.
             self.terrain
@@ -1041,10 +1029,10 @@ impl Scene {
             self.figure_mgr
                 .render_shadows(renderer, state, tick, global, light_data, camera_data);
 
-            if is_daylight {
-                // Flush shadows.
-                renderer.flush_shadows();
-            }
+            // if is_daylight {
+            //     // Flush shadows.
+            //     renderer.flush_shadows();
+            // }
         }
         let lod = self.lod.get_data();
 

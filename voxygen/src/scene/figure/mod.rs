@@ -5230,12 +5230,9 @@ impl FigureColLights {
         span!(_guard, "create_figure", "FigureColLights::create_figure");
         let atlas = &mut self.atlas;
         let allocation = atlas
-            .allocate(guillotiere::Size::new(
-                i32::from(tex_size.x),
-                i32::from(tex_size.y),
-            ))
+            .allocate(guillotiere::Size::new(tex_size.x as i32, tex_size.y as i32))
             .expect("Not yet implemented: allocate new atlas on allocation failure.");
-        let col_lights = pipelines::shadow::create_col_lights(renderer, &(tex, tex_size))?;
+        let col_lights = pipelines::shadow::create_col_lights(renderer, &(tex, tex_size));
         let model_len = u32::try_from(opaque.vertices().len())
             .expect("The model size for this figure does not fit in a u32!");
         let model = renderer.create_model(&opaque)?;
@@ -5262,8 +5259,7 @@ impl FigureColLights {
     #[allow(clippy::unnecessary_wraps)]
     fn make_atlas(renderer: &mut Renderer) -> Result<AtlasAllocator, RenderError> {
         let max_texture_size = renderer.max_texture_size();
-        let atlas_size =
-            guillotiere::Size::new(i32::from(max_texture_size), i32::from(max_texture_size));
+        let atlas_size = guillotiere::Size::new(max_texture_size as i32, max_texture_size as i32);
         let atlas = AtlasAllocator::with_options(atlas_size, &guillotiere::AllocatorOptions {
             // TODO: Verify some good empirical constants.
             small_size_threshold: 32,
@@ -5286,7 +5282,7 @@ impl FigureColLights {
             (0, 0),
             gfx::format::Swizzle::new(),
             gfx::texture::SamplerInfo::new(
-                gfx::texture::FilterMethod::Bilinear,
+                gfx::texture::FilterMetho>:Bilinear,
                 gfx::texture::WrapMode::Clamp,
             ),
         )?;
@@ -5467,18 +5463,16 @@ impl<S: Skeleton> FigureState<S> {
             self.last_light,
             self.last_glow,
         );
-        renderer.update_consts(&mut self.locals, &[locals]).unwrap();
+        renderer.update_consts(&mut self.locals, &[locals]);
 
         let lantern_offset = anim::compute_matrices(&self.skeleton, mat, buf);
 
         let new_bone_consts = figure_bone_data_from_anim(buf);
 
-        renderer
-            .update_consts(
-                &mut self.meta.bone_consts,
-                &new_bone_consts[0..S::BONE_COUNT],
-            )
-            .unwrap();
+        renderer.update_consts(
+            &mut self.meta.bone_consts,
+            &new_bone_consts[0..S::BONE_COUNT],
+        );
         self.lantern_offset = lantern_offset;
 
         let smoothing = (5.0 * dt).min(1.0);

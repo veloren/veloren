@@ -19,7 +19,7 @@ use vek::*;
 
 /// A type representing data that can be converted to an immutable texture map
 /// of ColLight data (used for texture atlases created during greedy meshing).
-pub type ColLightInfo = (Vec<[u8; 4]>, Vec2<u16>);
+pub type ColLightInfo = (Vec<[u8; 4]>, Vec2<u32>);
 
 /// Load from a GLSL file.
 pub struct Glsl(String);
@@ -150,11 +150,9 @@ impl assets::Compound for Shaders {
 pub struct ShadowMapRenderer {
     // directed_encoder: gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
     // point_encoder: gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
-    directed_depth_stencil_view: wgpu::TextureView,
-    directed_sampler: wgpu::Sampler,
+    directed_depth_stencil: Texture,
 
-    point_depth_stencil_view: wgpu::TextureView,
-    point_sampler: wgpu::Sampler,
+    point_depth_stencil: Texture,
 
     point_pipeline: shadow::ShadowPipeline,
     terrain_directed_pipeline: shadow::ShadowPipeline,
@@ -179,7 +177,9 @@ pub struct Layouts {
 /// rendering subsystem and contains any state necessary to interact with the
 /// GPU, along with pipeline state objects (PSOs) needed to renderer different
 /// kinds of models to the screen.
-pub struct Renderer {
+pub struct Renderer<'a> {
+    window: &'a winit::window::Window,
+
     device: wgpu::Device,
     queue: wgpu::Queue,
     swap_chain: wgpu::SwapChain,
@@ -218,13 +218,10 @@ pub struct Renderer {
     mode: RenderMode,
 }
 
-impl Renderer {
+impl<'a> Renderer<'a> {
     /// Create a new `Renderer` from a variety of backend-specific components
     /// and the window targets.
-    pub async fn new(
-        window: &winit::window::Window,
-        mode: RenderMode,
-    ) -> Result<Self, RenderError> {
+    pub fn new(window: &'a winit::window::Window, mode: RenderMode) -> Result<Self, RenderError> {
         // Enable seamless cubemaps globally, where available--they are essentially a
         // strict improvement on regular cube maps.
         //
@@ -241,29 +238,27 @@ impl Renderer {
         #[allow(unsafe_code)]
         let surface = unsafe { instance.create_surface(window) };
 
-        let adapter = instance
-            .request_adapter(wgpu::RequestAdapterOptionsBase {
+        let adapter = futures::executor::block_on(instance.request_adapter(
+            &wgpu::RequestAdapterOptionsBase {
                 power_preference: wgpu::PowerPreference::HighPerformance,
-                compatible_surface: Some(surface),
-            })
-            .await
-            .ok_or(RenderError::CouldNotFindAdapter)?;
+                compatible_surface: Some(&surface),
+            },
+        ))
+        .ok_or(RenderError::CouldNotFindAdapter)?;
 
         use wgpu::{Features, Limits};
 
-        let (device, queue) = adapter
-            .request_device(
-                wgpu::DeviceDescriptor {
-                    // TODO
-                    features: Features::DEPTH_CLAMPING | Features::ADDRESS_MODE_CLAMP_TO_BORDER,
-                    limits: Limits::default(),
-                    shader_validation: true,
-                },
-                None,
-            )
-            .await?;
+        let (device, queue) = futures::executor::block_on(adapter.request_device(
+            &wgpu::DeviceDescriptor {
+                // TODO
+                features: Features::DEPTH_CLAMPING | Features::ADDRESS_MODE_CLAMP_TO_BORDER,
+                limits: Limits::default(),
+                shader_validation: true,
+            },
+            None,
+        ))?;
 
-        let info = device.get_info();
+        let info = adapter.get_info();
         info!(
             ?info.name,
             ?info.vendor,
@@ -276,8 +271,8 @@ impl Renderer {
         let sc_desc = wgpu::SwapChainDescriptor {
             usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
             format: wgpu::TextureFormat::Bgra8UnormSrgb,
-            width: dims.0,
-            height: dims.1,
+            width: dims.width,
+            height: dims.height,
             present_mode: wgpu::PresentMode::Immediate,
         };
 
@@ -285,7 +280,7 @@ impl Renderer {
 
         let shadow_views = Self::create_shadow_views(
             &device,
-            (dims.0, dims.1),
+            (dims.width, dims.height),
             &ShadowMapMode::try_from(mode.shadow).unwrap_or_default(),
         )
         .map_err(|err| {
@@ -334,14 +329,10 @@ impl Renderer {
             point_shadow_pipeline,
             terrain_directed_shadow_pipeline,
             figure_directed_shadow_pipeline,
-        ) = create_pipelines(
-            &device,
-            &layouts & mode,
-            shadow_views.is_some(),
-        )?;
+        ) = create_pipelines(&device, &layouts, &mode, &sc_desc, shadow_views.is_some())?;
 
         let (tgt_color_view, tgt_depth_stencil_view, tgt_color_pp_view, win_depth_view) =
-            Self::create_rt_views(&device, (dims.0, dims.1), &mode)?;
+            Self::create_rt_views(&device, (dims.width, dims.height), &mode)?;
 
         let shadow_map = if let (
             Some(point_pipeline),
@@ -354,25 +345,16 @@ impl Renderer {
             figure_directed_shadow_pipeline,
             shadow_views,
         ) {
-            let (
-                point_depth_stencil_view,
-                point_res,
-                point_sampler,
-                directed_depth_stencil_view,
-                directed_res,
-                directed_sampler,
-            ) = shadow_views;
+            let (point_depth_stencil, directed_depth_stencil) = shadow_views;
 
             let layout = shadow::ShadowLayout::new(&device);
 
             Some(ShadowMapRenderer {
-                directed_depth_stencil_view,
-                directed_sampler,
+                directed_depth_stencil,
 
                 // point_encoder: factory.create_command_buffer().into(),
                 // directed_encoder: factory.create_command_buffer().into(),
-                point_depth_stencil_view,
-                point_sampler,
+                point_depth_stencil,
 
                 point_pipeline,
                 terrain_directed_pipeline,
@@ -405,6 +387,8 @@ impl Renderer {
         )?;
 
         Ok(Self {
+            window,
+
             device,
             queue,
             swap_chain,
@@ -472,43 +456,24 @@ impl Renderer {
 
     /// Resize internal render targets to match window render target dimensions.
     pub fn on_resize(&mut self) -> Result<(), RenderError> {
-        let dims = self.win_color_view.get_dimensions();
+        let dims = self.window.inner_size();
 
         // Avoid panics when creating texture with w,h of 0,0.
-        if dims.0 != 0 && dims.1 != 0 {
-            let (
-                tgt_color_view,
-                tgt_depth_stencil_view,
-                tgt_color_pp_view,
-                tgt_color_res,
-                tgt_depth_res,
-                tgt_color_res_pp,
-            ) = Self::create_rt_views(&mut self.factory, (dims.0, dims.1), &self.mode)?;
-            self.tgt_color_res = tgt_color_res;
-            self.tgt_depth_res = tgt_depth_res;
-            self.tgt_color_res_pp = tgt_color_res_pp;
+        if dims.width != 0 && dims.height != 0 {
+            let (tgt_color_view, tgt_depth_stencil_view, tgt_color_pp_view, win_depth_view) =
+                Self::create_rt_views(&mut self.device, (dims.width, dims.height), &self.mode)?;
+            self.win_depth_view = win_depth_view;
             self.tgt_color_view = tgt_color_view;
             self.tgt_depth_stencil_view = tgt_depth_stencil_view;
             self.tgt_color_pp_view = tgt_color_pp_view;
             if let (Some(shadow_map), ShadowMode::Map(mode)) =
                 (self.shadow_map.as_mut(), self.mode.shadow)
             {
-                match Self::create_shadow_views(&mut self.factory, (dims.0, dims.1), &mode) {
-                    Ok((
-                        point_depth_stencil_view,
-                        point_res,
-                        point_sampler,
-                        directed_depth_stencil_view,
-                        directed_res,
-                        directed_sampler,
-                    )) => {
-                        shadow_map.point_depth_stencil_view = point_depth_stencil_view;
-                        shadow_map.point_res = point_res;
-                        shadow_map.point_sampler = point_sampler;
-
-                        shadow_map.directed_depth_stencil_view = directed_depth_stencil_view;
-                        shadow_map.directed_res = directed_res;
-                        shadow_map.directed_sampler = directed_sampler;
+                match Self::create_shadow_views(&mut self.device, (dims.width, dims.height), &mode)
+                {
+                    Ok((point_depth_stencil, directed_depth_stencil)) => {
+                        shadow_map.point_depth_stencil = point_depth_stencil;
+                        shadow_map.directed_depth_stencil = directed_depth_stencil;
                     },
                     Err(err) => {
                         warn!("Could not create shadow map views: {:?}", err);
@@ -522,7 +487,7 @@ impl Renderer {
 
     fn create_rt_views(
         device: &wgpu::Device,
-        size: (u16, u16),
+        size: (u32, u32),
         mode: &RenderMode,
     ) -> Result<
         (
@@ -565,9 +530,10 @@ impl Renderer {
                 label: None,
                 format: Some(wgpu::TextureFormat::Rgba8UnormSrgb),
                 dimension: Some(wgpu::TextureViewDimension::D2),
-                aspect: wgpu::TextureAspect::Color,
+                // TODO: why is this not Color?
+                aspect: wgpu::TextureAspect::All,
                 base_mip_level: 0,
-                level_count: Some(levels),
+                level_count: None,
                 base_array_layer: 0,
                 array_layer_count: None,
             })
@@ -596,7 +562,7 @@ impl Renderer {
                 dimension: Some(wgpu::TextureViewDimension::D2),
                 aspect: wgpu::TextureAspect::DepthOnly,
                 base_mip_level: 0,
-                level_count: Some(levels),
+                level_count: None,
                 base_array_layer: 0,
                 array_layer_count: None,
             });
@@ -620,7 +586,7 @@ impl Renderer {
             dimension: Some(wgpu::TextureViewDimension::D2),
             aspect: wgpu::TextureAspect::DepthOnly,
             base_mip_level: 0,
-            level_count: Some(levels),
+            level_count: None,
             base_array_layer: 0,
             array_layer_count: None,
         });
@@ -639,28 +605,20 @@ impl Renderer {
     #[allow(clippy::type_complexity)]
     fn create_shadow_views(
         device: &wgpu::Device,
-        size: (u16, u16),
+        size: (u32, u32),
         mode: &ShadowMapMode,
-    ) -> Result<
-        (
-            wgpu::TextureView,
-            wgpu::Sampler,
-            wgpu::TextureView,
-            wgpu::Sampler,
-        ),
-        RenderError,
-    > {
+    ) -> Result<(Texture, Texture), RenderError> {
         // (Attempt to) apply resolution factor to shadow map resolution.
         let resolution_factor = mode.resolution.clamped(0.25, 4.0);
 
         let max_texture_size = Self::max_texture_size_raw(device);
         // Limit to max texture size, rather than erroring.
         let size = Vec2::new(size.0, size.1).map(|e| {
-            let size = f32::from(e) * resolution_factor;
+            let size = e as f32 * resolution_factor;
             // NOTE: We know 0 <= e since we clamped the resolution factor to be between
             // 0.25 and 4.0.
-            if size <= f32::from(max_texture_size) {
-                size as u16
+            if size <= max_texture_size as f32 {
+                size as u32
             } else {
                 max_texture_size
             }
@@ -669,7 +627,7 @@ impl Renderer {
         let levels = 1;
         // Limit to max texture size rather than erroring.
         let two_size = size.map(|e| {
-            u16::checked_next_power_of_two(e)
+            u32::checked_next_power_of_two(e)
                 .filter(|&e| e <= max_texture_size)
                 .unwrap_or(max_texture_size)
         });
@@ -688,17 +646,17 @@ impl Renderer {
                 // diag_size would be 0 too).  And it must be <= diag_size,
                 // since min_size <= max_size.  Therefore, if diag_size fits in a
                 // u16, so does diag_cross_size.
-                (diag_size as u16, diag_cross_size as u16)
+                (diag_size as u32, diag_cross_size as u32)
             } else {
                 // Limit to max texture resolution rather than error.
-                (max_texture_size as u16, max_texture_size as u16)
+                (max_texture_size as u32, max_texture_size as u32)
             };
-        let diag_two_size = u16::checked_next_power_of_two(diag_size)
+        let diag_two_size = u32::checked_next_power_of_two(diag_size)
             .filter(|&e| e <= max_texture_size)
             // Limit to max texture resolution rather than error.
             .unwrap_or(max_texture_size);
 
-        let point_shadow_tex = device.create_texture(&wgpu::TextureDescriptor {
+        let point_shadow_tex = wgpu::TextureDescriptor {
             label: None,
             size: wgpu::Extent3d {
                 width: diag_two_size / 4,
@@ -710,20 +668,9 @@ impl Renderer {
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Depth24Plus,
             usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::OUTPUT_ATTACHMENT,
-        });
+        };
 
-        let point_tgt_shadow_view = point_shadow_tex.create_view(&wgpu::TextureViewDescriptor {
-            label: None,
-            format: Some(wgpu::TextureFormat::Depth24Plus),
-            dimension: Some(wgpu::TextureViewDimension::Cube),
-            aspect: wgpu::TextureAspect::DepthOnly,
-            base_mip_level: 0,
-            level_count: Some(levels),
-            base_array_layer: 0,
-            array_layer_count: None,
-        });
-
-        let directed_shadow_tex = device.create_texture(&wgpu::TextureDescriptor {
+        let directed_shadow_tex = wgpu::TextureDescriptor {
             label: None,
             size: wgpu::Extent3d {
                 width: diag_two_size,
@@ -735,18 +682,18 @@ impl Renderer {
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Depth24Plus,
             usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::OUTPUT_ATTACHMENT,
-        });
+        };
 
-        let directed_tgt_shadow_view = point_shadow_tex.create_view(&wgpu::TextureViewDescriptor {
+        let mut view_info = wgpu::TextureViewDescriptor {
             label: None,
             format: Some(wgpu::TextureFormat::Depth24Plus),
             dimension: Some(wgpu::TextureViewDimension::D2),
             aspect: wgpu::TextureAspect::DepthOnly,
             base_mip_level: 0,
-            level_count: Some(levels),
+            level_count: None,
             base_array_layer: 0,
             array_layer_count: None,
-        });
+        };
 
         let sampler_info = wgpu::SamplerDescriptor {
             label: None,
@@ -760,57 +707,52 @@ impl Renderer {
             ..Default::default()
         };
 
-        let point_shadow_tex_sampler = device.create_sampler(&sampler_info);
-        let directed_shadow_tex_sampler = device.create_sampler(&sampler_info);
+        let point_tgt_shadow =
+            Texture::new_raw(device, &point_shadow_tex, &view_info, &sampler_info);
+        view_info.dimension = Some(wgpu::TextureViewDimension::Cube);
+        let directed_shadow_tex =
+            Texture::new_raw(device, &directed_shadow_tex, &view_info, &sampler_info);
 
-        Ok((
-            point_tgt_shadow_view,
-            point_shadow_tex_sampler,
-            directed_tgt_shadow_view,
-            directed_shadow_tex_sampler,
-        ))
+        Ok((point_tgt_shadow, directed_shadow_tex))
     }
 
     /// Get the resolution of the render target.
-    /// Note: the change after a resize can be delayed so
-    /// don't rely on this value being constant between resize events
-    pub fn get_resolution(&self) -> Vec2<u16> {
-        Vec2::new(
-            self.win_color_view.get_dimensions().0,
-            self.win_color_view.get_dimensions().1,
-        )
+    pub fn get_resolution(&self) -> Vec2<u32> {
+        let dims = self.window.inner_size();
+
+        Vec2::new(dims.width, dims.height)
     }
 
     /// Get the resolution of the shadow render target.
-    pub fn get_shadow_resolution(&self) -> (Vec2<u16>, Vec2<u16>) {
+    pub fn get_shadow_resolution(&self) -> (Vec2<u32>, Vec2<u32>) {
         if let Some(shadow_map) = &self.shadow_map {
-            let point_dims = shadow_map.point_depth_stencil_view.get_dimensions();
-            let directed_dims = shadow_map.directed_depth_stencil_view.get_dimensions();
+            let point_dims = shadow_map.point_depth_stencil.get_dimensions();
+            let directed_dims = shadow_map.directed_depth_stencil.get_dimensions();
             (
-                Vec2::new(point_dims.0, point_dims.1),
-                Vec2::new(directed_dims.0, directed_dims.1),
+                Vec2::new(point_dims.width, point_dims.height),
+                Vec2::new(directed_dims.width, directed_dims.height),
             )
         } else {
             (Vec2::new(1, 1), Vec2::new(1, 1))
         }
     }
 
-    /// Queue the clearing of the shadow targets ready for a new frame to be
-    /// rendered.
-    pub fn clear_shadows(&mut self) {
-        span!(_guard, "clear_shadows", "Renderer::clear_shadows");
-        if !self.mode.shadow.is_map() {
-            return;
-        }
-        if let Some(shadow_map) = self.shadow_map.as_mut() {
-            // let point_encoder = &mut shadow_map.point_encoder;
-            let point_encoder = &mut self.encoder;
-            point_encoder.clear_depth(&shadow_map.point_depth_stencil_view, 1.0);
-            // let directed_encoder = &mut shadow_map.directed_encoder;
-            let directed_encoder = &mut self.encoder;
-            directed_encoder.clear_depth(&shadow_map.directed_depth_stencil_view, 1.0);
-        }
-    }
+    // /// Queue the clearing of the shadow targets ready for a new frame to be
+    // /// rendered.
+    // pub fn clear_shadows(&mut self) {
+    //     span!(_guard, "clear_shadows", "Renderer::clear_shadows");
+    //     if !self.mode.shadow.is_map() {
+    //         return;
+    //     }
+    //     if let Some(shadow_map) = self.shadow_map.as_mut() {
+    //         // let point_encoder = &mut shadow_map.point_encoder;
+    //         let point_encoder = &mut self.encoder;
+    //         point_encoder.clear_depth(&shadow_map.point_depth_stencil_view, 1.0);
+    //         // let directed_encoder = &mut shadow_map.directed_encoder;
+    //         let directed_encoder = &mut self.encoder;
+    //         directed_encoder.clear_depth(&shadow_map.directed_depth_stencil_view,
+    // 1.0);     }
+    // }
 
     /// NOTE: Supported by Vulkan (by default), DirectX 10+ (it seems--it's hard
     /// to find proof of this, but Direct3D 10 apparently does it by
@@ -837,15 +779,6 @@ impl Renderer {
         //         gl.Enable(gfx_gl::TEXTURE_CUBE_MAP_SEAMLESS);
         //     });
         // }
-    }
-
-    /// Queue the clearing of the depth target ready for a new frame to be
-    /// rendered.
-    pub fn clear(&mut self) {
-        span!(_guard, "clear", "Renderer::clear");
-        self.encoder.clear_depth(&self.tgt_depth_stencil_view, 1.0);
-        // self.encoder.clear_stencil(&self.tgt_depth_stencil_view, 0);
-        self.encoder.clear_depth(&self.win_depth_view, 1.0);
     }
 
     // /// Set up shadow rendering.
@@ -879,8 +812,7 @@ impl Renderer {
     /// items.
     pub fn flush(&mut self) {
         span!(_guard, "flush", "Renderer::flush");
-        self.encoder.flush(&mut self.device);
-        self.device.cleanup();
+        self.device.poll(wgpu::Maintain::Poll);
 
         // If the shaders files were changed attempt to recreate the shaders
         if self.shaders.reloaded() {
@@ -891,9 +823,11 @@ impl Renderer {
     /// Recreate the pipelines
     fn recreate_pipelines(&mut self) {
         match create_pipelines(
-            &mut self.factory,
+            &self.device,
+            &self.layouts,
             &self.shaders.read(),
             &self.mode,
+            &self.sc_desc,
             self.shadow_map.is_some(),
         ) {
             Ok((
@@ -907,7 +841,7 @@ impl Renderer {
                 lod_terrain_pipeline,
                 clouds_pipeline,
                 postprocess_pipeline,
-                player_shadow_pipeline,
+                //player_shadow_pipeline,
                 point_shadow_pipeline,
                 terrain_directed_shadow_pipeline,
                 figure_directed_shadow_pipeline,
@@ -922,7 +856,7 @@ impl Renderer {
                 self.lod_terrain_pipeline = lod_terrain_pipeline;
                 self.clouds_pipeline = clouds_pipeline;
                 self.postprocess_pipeline = postprocess_pipeline;
-                self.player_shadow_pipeline = player_shadow_pipeline;
+                //self.player_shadow_pipeline = player_shadow_pipeline;
                 if let (
                     Some(point_pipeline),
                     Some(terrain_directed_pipeline),
@@ -948,14 +882,14 @@ impl Renderer {
         &mut self,
         vals: &[T],
     ) -> Result<Consts<T>, RenderError> {
-        let mut consts = Consts::new(&mut self.factory, vals.len());
-        consts.update(&mut self.encoder, vals, 0)?;
+        let mut consts = Consts::new(&self.device, vals.len() as u64);
+        consts.update(&self.device, &self.queue, vals, 0);
         Ok(consts)
     }
 
     /// Update a set of constants with the provided values.
     pub fn update_consts<T: Copy + bytemuck::Pod>(&mut self, consts: &mut Consts<T>, vals: &[T]) {
-        consts.update(&mut self.encoder, vals, 0)
+        consts.update(&self.device, &self.queue, vals, 0)
     }
 
     /// Create a new set of instances with the provided values.
@@ -963,39 +897,31 @@ impl Renderer {
         &mut self,
         vals: &[T],
     ) -> Result<Instances<T>, RenderError> {
-        let mut instances = Instances::new(&mut self.factory, vals.len())?;
-        instances.update(&mut self.encoder, vals)?;
+        let mut instances = Instances::new(&self.device, vals.len() as u64);
+        instances.update(&self.device, &self.queue, vals, 0);
         Ok(instances)
     }
 
     /// Create a new model from the provided mesh.
     pub fn create_model<V: Vertex>(&mut self, mesh: &Mesh<V>) -> Result<Model<V>, RenderError> {
-        Ok(Model::new(&mut self.factory, mesh))
+        Ok(Model::new(&self.device, mesh))
     }
 
     /// Create a new dynamic model with the specified size.
-    pub fn create_dynamic_model<V: Vertex>(
-        &mut self,
-        size: usize,
-    ) -> Result<Model<V>, RenderError> {
-        Model::new(&self.device, size)
+    pub fn create_dynamic_model<V: Vertex>(&mut self, size: u64) -> Model<V> {
+        Model::new_dynamic(&self.device, size)
     }
 
     /// Update a dynamic model with a mesh and a offset.
-    pub fn update_model<V: Vertex>(
-        &mut self,
-        model: &Model<V>,
-        mesh: &Mesh<V>,
-        offset: usize,
-    ) -> Result<(), RenderError> {
-        model.update(&mut self.encoder, mesh, offset)
+    pub fn update_model<V: Vertex>(&mut self, model: &Model<V>, mesh: &Mesh<V>, offset: u64) {
+        model.update(&self.device, &self.queue, mesh, offset)
     }
 
     /// Return the maximum supported texture size.
-    pub fn max_texture_size(&self) -> u16 { Self::max_texture_size_raw(&self.factory) }
+    pub fn max_texture_size(&self) -> u32 { Self::max_texture_size_raw(&self.device) }
 
     /// Return the maximum supported texture size from the factory.
-    fn max_texture_size_raw(device: &wgpu::Device) -> u16 {
+    fn max_texture_size_raw(_device: &wgpu::Device) -> u32 {
         // This value is temporary as there are plans to include a way to get this in
         // wgpu this is just a sane standard for now
         8192
@@ -1004,18 +930,19 @@ impl Renderer {
     /// Create a new immutable texture from the provided image.
     pub fn create_texture_with_data_raw(
         &mut self,
-        texture_info: wgpu::TextureDescriptor,
-        sampler_info: wgpu::SamplerDescriptor,
+        texture_info: &wgpu::TextureDescriptor,
+        view_info: &wgpu::TextureViewDescriptor,
+        sampler_info: &wgpu::SamplerDescriptor,
         bytes_per_row: u32,
         data: &[u8],
     ) -> Texture {
-        let tex = Texture::new_raw(&self.device, texture_info, sampler_info);
+        let tex = Texture::new_raw(&self.device, &texture_info, &view_info, &sampler_info);
 
         tex.update(
             &self.device,
             &self.queue,
             [0; 2],
-            [texture_info.size.x, texture_info.size.y],
+            [texture_info.size.width, texture_info.size.height],
             data,
             bytes_per_row,
         );
@@ -1026,10 +953,11 @@ impl Renderer {
     /// Create a new raw texture.
     pub fn create_texture_raw(
         &mut self,
-        texture_info: wgpu::TextureDescriptor,
-        sampler_info: wgpu::SamplerDescriptor,
+        texture_info: &wgpu::TextureDescriptor,
+        view_info: &wgpu::TextureViewDescriptor,
+        sampler_info: &wgpu::SamplerDescriptor,
     ) -> Texture {
-        Texture::new_raw(&self.device, texture_info, sampler_info)
+        Texture::new_raw(&self.device, texture_info, view_info, sampler_info)
     }
 
     /// Create a new texture from the provided image.
@@ -1040,7 +968,7 @@ impl Renderer {
         image: &image::DynamicImage,
         filter_method: Option<FilterMode>,
         address_mode: Option<AddressMode>,
-    ) -> Texture {
+    ) -> Result<Texture, RenderError> {
         Texture::new(
             &self.device,
             &self.queue,
@@ -1054,8 +982,8 @@ impl Renderer {
     /// specified dimensions.
     ///
     /// Currently only supports Rgba8Srgb
-    pub fn create_dynamic_texture(&mut self, dims: Vec2<u16>) -> Texture {
-        Texture::new_dynamic(&mut self.factory, dims.x, dims.y)
+    pub fn create_dynamic_texture(&mut self, dims: Vec2<u32>) -> Texture {
+        Texture::new_dynamic(&self.device, dims.x, dims.y)
     }
 
     /// Update a texture with the provided offset, size, and data.
@@ -1064,8 +992,8 @@ impl Renderer {
     pub fn update_texture(
         &mut self,
         texture: &Texture, /* <T> */
-        offset: [u16; 2],
-        size: [u16; 2],
+        offset: [u32; 2],
+        size: [u32; 2],
         // TODO
         //        data: &[<<T as gfx::format::Formatted>::Surface as
         // gfx::format::SurfaceTyped>::DataType],    ) -> Result<(), RenderError>
@@ -1078,7 +1006,14 @@ impl Renderer {
         data: &[[u8; 4]],
         bytes_per_row: u32,
     ) {
-        texture.update(&mut self.encoder, offset, size, data, bytes_per_row)
+        texture.update(
+            &self.device,
+            &self.queue,
+            offset,
+            size,
+            bytemuck::cast_slice(data),
+            bytes_per_row,
+        )
     }
 
     /// Creates a download buffer, downloads the win_color_view, and converts to
@@ -1945,18 +1880,18 @@ fn create_pipelines(
     options.set_optimization_level(OptimizationLevel::Performance);
     options.set_include_callback(move |name, _, shader_name, _| {
         Ok(ResolvedInclude {
-            resolved_name: name,
+            resolved_name: name.to_string(),
             content: match name {
                 "constants.glsl" => constants,
-                "globals.glsl" => globals,
-                "shadows.glsl" => shadows,
-                "sky.glsl" => sky,
-                "light.glsl" => light,
-                "srgb.glsl" => srgb,
-                "random.glsl" => &random,
-                "lod.glsl" => &lod,
-                "anti-aliasing.glsl" => &anti_alias,
-                "cloud.glsl" => &cloud,
+                "globals.glsl" => *globals,
+                "shadows.glsl" => *shadows,
+                "sky.glsl" => *sky,
+                "light.glsl" => *light,
+                "srgb.glsl" => *srgb,
+                "random.glsl" => *random,
+                "lod.glsl" => *lod,
+                "anti-aliasing.glsl" => *anti_alias,
+                "cloud.glsl" => *cloud,
                 other => return Err(format!("Include {} is not defined", other)),
             },
         })
@@ -1975,7 +1910,7 @@ fn create_pipelines(
     let figure_vert_mod = create_shader_module(
         device,
         &mut compiler,
-        figure_vert,
+        &figure_vert,
         ShaderKind::Vertex,
         "figure-vert.glsl",
         &options,
@@ -1984,7 +1919,7 @@ fn create_pipelines(
     let terrain_point_shadow_vert_mod = create_shader_module(
         device,
         &mut compiler,
-        terrain_point_shadow_vert,
+        &terrain_point_shadow_vert,
         ShaderKind::Vertex,
         "light-shadows-vert.glsl",
         &options,
@@ -1993,7 +1928,7 @@ fn create_pipelines(
     let terrain_directed_shadow_vert_mod = create_shader_module(
         device,
         &mut compiler,
-        terrain_directed_shadow_vert,
+        &terrain_directed_shadow_vert,
         ShaderKind::Vertex,
         "light-shadows-directed-vert.glsl",
         &options,
@@ -2002,7 +1937,7 @@ fn create_pipelines(
     let figure_directed_shadow_vert_mod = create_shader_module(
         device,
         &mut compiler,
-        figure_directed_shadow_vert,
+        &figure_directed_shadow_vert,
         ShaderKind::Vertex,
         "light-shadows-figure-vert.glsl",
         &options,
@@ -2022,24 +1957,24 @@ fn create_pipelines(
     // Construct a pipeline for rendering skyboxes
     let skybox_pipeline = skybox::SkyboxPipeline::new(
         device,
-        create_shader_module(
+        &create_shader_module(
             device,
             &mut compiler,
             shaders.skybox_vert.read().0,
             ShaderKind::Vertex,
             "skybox-vert.glsl",
             &options,
-        ),
-        create_shader_module(
+        )?,
+        &create_shader_module(
             device,
             &mut compiler,
             shaders.skybox_frag.read().0,
             ShaderKind::Fragment,
             "skybox-frag.glsl",
             &options,
-        ),
+        )?,
         sc_desc,
-        layouts,
+        &layouts.global,
         mode.aa,
     );
 
@@ -2047,55 +1982,57 @@ fn create_pipelines(
     let figure_pipeline = figure::FigurePipeline::new(
         device,
         &figure_vert_mod,
-        create_shader_module(
+        &create_shader_module(
             device,
             &mut compiler,
             shaders.figure_frag.read().0,
             ShaderKind::Fragment,
             "figure-frag.glsl",
             &options,
-        ),
+        )?,
         sc_desc,
-        layouts,
+        &layouts.global,
+        &layouts.figure,
         mode.aa,
     );
 
     // Construct a pipeline for rendering terrain
     let terrain_pipeline = terrain::TerrainPipeline::new(
         device,
-        create_shader_module(
+        &create_shader_module(
             device,
             &mut compiler,
             shaders.terrain_vert.read().0,
             ShaderKind::Vertex,
             "terrain-vert.glsl",
             &options,
-        ),
-        create_shader_module(
+        )?,
+        &create_shader_module(
             device,
             &mut compiler,
             shaders.terrain_frag.read().0,
             ShaderKind::Fragment,
             "terrain-frag.glsl",
             &options,
-        ),
+        )?,
         sc_desc,
-        layouts,
+        &layouts.global,
+        &layouts.terrain,
         mode.aa,
     );
 
     // Construct a pipeline for rendering fluids
     let fluid_pipeline = fluid::FluidPipeline::new(
         device,
-        create_shader_module(
+        &create_shader_module(
             device,
             &mut compiler,
             shaders.fluid_vert.read().0,
             ShaderKind::Vertex,
             "terrain-vert.glsl",
             &options,
-        ),
-        create_shader_module(
+        )?,
+        &create_shader_module(
             device,
             &mut compiler,
             match mode.fluid {
@@ -2105,105 +2042,109 @@ fn create_pipelines(
             ShaderKind::Fragment,
             "fluid-frag.glsl",
             &options,
-        ),
+        )?,
         sc_desc,
-        layouts,
+        &layouts.global,
+        &layouts.fluid,
         mode.aa,
     );
 
     // Construct a pipeline for rendering sprites
     let sprite_pipeline = sprite::SpritePipeline::new(
         device,
-        create_shader_module(
+        &create_shader_module(
             device,
             &mut compiler,
             shaders.sprite_vert.read().0,
             ShaderKind::Vertex,
             "sprite-vert.glsl",
             &options,
-        ),
-        create_shader_module(
+        )?,
+        &create_shader_module(
             device,
             &mut compiler,
             shaders.sprite_frag.read().0,
             ShaderKind::Fragment,
             "sprite-frag.glsl",
             &options,
-        ),
+        )?,
         sc_desc,
-        layouts,
+        &layouts.global,
+        &layouts.sprite,
+        &layouts.terrain,
         mode.aa,
     );
 
     // Construct a pipeline for rendering particles
     let particle_pipeline = particle::ParticlePipeline::new(
         device,
-        create_shader_module(
+        &create_shader_module(
             device,
             &mut compiler,
             shaders.particle_vert.read().0,
             ShaderKind::Vertex,
             "particle-vert.glsl",
             &options,
-        ),
-        create_shader_module(
+        )?,
+        &create_shader_module(
             device,
             &mut compiler,
             shaders.particle_frag.read().0,
             ShaderKind::Fragment,
             "particle-frag.glsl",
             &options,
-        ),
+        )?,
         sc_desc,
-        layouts,
+        &layouts.global,
         mode.aa,
     );
 
     // Construct a pipeline for rendering UI elements
     let ui_pipeline = ui::UIPipeline::new(
         device,
-        create_shader_module(
+        &create_shader_module(
             device,
             &mut compiler,
             shaders.ui_vert.read().0,
             ShaderKind::Vertex,
             "ui-vert.glsl",
             &options,
-        ),
-        create_shader_module(
+        )?,
+        &create_shader_module(
             device,
             &mut compiler,
             shaders.ui_frag.read().0,
             ShaderKind::Fragment,
             "ui-frag.glsl",
             &options,
-        ),
+        )?,
         sc_desc,
-        layouts,
+        &layouts.global,
+        &layouts.ui,
         mode.aa,
     );
 
     // Construct a pipeline for rendering terrain
     let lod_terrain_pipeline = lod_terrain::LodTerrainPipeline::new(
         device,
-        create_shader_module(
+        &create_shader_module(
             device,
             &mut compiler,
             shaders.lod_terrain_vert.read().0,
             ShaderKind::Vertex,
             "lod-terrain-vert.glsl",
             &options,
-        ),
-        create_shader_module(
+        )?,
+        &create_shader_module(
             device,
             &mut compiler,
             shaders.lod_terrain_frag.read().0,
             ShaderKind::Fragment,
             "lod-terrain-frag.glsl",
             &options,
-        ),
+        )?,
         sc_desc,
-        layouts,
+        &layouts.global,
         mode.aa,
     );
 
@@ -2221,24 +2162,25 @@ fn create_pipelines(
     // Construct a pipeline for rendering our post-processing
     let postprocess_pipeline = postprocess::PostProcessPipeline::new(
         device,
-        create_shader_module(
+        &create_shader_module(
             device,
             &mut compiler,
             shaders.postprocess_vert.read().0,
             ShaderKind::Vertex,
             "postprocess-vert.glsl",
             &options,
-        ),
-        create_shader_module(
+        )?,
+        &create_shader_module(
             device,
             &mut compiler,
             shaders.postprocess_frag.read().0,
             ShaderKind::Fragment,
             "postprocess-frag.glsl",
             &options,
-        ),
+        )?,
         sc_desc,
-        layouts,
+        &layouts.global,
+        &layouts.postprocess,
         mode.aa,
     );
 
@@ -2368,5 +2310,9 @@ pub fn create_shader_module(
 
     let spv = compiler.compile_into_spirv(source, kind, file_name, "main", Some(options))?;
 
-    Ok(device.create_shader_module(wgpu::ShaderModule::SpirV(Cow::Bowrrowed(spv.as_binary()))))
+    Ok(
+        device.create_shader_module(wgpu::ShaderModuleSource::SpirV(Cow::Borrowed(
+            spv.as_binary(),
+        ))),
+    )
 }

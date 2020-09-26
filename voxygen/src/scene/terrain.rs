@@ -2,7 +2,11 @@ mod watcher;
 pub use self::watcher::{BlocksOfInterest, Interaction};
 
 use crate::{
-    mesh::{greedy::GreedyMesh, terrain::SUNLIGHT, Meshable},
+    mesh::{
+        greedy::GreedyMesh,
+        segment::generate_mesh_base_vol_sprite,
+        terrain::{generate_mesh, SUNLIGHT},
+    },
     render::{
         pipelines, ColLightInfo, Consts, FluidVertex, GlobalModel, Instances, Mesh, Model,
         RenderError, Renderer, SpriteInstance, SpriteLocals, SpriteVertex, TerrainLocals,
@@ -30,7 +34,6 @@ use std::sync::{
     atomic::{AtomicU64, Ordering},
     Arc,
 };
-use tracing::warn;
 use treeculler::{BVol, Frustum, AABB};
 use vek::*;
 
@@ -174,17 +177,21 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug + '
 ) -> MeshWorkerResponse {
     span!(_guard, "mesh_worker");
     let blocks_of_interest = BlocksOfInterest::from_chunk(&chunk);
+
     let mesh;
     let (light_map, glow_map) = if let Some((light_map, glow_map)) = &skip_remesh {
         mesh = None;
         (&**light_map, &**glow_map)
     } else {
         let (opaque_mesh, fluid_mesh, _shadow_mesh, (bounds, col_lights_info, light_map, glow_map)) =
-            volume.generate_mesh((
-                range,
-                Vec2::new(max_texture_size, max_texture_size),
-                &blocks_of_interest,
-            ));
+            generate_mesh(
+                &volume,
+                (
+                    range,
+                    Vec2::new(max_texture_size, max_texture_size),
+                    &blocks_of_interest,
+                ),
+            );
         mesh = Some(MeshWorkerResponseMesh {
             // TODO: Take sprite bounds into account somehow?
             z_bounds: (bounds.min.z, bounds.max.z),
@@ -198,6 +205,7 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug + '
         let mesh = mesh.as_ref().unwrap();
         (&*mesh.light_map, &*mesh.glow_map)
     };
+
     MeshWorkerResponse {
         pos,
         // Extract sprite locations from volume
@@ -363,8 +371,7 @@ impl SpriteRenderContext {
             let sprite_config =
                 Arc::<SpriteSpec>::load_expect("voxygen.voxel.sprite_manifest").cloned();
 
-            let max_size =
-                guillotiere::Size::new(i32::from(max_texture_size), i32::from(max_texture_size));
+            let max_size = guillotiere::Size::new(max_texture_size as i32, max_texture_size as i32);
             let mut greedy = GreedyMesh::new(max_size);
             let mut locals_buffer = [SpriteLocals::default(); 8];
             let sprite_config_ = &sprite_config;
@@ -400,14 +407,15 @@ impl SpriteRenderContext {
                                 )
                                 .unwrap_or(zero);
                             let max_model_size = Vec3::new(31.0, 31.0, 63.0);
-                            let model_scale = max_model_size.map2(model_size, |max_sz: f32, cur_sz| {
-                                let scale = max_sz / max_sz.max(cur_sz as f32);
-                                if scale < 1.0 && (cur_sz as f32 * scale).ceil() > max_sz {
-                                    scale - 0.001
-                                } else {
-                                    scale
-                                }
-                            });
+                            let model_scale =
+                                max_model_size.map2(model_size, |max_sz: f32, cur_sz| {
+                                    let scale = max_sz / max_sz.max(cur_sz as f32);
+                                    if scale < 1.0 && (cur_sz as f32 * scale).ceil() > max_sz {
+                                        scale - 0.001
+                                    } else {
+                                        scale
+                                    }
+                                });
                             let sprite_mat: Mat4<f32> =
                                 Mat4::translation_3d(offset).scaled_3d(SPRITE_SCALE);
                             move |greedy: &mut GreedyMesh| {
@@ -421,14 +429,15 @@ impl SpriteRenderContext {
                                                     Vec3::broadcast(1.0)
                                                 } else {
                                                     lod_axes * lod_scale_orig
-                                                        + lod_axes
-                                                            .map(|e| if e == 0.0 { 1.0 } else { 0.0 })
+                                                        + lod_axes.map(|e| {
+                                                            if e == 0.0 { 1.0 } else { 0.0 }
+                                                        })
                                                 };
-                                            // Mesh generation exclusively acts using side effects; it
-                                            // has no
+                                            // Mesh generation exclusively acts using side effects;
+                                            // it has no
                                             // interesting return value, but updates the mesh.
                                             let mut opaque_mesh = Mesh::new();
-                                            Meshable::<SpriteVertex, &mut GreedyMesh>::generate_mesh(
+                                            generate_mesh_base_vol_sprite(
                                                 Segment::from(&model.read().0).scaled_by(lod_scale),
                                                 (greedy, &mut opaque_mesh, false),
                                             );
@@ -438,8 +447,9 @@ impl SpriteRenderContext {
                                                 sprite_mat * Mat4::scaling_3d(sprite_scale);
                                             locals_buffer.iter_mut().enumerate().for_each(
                                                 |(ori, locals)| {
-                                                    let sprite_mat = sprite_mat
-                                                        .rotated_z(f32::consts::PI * 0.25 * ori as f32);
+                                                    let sprite_mat = sprite_mat.rotated_z(
+                                                        f32::consts::PI * 0.25 * ori as f32,
+                                                    );
                                                     *locals = SpriteLocals::new(
                                                         sprite_mat,
                                                         sprite_scale,
@@ -522,8 +532,7 @@ impl SpriteRenderContext {
                 })
                 .collect();
             let sprite_col_lights =
-                pipelines::shadow::create_col_lights(renderer, &sprite_col_lights)
-                    .expect("Failed to upload sprite color and light data to the GPU!");
+                pipelines::shadow::create_col_lights(renderer, &sprite_col_lights);
 
             Self {
                 sprite_config: Arc::clone(&sprite_config),
@@ -573,8 +582,7 @@ impl<V: RectRasterableVol> Terrain<V> {
     ) -> Result<(AtlasAllocator, Texture /* <ColLightFmt> */), RenderError> {
         span!(_guard, "make_atlas", "Terrain::make_atlas");
         let max_texture_size = renderer.max_texture_size();
-        let atlas_size =
-            guillotiere::Size::new(i32::from(max_texture_size), i32::from(max_texture_size));
+        let atlas_size = guillotiere::Size::new(max_texture_size as i32, max_texture_size as i32);
         let atlas = AtlasAllocator::with_options(atlas_size, &guillotiere::AllocatorOptions {
             // TODO: Verify some good empirical constants.
             small_size_threshold: 128,
@@ -582,7 +590,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             ..guillotiere::AllocatorOptions::default()
         });
         let texture = renderer.create_texture_raw(
-            wgpu::TextureDescriptor {
+            &wgpu::TextureDescriptor {
                 label: Some("Atlas texture"),
                 size: wgpu::Extent3d {
                     width: max_texture_size,
@@ -595,7 +603,17 @@ impl<V: RectRasterableVol> Terrain<V> {
                 format: wgpu::TextureFormat::Rgba8UnormSrgb,
                 usage: wgpu::TextureUsage::COPY_DST | wgpu::TextureUsage::SAMPLED,
             },
-            wgpu::SamplerDescriptor {
+            &wgpu::TextureViewDescriptor {
+                label: Some("Atlas texture view"),
+                format: Some(wgpu::TextureFormat::Rgba8UnormSrgb),
+                dimension: Some(wgpu::TextureViewDimension::D1),
+                aspect: wgpu::TextureAspect::All,
+                base_mip_level: 0,
+                level_count: None,
+                base_array_layer: 0,
+                array_layer_count: None,
+            },
+            &wgpu::SamplerDescriptor {
                 label: Some("Atlas sampler"),
                 address_mode_u: wgpu::AddressMode::ClampToEdge,
                 address_mode_v: wgpu::AddressMode::ClampToEdge,
@@ -605,7 +623,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                 mipmap_filter: wgpu::FilterMode::Nearest,
                 ..Default::default()
             },
-        )?;
+        );
         Ok((atlas, texture))
     }
 
@@ -955,7 +973,6 @@ impl<V: RectRasterableVol> Terrain<V> {
                 break;
             }
 
-            // Find the area of the terrain we want. Because meshing needs to compute things
             // like ambient occlusion and edge elision, we also need the borders
             // of the chunk's neighbours too (hence the `- 1` and `+ 1`).
             let aabr = Aabr {
@@ -1022,7 +1039,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                         skip_remesh,
                         started_tick,
                         volume,
-                        max_texture_size,
+                        max_texture_size as u16,
                         chunk,
                         aabb,
                         &sprite_data,
@@ -1080,8 +1097,9 @@ impl<V: RectRasterableVol> Terrain<V> {
                         let col_lights = &mut self.col_lights;
                         let allocation = atlas
                             .allocate(guillotiere::Size::new(
-                                i32::from(tex_size.x),
-                                i32::from(tex_size.y),
+                                tex_size.x as i32, /* TODO: adjust ColLightInfo to avoid the
+                                                    * cast here? */
+                                tex_size.y as i32,
                             ))
                             .unwrap_or_else(|| {
                                 // Atlas allocation failure: try allocating a new texture and atlas.
@@ -1104,25 +1122,25 @@ impl<V: RectRasterableVol> Terrain<V> {
 
                                 atlas
                                     .allocate(guillotiere::Size::new(
-                                        i32::from(tex_size.x),
-                                        i32::from(tex_size.y),
+                                        tex_size.x as i32, /* TODO: adjust ColLightInfo to avoid
+                                                            * the
+                                                            * cast here? */
+                                        tex_size.y as i32,
                                     ))
                                     .expect("Chunk data does not fit in a texture of maximum size.")
                             });
 
                         // NOTE: Cast is safe since the origin was a u16.
                         let atlas_offs = Vec2::new(
-                            allocation.rectangle.min.x as u16,
-                            allocation.rectangle.min.y as u16,
+                            allocation.rectangle.min.x as u32,
+                            allocation.rectangle.min.y as u32,
                         );
-                        if let Err(err) = renderer.update_texture(
+                        renderer.update_texture(
                             col_lights,
                             atlas_offs.into_array(),
                             tex_size.into_array(),
                             &tex,
-                        ) {
-                            warn!("Failed to update texture: {:?}", err);
-                        }
+                        );
 
                         self.insert_chunk(response.pos, TerrainChunkData {
                             load_time,
@@ -1152,8 +1170,8 @@ impl<V: RectRasterableVol> Terrain<V> {
                                     )
                                     .into_array(),
                                     atlas_offs: Vec4::new(
-                                        i32::from(atlas_offs.x),
-                                        i32::from(atlas_offs.y),
+                                        atlas_offs.x as i32,
+                                        atlas_offs.y as i32,
                                         0,
                                         0,
                                     )

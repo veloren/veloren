@@ -2,11 +2,11 @@ use super::super::{
     AaMode, ColLightInfo, FigureLayout, GlobalsLayouts, Renderer, TerrainLayout, TerrainVertex,
     Texture,
 };
-use bytemuck::Pod;
+use bytemuck::{Pod, Zeroable};
 use vek::*;
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug, Pod)]
+#[derive(Copy, Clone, Debug, Zeroable, Pod)]
 pub struct Locals {
     shadow_matrices: [[f32; 4]; 4],
     texture_mats: [[f32; 4]; 4],
@@ -80,12 +80,23 @@ pub fn create_col_lights(
         ..Default::default()
     };
 
+    let view_info = wgpu::TextureViewDescriptor {
+        label: None,
+        format: Some(wgpu::TextureFormat::Rgba8UnormSrgb),
+        dimension: Some(wgpu::TextureViewDimension::D2),
+        aspect: wgpu::TextureAspect::All,
+        base_mip_level: 0,
+        level_count: None,
+        base_array_layer: 0,
+        array_layer_count: None,
+    };
+
     renderer.create_texture_with_data_raw(
         &texture_info,
+        &view_info,
         &sampler_info,
         col_lights_size.x * 4,
-        [col_lights_size.x, col_lights_size.y],
-        col_lights.as_bytes(),
+        bytemuck::cast_slice(&col_lights),
     )
 }
 

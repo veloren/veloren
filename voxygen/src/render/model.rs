@@ -1,4 +1,4 @@
-use super::{buffer::Buffer, mesh::Mesh, RenderError, Vertex};
+use super::{buffer::Buffer, mesh::Mesh, Vertex};
 use std::ops::Range;
 
 /// Represents a mesh that has been sent to the GPU.
@@ -24,7 +24,7 @@ impl<V: Vertex> Model<V> {
         }
     }
 
-    pub fn new_dynamic(device: &wgpu::Device, size: usize) -> Self {
+    pub fn new_dynamic(device: &wgpu::Device, size: u64) -> Self {
         Self {
             vbuf: Buffer::new(device, size, wgpu::BufferUsage::VERTEX),
         }
@@ -45,10 +45,10 @@ impl<V: Vertex> Model<V> {
         device: &wgpu::Device,
         queue: &wgpu::Queue,
         mesh: &Mesh<V>,
-        offset: usize,
-    ) -> Result<(), RenderError> {
-        self.buf.update(device, queue, mesh.vertices(), offset)
+        offset: u64,
+    ) {
+        self.vbuf.update(device, queue, mesh.vertices(), offset)
     }
 
-    pub fn buf(&self) -> &wgpu::Buffer { self.vbuf.buf }
+    pub fn buf(&self) -> &wgpu::Buffer { &self.vbuf.buf }
 }

@@ -4,7 +4,8 @@ use wgpu::Extent3d;
 
 /// Represents an image that has been uploaded to the GPU.
 pub struct Texture {
-    pub tex: wgpu::TextureView,
+    pub tex: wgpu::Texture,
+    pub view: wgpu::TextureView,
     pub sampler: wgpu::Sampler,
     size: Extent3d,
 }
@@ -49,7 +50,7 @@ impl Texture {
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
             },
-            &[buffer.as_slice()],
+            buffer.as_slice(),
             wgpu::TextureDataLayout {
                 offset: 0,
                 bytes_per_row: image.width() * 4,
@@ -73,21 +74,33 @@ impl Texture {
             ..Default::default()
         };
 
+        let view = tex.create_view(&wgpu::TextureViewDescriptor {
+            label: None,
+            format: Some(wgpu::TextureFormat::Rgba8UnormSrgb),
+            dimension: Some(wgpu::TextureViewDimension::D2),
+            aspect: wgpu::TextureAspect::All,
+            base_mip_level: 0,
+            level_count: None,
+            base_array_layer: 0,
+            array_layer_count: None,
+        });
+
         Ok(Self {
             tex,
+            view,
             sampler: device.create_sampler(&sampler_info),
             size,
         })
     }
 
-    pub fn new_dynamic(device: &wgpu::Device, width: u16, height: u16) -> Self {
+    pub fn new_dynamic(device: &wgpu::Device, width: u32, height: u32) -> Self {
         let size = wgpu::Extent3d {
             width,
             height,
             depth: 1,
         };
 
-        let tex_info = device.create_texture(&wgpu::TextureDescriptor {
+        let tex_info = wgpu::TextureDescriptor {
             label: None,
             size,
             mip_level_count: 1,
@@ -95,7 +108,7 @@ impl Texture {
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Rgba8UnormSrgb,
             usage: wgpu::TextureUsage::COPY_DST | wgpu::TextureUsage::SAMPLED,
-        });
+        };
 
         let sampler_info = wgpu::SamplerDescriptor {
             label: None,
@@ -108,19 +121,35 @@ impl Texture {
             ..Default::default()
         };
 
-        Self::new_raw(device, tex_info, sampler_info)
+        let view_info = wgpu::TextureViewDescriptor {
+            label: None,
+            format: Some(wgpu::TextureFormat::Rgba8UnormSrgb),
+            dimension: Some(wgpu::TextureViewDimension::D2),
+            aspect: wgpu::TextureAspect::All,
+            base_mip_level: 0,
+            level_count: None,
+            base_array_layer: 0,
+            array_layer_count: None,
+        };
+
+        Self::new_raw(device, &tex_info, &view_info, &sampler_info)
     }
 
     pub fn new_raw(
         device: &wgpu::Device,
-        texture_info: wgpu::TextureDescriptor,
-        sampler_info: wgpu::SamplerDescriptor,
+        texture_info: &wgpu::TextureDescriptor,
+        view_info: &wgpu::TextureViewDescriptor,
+        sampler_info: &wgpu::SamplerDescriptor,
     ) -> Self {
-        Ok(Self {
-            tex: device.create_texture(&texture_info),
-            sampler: device.create_sampler(&sampler_info),
+        let tex = device.create_texture(texture_info);
+        let view = tex.create_view(view_info);
+
+        Self {
+            tex,
+            view,
+            sampler: device.create_sampler(sampler_info),
             size: texture_info.size,
-        })
+        }
     }
 
     /// Update a texture with the given data (used for updating the glyph cache
@@ -129,11 +158,11 @@ impl Texture {
         &self,
         device: &wgpu::Device,
         queue: &wgpu::Queue,
-        offset: [u16; 2],
-        size: [u16; 2],
+        offset: [u32; 2],
+        size: [u32; 2],
         data: &[u8],
         bytes_per_row: u32,
-    ) -> Result<(), RenderError> {
+    ) {
         // TODO: Only works for 2D images
         queue.write_texture(
             wgpu::TextureCopyViewBase {
@@ -146,12 +175,10 @@ impl Texture {
                 },
             },
             data,
-            // TODO: I heard some rumors that there are other
-            // formats that are not Rgba8
             wgpu::TextureDataLayout {
                 offset: 0,
                 bytes_per_row,
-                rows_per_image: self.size.y,
+                rows_per_image: self.size.height,
             },
             wgpu::Extent3d {
                 width: size[0],

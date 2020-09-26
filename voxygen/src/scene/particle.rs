@@ -1,6 +1,6 @@
 use super::{terrain::BlocksOfInterest, SceneData, Terrain};
 use crate::{
-    mesh::{greedy::GreedyMesh, Meshable},
+    mesh::{greedy::GreedyMesh, segment::generate_mesh_base_vol_particle},
     render::{
         pipelines::particle::ParticleMode, GlobalModel, Instances, Light, LodData, Model,
         ParticleInstance, ParticleVertex, Renderer,
@@ -1220,14 +1220,12 @@ fn default_cache(renderer: &mut Renderer) -> HashMap<&'static str, Model<Particl
         // NOTE: If we add texturing we may eventually try to share it among all
         // particles in a single atlas.
         let max_texture_size = renderer.max_texture_size();
-        let max_size =
-            guillotiere::Size::new(i32::from(max_texture_size), i32::from(max_texture_size));
+        let max_size = guillotiere::Size::new(max_texture_size as i32, max_texture_size as i32);
         let mut greedy = GreedyMesh::new(max_size);
 
         let segment = Segment::from(&vox.read().0);
         let segment_size = segment.size();
-        let mut mesh =
-            Meshable::<ParticleVertex, &mut GreedyMesh>::generate_mesh(segment, &mut greedy).0;
+        let mesh = generate_mesh_base_vol_particle(segment, &mut greedy).0;
         // Center particle vertices around origin
         for vert in mesh.vertices_mut() {
             vert.pos[0] -= segment_size.x as f32 / 2.0;

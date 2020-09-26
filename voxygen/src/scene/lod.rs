@@ -26,7 +26,7 @@ impl Lod {
             model: None,
             data: LodData::new(
                 renderer,
-                client.world_data().chunk_size(),
+                client.world_data().chunk_size().as_(),
                 client.world_data().lod_base.raw(),
                 client.world_data().lod_alt.raw(),
                 client.world_data().lod_horizon.raw(),

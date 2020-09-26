@@ -12,7 +12,7 @@ pub mod ui;
 
 use super::Consts;
 use crate::scene::camera::CameraMode;
-use bytemuck::Pod;
+use bytemuck::{Pod, Zeroable};
 use common::terrain::BlockKind;
 use vek::*;
 
@@ -21,7 +21,7 @@ pub const MAX_FIGURE_SHADOW_COUNT: usize = 24;
 pub const MAX_DIRECTED_LIGHT_COUNT: usize = 6;
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug, Pod)]
+#[derive(Copy, Clone, Debug, Zeroable, Pod)]
 pub struct Globals {
     view_mat: [[f32; 4]; 4],
     proj_mat: [[f32; 4]; 4],
@@ -55,14 +55,14 @@ pub struct Globals {
 }
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug, Pod)]
+#[derive(Copy, Clone, Debug, Zeroable, Pod)]
 pub struct Light {
-    pos: [f32; 4],
-    col: [f32; 4],
+    pub pos: [f32; 4],
+    pub col: [f32; 4],
 }
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug, Pod)]
+#[derive(Copy, Clone, Debug, Zeroable, Pod)]
 pub struct Shadow {
     pos_radius: [f32; 4],
 }
