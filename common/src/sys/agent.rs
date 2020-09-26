@@ -316,10 +316,9 @@ impl<'a> System<'a> for Sys {
                             Some(ToolKind::Bow(_)) => Tactic::RangedPowerup,
                             Some(ToolKind::Staff(_)) => Tactic::Staff,
                             Some(ToolKind::NpcWeapon(kind)) => {
-                                if kind == "StoneGolemsFist" {
-                                    Tactic::StoneGolemBoss
-                                } else {
-                                    Tactic::Melee
+                                match kind.as_str() {
+                                    "StoneGolemsFist" => Tactic::StoneGolemBoss,
+                                    _ => Tactic::Melee,
                                 }
                             },
                             _ => Tactic::Melee,

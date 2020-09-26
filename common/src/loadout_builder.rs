@@ -1,5 +1,6 @@
 use crate::comp::{
     golem,
+    biped_large,
     item::{Item, ItemKind},
     Alignment, Body, CharacterAbility, ItemConfig, Loadout,
 };
@@ -72,7 +73,6 @@ impl LoadoutBuilder {
         mut main_tool: Option<Item>,
         is_giant: bool,
     ) -> Self {
-        #![allow(clippy::single_match)] // For when this is done to more than just golems.
         match body {
             Body::Golem(golem) => match golem.species {
                 golem::Species::StoneGolem => {
@@ -80,6 +80,54 @@ impl LoadoutBuilder {
                         "common.items.npc_weapons.npcweapon.stone_golems_fist",
                     ));
                 },
+            },
+            Body::BipedLarge(biped_large) => match (biped_large.species, biped_large.body_type) {
+                (biped_large::Species::Occultlizardman, _) => {
+                    main_tool = Some(Item::new_from_asset_expect(
+                        "common.items.npc_weapons.staff.lizardman_staff",
+                    ));
+                },
+                (biped_large::Species::Mightylizardman, _) => {
+                    main_tool = Some(Item::new_from_asset_expect(
+                        "common.items.npc_weapons.sword.lizardman_sword",
+                    ));
+                },
+                (biped_large::Species::Slylizardman, _) => {
+                    main_tool = Some(Item::new_from_asset_expect(
+                        "common.items.npc_weapons.bow.lizardman_bow",
+                    ));
+                },
+                (biped_large::Species::Ogre, biped_large::BodyType::Male) => {
+                    main_tool = Some(Item::new_from_asset_expect(
+                        "common.items.npc_weapons.hammer.ogre_hammer",
+                    ));
+                },
+                (biped_large::Species::Ogre, biped_large::BodyType::Female) => {
+                    main_tool = Some(Item::new_from_asset_expect(
+                        "common.items.npc_weapons.staff.ogre_staff",
+                    ));
+                },
+                (biped_large::Species::Troll, _) => {
+                    main_tool = Some(Item::new_from_asset_expect(
+                        "common.items.npc_weapons.hammer.troll_hammer",
+                    ));
+                },
+                (biped_large::Species::Wendigo, _) => {
+                    main_tool = Some(Item::new_from_asset_expect(
+                        "common.items.npc_weapons.hammer.wendigo_hammer",
+                    ));
+                },
+                (biped_large::Species::Cyclops, _) => {
+                    main_tool = Some(Item::new_from_asset_expect(
+                        "common.items.npc_weapons.hammer.cyclops_hammer",
+                    ));
+                },
+                (biped_large::Species::Dullahan, _) => {
+                    main_tool = Some(Item::new_from_asset_expect(
+                        "common.items.npc_weapons.sword.dullahan_sword",
+                    ));
+                },
+                _ => {},
             },
             Body::Humanoid(_) => {
                 if is_giant {
@@ -258,6 +306,23 @@ impl LoadoutBuilder {
                     head: None,
                     tabard: None,
                 },
+            },
+            Body::BipedLarge(_) => Loadout {
+                active_item,
+                second_item: None,
+                shoulder: None,
+                chest: None,
+                belt: None,
+                hand: None,
+                pants: None,
+                foot: None,
+                back: None,
+                ring: None,
+                neck: None,
+                lantern: None,
+                glider: None,
+                head: None,
+                tabard: None,
             },
             _ => LoadoutBuilder::animal(body).build(),
         };

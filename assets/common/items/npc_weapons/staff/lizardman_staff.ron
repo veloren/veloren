@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Lizardman Staff",
+    description: "Placeholder",
+    kind: Tool(
+        (
+            kind: Staff("LizardmanStaff"),
+            stats: (
+                equip_time_millis: 500,
+                power: 1.00,
+            ),
+        )
+    ),
+)

@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Troll Hammer",
+    description: "Placeholder",
+    kind: Tool(
+        (
+            kind: Hammer("TrollHammer"),    
+            stats: (
+                equip_time_millis: 500,
+                power: 1.00,
+            ),
+        )
+    ),
+)

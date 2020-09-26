@@ -2250,7 +2250,7 @@ impl FigureMgr {
                         CharacterState::Wielding { .. } => {
                             anim::biped_large::WieldAnimation::update_skeleton(
                                 &target_base,
-                                (vel.0.magnitude(), time),
+                                (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,

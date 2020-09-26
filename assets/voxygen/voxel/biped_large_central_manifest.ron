@@ -26,7 +26,7 @@
         ),
         main: (
             offset: (-5.0, -5.5, -5.0),
-            central: ("npc.ogre.male.hammer"),
+            central: ("weapon.hammer.2hhammer_ogre"),
         )
     ),
     (Ogre, Female): (
@@ -56,7 +56,7 @@
         ),
         main: (
             offset: (-2.5, -5.5, -5.0),
-            central: ("npc.ogre.female.main"),
+            central: ("weapon.hammer.2hhammer_ogre"),
         )
     ),
     (Cyclops, Male): (
@@ -86,7 +86,7 @@
         ),
         main: (
             offset: (-5.0, -6.5, -4.0),
-            central: ("npc.cyclops.male.hammer"),
+            central: ("weapon.hammer.2hhammer_cyclops-0"),
         )
     ),
     (Cyclops, Female): (
@@ -116,7 +116,7 @@
         ),
         main: (
             offset: (-5.0, -6.5, -4.0),
-            central: ("npc.cyclops.female.hammer"),
+            central: ("weapon.hammer.2hhammer_cyclops-0"),
         )
     ),
     (Wendigo, Male): (
@@ -146,7 +146,7 @@
         ),
         main: (
             offset: (-5.0, -6.5, -4.0),
-            central: ("npc.wendigo.male.hammer"),
+            central: ("weapon.hammer.2hhammer_wendigo"),
         )
     ),
     (Wendigo, Female): (
@@ -176,7 +176,7 @@
         ),
         main: (
             offset: (-5.0, -6.5, -4.0),
-            central: ("npc.wendigo.male.hammer"),
+            central: ("weapon.hammer.2hhammer_wendigo"),
         )
     ),
     (Troll, Male): (
@@ -206,7 +206,7 @@
         ),
         main: (
             offset: (-5.0, -6.5, -4.0),
-            central: ("npc.troll.male.hammer"),
+            central: ("weapon.hammer.2hhammer_troll"),
         )
     ),
     (Troll, Female): (
@@ -236,7 +236,7 @@
         ),
         main: (
             offset: (-5.0, -6.5, -4.0),
-            central: ("npc.troll.female.hammer"),
+            central: ("weapon.hammer.2hhammer_troll"),
         )
     ),
     (Dullahan, Male): (
@@ -266,7 +266,7 @@
         ),
         main: (
             offset: (-5.0, -6.5, -4.0),
-            central: ("npc.cyclops.male.hammer"),
+            central: ("weapon.sword.greatsword_2h_dullahan"),
         )
     ),
     (Dullahan, Female): (
@@ -296,7 +296,7 @@
         ),
         main: (
             offset: (-5.0, -6.5, -4.0),
-            central: ("npc.cyclops.male.hammer"),
+            central: ("weapon.sword.greatsword_2h_dullahan"),
         )
     ),
     (Werewolf, Male): (
@@ -386,7 +386,7 @@
         ),
         main: (
             offset: (-1.5, -9.0, -10.0),
-            central: ("npc.lizardman_occult.male.weapon"),
+            central: ("weapon.staff.firestaff_lizardman"),
         )
     ),
     (Occultlizardman, Female): (
@@ -415,8 +415,8 @@
             central: ("armor.empty"),
         ),
         main: (
-            offset: (-1.5, -9.0, -10.0),
-            central: ("npc.lizardman_occult.female.weapon"),
+            offset: (-5.5, -2.0, -10.0),
+            central: ("weapon.staff.firestaff_lizardman"),
         )
     ),
     (Mightylizardman, Male): (
@@ -446,7 +446,7 @@
         ),
         main: (
             offset: (-1.5, -9.0, -10.0),
-            central: ("npc.lizardman_mighty.male.weapon"),
+            central: ("weapon.sword.long_2h_lizardman"),
         )
     ),
     (Mightylizardman, Female): (
@@ -476,7 +476,7 @@
         ),
         main: (
             offset: (-1.5, -9.0, -10.0),
-            central: ("npc.lizardman_mighty.female.weapon"),
+            central: ("weapon.sword.long_2h_lizardman"),
         )
     ),
     (Slylizardman, Male): (
@@ -506,7 +506,7 @@
         ),
         main: (
             offset: (-1.5, -9.0, -10.0),
-            central: ("npc.lizardman_sly.male.weapon"),
+            central: ("weapon.bow.longbow_lizardman"),
         )
     ),
     (Slylizardman, Female): (
@@ -536,7 +536,7 @@
         ),
         main: (
             offset: (-1.5, -9.0, -10.0),
-            central: ("npc.lizardman_sly.female.weapon"),
+            central: ("weapon.bow.longbow_lizardman"),
         )
     ),
 })
