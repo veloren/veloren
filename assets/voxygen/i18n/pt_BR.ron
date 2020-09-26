@@ -30,7 +30,7 @@ VoxygenLocalization(
     string_map: {
         /// Start Common section
         // Texts used in multiple locations with the same formatting
-        "common.username": "nome de usuário",
+        "common.username": "Nome de usuário",
         "common.singleplayer": "Um Jogador",
         "common.multiplayer": "Multijogador",
         "common.servers": "Servidores",
@@ -42,6 +42,7 @@ VoxygenLocalization(
         "common.controls": "Controles",
         "common.video": "Vídeo",
         "common.sound": "Som",
+        "common.languages": "Idiomas",
         "common.resume": "Continuar",
         "common.characters": "Personagens",
         "common.close": "Fechar",
@@ -56,6 +57,16 @@ VoxygenLocalization(
         "common.none": "Nenhum",
         "common.error": "Erro",
         "common.fatal_error": "Erro Fatal",
+        "common.you": "Você",
+        "common.automatic": "Auto",
+        "common.random": "Aleatório",
+        //Títulos da Janela de Configurações
+        "common.interface_settings": "Configurações de Interface",
+        "common.gameplay_settings": "Configurações de Gameplay",
+        "common.controls_settings": "Configurações de Controles",
+        "common.video_settings": "Configurações Gráficas",
+        "common.sound_settings": "Configurações de Som",
+        "common.language_settings": "Configurações de Idioma",
 
         // Message when connection to the server is lost
         "common.connection_lost": r#"Conexão Perdida!
@@ -75,12 +86,14 @@ O cliente está atualizado?"#,
         "common.weapons.staff": "Cajado",
         "common.weapons.bow": "Arco",
         "common.weapons.hammer": "Martelo",
+        "common.rand_appearance": "Aparência e nome aleatórios",
         /// End Common section
 
 
         /// Start Main screen section
         "main.connecting": "Conectando",
         "main.creating_world": "Criando o Mundo",
+        "main.tip": "Dica:",
 
         // Welcome notice that appears the first time Veloren is started
         "main.notice": r#"Bem-vindo a versão alfa de Veloren!
@@ -111,7 +124,7 @@ para jogar em servidores com autenticação.
 Para criar uma conta acesse
 
 https://account.veloren.net."#,
-        "main.login.server_not_found": "Server não encontrado",
+        "main.login.server_not_found": "Servidor não encontrado",
         "main.login.authentication_error": "Erro de autenticação",
         "main.login.server_full": "Servidor lotado",
         "main.login.untrusted_auth_server": "Servidor de autenticação não confiado",
@@ -124,6 +137,8 @@ https://account.veloren.net."#,
         "main.login.invalid_character": "O personagem selecionado é inválido",
         "main.login.client_crashed": "Cliente abortou",
 	"main.login.not_on_whitelist": "Você precisa ser permitido por um Admin para ingressar",
+        "main.login.banned": "Você foi banido pelo seguinte motivo",
+        "main.login.kicked": "Você foi kickado pelo seguinte motivo",
 
         /// End Main screen section
 
