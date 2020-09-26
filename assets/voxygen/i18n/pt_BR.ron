@@ -413,7 +413,7 @@ itens magicamente modificados?"#,
         "gameinput.wallleap": "Pular na Parede",
         "gameinput.togglelantern": "Ligar/Desligar Lanterna",
         "gameinput.mount": "Montar",
-        "gameinput.enter": "Entrar",
+        "gameinput.chat": "Chat",
         "gameinput.command": "Comando",
         "gameinput.escape": "Esc",
         "gameinput.map": "Mapa",
@@ -429,7 +429,13 @@ itens magicamente modificados?"#,
         "gameinput.freelook": "Câmera Livre",
         "gameinput.autowalk": "Caminhar Automático",
         "gameinput.dance": "Dançar",
-
+        "gameinput.select": "Selecionar",
+        "gameinput.acceptgroupinvite": "Aceitar Convite de Grupo",
+        "gameinput.declinegroupinvite": "Negar Convite de Grupo",
+        "gameinput.crafting": "Criação",
+        "gameinput.sneak": "Furtividade",
+        "gameinput.swimdown": "Mergulhar",
+        "gameinput.swimup": "Emergir",
         
         /// End GameInput section
 
@@ -452,7 +458,7 @@ itens magicamente modificados?"#,
         "char_selection.beard": "Barba",
         "char_selection.hair_style": "Estilo do Cabelo",
         "char_selection.hair_color": "Cor do Cabelo",        
-        "char_selection.eye_color": "Cor de olho",
+        "char_selection.eye_color": "Cor de Olho",
         "char_selection.skin": "Pele",
         "char_selection.eyeshape": "Detalhe do olho",
         "char_selection.accessories": "Acessórios",
@@ -469,6 +475,8 @@ itens magicamente modificados?"#,
 Aptidão
 
 Força de Vontade
+
+Proteção
 "#,
         /// Start character window section
 
@@ -479,7 +487,29 @@ Força de Vontade
         /// End Escape Menu Section
     },
 
-    vector_map: {
+
+    vector_map: {     
+        "loading.tips": [
+            "Pressione 'G' para acender sua lanterna.",
+            "Pressione 'F1' para visualizar suas teclas de atalho.",
+            "Você pode digitar /say ou /s para conversar apenas com jogadores próximos a você.",
+            "Você pode digitar /region ou /r para conversar apenas com jogadores a poucas centenas de blocos de você.",
+            "Você pode digitar /group ou /g para conversar apenas com jogadores do seu grupo.",
+            "Para enviar mensagens privadas digite /tell seguido do nome do jogador desejado.",
+            "NPCs com o mesmo nível podem ter dificuldades distintas.",
+            "Busque sempre comida, baús e outros espólios espalhados pelo mundo!",
+            "Inventário cheio de comidas? Tente criar alimentos melhores com elas!",
+            "Imaginando o que há pra fazer? Cavernas estão marcadas com pontos marrons no mapa!",    
+            "Não esqueça de ajustar as configurações gráficas. Pressione 'N' para abrir as configurações.",
+            "Jogar com outros é divertido! Pressione 'O' para ver quem está online.", 
+            "Um NPC com uma caveira ao lado do nome é muito mais forte que você.",
+            "Pressione 'J' para dançar. Hora da festa!",
+            "Pressione 'Shift Esquerdo' para abrir o Planador e conquistar os céus.",
+            "Veloren ainda está no Pre-Alpha. Estamos nos empenhando ao máximo para melhorar a cada dia!",
+            "Se quiser ingressar no time de Desenvolvedores ou apenas conversar conosco, acesse o nosso servidor do Discord.",
+            "Você pode exibir sua saúde em sua barra de vida nas opções.",
+            "Para ver seus atributos clique no botão 'Estatísticas' no seu inventário.",           
+        ],
         "npc.speech.villager_under_attack": [
             "Ajuda, Estou sendo atacado!",
             "Ajuda! Estou sendo atacado!",
@@ -563,4 +593,3 @@ Força de Vontade
         ],
     }
 )
-
