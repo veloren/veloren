@@ -119,11 +119,15 @@ pub struct Item {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ItemDef {
-    #[serde(skip)]
+    #[serde(default)]
     item_definition_id: String,
     pub name: String,
     pub description: String,
     pub kind: ItemKind,
+}
+
+impl PartialEq for ItemDef {
+    fn eq(&self, other: &Self) -> bool { self.item_definition_id == other.item_definition_id }
 }
 
 impl ItemDef {
@@ -264,6 +268,10 @@ impl Item {
 
     pub fn item_definition_id(&self) -> &str { &self.item_def.item_definition_id }
 
+    pub fn is_same_item_def(&self, item_def: &ItemDef) -> bool {
+        self.item_def.item_definition_id == item_def.item_definition_id
+    }
+
     pub fn is_stackable(&self) -> bool { self.item_def.is_stackable() }
 
     pub fn name(&self) -> &str { &self.item_def.name }
@@ -314,24 +322,30 @@ impl Item {
             _ => return None,
         }))
     }
+}
 
-    /// Determines whether two items are superficially equivalent to one another
-    /// (i.e: one may be substituted for the other in crafting recipes or
-    /// item possession checks).
-    pub fn superficially_eq(&self, other: &Self) -> bool {
-        match (&self.kind(), &other.kind()) {
-            (ItemKind::Tool(a), ItemKind::Tool(b)) => a.superficially_eq(b),
-            // TODO: Differentiate between lantern colors?
-            (ItemKind::Lantern(_), ItemKind::Lantern(_)) => true,
-            (ItemKind::Glider(_), ItemKind::Glider(_)) => true,
-            (ItemKind::Armor(a), ItemKind::Armor(b)) => a.superficially_eq(b),
-            (ItemKind::Consumable { kind: a, .. }, ItemKind::Consumable { kind: b, .. }) => a == b,
-            (ItemKind::Throwable { kind: a, .. }, ItemKind::Throwable { kind: b, .. }) => a == b,
-            (ItemKind::Utility { kind: a, .. }, ItemKind::Utility { kind: b, .. }) => a == b,
-            (ItemKind::Ingredient { kind: a, .. }, ItemKind::Ingredient { kind: b, .. }) => a == b,
-            _ => false,
-        }
-    }
+/// Provides common methods providing details about an item definition
+/// for either an `Item` containing the definition, or the actual `ItemDef`
+pub trait ItemDesc {
+    fn description(&self) -> &str;
+    fn name(&self) -> &str;
+    fn kind(&self) -> &ItemKind;
+}
+
+impl ItemDesc for Item {
+    fn description(&self) -> &str { &self.item_def.description }
+
+    fn name(&self) -> &str { &self.item_def.name }
+
+    fn kind(&self) -> &ItemKind { &self.item_def.kind }
+}
+
+impl ItemDesc for ItemDef {
+    fn description(&self) -> &str { &self.description }
+
+    fn name(&self) -> &str { &self.name }
+
+    fn kind(&self) -> &ItemKind { &self.kind }
 }
 
 impl Component for Item {

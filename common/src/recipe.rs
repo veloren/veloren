@@ -1,6 +1,6 @@
 use crate::{
     assets::{self, Asset},
-    comp::{Inventory, Item},
+    comp::{item::ItemDef, Inventory, Item},
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
@@ -8,14 +8,17 @@ use std::{fs::File, io::BufReader, sync::Arc};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Recipe {
-    pub output: (Item, u32),
-    pub inputs: Vec<(Item, u32)>,
+    pub output: (Arc<ItemDef>, u32),
+    pub inputs: Vec<(Arc<ItemDef>, u32)>,
 }
 
 #[allow(clippy::type_complexity)]
 impl Recipe {
     /// Perform a recipe, returning a list of missing items on failure
-    pub fn perform(&self, inv: &mut Inventory) -> Result<Option<(Item, u32)>, Vec<(&Item, u32)>> {
+    pub fn perform(
+        &self,
+        inv: &mut Inventory,
+    ) -> Result<Option<(Item, u32)>, Vec<(&ItemDef, u32)>> {
         // Get ingredient cells from inventory,
         inv.contains_ingredients(self)?
             .into_iter()
@@ -27,7 +30,8 @@ impl Recipe {
             });
 
         for i in 0..self.output.1 {
-            if let Some(item) = inv.push(self.output.0.duplicate()) {
+            let crafted_item = Item::new(Arc::clone(&self.output.0));
+            if let Some(item) = inv.push(crafted_item) {
                 return Ok(Some((item, self.output.1 - i)));
             }
         }
@@ -35,8 +39,10 @@ impl Recipe {
         Ok(None)
     }
 
-    pub fn inputs(&self) -> impl ExactSizeIterator<Item = (&Item, u32)> {
-        self.inputs.iter().map(|(item, amount)| (item, *amount))
+    pub fn inputs(&self) -> impl ExactSizeIterator<Item = (&Arc<ItemDef>, u32)> {
+        self.inputs
+            .iter()
+            .map(|(item_def, amount)| (item_def, *amount))
     }
 }
 
@@ -75,11 +81,11 @@ impl Asset for RecipeBook {
                     .map::<Result<(String, Recipe), assets::Error>, _>(
                         |(name, ((output, amount), inputs))| {
                             Ok((name, Recipe {
-                                output: (Item::new_from_asset(&output)?, amount),
+                                output: (ItemDef::load(&output)?, amount),
                                 inputs: inputs
                                     .into_iter()
-                                    .map::<Result<(Item, u32), assets::Error>, _>(
-                                        |(name, amount)| Ok((Item::new_from_asset(&name)?, amount)),
+                                    .map::<Result<(Arc<ItemDef>, u32), assets::Error>, _>(
+                                        |(name, amount)| Ok((ItemDef::load(&name)?, amount)),
                                     )
                                     .collect::<Result<_, _>>()?,
                             }))
