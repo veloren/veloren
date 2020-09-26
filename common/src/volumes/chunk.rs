@@ -1,5 +1,5 @@
 use crate::vol::{
-    BaseVol, IntoPosIterator, IntoVolIterator, RasterableVol, ReadVol, VolSize, Vox, WriteVol,
+    BaseVol, IntoPosIterator, IntoVolIterator, RasterableVol, ReadVol, VolSize, WriteVol,
 };
 use serde::{Deserialize, Serialize};
 use std::{iter::Iterator, marker::PhantomData};
@@ -46,7 +46,7 @@ pub enum ChunkError {
 /// index buffer can consist of `u8`s. This keeps the space requirement for the
 /// index buffer as low as 4 cache lines.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Chunk<V: Vox, S: VolSize, M> {
+pub struct Chunk<V, S: VolSize, M> {
     indices: Vec<u8>, /* TODO (haslersn): Box<[u8; S::SIZE.x * S::SIZE.y * S::SIZE.z]>, this is
                        * however not possible in Rust yet */
     vox: Vec<V>,
@@ -55,7 +55,7 @@ pub struct Chunk<V: Vox, S: VolSize, M> {
     phantom: PhantomData<S>,
 }
 
-impl<V: Vox, S: VolSize, M> Chunk<V, S, M> {
+impl<V, S: VolSize, M> Chunk<V, S, M> {
     const GROUP_COUNT: Vec3<u32> = Vec3::new(
         S::SIZE.x / Self::GROUP_SIZE.x,
         S::SIZE.y / Self::GROUP_SIZE.y,
@@ -151,7 +151,10 @@ impl<V: Vox, S: VolSize, M> Chunk<V, S, M> {
     }
 
     #[inline(always)]
-    fn force_idx_unchecked(&mut self, pos: Vec3<i32>) -> usize {
+    fn force_idx_unchecked(&mut self, pos: Vec3<i32>) -> usize
+    where
+        V: Clone,
+    {
         let grp_idx = Self::grp_idx(pos);
         let rel_idx = Self::rel_idx(pos);
         let base = &mut self.indices[grp_idx as usize];
@@ -173,7 +176,10 @@ impl<V: Vox, S: VolSize, M> Chunk<V, S, M> {
     }
 
     #[inline(always)]
-    fn set_unchecked(&mut self, pos: Vec3<i32>, vox: V) {
+    fn set_unchecked(&mut self, pos: Vec3<i32>, vox: V)
+    where
+        V: Clone + PartialEq,
+    {
         if vox != self.default {
             let idx = self.force_idx_unchecked(pos);
             self.vox[idx] = vox;
@@ -183,16 +189,16 @@ impl<V: Vox, S: VolSize, M> Chunk<V, S, M> {
     }
 }
 
-impl<V: Vox, S: VolSize, M> BaseVol for Chunk<V, S, M> {
+impl<V, S: VolSize, M> BaseVol for Chunk<V, S, M> {
     type Error = ChunkError;
     type Vox = V;
 }
 
-impl<V: Vox, S: VolSize, M> RasterableVol for Chunk<V, S, M> {
+impl<V, S: VolSize, M> RasterableVol for Chunk<V, S, M> {
     const SIZE: Vec3<u32> = S::SIZE;
 }
 
-impl<V: Vox, S: VolSize, M> ReadVol for Chunk<V, S, M> {
+impl<V, S: VolSize, M> ReadVol for Chunk<V, S, M> {
     #[inline(always)]
     fn get(&self, pos: Vec3<i32>) -> Result<&Self::Vox, Self::Error> {
         if !pos
@@ -206,7 +212,7 @@ impl<V: Vox, S: VolSize, M> ReadVol for Chunk<V, S, M> {
     }
 }
 
-impl<V: Vox, S: VolSize, M> WriteVol for Chunk<V, S, M> {
+impl<V: Clone + PartialEq, S: VolSize, M> WriteVol for Chunk<V, S, M> {
     #[inline(always)]
     #[allow(clippy::unit_arg)] // TODO: Pending review in #587
     fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<(), Self::Error> {
@@ -221,7 +227,7 @@ impl<V: Vox, S: VolSize, M> WriteVol for Chunk<V, S, M> {
     }
 }
 
-pub struct ChunkPosIter<V: Vox, S: VolSize, M> {
+pub struct ChunkPosIter<V, S: VolSize, M> {
     // Store as `u8`s so as to reduce memory footprint.
     lb: Vec3<i32>,
     ub: Vec3<i32>,
@@ -229,7 +235,7 @@ pub struct ChunkPosIter<V: Vox, S: VolSize, M> {
     phantom: PhantomData<Chunk<V, S, M>>,
 }
 
-impl<V: Vox, S: VolSize, M> ChunkPosIter<V, S, M> {
+impl<V, S: VolSize, M> ChunkPosIter<V, S, M> {
     fn new(lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self {
         // If the range is empty, then we have the special case `ub = lower_bound`.
         let ub = if lower_bound.map2(upper_bound, |l, u| l < u).reduce_and() {
@@ -246,7 +252,7 @@ impl<V: Vox, S: VolSize, M> ChunkPosIter<V, S, M> {
     }
 }
 
-impl<V: Vox, S: VolSize, M> Iterator for ChunkPosIter<V, S, M> {
+impl<V, S: VolSize, M> Iterator for ChunkPosIter<V, S, M> {
     type Item = Vec3<i32>;
 
     #[inline(always)]
@@ -301,12 +307,12 @@ impl<V: Vox, S: VolSize, M> Iterator for ChunkPosIter<V, S, M> {
     }
 }
 
-pub struct ChunkVolIter<'a, V: Vox, S: VolSize, M> {
+pub struct ChunkVolIter<'a, V, S: VolSize, M> {
     chunk: &'a Chunk<V, S, M>,
     iter_impl: ChunkPosIter<V, S, M>,
 }
 
-impl<'a, V: Vox, S: VolSize, M> Iterator for ChunkVolIter<'a, V, S, M> {
+impl<'a, V, S: VolSize, M> Iterator for ChunkVolIter<'a, V, S, M> {
     type Item = (Vec3<i32>, &'a V);
 
     #[inline(always)]
@@ -317,7 +323,7 @@ impl<'a, V: Vox, S: VolSize, M> Iterator for ChunkVolIter<'a, V, S, M> {
     }
 }
 
-impl<V: Vox, S: VolSize, M> Chunk<V, S, M> {
+impl<V, S: VolSize, M> Chunk<V, S, M> {
     /// It's possible to obtain a positional iterator without having a `Chunk`
     /// instance.
     pub fn pos_iter(lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> ChunkPosIter<V, S, M> {
@@ -325,7 +331,7 @@ impl<V: Vox, S: VolSize, M> Chunk<V, S, M> {
     }
 }
 
-impl<'a, V: Vox, S: VolSize, M> IntoPosIterator for &'a Chunk<V, S, M> {
+impl<'a, V, S: VolSize, M> IntoPosIterator for &'a Chunk<V, S, M> {
     type IntoIter = ChunkPosIter<V, S, M>;
 
     fn pos_iter(self, lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self::IntoIter {
@@ -333,7 +339,7 @@ impl<'a, V: Vox, S: VolSize, M> IntoPosIterator for &'a Chunk<V, S, M> {
     }
 }
 
-impl<'a, V: Vox, S: VolSize, M> IntoVolIterator<'a> for &'a Chunk<V, S, M> {
+impl<'a, V, S: VolSize, M> IntoVolIterator<'a> for &'a Chunk<V, S, M> {
     type IntoIter = ChunkVolIter<'a, V, S, M>;
 
     fn vol_iter(self, lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self::IntoIter {

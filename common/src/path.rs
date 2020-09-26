@@ -133,7 +133,7 @@ impl Route {
                 // Only consider the node reached if there's nothing solid between us and it
                 && (vol
                     .ray(pos + Vec3::unit_z() * 1.5, closest_tgt + Vec3::unit_z() * 1.5)
-                    .until(|block| block.is_solid())
+                    .until(Block::is_solid)
                     .cast()
                     .0
                     > pos.distance(closest_tgt) * 0.9 || dist_sqrd < 0.5)

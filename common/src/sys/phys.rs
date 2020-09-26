@@ -622,7 +622,7 @@ impl<'a> System<'a> for Sys {
                 },
                 Collider::Point => {
                     let (dist, block) = terrain.ray(pos.0, pos.0 + pos_delta)
-                        .until(|vox| !vox.is_air() && !vox.is_liquid())
+                        .until(|block| block.is_filled())
                         .ignore_error().cast();
 
                     pos.0 += pos_delta.try_normalized().unwrap_or(Vec3::zero()) * dist;

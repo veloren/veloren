@@ -22,27 +22,18 @@ use common::{
     comp::{humanoid, item::ItemKind, Loadout},
     figure::Segment,
     terrain::BlockKind,
-    vol::{BaseVol, ReadVol, Vox},
+    vol::{BaseVol, ReadVol},
 };
 use tracing::error;
 use vek::*;
 
-#[derive(PartialEq, Eq, Copy, Clone)]
-struct VoidVox;
-impl Vox for VoidVox {
-    fn empty() -> Self { VoidVox }
-
-    fn is_empty(&self) -> bool { true }
-
-    fn or(self, _other: Self) -> Self { VoidVox }
-}
 struct VoidVol;
 impl BaseVol for VoidVol {
     type Error = ();
-    type Vox = VoidVox;
+    type Vox = ();
 }
 impl ReadVol for VoidVol {
-    fn get<'a>(&'a self, _pos: Vec3<i32>) -> Result<&'a Self::Vox, Self::Error> { Ok(&VoidVox) }
+    fn get<'a>(&'a self, _pos: Vec3<i32>) -> Result<&'a Self::Vox, Self::Error> { Ok(&()) }
 }
 
 fn generate_mesh<'a>(
@@ -234,7 +225,7 @@ impl Scene {
             scene_data.mouse_smoothing,
         );
 
-        self.camera.compute_dependents(&VoidVol);
+        self.camera.compute_dependents_full(&VoidVol, |_| true);
         let camera::Dependents {
             view_mat,
             proj_mat,

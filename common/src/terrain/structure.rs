@@ -2,7 +2,7 @@ use super::BlockKind;
 use crate::{
     assets::{self, Asset, Ron},
     make_case_elim,
-    vol::{BaseVol, ReadVol, SizedVol, Vox, WriteVol},
+    vol::{BaseVol, ReadVol, SizedVol, WriteVol},
     volumes::dyna::{Dyna, DynaError},
 };
 use dot_vox::DotVoxData;
@@ -33,12 +33,6 @@ make_case_elim!(
         Normal(color: Rgb<u8>) = 15,
     }
 );
-
-impl Vox for StructureBlock {
-    fn empty() -> Self { StructureBlock::None }
-
-    fn is_empty(&self) -> bool { matches!(self, StructureBlock::None) }
-}
 
 #[derive(Debug)]
 pub enum StructureError {}
@@ -112,7 +106,7 @@ impl Asset for Structure {
 
             let mut vol = Dyna::filled(
                 Vec3::new(model.size.x, model.size.y, model.size.z),
-                StructureBlock::empty(),
+                StructureBlock::None,
                 (),
             );
 
@@ -147,14 +141,14 @@ impl Asset for Structure {
             Ok(Structure {
                 center: Vec3::zero(),
                 vol,
-                empty: StructureBlock::empty(),
+                empty: StructureBlock::None,
                 default_kind: BlockKind::Misc,
             })
         } else {
             Ok(Self {
                 center: Vec3::zero(),
-                vol: Dyna::filled(Vec3::zero(), StructureBlock::empty(), ()),
-                empty: StructureBlock::empty(),
+                vol: Dyna::filled(Vec3::zero(), StructureBlock::None, ()),
+                empty: StructureBlock::None,
                 default_kind: BlockKind::Misc,
             })
         }

@@ -108,15 +108,18 @@ impl Site {
 
     pub fn apply_supplement<'a>(
         &'a self,
-        rng: &mut impl Rng,
+        // NOTE: Used only for dynamic elemens like chests and entities!
+        dynamic_rng: &mut impl Rng,
         wpos2d: Vec2<i32>,
         get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
         supplement: &mut ChunkSupplement,
     ) {
         match &self.kind {
-            SiteKind::Settlement(s) => s.apply_supplement(rng, wpos2d, get_column, supplement),
-            SiteKind::Dungeon(d) => d.apply_supplement(rng, wpos2d, get_column, supplement),
-            SiteKind::Castle(c) => c.apply_supplement(rng, wpos2d, get_column, supplement),
+            SiteKind::Settlement(s) => {
+                s.apply_supplement(dynamic_rng, wpos2d, get_column, supplement)
+            },
+            SiteKind::Dungeon(d) => d.apply_supplement(dynamic_rng, wpos2d, get_column, supplement),
+            SiteKind::Castle(c) => c.apply_supplement(dynamic_rng, wpos2d, get_column, supplement),
         }
     }
 }

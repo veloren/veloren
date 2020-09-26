@@ -13,7 +13,7 @@ use common::{
     generation::{ChunkSupplement, EntityInfo},
     lottery::Lottery,
     terrain::{Block, BlockKind, SpriteKind},
-    vol::{BaseVol, ReadVol, RectSizedVol, Vox, WriteVol},
+    vol::{BaseVol, ReadVol, RectSizedVol, WriteVol},
 };
 use noise::NoiseFn;
 use rand::prelude::*;
@@ -29,6 +29,8 @@ pub struct Colors {
     pub bridge: (u8, u8, u8),
     pub stalagtite: (u8, u8, u8),
 }
+
+const EMPTY_AIR: Block = Block::air(SpriteKind::Empty);
 
 pub fn apply_paths_to<'a>(
     wpos2d: Vec2<i32>,
@@ -113,7 +115,7 @@ pub fn apply_paths_to<'a>(
                 for z in inset..inset + head_space {
                     let pos = Vec3::new(offs.x, offs.y, surface_z + z);
                     if vol.get(pos).unwrap().kind() != BlockKind::Water {
-                        let _ = vol.set(pos, Block::empty());
+                        let _ = vol.set(pos, EMPTY_AIR);
                     }
                 }
             }
@@ -163,7 +165,7 @@ pub fn apply_caves_to<'a>(
                                 .into_array(),
                         ) < 0.0
                     {
-                        let _ = vol.set(Vec3::new(offs.x, offs.y, z), Block::empty());
+                        let _ = vol.set(Vec3::new(offs.x, offs.y, z), EMPTY_AIR);
                     }
                 }
 
@@ -207,7 +209,8 @@ pub fn apply_caves_to<'a>(
 }
 #[allow(clippy::eval_order_dependence)]
 pub fn apply_caves_supplement<'a>(
-    rng: &mut impl Rng,
+    // NOTE: Used only for dynamic elemens like chests and entities!
+    dynamic_rng: &mut impl Rng,
     wpos2d: Vec2<i32>,
     mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
     vol: &(impl BaseVol<Vox = Block> + RectSizedVol + ReadVol + WriteVol),
@@ -253,42 +256,42 @@ pub fn apply_caves_supplement<'a>(
                         wpos2d.y as f32,
                         cave_base as f32,
                     ))
-                    .with_body(match rng.gen_range(0, 6) {
+                    .with_body(match dynamic_rng.gen_range(0, 6) {
                         0 => {
                             is_hostile = false;
-                            let species = match rng.gen_range(0, 4) {
+                            let species = match dynamic_rng.gen_range(0, 4) {
                                 0 => comp::quadruped_small::Species::Truffler,
                                 1 => comp::quadruped_small::Species::Dodarock,
                                 2 => comp::quadruped_small::Species::Holladon,
                                 _ => comp::quadruped_small::Species::Batfox,
                             };
-                            comp::quadruped_small::Body::random_with(rng, &species).into()
+                            comp::quadruped_small::Body::random_with(dynamic_rng, &species).into()
                         },
                         1 => {
                             is_hostile = true;
-                            let species = match rng.gen_range(0, 5) {
+                            let species = match dynamic_rng.gen_range(0, 5) {
                                 0 => comp::quadruped_medium::Species::Tarasque,
                                 _ => comp::quadruped_medium::Species::Bonerattler,
                             };
-                            comp::quadruped_medium::Body::random_with(rng, &species).into()
+                            comp::quadruped_medium::Body::random_with(dynamic_rng, &species).into()
                         },
                         2 => {
                             is_hostile = true;
-                            let species = match rng.gen_range(0, 4) {
+                            let species = match dynamic_rng.gen_range(0, 4) {
                                 1 => comp::quadruped_low::Species::Rocksnapper,
                                 _ => comp::quadruped_low::Species::Salamander,
                             };
-                            comp::quadruped_low::Body::random_with(rng, &species).into()
+                            comp::quadruped_low::Body::random_with(dynamic_rng, &species).into()
                         },
                         _ => {
                             is_hostile = true;
-                            let species = match rng.gen_range(0, 8) {
+                            let species = match dynamic_rng.gen_range(0, 8) {
                                 0 => comp::biped_large::Species::Ogre,
                                 1 => comp::biped_large::Species::Cyclops,
                                 2 => comp::biped_large::Species::Wendigo,
                                 _ => comp::biped_large::Species::Troll,
                             };
-                            comp::biped_large::Body::random_with(rng, &species).into()
+                            comp::biped_large::Body::random_with(dynamic_rng, &species).into()
                         },
                     })
                     .with_alignment(if is_hostile {

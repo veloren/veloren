@@ -14,7 +14,7 @@ use common::{
     sync::{Uid, WorldSyncExt},
     terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
     util::Dir,
-    vol::{RectVolSize, Vox},
+    vol::RectVolSize,
     LoadoutBuilder,
 };
 use rand::Rng;
@@ -233,7 +233,8 @@ fn handle_make_sprite(
                     let new_block = server
                         .state
                         .get_block(pos)
-                        .unwrap_or_else(Block::empty)
+                        // TODO: Make more principled.
+                        .unwrap_or_else(|| Block::air(SpriteKind::Empty))
                         .with_sprite(sk);
                     server.state.set_block(pos, new_block);
                 },

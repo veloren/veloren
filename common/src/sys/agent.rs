@@ -15,7 +15,7 @@ use crate::{
     span,
     state::{DeltaTime, Time},
     sync::{Uid, UidAllocator},
-    terrain::TerrainGrid,
+    terrain::{Block, TerrainGrid},
     util::Dir,
     vol::ReadVol,
 };
@@ -195,7 +195,7 @@ impl<'a> System<'a> for Sys {
                                             * 5.0
                                         + Vec3::unit_z(),
                                 )
-                                .until(|block| block.is_solid())
+                                .until(Block::is_solid)
                                 .cast()
                                 .1
                                 .map_or(true, |b| b.is_none())
@@ -374,7 +374,7 @@ impl<'a> System<'a> for Sys {
                             {
                                 let can_see_tgt = terrain
                                     .ray(pos.0 + Vec3::unit_z(), tgt_pos.0 + Vec3::unit_z())
-                                    .until(|block| !block.is_air())
+                                    .until(Block::is_opaque)
                                     .cast()
                                     .0
                                     .powf(2.0)
@@ -473,7 +473,7 @@ impl<'a> System<'a> for Sys {
                     // Can we even see them?
                     .filter(|(_, e_pos, _, _)| terrain
                         .ray(pos.0 + Vec3::unit_z(), e_pos.0 + Vec3::unit_z())
-                        .until(|block| !block.is_air())
+                        .until(Block::is_opaque)
                         .cast()
                         .0 >= e_pos.0.distance(pos.0))
                     .min_by_key(|(_, e_pos, _, _)| (e_pos.0.distance_squared(pos.0) * 100.0) as i32)

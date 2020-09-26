@@ -534,6 +534,7 @@ pub fn handle_explosion(
         let _ = ecs
             .read_resource::<TerrainGrid>()
             .ray(pos, pos + dir * color_range)
+            // TODO: Faster RNG
             .until(|_| rand::random::<f32>() < 0.05)
             .for_each(|_: &Block, pos| touched_blocks.push(pos))
             .cast();
@@ -569,6 +570,7 @@ pub fn handle_explosion(
         let terrain = ecs.read_resource::<TerrainGrid>();
         let _ = terrain
             .ray(pos, pos + dir * power)
+            // TODO: Faster RNG
             .until(|block| block.is_liquid() || rand::random::<f32>() < 0.05)
             .for_each(|block: &Block, pos| {
                 if block.is_explodable() {

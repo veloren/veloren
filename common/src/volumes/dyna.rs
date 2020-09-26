@@ -1,6 +1,6 @@
 use crate::vol::{
     BaseVol, DefaultPosIterator, DefaultVolIterator, IntoPosIterator, IntoVolIterator, ReadVol,
-    SizedVol, Vox, WriteVol,
+    SizedVol, WriteVol,
 };
 use serde::{Deserialize, Serialize};
 use vek::*;
@@ -15,14 +15,14 @@ pub enum DynaError {
 // S = Size (replace when const generics are a thing)
 // M = Metadata
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Dyna<V: Vox, M, A: Access = ColumnAccess> {
+pub struct Dyna<V, M, A: Access = ColumnAccess> {
     vox: Vec<V>,
     meta: M,
     pub sz: Vec3<u32>,
     _phantom: std::marker::PhantomData<A>,
 }
 
-impl<V: Vox, M: Clone, A: Access> Clone for Dyna<V, M, A> {
+impl<V: Clone, M: Clone, A: Access> Clone for Dyna<V, M, A> {
     fn clone(&self) -> Self {
         Self {
             vox: self.vox.clone(),
@@ -33,7 +33,7 @@ impl<V: Vox, M: Clone, A: Access> Clone for Dyna<V, M, A> {
     }
 }
 
-impl<V: Vox, M, A: Access> Dyna<V, M, A> {
+impl<V, M, A: Access> Dyna<V, M, A> {
     /// Used to transform a voxel position in the volume into its corresponding
     /// index in the voxel array.
     #[inline(always)]
@@ -46,12 +46,12 @@ impl<V: Vox, M, A: Access> Dyna<V, M, A> {
     }
 }
 
-impl<V: Vox, M, A: Access> BaseVol for Dyna<V, M, A> {
+impl<V, M, A: Access> BaseVol for Dyna<V, M, A> {
     type Error = DynaError;
     type Vox = V;
 }
 
-impl<V: Vox, M, A: Access> SizedVol for Dyna<V, M, A> {
+impl<V, M, A: Access> SizedVol for Dyna<V, M, A> {
     #[inline(always)]
     fn lower_bound(&self) -> Vec3<i32> { Vec3::zero() }
 
@@ -59,7 +59,7 @@ impl<V: Vox, M, A: Access> SizedVol for Dyna<V, M, A> {
     fn upper_bound(&self) -> Vec3<i32> { self.sz.map(|e| e as i32) }
 }
 
-impl<'a, V: Vox, M, A: Access> SizedVol for &'a Dyna<V, M, A> {
+impl<'a, V, M, A: Access> SizedVol for &'a Dyna<V, M, A> {
     #[inline(always)]
     fn lower_bound(&self) -> Vec3<i32> { (*self).lower_bound() }
 
@@ -67,7 +67,7 @@ impl<'a, V: Vox, M, A: Access> SizedVol for &'a Dyna<V, M, A> {
     fn upper_bound(&self) -> Vec3<i32> { (*self).upper_bound() }
 }
 
-impl<V: Vox, M, A: Access> ReadVol for Dyna<V, M, A> {
+impl<V, M, A: Access> ReadVol for Dyna<V, M, A> {
     #[inline(always)]
     fn get(&self, pos: Vec3<i32>) -> Result<&V, DynaError> {
         Self::idx_for(self.sz, pos)
@@ -76,7 +76,7 @@ impl<V: Vox, M, A: Access> ReadVol for Dyna<V, M, A> {
     }
 }
 
-impl<V: Vox, M, A: Access> WriteVol for Dyna<V, M, A> {
+impl<V, M, A: Access> WriteVol for Dyna<V, M, A> {
     #[inline(always)]
     fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<(), DynaError> {
         Self::idx_for(self.sz, pos)
@@ -86,7 +86,7 @@ impl<V: Vox, M, A: Access> WriteVol for Dyna<V, M, A> {
     }
 }
 
-impl<'a, V: Vox, M, A: Access> IntoPosIterator for &'a Dyna<V, M, A> {
+impl<'a, V, M, A: Access> IntoPosIterator for &'a Dyna<V, M, A> {
     type IntoIter = DefaultPosIterator;
 
     fn pos_iter(self, lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self::IntoIter {
@@ -94,7 +94,7 @@ impl<'a, V: Vox, M, A: Access> IntoPosIterator for &'a Dyna<V, M, A> {
     }
 }
 
-impl<'a, V: Vox, M, A: Access> IntoVolIterator<'a> for &'a Dyna<V, M, A> {
+impl<'a, V, M, A: Access> IntoVolIterator<'a> for &'a Dyna<V, M, A> {
     type IntoIter = DefaultVolIterator<'a, Dyna<V, M, A>>;
 
     fn vol_iter(self, lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self::IntoIter {
@@ -102,7 +102,7 @@ impl<'a, V: Vox, M, A: Access> IntoVolIterator<'a> for &'a Dyna<V, M, A> {
     }
 }
 
-impl<V: Vox + Clone, M, A: Access> Dyna<V, M, A> {
+impl<V: Clone, M, A: Access> Dyna<V, M, A> {
     /// Create a new `Dyna` with the provided dimensions and all voxels filled
     /// with duplicates of the provided voxel.
     pub fn filled(sz: Vec3<u32>, vox: V, meta: M) -> Self {

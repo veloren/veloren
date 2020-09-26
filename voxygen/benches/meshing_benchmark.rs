@@ -1,6 +1,6 @@
 use common::{
-    terrain::{Block, TerrainGrid},
-    vol::{SampleVol, Vox},
+    terrain::{Block, SpriteKind, TerrainGrid},
+    vol::SampleVol,
 };
 use criterion::{black_box, criterion_group, criterion_main, Benchmark, Criterion};
 use std::sync::Arc;
@@ -69,7 +69,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         "meshing",
         Benchmark::new("copying 1,1 into flat array", move |b| {
             b.iter(|| {
-                let mut flat = vec![Block::empty(); range.size().product() as usize];
+                let mut flat = vec![Block::air(SpriteKind::Empty); range.size().product() as usize];
                 let mut i = 0;
                 let mut volume = volume.cached();
                 for x in 0..range.size().w {
