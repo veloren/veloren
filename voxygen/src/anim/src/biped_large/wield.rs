@@ -2,12 +2,13 @@ use super::{
     super::{vek::*, Animation},
     BipedLargeSkeleton, SkeletonAttr,
 };
+use common::comp::item::{Hands, ToolKind};
 use std::{f32::consts::PI, ops::Mul};
 
 pub struct WieldAnimation;
 
 impl Animation for WieldAnimation {
-    type Dependency = (f32, f64);
+    type Dependency = (Option<ToolKind>, Option<ToolKind>, f32, f64);
     type Skeleton = BipedLargeSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -16,7 +17,7 @@ impl Animation for WieldAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_wield")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (velocity, global_time): Self::Dependency,
+        (active_tool_kind, second_tool_kind, velocity, global_time): Self::Dependency,
         anim_time: f64,
         _rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
@@ -312,11 +313,131 @@ impl Animation for WieldAnimation {
                 Quaternion::rotation_x(-0.5 + footrotr * 0.85) * Quaternion::rotation_y(0.0);
             next.foot_r.scale = Vec3::one() / 8.0;
             
-            next.control.position = Vec3::new(7.0, 9.0, -10.0);
-            next.control.orientation = Quaternion::rotation_x(test * 0.02)
-                * Quaternion::rotation_y(test * 0.02)
-                * Quaternion::rotation_z(test * 0.02);
-            next.control.scale = Vec3::one();
+        }
+        match active_tool_kind {
+            Some(ToolKind::Bow(_)) => {
+                next.hand_l.position = Vec3::new(
+                    -skeleton_attr.hand.0 - 7.0,
+                    skeleton_attr.hand.1 - 7.0,
+                    skeleton_attr.hand.2 + 10.0,
+                );
+                next.hand_l.orientation = Quaternion::rotation_x(0.57) * Quaternion::rotation_z(1.57);
+                next.hand_l.scale = Vec3::one() * 1.02;
+        
+                next.hand_r.position = Vec3::new(
+                    skeleton_attr.hand.0 - 7.0,
+                    skeleton_attr.hand.1 - 7.0,
+                    skeleton_attr.hand.2 + 10.0,
+                );
+                next.hand_r.orientation = Quaternion::rotation_x(0.57) * Quaternion::rotation_z(1.57);
+                next.hand_r.scale = Vec3::one() * 1.02;
+                next.hand_r.orientation = Quaternion::rotation_x(0.57) * Quaternion::rotation_z(1.57);
+                next.hand_r.scale = Vec3::one() * 1.02;
+                
+                next.control.position = Vec3::new(7.0, 9.0, -10.0);
+                next.control.orientation = Quaternion::rotation_x(test * 0.02)
+                    * Quaternion::rotation_y(test * 0.02)
+                    * Quaternion::rotation_z(test * 0.02);
+                next.control.scale = Vec3::one();
+
+                next.main.position = Vec3::new(0.0, 0.0, 0.0);
+                next.main.orientation = Quaternion::rotation_x(0.0)
+                    * Quaternion::rotation_y(-1.57)
+                    * Quaternion::rotation_z(1.0);
+                next.main.scale = Vec3::one() * 1.02;
+            },
+            Some(ToolKind::Hammer(_)) => {
+                next.hand_l.position = Vec3::new(
+                    -skeleton_attr.hand.0 - 7.0,
+                    skeleton_attr.hand.1 - 7.0,
+                    skeleton_attr.hand.2 + 10.0,
+                );
+                next.hand_l.orientation = Quaternion::rotation_x(0.57) * Quaternion::rotation_z(1.57);
+                next.hand_l.scale = Vec3::one() * 1.02;
+        
+                next.hand_r.position = Vec3::new(
+                    skeleton_attr.hand.0 - 7.0,
+                    skeleton_attr.hand.1 - 7.0,
+                    skeleton_attr.hand.2 + 10.0,
+                );
+                next.hand_r.orientation = Quaternion::rotation_x(0.57) * Quaternion::rotation_z(1.57);
+                next.hand_r.scale = Vec3::one() * 1.02;
+                
+                next.control.position = Vec3::new(7.0, 9.0, -10.0);
+                next.control.orientation = Quaternion::rotation_x(test * 0.02)
+                    * Quaternion::rotation_y(test * 0.02)
+                    * Quaternion::rotation_z(test * 0.02);
+                next.control.scale = Vec3::one();
+
+                next.main.position = Vec3::new(0.0, 0.0, 0.0);
+                next.main.orientation = Quaternion::rotation_x(0.0)
+                    * Quaternion::rotation_y(-1.57)
+                    * Quaternion::rotation_z(1.0);
+                next.main.scale = Vec3::one() * 1.02;
+            },
+            Some(ToolKind::Staff(_)) => {
+                next.hand_l.position = Vec3::new(
+                    -skeleton_attr.hand.0 - 7.0,
+                    skeleton_attr.hand.1 - 7.0,
+                    skeleton_attr.hand.2 + 10.0,
+                );
+                next.hand_l.orientation = Quaternion::rotation_x(0.57) * Quaternion::rotation_z(1.57);
+                next.hand_l.scale = Vec3::one() * 1.02;
+        
+                next.hand_r.position = Vec3::new(
+                    skeleton_attr.hand.0 - 7.0,
+                    skeleton_attr.hand.1 - 7.0,
+                    skeleton_attr.hand.2 + 10.0,
+                );
+                next.hand_r.orientation = Quaternion::rotation_x(0.57) * Quaternion::rotation_z(1.57);
+                next.hand_r.scale = Vec3::one() * 1.02;
+                next.hand_r.orientation = Quaternion::rotation_x(0.57) * Quaternion::rotation_z(1.57);
+                next.hand_r.scale = Vec3::one() * 1.02;
+                
+                next.control.position = Vec3::new(7.0, 9.0, -10.0);
+                next.control.orientation = Quaternion::rotation_x(test * 0.02)
+                    * Quaternion::rotation_y(test * 0.02)
+                    * Quaternion::rotation_z(test * 0.02);
+                next.control.scale = Vec3::one();
+
+                next.main.position = Vec3::new(0.0, 0.0, 0.0);
+                next.main.orientation = Quaternion::rotation_x(0.0)
+                    * Quaternion::rotation_y(-1.57)
+                    * Quaternion::rotation_z(1.0);
+                next.main.scale = Vec3::one() * 1.02;
+            },
+            Some(ToolKind::Sword(_)) => {
+                next.hand_l.position = Vec3::new(
+                    -skeleton_attr.hand.0 - 7.0,
+                    skeleton_attr.hand.1 - 7.0,
+                    skeleton_attr.hand.2 + 10.0,
+                );
+                next.hand_l.orientation = Quaternion::rotation_x(0.57) * Quaternion::rotation_z(1.57);
+                next.hand_l.scale = Vec3::one() * 1.02;
+        
+                next.hand_r.position = Vec3::new(
+                    skeleton_attr.hand.0 - 7.0,
+                    skeleton_attr.hand.1 - 7.0,
+                    skeleton_attr.hand.2 + 10.0,
+                );
+                next.hand_r.orientation = Quaternion::rotation_x(0.57) * Quaternion::rotation_z(1.57);
+                next.hand_r.scale = Vec3::one() * 1.02;
+                next.hand_r.orientation = Quaternion::rotation_x(0.57) * Quaternion::rotation_z(1.57);
+                next.hand_r.scale = Vec3::one() * 1.02;
+                
+                next.control.position = Vec3::new(7.0, 9.0, -10.0);
+                next.control.orientation = Quaternion::rotation_x(test * 0.02)
+                    * Quaternion::rotation_y(test * 0.02)
+                    * Quaternion::rotation_z(test * 0.02);
+                next.control.scale = Vec3::one();
+
+                next.main.position = Vec3::new(0.0, 0.0, 0.0);
+                next.main.orientation = Quaternion::rotation_x(0.0)
+                    * Quaternion::rotation_y(-1.57)
+                    * Quaternion::rotation_z(1.0);
+                next.main.scale = Vec3::one() * 1.02;
+            },
+            _ => {},
         }
 
         next
