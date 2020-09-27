@@ -59,9 +59,8 @@ pub struct CharacterLoaderResponse {
 /// Responses are polled on each server tick in the format
 /// [`CharacterLoaderResponse`]
 pub struct CharacterLoader {
-    update_rx: Option<channel::Receiver<CharacterLoaderResponse>>,
-    update_tx: Option<channel::Sender<CharacterLoaderRequest>>,
-    handle: Option<std::thread::JoinHandle<()>>,
+    update_rx: channel::Receiver<CharacterLoaderResponse>,
+    update_tx: channel::Sender<CharacterLoaderRequest>,
 }
 
 impl CharacterLoader {
@@ -71,8 +70,8 @@ impl CharacterLoader {
 
         let mut conn = establish_connection(&db_dir)?;
 
-        let handle = std::thread::spawn(move || {
-            while let Ok(request) = internal_rx.recv() {
+        std::thread::spawn(move || {
+            for request in internal_rx {
                 let (entity, kind) = request;
 
                 if let Err(e) = internal_tx.send(CharacterLoaderResponse {
@@ -119,9 +118,8 @@ impl CharacterLoader {
         });
 
         Ok(Self {
-            update_tx: Some(update_tx),
-            update_rx: Some(update_rx),
-            handle: Some(handle),
+            update_tx,
+            update_rx,
         })
     }
 
@@ -134,14 +132,14 @@ impl CharacterLoader {
         character_alias: String,
         persisted_components: PersistedComponents,
     ) {
-        if let Err(e) = self.update_tx.as_ref().unwrap().send((
-            entity,
-            CharacterLoaderRequestKind::CreateCharacter {
+        if let Err(e) = self
+            .update_tx
+            .send((entity, CharacterLoaderRequestKind::CreateCharacter {
                 player_uuid,
                 character_alias,
                 persisted_components,
-            },
-        )) {
+            }))
+        {
             error!(?e, "Could not send character creation request");
         }
     }
@@ -153,13 +151,13 @@ impl CharacterLoader {
         player_uuid: String,
         character_id: CharacterId,
     ) {
-        if let Err(e) = self.update_tx.as_ref().unwrap().send((
-            entity,
-            CharacterLoaderRequestKind::DeleteCharacter {
+        if let Err(e) = self
+            .update_tx
+            .send((entity, CharacterLoaderRequestKind::DeleteCharacter {
                 player_uuid,
                 character_id,
-            },
-        )) {
+            }))
+        {
             error!(?e, "Could not send character deletion request");
         }
     }
@@ -169,8 +167,6 @@ impl CharacterLoader {
     pub fn load_character_list(&self, entity: specs::Entity, player_uuid: String) {
         if let Err(e) = self
             .update_tx
-            .as_ref()
-            .unwrap()
             .send((entity, CharacterLoaderRequestKind::LoadCharacterList {
                 player_uuid,
             }))
@@ -186,28 +182,17 @@ impl CharacterLoader {
         player_uuid: String,
         character_id: CharacterId,
     ) {
-        if let Err(e) = self.update_tx.as_ref().unwrap().send((
-            entity,
-            CharacterLoaderRequestKind::LoadCharacterData {
-                player_uuid,
-                character_id,
-            },
-        )) {
+        if let Err(e) =
+            self.update_tx
+                .send((entity, CharacterLoaderRequestKind::LoadCharacterData {
+                    player_uuid,
+                    character_id,
+                }))
+        {
             error!(?e, "Could not send character data load request");
         }
     }
 
     /// Returns a non-blocking iterator over CharacterLoaderResponse messages
-    pub fn messages(&self) -> TryIter<CharacterLoaderResponse> {
-        self.update_rx.as_ref().unwrap().try_iter()
-    }
-}
-
-impl Drop for CharacterLoader {
-    fn drop(&mut self) {
-        drop(self.update_tx.take());
-        if let Err(e) = self.handle.take().unwrap().join() {
-            error!(?e, "Error from joining character loader thread");
-        }
-    }
+    pub fn messages(&self) -> TryIter<CharacterLoaderResponse> { self.update_rx.try_iter() }
 }
