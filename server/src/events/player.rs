@@ -24,6 +24,8 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
     let maybe_client = state.ecs().write_storage::<Client>().remove(entity);
     let maybe_uid = state.read_component_copied::<Uid>(entity);
     let maybe_player = state.ecs().write_storage::<comp::Player>().remove(entity);
+    let maybe_admin = state.ecs().write_storage::<comp::Admin>().remove(entity);
+
     let maybe_group = state
         .ecs()
         .write_storage::<group::Group>()
@@ -37,8 +39,15 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
 
         let entity_builder = state.ecs_mut().create_entity().with(client).with(player);
 
+        // Preserve group component if present
         let entity_builder = match maybe_group {
             Some(group) => entity_builder.with(group),
+            None => entity_builder,
+        };
+
+        // Preserve admin component if present
+        let entity_builder = match maybe_admin {
+            Some(admin) => entity_builder.with(admin),
             None => entity_builder,
         };
 
