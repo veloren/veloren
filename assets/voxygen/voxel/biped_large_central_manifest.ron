@@ -505,7 +505,7 @@
             central: ("armor.empty"),
         ),
         main: (
-            offset: (-1.5, -9.0, -10.0),
+            offset: (-2.5, -4.0, -7.0),
             central: ("weapon.bow.longbow_lizardman"),
         )
     ),
@@ -535,7 +535,7 @@
             central: ("armor.empty"),
         ),
         main: (
-            offset: (-1.5, -9.0, -10.0),
+            offset: (-2.5, -4.0, -7.0),
             central: ("weapon.bow.longbow_lizardman"),
         )
     ),

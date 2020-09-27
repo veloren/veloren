@@ -3,11 +3,13 @@ pub mod idle;
 pub mod jump;
 pub mod run;
 pub mod wield;
+pub mod shoot;
+pub mod charge;
 
 // Reexports
 pub use self::{
     alpha::AlphaAnimation, idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation,
-    wield::WieldAnimation,
+    wield::WieldAnimation, charge::ChargeAnimation, shoot::ShootAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};
@@ -32,6 +34,7 @@ skeleton_impls!(struct BipedLargeSkeleton {
     + leg_r,
     + foot_l,
     + foot_r,
+    + hold,
     torso,
     control,
 });
@@ -40,7 +43,7 @@ impl Skeleton for BipedLargeSkeleton {
     type Attr = SkeletonAttr;
     type Body = Body;
 
-    const BONE_COUNT: usize = 15;
+    const BONE_COUNT: usize = 16;
     #[cfg(feature = "use-dyn-lib")]
     const COMPUTE_FN: &'static [u8] = b"biped_large_compute_mats\0";
 
@@ -57,6 +60,7 @@ impl Skeleton for BipedLargeSkeleton {
         let lower_torso_mat = upper_torso_mat * Mat4::<f32>::from(self.lower_torso);
         let head_mat = upper_torso_mat * Mat4::<f32>::from(self.head);
         let control_mat = upper_torso_mat * Mat4::<f32>::from(self.control);
+        let hand_l_mat = Mat4::<f32>::from(self.hand_l);
 
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
             make_bone(head_mat),
@@ -74,6 +78,8 @@ impl Skeleton for BipedLargeSkeleton {
             make_bone(lower_torso_mat * Mat4::<f32>::from(self.leg_r)),
             make_bone(base_mat * Mat4::<f32>::from(self.foot_l)),
             make_bone(base_mat * Mat4::<f32>::from(self.foot_r)),
+            // FIXME: Should this be l_control_mat?
+            make_bone(control_mat * hand_l_mat * Mat4::<f32>::from(self.hold)),
         ];
         Vec3::default()
     }
@@ -186,9 +192,9 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Troll, _) => (0.0, 0.0),
                 (Dullahan, _) => (0.0, 0.0),
                 (Werewolf, _) => (-5.5, -2.0),
-                (Occultlizardman, _) => (-5.5, -6.0),
-                (Mightylizardman, _) => (-5.5, -6.0),
-                (Slylizardman, _) => (-5.5, -6.0),
+                (Occultlizardman, _) => (-4.5, -6.0),
+                (Mightylizardman, _) => (-4.5, -6.0),
+                (Slylizardman, _) => (-4.5, -6.0),
             },
             shoulder: match (body.species, body.body_type) {
                 (Ogre, Male) => (12.0, 0.5, 0.0),

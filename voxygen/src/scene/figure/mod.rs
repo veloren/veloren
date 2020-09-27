@@ -2265,6 +2265,58 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
+                        CharacterState::BasicRanged(data) => {
+                            if data.exhausted {
+                                anim::biped_large::ShootAnimation::update_skeleton(
+                                    &target_base,
+                                    (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
+                                    state.state_time,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            } else {
+                                anim::biped_large::ChargeAnimation::update_skeleton(
+                                    &target_base,
+                                    (
+                                        active_tool_kind,
+                                        second_tool_kind,
+                                        vel.0.magnitude(),
+                                        ori,
+                                        state.last_ori,
+                                        time,
+                                    ),
+                                    state.state_time,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            }
+                        },
+                        CharacterState::ChargedRanged(data) => {
+                            if data.exhausted {
+                                anim::biped_large::ShootAnimation::update_skeleton(
+                                    &target_base,
+                                    (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
+                                    state.state_time,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            } else {
+                                anim::biped_large::ChargeAnimation::update_skeleton(
+                                    &target_base,
+                                    (
+                                        active_tool_kind,
+                                        second_tool_kind,
+                                        vel.0.magnitude(),
+                                        ori,
+                                        state.last_ori,
+                                        time,
+                                    ),
+                                    state.state_time,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            }
+                        },
                         // TODO!
                         _ => target_base,
                     };
