@@ -30,7 +30,7 @@ VoxygenLocalization(
     string_map: {
         /// Start Common section
         // Texts used in multiple locations with the same formatting
-        "common.username": "nome de usuário",
+        "common.username": "Nome de usuário",
         "common.singleplayer": "Um Jogador",
         "common.multiplayer": "Multijogador",
         "common.servers": "Servidores",
@@ -42,6 +42,7 @@ VoxygenLocalization(
         "common.controls": "Controles",
         "common.video": "Vídeo",
         "common.sound": "Som",
+        "common.languages": "Idiomas",
         "common.resume": "Continuar",
         "common.characters": "Personagens",
         "common.close": "Fechar",
@@ -56,6 +57,16 @@ VoxygenLocalization(
         "common.none": "Nenhum",
         "common.error": "Erro",
         "common.fatal_error": "Erro Fatal",
+        "common.you": "Você",
+        "common.automatic": "Auto",
+        "common.random": "Aleatório",
+        //Títulos da Janela de Configurações
+        "common.interface_settings": "Configurações de Interface",
+        "common.gameplay_settings": "Configurações de Gameplay",
+        "common.controls_settings": "Configurações de Controles",
+        "common.video_settings": "Configurações Gráficas",
+        "common.sound_settings": "Configurações de Som",
+        "common.language_settings": "Configurações de Idioma",
 
         // Message when connection to the server is lost
         "common.connection_lost": r#"Conexão Perdida!
@@ -75,12 +86,14 @@ O cliente está atualizado?"#,
         "common.weapons.staff": "Cajado",
         "common.weapons.bow": "Arco",
         "common.weapons.hammer": "Martelo",
+        "common.rand_appearance": "Aparência e nome aleatórios",
         /// End Common section
 
 
         /// Start Main screen section
         "main.connecting": "Conectando",
         "main.creating_world": "Criando o Mundo",
+        "main.tip": "Dica:",
 
         // Welcome notice that appears the first time Veloren is started
         "main.notice": r#"Bem-vindo a versão alfa de Veloren!
@@ -111,7 +124,7 @@ para jogar em servidores com autenticação.
 Para criar uma conta acesse
 
 https://account.veloren.net."#,
-        "main.login.server_not_found": "Server não encontrado",
+        "main.login.server_not_found": "Servidor não encontrado",
         "main.login.authentication_error": "Erro de autenticação",
         "main.login.server_full": "Servidor lotado",
         "main.login.untrusted_auth_server": "Servidor de autenticação não confiado",
@@ -124,6 +137,8 @@ https://account.veloren.net."#,
         "main.login.invalid_character": "O personagem selecionado é inválido",
         "main.login.client_crashed": "Cliente abortou",
 	"main.login.not_on_whitelist": "Você precisa ser permitido por um Admin para ingressar",
+        "main.login.banned": "Você foi banido pelo seguinte motivo",
+        "main.login.kicked": "Você foi expulso pelo seguinte motivo",
 
         /// End Main screen section
 
@@ -143,10 +158,24 @@ https://account.veloren.net."#,
         // Chat outputs
         "hud.chat.online_msg": "[{name}] está online.", 
         "hud.chat.offline_msg": "[{name}] está offline.", 
+
+        "hud.chat.default_death_msg": "[{name}] morreu",
+        "hud.chat.environmental_kill_msg": "[{name}] morreu em {environment}",
+        "hud.chat.fall_kill_msg": "[{name}] morreu de queda",
+        "hud.chat.suicide_msg": "[{name}] morreu de dano autoinflingido",
+
+        "hud.chat.pvp_melee_kill_msg": "[{attacker}] derrotou [{victim}]",
+        "hud.chat.pvp_ranged_kill_msg": "[{attacker}] acertou [{victim}]",
+        "hud.chat.pvp_explosion_kill_msg": "[{attacker}] explodiu [{victim}]",
+
+        "hud.chat.npc_melee_kill_msg": "{attacker} matou [{victim}]",
+        "hud.chat.npc_ranged_kill_msg": "{attacker} acertou [{victim}]",
+        "hud.chat.npc_explosion_kill_msg": "{attacker} exoplodiu [{victim}]",
+
         "hud.chat.loot_msg": "Você pegou [{item}]",
-        "hud.chat.loot_fail": "Seu Inventário está cheio!",
-        "hud.chat.goodbye": "Tchau!",
-        "hud.chat.connection_lost": "Conexão perdida. Chutando em {time} segundos.",
+        "hud.chat.loot_fail": "Seu inventário está cheio!",
+        "hud.chat.goodbye": "Até Logo!",
+        "hud.chat.connection_lost": "Conexão perdida. Chutado em {time} segundos.",
 
         // SCT outputs
         "hud.sct.experience": "{amount} Exp",
@@ -250,21 +279,22 @@ itens magicamente modificados?"#,
         "hud.settings.incoming_damage": "Dano Recebido",
         "hud.settings.cumulated_incoming_damage": "Dano Recebido Acumulado",
         "hud.settings.speech_bubble": "Balão de Fala",
-	"hud.settings.speech_bubble_dark_mode": "Balão de Fala no modo escuro",
+	    "hud.settings.speech_bubble_dark_mode": "Balão de Fala no modo escuro",
         "hud.settings.speech_bubble_icon": "Ícone do Balão de Fala",
         "hud.settings.energybar_numbers": "Números da Barra de energia",
         "hud.settings.values": "Valores",
-        "hud.settings.percentages": "Porgentavens",
+        "hud.settings.percentages": "Porcentagens",
         "hud.settings.chat": "Chat",
         "hud.settings.background_transparency": "Transparência de Fundo",        
         "hud.settings.chat_character_name": "Nomes de Personagem no Chat",
+        "hud.settings.loading_tips": "Dicas durante o carregamento",
 
         "hud.settings.pan_sensitivity": "Sensibilidade de Rotação",
         "hud.settings.zoom_sensitivity": "Sensibilidade do Zoom",
         "hud.settings.invert_scroll_zoom": "Inverter Rolagem do Zoom",
         "hud.settings.invert_mouse_y_axis": "Inverter eixo Y do Mouse",
         "hud.settings.enable_mouse_smoothing": "Suavização da Câmera",
-        "hud.settings.free_look_behavior": "Comportamento de Câmera Livre",
+        "hud.settings.free_look_behavior": "Comportamento da Câmera livre",
         "hud.settings.auto_walk_behavior": "Comportamento do caminhar automático",
         "hud.settings.stop_auto_walk_on_input": "Parar caminhar automático em caso de movimento",
 
@@ -274,13 +304,32 @@ itens magicamente modificados?"#,
         "hud.settings.maximum_fps": "FPS máximo",
         "hud.settings.fov": "Campo de visão(graus)",
         "hud.settings.gamma": "Gama",
+        "hud.settings.ambiance": "Brilho do ambiente",
         "hud.settings.antialiasing_mode": "Modo de antialiasing",
         "hud.settings.cloud_rendering_mode": "Modo de Renderização das Nuvens",
         "hud.settings.fluid_rendering_mode": "Modo de Renderização dos Fluidos",
-        "hud.settings.fluid_rendering_mode.cheap": "Barato",
+        "hud.settings.fluid_rendering_mode.cheap": "Simples",
         "hud.settings.fluid_rendering_mode.shiny": "Brilhante",
         "hud.settings.cloud_rendering_mode.regular": "Normal",
         "hud.settings.fullscreen": "Tela Cheia",
+        "hud.settings.fullscreen_mode": "Modos de tela cheia",
+        "hud.settings.fullscreen_mode.exclusive": "Dedicado",
+        "hud.settings.fullscreen_mode.borderless": "Sem bordas",
+        "hud.settings.particles": "Partículas",
+        "hud.settings.resolution": "Resolução",
+        "hud.settings.bit_depth": "Intensidade de bit",
+        "hud.settings.refresh_rate": "Taxa de atualização",
+        "hud.settings.save_window_size": "Salvar tamanho da janela",
+        "hud.settings.lighting_rendering_mode": "Modo de renderização de luzes",
+        "hud.settings.lighting_rendering_mode.ashikhmin": "Tipo A",
+        "hud.settings.lighting_rendering_mode.blinnphong": "Tipo B",
+        "hud.settings.lighting_rendering_mode.lambertian": "Tipo L",
+        "hud.settings.shadow_rendering_mode": "Modo de renderização de sombras",
+        "hud.settings.shadow_rendering_mode.none": "Nenhum",
+        "hud.settings.shadow_rendering_mode.cheap": "Simples",
+        "hud.settings.shadow_rendering_mode.map": "Mapa",
+        "hud.settings.shadow_rendering_mode.map.resolution": "Resolução",
+        "hud.settings.lod_detail": "Detalhes",
         "hud.settings.save_window_size": "Salvar dimensões",
 
         "hud.settings.music_volume": "Volume da Música",
@@ -288,17 +337,44 @@ itens magicamente modificados?"#,
         "hud.settings.audio_device": "Dispositivo de Áudio",
 
         "hud.settings.awaitingkey": "Pressione qualquer tecla...",
+        "hud.settings.unbound": "Nenhum",
+        "hud.settings.reset_keybinds": "Voltar para o padrão",
 
-        "hud.social": "Social",
+        "hud.social": "Outros Jogadores",
         "hud.social.online": "Online",
         "hud.social.friends": "Amigos",
         "hud.social.not_yet_available": "Indisponível",
         "hud.social.faction": "Facção",
         "hud.social.play_online_fmt": "{nb_player} jogadores online",
+        "hud.social.name": "Nome",
+        "hud.social.level": "Nível",
+        "hud.social.zone": "Zona",
+        "hud.social.account": "Conta",
+
+
+        "hud.crafting": "Criação",
+        "hud.crafting.recipes": "Receitas",
+        "hud.crafting.ingredients": "Ingredientes:",
+        "hud.crafting.craft": "Criar",
+        "hud.crafting.tool_cata": "Precisa de:",
+
+        "hud.group": "Grupo",
+        "hud.group.invite_to_join": "{name} convidou você para o grupo!",
+        "hud.group.invite": "Convidar",
+        "hud.group.kick": "Expulsar",
+        "hud.group.assign_leader": "Atribuír líder",
+        "hud.group.leave": "Sair do Grupo",
+        "hud.group.dead" : "Morto",
+        "hud.group.out_of_range": "Fora de alcance",
+        "hud.group.add_friend": "Adicionar aos Amigos",
+        "hud.group.link_group": "Unir Grupos",
+        "hud.group.in_menu": "No Menu",
+        "hud.group.members": "Membros do Grupo",
 
         "hud.spell": "Magias",
 
-        "hud.free_look_indicator": "Camera livre ativa",       
+        "hud.free_look_indicator": "Câmera livre ativa.  Pressione {key} para desabilitar.",
+        "hud.auto_walk_indicator": "Caminhar automático ativado",
 
         /// End HUD section
 
@@ -337,7 +413,7 @@ itens magicamente modificados?"#,
         "gameinput.wallleap": "Pular na Parede",
         "gameinput.togglelantern": "Ligar/Desligar Lanterna",
         "gameinput.mount": "Montar",
-        "gameinput.enter": "Entrar",
+        "gameinput.chat": "Chat",
         "gameinput.command": "Comando",
         "gameinput.escape": "Esc",
         "gameinput.map": "Mapa",
@@ -353,7 +429,13 @@ itens magicamente modificados?"#,
         "gameinput.freelook": "Câmera Livre",
         "gameinput.autowalk": "Caminhar Automático",
         "gameinput.dance": "Dançar",
-
+        "gameinput.select": "Selecionar",
+        "gameinput.acceptgroupinvite": "Aceitar Convite de Grupo",
+        "gameinput.declinegroupinvite": "Negar Convite de Grupo",
+        "gameinput.crafting": "Criação",
+        "gameinput.sneak": "Furtividade",
+        "gameinput.swimdown": "Mergulhar",
+        "gameinput.swimup": "Emergir",
         
         /// End GameInput section
 
@@ -376,7 +458,7 @@ itens magicamente modificados?"#,
         "char_selection.beard": "Barba",
         "char_selection.hair_style": "Estilo do Cabelo",
         "char_selection.hair_color": "Cor do Cabelo",        
-        "char_selection.eye_color": "Cor de olho",
+        "char_selection.eye_color": "Cor de Olho",
         "char_selection.skin": "Pele",
         "char_selection.eyeshape": "Detalhe do olho",
         "char_selection.accessories": "Acessórios",
@@ -393,6 +475,8 @@ itens magicamente modificados?"#,
 Aptidão
 
 Força de Vontade
+
+Proteção
 "#,
         /// Start character window section
 
@@ -403,7 +487,29 @@ Força de Vontade
         /// End Escape Menu Section
     },
 
-    vector_map: {
+
+    vector_map: {     
+        "loading.tips": [
+            "Pressione 'G' para acender sua lanterna.",
+            "Pressione 'F1' para visualizar suas teclas de atalho.",
+            "Você pode digitar /say ou /s para conversar apenas com jogadores próximos a você.",
+            "Você pode digitar /region ou /r para conversar apenas com jogadores a poucas centenas de blocos de você.",
+            "Você pode digitar /group ou /g para conversar apenas com jogadores do seu grupo.",
+            "Para enviar mensagens privadas digite /tell seguido do nome do jogador desejado.",
+            "NPCs com o mesmo nível podem ter dificuldades distintas.",
+            "Busque sempre comida, baús e outros espólios espalhados pelo mundo!",
+            "Inventário cheio de comidas? Tente criar alimentos melhores com elas!",
+            "Imaginando o que há pra fazer? Cavernas estão marcadas com pontos marrons no mapa!",    
+            "Não esqueça de ajustar as configurações gráficas. Pressione 'N' para abrir as configurações.",
+            "Jogar com outros é divertido! Pressione 'O' para ver quem está online.", 
+            "Um NPC com uma caveira ao lado do nome é muito mais forte que você.",
+            "Pressione 'J' para dançar. Hora da festa!",
+            "Pressione 'Shift Esquerdo' para abrir o Planador e conquistar os céus.",
+            "Veloren ainda está no Pre-Alpha. Estamos nos empenhando ao máximo para melhorar a cada dia!",
+            "Se quiser ingressar no time de Desenvolvedores ou apenas conversar conosco, acesse o nosso servidor do Discord.",
+            "Você pode exibir sua saúde em sua barra de vida nas opções.",
+            "Para ver seus atributos clique no botão 'Estatísticas' no seu inventário.",           
+        ],
         "npc.speech.villager_under_attack": [
             "Ajuda, Estou sendo atacado!",
             "Ajuda! Estou sendo atacado!",
@@ -487,4 +593,3 @@ Força de Vontade
         ],
     }
 )
-
