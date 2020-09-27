@@ -4,7 +4,7 @@ use common::{
     comp::item::{
         armor::{Armor, ArmorKind},
         tool::{Tool, ToolKind},
-        Glider, Item, ItemKind, Lantern, Throwable, Utility,
+        Glider, ItemKind, Lantern, Throwable, Utility,
     },
     figure::Segment,
 };
@@ -29,9 +29,10 @@ pub enum ItemKey {
     Ingredient(String),
     Empty,
 }
-impl From<&Item> for ItemKey {
-    fn from(item: &Item) -> Self {
-        match &item.kind() {
+
+impl From<&ItemKind> for ItemKey {
+    fn from(item_kind: &ItemKind) -> Self {
+        match item_kind {
             ItemKind::Tool(Tool { kind, .. }) => ItemKey::Tool(kind.clone()),
             ItemKind::Lantern(Lantern { kind, .. }) => ItemKey::Lantern(kind.clone()),
             ItemKind::Glider(Glider { kind, .. }) => ItemKey::Glider(kind.clone()),

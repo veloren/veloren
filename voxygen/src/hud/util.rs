@@ -1,12 +1,12 @@
 use common::comp::item::{
     armor::{Armor, ArmorKind, Protection},
     tool::{Tool, ToolKind},
-    Item, ItemKind,
+    ItemDesc, ItemKind,
 };
 use std::borrow::Cow;
 
 pub fn loadout_slot_text<'a>(
-    item: Option<&'a Item>,
+    item: Option<&'a impl ItemDesc>,
     mut empty: impl FnMut() -> (&'a str, &'a str),
 ) -> (&'a str, Cow<'a, str>) {
     item.map_or_else(
@@ -18,7 +18,7 @@ pub fn loadout_slot_text<'a>(
     )
 }
 
-pub fn item_text<'a>(item: &'a Item) -> (&'_ str, Cow<'a, str>) {
+pub fn item_text<'a>(item: &'a impl ItemDesc) -> (&'_ str, Cow<'a, str>) {
     let desc: Cow<str> = match item.kind() {
         ItemKind::Armor(armor) => Cow::Owned(armor_desc(&armor, item.description())),
         ItemKind::Tool(tool) => Cow::Owned(tool_desc(&tool, item.description())),
@@ -34,6 +34,7 @@ pub fn item_text<'a>(item: &'a Item) -> (&'_ str, Cow<'a, str>) {
 
     (item.name(), desc)
 }
+
 // Armor Description
 fn armor_desc(armor: &Armor, desc: &str) -> String {
     // TODO: localization

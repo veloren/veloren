@@ -1,7 +1,7 @@
 pub mod item;
 pub mod slot;
 
-use crate::recipe::Recipe;
+use crate::{comp::inventory::item::ItemDef, recipe::Recipe};
 use core::ops::Not;
 use item::Item;
 use serde::{Deserialize, Serialize};
@@ -211,11 +211,11 @@ impl Inventory {
     }
 
     /// Determine how many of a particular item there is in the inventory.
-    pub fn item_count(&self, item: &Item) -> u64 {
+    pub fn item_count(&self, item_def: &ItemDef) -> u64 {
         self.slots()
             .iter()
             .flatten()
-            .filter(|it| it.superficially_eq(item))
+            .filter(|it| it.is_same_item_def(item_def))
             .map(|it| u64::from(it.amount()))
             .sum()
     }
@@ -228,15 +228,15 @@ impl Inventory {
     pub fn contains_ingredients<'a>(
         &self,
         recipe: &'a Recipe,
-    ) -> Result<Vec<u32>, Vec<(&'a Item, u32)>> {
+    ) -> Result<Vec<u32>, Vec<(&'a ItemDef, u32)>> {
         let mut slot_claims = vec![0; self.slots.len()];
-        let mut missing = Vec::new();
+        let mut missing = Vec::<(&ItemDef, u32)>::new();
 
         for (input, mut needed) in recipe.inputs() {
             let mut contains_any = false;
 
             for (i, slot) in self.slots().iter().enumerate() {
-                if let Some(item) = slot.as_ref().filter(|item| item.superficially_eq(input)) {
+                if let Some(item) = slot.as_ref().filter(|item| item.is_same_item_def(&*input)) {
                     let can_claim = (item.amount() - slot_claims[i]).min(needed);
                     slot_claims[i] += can_claim;
                     needed -= can_claim;
