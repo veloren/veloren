@@ -125,6 +125,15 @@ impl Block {
         }
     }
 
+    /// TODO: See if we can generalize this somehow.
+    #[inline]
+    pub const fn water(sprite: SpriteKind) -> Self {
+        Self {
+            kind: BlockKind::Water,
+            attr: [sprite as u8, 0, 0],
+        }
+    }
+
     #[inline]
     pub fn get_color(&self) -> Option<Rgb<u8>> {
         if self.has_color() {

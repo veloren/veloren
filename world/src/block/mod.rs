@@ -491,8 +491,6 @@ pub fn block_from_structure(
     let lerp = ((field.get(Vec3::from(structure_pos)).rem_euclid(256)) as f32 / 255.0) * 0.85
         + ((field.get(pos + std::i32::MAX / 2).rem_euclid(256)) as f32 / 255.0) * 0.15;
 
-    const EMPTY_SPRITE: Rgb<u8> = Rgb::new(SpriteKind::Empty as u8, 0, 0);
-
     match sblock {
         StructureBlock::None => None,
         StructureBlock::Hollow => Some(with_sprite(SpriteKind::Empty)),
@@ -501,12 +499,9 @@ pub fn block_from_structure(
             sample.surface_color.map(|e| (e * 255.0) as u8),
         )),
         StructureBlock::Normal(color) => Some(Block::new(BlockKind::Misc, color)),
-        StructureBlock::Water => Some(Block::new(BlockKind::Water, EMPTY_SPRITE)),
-        StructureBlock::GreenSludge => Some(Block::new(
-            // TODO: If/when liquid supports other colors again, revisit this.
-            BlockKind::Water,
-            EMPTY_SPRITE,
-        )),
+        StructureBlock::Water => Some(Block::water(SpriteKind::Empty)),
+        // TODO: If/when liquid supports other colors again, revisit this.
+        StructureBlock::GreenSludge => Some(Block::water(SpriteKind::Empty)),
         // None of these BlockKinds has an orientation, so we just use zero for the other color
         // bits.
         StructureBlock::Liana => Some(with_sprite(SpriteKind::Liana)),

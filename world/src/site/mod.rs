@@ -108,7 +108,7 @@ impl Site {
 
     pub fn apply_supplement<'a>(
         &'a self,
-        // NOTE: Used only for dynamic elemens like chests and entities!
+        // NOTE: Used only for dynamic elements like chests and entities!
         dynamic_rng: &mut impl Rng,
         wpos2d: Vec2<i32>,
         get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
