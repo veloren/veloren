@@ -1,27 +1,32 @@
-use common::{terrain::Block, vol::Vox};
+use common::terrain::Block;
 
 #[derive(Copy, Clone)]
 pub struct BlockMask {
-    block: Block,
+    block: Option<Block>,
     priority: i32,
 }
 
 impl BlockMask {
-    pub fn new(block: Block, priority: i32) -> Self { Self { block, priority } }
-
-    pub fn nothing() -> Self {
+    pub const fn new(block: Block, priority: i32) -> Self {
         Self {
-            block: Block::empty(),
+            block: Some(block),
+            priority,
+        }
+    }
+
+    pub const fn nothing() -> Self {
+        Self {
+            block: None,
             priority: 0,
         }
     }
 
-    pub fn with_priority(mut self, priority: i32) -> Self {
+    pub const fn with_priority(mut self, priority: i32) -> Self {
         self.priority = priority;
         self
     }
 
-    pub fn resolve_with(self, other: Self) -> Self {
+    pub const fn resolve_with(self, other: Self) -> Self {
         if self.priority >= other.priority {
             self
         } else {
@@ -29,11 +34,5 @@ impl BlockMask {
         }
     }
 
-    pub fn finish(self) -> Option<Block> {
-        if self.priority > 0 {
-            Some(self.block)
-        } else {
-            None
-        }
-    }
+    pub const fn finish(self) -> Option<Block> { self.block }
 }

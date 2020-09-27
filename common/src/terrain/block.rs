@@ -1,5 +1,5 @@
 use super::SpriteKind;
-use crate::{make_case_elim, vol::Vox};
+use crate::make_case_elim;
 use enum_iterator::IntoEnumIterator;
 use lazy_static::lazy_static;
 use num_derive::FromPrimitive;
@@ -101,20 +101,10 @@ impl Deref for Block {
     fn deref(&self) -> &Self::Target { &self.kind }
 }
 
-impl Vox for Block {
-    fn empty() -> Self {
-        Self {
-            kind: BlockKind::Air,
-            attr: [0; 3],
-        }
-    }
-
-    fn is_empty(&self) -> bool { *self == Block::empty() }
-}
-
 impl Block {
     pub const MAX_HEIGHT: f32 = 3.0;
 
+    #[inline]
     pub const fn new(kind: BlockKind, color: Rgb<u8>) -> Self {
         Self {
             kind,
@@ -127,9 +117,19 @@ impl Block {
         }
     }
 
+    #[inline]
     pub const fn air(sprite: SpriteKind) -> Self {
         Self {
             kind: BlockKind::Air,
+            attr: [sprite as u8, 0, 0],
+        }
+    }
+
+    /// TODO: See if we can generalize this somehow.
+    #[inline]
+    pub const fn water(sprite: SpriteKind) -> Self {
+        Self {
+            kind: BlockKind::Water,
             attr: [sprite as u8, 0, 0],
         }
     }
@@ -237,7 +237,9 @@ impl Block {
         if self.is_fluid() {
             Block::new(self.kind(), Rgb::zero())
         } else {
-            Block::empty()
+            // FIXME: Figure out if there's some sensible way to determine what medium to
+            // replace a filled block with if it's removed.
+            Block::air(SpriteKind::Empty)
         }
     }
 }

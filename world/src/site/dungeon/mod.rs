@@ -15,7 +15,7 @@ use common::{
     lottery::Lottery,
     store::{Id, Store},
     terrain::{Block, BlockKind, SpriteKind, Structure, TerrainChunkSize},
-    vol::{BaseVol, ReadVol, RectSizedVol, RectVolSize, Vox, WriteVol},
+    vol::{BaseVol, ReadVol, RectSizedVol, RectVolSize, WriteVol},
 };
 use core::{f32, hash::BuildHasherDefault};
 use fxhash::FxHasher64;
@@ -127,6 +127,8 @@ impl Dungeon {
                                 self.origin,
                                 self.seed,
                                 col_sample,
+                                // TODO: Take environment into account.
+                                Block::air,
                             )
                         })
                         .unwrap_or(None)
@@ -140,7 +142,13 @@ impl Dungeon {
                 for floor in &self.floors {
                     z -= floor.total_depth();
 
-                    let mut sampler = floor.col_sampler(index, rpos, z);
+                    let mut sampler = floor.col_sampler(
+                        index,
+                        rpos,
+                        z,
+                        // TODO: Take environment into account.
+                        Block::air,
+                    );
 
                     for rz in 0..floor.total_depth() {
                         if let Some(block) = sampler(rz).finish() {
@@ -155,7 +163,8 @@ impl Dungeon {
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     pub fn apply_supplement<'a>(
         &'a self,
-        rng: &mut impl Rng,
+        // NOTE: Used only for dynamic elements like chests and entities!
+        dynamic_rng: &mut impl Rng,
         wpos2d: Vec2<i32>,
         _get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
         supplement: &mut ChunkSupplement,
@@ -170,7 +179,7 @@ impl Dungeon {
         for floor in &self.floors {
             z -= floor.total_depth();
             let origin = Vec3::new(self.origin.x, self.origin.y, z);
-            floor.apply_supplement(rng, area, origin, supplement);
+            floor.apply_supplement(dynamic_rng, area, origin, supplement);
         }
     }
 }
@@ -208,7 +217,7 @@ pub struct Room {
     pillars: Option<i32>, // Pillars with the given separation
 }
 
-pub struct Floor {
+struct Floor {
     tile_offset: Vec2<i32>,
     tiles: Grid<Tile>,
     rooms: Store<Room>,
@@ -222,7 +231,7 @@ pub struct Floor {
 const FLOOR_SIZE: Vec2<i32> = Vec2::new(18, 18);
 
 impl Floor {
-    pub fn generate(
+    fn generate(
         ctx: &mut GenCtx<impl Rng>,
         stair_tile: Vec2<i32>,
         level: i32,
@@ -406,9 +415,10 @@ impl Floor {
     }
 
     #[allow(clippy::match_single_binding)] // TODO: Pending review in #587
-    pub fn apply_supplement(
+    fn apply_supplement(
         &self,
-        rng: &mut impl Rng,
+        // NOTE: Used only for dynamic elements like chests and entities!
+        dynamic_rng: &mut impl Rng,
         area: Aabr<i32>,
         origin: Vec3<i32>,
         supplement: &mut ChunkSupplement,
@@ -417,9 +427,12 @@ impl Floor {
             Vec3::from((self.stair_tile + self.tile_offset).map(|e| e * TILE_SIZE + TILE_SIZE / 2));
 
         if area.contains_point(stair_rcenter.xy()) {
-            let offs = Vec2::new(rng.gen_range(-1.0, 1.0), rng.gen_range(-1.0, 1.0))
-                .try_normalized()
-                .unwrap_or_else(Vec2::unit_y)
+            let offs = Vec2::new(
+                dynamic_rng.gen_range(-1.0, 1.0),
+                dynamic_rng.gen_range(-1.0, 1.0),
+            )
+            .try_normalized()
+            .unwrap_or_else(Vec2::unit_y)
                 * (TILE_SIZE as f32 / 2.0 - 4.0);
             if !self.final_level {
                 supplement.add_entity(
@@ -453,16 +466,17 @@ impl Floor {
 
                     if room
                         .enemy_density
-                        .map(|density| rng.gen_range(0, density.recip() as usize) == 0)
+                        .map(|density| dynamic_rng.gen_range(0, density.recip() as usize) == 0)
                         .unwrap_or(false)
                         && !tile_is_pillar
                     {
                         // Bad
-                        let chosen = Lottery::<String>::load_expect(match rng.gen_range(0, 5) {
-                            0 => "common.loot_tables.loot_table_humanoids",
-                            1 => "common.loot_tables.loot_table_armor_misc",
-                            _ => "common.loot_tables.loot_table_cultists",
-                        });
+                        let chosen =
+                            Lottery::<String>::load_expect(match dynamic_rng.gen_range(0, 5) {
+                                0 => "common.loot_tables.loot_table_humanoids",
+                                1 => "common.loot_tables.loot_table_armor_misc",
+                                _ => "common.loot_tables.loot_table_cultists",
+                            });
                         let chosen = chosen.choose();
                         let entity = EntityInfo::at(
                             tile_wcenter.map(|e| e as f32)
@@ -476,7 +490,7 @@ impl Floor {
                         .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
                         .with_automatic_name()
                         .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
-                        .with_main_tool(comp::Item::new_from_asset_expect(match rng.gen_range(0, 6) {
+                        .with_main_tool(comp::Item::new_from_asset_expect(match dynamic_rng.gen_range(0, 6) {
                             0 => "common.items.npc_weapons.axe.malachite_axe-0",
                             1 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
                             2 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
@@ -508,10 +522,10 @@ impl Floor {
                             );
                             let chosen = chosen.choose();
                             let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                .with_level(rng.gen_range(1, 5))
+                                .with_level(dynamic_rng.gen_range(1, 5))
                                 .with_alignment(comp::Alignment::Enemy)
                                 .with_body(comp::Body::Golem(comp::golem::Body::random_with(
-                                    rng,
+                                    dynamic_rng,
                                     &comp::golem::Species::StoneGolem,
                                 )))
                                 .with_name("Stonework Defender".to_string())
@@ -525,9 +539,9 @@ impl Floor {
         }
     }
 
-    pub fn total_depth(&self) -> i32 { self.solid_depth + self.hollow_depth }
+    fn total_depth(&self) -> i32 { self.solid_depth + self.hollow_depth }
 
-    pub fn nearest_wall(&self, rpos: Vec2<i32>) -> Option<Vec2<i32>> {
+    fn nearest_wall(&self, rpos: Vec2<i32>) -> Option<Vec2<i32>> {
         let tile_pos = rpos.map(|e| e.div_euclid(TILE_SIZE));
 
         DIRS.iter()
@@ -548,11 +562,12 @@ impl Floor {
     }
 
     #[allow(clippy::unnested_or_patterns)] // TODO: Pending review in #587
-    pub fn col_sampler<'a>(
+    fn col_sampler<'a>(
         &'a self,
         index: IndexRef<'a>,
         pos: Vec2<i32>,
         floor_z: i32,
+        mut with_sprite: impl FnMut(SpriteKind) -> Block,
     ) -> impl FnMut(i32) -> BlockMask + 'a {
         let rpos = pos - self.tile_offset * TILE_SIZE;
         let tile_pos = rpos.map(|e| e.div_euclid(TILE_SIZE));
@@ -561,7 +576,7 @@ impl Floor {
 
         let colors = &index.colors.site.dungeon;
 
-        let empty = BlockMask::new(Block::empty(), 1);
+        let vacant = BlockMask::new(with_sprite(SpriteKind::Empty), 1);
 
         let make_staircase = move |pos: Vec3<i32>, radius: f32, inner_radius: f32, stretch: f32| {
             let stone = BlockMask::new(Block::new(BlockKind::Rock, colors.stone.into()), 5);
@@ -576,7 +591,7 @@ impl Floor {
                 {
                     stone
                 } else {
-                    empty
+                    vacant
                 }
             } else {
                 BlockMask::nothing()
@@ -593,7 +608,7 @@ impl Floor {
 
         let floor_sprite = if RandomField::new(7331).chance(Vec3::from(pos), 0.00005) {
             BlockMask::new(
-                Block::air(
+                with_sprite(
                     match (RandomField::new(1337).get(Vec3::from(pos)) / 2) % 20 {
                         0 => SpriteKind::Apple,
                         1 => SpriteKind::VeloriteFrag,
@@ -609,12 +624,12 @@ impl Floor {
         {
             let room = &self.rooms[*room];
             if RandomField::new(room.seed).chance(Vec3::from(pos), room.loot_density * 0.5) {
-                BlockMask::new(Block::air(SpriteKind::Chest), 1)
+                BlockMask::new(with_sprite(SpriteKind::Chest), 1)
             } else {
-                empty
+                vacant
             }
         } else {
-            empty
+            vacant
         };
 
         let tunnel_height = if self.final_level { 16.0 } else { 8.0 };
@@ -625,7 +640,7 @@ impl Floor {
                 if dist_to_wall >= wall_thickness
                     && (z as f32) < tunnel_height * (1.0 - tunnel_dist.powf(4.0))
                 {
-                    if z == 0 { floor_sprite } else { empty }
+                    if z == 0 { floor_sprite } else { vacant }
                 } else {
                     BlockMask::nothing()
                 }
@@ -651,12 +666,12 @@ impl Floor {
                 if z == 0 {
                     floor_sprite
                 } else {
-                    empty
+                    vacant
                 }
             },
             Some(Tile::DownStair(_)) => {
                 make_staircase(Vec3::new(rtile_pos.x, rtile_pos.y, z), 0.0, 0.5, 9.0)
-                    .resolve_with(empty)
+                    .resolve_with(vacant)
             },
             Some(Tile::UpStair(room)) => {
                 let mut block = make_staircase(
@@ -666,7 +681,7 @@ impl Floor {
                     9.0,
                 );
                 if z < self.rooms[*room].height {
-                    block = block.resolve_with(empty);
+                    block = block.resolve_with(vacant);
                 }
                 block
             },

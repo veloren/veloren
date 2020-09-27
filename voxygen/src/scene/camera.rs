@@ -1,7 +1,4 @@
-use common::{
-    span,
-    vol::{ReadVol, Vox},
-};
+use common::{span, terrain::TerrainGrid, vol::ReadVol};
 use std::f32::consts::PI;
 use treeculler::Frustum;
 use vek::*;
@@ -80,7 +77,16 @@ impl Camera {
 
     /// Compute the transformation matrices (view matrix and projection matrix)
     /// and position of the camera.
-    pub fn compute_dependents(&mut self, terrain: &impl ReadVol) {
+    pub fn compute_dependents(&mut self, terrain: &TerrainGrid) {
+        self.compute_dependents_full(terrain, |block| !block.is_opaque())
+    }
+
+    /// The is_fluid argument should return true for transparent voxels.
+    pub fn compute_dependents_full<V: ReadVol>(
+        &mut self,
+        terrain: &V,
+        is_transparent: fn(&V::Vox) -> bool,
+    ) {
         span!(_guard, "compute_dependents", "Camera::compute_dependents");
         let dist = {
             let (start, end) = (self.focus - self.forward() * self.dist, self.focus);
@@ -89,7 +95,7 @@ impl Camera {
                 .ray(start, end)
                 .ignore_error()
                 .max_iter(500)
-                .until(|b| b.is_empty())
+                .until(is_transparent)
                 .cast()
             {
                 (d, Ok(Some(_))) => f32::min(self.dist - d - 0.03, self.dist),

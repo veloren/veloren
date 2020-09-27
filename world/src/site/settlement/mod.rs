@@ -20,7 +20,7 @@ use common::{
     spiral::Spiral2d,
     store::{Id, Store},
     terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
-    vol::{BaseVol, ReadVol, RectSizedVol, RectVolSize, Vox, WriteVol},
+    vol::{BaseVol, ReadVol, RectSizedVol, RectVolSize, WriteVol},
 };
 use fxhash::FxHasher64;
 use hashbrown::{HashMap, HashSet};
@@ -726,25 +726,26 @@ impl Settlement {
 
                             for z in -8 - diff..4 + diff {
                                 let pos = Vec3::new(offs.x, offs.y, surface_z + z);
-                                let block = vol.get(pos).ok().copied().unwrap_or_else(Block::empty);
-
-                                if block.is_empty() {
+                                let block = if let Ok(&block) = vol.get(pos) {
+                                    // TODO: Figure out whether extra filters are needed.
+                                    block
+                                } else {
                                     break;
-                                }
+                                };
 
                                 if let (0, Some(sprite)) = (z, surface_sprite) {
                                     let _ = vol.set(
                                         pos,
+                                        // TODO: Make more principled.
                                         if block.is_fluid() {
-                                            block
+                                            block.with_sprite(sprite)
                                         } else {
-                                            Block::empty()
-                                        }
-                                        .with_sprite(sprite),
+                                            Block::air(sprite)
+                                        },
                                     );
                                 } else if z >= 0 {
                                     if block.kind() != BlockKind::Water {
-                                        let _ = vol.set(pos, Block::empty());
+                                        let _ = vol.set(pos, Block::air(SpriteKind::Empty));
                                     }
                                 } else {
                                     let _ = vol.set(
@@ -835,7 +836,8 @@ impl Settlement {
     #[allow(clippy::eval_order_dependence)] // TODO: Pending review in #587
     pub fn apply_supplement<'a>(
         &'a self,
-        rng: &mut impl Rng,
+        // NOTE: Used only for dynamic elements like chests and entities!
+        dynamic_rng: &mut impl Rng,
         wpos2d: Vec2<i32>,
         mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
         supplement: &mut ChunkSupplement,
@@ -865,24 +867,25 @@ impl Settlement {
                     let is_dummy =
                         RandomField::new(self.seed + 1).chance(Vec3::from(wpos2d), 1.0 / 15.0);
                     let entity = EntityInfo::at(entity_wpos)
-                        .with_body(match rng.gen_range(0, 4) {
+                        .with_body(match dynamic_rng.gen_range(0, 4) {
                             _ if is_dummy => {
                                 is_human = false;
                                 object::Body::TrainingDummy.into()
                             },
                             0 => {
-                                let species = match rng.gen_range(0, 3) {
+                                let species = match dynamic_rng.gen_range(0, 3) {
                                     0 => quadruped_small::Species::Pig,
                                     1 => quadruped_small::Species::Sheep,
                                     _ => quadruped_small::Species::Cat,
                                 };
                                 is_human = false;
                                 comp::Body::QuadrupedSmall(quadruped_small::Body::random_with(
-                                    rng, &species,
+                                    dynamic_rng,
+                                    &species,
                                 ))
                             },
                             1 => {
-                                let species = match rng.gen_range(0, 4) {
+                                let species = match dynamic_rng.gen_range(0, 4) {
                                     0 => bird_medium::Species::Duck,
                                     1 => bird_medium::Species::Chicken,
                                     2 => bird_medium::Species::Goose,
@@ -890,7 +893,8 @@ impl Settlement {
                                 };
                                 is_human = false;
                                 comp::Body::BirdMedium(bird_medium::Body::random_with(
-                                    rng, &species,
+                                    dynamic_rng,
+                                    &species,
                                 ))
                             },
                             _ => {
@@ -906,9 +910,9 @@ impl Settlement {
                         } else {
                             comp::Alignment::Tame
                         })
-                        .do_if(is_human && rng.gen(), |entity| {
+                        .do_if(is_human && dynamic_rng.gen(), |entity| {
                             entity.with_main_tool(Item::new_from_asset_expect(
-                                match rng.gen_range(0, 7) {
+                                match dynamic_rng.gen_range(0, 7) {
                                     0 => "common.items.npc_weapons.tool.broom",
                                     1 => "common.items.npc_weapons.tool.hoe",
                                     2 => "common.items.npc_weapons.tool.pickaxe",

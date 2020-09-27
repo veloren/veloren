@@ -38,8 +38,8 @@ use common::{
     comp::{self, bird_medium, quadruped_low, quadruped_medium, quadruped_small},
     generation::{ChunkSupplement, EntityInfo},
     msg::server::WorldMapMsg,
-    terrain::{Block, BlockKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
-    vol::{ReadVol, RectVolSize, Vox, WriteVol},
+    terrain::{Block, BlockKind, SpriteKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
+    vol::{ReadVol, RectVolSize, WriteVol},
 };
 use rand::Rng;
 use serde::Deserialize;
@@ -114,7 +114,7 @@ impl World {
             |offs| sampler.get_z_cache(chunk_wpos2d - grid_border + offs, index),
         );
 
-        let air = Block::empty();
+        let air = Block::air(SpriteKind::Empty);
         let stone = Block::new(
             BlockKind::Rock,
             zcache_grid
@@ -195,7 +195,8 @@ impl World {
                 .map(|zc| &zc.sample)
         };
 
-        let mut rng = rand::thread_rng();
+        // Only use for rng affecting dynamic elements like chests and entities!
+        let mut dynamic_rng = rand::thread_rng();
 
         // Apply layers (paths, caves, etc.)
         layer::apply_caves_to(chunk_wpos2d, sample_get, &mut chunk, index);
@@ -207,17 +208,17 @@ impl World {
             index.sites[*site].apply_to(index, chunk_wpos2d, sample_get, &mut chunk)
         });
 
-        let gen_entity_pos = || {
+        let gen_entity_pos = |dynamic_rng: &mut rand::rngs::ThreadRng| {
             let lpos2d = TerrainChunkSize::RECT_SIZE
-                .map(|sz| rand::thread_rng().gen::<u32>().rem_euclid(sz) as i32);
+                .map(|sz| dynamic_rng.gen::<u32>().rem_euclid(sz) as i32);
             let mut lpos = Vec3::new(
                 lpos2d.x,
                 lpos2d.y,
                 sample_get(lpos2d).map(|s| s.alt as i32 - 32).unwrap_or(0),
             );
 
-            while chunk.get(lpos).map(|vox| !vox.is_empty()).unwrap_or(false) {
-                lpos.z += 1;
+            while let Some(block) = chunk.get(lpos).ok().copied().filter(Block::is_solid) {
+                lpos.z += block.solid_height().ceil() as i32;
             }
 
             (Vec3::from(chunk_wpos2d) + lpos).map(|e: i32| e as f32) + 0.5
@@ -225,18 +226,18 @@ impl World {
 
         const SPAWN_RATE: f32 = 0.1;
         let mut supplement = ChunkSupplement {
-            entities: if rng.gen::<f32>() < SPAWN_RATE
+            entities: if dynamic_rng.gen::<f32>() < SPAWN_RATE
                 && sim_chunk.chaos < 0.5
                 && !sim_chunk.is_underwater()
             {
                 // TODO: REFACTOR: Define specific alignments in a config file instead of here
                 let is_hostile: bool;
-                let is_giant = rng.gen_range(0, 8) == 0;
+                let is_giant = dynamic_rng.gen_range(0, 8) == 0;
                 let quadmed = comp::Body::QuadrupedMedium(quadruped_medium::Body::random()); // Not all of them are hostile so we have to do the rng here
                 let quadlow = comp::Body::QuadrupedLow(quadruped_low::Body::random()); // Not all of them are hostile so we have to do the rng here
-                let entity = EntityInfo::at(gen_entity_pos())
+                let entity = EntityInfo::at(gen_entity_pos(&mut dynamic_rng))
                     .do_if(is_giant, |e| e.into_giant())
-                    .with_body(match rng.gen_range(0, 5) {
+                    .with_body(match dynamic_rng.gen_range(0, 5) {
                         0 => {
                             match quadmed {
                                 comp::Body::QuadrupedMedium(quadruped_medium) => {
@@ -292,12 +293,12 @@ impl World {
         };
 
         if sim_chunk.contains_waypoint {
-            supplement.add_entity(EntityInfo::at(gen_entity_pos()).into_waypoint());
+            supplement.add_entity(EntityInfo::at(gen_entity_pos(&mut dynamic_rng)).into_waypoint());
         }
 
         // Apply layer supplement
         layer::apply_caves_supplement(
-            &mut rng,
+            &mut dynamic_rng,
             chunk_wpos2d,
             sample_get,
             &chunk,
@@ -307,7 +308,12 @@ impl World {
 
         // Apply site supplementary information
         sim_chunk.sites.iter().for_each(|site| {
-            index.sites[*site].apply_supplement(&mut rng, chunk_wpos2d, sample_get, &mut supplement)
+            index.sites[*site].apply_supplement(
+                &mut dynamic_rng,
+                chunk_wpos2d,
+                sample_get,
+                &mut supplement,
+            )
         });
 
         Ok((chunk, supplement))

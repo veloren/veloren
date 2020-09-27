@@ -139,6 +139,24 @@ impl SpriteKind {
             SpriteKind::WardrobeSingle => 3.0,
             SpriteKind::WardrobeDouble => 3.0,
             SpriteKind::Pot => 0.90,
+            // TODO: Find suitable heights.
+            SpriteKind::BarrelCactus
+            | SpriteKind::RoundCactus
+            | SpriteKind::ShortCactus
+            | SpriteKind::MedFlatCactus
+            | SpriteKind::ShortFlatCactus
+            | SpriteKind::Apple
+            | SpriteKind::Velorite
+            | SpriteKind::VeloriteFrag
+            | SpriteKind::Coconut
+            | SpriteKind::StreetLampTall
+            | SpriteKind::Window1
+            | SpriteKind::Window2
+            | SpriteKind::Window3
+            | SpriteKind::Window4
+            | SpriteKind::DropGate => 1.0,
+            // TODO: Figure out if this should be solid or not.
+            SpriteKind::Shelf => 1.0,
             _ => return None,
         })
     }

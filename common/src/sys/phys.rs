@@ -358,6 +358,7 @@ impl<'a> System<'a> for Sys {
                         pos: Vec3<f32>,
                         terrain: &'a TerrainGrid,
                         hit: &'a impl Fn(&Block) -> bool,
+                        height: &'a impl Fn(&Block) -> f32,
                         near_iter: impl Iterator<Item = (i32, i32, i32)> + 'a,
                         radius: f32,
                         z_range: Range<f32>,
@@ -373,7 +374,7 @@ impl<'a> System<'a> for Sys {
                                 let block_aabb = Aabb {
                                     min: block_pos.map(|e| e as f32),
                                     max: block_pos.map(|e| e as f32)
-                                        + Vec3::new(1.0, 1.0, block.solid_height()),
+                                        + Vec3::new(1.0, 1.0, height(&block)),
                                 };
 
                                 if player_aabb.collides_with_aabb(block_aabb) {
@@ -391,12 +392,12 @@ impl<'a> System<'a> for Sys {
                     fn collision_with<'a>(
                         pos: Vec3<f32>,
                         terrain: &'a TerrainGrid,
-                        hit: &impl Fn(&Block) -> bool,
+                        hit: impl Fn(&Block) -> bool,
                         near_iter: impl Iterator<Item = (i32, i32, i32)> + 'a,
                         radius: f32,
                         z_range: Range<f32>,
                     ) -> bool {
-                        collision_iter(pos, terrain, hit, near_iter, radius, z_range).count()
+                        collision_iter(pos, terrain, &|block| block.is_solid() && hit(block), &Block::solid_height, near_iter, radius, z_range).count()
                             > 0
                     };
 
@@ -412,13 +413,14 @@ impl<'a> System<'a> for Sys {
                         .ceil()
                         .max(1.0);
                     let old_pos = pos.0;
+                    fn block_true(_: &Block) -> bool { true }
                     for _ in 0..increments as usize {
                         pos.0 += pos_delta / increments;
 
                         const MAX_ATTEMPTS: usize = 16;
 
                         // While the player is colliding with the terrain...
-                        while collision_with(pos.0, &terrain, &|block| block.is_solid(), near_iter.clone(), radius, z_range.clone())
+                        while collision_with(pos.0, &terrain, block_true, near_iter.clone(), radius, z_range.clone())
                             && attempts < MAX_ATTEMPTS
                         {
                             // Calculate the player's AABB
@@ -492,7 +494,7 @@ impl<'a> System<'a> for Sys {
 
                             // When the resolution direction is non-vertical, we must be colliding
                             // with a wall If the space above is free...
-                            if !collision_with(Vec3::new(pos.0.x, pos.0.y, (pos.0.z + 0.1).ceil()), &terrain, &|block| block.is_solid(), near_iter.clone(), radius, z_range.clone())
+                            if !collision_with(Vec3::new(pos.0.x, pos.0.y, (pos.0.z + 0.1).ceil()), &terrain, block_true, near_iter.clone(), radius, z_range.clone())
                                 // ...and we're being pushed out horizontally...
                                 && resolve_dir.z == 0.0
                                 // ...and the vertical resolution direction is sufficiently great...
@@ -506,7 +508,7 @@ impl<'a> System<'a> for Sys {
                                 && collision_with(
                                     pos.0 + resolve_dir - Vec3::unit_z() * 1.05,
                                     &terrain,
-                                    &|block| block.is_solid(),
+                                    block_true,
                                     near_iter.clone(),
                                     radius,
                                     z_range.clone(),
@@ -548,7 +550,7 @@ impl<'a> System<'a> for Sys {
                     } else if collision_with(
                         pos.0 - Vec3::unit_z() * 1.05,
                         &terrain,
-                        &|block| block.is_solid(),
+                        block_true,
                         near_iter.clone(),
                         radius,
                         z_range.clone(),
@@ -558,10 +560,7 @@ impl<'a> System<'a> for Sys {
                         && !collision_with(
                             pos.0 - Vec3::unit_z() * 0.05,
                             &terrain,
-                            &|block| {
-                                block.is_solid()
-                                    && block.solid_height() >= (pos.0.z - 0.05).rem_euclid(1.0)
-                            },
+                            |block| block.solid_height() >= (pos.0.z - 0.05).rem_euclid(1.0),
                             near_iter.clone(),
                             radius,
                             z_range.clone(),
@@ -592,7 +591,7 @@ impl<'a> System<'a> for Sys {
                             if collision_with(
                                 pos.0 + *dir * 0.01,
                                 &terrain,
-                                &|block| block.is_solid(),
+                                block_true,
                                 near_iter.clone(),
                                 radius,
                                 z_range.clone(),
@@ -613,6 +612,8 @@ impl<'a> System<'a> for Sys {
                         pos.0,
                         &terrain,
                         &|block| block.is_liquid(),
+                        // The liquid part of a liquid block always extends 1 block high.
+                        &|_block| 1.0,
                         near_iter.clone(),
                         radius,
                         z_min..z_max,
@@ -622,7 +623,7 @@ impl<'a> System<'a> for Sys {
                 },
                 Collider::Point => {
                     let (dist, block) = terrain.ray(pos.0, pos.0 + pos_delta)
-                        .until(|vox| !vox.is_air() && !vox.is_liquid())
+                        .until(|block| block.is_filled())
                         .ignore_error().cast();
 
                     pos.0 += pos_delta.try_normalized().unwrap_or(Vec3::zero()) * dist;
