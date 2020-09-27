@@ -85,7 +85,7 @@ impl ChunkGenerator {
     }
 
     pub fn cancel_all(&mut self) {
-        let metrics = self.metrics.clone();
+        let metrics = Arc::clone(&self.metrics);
         self.pending_chunks.drain().for_each(|(_, cancel)| {
             cancel.store(true, Ordering::Relaxed);
             metrics.chunks_canceled.inc();

@@ -216,7 +216,7 @@ impl Scheduler {
                         Protocols::Tcp(TcpProtocol::new(
                             stream,
                             #[cfg(feature = "metrics")]
-                            self.metrics.clone(),
+                            Arc::clone(&self.metrics),
                         )),
                         false,
                     )
@@ -241,14 +241,14 @@ impl Scheduler {
                     info!("Connecting Udp to: {}", addr);
                     let (udp_data_sender, udp_data_receiver) = mpsc::unbounded::<Vec<u8>>();
                     let protocol = UdpProtocol::new(
-                        socket.clone(),
+                        Arc::clone(&socket),
                         addr,
                         #[cfg(feature = "metrics")]
-                        self.metrics.clone(),
+                        Arc::clone(&self.metrics),
                         udp_data_receiver,
                     );
                     self.pool.spawn_ok(
-                        Self::udp_single_channel_connect(socket.clone(), udp_data_sender)
+                        Self::udp_single_channel_connect(Arc::clone(&socket), udp_data_sender)
                             .instrument(tracing::info_span!("udp", ?addr)),
                     );
                     (Protocols::Udp(protocol), true)
@@ -396,7 +396,7 @@ impl Scheduler {
                     let protocol = TcpProtocol::new(
                         stream,
                         #[cfg(feature = "metrics")]
-                        self.metrics.clone(),
+                        Arc::clone(&self.metrics),
                     );
                     self.init_protocol(Protocols::Tcp(protocol), None, true)
                         .await;
@@ -439,10 +439,10 @@ impl Scheduler {
                         let (udp_data_sender, udp_data_receiver) = mpsc::unbounded::<Vec<u8>>();
                         listeners.insert(remote_addr, udp_data_sender);
                         let protocol = UdpProtocol::new(
-                            socket.clone(),
+                            Arc::clone(&socket),
                             remote_addr,
                             #[cfg(feature = "metrics")]
-                            self.metrics.clone(),
+                            Arc::clone(&self.metrics),
                             udp_data_receiver,
                         );
                         self.init_protocol(Protocols::Udp(protocol), None, false)
@@ -499,10 +499,10 @@ impl Scheduler {
         // the whole server easily for new clients UDP doesnt work at all, as
         // the UDP listening is done in another place.
         let cid = self.channel_ids.fetch_add(1, Ordering::Relaxed);
-        let participants = self.participants.clone();
+        let participants = Arc::clone(&self.participants);
         #[cfg(feature = "metrics")]
-        let metrics = self.metrics.clone();
-        let pool = self.pool.clone();
+        let metrics = Arc::clone(&self.metrics);
+        let pool = Arc::clone(&self.pool);
         let local_pid = self.local_pid;
         let local_secret = self.local_secret;
         // this is necessary for UDP to work at all and to remove code duplication
@@ -514,7 +514,7 @@ impl Scheduler {
                     local_pid,
                     local_secret,
                     #[cfg(feature = "metrics")]
-                    metrics.clone(),
+                    Arc::clone(&metrics),
                     send_handshake,
                 );
                 match handshake
@@ -541,7 +541,7 @@ impl Scheduler {
                                 pid,
                                 sid,
                                 #[cfg(feature = "metrics")]
-                                metrics.clone(),
+                                Arc::clone(&metrics),
                             );
 
                             let participant = Participant::new(

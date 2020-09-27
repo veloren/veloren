@@ -1,6 +1,7 @@
 #![deny(unsafe_code)]
 #![cfg_attr(test, deny(rust_2018_idioms))]
 #![cfg_attr(test, deny(warnings))]
+#![deny(clippy::clone_on_ref_ptr)]
 #![feature(try_trait)]
 
 //! Crate to handle high level networking of messages with different

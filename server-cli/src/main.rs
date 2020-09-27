@@ -1,4 +1,5 @@
 #![deny(unsafe_code)]
+#![deny(clippy::clone_on_ref_ptr)]
 
 mod tui_runner;
 mod tuilog;

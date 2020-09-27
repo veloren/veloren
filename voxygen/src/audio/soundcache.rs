@@ -22,7 +22,7 @@ impl Sound {
         Ok(Sound(Arc::new(buf)))
     }
 
-    pub fn cursor(&self) -> io::Cursor<Sound> { io::Cursor::new(Sound(self.0.clone())) }
+    pub fn cursor(&self) -> io::Cursor<Sound> { io::Cursor::new(Sound(Arc::clone(&self.0))) }
 
     pub fn decoder(&self) -> rodio::Decoder<io::Cursor<Sound>> {
         rodio::Decoder::new(self.cursor()).unwrap()

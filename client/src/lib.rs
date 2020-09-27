@@ -1,4 +1,5 @@
 #![deny(unsafe_code)]
+#![deny(clippy::clone_on_ref_ptr)]
 #![feature(label_break_value, option_zip)]
 
 pub mod cmd;

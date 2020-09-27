@@ -147,7 +147,7 @@ impl BParticipant {
         let (w2b_frames_s, w2b_frames_r) = mpsc::unbounded::<C2pFrame>();
         let (prios, a2p_msg_s, b2p_notify_empty_stream_s) = PrioManager::new(
             #[cfg(feature = "metrics")]
-            self.metrics.clone(),
+            Arc::clone(&self.metrics),
             self.remote_pid_string.clone(),
         );
 
@@ -486,7 +486,7 @@ impl BParticipant {
                     // This channel is now configured, and we are running it in scope of the
                     // participant.
                     let w2b_frames_s = w2b_frames_s.clone();
-                    let channels = self.channels.clone();
+                    let channels = Arc::clone(&self.channels);
                     async move {
                         let (channel, b2w_frame_s, b2r_read_shutdown) = Channel::new(cid);
                         let mut lock = channels.write().await;
@@ -772,7 +772,7 @@ impl BParticipant {
         self.streams.write().await.insert(sid, StreamInfo {
             prio,
             promises,
-            send_closed: send_closed.clone(),
+            send_closed: Arc::clone(&send_closed),
             b2a_msg_recv_s: Mutex::new(b2a_msg_recv_s),
         });
         #[cfg(feature = "metrics")]
