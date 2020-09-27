@@ -18,7 +18,7 @@ use common::{
     span,
     spiral::Spiral2d,
     terrain::{sprite, Block, SpriteKind, TerrainChunk},
-    vol::{BaseVol, ReadVol, RectRasterableVol, SampleVol, Vox},
+    vol::{BaseVol, ReadVol, RectRasterableVol, SampleVol},
     volumes::vol_grid_2d::{VolGrid2d, VolGrid2dError},
 };
 use core::{f32, fmt::Debug, i32, marker::PhantomData, time::Duration};
@@ -145,7 +145,11 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
                         let rel_pos = Vec3::new(x, y, z);
                         let wpos = Vec3::from(pos * V::RECT_SIZE.map(|e: u32| e as i32)) + rel_pos;
 
-                        let block = volume.get(wpos).ok().copied().unwrap_or(Block::empty());
+                        let block = if let Ok(block) = volume.get(wpos) {
+                            block
+                        } else {
+                            continue;
+                        };
                         let sprite = if let Some(sprite) = block.get_sprite() {
                             sprite
                         } else {

@@ -9,7 +9,6 @@ use crate::{
 use common::{
     make_case_elim,
     terrain::{Block, BlockKind, SpriteKind},
-    vol::Vox,
 };
 use rand::prelude::*;
 use serde::Deserialize;
@@ -293,8 +292,9 @@ impl Archetype for House {
         let floor = make_block(colors.floor);
         let wall = make_block(wall_color).with_priority(facade_layer);
         let roof = make_block(roof_color).with_priority(facade_layer - 1);
-        let empty = BlockMask::nothing();
-        let internal = BlockMask::new(Block::empty(), internal_layer);
+        const EMPTY: BlockMask = BlockMask::nothing();
+        // TODO: Take environment into account.
+        let internal = BlockMask::new(Block::air(SpriteKind::Empty), internal_layer);
         let end_window = BlockMask::new(
             Block::air(attr.window)
                 .with_ori(match ori {
@@ -399,7 +399,7 @@ impl Archetype for House {
                 let roof_level = roof_top - roof_profile.x.max(mansard);
 
                 if profile.y > roof_level {
-                    return None;
+                    return EMPTY;
                 }
 
                 // Roof
@@ -409,9 +409,9 @@ impl Archetype for House {
                     if (roof_profile.x == 0 && mansard == 0) || roof_dist == width + 2 || is_ribbing
                     {
                         // Eaves
-                        return Some(log);
+                        return log;
                     } else {
-                        return Some(roof);
+                        return roof;
                     }
                 }
 
@@ -427,44 +427,42 @@ impl Archetype for House {
                         && attr.storey_fill.has_lower()
                         && storey == 0
                     {
-                        return Some(
-                            if (bound_offset.x == (width - 1) / 2
-                                || bound_offset.x == (width - 1) / 2 + 1)
-                                && profile.y <= foundation_height + 3
-                            {
-                                // Doors on first floor only
-                                if profile.y == foundation_height + 1 {
-                                    BlockMask::new(
-                                        Block::air(SpriteKind::Door)
-                                            .with_ori(
-                                                match ori {
-                                                    Ori::East => 2,
-                                                    Ori::North => 0,
-                                                } + if bound_offset.x == (width - 1) / 2 {
-                                                    0
-                                                } else {
-                                                    4
-                                                },
-                                            )
-                                            .unwrap(),
-                                        structural_layer,
-                                    )
-                                } else {
-                                    empty.with_priority(structural_layer)
-                                }
+                        return if (bound_offset.x == (width - 1) / 2
+                            || bound_offset.x == (width - 1) / 2 + 1)
+                            && profile.y <= foundation_height + 3
+                        {
+                            // Doors on first floor only
+                            if profile.y == foundation_height + 1 {
+                                BlockMask::new(
+                                    Block::air(SpriteKind::Door)
+                                        .with_ori(
+                                            match ori {
+                                                Ori::East => 2,
+                                                Ori::North => 0,
+                                            } + if bound_offset.x == (width - 1) / 2 {
+                                                0
+                                            } else {
+                                                4
+                                            },
+                                        )
+                                        .unwrap(),
+                                    structural_layer,
+                                )
                             } else {
-                                wall
-                            },
-                        );
+                                EMPTY.with_priority(structural_layer)
+                            }
+                        } else {
+                            wall
+                        };
                     }
 
                     if bound_offset.x == bound_offset.y || profile.y == ceil_height {
                         // Support beams
-                        return Some(log);
+                        return log;
                     } else if !attr.storey_fill.has_lower() && profile.y < ceil_height {
-                        return Some(empty);
+                        return EMPTY;
                     } else if !attr.storey_fill.has_upper() {
-                        return Some(empty);
+                        return EMPTY;
                     } else {
                         let (frame_bounds, frame_borders) = if profile.y >= ceil_height {
                             (
@@ -495,19 +493,19 @@ impl Archetype for House {
                             // Window frame is large enough for a window
                             let surface_pos = Vec2::new(bound_offset.x, profile.y);
                             if window_bounds.contains_point(surface_pos) {
-                                return Some(end_window);
+                                return end_window;
                             } else if frame_bounds.contains_point(surface_pos) {
-                                return Some(log.with_priority(structural_layer));
+                                return log.with_priority(structural_layer);
                             };
                         }
 
                         // Wall
-                        return Some(if attr.central_supports && profile.x == 0 {
+                        return if attr.central_supports && profile.x == 0 {
                             // Support beams
                             log.with_priority(structural_layer)
                         } else {
                             wall
-                        });
+                        };
                     }
                 }
 
@@ -516,15 +514,15 @@ impl Archetype for House {
                     if profile.y == ceil_height {
                         if profile.x == 0 {
                             // Rafters
-                            return Some(log);
+                            return log;
                         } else if attr.storey_fill.has_upper() {
                             // Ceiling
-                            return Some(floor);
+                            return floor;
                         }
                     } else if (!attr.storey_fill.has_lower() && profile.y < ceil_height)
                         || (!attr.storey_fill.has_upper() && profile.y >= ceil_height)
                     {
-                        return Some(empty);
+                        return EMPTY;
                     // Furniture
                     } else if dist == width - 1
                         && center_offset.sum() % 2 == 0
@@ -533,7 +531,8 @@ impl Archetype for House {
                             .noise
                             .chance(Vec3::new(center_offset.x, center_offset.y, z), 0.2)
                     {
-                        let mut rng = rand::thread_rng();
+                        // NOTE: Used only for dynamic elements like chests and entities!
+                        let mut dynamic_rng = rand::thread_rng();
                         let furniture = match self.noise.get(Vec3::new(
                             center_offset.x,
                             center_offset.y,
@@ -545,7 +544,7 @@ impl Archetype for House {
                             2 => SpriteKind::ChairDouble,
                             3 => SpriteKind::CoatRack,
                             4 => {
-                                if rng.gen_range(0, 8) == 0 {
+                                if dynamic_rng.gen_range(0, 8) == 0 {
                                     SpriteKind::Chest
                                 } else {
                                     SpriteKind::Crate
@@ -558,12 +557,12 @@ impl Archetype for House {
                             _ => SpriteKind::Pot,
                         };
 
-                        return Some(BlockMask::new(
+                        return BlockMask::new(
                             Block::air(furniture).with_ori(edge_ori).unwrap(),
                             internal_layer,
-                        ));
+                        );
                     } else {
-                        return Some(internal);
+                        return internal;
                     }
                 }
 
@@ -587,38 +586,30 @@ impl Archetype for House {
                             _ => SpriteKind::DungeonWallDecor,
                         };
 
-                    Some(BlockMask::new(
+                    BlockMask::new(
                         Block::air(ornament).with_ori((edge_ori + 4) % 8).unwrap(),
                         internal_layer,
-                    ))
+                    )
                 } else {
-                    None
+                    EMPTY
                 }
             };
 
-        let mut cblock = empty;
-
-        if let Some(block) =
-            do_roof_wall(profile, width, dist, bound_offset, roof_top, attr.mansard)
-        {
-            cblock = cblock.resolve_with(block);
-        }
+        let mut cblock = do_roof_wall(profile, width, dist, bound_offset, roof_top, attr.mansard);
 
         if let Pillar::Tower(tower_height) = attr.pillar {
             let tower_top = roof_top + tower_height;
             let profile = Vec2::new(center_offset.x.abs(), profile.y);
             let dist = center_offset.map(|e| e.abs()).reduce_max();
 
-            if let Some(block) = do_roof_wall(
+            cblock = cblock.resolve_with(do_roof_wall(
                 profile,
                 4,
                 dist,
                 center_offset.map(|e| e.abs()),
                 tower_top,
                 attr.mansard,
-            ) {
-                cblock = cblock.resolve_with(block);
-            }
+            ));
         }
 
         cblock

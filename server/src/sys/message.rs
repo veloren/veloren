@@ -22,8 +22,8 @@ use common::{
     span,
     state::{BlockChange, Time},
     sync::Uid,
-    terrain::{Block, TerrainChunkSize, TerrainGrid},
-    vol::{RectVolSize, Vox},
+    terrain::{TerrainChunkSize, TerrainGrid},
+    vol::{ReadVol, RectVolSize},
 };
 use futures_executor::block_on;
 use futures_timer::Delay;
@@ -309,8 +309,8 @@ impl Sys {
                     _ => client.error_state(RequestStateError::Impossible),
                 },
                 ClientMsg::BreakBlock(pos) => {
-                    if can_build.get(entity).is_some() {
-                        block_changes.set(pos, Block::empty());
+                    if let Some(block) = can_build.get(entity).and_then(|_| terrain.get(pos).ok()) {
+                        block_changes.set(pos, block.into_vacant());
                     }
                 },
                 ClientMsg::PlaceBlock(pos, block) => {

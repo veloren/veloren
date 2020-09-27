@@ -1,11 +1,8 @@
-use crate::{
-    span,
-    vol::{ReadVol, Vox},
-};
+use crate::{span, vol::ReadVol};
 use vek::*;
 
-pub trait RayUntil<V: Vox> = FnMut(&V) -> bool;
-pub trait RayForEach<V: Vox> = FnMut(&V, Vec3<i32>);
+pub trait RayUntil<V> = FnMut(&V) -> bool;
+pub trait RayForEach<V> = FnMut(&V, Vec3<i32>);
 
 pub struct Ray<'a, V: ReadVol, F: RayUntil<V::Vox>, G: RayForEach<V::Vox>> {
     vol: &'a V,

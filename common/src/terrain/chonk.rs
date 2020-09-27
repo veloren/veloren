@@ -1,7 +1,7 @@
 use crate::{
     vol::{
         BaseVol, IntoPosIterator, IntoVolIterator, ReadVol, RectRasterableVol, RectVolSize,
-        VolSize, Vox, WriteVol,
+        VolSize, WriteVol,
     },
     volumes::chunk::{Chunk, ChunkError, ChunkPosIter, ChunkVolIter},
 };
@@ -34,7 +34,7 @@ impl<ChonkSize: RectVolSize> VolSize for SubChunkSize<ChonkSize> {
 type SubChunk<V, S, M> = Chunk<V, SubChunkSize<S>, M>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Chonk<V: Vox, S: RectVolSize, M: Clone> {
+pub struct Chonk<V, S: RectVolSize, M: Clone> {
     z_offset: i32,
     sub_chunks: Vec<SubChunk<V, S, M>>,
     below: V,
@@ -43,7 +43,7 @@ pub struct Chonk<V: Vox, S: RectVolSize, M: Clone> {
     phantom: PhantomData<S>,
 }
 
-impl<V: Vox, S: RectVolSize, M: Clone> Chonk<V, S, M> {
+impl<V, S: RectVolSize, M: Clone> Chonk<V, S, M> {
     pub fn new(z_offset: i32, below: V, above: V, meta: M) -> Self {
         Self {
             z_offset,
@@ -82,16 +82,16 @@ impl<V: Vox, S: RectVolSize, M: Clone> Chonk<V, S, M> {
     fn sub_chunk_min_z(&self, z: i32) -> i32 { z - self.sub_chunk_z(z) }
 }
 
-impl<V: Vox, S: RectVolSize, M: Clone> BaseVol for Chonk<V, S, M> {
+impl<V, S: RectVolSize, M: Clone> BaseVol for Chonk<V, S, M> {
     type Error = ChonkError;
     type Vox = V;
 }
 
-impl<V: Vox, S: RectVolSize, M: Clone> RectRasterableVol for Chonk<V, S, M> {
+impl<V, S: RectVolSize, M: Clone> RectRasterableVol for Chonk<V, S, M> {
     const RECT_SIZE: Vec2<u32> = S::RECT_SIZE;
 }
 
-impl<V: Vox, S: RectVolSize, M: Clone> ReadVol for Chonk<V, S, M> {
+impl<V, S: RectVolSize, M: Clone> ReadVol for Chonk<V, S, M> {
     #[inline(always)]
     fn get(&self, pos: Vec3<i32>) -> Result<&V, Self::Error> {
         if pos.z < self.get_min_z() {
@@ -113,7 +113,7 @@ impl<V: Vox, S: RectVolSize, M: Clone> ReadVol for Chonk<V, S, M> {
     }
 }
 
-impl<V: Vox, S: RectVolSize, M: Clone> WriteVol for Chonk<V, S, M> {
+impl<V: Clone + PartialEq, S: RectVolSize, M: Clone> WriteVol for Chonk<V, S, M> {
     #[inline(always)]
     fn set(&mut self, pos: Vec3<i32>, block: Self::Vox) -> Result<(), Self::Error> {
         let mut sub_chunk_idx = self.sub_chunk_idx(pos.z);
@@ -140,14 +140,14 @@ impl<V: Vox, S: RectVolSize, M: Clone> WriteVol for Chonk<V, S, M> {
     }
 }
 
-struct ChonkIterHelper<V: Vox, S: RectVolSize, M: Clone> {
+struct ChonkIterHelper<V, S: RectVolSize, M: Clone> {
     sub_chunk_min_z: i32,
     lower_bound: Vec3<i32>,
     upper_bound: Vec3<i32>,
     phantom: PhantomData<Chonk<V, S, M>>,
 }
 
-impl<V: Vox, S: RectVolSize, M: Clone> Iterator for ChonkIterHelper<V, S, M> {
+impl<V, S: RectVolSize, M: Clone> Iterator for ChonkIterHelper<V, S, M> {
     type Item = (i32, Vec3<i32>, Vec3<i32>);
 
     #[inline(always)]
@@ -168,12 +168,12 @@ impl<V: Vox, S: RectVolSize, M: Clone> Iterator for ChonkIterHelper<V, S, M> {
 }
 
 #[allow(clippy::type_complexity)] // TODO: Pending review in #587
-pub struct ChonkPosIter<V: Vox, S: RectVolSize, M: Clone> {
+pub struct ChonkPosIter<V, S: RectVolSize, M: Clone> {
     outer: ChonkIterHelper<V, S, M>,
     opt_inner: Option<(i32, ChunkPosIter<V, SubChunkSize<S>, M>)>,
 }
 
-impl<V: Vox, S: RectVolSize, M: Clone> Iterator for ChonkPosIter<V, S, M> {
+impl<V, S: RectVolSize, M: Clone> Iterator for ChonkPosIter<V, S, M> {
     type Item = Vec3<i32>;
 
     #[inline(always)]
@@ -195,18 +195,18 @@ impl<V: Vox, S: RectVolSize, M: Clone> Iterator for ChonkPosIter<V, S, M> {
     }
 }
 
-enum InnerChonkVolIter<'a, V: Vox, S: RectVolSize, M: Clone> {
+enum InnerChonkVolIter<'a, V, S: RectVolSize, M: Clone> {
     Vol(ChunkVolIter<'a, V, SubChunkSize<S>, M>),
     Pos(ChunkPosIter<V, SubChunkSize<S>, M>),
 }
 
-pub struct ChonkVolIter<'a, V: Vox, S: RectVolSize, M: Clone> {
+pub struct ChonkVolIter<'a, V, S: RectVolSize, M: Clone> {
     chonk: &'a Chonk<V, S, M>,
     outer: ChonkIterHelper<V, S, M>,
     opt_inner: Option<(i32, InnerChonkVolIter<'a, V, S, M>)>,
 }
 
-impl<'a, V: Vox, S: RectVolSize, M: Clone> Iterator for ChonkVolIter<'a, V, S, M> {
+impl<'a, V, S: RectVolSize, M: Clone> Iterator for ChonkVolIter<'a, V, S, M> {
     type Item = (Vec3<i32>, &'a V);
 
     #[inline(always)]
@@ -249,7 +249,7 @@ impl<'a, V: Vox, S: RectVolSize, M: Clone> Iterator for ChonkVolIter<'a, V, S, M
     }
 }
 
-impl<'a, V: Vox, S: RectVolSize, M: Clone> IntoPosIterator for &'a Chonk<V, S, M> {
+impl<'a, V, S: RectVolSize, M: Clone> IntoPosIterator for &'a Chonk<V, S, M> {
     type IntoIter = ChonkPosIter<V, S, M>;
 
     fn pos_iter(self, lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self::IntoIter {
@@ -265,7 +265,7 @@ impl<'a, V: Vox, S: RectVolSize, M: Clone> IntoPosIterator for &'a Chonk<V, S, M
     }
 }
 
-impl<'a, V: Vox, S: RectVolSize, M: Clone> IntoVolIterator<'a> for &'a Chonk<V, S, M> {
+impl<'a, V, S: RectVolSize, M: Clone> IntoVolIterator<'a> for &'a Chonk<V, S, M> {
     type IntoIter = ChonkVolIter<'a, V, S, M>;
 
     fn vol_iter(self, lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self::IntoIter {

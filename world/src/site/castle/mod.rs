@@ -10,8 +10,8 @@ use crate::{
 };
 use common::{
     generation::ChunkSupplement,
-    terrain::{Block, BlockKind},
-    vol::{BaseVol, ReadVol, RectSizedVol, Vox, WriteVol},
+    terrain::{Block, BlockKind, SpriteKind},
+    vol::{BaseVol, ReadVol, RectSizedVol, WriteVol},
 };
 use core::f32;
 use rand::prelude::*;
@@ -202,7 +202,8 @@ impl Castle {
 
                         if z > 0 {
                             if vol.get(pos).unwrap().kind() != BlockKind::Water {
-                                let _ = vol.set(pos, Block::empty());
+                                // TODO: Take environment into account.
+                                let _ = vol.set(pos, Block::air(SpriteKind::Empty));
                             }
                         } else {
                             let _ = vol.set(
@@ -415,7 +416,8 @@ impl Castle {
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     pub fn apply_supplement<'a>(
         &'a self,
-        _rng: &mut impl Rng,
+        // NOTE: Used only for dynamic elements like chests and entities!
+        _dynamic_rng: &mut impl Rng,
         _wpos2d: Vec2<i32>,
         _get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
         _supplement: &mut ChunkSupplement,

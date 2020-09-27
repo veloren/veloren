@@ -11,7 +11,10 @@ impl<V: BaseVol> BaseVol for Scaled<V> {
     type Vox = V::Vox;
 }
 
-impl<V: ReadVol> ReadVol for Scaled<V> {
+impl<V: ReadVol> ReadVol for Scaled<V>
+where
+    V::Vox: Vox,
+{
     #[inline(always)]
     fn get(&self, pos: Vec3<i32>) -> Result<&Self::Vox, Self::Error> {
         // let ideal_pos = pos.map2(self.scale, |e, scale| (e as f32 + 0.5) / scale);

@@ -4,7 +4,7 @@ use vek::*;
 use veloren_common::{
     terrain::{
         block::{Block, BlockKind},
-        TerrainChunk, TerrainChunkMeta,
+        SpriteKind, TerrainChunk, TerrainChunkMeta,
     },
     vol::*,
 };
@@ -17,7 +17,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     let mut chunk = TerrainChunk::new(
         MIN_Z,
         Block::new(BlockKind::Rock, Rgb::zero()),
-        Block::empty(),
+        Block::air(SpriteKind::Empty),
         TerrainChunkMeta::void(),
     );
     for pos in chunk.pos_iter(
