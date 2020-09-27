@@ -602,6 +602,18 @@ INSERT INTO _temp_item_defs VALUES('common.items.weapons.sword.wood_sword','Wood
 -- Accounts for renamed "Powerful Potion" item
 INSERT INTO _temp_item_defs VALUES('common.items.boss_drops.potions','Powerful Potion','');
 
+-- Accounts for renamed "Weightless Rod" item
+INSERT INTO _temp_item_defs VALUES('common.items.debug.boost', 'Weightless Rod', 'Boost');
+
+-- Accounts for renamed "Sturdy Bihander" item
+INSERT INTO _temp_item_defs VALUES('common.items.weapons.sword.zweihander_sword_0','Sturdy Bihander','Zweihander0');
+
+-- Accounts for renamed "Sharp Kitchen Knife" item
+INSERT INTO _temp_item_defs VALUES('common.items.weapons.dagger.starter_dagger','Sharp Kitchen Knife','BasicDagger');
+
+-- Accounts for renamed "A Shield" item
+INSERT INTO _temp_item_defs VALUES('common.items.weapons.shield.shield_1','A Shield','BasicShield');
+
 -- Remove items that have another item with an identical Weapon/Armor Kind and Name so are
 -- therefore indistinguishable in inventory/loadout JSON
 DELETE FROM _temp_item_defs WHERE item_definition_id = 'common.items.utility.bomb_pile';

@@ -29,7 +29,7 @@ pub type PersistedComponents = (comp::Body, comp::Stats, comp::Inventory, comp::
 // This macro is called at build-time, and produces the necessary migration info
 // for the `embedded_migrations` call below.
 //
-// NOTE: Adding a useless comment to trigger the migrations being run.  Delete
+// NOTE: Adding a useless comment to trigger the migrations being run. Alter
 // when needed.
 embed_migrations!();
 
