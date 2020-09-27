@@ -8,7 +8,7 @@ use crate::{
     ui::{fonts::ConrodVoxygenFonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
 };
 use client::{self, Client};
-use common::comp::Inventory;
+use common::comp::{item::ItemDesc, Inventory};
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Scrollbar, Text},
@@ -247,10 +247,10 @@ impl<'a> Widget for Crafting<'a> {
                 {
                     let output_text = format!("x{}", &recipe.output.1.to_string());
                     // Output Image
-                    let (title, desc) = super::util::item_text(&recipe.output.0);
+                    let (title, desc) = super::util::item_text(&*recipe.output.0);
                     Button::image(
                         self.item_imgs
-                            .img_id_or_not_found_img((&recipe.output.0).into()),
+                            .img_id_or_not_found_img((&*recipe.output.0.kind()).into()),
                     )
                     .w_h(55.0, 55.0)
                     .middle_of(state.ids.output_img_frame)
@@ -362,9 +362,9 @@ impl<'a> Widget for Crafting<'a> {
                 });
             };
             // Widget generation for every ingredient
-            for (i, (item, amount)) in recipe.inputs.iter().enumerate() {
+            for (i, (item_def, amount)) in recipe.inputs.iter().enumerate() {
                 // Grey color for images and text if their amount is too low to craft the item
-                let item_count_in_inventory = self.inventory.item_count(item);
+                let item_count_in_inventory = self.inventory.item_count(item_def);
                 let col = if item_count_in_inventory >= u64::from(*amount) {
                     TEXT_COLOR
                 } else {
@@ -393,8 +393,8 @@ impl<'a> Widget for Crafting<'a> {
                 };
                 frame.set(state.ids.ingredient_frame[i], ui);
                 //Item Image
-                let (title, desc) = super::util::item_text(&item);
-                Button::image(self.item_imgs.img_id_or_not_found_img(item.into()))
+                let (title, desc) = super::util::item_text(&**item_def);
+                Button::image(self.item_imgs.img_id_or_not_found_img((&*item_def.kind()).into()))
                     .w_h(22.0, 22.0)
                     .middle_of(state.ids.ingredient_frame[i])
                     //.image_color(col)
@@ -414,7 +414,7 @@ impl<'a> Widget for Crafting<'a> {
                         .font_size(self.fonts.cyri.scale(14))
                         .color(col)
                         .set(state.ids.req_text[i], ui);
-                    Text::new(&item.name())
+                    Text::new(&item_def.name())
                         .right_from(state.ids.ingredient_frame[i], 10.0)
                         .font_id(self.fonts.cyri.conrod_id)
                         .font_size(self.fonts.cyri.scale(14))
@@ -425,7 +425,7 @@ impl<'a> Widget for Crafting<'a> {
                     let input = format!(
                         "{}x {} ({})",
                         amount,
-                        &item.name(),
+                        &item_def.name(),
                         if item_count_in_inventory > 99 {
                             over9k
                         } else {

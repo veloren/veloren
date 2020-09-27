@@ -32,7 +32,7 @@ impl SlotKey<Inventory, ItemImgs> for InventorySlot {
     type ImageKey = ItemKey;
 
     fn image_key(&self, source: &Inventory) -> Option<(Self::ImageKey, Option<Color>)> {
-        source.get(self.0).map(|i| (i.into(), None))
+        source.get(self.0).map(|i| (i.kind().into(), None))
     }
 
     fn amount(&self, source: &Inventory) -> Option<u32> {
@@ -69,7 +69,7 @@ impl SlotKey<Loadout, ItemImgs> for EquipSlot {
             EquipSlot::Glider => source.glider.as_ref(),
         };
 
-        item.map(|i| (i.into(), None))
+        item.map(|i| (i.kind().into(), None))
     }
 
     fn amount(&self, _: &Loadout) -> Option<u32> { None }
@@ -100,7 +100,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
         hotbar.get(*self).and_then(|contents| match contents {
             hotbar::SlotContents::Inventory(idx) => inventory
                 .get(idx)
-                .map(|item| HotbarImage::Item(item.into()))
+                .map(|item| HotbarImage::Item(item.kind().into()))
                 .map(|i| (i, None)),
             hotbar::SlotContents::Ability3 => loadout
                 .active_item
