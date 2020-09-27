@@ -163,7 +163,7 @@ impl Dungeon {
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     pub fn apply_supplement<'a>(
         &'a self,
-        // NOTE: Used only for dynamic elemens like chests and entities!
+        // NOTE: Used only for dynamic elements like chests and entities!
         dynamic_rng: &mut impl Rng,
         wpos2d: Vec2<i32>,
         _get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
@@ -417,7 +417,7 @@ impl Floor {
     #[allow(clippy::match_single_binding)] // TODO: Pending review in #587
     fn apply_supplement(
         &self,
-        // NOTE: Used only for dynamic elemens like chests and entities!
+        // NOTE: Used only for dynamic elements like chests and entities!
         dynamic_rng: &mut impl Rng,
         area: Aabr<i32>,
         origin: Vec3<i32>,
