@@ -111,7 +111,7 @@ impl Tui {
         }));
 
         let mut msg_s = self.msg_s.take().unwrap();
-        let running = self.running.clone();
+        let running = Arc::clone(&self.running);
 
         if basic {
             std::thread::spawn(move || {

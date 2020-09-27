@@ -1,7 +1,8 @@
 #![deny(unsafe_code)]
-#![allow(clippy::option_map_unit_fn)]
 #![allow(incomplete_features)]
 #![type_length_limit = "1664759"]
+#![allow(clippy::option_map_unit_fn)]
+#![deny(clippy::clone_on_ref_ptr)]
 #![feature(
     arbitrary_enum_discriminant,
     associated_type_defaults,
