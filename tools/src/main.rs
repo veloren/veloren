@@ -1,3 +1,5 @@
+#![deny(clippy::clone_on_ref_ptr)]
+
 use std::error::Error;
 use structopt::StructOpt;
 

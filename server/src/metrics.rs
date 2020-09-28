@@ -337,7 +337,7 @@ impl ServerMetrics {
 
     pub fn run(&mut self, addr: SocketAddr) -> Result<(), Box<dyn Error>> {
         self.running.store(true, Ordering::Relaxed);
-        let running2 = self.running.clone();
+        let running2 = Arc::clone(&self.running);
 
         let registry = self
             .registry
@@ -381,7 +381,7 @@ impl ServerMetrics {
 
     pub fn tick(&self) -> u64 { self.tick.fetch_add(1, Ordering::Relaxed) + 1 }
 
-    pub fn tick_clone(&self) -> Arc<AtomicU64> { self.tick.clone() }
+    pub fn tick_clone(&self) -> Arc<AtomicU64> { Arc::clone(&self.tick) }
 }
 
 impl Drop for ServerMetrics {

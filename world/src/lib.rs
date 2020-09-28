@@ -1,6 +1,7 @@
 #![deny(unsafe_code)]
 #![allow(incomplete_features)]
 #![allow(clippy::option_map_unit_fn)]
+#![deny(clippy::clone_on_ref_ptr)]
 #![feature(
     arbitrary_enum_discriminant,
     bool_to_option,

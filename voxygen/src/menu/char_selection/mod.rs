@@ -111,7 +111,7 @@ impl PlayState for CharSelectionState {
 
                         return PlayStateResult::Switch(Box::new(SessionState::new(
                             global_state,
-                            self.client.clone(),
+                            Rc::clone(&self.client),
                         )));
                     },
                 }

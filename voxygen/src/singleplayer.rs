@@ -46,7 +46,7 @@ impl Singleplayer {
         let settings2 = settings.clone();
 
         let paused = Arc::new(AtomicBool::new(false));
-        let paused1 = paused.clone();
+        let paused1 = Arc::clone(&paused);
 
         let (result_sender, result_receiver) = bounded(1);
 
