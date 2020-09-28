@@ -5,8 +5,8 @@ use crate::{
     },
     volumes::chunk::{Chunk, ChunkError, ChunkPosIter, ChunkVolIter},
 };
+use core::{hash::Hash, marker::PhantomData};
 use serde::{Deserialize, Serialize};
-use std::marker::PhantomData;
 use vek::*;
 
 #[derive(Debug)]
@@ -84,6 +84,14 @@ impl<V, S: RectVolSize, M: Clone> Chonk<V, S, M> {
 
     // Returns the z offset of the sub_chunk that contains layer z
     fn sub_chunk_min_z(&self, z: i32) -> i32 { z - self.sub_chunk_z(z) }
+
+    /// Compress chunk by using more intelligent defaults.
+    pub fn defragment(&mut self)
+    where
+        V: Clone + Eq + Hash,
+    {
+        self.sub_chunks.iter_mut().for_each(SubChunk::defragment);
+    }
 }
 
 impl<V, S: RectVolSize, M: Clone> BaseVol for Chonk<V, S, M> {
@@ -130,11 +138,6 @@ impl<V: Clone + PartialEq, S: RectVolSize, M: Clone> WriteVol for Chonk<V, S, M>
             self.z_offset += sub_chunk_idx * SubChunkSize::<S>::SIZE.z as i32;
             sub_chunk_idx = 0;
         } else if pos.z >= self.get_max_z() {
-            if self.sub_chunks.is_empty() && block == self.below {
-                // Try not to generate extra blocks unless necessary.
-                self.z_offset += 1;
-                return Ok(());
-            }
             // Append exactly sufficiently many SubChunks via Vec::extend
             let c = Chunk::<V, SubChunkSize<S>, M>::filled(self.above.clone(), self.meta.clone());
             let n = 1 + sub_chunk_idx as usize - self.sub_chunks.len();

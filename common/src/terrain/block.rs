@@ -89,7 +89,7 @@ impl<'a> TryFrom<&'a str> for BlockKind {
     fn try_from(s: &'a str) -> Result<Self, Self::Error> { BLOCK_KINDS.get(s).copied().ok_or(()) }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub struct Block {
     kind: BlockKind,
     attr: [u8; 3],
