@@ -174,7 +174,10 @@ impl CharacterBehavior for Data {
                     // Lands
                     update.character = CharacterState::RepeaterRanged(Data {
                         static_data: self.static_data.clone(),
-                        timer: self.timer,
+                        timer: self
+                            .timer
+                            .checked_add(Duration::from_secs_f32(data.dt.0))
+                            .unwrap_or_default(),
                         stage_section: self.stage_section,
                         reps_remaining: self.reps_remaining,
                     });
