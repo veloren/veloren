@@ -92,6 +92,8 @@ impl Animation for ShootAnimation {
         let short = (anim_time as f32 * lab as f32 * 16.0).sin();
         let shortalt = (anim_time as f32 * lab as f32 * 16.0 + PI / 2.0).sin();
 
+        next.hold.scale = Vec3::one() * 0.0;
+
         if velocity < 0.5 {
             next.head.position = Vec3::new(
                 0.0,

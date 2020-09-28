@@ -2,12 +2,22 @@ use super::{
     super::{vek::*, Animation},
     BipedLargeSkeleton, SkeletonAttr,
 };
+use common::{
+    comp::item::{Hands, ToolKind},
+    states::utils::StageSection,
+};
 use std::f32::consts::PI;
 
 pub struct AlphaAnimation;
 
 impl Animation for AlphaAnimation {
-    type Dependency = (f32, f64);
+    type Dependency = (
+        Option<ToolKind>,
+        Option<ToolKind>,
+        f32,
+        f64,
+        Option<StageSection>,
+    );
     type Skeleton = BipedLargeSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -16,7 +26,7 @@ impl Animation for AlphaAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_alpha")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (velocity, _global_time): Self::Dependency,
+        (active_tool_kind, second_tool_kind, velocity, _global_time, stage_section): Self::Dependency,
         anim_time: f64,
         _rate: &mut f32,
         skeleton_attr: &SkeletonAttr,

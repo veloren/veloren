@@ -2735,7 +2735,7 @@ make_vox_spec!(
                 body.species,
                 body.body_type,
             )),
-            None,
+            Some(mesh_hold()),
         ]
     },
 );
