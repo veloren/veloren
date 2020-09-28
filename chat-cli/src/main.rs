@@ -1,5 +1,6 @@
 #![deny(unsafe_code)]
 #![allow(clippy::option_map_unit_fn)]
+#![deny(clippy::clone_on_ref_ptr)]
 
 use client::{Client, Event};
 use common::{clock::Clock, comp};

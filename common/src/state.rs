@@ -371,7 +371,8 @@ impl State {
 
         // Run systems to update the world.
         // Create and run a dispatcher for ecs systems.
-        let mut dispatch_builder = DispatcherBuilder::new().with_pool(self.thread_pool.clone());
+        let mut dispatch_builder =
+            DispatcherBuilder::new().with_pool(Arc::clone(&self.thread_pool));
         sys::add_local_systems(&mut dispatch_builder);
         // TODO: Consider alternative ways to do this
         add_foreign_systems(&mut dispatch_builder);

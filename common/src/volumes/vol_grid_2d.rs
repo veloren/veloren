@@ -189,7 +189,7 @@ impl<'a, V: RectRasterableVol + ReadVol> CachedVolGrid2d<'a, V> {
                 .get(&ck)
                 .ok_or(VolGrid2dError::NoSuchChunk)?;
             // Store most recently looked up chunk in the cache
-            self.cache = Some((ck, chunk.clone()));
+            self.cache = Some((ck, Arc::clone(&chunk)));
             chunk
         };
         let co = VolGrid2d::<V>::chunk_offs(pos);

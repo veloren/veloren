@@ -375,7 +375,7 @@ impl Network {
         self.participant_disconnect_sender
             .lock()
             .await
-            .insert(pid, participant.a2s_disconnect_s.clone());
+            .insert(pid, Arc::clone(&participant.a2s_disconnect_s));
         Ok(participant)
     }
 
@@ -414,10 +414,10 @@ impl Network {
     /// [`listen`]: crate::api::Network::listen
     pub async fn connected(&self) -> Result<Participant, NetworkError> {
         let participant = self.connected_receiver.lock().await.next().await?;
-        self.participant_disconnect_sender
-            .lock()
-            .await
-            .insert(participant.remote_pid, participant.a2s_disconnect_s.clone());
+        self.participant_disconnect_sender.lock().await.insert(
+            participant.remote_pid,
+            Arc::clone(&participant.a2s_disconnect_s),
+        );
         Ok(participant)
     }
 }

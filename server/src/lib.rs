@@ -1,5 +1,6 @@
 #![deny(unsafe_code)]
 #![allow(clippy::option_map_unit_fn)]
+#![deny(clippy::clone_on_ref_ptr)]
 #![feature(bool_to_option, drain_filter, option_zip)]
 #![cfg_attr(not(feature = "worldgen"), feature(const_panic))]
 
@@ -548,7 +549,7 @@ impl Server {
                             None,
                             pos,
                             thread_pool,
-                            world.clone(),
+                            Arc::clone(&world),
                             index.clone(),
                         );
                     });
@@ -853,7 +854,7 @@ impl Server {
                 Some(entity),
                 key,
                 &mut self.thread_pool,
-                self.world.clone(),
+                Arc::clone(&self.world),
                 self.index.clone(),
             );
     }

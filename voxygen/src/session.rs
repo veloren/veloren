@@ -28,7 +28,7 @@ use common::{
     vol::ReadVol,
 };
 use specs::{Join, WorldExt};
-use std::{cell::RefCell, rc::Rc, time::Duration};
+use std::{cell::RefCell, rc::Rc, sync::Arc, time::Duration};
 use tracing::{error, info};
 use vek::*;
 
@@ -981,7 +981,7 @@ impl PlayState for SessionState {
                         )
                         .unwrap();
                         self.voxygen_i18n.log_missing_entries();
-                        self.hud.update_language(self.voxygen_i18n.clone());
+                        self.hud.update_language(Arc::clone(&self.voxygen_i18n));
                     },
                     HudEvent::ChangeFullscreenMode(new_fullscreen_settings) => {
                         global_state
@@ -1086,7 +1086,7 @@ impl PlayState for SessionState {
         } else if let ClientState::Registered = client_state {
             PlayStateResult::Switch(Box::new(CharSelectionState::new(
                 global_state,
-                self.client.clone(),
+                Rc::clone(&self.client),
             )))
         } else {
             error!("Client not in the expected state, exiting session play state");

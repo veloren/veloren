@@ -65,9 +65,11 @@ use conrod_core::{
 use specs::{Join, WorldExt};
 use std::{
     collections::{HashMap, VecDeque},
+    sync::Arc,
     time::Instant,
 };
 use vek::*;
+
 const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
 const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
 const TEXT_GRAY_COLOR: Color = Color::Rgba(0.5, 0.5, 0.5, 1.0);
@@ -591,7 +593,7 @@ impl Hud {
         // Load world map
         let world_map = (
             ui.add_graphic_with_rotations(Graphic::Image(
-                client.world_map.0.clone(),
+                Arc::clone(&client.world_map.0),
                 Some(water_color),
             )),
             client.world_map.1.map(u32::from),
