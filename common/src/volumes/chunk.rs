@@ -121,6 +121,8 @@ impl<V, S: VolSize, M> Chunk<V, S, M> {
     /// Get a mutable reference to the internal metadata.
     pub fn metadata_mut(&mut self) -> &mut M { &mut self.meta }
 
+    pub fn num_groups(&self) -> usize { self.vox.len() / Self::GROUP_VOLUME as usize }
+
     #[inline(always)]
     fn grp_idx(pos: Vec3<i32>) -> u32 {
         let grp_pos = pos.map2(Self::GROUP_SIZE, |e, s| e as u32 / s);

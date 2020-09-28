@@ -65,6 +65,10 @@ impl<V, S: RectVolSize, M: Clone> Chonk<V, S, M> {
 
     pub fn sub_chunks_len(&self) -> usize { self.sub_chunks.len() }
 
+    pub fn sub_chunk_groups(&self) -> usize {
+        self.sub_chunks.iter().map(SubChunk::num_groups).sum()
+    }
+
     // Returns the index (in self.sub_chunks) of the SubChunk that contains
     // layer z; note that this index changes when more SubChunks are prepended
     fn sub_chunk_idx(&self, z: i32) -> i32 {
@@ -126,6 +130,11 @@ impl<V: Clone + PartialEq, S: RectVolSize, M: Clone> WriteVol for Chonk<V, S, M>
             self.z_offset += sub_chunk_idx * SubChunkSize::<S>::SIZE.z as i32;
             sub_chunk_idx = 0;
         } else if pos.z >= self.get_max_z() {
+            if self.sub_chunks.is_empty() && block == self.below {
+                // Try not to generate extra blocks unless necessary.
+                self.z_offset += 1;
+                return Ok(());
+            }
             // Append exactly sufficiently many SubChunks via Vec::extend
             let c = Chunk::<V, SubChunkSize<S>, M>::filled(self.above.clone(), self.meta.clone());
             let n = 1 + sub_chunk_idx as usize - self.sub_chunks.len();

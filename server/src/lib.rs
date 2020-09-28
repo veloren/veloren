@@ -720,12 +720,15 @@ impl Server {
             .set(self.state.ecs().read_resource::<TimeOfDay>().0);
         if self.tick_metrics.is_100th_tick() {
             let mut chonk_cnt = 0;
+            let mut group_cnt = 0;
             let chunk_cnt = self.state.terrain().iter().fold(0, |a, (_, c)| {
                 chonk_cnt += 1;
+                group_cnt += c.sub_chunk_groups();
                 a + c.sub_chunks_len()
             });
             self.tick_metrics.chonks_count.set(chonk_cnt as i64);
             self.tick_metrics.chunks_count.set(chunk_cnt as i64);
+            self.tick_metrics.chunk_groups_count.set(group_cnt as i64);
 
             let entity_count = self.state.ecs().entities().join().count();
             self.tick_metrics.entity_count.set(entity_count as i64);
