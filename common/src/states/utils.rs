@@ -365,4 +365,6 @@ pub enum StageSection {
     Recover,
     Charge,
     Cast,
+    Shoot,
+    Movement,
 }
