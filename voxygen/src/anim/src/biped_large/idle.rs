@@ -194,6 +194,8 @@ impl Animation for IdleAnimation {
         next.torso.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.torso.scale = Vec3::one() / 8.0;
 
+        next.hold.scale = Vec3::one() * 0.0;
+
         next
     }
 }
