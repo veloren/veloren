@@ -1,8 +1,9 @@
 use crate::vol::{
     BaseVol, IntoPosIterator, IntoVolIterator, RasterableVol, ReadVol, VolSize, WriteVol,
 };
+use core::{hash::Hash, iter::Iterator, marker::PhantomData, mem};
+use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
-use std::{iter::Iterator, marker::PhantomData};
 use vek::*;
 
 #[derive(Debug)]
@@ -56,7 +57,7 @@ pub struct Chunk<V, S: VolSize, M> {
 }
 
 impl<V, S: VolSize, M> Chunk<V, S, M> {
-    const GROUP_COUNT: Vec3<u32> = Vec3::new(
+    pub const GROUP_COUNT: Vec3<u32> = Vec3::new(
         S::SIZE.x / Self::GROUP_SIZE.x,
         S::SIZE.y / Self::GROUP_SIZE.y,
         S::SIZE.z / Self::GROUP_SIZE.z,
@@ -115,11 +116,93 @@ impl<V, S: VolSize, M> Chunk<V, S, M> {
         }
     }
 
+    /// Compress this subchunk by frequency.
+    pub fn defragment(&mut self)
+    where
+        V: Clone + Eq + Hash,
+    {
+        // First, construct a HashMap with max capacity equal to GROUP_COUNT (since each
+        // filled group can have at most one slot).
+        let mut map = HashMap::with_capacity(Self::GROUP_COUNT_TOTAL as usize);
+        let vox = &self.vox;
+        let default = &self.default;
+        self.indices
+            .iter()
+            .enumerate()
+            .for_each(|(grp_idx, &base)| {
+                let start = usize::from(base) * Self::GROUP_VOLUME as usize;
+                let end = start + Self::GROUP_VOLUME as usize;
+                if let Some(group) = vox.get(start..end) {
+                    // Check to see if all blocks in this group are the same.
+                    let mut group = group.iter();
+                    let first = group.next().expect("GROUP_VOLUME ≥ 1");
+                    if group.all(|block| block == first) {
+                        // All blocks in the group were the same, so add our position to this entry
+                        // in the HashMap.
+                        map.entry(first).or_insert(vec![]).push(grp_idx);
+                    }
+                } else {
+                    // This slot is empty (i.e. has the default value).
+                    map.entry(default).or_insert(vec![]).push(grp_idx);
+                }
+            });
+        // Now, find the block with max frequency in the HashMap and make that our new
+        // default.
+        let (new_default, default_groups) = if let Some((new_default, default_groups)) = map
+            .into_iter()
+            .max_by_key(|(_, default_groups)| default_groups.len())
+        {
+            (new_default.clone(), default_groups)
+        } else {
+            // There is no good choice for default group, so leave it as is.
+            return;
+        };
+
+        // For simplicity, we construct a completely new voxel array rather than
+        // attempting in-place updates (TODO: consider changing this).
+        let mut new_vox =
+            Vec::with_capacity(Self::GROUP_COUNT_TOTAL as usize - default_groups.len());
+        let num_groups = self.num_groups();
+        self.indices
+            .iter_mut()
+            .enumerate()
+            .for_each(|(grp_idx, base)| {
+                if default_groups.contains(&grp_idx) {
+                    // Default groups become 255
+                    *base = 255;
+                } else {
+                    // Other groups are allocated in increasing order by group index.
+                    // NOTE: Cannot overflow since the current implicit group index can't be at the
+                    // end of the vector until at the earliest after the 256th iteration.
+                    let old_base = usize::from(mem::replace(
+                        base,
+                        (new_vox.len() / Self::GROUP_VOLUME as usize) as u8,
+                    ));
+                    if old_base >= num_groups {
+                        // Old default, which (since we reached this branch) is not equal to the new
+                        // default, so we have to write out the old default.
+                        new_vox
+                            .resize(new_vox.len() + Self::GROUP_VOLUME as usize, default.clone());
+                    } else {
+                        let start = old_base * Self::GROUP_VOLUME as usize;
+                        let end = start + Self::GROUP_VOLUME as usize;
+                        new_vox.extend_from_slice(&vox[start..end]);
+                    }
+                }
+            });
+
+        // Finally, reset our vox and default values to the new ones.
+        self.vox = new_vox;
+        self.default = new_default;
+    }
+
     /// Get a reference to the internal metadata.
     pub fn metadata(&self) -> &M { &self.meta }
 
     /// Get a mutable reference to the internal metadata.
     pub fn metadata_mut(&mut self) -> &mut M { &mut self.meta }
+
+    pub fn num_groups(&self) -> usize { self.vox.len() / Self::GROUP_VOLUME as usize }
 
     #[inline(always)]
     fn grp_idx(pos: Vec3<i32>) -> u32 {
@@ -141,12 +224,12 @@ impl<V, S: VolSize, M> Chunk<V, S, M> {
     fn idx_unchecked(&self, pos: Vec3<i32>) -> Option<usize> {
         let grp_idx = Self::grp_idx(pos);
         let rel_idx = Self::rel_idx(pos);
-        let base = self.indices[grp_idx as usize];
+        let base = u32::from(self.indices[grp_idx as usize]);
         let num_groups = self.vox.len() as u32 / Self::GROUP_VOLUME;
-        if base as u32 >= num_groups {
+        if base >= num_groups {
             None
         } else {
-            Some((base as u32 * Self::GROUP_VOLUME + rel_idx) as usize)
+            Some((base * Self::GROUP_VOLUME + rel_idx) as usize)
         }
     }
 
@@ -159,12 +242,12 @@ impl<V, S: VolSize, M> Chunk<V, S, M> {
         let rel_idx = Self::rel_idx(pos);
         let base = &mut self.indices[grp_idx as usize];
         let num_groups = self.vox.len() as u32 / Self::GROUP_VOLUME;
-        if *base as u32 >= num_groups {
+        if u32::from(*base) >= num_groups {
             *base = num_groups as u8;
             self.vox
                 .extend(std::iter::repeat(self.default.clone()).take(Self::GROUP_VOLUME as usize));
         }
-        (*base as u32 * Self::GROUP_VOLUME + rel_idx) as usize
+        (u32::from(*base) * Self::GROUP_VOLUME + rel_idx) as usize
     }
 
     #[inline(always)]

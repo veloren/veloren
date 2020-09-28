@@ -45,6 +45,7 @@ pub struct ChunkGenMetrics {
 pub struct TickMetrics {
     pub chonks_count: IntGauge,
     pub chunks_count: IntGauge,
+    pub chunk_groups_count: IntGauge,
     pub entity_count: IntGauge,
     pub tick_time: IntGaugeVec,
     pub build_info: IntGauge,
@@ -237,6 +238,10 @@ impl TickMetrics {
             "chunks_count",
             "number of all chunks currently active on the server",
         ))?;
+        let chunk_groups_count = IntGauge::with_opts(Opts::new(
+            "chunk_groups_count",
+            "number of 4×4×4 groups currently allocated by chunks on the server",
+        ))?;
         let entity_count = IntGauge::with_opts(Opts::new(
             "entity_count",
             "number of all entities currently active on the server",
@@ -267,6 +272,7 @@ impl TickMetrics {
 
         let chonks_count_clone = chonks_count.clone();
         let chunks_count_clone = chunks_count.clone();
+        let chunk_groups_count_clone = chunk_groups_count.clone();
         let entity_count_clone = entity_count.clone();
         let build_info_clone = build_info.clone();
         let start_time_clone = start_time.clone();
@@ -277,6 +283,7 @@ impl TickMetrics {
         let f = |registry: &Registry| {
             registry.register(Box::new(chonks_count_clone))?;
             registry.register(Box::new(chunks_count_clone))?;
+            registry.register(Box::new(chunk_groups_count_clone))?;
             registry.register(Box::new(entity_count_clone))?;
             registry.register(Box::new(build_info_clone))?;
             registry.register(Box::new(start_time_clone))?;
@@ -290,6 +297,7 @@ impl TickMetrics {
             Self {
                 chonks_count,
                 chunks_count,
+                chunk_groups_count,
                 entity_count,
                 tick_time,
                 build_info,
