@@ -153,6 +153,7 @@ impl World {
         let meta = TerrainChunkMeta::new(sim_chunk.get_name(&self.sim), sim_chunk.get_biome());
 
         let mut chunk = TerrainChunk::new(base_z, stone, air, meta);
+
         for y in 0..TerrainChunkSize::RECT_SIZE.y as i32 {
             for x in 0..TerrainChunkSize::RECT_SIZE.x as i32 {
                 if should_continue() {
@@ -315,6 +316,9 @@ impl World {
                 &mut supplement,
             )
         });
+
+        // Finally, defragment to minimize space consumption.
+        chunk.defragment();
 
         Ok((chunk, supplement))
     }
