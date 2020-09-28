@@ -5,8 +5,8 @@ use crate::{
     },
     volumes::chunk::{Chunk, ChunkError, ChunkPosIter, ChunkVolIter},
 };
+use core::{hash::Hash, marker::PhantomData};
 use serde::{Deserialize, Serialize};
-use std::marker::PhantomData;
 use vek::*;
 
 #[derive(Debug)]
@@ -65,6 +65,10 @@ impl<V, S: RectVolSize, M: Clone> Chonk<V, S, M> {
 
     pub fn sub_chunks_len(&self) -> usize { self.sub_chunks.len() }
 
+    pub fn sub_chunk_groups(&self) -> usize {
+        self.sub_chunks.iter().map(SubChunk::num_groups).sum()
+    }
+
     // Returns the index (in self.sub_chunks) of the SubChunk that contains
     // layer z; note that this index changes when more SubChunks are prepended
     fn sub_chunk_idx(&self, z: i32) -> i32 {
@@ -80,6 +84,14 @@ impl<V, S: RectVolSize, M: Clone> Chonk<V, S, M> {
 
     // Returns the z offset of the sub_chunk that contains layer z
     fn sub_chunk_min_z(&self, z: i32) -> i32 { z - self.sub_chunk_z(z) }
+
+    /// Compress chunk by using more intelligent defaults.
+    pub fn defragment(&mut self)
+    where
+        V: Clone + Eq + Hash,
+    {
+        self.sub_chunks.iter_mut().for_each(SubChunk::defragment);
+    }
 }
 
 impl<V, S: RectVolSize, M: Clone> BaseVol for Chonk<V, S, M> {
