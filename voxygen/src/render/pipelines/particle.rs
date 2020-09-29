@@ -35,8 +35,8 @@ gfx_defines! {
         // can save 32 bits per instance, and have cleaner tailor made code.
         inst_mode: i32 = "inst_mode",
 
-        // an extra value for particles that need it
-        inst_misc: f32 = "inst_misc",
+        // an extra position for particles that need it
+        inst_pos2: [f32; 3] = "inst_pos2",
 
         // a triangle is: f32 x 3 x 3 x 1  = 288 bits
         // a quad is:     f32 x 3 x 3 x 2  = 576 bits
@@ -131,23 +131,25 @@ impl Instance {
             inst_entropy: rand::thread_rng().gen(),
             inst_mode: inst_mode as i32,
             inst_pos: inst_pos.into_array(),
-            inst_misc: 0.0,
+            inst_pos2: [0.0, 0.0, 0.0],
         }
     }
 
     pub fn new_beam(
         inst_time: f64,
+        lifespan: f32,
         inst_mode: ParticleMode,
         inst_pos: Vec3<f32>,
         inst_pos2: Vec3<f32>,
     ) -> Self {
+        use rand::Rng;
         Self {
             inst_time: inst_time as f32,
+            inst_lifespan: lifespan,
+            inst_entropy: rand::thread_rng().gen(),
             inst_mode: inst_mode as i32,
             inst_pos: inst_pos.into_array(),
-            inst_lifespan: inst_pos2.x,
-            inst_entropy: inst_pos2.y,
-            inst_misc: inst_pos2.z,
+            inst_pos2: inst_pos2.into_array(),
         }
     }
 }
