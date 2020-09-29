@@ -204,6 +204,18 @@ impl<V, S: VolSize, M> Chunk<V, S, M> {
 
     pub fn num_groups(&self) -> usize { self.vox.len() / Self::GROUP_VOLUME as usize }
 
+    /// Returns `Some(v)` if the block is homogeneous and contains nothing but
+    /// voxels of value `v`, and `None` otherwise.  This method is
+    /// conservative (it may return None when the chunk is
+    /// actually homogeneous) unless called immediately after `defragment`.
+    pub fn homogeneous(&self) -> Option<&V> {
+        if self.num_groups() == 0 {
+            Some(&self.default)
+        } else {
+            None
+        }
+    }
+
     #[inline(always)]
     fn grp_idx(pos: Vec3<i32>) -> u32 {
         let grp_pos = pos.map2(Self::GROUP_SIZE, |e, s| e as u32 / s);
