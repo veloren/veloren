@@ -726,7 +726,7 @@ impl Particle {
     ) -> Self {
         Particle {
             alive_until: time + lifespan.as_secs_f64(),
-            instance: ParticleInstance::new_beam(time, mode, pos1, pos2),
+            instance: ParticleInstance::new_beam(time, lifespan.as_secs_f32(), mode, pos1, pos2),
         }
     }
 }
