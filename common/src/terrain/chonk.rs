@@ -90,7 +90,47 @@ impl<V, S: RectVolSize, M: Clone> Chonk<V, S, M> {
     where
         V: Clone + Eq + Hash,
     {
+        // First, defragment all subchunks.
         self.sub_chunks.iter_mut().for_each(SubChunk::defragment);
+        // For each homogeneous subchunk (i.e. those where all blocks are the same),
+        // find those which match `below` at the bottom of the cunk, or `above`
+        // at the top, since these subchunks are redundant and can be removed.
+        // Note that we find (and drain) the above chunks first, so that when we
+        // remove the below chunks we have fewer remaining chunks to backshift.
+        // Note that we use `take_while` instead of `rposition` here because `rposition`
+        // goes one past the end, which we only want in the forward direction.
+        let above_count = self
+            .sub_chunks
+            .iter()
+            .rev()
+            .take_while(|subchunk| subchunk.homogeneous() == Some(&self.above))
+            .count();
+        // Unfortunately, `TakeWhile` doesn't implement `ExactSizeIterator` or
+        // `DoubleEndedIterator`, so we have to recreate the same state by calling
+        // `nth_back` (note that passing 0 to nth_back goes back 1 time, not 0
+        // times!).
+        let mut subchunks = self.sub_chunks.iter();
+        if above_count > 0 {
+            subchunks.nth_back(above_count - 1);
+        }
+        // `above_index` is now the number of remaining elements, since all the elements
+        // we drained were at the end.
+        let above_index = subchunks.len();
+        // `below_len` now needs to be applied to the state after the `above` chunks are
+        // drained, to make sure we don't accidentally have overlap (this is
+        // possible if self.above == self.below).
+        let below_len = subchunks.position(|subchunk| subchunk.homogeneous() != Some(&self.below));
+        let below_len = below_len
+            // NOTE: If `below_index` is `None`, then every *remaining* chunk after we drained
+            // `above` was full and matched `below`.
+            .unwrap_or(above_index);
+        // Now, actually remove the redundant chunks.
+        self.sub_chunks.truncate(above_index);
+        self.sub_chunks.drain(..below_len);
+        // Finally, bump the z_offset to account for the removed subchunks at the
+        // bottom. TODO: Add invariants to justify why `below_len` must fit in
+        // i32.
+        self.z_offset += below_len as i32 * SubChunkSize::<S>::SIZE.z as i32;
     }
 }
 
@@ -131,6 +171,10 @@ impl<V: Clone + PartialEq, S: RectVolSize, M: Clone> WriteVol for Chonk<V, S, M>
         let mut sub_chunk_idx = self.sub_chunk_idx(pos.z);
 
         if pos.z < self.get_min_z() {
+            // Make sure we're not adding a redundant chunk.
+            if block == self.below {
+                return Ok(());
+            }
             // Prepend exactly sufficiently many SubChunks via Vec::splice
             let c = Chunk::<V, SubChunkSize<S>, M>::filled(self.below.clone(), self.meta.clone());
             let n = (-sub_chunk_idx) as usize;
@@ -138,6 +182,10 @@ impl<V: Clone + PartialEq, S: RectVolSize, M: Clone> WriteVol for Chonk<V, S, M>
             self.z_offset += sub_chunk_idx * SubChunkSize::<S>::SIZE.z as i32;
             sub_chunk_idx = 0;
         } else if pos.z >= self.get_max_z() {
+            // Make sure we're not adding a redundant chunk.
+            if block == self.above {
+                return Ok(());
+            }
             // Append exactly sufficiently many SubChunks via Vec::extend
             let c = Chunk::<V, SubChunkSize<S>, M>::filled(self.above.clone(), self.meta.clone());
             let n = 1 + sub_chunk_idx as usize - self.sub_chunks.len();
