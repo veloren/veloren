@@ -13,10 +13,21 @@ unittests:
 benchmarks:
   extends: .recompile-branch
   stage: build
+  tags:
+    - veloren-benchmark
   script:
     - unset DISABLE_GIT_LFS_CHECK
     - ln -s /dockercache/cache-all target
     - cargo bench
+    - echo 'SET veloren.timestamp = "'"$(git show --no-patch --no-notes --pretty='%cd' HEAD)"'";' > upload.sql
+    - echo 'SET veloren.branch = "'"${CI_COMMIT_REF_NAME}"'";' >> upload.sql
+    - echo 'SET veloren.sha = "'"${CI_COMMIT_SHA}"'";' >> upload.sql
+    - find . -wholename "*new/*.csv" -exec echo '\copy benchmarks ("group", "function", "value", throughput_num, throughput_type, sample_measured_value, unit, iteration_count) from '"'{}' csv header" >> upload.sql \;
+    - cat upload.sql
+    - mkdir -p /usr/share/man/man1/ /usr/share/man/man3/ /usr/share/man/man7/
+    - apt-get update
+    - apt-get -y install postgresql-client
+    - PGPASSWORD="${CIDBPASSWORD}" PGSSLROOTCERT="./.gitlab/ci-db.crt" psql "sslmode=verify-ca host=auth.veloren.net dbname=benchmarks" -U bsdrftsejrhdrjhgd -f upload.sql;
   retry:
     max: 2
 
