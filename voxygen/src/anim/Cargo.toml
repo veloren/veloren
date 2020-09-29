@@ -13,8 +13,9 @@ crate-type = ["lib", "cdylib"]
 [features]
 be-dyn-lib = []
 use-dyn-lib = ["libloading", "notify", "lazy_static", "tracing", "find_folder"]
+simd = ["vek/platform_intrinsics"]
 
-default = ["be-dyn-lib"]
+default = ["be-dyn-lib", "simd"]
 
 [dependencies]
 common = {package = "veloren-common", path = "../../../common"}
@@ -24,4 +25,4 @@ lazy_static = {version = "1.4.0", optional = true}
 libloading = {version = "0.6.2", optional = true}
 notify = {version = "5.0.0-pre.2", optional = true}
 tracing = {version = "0.1", optional = true}
-vek = {version = "0.12.0", features = ["platform_intrinsics", "serde"]}
+vek = {version = "0.12.0", features = ["serde"]}

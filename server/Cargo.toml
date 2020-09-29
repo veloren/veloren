@@ -6,7 +6,9 @@ edition = "2018"
 
 [features]
 worldgen = []
-default = ["worldgen"]
+simd = ["vek/platform_intrinsics"]
+
+default = ["worldgen", "simd"]
 
 [dependencies]
 common = { package = "veloren-common", path = "../common" }
@@ -17,7 +19,7 @@ specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", branch = "spec
 
 tracing = "0.1"
 specs = { git = "https://github.com/amethyst/specs.git", features = ["shred-derive"], rev = "7a2e348ab2223818bad487695c66c43db88050a5" }
-vek = { version = "0.12.0", features = ["platform_intrinsics", "serde"] }
+vek = { version = "0.12.0", features = ["serde"] }
 uvth = "3.1.1"
 futures-util = "0.3"
 futures-executor = "0.3"
