@@ -4,7 +4,6 @@
 //!E.g. in the same time 100 prio0 messages are send, only 50 prio5, 25 prio10,
 //! 12 prio15 or 6 prio20 messages are send. Note: TODO: prio0 will be send
 //! immediately when found!
-//!
 #[cfg(feature = "metrics")]
 use crate::metrics::NetworkMetrics;
 use crate::{

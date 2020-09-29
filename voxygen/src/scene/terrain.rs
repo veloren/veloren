@@ -844,7 +844,10 @@ impl<V: RectRasterableVol> Terrain<V> {
         let collides_with_aabr = |a: math::Aabb<f32>, b: math::Aabr<f32>| {
             let min = math::Vec4::new(a.min.x, a.min.y, b.min.x, b.min.y);
             let max = math::Vec4::new(b.max.x, b.max.y, a.max.x, a.max.y);
-            min.partial_cmple_simd(max).reduce_and()
+            #[cfg(feature = "simd")]
+            return min.partial_cmple_simd(max).reduce_and();
+            #[cfg(not(feature = "simd"))]
+            return min.partial_cmple(&max).reduce_and();
         };
         let (visible_light_volume, visible_psr_bounds) = if ray_direction.z < 0.0
             && renderer.render_mode().shadow.is_map()
