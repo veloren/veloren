@@ -98,7 +98,7 @@ impl CharacterBehavior for Data {
                     update.character = CharacterState::RepeaterRanged(Data {
                         static_data: self.static_data.clone(),
                         timer: Duration::default(),
-                        stage_section: StageSection::Buildup,
+                        stage_section: StageSection::Shoot,
                         reps_remaining: self.reps_remaining,
                     });
                 }
@@ -164,7 +164,7 @@ impl CharacterBehavior for Data {
                     update.character = CharacterState::RepeaterRanged(Data {
                         static_data: self.static_data.clone(),
                         timer: Duration::default(),
-                        stage_section: StageSection::Buildup,
+                        stage_section: StageSection::Recover,
                         reps_remaining: self.reps_remaining,
                     });
                 }

@@ -550,7 +550,7 @@ impl From<&CharacterAbility> for CharacterState {
                     swing_duration: *swing_duration,
                     recover_duration: *recover_duration,
                 },
-                stage_section: StageSection::Buildup,
+                stage_section: StageSection::Charge,
                 timer: Duration::default(),
                 exhausted: false,
                 charge_amount: 0.0,
