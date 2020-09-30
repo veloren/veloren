@@ -213,6 +213,8 @@ impl Animation for RunAnimation {
             next.torso.position = Vec3::new(0.0, 0.0, 0.0) / 8.0;
             next.torso.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(-0.25);
             next.torso.scale = Vec3::one() / 8.0;
+
+            next.hold.scale = Vec3::one() * 0.0;
         } else {
             next.head.position = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1) * 1.02;
             next.head.orientation = Quaternion::rotation_z(short * -0.18) * Quaternion::rotation_x(-0.05);
@@ -335,6 +337,8 @@ impl Animation for RunAnimation {
             next.torso.position = Vec3::new(0.0, 0.0, 0.0) / 8.0;
             next.torso.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(-0.25);
             next.torso.scale = Vec3::one() / 8.0;
+
+            next.hold.scale = Vec3::one() * 0.0;
         }
         next
     }
