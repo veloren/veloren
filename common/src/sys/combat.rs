@@ -99,7 +99,7 @@ impl<'a> System<'a> for Sys {
                 let scale_b = scale_b_maybe.map_or(1.0, |s| s.0);
                 let rad_b = body_b.radius() * scale_b;
 
-                // Check if it is a damaging hit
+                // Check if it is a hit
                 if entity != b
                     && !stats_b.is_dead
                     // Spherical wedge shaped attack field
@@ -113,13 +113,8 @@ impl<'a> System<'a> for Sys {
                         .unwrap_or(false);
                     // Don't heal if outside group
                     // Don't damage in the same group
-                    let (mut is_heal, mut is_damage) = (false, false);
-                    if !same_group && (attack.base_damage > 0) {
-                        is_damage = true;
-                    }
-                    if same_group && (attack.base_heal > 0) {
-                        is_heal = true;
-                    }
+                    let is_damage = !same_group && (attack.base_damage > 0);
+                    let is_heal = same_group && (attack.base_heal > 0);
                     if !is_heal && !is_damage {
                         continue;
                     }

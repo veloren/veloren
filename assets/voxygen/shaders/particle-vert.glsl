@@ -23,7 +23,7 @@ in vec3 inst_pos;
 in float inst_time;
 in float inst_lifespan;
 in float inst_entropy;
-in vec3 inst_pos2;
+in vec3 inst_dir;
 in int inst_mode;
 
 out vec3 f_pos;
@@ -271,10 +271,10 @@ void main() {
 		);
 	} else if (inst_mode == HEALING_BEAM) {
 		attr = Attr(
-			spiral_motion(inst_pos2 - inst_pos, 0.3 * (floor(2 * rand0 + 0.5) - 0.5) * min(linear_scale(10), 1), lifetime / inst_lifespan),
+			spiral_motion(inst_dir, 0.3 * (floor(2 * rand0 + 0.5) - 0.5) * min(linear_scale(10), 1), lifetime / inst_lifespan),
 			vec3((1.7 - 0.7 * abs(floor(2 * rand0 - 0.5) + 0.5)) * (1.5 + 0.5 * sin(tick.x * 10 - lifetime * 4))),
 			vec4(vec3(0.3, 0.7 + 0.4 * sin(tick.x * 8 - lifetime * 3), 0.3 + 0.1 * sin (tick.x * 2)), 0.3),
-			spin_in_axis(inst_pos2, tick.z)
+			spin_in_axis(inst_dir, tick.z)
 		);
 	} else if (inst_mode == ENERGY_NATURE) {
 		attr = Attr(

@@ -64,7 +64,6 @@ pub struct JoinData<'a> {
     pub body: &'a Body,
     pub physics: &'a PhysicsState,
     pub attacking: Option<&'a Attacking>,
-    pub beam: Option<&'a Beam>,
     pub updater: &'a LazyUpdate,
 }
 
@@ -128,7 +127,6 @@ impl<'a> JoinData<'a> {
             body: j.10,
             physics: j.11,
             attacking: j.12,
-            beam: j.13,
             updater,
             dt,
         }

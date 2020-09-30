@@ -168,13 +168,8 @@ impl<'a> System<'a> for Sys {
                     }
                     // Don't heal if outside group
                     // Don't damage in the same group
-                    let (mut is_heal, mut is_damage) = (false, false);
-                    if !same_group && (beam_segment.damage > 0) {
-                        is_damage = true;
-                    }
-                    if same_group && (beam_segment.heal > 0) {
-                        is_heal = true;
-                    }
+                    let is_damage = !same_group && (beam_segment.damage > 0);
+                    let is_heal = same_group && (beam_segment.heal > 0);
                     if !is_heal && !is_damage {
                         continue;
                     }
@@ -214,20 +209,19 @@ impl<'a> System<'a> for Sys {
                                 },
                             },
                         });
-                        server_emitter.emit(ServerEvent::Damage {
-                            uid: beam_segment.owner.unwrap_or(*uid),
-                            change: HealthChange {
-                                amount: (-damage.healthchange * beam_segment.lifesteal_eff) as i32,
-                                cause: HealthSource::Healing {
-                                    by: beam_segment.owner,
+                        if beam_segment.lifesteal_eff > 0.0 {
+                            server_emitter.emit(ServerEvent::Damage {
+                                uid: beam_segment.owner.unwrap_or(*uid),
+                                change: HealthChange {
+                                    amount: (-damage.healthchange * beam_segment.lifesteal_eff)
+                                        as i32,
+                                    cause: HealthSource::Healing {
+                                        by: beam_segment.owner,
+                                    },
                                 },
-                            },
-                        });
-                        if let Some(energy_mut) = beam_segment
-                            .owner
-                            .and_then(|o| uid_allocator.retrieve_entity_internal(o.into()))
-                            .and_then(|o| energies.get_mut(o))
-                        {
+                            });
+                        }
+                        if let Some(energy_mut) = beam_owner.and_then(|o| energies.get_mut(o)) {
                             energy_mut.change_by(
                                 beam_segment.energy_regen as i32,
                                 EnergySource::HitEnemy,
@@ -235,11 +229,7 @@ impl<'a> System<'a> for Sys {
                         }
                     }
                     if is_heal {
-                        if let Some(energy_mut) = beam_segment
-                            .owner
-                            .and_then(|o| uid_allocator.retrieve_entity_internal(o.into()))
-                            .and_then(|o| energies.get_mut(o))
-                        {
+                        if let Some(energy_mut) = beam_owner.and_then(|o| energies.get_mut(o)) {
                             if energy_mut
                                 .try_change_by(
                                     -(beam_segment.energy_drain as i32), // Stamina use

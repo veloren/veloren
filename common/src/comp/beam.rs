@@ -1,6 +1,6 @@
 use crate::sync::Uid;
 use serde::{Deserialize, Serialize};
-use specs::{Component, FlaggedStorage, VecStorage};
+use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::time::Duration;
 
@@ -45,5 +45,5 @@ pub struct Beam {
 }
 
 impl Component for Beam {
-    type Storage = VecStorage<Self>;
+    type Storage = IdvStorage<Self>;
 }

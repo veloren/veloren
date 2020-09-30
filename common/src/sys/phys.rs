@@ -135,7 +135,7 @@ impl<'a> System<'a> for Sys {
         // it means the step needs to take into account the speeds of both
         // entities.
         span!(guard, "Apply pushback");
-        for (entity, pos, scale, mass, collider, _, _, physics, projectile, _) in (
+        for (entity, pos, scale, mass, collider, _, _, physics, projectile) in (
             &entities,
             &positions,
             scales.maybe(),
@@ -147,13 +147,10 @@ impl<'a> System<'a> for Sys {
             // TODO: if we need to avoid collisions for other things consider moving whether it
             // should interact into the collider component or into a separate component
             projectiles.maybe(),
-            beams.maybe(),
         )
             .join()
-            .filter(|(_, _, _, _, _, _, sticky, physics, _, beam)| {
-                sticky.is_none()
-                    || (physics.on_wall.is_none() && !physics.on_ground)
-                    || beam.is_none()
+            .filter(|(_, _, _, _, _, _, sticky, physics, _)| {
+                sticky.is_none() || (physics.on_wall.is_none() && !physics.on_ground)
             })
         {
             let scale = scale.map(|s| s.0).unwrap_or(1.0);
@@ -192,10 +189,9 @@ impl<'a> System<'a> for Sys {
                 colliders.maybe(),
                 !&mountings,
                 groups.maybe(),
-                beams.maybe(),
+                !&beams,
             )
                 .join()
-                .filter(|(_, _, _, _, _, _, _, _, beam)| beam.is_none())
             {
                 if entity == entity_other || (ignore_group.is_some() && ignore_group == group_b) {
                     continue;
