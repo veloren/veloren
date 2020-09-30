@@ -75,10 +75,10 @@ impl Animation for DashAnimation {
 
         next.hand_l.position = Vec3::new(-0.75, -1.0, 2.5);
         next.hand_l.orientation = Quaternion::rotation_x(1.47) * Quaternion::rotation_y(-0.2);
-        next.hand_l.scale = Vec3::one() * 1.04;
+        next.hand_l.scale = Vec3::one() * 1.02;
         next.hand_r.position = Vec3::new(0.75, -1.5, -0.5);
         next.hand_r.orientation = Quaternion::rotation_x(1.47) * Quaternion::rotation_y(0.3);
-        next.hand_r.scale = Vec3::one() * 1.05;
+        next.hand_r.scale = Vec3::one() * 1.02;
         next.main.position = Vec3::new(0.0, 0.0, 2.0);
         next.main.orientation = Quaternion::rotation_x(-0.1)
             * Quaternion::rotation_y(0.0)
@@ -103,13 +103,13 @@ impl Animation for DashAnimation {
                                 -skeleton_attr.foot.0,
                                 skeleton_attr.foot.1 + movement * -12.0,
                                 skeleton_attr.foot.2,
-                            );
+                            ) / 8.0;
                             next.foot_l.orientation = Quaternion::rotation_x(movement * -1.0);
                             next.foot_r.position = Vec3::new(
                                 skeleton_attr.foot.0,
                                 skeleton_attr.foot.1,
                                 skeleton_attr.foot.2,
-                            );
+                            ) / 8.0;
                         },
                         StageSection::Charge => {
                             next.head.position = Vec3::new(
@@ -143,7 +143,7 @@ impl Animation for DashAnimation {
                                 2.0 - skeleton_attr.foot.0,
                                 skeleton_attr.foot.1 + foothoril * -7.5,
                                 2.0 + skeleton_attr.foot.2 + ((footvertl * -4.0).max(-1.0)),
-                            );
+                            ) / 8.0;
                             next.foot_l.orientation =
                                 Quaternion::rotation_x(-0.6 + footrotl * -0.6)
                                     * Quaternion::rotation_z(-0.2);
@@ -152,7 +152,7 @@ impl Animation for DashAnimation {
                                 2.0 + skeleton_attr.foot.0,
                                 skeleton_attr.foot.1 + foothorir * -7.5,
                                 2.0 + skeleton_attr.foot.2 + ((footvertr * -4.0).max(-1.0)),
-                            );
+                            ) / 8.0;
                             next.foot_r.orientation =
                                 Quaternion::rotation_x(-0.6 + footrotr * -0.6)
                                     * Quaternion::rotation_z(-0.2);
@@ -180,6 +180,7 @@ impl Animation for DashAnimation {
                                 Quaternion::rotation_x(-1.5) * Quaternion::rotation_y(-1.0);
                             next.control.scale = Vec3::one();
                         },
+                        _ => {},
                     }
                 }
             },
@@ -203,10 +204,10 @@ impl Animation for DashAnimation {
 
                 next.hand_l.position = Vec3::new(-0.75, -1.0, -2.5);
                 next.hand_l.orientation = Quaternion::rotation_x(1.27);
-                next.hand_l.scale = Vec3::one() * 1.04;
+                next.hand_l.scale = Vec3::one() * 1.02;
                 next.hand_r.position = Vec3::new(0.75, -1.5, -5.5);
                 next.hand_r.orientation = Quaternion::rotation_x(1.27);
-                next.hand_r.scale = Vec3::one() * 1.05;
+                next.hand_r.scale = Vec3::one() * 1.02;
                 next.main.position = Vec3::new(0.0, 6.0, -1.0);
                 next.main.orientation = Quaternion::rotation_x(-0.3);
                 next.main.scale = Vec3::one();

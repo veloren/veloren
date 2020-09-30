@@ -8,11 +8,13 @@ pub mod shoot;
 pub mod charge;
 pub mod dash;
 pub mod spin;
+pub mod spinmelee;
 
 // Reexports
 pub use self::{
     alpha::AlphaAnimation, beta::BetaAnimation, idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation,
     wield::WieldAnimation, charge::ChargeAnimation, shoot::ShootAnimation, dash::DashAnimation, spin::SpinAnimation,
+    spinmelee::SpinMeleeAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};

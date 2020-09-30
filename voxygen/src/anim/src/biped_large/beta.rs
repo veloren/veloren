@@ -64,7 +64,7 @@ impl Animation for BetaAnimation {
             next.hand_r.position = Vec3::new(0.75, -1.5, -0.5);
             next.hand_r.orientation = Quaternion::rotation_x(1.47) * Quaternion::rotation_y(0.3);
             next.hand_r.scale = Vec3::one() * 1.05;
-            next.main.position = Vec3::new(0.0, 0.0, 2.0);
+            next.main.position = Vec3::new(0.0, 5.0, 2.0);
             next.main.orientation = Quaternion::rotation_x(-0.1)
                 * Quaternion::rotation_y(0.0)
                 * Quaternion::rotation_z(0.0);
@@ -219,7 +219,7 @@ impl Animation for BetaAnimation {
             skeleton_attr.shoulder.2,
         );
         next.shoulder_l.orientation = Quaternion::rotation_x(0.0);
-        next.shoulder_l.scale = Vec3::one() * 1.1;
+        next.shoulder_l.scale = Vec3::one();
 
         next.shoulder_r.position = Vec3::new(
             skeleton_attr.shoulder.0,
@@ -227,7 +227,7 @@ impl Animation for BetaAnimation {
             skeleton_attr.shoulder.2,
         );
         next.shoulder_r.orientation = Quaternion::rotation_x(0.0);
-        next.shoulder_r.scale = Vec3::one() * 1.1;
+        next.shoulder_r.scale = Vec3::one();
 
         next.second.scale = match (
             active_tool_kind.map(|tk| tk.hands()),
