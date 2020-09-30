@@ -138,10 +138,33 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                         KillSource::NonPlayer("<?>".to_string(), KillType::Explosion)
                     }
                 },
+                HealthSource::Energy { owner: Some(by) } => {
+                    // Get energy owner entity
+                    if let Some(char_entity) = state.ecs().entity_from_uid(by.into()) {
+                        // Check if attacker is another player or entity with stats (npc)
+                        if state
+                            .ecs()
+                            .read_storage::<Player>()
+                            .get(char_entity)
+                            .is_some()
+                        {
+                            KillSource::Player(by, KillType::Energy)
+                        } else if let Some(stats) =
+                            state.ecs().read_storage::<Stats>().get(char_entity)
+                        {
+                            KillSource::NonPlayer(stats.name.clone(), KillType::Energy)
+                        } else {
+                            KillSource::NonPlayer("<?>".to_string(), KillType::Energy)
+                        }
+                    } else {
+                        KillSource::NonPlayer("<?>".to_string(), KillType::Energy)
+                    }
+                },
                 HealthSource::World => KillSource::FallDamage,
                 HealthSource::Suicide => KillSource::Suicide,
                 HealthSource::Projectile { owner: None }
                 | HealthSource::Explosion { owner: None }
+                | HealthSource::Energy { owner: None }
                 | HealthSource::Revive
                 | HealthSource::Command
                 | HealthSource::LevelUp
@@ -158,8 +181,10 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
     // Give EXP to the killer if entity had stats
     (|| {
         let mut stats = state.ecs().write_storage::<Stats>();
-        let by = if let HealthSource::Attack { by } | HealthSource::Projectile { owner: Some(by) } =
-            cause
+        let by = if let HealthSource::Attack { by }
+        | HealthSource::Projectile { owner: Some(by) }
+        | HealthSource::Energy { owner: Some(by) }
+        | HealthSource::Explosion { owner: Some(by) } = cause
         {
             by
         } else {
@@ -450,6 +475,7 @@ pub fn handle_explosion(
     owner: Option<Uid>,
     friendly_damage: bool,
     reagent: Option<Reagent>,
+    percent_damage: f32,
 ) {
     // Go through all other entities
     let hit_range = 3.0 * power;
@@ -461,6 +487,7 @@ pub fn handle_explosion(
             pos,
             power,
             reagent,
+            percent_damage,
         });
     let owner_entity = owner.and_then(|uid| {
         ecs.read_resource::<UidAllocator>()
@@ -483,18 +510,40 @@ pub fn handle_explosion(
         if !stats_b.is_dead
             // RADIUS
             && distance_squared < hit_range.powi(2)
-            // Skip if they are in the same group and friendly_damage is turned off for the
-            // explosion
-            && (friendly_damage || !owner_entity
-                    .and_then(|e| groups.get(e))
-                    .map_or(false, |group_a| Some(group_a) == groups.get(entity_b)))
         {
+            // See if entities are in the same group
+            let mut same_group = owner_entity
+                .and_then(|e| groups.get(e))
+                .map_or(false, |group_a| Some(group_a) == groups.get(entity_b));
+            if let Some(entity) = owner_entity {
+                if entity == entity_b {
+                    same_group = true;
+                }
+            }
+            // Don't heal if outside group
+            // Don't damage in the same group
+            let is_damage = (friendly_damage || !same_group) && (percent_damage > 0.0);
+            let is_heal = same_group && (percent_damage < 1.0);
+            if !is_heal && !is_damage {
+                continue;
+            }
+
             // Weapon gives base damage
-            let dmg = (1.0 - distance_squared / hit_range.powi(2)) * power * 130.0;
+            let source = if is_heal {
+                DamageSource::Healing
+            } else {
+                DamageSource::Explosion
+            };
+            let strength = (1.0 - distance_squared / hit_range.powi(2)) * power * 130.0;
+            let healthchange = if is_heal {
+                strength * (1.0 - percent_damage)
+            } else {
+                -strength * percent_damage
+            };
 
             let mut damage = Damage {
-                healthchange: -dmg,
-                source: DamageSource::Explosion,
+                healthchange,
+                source,
             };
 
             let block = character_b.map(|c_b| c_b.is_block()).unwrap_or(false)
@@ -504,15 +553,15 @@ pub fn handle_explosion(
                 damage.modify_damage(block, loadout);
             }
 
-            if damage.healthchange < 0.0 {
+            if damage.healthchange != 0.0 {
+                let cause = if is_heal {
+                    HealthSource::Healing { by: owner }
+                } else {
+                    HealthSource::Explosion { owner }
+                };
                 stats_b.health.change_by(HealthChange {
                     amount: damage.healthchange as i32,
-                    cause: HealthSource::Explosion { owner },
-                });
-            } else if damage.healthchange > 0.0 {
-                stats_b.health.change_by(HealthChange {
-                    amount: damage.healthchange as i32,
-                    cause: HealthSource::Healing { by: owner },
+                    cause,
                 });
             }
         }
@@ -520,64 +569,66 @@ pub fn handle_explosion(
 
     const RAYS: usize = 500;
 
-    // Color terrain
-    let mut touched_blocks = Vec::new();
-    let color_range = power * 2.7;
-    for _ in 0..RAYS {
-        let dir = Vec3::new(
-            rand::random::<f32>() - 0.5,
-            rand::random::<f32>() - 0.5,
-            rand::random::<f32>() - 0.5,
-        )
-        .normalized();
+    if percent_damage > 0.9 {
+        // Color terrain
+        let mut touched_blocks = Vec::new();
+        let color_range = power * 2.7;
+        for _ in 0..RAYS {
+            let dir = Vec3::new(
+                rand::random::<f32>() - 0.5,
+                rand::random::<f32>() - 0.5,
+                rand::random::<f32>() - 0.5,
+            )
+            .normalized();
 
-        let _ = ecs
-            .read_resource::<TerrainGrid>()
-            .ray(pos, pos + dir * color_range)
-            // TODO: Faster RNG
-            .until(|_| rand::random::<f32>() < 0.05)
-            .for_each(|_: &Block, pos| touched_blocks.push(pos))
-            .cast();
-    }
-
-    let terrain = ecs.read_resource::<TerrainGrid>();
-    let mut block_change = ecs.write_resource::<BlockChange>();
-    for block_pos in touched_blocks {
-        if let Ok(block) = terrain.get(block_pos) {
-            let diff2 = block_pos.map(|b| b as f32).distance_squared(pos);
-            let fade = (1.0 - diff2 / color_range.powi(2)).max(0.0);
-            if let Some(mut color) = block.get_color() {
-                let r = color[0] as f32 + (fade * (color[0] as f32 * 0.5 - color[0] as f32));
-                let g = color[1] as f32 + (fade * (color[1] as f32 * 0.3 - color[1] as f32));
-                let b = color[2] as f32 + (fade * (color[2] as f32 * 0.3 - color[2] as f32));
-                color[0] = r as u8;
-                color[1] = g as u8;
-                color[2] = b as u8;
-                block_change.set(block_pos, Block::new(block.kind(), color));
-            }
+            let _ = ecs
+                .read_resource::<TerrainGrid>()
+                .ray(pos, pos + dir * color_range)
+                // TODO: Faster RNG
+                .until(|_| rand::random::<f32>() < 0.05)
+                .for_each(|_: &Block, pos| touched_blocks.push(pos))
+                .cast();
         }
-    }
-
-    // Destroy terrain
-    for _ in 0..RAYS {
-        let dir = Vec3::new(
-            rand::random::<f32>() - 0.5,
-            rand::random::<f32>() - 0.5,
-            rand::random::<f32>() - 0.15,
-        )
-        .normalized();
 
         let terrain = ecs.read_resource::<TerrainGrid>();
-        let _ = terrain
-            .ray(pos, pos + dir * power)
-            // TODO: Faster RNG
-            .until(|block| block.is_liquid() || rand::random::<f32>() < 0.05)
-            .for_each(|block: &Block, pos| {
-                if block.is_explodable() {
-                    block_change.set(pos, block.into_vacant());
+        let mut block_change = ecs.write_resource::<BlockChange>();
+        for block_pos in touched_blocks {
+            if let Ok(block) = terrain.get(block_pos) {
+                let diff2 = block_pos.map(|b| b as f32).distance_squared(pos);
+                let fade = (1.0 - diff2 / color_range.powi(2)).max(0.0);
+                if let Some(mut color) = block.get_color() {
+                    let r = color[0] as f32 + (fade * (color[0] as f32 * 0.5 - color[0] as f32));
+                    let g = color[1] as f32 + (fade * (color[1] as f32 * 0.3 - color[1] as f32));
+                    let b = color[2] as f32 + (fade * (color[2] as f32 * 0.3 - color[2] as f32));
+                    color[0] = r as u8;
+                    color[1] = g as u8;
+                    color[2] = b as u8;
+                    block_change.set(block_pos, Block::new(block.kind(), color));
                 }
-            })
-            .cast();
+            }
+        }
+
+        // Destroy terrain
+        for _ in 0..RAYS {
+            let dir = Vec3::new(
+                rand::random::<f32>() - 0.5,
+                rand::random::<f32>() - 0.5,
+                rand::random::<f32>() - 0.15,
+            )
+            .normalized();
+
+            let terrain = ecs.read_resource::<TerrainGrid>();
+            let _ = terrain
+                .ray(pos, pos + dir * power)
+                // TODO: Faster RNG
+                .until(|block| block.is_liquid() || rand::random::<f32>() < 0.05)
+                .for_each(|block: &Block, pos| {
+                    if block.is_explodable() {
+                        block_change.set(pos, block.into_vacant());
+                    }
+                })
+                .cast();
+        }
     }
 }
 

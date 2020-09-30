@@ -75,7 +75,7 @@ impl<'a> System<'a> for Sys {
                     continue;
                 }
 
-                for effect in projectile.hit_entity.iter().cloned() {
+                for effect in projectile.hit_entity.drain(..) {
                     match effect {
                         projectile::Effect::Damage(healthchange) => {
                             let owner_uid = projectile.owner.unwrap();
@@ -133,15 +133,17 @@ impl<'a> System<'a> for Sys {
                                 energy_mut.change_by(energy as i32, EnergySource::HitEnemy);
                             }
                         },
-                        projectile::Effect::Explode { power } => {
-                            server_emitter.emit(ServerEvent::Explosion {
-                                pos: pos.0,
-                                power,
-                                owner: projectile.owner,
-                                friendly_damage: false,
-                                reagent: None,
-                            })
-                        },
+                        projectile::Effect::Explode {
+                            power,
+                            percent_damage,
+                        } => server_emitter.emit(ServerEvent::Explosion {
+                            pos: pos.0,
+                            power,
+                            owner: projectile.owner,
+                            friendly_damage: false,
+                            reagent: None,
+                            percent_damage,
+                        }),
                         projectile::Effect::Vanish => server_emitter.emit(ServerEvent::Destroy {
                             entity,
                             cause: HealthSource::World,
@@ -162,15 +164,17 @@ impl<'a> System<'a> for Sys {
             if physics.on_wall.is_some() || physics.on_ground || physics.on_ceiling {
                 for effect in projectile.hit_solid.drain(..) {
                     match effect {
-                        projectile::Effect::Explode { power } => {
-                            server_emitter.emit(ServerEvent::Explosion {
-                                pos: pos.0,
-                                power,
-                                owner: projectile.owner,
-                                friendly_damage: false,
-                                reagent: None,
-                            })
-                        },
+                        projectile::Effect::Explode {
+                            power,
+                            percent_damage,
+                        } => server_emitter.emit(ServerEvent::Explosion {
+                            pos: pos.0,
+                            power,
+                            owner: projectile.owner,
+                            friendly_damage: false,
+                            reagent: None,
+                            percent_damage,
+                        }),
                         projectile::Effect::Vanish => server_emitter.emit(ServerEvent::Destroy {
                             entity,
                             cause: HealthSource::World,

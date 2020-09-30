@@ -268,6 +268,7 @@ image_ids! {
         snake_arrow_0: "voxygen.element.icons.snake",
         heal_0: "voxygen.element.icons.heal_0",
         sword_whirlwind: "voxygen.element.icons.sword_whirlwind",
+        heal_bomb: "voxygen.element.icons.heal_bomb",
 
         // Buttons
         button: "voxygen.element.buttons.button",

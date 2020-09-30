@@ -67,6 +67,7 @@ make_case_elim!(
         FireworkRed = 57,
         FireworkYellow = 58,
         MultiArrow = 59,
+        BoltNature = 60,
     }
 );
 
@@ -77,7 +78,7 @@ impl Body {
     }
 }
 
-pub const ALL_OBJECTS: [Body; 60] = [
+pub const ALL_OBJECTS: [Body; 61] = [
     Body::Arrow,
     Body::Bomb,
     Body::Scarecrow,
@@ -138,6 +139,7 @@ pub const ALL_OBJECTS: [Body; 60] = [
     Body::FireworkRed,
     Body::FireworkYellow,
     Body::MultiArrow,
+    Body::BoltNature,
 ];
 
 impl From<Body> for super::Body {
@@ -207,6 +209,7 @@ impl Body {
             Body::FireworkRed => "firework_red",
             Body::FireworkYellow => "firework_yellow",
             Body::MultiArrow => "multi_arrow",
+            Body::BoltNature => "bolt_nature",
         }
     }
 }

@@ -77,12 +77,11 @@ impl State {
                 .filter(|kind| {
                     use common::comp::item::{tool::ToolKind, ItemKind};
                     if let ItemKind::Tool(kind) = kind {
-                        if let ToolKind::Staff(kind) = &kind.kind {
-                            kind != "Sceptre" && kind != "SceptreVelorite"
-                        } else if let ToolKind::Debug(kind) = &kind.kind {
-                            kind == "Boost"
-                        } else {
-                            matches!(&kind.kind, ToolKind::Sword(_))
+                        match &kind.kind {
+                            ToolKind::Staff(_) => true,
+                            ToolKind::Debug(kind) => kind == "Boost",
+                            ToolKind::Sword(_) => true,
+                            _ => false,
                         }
                     } else {
                         false

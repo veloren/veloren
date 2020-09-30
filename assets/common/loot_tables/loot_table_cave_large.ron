@@ -31,11 +31,11 @@
     (0.04, "common.items.weapons.axe.steel_axe-5"),
     (0.04, "common.items.weapons.axe.steel_axe-6"),
     // healing staff
-    (0.5, "common.items.weapons.staff.staff_nature"),
+    (0.5, "common.items.weapons.sceptre.staff_nature"),
     // staves
     (1.00, "common.items.weapons.staff.bone_staff"),
     (1.00, "common.items.weapons.staff.amethyst_staff"),
-    (0.1, "common.items.weapons.staff.sceptre_velorite_0"),
+    (0.1, "common.items.weapons.sceptre.sceptre_velorite_0"),
     // hammers
     (0.30, "common.items.weapons.hammer.cobalt_hammer-0"),
     (0.30, "common.items.weapons.hammer.cobalt_hammer-1"),

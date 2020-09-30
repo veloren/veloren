@@ -1,7 +1,7 @@
 use crate::{
     comp::{Attacking, CharacterState, StateUpdate},
     states::utils::*,
-    sys::character_behavior::*,
+    sys::character_behavior::{CharacterBehavior, JoinData},
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -73,7 +73,8 @@ impl CharacterBehavior for Data {
         } else if !self.exhausted {
             // Hit attempt
             data.updater.insert(data.entity, Attacking {
-                base_healthchange: -(self.base_damage as i32),
+                base_damage: self.base_damage,
+                base_heal: 0,
                 range: 4.5,
                 max_angle: 360_f32.to_radians(),
                 applied: false,

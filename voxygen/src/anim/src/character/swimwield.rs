@@ -277,7 +277,7 @@ impl Animation for SwimWieldAnimation {
                     * Quaternion::rotation_z(u_slowalt * 0.08);
                 next.control.scale = Vec3::one();
             },
-            Some(ToolKind::Staff(_)) => {
+            Some(ToolKind::Staff(_)) | Some(ToolKind::Sceptre(_)) => {
                 next.l_hand.position = Vec3::new(1.5, 0.5, -4.0);
                 next.l_hand.orientation =
                     Quaternion::rotation_x(1.47) * Quaternion::rotation_y(-0.3);

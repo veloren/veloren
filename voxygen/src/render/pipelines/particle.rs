@@ -35,6 +35,9 @@ gfx_defines! {
         // can save 32 bits per instance, and have cleaner tailor made code.
         inst_mode: i32 = "inst_mode",
 
+        // A direction for particles to move in
+        inst_dir: [f32; 3] = "inst_dir",
+
         // a triangle is: f32 x 3 x 3 x 1  = 288 bits
         // a quad is:     f32 x 3 x 3 x 2  = 576 bits
         // a cube is:     f32 x 3 x 3 x 12 = 3456 bits
@@ -106,6 +109,8 @@ pub enum ParticleMode {
     Firefly = 10,
     Bee = 11,
     GroundShockwave = 12,
+    HealingBeam = 13,
+    EnergyNature = 14,
 }
 
 impl ParticleMode {
@@ -126,6 +131,25 @@ impl Instance {
             inst_entropy: rand::thread_rng().gen(),
             inst_mode: inst_mode as i32,
             inst_pos: inst_pos.into_array(),
+            inst_dir: [0.0, 0.0, 0.0],
+        }
+    }
+
+    pub fn new_beam(
+        inst_time: f64,
+        lifespan: f32,
+        inst_mode: ParticleMode,
+        inst_pos: Vec3<f32>,
+        inst_pos2: Vec3<f32>,
+    ) -> Self {
+        use rand::Rng;
+        Self {
+            inst_time: inst_time as f32,
+            inst_lifespan: lifespan,
+            inst_entropy: rand::thread_rng().gen(),
+            inst_mode: inst_mode as i32,
+            inst_pos: inst_pos.into_array(),
+            inst_dir: (inst_pos2 - inst_pos).into_array(),
         }
     }
 }
