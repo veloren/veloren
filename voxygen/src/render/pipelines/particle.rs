@@ -35,8 +35,8 @@ gfx_defines! {
         // can save 32 bits per instance, and have cleaner tailor made code.
         inst_mode: i32 = "inst_mode",
 
-        // an extra position for particles that need it
-        inst_pos2: [f32; 3] = "inst_pos2",
+        // A direction for particles to move in
+        inst_dir: [f32; 3] = "inst_dir",
 
         // a triangle is: f32 x 3 x 3 x 1  = 288 bits
         // a quad is:     f32 x 3 x 3 x 2  = 576 bits
@@ -131,7 +131,7 @@ impl Instance {
             inst_entropy: rand::thread_rng().gen(),
             inst_mode: inst_mode as i32,
             inst_pos: inst_pos.into_array(),
-            inst_pos2: [0.0, 0.0, 0.0],
+            inst_dir: [0.0, 0.0, 0.0],
         }
     }
 
@@ -149,7 +149,7 @@ impl Instance {
             inst_entropy: rand::thread_rng().gen(),
             inst_mode: inst_mode as i32,
             inst_pos: inst_pos.into_array(),
-            inst_pos2: inst_pos2.into_array(),
+            inst_dir: (inst_pos2 - inst_pos).into_array(),
         }
     }
 }

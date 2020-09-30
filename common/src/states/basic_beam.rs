@@ -3,7 +3,7 @@ use crate::{
     event::ServerEvent,
     states::utils::{StageSection, *},
     sync::Uid,
-    sys::character_behavior::*,
+    sys::character_behavior::{CharacterBehavior, JoinData},
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;

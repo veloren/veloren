@@ -522,13 +522,8 @@ pub fn handle_explosion(
             }
             // Don't heal if outside group
             // Don't damage in the same group
-            let (mut is_heal, mut is_damage) = (false, false);
-            if (friendly_damage || !same_group) && (percent_damage > 0.0) {
-                is_damage = true;
-            }
-            if same_group && (percent_damage < 1.0) {
-                is_heal = true;
-            }
+            let is_damage = (friendly_damage || !same_group) && (percent_damage > 0.0);
+            let is_heal = same_group && (percent_damage < 1.0);
             if !is_heal && !is_damage {
                 continue;
             }
