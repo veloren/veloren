@@ -33,6 +33,7 @@ pub enum ServerEvent {
         owner: Option<Uid>,
         friendly_damage: bool,
         reagent: Option<Reagent>,
+        percent_damage: f32,
     },
     Damage {
         uid: Uid,
@@ -62,6 +63,11 @@ pub enum ServerEvent {
     Knockback {
         entity: EcsEntity,
         impulse: Vec3<f32>,
+    },
+    BeamSegment {
+        properties: comp::beam::Properties,
+        pos: Pos,
+        ori: Ori,
     },
     LandOnGround {
         entity: EcsEntity,

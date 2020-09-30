@@ -1,6 +1,6 @@
 use crate::{
     comp::{
-        Attacking, Body, CharacterState, ControlAction, Controller, ControllerInputs, Energy,
+        Attacking, Beam, Body, CharacterState, ControlAction, Controller, ControllerInputs, Energy,
         Loadout, Mounting, Ori, PhysicsState, Pos, StateUpdate, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
@@ -89,6 +89,7 @@ pub type JoinTuple<'a> = (
     &'a Body,
     &'a PhysicsState,
     Option<&'a Attacking>,
+    Option<&'a Beam>,
 );
 
 fn incorporate_update(tuple: &mut JoinTuple, state_update: StateUpdate) {
@@ -158,6 +159,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Body>,
         ReadStorage<'a, PhysicsState>,
         ReadStorage<'a, Attacking>,
+        ReadStorage<'a, Beam>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Mounting>,
     );
@@ -184,6 +186,7 @@ impl<'a> System<'a> for Sys {
             bodies,
             physics_states,
             attacking_storage,
+            beam_storage,
             uids,
             mountings,
         ): Self::SystemData,
@@ -207,6 +210,7 @@ impl<'a> System<'a> for Sys {
             &bodies,
             &physics_states,
             attacking_storage.maybe(),
+            beam_storage.maybe(),
         )
             .join()
         {
@@ -259,6 +263,7 @@ impl<'a> System<'a> for Sys {
                     CharacterState::SpinMelee(data) => data.handle_event(&j, action),
                     CharacterState::ChargedRanged(data) => data.handle_event(&j, action),
                     CharacterState::GroundShockwave(data) => data.handle_event(&j, action),
+                    CharacterState::BasicBeam(data) => data.handle_event(&j, action),
                 };
                 local_emitter.append(&mut state_update.local_events);
                 server_emitter.append(&mut state_update.server_events);
@@ -288,6 +293,7 @@ impl<'a> System<'a> for Sys {
                 CharacterState::SpinMelee(data) => data.behavior(&j),
                 CharacterState::ChargedRanged(data) => data.behavior(&j),
                 CharacterState::GroundShockwave(data) => data.behavior(&j),
+                CharacterState::BasicBeam(data) => data.behavior(&j),
             };
 
             local_emitter.append(&mut state_update.local_events);

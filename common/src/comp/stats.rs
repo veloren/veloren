@@ -19,6 +19,7 @@ pub enum HealthSource {
     Attack { by: Uid }, // TODO: Implement weapon
     Projectile { owner: Option<Uid> },
     Explosion { owner: Option<Uid> },
+    Energy { owner: Option<Uid> },
     Suicide,
     World,
     Revive,

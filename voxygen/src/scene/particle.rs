@@ -14,6 +14,7 @@ use common::{
     span,
     spiral::Spiral2d,
     state::DeltaTime,
+    states::utils::StageSection,
     terrain::TerrainChunk,
     vol::{RectRasterableVol, SizedVol},
 };
@@ -58,37 +59,54 @@ impl ParticleMgr {
                 pos,
                 power,
                 reagent,
+                percent_damage,
             } => {
-                self.particles.resize_with(
-                    self.particles.len() + if reagent.is_some() { 300 } else { 150 },
-                    || {
-                        Particle::new(
-                            Duration::from_millis(if reagent.is_some() { 1000 } else { 250 }),
-                            time,
-                            match reagent {
-                                Some(Reagent::Blue) => ParticleMode::FireworkBlue,
-                                Some(Reagent::Green) => ParticleMode::FireworkGreen,
-                                Some(Reagent::Purple) => ParticleMode::FireworkPurple,
-                                Some(Reagent::Red) => ParticleMode::FireworkRed,
-                                Some(Reagent::Yellow) => ParticleMode::FireworkYellow,
-                                None => ParticleMode::Shrapnel,
-                            },
-                            *pos,
-                        )
-                    },
-                );
+                if *percent_damage < 0.5 {
+                    self.particles.resize_with(
+                        self.particles.len() + (200.0 * power) as usize,
+                        || {
+                            Particle::new(
+                                Duration::from_secs(1),
+                                time,
+                                ParticleMode::EnergyNature,
+                                *pos + Vec3::<f32>::zero()
+                                    .map(|_| rng.gen_range(-3.0, 3.0) * power),
+                            )
+                        },
+                    );
+                } else {
+                    self.particles.resize_with(
+                        self.particles.len() + if reagent.is_some() { 300 } else { 150 },
+                        || {
+                            Particle::new(
+                                Duration::from_millis(if reagent.is_some() { 1000 } else { 250 }),
+                                time,
+                                match reagent {
+                                    Some(Reagent::Blue) => ParticleMode::FireworkBlue,
+                                    Some(Reagent::Green) => ParticleMode::FireworkGreen,
+                                    Some(Reagent::Purple) => ParticleMode::FireworkPurple,
+                                    Some(Reagent::Red) => ParticleMode::FireworkRed,
+                                    Some(Reagent::Yellow) => ParticleMode::FireworkYellow,
+                                    None => ParticleMode::Shrapnel,
+                                },
+                                *pos,
+                            )
+                        },
+                    );
 
-                self.particles.resize_with(
-                    self.particles.len() + if reagent.is_some() { 100 } else { 200 },
-                    || {
-                        Particle::new(
-                            Duration::from_secs(4),
-                            time,
-                            ParticleMode::CampfireSmoke,
-                            *pos + Vec2::<f32>::zero().map(|_| rng.gen_range(-1.0, 1.0) * power),
-                        )
-                    },
-                );
+                    self.particles.resize_with(
+                        self.particles.len() + if reagent.is_some() { 100 } else { 200 },
+                        || {
+                            Particle::new(
+                                Duration::from_secs(4),
+                                time,
+                                ParticleMode::CampfireSmoke,
+                                *pos + Vec2::<f32>::zero()
+                                    .map(|_| rng.gen_range(-1.0, 1.0) * power),
+                            )
+                        },
+                    );
+                }
             },
             Outcome::ProjectileShot { .. } => {},
         }
@@ -112,6 +130,7 @@ impl ParticleMgr {
             // add new Particle
             self.maintain_body_particles(scene_data);
             self.maintain_boost_particles(scene_data);
+            self.maintain_beam_particles(scene_data);
             self.maintain_block_particles(scene_data, terrain);
             self.maintain_shockwave_particles(scene_data);
         } else {
@@ -142,6 +161,9 @@ impl ParticleMgr {
                 },
                 Body::Object(object::Body::BoltFireBig) => {
                     self.maintain_boltfirebig_particles(scene_data, pos)
+                },
+                Body::Object(object::Body::BoltNature) => {
+                    self.maintain_boltnature_particles(scene_data, pos)
                 },
                 Body::Object(
                     object::Body::Bomb
@@ -240,6 +262,23 @@ impl ParticleMgr {
         );
     }
 
+    fn maintain_boltnature_particles(&mut self, scene_data: &SceneData, pos: &Pos) {
+        let time = scene_data.state.get_time();
+
+        // nature
+        self.particles.resize_with(
+            self.particles.len() + usize::from(self.scheduler.heartbeats(Duration::from_millis(3))),
+            || {
+                Particle::new(
+                    Duration::from_millis(250),
+                    time,
+                    ParticleMode::EnergyNature,
+                    pos.0,
+                )
+            },
+        );
+    }
+
     fn maintain_bomb_particles(&mut self, scene_data: &SceneData, pos: &Pos) {
         span!(
             _guard,
@@ -296,6 +335,37 @@ impl ParticleMgr {
                         )
                     },
                 );
+            }
+        }
+    }
+
+    fn maintain_beam_particles(&mut self, scene_data: &SceneData) {
+        let state = scene_data.state;
+        let ecs = state.ecs();
+        let time = state.get_time();
+
+        for (pos, ori, character_state) in (
+            &ecs.read_storage::<Pos>(),
+            &ecs.read_storage::<Ori>(),
+            &ecs.read_storage::<CharacterState>(),
+        )
+            .join()
+        {
+            if let CharacterState::BasicBeam(b) = character_state {
+                let particle_ori = b.particle_ori.unwrap_or(*ori.vec());
+                if b.stage_section == StageSection::Cast {
+                    for i in 0..self.scheduler.heartbeats(Duration::from_millis(1)) {
+                        self.particles.push(Particle::new_beam(
+                            b.static_data.beam_duration,
+                            time + i as f64 / 1000.0,
+                            ParticleMode::HealingBeam,
+                            pos.0 + particle_ori * 0.5 + Vec3::new(0.0, 0.0, b.offset),
+                            pos.0
+                                + particle_ori * b.static_data.range
+                                + Vec3::new(0.0, 0.0, b.offset),
+                        ));
+                    }
+                }
             }
         }
     }
@@ -644,6 +714,19 @@ impl Particle {
         Particle {
             alive_until: time + lifespan.as_secs_f64(),
             instance: ParticleInstance::new(time, lifespan.as_secs_f32(), mode, pos),
+        }
+    }
+
+    fn new_beam(
+        lifespan: Duration,
+        time: f64,
+        mode: ParticleMode,
+        pos1: Vec3<f32>,
+        pos2: Vec3<f32>,
+    ) -> Self {
+        Particle {
+            alive_until: time + lifespan.as_secs_f64(),
+            instance: ParticleInstance::new_beam(time, lifespan.as_secs_f32(), mode, pos1, pos2),
         }
     }
 }

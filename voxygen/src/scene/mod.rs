@@ -390,6 +390,7 @@ impl Scene {
                 pos,
                 power,
                 reagent,
+                percent_damage,
             } => self.event_lights.push(EventLight {
                 light: Light::new(
                     *pos,
@@ -399,7 +400,13 @@ impl Scene {
                         Some(Reagent::Purple) => Rgb::new(0.7, 0.0, 1.0),
                         Some(Reagent::Red) => Rgb::new(1.0, 0.0, 0.0),
                         Some(Reagent::Yellow) => Rgb::new(1.0, 1.0, 0.0),
-                        None => Rgb::new(1.0, 0.5, 0.0),
+                        None => {
+                            if *percent_damage < 0.5 {
+                                Rgb::new(0.0, 1.0, 0.0)
+                            } else {
+                                Rgb::new(1.0, 0.5, 0.0)
+                            }
+                        },
                     },
                     *power
                         * match reagent {

@@ -11,6 +11,7 @@ use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::time::Duration;
+use vek::Vec3;
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug, Serialize, Deserialize)]
 pub enum CharacterAbilityType {
@@ -24,6 +25,7 @@ pub enum CharacterAbilityType {
     LeapMelee,
     SpinMelee,
     GroundShockwave,
+    BasicBeam,
 }
 
 impl From<&CharacterState> for CharacterAbilityType {
@@ -39,6 +41,7 @@ impl From<&CharacterState> for CharacterAbilityType {
             CharacterState::SpinMelee(_) => Self::SpinMelee,
             CharacterState::ChargedRanged(_) => Self::ChargedRanged,
             CharacterState::GroundShockwave(_) => Self::ChargedRanged,
+            CharacterState::BasicBeam(_) => Self::BasicBeam,
             _ => Self::BasicMelee,
         }
     }
@@ -146,6 +149,20 @@ pub enum CharacterAbility {
         shockwave_duration: Duration,
         requires_ground: bool,
     },
+    BasicBeam {
+        energy_cost: u32,
+        buildup_duration: Duration,
+        recover_duration: Duration,
+        beam_duration: Duration,
+        base_hps: u32,
+        base_dps: u32,
+        tick_rate: f32,
+        range: f32,
+        max_angle: f32,
+        lifesteal_eff: f32,
+        energy_regen: u32,
+        energy_drain: u32,
+    },
 }
 
 impl CharacterAbility {
@@ -187,6 +204,10 @@ impl CharacterAbility {
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
             CharacterAbility::GroundShockwave { energy_cost, .. } => update
+                .energy
+                .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
+                .is_ok(),
+            CharacterAbility::BasicBeam { energy_cost, .. } => update
                 .energy
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
@@ -496,6 +517,38 @@ impl From<&CharacterAbility> for CharacterState {
                 shockwave_speed: *shockwave_speed,
                 shockwave_duration: *shockwave_duration,
                 requires_ground: *requires_ground,
+            }),
+            CharacterAbility::BasicBeam {
+                energy_cost: _,
+                buildup_duration,
+                recover_duration,
+                beam_duration,
+                base_hps,
+                base_dps,
+                tick_rate,
+                range,
+                max_angle,
+                lifesteal_eff,
+                energy_regen,
+                energy_drain,
+            } => CharacterState::BasicBeam(basic_beam::Data {
+                static_data: basic_beam::StaticData {
+                    buildup_duration: *buildup_duration,
+                    recover_duration: *recover_duration,
+                    beam_duration: *beam_duration,
+                    base_hps: *base_hps,
+                    base_dps: *base_dps,
+                    tick_rate: *tick_rate,
+                    range: *range,
+                    max_angle: *max_angle,
+                    lifesteal_eff: *lifesteal_eff,
+                    energy_regen: *energy_regen,
+                    energy_drain: *energy_drain,
+                },
+                timer: Duration::default(),
+                stage_section: StageSection::Buildup,
+                particle_ori: None::<Vec3<f32>>,
+                offset: 0.0,
             }),
         }
     }

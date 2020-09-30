@@ -113,18 +113,20 @@ impl<'a> System<'a> for Sys {
                         .unwrap_or(false);
                     // Don't heal if outside group
                     // Don't damage in the same group
-                    if same_group != (attack.base_healthchange > 0) {
+                    let is_damage = !same_group && (attack.base_damage > 0);
+                    let is_heal = same_group && (attack.base_heal > 0);
+                    if !is_heal && !is_damage {
                         continue;
                     }
 
                     // Weapon gives base damage
-                    let source = if attack.base_healthchange > 0 {
-                        DamageSource::Healing
+                    let (source, healthchange) = if is_heal {
+                        (DamageSource::Healing, attack.base_heal as f32)
                     } else {
-                        DamageSource::Melee
+                        (DamageSource::Melee, -(attack.base_damage as f32))
                     };
                     let mut damage = Damage {
-                        healthchange: attack.base_healthchange as f32,
+                        healthchange,
                         source,
                     };
 
@@ -135,22 +137,20 @@ impl<'a> System<'a> for Sys {
                         damage.modify_damage(block, loadout);
                     }
 
-                    if damage.healthchange < 0.0 {
+                    if damage.healthchange != 0.0 {
+                        let cause = if is_heal {
+                            HealthSource::Healing { by: Some(*uid) }
+                        } else {
+                            HealthSource::Attack { by: *uid }
+                        };
                         server_emitter.emit(ServerEvent::Damage {
                             uid: *uid_b,
                             change: HealthChange {
                                 amount: damage.healthchange as i32,
-                                cause: HealthSource::Attack { by: *uid },
+                                cause,
                             },
                         });
-                    } else if damage.healthchange > 0.0 {
-                        server_emitter.emit(ServerEvent::Damage {
-                            uid: *uid_b,
-                            change: HealthChange {
-                                amount: damage.healthchange as i32,
-                                cause: HealthSource::Healing { by: Some(*uid) },
-                            },
-                        });
+                        attack.hit_count += 1;
                     }
                     if attack.knockback != 0.0 && damage.healthchange != 0.0 {
                         let kb_dir = Dir::new((pos_b.0 - pos.0).try_normalized().unwrap_or(*ori.0));
@@ -160,7 +160,6 @@ impl<'a> System<'a> for Sys {
                                 * *Dir::slerp(kb_dir, Dir::new(Vec3::new(0.0, 0.0, 1.0)), 0.5),
                         });
                     }
-                    attack.hit_count += 1;
                 }
             }
         }

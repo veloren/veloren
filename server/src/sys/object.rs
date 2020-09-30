@@ -50,6 +50,7 @@ impl<'a> System<'a> for Sys {
                             owner: *owner,
                             friendly_damage: true,
                             reagent: None,
+                            percent_damage: 1.0,
                         });
                     }
                 },
@@ -65,6 +66,7 @@ impl<'a> System<'a> for Sys {
                             owner: *owner,
                             friendly_damage: true,
                             reagent: Some(*reagent),
+                            percent_damage: 1.0,
                         });
                     }
                 },

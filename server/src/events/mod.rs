@@ -4,7 +4,7 @@ use common::{
     span,
 };
 use entity_creation::{
-    handle_create_npc, handle_create_waypoint, handle_initialize_character,
+    handle_beam, handle_create_npc, handle_create_waypoint, handle_initialize_character,
     handle_loaded_character_data, handle_shockwave, handle_shoot,
 };
 use entity_manipulation::{
@@ -60,7 +60,16 @@ impl Server {
                     owner,
                     friendly_damage,
                     reagent,
-                } => handle_explosion(&self, pos, power, owner, friendly_damage, reagent),
+                    percent_damage,
+                } => handle_explosion(
+                    &self,
+                    pos,
+                    power,
+                    owner,
+                    friendly_damage,
+                    reagent,
+                    percent_damage,
+                ),
                 ServerEvent::Shoot {
                     entity,
                     dir,
@@ -75,6 +84,11 @@ impl Server {
                     pos,
                     ori,
                 } => handle_shockwave(self, properties, pos, ori),
+                ServerEvent::BeamSegment {
+                    properties,
+                    pos,
+                    ori,
+                } => handle_beam(self, properties, pos, ori),
                 ServerEvent::Knockback { entity, impulse } => {
                     handle_knockback(&self, entity, impulse)
                 },

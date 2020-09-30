@@ -913,6 +913,7 @@ impl FigureMgr {
                                 StageSection::Recover => {
                                     stage_time / s.static_data.recover_duration.as_secs_f64()
                                 },
+                                _ => 0.0,
                             };
                             anim::character::DashAnimation::update_skeleton(
                                 &target_base,
@@ -968,6 +969,22 @@ impl FigureMgr {
                                     Some(s.stage_section),
                                 ),
                                 stage_progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
+                        CharacterState::BasicBeam(_) => {
+                            anim::character::ChargeAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    active_tool_kind,
+                                    second_tool_kind,
+                                    vel.0.magnitude(),
+                                    ori,
+                                    state.last_ori,
+                                    time,
+                                ),
+                                state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
                             )

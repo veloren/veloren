@@ -1,7 +1,7 @@
 use crate::{
     comp::{Attacking, CharacterState, EnergySource, StateUpdate},
     states::utils::{StageSection, *},
-    sys::character_behavior::*,
+    sys::character_behavior::{CharacterBehavior, JoinData},
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -121,7 +121,8 @@ impl CharacterBehavior for Data {
                             * charge_frac
                             + self.static_data.base_knockback;
                         data.updater.insert(data.entity, Attacking {
-                            base_healthchange: -damage as i32,
+                            base_damage: damage as u32,
+                            base_heal: 0,
                             range: self.static_data.range,
                             max_angle: self.static_data.angle.to_radians(),
                             applied: false,
@@ -250,6 +251,12 @@ impl CharacterBehavior for Data {
                     // Make sure attack component is removed
                     data.updater.remove::<Attacking>(data.entity);
                 }
+            },
+            _ => {
+                // If it somehow ends up in an incorrect stage section
+                update.character = CharacterState::Wielding;
+                // Make sure attack component is removed
+                data.updater.remove::<Attacking>(data.entity);
             },
         }
 

@@ -914,22 +914,41 @@ impl Hud {
                         let hp_fade = ((crate::ecs::sys::floater::MY_HP_SHOWTIME - floater.timer)
                             * 0.25)
                             + 0.2;
-                        Text::new(&format!("{}", (floater.hp_change / 10).abs()))
-                            .font_size(font_size)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(Color::Rgba(0.0, 0.0, 0.0, hp_fade))
-                            .x_y(x, y - 3.0)
-                            .set(player_sct_bg_id, ui_widgets);
-                        Text::new(&format!("{}", (floater.hp_change / 10).abs()))
-                            .font_size(font_size)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(if floater.hp_change < 0 {
-                                Color::Rgba(1.0, 0.1, 0.0, hp_fade)
-                            } else {
-                                Color::Rgba(0.1, 1.0, 0.1, hp_fade)
-                            })
-                            .x_y(x, y)
-                            .set(player_sct_id, ui_widgets);
+                        if floater.hp_change.abs() > 10 {
+                            Text::new(&format!("{}", (floater.hp_change / 10).abs()))
+                                .font_size(font_size)
+                                .font_id(self.fonts.cyri.conrod_id)
+                                .color(Color::Rgba(0.0, 0.0, 0.0, hp_fade))
+                                .x_y(x, y - 3.0)
+                                .set(player_sct_bg_id, ui_widgets);
+                            Text::new(&format!("{}", (floater.hp_change / 10).abs()))
+                                .font_size(font_size)
+                                .font_id(self.fonts.cyri.conrod_id)
+                                .color(if floater.hp_change < 0 {
+                                    Color::Rgba(1.0, 0.1, 0.0, hp_fade)
+                                } else {
+                                    Color::Rgba(0.1, 1.0, 0.1, hp_fade)
+                                })
+                                .x_y(x, y)
+                                .set(player_sct_id, ui_widgets);
+                        } else {
+                            Text::new(&format!("{}", (floater.hp_change as f32 / 10.0).abs()))
+                                .font_size(font_size)
+                                .font_id(self.fonts.cyri.conrod_id)
+                                .color(Color::Rgba(0.0, 0.0, 0.0, hp_fade))
+                                .x_y(x, y - 3.0)
+                                .set(player_sct_bg_id, ui_widgets);
+                            Text::new(&format!("{}", (floater.hp_change as f32 / 10.0).abs()))
+                                .font_size(font_size)
+                                .font_id(self.fonts.cyri.conrod_id)
+                                .color(if floater.hp_change < 0 {
+                                    Color::Rgba(1.0, 0.1, 0.0, hp_fade)
+                                } else {
+                                    Color::Rgba(0.1, 1.0, 0.1, hp_fade)
+                                })
+                                .x_y(x, y)
+                                .set(player_sct_id, ui_widgets);
+                        }
                     }
                 }
                 // EXP Numbers
@@ -1236,25 +1255,48 @@ impl Hud {
                             + 100.0;
                         // Timer sets text transparency
                         let fade = ((crate::ecs::sys::floater::HP_SHOWTIME - timer) * 0.25) + 0.2;
+                        if hp_damage.abs() < 10 {
+                            // Damage and heal below 10/10 are shown as decimals
+                            Text::new(&format!("{}", hp_damage.abs() as f32 / 10.0))
+                                .font_size(font_size)
+                                .font_id(self.fonts.cyri.conrod_id)
+                                .color(Color::Rgba(0.0, 0.0, 0.0, fade))
+                                .x_y(0.0, y - 3.0)
+                                .position_ingame(ingame_pos)
+                                .set(sct_bg_id, ui_widgets);
+                            Text::new(&format!("{}", hp_damage.abs() as f32 / 10.0))
+                                .font_size(font_size)
+                                .font_id(self.fonts.cyri.conrod_id)
+                                .x_y(0.0, y)
+                                .color(if hp_damage < 0 {
+                                    Color::Rgba(font_col.r, font_col.g, font_col.b, fade)
+                                } else {
+                                    Color::Rgba(0.1, 1.0, 0.1, fade)
+                                })
+                                .position_ingame(ingame_pos)
+                                .set(sct_id, ui_widgets);
+                        } else {
+                            // Damage and heal above 10/10 are shown rounded
+                            Text::new(&format!("{}", hp_dmg_rounded_abs))
+                                .font_size(font_size)
+                                .font_id(self.fonts.cyri.conrod_id)
+                                .color(Color::Rgba(0.0, 0.0, 0.0, fade))
+                                .x_y(0.0, y - 3.0)
+                                .position_ingame(ingame_pos)
+                                .set(sct_bg_id, ui_widgets);
 
-                        Text::new(&format!("{}", hp_dmg_rounded_abs))
-                            .font_size(font_size)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(Color::Rgba(0.0, 0.0, 0.0, fade))
-                            .x_y(0.0, y - 3.0)
-                            .position_ingame(ingame_pos)
-                            .set(sct_bg_id, ui_widgets);
-                        Text::new(&format!("{}", hp_dmg_rounded_abs))
-                            .font_size(font_size)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .x_y(0.0, y)
-                            .color(if hp_damage < 0 {
-                                Color::Rgba(font_col.r, font_col.g, font_col.b, fade)
-                            } else {
-                                Color::Rgba(0.1, 1.0, 0.1, fade)
-                            })
-                            .position_ingame(ingame_pos)
-                            .set(sct_id, ui_widgets);
+                            Text::new(&format!("{}", hp_dmg_rounded_abs))
+                                .font_size(font_size)
+                                .font_id(self.fonts.cyri.conrod_id)
+                                .x_y(0.0, y)
+                                .color(if hp_damage < 0 {
+                                    Color::Rgba(font_col.r, font_col.g, font_col.b, fade)
+                                } else {
+                                    Color::Rgba(0.1, 1.0, 0.1, fade)
+                                })
+                                .position_ingame(ingame_pos)
+                                .set(sct_id, ui_widgets);
+                        };
                     } else {
                         for floater in floaters {
                             let number_speed = 250.0; // Single Numbers Speed
@@ -1284,29 +1326,55 @@ impl Hud {
                             let fade = ((crate::ecs::sys::floater::HP_SHOWTIME - floater.timer)
                                 * 0.25)
                                 + 0.2;
-
-                            Text::new(&format!("{}", (floater.hp_change / 10).abs()))
-                                .font_size(font_size)
-                                .font_id(self.fonts.cyri.conrod_id)
-                                .color(if floater.hp_change < 0 {
-                                    Color::Rgba(0.0, 0.0, 0.0, fade)
-                                } else {
-                                    Color::Rgba(0.0, 0.0, 0.0, 1.0)
-                                })
-                                .x_y(0.0, y - 3.0)
-                                .position_ingame(ingame_pos)
-                                .set(sct_bg_id, ui_widgets);
-                            Text::new(&format!("{}", (floater.hp_change / 10).abs()))
-                                .font_size(font_size)
-                                .font_id(self.fonts.cyri.conrod_id)
-                                .x_y(0.0, y)
-                                .color(if floater.hp_change < 0 {
-                                    Color::Rgba(font_col.r, font_col.g, font_col.b, fade)
-                                } else {
-                                    Color::Rgba(0.1, 1.0, 0.1, 1.0)
-                                })
-                                .position_ingame(ingame_pos)
-                                .set(sct_id, ui_widgets);
+                            if floater.hp_change.abs() < 10 {
+                                // Damage and heal below 10/10 are shown as decimals
+                                Text::new(&format!("{}", (floater.hp_change.abs() as f32 / 10.0)))
+                                    .font_size(font_size)
+                                    .font_id(self.fonts.cyri.conrod_id)
+                                    .color(if floater.hp_change < 0 {
+                                        Color::Rgba(0.0, 0.0, 0.0, fade)
+                                    } else {
+                                        Color::Rgba(0.0, 0.0, 0.0, 1.0)
+                                    })
+                                    .x_y(0.0, y - 3.0)
+                                    .position_ingame(ingame_pos)
+                                    .set(sct_bg_id, ui_widgets);
+                                Text::new(&format!("{}", (floater.hp_change.abs() as f32 / 10.0)))
+                                    .font_size(font_size)
+                                    .font_id(self.fonts.cyri.conrod_id)
+                                    .x_y(0.0, y)
+                                    .color(if floater.hp_change < 0 {
+                                        Color::Rgba(font_col.r, font_col.g, font_col.b, fade)
+                                    } else {
+                                        Color::Rgba(0.1, 1.0, 0.1, 1.0)
+                                    })
+                                    .position_ingame(ingame_pos)
+                                    .set(sct_id, ui_widgets);
+                            } else {
+                                // Damage and heal above 10/10 are shown rounded
+                                Text::new(&format!("{}", (floater.hp_change / 10).abs()))
+                                    .font_size(font_size)
+                                    .font_id(self.fonts.cyri.conrod_id)
+                                    .color(if floater.hp_change < 0 {
+                                        Color::Rgba(0.0, 0.0, 0.0, fade)
+                                    } else {
+                                        Color::Rgba(0.0, 0.0, 0.0, 1.0)
+                                    })
+                                    .x_y(0.0, y - 3.0)
+                                    .position_ingame(ingame_pos)
+                                    .set(sct_bg_id, ui_widgets);
+                                Text::new(&format!("{}", (floater.hp_change / 10).abs()))
+                                    .font_size(font_size)
+                                    .font_id(self.fonts.cyri.conrod_id)
+                                    .x_y(0.0, y)
+                                    .color(if floater.hp_change < 0 {
+                                        Color::Rgba(font_col.r, font_col.g, font_col.b, fade)
+                                    } else {
+                                        Color::Rgba(0.1, 1.0, 0.1, 1.0)
+                                    })
+                                    .position_ingame(ingame_pos)
+                                    .set(sct_id, ui_widgets);
+                            }
                         }
                     }
                 }
