@@ -5,7 +5,7 @@ use specs_idvs::IdvStorage;
 use std::time::Duration;
 
 /// De/buff ID.
-/// ID can be independant of an actual type/config of a `BuffData`.
+/// ID can be independant of an actual type/config of a `BuffEffect`.
 /// Therefore, information provided by `BuffId` can be incomplete/incorrect.
 ///
 /// For example, there could be two regeneration buffs, each with
@@ -19,6 +19,8 @@ pub enum BuffId {
     Regeneration,
     /// Lowers health/time for some period, but faster
     Poison,
+    /// Lowers health over time for some duration
+    Bleeding,
     /// Changes entity name as to "Cursed {}"
     Cursed,
 }
@@ -29,6 +31,7 @@ pub enum BuffId {
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum BuffCategoryId {
     Natural,
+    Physical,
     Magical,
     Divine,
     Negative,
@@ -39,9 +42,9 @@ pub enum BuffCategoryId {
 ///
 /// NOTE: Contents of this enum are WIP/Placeholder
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub enum BuffData {
-    /// Periodically damages health
-    RepeatedHealthChange { speed: f32, accumulated: f32 },
+pub enum BuffEffect {
+    /// Periodically damages or heals entity
+    RepeatedHealthChange { rate: f32, accumulated: f32 },
     /// Changes name on_add/on_remove
     NameChange { prefix: String },
 }
@@ -68,7 +71,7 @@ pub struct Buff {
     pub id: BuffId,
     pub cat_ids: Vec<BuffCategoryId>,
     pub time: Option<Duration>,
-    pub data: BuffData,
+    pub effects: Vec<BuffEffect>,
 }
 
 /// Information about whether buff addition or removal was requested.
@@ -78,8 +81,6 @@ pub enum BuffChange {
     /// Adds this buff.
     Add(Buff),
     /// Removes all buffs with this ID.
-    /// TODO: Better removal, allowing to specify which ability to remove
-    /// directly.
     Remove(BuffId),
 }
 
@@ -102,10 +103,10 @@ pub enum BuffSource {
 
 /// Component holding all de/buffs that gets resolved each tick.
 /// On each tick, remaining time of buffs get lowered and
-/// buff effect of each buff is applied or not, depending on the `BuffData`
-/// (specs system will decide based on `BuffData`, to simplify implementation).
+/// buff effect of each buff is applied or not, depending on the `BuffEffect`
+/// (specs system will decide based on `BuffEffect`, to simplify implementation).
 /// TODO: Something like `once` flag for `Buff` to remove the dependence on
-/// `BuffData` enum?
+/// `BuffEffect` enum?
 ///
 /// In case of one-time buffs, buff effects will be applied on addition
 /// and undone on removal of the buff (by the specs system).
@@ -120,17 +121,11 @@ pub enum BuffSource {
 pub struct Buffs {
     /// Active de/buffs.
     pub buffs: Vec<Buff>,
-    /// Request to add/remove a buff.
-    /// Used for reacting on buff changes by the ECS system.
-    /// TODO: Can be `EventBus<T>` used instead of this?
-    pub changes: Vec<BuffChange>,
-    /// Last time since any buff change to limit syncing.
-    pub last_change: f64,
 }
 
 impl Buffs {
     /// Adds a request for adding given `buff`.
-    pub fn add_buff(&mut self, buff: Buff) {
+    /*pub fn add_buff(&mut self, buff: Buff) {
         let change = BuffChange::Add(buff);
         self.changes.push(change);
         self.last_change = 0.0;
@@ -143,7 +138,7 @@ impl Buffs {
         let change = BuffChange::Remove(id);
         self.changes.push(change);
         self.last_change = 0.0;
-    }
+    }*/
 
     /// This is a primitive check if a specific buff is present.
     /// (for purposes like blocking usage of abilities or something like this).
