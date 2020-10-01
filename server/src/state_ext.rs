@@ -111,6 +111,7 @@ impl StateExt for State {
             .with(comp::Gravity(1.0))
             .with(comp::CharacterState::default())
             .with(loadout)
+            .with(comp::Buffs::default())
     }
 
     fn create_object(&mut self, pos: comp::Pos, object: comp::object::Body) -> EcsEntityBuilder {
@@ -202,6 +203,7 @@ impl StateExt for State {
             entity,
             comp::Alignment::Owned(self.read_component_copied(entity).unwrap()),
         );
+        self.write_component(entity, comp::Buffs::default());
 
         // Make sure physics components are updated
         self.write_component(entity, comp::ForceUpdate);
