@@ -675,13 +675,14 @@ pub fn handle_level_up(server: &mut Server, entity: EcsEntity, new_level: u32) {
         ));
 }
 
-pub fn handle_buff(server: &mut Server, uid: Uid, buff: buff::BuffChange) {
+pub fn handle_buff(server: &mut Server, uid: Uid, buff_change: buff::BuffChange) {
     let ecs = &server.state.ecs();
     let mut buffs_all = ecs.write_storage::<comp::Buffs>();
     if let Some(entity) = ecs.entity_from_uid(uid.into()) {
         if let Some(buffs) = buffs_all.get_mut(entity) {
             let mut stats = ecs.write_storage::<comp::Stats>();
-            match buff {
+            let mut buff_indices_for_removal = Vec::new();
+            match buff_change {
                 buff::BuffChange::Add(new_buff) => {
                     for effect in &new_buff.effects {
                         match effect {
@@ -698,29 +699,34 @@ pub fn handle_buff(server: &mut Server, uid: Uid, buff: buff::BuffChange) {
                     }
                     buffs.buffs.push(new_buff.clone());
                 },
-                buff::BuffChange::Remove(id) => {
+                buff::BuffChange::RemoveByIndex(indices) => {
+                    buff_indices_for_removal = indices;
+                },
+                buff::BuffChange::RemoveById(id) => {
                     let some_predicate = |current_id: &buff::BuffId| *current_id == id;
-                    let mut i = 0;
-                    while i != buffs.buffs.len() {
+                    for i in 0..buffs.buffs.len() {
                         if some_predicate(&mut buffs.buffs[i].id) {
-                            let buff = buffs.buffs.remove(i);
-                            for effect in &buff.effects {
-                                match effect {
-                                    // Only remove an effect here if its effect was not continuously
-                                    // applied
-                                    buff::BuffEffect::NameChange { prefix } => {
-                                        if let Some(stats) = stats.get_mut(entity) {
-                                            stats.name = stats.name.replace(prefix, "");
-                                        }
-                                    },
-                                    _ => {},
-                                }
-                            }
-                        } else {
-                            i += 1;
+                            buff_indices_for_removal.push(i);
                         }
                     }
                 },
+            }
+            while !buff_indices_for_removal.is_empty() {
+                if let Some(i) = buff_indices_for_removal.pop() {
+                    let buff = buffs.buffs.remove(i);
+                    for effect in &buff.effects {
+                        match effect {
+                            // Only remove an effect here if its effect was not continuously
+                            // applied
+                            buff::BuffEffect::NameChange { prefix } => {
+                                if let Some(stats) = stats.get_mut(entity) {
+                                    stats.name = stats.name.replacen(prefix, "", 1);
+                                }
+                            },
+                            _ => {},
+                        }
+                    }
+                }
             }
         }
     }

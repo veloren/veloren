@@ -108,7 +108,7 @@ pub enum ServerEvent {
     Chat(comp::UnresolvedChatMsg),
     Buff {
         uid: Uid,
-        buff: comp::BuffChange,
+        buff_change: comp::BuffChange,
     },
 }
 

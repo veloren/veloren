@@ -133,7 +133,7 @@ impl Server {
                 ServerEvent::Chat(msg) => {
                     chat_messages.push(msg);
                 },
-                ServerEvent::Buff { uid, buff } => handle_buff(self, uid, buff),
+                ServerEvent::Buff { uid, buff_change } => handle_buff(self, uid, buff_change),
             }
         }
 

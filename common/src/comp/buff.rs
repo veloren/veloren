@@ -81,7 +81,9 @@ pub enum BuffChange {
     /// Adds this buff.
     Add(Buff),
     /// Removes all buffs with this ID.
-    Remove(BuffId),
+    RemoveById(BuffId),
+    /// Removes buff of this index
+    RemoveByIndex(Vec<usize>),
 }
 
 /// Source of the de/buff
@@ -124,22 +126,6 @@ pub struct Buffs {
 }
 
 impl Buffs {
-    /// Adds a request for adding given `buff`.
-    /*pub fn add_buff(&mut self, buff: Buff) {
-        let change = BuffChange::Add(buff);
-        self.changes.push(change);
-        self.last_change = 0.0;
-    }
-
-    /// Adds a request for removal of all buffs with given Id.
-    /// TODO: Better removal, allowing to specify which ability to remove
-    /// directly.
-    pub fn remove_buff_by_id(&mut self, id: BuffId) {
-        let change = BuffChange::Remove(id);
-        self.changes.push(change);
-        self.last_change = 0.0;
-    }*/
-
     /// This is a primitive check if a specific buff is present.
     /// (for purposes like blocking usage of abilities or something like this).
     pub fn has_buff_id(&self, id: &BuffId) -> bool { self.buffs.iter().any(|buff| buff.id == *id) }

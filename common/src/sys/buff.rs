@@ -1,8 +1,10 @@
 use crate::{
     comp::{BuffChange, BuffEffect, BuffId, Buffs, HealthChange, HealthSource, Stats},
+    event::{EventBus, ServerEvent},
     state::DeltaTime,
+    sync::Uid,
 };
-use specs::{Entities, Join, Read, System, WriteStorage};
+use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 use std::time::Duration;
 
 /// This system modifies entity stats, changing them using buffs
@@ -16,12 +18,15 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         Read<'a, DeltaTime>,
+        Read<'a, EventBus<ServerEvent>>,
+        ReadStorage<'a, Uid>,
         WriteStorage<'a, Stats>,
         WriteStorage<'a, Buffs>,
     );
 
-    fn run(&mut self, (entities, dt, mut stats, mut buffs): Self::SystemData) {
-        for (entity, mut buffs) in (&entities, &mut buffs.restrict_mut()).join() {
+    fn run(&mut self, (entities, dt, server_bus, uids, mut stats, mut buffs): Self::SystemData) {
+        let mut server_emitter = server_bus.emitter();
+        for (entity, uid, mut buffs) in (&entities, &uids, &mut buffs.restrict_mut()).join() {
             let buff_comp = buffs.get_mut_unchecked();
             let mut buff_indices_for_removal = Vec::new();
             // Tick all de/buffs on a Buffs component.
@@ -72,16 +77,21 @@ impl<'a> System<'a> for Sys {
                     };
                 }
             }
+            server_emitter.emit(ServerEvent::Buff {
+                uid: *uid,
+                buff_change: BuffChange::RemoveByIndex(buff_indices_for_removal),
+            });
             // Remove buffs that have expired.
-            // Since buffs are added into this vec as it iterates up through the list, it
-            // will be in order of increasing values. Therefore to avoid
-            // removing the incorrect buff, removal will start from the greatest index
+            // Since buffs are added into this vec as it iterates up through the
+            // list, it will be in order of increasing values.
+            // Therefore to avoid removing the incorrect buff,
+            // removal will start from the greatest index
             // value, which is the last in this vec.
-            while !buff_indices_for_removal.is_empty() {
+            /*while !buff_indices_for_removal.is_empty() {
                 if let Some(i) = buff_indices_for_removal.pop() {
                     buff_comp.buffs.remove(i);
                 }
-            }
+            }*/
         }
     }
 }
