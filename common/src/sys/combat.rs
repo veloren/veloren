@@ -154,20 +154,11 @@ impl<'a> System<'a> for Sys {
                         // Test for server event of buff, remove before merging
                         server_emitter.emit(ServerEvent::Buff {
                             uid: *uid_b,
-                            buff_change: buff::BuffChange::Add(buff::Buff {
-                                id: buff::BuffId::Bleeding,
-                                cat_ids: vec![buff::BuffCategoryId::Physical],
-                                time: Some(Duration::from_millis(2000)),
-                                effects: vec![
-                                    buff::BuffEffect::HealthChangeOverTime {
-                                        rate: 10.0,
-                                        accumulated: 0.0,
-                                    },
-                                    buff::BuffEffect::NameChange {
-                                        prefix: String::from("Injured "),
-                                    },
-                                ],
-                            }),
+                            buff_change: buff::BuffChange::Add(buff::Buff::new(
+                                buff::BuffId::Bleeding(50.0),
+                                Some(Duration::from_millis(5000)),
+                                vec![buff::BuffCategoryId::Physical],
+                            )),
                         });
                         attack.hit_count += 1;
                     }
