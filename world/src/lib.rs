@@ -248,6 +248,8 @@ impl World {
 
         const SPAWN_RATE: f32 = 0.1;
         let mut supplement = ChunkSupplement {
+            entities: Vec::new(),
+            /*
             entities: if dynamic_rng.gen::<f32>() < SPAWN_RATE
                 && sim_chunk.chaos < 0.5
                 && !sim_chunk.is_underwater()
@@ -320,6 +322,7 @@ impl World {
             } else {
                 Vec::new()
             },
+            */
         };
 
         if sim_chunk.contains_waypoint {
@@ -333,6 +336,17 @@ impl World {
             sample_get,
             &chunk,
             index,
+            &mut supplement,
+        );
+
+        // Apply layer supplement
+        layer::wildlife::apply_wildlife_supplement(
+            &mut dynamic_rng,
+            chunk_wpos2d,
+            sample_get,
+            &chunk,
+            index,
+            sim_chunk,
             &mut supplement,
         );
 
