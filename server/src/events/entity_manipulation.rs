@@ -6,8 +6,8 @@ use crate::{
 use common::{
     assets::Asset,
     comp::{
-        self,
-        buff, chat::{KillSource, KillType},
+        self, buff,
+        chat::{KillSource, KillType},
         object, Alignment, Body, Damage, DamageSource, Group, HealthChange, HealthSource, Item,
         Player, Pos, Stats,
     },
@@ -675,7 +675,7 @@ pub fn handle_level_up(server: &mut Server, entity: EcsEntity, new_level: u32) {
         ));
 }
 
-pub fn handle_buff(server: &mut Server, uid: Uid, buff: buff::BuffChange ) {
+pub fn handle_buff(server: &mut Server, uid: Uid, buff: buff::BuffChange) {
     let ecs = &server.state.ecs();
     let mut buffs_all = ecs.write_storage::<comp::Buffs>();
     if let Some(entity) = ecs.entity_from_uid(uid.into()) {
@@ -706,7 +706,8 @@ pub fn handle_buff(server: &mut Server, uid: Uid, buff: buff::BuffChange ) {
                             let buff = buffs.buffs.remove(i);
                             for effect in &buff.effects {
                                 match effect {
-                                    // Only remove an effect here if its effect was not continuously applied
+                                    // Only remove an effect here if its effect was not continuously
+                                    // applied
                                     buff::BuffEffect::NameChange { prefix } => {
                                         if let Some(stats) = stats.get_mut(entity) {
                                             stats.name = stats.name.replace(prefix, "");

@@ -23,13 +23,13 @@ impl<'a> System<'a> for Sys {
     fn run(&mut self, (entities, dt, mut stats, mut buffs): Self::SystemData) {
         for (entity, mut buffs) in (&entities, &mut buffs.restrict_mut()).join() {
             let buff_comp = buffs.get_mut_unchecked();
-            let mut buffs_for_removal = Vec::new();
+            let mut buff_indices_for_removal = Vec::new();
             // Tick all de/buffs on a Buffs component.
-            for active_buff in &mut buff_comp.buffs {
+            for i in 0..buff_comp.buffs.len() {
                 // First, tick the buff and subtract delta from it
                 // and return how much "real" time the buff took (for tick independence).
                 // TODO: handle delta for "indefinite" buffs, i.e. time since they got removed.
-                let buff_delta = if let Some(remaining_time) = &mut active_buff.time {
+                let buff_delta = if let Some(remaining_time) = &mut buff_comp.buffs[i].time {
                     let pre_tick = remaining_time.as_secs_f32();
                     let new_duration = remaining_time.checked_sub(Duration::from_secs_f32(dt.0));
                     let post_tick = if let Some(dur) = new_duration {
@@ -38,9 +38,8 @@ impl<'a> System<'a> for Sys {
                         dur.as_secs_f32()
                     } else {
                         // The buff has expired.
-                        // Mark it for removal.
-                        // TODO: This removes by ID! better method required
-                        buffs_for_removal.push(active_buff.id.clone());
+                        // Remove it.
+                        buff_indices_for_removal.push(i);
                         0.0
                     };
                     pre_tick - post_tick
@@ -52,10 +51,10 @@ impl<'a> System<'a> for Sys {
                 };
 
                 // Now, execute the buff, based on it's delta
-                for effect in &mut active_buff.effects {
+                for effect in &mut buff_comp.buffs[i].effects {
                     match effect {
                         // Only add an effect here if it is continuous or it is not immediate
-                        BuffEffect::RepeatedHealthChange { rate, accumulated } => {
+                        BuffEffect::HealthChangeOverTime { rate, accumulated } => {
                             *accumulated += *rate * buff_delta;
                             // Apply only 0.5 or higher damage
                             if accumulated.abs() > 5.0 {
@@ -73,11 +72,16 @@ impl<'a> System<'a> for Sys {
                     };
                 }
             }
-            // Truly mark expired buffs for removal.
-            // TODO: Review this, as it is ugly.
-            /*for to_remove in buffs_for_removal {
-                buff_comp.remove_buff_by_id(to_remove);
-            }*/
+            // Remove buffs that have expired.
+            // Since buffs are added into this vec as it iterates up through the list, it
+            // will be in order of increasing values. Therefore to avoid
+            // removing the incorrect buff, removal will start from the greatest index
+            // value, which is the last in this vec.
+            while !buff_indices_for_removal.is_empty() {
+                if let Some(i) = buff_indices_for_removal.pop() {
+                    buff_comp.buffs.remove(i);
+                }
+            }
         }
     }
 }

@@ -44,7 +44,7 @@ pub enum BuffCategoryId {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum BuffEffect {
     /// Periodically damages or heals entity
-    RepeatedHealthChange { rate: f32, accumulated: f32 },
+    HealthChangeOverTime { rate: f32, accumulated: f32 },
     /// Changes name on_add/on_remove
     NameChange { prefix: String },
 }
@@ -104,9 +104,9 @@ pub enum BuffSource {
 /// Component holding all de/buffs that gets resolved each tick.
 /// On each tick, remaining time of buffs get lowered and
 /// buff effect of each buff is applied or not, depending on the `BuffEffect`
-/// (specs system will decide based on `BuffEffect`, to simplify implementation).
-/// TODO: Something like `once` flag for `Buff` to remove the dependence on
-/// `BuffEffect` enum?
+/// (specs system will decide based on `BuffEffect`, to simplify
+/// implementation). TODO: Something like `once` flag for `Buff` to remove the
+/// dependence on `BuffEffect` enum?
 ///
 /// In case of one-time buffs, buff effects will be applied on addition
 /// and undone on removal of the buff (by the specs system).

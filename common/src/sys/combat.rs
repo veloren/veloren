@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        buff, group, Attacking, Body, CharacterState, Damage, DamageSource, HealthChange, HealthSource,
-        Loadout, Ori, Pos, Scale, Stats,
+        buff, group, Attacking, Body, CharacterState, Damage, DamageSource, HealthChange,
+        HealthSource, Loadout, Ori, Pos, Scale, Stats,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::SysMetrics,
@@ -158,9 +158,9 @@ impl<'a> System<'a> for Sys {
                                 id: buff::BuffId::Bleeding,
                                 cat_ids: vec![buff::BuffCategoryId::Physical],
                                 time: Some(Duration::from_millis(2000)),
-                                effects: vec![buff::BuffEffect::RepeatedHealthChange {
-                                    rate: 50.0,
-                                    accumulated: 0.0
+                                effects: vec![buff::BuffEffect::HealthChangeOverTime {
+                                    rate: 10.0,
+                                    accumulated: 0.0,
                                 }],
                             }),
                         });
