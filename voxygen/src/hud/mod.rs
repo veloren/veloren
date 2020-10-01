@@ -1075,7 +1075,7 @@ impl Hud {
             let mut sct_walker = self.ids.scts.walk();
             let mut sct_bg_walker = self.ids.sct_bgs.walk();
 
-            // Render overitem name
+            // Render overitem: name, etc.
             for (pos, item, distance) in (&entities, &pos, &items)
                 .join()
                 .map(|(_, pos, item)| (pos, item, pos.0.distance_squared(player_pos)))
@@ -1087,11 +1087,16 @@ impl Hud {
                 );
                 let ingame_pos = pos.0 + Vec3::unit_z() * 1.2;
 
-                // Item name
-                overitem::Overitem::new(&item.name(), &distance, &self.fonts)
-                    .x_y(0.0, 100.0)
-                    .position_ingame(ingame_pos)
-                    .set(overitem_id, ui_widgets);
+                // Item
+                overitem::Overitem::new(
+                    &item.name(),
+                    &distance,
+                    &self.fonts,
+                    &global_state.settings.controls,
+                )
+                .x_y(0.0, 100.0)
+                .position_ingame(ingame_pos)
+                .set(overitem_id, ui_widgets);
             }
 
             let speech_bubbles = &self.speech_bubbles;
