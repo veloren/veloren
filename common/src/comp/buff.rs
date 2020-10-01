@@ -16,13 +16,15 @@ use std::time::Duration;
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum BuffId {
     /// Restores health/time for some period
-    Regeneration,
-    /// Lowers health/time for some period, but faster
-    Poison,
+    /// Has fields: strength (f32)
+    Regeneration(f32),
     /// Lowers health over time for some duration
-    Bleeding,
-    /// Changes entity name as to "Cursed {}"
-    Cursed,
+    /// Has fields: strength (f32)
+    Bleeding(f32),
+    /// Adds a prefix to the entity name
+    /// Currently placeholder buff to show other stuff is possible
+    /// Has fields: prefix (String)
+    Prefix(String),
 }
 
 /// De/buff category ID.
@@ -129,6 +131,40 @@ impl Buffs {
     /// This is a primitive check if a specific buff is present.
     /// (for purposes like blocking usage of abilities or something like this).
     pub fn has_buff_id(&self, id: &BuffId) -> bool { self.buffs.iter().any(|buff| buff.id == *id) }
+}
+
+impl Buff {
+    pub fn new(id: BuffId, time: Option<Duration>, cat_ids: Vec<BuffCategoryId>) -> Self {
+        let effects = match id {
+            BuffId::Bleeding(strength) => vec![
+                BuffEffect::HealthChangeOverTime {
+                    rate: -strength,
+                    accumulated: 0.0,
+                },
+                // This effect is for testing purposes
+                BuffEffect::NameChange {
+                    prefix: String::from("Injured "),
+                },
+            ],
+            BuffId::Regeneration(strength) => vec![BuffEffect::HealthChangeOverTime {
+                rate: strength,
+                accumulated: 0.0,
+            }],
+            BuffId::Prefix(ref prefix) => {
+                let mut prefix = prefix.clone();
+                prefix.push(' ');
+                vec![BuffEffect::NameChange {
+                    prefix,
+                }]
+            },
+        };
+        Buff {
+            id: id.clone(),
+            cat_ids,
+            time,
+            effects,
+        }
+    }
 }
 
 impl Component for Buffs {

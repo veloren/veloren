@@ -28,7 +28,7 @@ impl<'a> System<'a> for Sys {
         let mut server_emitter = server_bus.emitter();
         for (entity, uid, mut buffs) in (&entities, &uids, &mut buffs.restrict_mut()).join() {
             let buff_comp = buffs.get_mut_unchecked();
-            let mut buff_indices_for_removal = Vec::new();
+            let mut buff_indices_for_removal = Vec::<usize>::new();
             // Tick all de/buffs on a Buffs component.
             for i in 0..buff_comp.buffs.len() {
                 // First, tick the buff and subtract delta from it
@@ -81,17 +81,6 @@ impl<'a> System<'a> for Sys {
                 uid: *uid,
                 buff_change: BuffChange::RemoveByIndex(buff_indices_for_removal),
             });
-            // Remove buffs that have expired.
-            // Since buffs are added into this vec as it iterates up through the
-            // list, it will be in order of increasing values.
-            // Therefore to avoid removing the incorrect buff,
-            // removal will start from the greatest index
-            // value, which is the last in this vec.
-            /*while !buff_indices_for_removal.is_empty() {
-                if let Some(i) = buff_indices_for_removal.pop() {
-                    buff_comp.buffs.remove(i);
-                }
-            }*/
         }
     }
 }
