@@ -93,39 +93,6 @@ impl StateExt for State {
         loadout: comp::Loadout,
         body: comp::Body,
     ) -> EcsEntityBuilder {
-        // NOTE: This is placeholder code for testing and does not
-        // belongs here really
-        let mut buffs = comp::Buffs::default();
-        // Damages slightly each NPC spawned for 20 seconds
-        buffs.add_buff(comp::Buff {
-            id: comp::BuffId::Poison,
-            cat_ids: vec![],
-            time: Some(std::time::Duration::from_secs(20)),
-            data: comp::BuffData::RepeatedHealthChange {
-                speed: -10.0,
-                accumulated: 0.0,
-            },
-        });
-        // Prepends "Cursed " to each NPC's name for 35 secs
-        buffs.add_buff(comp::Buff {
-            id: comp::BuffId::Cursed,
-            cat_ids: vec![],
-            time: Some(std::time::Duration::from_secs(35)),
-            data: comp::BuffData::NameChange {
-                prefix: String::from("Cursed "),
-            },
-        });
-        // Adds super-slow regen to each NPC spawned, indefinitely
-        buffs.add_buff(comp::Buff {
-            id: comp::BuffId::Regeneration,
-            cat_ids: vec![],
-            time: None,
-            data: comp::BuffData::RepeatedHealthChange {
-                speed: 1.0,
-                accumulated: 0.0,
-            },
-        });
-
         self.ecs_mut()
             .create_entity_synced()
             .with(pos)
@@ -144,7 +111,6 @@ impl StateExt for State {
             .with(comp::Gravity(1.0))
             .with(comp::CharacterState::default())
             .with(loadout)
-            .with(buffs)
     }
 
     fn create_object(&mut self, pos: comp::Pos, object: comp::object::Body) -> EcsEntityBuilder {

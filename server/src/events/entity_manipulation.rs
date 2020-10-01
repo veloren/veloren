@@ -7,7 +7,7 @@ use common::{
     assets::Asset,
     comp::{
         self,
-        chat::{KillSource, KillType},
+        buff, chat::{KillSource, KillType},
         object, Alignment, Body, Damage, DamageSource, Group, HealthChange, HealthSource, Item,
         Player, Pos, Stats,
     },
@@ -673,4 +673,54 @@ pub fn handle_level_up(server: &mut Server, entity: EcsEntity, new_level: u32) {
         .notify_registered_clients(ServerGeneral::PlayerListUpdate(
             PlayerListUpdate::LevelChange(*uid, new_level),
         ));
+}
+
+pub fn handle_buff(server: &mut Server, uid: Uid, buff: buff::BuffChange ) {
+    let ecs = &server.state.ecs();
+    let mut buffs_all = ecs.write_storage::<comp::Buffs>();
+    if let Some(entity) = ecs.entity_from_uid(uid.into()) {
+        if let Some(buffs) = buffs_all.get_mut(entity) {
+            let mut stats = ecs.write_storage::<comp::Stats>();
+            match buff {
+                buff::BuffChange::Add(new_buff) => {
+                    for effect in &new_buff.effects {
+                        match effect {
+                            // Only add an effect here if it is immediate and is not continuous
+                            buff::BuffEffect::NameChange { prefix } => {
+                                if let Some(stats) = stats.get_mut(entity) {
+                                    let mut pref = String::from(prefix);
+                                    pref.push_str(&stats.name);
+                                    stats.name = pref;
+                                }
+                            },
+                            _ => {},
+                        }
+                    }
+                    buffs.buffs.push(new_buff.clone());
+                },
+                buff::BuffChange::Remove(id) => {
+                    let some_predicate = |current_id: &buff::BuffId| *current_id == id;
+                    let mut i = 0;
+                    while i != buffs.buffs.len() {
+                        if some_predicate(&mut buffs.buffs[i].id) {
+                            let buff = buffs.buffs.remove(i);
+                            for effect in &buff.effects {
+                                match effect {
+                                    // Only remove an effect here if its effect was not continuously applied
+                                    buff::BuffEffect::NameChange { prefix } => {
+                                        if let Some(stats) = stats.get_mut(entity) {
+                                            stats.name = stats.name.replace(prefix, "");
+                                        }
+                                    },
+                                    _ => {},
+                                }
+                            }
+                        } else {
+                            i += 1;
+                        }
+                    }
+                },
+            }
+        }
+    }
 }

@@ -1,6 +1,6 @@
 use crate::{
     comp::{
-        group, Attacking, Body, CharacterState, Damage, DamageSource, HealthChange, HealthSource,
+        buff, group, Attacking, Body, CharacterState, Damage, DamageSource, HealthChange, HealthSource,
         Loadout, Ori, Pos, Scale, Stats,
     },
     event::{EventBus, LocalEvent, ServerEvent},
@@ -10,6 +10,7 @@ use crate::{
     util::Dir,
 };
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
+use std::time::Duration;
 use vek::*;
 
 pub const BLOCK_EFFICIENCY: f32 = 0.9;
@@ -149,6 +150,19 @@ impl<'a> System<'a> for Sys {
                                 amount: damage.healthchange as i32,
                                 cause,
                             },
+                        });
+                        // Test for server event of buff, remove before merging
+                        server_emitter.emit(ServerEvent::Buff {
+                            uid: *uid_b,
+                            buff: buff::BuffChange::Add(buff::Buff {
+                                id: buff::BuffId::Bleeding,
+                                cat_ids: vec![buff::BuffCategoryId::Physical],
+                                time: Some(Duration::from_millis(2000)),
+                                effects: vec![buff::BuffEffect::RepeatedHealthChange {
+                                    rate: 50.0,
+                                    accumulated: 0.0
+                                }],
+                            }),
                         });
                         attack.hit_count += 1;
                     }
