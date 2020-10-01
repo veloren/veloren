@@ -1,5 +1,6 @@
 pub mod scatter;
 pub mod tree;
+pub mod wildlife;
 
 pub use self::{scatter::apply_scatter_to, tree::apply_trees_to};
 
