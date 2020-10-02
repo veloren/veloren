@@ -24,6 +24,7 @@ use common::{
 use comp::item::Reagent;
 use rand::prelude::*;
 use specs::{join::Join, saveload::MarkerAllocator, Entity as EcsEntity, WorldExt};
+use std::mem::discriminant;
 use tracing::error;
 use vek::Vec3;
 
@@ -681,53 +682,158 @@ pub fn handle_buff(server: &mut Server, uid: Uid, buff_change: buff::BuffChange)
     if let Some(entity) = ecs.entity_from_uid(uid.into()) {
         if let Some(buffs) = buffs_all.get_mut(entity) {
             let mut stats = ecs.write_storage::<comp::Stats>();
-            let mut buff_indices_for_removal = Vec::new();
+            let (mut active_buff_indices_for_removal, mut inactive_buff_indices_for_removal) =
+                (Vec::new(), Vec::new());
             match buff_change {
                 buff::BuffChange::Add(new_buff) => {
-                    for effect in &new_buff.effects {
-                        match effect {
-                            // Only add an effect here if it is immediate and is not continuous
-                            buff::BuffEffect::NameChange { prefix } => {
-                                if let Some(stats) = stats.get_mut(entity) {
-                                    let mut pref = String::from(prefix);
-                                    pref.push_str(&stats.name);
-                                    stats.name = pref;
+                    if buffs.active_buffs.is_empty() {
+                        add_buff_effects(new_buff.clone(), stats.get_mut(entity));
+                        buffs.active_buffs.push(new_buff);
+                    } else {
+                        for i in 0..buffs.active_buffs.len() {
+                            let active_buff = &buffs.active_buffs[i];
+                            // Checks if new buff has the same id as an already active buff. If it
+                            // doesn't, new buff added to active buffs. If it does, compares the new
+                            // buff and the active buff, and decides to either add new buff to
+                            // inactive buffs, or move active buff to
+                            // inactive buffs and add new buff to active
+                            // buffs.
+                            if discriminant(&active_buff.id) == discriminant(&new_buff.id) {
+                                if determine_replace_active_buff(
+                                    active_buff.clone(),
+                                    new_buff.clone(),
+                                ) {
+                                    active_buff_indices_for_removal.push(i);
+                                    add_buff_effects(new_buff.clone(), stats.get_mut(entity));
+                                    buffs.active_buffs.push(new_buff.clone());
+                                } else {
+                                    buffs.inactive_buffs.push(new_buff.clone());
                                 }
-                            },
-                            _ => {},
+                            } else {
+                                add_buff_effects(new_buff.clone(), stats.get_mut(entity));
+                                buffs.active_buffs.push(new_buff.clone());
+                            }
                         }
                     }
-                    buffs.buffs.push(new_buff.clone());
                 },
-                buff::BuffChange::RemoveByIndex(indices) => {
-                    buff_indices_for_removal = indices;
+                buff::BuffChange::RemoveByIndex(active_indices, inactive_indices) => {
+                    active_buff_indices_for_removal = active_indices;
+                    inactive_buff_indices_for_removal = inactive_indices;
                 },
                 buff::BuffChange::RemoveById(id) => {
                     let some_predicate = |current_id: &buff::BuffId| *current_id == id;
-                    for i in 0..buffs.buffs.len() {
-                        if some_predicate(&mut buffs.buffs[i].id) {
-                            buff_indices_for_removal.push(i);
+                    for i in 0..buffs.active_buffs.len() {
+                        if some_predicate(&mut buffs.active_buffs[i].id) {
+                            active_buff_indices_for_removal.push(i);
+                        }
+                    }
+                    for i in 0..buffs.inactive_buffs.len() {
+                        if some_predicate(&mut buffs.inactive_buffs[i].id) {
+                            inactive_buff_indices_for_removal.push(i);
                         }
                     }
                 },
             }
-            while !buff_indices_for_removal.is_empty() {
-                if let Some(i) = buff_indices_for_removal.pop() {
-                    let buff = buffs.buffs.remove(i);
-                    for effect in &buff.effects {
-                        match effect {
-                            // Only remove an effect here if its effect was not continuously
-                            // applied
-                            buff::BuffEffect::NameChange { prefix } => {
-                                if let Some(stats) = stats.get_mut(entity) {
-                                    stats.name = stats.name.replacen(prefix, "", 1);
-                                }
-                            },
-                            _ => {},
+            let mut removed_active_buff_ids = Vec::new();
+            while !active_buff_indices_for_removal.is_empty() {
+                if let Some(i) = active_buff_indices_for_removal.pop() {
+                    let buff = buffs.active_buffs.remove(i);
+                    removed_active_buff_ids.push(buff.id);
+                    remove_buff_effects(buff, stats.get_mut(entity));
+                }
+            }
+            while !inactive_buff_indices_for_removal.is_empty() {
+                if let Some(i) = inactive_buff_indices_for_removal.pop() {
+                    buffs.inactive_buffs.remove(i);
+                }
+            }
+            // Checks after buffs are removed so that it doesn't grab incorrect
+            // index
+            for buff_id in removed_active_buff_ids {
+                // Checks to verify that there are no active buffs with the same id
+                if buffs
+                    .active_buffs
+                    .iter()
+                    .any(|buff| discriminant(&buff.id) == discriminant(&buff_id))
+                {
+                    continue;
+                }
+                let mut new_active_buff = None::<buff::Buff>;
+                let mut replacement_buff_index = 0;
+                for i in 0..buffs.inactive_buffs.len() {
+                    let inactive_buff = buffs.inactive_buffs[i].clone();
+                    if discriminant(&buff_id) == discriminant(&inactive_buff.id) {
+                        if let Some(ref buff) = new_active_buff {
+                            if determine_replace_active_buff(buff.clone(), inactive_buff.clone()) {
+                                new_active_buff = Some(inactive_buff);
+                                replacement_buff_index = i;
+                            }
+                        } else {
+                            new_active_buff = Some(inactive_buff);
+                            replacement_buff_index = i;
                         }
                     }
                 }
+                if new_active_buff.is_some() {
+                    let buff = buffs.inactive_buffs.remove(replacement_buff_index);
+                    add_buff_effects(buff.clone(), stats.get_mut(entity));
+                    buffs.active_buffs.push(buff.clone());
+                }
             }
+        }
+    }
+}
+
+fn determine_replace_active_buff(active_buff: buff::Buff, new_buff: buff::Buff) -> bool {
+    use buff::BuffId;
+    match new_buff.id {
+        BuffId::Bleeding(new_strength) => {
+            if let BuffId::Bleeding(active_strength) = active_buff.id {
+                new_strength > active_strength
+            } else {
+                false
+            }
+        },
+        BuffId::Regeneration(new_strength) => {
+            if let BuffId::Regeneration(active_strength) = active_buff.id {
+                new_strength > active_strength
+            } else {
+                false
+            }
+        },
+        BuffId::Cursed => false,
+    }
+}
+
+fn add_buff_effects(buff: buff::Buff, mut stats: Option<&mut Stats>) {
+    for effect in &buff.effects {
+        #[allow(clippy::single_match)] // Remove clippy when there are more buff effects here
+        match effect {
+            // Only add an effect here if it is immediate and is not continuous
+            buff::BuffEffect::NameChange { prefix } => {
+                if let Some(ref mut stats) = stats {
+                    let mut pref = String::from(prefix);
+                    pref.push_str(&stats.name);
+                    stats.name = pref;
+                }
+            },
+            _ => {},
+        }
+    }
+}
+
+fn remove_buff_effects(buff: buff::Buff, mut stats: Option<&mut Stats>) {
+    for effect in &buff.effects {
+        #[allow(clippy::single_match)] // Remove clippy when there are more buff effects here
+        match effect {
+            // Only remove an effect here if its effect was not continuously
+            // applied
+            buff::BuffEffect::NameChange { prefix } => {
+                if let Some(ref mut stats) = stats {
+                    stats.name = stats.name.replacen(prefix, "", 1);
+                }
+            },
+            _ => {},
         }
     }
 }
