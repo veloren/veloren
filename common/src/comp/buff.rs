@@ -13,7 +13,7 @@ use std::time::Duration;
 /// making it harder to recognize which is which.
 ///
 /// Also, this should be dehardcoded eventually.
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
 pub enum BuffId {
     /// Restores health/time for some period
     /// Has fields: strength (f32)
@@ -21,10 +21,9 @@ pub enum BuffId {
     /// Lowers health over time for some duration
     /// Has fields: strength (f32)
     Bleeding(f32),
-    /// Adds a prefix to the entity name
+    /// Prefixes an entity's name with "Cursed"
     /// Currently placeholder buff to show other stuff is possible
-    /// Has fields: prefix (String)
-    Prefix(String),
+    Cursed,
 }
 
 /// De/buff category ID.
@@ -85,7 +84,7 @@ pub enum BuffChange {
     /// Removes all buffs with this ID.
     RemoveById(BuffId),
     /// Removes buff of this index
-    RemoveByIndex(Vec<usize>),
+    RemoveByIndex(Vec<usize>, Vec<usize>),
 }
 
 /// Source of the de/buff
@@ -124,13 +123,18 @@ pub enum BuffSource {
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct Buffs {
     /// Active de/buffs.
-    pub buffs: Vec<Buff>,
+    pub active_buffs: Vec<Buff>,
+    /// Inactive de/buffs (used so that only 1 buff of a particular type is
+    /// active at any time)
+    pub inactive_buffs: Vec<Buff>,
 }
 
 impl Buffs {
-    /// This is a primitive check if a specific buff is present.
+    /// This is a primitive check if a specific buff is present and active.
     /// (for purposes like blocking usage of abilities or something like this).
-    pub fn has_buff_id(&self, id: &BuffId) -> bool { self.buffs.iter().any(|buff| buff.id == *id) }
+    pub fn has_buff_id(&self, id: &BuffId) -> bool {
+        self.active_buffs.iter().any(|buff| buff.id == *id)
+    }
 }
 
 impl Buff {
@@ -150,16 +154,12 @@ impl Buff {
                 rate: strength,
                 accumulated: 0.0,
             }],
-            BuffId::Prefix(ref prefix) => {
-                let mut prefix = prefix.clone();
-                prefix.push(' ');
-                vec![BuffEffect::NameChange {
-                    prefix,
-                }]
-            },
+            BuffId::Cursed => vec![BuffEffect::NameChange {
+                prefix: String::from("Cursed "),
+            }],
         };
         Buff {
-            id: id.clone(),
+            id,
             cat_ids,
             time,
             effects,

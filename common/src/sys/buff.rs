@@ -1,5 +1,5 @@
 use crate::{
-    comp::{BuffChange, BuffEffect, BuffId, Buffs, HealthChange, HealthSource, Stats},
+    comp::{BuffChange, BuffEffect, Buffs, HealthChange, HealthSource, Stats},
     event::{EventBus, ServerEvent},
     state::DeltaTime,
     sync::Uid,
@@ -28,13 +28,14 @@ impl<'a> System<'a> for Sys {
         let mut server_emitter = server_bus.emitter();
         for (entity, uid, mut buffs) in (&entities, &uids, &mut buffs.restrict_mut()).join() {
             let buff_comp = buffs.get_mut_unchecked();
-            let mut buff_indices_for_removal = Vec::<usize>::new();
+            let (mut active_buff_indices_for_removal, mut inactive_buff_indices_for_removal) =
+                (Vec::<usize>::new(), Vec::<usize>::new());
             // Tick all de/buffs on a Buffs component.
-            for i in 0..buff_comp.buffs.len() {
+            for i in 0..buff_comp.active_buffs.len() {
                 // First, tick the buff and subtract delta from it
                 // and return how much "real" time the buff took (for tick independence).
                 // TODO: handle delta for "indefinite" buffs, i.e. time since they got removed.
-                let buff_delta = if let Some(remaining_time) = &mut buff_comp.buffs[i].time {
+                let buff_delta = if let Some(remaining_time) = &mut buff_comp.active_buffs[i].time {
                     let pre_tick = remaining_time.as_secs_f32();
                     let new_duration = remaining_time.checked_sub(Duration::from_secs_f32(dt.0));
                     let post_tick = if let Some(dur) = new_duration {
@@ -44,7 +45,7 @@ impl<'a> System<'a> for Sys {
                     } else {
                         // The buff has expired.
                         // Remove it.
-                        buff_indices_for_removal.push(i);
+                        active_buff_indices_for_removal.push(i);
                         0.0
                     };
                     pre_tick - post_tick
@@ -56,7 +57,9 @@ impl<'a> System<'a> for Sys {
                 };
 
                 // Now, execute the buff, based on it's delta
-                for effect in &mut buff_comp.buffs[i].effects {
+                for effect in &mut buff_comp.active_buffs[i].effects {
+                    #[allow(clippy::single_match)]
+                    // Remove clippy when more effects are added here
                     match effect {
                         // Only add an effect here if it is continuous or it is not immediate
                         BuffEffect::HealthChangeOverTime { rate, accumulated } => {
@@ -77,9 +80,28 @@ impl<'a> System<'a> for Sys {
                     };
                 }
             }
+            for i in 0..buff_comp.inactive_buffs.len() {
+                // First, tick the buff and subtract delta from it
+                // and return how much "real" time the buff took (for tick independence).
+                // TODO: handle delta for "indefinite" buffs, i.e. time since they got removed.
+                if let Some(remaining_time) = &mut buff_comp.inactive_buffs[i].time {
+                    let new_duration = remaining_time.checked_sub(Duration::from_secs_f32(dt.0));
+                    if new_duration.is_some() {
+                        // The buff still continues.
+                        *remaining_time -= Duration::from_secs_f32(dt.0);
+                    } else {
+                        // The buff has expired.
+                        // Remove it.
+                        inactive_buff_indices_for_removal.push(i);
+                    };
+                }
+            }
             server_emitter.emit(ServerEvent::Buff {
                 uid: *uid,
-                buff_change: BuffChange::RemoveByIndex(buff_indices_for_removal),
+                buff_change: BuffChange::RemoveByIndex(
+                    active_buff_indices_for_removal,
+                    inactive_buff_indices_for_removal,
+                ),
             });
         }
     }
