@@ -684,8 +684,9 @@ pub fn handle_buff(server: &mut Server, uid: Uid, buff_change: buff::BuffChange)
             let mut stats = ecs.write_storage::<comp::Stats>();
             let (mut active_buff_indices_for_removal, mut inactive_buff_indices_for_removal) =
                 (Vec::new(), Vec::new());
+            use buff::BuffChange;
             match buff_change {
-                buff::BuffChange::Add(new_buff) => {
+                BuffChange::Add(new_buff) => {
                     if buffs.active_buffs.is_empty() {
                         add_buff_effects(new_buff.clone(), stats.get_mut(entity));
                         buffs.active_buffs.push(new_buff);
@@ -716,11 +717,11 @@ pub fn handle_buff(server: &mut Server, uid: Uid, buff_change: buff::BuffChange)
                         }
                     }
                 },
-                buff::BuffChange::RemoveByIndex(active_indices, inactive_indices) => {
+                BuffChange::RemoveByIndex(active_indices, inactive_indices) => {
                     active_buff_indices_for_removal = active_indices;
                     inactive_buff_indices_for_removal = inactive_indices;
                 },
-                buff::BuffChange::RemoveById(id) => {
+                BuffChange::RemoveById(id) => {
                     let some_predicate = |current_id: &buff::BuffId| *current_id == id;
                     for i in 0..buffs.active_buffs.len() {
                         if some_predicate(&mut buffs.active_buffs[i].id) {
@@ -729,6 +730,54 @@ pub fn handle_buff(server: &mut Server, uid: Uid, buff_change: buff::BuffChange)
                     }
                     for i in 0..buffs.inactive_buffs.len() {
                         if some_predicate(&mut buffs.inactive_buffs[i].id) {
+                            inactive_buff_indices_for_removal.push(i);
+                        }
+                    }
+                },
+                BuffChange::RemoveByCategory(all_required, any_required) => {
+                    for i in 0..buffs.active_buffs.len() {
+                        let mut required_met = true;
+                        for required in &all_required {
+                            if !buffs.active_buffs[i]
+                                .cat_ids
+                                .iter()
+                                .any(|cat| cat == required)
+                            {
+                                required_met = false;
+                                break;
+                            }
+                        }
+                        let mut any_met = any_required.is_empty();
+                        for any in &any_required {
+                            if !buffs.active_buffs[i].cat_ids.iter().any(|cat| cat == any) {
+                                any_met = true;
+                                break;
+                            }
+                        }
+                        if required_met && any_met {
+                            active_buff_indices_for_removal.push(i);
+                        }
+                    }
+                    for i in 0..buffs.inactive_buffs.len() {
+                        let mut required_met = true;
+                        for required in &all_required {
+                            if !buffs.inactive_buffs[i]
+                                .cat_ids
+                                .iter()
+                                .any(|cat| cat == required)
+                            {
+                                required_met = false;
+                                break;
+                            }
+                        }
+                        let mut any_met = any_required.is_empty();
+                        for any in &any_required {
+                            if !buffs.inactive_buffs[i].cat_ids.iter().any(|cat| cat == any) {
+                                any_met = true;
+                                break;
+                            }
+                        }
+                        if required_met && any_met {
                             inactive_buff_indices_for_removal.push(i);
                         }
                     }

@@ -29,14 +29,14 @@ pub enum BuffId {
 /// De/buff category ID.
 /// Similar to `BuffId`, but to mark a category (for more generic usage, like
 /// positive/negative buffs).
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Eq, PartialEq, Debug, Serialize, Deserialize)]
 pub enum BuffCategoryId {
     Natural,
     Physical,
     Magical,
     Divine,
-    Negative,
-    Positive,
+    Debuff,
+    Buff,
 }
 
 /// Data indicating and configuring behaviour of a de/buff.
@@ -83,8 +83,14 @@ pub enum BuffChange {
     Add(Buff),
     /// Removes all buffs with this ID.
     RemoveById(BuffId),
-    /// Removes buff of this index
+    /// Removes buffs of these indices (first vec is for active buffs, second is
+    /// for inactive buffs)
     RemoveByIndex(Vec<usize>, Vec<usize>),
+    /// Removes buffs of these categories (first vec is of categories of which
+    /// all are required, second vec is of categories of which at least one is
+    /// required) Note that this functionality is currently untested and
+    /// should be tested when doing so is possible
+    RemoveByCategory(Vec<BuffCategoryId>, Vec<BuffCategoryId>),
 }
 
 /// Source of the de/buff
