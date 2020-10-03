@@ -260,8 +260,8 @@ impl Tool {
                     range: 3.5,
                     max_angle: 30.0,
                     charge_duration: Duration::from_millis(1200),
-                    swing_duration: Duration::from_millis(100),
-                    recover_duration: Duration::from_millis(500),
+                    swing_duration: Duration::from_millis(400),
+                    recover_duration: Duration::from_millis(600),
                 },
                 LeapMelee {
                     energy_cost: 0,
@@ -327,10 +327,10 @@ impl Tool {
                 },
                 RepeaterRanged {
                     energy_cost: 0,
-                    movement_duration: Duration::from_millis(200),
-                    buildup_duration: Duration::from_millis(100),
-                    shoot_duration: Duration::from_millis(100),
-                    recover_duration: Duration::from_millis(500),
+                    movement_duration: Duration::from_millis(300),
+                    buildup_duration: Duration::from_millis(200),
+                    shoot_duration: Duration::from_millis(200),
+                    recover_duration: Duration::from_millis(800),
                     leap: Some(10.0),
                     projectile: Projectile {
                         hit_solid: vec![projectile::Effect::Stick],
