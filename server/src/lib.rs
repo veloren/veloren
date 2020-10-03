@@ -846,6 +846,10 @@ impl Server {
         }
     }
 
+    pub fn notify_registered_clients(&mut self, msg: ServerMsg) {
+        self.state.notify_registered_clients(msg);
+    }
+
     pub fn generate_chunk(&mut self, entity: EcsEntity, key: Vec2<i32>) {
         self.state
             .ecs()

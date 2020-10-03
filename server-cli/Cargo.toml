@@ -17,6 +17,7 @@ ansi-parser = "0.6"
 clap = "2.33"
 crossterm = "0.17"
 lazy_static = "1"
+signal-hook = "0.1.16"
 tracing = { version = "0.1", default-features = false }
 tracing-subscriber = { version = "0.2.3", default-features = false, features = ["env-filter", "fmt", "chrono", "ansi", "smallvec"] }
 
