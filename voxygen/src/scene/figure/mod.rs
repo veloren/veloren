@@ -852,19 +852,16 @@ impl FigureMgr {
                             let stage_time = s.timer.as_secs_f64();
 
                             let stage_progress = match s.stage_section {
-                                        StageSection::Charge => {
-                                            stage_time
-                                                / s.static_data.charge_duration.as_secs_f64()
-                                        },
-                                        StageSection::Swing => {
-                                            stage_time
-                                                / s.static_data.swing_duration.as_secs_f64()
-                                        },
-                                        StageSection::Recover => {
-                                            stage_time / s.static_data.recover_duration.as_secs_f64()
-                                        },
-                                        _ => 0.0,
-                                _ => state.state_time,
+                                StageSection::Charge => {
+                                    stage_time / s.static_data.charge_duration.as_secs_f64()
+                                },
+                                StageSection::Swing => {
+                                    stage_time / s.static_data.swing_duration.as_secs_f64()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                },
+                                _ => 0.0,
                             };
 
                             anim::character::ChargeswingAnimation::update_skeleton(
@@ -911,23 +908,19 @@ impl FigureMgr {
                             let stage_time = s.timer.as_secs_f64();
 
                             let stage_progress = match s.stage_section {
-                                        StageSection::Buildup => {
-                                            stage_time
-                                                / s.static_data.buildup_duration.as_secs_f64()
-                                        },
-                                        StageSection::Movement => {
-                                            stage_time
-                                                / s.static_data.movement_duration.as_secs_f64()
-                                        },
-                                        StageSection::Shoot => {
-                                            stage_time / s.static_data.shoot_duration.as_secs_f64()
-                                        },
-                                        StageSection::Recover => {
-                                            stage_time
-                                                / s.static_data.recover_duration.as_secs_f64()
-                                        },
-                                        _ => 0.0,
-                                _ => state.state_time,
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                },
+                                StageSection::Movement => {
+                                    stage_time / s.static_data.movement_duration.as_secs_f64()
+                                },
+                                StageSection::Shoot => {
+                                    stage_time / s.static_data.shoot_duration.as_secs_f64()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                },
+                                _ => 0.0,
                             };
 
                             anim::character::RepeaterAnimation::update_skeleton(
