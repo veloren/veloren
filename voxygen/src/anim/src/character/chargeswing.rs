@@ -161,7 +161,7 @@ impl Animation for ChargeswingAnimation {
                         next.control.position = Vec3::new(6.0, 7.0, 1.0 + 3.0);
                         next.control.orientation = Quaternion::rotation_x(PI / 2.0)
                             * Quaternion::rotation_y(-1.6)
-                            * Quaternion::rotation_z(-0.1);
+                            * Quaternion::rotation_z(0.3 - movement * 2.5);
                         next.head.orientation = Quaternion::rotation_z(0.8);
                         next.l_hand.position = Vec3::new(-3.0, 0.0, 0.0);
                     },
@@ -170,7 +170,7 @@ impl Animation for ChargeswingAnimation {
                         next.control.position = Vec3::new(6.0, 7.0, 1.0 + 3.0 + movement * -3.0);
                         next.control.orientation = Quaternion::rotation_x(PI / 2.0)
                             * Quaternion::rotation_y(-1.6 + movement * 1.6)
-                            * Quaternion::rotation_z(-0.1 + movement * 0.1);
+                            * Quaternion::rotation_z(-2.2 + movement * 2.2);
                         next.head.orientation = Quaternion::rotation_z(0.8 + movement * -0.8);
                         next.l_hand.position = Vec3::new(-3.0 + movement * -9.0, 0.0, 0.0);
                     },

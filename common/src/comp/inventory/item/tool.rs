@@ -227,10 +227,10 @@ impl Tool {
                     num_spins: 1,
                 },
                 LeapMelee {
-                    energy_cost: 600,
+                    energy_cost: 0,
                     buildup_duration: Duration::from_millis(100),
-                    movement_duration: Duration::from_millis(600),
-                    swing_duration: Duration::from_millis(100),
+                    movement_duration: Duration::from_millis(900),
+                    swing_duration: Duration::from_millis(200),
                     recover_duration: Duration::from_millis(100),
                     base_damage: (240.0 * self.base_power()) as u32,
                     knockback: 12.0,

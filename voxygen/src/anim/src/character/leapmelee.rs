@@ -164,8 +164,8 @@ impl Animation for LeapAnimation {
 
             next.control.position = Vec3::new(-3.0, 11.0, 3.0);
             next.control.orientation = Quaternion::rotation_x(1.8)
-            * Quaternion::rotation_y(-0.5)
-            * Quaternion::rotation_z(PI - 0.2);
+                * Quaternion::rotation_y(-0.5)
+                * Quaternion::rotation_z(PI - 0.2);
             next.control.scale = Vec3::one();
 
             next.head.position = Vec3::new(0.0, -2.0 + skeleton_attr.head.0, skeleton_attr.head.1);
@@ -174,13 +174,13 @@ impl Animation for LeapAnimation {
                 match stage_section {
                     StageSection::Buildup => {
                         next.control.position = Vec3::new(
-                            - 10.0 + movement * 5.0,
-                            11.0 + movement * - 26.0,
-                            3.0 + movement * 6.0
+                            -3.0 + movement * 3.0,
+                            11.0 + movement * 1.0,
+                            3.0 + movement * 12.0,
                         );
-                        next.control.orientation = Quaternion::rotation_x(1.8 + movement * -1.4)
-                            * Quaternion::rotation_y(0.0)
-                            * Quaternion::rotation_z(PI);
+                        next.control.orientation = Quaternion::rotation_x(1.8 + movement * -1.0)
+                            * Quaternion::rotation_y(-0.5 + movement * 0.5)
+                            * Quaternion::rotation_z(PI + 0.2 - movement * 0.2);
                         next.chest.orientation = Quaternion::rotation_x(movement * -0.3)
                             * Quaternion::rotation_y(0.0)
                             * Quaternion::rotation_z(movement * 0.5);
@@ -202,26 +202,26 @@ impl Animation for LeapAnimation {
 
                     StageSection::Movement => {
                         next.control.position = Vec3::new(
-                            0.0,
-                            -15.0 + movement * 5.0, //11
-                            9.0 - movement * 5.0,
+                            0.0, 12.0, //11
+                            15.0,
                         );
-                        next.control.orientation = Quaternion::rotation_x(0.4)
+                        next.control.orientation = Quaternion::rotation_x(0.8 + movement * -0.5)
                             * Quaternion::rotation_y(0.0)
                             * Quaternion::rotation_z(PI);
-                        next.chest.orientation = Quaternion::rotation_x((-0.3 + movement * 6.0).min(0.3))
-                            * Quaternion::rotation_y(0.0)
-                            * Quaternion::rotation_z(0.0);
+                        next.chest.orientation =
+                            Quaternion::rotation_x((-0.3 + movement * 6.0).min(0.3))
+                                * Quaternion::rotation_y(0.0)
+                                * Quaternion::rotation_z(0.0);
                         next.head.orientation = Quaternion::rotation_x(-0.4 + movement * 0.4)
                             * Quaternion::rotation_y(movement * -0.1)
                             * Quaternion::rotation_z(movement * 0.4);
 
                         next.l_foot.position = Vec3::new(
-                                - skeleton_attr.foot.0,
-                                skeleton_attr.foot.1 + 8.0,
-                                skeleton_attr.foot.2 + 5.0,
-                            );
-                            next.l_foot.orientation = Quaternion::rotation_x(0.9);
+                            -skeleton_attr.foot.0,
+                            skeleton_attr.foot.1 + 8.0,
+                            skeleton_attr.foot.2 + 5.0,
+                        );
+                        next.l_foot.orientation = Quaternion::rotation_x(0.9);
 
                         next.r_foot.position = Vec3::new(
                             skeleton_attr.foot.0,
@@ -231,7 +231,7 @@ impl Animation for LeapAnimation {
                         next.r_foot.orientation = Quaternion::rotation_x(0.9);
 
                         next.torso.position = Vec3::new(0.0, 0.0, 0.0) * skeleton_attr.scaler;
-                        next.torso.orientation = Quaternion::rotation_x(movement * - 1.8 * PI);
+                        next.torso.orientation = Quaternion::rotation_x(movement * -1.8 * PI);
                         next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
 
                         next.belt.orientation = Quaternion::rotation_x(0.22 + movement * 0.1);
@@ -239,11 +239,11 @@ impl Animation for LeapAnimation {
                     },
                     StageSection::Swing => {
                         next.control.position =
-                            Vec3::new(0.0, 12.0 + movement * 8.0, 6.0 + movement * -6.0);
-                        next.control.orientation = Quaternion::rotation_x(0.3 + movement * -3.0)
+                            Vec3::new(0.0, 12.0 + movement * 3.0, 15.0 + movement * -15.0);
+                        next.control.orientation = Quaternion::rotation_x(0.3 + movement * -1.2)
                             * Quaternion::rotation_y(0.0)
                             * Quaternion::rotation_z(PI);
-                        next.chest.orientation = Quaternion::rotation_x(0.6 + movement * -0.9)
+                        next.chest.orientation = Quaternion::rotation_x(0.6 + movement * -0.2)
                             * Quaternion::rotation_y(0.0)
                             * Quaternion::rotation_z(0.7 + movement * -0.7);
                         next.head.orientation = Quaternion::rotation_x(movement * 0.2)
@@ -266,11 +266,12 @@ impl Animation for LeapAnimation {
                         );
                         next.r_foot.orientation = Quaternion::rotation_x(-0.8);
 
-                        next.torso.orientation = Quaternion::rotation_x(-1.9 * PI - movement * 0.3 * PI);
+                        next.torso.orientation =
+                            Quaternion::rotation_x(-1.9 * PI - movement * 0.3 * PI);
                     },
                     StageSection::Recover => {
                         next.control.position = Vec3::new(-4.0, 20.0, 0.0);
-                        next.control.orientation = Quaternion::rotation_x(-2.7)
+                        next.control.orientation = Quaternion::rotation_x(-0.9)
                             * Quaternion::rotation_y(0.0)
                             * Quaternion::rotation_z(PI);
                         next.chest.orientation = Quaternion::rotation_x(-0.3 + movement * 0.3)
