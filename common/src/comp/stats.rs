@@ -20,6 +20,7 @@ pub enum HealthSource {
     Projectile { owner: Option<Uid> },
     Explosion { owner: Option<Uid> },
     Energy { owner: Option<Uid> },
+    Buff { owner: Option<Uid> },
     Suicide,
     World,
     Revive,

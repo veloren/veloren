@@ -16,11 +16,9 @@ use std::time::Duration;
 #[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
 pub enum BuffId {
     /// Restores health/time for some period
-    /// Has fields: strength (f32)
-    Regeneration(f32),
+    Regeneration { strength: f32 },
     /// Lowers health over time for some duration
-    /// Has fields: strength (f32)
-    Bleeding(f32),
+    Bleeding { strength: f32 },
     /// Prefixes an entity's name with "Cursed"
     /// Currently placeholder buff to show other stuff is possible
     Cursed,
@@ -73,6 +71,7 @@ pub struct Buff {
     pub cat_ids: Vec<BuffCategoryId>,
     pub time: Option<Duration>,
     pub effects: Vec<BuffEffect>,
+    pub source: BuffSource,
 }
 
 /// Information about whether buff addition or removal was requested.
@@ -144,9 +143,14 @@ impl Buffs {
 }
 
 impl Buff {
-    pub fn new(id: BuffId, time: Option<Duration>, cat_ids: Vec<BuffCategoryId>) -> Self {
+    pub fn new(
+        id: BuffId,
+        time: Option<Duration>,
+        cat_ids: Vec<BuffCategoryId>,
+        source: BuffSource,
+    ) -> Self {
         let effects = match id {
-            BuffId::Bleeding(strength) => vec![
+            BuffId::Bleeding { strength } => vec![
                 BuffEffect::HealthChangeOverTime {
                     rate: -strength,
                     accumulated: 0.0,
@@ -156,7 +160,7 @@ impl Buff {
                     prefix: String::from("Injured "),
                 },
             ],
-            BuffId::Regeneration(strength) => vec![BuffEffect::HealthChangeOverTime {
+            BuffId::Regeneration { strength } => vec![BuffEffect::HealthChangeOverTime {
                 rate: strength,
                 accumulated: 0.0,
             }],
@@ -169,6 +173,7 @@ impl Buff {
             cat_ids,
             time,
             effects,
+            source,
         }
     }
 }
