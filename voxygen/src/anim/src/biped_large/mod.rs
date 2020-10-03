@@ -83,7 +83,7 @@ impl Skeleton for BipedLargeSkeleton {
             make_bone(lower_torso_mat * Mat4::<f32>::from(self.leg_r)),
             make_bone(base_mat * Mat4::<f32>::from(self.foot_l)),
             make_bone(base_mat * Mat4::<f32>::from(self.foot_r)),
-            // FIXME: Should this be l_control_mat?
+            // FIXME: Should this be control_l_mat?
             make_bone(control_mat * hand_l_mat * Mat4::<f32>::from(self.hold)),
         ];
         Vec3::default()

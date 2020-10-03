@@ -58,12 +58,12 @@ impl Animation for SpinAnimation {
         next.head.position = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1);
 
         if let Some(ToolKind::Sword(_)) = active_tool_kind {
-            next.l_hand.position = Vec3::new(-0.75, -1.0, 2.5);
-            next.l_hand.orientation = Quaternion::rotation_x(1.47) * Quaternion::rotation_y(-0.2);
-            next.l_hand.scale = Vec3::one() * 1.04;
-            next.r_hand.position = Vec3::new(0.75, -1.5, -0.5);
-            next.r_hand.orientation = Quaternion::rotation_x(1.47) * Quaternion::rotation_y(0.3);
-            next.r_hand.scale = Vec3::one() * 1.05;
+            next.hand_l.position = Vec3::new(-0.75, -1.0, 2.5);
+            next.hand_l.orientation = Quaternion::rotation_x(1.47) * Quaternion::rotation_y(-0.2);
+            next.hand_l.scale = Vec3::one() * 1.04;
+            next.hand_r.position = Vec3::new(0.75, -1.5, -0.5);
+            next.hand_r.orientation = Quaternion::rotation_x(1.47) * Quaternion::rotation_y(0.3);
+            next.hand_r.scale = Vec3::one() * 1.05;
             next.main.position = Vec3::new(0.0, 0.0, 2.0);
             next.main.orientation = Quaternion::rotation_x(-0.1)
                 * Quaternion::rotation_y(0.0)
@@ -130,12 +130,12 @@ impl Animation for SpinAnimation {
         if let Some(ToolKind::Axe(_) | ToolKind::Hammer(_) | ToolKind::Dagger(_)) = active_tool_kind
         {
             //INTENTION: SWORD
-            next.l_hand.position = Vec3::new(-0.75, -1.0, -2.5);
-            next.l_hand.orientation = Quaternion::rotation_x(1.27);
-            next.l_hand.scale = Vec3::one() * 1.04;
-            next.r_hand.position = Vec3::new(0.75, -1.5, -5.5);
-            next.r_hand.orientation = Quaternion::rotation_x(1.27);
-            next.r_hand.scale = Vec3::one() * 1.05;
+            next.hand_l.position = Vec3::new(-0.75, -1.0, -2.5);
+            next.hand_l.orientation = Quaternion::rotation_x(1.27);
+            next.hand_l.scale = Vec3::one() * 1.04;
+            next.hand_r.position = Vec3::new(0.75, -1.5, -5.5);
+            next.hand_r.orientation = Quaternion::rotation_x(1.27);
+            next.hand_r.scale = Vec3::one() * 1.05;
             next.main.position = Vec3::new(0.0, 6.0, -1.0);
             next.main.orientation = Quaternion::rotation_x(-0.3)
                 * Quaternion::rotation_y(0.0)
@@ -174,23 +174,23 @@ impl Animation for SpinAnimation {
                 * Quaternion::rotation_y(0.0);
             next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
 
-            next.l_foot.position =
+            next.foot_l.position =
                 Vec3::new(-skeleton_attr.foot.0, foot * 1.0, skeleton_attr.foot.2);
-            next.l_foot.orientation = Quaternion::rotation_x(foot * -1.2);
-            next.l_foot.scale = Vec3::one();
+            next.foot_l.orientation = Quaternion::rotation_x(foot * -1.2);
+            next.foot_l.scale = Vec3::one();
 
-            next.r_foot.position =
+            next.foot_r.position =
                 Vec3::new(skeleton_attr.foot.0, foot * -1.0, skeleton_attr.foot.2);
-            next.r_foot.orientation = Quaternion::rotation_x(foot * 1.2);
-            next.r_foot.scale = Vec3::one();
+            next.foot_r.orientation = Quaternion::rotation_x(foot * 1.2);
+            next.foot_r.scale = Vec3::one();
 
-            next.l_shoulder.position = Vec3::new(-5.0, 0.0, 4.7);
-            next.l_shoulder.orientation = Quaternion::rotation_x(0.0);
-            next.l_shoulder.scale = Vec3::one() * 1.1;
+            next.shoulder_l.position = Vec3::new(-5.0, 0.0, 4.7);
+            next.shoulder_l.orientation = Quaternion::rotation_x(0.0);
+            next.shoulder_l.scale = Vec3::one() * 1.1;
 
-            next.r_shoulder.position = Vec3::new(5.0, 0.0, 4.7);
-            next.r_shoulder.orientation = Quaternion::rotation_x(0.0);
-            next.r_shoulder.scale = Vec3::one() * 1.1;
+            next.shoulder_r.position = Vec3::new(5.0, 0.0, 4.7);
+            next.shoulder_r.orientation = Quaternion::rotation_x(0.0);
+            next.shoulder_r.scale = Vec3::one() * 1.1;
 
             next.glider.position = Vec3::new(0.0, 5.0, 0.0);
             next.glider.orientation = Quaternion::rotation_y(0.0);
@@ -206,13 +206,13 @@ impl Animation for SpinAnimation {
             next.lantern.scale = Vec3::one() * 0.65;
             next.hold.scale = Vec3::one() * 0.0;
 
-            next.l_control.position = Vec3::new(0.0, 0.0, 0.0);
-            next.l_control.orientation = Quaternion::rotation_x(0.0);
-            next.l_control.scale = Vec3::one();
+            next.control_l.position = Vec3::new(0.0, 0.0, 0.0);
+            next.control_l.orientation = Quaternion::rotation_x(0.0);
+            next.control_l.scale = Vec3::one();
 
-            next.r_control.position = Vec3::new(0.0, 0.0, 0.0);
-            next.r_control.orientation = Quaternion::rotation_x(0.0);
-            next.r_control.scale = Vec3::one();
+            next.control_r.position = Vec3::new(0.0, 0.0, 0.0);
+            next.control_r.orientation = Quaternion::rotation_x(0.0);
+            next.control_r.scale = Vec3::one();
         }
         next.second.scale = match (
             active_tool_kind.map(|tk| tk.hands()),

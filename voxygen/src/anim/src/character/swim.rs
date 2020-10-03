@@ -129,57 +129,57 @@ impl Animation for SwimAnimation {
             * Quaternion::rotation_z(short * -0.3 * intensity);
         next.shorts.scale = Vec3::one();
 
-        next.l_hand.position = Vec3::new(
+        next.hand_l.position = Vec3::new(
             -1.0 - skeleton_attr.hand.0,
             1.5 + skeleton_attr.hand.1 - foot * 2.0 * intensity * squash,
             intensity * 5.0 + skeleton_attr.hand.2 + foot * -5.0 * intensity * squash,
         );
-        next.l_hand.orientation = Quaternion::rotation_x(1.5 + foot * -1.2 * intensity * squash)
+        next.hand_l.orientation = Quaternion::rotation_x(1.5 + foot * -1.2 * intensity * squash)
             * Quaternion::rotation_y(0.4 + foot * -0.35);
-        next.l_hand.scale = Vec3::one();
+        next.hand_l.scale = Vec3::one();
 
-        next.r_hand.position = Vec3::new(
+        next.hand_r.position = Vec3::new(
             1.0 + skeleton_attr.hand.0,
             1.5 + skeleton_attr.hand.1 + foot * 2.0 * intensity * squash,
             intensity * 5.0 + skeleton_attr.hand.2 + foot * 5.0 * intensity * squash,
         );
-        next.r_hand.orientation = Quaternion::rotation_x(1.5 + foot * 1.2 * intensity * squash)
+        next.hand_r.orientation = Quaternion::rotation_x(1.5 + foot * 1.2 * intensity * squash)
             * Quaternion::rotation_y(-0.4 + foot * -0.35);
-        next.r_hand.scale = Vec3::one();
+        next.hand_r.scale = Vec3::one();
 
-        next.l_foot.position = Vec3::new(
+        next.foot_l.position = Vec3::new(
             -skeleton_attr.foot.0,
             skeleton_attr.foot.1 + foothoril * 1.5 * intensity * squash,
             -10.0 + skeleton_attr.foot.2 + footrotl * 3.0 * intensity * squash,
         );
-        next.l_foot.orientation =
+        next.foot_l.orientation =
             Quaternion::rotation_x(-0.8 * squash + footrotl * 0.4 * intensity * squash);
-        next.l_foot.scale = Vec3::one();
+        next.foot_l.scale = Vec3::one();
 
-        next.r_foot.position = Vec3::new(
+        next.foot_r.position = Vec3::new(
             skeleton_attr.foot.0,
             skeleton_attr.foot.1 + foothorir * 1.5 * intensity * squash,
             -10.0 + skeleton_attr.foot.2 + footrotr * 3.0 * intensity * squash,
         );
-        next.r_foot.orientation =
+        next.foot_r.orientation =
             Quaternion::rotation_x(-0.8 * squash + footrotr * 0.4 * intensity * squash);
-        next.r_foot.scale = Vec3::one();
+        next.foot_r.scale = Vec3::one();
 
-        next.l_shoulder.position = Vec3::new(
+        next.shoulder_l.position = Vec3::new(
             -skeleton_attr.shoulder.0,
             skeleton_attr.shoulder.1,
             skeleton_attr.shoulder.2,
         );
-        next.l_shoulder.orientation = Quaternion::rotation_x(short * 0.15 * intensity);
-        next.l_shoulder.scale = Vec3::one() * 1.1;
+        next.shoulder_l.orientation = Quaternion::rotation_x(short * 0.15 * intensity);
+        next.shoulder_l.scale = Vec3::one() * 1.1;
 
-        next.r_shoulder.position = Vec3::new(
+        next.shoulder_r.position = Vec3::new(
             skeleton_attr.shoulder.0,
             skeleton_attr.shoulder.1,
             skeleton_attr.shoulder.2,
         );
-        next.r_shoulder.orientation = Quaternion::rotation_x(short * -0.15 * intensity);
-        next.r_shoulder.scale = Vec3::one() * 1.1;
+        next.shoulder_r.orientation = Quaternion::rotation_x(short * -0.15 * intensity);
+        next.shoulder_r.scale = Vec3::one() * 1.1;
 
         next.glider.position = Vec3::new(0.0, 0.0, 10.0);
         next.glider.scale = Vec3::one() * 0.0;
@@ -245,9 +245,9 @@ impl Animation for SwimAnimation {
 
         next.control.scale = Vec3::one(); //avgspeed*-0.14*reverse + 
 
-        next.l_control.scale = Vec3::one();
+        next.control_l.scale = Vec3::one();
 
-        next.r_control.scale = Vec3::one();
+        next.control_r.scale = Vec3::one();
 
         next.second.scale = match (
             active_tool_kind.map(|tk| tk.hands()),
