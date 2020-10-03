@@ -166,11 +166,34 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                         KillSource::NonPlayer("<?>".to_string(), KillType::Energy)
                     }
                 },
+                HealthSource::Buff { owner: Some(by) } => {
+                    // Get energy owner entity
+                    if let Some(char_entity) = state.ecs().entity_from_uid(by.into()) {
+                        // Check if attacker is another player or entity with stats (npc)
+                        if state
+                            .ecs()
+                            .read_storage::<Player>()
+                            .get(char_entity)
+                            .is_some()
+                        {
+                            KillSource::Player(by, KillType::Buff)
+                        } else if let Some(stats) =
+                            state.ecs().read_storage::<Stats>().get(char_entity)
+                        {
+                            KillSource::NonPlayer(stats.name.clone(), KillType::Buff)
+                        } else {
+                            KillSource::NonPlayer("<?>".to_string(), KillType::Buff)
+                        }
+                    } else {
+                        KillSource::NonPlayer("<?>".to_string(), KillType::Buff)
+                    }
+                },
                 HealthSource::World => KillSource::FallDamage,
                 HealthSource::Suicide => KillSource::Suicide,
                 HealthSource::Projectile { owner: None }
                 | HealthSource::Explosion { owner: None }
                 | HealthSource::Energy { owner: None }
+                | HealthSource::Buff { owner: None }
                 | HealthSource::Revive
                 | HealthSource::Command
                 | HealthSource::LevelUp
@@ -190,6 +213,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         let by = if let HealthSource::Attack { by }
         | HealthSource::Projectile { owner: Some(by) }
         | HealthSource::Energy { owner: Some(by) }
+        | HealthSource::Buff { owner: Some(by) }
         | HealthSource::Explosion { owner: Some(by) } = cause
         {
             by
@@ -836,15 +860,25 @@ pub fn handle_buff(server: &mut Server, uid: Uid, buff_change: buff::BuffChange)
 fn determine_replace_active_buff(active_buff: buff::Buff, new_buff: buff::Buff) -> bool {
     use buff::BuffId;
     match new_buff.id {
-        BuffId::Bleeding(new_strength) => {
-            if let BuffId::Bleeding(active_strength) = active_buff.id {
+        BuffId::Bleeding {
+            strength: new_strength,
+        } => {
+            if let BuffId::Bleeding {
+                strength: active_strength,
+            } = active_buff.id
+            {
                 new_strength > active_strength
             } else {
                 false
             }
         },
-        BuffId::Regeneration(new_strength) => {
-            if let BuffId::Regeneration(active_strength) = active_buff.id {
+        BuffId::Regeneration {
+            strength: new_strength,
+        } => {
+            if let BuffId::Regeneration {
+                strength: active_strength,
+            } = active_buff.id
+            {
                 new_strength > active_strength
             } else {
                 false

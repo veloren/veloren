@@ -1,10 +1,10 @@
 use crate::{
-    comp::{BuffChange, BuffEffect, Buffs, HealthChange, HealthSource, Stats},
+    comp::{BuffChange, BuffEffect, BuffSource, Buffs, HealthChange, HealthSource},
     event::{EventBus, ServerEvent},
     state::DeltaTime,
     sync::Uid,
 };
-use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
+use specs::{Join, Read, ReadStorage, System, WriteStorage};
 use std::time::Duration;
 
 /// This system modifies entity stats, changing them using buffs
@@ -16,17 +16,15 @@ pub struct Sys;
 impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
-        Entities<'a>,
         Read<'a, DeltaTime>,
         Read<'a, EventBus<ServerEvent>>,
         ReadStorage<'a, Uid>,
-        WriteStorage<'a, Stats>,
         WriteStorage<'a, Buffs>,
     );
 
-    fn run(&mut self, (entities, dt, server_bus, uids, mut stats, mut buffs): Self::SystemData) {
+    fn run(&mut self, (dt, server_bus, uids, mut buffs): Self::SystemData) {
         let mut server_emitter = server_bus.emitter();
-        for (entity, uid, mut buffs) in (&entities, &uids, &mut buffs.restrict_mut()).join() {
+        for (uid, mut buffs) in (&uids, &mut buffs.restrict_mut()).join() {
             let buff_comp = buffs.get_mut_unchecked();
             let (mut active_buff_indices_for_removal, mut inactive_buff_indices_for_removal) =
                 (Vec::<usize>::new(), Vec::<usize>::new());
@@ -56,6 +54,12 @@ impl<'a> System<'a> for Sys {
                     dt.0
                 };
 
+                let buff_owner =
+                    if let BuffSource::Character { by: owner } = buff_comp.active_buffs[i].source {
+                        Some(owner)
+                    } else {
+                        None
+                    };
                 // Now, execute the buff, based on it's delta
                 for effect in &mut buff_comp.active_buffs[i].effects {
                     #[allow(clippy::single_match)]
@@ -66,13 +70,18 @@ impl<'a> System<'a> for Sys {
                             *accumulated += *rate * buff_delta;
                             // Apply only 0.5 or higher damage
                             if accumulated.abs() > 5.0 {
-                                if let Some(stats) = stats.get_mut(entity) {
-                                    let change = HealthChange {
+                                let cause = if *accumulated > 0.0 {
+                                    HealthSource::Healing { by: buff_owner }
+                                } else {
+                                    HealthSource::Buff { owner: buff_owner }
+                                };
+                                server_emitter.emit(ServerEvent::Damage {
+                                    uid: *uid,
+                                    change: HealthChange {
                                         amount: *accumulated as i32,
-                                        cause: HealthSource::Unknown,
-                                    };
-                                    stats.health.change_by(change);
-                                }
+                                        cause,
+                                    },
+                                });
                                 *accumulated = 0.0;
                             };
                         },

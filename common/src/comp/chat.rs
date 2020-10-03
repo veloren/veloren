@@ -51,6 +51,7 @@ pub enum KillType {
     Projectile,
     Explosion,
     Energy,
+    Buff,
     // Projectile(String), TODO: add projectile name when available
 }
 

@@ -155,9 +155,12 @@ impl<'a> System<'a> for Sys {
                         server_emitter.emit(ServerEvent::Buff {
                             uid: *uid_b,
                             buff_change: buff::BuffChange::Add(buff::Buff::new(
-                                buff::BuffId::Bleeding(-damage.healthchange),
+                                buff::BuffId::Bleeding {
+                                    strength: -damage.healthchange,
+                                },
                                 Some(Duration::from_millis(10000)),
                                 vec![buff::BuffCategoryId::Physical],
+                                buff::BuffSource::Character { by: *uid },
                             )),
                         });
                         attack.hit_count += 1;
