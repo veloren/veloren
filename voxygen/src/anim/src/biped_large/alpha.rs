@@ -174,12 +174,12 @@ impl Animation for AlphaAnimation {
                 next.second.position = Vec3::new(0.0, 0.0, 0.0);
                 next.second.orientation = Quaternion::rotation_x(0.0);
 
-                // next.r_control.position = Vec3::new(-10.0 + push * 5.0, 6.0 + push * 5.0,
-                // 2.0); next.r_control.orientation =
+                // next.control_r.position = Vec3::new(-10.0 + push * 5.0, 6.0 + push * 5.0,
+                // 2.0); next.control_r.orientation =
                 // Quaternion::rotation_x(-1.4 + slow * 0.4)
                 //     * Quaternion::rotation_y(slow * -1.3)
                 //     * Quaternion::rotation_z(1.4 + slow * -0.5);
-                // next.r_control.scale = Vec3::one();
+                // next.control_r.scale = Vec3::one();
 
                 // next.hand_r.position = Vec3::new(0.75, -1.5, -5.5);
                 // next.hand_r.orientation = Quaternion::rotation_x(1.27);

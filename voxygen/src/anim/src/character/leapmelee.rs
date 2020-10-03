@@ -37,12 +37,12 @@ impl Animation for LeapAnimation {
         let movement = (anim_time as f32 * 1.0).min(1.0);
 
         if let Some(ToolKind::Hammer(_)) = active_tool_kind {
-            next.l_hand.position = Vec3::new(-12.0, 0.0, 0.0);
-            next.l_hand.orientation = Quaternion::rotation_x(PI) * Quaternion::rotation_y(0.0);
-            next.l_hand.scale = Vec3::one() * 1.08;
-            next.r_hand.position = Vec3::new(2.0, 0.0, 0.0);
-            next.r_hand.orientation = Quaternion::rotation_x(PI) * Quaternion::rotation_y(0.0);
-            next.r_hand.scale = Vec3::one() * 1.06;
+            next.hand_l.position = Vec3::new(-12.0, 0.0, 0.0);
+            next.hand_l.orientation = Quaternion::rotation_x(PI) * Quaternion::rotation_y(0.0);
+            next.hand_l.scale = Vec3::one() * 1.08;
+            next.hand_r.position = Vec3::new(2.0, 0.0, 0.0);
+            next.hand_r.orientation = Quaternion::rotation_x(PI) * Quaternion::rotation_y(0.0);
+            next.hand_r.scale = Vec3::one() * 1.06;
             next.main.position = Vec3::new(0.0, 0.0, 0.0);
             next.main.orientation = Quaternion::rotation_y(-1.57) * Quaternion::rotation_z(1.57);
 
@@ -86,19 +86,19 @@ impl Animation for LeapAnimation {
                             * Quaternion::rotation_y(movement * -0.1)
                             * Quaternion::rotation_z(-0.4 + movement * -0.2);
 
-                        next.l_foot.position = Vec3::new(
+                        next.foot_l.position = Vec3::new(
                             -skeleton_attr.foot.0,
                             skeleton_attr.foot.1 - 5.0,
                             skeleton_attr.foot.2,
                         );
-                        next.l_foot.orientation = Quaternion::rotation_x(-0.8);
+                        next.foot_l.orientation = Quaternion::rotation_x(-0.8);
 
-                        next.r_foot.position = Vec3::new(
+                        next.foot_r.position = Vec3::new(
                             skeleton_attr.foot.0,
                             skeleton_attr.foot.1 + 8.0,
                             skeleton_attr.foot.2 + 5.0,
                         );
-                        next.r_foot.orientation = Quaternion::rotation_x(0.9);
+                        next.foot_r.orientation = Quaternion::rotation_x(0.9);
                     },
                     StageSection::Swing => {
                         next.control.position =
@@ -113,21 +113,21 @@ impl Animation for LeapAnimation {
                             * Quaternion::rotation_y(-0.1)
                             * Quaternion::rotation_z(-0.6 + movement * 0.6);
 
-                        next.l_hand.position = Vec3::new(-12.0 + movement * 10.0, 0.0, 0.0);
+                        next.hand_l.position = Vec3::new(-12.0 + movement * 10.0, 0.0, 0.0);
 
-                        next.l_foot.position = Vec3::new(
+                        next.foot_l.position = Vec3::new(
                             -skeleton_attr.foot.0,
                             skeleton_attr.foot.1 + 8.0,
                             skeleton_attr.foot.2 - 5.0,
                         );
-                        next.l_foot.orientation = Quaternion::rotation_x(0.9);
+                        next.foot_l.orientation = Quaternion::rotation_x(0.9);
 
-                        next.r_foot.position = Vec3::new(
+                        next.foot_r.position = Vec3::new(
                             skeleton_attr.foot.0,
                             skeleton_attr.foot.1 - 5.0,
                             skeleton_attr.foot.2,
                         );
-                        next.r_foot.orientation = Quaternion::rotation_x(-0.8);
+                        next.foot_r.orientation = Quaternion::rotation_x(-0.8);
                     },
                     StageSection::Recover => {
                         next.control.position = Vec3::new(-4.0, 17.0, -1.0);
@@ -141,22 +141,22 @@ impl Animation for LeapAnimation {
                             * Quaternion::rotation_y(-0.1)
                             * Quaternion::rotation_z(0.0);
 
-                        next.l_hand.position = Vec3::new(-2.0, 0.0, 0.0);
+                        next.hand_l.position = Vec3::new(-2.0, 0.0, 0.0);
                     },
                     _ => {},
                 }
             }
         } else if let Some(ToolKind::Axe(_)) = active_tool_kind {
-            next.l_hand.position = Vec3::new(-0.5, 0.0, 4.0);
-            next.l_hand.orientation = Quaternion::rotation_x(PI / 2.0)
+            next.hand_l.position = Vec3::new(-0.5, 0.0, 4.0);
+            next.hand_l.orientation = Quaternion::rotation_x(PI / 2.0)
                 * Quaternion::rotation_z(0.0)
                 * Quaternion::rotation_y(0.0);
-            next.l_hand.scale = Vec3::one() * 1.08;
-            next.r_hand.position = Vec3::new(0.5, 0.0, -2.5);
-            next.r_hand.orientation = Quaternion::rotation_x(PI / 2.0)
+            next.hand_l.scale = Vec3::one() * 1.08;
+            next.hand_r.position = Vec3::new(0.5, 0.0, -2.5);
+            next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0)
                 * Quaternion::rotation_z(0.0)
                 * Quaternion::rotation_y(0.0);
-            next.r_hand.scale = Vec3::one() * 1.06;
+            next.hand_r.scale = Vec3::one() * 1.06;
             next.main.position = Vec3::new(-0.0, -2.0, -1.0);
             next.main.orientation = Quaternion::rotation_x(0.0)
                 * Quaternion::rotation_y(0.0)
@@ -187,21 +187,21 @@ impl Animation for LeapAnimation {
 
                         next.head.orientation = Quaternion::rotation_x(0.0 + movement * -0.4);
 
-                        next.l_foot.position = Vec3::new(
+                        next.foot_l.position = Vec3::new(
                             skeleton_attr.foot.0,
                             skeleton_attr.foot.1,
                             skeleton_attr.foot.2 - 8.0,
                         );
 
-                        next.r_foot.position = Vec3::new(
+                        next.foot_r.position = Vec3::new(
                             skeleton_attr.foot.0,
                             skeleton_attr.foot.1,
                             skeleton_attr.foot.2 - 8.0,
                         );
 
-                        next.l_foot.orientation = Quaternion::rotation_x(movement * 0.9);
+                        next.foot_l.orientation = Quaternion::rotation_x(movement * 0.9);
 
-                        next.r_foot.orientation = Quaternion::rotation_x(movement * 0.9);
+                        next.foot_r.orientation = Quaternion::rotation_x(movement * 0.9);
 
                         next.belt.orientation = Quaternion::rotation_x(movement * 0.22);
                         next.shorts.orientation = Quaternion::rotation_x(movement * 0.3);
@@ -229,19 +229,19 @@ impl Animation for LeapAnimation {
                             * Quaternion::rotation_z(0.0);
                         next.head.orientation = Quaternion::rotation_x(-0.4 + movement * 0.4);
 
-                        next.l_foot.position = Vec3::new(
+                        next.foot_l.position = Vec3::new(
                             -skeleton_attr.foot.0,
                             skeleton_attr.foot.1 + movement * 4.0,
                             skeleton_attr.foot.2 - 8.0 + movement * 3.0,
                         );
-                        next.l_foot.orientation = Quaternion::rotation_x(0.9);
+                        next.foot_l.orientation = Quaternion::rotation_x(0.9);
 
-                        next.r_foot.position = Vec3::new(
+                        next.foot_r.position = Vec3::new(
                             skeleton_attr.foot.0,
                             skeleton_attr.foot.1 + movement * 4.0,
                             skeleton_attr.foot.2 - 8.0 + movement * 3.0,
                         );
-                        next.r_foot.orientation = Quaternion::rotation_x(0.9);
+                        next.foot_r.orientation = Quaternion::rotation_x(0.9);
                         next.chest.position =
                             Vec3::new(0.0, skeleton_attr.chest.0, skeleton_attr.chest.1 - 8.0);
                         next.torso.position =
@@ -266,21 +266,21 @@ impl Animation for LeapAnimation {
 
                         next.head.orientation = Quaternion::rotation_x(movement * 0.2);
 
-                        next.l_hand.position = Vec3::new(-0.5, 0.0, 4.0);
+                        next.hand_l.position = Vec3::new(-0.5, 0.0, 4.0);
 
-                        next.l_foot.position = Vec3::new(
+                        next.foot_l.position = Vec3::new(
                             -skeleton_attr.foot.0,
                             skeleton_attr.foot.1 + 4.0 + movement * -8.0,
                             skeleton_attr.foot.2 - 5.0 + movement * -3.0,
                         );
-                        next.l_foot.orientation = Quaternion::rotation_x(0.9 - movement * 1.8);
+                        next.foot_l.orientation = Quaternion::rotation_x(0.9 - movement * 1.8);
 
-                        next.r_foot.position = Vec3::new(
+                        next.foot_r.position = Vec3::new(
                             skeleton_attr.foot.0,
                             skeleton_attr.foot.1 + 4.0 + movement * -8.0,
                             skeleton_attr.foot.2 - 5.0 + movement * -3.0,
                         );
-                        next.r_foot.orientation = Quaternion::rotation_x(0.9 - movement * 1.8);
+                        next.foot_r.orientation = Quaternion::rotation_x(0.9 - movement * 1.8);
 
                         next.torso.orientation =
                             Quaternion::rotation_x(-1.9 * PI - movement * 0.2 * PI);
@@ -298,7 +298,7 @@ impl Animation for LeapAnimation {
 
                         next.head.orientation = Quaternion::rotation_x(0.2);
 
-                        next.l_hand.position = Vec3::new(-0.5, 0.0, 4.0);
+                        next.hand_l.position = Vec3::new(-0.5, 0.0, 4.0);
 
                         next.chest.position =
                             Vec3::new(0.0, skeleton_attr.chest.0, skeleton_attr.chest.1 - 8.0);
@@ -306,19 +306,19 @@ impl Animation for LeapAnimation {
                             Vec3::new(0.0, 0.0, 0.0 + 8.0) * skeleton_attr.scaler / 11.0;
                         next.torso.orientation =
                             Quaternion::rotation_x(-6.7 + movement * -0.1 * PI);
-                        next.l_foot.position = Vec3::new(
+                        next.foot_l.position = Vec3::new(
                             -skeleton_attr.foot.0,
                             skeleton_attr.foot.1 - 4.0,
                             skeleton_attr.foot.2 - 8.0,
                         );
-                        next.l_foot.orientation = Quaternion::rotation_x(-0.9);
+                        next.foot_l.orientation = Quaternion::rotation_x(-0.9);
 
-                        next.r_foot.position = Vec3::new(
+                        next.foot_r.position = Vec3::new(
                             skeleton_attr.foot.0,
                             skeleton_attr.foot.1 - 4.0,
                             skeleton_attr.foot.2 - 8.0,
                         );
-                        next.r_foot.orientation = Quaternion::rotation_x(-0.9);
+                        next.foot_r.orientation = Quaternion::rotation_x(-0.9);
                     },
                     _ => {},
                 }

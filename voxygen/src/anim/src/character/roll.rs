@@ -72,53 +72,53 @@ impl Animation for RollAnimation {
         );
         next.shorts.orientation = Quaternion::rotation_x(0.8);
 
-        next.l_hand.position = Vec3::new(
+        next.hand_l.position = Vec3::new(
             -skeleton_attr.hand.0,
             skeleton_attr.hand.1 + 1.0,
             skeleton_attr.hand.2 + 2.0,
         );
 
-        next.l_hand.orientation = Quaternion::rotation_x(0.6);
-        next.l_hand.scale = Vec3::one();
+        next.hand_l.orientation = Quaternion::rotation_x(0.6);
+        next.hand_l.scale = Vec3::one();
 
-        next.r_hand.position = Vec3::new(
+        next.hand_r.position = Vec3::new(
             -1.0 + skeleton_attr.hand.0,
             skeleton_attr.hand.1 + 1.0,
             skeleton_attr.hand.2 + 2.0,
         );
 
-        next.r_hand.orientation = Quaternion::rotation_x(0.6);
-        next.r_hand.scale = Vec3::one();
+        next.hand_r.orientation = Quaternion::rotation_x(0.6);
+        next.hand_r.scale = Vec3::one();
 
-        next.l_foot.position = Vec3::new(
+        next.foot_l.position = Vec3::new(
             1.0 - skeleton_attr.foot.0,
             skeleton_attr.foot.1 + 5.5,
             skeleton_attr.foot.2 - 5.0,
         );
-        next.l_foot.orientation = Quaternion::rotation_x(0.9);
+        next.foot_l.orientation = Quaternion::rotation_x(0.9);
 
-        next.r_foot.position = Vec3::new(
+        next.foot_r.position = Vec3::new(
             skeleton_attr.foot.0,
             skeleton_attr.foot.1 + 5.5,
             skeleton_attr.foot.2 - 5.0,
         );
-        next.r_foot.orientation = Quaternion::rotation_x(0.9);
+        next.foot_r.orientation = Quaternion::rotation_x(0.9);
 
-        next.l_shoulder.position = Vec3::new(
+        next.shoulder_l.position = Vec3::new(
             -skeleton_attr.shoulder.0,
             skeleton_attr.shoulder.1 + 2.0,
             skeleton_attr.shoulder.2 + 1.0,
         );
-        next.l_shoulder.orientation = Quaternion::rotation_x(0.0);
-        next.l_shoulder.scale = Vec3::one() * 1.1;
+        next.shoulder_l.orientation = Quaternion::rotation_x(0.0);
+        next.shoulder_l.scale = Vec3::one() * 1.1;
 
-        next.r_shoulder.position = Vec3::new(
+        next.shoulder_r.position = Vec3::new(
             skeleton_attr.shoulder.0,
             skeleton_attr.shoulder.1,
             skeleton_attr.shoulder.2,
         );
-        next.r_shoulder.orientation = Quaternion::rotation_x(0.0);
-        next.r_shoulder.scale = Vec3::one() * 1.1;
+        next.shoulder_r.orientation = Quaternion::rotation_x(0.0);
+        next.shoulder_r.scale = Vec3::one() * 1.1;
 
         next.glider.position = Vec3::new(0.0, 0.0, 10.0);
         next.glider.scale = Vec3::one() * 0.0;
@@ -178,13 +178,13 @@ impl Animation for RollAnimation {
         next.control.orientation = Quaternion::rotation_x(0.0);
         next.control.scale = Vec3::one();
 
-        next.l_control.position = Vec3::new(0.0, 0.0, 0.0);
-        next.l_control.orientation = Quaternion::rotation_x(0.0);
-        next.l_control.scale = Vec3::one();
+        next.control_l.position = Vec3::new(0.0, 0.0, 0.0);
+        next.control_l.orientation = Quaternion::rotation_x(0.0);
+        next.control_l.scale = Vec3::one();
 
-        next.r_control.position = Vec3::new(0.0, 0.0, 0.0);
-        next.r_control.orientation = Quaternion::rotation_x(0.0);
-        next.r_control.scale = Vec3::one();
+        next.control_r.position = Vec3::new(0.0, 0.0, 0.0);
+        next.control_r.orientation = Quaternion::rotation_x(0.0);
+        next.control_r.scale = Vec3::one();
 
         next.second.scale = match (
             active_tool_kind.map(|tk| tk.hands()),

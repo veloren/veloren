@@ -79,12 +79,12 @@ impl Animation for BlockIdleAnimation {
         match active_tool_kind {
             //TODO: Inventory
             Some(ToolKind::Sword(_)) => {
-                next.l_hand.position = Vec3::new(0.0, -5.0, -5.0);
-                next.l_hand.orientation = Quaternion::rotation_x(1.27);
-                next.l_hand.scale = Vec3::one() * 1.04;
-                next.r_hand.position = Vec3::new(0.0, -6.0, -8.0);
-                next.r_hand.orientation = Quaternion::rotation_x(1.27);
-                next.r_hand.scale = Vec3::one() * 1.05;
+                next.hand_l.position = Vec3::new(0.0, -5.0, -5.0);
+                next.hand_l.orientation = Quaternion::rotation_x(1.27);
+                next.hand_l.scale = Vec3::one() * 1.04;
+                next.hand_r.position = Vec3::new(0.0, -6.0, -8.0);
+                next.hand_r.orientation = Quaternion::rotation_x(1.27);
+                next.hand_r.scale = Vec3::one() * 1.05;
                 next.main.position = Vec3::new(0.0, 0.0, -6.0);
                 next.main.orientation = Quaternion::rotation_x(-0.3)
                     * Quaternion::rotation_y(0.0)
@@ -98,20 +98,20 @@ impl Animation for BlockIdleAnimation {
                 next.control.scale = Vec3::one();
             },
             Some(ToolKind::Axe(_)) => {
-                next.l_hand.position = Vec3::new(
+                next.hand_l.position = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
                     3.5 + wave_ultra_slow_cos * 0.5,
                     0.0 + wave_ultra_slow * 1.0,
                 );
-                next.l_hand.orientation = Quaternion::rotation_x(-0.3);
-                next.l_hand.scale = Vec3::one() * 1.01;
-                next.r_hand.position = Vec3::new(
+                next.hand_l.orientation = Quaternion::rotation_x(-0.3);
+                next.hand_l.scale = Vec3::one() * 1.01;
+                next.hand_r.position = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
                     3.0 + wave_ultra_slow_cos * 0.5,
                     -2.0 + wave_ultra_slow * 1.0,
                 );
-                next.r_hand.orientation = Quaternion::rotation_x(-0.3);
-                next.r_hand.scale = Vec3::one() * 1.01;
+                next.hand_r.orientation = Quaternion::rotation_x(-0.3);
+                next.hand_r.scale = Vec3::one() * 1.01;
                 next.main.position = Vec3::new(-6.0, 4.5, 0.0 + wave_ultra_slow * 1.0);
                 next.main.orientation = Quaternion::rotation_x(-0.3)
                     * Quaternion::rotation_y(0.0)
@@ -119,16 +119,16 @@ impl Animation for BlockIdleAnimation {
                 next.main.scale = Vec3::one();
             },
             Some(ToolKind::Hammer(_)) => {
-                next.l_hand.position = Vec3::new(-7.0, 3.5 + wave_ultra_slow * 2.0, 6.5);
-                next.l_hand.orientation = Quaternion::rotation_x(2.07)
+                next.hand_l.position = Vec3::new(-7.0, 3.5 + wave_ultra_slow * 2.0, 6.5);
+                next.hand_l.orientation = Quaternion::rotation_x(2.07)
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(-0.2);
-                next.l_hand.scale = Vec3::one() * 1.01;
-                next.r_hand.position = Vec3::new(7.0, 2.5 + wave_ultra_slow * 2.0, 3.75);
-                next.r_hand.orientation = Quaternion::rotation_x(2.07)
+                next.hand_l.scale = Vec3::one() * 1.01;
+                next.hand_r.position = Vec3::new(7.0, 2.5 + wave_ultra_slow * 2.0, 3.75);
+                next.hand_r.orientation = Quaternion::rotation_x(2.07)
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(-0.2);
-                next.r_hand.scale = Vec3::one() * 1.01;
+                next.hand_r.scale = Vec3::one() * 1.01;
                 next.main.position = Vec3::new(5.0, 8.75 + wave_ultra_slow * 2.0, 5.5);
                 next.main.orientation = Quaternion::rotation_x(-0.3)
                     * Quaternion::rotation_y(-1.35)
@@ -146,11 +146,11 @@ impl Animation for BlockIdleAnimation {
                 //     * Quaternion::rotation_z(u_slowalt * 0.08);
                 // next.control.scale = Vec3::one();
 
-                next.l_hand.position = Vec3::new(0.0, 0.0, 0.0);
-                next.l_hand.orientation = Quaternion::rotation_x(0.0 * PI)
+                next.hand_l.position = Vec3::new(0.0, 0.0, 0.0);
+                next.hand_l.orientation = Quaternion::rotation_x(0.0 * PI)
                     * Quaternion::rotation_y(0.0 * PI)
                     * Quaternion::rotation_z(0.0 * PI);
-                next.l_hand.scale = Vec3::one() * hand_scale;
+                next.hand_l.scale = Vec3::one() * hand_scale;
 
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation = Quaternion::rotation_x(0.0 * PI)
@@ -158,17 +158,17 @@ impl Animation for BlockIdleAnimation {
                     * Quaternion::rotation_z(0.0 * PI);
                 next.main.scale = Vec3::one();
 
-                next.l_control.position = Vec3::new(-7.0, 0.0, 0.0);
-                // next.l_control.orientation = Quaternion::rotation_x(u_slow * 0.15 + 1.0)
+                next.control_l.position = Vec3::new(-7.0, 0.0, 0.0);
+                // next.control_l.orientation = Quaternion::rotation_x(u_slow * 0.15 + 1.0)
                 //     * Quaternion::rotation_y(0.0)
                 //     * Quaternion::rotation_z(u_slowalt * 0.08);
-                // next.l_control.scale = Vec3::one();
+                // next.control_l.scale = Vec3::one();
 
-                next.r_hand.position = Vec3::new(0.0, 0.0, 0.0);
-                next.r_hand.orientation = Quaternion::rotation_x(0.0 * PI)
+                next.hand_r.position = Vec3::new(0.0, 0.0, 0.0);
+                next.hand_r.orientation = Quaternion::rotation_x(0.0 * PI)
                     * Quaternion::rotation_y(0.0 * PI)
                     * Quaternion::rotation_z(0.0 * PI);
-                next.r_hand.scale = Vec3::one() * hand_scale;
+                next.hand_r.scale = Vec3::one() * hand_scale;
 
                 next.second.position = Vec3::new(0.0, 0.0, 0.0);
                 next.second.orientation = Quaternion::rotation_x(0.0 * PI)
@@ -176,11 +176,11 @@ impl Animation for BlockIdleAnimation {
                     * Quaternion::rotation_z(0.0 * PI);
                 next.second.scale = Vec3::one();
 
-                next.r_control.position = Vec3::new(7.0, 0.0, 0.0);
-                // next.r_control.orientation = Quaternion::rotation_x(0.0 * PI)
+                next.control_r.position = Vec3::new(7.0, 0.0, 0.0);
+                // next.control_r.orientation = Quaternion::rotation_x(0.0 * PI)
                 // * Quaternion::rotation_y(0.0 * PI)
                 // * Quaternion::rotation_z(0.0 * PI);
-                // next.r_control.scale = Vec3::one();
+                // next.control_r.scale = Vec3::one();
             },
             Some(ToolKind::Shield(_)) => {
                 // hands should be larger when holding a dagger grip,
@@ -193,28 +193,28 @@ impl Animation for BlockIdleAnimation {
                 //     * Quaternion::rotation_z(u_slowalt * 0.08);
                 // next.control.scale = Vec3::one();
 
-                next.l_hand.position = Vec3::new(0.0, 0.0, 0.0);
-                next.l_hand.orientation = Quaternion::rotation_x(0.0 * PI)
+                next.hand_l.position = Vec3::new(0.0, 0.0, 0.0);
+                next.hand_l.orientation = Quaternion::rotation_x(0.0 * PI)
                     * Quaternion::rotation_y(0.0 * PI)
                     * Quaternion::rotation_z(0.0 * PI);
-                next.l_hand.scale = Vec3::one() * hand_scale;
+                next.hand_l.scale = Vec3::one() * hand_scale;
 
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation = Quaternion::rotation_x(0.0 * PI)
                     * Quaternion::rotation_y(0.0 * PI)
                     * Quaternion::rotation_z(0.0 * PI);
 
-                next.l_control.position = Vec3::new(-7.0, 0.0, 0.0);
-                // next.l_control.orientation = Quaternion::rotation_x(u_slow * 0.15 + 1.0)
+                next.control_l.position = Vec3::new(-7.0, 0.0, 0.0);
+                // next.control_l.orientation = Quaternion::rotation_x(u_slow * 0.15 + 1.0)
                 //     * Quaternion::rotation_y(0.0)
                 //     * Quaternion::rotation_z(u_slowalt * 0.08);
-                // next.l_control.scale = Vec3::one();
+                // next.control_l.scale = Vec3::one();
 
-                next.r_hand.position = Vec3::new(0.0, 0.0, 0.0);
-                next.r_hand.orientation = Quaternion::rotation_x(0.0 * PI)
+                next.hand_r.position = Vec3::new(0.0, 0.0, 0.0);
+                next.hand_r.orientation = Quaternion::rotation_x(0.0 * PI)
                     * Quaternion::rotation_y(0.0 * PI)
                     * Quaternion::rotation_z(0.0 * PI);
-                next.r_hand.scale = Vec3::one() * hand_scale;
+                next.hand_r.scale = Vec3::one() * hand_scale;
 
                 next.second.position = Vec3::new(0.0, 0.0, 0.0);
                 next.second.orientation = Quaternion::rotation_x(0.0 * PI)
@@ -222,23 +222,23 @@ impl Animation for BlockIdleAnimation {
                     * Quaternion::rotation_z(0.0 * PI);
                 next.second.scale = Vec3::one();
 
-                next.r_control.position = Vec3::new(7.0, 0.0, 0.0);
-                // next.r_control.orientation = Quaternion::rotation_x(0.0 * PI)
+                next.control_r.position = Vec3::new(7.0, 0.0, 0.0);
+                // next.control_r.orientation = Quaternion::rotation_x(0.0 * PI)
                 // * Quaternion::rotation_y(0.0 * PI)
                 // * Quaternion::rotation_z(0.0 * PI);
-                // next.r_control.scale = Vec3::one();
+                // next.control_r.scale = Vec3::one();
             },
             Some(ToolKind::Debug(_)) => {
-                next.l_hand.position = Vec3::new(-7.0, 3.5 + wave_ultra_slow * 2.0, 6.5);
-                next.l_hand.orientation = Quaternion::rotation_x(2.07)
+                next.hand_l.position = Vec3::new(-7.0, 3.5 + wave_ultra_slow * 2.0, 6.5);
+                next.hand_l.orientation = Quaternion::rotation_x(2.07)
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(-0.2);
-                next.l_hand.scale = Vec3::one() * 1.01;
-                next.r_hand.position = Vec3::new(7.0, 2.5 + wave_ultra_slow * 2.0, 3.75);
-                next.r_hand.orientation = Quaternion::rotation_x(2.07)
+                next.hand_l.scale = Vec3::one() * 1.01;
+                next.hand_r.position = Vec3::new(7.0, 2.5 + wave_ultra_slow * 2.0, 3.75);
+                next.hand_r.orientation = Quaternion::rotation_x(2.07)
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(-0.2);
-                next.r_hand.scale = Vec3::one() * 1.01;
+                next.hand_r.scale = Vec3::one() * 1.01;
                 next.main.position = Vec3::new(5.0, 8.75 + wave_ultra_slow * 2.0, 5.5);
                 next.main.orientation = Quaternion::rotation_x(-0.3)
                     * Quaternion::rotation_y(-1.35)
@@ -260,11 +260,11 @@ impl Animation for BlockIdleAnimation {
                 //     * Quaternion::rotation_z(u_slowalt * 0.08);
                 // next.control.scale = Vec3::one();
 
-                next.l_hand.position = Vec3::new(0.0, 0.0, 0.0);
-                next.l_hand.orientation = Quaternion::rotation_x(0.0 * PI)
+                next.hand_l.position = Vec3::new(0.0, 0.0, 0.0);
+                next.hand_l.orientation = Quaternion::rotation_x(0.0 * PI)
                     * Quaternion::rotation_y(0.0 * PI)
                     * Quaternion::rotation_z(0.0 * PI);
-                next.l_hand.scale = Vec3::one() * hand_scale;
+                next.hand_l.scale = Vec3::one() * hand_scale;
 
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation = Quaternion::rotation_x(0.0 * PI)
@@ -272,17 +272,17 @@ impl Animation for BlockIdleAnimation {
                     * Quaternion::rotation_z(0.0 * PI);
                 next.main.scale = Vec3::one();
 
-                next.l_control.position = Vec3::new(-7.0, 0.0, 0.0);
-                // next.l_control.orientation = Quaternion::rotation_x(u_slow * 0.15 + 1.0)
+                next.control_l.position = Vec3::new(-7.0, 0.0, 0.0);
+                // next.control_l.orientation = Quaternion::rotation_x(u_slow * 0.15 + 1.0)
                 //     * Quaternion::rotation_y(0.0)
                 //     * Quaternion::rotation_z(u_slowalt * 0.08);
-                // next.l_control.scale = Vec3::one();
+                // next.control_l.scale = Vec3::one();
 
-                next.r_hand.position = Vec3::new(0.0, 0.0, 0.0);
-                next.r_hand.orientation = Quaternion::rotation_x(0.0 * PI)
+                next.hand_r.position = Vec3::new(0.0, 0.0, 0.0);
+                next.hand_r.orientation = Quaternion::rotation_x(0.0 * PI)
                     * Quaternion::rotation_y(0.0 * PI)
                     * Quaternion::rotation_z(0.0 * PI);
-                next.r_hand.scale = Vec3::one() * hand_scale;
+                next.hand_r.scale = Vec3::one() * hand_scale;
 
                 next.second.position = Vec3::new(0.0, 0.0, 0.0);
                 next.second.orientation = Quaternion::rotation_x(0.0 * PI)
@@ -290,38 +290,38 @@ impl Animation for BlockIdleAnimation {
                     * Quaternion::rotation_z(0.0 * PI);
                 next.second.scale = Vec3::one();
 
-                next.r_control.position = Vec3::new(3.0, 7.0, 5.0);
-                next.r_control.orientation = Quaternion::rotation_x(0.5 * PI)
+                next.control_r.position = Vec3::new(3.0, 7.0, 5.0);
+                next.control_r.orientation = Quaternion::rotation_x(0.5 * PI)
                     * Quaternion::rotation_y(0.5 * PI)
                     * Quaternion::rotation_z(0.0 * PI);
-                // next.r_control.scale = Vec3::one();
+                // next.control_r.scale = Vec3::one();
             },
             Some(ToolKind::Dagger(_)) => {},
             _ => {},
         }
 
-        next.l_foot.position =
+        next.foot_l.position =
             Vec3::new(-3.4, 0.3, skeleton_attr.foot.1 + wave_ultra_slow_cos * 0.1);
-        next.l_foot.orientation = Quaternion::rotation_x(-0.3);
-        next.l_foot.scale = Vec3::one();
+        next.foot_l.orientation = Quaternion::rotation_x(-0.3);
+        next.foot_l.scale = Vec3::one();
 
-        next.r_foot.position = Vec3::new(3.4, 1.2, skeleton_attr.foot.1 + wave_ultra_slow * 0.1);
-        next.r_foot.orientation = Quaternion::rotation_x(0.3);
-        next.r_foot.scale = Vec3::one();
+        next.foot_r.position = Vec3::new(3.4, 1.2, skeleton_attr.foot.1 + wave_ultra_slow * 0.1);
+        next.foot_r.orientation = Quaternion::rotation_x(0.3);
+        next.foot_r.scale = Vec3::one();
 
-        next.l_shoulder.position = Vec3::new(
+        next.shoulder_l.position = Vec3::new(
             -skeleton_attr.shoulder.0,
             skeleton_attr.shoulder.1,
             skeleton_attr.shoulder.2,
         );
-        next.l_shoulder.scale = Vec3::one() * 1.1;
+        next.shoulder_l.scale = Vec3::one() * 1.1;
 
-        next.r_shoulder.position = Vec3::new(
+        next.shoulder_r.position = Vec3::new(
             skeleton_attr.shoulder.0,
             skeleton_attr.shoulder.1,
             skeleton_attr.shoulder.2,
         );
-        next.r_shoulder.scale = Vec3::one() * 1.1;
+        next.shoulder_r.scale = Vec3::one() * 1.1;
 
         next.glider.position = Vec3::new(0.0, 0.0, 10.0);
         next.glider.scale = Vec3::one() * 0.0;
@@ -340,8 +340,8 @@ impl Animation for BlockIdleAnimation {
         next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
 
         next.control.scale = Vec3::one();
-        next.l_control.scale = Vec3::one();
-        next.r_control.scale = Vec3::one();
+        next.control_l.scale = Vec3::one();
+        next.control_r.scale = Vec3::one();
 
         next.second.scale = match (
             active_tool_kind.map(|tk| tk.hands()),

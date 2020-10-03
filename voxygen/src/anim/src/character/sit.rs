@@ -74,53 +74,53 @@ impl Animation for SitAnimation {
         next.shorts.orientation = Quaternion::rotation_x(stop * 0.6);
         next.shorts.scale = Vec3::one();
 
-        next.l_hand.position = Vec3::new(
+        next.hand_l.position = Vec3::new(
             -skeleton_attr.hand.0,
             skeleton_attr.hand.1 + slowa * 0.15,
             skeleton_attr.hand.2 + slow * 0.7 + stop * -2.0,
         );
-        next.l_hand.orientation = Quaternion::rotation_x(slowa * -0.1 + slow * 0.1);
-        next.l_hand.scale = Vec3::one() + slow_abs * -0.05;
+        next.hand_l.orientation = Quaternion::rotation_x(slowa * -0.1 + slow * 0.1);
+        next.hand_l.scale = Vec3::one() + slow_abs * -0.05;
 
-        next.r_hand.position = Vec3::new(
+        next.hand_r.position = Vec3::new(
             skeleton_attr.hand.0,
             skeleton_attr.hand.1 + slowa * 0.15,
             skeleton_attr.hand.2 + slow * 0.7 + stop * -2.0,
         );
-        next.r_hand.orientation = Quaternion::rotation_x(slow * -0.1 + slowa * 0.1);
-        next.r_hand.scale = Vec3::one() + slow_abs * -0.05;
+        next.hand_r.orientation = Quaternion::rotation_x(slow * -0.1 + slowa * 0.1);
+        next.hand_r.scale = Vec3::one() + slow_abs * -0.05;
 
-        next.l_foot.position = Vec3::new(
+        next.foot_l.position = Vec3::new(
             -skeleton_attr.foot.0,
             4.0 + skeleton_attr.foot.1,
             3.0 + skeleton_attr.foot.2,
         );
-        next.l_foot.orientation = Quaternion::rotation_x(slow * 0.1 + stop * 1.2 + slow * 0.1);
-        next.l_foot.scale = Vec3::one();
+        next.foot_l.orientation = Quaternion::rotation_x(slow * 0.1 + stop * 1.2 + slow * 0.1);
+        next.foot_l.scale = Vec3::one();
 
-        next.r_foot.position = Vec3::new(
+        next.foot_r.position = Vec3::new(
             skeleton_attr.foot.0,
             4.0 + skeleton_attr.foot.1,
             3.0 + skeleton_attr.foot.2,
         );
-        next.r_foot.orientation = Quaternion::rotation_x(slowa * 0.1 + stop * 1.2 + slowa * 0.1);
-        next.r_foot.scale = Vec3::one();
+        next.foot_r.orientation = Quaternion::rotation_x(slowa * 0.1 + stop * 1.2 + slowa * 0.1);
+        next.foot_r.scale = Vec3::one();
 
-        next.l_shoulder.position = Vec3::new(
+        next.shoulder_l.position = Vec3::new(
             -skeleton_attr.shoulder.0,
             skeleton_attr.shoulder.1,
             skeleton_attr.shoulder.2,
         );
-        next.l_shoulder.orientation = Quaternion::rotation_x(0.0);
-        next.l_shoulder.scale = (Vec3::one() + slow_abs * -0.05) * 1.15;
+        next.shoulder_l.orientation = Quaternion::rotation_x(0.0);
+        next.shoulder_l.scale = (Vec3::one() + slow_abs * -0.05) * 1.15;
 
-        next.r_shoulder.position = Vec3::new(
+        next.shoulder_r.position = Vec3::new(
             skeleton_attr.shoulder.0,
             skeleton_attr.shoulder.1,
             skeleton_attr.shoulder.2,
         );
-        next.r_shoulder.orientation = Quaternion::rotation_x(0.0);
-        next.r_shoulder.scale = (Vec3::one() + slow_abs * -0.05) * 1.15;
+        next.shoulder_r.orientation = Quaternion::rotation_x(0.0);
+        next.shoulder_r.scale = (Vec3::one() + slow_abs * -0.05) * 1.15;
 
         next.glider.position = Vec3::new(0.0, 0.0, 10.0);
         next.glider.scale = Vec3::one() * 0.0;
@@ -175,9 +175,9 @@ impl Animation for SitAnimation {
 
         next.control.scale = Vec3::one();
 
-        next.l_control.scale = Vec3::one();
+        next.control_l.scale = Vec3::one();
 
-        next.r_control.scale = Vec3::one();
+        next.control_r.scale = Vec3::one();
 
         next.second.scale = match (
             active_tool_kind.map(|tk| tk.hands()),
