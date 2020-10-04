@@ -625,6 +625,18 @@
             "odonto": {
                 "keyword": "odonto",
                 "generic": "Odonto"
+            },
+            "raptor_sand": {
+                "keyword": "raptor_sand",
+                "generic": "Sand Raptor"
+            },
+            "raptor_snow": {
+                "keyword": "raptor_snow",
+                "generic": "Snow Raptor"
+            },
+            "raptor_wood": {
+                "keyword": "raptor_wood",
+                "generic": "Wood Raptor"
             }
         }
     },

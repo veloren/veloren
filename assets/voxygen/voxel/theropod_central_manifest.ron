@@ -119,4 +119,184 @@
             central: ("npc.odonto.male.tail_back"),
         ),
     ),
+    (Sandraptor, Male): (
+        head: (
+            offset: (-2.5, -6.0, -4.5),
+            central: ("npc.raptor_sand.male.head"),
+        ),
+        jaw: (
+            offset: (-1.5, 0.0, -1.5),
+            central: ("npc.raptor_sand.male.jaw"),
+        ),
+        neck: (
+            offset: (-1.5, 0.0, -4.5),
+            central: ("npc.raptor_sand.male.neck"),
+        ),
+        chest_front: (
+            offset: (-3.5, -4.0, -4.0),
+            central: ("npc.raptor_sand.male.chest_front"),
+        ),
+        chest_back: (
+            offset: (-3.5, -10.0, -4.5),
+            central: ("npc.raptor_sand.male.chest_back"),
+        ),
+        tail_front: (
+            offset: (-7.5, -12.0, -2.5),
+            central: ("npc.raptor_sand.male.tail_front"),
+        ),
+        tail_back: (
+            offset: (-6.5, -30.0, -2.0),
+            central: ("npc.raptor_sand.male.tail_back"),
+        ),
+    ),
+    (Sandraptor, Female): (
+        head: (
+            offset: (-2.5, -6.0, -4.5),
+            central: ("npc.raptor_sand.male.head"),
+        ),
+        jaw: (
+            offset: (-1.5, 0.0, -1.5),
+            central: ("npc.raptor_sand.male.jaw"),
+        ),
+        neck: (
+            offset: (-1.5, 0.0, -4.5),
+            central: ("npc.raptor_sand.male.neck"),
+        ),
+        chest_front: (
+            offset: (-3.5, -4.0, -4.0),
+            central: ("npc.raptor_sand.male.chest_front"),
+        ),
+        chest_back: (
+            offset: (-3.5, -10.0, -4.5),
+            central: ("npc.raptor_sand.male.chest_back"),
+        ),
+        tail_front: (
+            offset: (-7.5, -12.0, -2.5),
+            central: ("npc.raptor_sand.male.tail_front"),
+        ),
+        tail_back: (
+            offset: (-6.5, -30.0, -2.0),
+            central: ("npc.raptor_sand.male.tail_back"),
+        ),
+    ),
+    (Snowraptor, Male): (
+        head: (
+            offset: (-2.5, 0.0, -4.5),
+            central: ("npc.raptor_snow.male.head"),
+        ),
+        jaw: (
+            offset: (-1.5, 0.0, -1.5),
+            central: ("npc.raptor_snow.male.jaw"),
+        ),
+        neck: (
+            offset: (-1.5, 0.0, -4.5),
+            central: ("npc.raptor_snow.male.neck"),
+        ),
+        chest_front: (
+            offset: (-3.5, -4.0, -4.0),
+            central: ("npc.raptor_snow.male.chest_front"),
+        ),
+        chest_back: (
+            offset: (-3.5, -10.0, -4.5),
+            central: ("npc.raptor_snow.male.chest_back"),
+        ),
+        tail_front: (
+            offset: (-7.5, -12.0, -2.5),
+            central: ("npc.raptor_snow.male.tail_front"),
+        ),
+        tail_back: (
+            offset: (-6.5, -30.0, -2.5),
+            central: ("npc.raptor_snow.male.tail_back"),
+        ),
+    ),
+    (Snowraptor, Female): (
+        head: (
+            offset: (-2.5, 0.0, -4.5),
+            central: ("npc.raptor_snow.male.head"),
+        ),
+        jaw: (
+            offset: (-1.5, 0.0, -1.5),
+            central: ("npc.raptor_snow.male.jaw"),
+        ),
+        neck: (
+            offset: (-1.5, 0.0, -4.5),
+            central: ("npc.raptor_snow.male.neck"),
+        ),
+        chest_front: (
+            offset: (-3.5, -4.0, -4.0),
+            central: ("npc.raptor_snow.male.chest_front"),
+        ),
+        chest_back: (
+            offset: (-3.5, -10.0, -4.5),
+            central: ("npc.raptor_snow.male.chest_back"),
+        ),
+        tail_front: (
+            offset: (-7.5, -12.0, -2.5),
+            central: ("npc.raptor_snow.male.tail_front"),
+        ),
+        tail_back: (
+            offset: (-6.5, -30.0, -2.5),
+            central: ("npc.raptor_snow.male.tail_back"),
+        ),
+    ),
+    (Woodraptor, Male): (
+        head: (
+            offset: (-3.5, -6.0, -5.0),
+            central: ("npc.raptor_wood.male.head"),
+        ),
+        jaw: (
+            offset: (-1.5, 0.0, -1.5),
+            central: ("npc.raptor_wood.male.jaw"),
+        ),
+        neck: (
+            offset: (-1.5, 0.0, -4.5),
+            central: ("npc.raptor_wood.male.neck"),
+        ),
+        chest_front: (
+            offset: (-3.5, -4.0, -4.0),
+            central: ("npc.raptor_wood.male.chest_front"),
+        ),
+        chest_back: (
+            offset: (-3.5, -10.0, -4.5),
+            central: ("npc.raptor_wood.male.chest_back"),
+        ),
+        tail_front: (
+            offset: (-7.5, -12.0, -2.5),
+            central: ("npc.raptor_wood.male.tail_front"),
+        ),
+        tail_back: (
+            offset: (-6.5, -30.0, -2.0),
+            central: ("npc.raptor_wood.male.tail_back"),
+        ),
+    ),
+    (Woodraptor, Female): (
+        head: (
+            offset: (-3.5, -6.0, -5.0),
+            central: ("npc.raptor_wood.male.head"),
+        ),
+        jaw: (
+            offset: (-1.5, 0.0, -1.5),
+            central: ("npc.raptor_wood.male.jaw"),
+        ),
+        neck: (
+            offset: (-1.5, 0.0, -4.5),
+            central: ("npc.raptor_wood.male.neck"),
+        ),
+        chest_front: (
+            offset: (-3.5, -4.0, -4.0),
+            central: ("npc.raptor_wood.male.chest_front"),
+        ),
+        chest_back: (
+            offset: (-3.5, -10.0, -4.5),
+            central: ("npc.raptor_wood.male.chest_back"),
+        ),
+        tail_front: (
+            offset: (-7.5, -12.0, -2.5),
+            central: ("npc.raptor_wood.male.tail_front"),
+        ),
+        tail_back: (
+            offset: (-6.5, -30.0, -2.0),
+            central: ("npc.raptor_wood.male.tail_back"),
+        ),
+    ),
 })
