@@ -51,6 +51,7 @@ const int BEE = 11;
 const int GROUND_SHOCKWAVE = 12;
 const int HEALING_BEAM = 13;
 const int ENERGY_NATURE = 14;
+const int FLAMETHROWER = 15;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -284,6 +285,13 @@ void main() {
 			),
 			vec3(0.8),
 			vec4(vec3(0, 1, 0), 1),
+			spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3)
+		);
+	} else if (inst_mode == FLAMETHROWER) {
+		attr = Attr(
+			inst_dir * lifetime / inst_lifespan,
+			vec3(1),
+			vec4(1, 0.3 + rand5 * 0.4, 0, 0.4),
 			spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3)
 		);
 	} else {
