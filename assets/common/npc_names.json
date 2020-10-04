@@ -603,6 +603,10 @@
             "stonegolem": {
                 "keyword": "stonegolem",
                 "generic": "StoneGolem"
+            },
+            "treant": {
+                "keyword": "treant",
+                "generic": "Treant"
             }
         }
     },

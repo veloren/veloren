@@ -2989,6 +2989,7 @@ struct GolemCentralSpec(HashMap<(GSpecies, GBodyType), SidedGCentralVoxSpec>);
 #[derive(Deserialize)]
 struct SidedGCentralVoxSpec {
     head: GolemCentralSubSpec,
+    jaw: GolemCentralSubSpec,
     torso_upper: GolemCentralSubSpec,
     torso_lower: GolemCentralSubSpec,
 }
@@ -3027,6 +3028,10 @@ make_vox_spec!(
     |FigureKey { body, .. }, spec| {
         [
             Some(spec.central.asset.mesh_head(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.central.asset.mesh_jaw(
                 body.species,
                 body.body_type,
             )),
@@ -3074,7 +3079,6 @@ make_vox_spec!(
             None,
             None,
             None,
-            None,
         ]
     },
 );
@@ -3094,6 +3098,22 @@ impl GolemCentralSpec {
         let central = graceful_load_segment(&spec.head.central.0);
 
         (central, Vec3::from(spec.head.offset))
+    }
+
+    fn mesh_jaw(&self, species: GSpecies, body_type: GBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No jaw specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.jaw.central.0);
+
+        (central, Vec3::from(spec.jaw.offset))
     }
 
     fn mesh_torso_upper(&self, species: GSpecies, body_type: GBodyType) -> BoneMeshes {
