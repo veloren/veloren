@@ -25,9 +25,11 @@ use common::{
     },
     event::{EventBus, LocalEvent},
     msg::{
-        validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, DisconnectReason,
-        InviteAnswer, Notification, PlayerInfo, PlayerListUpdate, RegisterError, RequestStateError,
-        ServerInfo, ServerMsg, MAX_BYTES_CHAT_MSG,
+        validate_chat_msg, ChatMsgValidationError, ClientInGameMsg, ClientIngame, ClientMsg,
+        ClientNotInGameMsg, ClientRegisterMsg, ClientType, DisconnectReason, InviteAnswer,
+        Notification, PingMsg, PlayerInfo, PlayerListUpdate, RegisterError, ServerInGameMsg,
+        ServerInfo, ServerInitMsg, ServerMsg, ServerNotInGameMsg, ServerRegisterAnswerMsg,
+        MAX_BYTES_CHAT_MSG,
     },
     outcome::Outcome,
     recipe::RecipeBook,
@@ -41,7 +43,7 @@ use futures_timer::Delay;
 use futures_util::{select, FutureExt};
 use hashbrown::{HashMap, HashSet};
 use image::DynamicImage;
-use network::{Network, Participant, Pid, Promises, ProtocolAddr, Stream};
+use network::{Network, Participant, Pid, ProtocolAddr, Stream};
 use num::traits::FloatConst;
 use rayon::prelude::*;
 use std::{
@@ -68,7 +70,8 @@ pub enum Event {
 }
 
 pub struct Client {
-    client_state: ClientState,
+    registered: bool,
+    client_ingame: Option<ClientIngame>,
     thread_pool: ThreadPool,
     pub server_info: ServerInfo,
     /// Just the "base" layer for LOD; currently includes colors and nothing
@@ -111,6 +114,10 @@ pub struct Client {
     _network: Network,
     participant: Option<Participant>,
     singleton_stream: Stream,
+    ping_stream: Stream,
+    register_stream: Stream,
+    not_in_game_stream: Stream,
+    in_game_stream: Stream,
 
     client_timeout: Duration,
     last_server_ping: f64,
@@ -141,8 +148,6 @@ pub struct CharacterList {
 impl Client {
     /// Create a new `Client`.
     pub fn new<A: Into<SocketAddr>>(addr: A, view_distance: Option<u32>) -> Result<Self, Error> {
-        let client_state = ClientState::Connected;
-
         let mut thread_pool = ThreadPoolBuilder::new()
             .name("veloren-worker".into())
             .build();
@@ -153,16 +158,33 @@ impl Client {
         thread_pool.execute(scheduler);
 
         let participant = block_on(network.connect(ProtocolAddr::Tcp(addr.into())))?;
-        let mut stream = block_on(participant.open(
-            10,
-            Promises::ORDERED | Promises::CONSISTENCY | Promises::COMPRESSED,
-        ))?;
+        let stream = block_on(participant.opened())?;
+        let mut ping_stream = block_on(participant.opened())?;
+        let mut register_stream = block_on(participant.opened())?;
+        let not_in_game_stream = block_on(participant.opened())?;
+        let in_game_stream = block_on(participant.opened())?;
+
+        register_stream.send(ClientType::Game)?;
+        let server_info: ServerInfo = block_on(register_stream.recv())?;
+
+        // TODO: Display that versions don't match in Voxygen
+        if server_info.git_hash != *common::util::GIT_HASH {
+            warn!(
+                "Server is running {}[{}], you are running {}[{}], versions might be incompatible!",
+                server_info.git_hash,
+                server_info.git_date,
+                common::util::GIT_HASH.to_string(),
+                common::util::GIT_DATE.to_string(),
+            );
+        }
+        debug!("Auth Server: {:?}", server_info.auth_provider);
+
+        ping_stream.send(PingMsg::Ping)?;
 
         // Wait for initial sync
         let (
             state,
             entity,
-            server_info,
             lod_base,
             lod_alt,
             lod_horizon,
@@ -170,204 +192,179 @@ impl Client {
             recipe_book,
             max_group_size,
             client_timeout,
-        ) = block_on(async {
-            loop {
-                match stream.recv().await? {
-                    ServerMsg::InitialSync {
-                        entity_package,
-                        server_info,
-                        time_of_day,
-                        max_group_size,
-                        client_timeout,
-                        world_map,
-                        recipe_book,
-                    } => {
-                        // TODO: Display that versions don't match in Voxygen
-                        if server_info.git_hash != *common::util::GIT_HASH {
-                            warn!(
-                                "Server is running {}[{}], you are running {}[{}], versions might \
-                                 be incompatible!",
-                                server_info.git_hash,
-                                server_info.git_date,
-                                common::util::GIT_HASH.to_string(),
-                                common::util::GIT_DATE.to_string(),
-                            );
-                        }
+        ) = match block_on(register_stream.recv())? {
+            ServerInitMsg::GameSync {
+                entity_package,
+                time_of_day,
+                max_group_size,
+                client_timeout,
+                world_map,
+                recipe_book,
+            } => {
+                // Initialize `State`
+                let mut state = State::default();
+                // Client-only components
+                state
+                    .ecs_mut()
+                    .register::<comp::Last<comp::CharacterState>>();
 
-                        debug!("Auth Server: {:?}", server_info.auth_provider);
+                let entity = state.ecs_mut().apply_entity_package(entity_package);
+                *state.ecs_mut().write_resource() = time_of_day;
 
-                        // Initialize `State`
-                        let mut state = State::default();
-                        // Client-only components
-                        state
-                            .ecs_mut()
-                            .register::<comp::Last<comp::CharacterState>>();
-
-                        let entity = state.ecs_mut().apply_entity_package(entity_package);
-                        *state.ecs_mut().write_resource() = time_of_day;
-
-                        let map_size_lg = common::terrain::MapSizeLg::new(world_map.dimensions_lg)
-                            .map_err(|_| {
-                                Error::Other(format!(
-                                    "Server sent bad world map dimensions: {:?}",
-                                    world_map.dimensions_lg,
-                                ))
-                            })?;
-                        let map_size = map_size_lg.chunks();
-                        let max_height = world_map.max_height;
-                        let sea_level = world_map.sea_level;
-                        let rgba = world_map.rgba;
-                        let alt = world_map.alt;
-                        let expected_size =
-                            (u32::from(map_size.x) * u32::from(map_size.y)) as usize;
-                        if rgba.len() != expected_size {
-                            return Err(Error::Other("Server sent a bad world map image".into()));
-                        }
-                        if alt.len() != expected_size {
-                            return Err(Error::Other("Server sent a bad altitude map.".into()));
-                        }
-                        let [west, east] = world_map.horizons;
-                        let scale_angle =
-                            |a: u8| (a as f32 / 255.0 * <f32 as FloatConst>::FRAC_PI_2()).tan();
-                        let scale_height = |h: u8| h as f32 / 255.0 * max_height;
-                        let scale_height_big = |h: u32| (h >> 3) as f32 / 8191.0 * max_height;
-
-                        debug!("Preparing image...");
-                        let unzip_horizons = |(angles, heights): &(Vec<_>, Vec<_>)| {
-                            (
-                                angles.iter().copied().map(scale_angle).collect::<Vec<_>>(),
-                                heights
-                                    .iter()
-                                    .copied()
-                                    .map(scale_height)
-                                    .collect::<Vec<_>>(),
-                            )
-                        };
-                        let horizons = [unzip_horizons(&west), unzip_horizons(&east)];
-
-                        // Redraw map (with shadows this time).
-                        let mut world_map = vec![0u32; rgba.len()];
-                        let mut map_config = common::terrain::map::MapConfig::orthographic(
-                            map_size_lg,
-                            core::ops::RangeInclusive::new(0.0, max_height),
-                        );
-                        map_config.horizons = Some(&horizons);
-                        let rescale_height = |h: f32| h / max_height;
-                        let bounds_check = |pos: Vec2<i32>| {
-                            pos.reduce_partial_min() >= 0
-                                && pos.x < map_size.x as i32
-                                && pos.y < map_size.y as i32
-                        };
-                        map_config.generate(
-                            |pos| {
-                                let (rgba, alt, downhill_wpos) = if bounds_check(pos) {
-                                    let posi =
-                                        pos.y as usize * map_size.x as usize + pos.x as usize;
-                                    let [r, g, b, a] = rgba[posi].to_le_bytes();
-                                    let alti = alt[posi];
-                                    // Compute downhill.
-                                    let downhill = {
-                                        let mut best = -1;
-                                        let mut besth = alti;
-                                        for nposi in neighbors(map_size_lg, posi) {
-                                            let nbh = alt[nposi];
-                                            if nbh < besth {
-                                                besth = nbh;
-                                                best = nposi as isize;
-                                            }
-                                        }
-                                        best
-                                    };
-                                    let downhill_wpos = if downhill < 0 {
-                                        None
-                                    } else {
-                                        Some(
-                                            Vec2::new(
-                                                (downhill as usize % map_size.x as usize) as i32,
-                                                (downhill as usize / map_size.x as usize) as i32,
-                                            ) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
-                                        )
-                                    };
-                                    (Rgba::new(r, g, b, a), alti, downhill_wpos)
-                                } else {
-                                    (Rgba::zero(), 0, None)
-                                };
-                                let wpos = pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
-                                let downhill_wpos = downhill_wpos.unwrap_or(
-                                    wpos + TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
-                                );
-                                let alt = rescale_height(scale_height_big(alt));
-                                common::terrain::map::MapSample {
-                                    rgb: Rgb::from(rgba),
-                                    alt: f64::from(alt),
-                                    downhill_wpos,
-                                    connections: None,
-                                }
-                            },
-                            |wpos| {
-                                let pos =
-                                    wpos.map2(TerrainChunkSize::RECT_SIZE, |e, f| e / f as i32);
-                                rescale_height(if bounds_check(pos) {
-                                    let posi =
-                                        pos.y as usize * map_size.x as usize + pos.x as usize;
-                                    scale_height_big(alt[posi])
-                                } else {
-                                    0.0
-                                })
-                            },
-                            |pos, (r, g, b, a)| {
-                                world_map[pos.y * map_size.x as usize + pos.x] =
-                                    u32::from_le_bytes([r, g, b, a]);
-                            },
-                        );
-                        let make_raw = |rgba| -> Result<_, Error> {
-                            let mut raw = vec![0u8; 4 * world_map.len()];
-                            LittleEndian::write_u32_into(rgba, &mut raw);
-                            Ok(Arc::new(
-                                image::DynamicImage::ImageRgba8({
-                                // Should not fail if the dimensions are correct.
-                                let map =
-                                    image::ImageBuffer::from_raw(u32::from(map_size.x), u32::from(map_size.y), raw);
-                                map.ok_or_else(|| Error::Other("Server sent a bad world map image".into()))?
-                            })
-                            // Flip the image, since Voxygen uses an orientation where rotation from
-                            // positive x axis to positive y axis is counterclockwise around the z axis.
-                            .flipv(),
-                            ))
-                        };
-                        let lod_base = rgba;
-                        let lod_alt = alt;
-                        let world_map = make_raw(&world_map)?;
-                        let horizons = (west.0, west.1, east.0, east.1)
-                            .into_par_iter()
-                            .map(|(wa, wh, ea, eh)| u32::from_le_bytes([wa, wh, ea, eh]))
-                            .collect::<Vec<_>>();
-                        let lod_horizon = horizons;
-                        let map_bounds = Vec2::new(sea_level, max_height);
-                        debug!("Done preparing image...");
-
-                        break Ok((
-                            state,
-                            entity,
-                            server_info,
-                            lod_base,
-                            lod_alt,
-                            lod_horizon,
-                            (world_map, map_size, map_bounds),
-                            recipe_book,
-                            max_group_size,
-                            client_timeout,
-                        ));
-                    },
-                    ServerMsg::TooManyPlayers => break Err(Error::TooManyPlayers),
-                    err => {
-                        warn!("whoops, server mad {:?}, ignoring", err);
-                    },
+                let map_size_lg = common::terrain::MapSizeLg::new(world_map.dimensions_lg)
+                    .map_err(|_| {
+                        Error::Other(format!(
+                            "Server sent bad world map dimensions: {:?}",
+                            world_map.dimensions_lg,
+                        ))
+                    })?;
+                let map_size = map_size_lg.chunks();
+                let max_height = world_map.max_height;
+                let sea_level = world_map.sea_level;
+                let rgba = world_map.rgba;
+                let alt = world_map.alt;
+                let expected_size = (u32::from(map_size.x) * u32::from(map_size.y)) as usize;
+                if rgba.len() != expected_size {
+                    return Err(Error::Other("Server sent a bad world map image".into()));
                 }
-            }
-        })?;
+                if alt.len() != expected_size {
+                    return Err(Error::Other("Server sent a bad altitude map.".into()));
+                }
+                let [west, east] = world_map.horizons;
+                let scale_angle =
+                    |a: u8| (a as f32 / 255.0 * <f32 as FloatConst>::FRAC_PI_2()).tan();
+                let scale_height = |h: u8| h as f32 / 255.0 * max_height;
+                let scale_height_big = |h: u32| (h >> 3) as f32 / 8191.0 * max_height;
+                ping_stream.send(PingMsg::Ping)?;
 
-        stream.send(ClientMsg::Ping)?;
+                debug!("Preparing image...");
+                let unzip_horizons = |(angles, heights): &(Vec<_>, Vec<_>)| {
+                    (
+                        angles.iter().copied().map(scale_angle).collect::<Vec<_>>(),
+                        heights
+                            .iter()
+                            .copied()
+                            .map(scale_height)
+                            .collect::<Vec<_>>(),
+                    )
+                };
+                let horizons = [unzip_horizons(&west), unzip_horizons(&east)];
+
+                // Redraw map (with shadows this time).
+                let mut world_map = vec![0u32; rgba.len()];
+                let mut map_config = common::terrain::map::MapConfig::orthographic(
+                    map_size_lg,
+                    core::ops::RangeInclusive::new(0.0, max_height),
+                );
+                map_config.horizons = Some(&horizons);
+                let rescale_height = |h: f32| h / max_height;
+                let bounds_check = |pos: Vec2<i32>| {
+                    pos.reduce_partial_min() >= 0
+                        && pos.x < map_size.x as i32
+                        && pos.y < map_size.y as i32
+                };
+                ping_stream.send(PingMsg::Ping)?;
+                map_config.generate(
+                    |pos| {
+                        let (rgba, alt, downhill_wpos) = if bounds_check(pos) {
+                            let posi = pos.y as usize * map_size.x as usize + pos.x as usize;
+                            let [r, g, b, a] = rgba[posi].to_le_bytes();
+                            let alti = alt[posi];
+                            // Compute downhill.
+                            let downhill = {
+                                let mut best = -1;
+                                let mut besth = alti;
+                                for nposi in neighbors(map_size_lg, posi) {
+                                    let nbh = alt[nposi];
+                                    if nbh < besth {
+                                        besth = nbh;
+                                        best = nposi as isize;
+                                    }
+                                }
+                                best
+                            };
+                            let downhill_wpos = if downhill < 0 {
+                                None
+                            } else {
+                                Some(
+                                    Vec2::new(
+                                        (downhill as usize % map_size.x as usize) as i32,
+                                        (downhill as usize / map_size.x as usize) as i32,
+                                    ) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
+                                )
+                            };
+                            (Rgba::new(r, g, b, a), alti, downhill_wpos)
+                        } else {
+                            (Rgba::zero(), 0, None)
+                        };
+                        let wpos = pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
+                        let downhill_wpos = downhill_wpos
+                            .unwrap_or(wpos + TerrainChunkSize::RECT_SIZE.map(|e| e as i32));
+                        let alt = rescale_height(scale_height_big(alt));
+                        common::terrain::map::MapSample {
+                            rgb: Rgb::from(rgba),
+                            alt: f64::from(alt),
+                            downhill_wpos,
+                            connections: None,
+                        }
+                    },
+                    |wpos| {
+                        let pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, f| e / f as i32);
+                        rescale_height(if bounds_check(pos) {
+                            let posi = pos.y as usize * map_size.x as usize + pos.x as usize;
+                            scale_height_big(alt[posi])
+                        } else {
+                            0.0
+                        })
+                    },
+                    |pos, (r, g, b, a)| {
+                        world_map[pos.y * map_size.x as usize + pos.x] =
+                            u32::from_le_bytes([r, g, b, a]);
+                    },
+                );
+                ping_stream.send(PingMsg::Ping)?;
+                let make_raw = |rgba| -> Result<_, Error> {
+                    let mut raw = vec![0u8; 4 * world_map.len()];
+                    LittleEndian::write_u32_into(rgba, &mut raw);
+                    Ok(Arc::new(
+                        image::DynamicImage::ImageRgba8({
+                            // Should not fail if the dimensions are correct.
+                            let map =
+                                image::ImageBuffer::from_raw(u32::from(map_size.x), u32::from(map_size.y), raw);
+                            map.ok_or_else(|| Error::Other("Server sent a bad world map image".into()))?
+                        })
+                        // Flip the image, since Voxygen uses an orientation where rotation from
+                        // positive x axis to positive y axis is counterclockwise around the z axis.
+                        .flipv(),
+                    ))
+                };
+                ping_stream.send(PingMsg::Ping)?;
+                let lod_base = rgba;
+                let lod_alt = alt;
+                let world_map = make_raw(&world_map)?;
+                let horizons = (west.0, west.1, east.0, east.1)
+                    .into_par_iter()
+                    .map(|(wa, wh, ea, eh)| u32::from_le_bytes([wa, wh, ea, eh]))
+                    .collect::<Vec<_>>();
+                let lod_horizon = horizons;
+                let map_bounds = Vec2::new(sea_level, max_height);
+                debug!("Done preparing image...");
+
+                Ok((
+                    state,
+                    entity,
+                    lod_base,
+                    lod_alt,
+                    lod_horizon,
+                    (world_map, map_size, map_bounds),
+                    recipe_book,
+                    max_group_size,
+                    client_timeout,
+                ))
+            },
+            ServerInitMsg::TooManyPlayers => Err(Error::TooManyPlayers),
+        }?;
+        ping_stream.send(PingMsg::Ping)?;
 
         let mut thread_pool = ThreadPoolBuilder::new()
             .name("veloren-worker".into())
@@ -375,8 +372,11 @@ impl Client {
         // We reduce the thread count by 1 to keep rendering smooth
         thread_pool.set_num_threads((num_cpus::get() - 1).max(1));
 
+        debug!("Initial sync done");
+
         Ok(Self {
-            client_state,
+            registered: false,
+            client_ingame: None,
             thread_pool,
             server_info,
             world_map,
@@ -398,6 +398,11 @@ impl Client {
             _network: network,
             participant: Some(participant),
             singleton_stream: stream,
+            ping_stream,
+            register_stream,
+            not_in_game_stream,
+            in_game_stream,
+
             client_timeout,
 
             last_server_ping: 0.0,
@@ -439,72 +444,52 @@ impl Client {
                 }
         ).unwrap_or(Ok(username))?;
 
-        self.singleton_stream.send(ClientMsg::Register {
+        //TODO move ViewDistance out of register
+        self.register_stream.send(ClientRegisterMsg {
             view_distance: self.view_distance,
             token_or_username,
         })?;
-        self.client_state = ClientState::Pending;
 
-        block_on(async {
-            loop {
-                match self.singleton_stream.recv().await? {
-                    ServerMsg::StateAnswer(Err((
-                        RequestStateError::RegisterDenied(err),
-                        state,
-                    ))) => {
-                        self.client_state = state;
-                        break Err(match err {
-                            RegisterError::AlreadyLoggedIn => Error::AlreadyLoggedIn,
-                            RegisterError::AuthError(err) => Error::AuthErr(err),
-                            RegisterError::InvalidCharacter => Error::InvalidCharacter,
-                            RegisterError::NotOnWhitelist => Error::NotOnWhitelist,
-                            RegisterError::Banned(reason) => Error::Banned(reason),
-                        });
-                    },
-                    ServerMsg::StateAnswer(Ok(ClientState::Registered)) => break Ok(()),
-                    ignore => {
-                        warn!(
-                            "Ignoring what the server send till registered: {:? }",
-                            ignore
-                        );
-                        //return Err(Error::ServerWentMad)
-                    },
-                }
-            }
-        })
+        match block_on(self.register_stream.recv::<ServerRegisterAnswerMsg>())? {
+            Err(RegisterError::AlreadyLoggedIn) => Err(Error::AlreadyLoggedIn),
+            Err(RegisterError::AuthError(err)) => Err(Error::AuthErr(err)),
+            Err(RegisterError::InvalidCharacter) => Err(Error::InvalidCharacter),
+            Err(RegisterError::NotOnWhitelist) => Err(Error::NotOnWhitelist),
+            Err(RegisterError::Banned(reason)) => Err(Error::Banned(reason)),
+            Ok(()) => Ok(()),
+        }
     }
 
     /// Request a state transition to `ClientState::Character`.
     pub fn request_character(&mut self, character_id: CharacterId) {
-        self.singleton_stream
-            .send(ClientMsg::Character(character_id))
+        self.not_in_game_stream
+            .send(ClientNotInGameMsg::Character(character_id))
             .unwrap();
 
         self.active_character_id = Some(character_id);
-        self.client_state = ClientState::Pending;
     }
 
     /// Load the current players character list
     pub fn load_character_list(&mut self) {
         self.character_list.loading = true;
-        self.singleton_stream
-            .send(ClientMsg::RequestCharacterList)
+        self.not_in_game_stream
+            .send(ClientNotInGameMsg::RequestCharacterList)
             .unwrap();
     }
 
     /// New character creation
     pub fn create_character(&mut self, alias: String, tool: Option<String>, body: comp::Body) {
         self.character_list.loading = true;
-        self.singleton_stream
-            .send(ClientMsg::CreateCharacter { alias, tool, body })
+        self.not_in_game_stream
+            .send(ClientNotInGameMsg::CreateCharacter { alias, tool, body })
             .unwrap();
     }
 
     /// Character deletion
     pub fn delete_character(&mut self, character_id: CharacterId) {
         self.character_list.loading = true;
-        self.singleton_stream
-            .send(ClientMsg::DeleteCharacter(character_id))
+        self.not_in_game_stream
+            .send(ClientNotInGameMsg::DeleteCharacter(character_id))
             .unwrap();
     }
 
@@ -522,37 +507,40 @@ impl Client {
     /// Request a state transition to `ClientState::Registered` from an ingame
     /// state.
     pub fn request_remove_character(&mut self) {
-        self.singleton_stream.send(ClientMsg::ExitIngame).unwrap();
-        self.client_state = ClientState::Pending;
+        self.in_game_stream
+            .send(ClientInGameMsg::ExitInGame)
+            .unwrap();
     }
 
     pub fn set_view_distance(&mut self, view_distance: u32) {
         self.view_distance = Some(view_distance.max(1).min(65));
-        self.singleton_stream
-            .send(ClientMsg::SetViewDistance(self.view_distance.unwrap()))
+        self.in_game_stream
+            .send(ClientInGameMsg::SetViewDistance(
+                self.view_distance.unwrap(),
+            ))
             .unwrap();
         // Can't fail
     }
 
     pub fn use_slot(&mut self, slot: comp::slot::Slot) {
-        self.singleton_stream
-            .send(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
+        self.in_game_stream
+            .send(ClientInGameMsg::ControlEvent(ControlEvent::InventoryManip(
                 InventoryManip::Use(slot),
             )))
             .unwrap();
     }
 
     pub fn swap_slots(&mut self, a: comp::slot::Slot, b: comp::slot::Slot) {
-        self.singleton_stream
-            .send(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
+        self.in_game_stream
+            .send(ClientInGameMsg::ControlEvent(ControlEvent::InventoryManip(
                 InventoryManip::Swap(a, b),
             )))
             .unwrap();
     }
 
     pub fn drop_slot(&mut self, slot: comp::slot::Slot) {
-        self.singleton_stream
-            .send(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
+        self.in_game_stream
+            .send(ClientInGameMsg::ControlEvent(ControlEvent::InventoryManip(
                 InventoryManip::Drop(slot),
             )))
             .unwrap();
@@ -560,8 +548,8 @@ impl Client {
 
     pub fn pick_up(&mut self, entity: EcsEntity) {
         if let Some(uid) = self.state.read_component_copied(entity) {
-            self.singleton_stream
-                .send(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
+            self.in_game_stream
+                .send(ClientInGameMsg::ControlEvent(ControlEvent::InventoryManip(
                     InventoryManip::Pickup(uid),
                 )))
                 .unwrap();
@@ -582,8 +570,8 @@ impl Client {
 
     pub fn craft_recipe(&mut self, recipe: &str) -> bool {
         if self.can_craft_recipe(recipe) {
-            self.singleton_stream
-                .send(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
+            self.in_game_stream
+                .send(ClientInGameMsg::ControlEvent(ControlEvent::InventoryManip(
                     InventoryManip::CraftRecipe(recipe.to_string()),
                 )))
                 .unwrap();
@@ -604,13 +592,13 @@ impl Client {
 
     pub fn enable_lantern(&mut self) {
         self.singleton_stream
-            .send(ClientMsg::ControlEvent(ControlEvent::EnableLantern))
+            .send(ClientInGameMsg::ControlEvent(ControlEvent::EnableLantern))
             .unwrap();
     }
 
     pub fn disable_lantern(&mut self) {
         self.singleton_stream
-            .send(ClientMsg::ControlEvent(ControlEvent::DisableLantern))
+            .send(ClientInGameMsg::ControlEvent(ControlEvent::DisableLantern))
             .unwrap();
     }
 
@@ -629,8 +617,8 @@ impl Client {
     pub fn pending_invites(&self) -> &HashSet<Uid> { &self.pending_invites }
 
     pub fn send_group_invite(&mut self, invitee: Uid) {
-        self.singleton_stream
-            .send(ClientMsg::ControlEvent(ControlEvent::GroupManip(
+        self.in_game_stream
+            .send(ClientInGameMsg::ControlEvent(ControlEvent::GroupManip(
                 GroupManip::Invite(invitee),
             )))
             .unwrap()
@@ -639,8 +627,8 @@ impl Client {
     pub fn accept_group_invite(&mut self) {
         // Clear invite
         self.group_invite.take();
-        self.singleton_stream
-            .send(ClientMsg::ControlEvent(ControlEvent::GroupManip(
+        self.in_game_stream
+            .send(ClientInGameMsg::ControlEvent(ControlEvent::GroupManip(
                 GroupManip::Accept,
             )))
             .unwrap();
@@ -649,32 +637,32 @@ impl Client {
     pub fn decline_group_invite(&mut self) {
         // Clear invite
         self.group_invite.take();
-        self.singleton_stream
-            .send(ClientMsg::ControlEvent(ControlEvent::GroupManip(
+        self.in_game_stream
+            .send(ClientInGameMsg::ControlEvent(ControlEvent::GroupManip(
                 GroupManip::Decline,
             )))
             .unwrap();
     }
 
     pub fn leave_group(&mut self) {
-        self.singleton_stream
-            .send(ClientMsg::ControlEvent(ControlEvent::GroupManip(
+        self.in_game_stream
+            .send(ClientInGameMsg::ControlEvent(ControlEvent::GroupManip(
                 GroupManip::Leave,
             )))
             .unwrap();
     }
 
     pub fn kick_from_group(&mut self, uid: Uid) {
-        self.singleton_stream
-            .send(ClientMsg::ControlEvent(ControlEvent::GroupManip(
+        self.in_game_stream
+            .send(ClientInGameMsg::ControlEvent(ControlEvent::GroupManip(
                 GroupManip::Kick(uid),
             )))
             .unwrap();
     }
 
     pub fn assign_group_leader(&mut self, uid: Uid) {
-        self.singleton_stream
-            .send(ClientMsg::ControlEvent(ControlEvent::GroupManip(
+        self.in_game_stream
+            .send(ClientInGameMsg::ControlEvent(ControlEvent::GroupManip(
                 GroupManip::AssignLeader(uid),
             )))
             .unwrap();
@@ -698,15 +686,15 @@ impl Client {
 
     pub fn mount(&mut self, entity: EcsEntity) {
         if let Some(uid) = self.state.read_component_copied(entity) {
-            self.singleton_stream
-                .send(ClientMsg::ControlEvent(ControlEvent::Mount(uid)))
+            self.in_game_stream
+                .send(ClientInGameMsg::ControlEvent(ControlEvent::Mount(uid)))
                 .unwrap();
         }
     }
 
     pub fn unmount(&mut self) {
-        self.singleton_stream
-            .send(ClientMsg::ControlEvent(ControlEvent::Unmount))
+        self.in_game_stream
+            .send(ClientInGameMsg::ControlEvent(ControlEvent::Unmount))
             .unwrap();
     }
 
@@ -718,8 +706,8 @@ impl Client {
             .get(self.entity)
             .map_or(false, |s| s.is_dead)
         {
-            self.singleton_stream
-                .send(ClientMsg::ControlEvent(ControlEvent::Respawn))
+            self.in_game_stream
+                .send(ClientInGameMsg::ControlEvent(ControlEvent::Respawn))
                 .unwrap();
         }
     }
@@ -817,8 +805,8 @@ impl Client {
         {
             controller.actions.push(control_action);
         }
-        self.singleton_stream
-            .send(ClientMsg::ControlAction(control_action))
+        self.in_game_stream
+            .send(ClientInGameMsg::ControlAction(control_action))
             .unwrap();
     }
 
@@ -866,20 +854,20 @@ impl Client {
     }
 
     pub fn place_block(&mut self, pos: Vec3<i32>, block: Block) {
-        self.singleton_stream
-            .send(ClientMsg::PlaceBlock(pos, block))
+        self.in_game_stream
+            .send(ClientInGameMsg::PlaceBlock(pos, block))
             .unwrap();
     }
 
     pub fn remove_block(&mut self, pos: Vec3<i32>) {
-        self.singleton_stream
-            .send(ClientMsg::BreakBlock(pos))
+        self.in_game_stream
+            .send(ClientInGameMsg::BreakBlock(pos))
             .unwrap();
     }
 
     pub fn collect_block(&mut self, pos: Vec3<i32>) {
-        self.singleton_stream
-            .send(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
+        self.in_game_stream
+            .send(ClientInGameMsg::ControlEvent(ControlEvent::InventoryManip(
                 InventoryManip::Collect(pos),
             )))
             .unwrap();
@@ -914,7 +902,7 @@ impl Client {
 
         // 1) Handle input from frontend.
         // Pass character actions from frontend input to the player's entity.
-        if let ClientState::Character = self.client_state {
+        if self.client_ingame.is_some() {
             if let Err(e) = self
                 .state
                 .ecs()
@@ -937,8 +925,8 @@ impl Client {
                     "Couldn't access controller component on client entity"
                 );
             }
-            self.singleton_stream
-                .send(ClientMsg::ControllerInputs(inputs))?;
+            self.in_game_stream
+                .send(ClientInGameMsg::ControllerInputs(inputs))?;
         }
 
         // 2) Build up a list of events for this frame, to be passed to the frontend.
@@ -1042,8 +1030,8 @@ impl Client {
                         if self.state.terrain().get_key(*key).is_none() {
                             if !skip_mode && !self.pending_chunks.contains_key(key) {
                                 if self.pending_chunks.len() < 4 {
-                                    self.singleton_stream
-                                        .send(ClientMsg::TerrainChunkRequest { key: *key })?;
+                                    self.in_game_stream
+                                        .send(ClientInGameMsg::TerrainChunkRequest { key: *key })?;
                                     self.pending_chunks.insert(*key, Instant::now());
                                 } else {
                                     skip_mode = true;
@@ -1075,19 +1063,19 @@ impl Client {
 
         // Send a ping to the server once every second
         if self.state.get_time() - self.last_server_ping > 1. {
-            self.singleton_stream.send(ClientMsg::Ping)?;
+            self.ping_stream.send(PingMsg::Ping)?;
             self.last_server_ping = self.state.get_time();
         }
 
         // 6) Update the server about the player's physics attributes.
-        if let ClientState::Character = self.client_state {
+        if self.client_ingame.is_some() {
             if let (Some(pos), Some(vel), Some(ori)) = (
                 self.state.read_storage().get(self.entity).cloned(),
                 self.state.read_storage().get(self.entity).cloned(),
                 self.state.read_storage().get(self.entity).cloned(),
             ) {
-                self.singleton_stream
-                    .send(ClientMsg::PlayerPhysics { pos, vel, ori })?;
+                self.in_game_stream
+                    .send(ClientInGameMsg::PlayerPhysics { pos, vel, ori })?;
             }
         }
 
@@ -1114,343 +1102,368 @@ impl Client {
         self.state.cleanup();
     }
 
-    async fn handle_message(
+    fn handle_server_msg(
+        &mut self,
+        frontend_events: &mut Vec<Event>,
+        msg: ServerMsg,
+    ) -> Result<(), Error> {
+        match msg {
+            ServerMsg::Disconnect(reason) => match reason {
+                DisconnectReason::Shutdown => return Err(Error::ServerShutdown),
+                DisconnectReason::Requested => {
+                    debug!("finally sending ClientMsg::Terminate");
+                    frontend_events.push(Event::Disconnect);
+                    self.singleton_stream.send(ClientMsg::Terminate)?;
+                },
+                DisconnectReason::Kicked(reason) => {
+                    debug!("sending ClientMsg::Terminate because we got kicked");
+                    frontend_events.push(Event::Kicked(reason.clone()));
+                    self.singleton_stream.send(ClientMsg::Terminate)?;
+                },
+            },
+            ServerMsg::PlayerListUpdate(PlayerListUpdate::Init(list)) => self.player_list = list,
+            ServerMsg::PlayerListUpdate(PlayerListUpdate::Add(uid, player_info)) => {
+                if let Some(old_player_info) = self.player_list.insert(uid, player_info.clone()) {
+                    warn!(
+                        "Received msg to insert {} with uid {} into the player list but there was \
+                         already an entry for {} with the same uid that was overwritten!",
+                        player_info.player_alias, uid, old_player_info.player_alias
+                    );
+                }
+            },
+            ServerMsg::PlayerListUpdate(PlayerListUpdate::Admin(uid, admin)) => {
+                if let Some(player_info) = self.player_list.get_mut(&uid) {
+                    player_info.is_admin = admin;
+                } else {
+                    warn!(
+                        "Received msg to update admin status of uid {}, but they were not in the \
+                         list.",
+                        uid
+                    );
+                }
+            },
+            ServerMsg::PlayerListUpdate(PlayerListUpdate::SelectedCharacter(uid, char_info)) => {
+                if let Some(player_info) = self.player_list.get_mut(&uid) {
+                    player_info.character = Some(char_info);
+                } else {
+                    warn!(
+                        "Received msg to update character info for uid {}, but they were not in \
+                         the list.",
+                        uid
+                    );
+                }
+            },
+            ServerMsg::PlayerListUpdate(PlayerListUpdate::LevelChange(uid, next_level)) => {
+                if let Some(player_info) = self.player_list.get_mut(&uid) {
+                    player_info.character = match &player_info.character {
+                        Some(character) => Some(common::msg::CharacterInfo {
+                            name: character.name.to_string(),
+                            level: next_level,
+                        }),
+                        None => {
+                            warn!(
+                                "Received msg to update character level info to {} for uid {}, \
+                                 but this player's character is None.",
+                                next_level, uid
+                            );
+
+                            None
+                        },
+                    };
+                }
+            },
+            ServerMsg::PlayerListUpdate(PlayerListUpdate::Remove(uid)) => {
+                // Instead of removing players, mark them as offline because we need to
+                // remember the names of disconnected players in chat.
+                //
+                // TODO the server should re-use uids of players that log out and log back
+                // in.
+
+                if let Some(player_info) = self.player_list.get_mut(&uid) {
+                    if player_info.is_online {
+                        player_info.is_online = false;
+                    } else {
+                        warn!(
+                            "Received msg to remove uid {} from the player list by they were \
+                             already marked offline",
+                            uid
+                        );
+                    }
+                } else {
+                    warn!(
+                        "Received msg to remove uid {} from the player list by they weren't in \
+                         the list!",
+                        uid
+                    );
+                }
+            },
+            ServerMsg::PlayerListUpdate(PlayerListUpdate::Alias(uid, new_name)) => {
+                if let Some(player_info) = self.player_list.get_mut(&uid) {
+                    player_info.player_alias = new_name;
+                } else {
+                    warn!(
+                        "Received msg to alias player with uid {} to {} but this uid is not in \
+                         the player list",
+                        uid, new_name
+                    );
+                }
+            },
+            ServerMsg::ChatMsg(m) => frontend_events.push(Event::Chat(m)),
+            ServerMsg::SetPlayerEntity(uid) => {
+                if let Some(entity) = self.state.ecs().entity_from_uid(uid.0) {
+                    self.entity = entity;
+                } else {
+                    return Err(Error::Other("Failed to find entity from uid.".to_owned()));
+                }
+            },
+            ServerMsg::TimeOfDay(time_of_day) => {
+                *self.state.ecs_mut().write_resource() = time_of_day;
+            },
+            ServerMsg::EntitySync(entity_sync_package) => {
+                self.state
+                    .ecs_mut()
+                    .apply_entity_sync_package(entity_sync_package);
+            },
+            ServerMsg::CompSync(comp_sync_package) => {
+                self.state
+                    .ecs_mut()
+                    .apply_comp_sync_package(comp_sync_package);
+            },
+            ServerMsg::CreateEntity(entity_package) => {
+                self.state.ecs_mut().apply_entity_package(entity_package);
+            },
+            ServerMsg::DeleteEntity(entity) => {
+                if self.uid() != Some(entity) {
+                    self.state
+                        .ecs_mut()
+                        .delete_entity_and_clear_from_uid_allocator(entity.0);
+                }
+            },
+            ServerMsg::Notification(n) => {
+                frontend_events.push(Event::Notification(n));
+            },
+        }
+        Ok(())
+    }
+
+    fn handle_server_in_game_msg(
+        &mut self,
+        frontend_events: &mut Vec<Event>,
+        msg: ServerInGameMsg,
+    ) -> Result<(), Error> {
+        match msg {
+            ServerInGameMsg::GroupUpdate(change_notification) => {
+                use comp::group::ChangeNotification::*;
+                // Note: we use a hashmap since this would not work with entities outside
+                // the view distance
+                match change_notification {
+                    Added(uid, role) => {
+                        // Check if this is a newly formed group by looking for absence of
+                        // other non pet group members
+                        if !matches!(role, group::Role::Pet)
+                            && !self
+                                .group_members
+                                .values()
+                                .any(|r| !matches!(r, group::Role::Pet))
+                        {
+                            frontend_events
+                                .push(Event::Chat(comp::ChatType::Meta.chat_msg(
+                                    "Type /g or /group to chat with your group members",
+                                )));
+                        }
+                        if let Some(player_info) = self.player_list.get(&uid) {
+                            frontend_events.push(Event::Chat(
+                                comp::ChatType::GroupMeta("Group".into()).chat_msg(format!(
+                                    "[{}] joined group",
+                                    self.personalize_alias(uid, player_info.player_alias.clone())
+                                )),
+                            ));
+                        }
+                        if self.group_members.insert(uid, role) == Some(role) {
+                            warn!(
+                                "Received msg to add uid {} to the group members but they were \
+                                 already there",
+                                uid
+                            );
+                        }
+                    },
+                    Removed(uid) => {
+                        if let Some(player_info) = self.player_list.get(&uid) {
+                            frontend_events.push(Event::Chat(
+                                comp::ChatType::GroupMeta("Group".into()).chat_msg(format!(
+                                    "[{}] left group",
+                                    self.personalize_alias(uid, player_info.player_alias.clone())
+                                )),
+                            ));
+                        }
+                        if self.group_members.remove(&uid).is_none() {
+                            warn!(
+                                "Received msg to remove uid {} from group members but by they \
+                                 weren't in there!",
+                                uid
+                            );
+                        }
+                    },
+                    NewLeader(leader) => {
+                        self.group_leader = Some(leader);
+                    },
+                    NewGroup { leader, members } => {
+                        self.group_leader = Some(leader);
+                        self.group_members = members.into_iter().collect();
+                        // Currently add/remove messages treat client as an implicit member
+                        // of the group whereas this message explicitly includes them so to
+                        // be consistent for now we will remove the client from the
+                        // received hashset
+                        if let Some(uid) = self.uid() {
+                            self.group_members.remove(&uid);
+                        }
+                    },
+                    NoGroup => {
+                        self.group_leader = None;
+                        self.group_members = HashMap::new();
+                    },
+                }
+            },
+            ServerInGameMsg::GroupInvite { inviter, timeout } => {
+                self.group_invite = Some((inviter, std::time::Instant::now(), timeout));
+            },
+            ServerInGameMsg::InvitePending(uid) => {
+                if !self.pending_invites.insert(uid) {
+                    warn!("Received message about pending invite that was already pending");
+                }
+            },
+            ServerInGameMsg::InviteComplete { target, answer } => {
+                if !self.pending_invites.remove(&target) {
+                    warn!(
+                        "Received completed invite message for invite that was not in the list of \
+                         pending invites"
+                    )
+                }
+                // TODO: expose this as a new event variant instead of going
+                // through the chat
+                let msg = match answer {
+                    // TODO: say who accepted/declined/timed out the invite
+                    InviteAnswer::Accepted => "Invite accepted",
+                    InviteAnswer::Declined => "Invite declined",
+                    InviteAnswer::TimedOut => "Invite timed out",
+                };
+                frontend_events.push(Event::Chat(comp::ChatType::Meta.chat_msg(msg)));
+            },
+            // Cleanup for when the client goes back to the `in_game = None`
+            ServerInGameMsg::ExitInGameSuccess => {
+                self.clean_state();
+            },
+            ServerInGameMsg::InventoryUpdate(mut inventory, event) => {
+                match event {
+                    InventoryUpdateEvent::CollectFailed => {},
+                    _ => {
+                        inventory.recount_items();
+                        // Push the updated inventory component to the client
+                        self.state.write_component(self.entity, inventory);
+                    },
+                }
+
+                self.update_available_recipes();
+
+                frontend_events.push(Event::InventoryUpdated(event));
+            },
+            ServerInGameMsg::TerrainChunkUpdate { key, chunk } => {
+                if let Ok(chunk) = chunk {
+                    self.state.insert_chunk(key, *chunk);
+                }
+                self.pending_chunks.remove(&key);
+            },
+            ServerInGameMsg::TerrainBlockUpdates(mut blocks) => {
+                blocks.drain().for_each(|(pos, block)| {
+                    self.state.set_block(pos, block);
+                });
+            },
+            ServerInGameMsg::SetViewDistance(vd) => {
+                self.view_distance = Some(vd);
+                frontend_events.push(Event::SetViewDistance(vd));
+            },
+            ServerInGameMsg::Outcomes(outcomes) => {
+                frontend_events.extend(outcomes.into_iter().map(Event::Outcome))
+            },
+            ServerInGameMsg::Knockback(impulse) => {
+                self.state
+                    .ecs()
+                    .read_resource::<EventBus<LocalEvent>>()
+                    .emit_now(LocalEvent::ApplyImpulse {
+                        entity: self.entity,
+                        impulse,
+                    });
+            },
+        }
+        Ok(())
+    }
+
+    fn handle_server_not_in_game_msg(&mut self, msg: ServerNotInGameMsg) -> Result<(), Error> {
+        match msg {
+            ServerNotInGameMsg::CharacterListUpdate(character_list) => {
+                self.character_list.characters = character_list;
+                self.character_list.loading = false;
+            },
+            ServerNotInGameMsg::CharacterActionError(error) => {
+                warn!("CharacterActionError: {:?}.", error);
+                self.character_list.error = Some(error);
+            },
+            ServerNotInGameMsg::CharacterDataLoadError(error) => {
+                self.clean_state();
+                self.character_list.error = Some(error);
+            },
+            ServerNotInGameMsg::CharacterSuccess => {
+                warn!("WOOP88u8yeah");
+            },
+        }
+        Ok(())
+    }
+
+    fn handle_ping_msg(&mut self, msg: PingMsg) -> Result<(), Error> {
+        match msg {
+            PingMsg::Ping => {
+                self.ping_stream.send(PingMsg::Pong)?;
+            },
+            PingMsg::Pong => {
+                self.last_server_pong = self.state.get_time();
+                self.last_ping_delta = self.state.get_time() - self.last_server_ping;
+
+                // Maintain the correct number of deltas for calculating the rolling average
+                // ping. The client sends a ping to the server every second so we should be
+                // receiving a pong reply roughly every second.
+                while self.ping_deltas.len() > PING_ROLLING_AVERAGE_SECS - 1 {
+                    self.ping_deltas.pop_front();
+                }
+                self.ping_deltas.push_back(self.last_ping_delta);
+            },
+        }
+        Ok(())
+    }
+
+    async fn handle_messages(
         &mut self,
         frontend_events: &mut Vec<Event>,
         cnt: &mut u64,
     ) -> Result<(), Error> {
         loop {
-            let msg = self.singleton_stream.recv().await?;
+            let (m1, m2, m3, m4) = select!(
+                msg = self.singleton_stream.recv().fuse() => (Some(msg?), None, None, None),
+                msg = self.ping_stream.recv().fuse() => (None, Some(msg?), None, None),
+                msg = self.not_in_game_stream.recv().fuse() => (None, None, Some(msg?), None),
+                msg = self.in_game_stream.recv().fuse() => (None, None, None, Some(msg?)),
+            );
             *cnt += 1;
-            match msg {
-                ServerMsg::TooManyPlayers => {
-                    return Err(Error::ServerWentMad);
-                },
-                ServerMsg::Disconnect(reason) => match reason {
-                    DisconnectReason::Shutdown => return Err(Error::ServerShutdown),
-                    DisconnectReason::Requested => {
-                        debug!("finally sending ClientMsg::Terminate");
-                        frontend_events.push(Event::Disconnect);
-                        self.singleton_stream.send(ClientMsg::Terminate)?;
-                        break Ok(());
-                    },
-                    DisconnectReason::Kicked(reason) => {
-                        debug!("sending ClientMsg::Terminate because we got kicked");
-                        frontend_events.push(Event::Kicked(reason.clone()));
-                        self.singleton_stream.send(ClientMsg::Terminate)?;
-                    },
-                },
-                ServerMsg::InitialSync { .. } => return Err(Error::ServerWentMad),
-                ServerMsg::PlayerListUpdate(PlayerListUpdate::Init(list)) => {
-                    self.player_list = list
-                },
-                ServerMsg::PlayerListUpdate(PlayerListUpdate::Add(uid, player_info)) => {
-                    if let Some(old_player_info) = self.player_list.insert(uid, player_info.clone())
-                    {
-                        warn!(
-                            "Received msg to insert {} with uid {} into the player list but there \
-                             was already an entry for {} with the same uid that was overwritten!",
-                            player_info.player_alias, uid, old_player_info.player_alias
-                        );
-                    }
-                },
-                ServerMsg::PlayerListUpdate(PlayerListUpdate::Admin(uid, admin)) => {
-                    if let Some(player_info) = self.player_list.get_mut(&uid) {
-                        player_info.is_admin = admin;
-                    } else {
-                        warn!(
-                            "Received msg to update admin status of uid {}, but they were not in \
-                             the list.",
-                            uid
-                        );
-                    }
-                },
-                ServerMsg::PlayerListUpdate(PlayerListUpdate::SelectedCharacter(
-                    uid,
-                    char_info,
-                )) => {
-                    if let Some(player_info) = self.player_list.get_mut(&uid) {
-                        player_info.character = Some(char_info);
-                    } else {
-                        warn!(
-                            "Received msg to update character info for uid {}, but they were not \
-                             in the list.",
-                            uid
-                        );
-                    }
-                },
-                ServerMsg::PlayerListUpdate(PlayerListUpdate::LevelChange(uid, next_level)) => {
-                    if let Some(player_info) = self.player_list.get_mut(&uid) {
-                        player_info.character = match &player_info.character {
-                            Some(character) => Some(common::msg::CharacterInfo {
-                                name: character.name.to_string(),
-                                level: next_level,
-                            }),
-                            None => {
-                                warn!(
-                                    "Received msg to update character level info to {} for uid \
-                                     {}, but this player's character is None.",
-                                    next_level, uid
-                                );
-
-                                None
-                            },
-                        };
-                    }
-                },
-                ServerMsg::PlayerListUpdate(PlayerListUpdate::Remove(uid)) => {
-                    // Instead of removing players, mark them as offline because we need to
-                    // remember the names of disconnected players in chat.
-                    //
-                    // TODO the server should re-use uids of players that log out and log back
-                    // in.
-
-                    if let Some(player_info) = self.player_list.get_mut(&uid) {
-                        if player_info.is_online {
-                            player_info.is_online = false;
-                        } else {
-                            warn!(
-                                "Received msg to remove uid {} from the player list by they were \
-                                 already marked offline",
-                                uid
-                            );
-                        }
-                    } else {
-                        warn!(
-                            "Received msg to remove uid {} from the player list by they weren't \
-                             in the list!",
-                            uid
-                        );
-                    }
-                },
-                ServerMsg::PlayerListUpdate(PlayerListUpdate::Alias(uid, new_name)) => {
-                    if let Some(player_info) = self.player_list.get_mut(&uid) {
-                        player_info.player_alias = new_name;
-                    } else {
-                        warn!(
-                            "Received msg to alias player with uid {} to {} but this uid is not \
-                             in the player list",
-                            uid, new_name
-                        );
-                    }
-                },
-                ServerMsg::GroupUpdate(change_notification) => {
-                    use comp::group::ChangeNotification::*;
-                    // Note: we use a hashmap since this would not work with entities outside
-                    // the view distance
-                    match change_notification {
-                        Added(uid, role) => {
-                            // Check if this is a newly formed group by looking for absence of
-                            // other non pet group members
-                            if !matches!(role, group::Role::Pet)
-                                && !self
-                                    .group_members
-                                    .values()
-                                    .any(|r| !matches!(r, group::Role::Pet))
-                            {
-                                frontend_events.push(Event::Chat(comp::ChatType::Meta.chat_msg(
-                                    "Type /g or /group to chat with your group members",
-                                )));
-                            }
-                            if let Some(player_info) = self.player_list.get(&uid) {
-                                frontend_events.push(Event::Chat(
-                                    comp::ChatType::GroupMeta("Group".into()).chat_msg(format!(
-                                        "[{}] joined group",
-                                        self.personalize_alias(
-                                            uid,
-                                            player_info.player_alias.clone()
-                                        )
-                                    )),
-                                ));
-                            }
-                            if self.group_members.insert(uid, role) == Some(role) {
-                                warn!(
-                                    "Received msg to add uid {} to the group members but they \
-                                     were already there",
-                                    uid
-                                );
-                            }
-                        },
-                        Removed(uid) => {
-                            if let Some(player_info) = self.player_list.get(&uid) {
-                                frontend_events.push(Event::Chat(
-                                    comp::ChatType::GroupMeta("Group".into()).chat_msg(format!(
-                                        "[{}] left group",
-                                        self.personalize_alias(
-                                            uid,
-                                            player_info.player_alias.clone()
-                                        )
-                                    )),
-                                ));
-                            }
-                            if self.group_members.remove(&uid).is_none() {
-                                warn!(
-                                    "Received msg to remove uid {} from group members but by they \
-                                     weren't in there!",
-                                    uid
-                                );
-                            }
-                        },
-                        NewLeader(leader) => {
-                            self.group_leader = Some(leader);
-                        },
-                        NewGroup { leader, members } => {
-                            self.group_leader = Some(leader);
-                            self.group_members = members.into_iter().collect();
-                            // Currently add/remove messages treat client as an implicit member
-                            // of the group whereas this message explicitly includes them so to
-                            // be consistent for now we will remove the client from the
-                            // received hashset
-                            if let Some(uid) = self.uid() {
-                                self.group_members.remove(&uid);
-                            }
-                        },
-                        NoGroup => {
-                            self.group_leader = None;
-                            self.group_members = HashMap::new();
-                        },
-                    }
-                },
-                ServerMsg::GroupInvite { inviter, timeout } => {
-                    self.group_invite = Some((inviter, std::time::Instant::now(), timeout));
-                },
-                ServerMsg::InvitePending(uid) => {
-                    if !self.pending_invites.insert(uid) {
-                        warn!("Received message about pending invite that was already pending");
-                    }
-                },
-                ServerMsg::InviteComplete { target, answer } => {
-                    if !self.pending_invites.remove(&target) {
-                        warn!(
-                            "Received completed invite message for invite that was not in the \
-                             list of pending invites"
-                        )
-                    }
-                    // TODO: expose this as a new event variant instead of going
-                    // through the chat
-                    let msg = match answer {
-                        // TODO: say who accepted/declined/timed out the invite
-                        InviteAnswer::Accepted => "Invite accepted",
-                        InviteAnswer::Declined => "Invite declined",
-                        InviteAnswer::TimedOut => "Invite timed out",
-                    };
-                    frontend_events.push(Event::Chat(comp::ChatType::Meta.chat_msg(msg)));
-                },
-                ServerMsg::Ping => {
-                    self.singleton_stream.send(ClientMsg::Pong)?;
-                },
-                ServerMsg::Pong => {
-                    self.last_server_pong = self.state.get_time();
-                    self.last_ping_delta = self.state.get_time() - self.last_server_ping;
-
-                    // Maintain the correct number of deltas for calculating the rolling average
-                    // ping. The client sends a ping to the server every second so we should be
-                    // receiving a pong reply roughly every second.
-                    while self.ping_deltas.len() > PING_ROLLING_AVERAGE_SECS - 1 {
-                        self.ping_deltas.pop_front();
-                    }
-                    self.ping_deltas.push_back(self.last_ping_delta);
-                },
-                ServerMsg::ChatMsg(m) => frontend_events.push(Event::Chat(m)),
-                ServerMsg::SetPlayerEntity(uid) => {
-                    if let Some(entity) = self.state.ecs().entity_from_uid(uid.0) {
-                        self.entity = entity;
-                    } else {
-                        return Err(Error::Other("Failed to find entity from uid.".to_owned()));
-                    }
-                },
-                ServerMsg::TimeOfDay(time_of_day) => {
-                    *self.state.ecs_mut().write_resource() = time_of_day;
-                },
-                ServerMsg::EntitySync(entity_sync_package) => {
-                    self.state
-                        .ecs_mut()
-                        .apply_entity_sync_package(entity_sync_package);
-                },
-                ServerMsg::CompSync(comp_sync_package) => {
-                    self.state
-                        .ecs_mut()
-                        .apply_comp_sync_package(comp_sync_package);
-                },
-                ServerMsg::CreateEntity(entity_package) => {
-                    self.state.ecs_mut().apply_entity_package(entity_package);
-                },
-                ServerMsg::DeleteEntity(entity) => {
-                    if self.uid() != Some(entity) {
-                        self.state
-                            .ecs_mut()
-                            .delete_entity_and_clear_from_uid_allocator(entity.0);
-                    }
-                },
-                // Cleanup for when the client goes back to the `Registered` state
-                ServerMsg::ExitIngameCleanup => {
-                    self.clean_state();
-                },
-                ServerMsg::InventoryUpdate(mut inventory, event) => {
-                    match event {
-                        InventoryUpdateEvent::CollectFailed => {},
-                        _ => {
-                            inventory.recount_items();
-                            // Push the updated inventory component to the client
-                            self.state.write_component(self.entity, inventory);
-                        },
-                    }
-
-                    self.update_available_recipes();
-
-                    frontend_events.push(Event::InventoryUpdated(event));
-                },
-                ServerMsg::TerrainChunkUpdate { key, chunk } => {
-                    if let Ok(chunk) = chunk {
-                        self.state.insert_chunk(key, *chunk);
-                    }
-                    self.pending_chunks.remove(&key);
-                },
-                ServerMsg::TerrainBlockUpdates(mut blocks) => {
-                    blocks.drain().for_each(|(pos, block)| {
-                        self.state.set_block(pos, block);
-                    });
-                },
-                ServerMsg::StateAnswer(Ok(state)) => {
-                    self.client_state = state;
-                },
-                ServerMsg::StateAnswer(Err((error, state))) => {
-                    warn!(
-                        "StateAnswer: {:?}. Server thinks client is in state {:?}.",
-                        error, state
-                    );
-                },
-                ServerMsg::CharacterListUpdate(character_list) => {
-                    self.character_list.characters = character_list;
-                    self.character_list.loading = false;
-                },
-                ServerMsg::CharacterActionError(error) => {
-                    warn!("CharacterActionError: {:?}.", error);
-                    self.character_list.error = Some(error);
-                },
-                ServerMsg::Notification(n) => {
-                    frontend_events.push(Event::Notification(n));
-                },
-                ServerMsg::CharacterDataLoadError(error) => {
-                    self.clean_state();
-                    self.character_list.error = Some(error);
-                },
-                ServerMsg::SetViewDistance(vd) => {
-                    self.view_distance = Some(vd);
-                    frontend_events.push(Event::SetViewDistance(vd));
-                },
-                ServerMsg::Outcomes(outcomes) => {
-                    frontend_events.extend(outcomes.into_iter().map(Event::Outcome))
-                },
-                ServerMsg::Knockback(impulse) => {
-                    self.state
-                        .ecs()
-                        .read_resource::<EventBus<LocalEvent>>()
-                        .emit_now(LocalEvent::ApplyImpulse {
-                            entity: self.entity,
-                            impulse,
-                        });
-                },
+            if let Some(msg) = m1 {
+                self.handle_server_msg(frontend_events, msg)?;
+            }
+            if let Some(msg) = m2 {
+                self.handle_ping_msg(msg)?;
+            }
+            if let Some(msg) = m3 {
+                self.handle_server_not_in_game_msg(msg)?;
+            }
+            if let Some(msg) = m4 {
+                self.handle_server_in_game_msg(frontend_events, msg)?;
             }
         }
     }
@@ -1484,7 +1497,7 @@ impl Client {
             //TIMEOUT 0.01 ms for msg handling
             select!(
                 _ = Delay::new(std::time::Duration::from_micros(10)).fuse() => Ok(()),
-                err = self.handle_message(&mut frontend_events, &mut handles_msg).fuse() => err,
+                err = self.handle_messages(&mut frontend_events, &mut handles_msg).fuse() => err,
             )
         })?;
 
@@ -1503,8 +1516,11 @@ impl Client {
     /// Get the player's Uid.
     pub fn uid(&self) -> Option<Uid> { self.state.read_component_copied(self.entity) }
 
-    /// Get the client state
-    pub fn get_client_state(&self) -> ClientState { self.client_state }
+    pub fn get_client_type(&self) -> ClientType { ClientType::Game }
+
+    pub fn get_in_game(&self) -> Option<ClientIngame> { self.client_ingame }
+
+    pub fn get_registered(&self) -> bool { self.registered }
 
     /// Get the current tick number.
     pub fn get_tick(&self) -> u64 { self.tick }

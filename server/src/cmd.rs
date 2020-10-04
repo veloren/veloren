@@ -12,7 +12,7 @@ use common::{
     cmd::{ChatCommand, CHAT_COMMANDS, CHAT_SHORTCUTS},
     comp::{self, ChatType, Item, LightEmitter, WaypointArea},
     event::{EventBus, ServerEvent},
-    msg::{DisconnectReason, Notification, PlayerListUpdate, ServerMsg},
+    msg::{DisconnectReason, Notification, PlayerListUpdate, ServerInGameMsg, ServerMsg},
     npc::{self, get_npc_name},
     state::TimeOfDay,
     sync::{Uid, WorldSyncExt},
@@ -667,7 +667,9 @@ fn handle_spawn(
                                                     .try_map(|e| uids.get(e).copied())
                                                     .map(|g| (g, c))
                                             })
-                                            .map(|(g, c)| c.notify(ServerMsg::GroupUpdate(g)));
+                                            .map(|(g, c)| {
+                                                c.send_in_game(ServerInGameMsg::GroupUpdate(g))
+                                            });
                                     },
                                 );
                             } else if let Some(group) = match alignment {

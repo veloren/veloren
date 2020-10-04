@@ -5,7 +5,10 @@ use common::{
     character::CharacterId,
     comp,
     effect::Effect,
-    msg::{CharacterInfo, ClientState, PlayerListUpdate, ServerMsg},
+    msg::{
+        CharacterInfo, ClientIngame, PlayerListUpdate, ServerInGameMsg, ServerMsg,
+        ServerNotInGameMsg,
+    },
     state::State,
     sync::{Uid, UidAllocator, WorldSyncExt},
     util::Dir,
@@ -216,7 +219,8 @@ impl StateExt for State {
 
         // Tell the client its request was successful.
         if let Some(client) = self.ecs().write_storage::<Client>().get_mut(entity) {
-            client.allow_state(ClientState::Character);
+            client.in_game = Some(ClientIngame::Character);
+            client.send_not_in_game(ServerNotInGameMsg::CharacterSuccess)
         }
     }
 
@@ -282,7 +286,7 @@ impl StateExt for State {
                     .join()
                 {
                     if uid == u || uid == t {
-                        client.notify(ServerMsg::ChatMsg(resolved_msg.clone()));
+                        client.send_msg(ServerMsg::ChatMsg(resolved_msg.clone()));
                     }
                 }
             },
@@ -294,7 +298,7 @@ impl StateExt for State {
                 if let Some(speaker_pos) = entity_opt.and_then(|e| positions.get(e)) {
                     for (client, pos) in (&mut ecs.write_storage::<Client>(), &positions).join() {
                         if is_within(comp::ChatMsg::SAY_DISTANCE, pos, speaker_pos) {
-                            client.notify(ServerMsg::ChatMsg(resolved_msg.clone()));
+                            client.send_msg(ServerMsg::ChatMsg(resolved_msg.clone()));
                         }
                     }
                 }
@@ -306,7 +310,7 @@ impl StateExt for State {
                 if let Some(speaker_pos) = entity_opt.and_then(|e| positions.get(e)) {
                     for (client, pos) in (&mut ecs.write_storage::<Client>(), &positions).join() {
                         if is_within(comp::ChatMsg::REGION_DISTANCE, pos, speaker_pos) {
-                            client.notify(ServerMsg::ChatMsg(resolved_msg.clone()));
+                            client.send_msg(ServerMsg::ChatMsg(resolved_msg.clone()));
                         }
                     }
                 }
@@ -318,7 +322,7 @@ impl StateExt for State {
                 if let Some(speaker_pos) = entity_opt.and_then(|e| positions.get(e)) {
                     for (client, pos) in (&mut ecs.write_storage::<Client>(), &positions).join() {
                         if is_within(comp::ChatMsg::NPC_DISTANCE, pos, speaker_pos) {
-                            client.notify(ServerMsg::ChatMsg(resolved_msg.clone()));
+                            client.send_msg(ServerMsg::ChatMsg(resolved_msg.clone()));
                         }
                     }
                 }
@@ -332,7 +336,7 @@ impl StateExt for State {
                     .join()
                 {
                     if s == &faction.0 {
-                        client.notify(ServerMsg::ChatMsg(resolved_msg.clone()));
+                        client.send_msg(ServerMsg::ChatMsg(resolved_msg.clone()));
                     }
                 }
             },
@@ -344,7 +348,7 @@ impl StateExt for State {
                     .join()
                 {
                     if g == group {
-                        client.notify(ServerMsg::ChatMsg(resolved_msg.clone()));
+                        client.send_msg(ServerMsg::ChatMsg(resolved_msg.clone()));
                     }
                 }
             },
@@ -355,9 +359,9 @@ impl StateExt for State {
     fn notify_registered_clients(&self, msg: ServerMsg) {
         for client in (&mut self.ecs().write_storage::<Client>())
             .join()
-            .filter(|c| c.is_registered())
+            .filter(|c| c.registered)
         {
-            client.notify(msg.clone());
+            client.send_msg(msg.clone());
         }
     }
 
@@ -384,7 +388,7 @@ impl StateExt for State {
                                 .try_map(|e| uids.get(e).copied())
                                 .map(|g| (g, c))
                         })
-                        .map(|(g, c)| c.notify(ServerMsg::GroupUpdate(g)));
+                        .map(|(g, c)| c.send_in_game(ServerInGameMsg::GroupUpdate(g)));
                 },
             );
         }

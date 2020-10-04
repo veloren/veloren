@@ -2,7 +2,7 @@ use super::SysTimer;
 use crate::client::Client;
 use common::{
     comp::{Player, Pos},
-    msg::ServerMsg,
+    msg::ServerInGameMsg,
     span,
     state::TerrainChanges,
     terrain::TerrainGrid,
@@ -38,7 +38,7 @@ impl<'a> System<'a> for Sys {
                     .map(|vd| super::terrain::chunk_in_vd(pos.0, *chunk_key, &terrain, vd))
                     .unwrap_or(false)
                 {
-                    client.notify(ServerMsg::TerrainChunkUpdate {
+                    client.send_in_game(ServerInGameMsg::TerrainChunkUpdate {
                         key: *chunk_key,
                         chunk: Ok(Box::new(match terrain.get_key(*chunk_key) {
                             Some(chunk) => chunk.clone(),
@@ -51,10 +51,10 @@ impl<'a> System<'a> for Sys {
 
         // TODO: Don't send all changed blocks to all clients
         // Sync changed blocks
-        let msg = ServerMsg::TerrainBlockUpdates(terrain_changes.modified_blocks.clone());
+        let msg = ServerInGameMsg::TerrainBlockUpdates(terrain_changes.modified_blocks.clone());
         for (player, client) in (&players, &mut clients).join() {
             if player.view_distance.is_some() {
-                client.notify(msg.clone());
+                client.send_in_game(msg.clone());
             }
         }
 

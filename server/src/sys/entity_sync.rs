@@ -8,7 +8,7 @@ use crate::{
 };
 use common::{
     comp::{ForceUpdate, Inventory, InventoryUpdate, Last, Ori, Player, Pos, Vel},
-    msg::ServerMsg,
+    msg::{ServerInGameMsg, ServerMsg},
     outcome::Outcome,
     region::{Event as RegionEvent, RegionMap},
     span,
@@ -107,7 +107,7 @@ impl<'a> System<'a> for Sys {
             let mut subscribers = (&mut clients, &entities, &subscriptions, &positions)
                 .join()
                 .filter_map(|(client, entity, subscription, pos)| {
-                    if client.is_ingame() && subscription.regions.contains(&key) {
+                    if client.in_game.is_some() && subscription.regions.contains(&key) {
                         Some((client, &subscription.regions, entity, *pos))
                     } else {
                         None
@@ -143,7 +143,7 @@ impl<'a> System<'a> for Sys {
                                     // Client doesn't need to know about itself
                                     && *client_entity != entity
                                 {
-                                    client.notify(create_msg.clone());
+                                    client.send_msg(create_msg.clone());
                                 }
                             }
                         }
@@ -157,7 +157,7 @@ impl<'a> System<'a> for Sys {
                                     .map(|key| !regions.contains(key))
                                     .unwrap_or(true)
                                 {
-                                    client.notify(ServerMsg::DeleteEntity(uid));
+                                    client.send_msg(ServerMsg::DeleteEntity(uid));
                                 }
                             }
                         }
@@ -177,8 +177,8 @@ impl<'a> System<'a> for Sys {
             let entity_sync_msg = ServerMsg::EntitySync(entity_sync_package);
             let comp_sync_msg = ServerMsg::CompSync(comp_sync_package);
             subscribers.iter_mut().for_each(move |(client, _, _, _)| {
-                client.notify(entity_sync_msg.clone());
-                client.notify(comp_sync_msg.clone());
+                client.send_msg(entity_sync_msg.clone());
+                client.send_msg(comp_sync_msg.clone());
             });
 
             let mut send_msg = |msg: ServerMsg,
@@ -212,7 +212,7 @@ impl<'a> System<'a> for Sys {
                             true // Closer than 100 blocks
                         }
                     } {
-                        client.notify(msg.clone());
+                        client.send_msg(msg.clone());
                     }
                 }
             };
@@ -303,7 +303,7 @@ impl<'a> System<'a> for Sys {
                 (&mut clients, &subscriptions)
                     .join()
                     .filter_map(|(client, subscription)| {
-                        if client.is_ingame() && subscription.regions.contains(&region_key) {
+                        if client.in_game.is_some() && subscription.regions.contains(&region_key) {
                             Some(client)
                         } else {
                             None
@@ -311,7 +311,7 @@ impl<'a> System<'a> for Sys {
                     })
             {
                 for uid in &deleted {
-                    client.notify(ServerMsg::DeleteEntity(Uid(*uid)));
+                    client.send_msg(ServerMsg::DeleteEntity(Uid(*uid)));
                 }
             }
         }
@@ -320,7 +320,7 @@ impl<'a> System<'a> for Sys {
 
         // Sync inventories
         for (client, inventory, update) in (&mut clients, &inventories, &inventory_updates).join() {
-            client.notify(ServerMsg::InventoryUpdate(
+            client.send_in_game(ServerInGameMsg::InventoryUpdate(
                 inventory.clone(),
                 update.event(),
             ));
@@ -341,7 +341,7 @@ impl<'a> System<'a> for Sys {
                 .cloned()
                 .collect::<Vec<_>>();
             if !outcomes.is_empty() {
-                client.notify(ServerMsg::Outcomes(outcomes));
+                client.send_in_game(ServerInGameMsg::Outcomes(outcomes));
             }
         }
         outcomes.clear();
@@ -355,7 +355,7 @@ impl<'a> System<'a> for Sys {
         // system?)
         let tof_msg = ServerMsg::TimeOfDay(*time_of_day);
         for client in (&mut clients).join() {
-            client.notify(tof_msg.clone());
+            client.send_msg(tof_msg.clone());
         }
 
         timer.end();

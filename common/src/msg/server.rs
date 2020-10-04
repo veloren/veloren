@@ -1,4 +1,4 @@
-use super::{ClientState, EcsCompPacket};
+use super::EcsCompPacket;
 use crate::{
     character::CharacterItem,
     comp,
@@ -192,25 +192,37 @@ pub enum DisconnectReason {
     Kicked(String),
 }
 
-/// Messages sent from the server to the client
+/// Reponse To ClientType
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum ServerMsg {
-    InitialSync {
+pub enum ServerInitMsg {
+    TooManyPlayers,
+    GameSync {
         entity_package: sync::EntityPackage<EcsCompPacket>,
-        server_info: ServerInfo,
         time_of_day: state::TimeOfDay,
         max_group_size: u32,
         client_timeout: Duration,
         world_map: WorldMapMsg,
         recipe_book: RecipeBook,
     },
+}
+
+pub type ServerRegisterAnswerMsg = Result<(), RegisterError>;
+
+//Messages only allowed while client ingame
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum ServerNotInGameMsg {
     /// An error occurred while loading character data
     CharacterDataLoadError(String),
     /// A list of characters belonging to the a authenticated player was sent
     CharacterListUpdate(Vec<CharacterItem>),
     /// An error occurred while creating or deleting a character
     CharacterActionError(String),
-    PlayerListUpdate(PlayerListUpdate),
+    CharacterSuccess,
+}
+
+//Messages only allowed while client ingame
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum ServerInGameMsg {
     GroupUpdate(comp::group::ChangeNotification<sync::Uid>),
     // Indicate to the client that they are invited to join a group
     GroupInvite {
@@ -227,12 +239,24 @@ pub enum ServerMsg {
         target: sync::Uid,
         answer: InviteAnswer,
     },
-    StateAnswer(Result<ClientState, (RequestStateError, ClientState)>),
     /// Trigger cleanup for when the client goes back to the `Registered` state
     /// from an ingame state
-    ExitIngameCleanup,
-    Ping,
-    Pong,
+    ExitInGameSuccess,
+    InventoryUpdate(comp::Inventory, comp::InventoryUpdateEvent),
+    TerrainChunkUpdate {
+        key: Vec2<i32>,
+        chunk: Result<Box<TerrainChunk>, ()>,
+    },
+    TerrainBlockUpdates(HashMap<Vec3<i32>, Block>),
+    SetViewDistance(u32),
+    Outcomes(Vec<Outcome>),
+    Knockback(Vec3<f32>),
+}
+
+/// Messages sent from the server to the client
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum ServerMsg {
+    PlayerListUpdate(PlayerListUpdate),
     /// A message to go into the client chat box. The client is responsible for
     /// formatting the message and turning it into a speech bubble.
     ChatMsg(comp::ChatMsg),
@@ -242,28 +266,9 @@ pub enum ServerMsg {
     CompSync(sync::CompSyncPackage<EcsCompPacket>),
     CreateEntity(sync::EntityPackage<EcsCompPacket>),
     DeleteEntity(Uid),
-    InventoryUpdate(comp::Inventory, comp::InventoryUpdateEvent),
-    TerrainChunkUpdate {
-        key: Vec2<i32>,
-        chunk: Result<Box<TerrainChunk>, ()>,
-    },
-    TerrainBlockUpdates(HashMap<Vec3<i32>, Block>),
     Disconnect(DisconnectReason),
-    TooManyPlayers,
     /// Send a popup notification such as "Waypoint Saved"
     Notification(Notification),
-    SetViewDistance(u32),
-    Outcomes(Vec<Outcome>),
-    Knockback(Vec3<f32>),
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub enum RequestStateError {
-    RegisterDenied(RegisterError),
-    Denied,
-    Already,
-    Impossible,
-    WrongMessage,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

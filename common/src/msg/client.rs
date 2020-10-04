@@ -7,13 +7,26 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use vek::*;
 
-/// Messages sent from the client to the server
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum ClientMsg {
-    Register {
-        view_distance: Option<u32>,
-        token_or_username: String,
-    },
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub enum ClientType {
+    // Regular Client like Voxygen who plays the game
+    Game,
+    // A Chatonly client, which doesn't want to connect via its character
+    ChatOnly,
+    // A unprivileged bot, e.g. to request world information
+    // Or a privileged bot, e.g. to run admin commands used by server-cli
+    Bot { privileged: bool },
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ClientRegisterMsg {
+    pub view_distance: Option<u32>,
+    pub token_or_username: String,
+}
+
+//messages send by clients only valid when NOT ingame
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum ClientNotInGameMsg {
     RequestCharacterList,
     CreateCharacter {
         alias: String,
@@ -22,20 +35,19 @@ pub enum ClientMsg {
     },
     DeleteCharacter(CharacterId),
     Character(CharacterId),
-    /// Request `ClientState::Registered` from an ingame state
-    ExitIngame,
-    /// Request `ClientState::Spectator` from a registered or ingame state
     Spectate,
+}
+
+//messages send by clients only valid when ingame
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum ClientInGameMsg {
     ControllerInputs(comp::ControllerInputs),
     ControlEvent(comp::ControlEvent),
     ControlAction(comp::ControlAction),
     SetViewDistance(u32),
     BreakBlock(Vec3<i32>),
     PlaceBlock(Vec3<i32>, Block),
-    Ping,
-    Pong,
-    /// Send the chat message or command to be processed by the server
-    ChatMsg(String),
+    ExitInGame,
     PlayerPhysics {
         pos: comp::Pos,
         vel: comp::Vel,
@@ -44,9 +56,16 @@ pub enum ClientMsg {
     TerrainChunkRequest {
         key: Vec2<i32>,
     },
-    Disconnect,
-    Terminate,
     UnlockSkill(Skill),
     RefundSkill(Skill),
     UnlockSkillGroup(SkillGroupType),
+}
+
+/// Messages sent from the client to the server
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum ClientMsg {
+    ChatMsg(String),
+    Command(String),
+    Disconnect,
+    Terminate,
 }

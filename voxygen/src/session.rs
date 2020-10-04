@@ -20,7 +20,6 @@ use common::{
         MAX_PICKUP_RANGE_SQR,
     },
     event::EventBus,
-    msg::ClientState,
     outcome::Outcome,
     span,
     terrain::{Block, BlockKind},
@@ -213,8 +212,11 @@ impl PlayState for SessionState {
 
         // TODO: can this be a method on the session or are there borrowcheck issues?
 
-        let client_state = self.client.borrow().get_client_state();
-        if let ClientState::Pending | ClientState::Character = client_state {
+        let (client_in_game, client_registered) = {
+            let client = self.client.borrow();
+            (client.get_in_game(), client.get_registered())
+        };
+        if client_in_game.is_none() {
             // Update MyEntity
             // Note: Alternatively, the client could emit an event when the entity changes
             // which may or may not be more elegant
@@ -1088,7 +1090,7 @@ impl PlayState for SessionState {
             self.cleanup();
 
             PlayStateResult::Continue
-        } else if let ClientState::Registered = client_state {
+        } else if client_registered && client_in_game.is_none() {
             PlayStateResult::Switch(Box::new(CharSelectionState::new(
                 global_state,
                 Rc::clone(&self.client),

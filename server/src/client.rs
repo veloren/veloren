@@ -1,20 +1,30 @@
 use crate::error::Error;
-use common::msg::{ClientMsg, ClientState, RequestStateError, ServerMsg};
+use common::msg::{
+    ClientInGameMsg, ClientIngame, ClientMsg, ClientNotInGameMsg, ClientType, PingMsg,
+    ServerInGameMsg, ServerInitMsg, ServerMsg, ServerNotInGameMsg,
+};
 use hashbrown::HashSet;
-use network::{Participant, Stream};
+use network::{MessageBuffer, Participant, Stream};
+use serde::{de::DeserializeOwned, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::sync::{
     atomic::{AtomicBool, Ordering},
-    Mutex,
+    Arc, Mutex,
 };
 use tracing::debug;
 use vek::*;
 
 pub struct Client {
-    pub client_state: ClientState,
+    pub registered: bool,
+    pub client_type: ClientType,
+    pub in_game: Option<ClientIngame>,
     pub participant: Mutex<Option<Participant>>,
     pub singleton_stream: Stream,
+    pub ping_stream: Stream,
+    pub register_stream: Stream,
+    pub in_game_stream: Stream,
+    pub not_in_game_stream: Stream,
     pub network_error: AtomicBool,
     pub last_ping: f64,
     pub login_msg_sent: bool,
@@ -25,22 +35,58 @@ impl Component for Client {
 }
 
 impl Client {
-    pub fn notify(&mut self, msg: ServerMsg) {
-        if !self.network_error.load(Ordering::Relaxed) {
-            if let Err(e) = self.singleton_stream.send(msg) {
+    fn internal_send<M: Serialize>(b: &AtomicBool, s: &mut Stream, msg: M) {
+        if !b.load(Ordering::Relaxed) {
+            if let Err(e) = s.send(msg) {
                 debug!(?e, "got a network error with client");
-                self.network_error.store(true, Ordering::Relaxed);
+                b.store(true, Ordering::Relaxed);
             }
         }
     }
 
-    pub async fn recv(&mut self) -> Result<ClientMsg, Error> {
-        if !self.network_error.load(Ordering::Relaxed) {
-            match self.singleton_stream.recv().await {
+    fn internal_send_raw(b: &AtomicBool, s: &mut Stream, msg: Arc<MessageBuffer>) {
+        if !b.load(Ordering::Relaxed) {
+            if let Err(e) = s.send_raw(msg) {
+                debug!(?e, "got a network error with client");
+                b.store(true, Ordering::Relaxed);
+            }
+        }
+    }
+
+    pub fn send_init(&mut self, msg: ServerInitMsg) {
+        Self::internal_send(&self.network_error, &mut self.register_stream, msg);
+    }
+
+    pub fn send_msg(&mut self, msg: ServerMsg) {
+        Self::internal_send(&self.network_error, &mut self.singleton_stream, msg);
+    }
+
+    pub fn send_in_game(&mut self, msg: ServerInGameMsg) {
+        Self::internal_send(&self.network_error, &mut self.in_game_stream, msg);
+    }
+
+    pub fn send_not_in_game(&mut self, msg: ServerNotInGameMsg) {
+        Self::internal_send(&self.network_error, &mut self.not_in_game_stream, msg);
+    }
+
+    pub fn send_ping(&mut self, msg: PingMsg) {
+        Self::internal_send(&self.network_error, &mut self.ping_stream, msg);
+    }
+
+    pub fn send_msg_raw(&mut self, msg: Arc<MessageBuffer>) {
+        Self::internal_send_raw(&self.network_error, &mut self.singleton_stream, msg);
+    }
+
+    pub async fn internal_recv<M: DeserializeOwned>(
+        b: &AtomicBool,
+        s: &mut Stream,
+    ) -> Result<M, Error> {
+        if !b.load(Ordering::Relaxed) {
+            match s.recv().await {
                 Ok(r) => Ok(r),
                 Err(e) => {
                     debug!(?e, "got a network error with client while recv");
-                    self.network_error.store(true, Ordering::Relaxed);
+                    b.store(true, Ordering::Relaxed);
                     Err(Error::StreamErr(e))
                 },
             }
@@ -49,29 +95,20 @@ impl Client {
         }
     }
 
-    pub fn is_registered(&self) -> bool {
-        matches!(
-            self.client_state,
-            ClientState::Registered | ClientState::Spectator | ClientState::Character
-        )
+    pub async fn recv_msg(&mut self) -> Result<ClientMsg, Error> {
+        Self::internal_recv(&self.network_error, &mut self.singleton_stream).await
     }
 
-    pub fn is_ingame(&self) -> bool {
-        matches!(
-            self.client_state,
-            ClientState::Spectator | ClientState::Character
-        )
+    pub async fn recv_in_game_msg(&mut self) -> Result<ClientInGameMsg, Error> {
+        Self::internal_recv(&self.network_error, &mut self.in_game_stream).await
     }
 
-    pub fn allow_state(&mut self, new_state: ClientState) {
-        self.client_state = new_state;
-        let _ = self
-            .singleton_stream
-            .send(ServerMsg::StateAnswer(Ok(new_state)));
+    pub async fn recv_not_in_game_msg(&mut self) -> Result<ClientNotInGameMsg, Error> {
+        Self::internal_recv(&self.network_error, &mut self.not_in_game_stream).await
     }
 
-    pub fn error_state(&mut self, error: RequestStateError) {
-        let _ = self.notify(ServerMsg::StateAnswer(Err((error, self.client_state))));
+    pub async fn recv_ping_msg(&mut self) -> Result<PingMsg, Error> {
+        Self::internal_recv(&self.network_error, &mut self.ping_stream).await
     }
 }
 

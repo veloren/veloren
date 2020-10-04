@@ -44,7 +44,10 @@ use common::{
     cmd::ChatCommand,
     comp::{self, ChatType},
     event::{EventBus, ServerEvent},
-    msg::{server::WorldMapMsg, ClientState, DisconnectReason, ServerInfo, ServerMsg},
+    msg::{
+        server::WorldMapMsg, ClientType, DisconnectReason, ServerInGameMsg, ServerInfo,
+        ServerInitMsg, ServerMsg, ServerNotInGameMsg,
+    },
     outcome::Outcome,
     recipe::default_recipe_book,
     state::{State, TimeOfDay},
@@ -56,7 +59,7 @@ use futures_executor::block_on;
 use futures_timer::Delay;
 use futures_util::{select, FutureExt};
 use metrics::{ServerMetrics, StateTickMetrics, TickMetrics};
-use network::{Network, Pid, ProtocolAddr};
+use network::{Network, Pid, Promises, ProtocolAddr};
 use persistence::{
     character_loader::{CharacterLoader, CharacterLoaderResponseType},
     character_updater::CharacterUpdater,
@@ -70,7 +73,7 @@ use std::{
 };
 #[cfg(not(feature = "worldgen"))]
 use test_world::{IndexOwned, World};
-use tracing::{debug, error, info, warn};
+use tracing::{debug, error, info, trace};
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 #[cfg(feature = "worldgen")]
@@ -521,13 +524,13 @@ impl Server {
             .messages()
             .for_each(|query_result| match query_result.result {
                 CharacterLoaderResponseType::CharacterList(result) => match result {
-                    Ok(character_list_data) => self.notify_client(
+                    Ok(character_list_data) => self.notify_not_in_game_client(
                         query_result.entity,
-                        ServerMsg::CharacterListUpdate(character_list_data),
+                        ServerNotInGameMsg::CharacterListUpdate(character_list_data),
                     ),
-                    Err(error) => self.notify_client(
+                    Err(error) => self.notify_not_in_game_client(
                         query_result.entity,
-                        ServerMsg::CharacterActionError(error.to_string()),
+                        ServerNotInGameMsg::CharacterActionError(error.to_string()),
                     ),
                 },
                 CharacterLoaderResponseType::CharacterData(result) => {
@@ -540,9 +543,9 @@ impl Server {
                             // We failed to load data for the character from the DB. Notify the
                             // client to push the state back to character selection, with the error
                             // to display
-                            self.notify_client(
+                            self.notify_not_in_game_client(
                                 query_result.entity,
-                                ServerMsg::CharacterDataLoadError(error.to_string()),
+                                ServerNotInGameMsg::CharacterDataLoadError(error.to_string()),
                             );
 
                             // Clean up the entity data on the server
@@ -797,7 +800,6 @@ impl Server {
     ) -> Result<(), Error> {
         //TIMEOUT 0.1 ms for msg handling
         const TIMEOUT: Duration = Duration::from_micros(100);
-        const SLOWLORIS_TIMEOUT: Duration = Duration::from_millis(300);
         loop {
             let participant = match select!(
                 _ = Delay::new(TIMEOUT).fuse() => None,
@@ -807,71 +809,77 @@ impl Server {
                 Some(pr) => pr?,
             };
             debug!("New Participant connected to the server");
+            let reliable = Promises::ORDERED | Promises::CONSISTENCY;
+            let reliablec = reliable | Promises::COMPRESSED;
 
-            let singleton_stream = match select!(
-                _ = Delay::new(SLOWLORIS_TIMEOUT).fuse() => None,
-                sr = participant.opened().fuse() => Some(sr),
-            ) {
-                None => {
-                    warn!("Either Slowloris attack or very slow client, dropping");
-                    return Ok(()); //return rather then continue to give removes a tick more to send data.
-                },
-                Some(Ok(s)) => s,
-                Some(Err(e)) => {
-                    warn!(?e, "Failed to open a Stream from remote client. dropping");
-                    continue;
-                },
-            };
+            let stream = participant.open(10, reliablec).await?;
+            let ping_stream = participant.open(5, reliable).await?;
+            let mut register_stream = participant.open(10, reliablec).await?;
+            let in_game_stream = participant.open(10, reliablec).await?;
+            let not_in_game_stream = participant.open(10, reliablec).await?;
 
-            let mut client = Client {
-                client_state: ClientState::Connected,
+            register_stream.send(self.get_server_info())?;
+            let client_type: ClientType = register_stream.recv().await?;
+
+            if self.settings().max_players
+                <= self.state.ecs().read_storage::<Client>().join().count()
+            {
+                trace!(
+                    ?participant,
+                    "to many players, wont allow participant to connect"
+                );
+                register_stream.send(ServerInitMsg::TooManyPlayers)?;
+                continue;
+            }
+
+            let client = Client {
+                registered: false,
+                client_type,
+                in_game: None,
                 participant: std::sync::Mutex::new(Some(participant)),
-                singleton_stream,
+                singleton_stream: stream,
+                ping_stream,
+                register_stream,
+                in_game_stream,
+                not_in_game_stream,
                 network_error: std::sync::atomic::AtomicBool::new(false),
                 last_ping: self.state.get_time(),
                 login_msg_sent: false,
             };
 
-            if self.settings().max_players
-                <= self.state.ecs().read_storage::<Client>().join().count()
-            {
-                // Note: in this case the client is dropped
-                client.notify(ServerMsg::TooManyPlayers);
-            } else {
-                let entity = self
-                    .state
-                    .ecs_mut()
-                    .create_entity_synced()
-                    .with(client)
-                    .build();
-                self.state
-                    .ecs()
-                    .read_resource::<metrics::PlayerMetrics>()
-                    .clients_connected
-                    .inc();
-                // Send client all the tracked components currently attached to its entity as
-                // well as synced resources (currently only `TimeOfDay`)
-                debug!("Starting initial sync with client.");
-                self.state
-                    .ecs()
-                    .write_storage::<Client>()
-                    .get_mut(entity)
-                    .unwrap()
-                    .notify(ServerMsg::InitialSync {
-                        // Send client their entity
-                        entity_package: TrackedComps::fetch(&self.state.ecs())
-                            .create_entity_package(entity, None, None, None),
-                        server_info: self.get_server_info(),
-                        time_of_day: *self.state.ecs().read_resource(),
-                        max_group_size: self.settings().max_player_group_size,
-                        client_timeout: self.settings().client_timeout,
-                        world_map: self.map.clone(),
-                        recipe_book: (&*default_recipe_book()).clone(),
-                    });
+            let entity = self
+                .state
+                .ecs_mut()
+                .create_entity_synced()
+                .with(client)
+                .build();
+            self.state
+                .ecs()
+                .read_resource::<metrics::PlayerMetrics>()
+                .clients_connected
+                .inc();
+            // Send client all the tracked components currently attached to its entity as
+            // well as synced resources (currently only `TimeOfDay`)
+            debug!("Starting initial sync with client.");
+            self.state
+                .ecs()
+                .write_storage::<Client>()
+                .get_mut(entity)
+                .unwrap()
+                .register_stream
+                .send(ServerInitMsg::GameSync {
+                    // Send client their entity
+                    entity_package: TrackedComps::fetch(&self.state.ecs())
+                        .create_entity_package(entity, None, None, None),
+                    time_of_day: *self.state.ecs().read_resource(),
+                    max_group_size: self.settings().max_player_group_size,
+                    client_timeout: self.settings().client_timeout,
+                    world_map: self.map.clone(),
+                    recipe_book: (&*default_recipe_book()).clone(),
+                })?;
 
-                frontend_events.push(Event::ClientConnected { entity });
-                debug!("Done initial sync with client.");
-            }
+            frontend_events.push(Event::ClientConnected { entity });
+            debug!("Done initial sync with client.");
         }
     }
 
@@ -880,7 +888,25 @@ impl Server {
         S: Into<ServerMsg>,
     {
         if let Some(client) = self.state.ecs().write_storage::<Client>().get_mut(entity) {
-            client.notify(msg.into())
+            client.send_msg(msg.into())
+        }
+    }
+
+    pub fn notify_in_game_client<S>(&self, entity: EcsEntity, msg: S)
+    where
+        S: Into<ServerInGameMsg>,
+    {
+        if let Some(client) = self.state.ecs().write_storage::<Client>().get_mut(entity) {
+            client.send_in_game(msg.into())
+        }
+    }
+
+    pub fn notify_not_in_game_client<S>(&self, entity: EcsEntity, msg: S)
+    where
+        S: Into<ServerNotInGameMsg>,
+    {
+        if let Some(client) = self.state.ecs().write_storage::<Client>().get_mut(entity) {
+            client.send_not_in_game(msg.into())
         }
     }
 
