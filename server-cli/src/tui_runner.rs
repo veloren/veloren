@@ -23,6 +23,8 @@ use tui::{
 
 #[derive(Debug, Clone)]
 pub enum Message {
+    AbortShutdown,
+    Shutdown { grace_period: Duration },
     Quit,
 }
 
@@ -35,13 +37,38 @@ pub struct Command<'a> {
     pub cmd: fn(Vec<String>, &mut mpsc::Sender<Message>),
 }
 
-pub const COMMANDS: [Command; 2] = [
+pub const COMMANDS: [Command; 4] = [
     Command {
         name: "quit",
         description: "Closes the server",
         split_spaces: true,
         args: 0,
         cmd: |_, sender| sender.send(Message::Quit).unwrap(),
+    },
+    Command {
+        name: "shutdown",
+        description: "Initiates a graceful shutdown of the server, waiting the specified number \
+                      of seconds before shutting down",
+        split_spaces: true,
+        args: 1,
+        cmd: |args, sender| {
+            if let Ok(grace_period) = args.first().unwrap().parse::<u64>() {
+                sender
+                    .send(Message::Shutdown {
+                        grace_period: Duration::from_secs(grace_period),
+                    })
+                    .unwrap()
+            } else {
+                error!("Grace period must an integer")
+            }
+        },
+    },
+    Command {
+        name: "abortshutdown",
+        description: "Aborts a shutdown if one is in progress",
+        split_spaces: false,
+        args: 0,
+        cmd: |_, sender| sender.send(Message::AbortShutdown).unwrap(),
     },
     Command {
         name: "help",
@@ -59,8 +86,9 @@ pub const COMMANDS: [Command; 2] = [
 ];
 
 pub struct Tui {
-    msg_s: Option<mpsc::Sender<Message>>,
     background: Option<std::thread::JoinHandle<()>>,
+    basic: bool,
+    msg_s: Option<mpsc::Sender<Message>>,
     running: Arc<AtomicBool>,
 }
 
@@ -69,8 +97,9 @@ impl Tui {
         let (msg_s, msg_r) = mpsc::channel();
         (
             Self {
-                msg_s: Some(msg_s),
                 background: None,
+                basic: false,
+                msg_s: Some(msg_s),
                 running: Arc::new(AtomicBool::new(true)),
             },
             msg_r,
@@ -104,16 +133,12 @@ impl Tui {
     }
 
     pub fn run(&mut self, basic: bool) {
-        let hook = std::panic::take_hook();
-        std::panic::set_hook(Box::new(move |info| {
-            Self::shutdown();
-            hook(info);
-        }));
+        self.basic = basic;
 
         let mut msg_s = self.msg_s.take().unwrap();
         let running = Arc::clone(&self.running);
 
-        if basic {
+        if self.basic {
             std::thread::spawn(move || {
                 while running.load(Ordering::Relaxed) {
                     let mut line = String::new();
@@ -152,7 +177,7 @@ impl Tui {
                 let mut input = String::new();
 
                 if let Err(e) = terminal.clear() {
-                    error!(?e, "clouldn't clean terminal");
+                    error!(?e, "couldn't clean terminal");
                 };
 
                 while running.load(Ordering::Relaxed) {
@@ -206,11 +231,12 @@ impl Tui {
         }
     }
 
-    fn shutdown() {
-        let mut stdout = io::stdout();
-
-        execute!(stdout, LeaveAlternateScreen, DisableMouseCapture).unwrap();
-        disable_raw_mode().unwrap();
+    pub fn shutdown(basic: bool) {
+        if !basic {
+            let mut stdout = io::stdout();
+            execute!(stdout, LeaveAlternateScreen, DisableMouseCapture).unwrap();
+            disable_raw_mode().unwrap();
+        }
     }
 }
 
@@ -218,7 +244,7 @@ impl Drop for Tui {
     fn drop(&mut self) {
         self.running.store(false, Ordering::Relaxed);
         self.background.take().map(|m| m.join());
-        Self::shutdown();
+        Tui::shutdown(self.basic);
     }
 }
 
@@ -237,7 +263,7 @@ fn parse_command(input: &str, msg_s: &mut mpsc::Sender<Message>) {
                         .collect::<Vec<String>>(),
                 )
             } else {
-                (1, vec![args.into_iter().collect::<String>()])
+                (0, vec![args.into_iter().collect::<String>()])
             };
 
             match arg_len.cmp(&cmd.args) {
