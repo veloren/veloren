@@ -54,7 +54,14 @@ impl CharacterBehavior for Data {
             StageSection::Movement => {
                 // Jumping
                 if let Some(leap_strength) = self.static_data.leap {
-                    update.vel.0 = Vec3::new(data.vel.0.x, data.vel.0.y, leap_strength);
+                    update.vel.0 = Vec3::new(
+                        data.vel.0.x,
+                        data.vel.0.y,
+                        leap_strength
+                            * (1.0
+                                - self.timer.as_secs_f32()
+                                    / self.static_data.movement_duration.as_secs_f32()),
+                    );
                 }
                 if self.timer < self.static_data.movement_duration {
                     // Do movement
@@ -170,31 +177,52 @@ impl CharacterBehavior for Data {
                 }
             },
             StageSection::Recover => {
-                if !data.physics.on_ground {
-                    // Lands
-                    update.character = CharacterState::RepeaterRanged(Data {
-                        static_data: self.static_data.clone(),
-                        timer: self
-                            .timer
-                            .checked_add(Duration::from_secs_f32(data.dt.0))
-                            .unwrap_or_default(),
-                        stage_section: self.stage_section,
-                        reps_remaining: self.reps_remaining,
-                    });
-                } else if self.timer < self.static_data.recover_duration {
-                    // Recovers from attack
-                    update.character = CharacterState::RepeaterRanged(Data {
-                        static_data: self.static_data.clone(),
-                        timer: self
-                            .timer
-                            .checked_add(Duration::from_secs_f32(data.dt.0))
-                            .unwrap_or_default(),
-                        stage_section: self.stage_section,
-                        reps_remaining: self.reps_remaining,
-                    });
+                if self.static_data.leap == None {
+                    if !data.physics.on_ground {
+                        // Lands
+                        update.character = CharacterState::RepeaterRanged(Data {
+                            static_data: self.static_data.clone(),
+                            timer: self
+                                .timer
+                                .checked_add(Duration::from_secs_f32(data.dt.0))
+                                .unwrap_or_default(),
+                            stage_section: self.stage_section,
+                            reps_remaining: self.reps_remaining,
+                        });
+                    } else if self.timer < self.static_data.recover_duration {
+                        // Recovers from attack
+                        update.character = CharacterState::RepeaterRanged(Data {
+                            static_data: self.static_data.clone(),
+                            timer: self
+                                .timer
+                                .checked_add(Duration::from_secs_f32(data.dt.0))
+                                .unwrap_or_default(),
+                            stage_section: self.stage_section,
+                            reps_remaining: self.reps_remaining,
+                        });
+                    } else {
+                        // Done
+                        update.character = CharacterState::Wielding;
+                    }
                 } else {
-                    // Done
-                    update.character = CharacterState::Wielding;
+                    if data.physics.on_ground {
+                        // Done
+                        update.character = CharacterState::Wielding;
+                    } else if self.timer < self.static_data.recover_duration {
+                        // Recovers from attack
+                        update.character = CharacterState::RepeaterRanged(Data {
+                            static_data: self.static_data.clone(),
+                            timer: self
+                                .timer
+                                .checked_add(Duration::from_secs_f32(data.dt.0))
+                                .unwrap_or_default(),
+                            stage_section: self.stage_section,
+                            reps_remaining: self.reps_remaining,
+                        });
+                    } else {
+                        // Done
+                        update.character = CharacterState::Wielding;
+                    }
                 }
             },
             _ => {
