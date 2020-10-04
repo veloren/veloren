@@ -409,38 +409,19 @@ impl Tool {
                 },
             ],
             Staff(_) => vec![
-                BasicMelee {
+                BasicBeam {
                     energy_cost: 0,
-                    buildup_duration: Duration::from_millis(100),
-                    recover_duration: Duration::from_millis(300),
-                    base_healthchange: (-40.0 * self.base_power()) as i32,
-                    knockback: 0.0,
-                    range: 3.5,
-                    max_angle: 20.0,
-                },
-                BasicRanged {
-                    energy_cost: 0,
-                    holdable: false,
-                    prepare_duration: Duration::from_millis(250),
-                    recover_duration: Duration::from_millis(600),
-                    projectile: Projectile {
-                        hit_solid: vec![projectile::Effect::Vanish],
-                        hit_entity: vec![
-                            projectile::Effect::Damage((-40.0 * self.base_power()) as i32),
-                            projectile::Effect::RewardEnergy(150),
-                            projectile::Effect::Vanish,
-                        ],
-                        time_left: Duration::from_secs(20),
-                        owner: None,
-                        ignore_group: true,
-                    },
-                    projectile_body: Body::Object(object::Body::BoltFire),
-                    projectile_light: Some(LightEmitter {
-                        col: (0.85, 0.5, 0.11).into(),
-                        ..Default::default()
-                    }),
-                    projectile_gravity: None,
-                    projectile_speed: 100.0,
+                    buildup_duration: Duration::from_millis(250),
+                    recover_duration: Duration::from_millis(250),
+                    beam_duration: Duration::from_secs(1),
+                    base_hps: 0,
+                    base_dps: (100.0 * self.base_power()) as u32,
+                    tick_rate: 2.0,
+                    range: 15.0,
+                    max_angle: 45.0,
+                    lifesteal_eff: 0.0,
+                    energy_regen: 50,
+                    energy_drain: 0,
                 },
                 BasicRanged {
                     energy_cost: 400,
@@ -471,8 +452,19 @@ impl Tool {
                         col: (1.0, 0.75, 0.11).into(),
                         ..Default::default()
                     }),
-                    projectile_gravity: None,
-                    projectile_speed: 100.0,
+                    projectile_gravity: Some(Gravity(0.5)),
+                    projectile_speed: 40.0,
+                },
+                Shockwave {
+                    energy_cost: 750,
+                    buildup_duration: Duration::from_millis(500),
+                    recover_duration: Duration::from_millis(300),
+                    damage: 200,
+                    knockback: 12.0,
+                    shockwave_angle: 360.0,
+                    shockwave_speed: 20.0,
+                    shockwave_duration: Duration::from_millis(500),
+                    requires_ground: false,
                 },
             ],
             Shield(_) => vec![
@@ -499,7 +491,7 @@ impl Tool {
                             range: 5.0,
                             max_angle: 120.0,
                         },
-                        GroundShockwave {
+                        Shockwave {
                             energy_cost: 0,
                             buildup_duration: Duration::from_millis(500),
                             recover_duration: Duration::from_millis(1000),
