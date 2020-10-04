@@ -1,5 +1,8 @@
 FROM debian:stable-slim
 
+# SIGUSR1 causes veloren-server-cli to initiate a graceful shutdown
+LABEL com.centurylinklabs.watchtower.stop-signal="SIGUSR1"
+
 ARG PROJECTNAME=server-cli
 
 # librust-backtrace+libbacktrace-dev = backtrace functionality

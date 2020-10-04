@@ -16,4 +16,4 @@ services:
     image: containrrr/watchtower
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    command: --interval 30 --cleanup veloren-game-server-master
+    command: --interval 30 --stop-timeout 130s --cleanup veloren-game-server-master

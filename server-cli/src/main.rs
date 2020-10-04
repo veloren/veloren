@@ -1,24 +1,32 @@
 #![deny(unsafe_code)]
 #![deny(clippy::clone_on_ref_ptr)]
 
+mod shutdown_coordinator;
 mod tui_runner;
 mod tuilog;
 
 #[macro_use] extern crate lazy_static;
 
 use crate::{
+    shutdown_coordinator::ShutdownCoordinator,
     tui_runner::{Message, Tui},
     tuilog::TuiLog,
 };
 use common::clock::Clock;
 use server::{Event, Input, Server, ServerSettings};
+#[cfg(any(target_os = "linux", target_os = "macos"))]
+use signal_hook::SIGUSR1;
 use tracing::{info, Level};
 use tracing_subscriber::{filter::LevelFilter, EnvFilter, FmtSubscriber};
 #[cfg(feature = "tracy")]
 use tracing_subscriber::{layer::SubscriberExt, prelude::*};
 
 use clap::{App, Arg};
-use std::{io, sync::mpsc, time::Duration};
+use std::{
+    io,
+    sync::{atomic::AtomicBool, mpsc, Arc},
+    time::Duration,
+};
 
 const TPS: u64 = 30;
 const RUST_LOG_ENV: &str = "RUST_LOG";
@@ -42,6 +50,12 @@ fn main() -> io::Result<()> {
         .get_matches();
 
     let basic = matches.is_present("basic");
+
+    let sigusr1_signal = Arc::new(AtomicBool::new(false));
+
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
+    let _ = signal_hook::flag::register(SIGUSR1, Arc::clone(&sigusr1_signal));
+
     let (mut tui, msg_r) = Tui::new();
 
     // Init logging
@@ -89,6 +103,14 @@ fn main() -> io::Result<()> {
         }
     }
 
+    // Panic hook to ensure that console mode is set back correctly if in non-basic
+    // mode
+    let hook = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |info| {
+        Tui::shutdown(basic);
+        hook(info);
+    }));
+
     tui.run(basic);
 
     info!("Starting server...");
@@ -103,11 +125,20 @@ fn main() -> io::Result<()> {
     // Create server
     let mut server = Server::new(settings).expect("Failed to create server instance!");
 
-    info!("Server is ready to accept connections.");
-    info!(?metrics_port, "starting metrics at port");
-    info!(?server_port, "starting server at port");
+    info!(
+        ?server_port,
+        ?metrics_port,
+        "Server is ready to accept connections."
+    );
+
+    let mut shutdown_coordinator = ShutdownCoordinator::new(Arc::clone(&sigusr1_signal));
 
     loop {
+        // Terminate the server if instructed to do so by the shutdown coordinator
+        if shutdown_coordinator.check(&mut server) {
+            break;
+        }
+
         let events = server
             .tick(Input::default(), clock.get_last_delta())
             .expect("Failed to tick server");
@@ -127,6 +158,13 @@ fn main() -> io::Result<()> {
 
         match msg_r.try_recv() {
             Ok(msg) => match msg {
+                Message::AbortShutdown => shutdown_coordinator.abort_shutdown(&mut server),
+                Message::Shutdown { grace_period } => {
+                    // TODO: The TUI parser doesn't support quoted strings so it is not currently
+                    // possible to provide a shutdown reason from the console.
+                    let message = "The server is shutting down".to_owned();
+                    shutdown_coordinator.initiate_shutdown(&mut server, grace_period, message);
+                },
                 Message::Quit => {
                     info!("Closing the server");
                     break;
