@@ -862,9 +862,11 @@ fn determine_replace_active_buff(active_buff: buff::Buff, new_buff: buff::Buff) 
     match new_buff.id {
         BuffId::Bleeding {
             strength: new_strength,
+            duration: _,
         } => {
             if let BuffId::Bleeding {
                 strength: active_strength,
+                duration: _,
             } = active_buff.id
             {
                 new_strength > active_strength
@@ -874,9 +876,11 @@ fn determine_replace_active_buff(active_buff: buff::Buff, new_buff: buff::Buff) 
         },
         BuffId::Regeneration {
             strength: new_strength,
+            duration: _,
         } => {
             if let BuffId::Regeneration {
                 strength: active_strength,
+                duration: _,
             } = active_buff.id
             {
                 new_strength > active_strength
@@ -884,7 +888,7 @@ fn determine_replace_active_buff(active_buff: buff::Buff, new_buff: buff::Buff) 
                 false
             }
         },
-        BuffId::Cursed => false,
+        BuffId::Cursed { duration: _ } => false,
     }
 }
 

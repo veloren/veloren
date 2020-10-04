@@ -157,8 +157,8 @@ impl<'a> System<'a> for Sys {
                             buff_change: buff::BuffChange::Add(buff::Buff::new(
                                 buff::BuffId::Bleeding {
                                     strength: -damage.healthchange,
+                                    duration: Some(Duration::from_millis(10000)),
                                 },
-                                Some(Duration::from_millis(10000)),
                                 vec![buff::BuffCategoryId::Physical],
                                 buff::BuffSource::Character { by: *uid },
                             )),
