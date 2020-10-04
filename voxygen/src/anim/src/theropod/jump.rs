@@ -47,9 +47,9 @@ impl Animation for JumpAnimation {
             0.0,
             skeleton_attr.chest_front.0,
             skeleton_attr.chest_front.1 + breathe * 0.3,
-        ) / 3.0;
+        ) / skeleton_attr.scaler;
         next.chest_front.orientation = Quaternion::rotation_x(breathe * 0.04);
-        next.chest_front.scale = Vec3::one() / 3.0;
+        next.chest_front.scale = Vec3::one() / skeleton_attr.scaler;
 
         next.chest_back.position =
             Vec3::new(0.0, skeleton_attr.chest_back.0, skeleton_attr.chest_back.1);

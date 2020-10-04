@@ -84,10 +84,10 @@ impl Animation for RunAnimation {
             0.0,
             skeleton_attr.chest_front.0,
             skeleton_attr.chest_front.1 + short * 0.5,
-        ) / 3.0;
+        ) / skeleton_attr.scaler;
         next.chest_front.orientation =
             Quaternion::rotation_x(short * 0.07) * Quaternion::rotation_z(shortalt * 0.15);
-        next.chest_front.scale = Vec3::one() / 3.0;
+        next.chest_front.scale = Vec3::one() / skeleton_attr.scaler;
 
         next.chest_back.position =
             Vec3::new(0.0, skeleton_attr.chest_back.0, skeleton_attr.chest_back.1);
