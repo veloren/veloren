@@ -16,12 +16,18 @@ use std::time::Duration;
 #[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
 pub enum BuffId {
     /// Restores health/time for some period
-    Regeneration { strength: f32 },
+    Regeneration {
+        strength: f32,
+        duration: Option<Duration>,
+    },
     /// Lowers health over time for some duration
-    Bleeding { strength: f32 },
+    Bleeding {
+        strength: f32,
+        duration: Option<Duration>,
+    },
     /// Prefixes an entity's name with "Cursed"
     /// Currently placeholder buff to show other stuff is possible
-    Cursed,
+    Cursed { duration: Option<Duration> },
 }
 
 /// De/buff category ID.
@@ -143,30 +149,34 @@ impl Buffs {
 }
 
 impl Buff {
-    pub fn new(
-        id: BuffId,
-        time: Option<Duration>,
-        cat_ids: Vec<BuffCategoryId>,
-        source: BuffSource,
-    ) -> Self {
-        let effects = match id {
-            BuffId::Bleeding { strength } => vec![
-                BuffEffect::HealthChangeOverTime {
-                    rate: -strength,
+    pub fn new(id: BuffId, cat_ids: Vec<BuffCategoryId>, source: BuffSource) -> Self {
+        let (effects, time) = match id {
+            BuffId::Bleeding { strength, duration } => (
+                vec![
+                    BuffEffect::HealthChangeOverTime {
+                        rate: -strength,
+                        accumulated: 0.0,
+                    },
+                    // This effect is for testing purposes
+                    BuffEffect::NameChange {
+                        prefix: String::from("Injured "),
+                    },
+                ],
+                duration,
+            ),
+            BuffId::Regeneration { strength, duration } => (
+                vec![BuffEffect::HealthChangeOverTime {
+                    rate: strength,
                     accumulated: 0.0,
-                },
-                // This effect is for testing purposes
-                BuffEffect::NameChange {
-                    prefix: String::from("Injured "),
-                },
-            ],
-            BuffId::Regeneration { strength } => vec![BuffEffect::HealthChangeOverTime {
-                rate: strength,
-                accumulated: 0.0,
-            }],
-            BuffId::Cursed => vec![BuffEffect::NameChange {
-                prefix: String::from("Cursed "),
-            }],
+                }],
+                duration,
+            ),
+            BuffId::Cursed { duration } => (
+                vec![BuffEffect::NameChange {
+                    prefix: String::from("Cursed "),
+                }],
+                duration,
+            ),
         };
         Buff {
             id,
