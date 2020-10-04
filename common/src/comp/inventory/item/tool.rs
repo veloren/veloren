@@ -227,7 +227,7 @@ impl Tool {
                     num_spins: 1,
                 },
                 LeapMelee {
-                    energy_cost: 0,
+                    energy_cost: 450,
                     buildup_duration: Duration::from_millis(100),
                     movement_duration: Duration::from_millis(900),
                     swing_duration: Duration::from_millis(200),
@@ -264,7 +264,7 @@ impl Tool {
                     recover_duration: Duration::from_millis(600),
                 },
                 LeapMelee {
-                    energy_cost: 0,
+                    energy_cost: 700,
                     buildup_duration: Duration::from_millis(200),
                     movement_duration: Duration::from_millis(650),
                     swing_duration: Duration::from_millis(150),
@@ -326,7 +326,7 @@ impl Tool {
                     max_projectile_speed: 500.0,
                 },
                 RepeaterRanged {
-                    energy_cost: 0,
+                    energy_cost: 450,
                     movement_duration: Duration::from_millis(300),
                     buildup_duration: Duration::from_millis(200),
                     shoot_duration: Duration::from_millis(200),
