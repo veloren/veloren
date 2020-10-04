@@ -22,7 +22,7 @@ use dot_vox::DotVoxData;
 use hashbrown::HashMap;
 use rand::prelude::*;
 use specs::{Join, WorldExt};
-use std::time::Duration;
+use std::{f32::consts::PI, time::Duration};
 use vek::*;
 
 pub struct ParticleMgr {
@@ -368,27 +368,15 @@ impl ParticleMgr {
                         }
                     } else {
                         let mut rng = thread_rng();
-                        let (phi, theta) = (particle_ori.z.acos(), particle_ori.y.atan2(particle_ori.x));
-                        for _ in 0..self.scheduler.heartbeats(Duration::from_millis(1)) {
-                            let phi2 = phi + rng.gen_range(-b.static_data.max_angle.to_radians(), b.static_data.max_angle.to_radians());
-                            let theta2 = theta + rng.gen_range(-b.static_data.max_angle.to_radians(), b.static_data.max_angle.to_radians());
-                            let random_ori = Vec3::new(phi2.sin()*theta2.cos(), phi2.sin()*theta2.sin(), phi2.cos()).try_normalized().unwrap_or(particle_ori);
-                            self.particles.push(Particle::new_beam(
-                                b.static_data.beam_duration,
-                                time,
-                                ParticleMode::FlameThrower,
-                                pos.0 + random_ori * 0.5 + Vec3::new(0.0, 0.0, b.offset),
-                                pos.0
-                                    + random_ori * b.static_data.range
-                                    + Vec3::new(0.0, 0.0, b.offset),
-                            ));
-                        }
-                        /*self.particles.resize_with(
-                            self.particles.len() + 10 * usize::from(self.scheduler.heartbeats(Duration::from_millis(1))),
+                        let (from, to) = (Vec3::<f32>::unit_z(), particle_ori);
+                        let m = Mat3::<f32>::rotation_from_to_3d(from, to);
+                        self.particles.resize_with(
+                            self.particles.len() + 2 * usize::from(self.scheduler.heartbeats(Duration::from_millis(1))),
                             || {
-                                let phi2 = phi + rng.gen_range(-b.static_data.max_angle.to_radians(), b.static_data.max_angle.to_radians());
-                                let theta2 = theta + rng.gen_range(-b.static_data.max_angle.to_radians(), b.static_data.max_angle.to_radians());
-                                let random_ori = Vec3::new(phi2.sin()*theta2.cos(), phi2.sin()*theta2.sin(), phi2.cos()).try_normalized().unwrap_or(particle_ori);
+                                let phi: f32 = rng.gen_range(0.0, b.static_data.max_angle.to_radians());
+                                let theta: f32 = rng.gen_range(0.0, 2.0 * PI);
+                                let offset_z = Vec3::new(phi.sin() * theta.cos(), phi.sin() * theta.sin(), phi.cos());
+                                let random_ori = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
                                 Particle::new_beam(
                                     b.static_data.beam_duration,
                                     time,
@@ -399,7 +387,7 @@ impl ParticleMgr {
                                         + Vec3::new(0.0, 0.0, b.offset),
                                 )
                             },
-                        );*/
+                        );
                     }
                 }
             }
