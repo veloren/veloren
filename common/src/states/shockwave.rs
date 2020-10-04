@@ -37,7 +37,7 @@ impl CharacterBehavior for Data {
 
         if self.buildup_duration != Duration::default() {
             // Build up
-            update.character = CharacterState::GroundShockwave(Data {
+            update.character = CharacterState::Shockwave(Data {
                 exhausted: self.exhausted,
                 buildup_duration: self
                     .buildup_duration
@@ -68,7 +68,7 @@ impl CharacterBehavior for Data {
                 ori: *data.ori,
             });
 
-            update.character = CharacterState::GroundShockwave(Data {
+            update.character = CharacterState::Shockwave(Data {
                 exhausted: true,
                 buildup_duration: self.buildup_duration,
                 recover_duration: self.recover_duration,
@@ -81,7 +81,7 @@ impl CharacterBehavior for Data {
             });
         } else if self.recover_duration != Duration::default() {
             // Recovery
-            update.character = CharacterState::GroundShockwave(Data {
+            update.character = CharacterState::Shockwave(Data {
                 exhausted: self.exhausted,
                 buildup_duration: self.buildup_duration,
                 recover_duration: self

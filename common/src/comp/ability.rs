@@ -25,7 +25,7 @@ pub enum CharacterAbilityType {
     ComboMelee(StageSection, u32),
     LeapMelee(StageSection),
     SpinMelee(StageSection),
-    GroundShockwave,
+    Shockwave,
     BasicBeam,
     RepeaterRanged,
 }
@@ -43,7 +43,7 @@ impl From<&CharacterState> for CharacterAbilityType {
             CharacterState::SpinMelee(data) => Self::SpinMelee(data.stage_section),
             CharacterState::ChargedMelee(data) => Self::ChargedMelee(data.stage_section),
             CharacterState::ChargedRanged(_) => Self::ChargedRanged,
-            CharacterState::GroundShockwave(_) => Self::ChargedRanged,
+            CharacterState::Shockwave(_) => Self::ChargedRanged,
             CharacterState::BasicBeam(_) => Self::BasicBeam,
             CharacterState::RepeaterRanged(_) => Self::RepeaterRanged,
             _ => Self::BasicMelee,
@@ -175,7 +175,7 @@ pub enum CharacterAbility {
         initial_projectile_speed: f32,
         max_projectile_speed: f32,
     },
-    GroundShockwave {
+    Shockwave {
         energy_cost: u32,
         buildup_duration: Duration,
         recover_duration: Duration,
@@ -248,7 +248,7 @@ impl CharacterAbility {
                 .energy
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
-            CharacterAbility::GroundShockwave { energy_cost, .. } => update
+            CharacterAbility::Shockwave { energy_cost, .. } => update
                 .energy
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
@@ -618,7 +618,7 @@ impl From<&CharacterAbility> for CharacterState {
                 stage_section: StageSection::Movement,
                 reps_remaining: *reps_remaining,
             }),
-            CharacterAbility::GroundShockwave {
+            CharacterAbility::Shockwave {
                 energy_cost: _,
                 buildup_duration,
                 recover_duration,
@@ -628,7 +628,7 @@ impl From<&CharacterAbility> for CharacterState {
                 shockwave_speed,
                 shockwave_duration,
                 requires_ground,
-            } => CharacterState::GroundShockwave(ground_shockwave::Data {
+            } => CharacterState::Shockwave(shockwave::Data {
                 exhausted: false,
                 buildup_duration: *buildup_duration,
                 recover_duration: *recover_duration,
