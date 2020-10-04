@@ -2,7 +2,7 @@ use super::SysTimer;
 use crate::client::Client;
 use common::{
     comp::group::{Invite, PendingInvites},
-    msg::{InviteAnswer, ServerMsg},
+    msg::{InviteAnswer, ServerInGameMsg},
     span,
     sync::Uid,
 };
@@ -54,7 +54,7 @@ impl<'a> System<'a> for Sys {
                 if let (Some(client), Some(target)) =
                     (clients.get_mut(*inviter), uids.get(invitee).copied())
                 {
-                    client.notify(ServerMsg::InviteComplete {
+                    client.send_in_game(ServerInGameMsg::InviteComplete {
                         target,
                         answer: InviteAnswer::TimedOut,
                     })

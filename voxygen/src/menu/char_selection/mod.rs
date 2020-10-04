@@ -10,7 +10,7 @@ use crate::{
     Direction, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
-use common::{assets::Asset, comp, msg::ClientState, span, state::DeltaTime};
+use common::{assets::Asset, comp, span, state::DeltaTime};
 use specs::WorldExt;
 use std::{cell::RefCell, rc::Rc};
 use tracing::error;
@@ -61,8 +61,8 @@ impl PlayState for CharSelectionState {
 
     fn tick(&mut self, global_state: &mut GlobalState, events: Vec<WinEvent>) -> PlayStateResult {
         span!(_guard, "tick", "<CharSelectionState as PlayState>::tick");
-        let client_state = self.client.borrow().get_client_state();
-        if let ClientState::Pending | ClientState::Registered = client_state {
+        let client_in_game = self.client.borrow().get_in_game();
+        if client_in_game.is_none() {
             // Handle window events
             for event in events {
                 if self.char_selection_ui.handle_event(event.clone()) {

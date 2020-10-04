@@ -12,7 +12,7 @@ use common::{
         Player, Pos, Stats,
     },
     lottery::Lottery,
-    msg::{PlayerListUpdate, ServerMsg},
+    msg::{PlayerListUpdate, ServerInGameMsg, ServerMsg},
     outcome::Outcome,
     state::BlockChange,
     sync::{Uid, UidAllocator, WorldSyncExt},
@@ -44,7 +44,7 @@ pub fn handle_knockback(server: &Server, entity: EcsEntity, impulse: Vec3<f32>) 
     }
     let mut clients = state.ecs().write_storage::<Client>();
     if let Some(client) = clients.get_mut(entity) {
-        client.notify(ServerMsg::Knockback(impulse));
+        client.send_in_game(ServerInGameMsg::Knockback(impulse));
     }
 }
 

@@ -5,7 +5,7 @@ use crate::{
 use common::{
     comp,
     comp::{group, Player},
-    msg::{ClientState, PlayerListUpdate, ServerMsg},
+    msg::{PlayerListUpdate, ServerInGameMsg, ServerMsg},
     span,
     sync::{Uid, UidAllocator},
 };
@@ -33,9 +33,8 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
         .cloned();
     if let (Some(mut client), Some(uid), Some(player)) = (maybe_client, maybe_uid, maybe_player) {
         // Tell client its request was successful
-        client.allow_state(ClientState::Registered);
-        // Tell client to clear out other entities and its own components
-        client.notify(ServerMsg::ExitIngameCleanup);
+        client.in_game = None;
+        client.send_in_game(ServerInGameMsg::ExitInGameSuccess);
 
         let entity_builder = state.ecs_mut().create_entity().with(client).with(player);
 
