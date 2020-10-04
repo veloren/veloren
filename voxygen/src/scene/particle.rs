@@ -354,16 +354,52 @@ impl ParticleMgr {
             if let CharacterState::BasicBeam(b) = character_state {
                 let particle_ori = b.particle_ori.unwrap_or(*ori.vec());
                 if b.stage_section == StageSection::Cast {
-                    for i in 0..self.scheduler.heartbeats(Duration::from_millis(1)) {
-                        self.particles.push(Particle::new_beam(
-                            b.static_data.beam_duration,
-                            time + i as f64 / 1000.0,
-                            ParticleMode::HealingBeam,
-                            pos.0 + particle_ori * 0.5 + Vec3::new(0.0, 0.0, b.offset),
-                            pos.0
-                                + particle_ori * b.static_data.range
-                                + Vec3::new(0.0, 0.0, b.offset),
-                        ));
+                    if b.static_data.base_hps > 0 {
+                        for i in 0..self.scheduler.heartbeats(Duration::from_millis(1)) {
+                            self.particles.push(Particle::new_beam(
+                                b.static_data.beam_duration,
+                                time + i as f64 / 1000.0,
+                                ParticleMode::HealingBeam,
+                                pos.0 + particle_ori * 0.5 + Vec3::new(0.0, 0.0, b.offset),
+                                pos.0
+                                    + particle_ori * b.static_data.range
+                                    + Vec3::new(0.0, 0.0, b.offset),
+                            ));
+                        }
+                    } else {
+                        let mut rng = thread_rng();
+                        let (phi, theta) = (particle_ori.z.acos(), particle_ori.y.atan2(particle_ori.x));
+                        for _ in 0..self.scheduler.heartbeats(Duration::from_millis(1)) {
+                            let phi2 = phi + rng.gen_range(-b.static_data.max_angle.to_radians(), b.static_data.max_angle.to_radians());
+                            let theta2 = theta + rng.gen_range(-b.static_data.max_angle.to_radians(), b.static_data.max_angle.to_radians());
+                            let random_ori = Vec3::new(phi2.sin()*theta2.cos(), phi2.sin()*theta2.sin(), phi2.cos()).try_normalized().unwrap_or(particle_ori);
+                            self.particles.push(Particle::new_beam(
+                                b.static_data.beam_duration,
+                                time,
+                                ParticleMode::FlameThrower,
+                                pos.0 + random_ori * 0.5 + Vec3::new(0.0, 0.0, b.offset),
+                                pos.0
+                                    + random_ori * b.static_data.range
+                                    + Vec3::new(0.0, 0.0, b.offset),
+                            ));
+                        }
+                        /*self.particles.resize_with(
+                            self.particles.len() + 10 * usize::from(self.scheduler.heartbeats(Duration::from_millis(1))),
+                            || {
+                                let phi2 = phi + rng.gen_range(-b.static_data.max_angle.to_radians(), b.static_data.max_angle.to_radians());
+                                let theta2 = theta + rng.gen_range(-b.static_data.max_angle.to_radians(), b.static_data.max_angle.to_radians());
+                                let random_ori = Vec3::new(phi2.sin()*theta2.cos(), phi2.sin()*theta2.sin(), phi2.cos()).try_normalized().unwrap_or(particle_ori);
+                                Particle::new_beam(
+                                    b.static_data.beam_duration,
+                                    time,
+                                    ParticleMode::FlameThrower,
+                                    pos.0 + random_ori * 0.5 + Vec3::new(0.0, 0.0, b.offset),
+                                    pos.0
+                                        + random_ori * b.static_data.range
+                                        + Vec3::new(0.0, 0.0, b.offset),
+                                )
+                            },
+                        );*/
                     }
                 }
             }
@@ -514,38 +550,42 @@ impl ParticleMgr {
             let theta = ori.0.y.atan2(ori.0.x);
             let dtheta = radians / distance;
 
-            // 1 / 3 the size of terrain voxel
-            let scale = 1.0 / 3.0;
+            if shockwave.properties.requires_ground {
+                // 1 / 3 the size of terrain voxel
+                let scale = 1.0 / 3.0;
 
-            let scaled_speed = shockwave.properties.speed * scale;
+                let scaled_speed = shockwave.properties.speed * scale;
 
-            let heartbeats = self
-                .scheduler
-                .heartbeats(Duration::from_millis(scaled_speed as u64));
-            let new_particle_count = distance / scale * heartbeats as f32;
-            self.particles.reserve(new_particle_count as usize);
+                let heartbeats = self
+                    .scheduler
+                    .heartbeats(Duration::from_millis(scaled_speed as u64));
+                let new_particle_count = distance / scale * heartbeats as f32;
+                self.particles.reserve(new_particle_count as usize);
 
-            for heartbeat in 0..heartbeats {
-                let sub_tick_interpolation = scaled_speed * 1000.0 * heartbeat as f32;
+                for heartbeat in 0..heartbeats {
+                    let sub_tick_interpolation = scaled_speed * 1000.0 * heartbeat as f32;
 
-                let distance =
-                    shockwave.properties.speed * (elapsed as f32 - sub_tick_interpolation);
+                    let distance =
+                        shockwave.properties.speed * (elapsed as f32 - sub_tick_interpolation);
 
-                for d in 0..((distance / scale) as i32) {
-                    let arc_position = theta - radians / 2.0 + dtheta * d as f32 * scale;
+                    for d in 0..((distance / scale) as i32) {
+                        let arc_position = theta - radians / 2.0 + dtheta * d as f32 * scale;
 
-                    let position =
-                        pos.0 + distance * Vec3::new(arc_position.cos(), arc_position.sin(), 0.0);
+                        let position =
+                            pos.0 + distance * Vec3::new(arc_position.cos(), arc_position.sin(), 0.0);
 
-                    let position_snapped = ((position / scale).floor() + 0.5) * scale;
+                        let position_snapped = ((position / scale).floor() + 0.5) * scale;
 
-                    self.particles.push(Particle::new(
-                        Duration::from_millis(250),
-                        time,
-                        ParticleMode::GroundShockwave,
-                        position_snapped,
-                    ));
+                        self.particles.push(Particle::new(
+                            Duration::from_millis(250),
+                            time,
+                            ParticleMode::GroundShockwave,
+                            position_snapped,
+                        ));
+                    }
                 }
+            } else {
+                
             }
         }
     }
