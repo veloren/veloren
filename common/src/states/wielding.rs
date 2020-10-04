@@ -18,7 +18,6 @@ impl CharacterBehavior for Data {
         handle_ability3_input(&data, &mut update);
         handle_dodge_input(&data, &mut update);
 
-
         update
     }
 

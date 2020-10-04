@@ -118,13 +118,13 @@ impl Animation for ChargeswingAnimation {
                             next.l_foot.position = Vec3::new(
                                 -skeleton_attr.foot.0,
                                 skeleton_attr.foot.1 + foothoril * -2.5 - 3.5,
-                                2.0 + skeleton_attr.foot.2 + ((footvertl * -1.2).max(-1.0)),
+                                skeleton_attr.foot.2 + ((footvertl * -1.2).max(-1.0)),
                             );
 
                             next.r_foot.position = Vec3::new(
                                 skeleton_attr.foot.0,
                                 skeleton_attr.foot.1 + foothorir * -2.5 + 6.0,
-                                2.0 + skeleton_attr.foot.2 + ((footvertr * -1.2).max(-1.0)),
+                                skeleton_attr.foot.2 + ((footvertr * -1.2).max(-1.0)),
                             );
 
                             next.l_foot.orientation =
