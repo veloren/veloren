@@ -80,6 +80,7 @@ impl LoadoutBuilder {
                         "common.items.npc_weapons.npcweapon.stone_golems_fist",
                     ));
                 },
+                _ => {},
             },
             Body::BipedLarge(biped_large) => match (biped_large.species, biped_large.body_type) {
                 (biped_large::Species::Occultlizardman, _) => {
@@ -306,6 +307,7 @@ impl LoadoutBuilder {
                     head: None,
                     tabard: None,
                 },
+                _ => LoadoutBuilder::animal(body).build(),
             },
             Body::BipedLarge(_) => Loadout {
                 active_item,
