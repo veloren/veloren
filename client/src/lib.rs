@@ -116,8 +116,8 @@ pub struct Client {
     singleton_stream: Stream,
     ping_stream: Stream,
     register_stream: Stream,
-    not_in_game_stream: Stream,
     in_game_stream: Stream,
+    not_in_game_stream: Stream,
 
     client_timeout: Duration,
     last_server_ping: f64,
@@ -161,8 +161,8 @@ impl Client {
         let stream = block_on(participant.opened())?;
         let mut ping_stream = block_on(participant.opened())?;
         let mut register_stream = block_on(participant.opened())?;
-        let not_in_game_stream = block_on(participant.opened())?;
         let in_game_stream = block_on(participant.opened())?;
+        let not_in_game_stream = block_on(participant.opened())?;
 
         register_stream.send(ClientType::Game)?;
         let server_info: ServerInfo = block_on(register_stream.recv())?;
@@ -456,7 +456,10 @@ impl Client {
             Err(RegisterError::InvalidCharacter) => Err(Error::InvalidCharacter),
             Err(RegisterError::NotOnWhitelist) => Err(Error::NotOnWhitelist),
             Err(RegisterError::Banned(reason)) => Err(Error::Banned(reason)),
-            Ok(()) => Ok(()),
+            Ok(()) => {
+                self.registered = true;
+                Ok(())
+            },
         }
     }
 
@@ -465,6 +468,9 @@ impl Client {
         self.not_in_game_stream
             .send(ClientNotInGameMsg::Character(character_id))
             .unwrap();
+
+        //Assume we are in_game unless server tells us otherwise
+        self.client_ingame = Some(ClientIngame::Character);
 
         self.active_character_id = Some(character_id);
     }
@@ -1351,6 +1357,7 @@ impl Client {
             },
             // Cleanup for when the client goes back to the `in_game = None`
             ServerInGameMsg::ExitInGameSuccess => {
+                self.client_ingame = None;
                 self.clean_state();
             },
             ServerInGameMsg::InventoryUpdate(mut inventory, event) => {
@@ -1409,11 +1416,13 @@ impl Client {
                 self.character_list.error = Some(error);
             },
             ServerNotInGameMsg::CharacterDataLoadError(error) => {
+                trace!("Handling join error by server");
+                self.client_ingame = None;
                 self.clean_state();
                 self.character_list.error = Some(error);
             },
             ServerNotInGameMsg::CharacterSuccess => {
-                warn!("WOOP88u8yeah");
+                debug!("client is now in ingame state on server");
             },
         }
         Ok(())
@@ -1447,23 +1456,23 @@ impl Client {
     ) -> Result<(), Error> {
         loop {
             let (m1, m2, m3, m4) = select!(
-                msg = self.singleton_stream.recv().fuse() => (Some(msg?), None, None, None),
-                msg = self.ping_stream.recv().fuse() => (None, Some(msg?), None, None),
-                msg = self.not_in_game_stream.recv().fuse() => (None, None, Some(msg?), None),
-                msg = self.in_game_stream.recv().fuse() => (None, None, None, Some(msg?)),
+                msg = self.singleton_stream.recv().fuse() => (Some(msg), None, None, None),
+                msg = self.ping_stream.recv().fuse() => (None, Some(msg), None, None),
+                msg = self.not_in_game_stream.recv().fuse() => (None, None, Some(msg), None),
+                msg = self.in_game_stream.recv().fuse() => (None, None, None, Some(msg)),
             );
             *cnt += 1;
             if let Some(msg) = m1 {
-                self.handle_server_msg(frontend_events, msg)?;
+                self.handle_server_msg(frontend_events, msg?)?;
             }
             if let Some(msg) = m2 {
-                self.handle_ping_msg(msg)?;
+                self.handle_ping_msg(msg?)?;
             }
             if let Some(msg) = m3 {
-                self.handle_server_not_in_game_msg(msg)?;
+                self.handle_server_not_in_game_msg(msg?)?;
             }
             if let Some(msg) = m4 {
-                self.handle_server_in_game_msg(frontend_events, msg)?;
+                self.handle_server_in_game_msg(frontend_events, msg?)?;
             }
         }
     }
