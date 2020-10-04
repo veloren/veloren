@@ -211,12 +211,11 @@ impl PlayState for SessionState {
         ));
 
         // TODO: can this be a method on the session or are there borrowcheck issues?
-
         let (client_in_game, client_registered) = {
             let client = self.client.borrow();
             (client.get_in_game(), client.get_registered())
         };
-        if client_in_game.is_none() {
+        if client_in_game.is_some() {
             // Update MyEntity
             // Note: Alternatively, the client could emit an event when the entity changes
             // which may or may not be more elegant

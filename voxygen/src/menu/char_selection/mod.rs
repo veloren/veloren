@@ -61,8 +61,11 @@ impl PlayState for CharSelectionState {
 
     fn tick(&mut self, global_state: &mut GlobalState, events: Vec<WinEvent>) -> PlayStateResult {
         span!(_guard, "tick", "<CharSelectionState as PlayState>::tick");
-        let client_in_game = self.client.borrow().get_in_game();
-        if client_in_game.is_none() {
+        let (client_in_game, client_registered) = {
+            let client = self.client.borrow();
+            (client.get_in_game(), client.get_registered())
+        };
+        if client_in_game.is_none() && client_registered {
             // Handle window events
             for event in events {
                 if self.char_selection_ui.handle_event(event.clone()) {
