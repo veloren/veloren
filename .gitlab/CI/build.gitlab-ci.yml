@@ -34,7 +34,7 @@ benchmarks:
 .tlinux:
   script:
     - ln -s /dockercache/cache-release-linux target
-    - cargo build --release
+    - VELOREN_USERDATA_STRATEGY=executable cargo build --release
     - cp -r target/release/veloren-server-cli $CI_PROJECT_DIR
     - cp -r target/release/veloren-voxygen $CI_PROJECT_DIR
   artifacts:
@@ -48,7 +48,7 @@ benchmarks:
 .twindows:
   script:
     - ln -s /dockercache/cache-release-windows target
-    - cargo build --target=x86_64-pc-windows-gnu --release
+    - VELOREN_USERDATA_STRATEGY=executable cargo build --target=x86_64-pc-windows-gnu --release
     - cp -r target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe $CI_PROJECT_DIR
     - cp -r target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe $CI_PROJECT_DIR
   artifacts:
@@ -62,7 +62,7 @@ benchmarks:
 .tmacos:
   script:
     - ln -s /dockercache/cache-release-macos target
-    - PATH="/dockercache/osxcross/target/bin:$PATH" COREAUDIO_SDK_PATH=/dockercache/osxcross/target/SDK/MacOSX10.13.sdk CC=o64-clang CXX=o64-clang++ cargo build --target x86_64-apple-darwin --release
+    - VELOREN_USERDATA_STRATEGY=executable PATH="/dockercache/osxcross/target/bin:$PATH" COREAUDIO_SDK_PATH=/dockercache/osxcross/target/SDK/MacOSX10.13.sdk CC=o64-clang CXX=o64-clang++ cargo build --target x86_64-apple-darwin --release
     - cp -r target/x86_64-apple-darwin/release/veloren-server-cli $CI_PROJECT_DIR
     - cp -r target/x86_64-apple-darwin/release/veloren-voxygen $CI_PROJECT_DIR
   artifacts:
