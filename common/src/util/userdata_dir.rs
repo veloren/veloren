@@ -1,9 +1,9 @@
 use std::path::PathBuf;
 
-const VELOREN_USERDATA_ENV: &'static str = "VELOREN_USERDATA";
+const VELOREN_USERDATA_ENV: &str = "VELOREN_USERDATA";
 
-// TODO: consider expanding this to a general install strategy variable that is also used for
-// finding assets
+// TODO: consider expanding this to a general install strategy variable that is
+// also used for finding assets
 /// # `VELOREN_USERDATA_STRATEGY` environment variable
 /// Read during compilation
 /// Useful to set when compiling for distribution
@@ -15,8 +15,8 @@ const VELOREN_USERDATA_ENV: &'static str = "VELOREN_USERDATA";
 /// The first specified in this list is used
 /// 1. The VELOREN_USERDATA environment variable
 /// 2. The VELOREN_USERDATA_STRATEGY environment variable
-/// 3. The CARGO_MANIFEST_DIR/userdata or CARGO_MANIFEST_DIR/../userdata depending on if a
-///    workspace if being used
+/// 3. The CARGO_MANIFEST_DIR/userdata or CARGO_MANIFEST_DIR/../userdata
+/// depending on if a    workspace if being used
 pub fn userdata_dir(workspace: bool, strategy: Option<&str>, manifest_dir: &str) -> PathBuf {
     // 1. The VELOREN_USERDATA environment variable
     std::env::var_os(VELOREN_USERDATA_ENV)
@@ -39,11 +39,10 @@ pub fn userdata_dir(workspace: bool, strategy: Option<&str>, manifest_dir: &str)
             },
             Some(_) => None, // TODO: panic? catch during compilation?
             _ => None,
-            
         })
         // 3. The CARGO_MANIFEST_DIR/userdata or CARGO_MANIFEST_DIR/../userdata depending on if a
         //    workspace if being used
-        .unwrap_or_else(|| { 
+        .unwrap_or_else(|| {
             let mut path = PathBuf::from(manifest_dir);
             if workspace {
                 path.pop();
@@ -58,7 +57,8 @@ macro_rules! userdata_dir_workspace {
     () => {
         $crate::util::userdata_dir::userdata_dir(
             true,
-            option_env!("VELOREN_USERDATA_STRATEGY"), env!("CARGO_MANIFEST_DIR")
+            option_env!("VELOREN_USERDATA_STRATEGY"),
+            env!("CARGO_MANIFEST_DIR"),
         )
     };
 }
@@ -68,9 +68,8 @@ macro_rules! userdata_dir_no_workspace {
     () => {
         $crate::util::userdata_dir::userdata_dir(
             false,
-            option_env!("VELOREN_USERDATA_STRATEGY"), env!("CARGO_MANIFEST_DIR")
+            option_env!("VELOREN_USERDATA_STRATEGY"),
+            env!("CARGO_MANIFEST_DIR"),
         )
     };
-} 
-
-
+}

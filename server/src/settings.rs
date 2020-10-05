@@ -18,11 +18,11 @@ use world::sim::FileOpts;
 
 const DEFAULT_WORLD_SEED: u32 = 59686;
 //const CONFIG_DIR_ENV: &'static str = "VELOREN_SERVER_CONFIG";
-const /*DEFAULT_*/CONFIG_DIR: &'static str = "server_config";
-const SETTINGS_FILENAME: &'static str = "settings.ron";
-const WHITELIST_FILENAME: &'static str = "whitelist.ron";
-const BANLIST_FILENAME: &'static str = "banlist.ron";
-const SERVER_DESCRIPTION_FILENAME: &'static str = "description.ron";
+const /*DEFAULT_*/CONFIG_DIR: &str = "server_config";
+const SETTINGS_FILENAME: &str = "settings.ron";
+const WHITELIST_FILENAME: &str = "whitelist.ron";
+const BANLIST_FILENAME: &str = "banlist.ron";
+const SERVER_DESCRIPTION_FILENAME: &str = "description.ron";
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]

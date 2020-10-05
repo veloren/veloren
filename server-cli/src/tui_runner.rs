@@ -122,7 +122,7 @@ impl Tui {
     pub fn run(basic: bool) -> Self {
         let (mut msg_s, msg_r) = mpsc::channel();
         let running = Arc::new(AtomicBool::new(true));
-        let running2 = running.clone();
+        let running2 = Arc::clone(&running);
 
         let background = if basic {
             std::thread::spawn(move || {
