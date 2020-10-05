@@ -2,39 +2,28 @@
 #![deny(clippy::clone_on_ref_ptr)]
 #![feature(bool_to_option)]
 
+mod logging;
 mod shutdown_coordinator;
 mod tui_runner;
 mod tuilog;
 
-#[macro_use] extern crate lazy_static;
-
 use crate::{
     shutdown_coordinator::ShutdownCoordinator,
     tui_runner::{Message, Tui},
-    tuilog::TuiLog,
 };
+use clap::{App, Arg};
 use common::clock::Clock;
-use server::{Event, Input, Server, ServerSettings};
+use server::{DataDir, Event, Input, Server, ServerSettings};
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 use signal_hook::SIGUSR1;
-use tracing::{info, Level};
-use tracing_subscriber::{filter::LevelFilter, EnvFilter, FmtSubscriber};
-#[cfg(feature = "tracy")]
-use tracing_subscriber::{layer::SubscriberExt, prelude::*};
-
-use clap::{App, Arg};
 use std::{
     io,
     sync::{atomic::AtomicBool, mpsc, Arc},
     time::Duration,
 };
+use tracing::info;
 
 const TPS: u64 = 30;
-const RUST_LOG_ENV: &str = "RUST_LOG";
-
-lazy_static! {
-    static ref LOG: TuiLog<'static> = TuiLog::default();
-}
 
 fn main() -> io::Result<()> {
     let matches = App::new("Veloren server cli")
@@ -67,50 +56,7 @@ fn main() -> io::Result<()> {
     #[cfg(any(target_os = "linux", target_os = "macos"))]
     let _ = signal_hook::flag::register(SIGUSR1, Arc::clone(&sigusr1_signal));
 
-    // Init logging
-    let base_exceptions = |env: EnvFilter| {
-        env.add_directive("veloren_world::sim=info".parse().unwrap())
-            .add_directive("veloren_world::civ=info".parse().unwrap())
-            .add_directive("uvth=warn".parse().unwrap())
-            .add_directive("tiny_http=warn".parse().unwrap())
-            .add_directive("mio::sys::windows=debug".parse().unwrap())
-            .add_directive(LevelFilter::INFO.into())
-    };
-
-    #[cfg(not(feature = "tracy"))]
-    let filter = match std::env::var_os(RUST_LOG_ENV).map(|s| s.into_string()) {
-        Some(Ok(env)) => {
-            let mut filter = base_exceptions(EnvFilter::new(""));
-            for s in env.split(',').into_iter() {
-                match s.parse() {
-                    Ok(d) => filter = filter.add_directive(d),
-                    Err(err) => println!("WARN ignoring log directive: `{}`: {}", s, err),
-                };
-            }
-            filter
-        },
-        _ => base_exceptions(EnvFilter::from_env(RUST_LOG_ENV)),
-    };
-
-    #[cfg(feature = "tracy")]
-    tracing_subscriber::registry()
-        .with(tracing_tracy::TracyLayer::new().with_stackdepth(0))
-        .init();
-
-    #[cfg(not(feature = "tracy"))]
-    // TODO: when tracing gets per Layer filters re-enable this when the tracy feature is being
-    // used (and do the same in voxygen)
-    {
-        let subscriber = FmtSubscriber::builder()
-            .with_max_level(Level::ERROR)
-            .with_env_filter(filter);
-
-        if basic {
-            subscriber.init();
-        } else {
-            subscriber.with_writer(|| LOG.clone()).init();
-        }
-    }
+    logging::init(basic);
 
     // Panic hook to ensure that console mode is set back correctly if in non-basic
     // mode
@@ -127,17 +73,25 @@ fn main() -> io::Result<()> {
     // Set up an fps clock
     let mut clock = Clock::start();
 
+    // Determine folder to save server data in
+    let server_data_dir = DataDir::from({
+        let mut path = common::userdata_dir_workspace!();
+        path.push(server::DEFAULT_DATA_DIR_NAME);
+        path
+    });
+
     // Load settings
-    let mut settings = ServerSettings::load();
-    // TODO: make settings file immutable so that this does not overwrite the
-    // settings
+    let mut settings = ServerSettings::load(server_data_dir.as_ref());
+
     if no_auth {
         settings.auth_server_address = None;
     }
+
     let server_port = &settings.gameserver_address.port();
     let metrics_port = &settings.metrics_address.port();
     // Create server
-    let mut server = Server::new(settings).expect("Failed to create server instance!");
+    let mut server =
+        Server::new(settings, server_data_dir).expect("Failed to create server instance!");
 
     info!(
         ?server_port,

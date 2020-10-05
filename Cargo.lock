@@ -4643,6 +4643,7 @@ dependencies = [
  "authc",
  "criterion",
  "crossbeam",
+ "directories-next",
  "dot_vox",
  "enum-iterator",
  "hashbrown",

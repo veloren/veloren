@@ -1,7 +1,7 @@
 use client::Client;
 use common::clock::Clock;
 use crossbeam::channel::{bounded, unbounded, Receiver, Sender, TryRecvError};
-use server::{Error as ServerError, Event, Input, Server, ServerSettings};
+use server::{DataDir, Error as ServerError, Event, Input, Server, ServerSettings};
 use std::{
     sync::{
         atomic::{AtomicBool, Ordering},
@@ -32,15 +32,15 @@ impl Singleplayer {
     pub fn new(client: Option<&Client>) -> (Self, ServerSettings) {
         let (sender, receiver) = unbounded();
 
+        // Determine folder to save server data in
+        let server_data_dir = DataDir::from({
+            let mut path = common::userdata_dir_workspace!();
+            path.push("singleplayer");
+            path
+        });
+
         // Create server
-        let settings = ServerSettings::singleplayer(
-            crate::settings::Settings::get_settings_path()
-                .parent()
-                .unwrap()
-                .join("saves")
-                .to_string_lossy()
-                .to_string(),
-        );
+        let settings = ServerSettings::singleplayer(server_data_dir.as_ref());
 
         let thread_pool = client.map(|c| c.thread_pool().clone());
         let settings2 = settings.clone();
@@ -52,7 +52,7 @@ impl Singleplayer {
 
         let thread = thread::spawn(move || {
             let mut server = None;
-            if let Err(e) = result_sender.send(match Server::new(settings2) {
+            if let Err(e) = result_sender.send(match Server::new(settings2, server_data_dir) {
                 Ok(s) => {
                     server = Some(s);
                     Ok(())

@@ -6,6 +6,7 @@
 
 pub mod alias_validator;
 mod character_creator;
+mod data_dir;
 pub mod chunk_generator;
 pub mod client;
 pub mod cmd;
@@ -21,7 +22,7 @@ pub mod sys;
 #[cfg(not(feature = "worldgen"))] mod test_world;
 
 // Reexports
-pub use crate::{error::Error, events::Event, input::Input, settings::ServerSettings};
+pub use crate::{error::Error, events::Event, input::Input, settings::ServerSettings, data_dir::{DataDir, DEFAULT_DATA_DIR_NAME}};
 
 use crate::{
     alias_validator::AliasValidator,
@@ -29,6 +30,7 @@ use crate::{
     client::{Client, RegionSubscription},
     cmd::ChatCommandExt,
     login_provider::LoginProvider,
+    settings::{Banlist, EditableSetting, ServerDescription, Whitelist},
     state_ext::StateExt,
     sys::sentinel::{DeletedEntities, TrackedComps},
 };
@@ -102,10 +104,15 @@ impl Server {
     /// Create a new `Server`
     #[allow(clippy::expect_fun_call)] // TODO: Pending review in #587
     #[allow(clippy::needless_update)] // TODO: Pending review in #587
-    pub fn new(settings: ServerSettings) -> Result<Self, Error> {
+    pub fn new(settings: ServerSettings, data_dir: DataDir) -> Result<Self, Error> {
+        info!("Server is data dir is: {}", data_dir.path.display());
+        
+        // persistence_db_dir is relative to data_dir
+        let persistence_db_dir = data_dir.path.join(&settings.persistence_db_dir);
+
         // Run pending DB migrations (if any)
         debug!("Running DB migrations...");
-        if let Some(e) = persistence::run_migrations(&settings.persistence_db_dir).err() {
+        if let Some(e) = persistence::run_migrations(&persistence_db_dir).err() {
             panic!("Migration error: {:?}", e);
         }
 
@@ -116,6 +123,10 @@ impl Server {
 
         let mut state = State::default();
         state.ecs_mut().insert(settings.clone());
+        state.ecs_mut().insert(Whitelist::load(&data_dir.path));
+        state.ecs_mut().insert(Banlist::load(&data_dir.path));
+        state.ecs_mut().insert(ServerDescription::load(&data_dir.path));
+        state.ecs_mut().insert(data_dir);
         state.ecs_mut().insert(EventBus::<ServerEvent>::default());
         state
             .ecs_mut()
@@ -128,10 +139,10 @@ impl Server {
             .insert(ChunkGenerator::new(chunk_gen_metrics));
         state
             .ecs_mut()
-            .insert(CharacterUpdater::new(settings.persistence_db_dir.clone())?);
+            .insert(CharacterUpdater::new(&persistence_db_dir)?);
         state
             .ecs_mut()
-            .insert(CharacterLoader::new(settings.persistence_db_dir.clone())?);
+            .insert(CharacterLoader::new(&persistence_db_dir)?);
         state
             .ecs_mut()
             .insert(comp::AdminList(settings.admins.clone()));
@@ -340,9 +351,10 @@ impl Server {
 
     pub fn get_server_info(&self) -> ServerInfo {
         let settings = self.state.ecs().fetch::<ServerSettings>();
+        let server_description = self.state.ecs().fetch::<ServerDescription>();
         ServerInfo {
             name: settings.server_name.clone(),
-            description: settings.server_description.clone(),
+            description: (**server_description).clone(),
             git_hash: common::util::GIT_HASH.to_string(),
             git_date: common::util::GIT_DATE.to_string(),
             auth_provider: settings.auth_server_address.clone(),
@@ -360,8 +372,38 @@ impl Server {
     }
 
     /// Get a mutable reference to the server's settings
-    pub fn settings_mut(&mut self) -> impl DerefMut<Target = ServerSettings> + '_ {
-        self.state.ecs_mut().fetch_mut::<ServerSettings>()
+    pub fn settings_mut(&self) -> impl DerefMut<Target = ServerSettings> + '_ {
+        self.state.ecs().fetch_mut::<ServerSettings>()
+    }
+
+    /// Get a mutable reference to the server's whitelist
+    pub fn whitelist_mut(&self) -> impl DerefMut<Target = Whitelist> + '_ {
+        self.state.ecs().fetch_mut::<Whitelist>()
+    }
+
+    /// Get a reference to the server's banlist
+    pub fn banlist(&self) -> impl Deref<Target = Banlist> + '_ {
+        self.state.ecs().fetch::<Banlist>()
+    }
+
+    /// Get a mutable reference to the server's banlist
+    pub fn banlist_mut(&self) -> impl DerefMut<Target = Banlist> + '_ {
+        self.state.ecs().fetch_mut::<Banlist>()
+    }
+
+    /// Get a reference to the server's description
+    pub fn server_description(&self) -> impl Deref<Target = ServerDescription> + '_ {
+        self.state.ecs().fetch::<ServerDescription>()
+    }
+
+    /// Get a mutable reference to the server's description
+    pub fn server_description_mut(&self) -> impl DerefMut<Target = ServerDescription> + '_ {
+        self.state.ecs().fetch_mut::<ServerDescription>()
+    }
+
+    /// Get path to the directory that the server info into
+    pub fn data_dir(&self) -> impl Deref<Target = DataDir> + '_ {
+        self.state.ecs().fetch::<DataDir>()
     }
 
     /// Get a reference to the server's game state.
