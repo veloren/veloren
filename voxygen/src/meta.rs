@@ -1,6 +1,6 @@
 use common::comp;
 use directories::ProjectDirs;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use std::{fs, io::Write, path::PathBuf};
 use tracing::warn;
 

@@ -45,8 +45,6 @@ pub struct ServerSettings {
     pub banned_words_files: Vec<PathBuf>,
     pub max_player_group_size: u32,
     pub client_timeout: Duration,
-    pub update_shutdown_grace_period_secs: u64,
-    pub update_shutdown_message: String,
 }
 
 impl Default for ServerSettings {
@@ -66,8 +64,6 @@ impl Default for ServerSettings {
             banned_words_files: Vec::new(),
             max_player_group_size: 6,
             client_timeout: Duration::from_secs(40),
-            update_shutdown_grace_period_secs: 120,
-            update_shutdown_message: "The server is restarting for an update".to_owned(),
         }
     }
 }

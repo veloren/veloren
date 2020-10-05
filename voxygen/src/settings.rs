@@ -7,8 +7,8 @@ use crate::{
 };
 use directories_next::UserDirs;
 use hashbrown::{HashMap, HashSet};
-use serde_derive::{Deserialize, Serialize};
-use std::{fs, io::prelude::*, path::PathBuf};
+use serde::{Deserialize, Serialize};
+use std::{fs, path::PathBuf};
 use tracing::warn;
 use winit::event::{MouseButton, VirtualKeyCode};
 
@@ -291,7 +291,7 @@ impl Default for GamepadSettings {
 pub mod con_settings {
     use crate::controller::*;
     use gilrs::{Axis as GilAxis, Button as GilButton};
-    use serde_derive::{Deserialize, Serialize};
+    use serde::{Deserialize, Serialize};
 
     #[derive(Clone, Debug, Serialize, Deserialize)]
     #[serde(default)]
@@ -755,7 +755,7 @@ impl Default for Settings {
 
 impl Settings {
     pub fn load() -> Self {
-        let path = Settings::get_settings_path();
+        let path = Self::get_settings_path();
 
         if let Ok(file) = fs::File::open(&path) {
             match ron::de::from_reader(file) {
@@ -787,15 +787,13 @@ impl Settings {
     }
 
     pub fn save_to_file(&self) -> std::io::Result<()> {
-        let path = Settings::get_settings_path();
+        let path = Self::get_settings_path();
         if let Some(dir) = path.parent() {
             fs::create_dir_all(dir)?;
         }
-        let mut config_file = fs::File::create(path)?;
 
-        let s: &str = &ron::ser::to_string_pretty(self, ron::ser::PrettyConfig::default()).unwrap();
-        config_file.write_all(s.as_bytes()).unwrap();
-        Ok(())
+        let ron = ron::ser::to_string_pretty(self, ron::ser::PrettyConfig::default()).unwrap();
+        fs::write(path, ron.as_bytes())
     }
 
     pub fn get_settings_path() -> PathBuf {

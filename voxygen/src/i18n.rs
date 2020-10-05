@@ -1,7 +1,7 @@
 use common::assets::{self, Asset};
 use deunicode::deunicode;
 use ron::de::from_reader;
-use serde_derive::*;
+use serde::{Deserialize, Serialize};
 use std::{
     collections::{HashMap, HashSet},
     fs::File,

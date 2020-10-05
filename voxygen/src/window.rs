@@ -10,7 +10,7 @@ use gilrs::{EventType, Gilrs};
 use hashbrown::HashMap;
 use itertools::Itertools;
 use old_school_gfx_glutin_ext::{ContextBuilderExt, WindowInitExt, WindowUpdateExt};
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use std::fmt;
 use tracing::{error, info, warn};
 use vek::*;
