@@ -5,7 +5,7 @@ use crate::{
 use common::{
     comp,
     comp::{group, Player},
-    msg::{PlayerListUpdate, ServerInGameMsg, ServerMsg},
+    msg::{PlayerListUpdate, ServerInGameMsg, ServerGeneralMsg},
     span,
     sync::{Uid, UidAllocator},
 };
@@ -131,7 +131,7 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
         state.notify_registered_clients(comp::ChatType::Offline(*uid).server_msg(""));
 
         state
-            .notify_registered_clients(ServerMsg::PlayerListUpdate(PlayerListUpdate::Remove(*uid)));
+            .notify_registered_clients(ServerGeneralMsg::PlayerListUpdate(PlayerListUpdate::Remove(*uid)));
     }
 
     // Make sure to remove the player from the logged in list. (See LoginProvider)

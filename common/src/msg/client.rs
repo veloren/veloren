@@ -63,7 +63,7 @@ pub enum ClientInGameMsg {
 
 /// Messages sent from the client to the server
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum ClientMsg {
+pub enum ClientGeneralMsg {
     ChatMsg(String),
     Command(String),
     Disconnect,

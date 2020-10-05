@@ -255,7 +255,7 @@ pub enum ServerInGameMsg {
 
 /// Messages sent from the server to the client
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum ServerMsg {
+pub enum ServerGeneralMsg {
     PlayerListUpdate(PlayerListUpdate),
     /// A message to go into the client chat box. The client is responsible for
     /// formatting the message and turning it into a speech bubble.
@@ -285,6 +285,6 @@ impl From<AuthClientError> for RegisterError {
     fn from(err: AuthClientError) -> Self { Self::AuthError(err.to_string()) }
 }
 
-impl From<comp::ChatMsg> for ServerMsg {
-    fn from(v: comp::ChatMsg) -> Self { ServerMsg::ChatMsg(v) }
+impl From<comp::ChatMsg> for ServerGeneralMsg {
+    fn from(v: comp::ChatMsg) -> Self { ServerGeneralMsg::ChatMsg(v) }
 }

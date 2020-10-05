@@ -16,8 +16,8 @@ use common::{
     event::{EventBus, ServerEvent},
     msg::{
         validate_chat_msg, CharacterInfo, ChatMsgValidationError, ClientInGameMsg, ClientIngame,
-        ClientMsg, ClientNotInGameMsg, ClientRegisterMsg, DisconnectReason, PingMsg, PlayerInfo,
-        PlayerListUpdate, RegisterError, ServerInGameMsg, ServerMsg, ServerNotInGameMsg,
+        ClientGeneralMsg, ClientNotInGameMsg, ClientRegisterMsg, DisconnectReason, PingMsg, PlayerInfo,
+        PlayerListUpdate, RegisterError, ServerInGameMsg, ServerGeneralMsg, ServerNotInGameMsg,
         ServerRegisterAnswerMsg, MAX_BYTES_CHAT_MSG,
     },
     span,
@@ -45,10 +45,10 @@ impl Sys {
         player_metrics: &ReadExpect<'_, PlayerMetrics>,
         uids: &ReadStorage<'_, Uid>,
         chat_modes: &ReadStorage<'_, ChatMode>,
-        msg: ClientMsg,
+        msg: ClientGeneralMsg,
     ) -> Result<(), crate::error::Error> {
         match msg {
-            ClientMsg::ChatMsg(message) => {
+            ClientGeneralMsg::ChatMsg(message) => {
                 if client.registered {
                     match validate_chat_msg(&message) {
                         Ok(()) => {
@@ -68,7 +68,7 @@ impl Sys {
                     }
                 }
             },
-            ClientMsg::Command(message) => {
+            ClientGeneralMsg::Command(message) => {
                 if client.registered {
                     match validate_chat_msg(&message) {
                         Ok(()) => {
@@ -88,10 +88,10 @@ impl Sys {
                     }
                 }
             },
-            ClientMsg::Disconnect => {
-                client.send_msg(ServerMsg::Disconnect(DisconnectReason::Requested));
+            ClientGeneralMsg::Disconnect => {
+                client.send_msg(ServerGeneralMsg::Disconnect(DisconnectReason::Requested));
             },
-            ClientMsg::Terminate => {
+            ClientGeneralMsg::Terminate => {
                 debug!(?entity, "Client send message to termitate session");
                 player_metrics
                     .clients_disconnected
@@ -435,7 +435,7 @@ impl Sys {
                 .send(ServerRegisterAnswerMsg::Ok(()))?;
 
             // Send initial player list
-            client.send_msg(ServerMsg::PlayerListUpdate(PlayerListUpdate::Init(
+            client.send_msg(ServerGeneralMsg::PlayerListUpdate(PlayerListUpdate::Init(
                 player_list.clone(),
             )));
 
@@ -734,7 +734,7 @@ impl<'a> System<'a> for Sys {
         // Tell all clients to add them to the player list.
         for entity in new_players {
             if let (Some(uid), Some(player)) = (uids.get(entity), players.get(entity)) {
-                let msg = ServerMsg::PlayerListUpdate(PlayerListUpdate::Add(*uid, PlayerInfo {
+                let msg = ServerGeneralMsg::PlayerListUpdate(PlayerListUpdate::Add(*uid, PlayerInfo {
                     player_alias: player.alias.clone(),
                     is_online: true,
                     is_admin: admins.get(entity).is_some(),

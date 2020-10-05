@@ -1,7 +1,7 @@
 use crate::error::Error;
 use common::msg::{
-    ClientInGameMsg, ClientIngame, ClientMsg, ClientNotInGameMsg, ClientType, PingMsg,
-    ServerInGameMsg, ServerInitMsg, ServerMsg, ServerNotInGameMsg,
+    ClientInGameMsg, ClientIngame, ClientGeneralMsg, ClientNotInGameMsg, ClientType, PingMsg,
+    ServerInGameMsg, ServerInitMsg, ServerGeneralMsg, ServerNotInGameMsg,
 };
 use hashbrown::HashSet;
 use network::{MessageBuffer, Participant, Stream};
@@ -57,7 +57,7 @@ impl Client {
         Self::internal_send(&self.network_error, &mut self.register_stream, msg);
     }
 
-    pub fn send_msg(&mut self, msg: ServerMsg) {
+    pub fn send_msg(&mut self, msg: ServerGeneralMsg) {
         Self::internal_send(&self.network_error, &mut self.singleton_stream, msg);
     }
 
@@ -95,7 +95,7 @@ impl Client {
         }
     }
 
-    pub async fn recv_msg(&mut self) -> Result<ClientMsg, Error> {
+    pub async fn recv_msg(&mut self) -> Result<ClientGeneralMsg, Error> {
         Self::internal_recv(&self.network_error, &mut self.singleton_stream).await
     }
 

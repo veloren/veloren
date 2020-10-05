@@ -46,7 +46,7 @@ use common::{
     event::{EventBus, ServerEvent},
     msg::{
         server::WorldMapMsg, ClientType, DisconnectReason, ServerInGameMsg, ServerInfo,
-        ServerInitMsg, ServerMsg, ServerNotInGameMsg,
+        ServerInitMsg, ServerGeneralMsg, ServerNotInGameMsg,
     },
     outcome::Outcome,
     recipe::default_recipe_book,
@@ -885,7 +885,7 @@ impl Server {
 
     pub fn notify_client<S>(&self, entity: EcsEntity, msg: S)
     where
-        S: Into<ServerMsg>,
+        S: Into<ServerGeneralMsg>,
     {
         if let Some(client) = self.state.ecs().write_storage::<Client>().get_mut(entity) {
             client.send_msg(msg.into())
@@ -910,7 +910,7 @@ impl Server {
         }
     }
 
-    pub fn notify_registered_clients(&mut self, msg: ServerMsg) {
+    pub fn notify_registered_clients(&mut self, msg: ServerGeneralMsg) {
         self.state.notify_registered_clients(msg);
     }
 
@@ -990,7 +990,7 @@ impl Server {
 impl Drop for Server {
     fn drop(&mut self) {
         self.state
-            .notify_registered_clients(ServerMsg::Disconnect(DisconnectReason::Shutdown));
+            .notify_registered_clients(ServerGeneralMsg::Disconnect(DisconnectReason::Shutdown));
     }
 }
 

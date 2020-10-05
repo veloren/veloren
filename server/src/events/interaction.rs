@@ -4,7 +4,7 @@ use crate::{
 };
 use common::{
     comp::{self, item},
-    msg::ServerMsg,
+    msg::ServerGeneralMsg,
     sync::{Uid, WorldSyncExt},
 };
 use specs::{world::WorldExt, Entity as EcsEntity};
@@ -116,7 +116,7 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
         let mut clients = ecs.write_storage::<Client>();
         if clients.get_mut(possesse).is_none() {
             if let Some(mut client) = clients.remove(possessor) {
-                client.send_msg(ServerMsg::SetPlayerEntity(possesse_uid));
+                client.send_msg(ServerGeneralMsg::SetPlayerEntity(possesse_uid));
                 clients
                     .insert(possesse, client)
                     .err()
