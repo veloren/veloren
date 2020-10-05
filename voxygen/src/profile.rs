@@ -1,7 +1,7 @@
 use crate::{hud, settings};
 use common::character::CharacterId;
 use hashbrown::HashMap;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use std::{fs, io::Write, path::PathBuf};
 use tracing::warn;
 

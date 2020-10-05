@@ -3,6 +3,7 @@
 #![feature(bool_to_option)]
 
 mod logging;
+mod settings;
 mod shutdown_coordinator;
 mod tui_runner;
 mod tuilog;
@@ -58,6 +59,9 @@ fn main() -> io::Result<()> {
 
     logging::init(basic);
 
+    // Load settings
+    let settings = settings::Settings::load();
+
     // Panic hook to ensure that console mode is set back correctly if in non-basic
     // mode
     let hook = std::panic::take_hook();
@@ -80,18 +84,18 @@ fn main() -> io::Result<()> {
         path
     });
 
-    // Load settings
-    let mut settings = ServerSettings::load(server_data_dir.as_ref());
+    // Load server settings
+    let mut server_settings = ServerSettings::load(server_data_dir.as_ref());
 
     if no_auth {
-        settings.auth_server_address = None;
+        server_settings.auth_server_address = None;
     }
 
-    let server_port = &settings.gameserver_address.port();
-    let metrics_port = &settings.metrics_address.port();
+    let server_port = &server_settings.gameserver_address.port();
+    let metrics_port = &server_settings.metrics_address.port();
     // Create server
     let mut server =
-        Server::new(settings, server_data_dir).expect("Failed to create server instance!");
+        Server::new(server_settings, server_data_dir).expect("Failed to create server instance!");
 
     info!(
         ?server_port,
@@ -103,7 +107,7 @@ fn main() -> io::Result<()> {
 
     loop {
         // Terminate the server if instructed to do so by the shutdown coordinator
-        if shutdown_coordinator.check(&mut server) {
+        if shutdown_coordinator.check(&mut server, &settings) {
             break;
         }
 
