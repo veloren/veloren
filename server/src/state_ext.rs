@@ -17,6 +17,7 @@ use specs::{
 };
 use tracing::warn;
 use vek::*;
+use rand::prelude::*;
 
 pub trait StateExt {
     /// Updates a component associated with the entity based on the `Effect`
@@ -121,7 +122,11 @@ impl StateExt for State {
             .create_entity_synced()
             .with(pos)
             .with(comp::Vel(Vec3::zero()))
-            .with(comp::Ori::default())
+            .with(comp::Ori(Dir::new(Vec3::new(
+                thread_rng().gen_range(-1.0, 1.0),
+                thread_rng().gen_range(-1.0, 1.0),
+                0.0,
+            ).try_normalized().unwrap_or_default())))
             .with(comp::Collider::Box {
                 radius: body.radius(),
                 z_min: 0.0,
