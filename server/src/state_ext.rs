@@ -6,7 +6,7 @@ use common::{
     comp,
     effect::Effect,
     msg::{
-        CharacterInfo, ClientIngame, PlayerListUpdate, ServerInGameMsg, ServerGeneralMsg,
+        CharacterInfo, ClientIngame, PlayerListUpdate, ServerGeneralMsg, ServerInGameMsg,
         ServerNotInGameMsg,
     },
     state::State,

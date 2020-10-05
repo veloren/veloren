@@ -20,7 +20,6 @@ pub enum ClientType {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ClientRegisterMsg {
-    pub view_distance: Option<u32>,
     pub token_or_username: String,
 }
 
@@ -65,7 +64,6 @@ pub enum ClientInGameMsg {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ClientGeneralMsg {
     ChatMsg(String),
-    Command(String),
     Disconnect,
     Terminate,
 }

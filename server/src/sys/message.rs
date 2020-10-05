@@ -15,10 +15,10 @@ use common::{
     },
     event::{EventBus, ServerEvent},
     msg::{
-        validate_chat_msg, CharacterInfo, ChatMsgValidationError, ClientInGameMsg, ClientIngame,
-        ClientGeneralMsg, ClientNotInGameMsg, ClientRegisterMsg, DisconnectReason, PingMsg, PlayerInfo,
-        PlayerListUpdate, RegisterError, ServerInGameMsg, ServerGeneralMsg, ServerNotInGameMsg,
-        ServerRegisterAnswerMsg, MAX_BYTES_CHAT_MSG,
+        validate_chat_msg, CharacterInfo, ChatMsgValidationError, ClientGeneralMsg,
+        ClientInGameMsg, ClientIngame, ClientNotInGameMsg, ClientRegisterMsg, DisconnectReason,
+        PingMsg, PlayerInfo, PlayerListUpdate, RegisterError, ServerGeneralMsg, ServerInGameMsg,
+        ServerNotInGameMsg, ServerRegisterAnswerMsg, MAX_BYTES_CHAT_MSG,
     },
     span,
     state::{BlockChange, Time},
@@ -49,26 +49,6 @@ impl Sys {
     ) -> Result<(), crate::error::Error> {
         match msg {
             ClientGeneralMsg::ChatMsg(message) => {
-                if client.registered {
-                    match validate_chat_msg(&message) {
-                        Ok(()) => {
-                            if let Some(from) = uids.get(entity) {
-                                let mode = chat_modes.get(entity).cloned().unwrap_or_default();
-                                let msg = mode.new_message(*from, message);
-                                new_chat_msgs.push((Some(entity), msg));
-                            } else {
-                                error!("Could not send message. Missing player uid");
-                            }
-                        },
-                        Err(ChatMsgValidationError::TooLong) => {
-                            let max = MAX_BYTES_CHAT_MSG;
-                            let len = message.len();
-                            warn!(?len, ?max, "Received a chat message that's too long")
-                        },
-                    }
-                }
-            },
-            ClientGeneralMsg::Command(message) => {
                 if client.registered {
                     match validate_chat_msg(&message) {
                         Ok(()) => {
@@ -122,7 +102,7 @@ impl Sys {
         settings: &Read<'_, Settings>,
         msg: ClientInGameMsg,
     ) -> Result<(), crate::error::Error> {
-        if !client.in_game.is_some() {
+        if client.in_game.is_none() {
             debug!(?entity, "client is not in_game, ignoring msg");
             trace!(?msg, "ignored msg content");
             if matches!(msg, ClientInGameMsg::TerrainChunkRequest{ .. }) {
@@ -147,6 +127,7 @@ impl Sys {
                     )
                 });
 
+                //correct client if its VD is to high
                 if settings
                     .max_view_distance
                     .map(|max| view_distance > max)
@@ -278,7 +259,7 @@ impl Sys {
                 }
             },
             ClientNotInGameMsg::Character(character_id) => {
-                if client.registered && !client.in_game.is_some() {
+                if client.registered && client.in_game.is_none() {
                     // Only send login message if it wasn't already
                     // sent previously
                     if let Some(player) = players.get(entity) {
@@ -384,7 +365,6 @@ impl Sys {
         login_provider: &mut WriteExpect<'_, LoginProvider>,
         admins: &mut WriteStorage<'_, Admin>,
         players: &mut WriteStorage<'_, Player>,
-        settings: &Read<'_, Settings>,
         editable_settings: &ReadExpect<'_, EditableSettings>,
         msg: ClientRegisterMsg,
     ) -> Result<(), crate::error::Error> {
@@ -403,10 +383,8 @@ impl Sys {
             Ok((username, uuid)) => (username, uuid),
         };
 
-        let vd = msg
-            .view_distance
-            .map(|vd| vd.min(settings.max_view_distance.unwrap_or(vd)));
-        let player = Player::new(username.clone(), None, vd, uuid);
+        const INITIAL_VD: Option<u32> = Some(5); //will be changed after login
+        let player = Player::new(username.clone(), None, INITIAL_VD, uuid);
         let is_admin = editable_settings.admins.contains(&uuid);
 
         if !player.is_valid() {
@@ -442,19 +420,6 @@ impl Sys {
             // Add to list to notify all clients of the new player
             new_players.push(entity);
         }
-
-        // Limit view distance if it's too high
-        // This comes after state registration so that the client actually hears it
-        if settings
-            .max_view_distance
-            .zip(msg.view_distance)
-            .map(|(max, vd)| vd > max)
-            .unwrap_or(false)
-        {
-            client.send_in_game(ServerInGameMsg::SetViewDistance(
-                settings.max_view_distance.unwrap_or(0),
-            ));
-        };
         Ok(())
     }
 
@@ -564,7 +529,6 @@ impl Sys {
                     login_provider,
                     admins,
                     players,
-                    settings,
                     editable_settings,
                     msg,
                 )?;
@@ -734,12 +698,13 @@ impl<'a> System<'a> for Sys {
         // Tell all clients to add them to the player list.
         for entity in new_players {
             if let (Some(uid), Some(player)) = (uids.get(entity), players.get(entity)) {
-                let msg = ServerGeneralMsg::PlayerListUpdate(PlayerListUpdate::Add(*uid, PlayerInfo {
-                    player_alias: player.alias.clone(),
-                    is_online: true,
-                    is_admin: admins.get(entity).is_some(),
-                    character: None, // new players will be on character select.
-                }));
+                let msg =
+                    ServerGeneralMsg::PlayerListUpdate(PlayerListUpdate::Add(*uid, PlayerInfo {
+                        player_alias: player.alias.clone(),
+                        is_online: true,
+                        is_admin: admins.get(entity).is_some(),
+                        character: None, // new players will be on character select.
+                    }));
                 for client in (&mut clients).join().filter(|c| c.registered) {
                     client.send_msg(msg.clone())
                 }

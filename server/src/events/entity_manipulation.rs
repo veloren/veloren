@@ -12,7 +12,7 @@ use common::{
         Player, Pos, Stats,
     },
     lottery::Lottery,
-    msg::{PlayerListUpdate, ServerInGameMsg, ServerGeneralMsg},
+    msg::{PlayerListUpdate, ServerGeneralMsg, ServerInGameMsg},
     outcome::Outcome,
     state::BlockChange,
     sync::{Uid, UidAllocator, WorldSyncExt},
@@ -656,7 +656,7 @@ pub fn handle_level_up(server: &mut Server, entity: EcsEntity, new_level: u32) {
 
     server
         .state
-        .notify_registered_clients(ServerGeneralMsg::PlayerListUpdate(PlayerListUpdate::LevelChange(
-            *uid, new_level,
-        )));
+        .notify_registered_clients(ServerGeneralMsg::PlayerListUpdate(
+            PlayerListUpdate::LevelChange(*uid, new_level),
+        ));
 }

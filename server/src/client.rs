@@ -1,7 +1,7 @@
 use crate::error::Error;
 use common::msg::{
-    ClientInGameMsg, ClientIngame, ClientGeneralMsg, ClientNotInGameMsg, ClientType, PingMsg,
-    ServerInGameMsg, ServerInitMsg, ServerGeneralMsg, ServerNotInGameMsg,
+    ClientGeneralMsg, ClientInGameMsg, ClientIngame, ClientNotInGameMsg, ClientType, PingMsg,
+    ServerGeneralMsg, ServerInGameMsg, ServerInitMsg, ServerNotInGameMsg,
 };
 use hashbrown::HashSet;
 use network::{MessageBuffer, Participant, Stream};

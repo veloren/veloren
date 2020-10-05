@@ -194,6 +194,7 @@ pub enum DisconnectReason {
 
 /// Reponse To ClientType
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(clippy::clippy::large_enum_variant)]
 pub enum ServerInitMsg {
     TooManyPlayers,
     GameSync {

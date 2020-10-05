@@ -25,10 +25,10 @@ use common::{
     },
     event::{EventBus, LocalEvent},
     msg::{
-        validate_chat_msg, ChatMsgValidationError, ClientInGameMsg, ClientIngame, ClientGeneralMsg,
+        validate_chat_msg, ChatMsgValidationError, ClientGeneralMsg, ClientInGameMsg, ClientIngame,
         ClientNotInGameMsg, ClientRegisterMsg, ClientType, DisconnectReason, InviteAnswer,
-        Notification, PingMsg, PlayerInfo, PlayerListUpdate, RegisterError, ServerInGameMsg,
-        ServerInfo, ServerInitMsg, ServerGeneralMsg, ServerNotInGameMsg, ServerRegisterAnswerMsg,
+        Notification, PingMsg, PlayerInfo, PlayerListUpdate, RegisterError, ServerGeneralMsg,
+        ServerInGameMsg, ServerInfo, ServerInitMsg, ServerNotInGameMsg, ServerRegisterAnswerMsg,
         MAX_BYTES_CHAT_MSG,
     },
     outcome::Outcome,
@@ -444,11 +444,8 @@ impl Client {
                 }
         ).unwrap_or(Ok(username))?;
 
-        //TODO move ViewDistance out of register
-        self.register_stream.send(ClientRegisterMsg {
-            view_distance: self.view_distance,
-            token_or_username,
-        })?;
+        self.register_stream
+            .send(ClientRegisterMsg { token_or_username })?;
 
         match block_on(self.register_stream.recv::<ServerRegisterAnswerMsg>())? {
             Err(RegisterError::AlreadyLoggedIn) => Err(Error::AlreadyLoggedIn),
@@ -1123,11 +1120,13 @@ impl Client {
                 },
                 DisconnectReason::Kicked(reason) => {
                     debug!("sending ClientMsg::Terminate because we got kicked");
-                    frontend_events.push(Event::Kicked(reason.clone()));
+                    frontend_events.push(Event::Kicked(reason));
                     self.singleton_stream.send(ClientGeneralMsg::Terminate)?;
                 },
             },
-            ServerGeneralMsg::PlayerListUpdate(PlayerListUpdate::Init(list)) => self.player_list = list,
+            ServerGeneralMsg::PlayerListUpdate(PlayerListUpdate::Init(list)) => {
+                self.player_list = list
+            },
             ServerGeneralMsg::PlayerListUpdate(PlayerListUpdate::Add(uid, player_info)) => {
                 if let Some(old_player_info) = self.player_list.insert(uid, player_info.clone()) {
                     warn!(
@@ -1148,7 +1147,10 @@ impl Client {
                     );
                 }
             },
-            ServerGeneralMsg::PlayerListUpdate(PlayerListUpdate::SelectedCharacter(uid, char_info)) => {
+            ServerGeneralMsg::PlayerListUpdate(PlayerListUpdate::SelectedCharacter(
+                uid,
+                char_info,
+            )) => {
                 if let Some(player_info) = self.player_list.get_mut(&uid) {
                     player_info.character = Some(char_info);
                 } else {
@@ -1423,6 +1425,9 @@ impl Client {
             },
             ServerNotInGameMsg::CharacterSuccess => {
                 debug!("client is now in ingame state on server");
+                if let Some(vd) = self.view_distance {
+                    self.set_view_distance(vd);
+                }
             },
         }
         Ok(())
