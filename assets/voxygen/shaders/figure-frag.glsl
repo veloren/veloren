@@ -48,7 +48,7 @@ uniform sampler2D t_col_light;
 layout (std140)
 uniform u_locals {
 	mat4 model_mat;
-	vec4 model_col;
+	vec4 highlight_col;
     ivec4 atlas_offs;
     vec3 model_pos;
 	// bit 0 - is player
@@ -195,8 +195,8 @@ void main() {
 	// light += point_light;
 	// diffuse_light += point_light;
     // reflected_light += point_light;
-	// vec3 surf_color = illuminate(srgb_to_linear(model_col.rgb * f_col), light, diffuse_light, ambient_light);
-	surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light) * model_col.rgb;
+	// vec3 surf_color = illuminate(srgb_to_linear(highlight_col.rgb * f_col), light, diffuse_light, ambient_light);
+	surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light) * highlight_col.rgb;
 
 #if (CLOUD_MODE == CLOUD_MODE_REGULAR)
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);

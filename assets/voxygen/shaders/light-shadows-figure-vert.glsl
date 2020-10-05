@@ -38,7 +38,7 @@ in uint v_atlas_pos;
 layout (std140)
 uniform u_locals {
 	mat4 model_mat;
-	vec4 model_col;
+	vec4 highlight_col;
     ivec4 atlas_offs;
     vec3 model_pos;
 	// bit 0 - is player

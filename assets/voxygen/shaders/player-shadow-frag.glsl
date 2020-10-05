@@ -24,7 +24,7 @@ in float f_ao;
 layout (std140)
 uniform u_locals {
 	mat4 model_mat;
-	vec4 model_col;
+	vec4 highlight_col;
     ivec4 atlas_offs;
     vec3 model_pos;
 	int flags;
