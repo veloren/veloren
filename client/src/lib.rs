@@ -25,10 +25,10 @@ use common::{
     },
     event::{EventBus, LocalEvent},
     msg::{
-        validate_chat_msg, ChatMsgValidationError, ClientInGameMsg, ClientIngame, ClientMsg,
+        validate_chat_msg, ChatMsgValidationError, ClientInGameMsg, ClientIngame, ClientGeneralMsg,
         ClientNotInGameMsg, ClientRegisterMsg, ClientType, DisconnectReason, InviteAnswer,
         Notification, PingMsg, PlayerInfo, PlayerListUpdate, RegisterError, ServerInGameMsg,
-        ServerInfo, ServerInitMsg, ServerMsg, ServerNotInGameMsg, ServerRegisterAnswerMsg,
+        ServerInfo, ServerInitMsg, ServerGeneralMsg, ServerNotInGameMsg, ServerRegisterAnswerMsg,
         MAX_BYTES_CHAT_MSG,
     },
     outcome::Outcome,
@@ -502,7 +502,7 @@ impl Client {
     /// Send disconnect message to the server
     pub fn request_logout(&mut self) {
         debug!("Requesting logout from server");
-        if let Err(e) = self.singleton_stream.send(ClientMsg::Disconnect) {
+        if let Err(e) = self.singleton_stream.send(ClientGeneralMsg::Disconnect) {
             error!(
                 ?e,
                 "Couldn't send disconnect package to server, did server close already?"
@@ -844,7 +844,7 @@ impl Client {
         match validate_chat_msg(&message) {
             Ok(()) => self
                 .singleton_stream
-                .send(ClientMsg::ChatMsg(message))
+                .send(ClientGeneralMsg::ChatMsg(message))
                 .unwrap(),
             Err(ChatMsgValidationError::TooLong) => tracing::warn!(
                 "Attempted to send a message that's too long (Over {} bytes)",
@@ -1111,24 +1111,24 @@ impl Client {
     fn handle_server_msg(
         &mut self,
         frontend_events: &mut Vec<Event>,
-        msg: ServerMsg,
+        msg: ServerGeneralMsg,
     ) -> Result<(), Error> {
         match msg {
-            ServerMsg::Disconnect(reason) => match reason {
+            ServerGeneralMsg::Disconnect(reason) => match reason {
                 DisconnectReason::Shutdown => return Err(Error::ServerShutdown),
                 DisconnectReason::Requested => {
                     debug!("finally sending ClientMsg::Terminate");
                     frontend_events.push(Event::Disconnect);
-                    self.singleton_stream.send(ClientMsg::Terminate)?;
+                    self.singleton_stream.send(ClientGeneralMsg::Terminate)?;
                 },
                 DisconnectReason::Kicked(reason) => {
                     debug!("sending ClientMsg::Terminate because we got kicked");
                     frontend_events.push(Event::Kicked(reason.clone()));
-                    self.singleton_stream.send(ClientMsg::Terminate)?;
+                    self.singleton_stream.send(ClientGeneralMsg::Terminate)?;
                 },
             },
-            ServerMsg::PlayerListUpdate(PlayerListUpdate::Init(list)) => self.player_list = list,
-            ServerMsg::PlayerListUpdate(PlayerListUpdate::Add(uid, player_info)) => {
+            ServerGeneralMsg::PlayerListUpdate(PlayerListUpdate::Init(list)) => self.player_list = list,
+            ServerGeneralMsg::PlayerListUpdate(PlayerListUpdate::Add(uid, player_info)) => {
                 if let Some(old_player_info) = self.player_list.insert(uid, player_info.clone()) {
                     warn!(
                         "Received msg to insert {} with uid {} into the player list but there was \
@@ -1137,7 +1137,7 @@ impl Client {
                     );
                 }
             },
-            ServerMsg::PlayerListUpdate(PlayerListUpdate::Admin(uid, admin)) => {
+            ServerGeneralMsg::PlayerListUpdate(PlayerListUpdate::Admin(uid, admin)) => {
                 if let Some(player_info) = self.player_list.get_mut(&uid) {
                     player_info.is_admin = admin;
                 } else {
@@ -1148,7 +1148,7 @@ impl Client {
                     );
                 }
             },
-            ServerMsg::PlayerListUpdate(PlayerListUpdate::SelectedCharacter(uid, char_info)) => {
+            ServerGeneralMsg::PlayerListUpdate(PlayerListUpdate::SelectedCharacter(uid, char_info)) => {
                 if let Some(player_info) = self.player_list.get_mut(&uid) {
                     player_info.character = Some(char_info);
                 } else {
@@ -1159,7 +1159,7 @@ impl Client {
                     );
                 }
             },
-            ServerMsg::PlayerListUpdate(PlayerListUpdate::LevelChange(uid, next_level)) => {
+            ServerGeneralMsg::PlayerListUpdate(PlayerListUpdate::LevelChange(uid, next_level)) => {
                 if let Some(player_info) = self.player_list.get_mut(&uid) {
                     player_info.character = match &player_info.character {
                         Some(character) => Some(common::msg::CharacterInfo {
@@ -1178,7 +1178,7 @@ impl Client {
                     };
                 }
             },
-            ServerMsg::PlayerListUpdate(PlayerListUpdate::Remove(uid)) => {
+            ServerGeneralMsg::PlayerListUpdate(PlayerListUpdate::Remove(uid)) => {
                 // Instead of removing players, mark them as offline because we need to
                 // remember the names of disconnected players in chat.
                 //
@@ -1203,7 +1203,7 @@ impl Client {
                     );
                 }
             },
-            ServerMsg::PlayerListUpdate(PlayerListUpdate::Alias(uid, new_name)) => {
+            ServerGeneralMsg::PlayerListUpdate(PlayerListUpdate::Alias(uid, new_name)) => {
                 if let Some(player_info) = self.player_list.get_mut(&uid) {
                     player_info.player_alias = new_name;
                 } else {
@@ -1214,38 +1214,38 @@ impl Client {
                     );
                 }
             },
-            ServerMsg::ChatMsg(m) => frontend_events.push(Event::Chat(m)),
-            ServerMsg::SetPlayerEntity(uid) => {
+            ServerGeneralMsg::ChatMsg(m) => frontend_events.push(Event::Chat(m)),
+            ServerGeneralMsg::SetPlayerEntity(uid) => {
                 if let Some(entity) = self.state.ecs().entity_from_uid(uid.0) {
                     self.entity = entity;
                 } else {
                     return Err(Error::Other("Failed to find entity from uid.".to_owned()));
                 }
             },
-            ServerMsg::TimeOfDay(time_of_day) => {
+            ServerGeneralMsg::TimeOfDay(time_of_day) => {
                 *self.state.ecs_mut().write_resource() = time_of_day;
             },
-            ServerMsg::EntitySync(entity_sync_package) => {
+            ServerGeneralMsg::EntitySync(entity_sync_package) => {
                 self.state
                     .ecs_mut()
                     .apply_entity_sync_package(entity_sync_package);
             },
-            ServerMsg::CompSync(comp_sync_package) => {
+            ServerGeneralMsg::CompSync(comp_sync_package) => {
                 self.state
                     .ecs_mut()
                     .apply_comp_sync_package(comp_sync_package);
             },
-            ServerMsg::CreateEntity(entity_package) => {
+            ServerGeneralMsg::CreateEntity(entity_package) => {
                 self.state.ecs_mut().apply_entity_package(entity_package);
             },
-            ServerMsg::DeleteEntity(entity) => {
+            ServerGeneralMsg::DeleteEntity(entity) => {
                 if self.uid() != Some(entity) {
                     self.state
                         .ecs_mut()
                         .delete_entity_and_clear_from_uid_allocator(entity.0);
                 }
             },
-            ServerMsg::Notification(n) => {
+            ServerGeneralMsg::Notification(n) => {
                 frontend_events.push(Event::Notification(n));
             },
         }
@@ -1802,7 +1802,7 @@ impl Client {
 impl Drop for Client {
     fn drop(&mut self) {
         trace!("Dropping client");
-        if let Err(e) = self.singleton_stream.send(ClientMsg::Disconnect) {
+        if let Err(e) = self.singleton_stream.send(ClientGeneralMsg::Disconnect) {
             warn!(
                 ?e,
                 "Error during drop of client, couldn't send disconnect package, is the connection \

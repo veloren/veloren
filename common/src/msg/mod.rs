@@ -4,11 +4,11 @@ pub mod server;
 
 // Reexports
 pub use self::{
-    client::{ClientInGameMsg, ClientMsg, ClientNotInGameMsg, ClientRegisterMsg, ClientType},
+    client::{ClientInGameMsg, ClientGeneralMsg, ClientNotInGameMsg, ClientRegisterMsg, ClientType},
     ecs_packet::EcsCompPacket,
     server::{
         CharacterInfo, DisconnectReason, InviteAnswer, Notification, PlayerInfo, PlayerListUpdate,
-        RegisterError, ServerInGameMsg, ServerInfo, ServerInitMsg, ServerMsg, ServerNotInGameMsg,
+        RegisterError, ServerInGameMsg, ServerInfo, ServerInitMsg, ServerGeneralMsg, ServerNotInGameMsg,
         ServerRegisterAnswerMsg,
     },
 };

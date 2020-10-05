@@ -1,4 +1,4 @@
-use crate::{comp::group::Group, msg::ServerMsg, sync::Uid};
+use crate::{comp::group::Group, msg::ServerGeneralMsg, sync::Uid};
 use serde::{Deserialize, Serialize};
 use specs::Component;
 use specs_idvs::IdvStorage;
@@ -118,11 +118,11 @@ impl<G> ChatType<G> {
     }
 }
 impl ChatType<String> {
-    pub fn server_msg<S>(self, msg: S) -> ServerMsg
+    pub fn server_msg<S>(self, msg: S) -> ServerGeneralMsg
     where
         S: Into<String>,
     {
-        ServerMsg::ChatMsg(self.chat_msg(msg))
+        ServerGeneralMsg::ChatMsg(self.chat_msg(msg))
     }
 }
 // Stores chat text, type
