@@ -44,7 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Overhauled representation of blocks to permit fluid and sprite coexistence
 - Overhauled sword
 - Reworked healing sceptre
-- Split out the sections of the server settings that can be edtited and saved by the server.
+- Split out the sections of the server settings that can be edited and saved by the server.
 - Revamped structure of where settings, logs, and game saves are stored so that almost everything is in one place.
 
 ### Removed

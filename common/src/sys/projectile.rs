@@ -1,6 +1,6 @@
 use crate::{
     comp::{
-        projectile, Damage, DamageSource, Energy, EnergySource, HealthChange, HealthSource, Group,
+        projectile, Damage, DamageSource, Energy, EnergySource, Group, HealthChange, HealthSource,
         Loadout, Ori, PhysicsState, Pos, Projectile, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
@@ -82,7 +82,7 @@ impl<'a> System<'a> for Sys {
                         // if there is at least one touching entity
                         .and_then(|uid| uid_allocator.retrieve_entity_internal(uid.into()))
                         .and_then(|e| groups.get(e))
-                        .map_or(false, |owner_group| 
+                        .map_or(false, |owner_group|
                             Some(owner_group) == uid_allocator
                             .retrieve_entity_internal(other.into())
                             .and_then(|e| groups.get(e))

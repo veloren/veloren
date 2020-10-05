@@ -6,10 +6,10 @@
 
 pub mod alias_validator;
 mod character_creator;
-mod data_dir;
 pub mod chunk_generator;
 pub mod client;
 pub mod cmd;
+mod data_dir;
 pub mod error;
 pub mod events;
 pub mod input;
@@ -22,7 +22,13 @@ pub mod sys;
 #[cfg(not(feature = "worldgen"))] mod test_world;
 
 // Reexports
-pub use crate::{error::Error, events::Event, input::Input, settings::ServerSettings, data_dir::{DataDir, DEFAULT_DATA_DIR_NAME}};
+pub use crate::{
+    data_dir::{DataDir, DEFAULT_DATA_DIR_NAME},
+    error::Error,
+    events::Event,
+    input::Input,
+    settings::ServerSettings,
+};
 
 use crate::{
     alias_validator::AliasValidator,
@@ -106,7 +112,7 @@ impl Server {
     #[allow(clippy::needless_update)] // TODO: Pending review in #587
     pub fn new(settings: ServerSettings, data_dir: DataDir) -> Result<Self, Error> {
         info!("Server is data dir is: {}", data_dir.path.display());
-        
+
         // persistence_db_dir is relative to data_dir
         let persistence_db_dir = data_dir.path.join(&settings.persistence_db_dir);
 
@@ -125,7 +131,9 @@ impl Server {
         state.ecs_mut().insert(settings.clone());
         state.ecs_mut().insert(Whitelist::load(&data_dir.path));
         state.ecs_mut().insert(Banlist::load(&data_dir.path));
-        state.ecs_mut().insert(ServerDescription::load(&data_dir.path));
+        state
+            .ecs_mut()
+            .insert(ServerDescription::load(&data_dir.path));
         state.ecs_mut().insert(data_dir);
         state.ecs_mut().insert(EventBus::<ServerEvent>::default());
         state

@@ -209,7 +209,8 @@ impl Sys {
                             // Give the player a welcome message
                             if !server_description.is_empty() {
                                 client.notify(
-                                    ChatType::CommandInfo.server_msg(String::from(&**server_description)),
+                                    ChatType::CommandInfo
+                                        .server_msg(String::from(&**server_description)),
                                 );
                             }
 
@@ -453,7 +454,7 @@ impl<'a> System<'a> for Sys {
         (
             ReadExpect<'a, Whitelist>,
             ReadExpect<'a, Banlist>,
-            ReadExpect<'a, ServerDescription>
+            ReadExpect<'a, ServerDescription>,
         ),
     );
 
@@ -488,11 +489,7 @@ impl<'a> System<'a> for Sys {
             mut controllers,
             settings,
             alias_validator,
-            (
-                whitelist,
-                banlist,
-                server_description,
-            ),   
+            (whitelist, banlist, server_description),
         ): Self::SystemData,
     ) {
         span!(_guard, "run", "message::Sys::run");
