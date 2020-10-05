@@ -6,6 +6,7 @@ use crate::{
     login_provider::LoginProvider,
     metrics::{NetworkRequestMetrics, PlayerMetrics},
     persistence::character_loader::CharacterLoader,
+    settings::{Banlist, ServerDescription, Whitelist},
     ServerSettings,
 };
 use common::{
@@ -66,6 +67,9 @@ impl Sys {
         controllers: &mut WriteStorage<'_, Controller>,
         settings: &Read<'_, ServerSettings>,
         alias_validator: &ReadExpect<'_, AliasValidator>,
+        whitelist: &Whitelist,
+        banlist: &Banlist,
+        server_description: &ServerDescription,
     ) -> Result<(), crate::error::Error> {
         loop {
             let msg = client.recv().await?;
@@ -96,17 +100,14 @@ impl Sys {
                     view_distance,
                     token_or_username,
                 } => {
-                    let (username, uuid) = match login_provider.try_login(
-                        &token_or_username,
-                        &settings.whitelist,
-                        &settings.banlist,
-                    ) {
-                        Err(err) => {
-                            client.error_state(RequestStateError::RegisterDenied(err));
-                            break Ok(());
-                        },
-                        Ok((username, uuid)) => (username, uuid),
-                    };
+                    let (username, uuid) =
+                        match login_provider.try_login(&token_or_username, &whitelist, &banlist) {
+                            Err(err) => {
+                                client.error_state(RequestStateError::RegisterDenied(err));
+                                break Ok(());
+                            },
+                            Ok((username, uuid)) => (username, uuid),
+                        };
 
                     let vd =
                         view_distance.map(|vd| vd.min(settings.max_view_distance.unwrap_or(vd)));
@@ -206,10 +207,9 @@ impl Sys {
                             });
 
                             // Give the player a welcome message
-                            if !settings.server_description.is_empty() {
+                            if !server_description.is_empty() {
                                 client.notify(
-                                    ChatType::CommandInfo
-                                        .server_msg(settings.server_description.clone()),
+                                    ChatType::CommandInfo.server_msg(String::from(&**server_description)),
                                 );
                             }
 
@@ -450,6 +450,11 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Controller>,
         Read<'a, ServerSettings>,
         ReadExpect<'a, AliasValidator>,
+        (
+            ReadExpect<'a, Whitelist>,
+            ReadExpect<'a, Banlist>,
+            ReadExpect<'a, ServerDescription>
+        ),
     );
 
     #[allow(clippy::match_ref_pats)] // TODO: Pending review in #587
@@ -483,6 +488,11 @@ impl<'a> System<'a> for Sys {
             mut controllers,
             settings,
             alias_validator,
+            (
+                whitelist,
+                banlist,
+                server_description,
+            ),   
         ): Self::SystemData,
     ) {
         span!(_guard, "run", "message::Sys::run");
@@ -543,6 +553,9 @@ impl<'a> System<'a> for Sys {
                     &mut controllers,
                     &settings,
                     &alias_validator,
+                    &whitelist,
+                    &banlist,
+                    &server_description,
                 );
                 select!(
                     _ = Delay::new(std::time::Duration::from_micros(20)).fuse() => Ok(()),

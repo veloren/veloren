@@ -1,4 +1,4 @@
-use crate::LOG;
+use crate::logging::LOG;
 use crossterm::{
     event::{DisableMouseCapture, EnableMouseCapture},
     execute,

@@ -5,7 +5,7 @@ use crate::{
     ui::ScaleMode,
     window::{FullScreenSettings, GameInput, KeyMouse},
 };
-use directories_next::{ProjectDirs, UserDirs};
+use directories_next::UserDirs;
 use hashbrown::{HashMap, HashSet};
 use serde_derive::{Deserialize, Serialize};
 use std::{fs, io::prelude::*, path::PathBuf};
@@ -584,18 +584,18 @@ pub struct Log {
 }
 
 impl Default for Log {
-    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     fn default() -> Self {
-        let proj_dirs = ProjectDirs::from("net", "veloren", "voxygen")
-            .expect("System's $HOME directory path not found!");
-
         // Chooses a path to store the logs by the following order:
         //  - The VOXYGEN_LOGS environment variable
         //  - The ProjectsDirs data local directory
         // This only selects if there isn't already an entry in the settings file
         let logs_path = std::env::var_os("VOXYGEN_LOGS")
             .map(PathBuf::from)
-            .unwrap_or(proj_dirs.data_local_dir().join("logs"));
+            .unwrap_or_else(|| {
+                let mut path = voxygen_data_dir();
+                path.push("logs");
+                path
+            });
 
         Self {
             log_to_file: true,
@@ -718,8 +718,6 @@ pub struct Settings {
 }
 
 impl Default for Settings {
-    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
-
     fn default() -> Self {
         let user_dirs = UserDirs::new().expect("System's $HOME directory path not found!");
 
@@ -730,10 +728,12 @@ impl Default for Settings {
         // This only selects if there isn't already an entry in the settings file
         let screenshots_path = std::env::var_os("VOXYGEN_SCREENSHOT")
             .map(PathBuf::from)
-            .or(user_dirs.picture_dir().map(|dir| dir.join("veloren")))
-            .or(std::env::current_exe()
-                .ok()
-                .and_then(|dir| dir.parent().map(PathBuf::from)))
+            .or_else(|| user_dirs.picture_dir().map(|dir| dir.join("veloren")))
+            .or_else(|| {
+                std::env::current_exe()
+                    .ok()
+                    .and_then(|dir| dir.parent().map(PathBuf::from))
+            })
             .expect("Couldn't choose a place to store the screenshots");
 
         Settings {
@@ -766,7 +766,7 @@ impl Settings {
                     let mut new_path = path.to_owned();
                     new_path.pop();
                     new_path.push("settings.invalid.ron");
-                    if let Err(e) = std::fs::rename(path.clone(), new_path.clone()) {
+                    if let Err(e) = std::fs::rename(&path, &new_path) {
                         warn!(?e, ?path, ?new_path, "Failed to rename settings file.");
                     }
                 },
@@ -800,18 +800,23 @@ impl Settings {
 
     pub fn get_settings_path() -> PathBuf {
         if let Some(path) = std::env::var_os("VOXYGEN_CONFIG") {
-            let settings = PathBuf::from(path.clone()).join("settings.ron");
+            let settings = PathBuf::from(&path).join("settings.ron");
             if settings.exists() || settings.parent().map(|x| x.exists()).unwrap_or(false) {
                 return settings;
             }
             warn!(?path, "VOXYGEN_CONFIG points to invalid path.");
         }
 
-        let proj_dirs = ProjectDirs::from("net", "veloren", "voxygen")
-            .expect("System's $HOME directory path not found!");
-        proj_dirs
-            .config_dir()
-            .join("settings")
-            .with_extension("ron")
+        let mut path = voxygen_data_dir();
+        path.push("settings.ron");
+        path
     }
+}
+
+pub fn voxygen_data_dir() -> PathBuf {
+    // Note: since voxygen is technically a lib we made need to lift this up to
+    // run.rs
+    let mut path = common::userdata_dir_workspace!();
+    path.push("voxygen");
+    path
 }
