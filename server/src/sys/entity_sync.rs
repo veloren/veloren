@@ -8,7 +8,7 @@ use crate::{
 };
 use common::{
     comp::{ForceUpdate, Inventory, InventoryUpdate, Last, Ori, Player, Pos, Vel},
-    msg::{ServerInGameMsg, ServerGeneralMsg},
+    msg::{ServerGeneralMsg, ServerInGameMsg},
     outcome::Outcome,
     region::{Event as RegionEvent, RegionMap},
     span,
@@ -128,13 +128,14 @@ impl<'a> System<'a> for Sys {
                                 (uid, pos, velocities.get(entity), orientations.get(entity))
                             })
                         }) {
-                            let create_msg =
-                                ServerGeneralMsg::CreateEntity(tracked_comps.create_entity_package(
+                            let create_msg = ServerGeneralMsg::CreateEntity(
+                                tracked_comps.create_entity_package(
                                     entity,
                                     Some(*pos),
                                     vel.copied(),
                                     ori.copied(),
-                                ));
+                                ),
+                            );
                             for (client, regions, client_entity, _) in &mut subscribers {
                                 if maybe_key
                                     .as_ref()

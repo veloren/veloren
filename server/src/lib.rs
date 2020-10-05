@@ -9,6 +9,7 @@ mod character_creator;
 pub mod chunk_generator;
 pub mod client;
 pub mod cmd;
+pub mod connection_handler;
 mod data_dir;
 pub mod error;
 pub mod events;
@@ -35,6 +36,7 @@ use crate::{
     chunk_generator::ChunkGenerator,
     client::{Client, RegionSubscription},
     cmd::ChatCommandExt,
+    connection_handler::ConnectionHandler,
     data_dir::DataDir,
     login_provider::LoginProvider,
     state_ext::StateExt,
@@ -45,8 +47,8 @@ use common::{
     comp::{self, ChatType},
     event::{EventBus, ServerEvent},
     msg::{
-        server::WorldMapMsg, ClientType, DisconnectReason, ServerInGameMsg, ServerInfo,
-        ServerInitMsg, ServerGeneralMsg, ServerNotInGameMsg,
+        server::WorldMapMsg, ClientType, DisconnectReason, ServerGeneralMsg, ServerInGameMsg,
+        ServerInfo, ServerInitMsg, ServerNotInGameMsg,
     },
     outcome::Outcome,
     recipe::default_recipe_book,
@@ -56,10 +58,8 @@ use common::{
     vol::{ReadVol, RectVolSize},
 };
 use futures_executor::block_on;
-use futures_timer::Delay;
-use futures_util::{select, FutureExt};
 use metrics::{ServerMetrics, StateTickMetrics, TickMetrics};
-use network::{Network, Pid, Promises, ProtocolAddr};
+use network::{Network, Pid, ProtocolAddr};
 use persistence::{
     character_loader::{CharacterLoader, CharacterLoaderResponseType},
     character_updater::CharacterUpdater,
@@ -100,7 +100,7 @@ pub struct Server {
     index: IndexOwned,
     map: WorldMapMsg,
 
-    network: Network,
+    connection_handler: ConnectionHandler,
 
     thread_pool: ThreadPool,
 
@@ -335,6 +335,7 @@ impl Server {
             .expect("Failed to initialize server metrics submodule.");
         thread_pool.execute(f);
         block_on(network.listen(ProtocolAddr::Tcp(settings.gameserver_address)))?;
+        let connection_handler = ConnectionHandler::new(network);
 
         let this = Self {
             state,
@@ -342,7 +343,7 @@ impl Server {
             index,
             map,
 
-            network,
+            connection_handler,
 
             thread_pool,
 
@@ -452,7 +453,7 @@ impl Server {
         let before_new_connections = Instant::now();
 
         // 3) Handle inputs from clients
-        block_on(self.handle_new_connections(&mut frontend_events))?;
+        self.handle_new_connections(&mut frontend_events)?;
 
         let before_message_system = Instant::now();
 
@@ -794,58 +795,29 @@ impl Server {
     }
 
     /// Handle new client connections.
-    async fn handle_new_connections(
-        &mut self,
-        frontend_events: &mut Vec<Event>,
-    ) -> Result<(), Error> {
-        //TIMEOUT 0.1 ms for msg handling
-        const TIMEOUT: Duration = Duration::from_micros(100);
-        loop {
-            let participant = match select!(
-                _ = Delay::new(TIMEOUT).fuse() => None,
-                pr = self.network.connected().fuse() => Some(pr),
-            ) {
-                None => return Ok(()),
-                Some(pr) => pr?,
-            };
-            debug!("New Participant connected to the server");
-            let reliable = Promises::ORDERED | Promises::CONSISTENCY;
-            let reliablec = reliable | Promises::COMPRESSED;
+    fn handle_new_connections(&mut self, frontend_events: &mut Vec<Event>) -> Result<(), Error> {
+        while let Ok(sender) = self.connection_handler.info_requester_receiver.try_recv() {
+            // can fail, e.g. due to timeout or network prob.
+            trace!("sending info to connection_handler");
+            let _ = sender.send(crate::connection_handler::ServerInfoPacket {
+                info: self.get_server_info(),
+                time: self.state.get_time(),
+            });
+        }
 
-            let stream = participant.open(10, reliablec).await?;
-            let ping_stream = participant.open(5, reliable).await?;
-            let mut register_stream = participant.open(10, reliablec).await?;
-            let in_game_stream = participant.open(10, reliablec).await?;
-            let not_in_game_stream = participant.open(10, reliablec).await?;
-
-            register_stream.send(self.get_server_info())?;
-            let client_type: ClientType = register_stream.recv().await?;
+        while let Ok(data) = self.connection_handler.client_receiver.try_recv() {
+            let mut client = data;
 
             if self.settings().max_players
                 <= self.state.ecs().read_storage::<Client>().join().count()
             {
                 trace!(
-                    ?participant,
+                    ?client.participant,
                     "to many players, wont allow participant to connect"
                 );
-                register_stream.send(ServerInitMsg::TooManyPlayers)?;
+                client.register_stream.send(ServerInitMsg::TooManyPlayers)?;
                 continue;
             }
-
-            let client = Client {
-                registered: false,
-                client_type,
-                in_game: None,
-                participant: std::sync::Mutex::new(Some(participant)),
-                singleton_stream: stream,
-                ping_stream,
-                register_stream,
-                in_game_stream,
-                not_in_game_stream,
-                network_error: std::sync::atomic::AtomicBool::new(false),
-                last_ping: self.state.get_time(),
-                login_msg_sent: false,
-            };
 
             let entity = self
                 .state
@@ -881,6 +853,7 @@ impl Server {
             frontend_events.push(Event::ClientConnected { entity });
             debug!("Done initial sync with client.");
         }
+        Ok(())
     }
 
     pub fn notify_client<S>(&self, entity: EcsEntity, msg: S)
