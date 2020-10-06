@@ -14,7 +14,7 @@ use crate::{
 };
 use clap::{App, Arg};
 use common::clock::Clock;
-use server::{DataDir, Event, Input, Server, ServerSettings};
+use server::{Event, Input, Server};
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 use signal_hook::SIGUSR1;
 use std::{
@@ -78,14 +78,15 @@ fn main() -> io::Result<()> {
     let mut clock = Clock::start();
 
     // Determine folder to save server data in
-    let server_data_dir = DataDir::from({
+    let server_data_dir = {
         let mut path = common::userdata_dir_workspace!();
         path.push(server::DEFAULT_DATA_DIR_NAME);
         path
-    });
+    };
 
     // Load server settings
-    let mut server_settings = ServerSettings::load(server_data_dir.as_ref());
+    let mut server_settings = server::Settings::load(&server_data_dir);
+    let editable_settings = server::EditableSettings::load(&server_data_dir);
 
     if no_auth {
         server_settings.auth_server_address = None;
@@ -94,8 +95,8 @@ fn main() -> io::Result<()> {
     let server_port = &server_settings.gameserver_address.port();
     let metrics_port = &server_settings.metrics_address.port();
     // Create server
-    let mut server =
-        Server::new(server_settings, server_data_dir).expect("Failed to create server instance!");
+    let mut server = Server::new(server_settings, editable_settings, &server_data_dir)
+        .expect("Failed to create server instance!");
 
     info!(
         ?server_port,

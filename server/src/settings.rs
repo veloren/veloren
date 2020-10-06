@@ -17,8 +17,7 @@ use tracing::{error, warn};
 use world::sim::FileOpts;
 
 const DEFAULT_WORLD_SEED: u32 = 59686;
-//const CONFIG_DIR_ENV: &'static str = "VELOREN_SERVER_CONFIG";
-const /*DEFAULT_*/CONFIG_DIR: &str = "server_config";
+const CONFIG_DIR: &str = "server_config";
 const SETTINGS_FILENAME: &str = "settings.ron";
 const WHITELIST_FILENAME: &str = "whitelist.ron";
 const BANLIST_FILENAME: &str = "banlist.ron";
@@ -26,7 +25,7 @@ const SERVER_DESCRIPTION_FILENAME: &str = "description.ron";
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
-pub struct ServerSettings {
+pub struct Settings {
     pub gameserver_address: SocketAddr,
     pub metrics_address: SocketAddr,
     pub auth_server_address: Option<String>,
@@ -47,7 +46,7 @@ pub struct ServerSettings {
     pub client_timeout: Duration,
 }
 
-impl Default for ServerSettings {
+impl Default for Settings {
     fn default() -> Self {
         Self {
             gameserver_address: SocketAddr::from(([0; 4], 14004)),
@@ -68,7 +67,7 @@ impl Default for ServerSettings {
     }
 }
 
-impl ServerSettings {
+impl Settings {
     /// path: Directory that contains the server config directory
     pub fn load(path: &Path) -> Self {
         let path = Self::get_settings_path(path);
@@ -135,7 +134,6 @@ impl ServerSettings {
                 DEFAULT_WORLD_SEED
             },
             server_name: "Singleplayer".to_owned(),
-            //server_description: "Who needs friends anyway?".to_owned(),
             max_players: 100,
             start_time: 9.0 * 3600.0,
             admins: vec!["singleplayer".to_string()], /* TODO: Let the player choose if they want
@@ -155,27 +153,50 @@ impl ServerSettings {
 
 fn with_config_dir(path: &Path) -> PathBuf {
     let mut path = PathBuf::from(path);
-    //if let Some(path) = std::env::var_os(CONFIG_DIR_ENV) {
-    //    let config_dir = PathBuf::from(path);
-    //    if config_dir.exists() {
-    //        return config_dir;
-    //    }
-    //    warn!(?path, "VELROREN_SERVER_CONFIG points to invalid path.");
-    //}
-    path.push(/* DEFAULT_ */ CONFIG_DIR);
-    //PathBuf::from(DEFAULT_CONFIG_DIR)
+    path.push(CONFIG_DIR);
     path
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct BanRecord {
+    pub username_when_banned: String,
+    pub reason: String,
 }
 
 #[derive(Deserialize, Serialize, Default)]
 #[serde(transparent)]
-pub struct Whitelist(Vec<String>);
+pub struct Whitelist(Vec<Uuid>);
 #[derive(Deserialize, Serialize, Default)]
 #[serde(transparent)]
-pub struct Banlist(HashMap<Uuid, (String, String)>);
+pub struct Banlist(HashMap<Uuid, BanRecord>);
 #[derive(Deserialize, Serialize)]
 #[serde(transparent)]
 pub struct ServerDescription(String);
+
+/// Combines all the editable settings into one struct that is stored in the ecs
+pub struct EditableSettings {
+    pub whitelist: Whitelist,
+    pub banlist: Banlist,
+    pub server_description: ServerDescription,
+}
+
+impl EditableSettings {
+    pub fn load(data_dir: &Path) -> Self {
+        Self {
+            whitelist: Whitelist::load(data_dir),
+            banlist: Banlist::load(data_dir),
+            server_description: ServerDescription::load(data_dir),
+        }
+    }
+
+    pub fn singleplayer(data_dir: &Path) -> Self {
+        let load = Self::load(data_dir);
+        Self {
+            server_description: ServerDescription("Who needs friends anyway?".into()),
+            ..load
+        }
+    }
+}
 
 impl Default for ServerDescription {
     fn default() -> Self { Self("This is the best Veloren server".into()) }
@@ -194,7 +215,7 @@ impl EditableSetting for ServerDescription {
 }
 
 impl Deref for Whitelist {
-    type Target = Vec<String>;
+    type Target = Vec<Uuid>;
 
     fn deref(&self) -> &Self::Target { &self.0 }
 }
@@ -204,7 +225,7 @@ impl DerefMut for Whitelist {
 }
 
 impl Deref for Banlist {
-    type Target = HashMap<Uuid, (String, String)>;
+    type Target = HashMap<Uuid, BanRecord>;
 
     fn deref(&self) -> &Self::Target { &self.0 }
 }
