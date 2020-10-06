@@ -14,16 +14,11 @@ mod json_models;
 mod models;
 mod schema;
 
-extern crate diesel;
-
 use common::comp;
 use diesel::{connection::SimpleConnection, prelude::*};
 use diesel_migrations::embed_migrations;
-use std::{
-    env, fs,
-    path::{Path, PathBuf},
-};
-use tracing::{info, warn};
+use std::{fs, path::Path};
+use tracing::info;
 
 /// A tuple of the components that are persisted to the DB for each character
 pub type PersistedComponents = (comp::Body, comp::Stats, comp::Inventory, comp::Loadout);
@@ -49,7 +44,6 @@ impl std::io::Write for TracingOut {
 
 /// Runs any pending database migrations. This is executed during server startup
 pub fn run_migrations(db_dir: &Path) -> Result<(), diesel_migrations::RunMigrationsError> {
-    let db_dir = &apply_saves_dir_override(db_dir);
     let _ = fs::create_dir(format!("{}/", db_dir.display()));
 
     embedded_migrations::run_with_output(
@@ -95,7 +89,6 @@ impl<'a> core::ops::Deref for VelorenTransaction<'a> {
 }
 
 pub fn establish_connection(db_dir: &Path) -> QueryResult<VelorenConnection> {
-    let db_dir = &apply_saves_dir_override(db_dir);
     let database_url = format!("{}/db.sqlite", db_dir.display());
 
     let connection = SqliteConnection::establish(&database_url)
@@ -118,15 +111,4 @@ pub fn establish_connection(db_dir: &Path) -> QueryResult<VelorenConnection> {
         );
 
     Ok(VelorenConnection(connection))
-}
-
-fn apply_saves_dir_override(db_dir: &Path) -> PathBuf {
-    if let Some(saves_dir) = env::var_os("VELOREN_SAVES_DIR") {
-        let path = PathBuf::from(&saves_dir);
-        if path.exists() || path.parent().map(|x| x.exists()).unwrap_or(false) {
-            return path;
-        }
-        warn!(?saves_dir, "VELOREN_SAVES_DIR points to an invalid path.");
-    }
-    db_dir.to_owned()
 }

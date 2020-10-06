@@ -116,6 +116,9 @@ impl Server {
         data_dir: &std::path::Path,
     ) -> Result<Self, Error> {
         info!("Server is data dir is: {}", data_dir.display());
+        if settings.auth_server_address.is_none() {
+            info!("Authentication is disabled");
+        }
 
         // persistence_db_dir is relative to data_dir
         let persistence_db_dir = data_dir.join(&settings.persistence_db_dir);

@@ -1855,7 +1855,7 @@ fn handle_whitelist(
                 server
                     .editable_settings_mut()
                     .whitelist
-                    .edit(server.data_dir().as_ref(), |w| w.push(uuid));
+                    .edit(server.data_dir().as_ref(), |w| w.insert(uuid));
                 server.notify_client(
                     client,
                     ChatType::CommandInfo
@@ -1867,7 +1867,7 @@ fn handle_whitelist(
                 server
                     .editable_settings_mut()
                     .whitelist
-                    .edit(server.data_dir().as_ref(), |w| w.retain(|x| x != &uuid));
+                    .edit(server.data_dir().as_ref(), |w| w.remove(&uuid));
                 server.notify_client(
                     client,
                     ChatType::CommandInfo
