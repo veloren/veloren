@@ -532,7 +532,7 @@ impl Server {
                     // despawning if the entity walks outside of a valid chunk
                     // briefly. If the entity isn't even near a loaded chunk then we get
                     // rid of it.
-                    Spiral2d::new().all(|offs| terrain.get_key(chunk_key + offs).is_none())
+                    Spiral2d::new().take(9).all(|offs| terrain.get_key(chunk_key + offs).is_none())
                 })
                 .map(|(entity, _, _)| entity)
                 .collect::<Vec<_>>()
