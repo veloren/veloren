@@ -25,11 +25,11 @@ use common::{
     },
     event::{EventBus, LocalEvent},
     msg::{
-        validate_chat_msg, ChatMsgValidationError, ClientGeneralMsg, ClientInGameMsg, ClientIngame,
-        ClientNotInGameMsg, ClientRegisterMsg, ClientType, DisconnectReason, InviteAnswer,
-        Notification, PingMsg, PlayerInfo, PlayerListUpdate, RegisterError, ServerGeneralMsg,
-        ServerInGameMsg, ServerInfo, ServerInitMsg, ServerNotInGameMsg, ServerRegisterAnswerMsg,
-        MAX_BYTES_CHAT_MSG,
+        validate_chat_msg, ChatMsgValidationError, ClientCharacterScreenMsg, ClientGeneralMsg,
+        ClientInGameMsg, ClientIngame, ClientRegisterMsg, ClientType, DisconnectReason,
+        InviteAnswer, Notification, PingMsg, PlayerInfo, PlayerListUpdate, RegisterError,
+        ServerCharacterScreenMsg, ServerGeneralMsg, ServerInGameMsg, ServerInfo, ServerInitMsg,
+        ServerRegisterAnswerMsg, MAX_BYTES_CHAT_MSG,
     },
     outcome::Outcome,
     recipe::RecipeBook,
@@ -113,11 +113,11 @@ pub struct Client {
 
     _network: Network,
     participant: Option<Participant>,
-    singleton_stream: Stream,
+    general_stream: Stream,
     ping_stream: Stream,
     register_stream: Stream,
+    character_screen_stream: Stream,
     in_game_stream: Stream,
-    not_in_game_stream: Stream,
 
     client_timeout: Duration,
     last_server_ping: f64,
@@ -161,8 +161,8 @@ impl Client {
         let stream = block_on(participant.opened())?;
         let mut ping_stream = block_on(participant.opened())?;
         let mut register_stream = block_on(participant.opened())?;
+        let character_screen_stream = block_on(participant.opened())?;
         let in_game_stream = block_on(participant.opened())?;
-        let not_in_game_stream = block_on(participant.opened())?;
 
         register_stream.send(ClientType::Game)?;
         let server_info: ServerInfo = block_on(register_stream.recv())?;
@@ -397,10 +397,10 @@ impl Client {
 
             _network: network,
             participant: Some(participant),
-            singleton_stream: stream,
+            general_stream: stream,
             ping_stream,
             register_stream,
-            not_in_game_stream,
+            character_screen_stream,
             in_game_stream,
 
             client_timeout,
@@ -462,8 +462,8 @@ impl Client {
 
     /// Request a state transition to `ClientState::Character`.
     pub fn request_character(&mut self, character_id: CharacterId) {
-        self.not_in_game_stream
-            .send(ClientNotInGameMsg::Character(character_id))
+        self.character_screen_stream
+            .send(ClientCharacterScreenMsg::Character(character_id))
             .unwrap();
 
         //Assume we are in_game unless server tells us otherwise
@@ -475,31 +475,31 @@ impl Client {
     /// Load the current players character list
     pub fn load_character_list(&mut self) {
         self.character_list.loading = true;
-        self.not_in_game_stream
-            .send(ClientNotInGameMsg::RequestCharacterList)
+        self.character_screen_stream
+            .send(ClientCharacterScreenMsg::RequestCharacterList)
             .unwrap();
     }
 
     /// New character creation
     pub fn create_character(&mut self, alias: String, tool: Option<String>, body: comp::Body) {
         self.character_list.loading = true;
-        self.not_in_game_stream
-            .send(ClientNotInGameMsg::CreateCharacter { alias, tool, body })
+        self.character_screen_stream
+            .send(ClientCharacterScreenMsg::CreateCharacter { alias, tool, body })
             .unwrap();
     }
 
     /// Character deletion
     pub fn delete_character(&mut self, character_id: CharacterId) {
         self.character_list.loading = true;
-        self.not_in_game_stream
-            .send(ClientNotInGameMsg::DeleteCharacter(character_id))
+        self.character_screen_stream
+            .send(ClientCharacterScreenMsg::DeleteCharacter(character_id))
             .unwrap();
     }
 
     /// Send disconnect message to the server
     pub fn request_logout(&mut self) {
         debug!("Requesting logout from server");
-        if let Err(e) = self.singleton_stream.send(ClientGeneralMsg::Disconnect) {
+        if let Err(e) = self.general_stream.send(ClientGeneralMsg::Disconnect) {
             error!(
                 ?e,
                 "Couldn't send disconnect package to server, did server close already?"
@@ -840,7 +840,7 @@ impl Client {
     pub fn send_chat(&mut self, message: String) {
         match validate_chat_msg(&message) {
             Ok(()) => self
-                .singleton_stream
+                .general_stream
                 .send(ClientGeneralMsg::ChatMsg(message))
                 .unwrap(),
             Err(ChatMsgValidationError::TooLong) => tracing::warn!(
@@ -1116,12 +1116,12 @@ impl Client {
                 DisconnectReason::Requested => {
                     debug!("finally sending ClientMsg::Terminate");
                     frontend_events.push(Event::Disconnect);
-                    self.singleton_stream.send(ClientGeneralMsg::Terminate)?;
+                    self.general_stream.send(ClientGeneralMsg::Terminate)?;
                 },
                 DisconnectReason::Kicked(reason) => {
                     debug!("sending ClientMsg::Terminate because we got kicked");
                     frontend_events.push(Event::Kicked(reason));
-                    self.singleton_stream.send(ClientGeneralMsg::Terminate)?;
+                    self.general_stream.send(ClientGeneralMsg::Terminate)?;
                 },
             },
             ServerGeneralMsg::PlayerListUpdate(PlayerListUpdate::Init(list)) => {
@@ -1407,23 +1407,26 @@ impl Client {
         Ok(())
     }
 
-    fn handle_server_not_in_game_msg(&mut self, msg: ServerNotInGameMsg) -> Result<(), Error> {
+    fn handle_server_character_screen_msg(
+        &mut self,
+        msg: ServerCharacterScreenMsg,
+    ) -> Result<(), Error> {
         match msg {
-            ServerNotInGameMsg::CharacterListUpdate(character_list) => {
+            ServerCharacterScreenMsg::CharacterListUpdate(character_list) => {
                 self.character_list.characters = character_list;
                 self.character_list.loading = false;
             },
-            ServerNotInGameMsg::CharacterActionError(error) => {
+            ServerCharacterScreenMsg::CharacterActionError(error) => {
                 warn!("CharacterActionError: {:?}.", error);
                 self.character_list.error = Some(error);
             },
-            ServerNotInGameMsg::CharacterDataLoadError(error) => {
+            ServerCharacterScreenMsg::CharacterDataLoadError(error) => {
                 trace!("Handling join error by server");
                 self.client_ingame = None;
                 self.clean_state();
                 self.character_list.error = Some(error);
             },
-            ServerNotInGameMsg::CharacterSuccess => {
+            ServerCharacterScreenMsg::CharacterSuccess => {
                 debug!("client is now in ingame state on server");
                 if let Some(vd) = self.view_distance {
                     self.set_view_distance(vd);
@@ -1461,9 +1464,9 @@ impl Client {
     ) -> Result<(), Error> {
         loop {
             let (m1, m2, m3, m4) = select!(
-                msg = self.singleton_stream.recv().fuse() => (Some(msg), None, None, None),
+                msg = self.general_stream.recv().fuse() => (Some(msg), None, None, None),
                 msg = self.ping_stream.recv().fuse() => (None, Some(msg), None, None),
-                msg = self.not_in_game_stream.recv().fuse() => (None, None, Some(msg), None),
+                msg = self.character_screen_stream.recv().fuse() => (None, None, Some(msg), None),
                 msg = self.in_game_stream.recv().fuse() => (None, None, None, Some(msg)),
             );
             *cnt += 1;
@@ -1474,7 +1477,7 @@ impl Client {
                 self.handle_ping_msg(msg?)?;
             }
             if let Some(msg) = m3 {
-                self.handle_server_not_in_game_msg(msg?)?;
+                self.handle_server_character_screen_msg(msg?)?;
             }
             if let Some(msg) = m4 {
                 self.handle_server_in_game_msg(frontend_events, msg?)?;
@@ -1807,7 +1810,7 @@ impl Client {
 impl Drop for Client {
     fn drop(&mut self) {
         trace!("Dropping client");
-        if let Err(e) = self.singleton_stream.send(ClientGeneralMsg::Disconnect) {
+        if let Err(e) = self.general_stream.send(ClientGeneralMsg::Disconnect) {
             warn!(
                 ?e,
                 "Error during drop of client, couldn't send disconnect package, is the connection \

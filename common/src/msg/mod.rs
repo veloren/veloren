@@ -5,13 +5,13 @@ pub mod server;
 // Reexports
 pub use self::{
     client::{
-        ClientGeneralMsg, ClientInGameMsg, ClientNotInGameMsg, ClientRegisterMsg, ClientType,
+        ClientCharacterScreenMsg, ClientGeneralMsg, ClientInGameMsg, ClientRegisterMsg, ClientType,
     },
     ecs_packet::EcsCompPacket,
     server::{
         CharacterInfo, DisconnectReason, InviteAnswer, Notification, PlayerInfo, PlayerListUpdate,
-        RegisterError, ServerGeneralMsg, ServerInGameMsg, ServerInfo, ServerInitMsg,
-        ServerNotInGameMsg, ServerRegisterAnswerMsg,
+        RegisterError, ServerCharacterScreenMsg, ServerGeneralMsg, ServerInGameMsg, ServerInfo,
+        ServerInitMsg, ServerRegisterAnswerMsg,
     },
 };
 use serde::{Deserialize, Serialize};

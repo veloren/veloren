@@ -209,9 +209,9 @@ pub enum ServerInitMsg {
 
 pub type ServerRegisterAnswerMsg = Result<(), RegisterError>;
 
-//Messages only allowed while client ingame
+//Messages only allowed while client in character screen
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum ServerNotInGameMsg {
+pub enum ServerCharacterScreenMsg {
     /// An error occurred while loading character data
     CharacterDataLoadError(String),
     /// A list of characters belonging to the a authenticated player was sent
@@ -221,7 +221,7 @@ pub enum ServerNotInGameMsg {
     CharacterSuccess,
 }
 
-//Messages only allowed while client ingame
+//Messages only allowed while client is in game (with a character)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ServerInGameMsg {
     GroupUpdate(comp::group::ChangeNotification<sync::Uid>),

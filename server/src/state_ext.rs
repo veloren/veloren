@@ -6,8 +6,8 @@ use common::{
     comp,
     effect::Effect,
     msg::{
-        CharacterInfo, ClientIngame, PlayerListUpdate, ServerGeneralMsg, ServerInGameMsg,
-        ServerNotInGameMsg,
+        CharacterInfo, ClientIngame, PlayerListUpdate, ServerCharacterScreenMsg, ServerGeneralMsg,
+        ServerInGameMsg,
     },
     state::State,
     sync::{Uid, UidAllocator, WorldSyncExt},
@@ -220,7 +220,7 @@ impl StateExt for State {
         // Tell the client its request was successful.
         if let Some(client) = self.ecs().write_storage::<Client>().get_mut(entity) {
             client.in_game = Some(ClientIngame::Character);
-            client.send_not_in_game(ServerNotInGameMsg::CharacterSuccess)
+            client.send_character_screen(ServerCharacterScreenMsg::CharacterSuccess)
         }
     }
 

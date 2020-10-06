@@ -47,8 +47,8 @@ use common::{
     comp::{self, ChatType},
     event::{EventBus, ServerEvent},
     msg::{
-        server::WorldMapMsg, ClientType, DisconnectReason, ServerGeneralMsg, ServerInGameMsg,
-        ServerInfo, ServerInitMsg, ServerNotInGameMsg,
+        server::WorldMapMsg, ClientType, DisconnectReason, ServerCharacterScreenMsg,
+        ServerGeneralMsg, ServerInGameMsg, ServerInfo, ServerInitMsg,
     },
     outcome::Outcome,
     recipe::default_recipe_book,
@@ -525,13 +525,13 @@ impl Server {
             .messages()
             .for_each(|query_result| match query_result.result {
                 CharacterLoaderResponseType::CharacterList(result) => match result {
-                    Ok(character_list_data) => self.notify_not_in_game_client(
+                    Ok(character_list_data) => self.notify_character_screen_client(
                         query_result.entity,
-                        ServerNotInGameMsg::CharacterListUpdate(character_list_data),
+                        ServerCharacterScreenMsg::CharacterListUpdate(character_list_data),
                     ),
-                    Err(error) => self.notify_not_in_game_client(
+                    Err(error) => self.notify_character_screen_client(
                         query_result.entity,
-                        ServerNotInGameMsg::CharacterActionError(error.to_string()),
+                        ServerCharacterScreenMsg::CharacterActionError(error.to_string()),
                     ),
                 },
                 CharacterLoaderResponseType::CharacterData(result) => {
@@ -544,9 +544,9 @@ impl Server {
                             // We failed to load data for the character from the DB. Notify the
                             // client to push the state back to character selection, with the error
                             // to display
-                            self.notify_not_in_game_client(
+                            self.notify_character_screen_client(
                                 query_result.entity,
-                                ServerNotInGameMsg::CharacterDataLoadError(error.to_string()),
+                                ServerCharacterScreenMsg::CharacterDataLoadError(error.to_string()),
                             );
 
                             // Clean up the entity data on the server
@@ -874,12 +874,12 @@ impl Server {
         }
     }
 
-    pub fn notify_not_in_game_client<S>(&self, entity: EcsEntity, msg: S)
+    pub fn notify_character_screen_client<S>(&self, entity: EcsEntity, msg: S)
     where
-        S: Into<ServerNotInGameMsg>,
+        S: Into<ServerCharacterScreenMsg>,
     {
         if let Some(client) = self.state.ecs().write_storage::<Client>().get_mut(entity) {
-            client.send_not_in_game(msg.into())
+            client.send_character_screen(msg.into())
         }
     }
 
