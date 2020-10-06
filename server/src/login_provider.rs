@@ -1,7 +1,7 @@
 use crate::settings::BanRecord;
 use authc::{AuthClient, AuthClientError, AuthToken, Uuid};
 use common::msg::RegisterError;
-use hashbrown::HashMap;
+use hashbrown::{HashMap, HashSet};
 use std::str::FromStr;
 use tracing::{error, info};
 
@@ -53,7 +53,8 @@ impl LoginProvider {
     pub fn try_login(
         &mut self,
         username_or_token: &str,
-        whitelist: &[Uuid],
+        admins: &[String],
+        whitelist: &HashSet<Uuid>,
         banlist: &HashMap<Uuid, BanRecord>,
     ) -> Result<(String, Uuid), RegisterError> {
         self
@@ -69,7 +70,7 @@ impl LoginProvider {
 
                 // user can only join if he is admin, the whitelist is empty (everyone can join)
                 // or his name is in the whitelist
-                if !whitelist.is_empty() && !whitelist.contains(&uuid) {
+                if !whitelist.is_empty() && !whitelist.contains(&uuid) && !admins.contains(&username) {
                     return Err(RegisterError::NotOnWhitelist);
                 }
 

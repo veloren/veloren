@@ -99,6 +99,7 @@ impl Sys {
                 } => {
                     let (username, uuid) = match login_provider.try_login(
                         &token_or_username,
+                        &settings.admins,
                         &*editable_settings.whitelist,
                         &*editable_settings.banlist,
                     ) {

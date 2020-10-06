@@ -3,7 +3,7 @@ mod editable;
 pub use editable::EditableSetting;
 
 use authc::Uuid;
-use hashbrown::HashMap;
+use hashbrown::{HashMap, HashSet};
 use portpicker::pick_unused_port;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -39,7 +39,7 @@ pub struct Settings {
     /// uses the value of the file options to decide how to proceed.
     pub map_file: Option<FileOpts>,
     /// Relative paths are relative to the server data dir
-    pub persistence_db_dir: String,
+    pub persistence_db_dir: PathBuf,
     pub max_view_distance: Option<u32>,
     pub banned_words_files: Vec<PathBuf>,
     pub max_player_group_size: u32,
@@ -97,6 +97,7 @@ impl Settings {
             }
             default_settings
         }
+        .apply_saves_dir_override()
     }
 
     fn save_to_file(&self, path: &Path) -> std::io::Result<()> {
@@ -149,6 +150,18 @@ impl Settings {
         path.push(SETTINGS_FILENAME);
         path
     }
+
+    fn apply_saves_dir_override(mut self) -> Self {
+        if let Some(saves_dir) = std::env::var_os("VELOREN_SAVES_DIR") {
+            let path = PathBuf::from(&saves_dir);
+            if path.exists() || path.parent().map(|x| x.exists()).unwrap_or(false) {
+                self.persistence_db_dir = path;
+            } else {
+                warn!(?saves_dir, "VELOREN_SAVES_DIR points to an invalid path.");
+            }
+        }
+        self
+    }
 }
 
 fn with_config_dir(path: &Path) -> PathBuf {
@@ -165,7 +178,7 @@ pub struct BanRecord {
 
 #[derive(Deserialize, Serialize, Default)]
 #[serde(transparent)]
-pub struct Whitelist(Vec<Uuid>);
+pub struct Whitelist(HashSet<Uuid>);
 #[derive(Deserialize, Serialize, Default)]
 #[serde(transparent)]
 pub struct Banlist(HashMap<Uuid, BanRecord>);
@@ -215,7 +228,7 @@ impl EditableSetting for ServerDescription {
 }
 
 impl Deref for Whitelist {
-    type Target = Vec<Uuid>;
+    type Target = HashSet<Uuid>;
 
     fn deref(&self) -> &Self::Target { &self.0 }
 }
