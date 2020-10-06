@@ -9,10 +9,20 @@ pub enum Effect {
     Damage(i32),
     Knockback(f32),
     RewardEnergy(u32),
-    Explode { power: f32, percent_damage: f32 },
+    Explode(Explosion),
     Vanish,
     Stick,
     Possess,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Explosion {
+    pub radius: f32,
+    pub max_damage: u32,
+    pub min_damage: u32,
+    pub max_heal: u32,
+    pub min_heal: u32,
+    pub terrain_destruction_power: f32,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

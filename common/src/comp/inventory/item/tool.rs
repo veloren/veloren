@@ -2,7 +2,10 @@
 // version in voxygen\src\meta.rs in order to reset save files to being empty
 
 use crate::{
-    comp::{body::object, projectile, Body, CharacterAbility, Gravity, LightEmitter, Projectile},
+    comp::{
+        body::object, projectile, Body, CharacterAbility, Explosion, Gravity, LightEmitter,
+        Projectile,
+    },
     states::combo_melee,
 };
 use serde::{Deserialize, Serialize};
@@ -382,17 +385,25 @@ impl Tool {
                     recover_duration: Duration::from_millis(50),
                     projectile: Projectile {
                         hit_solid: vec![
-                            projectile::Effect::Explode {
-                                power: 1.4 * self.base_power(),
-                                percent_damage: 0.2,
-                            },
+                            projectile::Effect::Explode(Explosion {
+                                radius: 3.0 + 2.5 * self.base_power(),
+                                max_damage: (50.0 * self.base_power()) as u32,
+                                min_damage: (20.0 * self.base_power()) as u32,
+                                max_heal: (140.0 * self.base_power()) as u32,
+                                min_heal: (50.0 * self.base_power()) as u32,
+                                terrain_destruction_power: 0.0,
+                            }),
                             projectile::Effect::Vanish,
                         ],
                         hit_entity: vec![
-                            projectile::Effect::Explode {
-                                power: 1.4 * self.base_power(),
-                                percent_damage: 0.2,
-                            },
+                            projectile::Effect::Explode(Explosion {
+                                radius: 3.0 + 2.5 * self.base_power(),
+                                max_damage: (50.0 * self.base_power()) as u32,
+                                min_damage: (20.0 * self.base_power()) as u32,
+                                max_heal: (140.0 * self.base_power()) as u32,
+                                min_heal: (50.0 * self.base_power()) as u32,
+                                terrain_destruction_power: 0.0,
+                            }),
                             projectile::Effect::Vanish,
                         ],
                         time_left: Duration::from_secs(20),
@@ -416,30 +427,38 @@ impl Tool {
                     recover_duration: Duration::from_millis(50),
                     projectile: Projectile {
                         hit_solid: vec![
-                            projectile::Effect::Explode {
-                                power: 1.4 * self.base_power(),
-                                percent_damage: 1.0,
-                            },
+                            projectile::Effect::Explode(Explosion {
+                                radius: 4.0,
+                                max_damage: (100.0 * self.base_power()) as u32,
+                                min_damage: (40.0 * self.base_power()) as u32,
+                                max_heal: 0,
+                                min_heal: 0,
+                                terrain_destruction_power: 0.0,
+                            }),
                             projectile::Effect::Vanish,
                         ],
                         hit_entity: vec![
-                            projectile::Effect::Explode {
-                                power: 1.4 * self.base_power(),
-                                percent_damage: 1.0,
-                            },
+                            projectile::Effect::Explode(Explosion {
+                                radius: 4.0,
+                                max_damage: (100.0 * self.base_power()) as u32,
+                                min_damage: (40.0 * self.base_power()) as u32,
+                                max_heal: 0,
+                                min_heal: 0,
+                                terrain_destruction_power: 0.0,
+                            }),
                             projectile::Effect::Vanish,
                         ],
                         time_left: Duration::from_secs(20),
                         owner: None,
                         ignore_group: true,
                     },
-                    projectile_body: Body::Object(object::Body::BoltFireBig),
+                    projectile_body: Body::Object(object::Body::BoltFire),
                     projectile_light: Some(LightEmitter {
                         col: (1.0, 0.75, 0.11).into(),
                         ..Default::default()
                     }),
-                    projectile_gravity: Some(Gravity(0.5)),
-                    projectile_speed: 40.0,
+                    projectile_gravity: Some(Gravity(0.3)),
+                    projectile_speed: 60.0,
                 },
                 BasicBeam {
                     energy_cost: 0,

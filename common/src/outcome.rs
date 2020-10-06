@@ -13,8 +13,8 @@ pub enum Outcome {
     Explosion {
         pos: Vec3<f32>,
         power: f32,
+        radius: f32,
         reagent: Option<Reagent>, // How can we better define this?
-        percent_damage: f32,
     },
     ProjectileShot {
         pos: Vec3<f32>,

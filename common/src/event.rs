@@ -29,11 +29,10 @@ pub enum LocalEvent {
 pub enum ServerEvent {
     Explosion {
         pos: Vec3<f32>,
-        power: f32,
+        explosion: comp::Explosion,
         owner: Option<Uid>,
         friendly_damage: bool,
         reagent: Option<Reagent>,
-        percent_damage: f32,
     },
     Damage {
         uid: Uid,

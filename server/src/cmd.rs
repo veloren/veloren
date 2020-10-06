@@ -1129,11 +1129,17 @@ fn handle_explosion(
             ecs.read_resource::<EventBus<ServerEvent>>()
                 .emit_now(ServerEvent::Explosion {
                     pos: pos.0,
-                    power,
+                    explosion: comp::Explosion {
+                        radius: 3.0 * power,
+                        max_damage: (100.0 * power) as u32,
+                        min_damage: 0,
+                        max_heal: 0,
+                        min_heal: 0,
+                        terrain_destruction_power: power,
+                    },
                     owner: ecs.read_storage::<Uid>().get(target).copied(),
                     friendly_damage: true,
                     reagent: None,
-                    percent_damage: 1.0,
                 })
         },
         None => server.notify_client(

@@ -173,9 +173,9 @@ void main() {
 		attr = Attr(
 			linear_motion(
 				vec3(0),
-				vec3(rand4, rand5, rand6) * 40.0 + grav_vel(earth_gravity)
+				vec3(rand4, rand5, rand6) * 30.0 + grav_vel(earth_gravity)
 			),
-			vec3(3.0 + rand0),
+			vec3(2.0 + rand0),
 			vec4(vec3(0.6 + rand7 * 0.4), 1),
 			spin_in_axis(vec3(1,0,0),0)
 		);

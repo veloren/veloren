@@ -56,20 +56,11 @@ impl Server {
             match event {
                 ServerEvent::Explosion {
                     pos,
-                    power,
+                    explosion,
                     owner,
                     friendly_damage,
                     reagent,
-                    percent_damage,
-                } => handle_explosion(
-                    &self,
-                    pos,
-                    power,
-                    owner,
-                    friendly_damage,
-                    reagent,
-                    percent_damage,
-                ),
+                } => handle_explosion(&self, pos, explosion, owner, friendly_damage, reagent),
                 ServerEvent::Shoot {
                     entity,
                     dir,
