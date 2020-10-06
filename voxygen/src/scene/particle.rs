@@ -58,19 +58,18 @@ impl ParticleMgr {
             Outcome::Explosion {
                 pos,
                 power,
+                radius,
                 reagent,
-                percent_damage,
             } => {
-                if *percent_damage < 0.5 {
+                if *power < 0.0 {
                     self.particles.resize_with(
-                        self.particles.len() + (200.0 * power) as usize,
+                        self.particles.len() + (200.0 * power.abs()) as usize,
                         || {
                             Particle::new(
                                 Duration::from_secs(1),
                                 time,
                                 ParticleMode::EnergyNature,
-                                *pos + Vec3::<f32>::zero()
-                                    .map(|_| rng.gen_range(-3.0, 3.0) * power),
+                                *pos + Vec3::<f32>::zero().map(|_| rng.gen_range(-radius, radius)),
                             )
                         },
                     );
@@ -101,8 +100,7 @@ impl ParticleMgr {
                                 Duration::from_secs(4),
                                 time,
                                 ParticleMode::CampfireSmoke,
-                                *pos + Vec2::<f32>::zero()
-                                    .map(|_| rng.gen_range(-1.0, 1.0) * power),
+                                *pos + Vec2::<f32>::zero().map(|_| rng.gen_range(-radius, radius)),
                             )
                         },
                     );
@@ -371,11 +369,19 @@ impl ParticleMgr {
                         let (from, to) = (Vec3::<f32>::unit_z(), particle_ori);
                         let m = Mat3::<f32>::rotation_from_to_3d(from, to);
                         self.particles.resize_with(
-                            self.particles.len() + 2 * usize::from(self.scheduler.heartbeats(Duration::from_millis(1))),
+                            self.particles.len()
+                                + 2 * usize::from(
+                                    self.scheduler.heartbeats(Duration::from_millis(1)),
+                                ),
                             || {
-                                let phi: f32 = rng.gen_range(0.0, b.static_data.max_angle.to_radians());
+                                let phi: f32 =
+                                    rng.gen_range(0.0, b.static_data.max_angle.to_radians());
                                 let theta: f32 = rng.gen_range(0.0, 2.0 * PI);
-                                let offset_z = Vec3::new(phi.sin() * theta.cos(), phi.sin() * theta.sin(), phi.cos());
+                                let offset_z = Vec3::new(
+                                    phi.sin() * theta.cos(),
+                                    phi.sin() * theta.sin(),
+                                    phi.cos(),
+                                );
                                 let random_ori = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
                                 Particle::new_beam(
                                     b.static_data.beam_duration,
@@ -559,8 +565,8 @@ impl ParticleMgr {
                     for d in 0..((distance / scale) as i32) {
                         let arc_position = theta - radians / 2.0 + dtheta * d as f32 * scale;
 
-                        let position =
-                            pos.0 + distance * Vec3::new(arc_position.cos(), arc_position.sin(), 0.0);
+                        let position = pos.0
+                            + distance * Vec3::new(arc_position.cos(), arc_position.sin(), 0.0);
 
                         let position_snapped = ((position / scale).floor() + 0.5) * scale;
 
@@ -573,7 +579,6 @@ impl ParticleMgr {
                     }
                 }
             } else {
-                
             }
         }
     }

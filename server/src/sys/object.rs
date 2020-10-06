@@ -1,5 +1,5 @@
 use common::{
-    comp::{HealthSource, Object, PhysicsState, Pos, Vel},
+    comp::{self, HealthSource, Object, PhysicsState, Pos, Vel},
     event::{EventBus, ServerEvent},
     span,
     state::DeltaTime,
@@ -46,11 +46,17 @@ impl<'a> System<'a> for Sys {
                         });
                         server_emitter.emit(ServerEvent::Explosion {
                             pos: pos.0,
-                            power: 4.0,
+                            explosion: comp::Explosion {
+                                radius: 12.0,
+                                max_damage: 500,
+                                min_damage: 100,
+                                max_heal: 0,
+                                min_heal: 0,
+                                terrain_destruction_power: 4.0,
+                            },
                             owner: *owner,
                             friendly_damage: true,
                             reagent: None,
-                            percent_damage: 1.0,
                         });
                     }
                 },
@@ -62,11 +68,17 @@ impl<'a> System<'a> for Sys {
                         });
                         server_emitter.emit(ServerEvent::Explosion {
                             pos: pos.0,
-                            power: 4.0,
+                            explosion: comp::Explosion {
+                                radius: 12.0,
+                                max_damage: 50,
+                                min_damage: 10,
+                                max_heal: 0,
+                                min_heal: 0,
+                                terrain_destruction_power: 4.0,
+                            },
                             owner: *owner,
                             friendly_damage: true,
                             reagent: Some(*reagent),
-                            percent_damage: 1.0,
                         });
                     }
                 },
