@@ -23,9 +23,9 @@ pub struct ClientRegisterMsg {
     pub token_or_username: String,
 }
 
-//messages send by clients only valid when NOT ingame
+//messages send by clients only valid when in character screen
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub enum ClientNotInGameMsg {
+pub enum ClientCharacterScreenMsg {
     RequestCharacterList,
     CreateCharacter {
         alias: String,
@@ -37,7 +37,7 @@ pub enum ClientNotInGameMsg {
     Spectate,
 }
 
-//messages send by clients only valid when ingame
+//messages send by clients only valid when in game (with a character)
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum ClientInGameMsg {
     ControllerInputs(comp::ControllerInputs),

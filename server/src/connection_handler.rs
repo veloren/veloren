@@ -110,8 +110,8 @@ impl ConnectionHandler {
         let general_stream = participant.open(10, reliablec).await?;
         let ping_stream = participant.open(5, reliable).await?;
         let mut register_stream = participant.open(10, reliablec).await?;
+        let character_screen_stream = participant.open(10, reliablec).await?;
         let in_game_stream = participant.open(10, reliablec).await?;
-        let not_in_game_stream = participant.open(10, reliablec).await?;
 
         let server_data = receiver.recv()?;
 
@@ -138,7 +138,7 @@ impl ConnectionHandler {
             ping_stream,
             register_stream,
             in_game_stream,
-            not_in_game_stream,
+            character_screen_stream,
             network_error: std::sync::atomic::AtomicBool::new(false),
             last_ping: server_data.time,
             login_msg_sent: false,

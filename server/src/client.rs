@@ -1,7 +1,7 @@
 use crate::error::Error;
 use common::msg::{
-    ClientGeneralMsg, ClientInGameMsg, ClientIngame, ClientNotInGameMsg, ClientType, PingMsg,
-    ServerGeneralMsg, ServerInGameMsg, ServerInitMsg, ServerNotInGameMsg,
+    ClientCharacterScreenMsg, ClientGeneralMsg, ClientInGameMsg, ClientIngame, ClientType, PingMsg,
+    ServerCharacterScreenMsg, ServerGeneralMsg, ServerInGameMsg, ServerInitMsg,
 };
 use hashbrown::HashSet;
 use network::{MessageBuffer, Participant, Stream};
@@ -23,8 +23,8 @@ pub struct Client {
     pub singleton_stream: Stream,
     pub ping_stream: Stream,
     pub register_stream: Stream,
+    pub character_screen_stream: Stream,
     pub in_game_stream: Stream,
-    pub not_in_game_stream: Stream,
     pub network_error: AtomicBool,
     pub last_ping: f64,
     pub login_msg_sent: bool,
@@ -65,8 +65,8 @@ impl Client {
         Self::internal_send(&self.network_error, &mut self.in_game_stream, msg);
     }
 
-    pub fn send_not_in_game(&mut self, msg: ServerNotInGameMsg) {
-        Self::internal_send(&self.network_error, &mut self.not_in_game_stream, msg);
+    pub fn send_character_screen(&mut self, msg: ServerCharacterScreenMsg) {
+        Self::internal_send(&self.network_error, &mut self.character_screen_stream, msg);
     }
 
     pub fn send_ping(&mut self, msg: PingMsg) {
@@ -103,8 +103,8 @@ impl Client {
         Self::internal_recv(&self.network_error, &mut self.in_game_stream).await
     }
 
-    pub async fn recv_not_in_game_msg(&mut self) -> Result<ClientNotInGameMsg, Error> {
-        Self::internal_recv(&self.network_error, &mut self.not_in_game_stream).await
+    pub async fn recv_character_screen_msg(&mut self) -> Result<ClientCharacterScreenMsg, Error> {
+        Self::internal_recv(&self.network_error, &mut self.character_screen_stream).await
     }
 
     pub async fn recv_ping_msg(&mut self) -> Result<PingMsg, Error> {

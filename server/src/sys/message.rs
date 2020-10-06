@@ -15,10 +15,10 @@ use common::{
     },
     event::{EventBus, ServerEvent},
     msg::{
-        validate_chat_msg, CharacterInfo, ChatMsgValidationError, ClientGeneralMsg,
-        ClientInGameMsg, ClientIngame, ClientNotInGameMsg, ClientRegisterMsg, DisconnectReason,
-        PingMsg, PlayerInfo, PlayerListUpdate, RegisterError, ServerGeneralMsg, ServerInGameMsg,
-        ServerNotInGameMsg, ServerRegisterAnswerMsg, MAX_BYTES_CHAT_MSG,
+        validate_chat_msg, CharacterInfo, ChatMsgValidationError, ClientCharacterScreenMsg,
+        ClientGeneralMsg, ClientInGameMsg, ClientIngame, ClientRegisterMsg, DisconnectReason,
+        PingMsg, PlayerInfo, PlayerListUpdate, RegisterError, ServerCharacterScreenMsg,
+        ServerGeneralMsg, ServerInGameMsg, ServerRegisterAnswerMsg, MAX_BYTES_CHAT_MSG,
     },
     span,
     state::{BlockChange, Time},
@@ -237,7 +237,7 @@ impl Sys {
     }
 
     #[allow(clippy::too_many_arguments)]
-    fn handle_client_not_in_game_msg(
+    fn handle_client_character_screen_msg(
         server_emitter: &mut common::event::Emitter<'_, ServerEvent>,
         new_chat_msgs: &mut Vec<(Option<specs::Entity>, UnresolvedChatMsg)>,
         entity: specs::Entity,
@@ -247,18 +247,18 @@ impl Sys {
         players: &mut WriteStorage<'_, Player>,
         editable_settings: &ReadExpect<'_, EditableSettings>,
         alias_validator: &ReadExpect<'_, AliasValidator>,
-        msg: ClientNotInGameMsg,
+        msg: ClientCharacterScreenMsg,
     ) -> Result<(), crate::error::Error> {
         match msg {
             // Request spectator state
-            ClientNotInGameMsg::Spectate => {
+            ClientCharacterScreenMsg::Spectate => {
                 if client.registered {
                     client.in_game = Some(ClientIngame::Spectator)
                 } else {
                     debug!("dropped Spectate msg from unregistered client");
                 }
             },
-            ClientNotInGameMsg::Character(character_id) => {
+            ClientCharacterScreenMsg::Character(character_id) => {
                 if client.registered && client.in_game.is_none() {
                     // Only send login message if it wasn't already
                     // sent previously
@@ -301,9 +301,11 @@ impl Sys {
                             }
                         }
                     } else {
-                        client.send_not_in_game(ServerNotInGameMsg::CharacterDataLoadError(
-                            String::from("Failed to fetch player entity"),
-                        ))
+                        client.send_character_screen(
+                            ServerCharacterScreenMsg::CharacterDataLoadError(String::from(
+                                "Failed to fetch player entity",
+                            )),
+                        )
                     }
                 } else {
                     let registered = client.registered;
@@ -311,15 +313,15 @@ impl Sys {
                     debug!(?registered, ?in_game, "dropped Character msg from client");
                 }
             },
-            ClientNotInGameMsg::RequestCharacterList => {
+            ClientCharacterScreenMsg::RequestCharacterList => {
                 if let Some(player) = players.get(entity) {
                     character_loader.load_character_list(entity, player.uuid().to_string())
                 }
             },
-            ClientNotInGameMsg::CreateCharacter { alias, tool, body } => {
+            ClientCharacterScreenMsg::CreateCharacter { alias, tool, body } => {
                 if let Err(error) = alias_validator.validate(&alias) {
                     debug!(?error, ?alias, "denied alias as it contained a banned word");
-                    client.send_not_in_game(ServerNotInGameMsg::CharacterActionError(
+                    client.send_character_screen(ServerCharacterScreenMsg::CharacterActionError(
                         error.to_string(),
                     ));
                 } else if let Some(player) = players.get(entity) {
@@ -333,7 +335,7 @@ impl Sys {
                     );
                 }
             },
-            ClientNotInGameMsg::DeleteCharacter(character_id) => {
+            ClientCharacterScreenMsg::DeleteCharacter(character_id) => {
                 if let Some(player) = players.get(entity) {
                     character_loader.delete_character(
                         entity,
@@ -458,7 +460,8 @@ impl Sys {
         loop {
             let q1 = Client::internal_recv(&client.network_error, &mut client.singleton_stream);
             let q2 = Client::internal_recv(&client.network_error, &mut client.in_game_stream);
-            let q3 = Client::internal_recv(&client.network_error, &mut client.not_in_game_stream);
+            let q3 =
+                Client::internal_recv(&client.network_error, &mut client.character_screen_stream);
             let q4 = Client::internal_recv(&client.network_error, &mut client.ping_stream);
             let q5 = Client::internal_recv(&client.network_error, &mut client.register_stream);
 
@@ -503,7 +506,7 @@ impl Sys {
                 )?;
             }
             if let Some(msg) = m3 {
-                Self::handle_client_not_in_game_msg(
+                Self::handle_client_character_screen_msg(
                     server_emitter,
                     new_chat_msgs,
                     entity,
