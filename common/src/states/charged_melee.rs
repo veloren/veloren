@@ -11,6 +11,8 @@ use std::time::Duration;
 pub struct StaticData {
     /// How much energy is drained per second when charging
     pub energy_drain: u32,
+    /// Energy cost per attack
+    pub energy_cost: u32,
     /// How much damage is dealt with no charge
     pub initial_damage: u32,
     /// How much damage is dealt with max charge
@@ -29,6 +31,8 @@ pub struct StaticData {
     pub swing_duration: Duration,
     /// How long the state has until exiting
     pub recover_duration: Duration,
+    /// Whether the state can be interrupted by other abilities
+    pub is_interruptible: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -50,14 +54,25 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        handle_move(data, &mut update, 0.3);
+        handle_move(data, &mut update, 0.7);
         handle_jump(data, &mut update);
+
+        // Allows for other states to interrupt this state
+        if self.static_data.is_interruptible && !data.inputs.ability3.is_pressed() {
+            handle_interrupt(data, &mut update);
+            match update.character {
+                CharacterState::ChargedMelee(_) => {},
+                _ => {
+                    return update;
+                },
+            }
+        }
 
         match self.stage_section {
             StageSection::Charge => {
                 if data.inputs.secondary.is_pressed()
+                    && update.energy.current() >= self.static_data.energy_cost
                     && self.timer < self.static_data.charge_duration
-                    && update.energy.current() > 0
                 {
                     let charge = (self.timer.as_secs_f32()
                         / self.static_data.charge_duration.as_secs_f32())
@@ -80,7 +95,9 @@ impl CharacterBehavior for Data {
                         -(self.static_data.energy_drain as f32 * data.dt.0) as i32,
                         EnergySource::Ability,
                     );
-                } else if data.inputs.secondary.is_pressed() {
+                } else if data.inputs.secondary.is_pressed()
+                    && update.energy.current() >= self.static_data.energy_cost
+                {
                     // Maintains charge
                     update.character = CharacterState::ChargedMelee(Data {
                         static_data: self.static_data,
