@@ -8,9 +8,6 @@ pub const DEFAULT_DATA_DIR_NAME: &str = "server";
 pub struct DataDir {
     pub path: PathBuf,
 }
-impl<T: Into<PathBuf>> From<T> for DataDir {
-    fn from(t: T) -> Self { Self { path: t.into() } }
-}
 impl AsRef<Path> for DataDir {
     fn as_ref(&self) -> &Path { &self.path }
 }
