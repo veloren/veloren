@@ -6,7 +6,7 @@ use crate::{
         body::object, projectile, Body, CharacterAbility, Explosion, Gravity, LightEmitter,
         Projectile,
     },
-    states::combo_melee,
+    states::{combo_melee, utils::AbilityKey},
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -365,7 +365,6 @@ impl Tool {
             }],
             Sceptre(_) => vec![
                 BasicBeam {
-                    energy_cost: 0,
                     buildup_duration: Duration::from_millis(250),
                     recover_duration: Duration::from_millis(250),
                     beam_duration: Duration::from_secs(1),
@@ -376,7 +375,9 @@ impl Tool {
                     max_angle: 1.0,
                     lifesteal_eff: 0.20,
                     energy_regen: 50,
-                    energy_drain: 100,
+                    energy_cost: 100,
+                    energy_drain: 0,
+                    ability_key: AbilityKey::Mouse1,
                 },
                 BasicRanged {
                     energy_cost: 800,
@@ -461,7 +462,6 @@ impl Tool {
                     projectile_speed: 60.0,
                 },
                 BasicBeam {
-                    energy_cost: 0,
                     buildup_duration: Duration::from_millis(250),
                     recover_duration: Duration::from_millis(250),
                     beam_duration: Duration::from_millis(500),
@@ -471,8 +471,10 @@ impl Tool {
                     range: 15.0,
                     max_angle: 22.5,
                     lifesteal_eff: 0.0,
-                    energy_regen: 50,
+                    energy_regen: 0,
+                    energy_cost: 0,
                     energy_drain: 0,
+                    ability_key: AbilityKey::Mouse2,
                 },
                 Shockwave {
                     energy_cost: 0,

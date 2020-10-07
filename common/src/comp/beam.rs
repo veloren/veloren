@@ -12,7 +12,7 @@ pub struct Properties {
     pub heal: u32,
     pub lifesteal_eff: f32,
     pub energy_regen: u32,
-    pub energy_drain: u32,
+    pub energy_cost: u32,
     pub duration: Duration,
     pub owner: Option<Uid>,
 }

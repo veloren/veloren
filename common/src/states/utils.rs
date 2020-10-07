@@ -355,6 +355,14 @@ pub fn handle_interrupt(data: &JoinData, update: &mut StateUpdate) {
     handle_dodge_input(data, update);
 }
 
+pub fn ability_key_is_pressed(data: &JoinData, ability_key: AbilityKey) -> bool {
+    match ability_key {
+        AbilityKey::Mouse1 => data.inputs.primary.is_pressed(),
+        AbilityKey::Mouse2 => data.inputs.secondary.is_pressed(),
+        AbilityKey::Skill1 => data.inputs.ability3.is_pressed(),
+    }
+}
+
 /// Determines what portion a state is in. Used in all attacks (eventually). Is
 /// used to control aspects of animation code, as well as logic within the
 /// character states.
@@ -367,4 +375,11 @@ pub enum StageSection {
     Cast,
     Shoot,
     Movement,
+}
+
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
+pub enum AbilityKey {
+    Mouse1,
+    Mouse2,
+    Skill1,
 }
