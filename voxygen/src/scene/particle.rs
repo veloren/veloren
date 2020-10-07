@@ -544,23 +544,22 @@ impl ParticleMgr {
             let theta = ori.0.y.atan2(ori.0.x);
             let dtheta = radians / distance;
 
-            if shockwave.properties.requires_ground {
-                // 1 / 3 the size of terrain voxel
-                let scale = 1.0 / 3.0;
+            let heartbeats = self.scheduler.heartbeats(Duration::from_millis(1));
 
-                let scaled_speed = shockwave.properties.speed * scale;
+            for heartbeat in 0..heartbeats {
+                if shockwave.properties.requires_ground {
+                    // 1 / 3 the size of terrain voxel
+                    let scale = 1.0 / 3.0;
 
-                let heartbeats = self
-                    .scheduler
-                    .heartbeats(Duration::from_millis(scaled_speed as u64));
-                let new_particle_count = distance / scale * heartbeats as f32;
-                self.particles.reserve(new_particle_count as usize);
+                    let scaled_speed = shockwave.properties.speed * scale;
 
-                for heartbeat in 0..heartbeats {
                     let sub_tick_interpolation = scaled_speed * 1000.0 * heartbeat as f32;
 
                     let distance =
                         shockwave.properties.speed * (elapsed as f32 - sub_tick_interpolation);
+
+                    let new_particle_count = distance / scale as f32;
+                    self.particles.reserve(new_particle_count as usize);
 
                     for d in 0..((distance / scale) as i32) {
                         let arc_position = theta - radians / 2.0 + dtheta * d as f32 * scale;
@@ -577,8 +576,21 @@ impl ParticleMgr {
                             position_snapped,
                         ));
                     }
+                } else {
+                    for d in 0..10 * distance as i32 {
+                        let arc_position = theta - radians / 2.0 + dtheta * d as f32 / 10.0;
+
+                        let position = pos.0
+                            + distance * Vec3::new(arc_position.cos(), arc_position.sin(), 0.0);
+
+                        self.particles.push(Particle::new(
+                            Duration::from_secs_f32(distance / 50.0),
+                            time,
+                            ParticleMode::FireShockwave,
+                            position,
+                        ));
+                    }
                 }
-            } else {
             }
         }
     }

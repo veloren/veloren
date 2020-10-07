@@ -3,7 +3,10 @@ use crate::{
         item::{armor::Protection, Item, ItemKind},
         Body, CharacterState, EnergySource, Gravity, LightEmitter, Projectile, StateUpdate,
     },
-    states::{utils::StageSection, *},
+    states::{
+        utils::{AbilityKey, StageSection},
+        *,
+    },
     sys::character_behavior::JoinData,
 };
 use arraygen::Arraygen;
@@ -187,7 +190,6 @@ pub enum CharacterAbility {
         requires_ground: bool,
     },
     BasicBeam {
-        energy_cost: u32,
         buildup_duration: Duration,
         recover_duration: Duration,
         beam_duration: Duration,
@@ -198,7 +200,9 @@ pub enum CharacterAbility {
         max_angle: f32,
         lifesteal_eff: f32,
         energy_regen: u32,
+        energy_cost: u32,
         energy_drain: u32,
+        ability_key: AbilityKey,
     },
 }
 
@@ -252,9 +256,9 @@ impl CharacterAbility {
                 .energy
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
-            CharacterAbility::BasicBeam { energy_cost, .. } => update
+            CharacterAbility::BasicBeam { energy_drain, .. } => update
                 .energy
-                .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
+                .try_change_by(-(*energy_drain as i32), EnergySource::Ability)
                 .is_ok(),
             _ => true,
         }
@@ -640,7 +644,6 @@ impl From<&CharacterAbility> for CharacterState {
                 requires_ground: *requires_ground,
             }),
             CharacterAbility::BasicBeam {
-                energy_cost: _,
                 buildup_duration,
                 recover_duration,
                 beam_duration,
@@ -651,7 +654,9 @@ impl From<&CharacterAbility> for CharacterState {
                 max_angle,
                 lifesteal_eff,
                 energy_regen,
+                energy_cost,
                 energy_drain,
+                ability_key,
             } => CharacterState::BasicBeam(basic_beam::Data {
                 static_data: basic_beam::StaticData {
                     buildup_duration: *buildup_duration,
@@ -664,7 +669,9 @@ impl From<&CharacterAbility> for CharacterState {
                     max_angle: *max_angle,
                     lifesteal_eff: *lifesteal_eff,
                     energy_regen: *energy_regen,
+                    energy_cost: *energy_cost,
                     energy_drain: *energy_drain,
+                    ability_key: *ability_key,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
