@@ -134,7 +134,7 @@ impl ConnectionHandler {
             client_type,
             in_game: None,
             participant: std::sync::Mutex::new(Some(participant)),
-            singleton_stream: general_stream,
+            general_stream,
             ping_stream,
             register_stream,
             in_game_stream,

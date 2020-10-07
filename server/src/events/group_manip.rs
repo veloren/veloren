@@ -5,7 +5,7 @@ use common::{
         group::{self, Group, GroupManager, Invite, PendingInvites},
         ChatType, GroupManip,
     },
-    msg::{InviteAnswer, ServerInGameMsg},
+    msg::{InviteAnswer, ServerInGame},
     sync,
     sync::WorldSyncExt,
 };
@@ -155,7 +155,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                 (clients.get_mut(invitee), uids.get(entity).copied())
             {
                 if send_invite() {
-                    client.send_in_game(ServerInGameMsg::GroupInvite {
+                    client.send_msg(ServerInGame::GroupInvite {
                         inviter,
                         timeout: PRESENTED_INVITE_TIMEOUT_DUR,
                     });
@@ -171,7 +171,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
             // Notify inviter that the invite is pending
             if invite_sent {
                 if let Some(client) = clients.get_mut(entity) {
-                    client.send_in_game(ServerInGameMsg::InvitePending(uid));
+                    client.send_msg(ServerInGame::InvitePending(uid));
                 }
             }
         },
@@ -196,7 +196,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                 if let (Some(client), Some(target)) =
                     (clients.get_mut(inviter), uids.get(entity).copied())
                 {
-                    client.send_in_game(ServerInGameMsg::InviteComplete {
+                    client.send_msg(ServerInGame::InviteComplete {
                         target,
                         answer: InviteAnswer::Accepted,
                     })
@@ -217,7 +217,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                                     .try_map(|e| uids.get(e).copied())
                                     .map(|g| (g, c))
                             })
-                            .map(|(g, c)| c.send_in_game(ServerInGameMsg::GroupUpdate(g)));
+                            .map(|(g, c)| c.send_msg(ServerInGame::GroupUpdate(g)));
                     },
                 );
             }
@@ -244,7 +244,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                 if let (Some(client), Some(target)) =
                     (clients.get_mut(inviter), uids.get(entity).copied())
                 {
-                    client.send_in_game(ServerInGameMsg::InviteComplete {
+                    client.send_msg(ServerInGame::InviteComplete {
                         target,
                         answer: InviteAnswer::Declined,
                     })
@@ -269,7 +269,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                                 .try_map(|e| uids.get(e).copied())
                                 .map(|g| (g, c))
                         })
-                        .map(|(g, c)| c.send_in_game(ServerInGameMsg::GroupUpdate(g)));
+                        .map(|(g, c)| c.send_msg(ServerInGame::GroupUpdate(g)));
                 },
             );
         },
@@ -336,7 +336,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                                         .try_map(|e| uids.get(e).copied())
                                         .map(|g| (g, c))
                                 })
-                                .map(|(g, c)| c.send_in_game(ServerInGameMsg::GroupUpdate(g)));
+                                .map(|(g, c)| c.send_msg(ServerInGame::GroupUpdate(g)));
                         },
                     );
 
@@ -410,7 +410,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                                         .try_map(|e| uids.get(e).copied())
                                         .map(|g| (g, c))
                                 })
-                                .map(|(g, c)| c.send_in_game(ServerInGameMsg::GroupUpdate(g)));
+                                .map(|(g, c)| c.send_msg(ServerInGame::GroupUpdate(g)));
                         },
                     );
                     // Tell them they are the leader

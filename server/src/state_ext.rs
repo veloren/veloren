@@ -6,8 +6,8 @@ use common::{
     comp,
     effect::Effect,
     msg::{
-        CharacterInfo, ClientIngame, PlayerListUpdate, ServerCharacterScreenMsg, ServerGeneralMsg,
-        ServerInGameMsg,
+        CharacterInfo, ClientIngame, PlayerListUpdate, ServerCharacterScreen, ServerGeneral,
+        ServerInGame, ServerMsg,
     },
     state::State,
     sync::{Uid, UidAllocator, WorldSyncExt},
@@ -62,7 +62,8 @@ pub trait StateExt {
     fn update_character_data(&mut self, entity: EcsEntity, components: PersistedComponents);
     /// Iterates over registered clients and send each `ServerMsg`
     fn send_chat(&self, msg: comp::UnresolvedChatMsg);
-    fn notify_registered_clients(&self, msg: ServerGeneralMsg);
+    fn notify_registered_clients(&self, msg: ServerGeneral);
+    fn notify_in_game_clients(&self, msg: ServerInGame);
     /// Delete an entity, recording the deletion in [`DeletedEntities`]
     fn delete_entity_recorded(
         &mut self,
@@ -220,7 +221,7 @@ impl StateExt for State {
         // Tell the client its request was successful.
         if let Some(client) = self.ecs().write_storage::<Client>().get_mut(entity) {
             client.in_game = Some(ClientIngame::Character);
-            client.send_character_screen(ServerCharacterScreenMsg::CharacterSuccess)
+            client.send_msg(ServerCharacterScreen::CharacterSuccess)
         }
     }
 
@@ -229,7 +230,7 @@ impl StateExt for State {
 
         if let Some(player_uid) = self.read_component_copied::<Uid>(entity) {
             // Notify clients of a player list update
-            self.notify_registered_clients(ServerGeneralMsg::PlayerListUpdate(
+            self.notify_registered_clients(ServerGeneral::PlayerListUpdate(
                 PlayerListUpdate::SelectedCharacter(player_uid, CharacterInfo {
                     name: String::from(&stats.name),
                     level: stats.level.level(),
@@ -276,7 +277,7 @@ impl StateExt for State {
             | comp::ChatType::Kill(_, _)
             | comp::ChatType::Meta
             | comp::ChatType::World(_) => {
-                self.notify_registered_clients(ServerGeneralMsg::ChatMsg(resolved_msg))
+                self.notify_registered_clients(ServerGeneral::ChatMsg(resolved_msg))
             },
             comp::ChatType::Tell(u, t) => {
                 for (client, uid) in (
@@ -286,7 +287,7 @@ impl StateExt for State {
                     .join()
                 {
                     if uid == u || uid == t {
-                        client.send_msg(ServerGeneralMsg::ChatMsg(resolved_msg.clone()));
+                        client.send_msg(ServerGeneral::ChatMsg(resolved_msg.clone()));
                     }
                 }
             },
@@ -298,7 +299,7 @@ impl StateExt for State {
                 if let Some(speaker_pos) = entity_opt.and_then(|e| positions.get(e)) {
                     for (client, pos) in (&mut ecs.write_storage::<Client>(), &positions).join() {
                         if is_within(comp::ChatMsg::SAY_DISTANCE, pos, speaker_pos) {
-                            client.send_msg(ServerGeneralMsg::ChatMsg(resolved_msg.clone()));
+                            client.send_msg(ServerGeneral::ChatMsg(resolved_msg.clone()));
                         }
                     }
                 }
@@ -310,7 +311,7 @@ impl StateExt for State {
                 if let Some(speaker_pos) = entity_opt.and_then(|e| positions.get(e)) {
                     for (client, pos) in (&mut ecs.write_storage::<Client>(), &positions).join() {
                         if is_within(comp::ChatMsg::REGION_DISTANCE, pos, speaker_pos) {
-                            client.send_msg(ServerGeneralMsg::ChatMsg(resolved_msg.clone()));
+                            client.send_msg(ServerGeneral::ChatMsg(resolved_msg.clone()));
                         }
                     }
                 }
@@ -322,7 +323,7 @@ impl StateExt for State {
                 if let Some(speaker_pos) = entity_opt.and_then(|e| positions.get(e)) {
                     for (client, pos) in (&mut ecs.write_storage::<Client>(), &positions).join() {
                         if is_within(comp::ChatMsg::NPC_DISTANCE, pos, speaker_pos) {
-                            client.send_msg(ServerGeneralMsg::ChatMsg(resolved_msg.clone()));
+                            client.send_msg(ServerGeneral::ChatMsg(resolved_msg.clone()));
                         }
                     }
                 }
@@ -336,7 +337,7 @@ impl StateExt for State {
                     .join()
                 {
                     if s == &faction.0 {
-                        client.send_msg(ServerGeneralMsg::ChatMsg(resolved_msg.clone()));
+                        client.send_msg(ServerGeneral::ChatMsg(resolved_msg.clone()));
                     }
                 }
             },
@@ -348,7 +349,7 @@ impl StateExt for State {
                     .join()
                 {
                     if g == group {
-                        client.send_msg(ServerGeneralMsg::ChatMsg(resolved_msg.clone()));
+                        client.send_msg(ServerGeneral::ChatMsg(resolved_msg.clone()));
                     }
                 }
             },
@@ -356,10 +357,22 @@ impl StateExt for State {
     }
 
     /// Sends the message to all connected clients
-    fn notify_registered_clients(&self, msg: ServerGeneralMsg) {
+    fn notify_registered_clients(&self, msg: ServerGeneral) {
+        let msg: ServerMsg = msg.into();
         for client in (&mut self.ecs().write_storage::<Client>())
             .join()
             .filter(|c| c.registered)
+        {
+            client.send_msg(msg.clone());
+        }
+    }
+
+    /// Sends the message to all clients playing in game
+    fn notify_in_game_clients(&self, msg: ServerInGame) {
+        let msg: ServerMsg = msg.into();
+        for client in (&mut self.ecs().write_storage::<Client>())
+            .join()
+            .filter(|c| c.in_game.is_some())
         {
             client.send_msg(msg.clone());
         }
@@ -388,7 +401,7 @@ impl StateExt for State {
                                 .try_map(|e| uids.get(e).copied())
                                 .map(|g| (g, c))
                         })
-                        .map(|(g, c)| c.send_in_game(ServerInGameMsg::GroupUpdate(g)));
+                        .map(|(g, c)| c.send_msg(ServerInGame::GroupUpdate(g)));
                 },
             );
         }

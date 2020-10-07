@@ -1,18 +1,20 @@
 pub mod client;
 pub mod ecs_packet;
 pub mod server;
+pub mod world_packet;
 
 // Reexports
 pub use self::{
     client::{
-        ClientCharacterScreenMsg, ClientGeneralMsg, ClientInGameMsg, ClientRegisterMsg, ClientType,
+        ClientCharacterScreen, ClientGeneral, ClientInGame, ClientMsg, ClientRegister, ClientType,
     },
     ecs_packet::EcsCompPacket,
     server::{
         CharacterInfo, DisconnectReason, InviteAnswer, Notification, PlayerInfo, PlayerListUpdate,
-        RegisterError, ServerCharacterScreenMsg, ServerGeneralMsg, ServerInGameMsg, ServerInfo,
-        ServerInitMsg, ServerRegisterAnswerMsg,
+        RegisterError, ServerCharacterScreen, ServerGeneral, ServerInGame, ServerInfo, ServerInit,
+        ServerMsg, ServerRegisterAnswer,
     },
+    world_packet::WorldMapMsg,
 };
 use serde::{Deserialize, Serialize};
 

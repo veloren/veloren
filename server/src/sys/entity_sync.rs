@@ -8,7 +8,7 @@ use crate::{
 };
 use common::{
     comp::{ForceUpdate, Inventory, InventoryUpdate, Last, Ori, Player, Pos, Vel},
-    msg::{ServerGeneralMsg, ServerInGameMsg},
+    msg::{ServerGeneral, ServerInGame},
     outcome::Outcome,
     region::{Event as RegionEvent, RegionMap},
     span,
@@ -128,14 +128,13 @@ impl<'a> System<'a> for Sys {
                                 (uid, pos, velocities.get(entity), orientations.get(entity))
                             })
                         }) {
-                            let create_msg = ServerGeneralMsg::CreateEntity(
-                                tracked_comps.create_entity_package(
+                            let create_msg =
+                                ServerGeneral::CreateEntity(tracked_comps.create_entity_package(
                                     entity,
                                     Some(*pos),
                                     vel.copied(),
                                     ori.copied(),
-                                ),
-                            );
+                                ));
                             for (client, regions, client_entity, _) in &mut subscribers {
                                 if maybe_key
                                     .as_ref()
@@ -158,7 +157,7 @@ impl<'a> System<'a> for Sys {
                                     .map(|key| !regions.contains(key))
                                     .unwrap_or(true)
                                 {
-                                    client.send_msg(ServerGeneralMsg::DeleteEntity(uid));
+                                    client.send_msg(ServerGeneral::DeleteEntity(uid));
                                 }
                             }
                         }
@@ -175,14 +174,14 @@ impl<'a> System<'a> for Sys {
                     .take_deleted_in_region(key)
                     .unwrap_or_default(),
             );
-            let entity_sync_msg = ServerGeneralMsg::EntitySync(entity_sync_package);
-            let comp_sync_msg = ServerGeneralMsg::CompSync(comp_sync_package);
+            let entity_sync_msg = ServerGeneral::EntitySync(entity_sync_package);
+            let comp_sync_msg = ServerGeneral::CompSync(comp_sync_package);
             subscribers.iter_mut().for_each(move |(client, _, _, _)| {
                 client.send_msg(entity_sync_msg.clone());
                 client.send_msg(comp_sync_msg.clone());
             });
 
-            let mut send_msg = |msg: ServerGeneralMsg,
+            let mut send_msg = |msg: ServerGeneral,
                                 entity: EcsEntity,
                                 pos: Pos,
                                 force_update: Option<&ForceUpdate>,
@@ -288,7 +287,7 @@ impl<'a> System<'a> for Sys {
                 }
 
                 send_msg(
-                    ServerGeneralMsg::CompSync(comp_sync_package),
+                    ServerGeneral::CompSync(comp_sync_package),
                     entity,
                     pos,
                     force_update,
@@ -312,7 +311,7 @@ impl<'a> System<'a> for Sys {
                     })
             {
                 for uid in &deleted {
-                    client.send_msg(ServerGeneralMsg::DeleteEntity(Uid(*uid)));
+                    client.send_msg(ServerGeneral::DeleteEntity(Uid(*uid)));
                 }
             }
         }
@@ -321,7 +320,7 @@ impl<'a> System<'a> for Sys {
 
         // Sync inventories
         for (client, inventory, update) in (&mut clients, &inventories, &inventory_updates).join() {
-            client.send_in_game(ServerInGameMsg::InventoryUpdate(
+            client.send_msg(ServerInGame::InventoryUpdate(
                 inventory.clone(),
                 update.event(),
             ));
@@ -342,7 +341,7 @@ impl<'a> System<'a> for Sys {
                 .cloned()
                 .collect::<Vec<_>>();
             if !outcomes.is_empty() {
-                client.send_in_game(ServerInGameMsg::Outcomes(outcomes));
+                client.send_msg(ServerInGame::Outcomes(outcomes));
             }
         }
         outcomes.clear();
@@ -354,7 +353,7 @@ impl<'a> System<'a> for Sys {
         // Sync resources
         // TODO: doesn't really belong in this system (rename system or create another
         // system?)
-        let tof_msg = ServerGeneralMsg::TimeOfDay(*time_of_day);
+        let tof_msg = ServerGeneral::TimeOfDay(*time_of_day);
         for client in (&mut clients).join() {
             client.send_msg(tof_msg.clone());
         }

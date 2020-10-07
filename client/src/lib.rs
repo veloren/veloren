@@ -25,11 +25,11 @@ use common::{
     },
     event::{EventBus, LocalEvent},
     msg::{
-        validate_chat_msg, ChatMsgValidationError, ClientCharacterScreenMsg, ClientGeneralMsg,
-        ClientInGameMsg, ClientIngame, ClientRegisterMsg, ClientType, DisconnectReason,
+        validate_chat_msg, ChatMsgValidationError, ClientCharacterScreen, ClientGeneral,
+        ClientInGame, ClientIngame, ClientMsg, ClientRegister, ClientType, DisconnectReason,
         InviteAnswer, Notification, PingMsg, PlayerInfo, PlayerListUpdate, RegisterError,
-        ServerCharacterScreenMsg, ServerGeneralMsg, ServerInGameMsg, ServerInfo, ServerInitMsg,
-        ServerRegisterAnswerMsg, MAX_BYTES_CHAT_MSG,
+        ServerCharacterScreen, ServerGeneral, ServerInGame, ServerInfo, ServerInit,
+        ServerRegisterAnswer, MAX_BYTES_CHAT_MSG,
     },
     outcome::Outcome,
     recipe::RecipeBook,
@@ -71,7 +71,7 @@ pub enum Event {
 
 pub struct Client {
     registered: bool,
-    client_ingame: Option<ClientIngame>,
+    in_game: Option<ClientIngame>,
     thread_pool: ThreadPool,
     pub server_info: ServerInfo,
     /// Just the "base" layer for LOD; currently includes colors and nothing
@@ -193,7 +193,7 @@ impl Client {
             max_group_size,
             client_timeout,
         ) = match block_on(register_stream.recv())? {
-            ServerInitMsg::GameSync {
+            ServerInit::GameSync {
                 entity_package,
                 time_of_day,
                 max_group_size,
@@ -362,7 +362,7 @@ impl Client {
                     client_timeout,
                 ))
             },
-            ServerInitMsg::TooManyPlayers => Err(Error::TooManyPlayers),
+            ServerInit::TooManyPlayers => Err(Error::TooManyPlayers),
         }?;
         ping_stream.send(PingMsg::Ping)?;
 
@@ -376,7 +376,7 @@ impl Client {
 
         Ok(Self {
             registered: false,
-            client_ingame: None,
+            in_game: None,
             thread_pool,
             server_info,
             world_map,
@@ -444,10 +444,9 @@ impl Client {
                 }
         ).unwrap_or(Ok(username))?;
 
-        self.register_stream
-            .send(ClientRegisterMsg { token_or_username })?;
+        self.send_msg_err(ClientRegister { token_or_username })?;
 
-        match block_on(self.register_stream.recv::<ServerRegisterAnswerMsg>())? {
+        match block_on(self.register_stream.recv::<ServerRegisterAnswer>())? {
             Err(RegisterError::AlreadyLoggedIn) => Err(Error::AlreadyLoggedIn),
             Err(RegisterError::AuthError(err)) => Err(Error::AuthErr(err)),
             Err(RegisterError::InvalidCharacter) => Err(Error::InvalidCharacter),
@@ -460,14 +459,69 @@ impl Client {
         }
     }
 
+    fn send_msg_err<S>(&mut self, msg: S) -> Result<(), network::StreamError>
+    where
+        S: Into<ClientMsg>,
+    {
+        let msg: ClientMsg = msg.into();
+        #[cfg(debug_assertions)]
+        {
+            //There assertions veriy that the state is correct when a msg is send!
+            match &msg {
+                ClientMsg::Type(_) | ClientMsg::Register(_) => assert!(
+                    !self.registered,
+                    "must not send msg when already registered"
+                ),
+                ClientMsg::CharacterScreen(_) => {
+                    assert!(
+                        self.registered,
+                        "must not send character_screen msg when not registered"
+                    );
+                    assert!(
+                        self.in_game.is_none(),
+                        "must not send character_screen msg when not in character screen"
+                    );
+                },
+                ClientMsg::InGame(_) => assert!(
+                    self.in_game.is_some(),
+                    "must not send in_game msg when not in game"
+                ),
+                ClientMsg::General(_) => assert!(
+                    self.registered,
+                    "must not send general msg when not registered"
+                ),
+                ClientMsg::Ping(_) => (),
+            }
+        }
+        match msg {
+            ClientMsg::Type(msg) => self.register_stream.send(msg),
+            ClientMsg::Register(msg) => self.register_stream.send(msg),
+            ClientMsg::CharacterScreen(msg) => self.character_screen_stream.send(msg),
+            ClientMsg::InGame(msg) => self.in_game_stream.send(msg),
+            ClientMsg::General(msg) => self.general_stream.send(msg),
+            ClientMsg::Ping(msg) => self.ping_stream.send(msg),
+        }
+    }
+
+    fn send_msg<S>(&mut self, msg: S)
+    where
+        S: Into<ClientMsg>,
+    {
+        let res = self.send_msg_err(msg);
+        if let Err(e) = res {
+            warn!(
+                ?e,
+                "connection to server no longer possible, couldn't send msg"
+            );
+        }
+    }
+
     /// Request a state transition to `ClientState::Character`.
     pub fn request_character(&mut self, character_id: CharacterId) {
-        self.character_screen_stream
-            .send(ClientCharacterScreenMsg::Character(character_id))
-            .unwrap();
+        self.send_msg(ClientCharacterScreen::Character(character_id));
 
         //Assume we are in_game unless server tells us otherwise
-        self.client_ingame = Some(ClientIngame::Character);
+        self.in_game = Some(ClientIngame::Character);
 
         self.active_character_id = Some(character_id);
     }
@@ -475,87 +529,59 @@ impl Client {
     /// Load the current players character list
     pub fn load_character_list(&mut self) {
         self.character_list.loading = true;
-        self.character_screen_stream
-            .send(ClientCharacterScreenMsg::RequestCharacterList)
-            .unwrap();
+        self.send_msg(ClientCharacterScreen::RequestCharacterList);
     }
 
     /// New character creation
     pub fn create_character(&mut self, alias: String, tool: Option<String>, body: comp::Body) {
         self.character_list.loading = true;
-        self.character_screen_stream
-            .send(ClientCharacterScreenMsg::CreateCharacter { alias, tool, body })
-            .unwrap();
+        self.send_msg(ClientCharacterScreen::CreateCharacter { alias, tool, body });
     }
 
     /// Character deletion
     pub fn delete_character(&mut self, character_id: CharacterId) {
         self.character_list.loading = true;
-        self.character_screen_stream
-            .send(ClientCharacterScreenMsg::DeleteCharacter(character_id))
-            .unwrap();
+        self.send_msg(ClientCharacterScreen::DeleteCharacter(character_id));
     }
 
     /// Send disconnect message to the server
     pub fn request_logout(&mut self) {
         debug!("Requesting logout from server");
-        if let Err(e) = self.general_stream.send(ClientGeneralMsg::Disconnect) {
-            error!(
-                ?e,
-                "Couldn't send disconnect package to server, did server close already?"
-            );
-        }
+        self.send_msg(ClientGeneral::Disconnect);
     }
 
     /// Request a state transition to `ClientState::Registered` from an ingame
     /// state.
-    pub fn request_remove_character(&mut self) {
-        self.in_game_stream
-            .send(ClientInGameMsg::ExitInGame)
-            .unwrap();
-    }
+    pub fn request_remove_character(&mut self) { self.send_msg(ClientInGame::ExitInGame); }
 
     pub fn set_view_distance(&mut self, view_distance: u32) {
         self.view_distance = Some(view_distance.max(1).min(65));
-        self.in_game_stream
-            .send(ClientInGameMsg::SetViewDistance(
-                self.view_distance.unwrap(),
-            ))
-            .unwrap();
-        // Can't fail
+        self.send_msg(ClientInGame::SetViewDistance(self.view_distance.unwrap()));
     }
 
     pub fn use_slot(&mut self, slot: comp::slot::Slot) {
-        self.in_game_stream
-            .send(ClientInGameMsg::ControlEvent(ControlEvent::InventoryManip(
-                InventoryManip::Use(slot),
-            )))
-            .unwrap();
+        self.send_msg(ClientInGame::ControlEvent(ControlEvent::InventoryManip(
+            InventoryManip::Use(slot),
+        )));
     }
 
     pub fn swap_slots(&mut self, a: comp::slot::Slot, b: comp::slot::Slot) {
-        self.in_game_stream
-            .send(ClientInGameMsg::ControlEvent(ControlEvent::InventoryManip(
-                InventoryManip::Swap(a, b),
-            )))
-            .unwrap();
+        self.send_msg(ClientInGame::ControlEvent(ControlEvent::InventoryManip(
+            InventoryManip::Swap(a, b),
+        )));
     }
 
     pub fn drop_slot(&mut self, slot: comp::slot::Slot) {
-        self.in_game_stream
-            .send(ClientInGameMsg::ControlEvent(ControlEvent::InventoryManip(
-                InventoryManip::Drop(slot),
-            )))
-            .unwrap();
+        self.send_msg(ClientInGame::ControlEvent(ControlEvent::InventoryManip(
+            InventoryManip::Drop(slot),
+        )));
     }
 
     pub fn pick_up(&mut self, entity: EcsEntity) {
         if let Some(uid) = self.state.read_component_copied(entity) {
-            self.in_game_stream
-                .send(ClientInGameMsg::ControlEvent(ControlEvent::InventoryManip(
-                    InventoryManip::Pickup(uid),
-                )))
-                .unwrap();
+            self.send_msg(ClientInGame::ControlEvent(ControlEvent::InventoryManip(
+                InventoryManip::Pickup(uid),
+            )));
         }
     }
 
@@ -573,11 +599,9 @@ impl Client {
 
     pub fn craft_recipe(&mut self, recipe: &str) -> bool {
         if self.can_craft_recipe(recipe) {
-            self.in_game_stream
-                .send(ClientInGameMsg::ControlEvent(ControlEvent::InventoryManip(
-                    InventoryManip::CraftRecipe(recipe.to_string()),
-                )))
-                .unwrap();
+            self.send_msg(ClientInGame::ControlEvent(ControlEvent::InventoryManip(
+                InventoryManip::CraftRecipe(recipe.to_string()),
+            )));
             true
         } else {
             false
@@ -594,15 +618,11 @@ impl Client {
     }
 
     pub fn enable_lantern(&mut self) {
-        self.singleton_stream
-            .send(ClientInGameMsg::ControlEvent(ControlEvent::EnableLantern))
-            .unwrap();
+        self.send_msg(ClientInGame::ControlEvent(ControlEvent::EnableLantern));
     }
 
     pub fn disable_lantern(&mut self) {
-        self.singleton_stream
-            .send(ClientInGameMsg::ControlEvent(ControlEvent::DisableLantern))
-            .unwrap();
+        self.send_msg(ClientInGame::ControlEvent(ControlEvent::DisableLantern));
     }
 
     pub fn max_group_size(&self) -> u32 { self.max_group_size }
@@ -620,55 +640,43 @@ impl Client {
     pub fn pending_invites(&self) -> &HashSet<Uid> { &self.pending_invites }
 
     pub fn send_group_invite(&mut self, invitee: Uid) {
-        self.in_game_stream
-            .send(ClientInGameMsg::ControlEvent(ControlEvent::GroupManip(
-                GroupManip::Invite(invitee),
-            )))
-            .unwrap()
+        self.send_msg(ClientInGame::ControlEvent(ControlEvent::GroupManip(
+            GroupManip::Invite(invitee),
+        )))
     }
 
     pub fn accept_group_invite(&mut self) {
         // Clear invite
         self.group_invite.take();
-        self.in_game_stream
-            .send(ClientInGameMsg::ControlEvent(ControlEvent::GroupManip(
-                GroupManip::Accept,
-            )))
-            .unwrap();
+        self.send_msg(ClientInGame::ControlEvent(ControlEvent::GroupManip(
+            GroupManip::Accept,
+        )));
     }
 
     pub fn decline_group_invite(&mut self) {
         // Clear invite
         self.group_invite.take();
-        self.in_game_stream
-            .send(ClientInGameMsg::ControlEvent(ControlEvent::GroupManip(
-                GroupManip::Decline,
-            )))
-            .unwrap();
+        self.send_msg(ClientInGame::ControlEvent(ControlEvent::GroupManip(
+            GroupManip::Decline,
+        )));
     }
 
     pub fn leave_group(&mut self) {
-        self.in_game_stream
-            .send(ClientInGameMsg::ControlEvent(ControlEvent::GroupManip(
-                GroupManip::Leave,
-            )))
-            .unwrap();
+        self.send_msg(ClientInGame::ControlEvent(ControlEvent::GroupManip(
+            GroupManip::Leave,
+        )));
     }
 
     pub fn kick_from_group(&mut self, uid: Uid) {
-        self.in_game_stream
-            .send(ClientInGameMsg::ControlEvent(ControlEvent::GroupManip(
-                GroupManip::Kick(uid),
-            )))
-            .unwrap();
+        self.send_msg(ClientInGame::ControlEvent(ControlEvent::GroupManip(
+            GroupManip::Kick(uid),
+        )));
     }
 
     pub fn assign_group_leader(&mut self, uid: Uid) {
-        self.in_game_stream
-            .send(ClientInGameMsg::ControlEvent(ControlEvent::GroupManip(
-                GroupManip::AssignLeader(uid),
-            )))
-            .unwrap();
+        self.send_msg(ClientInGame::ControlEvent(ControlEvent::GroupManip(
+            GroupManip::AssignLeader(uid),
+        )));
     }
 
     pub fn is_mounted(&self) -> bool {
@@ -689,17 +697,11 @@ impl Client {
 
     pub fn mount(&mut self, entity: EcsEntity) {
         if let Some(uid) = self.state.read_component_copied(entity) {
-            self.in_game_stream
-                .send(ClientInGameMsg::ControlEvent(ControlEvent::Mount(uid)))
-                .unwrap();
+            self.send_msg(ClientInGame::ControlEvent(ControlEvent::Mount(uid)));
         }
     }
 
-    pub fn unmount(&mut self) {
-        self.in_game_stream
-            .send(ClientInGameMsg::ControlEvent(ControlEvent::Unmount))
-            .unwrap();
-    }
+    pub fn unmount(&mut self) { self.send_msg(ClientInGame::ControlEvent(ControlEvent::Unmount)); }
 
     pub fn respawn(&mut self) {
         if self
@@ -709,9 +711,7 @@ impl Client {
             .get(self.entity)
             .map_or(false, |s| s.is_dead)
         {
-            self.in_game_stream
-                .send(ClientInGameMsg::ControlEvent(ControlEvent::Respawn))
-                .unwrap();
+            self.send_msg(ClientInGame::ControlEvent(ControlEvent::Respawn));
         }
     }
 
@@ -808,9 +808,7 @@ impl Client {
         {
             controller.actions.push(control_action);
         }
-        self.in_game_stream
-            .send(ClientInGameMsg::ControlAction(control_action))
-            .unwrap();
+        self.send_msg(ClientInGame::ControlAction(control_action));
     }
 
     pub fn view_distance(&self) -> Option<u32> { self.view_distance }
@@ -839,10 +837,7 @@ impl Client {
     /// Send a chat message to the server.
     pub fn send_chat(&mut self, message: String) {
         match validate_chat_msg(&message) {
-            Ok(()) => self
-                .general_stream
-                .send(ClientGeneralMsg::ChatMsg(message))
-                .unwrap(),
+            Ok(()) => self.send_msg(ClientGeneral::ChatMsg(message)),
             Err(ChatMsgValidationError::TooLong) => tracing::warn!(
                 "Attempted to send a message that's too long (Over {} bytes)",
                 MAX_BYTES_CHAT_MSG
@@ -857,23 +852,15 @@ impl Client {
     }
 
     pub fn place_block(&mut self, pos: Vec3<i32>, block: Block) {
-        self.in_game_stream
-            .send(ClientInGameMsg::PlaceBlock(pos, block))
-            .unwrap();
+        self.send_msg(ClientInGame::PlaceBlock(pos, block));
     }
 
-    pub fn remove_block(&mut self, pos: Vec3<i32>) {
-        self.in_game_stream
-            .send(ClientInGameMsg::BreakBlock(pos))
-            .unwrap();
-    }
+    pub fn remove_block(&mut self, pos: Vec3<i32>) { self.send_msg(ClientInGame::BreakBlock(pos)); }
 
     pub fn collect_block(&mut self, pos: Vec3<i32>) {
-        self.in_game_stream
-            .send(ClientInGameMsg::ControlEvent(ControlEvent::InventoryManip(
-                InventoryManip::Collect(pos),
-            )))
-            .unwrap();
+        self.send_msg(ClientInGame::ControlEvent(ControlEvent::InventoryManip(
+            InventoryManip::Collect(pos),
+        )));
     }
 
     /// Execute a single client tick, handle input and update the game state by
@@ -905,7 +892,7 @@ impl Client {
 
         // 1) Handle input from frontend.
         // Pass character actions from frontend input to the player's entity.
-        if self.client_ingame.is_some() {
+        if self.in_game.is_some() {
             if let Err(e) = self
                 .state
                 .ecs()
@@ -928,8 +915,7 @@ impl Client {
                     "Couldn't access controller component on client entity"
                 );
             }
-            self.in_game_stream
-                .send(ClientInGameMsg::ControllerInputs(inputs))?;
+            self.send_msg_err(ClientInGame::ControllerInputs(inputs))?;
         }
 
         // 2) Build up a list of events for this frame, to be passed to the frontend.
@@ -1033,8 +1019,9 @@ impl Client {
                         if self.state.terrain().get_key(*key).is_none() {
                             if !skip_mode && !self.pending_chunks.contains_key(key) {
                                 if self.pending_chunks.len() < 4 {
-                                    self.in_game_stream
-                                        .send(ClientInGameMsg::TerrainChunkRequest { key: *key })?;
+                                    self.send_msg_err(ClientInGame::TerrainChunkRequest {
+                                        key: *key,
+                                    })?;
                                     self.pending_chunks.insert(*key, Instant::now());
                                 } else {
                                     skip_mode = true;
@@ -1066,19 +1053,19 @@ impl Client {
 
         // Send a ping to the server once every second
         if self.state.get_time() - self.last_server_ping > 1. {
-            self.ping_stream.send(PingMsg::Ping)?;
+            self.send_msg_err(PingMsg::Ping)?;
             self.last_server_ping = self.state.get_time();
         }
 
         // 6) Update the server about the player's physics attributes.
-        if self.client_ingame.is_some() {
+        if self.in_game.is_some() {
             if let (Some(pos), Some(vel), Some(ori)) = (
                 self.state.read_storage().get(self.entity).cloned(),
                 self.state.read_storage().get(self.entity).cloned(),
                 self.state.read_storage().get(self.entity).cloned(),
             ) {
                 self.in_game_stream
-                    .send(ClientInGameMsg::PlayerPhysics { pos, vel, ori })?;
+                    .send(ClientInGame::PlayerPhysics { pos, vel, ori })?;
             }
         }
 
@@ -1108,26 +1095,26 @@ impl Client {
     fn handle_server_msg(
         &mut self,
         frontend_events: &mut Vec<Event>,
-        msg: ServerGeneralMsg,
+        msg: ServerGeneral,
     ) -> Result<(), Error> {
         match msg {
-            ServerGeneralMsg::Disconnect(reason) => match reason {
+            ServerGeneral::Disconnect(reason) => match reason {
                 DisconnectReason::Shutdown => return Err(Error::ServerShutdown),
                 DisconnectReason::Requested => {
                     debug!("finally sending ClientMsg::Terminate");
                     frontend_events.push(Event::Disconnect);
-                    self.general_stream.send(ClientGeneralMsg::Terminate)?;
+                    self.send_msg_err(ClientGeneral::Terminate)?;
                 },
                 DisconnectReason::Kicked(reason) => {
                     debug!("sending ClientMsg::Terminate because we got kicked");
                     frontend_events.push(Event::Kicked(reason));
-                    self.general_stream.send(ClientGeneralMsg::Terminate)?;
+                    self.send_msg_err(ClientGeneral::Terminate)?;
                 },
             },
-            ServerGeneralMsg::PlayerListUpdate(PlayerListUpdate::Init(list)) => {
+            ServerGeneral::PlayerListUpdate(PlayerListUpdate::Init(list)) => {
                 self.player_list = list
             },
-            ServerGeneralMsg::PlayerListUpdate(PlayerListUpdate::Add(uid, player_info)) => {
+            ServerGeneral::PlayerListUpdate(PlayerListUpdate::Add(uid, player_info)) => {
                 if let Some(old_player_info) = self.player_list.insert(uid, player_info.clone()) {
                     warn!(
                         "Received msg to insert {} with uid {} into the player list but there was \
@@ -1136,7 +1123,7 @@ impl Client {
                     );
                 }
             },
-            ServerGeneralMsg::PlayerListUpdate(PlayerListUpdate::Admin(uid, admin)) => {
+            ServerGeneral::PlayerListUpdate(PlayerListUpdate::Admin(uid, admin)) => {
                 if let Some(player_info) = self.player_list.get_mut(&uid) {
                     player_info.is_admin = admin;
                 } else {
@@ -1147,7 +1134,7 @@ impl Client {
                     );
                 }
             },
-            ServerGeneralMsg::PlayerListUpdate(PlayerListUpdate::SelectedCharacter(
+            ServerGeneral::PlayerListUpdate(PlayerListUpdate::SelectedCharacter(
                 uid,
                 char_info,
             )) => {
@@ -1161,7 +1148,7 @@ impl Client {
                     );
                 }
             },
-            ServerGeneralMsg::PlayerListUpdate(PlayerListUpdate::LevelChange(uid, next_level)) => {
+            ServerGeneral::PlayerListUpdate(PlayerListUpdate::LevelChange(uid, next_level)) => {
                 if let Some(player_info) = self.player_list.get_mut(&uid) {
                     player_info.character = match &player_info.character {
                         Some(character) => Some(common::msg::CharacterInfo {
@@ -1180,7 +1167,7 @@ impl Client {
                     };
                 }
             },
-            ServerGeneralMsg::PlayerListUpdate(PlayerListUpdate::Remove(uid)) => {
+            ServerGeneral::PlayerListUpdate(PlayerListUpdate::Remove(uid)) => {
                 // Instead of removing players, mark them as offline because we need to
                 // remember the names of disconnected players in chat.
                 //
@@ -1205,7 +1192,7 @@ impl Client {
                     );
                 }
             },
-            ServerGeneralMsg::PlayerListUpdate(PlayerListUpdate::Alias(uid, new_name)) => {
+            ServerGeneral::PlayerListUpdate(PlayerListUpdate::Alias(uid, new_name)) => {
                 if let Some(player_info) = self.player_list.get_mut(&uid) {
                     player_info.player_alias = new_name;
                 } else {
@@ -1216,38 +1203,38 @@ impl Client {
                     );
                 }
             },
-            ServerGeneralMsg::ChatMsg(m) => frontend_events.push(Event::Chat(m)),
-            ServerGeneralMsg::SetPlayerEntity(uid) => {
+            ServerGeneral::ChatMsg(m) => frontend_events.push(Event::Chat(m)),
+            ServerGeneral::SetPlayerEntity(uid) => {
                 if let Some(entity) = self.state.ecs().entity_from_uid(uid.0) {
                     self.entity = entity;
                 } else {
                     return Err(Error::Other("Failed to find entity from uid.".to_owned()));
                 }
             },
-            ServerGeneralMsg::TimeOfDay(time_of_day) => {
+            ServerGeneral::TimeOfDay(time_of_day) => {
                 *self.state.ecs_mut().write_resource() = time_of_day;
             },
-            ServerGeneralMsg::EntitySync(entity_sync_package) => {
+            ServerGeneral::EntitySync(entity_sync_package) => {
                 self.state
                     .ecs_mut()
                     .apply_entity_sync_package(entity_sync_package);
             },
-            ServerGeneralMsg::CompSync(comp_sync_package) => {
+            ServerGeneral::CompSync(comp_sync_package) => {
                 self.state
                     .ecs_mut()
                     .apply_comp_sync_package(comp_sync_package);
             },
-            ServerGeneralMsg::CreateEntity(entity_package) => {
+            ServerGeneral::CreateEntity(entity_package) => {
                 self.state.ecs_mut().apply_entity_package(entity_package);
             },
-            ServerGeneralMsg::DeleteEntity(entity) => {
+            ServerGeneral::DeleteEntity(entity) => {
                 if self.uid() != Some(entity) {
                     self.state
                         .ecs_mut()
                         .delete_entity_and_clear_from_uid_allocator(entity.0);
                 }
             },
-            ServerGeneralMsg::Notification(n) => {
+            ServerGeneral::Notification(n) => {
                 frontend_events.push(Event::Notification(n));
             },
         }
@@ -1257,10 +1244,10 @@ impl Client {
     fn handle_server_in_game_msg(
         &mut self,
         frontend_events: &mut Vec<Event>,
-        msg: ServerInGameMsg,
+        msg: ServerInGame,
     ) -> Result<(), Error> {
         match msg {
-            ServerInGameMsg::GroupUpdate(change_notification) => {
+            ServerInGame::GroupUpdate(change_notification) => {
                 use comp::group::ChangeNotification::*;
                 // Note: we use a hashmap since this would not work with entities outside
                 // the view distance
@@ -1332,15 +1319,15 @@ impl Client {
                     },
                 }
             },
-            ServerInGameMsg::GroupInvite { inviter, timeout } => {
+            ServerInGame::GroupInvite { inviter, timeout } => {
                 self.group_invite = Some((inviter, std::time::Instant::now(), timeout));
             },
-            ServerInGameMsg::InvitePending(uid) => {
+            ServerInGame::InvitePending(uid) => {
                 if !self.pending_invites.insert(uid) {
                     warn!("Received message about pending invite that was already pending");
                 }
             },
-            ServerInGameMsg::InviteComplete { target, answer } => {
+            ServerInGame::InviteComplete { target, answer } => {
                 if !self.pending_invites.remove(&target) {
                     warn!(
                         "Received completed invite message for invite that was not in the list of \
@@ -1358,11 +1345,11 @@ impl Client {
                 frontend_events.push(Event::Chat(comp::ChatType::Meta.chat_msg(msg)));
             },
             // Cleanup for when the client goes back to the `in_game = None`
-            ServerInGameMsg::ExitInGameSuccess => {
-                self.client_ingame = None;
+            ServerInGame::ExitInGameSuccess => {
+                self.in_game = None;
                 self.clean_state();
             },
-            ServerInGameMsg::InventoryUpdate(mut inventory, event) => {
+            ServerInGame::InventoryUpdate(mut inventory, event) => {
                 match event {
                     InventoryUpdateEvent::CollectFailed => {},
                     _ => {
@@ -1376,25 +1363,25 @@ impl Client {
 
                 frontend_events.push(Event::InventoryUpdated(event));
             },
-            ServerInGameMsg::TerrainChunkUpdate { key, chunk } => {
+            ServerInGame::TerrainChunkUpdate { key, chunk } => {
                 if let Ok(chunk) = chunk {
                     self.state.insert_chunk(key, *chunk);
                 }
                 self.pending_chunks.remove(&key);
             },
-            ServerInGameMsg::TerrainBlockUpdates(mut blocks) => {
+            ServerInGame::TerrainBlockUpdates(mut blocks) => {
                 blocks.drain().for_each(|(pos, block)| {
                     self.state.set_block(pos, block);
                 });
             },
-            ServerInGameMsg::SetViewDistance(vd) => {
+            ServerInGame::SetViewDistance(vd) => {
                 self.view_distance = Some(vd);
                 frontend_events.push(Event::SetViewDistance(vd));
             },
-            ServerInGameMsg::Outcomes(outcomes) => {
+            ServerInGame::Outcomes(outcomes) => {
                 frontend_events.extend(outcomes.into_iter().map(Event::Outcome))
             },
-            ServerInGameMsg::Knockback(impulse) => {
+            ServerInGame::Knockback(impulse) => {
                 self.state
                     .ecs()
                     .read_resource::<EventBus<LocalEvent>>()
@@ -1409,24 +1396,24 @@ impl Client {
 
     fn handle_server_character_screen_msg(
         &mut self,
-        msg: ServerCharacterScreenMsg,
+        msg: ServerCharacterScreen,
     ) -> Result<(), Error> {
         match msg {
-            ServerCharacterScreenMsg::CharacterListUpdate(character_list) => {
+            ServerCharacterScreen::CharacterListUpdate(character_list) => {
                 self.character_list.characters = character_list;
                 self.character_list.loading = false;
             },
-            ServerCharacterScreenMsg::CharacterActionError(error) => {
+            ServerCharacterScreen::CharacterActionError(error) => {
                 warn!("CharacterActionError: {:?}.", error);
                 self.character_list.error = Some(error);
             },
-            ServerCharacterScreenMsg::CharacterDataLoadError(error) => {
+            ServerCharacterScreen::CharacterDataLoadError(error) => {
                 trace!("Handling join error by server");
-                self.client_ingame = None;
+                self.in_game = None;
                 self.clean_state();
                 self.character_list.error = Some(error);
             },
-            ServerCharacterScreenMsg::CharacterSuccess => {
+            ServerCharacterScreen::CharacterSuccess => {
                 debug!("client is now in ingame state on server");
                 if let Some(vd) = self.view_distance {
                     self.set_view_distance(vd);
@@ -1439,7 +1426,7 @@ impl Client {
     fn handle_ping_msg(&mut self, msg: PingMsg) -> Result<(), Error> {
         match msg {
             PingMsg::Ping => {
-                self.ping_stream.send(PingMsg::Pong)?;
+                self.send_msg_err(PingMsg::Pong)?;
             },
             PingMsg::Pong => {
                 self.last_server_pong = self.state.get_time();
@@ -1535,7 +1522,7 @@ impl Client {
 
     pub fn get_client_type(&self) -> ClientType { ClientType::Game }
 
-    pub fn get_in_game(&self) -> Option<ClientIngame> { self.client_ingame }
+    pub fn get_in_game(&self) -> Option<ClientIngame> { self.in_game }
 
     pub fn get_registered(&self) -> bool { self.registered }
 
@@ -1810,12 +1797,16 @@ impl Client {
 impl Drop for Client {
     fn drop(&mut self) {
         trace!("Dropping client");
-        if let Err(e) = self.general_stream.send(ClientGeneralMsg::Disconnect) {
-            warn!(
-                ?e,
-                "Error during drop of client, couldn't send disconnect package, is the connection \
-                 already closed?",
-            );
+        if self.registered {
+            if let Err(e) = self.send_msg_err(ClientGeneral::Disconnect) {
+                warn!(
+                    ?e,
+                    "Error during drop of client, couldn't send disconnect package, is the \
+                     connection already closed?",
+                );
+            }
+        } else {
+            trace!("no disconnect msg necessary as client wasn't registered")
         }
         if let Err(e) = block_on(self.participant.take().unwrap().disconnect()) {
             warn!(?e, "error when disconnecting, couldn't send all data");
