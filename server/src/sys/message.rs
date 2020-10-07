@@ -453,23 +453,30 @@ impl Sys {
         editable_settings: &ReadExpect<'_, EditableSettings>,
         alias_validator: &ReadExpect<'_, AliasValidator>,
     ) -> Result<(), crate::error::Error> {
+        let (mut b1, mut b2, mut b3, mut b4, mut b5) = (
+            client.network_error,
+            client.network_error,
+            client.network_error,
+            client.network_error,
+            client.network_error,
+        );
         loop {
-            let q1 = Client::internal_recv(&client.network_error, &mut client.general_stream);
-            let q2 = Client::internal_recv(&client.network_error, &mut client.in_game_stream);
-            let q3 =
-                Client::internal_recv(&client.network_error, &mut client.character_screen_stream);
-            let q4 = Client::internal_recv(&client.network_error, &mut client.ping_stream);
-            let q5 = Client::internal_recv(&client.network_error, &mut client.register_stream);
+            let q1 = Client::internal_recv(&mut b1, &mut client.general_stream);
+            let q2 = Client::internal_recv(&mut b2, &mut client.in_game_stream);
+            let q3 = Client::internal_recv(&mut b3, &mut client.character_screen_stream);
+            let q4 = Client::internal_recv(&mut b4, &mut client.ping_stream);
+            let q5 = Client::internal_recv(&mut b5, &mut client.register_stream);
 
             let (m1, m2, m3, m4, m5) = select!(
-                msg = q1.fuse() => (Some(msg?), None, None, None, None),
-                msg = q2.fuse() => (None, Some(msg?), None, None, None),
-                msg = q3.fuse() => (None, None, Some(msg?), None, None),
-                msg = q4.fuse() => (None, None, None, Some(msg?), None),
-                msg = q5.fuse() => (None, None, None, None,Some(msg?)),
+                msg = q1.fuse() => (Some(msg), None, None, None, None),
+                msg = q2.fuse() => (None, Some(msg), None, None, None),
+                msg = q3.fuse() => (None, None, Some(msg), None, None),
+                msg = q4.fuse() => (None, None, None, Some(msg), None),
+                msg = q5.fuse() => (None, None, None, None,Some(msg)),
             );
             *cnt += 1;
             if let Some(msg) = m1 {
+                client.network_error |= b1;
                 Self::handle_client_msg(
                     server_emitter,
                     new_chat_msgs,
@@ -478,10 +485,11 @@ impl Sys {
                     player_metrics,
                     uids,
                     chat_modes,
-                    msg,
+                    msg?,
                 )?;
             }
             if let Some(msg) = m2 {
+                client.network_error |= b2;
                 Self::handle_client_in_game_msg(
                     server_emitter,
                     entity,
@@ -498,10 +506,11 @@ impl Sys {
                     players,
                     controllers,
                     settings,
-                    msg,
+                    msg?,
                 )?;
             }
             if let Some(msg) = m3 {
+                client.network_error |= b3;
                 Self::handle_client_character_screen_msg(
                     server_emitter,
                     new_chat_msgs,
@@ -512,13 +521,15 @@ impl Sys {
                     players,
                     editable_settings,
                     alias_validator,
-                    msg,
+                    msg?,
                 )?;
             }
             if let Some(msg) = m4 {
-                Self::handle_ping_msg(client, msg)?;
+                client.network_error |= b4;
+                Self::handle_ping_msg(client, msg?)?;
             }
             if let Some(msg) = m5 {
+                client.network_error |= b5;
                 Self::handle_register_msg(
                     player_list,
                     new_players,
@@ -529,7 +540,7 @@ impl Sys {
                     admins,
                     players,
                     editable_settings,
-                    msg,
+                    msg?,
                 )?;
             }
         }
@@ -666,8 +677,16 @@ impl<'a> System<'a> for Sys {
                 )
             });
 
-            // Update client ping.
-            if cnt > 0 {
+            // Postbox error
+            if network_err.is_err() {
+                debug!(?entity, "postbox error with client, disconnecting");
+                player_metrics
+                    .clients_disconnected
+                    .with_label_values(&["network_error"])
+                    .inc();
+                server_emitter.emit(ServerEvent::ClientDisconnect(entity));
+            } else if cnt > 0 {
+                // Update client ping.
                 client.last_ping = time.0
             } else if time.0 - client.last_ping > settings.client_timeout.as_secs() as f64
             // Timeout
@@ -676,15 +695,6 @@ impl<'a> System<'a> for Sys {
                 player_metrics
                     .clients_disconnected
                     .with_label_values(&["timeout"])
-                    .inc();
-                server_emitter.emit(ServerEvent::ClientDisconnect(entity));
-            } else if network_err.is_err()
-            // Postbox error
-            {
-                debug!(?entity, "postbox error with client, disconnecting");
-                player_metrics
-                    .clients_disconnected
-                    .with_label_values(&["network_error"])
                     .inc();
                 server_emitter.emit(ServerEvent::ClientDisconnect(entity));
             } else if time.0 - client.last_ping > settings.client_timeout.as_secs() as f64 * 0.5 {
