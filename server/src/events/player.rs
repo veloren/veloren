@@ -89,14 +89,13 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
 
 pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event {
     span!(_guard, "handle_client_disconnect");
-    if let Some(client) = server.state().read_storage::<Client>().get(entity) {
-        let participant = match client.participant.try_lock() {
-            Ok(mut p) => p.take().unwrap(),
-            Err(e) => {
-                error!(?e, ?entity, "couldn't lock participant for removal");
-                return Event::ClientDisconnected { entity };
-            },
-        };
+    if let Some(client) = server
+        .state()
+        .ecs()
+        .write_storage::<Client>()
+        .get_mut(entity)
+    {
+        let participant = client.participant.take().unwrap();
         let pid = participant.remote_pid();
         std::thread::spawn(move || {
             let span = tracing::span!(tracing::Level::DEBUG, "client_disconnect", ?pid, ?entity);
