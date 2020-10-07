@@ -6,8 +6,8 @@ ItemDef(
             kind: NpcWeapon("StoneGolemsFist"),    
             stats: (
                 equip_time_millis: 500,
-                power: 1.00,
-            ),
+                power: 1.00),            
         )
     ),
+    quality: Low,
 )

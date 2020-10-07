@@ -172,7 +172,9 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         inventory
                             .get(slot)
                             .map_or((false, None), |i| match i.kind() {
-                                ItemKind::Tool(_) | ItemKind::Armor { .. } => (true, None),
+                                ItemKind::Tool(_)
+                                | ItemKind::Armor { .. }
+                                | ItemKind::Glider(_) => (true, None),
                                 ItemKind::Lantern(lantern) => (true, Some(lantern)),
                                 _ => (false, None),
                             });

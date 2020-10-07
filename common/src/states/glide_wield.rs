@@ -27,6 +27,9 @@ impl CharacterBehavior for Data {
         {
             update.character = CharacterState::Idle;
         }
+        if data.loadout.glider.is_none() {
+            update.character = CharacterState::Idle
+        };
 
         update
     }

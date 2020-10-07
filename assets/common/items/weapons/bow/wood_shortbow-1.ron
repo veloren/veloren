@@ -6,8 +6,8 @@ ItemDef(
             kind: Bow("WoodShortbow1"),    
             stats: (
                 equip_time_millis: 400,
-                power: 0.75,
-            ),
+                power: 0.75),            
         )
     ),
+    quality: Common,
 )

@@ -6,8 +6,8 @@ ItemDef(
             kind: Staff("BoneStaff"),    
             stats: (
                 equip_time_millis: 300,
-                power: 1.00,
-            ),
+                power: 1.00),            
         )
     ),
+    quality: Common,
 )

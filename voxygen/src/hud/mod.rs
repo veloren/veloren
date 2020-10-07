@@ -56,7 +56,15 @@ use crate::{
     GlobalState,
 };
 use client::Client;
-use common::{assets::Asset, comp, span, sync::Uid, terrain::TerrainChunk, vol::RectRasterableVol};
+use common::{
+    assets::Asset,
+    comp,
+    comp::item::{ItemDesc, Quality},
+    span,
+    sync::Uid,
+    terrain::TerrainChunk,
+    vol::RectRasterableVol,
+};
 use conrod_core::{
     text::cursor::Index,
     widget::{self, Button, Image, Text},
@@ -89,6 +97,16 @@ const MANA_COLOR: Color = Color::Rgba(0.29, 0.62, 0.75, 0.9);
 //const FOCUS_COLOR: Color = Color::Rgba(1.0, 0.56, 0.04, 1.0);
 //const RAGE_COLOR: Color = Color::Rgba(0.5, 0.04, 0.13, 1.0);
 
+// Item Quality Colors
+const QUALITY_LOW: Color = Color::Rgba(0.41, 0.41, 0.41, 1.0); // Grey - Trash, can be sold to vendors
+const QUALITY_COMMON: Color = Color::Rgba(0.79, 1.09, 1.09, 1.0); // No Color - Crafting mats, food, starting equipment, quest items (like keys), rewards for easy quests
+const QUALITY_MODERATE: Color = Color::Rgba(0.06, 0.69, 0.12, 1.0); // Green - Quest Rewards, commonly looted items from NPCs
+const QUALITY_HIGH: Color = Color::Rgba(0.18, 0.32, 0.9, 1.0); // Blue - Dungeon rewards, boss loot, rewards for hard quests
+const QUALITY_EPIC: Color = Color::Rgba(0.58, 0.29, 0.93, 1.0); // Purple - Rewards for epic quests and very hard bosses
+const QUALITY_LEGENDARY: Color = Color::Rgba(0.92, 0.76, 0.0, 1.0); // Gold - Legendary items that require a big effort to acquire
+const QUALITY_ARTIFACT: Color = Color::Rgba(0.74, 0.24, 0.11, 1.0); // Orange - Not obtainable by normal means, "artifacts"
+const QUALITY_DEBUG: Color = Color::Rgba(0.79, 0.19, 0.17, 1.0); // Red - Admin and debug items
+
 // Chat Colors
 /// Color for chat command errors (yellow !)
 const ERROR_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0);
@@ -108,7 +126,7 @@ const GROUP_COLOR: Color = Color::Rgba(0.47, 0.84, 1.0, 1.0);
 const FACTION_COLOR: Color = Color::Rgba(0.24, 1.0, 0.48, 1.0);
 /// Color for regional chat
 const REGION_COLOR: Color = Color::Rgba(0.8, 1.0, 0.8, 1.0);
-/// Color for death messages
+/// Color for death messagesw
 const KILL_COLOR: Color = Color::Rgba(1.0, 0.17, 0.17, 1.0);
 /// Color for global messages
 const WORLD_COLOR: Color = Color::Rgba(0.95, 1.0, 0.95, 1.0);
@@ -2640,4 +2658,17 @@ impl Hud {
     pub fn free_look(&mut self, free_look: bool) { self.show.free_look = free_look; }
 
     pub fn auto_walk(&mut self, auto_walk: bool) { self.show.auto_walk = auto_walk; }
+}
+// Get item qualities of equipped items and assign a tooltip title/frame color
+pub fn get_quality_col<I: ItemDesc>(item: &I) -> Color {
+    match item.quality() {
+        Quality::Low => QUALITY_LOW,
+        Quality::Common => QUALITY_COMMON,
+        Quality::Moderate => QUALITY_MODERATE,
+        Quality::High => QUALITY_HIGH,
+        Quality::Epic => QUALITY_EPIC,
+        Quality::Legendary => QUALITY_LEGENDARY,
+        Quality::Artifact => QUALITY_ARTIFACT,
+        Quality::Debug => QUALITY_DEBUG,
+    }
 }

@@ -5,7 +5,6 @@ use conrod_core::{
     WidgetCommon, WidgetStyle,
 };
 use std::time::{Duration, Instant};
-
 #[derive(Copy, Clone)]
 struct Hover(widget::Id, [f64; 2]);
 #[derive(Copy, Clone)]
@@ -18,6 +17,7 @@ enum HoverState {
 
 // Spacing between the tooltip and mouse
 const MOUSE_PAD_Y: f64 = 15.0;
+const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0); // Default text color
 
 pub struct TooltipManager {
     tooltip_id: widget::Id,
@@ -96,6 +96,7 @@ impl TooltipManager {
         tooltip: &Tooltip,
         title_text: &str,
         desc_text: &str,
+        title_col: Color,
         img_id: Option<image::Id>,
         image_dims: Option<(f64, f64)>,
         src_id: widget::Id,
@@ -111,6 +112,7 @@ impl TooltipManager {
                 .clone()
                 .title(title_text)
                 .desc(desc_text)
+                .title_col(title_col)
                 .image(img_id)
                 .image_dims(image_dims);
 
@@ -163,6 +165,7 @@ pub struct Tooltipped<'a, W> {
     img_id: Option<image::Id>,
     image_dims: Option<(f64, f64)>,
     tooltip: &'a Tooltip<'a>,
+    title_col: Color,
 }
 impl<'a, W: Widget> Tooltipped<'a, W> {
     pub fn tooltip_image(mut self, img_id: image::Id) -> Self {
@@ -181,6 +184,7 @@ impl<'a, W: Widget> Tooltipped<'a, W> {
             self.tooltip,
             self.title_text,
             self.desc_text,
+            self.title_col,
             self.img_id,
             self.image_dims,
             id,
@@ -198,6 +202,7 @@ pub trait Tooltipable {
         title_text: &'a str,
         desc_text: &'a str,
         tooltip: &'a Tooltip<'a>,
+        title_col: Color,
     ) -> Tooltipped<'a, Self>
     where
         Self: std::marker::Sized;
@@ -209,6 +214,7 @@ impl<W: Widget> Tooltipable for W {
         title_text: &'a str,
         desc_text: &'a str,
         tooltip: &'a Tooltip<'a>,
+        title_col: Color,
     ) -> Tooltipped<'a, W> {
         Tooltipped {
             inner: self,
@@ -218,6 +224,7 @@ impl<W: Widget> Tooltipable for W {
             img_id: None,
             image_dims: None,
             tooltip,
+            title_col,
         }
     }
 }
@@ -240,6 +247,7 @@ pub struct Tooltip<'a> {
     common: widget::CommonBuilder,
     title_text: &'a str,
     desc_text: &'a str,
+    title_col: Color,
     image: Option<image::Id>,
     image_dims: Option<(f64, f64)>,
     style: Style,
@@ -271,7 +279,6 @@ pub struct State {
 
 impl<'a> Tooltip<'a> {
     builder_methods! {
-        pub title_text_color { style.title.color = Some(Color) }
         pub desc_text_color { style.desc.color = Some(Color) }
         pub title_font_size { style.title.font_size = Some(FontSize) }
         pub desc_font_size { style.desc.font_size = Some(FontSize) }
@@ -282,6 +289,7 @@ impl<'a> Tooltip<'a> {
         desc { desc_text = &'a str }
         image_dims { image_dims = Option<(f64, f64)> }
         transparency { transparency = f32 }
+        title_col { title_col = Color}
     }
 
     pub fn new(image_frame: ImageFrame) -> Self {
@@ -294,6 +302,7 @@ impl<'a> Tooltip<'a> {
             image_frame,
             image: None,
             image_dims: None,
+            title_col: TEXT_COLOR,
         }
     }
 
@@ -403,7 +412,7 @@ impl<'a> Widget for Tooltip<'a> {
                 .parent(id)
                 .with_style(self.style.title)
                 // Apply transparency
-                .color(style.title.color(ui.theme()).alpha(self.transparency));
+                .color(self.title_col);
 
             if self.image.is_some() {
                 title

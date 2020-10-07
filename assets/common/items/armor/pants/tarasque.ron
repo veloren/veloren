@@ -5,8 +5,8 @@ ItemDef(
         (
             kind: Pants("Tarasque"),
             stats: (
-                protection: Normal(20.0),
-            ),
+                protection: Normal(20.0)),            
         )
     ),
+    quality: High,
 )

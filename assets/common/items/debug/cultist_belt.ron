@@ -5,8 +5,8 @@ ItemDef(
         (
             kind: Belt("Cultist"),
             stats: (
-                protection: Invincible,
-            ),
+                protection: Invincible),            
         )
     ),
+    quality: Debug,
 )

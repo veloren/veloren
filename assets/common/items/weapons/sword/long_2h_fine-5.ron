@@ -6,8 +6,9 @@ ItemDef(
             kind: Sword("LongFine5"),    
             stats: (
                 equip_time_millis: 500,
-                power: 1.20,
-            ),
+                power: 1.20
+                ),            
         )
     ),
+    quality: Moderate,
 )

@@ -1,11 +1,12 @@
 ItemDef(
     name: "Mushroom",
-    description: "Restores 10 Health\n\nHopefully this one is not poisonous\n\n<Right-Click to use>",
+    description: "Restores 5 Health\n\nHopefully this one is not poisonous",
     kind: Consumable(
         kind: "Mushroom",
         effect: Health((
-            amount: 100,
+            amount: 50,
             cause: Item,
         )),        
     ),
+    quality: Common,
 )

@@ -861,13 +861,13 @@ impl Settlement {
                 let entity_wpos = Vec3::new(wpos2d.x as f32, wpos2d.y as f32, col_sample.alt + 3.0);
 
                 if matches!(sample.plot, Some(Plot::Town { .. }))
-                    && RandomField::new(self.seed).chance(Vec3::from(wpos2d), 1.0 / (50.0 * 50.0))
+                    && RandomField::new(self.seed).chance(Vec3::from(wpos2d), 1.0 / (50.0 * 40.0))
                 {
                     let is_human: bool;
                     let is_dummy =
                         RandomField::new(self.seed + 1).chance(Vec3::from(wpos2d), 1.0 / 15.0);
                     let entity = EntityInfo::at(entity_wpos)
-                        .with_body(match dynamic_rng.gen_range(0, 4) {
+                        .with_body(match dynamic_rng.gen_range(0, 5) {
                             _ if is_dummy => {
                                 is_human = false;
                                 object::Body::TrainingDummy.into()

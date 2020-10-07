@@ -5,8 +5,8 @@ ItemDef(
         (
             kind: Foot("Cultist"),
             stats: (
-                protection: Normal(6.0),
-            ),
+                protection: Normal(6.0)),            
         )
     ),
+    quality: Epic,
 )

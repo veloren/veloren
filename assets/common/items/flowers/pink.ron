@@ -3,5 +3,6 @@ ItemDef(
     description: "Looks like a lollipop.",
     kind: Ingredient(
         kind: "Flower",
-    )
+    ),
+    quality: Common,
 )

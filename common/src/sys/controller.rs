@@ -84,8 +84,11 @@ impl<'a> System<'a> for Sys {
                         }
                     },
                     ControlEvent::Unmount => server_emitter.emit(ServerEvent::Unmount(entity)),
-                    ControlEvent::ToggleLantern => {
-                        server_emitter.emit(ServerEvent::ToggleLantern(entity))
+                    ControlEvent::EnableLantern => {
+                        server_emitter.emit(ServerEvent::EnableLantern(entity))
+                    },
+                    ControlEvent::DisableLantern => {
+                        server_emitter.emit(ServerEvent::DisableLantern(entity))
                     },
                     ControlEvent::InventoryManip(manip) => {
                         // Unwield if a wielded equipment slot is being modified, to avoid entering

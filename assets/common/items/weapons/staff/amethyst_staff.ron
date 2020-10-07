@@ -6,8 +6,9 @@ ItemDef(
             kind: Staff("AmethystStaff"),   
             stats: ( 
                 equip_time_millis: 300,
-                power: 1.50,
-            ),
+                power: 1.50
+                ),            
         )
     ),
+    quality: Moderate,
 )

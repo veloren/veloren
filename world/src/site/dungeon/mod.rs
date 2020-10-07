@@ -488,7 +488,7 @@ impl Floor {
                         .do_if(RandomField::new(room.seed.wrapping_add(1)).chance(Vec3::from(tile_pos), 0.2) && !room.boss, |e| e.into_giant())
                         .with_alignment(comp::Alignment::Enemy)
                         .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
-                        .with_automatic_name()
+                        .with_name("Cultist Acolyte")
                         .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                         .with_main_tool(comp::Item::new_from_asset_expect(match dynamic_rng.gen_range(0, 6) {
                             0 => "common.items.npc_weapons.axe.malachite_axe-0",

@@ -5,8 +5,8 @@ ItemDef(
         (
             kind: Head("Leather0"),
             stats: (
-                protection: Normal(0.0),
-            ),
+                protection: Normal(0.0)),            
         )
     ),
+    quality: Common,
 )

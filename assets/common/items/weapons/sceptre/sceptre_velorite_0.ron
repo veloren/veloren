@@ -6,8 +6,8 @@ ItemDef(
             kind: Sceptre("SceptreVelorite"),    
             stats: (
                 equip_time_millis: 400,
-                power: 2.0,
-            ),
+                power: 2.0),            
         )
     ),
+    quality: Epic,
 )

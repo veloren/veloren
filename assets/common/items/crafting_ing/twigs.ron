@@ -1,7 +1,8 @@
 ItemDef(
     name: "Twigs",
-    description: "Dry.",
+    description: "Found near trees.",
     kind: Ingredient(
         kind: "Twigs",
-    )
+    ),
+    quality: Common,
 )

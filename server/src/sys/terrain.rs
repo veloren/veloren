@@ -120,10 +120,6 @@ impl<'a> System<'a> for Sys {
                 // let damage = stats.level.level() as i32; TODO: Make NPC base damage
                 // non-linearly depend on their level
 
-                let loadout =
-                    LoadoutBuilder::build_loadout(body, alignment, main_tool, entity.is_giant)
-                        .build();
-
                 let mut scale = entity.scale;
 
                 // TODO: Remove this and implement scaling or level depending on stuff like
@@ -136,18 +132,12 @@ impl<'a> System<'a> for Sys {
 
                 // Replace stuff if it's a boss
                 if entity.is_giant {
-                    if rand::random::<f32>() < 0.65 {
+                    if rand::random::<f32>() < 0.65 && entity.alignment != Alignment::Enemy {
                         let body_new = comp::humanoid::Body::random();
                         body = comp::Body::Humanoid(body_new);
-                        let adjective = if let Alignment::Enemy = entity.alignment {
-                            "Angry"
-                        } else {
-                            "Gentle"
-                        };
                         stats = comp::Stats::new(
                             format!(
-                                "{} Giant {}",
-                                adjective,
+                                "Gentle Giant {}",
                                 get_npc_name(&NPC_NAMES.humanoid, body_new.species)
                             ),
                             body,
@@ -156,6 +146,10 @@ impl<'a> System<'a> for Sys {
                     stats.level.set_level(rand::thread_rng().gen_range(30, 35));
                     scale = 2.0 + rand::random::<f32>();
                 }
+
+                let loadout =
+                    LoadoutBuilder::build_loadout(body, alignment, main_tool, entity.is_giant)
+                        .build();
 
                 stats.update_max_hp(stats.body_type);
 

@@ -141,7 +141,6 @@ impl<'a> Widget for Social<'a> {
         .title_font_size(self.fonts.cyri.scale(15))
         .parent(ui.window)
         .desc_font_size(self.fonts.cyri.scale(12))
-        .title_text_color(TEXT_COLOR)
         .font_id(self.fonts.cyri.conrod_id)
         .desc_text_color(TEXT_COLOR);
 
@@ -399,7 +398,13 @@ impl<'a> Widget for Social<'a> {
                     None => alias.clone(), // character select or spectating
                 };
                 let level = match &player_info.character {
-                    Some(character) => format!("{} ", &character.level),
+                    Some(character) => {
+                        if character.level > 999 {
+                            "[A]".to_string() // Hide player levels that can't be obtained by normal means. As "infinte" levels are temporary this will avoid clipping.
+                        } else {
+                            character.level.to_string()
+                        }
+                    },
                     None => "".to_string(), // character select or spectating
                 };
                 let zone_name = match &player_info.character {
@@ -439,7 +444,13 @@ impl<'a> Widget for Social<'a> {
                     .label_y(conrod_core::position::Relative::Scalar(1.0))
                     .label_font_id(self.fonts.cyri.conrod_id)
                     .label_color(TEXT_COLOR)
-                    .with_tooltip(self.tooltip_manager, &acc_name_txt, "", &button_tooltip)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        &acc_name_txt,
+                        "",
+                        &button_tooltip,
+                        TEXT_COLOR,
+                    )
                     .set(state.ids.player_names[i], ui);
                 // Player Levels
                 Button::image(if !selected {
@@ -560,7 +571,13 @@ impl<'a> Widget for Social<'a> {
                     &self.localized_strings.get("hud.group.members")
                 );
                 invite_button
-                    .with_tooltip(self.tooltip_manager, &tooltip_txt, "", &button_tooltip)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        &tooltip_txt,
+                        "",
+                        &button_tooltip,
+                        TEXT_COLOR,
+                    )
                     .set(state.ids.invite_button, ui)
             } else {
                 invite_button.set(state.ids.invite_button, ui)

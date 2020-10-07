@@ -1,7 +1,8 @@
 ItemDef(
     name: "Leather Scraps",
-    description: "Used to craft various items.",
+    description: "Looted from animals.",
     kind: Ingredient(
         kind: "LeatherScraps",
-    )
+    ),
+    quality: Common,
 )

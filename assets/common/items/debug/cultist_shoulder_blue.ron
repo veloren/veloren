@@ -5,8 +5,8 @@ ItemDef(
         (
             kind: Shoulder("CultistBlue"),
             stats: (
-                protection: Invincible,
-            ),
+                protection: Invincible),            
         )
     ),
+    quality: Debug,
 )

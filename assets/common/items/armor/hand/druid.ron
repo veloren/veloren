@@ -5,8 +5,8 @@ ItemDef(
         (
             kind: Hand("Druid"),
             stats: (
-                protection: Normal(2.0),
-            ),
+                protection: Normal(2.0)),            
         )
     ),
+    quality: Common,
 )

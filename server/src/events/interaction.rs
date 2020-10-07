@@ -10,39 +10,43 @@ use common::{
 use specs::{world::WorldExt, Entity as EcsEntity};
 use tracing::error;
 
-pub fn handle_lantern(server: &mut Server, entity: EcsEntity) {
+pub fn handle_lantern(server: &mut Server, entity: EcsEntity, enable: bool) {
     let ecs = server.state_mut().ecs();
-    if ecs
+
+    let lantern_exists = ecs
         .read_storage::<comp::LightEmitter>()
         .get(entity)
-        .map_or(false, |light| light.strength > 0.0)
-    {
-        server
-            .state_mut()
-            .ecs()
-            .write_storage::<comp::LightEmitter>()
-            .remove(entity);
-    } else {
-        let loadout_storage = ecs.read_storage::<comp::Loadout>();
-        let lantern_opt = loadout_storage
-            .get(entity)
-            .and_then(|loadout| loadout.lantern.as_ref())
-            .and_then(|item| {
-                if let comp::item::ItemKind::Lantern(l) = item.kind() {
-                    Some(l)
-                } else {
-                    None
-                }
-            });
-        if let Some(lantern) = lantern_opt {
-            let _ = ecs
+        .map_or(false, |light| light.strength > 0.0);
+
+    if lantern_exists != enable {
+        if !enable {
+            server
+                .state_mut()
+                .ecs()
                 .write_storage::<comp::LightEmitter>()
-                .insert(entity, comp::LightEmitter {
-                    col: lantern.color(),
-                    strength: lantern.strength(),
-                    flicker: 0.35,
-                    animated: true,
+                .remove(entity);
+        } else {
+            let loadout_storage = ecs.read_storage::<comp::Loadout>();
+            let lantern_opt = loadout_storage
+                .get(entity)
+                .and_then(|loadout| loadout.lantern.as_ref())
+                .and_then(|item| {
+                    if let comp::item::ItemKind::Lantern(l) = item.kind() {
+                        Some(l)
+                    } else {
+                        None
+                    }
                 });
+            if let Some(lantern) = lantern_opt {
+                let _ =
+                    ecs.write_storage::<comp::LightEmitter>()
+                        .insert(entity, comp::LightEmitter {
+                            col: lantern.color(),
+                            strength: lantern.strength(),
+                            flicker: 0.35,
+                            animated: true,
+                        });
+            }
         }
     }
 }

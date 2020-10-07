@@ -1,7 +1,8 @@
 ItemDef(
     name: "Firework Yellow",
-    description: "The Great Dr. passed away after\ntesting this contraption indoors.\n\n<Right-Click to use>",
+    description: "The Great Dr. passed away after\ntesting this contraption indoors.",
     kind: Throwable(
         kind: Firework(Yellow),
     ),
+    quality: Moderate,
 )

@@ -5,8 +5,8 @@ ItemDef(
         (
             kind: Shoulder("CultistBlue"),
             stats: (
-                protection: Normal(18.0),
-            ),
+                protection: Normal(18.0)),            
         )
     ),
+    quality: Epic,
 )

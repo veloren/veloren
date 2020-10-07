@@ -5,8 +5,9 @@ ItemDef(
         (
             kind: Belt("Steel0"),
             stats: (
-                protection: Normal(4.0),
-            ),
+                protection: Normal(4.0)
+                ),            
         )
     ),
+    quality: Moderate,
 )

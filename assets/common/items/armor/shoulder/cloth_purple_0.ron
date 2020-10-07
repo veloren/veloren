@@ -5,8 +5,8 @@ ItemDef(
         (
             kind: Shoulder("ClothPurple0"),
             stats: (
-                protection: Normal(1.0),
-            ),
+                protection: Normal(1.0)),            
         )
     ),
+    quality: Common,
 )

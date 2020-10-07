@@ -1,7 +1,8 @@
 ItemDef(
     name: "Firework Green",
-    description: "Watch out for trees.\n\n<Right-Click to use>",
+    description: "Watch out for trees.",
     kind: Throwable(
         kind: Firework(Green),
     ),
+    quality: Moderate,
 )

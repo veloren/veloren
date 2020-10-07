@@ -5,8 +5,8 @@ ItemDef(
         (
             kind: Hand("Tarasque"),
             stats: (
-                protection: Normal(10.0),
-            ),
+                protection: Normal(10.0)),            
         )
     ),
+    quality: High,
 )

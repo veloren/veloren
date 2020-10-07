@@ -6,8 +6,9 @@ ItemDef(
             kind: Hammer("CobaltHammer0"),    
             stats: (
                 equip_time_millis: 500,
-                power: 1.60,
-            ),
+                power: 1.60
+                ),            
         )
     ),
+    quality: Moderate,
 )
