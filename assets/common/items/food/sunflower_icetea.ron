@@ -1,0 +1,12 @@
+ItemDef(
+    name: "Sunflower Ice Tea",
+    description: "Restores 50 Health",
+    kind: Consumable(
+        kind: "SunflowerTea",
+        effect: Health((
+            amount: 500,
+            cause: Item,
+        )),        
+    ),
+    quality: Moderate,
+)

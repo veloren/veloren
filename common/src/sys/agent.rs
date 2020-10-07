@@ -6,16 +6,17 @@ use crate::{
         group::Invite,
         item::{tool::ToolKind, ItemKind},
         Agent, Alignment, Body, CharacterState, ControlAction, ControlEvent, Controller,
-        GroupManip, Loadout, MountState, Ori, PhysicsState, Pos, Scale, Stats, UnresolvedChatMsg,
-        Vel,
+        GroupManip, LightEmitter, Loadout, MountState, Ori, PhysicsState, Pos, Scale, Stats,
+        UnresolvedChatMsg, Vel,
     },
     event::{EventBus, ServerEvent},
     metrics::SysMetrics,
     path::{Chaser, TraversalConfig},
     span,
-    state::{DeltaTime, Time},
+    state::{DeltaTime, Time, TimeOfDay},
     sync::{Uid, UidAllocator},
     terrain::{Block, TerrainGrid},
+    time::DayPeriod,
     util::Dir,
     vol::ReadVol,
 };
@@ -55,6 +56,8 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Controller>,
         ReadStorage<'a, MountState>,
         ReadStorage<'a, Invite>,
+        Read<'a, TimeOfDay>,
+        ReadStorage<'a, LightEmitter>,
     );
 
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
@@ -85,6 +88,8 @@ impl<'a> System<'a> for Sys {
             mut controllers,
             mount_states,
             invites,
+            time_of_day,
+            light_emitter,
         ): Self::SystemData,
     ) {
         let start_time = std::time::Instant::now();
@@ -104,6 +109,7 @@ impl<'a> System<'a> for Sys {
             controller,
             mount_state,
             group,
+            light_emitter,
         ) in (
             &entities,
             &positions,
@@ -119,6 +125,7 @@ impl<'a> System<'a> for Sys {
             &mut controllers,
             mount_states.maybe(),
             groups.maybe(),
+            light_emitter.maybe(),
         )
             .join()
         {
@@ -144,6 +151,33 @@ impl<'a> System<'a> for Sys {
             }
 
             controller.reset();
+            let mut event_emitter = event_bus.emitter();
+            // Light lanterns at night
+            // TODO Add a method to turn on NPC lanterns underground
+            let lantern_equipped = loadout.lantern.as_ref().map_or(false, |item| {
+                matches!(item.kind(), comp::item::ItemKind::Lantern(_))
+            });
+            let lantern_turned_on = light_emitter.is_some();
+            let day_period = DayPeriod::from(time_of_day.0);
+            // Only emit event for agents that have a lantern equipped
+            if lantern_equipped {
+                let mut rng = thread_rng();
+                if day_period.is_dark() && !lantern_turned_on {
+                    // Agents with turned off lanterns turn them on randomly once it's nighttime and
+                    // keep them on
+                    // Only emit event for agents that sill need to
+                    // turn on their lantern
+                    if let 0 = rng.gen_range(0, 1000) {
+                        controller.events.push(ControlEvent::EnableLantern)
+                    }
+                } else if lantern_turned_on && day_period.is_light() {
+                    // agents with turned on lanterns turn them off randomly once it's daytime and
+                    // keep them off
+                    if let 0 = rng.gen_range(0, 2000) {
+                        controller.events.push(ControlEvent::DisableLantern)
+                    }
+                }
+            };
 
             let mut inputs = &mut controller.inputs;
 
@@ -513,7 +547,7 @@ impl<'a> System<'a> for Sys {
                                             if agent.can_speak {
                                                 let msg =
                                                     "npc.speech.villager_under_attack".to_string();
-                                                event_bus.emit_now(ServerEvent::Chat(
+                                                event_emitter.emit(ServerEvent::Chat(
                                                     UnresolvedChatMsg::npc(*uid, msg),
                                                 ));
                                             }

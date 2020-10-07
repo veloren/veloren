@@ -1,0 +1,8 @@
+ItemDef(
+    name: "Sewing Set",
+    description: "Used to craft various items.",
+    kind: Ingredient(
+        kind: "SewingSet",
+    ),
+    quality: Moderate,
+)

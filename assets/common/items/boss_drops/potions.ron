@@ -8,4 +8,5 @@ ItemDef(
             cause: Item,
         )),
     ),
+    quality: High,
 )

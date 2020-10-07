@@ -1,0 +1,24 @@
+((
+    default: (
+        vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
+        color: None
+    ),
+    map: {
+        "Starter": (
+            vox_spec: ("glider.glider_starter", (-15.0, -5.0, -5.0)),
+            color: None
+        ),   
+        "Blue0": (
+            vox_spec: ("glider.glider_blue", (-26.0, -26.0, -5.0)),
+            color: None
+        ),   
+        "Purple0": (
+            vox_spec: ("glider.glider_cultists", (-26.0, -16.0, -5.0)),
+            color: None
+        ),
+        "Leaves": (
+            vox_spec: ("glider.glider_leaves", (-26.0, -26.0, -5.0)),
+            color: None
+        ),
+    },
+))

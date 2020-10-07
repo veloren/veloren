@@ -30,7 +30,9 @@ pub enum GroupManip {
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum ControlEvent {
-    ToggleLantern,
+    //ToggleLantern,
+    EnableLantern,
+    DisableLantern,
     Mount(Uid),
     Unmount,
     InventoryManip(InventoryManip),

@@ -6,8 +6,8 @@ ItemDef(
             kind: Hammer("WoodHammer0"),    
             stats: (
                 equip_time_millis: 500,
-                power: 0.60,
-            ),
+                power: 0.60),            
         )
     ),
+    quality: Low,
 )

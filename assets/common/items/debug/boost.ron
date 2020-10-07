@@ -6,9 +6,9 @@ ItemDef(
             kind: Debug("Boost"),
             stats: (
                 equip_time_millis: 0,
-                power: 1.00,
-            ),
+                power: 1.00),            
         )
     ),
+    quality: Debug,
 )
 // And the ground is pretty hard at maximum velocity...

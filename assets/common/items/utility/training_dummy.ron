@@ -1,7 +1,8 @@
 ItemDef(
     name: "Training Dummy",
-    description: "His name is William. Fire at will.\n\n<Right-Click to use>",
+    description: "His name is William. Fire at will.",
     kind: Throwable(
         kind: TrainingDummy,
     ),
+    quality: Moderate,
 )

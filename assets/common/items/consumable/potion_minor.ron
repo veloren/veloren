@@ -1,6 +1,6 @@
 ItemDef(
     name: "Minor Potion",
-    description: "Restores 50 Health\n\n<Right-Click to use>",
+    description: "Restores 50 Health",
     kind: Consumable(
         kind: "PotionMinor",
         effect: Health((
@@ -8,4 +8,5 @@ ItemDef(
             cause: Item,
         )),        
     ),
+    quality: Common,
 )

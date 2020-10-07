@@ -1,8 +1,9 @@
 ItemDef(
     name: "Velorite Fragment",
-    description: "Increases Exp by 10\n\nSmall runes sparkle on its surface\n\n<Right-Click to use>",
+    description: "Increases Exp by 10\n\nSmall runes sparkle on its surface",
     kind: Consumable(
         kind: "VeloriteFrag",
         effect: Xp(10),
-    ),    
+    ),
+    quality: Moderate,     
 )

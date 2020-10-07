@@ -6,8 +6,9 @@ ItemDef(
             kind: Dagger("BasicDagger"),    
             stats: (
                 equip_time_millis: 300,
-                power: 1.00,
-            ),
+                power: 1.00
+                ),            
         )
     ),
+    quality: Moderate,
 )

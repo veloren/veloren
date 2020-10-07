@@ -5,8 +5,8 @@ ItemDef(
         (
             kind: Chest("WorkerGreen0"),
             stats: (
-                protection: Normal(1.0),
-            ),
+                protection: Normal(1.0)),            
         )
     ),
+    quality: Low,
 )

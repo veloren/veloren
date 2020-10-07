@@ -6,8 +6,8 @@ ItemDef(
             kind: Farming("Shovel0"),
             stats: (
                 equip_time_millis: 400,
-                power: 1.50,
-            ),
+                power: 1.50),            
         )
     ),
+    quality: Low,
 )

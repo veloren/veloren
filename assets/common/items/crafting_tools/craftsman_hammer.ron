@@ -3,5 +3,6 @@ ItemDef(
     description: "Used to craft various items.",
     kind: Ingredient(
         kind: "CraftsmanHammer",
-    )
+    ),
+    quality: Moderate,
 )

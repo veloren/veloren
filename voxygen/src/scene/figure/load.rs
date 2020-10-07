@@ -331,6 +331,8 @@ struct HumMainWeaponSpec(HashMap<ToolKind, ArmorVoxSpec>);
 #[derive(Deserialize)]
 struct HumArmorLanternSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
 #[derive(Deserialize)]
+struct HumArmorGliderSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
+#[derive(Deserialize)]
 struct HumArmorHeadSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
 #[derive(Deserialize)]
 struct HumArmorTabardSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
@@ -349,6 +351,7 @@ make_vox_spec!(
         armor_foot: HumArmorFootSpec = "voxygen.voxel.humanoid_armor_foot_manifest",
         main_weapon: HumMainWeaponSpec = "voxygen.voxel.humanoid_main_weapon_manifest",
         armor_lantern: HumArmorLanternSpec = "voxygen.voxel.humanoid_lantern_manifest",
+        armor_glider: HumArmorGliderSpec = "voxygen.voxel.humanoid_glider_manifest",
         // TODO: Add these.
         /* armor_head: HumArmorHeadSpec = "voxygen.voxel.humanoid_armor_head_manifest",
         tabard: HumArmorTabardSpec = "voxygen.voxel.humanoid_armor_tabard_manifest", */
@@ -358,6 +361,7 @@ make_vox_spec!(
             third_person: None,
             tool: None,
             lantern: None,
+            glider: None,
             hand: None,
             foot: None,
         };
@@ -367,6 +371,7 @@ make_vox_spec!(
         let third_person = loadout.third_person.as_ref();
         let tool = loadout.tool.as_ref();
         let lantern = loadout.lantern.as_deref();
+        let glider = loadout.glider.as_deref();
         let hand = loadout.hand.as_deref();
         let foot = loadout.foot.as_deref();
 
@@ -439,7 +444,11 @@ make_vox_spec!(
                     loadout.shoulder.as_deref(),
                 )
             }),
-            Some(mesh_glider()),
+            Some(spec.armor_glider.asset.mesh_glider(
+                body,
+                &spec.color.asset,
+                glider,
+            )),
             tool.and_then(|tool| tool.active.as_ref()).map(|tool| {
                 spec.main_weapon.asset.mesh_main_weapon(
                     tool,
@@ -974,8 +983,40 @@ impl HumArmorTabardSpec {
         (tabard, Vec3::from(spec.vox_spec.1))
     }
 }
-// TODO: Inventory
-fn mesh_glider() -> BoneMeshes { load_mesh("object.glider", Vec3::new(-26.0, -26.0, -5.0)) }
+impl HumArmorGliderSpec {
+    fn mesh_glider(
+        &self,
+        body: &Body,
+        color_spec: &HumColorSpec,
+        glider: Option<&str>,
+    ) -> BoneMeshes {
+        let spec = if let Some(kind) = glider {
+            match self.0.map.get(kind) {
+                Some(spec) => spec,
+                None => {
+                    error!(?kind, "No glider specification exists");
+                    return load_mesh("not_found", Vec3::new(-4.0, -3.5, 2.0));
+                },
+            }
+        } else {
+            &self.0.default
+        };
+
+        let mut glider_segment = color_spec.color_segment(
+            graceful_load_mat_segment(&spec.vox_spec.0),
+            body.species.skin_color(body.skin),
+            color_spec.hair_color(body.species, body.hair_color),
+            body.species.eye_color(body.eye_color),
+        );
+        if let Some(color) = spec.color {
+            let glider_color = Vec3::from(color);
+            glider_segment =
+                glider_segment.map_rgb(|rgb| recolor_grey(rgb, Rgb::from(glider_color)));
+        }
+
+        (glider_segment, Vec3::from(spec.vox_spec.1))
+    }
+}
 
 fn mesh_hold() -> BoneMeshes {
     load_mesh(

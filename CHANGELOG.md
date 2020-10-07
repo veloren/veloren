@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Adaptive stride setup for more dynamic run behavior
 - Theropod body
 - Several new animals
+- Item quality indicators
 
 ### Changed
 

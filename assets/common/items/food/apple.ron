@@ -1,11 +1,12 @@
 ItemDef(
     name: "Apple",
-    description: "Restores 20 Health\n\nRed and juicy\n\n<Right-Click to use>",
+    description: "Restores 10 Health\n\nRed and juicy",
     kind: Consumable(
         kind: "Apple",
         effect: Health((
-            amount: 200,
+            amount: 100,
             cause: Item,
         )),        
     ),
+    quality: Common,
 )

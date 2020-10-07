@@ -5,8 +5,9 @@ ItemDef(
         (
             kind: Shoulder("Assassin"),
             stats: (
-                protection: Normal(3.0),
-            ),
+                protection: Normal(3.0)
+                ),            
         )
     ),
+    quality: Moderate,
 )

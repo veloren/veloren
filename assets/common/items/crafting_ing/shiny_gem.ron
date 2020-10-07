@@ -3,5 +3,6 @@ ItemDef(
     description: "It's so shiny!",
     kind: Ingredient(
         kind: "ShinyGem",
-    )
+    ),
+    quality: High,
 )

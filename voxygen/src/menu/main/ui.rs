@@ -292,7 +292,6 @@ impl<'a> MainMenuUi {
         .title_font_size(self.fonts.cyri.scale(15))
         .desc_font_size(self.fonts.cyri.scale(10))
         .font_id(self.fonts.cyri.conrod_id)
-        .title_text_color(TEXT_COLOR)
         .desc_text_color(TEXT_COLOR_2);
 
         // Background image, Veloren logo, Alpha-Version Label

@@ -100,7 +100,8 @@ impl Server {
                 ServerEvent::LandOnGround { entity, vel } => {
                     handle_land_on_ground(&self, entity, vel)
                 },
-                ServerEvent::ToggleLantern(entity) => handle_lantern(self, entity),
+                ServerEvent::EnableLantern(entity) => handle_lantern(self, entity, true),
+                ServerEvent::DisableLantern(entity) => handle_lantern(self, entity, false),
                 ServerEvent::Mount(mounter, mountee) => handle_mount(self, mounter, mountee),
                 ServerEvent::Unmount(mounter) => handle_unmount(self, mounter),
                 ServerEvent::Possess(possessor_uid, possesse_uid) => {
