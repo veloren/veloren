@@ -5,12 +5,18 @@
     (3, "common.items.food.apple"),
     (3, "common.items.food.mushroom"),
     (3, "common.items.food.coconut"),
+    (4, "common.items.crafting_ing.cloth_scraps"),    
     // crafted
     (0.5, "common.items.food.apple_mushroom_curry"),
     (0.5, "common.items.food.apple_stick"),
     (0.5, "common.items.food.mushroom_stick"),
     // Misc
+    (4, "common.items.crafting_ing.empty_vial"),
     (0.25, "common.items.armor.neck.neck_1"),
+    (0.001, "common.items.glider.glider_purp"),
+    (0.5, "common.items.glider.glider_blue"),
+    (0.5, "common.items.utility.firework_purple"),
+    (0.5, "common.items.utility.bomb"),
     // Heavy Armour
     // belts
     (0.5, "common.items.armor.belt.plate_0"),

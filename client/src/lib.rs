@@ -602,9 +602,15 @@ impl Client {
             .collect();
     }
 
-    pub fn toggle_lantern(&mut self) {
+    pub fn enable_lantern(&mut self) {
         self.singleton_stream
-            .send(ClientMsg::ControlEvent(ControlEvent::ToggleLantern))
+            .send(ClientMsg::ControlEvent(ControlEvent::EnableLantern))
+            .unwrap();
+    }
+
+    pub fn disable_lantern(&mut self) {
+        self.singleton_stream
+            .send(ClientMsg::ControlEvent(ControlEvent::DisableLantern))
             .unwrap();
     }
 
@@ -678,6 +684,14 @@ impl Client {
         self.state
             .ecs()
             .read_storage::<comp::Mounting>()
+            .get(self.entity)
+            .is_some()
+    }
+
+    pub fn is_lantern_enabled(&self) -> bool {
+        self.state
+            .ecs()
+            .read_storage::<comp::LightEmitter>()
             .get(self.entity)
             .is_some()
     }

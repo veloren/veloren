@@ -6,8 +6,8 @@ ItemDef(
             kind: Axe("OrcAxe0"),    
             stats: (
                 equip_time_millis: 400,
-                power: 0.60,
-            ),
+                power: 0.60),            
         )
     ),
+    quality: Low,
 )

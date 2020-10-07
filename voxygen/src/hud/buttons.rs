@@ -137,7 +137,6 @@ impl<'a> Widget for Buttons<'a> {
         .title_font_size(self.fonts.cyri.scale(15))
         .parent(ui.window)
         .desc_font_size(self.fonts.cyri.scale(12))
-        .title_text_color(TEXT_COLOR)
         .font_id(self.fonts.cyri.conrod_id)
         .desc_text_color(TEXT_COLOR);
         // Bag
@@ -165,6 +164,7 @@ impl<'a> Widget for Buttons<'a> {
                 .replace("{playername}", &self.stats.name.to_string().as_str()),
             "",
             &button_tooltip,
+            TEXT_COLOR,
         )
         .set(state.ids.bag, ui)
         .was_clicked()
@@ -225,6 +225,7 @@ impl<'a> Widget for Buttons<'a> {
                 &localized_strings.get("common.settings"),
                 "",
                 &button_tooltip,
+                TEXT_COLOR,
             )
             .set(state.ids.settings_button, ui)
             .was_clicked()
@@ -262,6 +263,7 @@ impl<'a> Widget for Buttons<'a> {
                 &localized_strings.get("hud.social"),
                 "",
                 &button_tooltip,
+                TEXT_COLOR,
             )
             .set(state.ids.social_button, ui)
             .was_clicked()
@@ -298,6 +300,7 @@ impl<'a> Widget for Buttons<'a> {
                 &localized_strings.get("hud.map.map_title"),
                 "",
                 &button_tooltip,
+                TEXT_COLOR,
             )
             .set(state.ids.map_button, ui)
             .was_clicked()
@@ -335,6 +338,7 @@ impl<'a> Widget for Buttons<'a> {
                 &localized_strings.get("hud.spell"),
                 "",
                 &button_tooltip,
+                TEXT_COLOR,
             )
             .set(state.ids.spellbook_button, ui)
             .was_clicked()
@@ -372,6 +376,7 @@ impl<'a> Widget for Buttons<'a> {
                 &localized_strings.get("hud.crafting"),
                 "",
                 &button_tooltip,
+                TEXT_COLOR,
             )
             .set(state.ids.crafting_button, ui)
             .was_clicked()

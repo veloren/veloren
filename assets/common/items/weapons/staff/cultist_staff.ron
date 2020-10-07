@@ -6,8 +6,8 @@ ItemDef(
             kind: Staff("CultistStaff"),    
             stats: (
                 equip_time_millis: 300,
-                power: 2.00,
-            ),
+                power: 2.00),            
         )
     ),
+    quality: Epic,
 )

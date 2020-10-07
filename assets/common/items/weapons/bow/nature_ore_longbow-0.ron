@@ -6,8 +6,8 @@ ItemDef(
             kind: Bow("NatureOreLongbow"),    
             stats: (
                 equip_time_millis: 400,
-                power: 2.00,
-            ),
+                power: 2.00),            
         )
     ),
+    quality: Epic,
 )

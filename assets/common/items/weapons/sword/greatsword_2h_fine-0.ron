@@ -6,8 +6,9 @@ ItemDef(
             kind: Sword("GreatswordFine0"),    
             stats: (
                 equip_time_millis: 500,
-                power: 1.40,
-            ),
+                power: 1.40
+                ),            
         )
     ),
+    quality: Moderate,
 )

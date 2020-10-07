@@ -25,7 +25,6 @@ use conrod_core::{
     widget::{text_box::Event as TextBoxEvent, Button, Image, Rectangle, Scrollbar, Text, TextBox},
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget,
 };
-//use inline_tweak::*;
 use rand::{thread_rng, Rng};
 use std::sync::Arc;
 
@@ -34,8 +33,7 @@ const STARTER_BOW: &str = "common.items.weapons.bow.starter_bow";
 const STARTER_AXE: &str = "common.items.weapons.axe.starter_axe";
 const STARTER_STAFF: &str = "common.items.weapons.staff.starter_staff";
 const STARTER_SWORD: &str = "common.items.weapons.sword.starter_sword";
-const STARTER_DAGGER: &str = "common.items.weapons.dagger.starter_dagger";
-//const STARTER_SCEPTRE: &str = "common.items.weapons.sceptre.starter_sceptre";
+const STARTER_SCEPTRE: &str = "common.items.weapons.sceptre.starter_sceptre";
 // // Use in future MR to make this a starter weapon
 
 // UI Color-Theme
@@ -77,13 +75,6 @@ widget_ids! {
 
         //Alpha Disclaimer
         alpha_text,
-
-        // REMOVE THIS AFTER IMPLEMENTATION
-        daggers_grey,
-        axe_grey,
-        hammer_grey,
-        bow_grey,
-        staff_grey,
 
 
         // Characters
@@ -160,8 +151,8 @@ widget_ids! {
         // Tools
         sword,
         sword_button,
-        daggers,
-        daggers_button,
+        sceptre,
+        sceptre_button,
         axe,
         axe_button,
         hammer,
@@ -207,7 +198,7 @@ image_ids! {
         slider_indicator: "voxygen.element.slider.indicator",
 
         // Tool Icons
-        daggers: "voxygen.element.icons.daggers",
+        sceptre: "voxygen.element.icons.sceptre",
         sword: "voxygen.element.icons.sword",
         axe: "voxygen.element.icons.axe",
         hammer: "voxygen.element.icons.hammer",
@@ -411,6 +402,9 @@ impl CharSelectionUi {
                 loadout.foot = Some(comp::Item::new_from_asset_expect(
                     "common.items.armor.starter.sandals_0",
                 ));
+                loadout.glider = Some(comp::Item::new_from_asset_expect(
+                    "common.items.armor.starter.glider",
+                ));
                 Some(loadout.clone())
             },
         }
@@ -462,7 +456,6 @@ impl CharSelectionUi {
         .desc_font_size(self.fonts.cyri.scale(10))
         .parent(ui_widgets.window)
         .font_id(self.fonts.cyri.conrod_id)
-        .title_text_color(TEXT_COLOR)
         .desc_text_color(TEXT_COLOR_2);
 
         // Set the info content if we encountered an error related to characters
@@ -782,6 +775,7 @@ impl CharSelectionUi {
                             &self.voxygen_i18n.get("char_selection.delete_permanently"),
                             "",
                             &tooltip_human,
+                            TEXT_COLOR,
                         )
                         .set(self.ids.character_deletes[i], ui_widgets)
                         .was_clicked()
@@ -917,6 +911,7 @@ impl CharSelectionUi {
                             &self.voxygen_i18n.get("char_selection.create_info_name"),
                             "",
                             &tooltip_human,
+                            TEXT_COLOR,
                         )
                         .set(self.ids.create_button, ui_widgets)
                         .was_clicked()
@@ -1089,6 +1084,7 @@ impl CharSelectionUi {
                     &self.voxygen_i18n.get("common.species.human"),
                     "",
                     &tooltip_human,
+                    TEXT_COLOR,
                 )
                 .set(self.ids.species_1, ui_widgets)
                 .was_clicked()
@@ -1115,6 +1111,7 @@ impl CharSelectionUi {
                     &self.voxygen_i18n.get("common.species.orc"),
                     "",
                     &tooltip_human,
+                    TEXT_COLOR,
                 )
                 .set(self.ids.species_2, ui_widgets)
                 .was_clicked()
@@ -1140,6 +1137,7 @@ impl CharSelectionUi {
                     &self.voxygen_i18n.get("common.species.dwarf"),
                     "",
                     &tooltip_human,
+                    TEXT_COLOR,
                 )
                 .set(self.ids.species_3, ui_widgets)
                 .was_clicked()
@@ -1165,6 +1163,7 @@ impl CharSelectionUi {
                     &self.voxygen_i18n.get("common.species.elf"),
                     "",
                     &tooltip_human,
+                    TEXT_COLOR,
                 )
                 .set(self.ids.species_4, ui_widgets)
                 .was_clicked()
@@ -1191,6 +1190,7 @@ impl CharSelectionUi {
                     &self.voxygen_i18n.get("common.species.undead"),
                     "",
                     &tooltip_human,
+                    TEXT_COLOR,
                 )
                 .set(self.ids.species_5, ui_widgets)
                 .was_clicked()
@@ -1216,6 +1216,7 @@ impl CharSelectionUi {
                     &self.voxygen_i18n.get("common.species.danari"),
                     "",
                     &tooltip_human,
+                    TEXT_COLOR,
                 )
                 .set(self.ids.species_6, ui_widgets)
                 .was_clicked()
@@ -1223,36 +1224,36 @@ impl CharSelectionUi {
                     body.species = humanoid::Species::Danari;
                     body.validate();
                 }
-
-                // Hammer
-                Image::new(self.imgs.hammer)
+                // Healing Sceptre
+                Image::new(self.imgs.sceptre)
                     .w_h(70.0, 70.0)
                     .bottom_left_with_margins_on(self.ids.creation_buttons_alignment_2, 0.0, 0.0)
-                    .set(self.ids.hammer, ui_widgets);
-                if Button::image(if let Some(STARTER_HAMMER) = tool {
+                    .set(self.ids.sceptre, ui_widgets);
+                if Button::image(if let Some(STARTER_SCEPTRE) = tool {
                     self.imgs.icon_border_pressed
                 } else {
                     self.imgs.icon_border
                 })
-                .middle_of(self.ids.hammer)
+                .middle_of(self.ids.sceptre)
                 .hover_image(self.imgs.icon_border_mo)
                 .press_image(self.imgs.icon_border_press)
                 .with_tooltip(
                     tooltip_manager,
-                    &self.voxygen_i18n.get("common.weapons.hammer"),
+                    &self.voxygen_i18n.get("common.weapons.sceptre"),
                     "",
                     &tooltip_human,
+                    TEXT_COLOR,
                 )
-                .set(self.ids.hammer_button, ui_widgets)
+                .set(self.ids.sceptre_button, ui_widgets)
                 .was_clicked()
                 {
-                    *tool = Some(STARTER_HAMMER);
+                    *tool = Some(STARTER_SCEPTRE);
                 }
 
                 // Bow
                 Image::new(self.imgs.bow)
                     .w_h(70.0, 70.0)
-                    .right_from(self.ids.hammer, 2.0)
+                    .right_from(self.ids.sceptre, 2.0)
                     .set(self.ids.bow, ui_widgets);
                 if Button::image(if let Some(STARTER_BOW) = tool {
                     self.imgs.icon_border_pressed
@@ -1267,6 +1268,7 @@ impl CharSelectionUi {
                     &self.voxygen_i18n.get("common.weapons.bow"),
                     "",
                     &tooltip_human,
+                    TEXT_COLOR,
                 )
                 .set(self.ids.bow_button, ui_widgets)
                 .was_clicked()
@@ -1291,6 +1293,7 @@ impl CharSelectionUi {
                     &self.voxygen_i18n.get("common.weapons.staff"),
                     "",
                     &tooltip_human,
+                    TEXT_COLOR,
                 )
                 .set(self.ids.staff_button, ui_widgets)
                 .was_clicked()
@@ -1300,7 +1303,7 @@ impl CharSelectionUi {
                 // Sword
                 Image::new(self.imgs.sword)
                     .w_h(70.0, 70.0)
-                    .up_from(self.ids.hammer, 2.0)
+                    .up_from(self.ids.sceptre, 2.0)
                     .set(self.ids.sword, ui_widgets);
                 if Button::image(if let Some(STARTER_SWORD) = tool {
                     self.imgs.icon_border_pressed
@@ -1315,6 +1318,7 @@ impl CharSelectionUi {
                     &self.voxygen_i18n.get("common.weapons.sword"),
                     "",
                     &tooltip_human,
+                    TEXT_COLOR,
                 )
                 .set(self.ids.sword_button, ui_widgets)
                 .was_clicked()
@@ -1322,33 +1326,36 @@ impl CharSelectionUi {
                     *tool = Some(STARTER_SWORD);
                 }
 
-                // Daggers
-                Image::new(self.imgs.daggers)
+                // Hammer
+                Image::new(self.imgs.hammer)
                     .w_h(70.0, 70.0)
                     .right_from(self.ids.sword, 2.0)
-                    .set(self.ids.daggers, ui_widgets);
-                if Button::image(if let Some(STARTER_DAGGER) = tool {
+                    .set(self.ids.hammer, ui_widgets);
+                if Button::image(if let Some(STARTER_HAMMER) = tool {
                     self.imgs.icon_border_pressed
                 } else {
                     self.imgs.icon_border
                 })
-                .middle_of(self.ids.daggers)
-                //.hover_image(self.imgs.icon_border_mo)
-                //.press_image(self.imgs.icon_border_press)
-                //.with_tooltip(tooltip_manager, "Daggers", "", &tooltip_human)
-                .set(self.ids.daggers_button, ui_widgets)
+                .middle_of(self.ids.hammer)
+                .hover_image(self.imgs.icon_border_mo)
+                .press_image(self.imgs.icon_border_press)
+                .with_tooltip(
+                    tooltip_manager,
+                    &self.voxygen_i18n.get("common.weapons.hammer"),
+                    "",
+                    &tooltip_human,
+                    TEXT_COLOR,
+                )
+                .set(self.ids.hammer_button, ui_widgets)
                 .was_clicked()
                 {
-                    // *tool = Some(STARTER_DAGGER);
-                } // REMOVE THIS AFTER IMPLEMENTATION
-                Rectangle::fill_with([67.0, 67.0], color::rgba(0.0, 0.0, 0.0, 0.8))
-                    .middle_of(self.ids.daggers)
-                    .set(self.ids.daggers_grey, ui_widgets);
+                    *tool = Some(STARTER_HAMMER);
+                }
 
                 // Axe
                 Image::new(self.imgs.axe)
                     .w_h(70.0, 70.0)
-                    .right_from(self.ids.daggers, 2.0)
+                    .right_from(self.ids.hammer, 2.0)
                     .set(self.ids.axe, ui_widgets);
                 if Button::image(if let Some(STARTER_AXE) = tool {
                     self.imgs.icon_border_pressed
@@ -1363,6 +1370,7 @@ impl CharSelectionUi {
                     &self.voxygen_i18n.get("common.weapons.axe"),
                     "",
                     &tooltip_human,
+                    TEXT_COLOR,
                 )
                 .set(self.ids.axe_button, ui_widgets)
                 .was_clicked()
@@ -1380,6 +1388,7 @@ impl CharSelectionUi {
                         &self.voxygen_i18n.get("common.rand_appearance"),
                         "",
                         &tooltip_human,
+                        TEXT_COLOR,
                     )
                     .set(self.ids.random_button, ui_widgets)
                     .was_clicked()

@@ -3,5 +3,6 @@ ItemDef(
     description: "Roses are red...",
     kind: Ingredient(
         kind: "Flower",
-    )
+    ),
+    quality: Common,
 )

@@ -6,8 +6,8 @@ ItemDef(
             kind: Staff("BasicStaff"),
             stats: (
                 equip_time_millis: 200,
-                power: 0.50,
-            ),
+                power: 0.50),            
         )
     ),
+    quality: Low,
 )

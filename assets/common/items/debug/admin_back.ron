@@ -5,8 +5,8 @@ ItemDef(
         (
             kind: Back("Admin"),
             stats: (
-                protection: Invincible,
-            ),
+                protection: Invincible),            
         )
     ),
+    quality: Debug,
 )

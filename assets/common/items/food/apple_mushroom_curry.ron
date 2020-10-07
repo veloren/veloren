@@ -1,6 +1,6 @@
 ItemDef(
     name: "Mushroom Curry",
-    description: "Restores 120 Health\n\nWho could say no to that?\n\n<Right-Click to use>",
+    description: "Restores 120 Health\n\nWho could say no to that?",
     kind: Consumable(
         kind: "AppleShroomCurry",
         effect: Health((
@@ -8,4 +8,5 @@ ItemDef(
             cause: Item,
         )),        
     ),
+    quality: Moderate,
 )

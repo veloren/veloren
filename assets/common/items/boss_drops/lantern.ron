@@ -9,4 +9,5 @@ ItemDef(
             flicker_thousandths: 300,
         ),
     ),
+    quality: High,
 )

@@ -5,8 +5,9 @@ ItemDef(
         (
             kind: Back("Short0"),
             stats: (
-                protection: Normal(0.3),
-            ),
+                protection: Normal(0.3)
+                ),            
         )
     ),
+    quality: Moderate,
 )

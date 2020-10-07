@@ -22,18 +22,33 @@ pub fn item_text<'a>(item: &'a impl ItemDesc) -> (&'_ str, Cow<'a, str>) {
     let desc: Cow<str> = match item.kind() {
         ItemKind::Armor(armor) => Cow::Owned(armor_desc(&armor, item.description())),
         ItemKind::Tool(tool) => Cow::Owned(tool_desc(&tool, item.description())),
-        /*ItemKind::Consumable(kind, effect, ..) => {
-            Cow::Owned(consumable_desc(consumable, item.description()))
-        },*/
-        // ItemKind::Throwable => {},
-        // ItemKind::Utility => {},
-        // ItemKind::Ingredient => {},
-        // ItemKind::Lantern => {},
-        _ => Cow::Borrowed(item.description()),
+        ItemKind::Glider(_glider) => Cow::Owned(glider_desc(item.description())),
+        ItemKind::Consumable { .. } => Cow::Owned(consumable_desc(item.description())),
+        ItemKind::Throwable { .. } => Cow::Owned(throwable_desc(item.description())),
+        ItemKind::Utility { .. } => Cow::Owned(utility_desc(item.description())),
+        ItemKind::Ingredient { .. } => Cow::Owned(ingredient_desc(item.description())),
+        ItemKind::Lantern { .. } => Cow::Owned(lantern_desc(item.description())),
+        //_ => Cow::Borrowed(item.description()),
     };
 
     (item.name(), desc)
 }
+
+fn glider_desc(desc: &str) -> String { format!("Glider\n\n{}\n\n<Right-Click to use>", desc) }
+
+fn consumable_desc(desc: &str) -> String {
+    format!("Consumable\n\n{}\n\n<Right-Click to use>", desc)
+}
+
+fn throwable_desc(desc: &str) -> String {
+    format!("Can be thrown\n\n{}\n\n<Right-Click to use>", desc)
+}
+
+fn utility_desc(desc: &str) -> String { format!("{}\n\n<Right-Click to use>", desc) }
+
+fn ingredient_desc(desc: &str) -> String { format!("Crafting Ingredient\n\n{}", desc) }
+
+fn lantern_desc(desc: &str) -> String { format!("Lantern\n\n{}\n\n<Right-Click to use>", desc) }
 
 // Armor Description
 fn armor_desc(armor: &Armor, desc: &str) -> String {

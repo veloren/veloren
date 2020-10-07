@@ -1,7 +1,8 @@
 ItemDef(
     name: "Firework Red",
-    description: "Humans sometimes use these\nas a flare in a pinch.\n\n<Right-Click to use>",
+    description: "Humans sometimes use these\nas a flare in a pinch.",
     kind: Throwable(
         kind: Firework(Red),
     ),
+    quality: Moderate,
 )

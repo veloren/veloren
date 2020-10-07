@@ -6,8 +6,9 @@ ItemDef(
             kind: Bow("IronLongbow0"),    
             stats: (
                 equip_time_millis: 400,
-                power: 1.75,
-            ),
+                power: 1.75
+                ),            
         )
     ),
+    quality: Moderate,
 )

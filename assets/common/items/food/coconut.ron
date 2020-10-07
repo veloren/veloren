@@ -1,11 +1,12 @@
 ItemDef(
     name: "Coconut",
-    description: "Restores 30 health\n\nReliable source of water and fat\n\n<Right-Click to use>",
+    description: "Restores 20 health\n\nReliable source of water and fat",
     kind: Consumable(
         kind: "Coconut",
         effect: Health((
-            amount: 300,
+            amount: 200,
             cause: Item,
         )),       
     ),
+    quality: Common,
 )

@@ -1,6 +1,10 @@
 [
     // Misc
     (0.25, "common.items.armor.neck.neck_1"),
+    (0.2, "common.items.crafting_ing.cloth_scraps"), 
+    (1.0, "common.items.crafting_ing.empty_vial"),  
+    (0.1, "common.items.glider.glider_blue"),
+    (1, "common.items.crafting_ing.cloth_scraps"),   
     // swords 
     (0.07, "common.items.weapons.sword.greatsword_2h_fine-1"),
     (0.07, "common.items.weapons.sword.greatsword_2h_fine-2"),

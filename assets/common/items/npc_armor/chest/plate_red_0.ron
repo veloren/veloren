@@ -1,0 +1,12 @@
+ItemDef(
+    name: "Iron Chestplate",
+    description: "A chestplate forged from iron.",
+    kind: Armor(
+        (
+            kind: Chest("PlateRed0"),
+            stats: (
+                protection: Normal(5.0)),            
+        )
+    ),
+    quality: Low,
+)

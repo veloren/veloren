@@ -1,8 +1,9 @@
 ItemDef(
     name: "Bomb",
-    description: "Boom!\n\n<Right-Click to use>",
+    description: "Boom!",
     kind: Throwable(
         kind: Bomb,
 		amount: 10,
     ),
+    quality: Common,
 )

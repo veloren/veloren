@@ -5,8 +5,8 @@ ItemDef(
         (
             kind: Shoulder("IronLeather3"),
             stats: (
-                protection: Normal(9.0),
-            ),
+                protection: Normal(9.0)),            
         )
     ),
+    quality: Common,
 )

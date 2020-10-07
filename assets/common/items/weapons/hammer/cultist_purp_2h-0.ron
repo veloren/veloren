@@ -6,8 +6,8 @@ ItemDef(
             kind: Hammer("CultPurp0"),    
             stats: (
                 equip_time_millis: 500,
-                power: 2.00,
-            ),
+                power: 2.00),            
         )
     ),
+    quality: Epic,
 )

@@ -3,5 +3,6 @@ ItemDef(
     description: "Glows like the sun.",
     kind: Ingredient(
         kind: "Flower",
-    )
+    ),
+    quality: Common,
 )

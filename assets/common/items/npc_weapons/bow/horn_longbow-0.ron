@@ -6,8 +6,8 @@ ItemDef(
             kind: Bow("HornLongbow0"),    
             stats: (
                 equip_time_millis: 400,
-                power: 0.5,
-            ),
+                power: 0.5),            
         )
     ),
+    quality: Low,
 )

@@ -5,8 +5,8 @@ ItemDef(
         (
             kind: Pants("CultistBlue"),
             stats: (
-                protection: Normal(24.0),
-            ),
+                protection: Normal(24.0)),            
         )
     ),
+    quality: Epic,
 )

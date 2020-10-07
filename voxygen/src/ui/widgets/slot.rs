@@ -72,8 +72,8 @@ where
         Slot::new(
             contents,
             self.empty_slot,
-            self.filled_slot,
             self.selected_slot,
+            self.filled_slot,
             content_size,
             self.selected_content_scale,
             self.amount_font,
@@ -309,7 +309,6 @@ pub struct Slot<'a, K: SlotKey<C, I> + Into<S>, C, I, S: SumSlot> {
 
     // Images for slot background and frame
     empty_slot: image::Id,
-    filled_slot: image::Id,
     selected_slot: image::Id,
     background_color: Option<Color>,
 
@@ -326,6 +325,7 @@ pub struct Slot<'a, K: SlotKey<C, I> + Into<S>, C, I, S: SumSlot> {
     amount_text_color: Color,
 
     slot_manager: Option<&'a mut SlotManager<S>>,
+    filled_slot: image::Id,
     // Should we just pass in the ImageKey?
     content_source: &'a C,
     image_source: &'a I,
@@ -362,6 +362,11 @@ where
 
     pub fn with_manager(mut self, slot_manager: &'a mut SlotManager<S>) -> Self {
         self.slot_manager = Some(slot_manager);
+        self
+    }
+
+    pub fn filled_slot(mut self, img: image::Id) -> Self {
+        self.filled_slot = img;
         self
     }
 
@@ -437,7 +442,6 @@ where
         let Slot {
             slot_key,
             empty_slot,
-            filled_slot,
             selected_slot,
             background_color,
             content_size,
@@ -481,7 +485,7 @@ where
         let slot_image = if let Interaction::Selected = interaction {
             selected_slot
         } else if content_image.is_some() {
-            filled_slot
+            self.filled_slot
         } else {
             empty_slot
         };
