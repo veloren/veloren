@@ -39,6 +39,7 @@ impl<'a> System<'a> for Sys {
         ReadExpect<'a, SysMetrics>,
         Write<'a, EventBus<ServerEvent>>,
         Entities<'a>,
+        ReadStorage<'a, Energy>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Vel>,
         ReadStorage<'a, Ori>,
@@ -71,6 +72,7 @@ impl<'a> System<'a> for Sys {
             sys_metrics,
             event_bus,
             entities,
+            energies,
             positions,
             velocities,
             orientations,
@@ -96,6 +98,7 @@ impl<'a> System<'a> for Sys {
         span!(_guard, "run", "agent::Sys::run");
         for (
             entity,
+            energy,
             pos,
             vel,
             ori,
@@ -112,6 +115,7 @@ impl<'a> System<'a> for Sys {
             energy,
         ) in (
             &entities,
+            &energies,
             &positions,
             &velocities,
             &orientations,
@@ -301,6 +305,8 @@ impl<'a> System<'a> for Sys {
                         #[derive(Eq, PartialEq)]
                         enum Tactic {
                             Melee,
+                            Hammer,
+                            Sword,
                             RangedPowerup,
                             Staff,
                             StoneGolemBoss,
@@ -315,11 +321,11 @@ impl<'a> System<'a> for Sys {
                         }) {
                             Some(ToolKind::Bow(_)) => Tactic::RangedPowerup,
                             Some(ToolKind::Staff(_)) => Tactic::Staff,
-                            Some(ToolKind::NpcWeapon(kind)) => {
-                                match kind.as_str() {
-                                    "StoneGolemsFist" => Tactic::StoneGolemBoss,
-                                    _ => Tactic::Melee,
-                                }
+                            Some(ToolKind::Hammer(_)) => Tactic::Hammer,
+                            Some(ToolKind::Sword(_)) => Tactic::Sword,
+                            Some(ToolKind::NpcWeapon(kind)) => match kind.as_str() {
+                                "StoneGolemsFist" => Tactic::StoneGolemBoss,
+                                _ => Tactic::Melee,
                             },
                             _ => Tactic::Melee,
                         };
@@ -400,8 +406,12 @@ impl<'a> System<'a> for Sys {
                                     * 0.1;
 
                                 match tactic {
-                                    Tactic::Melee | Tactic::StoneGolemBoss => {
-                                        inputs.primary.set_state(true)
+                                    Tactic::Melee
+                                    | Tactic::Staff
+                                    | Tactic::Hammer
+                                    | Tactic::StoneGolemBoss => inputs.primary.set_state(true),
+                                    Tactic::Sword => {
+                                        inputs.primary.set_state(true);
                                     },
                                     Tactic::Staff => {
                                         if energy.current() > 10 {
@@ -433,12 +443,31 @@ impl<'a> System<'a> for Sys {
                                             inputs.primary.set_state(true);
                                             *powerup += dt.0;
                                         }
+                                    } else if let Tactic::Sword = tactic {
+                                        if *powerup > 4.0 {
+                                            inputs.secondary.set_state(true);
+                                            *powerup = 0.0;
+                                        } else {
+                                            *powerup += dt.0;
+                                        }
                                     } else if let Tactic::Staff = tactic {
                                         if *powerup > 2.5 {
                                             inputs.primary.set_state(false);
                                             *powerup = 0.0;
                                         } else {
                                             inputs.primary.set_state(true);
+                                            *powerup += dt.0;
+                                        }
+                                        if energy.current() > 400 {
+                                            inputs.ability3.set_state(true);
+                                        } else {
+                                            inputs.secondary.set_state(true);
+                                        }
+                                    } else if let Tactic::Hammer = tactic {
+                                        if *powerup > 5.0 {
+                                            inputs.secondary.set_state(true);
+                                            *powerup = 0.0;
+                                        } else {
                                             *powerup += dt.0;
                                         }
                                     } else if let Tactic::StoneGolemBoss = tactic {
