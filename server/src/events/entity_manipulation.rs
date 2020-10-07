@@ -12,7 +12,7 @@ use common::{
         Player, Pos, Stats,
     },
     lottery::Lottery,
-    msg::{PlayerListUpdate, ServerGeneralMsg, ServerInGameMsg},
+    msg::{PlayerListUpdate, ServerGeneral, ServerInGame},
     outcome::Outcome,
     state::BlockChange,
     sync::{Uid, UidAllocator, WorldSyncExt},
@@ -44,7 +44,7 @@ pub fn handle_knockback(server: &Server, entity: EcsEntity, impulse: Vec3<f32>) 
     }
     let mut clients = state.ecs().write_storage::<Client>();
     if let Some(client) = clients.get_mut(entity) {
-        client.send_in_game(ServerInGameMsg::Knockback(impulse));
+        client.send_msg(ServerInGame::Knockback(impulse));
     }
 }
 
@@ -656,7 +656,7 @@ pub fn handle_level_up(server: &mut Server, entity: EcsEntity, new_level: u32) {
 
     server
         .state
-        .notify_registered_clients(ServerGeneralMsg::PlayerListUpdate(
+        .notify_registered_clients(ServerGeneral::PlayerListUpdate(
             PlayerListUpdate::LevelChange(*uid, new_level),
         ));
 }

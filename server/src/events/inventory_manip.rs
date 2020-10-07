@@ -5,7 +5,7 @@ use common::{
         slot::{self, Slot},
         Pos, MAX_PICKUP_RANGE_SQR,
     },
-    msg::ServerInGameMsg,
+    msg::ServerInGame,
     recipe::default_recipe_book,
     sync::{Uid, WorldSyncExt},
     vol::ReadVol,
@@ -281,9 +281,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                                             .map(|g| (g, c))
                                                     })
                                                     .map(|(g, c)| {
-                                                        c.send_in_game(
-                                                            ServerInGameMsg::GroupUpdate(g),
-                                                        )
+                                                        c.send_msg(ServerInGame::GroupUpdate(g))
                                                     });
                                             },
                                         );

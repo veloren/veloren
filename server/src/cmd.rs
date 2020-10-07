@@ -12,7 +12,7 @@ use common::{
     cmd::{ChatCommand, CHAT_COMMANDS, CHAT_SHORTCUTS},
     comp::{self, ChatType, Item, LightEmitter, WaypointArea},
     event::{EventBus, ServerEvent},
-    msg::{DisconnectReason, Notification, PlayerListUpdate, ServerGeneralMsg, ServerInGameMsg},
+    msg::{DisconnectReason, Notification, PlayerListUpdate, ServerGeneral, ServerInGame},
     npc::{self, get_npc_name},
     state::TimeOfDay,
     sync::{Uid, WorldSyncExt},
@@ -504,7 +504,7 @@ fn handle_alias(
             ecs.read_storage::<comp::Player>().get(target),
             old_alias_optional,
         ) {
-            let msg = ServerGeneralMsg::PlayerListUpdate(PlayerListUpdate::Alias(
+            let msg = ServerGeneral::PlayerListUpdate(PlayerListUpdate::Alias(
                 *uid,
                 player.alias.clone(),
             ));
@@ -669,9 +669,7 @@ fn handle_spawn(
                                                     .try_map(|e| uids.get(e).copied())
                                                     .map(|g| (g, c))
                                             })
-                                            .map(|(g, c)| {
-                                                c.send_in_game(ServerInGameMsg::GroupUpdate(g))
-                                            });
+                                            .map(|(g, c)| c.send_msg(ServerInGame::GroupUpdate(g)));
                                     },
                                 );
                             } else if let Some(group) = match alignment {
@@ -1161,7 +1159,7 @@ fn handle_waypoint(
             server.notify_client(client, ChatType::CommandInfo.server_msg("Waypoint saved!"));
             server.notify_client(
                 client,
-                ServerGeneralMsg::Notification(Notification::WaypointSaved),
+                ServerGeneral::Notification(Notification::WaypointSaved),
             );
         },
         None => server.notify_client(
@@ -1198,7 +1196,7 @@ fn handle_adminify(
                     ecs.write_storage().insert(player, comp::Admin).is_ok()
                 };
                 // Update player list so the player shows up as admin in client chat.
-                let msg = ServerGeneralMsg::PlayerListUpdate(PlayerListUpdate::Admin(
+                let msg = ServerGeneral::PlayerListUpdate(PlayerListUpdate::Admin(
                     *ecs.read_storage::<Uid>()
                         .get(player)
                         .expect("Player should have uid"),
@@ -1591,7 +1589,7 @@ fn find_target(
     ecs: &specs::World,
     opt_alias: Option<String>,
     fallback: EcsEntity,
-) -> Result<EcsEntity, ServerGeneralMsg> {
+) -> Result<EcsEntity, ServerGeneral> {
     if let Some(alias) = opt_alias {
         (&ecs.entities(), &ecs.read_storage::<comp::Player>())
             .join()
@@ -1663,7 +1661,7 @@ fn handle_set_level(
                     .expect("Failed to get uid for player");
                 server
                     .state
-                    .notify_registered_clients(ServerGeneralMsg::PlayerListUpdate(
+                    .notify_registered_clients(ServerGeneral::PlayerListUpdate(
                         PlayerListUpdate::LevelChange(uid, lvl),
                     ));
 
@@ -1903,7 +1901,7 @@ fn kick_player(server: &mut Server, target_player: EcsEntity, reason: &str) {
         .emit_now(ServerEvent::ClientDisconnect(target_player));
     server.notify_client(
         target_player,
-        ServerGeneralMsg::Disconnect(DisconnectReason::Kicked(reason.to_string())),
+        ServerGeneral::Disconnect(DisconnectReason::Kicked(reason.to_string())),
     );
 }
 

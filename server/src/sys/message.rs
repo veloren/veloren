@@ -15,10 +15,10 @@ use common::{
     },
     event::{EventBus, ServerEvent},
     msg::{
-        validate_chat_msg, CharacterInfo, ChatMsgValidationError, ClientCharacterScreenMsg,
-        ClientGeneralMsg, ClientInGameMsg, ClientIngame, ClientRegisterMsg, DisconnectReason,
-        PingMsg, PlayerInfo, PlayerListUpdate, RegisterError, ServerCharacterScreenMsg,
-        ServerGeneralMsg, ServerInGameMsg, ServerRegisterAnswerMsg, MAX_BYTES_CHAT_MSG,
+        validate_chat_msg, CharacterInfo, ChatMsgValidationError, ClientCharacterScreen,
+        ClientGeneral, ClientInGame, ClientIngame, ClientRegister, DisconnectReason, PingMsg,
+        PlayerInfo, PlayerListUpdate, RegisterError, ServerCharacterScreen, ServerGeneral,
+        ServerInGame, ServerRegisterAnswer, MAX_BYTES_CHAT_MSG,
     },
     span,
     state::{BlockChange, Time},
@@ -45,10 +45,10 @@ impl Sys {
         player_metrics: &ReadExpect<'_, PlayerMetrics>,
         uids: &ReadStorage<'_, Uid>,
         chat_modes: &ReadStorage<'_, ChatMode>,
-        msg: ClientGeneralMsg,
+        msg: ClientGeneral,
     ) -> Result<(), crate::error::Error> {
         match msg {
-            ClientGeneralMsg::ChatMsg(message) => {
+            ClientGeneral::ChatMsg(message) => {
                 if client.registered {
                     match validate_chat_msg(&message) {
                         Ok(()) => {
@@ -68,10 +68,10 @@ impl Sys {
                     }
                 }
             },
-            ClientGeneralMsg::Disconnect => {
-                client.send_msg(ServerGeneralMsg::Disconnect(DisconnectReason::Requested));
+            ClientGeneral::Disconnect => {
+                client.send_msg(ServerGeneral::Disconnect(DisconnectReason::Requested));
             },
-            ClientGeneralMsg::Terminate => {
+            ClientGeneral::Terminate => {
                 debug!(?entity, "Client send message to termitate session");
                 player_metrics
                     .clients_disconnected
@@ -100,24 +100,24 @@ impl Sys {
         players: &mut WriteStorage<'_, Player>,
         controllers: &mut WriteStorage<'_, Controller>,
         settings: &Read<'_, Settings>,
-        msg: ClientInGameMsg,
+        msg: ClientInGame,
     ) -> Result<(), crate::error::Error> {
         if client.in_game.is_none() {
             debug!(?entity, "client is not in_game, ignoring msg");
             trace!(?msg, "ignored msg content");
-            if matches!(msg, ClientInGameMsg::TerrainChunkRequest{ .. }) {
+            if matches!(msg, ClientInGame::TerrainChunkRequest{ .. }) {
                 network_metrics.chunks_request_dropped.inc();
             }
             return Ok(());
         }
         match msg {
             // Go back to registered state (char selection screen)
-            ClientInGameMsg::ExitInGame => {
+            ClientInGame::ExitInGame => {
                 client.in_game = None;
                 server_emitter.emit(ServerEvent::ExitIngame { entity });
-                client.send_in_game(ServerInGameMsg::ExitInGameSuccess);
+                client.send_msg(ServerInGame::ExitInGameSuccess);
             },
-            ClientInGameMsg::SetViewDistance(view_distance) => {
+            ClientInGame::SetViewDistance(view_distance) => {
                 players.get_mut(entity).map(|player| {
                     player.view_distance = Some(
                         settings
@@ -133,19 +133,19 @@ impl Sys {
                     .map(|max| view_distance > max)
                     .unwrap_or(false)
                 {
-                    client.send_in_game(ServerInGameMsg::SetViewDistance(
+                    client.send_msg(ServerInGame::SetViewDistance(
                         settings.max_view_distance.unwrap_or(0),
                     ));
                 }
             },
-            ClientInGameMsg::ControllerInputs(inputs) => {
+            ClientInGame::ControllerInputs(inputs) => {
                 if let Some(ClientIngame::Character) = client.in_game {
                     if let Some(controller) = controllers.get_mut(entity) {
                         controller.inputs.update_with_new(inputs);
                     }
                 }
             },
-            ClientInGameMsg::ControlEvent(event) => {
+            ClientInGame::ControlEvent(event) => {
                 if let Some(ClientIngame::Character) = client.in_game {
                     // Skip respawn if client entity is alive
                     if let ControlEvent::Respawn = event {
@@ -159,14 +159,14 @@ impl Sys {
                     }
                 }
             },
-            ClientInGameMsg::ControlAction(event) => {
+            ClientInGame::ControlAction(event) => {
                 if let Some(ClientIngame::Character) = client.in_game {
                     if let Some(controller) = controllers.get_mut(entity) {
                         controller.actions.push(event);
                     }
                 }
             },
-            ClientInGameMsg::PlayerPhysics { pos, vel, ori } => {
+            ClientInGame::PlayerPhysics { pos, vel, ori } => {
                 if let Some(ClientIngame::Character) = client.in_game {
                     if force_updates.get(entity).is_none()
                         && stats.get(entity).map_or(true, |s| !s.is_dead)
@@ -177,17 +177,17 @@ impl Sys {
                     }
                 }
             },
-            ClientInGameMsg::BreakBlock(pos) => {
+            ClientInGame::BreakBlock(pos) => {
                 if let Some(block) = can_build.get(entity).and_then(|_| terrain.get(pos).ok()) {
                     block_changes.set(pos, block.into_vacant());
                 }
             },
-            ClientInGameMsg::PlaceBlock(pos, block) => {
+            ClientInGame::PlaceBlock(pos, block) => {
                 if can_build.get(entity).is_some() {
                     block_changes.try_set(pos, block);
                 }
             },
-            ClientInGameMsg::TerrainChunkRequest { key } => {
+            ClientInGame::TerrainChunkRequest { key } => {
                 let in_vd = if let (Some(view_distance), Some(pos)) = (
                     players.get(entity).and_then(|p| p.view_distance),
                     positions.get(entity),
@@ -203,7 +203,7 @@ impl Sys {
                     match terrain.get_key(key) {
                         Some(chunk) => {
                             network_metrics.chunks_served_from_memory.inc();
-                            client.send_in_game(ServerInGameMsg::TerrainChunkUpdate {
+                            client.send_msg(ServerInGame::TerrainChunkUpdate {
                                 key,
                                 chunk: Ok(Box::new(chunk.clone())),
                             })
@@ -217,17 +217,17 @@ impl Sys {
                     network_metrics.chunks_request_dropped.inc();
                 }
             },
-            ClientInGameMsg::UnlockSkill(skill) => {
+            ClientInGame::UnlockSkill(skill) => {
                 stats
                     .get_mut(entity)
                     .map(|s| s.skill_set.unlock_skill(skill));
             },
-            ClientInGameMsg::RefundSkill(skill) => {
+            ClientInGame::RefundSkill(skill) => {
                 stats
                     .get_mut(entity)
                     .map(|s| s.skill_set.refund_skill(skill));
             },
-            ClientInGameMsg::UnlockSkillGroup(skill_group_type) => {
+            ClientInGame::UnlockSkillGroup(skill_group_type) => {
                 stats
                     .get_mut(entity)
                     .map(|s| s.skill_set.unlock_skill_group(skill_group_type));
@@ -247,18 +247,18 @@ impl Sys {
         players: &mut WriteStorage<'_, Player>,
         editable_settings: &ReadExpect<'_, EditableSettings>,
         alias_validator: &ReadExpect<'_, AliasValidator>,
-        msg: ClientCharacterScreenMsg,
+        msg: ClientCharacterScreen,
     ) -> Result<(), crate::error::Error> {
         match msg {
             // Request spectator state
-            ClientCharacterScreenMsg::Spectate => {
+            ClientCharacterScreen::Spectate => {
                 if client.registered {
                     client.in_game = Some(ClientIngame::Spectator)
                 } else {
                     debug!("dropped Spectate msg from unregistered client");
                 }
             },
-            ClientCharacterScreenMsg::Character(character_id) => {
+            ClientCharacterScreen::Character(character_id) => {
                 if client.registered && client.in_game.is_none() {
                     // Only send login message if it wasn't already
                     // sent previously
@@ -301,11 +301,9 @@ impl Sys {
                             }
                         }
                     } else {
-                        client.send_character_screen(
-                            ServerCharacterScreenMsg::CharacterDataLoadError(String::from(
-                                "Failed to fetch player entity",
-                            )),
-                        )
+                        client.send_msg(ServerCharacterScreen::CharacterDataLoadError(
+                            String::from("Failed to fetch player entity"),
+                        ))
                     }
                 } else {
                     let registered = client.registered;
@@ -313,15 +311,15 @@ impl Sys {
                     debug!(?registered, ?in_game, "dropped Character msg from client");
                 }
             },
-            ClientCharacterScreenMsg::RequestCharacterList => {
+            ClientCharacterScreen::RequestCharacterList => {
                 if let Some(player) = players.get(entity) {
                     character_loader.load_character_list(entity, player.uuid().to_string())
                 }
             },
-            ClientCharacterScreenMsg::CreateCharacter { alias, tool, body } => {
+            ClientCharacterScreen::CreateCharacter { alias, tool, body } => {
                 if let Err(error) = alias_validator.validate(&alias) {
                     debug!(?error, ?alias, "denied alias as it contained a banned word");
-                    client.send_character_screen(ServerCharacterScreenMsg::CharacterActionError(
+                    client.send_msg(ServerCharacterScreen::CharacterActionError(
                         error.to_string(),
                     ));
                 } else if let Some(player) = players.get(entity) {
@@ -335,7 +333,7 @@ impl Sys {
                     );
                 }
             },
-            ClientCharacterScreenMsg::DeleteCharacter(character_id) => {
+            ClientCharacterScreen::DeleteCharacter(character_id) => {
                 if let Some(player) = players.get(entity) {
                     character_loader.delete_character(
                         entity,
@@ -351,7 +349,7 @@ impl Sys {
     #[allow(clippy::too_many_arguments)]
     fn handle_ping_msg(client: &mut Client, msg: PingMsg) -> Result<(), crate::error::Error> {
         match msg {
-            PingMsg::Ping => client.send_ping(PingMsg::Pong),
+            PingMsg::Ping => client.send_msg(PingMsg::Pong),
             PingMsg::Pong => {},
         }
         Ok(())
@@ -368,7 +366,7 @@ impl Sys {
         admins: &mut WriteStorage<'_, Admin>,
         players: &mut WriteStorage<'_, Player>,
         editable_settings: &ReadExpect<'_, EditableSettings>,
-        msg: ClientRegisterMsg,
+        msg: ClientRegister,
     ) -> Result<(), crate::error::Error> {
         let (username, uuid) = match login_provider.try_login(
             &msg.token_or_username,
@@ -379,7 +377,7 @@ impl Sys {
             Err(err) => {
                 client
                     .register_stream
-                    .send(ServerRegisterAnswerMsg::Err(err))?;
+                    .send(ServerRegisterAnswer::Err(err))?;
                 return Ok(());
             },
             Ok((username, uuid)) => (username, uuid),
@@ -391,9 +389,9 @@ impl Sys {
 
         if !player.is_valid() {
             // Invalid player
-            client.register_stream.send(ServerRegisterAnswerMsg::Err(
-                RegisterError::InvalidCharacter,
-            ))?;
+            client
+                .register_stream
+                .send(ServerRegisterAnswer::Err(RegisterError::InvalidCharacter))?;
             return Ok(());
         }
 
@@ -410,12 +408,10 @@ impl Sys {
 
             // Tell the client its request was successful.
             client.registered = true;
-            client
-                .register_stream
-                .send(ServerRegisterAnswerMsg::Ok(()))?;
+            client.register_stream.send(ServerRegisterAnswer::Ok(()))?;
 
             // Send initial player list
-            client.send_msg(ServerGeneralMsg::PlayerListUpdate(PlayerListUpdate::Init(
+            client.send_msg(ServerGeneral::PlayerListUpdate(PlayerListUpdate::Init(
                 player_list.clone(),
             )));
 
@@ -458,7 +454,7 @@ impl Sys {
         alias_validator: &ReadExpect<'_, AliasValidator>,
     ) -> Result<(), crate::error::Error> {
         loop {
-            let q1 = Client::internal_recv(&client.network_error, &mut client.singleton_stream);
+            let q1 = Client::internal_recv(&client.network_error, &mut client.general_stream);
             let q2 = Client::internal_recv(&client.network_error, &mut client.in_game_stream);
             let q3 =
                 Client::internal_recv(&client.network_error, &mut client.character_screen_stream);
@@ -693,7 +689,7 @@ impl<'a> System<'a> for Sys {
                 server_emitter.emit(ServerEvent::ClientDisconnect(entity));
             } else if time.0 - client.last_ping > settings.client_timeout.as_secs() as f64 * 0.5 {
                 // Try pinging the client if the timeout is nearing.
-                client.send_ping(PingMsg::Ping);
+                client.send_msg(PingMsg::Ping);
             }
         }
 
@@ -702,7 +698,7 @@ impl<'a> System<'a> for Sys {
         for entity in new_players {
             if let (Some(uid), Some(player)) = (uids.get(entity), players.get(entity)) {
                 let msg =
-                    ServerGeneralMsg::PlayerListUpdate(PlayerListUpdate::Add(*uid, PlayerInfo {
+                    ServerGeneral::PlayerListUpdate(PlayerListUpdate::Add(*uid, PlayerInfo {
                         player_alias: player.alias.clone(),
                         is_online: true,
                         is_admin: admins.get(entity).is_some(),

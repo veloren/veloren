@@ -47,8 +47,8 @@ use common::{
     comp::{self, ChatType},
     event::{EventBus, ServerEvent},
     msg::{
-        server::WorldMapMsg, ClientType, DisconnectReason, ServerCharacterScreenMsg,
-        ServerGeneralMsg, ServerInGameMsg, ServerInfo, ServerInitMsg,
+        ClientType, DisconnectReason, ServerCharacterScreen, ServerGeneral, ServerInfo, ServerInit,
+        ServerMsg, WorldMapMsg,
     },
     outcome::Outcome,
     recipe::default_recipe_book,
@@ -525,13 +525,13 @@ impl Server {
             .messages()
             .for_each(|query_result| match query_result.result {
                 CharacterLoaderResponseType::CharacterList(result) => match result {
-                    Ok(character_list_data) => self.notify_character_screen_client(
+                    Ok(character_list_data) => self.notify_client(
                         query_result.entity,
-                        ServerCharacterScreenMsg::CharacterListUpdate(character_list_data),
+                        ServerCharacterScreen::CharacterListUpdate(character_list_data),
                     ),
-                    Err(error) => self.notify_character_screen_client(
+                    Err(error) => self.notify_client(
                         query_result.entity,
-                        ServerCharacterScreenMsg::CharacterActionError(error.to_string()),
+                        ServerCharacterScreen::CharacterActionError(error.to_string()),
                     ),
                 },
                 CharacterLoaderResponseType::CharacterData(result) => {
@@ -544,9 +544,9 @@ impl Server {
                             // We failed to load data for the character from the DB. Notify the
                             // client to push the state back to character selection, with the error
                             // to display
-                            self.notify_character_screen_client(
+                            self.notify_client(
                                 query_result.entity,
-                                ServerCharacterScreenMsg::CharacterDataLoadError(error.to_string()),
+                                ServerCharacterScreen::CharacterDataLoadError(error.to_string()),
                             );
 
                             // Clean up the entity data on the server
@@ -815,7 +815,7 @@ impl Server {
                     ?client.participant,
                     "to many players, wont allow participant to connect"
                 );
-                client.register_stream.send(ServerInitMsg::TooManyPlayers)?;
+                client.register_stream.send(ServerInit::TooManyPlayers)?;
                 continue;
             }
 
@@ -839,7 +839,7 @@ impl Server {
                 .get_mut(entity)
                 .unwrap()
                 .register_stream
-                .send(ServerInitMsg::GameSync {
+                .send(ServerInit::GameSync {
                     // Send client their entity
                     entity_package: TrackedComps::fetch(&self.state.ecs())
                         .create_entity_package(entity, None, None, None),
@@ -858,32 +858,14 @@ impl Server {
 
     pub fn notify_client<S>(&self, entity: EcsEntity, msg: S)
     where
-        S: Into<ServerGeneralMsg>,
+        S: Into<ServerMsg>,
     {
         if let Some(client) = self.state.ecs().write_storage::<Client>().get_mut(entity) {
             client.send_msg(msg.into())
         }
     }
 
-    pub fn notify_in_game_client<S>(&self, entity: EcsEntity, msg: S)
-    where
-        S: Into<ServerInGameMsg>,
-    {
-        if let Some(client) = self.state.ecs().write_storage::<Client>().get_mut(entity) {
-            client.send_in_game(msg.into())
-        }
-    }
-
-    pub fn notify_character_screen_client<S>(&self, entity: EcsEntity, msg: S)
-    where
-        S: Into<ServerCharacterScreenMsg>,
-    {
-        if let Some(client) = self.state.ecs().write_storage::<Client>().get_mut(entity) {
-            client.send_character_screen(msg.into())
-        }
-    }
-
-    pub fn notify_registered_clients(&mut self, msg: ServerGeneralMsg) {
+    pub fn notify_registered_clients(&mut self, msg: ServerGeneral) {
         self.state.notify_registered_clients(msg);
     }
 
@@ -963,7 +945,7 @@ impl Server {
 impl Drop for Server {
     fn drop(&mut self) {
         self.state
-            .notify_registered_clients(ServerGeneralMsg::Disconnect(DisconnectReason::Shutdown));
+            .notify_registered_clients(ServerGeneral::Disconnect(DisconnectReason::Shutdown));
     }
 }
 

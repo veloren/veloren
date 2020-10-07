@@ -5,7 +5,7 @@ use crate::{
 use common::{
     comp,
     comp::{group, Player},
-    msg::{PlayerListUpdate, ServerGeneralMsg, ServerInGameMsg},
+    msg::{PlayerListUpdate, ServerGeneral, ServerInGame},
     span,
     sync::{Uid, UidAllocator},
 };
@@ -34,7 +34,7 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
     if let (Some(mut client), Some(uid), Some(player)) = (maybe_client, maybe_uid, maybe_player) {
         // Tell client its request was successful
         client.in_game = None;
-        client.send_in_game(ServerInGameMsg::ExitInGameSuccess);
+        client.send_msg(ServerInGame::ExitInGameSuccess);
 
         let entity_builder = state.ecs_mut().create_entity().with(client).with(player);
 
@@ -130,9 +130,9 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
     ) {
         state.notify_registered_clients(comp::ChatType::Offline(*uid).server_msg(""));
 
-        state.notify_registered_clients(ServerGeneralMsg::PlayerListUpdate(
-            PlayerListUpdate::Remove(*uid),
-        ));
+        state.notify_registered_clients(ServerGeneral::PlayerListUpdate(PlayerListUpdate::Remove(
+            *uid,
+        )));
     }
 
     // Make sure to remove the player from the logged in list. (See LoginProvider)
