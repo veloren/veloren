@@ -437,7 +437,12 @@ impl PlayState for SessionState {
                         }
                     }
                     Event::InputUpdate(GameInput::ToggleLantern, true) => {
-                        self.client.borrow_mut().toggle_lantern();
+                        let mut client = self.client.borrow_mut();
+                        if client.is_lantern_enabled() {
+                            client.disable_lantern();
+                        } else {
+                            client.enable_lantern();
+                        }
                     },
                     Event::InputUpdate(GameInput::Mount, true) => {
                         let mut client = self.client.borrow_mut();
@@ -921,7 +926,7 @@ impl PlayState for SessionState {
                         client.drop_slot(x);
                         if let comp::slot::Slot::Equip(equip_slot) = x {
                             if let comp::slot::EquipSlot::Lantern = equip_slot {
-                                client.toggle_lantern();
+                                client.disable_lantern();
                             }
                         }
                     },

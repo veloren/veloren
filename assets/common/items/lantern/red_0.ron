@@ -9,4 +9,5 @@ ItemDef(
             flicker_thousandths: 250,
         ),
     ),
+    quality: Common,
 )

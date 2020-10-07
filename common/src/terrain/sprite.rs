@@ -169,7 +169,7 @@ impl SpriteKind {
             SpriteKind::RedFlower => false,
             SpriteKind::WhiteFlower => false,
             SpriteKind::YellowFlower => false,
-            SpriteKind::Sunflower => false,
+            SpriteKind::Sunflower => true,
             SpriteKind::LongGrass => false,
             SpriteKind::MediumGrass => false,
             SpriteKind::ShortGrass => false,
@@ -183,6 +183,7 @@ impl SpriteKind {
             SpriteKind::Twigs => true,
             SpriteKind::ShinyGem => true,
             SpriteKind::Crate => true,
+            SpriteKind::Beehive => true,
             _ => false,
         }
     }

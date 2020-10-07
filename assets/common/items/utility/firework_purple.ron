@@ -1,7 +1,8 @@
 ItemDef(
     name: "Firework Purple",
-    description: "Cult favourite.\n\n<Right-Click to use>",
+    description: "Cult favourite.",
     kind: Throwable(
         kind: Firework(Purple),
     ),
+    quality: Moderate,
 )

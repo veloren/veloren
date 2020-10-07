@@ -6,8 +6,8 @@ ItemDef(
             kind: Sword("CultPurp0"),    
             stats: (
                 equip_time_millis: 0,
-                power: 1000.0,
-            ),
+                power: 1000.0),            
         )
     ),
+    quality: Debug,
 )

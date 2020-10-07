@@ -5,8 +5,8 @@ ItemDef(
         (
             kind: Foot("Cultist"),
             stats: (
-                protection: Invincible,
-            ),
+                protection: Invincible),            
         )
     ),
+    quality: Debug,
 )

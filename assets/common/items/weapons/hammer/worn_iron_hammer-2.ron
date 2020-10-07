@@ -6,8 +6,8 @@ ItemDef(
             kind: Hammer("WornIronHammer2"),    
             stats: (
                 equip_time_millis: 500,
-                power: 0.85,
-            ),
+                power: 0.85),            
         )
     ),
+    quality: Common,
 )

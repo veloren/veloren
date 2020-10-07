@@ -5,4 +5,5 @@ ItemDef(
         kind: "PotionExp",
         effect: Xp(250),
     ),
+    quality: High,
 )

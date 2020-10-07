@@ -101,6 +101,7 @@ pub(super) struct CharacterCacheKey {
     /// state changes, so for now we don't bother with this.
     pub tool: Option<CharacterToolKey>,
     pub lantern: Option<String>,
+    pub glider: Option<String>,
     pub hand: Option<String>,
     pub foot: Option<String>,
 }
@@ -201,6 +202,13 @@ impl CharacterCacheKey {
                 loadout.lantern.as_ref().map(|i| i.kind())
             {
                 Some(lantern.kind.clone())
+            } else {
+                None
+            },
+            glider: if let Some(ItemKind::Glider(glider)) =
+                loadout.glider.as_ref().map(|i| i.kind())
+            {
+                Some(glider.kind.clone())
             } else {
                 None
             },

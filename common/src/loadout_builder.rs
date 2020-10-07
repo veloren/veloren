@@ -124,40 +124,44 @@ impl LoadoutBuilder {
         };
 
         let loadout = match body {
-            Body::Humanoid(_) => {
-                if is_giant {
-                    Loadout {
-                        active_item,
-                        second_item: None,
-                        shoulder: Some(Item::new_from_asset_expect(
-                            "common.items.armor.shoulder.plate_0",
-                        )),
-                        chest: Some(Item::new_from_asset_expect(
-                            "common.items.armor.chest.plate_green_0",
-                        )),
-                        belt: Some(Item::new_from_asset_expect(
-                            "common.items.armor.belt.plate_0",
-                        )),
-                        hand: Some(Item::new_from_asset_expect(
-                            "common.items.armor.hand.plate_0",
-                        )),
-                        pants: Some(Item::new_from_asset_expect(
-                            "common.items.armor.pants.plate_green_0",
-                        )),
-                        foot: Some(Item::new_from_asset_expect(
-                            "common.items.armor.foot.plate_0",
-                        )),
-                        back: None,
-                        ring: None,
-                        neck: None,
-                        lantern: None,
-                        glider: None,
-                        head: None,
-                        tabard: None,
-                    }
-                } else {
-                    match alignment {
-                        Alignment::Npc => Loadout {
+            Body::Humanoid(_) => match alignment {
+                Alignment::Npc => {
+                    if is_giant {
+                        Loadout {
+                            active_item,
+                            second_item: None,
+                            shoulder: Some(Item::new_from_asset_expect(
+                                "common.items.armor.shoulder.plate_0",
+                            )),
+                            chest: Some(Item::new_from_asset_expect(match alignment {
+                                Alignment::Enemy => "common.items.npc_armor.chest.plate_red_0",
+                                _ => "common.items.npc_armor.chest.plate_green_0",
+                            })),
+                            belt: Some(Item::new_from_asset_expect(
+                                "common.items.armor.belt.plate_0",
+                            )),
+                            hand: Some(Item::new_from_asset_expect(
+                                "common.items.armor.hand.plate_0",
+                            )),
+                            pants: Some(Item::new_from_asset_expect(match alignment {
+                                Alignment::Enemy => "common.items.npc_armor.pants.plate_red_0",
+                                _ => "common.items.npc_armor.pants.plate_green_0",
+                            })),
+                            foot: Some(Item::new_from_asset_expect(
+                                "common.items.armor.foot.plate_0",
+                            )),
+                            back: None,
+                            ring: None,
+                            neck: None,
+                            lantern: Some(Item::new_from_asset_expect(
+                                "common.items.lantern.black_0",
+                            )),
+                            glider: None,
+                            head: None,
+                            tabard: None,
+                        }
+                    } else {
+                        Loadout {
                             active_item,
                             second_item: None,
                             shoulder: None,
@@ -191,47 +195,50 @@ impl LoadoutBuilder {
                             back: None,
                             ring: None,
                             neck: None,
-                            lantern: None,
-                            glider: None,
-                            head: None,
-                            tabard: None,
-                        },
-                        Alignment::Enemy => Loadout {
-                            active_item,
-                            second_item: None,
-                            shoulder: Some(Item::new_from_asset_expect(
-                                "common.items.armor.shoulder.cultist_shoulder_purple",
-                            )),
-                            chest: Some(Item::new_from_asset_expect(
-                                "common.items.armor.chest.cultist_chest_purple",
-                            )),
-                            belt: Some(Item::new_from_asset_expect(
-                                "common.items.armor.belt.cultist_belt",
-                            )),
-                            hand: Some(Item::new_from_asset_expect(
-                                "common.items.armor.hand.cultist_hands_purple",
-                            )),
-                            pants: Some(Item::new_from_asset_expect(
-                                "common.items.armor.pants.cultist_legs_purple",
-                            )),
-                            foot: Some(Item::new_from_asset_expect(
-                                "common.items.armor.foot.cultist_boots",
-                            )),
-                            back: Some(Item::new_from_asset_expect(
-                                "common.items.armor.back.dungeon_purple-0",
-                            )),
-                            ring: None,
-                            neck: None,
                             lantern: Some(Item::new_from_asset_expect(
                                 "common.items.lantern.black_0",
                             )),
                             glider: None,
                             head: None,
                             tabard: None,
-                        },
-                        _ => LoadoutBuilder::animal(body).build(),
+                        }
                     }
-                }
+                },
+                Alignment::Enemy => Loadout {
+                    active_item,
+                    second_item: None,
+                    shoulder: Some(Item::new_from_asset_expect(
+                        "common.items.armor.shoulder.cultist_shoulder_purple",
+                    )),
+                    chest: Some(Item::new_from_asset_expect(
+                        "common.items.armor.chest.cultist_chest_purple",
+                    )),
+                    belt: Some(Item::new_from_asset_expect(
+                        "common.items.armor.belt.cultist_belt",
+                    )),
+                    hand: Some(Item::new_from_asset_expect(
+                        "common.items.armor.hand.cultist_hands_purple",
+                    )),
+                    pants: Some(Item::new_from_asset_expect(
+                        "common.items.armor.pants.cultist_legs_purple",
+                    )),
+                    foot: Some(Item::new_from_asset_expect(
+                        "common.items.armor.foot.cultist_boots",
+                    )),
+                    back: Some(Item::new_from_asset_expect(
+                        "common.items.armor.back.dungeon_purple-0",
+                    )),
+                    ring: None,
+                    neck: None,
+                    lantern: match rand::thread_rng().gen_range(0, 3) {
+                        0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
+                        _ => None,
+                    },
+                    glider: None,
+                    head: None,
+                    tabard: None,
+                },
+                _ => LoadoutBuilder::animal(body).build(),
             },
             Body::Golem(golem) => match golem.species {
                 golem::Species::StoneGolem => Loadout {

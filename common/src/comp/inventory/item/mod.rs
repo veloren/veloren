@@ -62,6 +62,17 @@ impl Lantern {
 pub struct Glider {
     pub kind: String,
 }
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Copy)]
+pub enum Quality {
+    Low,       // Grey
+    Common,    // UI Main Color
+    Moderate,  // Green
+    High,      // Blue
+    Epic,      // Purple
+    Legendary, // Gold
+    Artifact,  // Orange
+    Debug,     // Red
+}
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum ItemKind {
@@ -124,6 +135,7 @@ pub struct ItemDef {
     pub name: String,
     pub description: String,
     pub kind: ItemKind,
+    pub quality: Quality,
 }
 
 impl PartialEq for ItemDef {
@@ -282,6 +294,8 @@ impl Item {
 
     pub fn amount(&self) -> u32 { u32::from(self.amount) }
 
+    pub fn quality(&self) -> Quality { self.item_def.quality }
+
     pub fn try_reclaim_from_block(block: Block) -> Option<Self> {
         let chosen;
         let mut rng = rand::thread_rng();
@@ -296,7 +310,7 @@ impl Item {
             SpriteKind::RedFlower => "common.items.flowers.red",
             SpriteKind::WhiteFlower => "common.items.flowers.white",
             SpriteKind::YellowFlower => "common.items.flowers.yellow",
-            SpriteKind::Sunflower => "common.items.flowers.sun",
+            SpriteKind::Sunflower => "common.items.flowers.sunflower",
             SpriteKind::LongGrass => "common.items.grasses.long",
             SpriteKind::MediumGrass => "common.items.grasses.medium",
             SpriteKind::ShortGrass => "common.items.grasses.short",
@@ -316,6 +330,7 @@ impl Item {
                 chosen = Lottery::<String>::load_expect("common.loot_tables.loot_table_food");
                 chosen.choose()
             },
+            SpriteKind::Beehive => "common.items.crafting_ing.honey",
             SpriteKind::Stones => "common.items.crafting_ing.stones",
             SpriteKind::Twigs => "common.items.crafting_ing.twigs",
             SpriteKind::ShinyGem => "common.items.crafting_ing.shiny_gem",
@@ -330,6 +345,7 @@ pub trait ItemDesc {
     fn description(&self) -> &str;
     fn name(&self) -> &str;
     fn kind(&self) -> &ItemKind;
+    fn quality(&self) -> &Quality;
 }
 
 impl ItemDesc for Item {
@@ -338,6 +354,8 @@ impl ItemDesc for Item {
     fn name(&self) -> &str { &self.item_def.name }
 
     fn kind(&self) -> &ItemKind { &self.item_def.kind }
+
+    fn quality(&self) -> &Quality { &self.item_def.quality }
 }
 
 impl ItemDesc for ItemDef {
@@ -346,6 +364,8 @@ impl ItemDesc for ItemDef {
     fn name(&self) -> &str { &self.name }
 
     fn kind(&self) -> &ItemKind { &self.kind }
+
+    fn quality(&self) -> &Quality { &self.quality }
 }
 
 impl Component for Item {

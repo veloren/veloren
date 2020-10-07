@@ -72,6 +72,7 @@ VoxygenLocalization(
         "common.you": "Ihr",
         "common.automatic": "Auto",
         "common.rand_appearance": "Zufälliges Aussehen und Name",
+        "common.random": "Zufällig",
         // Settings Window title
         "common.interface_settings": "Interface Einstellungen",
         "common.gameplay_settings": "Spiel Einstellungen",
@@ -97,6 +98,7 @@ VoxygenLocalization(
         "common.weapons.staff": "Stab",
         "common.weapons.bow": "Bogen",
         "common.weapons.hammer": "Hammer",
+        "common.weapons.sceptre": "Druiden Szepter",
         /// End Common section
 
 
@@ -185,6 +187,8 @@ https://account.veloren.net.
         "hud.chat.pvp_melee_kill_msg": "[{attacker}] hat [{victim}] besiegt",
         "hud.chat.pvp_ranged_kill_msg": "[{attacker}] hat [{victim}] aus der Ferne getötet",
         "hud.chat.pvp_explosion_kill_msg": "[{attacker}] hat [{victim}] hochgejagt",
+        "hud.chat.pvp_energy_kill_msg": "[{attacker}] hat [{victim}] mit Magie erledigt",
+
 
         "hud.chat.npc_melee_kill_msg": "{attacker} tötete [{victim}]",
         "hud.chat.npc_ranged_kill_msg": "{attacker} tötete [{victim}]",
@@ -255,6 +259,7 @@ magischen Gegenstände ergattern?"#,
         "hud.bag.head": "Kopf",
         "hud.bag.neck": "Hals",
         "hud.bag.tabard": "Wappenrock",
+        "hud.bag.glider": "Gleiter",
         "hud.bag.shoulders": "Schultern",
         "hud.bag.chest": "Brust",
         "hud.bag.hands": "Hände",

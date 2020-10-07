@@ -6,8 +6,9 @@ ItemDef(
             kind: Axe("IronAxe9"),    
             stats: (
                 equip_time_millis: 400,
-                power: 1.20,
-            ),
+                power: 1.20
+                ),            
         )
     ),
+    quality: Moderate,
 )

@@ -5,8 +5,9 @@ ItemDef(
         (
             kind: Hand("Plate0"),
             stats: (
-                protection: Normal(8.0),
-            ),
+                protection: Normal(8.0)
+                ),            
         )
     ),
+    quality: Moderate,
 )

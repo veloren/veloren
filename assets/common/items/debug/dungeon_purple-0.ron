@@ -5,8 +5,8 @@ ItemDef(
         (
             kind: Back("DungPurp0"),
             stats: (
-                protection: Invincible,
-            ),
+                protection: Invincible),            
         )
     ),
+    quality: Debug,
 )

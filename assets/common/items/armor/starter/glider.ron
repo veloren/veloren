@@ -1,9 +1,10 @@
 ItemDef(
-    name: "Swift Glider",
-    description: "Thank goodness for big pockets",
+    name: "Cloverleaf",
+    description: "Brings luck to its owner.",
     kind: Glider(
         (
-            kind: "Blue",
+            kind: "Starter",
         ),
     ),
+    quality: Moderate,
 )

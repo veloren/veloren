@@ -1,4 +1,8 @@
-use crate::{client::Client, comp::quadruped_small, Server, SpawnPoint, StateExt};
+use crate::{
+    client::Client,
+    comp::{biped_large, quadruped_medium, quadruped_small},
+    Server, SpawnPoint, StateExt,
+};
 use common::{
     assets::Asset,
     comp::{
@@ -307,48 +311,60 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                     1 => "common.loot_tables.loot_table_armor_light",
                     2 => "common.loot_tables.loot_table_armor_cloth",
                     3 => "common.loot_tables.loot_table_weapon_common",
+                    4 => "common.loots_tables.loot_table_armor_misc",
                     _ => "common.loot_tables.loot_table_humanoids",
                 },
                 Some(common::comp::Body::QuadrupedSmall(quadruped_small)) => {
                     match quadruped_small.species {
                         quadruped_small::Species::Dodarock => match rng.gen_range(0, 6) {
-                            0 => "common.loot_tables.loot_table_armor_misc",
                             1 => "common.loot_tables.loot_table_rocks",
                             _ => "common.loot_tables.loot_table_rocks",
                         },
                         _ => match rng.gen_range(0, 4) {
                             0 => "common.loot_tables.loot_table_food",
-                            1 => "common.loot_tables.loot_table_armor_misc",
                             2 => "common.loot_tables.loot_table_animal_parts",
                             _ => "common.loot_tables.loot_table_animal_parts",
                         },
                     }
                 },
-                Some(common::comp::Body::QuadrupedMedium(_)) => match rng.gen_range(0, 4) {
-                    0 => "common.loot_tables.loot_table_food",
-                    1 => "common.loot_tables.loot_table_armor_misc",
-                    2 => "common.loot_tables.loot_table_animal_parts",
-                    _ => "common.loot_tables.loot_table_animal_parts",
+                Some(common::comp::Body::QuadrupedMedium(quadruped_medium)) => {
+                    match quadruped_medium.species {
+                        quadruped_medium::Species::Frostfang => {
+                            "common.loot_tables.loot_table_frostfang"
+                        },
+                        _ => match rng.gen_range(0, 4) {
+                            0 => "common.loot_tables.loot_table_food",
+                            2 => "common.loot_tables.loot_table_animal_parts",
+                            _ => "common.loot_tables.loot_table_animal_parts",
+                        },
+                    }
                 },
                 Some(common::comp::Body::BirdMedium(_)) => match rng.gen_range(0, 3) {
                     0 => "common.loot_tables.loot_table_food",
-                    1 => "common.loot_tables.loot_table_armor_misc",
                     _ => "common.loot_tables.loot_table",
                 },
-                Some(common::comp::Body::BipedLarge(_)) => match rng.gen_range(0, 8) {
-                    0 => "common.loot_tables.loot_table_food",
-                    1 => "common.loot_tables.loot_table_armor_nature",
-                    3 => "common.loot_tables.loot_table_armor_heavy",
-                    5 => "common.loot_tables.loot_table_weapon_uncommon",
-                    6 => "common.loot_tables.loot_table_weapon_rare",
-                    _ => "common.loot_tables.loot_table_cave_large",
+                Some(common::comp::Body::BipedLarge(biped_large)) => match biped_large.species {
+                    biped_large::Species::Wendigo => match rng.gen_range(0, 7) {
+                        0 => "common.loot_tables.loot_table_food",
+                        1 => "common.loot_tables.loot_table_wendigo",
+                        3 => "common.loot_tables.loot_table_armor_heavy",
+                        5 => "common.loot_tables.loot_table_weapon_uncommon",
+                        6 => "common.loot_tables.loot_table_weapon_rare",
+                        _ => "common.loot_tables.loot_table_cave_large",
+                    },
+                    _ => match rng.gen_range(0, 8) {
+                        0 => "common.loot_tables.loot_table_food",
+                        1 => "common.loot_tables.loot_table_armor_nature",
+                        3 => "common.loot_tables.loot_table_armor_heavy",
+                        5 => "common.loot_tables.loot_table_weapon_uncommon",
+                        6 => "common.loot_tables.loot_table_weapon_rare",
+                        _ => "common.loot_tables.loot_table_cave_large",
+                    },
                 },
                 Some(common::comp::Body::Golem(_)) => match rng.gen_range(0, 9) {
                     0 => "common.loot_tables.loot_table_food",
-                    1 => "common.loot_tables.loot_table_armor_misc",
                     2 => "common.loot_tables.loot_table_armor_light",
                     3 => "common.loot_tables.loot_table_armor_heavy",
-                    4 => "common.loot_tables.loot_table_armor_misc",
                     5 => "common.loot_tables.loot_table_weapon_common",
                     6 => "common.loot_tables.loot_table_weapon_uncommon",
                     7 => "common.loot_tables.loot_table_weapon_rare",

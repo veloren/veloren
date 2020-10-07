@@ -5,8 +5,9 @@ ItemDef(
         (
             kind: Chest("Druid"),
             stats: (
-                protection: Normal(6.0),
-            ),
+                protection: Normal(6.0)
+                ),            
         )
     ),
+    quality: Moderate,
 )

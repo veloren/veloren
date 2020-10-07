@@ -1,6 +1,6 @@
 ItemDef(
     name: "Dwarven Cheese",
-    description: "Restores 15 Health\n\nAromatic and nutritious\n\n<Right-Click to use>",
+    description: "Restores 15 Health\n\nAromatic and nutritious",
     kind: Consumable(
         kind: "Cheese",
         effect: Health((
@@ -8,4 +8,5 @@ ItemDef(
             cause: Item,
         )),        
     ),
+    quality: Common,
 )

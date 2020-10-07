@@ -766,7 +766,6 @@ impl<'a> Widget for Skillbar<'a> {
         .title_font_size(self.fonts.cyri.scale(15))
         .parent(ui.window)
         .desc_font_size(self.fonts.cyri.scale(12))
-        .title_text_color(TEXT_COLOR)
         .font_id(self.fonts.cyri.conrod_id)
         .desc_text_color(TEXT_COLOR);
         // Helper
@@ -813,9 +812,10 @@ impl<'a> Widget for Skillbar<'a> {
         //Slot 5
         let slot = slot_maker
             .fabricate(hotbar::Slot::Five, [20.0 * scale as f32; 2])
+            .filled_slot(self.imgs.skillbar_slot)
             .bottom_left_with_margins_on(state.ids.m1_slot, 0.0, -20.0 * scale);
         if let Some((title, desc)) = tooltip_text(hotbar::Slot::Five) {
-            slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+            slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip, TEXT_COLOR)
                 .set(state.ids.slot5, ui);
         } else {
             slot.set(state.ids.slot5, ui);
@@ -823,9 +823,10 @@ impl<'a> Widget for Skillbar<'a> {
         // Slot 4
         let slot = slot_maker
             .fabricate(hotbar::Slot::Four, [20.0 * scale as f32; 2])
+            .filled_slot(self.imgs.skillbar_slot)
             .left_from(state.ids.slot5, 0.0);
         if let Some((title, desc)) = tooltip_text(hotbar::Slot::Four) {
-            slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+            slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip, TEXT_COLOR)
                 .set(state.ids.slot4, ui);
         } else {
             slot.set(state.ids.slot4, ui);
@@ -833,9 +834,10 @@ impl<'a> Widget for Skillbar<'a> {
         // Slot 3
         let slot = slot_maker
             .fabricate(hotbar::Slot::Three, [20.0 * scale as f32; 2])
+            .filled_slot(self.imgs.skillbar_slot)
             .left_from(state.ids.slot4, 0.0);
         if let Some((title, desc)) = tooltip_text(hotbar::Slot::Three) {
-            slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+            slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip, TEXT_COLOR)
                 .set(state.ids.slot3, ui);
         } else {
             slot.set(state.ids.slot3, ui);
@@ -843,35 +845,36 @@ impl<'a> Widget for Skillbar<'a> {
         // Slot 2
         let slot = slot_maker
             .fabricate(hotbar::Slot::Two, [20.0 * scale as f32; 2])
+            .filled_slot(self.imgs.skillbar_slot)
             .left_from(state.ids.slot3, 0.0);
         if let Some((title, desc)) = tooltip_text(hotbar::Slot::Two) {
-            slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+            slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip, TEXT_COLOR)
                 .set(state.ids.slot2, ui);
         } else {
             slot.set(state.ids.slot2, ui);
         }
         // Slot 1
         slot_maker.empty_slot = self.imgs.skillbar_slot_l;
-        slot_maker.filled_slot = self.imgs.skillbar_slot_l;
         slot_maker.selected_slot = self.imgs.skillbar_slot_l_act;
         let slot = slot_maker
             .fabricate(hotbar::Slot::One, [20.0 * scale as f32; 2])
+            .filled_slot(self.imgs.skillbar_slot_l)
             .left_from(state.ids.slot2, 0.0);
         if let Some((title, desc)) = tooltip_text(hotbar::Slot::One) {
-            slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+            slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip, TEXT_COLOR)
                 .set(state.ids.slot1, ui);
         } else {
             slot.set(state.ids.slot1, ui);
         }
         // Slot 6
         slot_maker.empty_slot = self.imgs.skillbar_slot;
-        slot_maker.filled_slot = self.imgs.skillbar_slot;
         slot_maker.selected_slot = self.imgs.skillbar_slot_act;
         let slot = slot_maker
             .fabricate(hotbar::Slot::Six, [20.0 * scale as f32; 2])
+            .filled_slot(self.imgs.skillbar_slot)
             .bottom_right_with_margins_on(state.ids.m2_slot, 0.0, -20.0 * scale);
         if let Some((title, desc)) = tooltip_text(hotbar::Slot::Six) {
-            slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+            slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip, TEXT_COLOR)
                 .set(state.ids.slot6, ui);
         } else {
             slot.set(state.ids.slot6, ui);
@@ -879,9 +882,10 @@ impl<'a> Widget for Skillbar<'a> {
         // Slot 7
         let slot = slot_maker
             .fabricate(hotbar::Slot::Seven, [20.0 * scale as f32; 2])
+            .filled_slot(self.imgs.skillbar_slot)
             .right_from(state.ids.slot6, 0.0);
         if let Some((title, desc)) = tooltip_text(hotbar::Slot::Seven) {
-            slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+            slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip, TEXT_COLOR)
                 .set(state.ids.slot7, ui);
         } else {
             slot.set(state.ids.slot7, ui);
@@ -889,9 +893,10 @@ impl<'a> Widget for Skillbar<'a> {
         // Slot 8
         let slot = slot_maker
             .fabricate(hotbar::Slot::Eight, [20.0 * scale as f32; 2])
+            .filled_slot(self.imgs.skillbar_slot)
             .right_from(state.ids.slot7, 0.0);
         if let Some((title, desc)) = tooltip_text(hotbar::Slot::Eight) {
-            slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+            slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip, TEXT_COLOR)
                 .set(state.ids.slot8, ui);
         } else {
             slot.set(state.ids.slot8, ui);
@@ -899,22 +904,23 @@ impl<'a> Widget for Skillbar<'a> {
         // Slot 9
         let slot = slot_maker
             .fabricate(hotbar::Slot::Nine, [20.0 * scale as f32; 2])
+            .filled_slot(self.imgs.skillbar_slot)
             .right_from(state.ids.slot8, 0.0);
         if let Some((title, desc)) = tooltip_text(hotbar::Slot::Nine) {
-            slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+            slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip, TEXT_COLOR)
                 .set(state.ids.slot9, ui);
         } else {
             slot.set(state.ids.slot9, ui);
         }
         // Quickslot
         slot_maker.empty_slot = self.imgs.skillbar_slot_r;
-        slot_maker.filled_slot = self.imgs.skillbar_slot_r;
         slot_maker.selected_slot = self.imgs.skillbar_slot_r_act;
         let slot = slot_maker
             .fabricate(hotbar::Slot::Ten, [20.0 * scale as f32; 2])
+            .filled_slot(self.imgs.skillbar_slot_r)
             .right_from(state.ids.slot9, 0.0);
         if let Some((title, desc)) = tooltip_text(hotbar::Slot::Ten) {
-            slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+            slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip, TEXT_COLOR)
                 .set(state.ids.slot10, ui);
         } else {
             slot.set(state.ids.slot10, ui);

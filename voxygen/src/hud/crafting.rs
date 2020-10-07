@@ -4,17 +4,20 @@ use super::{
     TEXT_COLOR, TEXT_DULL_RED_COLOR, TEXT_GRAY_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
+    hud::get_quality_col,
     i18n::VoxygenLocalization,
     ui::{fonts::ConrodVoxygenFonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
 };
 use client::{self, Client};
-use common::comp::{item::ItemDesc, Inventory};
+use common::comp::{
+    item::{ItemDesc, Quality},
+    Inventory,
+};
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Scrollbar, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-
 widget_ids! {
     pub struct Ids {
         window,
@@ -39,6 +42,7 @@ widget_ids! {
         ingredients_txt,
         output_img_frame,
         output_img,
+        output_amount,
     }
 }
 
@@ -135,7 +139,6 @@ impl<'a> Widget for Crafting<'a> {
         .title_font_size(self.fonts.cyri.scale(15))
         .parent(ui.window)
         .desc_font_size(self.fonts.cyri.scale(12))
-        .title_text_color(TEXT_COLOR)
         .font_id(self.fonts.cyri.conrod_id)
         .desc_text_color(TEXT_COLOR);
 
@@ -234,7 +237,25 @@ impl<'a> Widget for Crafting<'a> {
                     events.push(Event::CraftRecipe(recipe.clone()));
                 }
                 // Result Image BG
-                Image::new(self.imgs.inv_slot)
+                let quality_col_img = if let Some(recipe) = state
+                    .selected_recipe
+                    .as_ref()
+                    .and_then(|r| self.client.recipe_book().get(r.as_str()))
+                {
+                    match recipe.output.0.quality {
+                        Quality::Low => self.imgs.inv_slot_grey,
+                        Quality::Common => self.imgs.inv_slot,
+                        Quality::Moderate => self.imgs.inv_slot_green,
+                        Quality::High => self.imgs.inv_slot_blue,
+                        Quality::Epic => self.imgs.inv_slot_purple,
+                        Quality::Legendary => self.imgs.inv_slot_gold,
+                        Quality::Artifact => self.imgs.inv_slot_orange,
+                        _ => self.imgs.inv_slot_red,
+                    }
+                } else {
+                    self.imgs.inv_slot
+                };
+                Image::new(quality_col_img)
                     .w_h(60.0, 60.0)
                     .top_right_with_margins_on(state.ids.align_ing, 15.0, 10.0)
                     .parent(ids.align_ing)
@@ -248,19 +269,26 @@ impl<'a> Widget for Crafting<'a> {
                     let output_text = format!("x{}", &recipe.output.1.to_string());
                     // Output Image
                     let (title, desc) = super::util::item_text(&*recipe.output.0);
+                    let quality_col = get_quality_col(&*recipe.output.0);
                     Button::image(
                         self.item_imgs
                             .img_id_or_not_found_img((&*recipe.output.0.kind()).into()),
                     )
                     .w_h(55.0, 55.0)
-                    .middle_of(state.ids.output_img_frame)
                     .label(&output_text)
                     .label_color(TEXT_COLOR)
                     .label_font_size(self.fonts.cyri.scale(14))
                     .label_font_id(self.fonts.cyri.conrod_id)
                     .label_y(conrod_core::position::Relative::Scalar(-24.0))
                     .label_x(conrod_core::position::Relative::Scalar(24.0))
-                    .with_tooltip(self.tooltip_manager, title, &*desc, &item_tooltip)
+                    .middle_of(state.ids.output_img_frame)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        title,
+                        &*desc,
+                        &item_tooltip,
+                        quality_col,
+                    )
                     .set(state.ids.output_img, ui);
                 }
             },
@@ -385,7 +413,18 @@ impl<'a> Widget for Crafting<'a> {
                 } else {
                     0.0
                 };
-                let frame = Image::new(self.imgs.inv_slot).w_h(25.0, 25.0);
+                let quality_col = get_quality_col(&**item_def);
+                let quality_col_img = match &item_def.quality {
+                    Quality::Low => self.imgs.inv_slot_grey,
+                    Quality::Common => self.imgs.inv_slot,
+                    Quality::Moderate => self.imgs.inv_slot_green,
+                    Quality::High => self.imgs.inv_slot_blue,
+                    Quality::Epic => self.imgs.inv_slot_purple,
+                    Quality::Legendary => self.imgs.inv_slot_gold,
+                    Quality::Artifact => self.imgs.inv_slot_orange,
+                    _ => self.imgs.inv_slot_red,
+                };
+                let frame = Image::new(quality_col_img).w_h(25.0, 25.0);
                 let frame = if *amount == 0 {
                     frame.down_from(state.ids.req_text[i], 10.0 + frame_offset)
                 } else {
@@ -394,12 +433,20 @@ impl<'a> Widget for Crafting<'a> {
                 frame.set(state.ids.ingredient_frame[i], ui);
                 //Item Image
                 let (title, desc) = super::util::item_text(&**item_def);
-                Button::image(self.item_imgs.img_id_or_not_found_img((&*item_def.kind()).into()))
-                    .w_h(22.0, 22.0)
-                    .middle_of(state.ids.ingredient_frame[i])
-                    //.image_color(col)
-                    .with_tooltip(self.tooltip_manager, title, &*desc, &item_tooltip)
-                    .set(state.ids.ingredient_img[i], ui);
+                Button::image(
+                    self.item_imgs
+                        .img_id_or_not_found_img((&*item_def.kind()).into()),
+                )
+                .w_h(22.0, 22.0)
+                .middle_of(state.ids.ingredient_frame[i])
+                .with_tooltip(
+                    self.tooltip_manager,
+                    title,
+                    &*desc,
+                    &item_tooltip,
+                    quality_col,
+                )
+                .set(state.ids.ingredient_img[i], ui);
                 // Ingredients text and amount
                 // Don't show inventory amounts above 999 to avoid the widget clipping
                 let over9k = "99+";

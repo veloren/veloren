@@ -4,5 +4,6 @@ ItemDef(
     kind: Consumable(
         kind: "Potion",
         effect: Xp(250),
-    ),
+    ),    
+    quality: High,
 )

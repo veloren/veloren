@@ -6,8 +6,8 @@ ItemDef(
             kind: Sword("GreatswordDam1"),    
             stats: (
                 equip_time_millis: 500,
-                power: 0.80,
-            ),
+                power: 0.80),            
         )
     ),
+    quality: Common,
 )
