@@ -262,8 +262,6 @@ impl Tool {
                     max_angle: 30.0,
                     charge_duration: Duration::from_millis(1200),
                     swing_duration: Duration::from_millis(400),
-                    recover_duration: Duration::from_millis(100),
-                },
                 LeapMelee {
                     energy_cost: 700,
                     buildup_duration: Duration::from_millis(100),

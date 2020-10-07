@@ -213,6 +213,16 @@ impl Body {
         }
     }
 
+    pub fn base_energy(&self) -> u32 {
+        match self {
+            Body::BipedLarge(biped_large) => match biped_large.species {
+                biped_large::Species::Dullahan => 4000,
+                _ => 3000,
+            },
+            _ => 1000,
+        }
+    }
+
     #[allow(unreachable_patterns)]
     pub fn base_health(&self) -> u32 {
         match self {
