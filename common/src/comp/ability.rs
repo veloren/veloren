@@ -75,6 +75,7 @@ pub enum CharacterAbility {
         projectile_light: Option<LightEmitter>,
         projectile_gravity: Option<Gravity>,
         projectile_speed: f32,
+        ability_key: AbilityKey,
     },
     RepeaterRanged {
         energy_cost: u32,
@@ -181,6 +182,7 @@ pub enum CharacterAbility {
     Shockwave {
         energy_cost: u32,
         buildup_duration: Duration,
+        swing_duration: Duration,
         recover_duration: Duration,
         damage: u32,
         knockback: f32,
@@ -383,6 +385,7 @@ impl From<&CharacterAbility> for CharacterState {
                 projectile_gravity,
                 projectile_speed,
                 energy_cost: _,
+                ability_key,
             } => CharacterState::BasicRanged(basic_ranged::Data {
                 exhausted: false,
                 prepare_timer: Duration::default(),
@@ -394,6 +397,7 @@ impl From<&CharacterAbility> for CharacterState {
                 projectile_light: *projectile_light,
                 projectile_gravity: *projectile_gravity,
                 projectile_speed: *projectile_speed,
+                ability_key: *ability_key,
             }),
             CharacterAbility::Boost { duration, only_up } => CharacterState::Boost(boost::Data {
                 duration: *duration,
@@ -625,6 +629,7 @@ impl From<&CharacterAbility> for CharacterState {
             CharacterAbility::Shockwave {
                 energy_cost: _,
                 buildup_duration,
+                swing_duration,
                 recover_duration,
                 damage,
                 knockback,
@@ -633,15 +638,19 @@ impl From<&CharacterAbility> for CharacterState {
                 shockwave_duration,
                 requires_ground,
             } => CharacterState::Shockwave(shockwave::Data {
-                exhausted: false,
-                buildup_duration: *buildup_duration,
-                recover_duration: *recover_duration,
-                damage: *damage,
-                knockback: *knockback,
-                shockwave_angle: *shockwave_angle,
-                shockwave_speed: *shockwave_speed,
-                shockwave_duration: *shockwave_duration,
-                requires_ground: *requires_ground,
+                static_data: shockwave::StaticData {
+                    buildup_duration: *buildup_duration,
+                    swing_duration: *swing_duration,
+                    recover_duration: *recover_duration,
+                    damage: *damage,
+                    knockback: *knockback,
+                    shockwave_angle: *shockwave_angle,
+                    shockwave_speed: *shockwave_speed,
+                    shockwave_duration: *shockwave_duration,
+                    requires_ground: *requires_ground,
+                },
+                timer: Duration::default(),
+                stage_section: StageSection::Buildup,
             }),
             CharacterAbility::BasicBeam {
                 buildup_duration,
