@@ -124,8 +124,11 @@ impl Animation for SpinMeleeAnimation {
                                 * Quaternion::rotation_z(-PI / 2.0);
                             next.torso.orientation = Quaternion::rotation_z(movement * PI * 2.0);
 
-                            next.upper_torso.position =
-                                Vec3::new(0.0, skeleton_attr.upper_torso.0, skeleton_attr.upper_torso.1);
+                            next.upper_torso.position = Vec3::new(
+                                0.0,
+                                skeleton_attr.upper_torso.0,
+                                skeleton_attr.upper_torso.1,
+                            );
                             next.upper_torso.orientation = Quaternion::rotation_y(0.3);
                             next.head.position =
                                 Vec3::new(0.0, skeleton_attr.head.0 - 2.0, skeleton_attr.head.1);
@@ -140,7 +143,8 @@ impl Animation for SpinMeleeAnimation {
                                 Quaternion::rotation_x(-PI / 2.0 + movement * PI / 2.0)
                                     * Quaternion::rotation_z(-PI / 2.0 + movement * PI / 2.0);
                             next.head.orientation = Quaternion::rotation_x(-0.15 + movement * 0.15);
-                            next.upper_torso.orientation = Quaternion::rotation_y(0.3 + movement * -0.3)
+                            next.upper_torso.orientation =
+                                Quaternion::rotation_y(0.3 + movement * -0.3)
                         },
                         _ => {},
                     }

@@ -39,7 +39,7 @@ impl Body {
             Body::Dragon(_) => 250.0,
             Body::BirdSmall(_) => 75.0,
             Body::FishSmall(_) => 40.0,
-            Body::BipedLarge(_) => 75.0,
+            Body::BipedLarge(_) => 160.0,
             Body::Object(_) => 40.0,
             Body::Golem(_) => 60.0,
             Body::Theropod(_) => 135.0,

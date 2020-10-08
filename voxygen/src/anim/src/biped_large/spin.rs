@@ -153,7 +153,11 @@ impl Animation for SpinAnimation {
             next.head.orientation = Quaternion::rotation_z(spin * -0.25)
                 * Quaternion::rotation_x(0.0 + spin * -0.1)
                 * Quaternion::rotation_y(spin * -0.2);
-            next.upper_torso.position = Vec3::new(0.0, skeleton_attr.upper_torso.0, skeleton_attr.upper_torso.1);
+            next.upper_torso.position = Vec3::new(
+                0.0,
+                skeleton_attr.upper_torso.0,
+                skeleton_attr.upper_torso.1,
+            );
             next.upper_torso.orientation = Quaternion::rotation_z(spin * 0.1)
                 * Quaternion::rotation_x(0.0 + spin * 0.1)
                 * Quaternion::rotation_y(decel * -0.2);
@@ -184,7 +188,6 @@ impl Animation for SpinAnimation {
             next.shoulder_r.position = Vec3::new(5.0, 0.0, 4.7);
             next.shoulder_r.orientation = Quaternion::rotation_x(0.0);
             next.shoulder_r.scale = Vec3::one() * 1.1;
-
         }
         next.second.scale = match (
             active_tool_kind.map(|tk| tk.hands()),

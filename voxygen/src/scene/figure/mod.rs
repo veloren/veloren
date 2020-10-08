@@ -2225,7 +2225,7 @@ impl FigureMgr {
                         // Running
                         (true, true, false) => anim::biped_large::RunAnimation::update_skeleton(
                             &BipedLargeSkeleton::default(),
-                            (vel.0.magnitude(), time),
+                            (vel.0.magnitude(), ori, state.last_ori, time, state.avg_vel),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,

@@ -60,10 +60,7 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
     }
 }
 
-pub const ALL_SPECIES: [Species; 2] = [
-    Species::StoneGolem,
-    Species::Treant,
-];
+pub const ALL_SPECIES: [Species; 2] = [Species::StoneGolem, Species::Treant];
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
     type IntoIter = std::iter::Copied<std::slice::Iter<'static, Self::Item>>;
