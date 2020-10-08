@@ -510,6 +510,7 @@ pub fn handle_explosion(
             pos,
             power: outcome_power,
             radius: explosion.radius,
+            is_attack: explosion.max_heal > 0 || explosion.max_damage > 0,
             reagent,
         });
     let owner_entity = owner.and_then(|uid| {
@@ -588,6 +589,12 @@ pub fn handle_explosion(
                     amount: damage.healthchange as i32,
                     cause,
                 });
+                if let Some(owner) = owner_entity {
+                    if let Some(energy) = ecs.write_storage::<comp::Energy>().get_mut(owner) {
+                        energy
+                            .change_by(explosion.energy_regen as i32, comp::EnergySource::HitEnemy);
+                    }
+                }
             }
         }
     }

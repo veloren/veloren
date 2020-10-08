@@ -23,6 +23,7 @@ pub struct Explosion {
     pub max_heal: u32,
     pub min_heal: u32,
     pub terrain_destruction_power: f32,
+    pub energy_regen: u32,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

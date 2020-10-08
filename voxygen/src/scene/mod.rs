@@ -390,6 +390,7 @@ impl Scene {
                 pos,
                 power,
                 radius: _,
+                is_attack: _,
                 reagent,
             } => self.event_lights.push(EventLight {
                 light: Light::new(

@@ -1,7 +1,7 @@
 use crate::{
     comp::{
         BeamSegment, Collider, Gravity, Mass, Mounting, Ori, PhysicsState, Pos, Projectile, Scale,
-        Sticky, Vel,
+        Shockwave, Sticky, Vel,
     },
     event::{EventBus, ServerEvent},
     metrics::SysMetrics,
@@ -66,6 +66,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Mounting>,
         ReadStorage<'a, Projectile>,
         ReadStorage<'a, BeamSegment>,
+        ReadStorage<'a, Shockwave>,
     );
 
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
@@ -91,6 +92,7 @@ impl<'a> System<'a> for Sys {
             mountings,
             projectiles,
             beams,
+            shockwaves,
         ): Self::SystemData,
     ) {
         let start_time = std::time::Instant::now();
@@ -168,6 +170,7 @@ impl<'a> System<'a> for Sys {
                 _,
                 _,
                 _,
+                _,
             ) in (
                 &entities,
                 &uids,
@@ -178,6 +181,7 @@ impl<'a> System<'a> for Sys {
                 !&projectiles,
                 !&mountings,
                 !&beams,
+                !&shockwaves,
             )
                 .join()
             {

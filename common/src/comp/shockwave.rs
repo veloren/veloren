@@ -34,3 +34,12 @@ impl std::ops::Deref for Shockwave {
 
     fn deref(&self) -> &Properties { &self.properties }
 }
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ShockwaveHitEntities {
+    pub hit_entities: Vec<Uid>,
+}
+
+impl Component for ShockwaveHitEntities {
+    type Storage = IdvStorage<Self>;
+}

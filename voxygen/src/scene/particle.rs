@@ -59,20 +59,37 @@ impl ParticleMgr {
                 pos,
                 power,
                 radius,
+                is_attack,
                 reagent,
             } => {
-                if *power < 0.0 {
-                    self.particles.resize_with(
-                        self.particles.len() + (200.0 * power.abs()) as usize,
-                        || {
-                            Particle::new(
-                                Duration::from_secs(1),
-                                time,
-                                ParticleMode::EnergyNature,
-                                *pos + Vec3::<f32>::zero().map(|_| rng.gen_range(-radius, radius)),
-                            )
-                        },
-                    );
+                if *is_attack {
+                    if *power < 0.0 {
+                        self.particles.resize_with(
+                            self.particles.len() + (200.0 * power.abs()) as usize,
+                            || {
+                                Particle::new(
+                                    Duration::from_secs(1),
+                                    time,
+                                    ParticleMode::EnergyNature,
+                                    *pos + Vec3::<f32>::zero()
+                                        .map(|_| rng.gen_range(-radius, radius)),
+                                )
+                            },
+                        );
+                    } else {
+                        self.particles.resize_with(
+                            self.particles.len() + (50.0 * power.abs()) as usize,
+                            || {
+                                Particle::new(
+                                    Duration::from_secs(1),
+                                    time,
+                                    ParticleMode::CampfireFire,
+                                    *pos + Vec3::<f32>::zero()
+                                        .map(|_| rng.gen_range(-radius, radius)),
+                                )
+                            },
+                        );
+                    }
                 } else {
                     self.particles.resize_with(
                         self.particles.len() + if reagent.is_some() { 300 } else { 150 },
