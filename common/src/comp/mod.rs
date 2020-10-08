@@ -54,7 +54,7 @@ pub use misc::Object;
 pub use phys::{Collider, ForceUpdate, Gravity, Mass, Ori, PhysicsState, Pos, Scale, Sticky, Vel};
 pub use player::{Player, MAX_MOUNT_RANGE_SQR};
 pub use projectile::{Explosion, Projectile};
-pub use shockwave::Shockwave;
+pub use shockwave::{Shockwave, ShockwaveHitEntities};
 pub use skills::{Skill, SkillGroup, SkillGroupType, SkillSet};
 pub use stats::{Exp, HealthChange, HealthSource, Level, Stats};
 pub use visual::{LightAnimation, LightEmitter};

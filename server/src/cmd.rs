@@ -1136,6 +1136,7 @@ fn handle_explosion(
                         max_heal: 0,
                         min_heal: 0,
                         terrain_destruction_power: power,
+                        energy_regen: 0,
                     },
                     owner: ecs.read_storage::<Uid>().get(target).copied(),
                     friendly_damage: true,

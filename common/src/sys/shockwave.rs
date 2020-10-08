@@ -1,7 +1,7 @@
 use crate::{
     comp::{
         group, Body, CharacterState, Damage, DamageSource, HealthChange, HealthSource, Last,
-        Loadout, Ori, PhysicsState, Pos, Scale, Shockwave, Stats,
+        Loadout, Ori, PhysicsState, Pos, Scale, Shockwave, ShockwaveHitEntities, Stats,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     state::{DeltaTime, Time},
@@ -37,6 +37,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, CharacterState>,
         ReadStorage<'a, PhysicsState>,
         WriteStorage<'a, Shockwave>,
+        WriteStorage<'a, ShockwaveHitEntities>,
     );
 
     fn run(
@@ -60,6 +61,7 @@ impl<'a> System<'a> for Sys {
             character_states,
             physics_states,
             mut shockwaves,
+            mut shockwave_hit_lists,
         ): Self::SystemData,
     ) {
         let mut server_emitter = server_bus.emitter();
@@ -69,8 +71,15 @@ impl<'a> System<'a> for Sys {
         let dt = dt.0;
 
         // Shockwaves
-        for (entity, uid, pos, ori, shockwave) in
-            (&entities, &uids, &positions, &orientations, &shockwaves).join()
+        for (entity, uid, pos, ori, shockwave, shockwave_hit_list) in (
+            &entities,
+            &uids,
+            &positions,
+            &orientations,
+            &shockwaves,
+            &mut shockwave_hit_lists,
+        )
+            .join()
         {
             let creation_time = match shockwave.creation {
                 Some(time) => time,
@@ -142,6 +151,15 @@ impl<'a> System<'a> for Sys {
             )
                 .join()
             {
+                // Check to see if entity has already been hit
+                if shockwave_hit_list
+                    .hit_entities
+                    .iter()
+                    .any(|&uid| uid == *uid_b)
+                {
+                    continue;
+                }
+
                 // 2D versions
                 let pos_b2 = pos_b.0.xy();
                 let last_pos_b2_maybe = last_pos_b_maybe.map(|p| (p.0).0.xy());
@@ -204,6 +222,7 @@ impl<'a> System<'a> for Sys {
                                 cause,
                             },
                         });
+                        shockwave_hit_list.hit_entities.push(*uid_b);
                     }
                     if shockwave.knockback != 0.0 && damage.healthchange != 0.0 {
                         let impulse = if shockwave.knockback < 0.0 {

@@ -162,6 +162,9 @@ impl StateExt for State {
                 properties,
                 creation: None,
             })
+            .with(comp::ShockwaveHitEntities {
+                hit_entities: Vec::<Uid>::new(),
+            })
     }
 
     fn create_beam(
