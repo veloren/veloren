@@ -82,7 +82,7 @@ impl SlotKey<Loadout, ItemImgs> for EquipSlot {
 #[derive(Clone, PartialEq)]
 pub enum HotbarImage {
     Item(ItemKey),
-    Fireball,
+    FireAoe,
     SnakeArrow,
     SwordWhirlwind,
     HammerLeap,
@@ -112,7 +112,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                 .and_then(|kind| {
                     match kind {
                         ItemKind::Tool(Tool { kind, .. }) => match kind {
-                            ToolKind::Staff(_) => Some(HotbarImage::Fireball),
+                            ToolKind::Staff(_) => Some(HotbarImage::FireAoe),
                             ToolKind::Hammer(_) => Some(HotbarImage::HammerLeap),
                             ToolKind::Axe(_) => Some(HotbarImage::AxeLeapSlash),
                             ToolKind::Bow(_) => Some(HotbarImage::BowJumpBurst),
@@ -166,7 +166,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
         match key {
             HotbarImage::Item(key) => item_imgs.img_id_or_not_found_img(key.clone()),
             HotbarImage::SnakeArrow => imgs.snake_arrow_0,
-            HotbarImage::Fireball => imgs.fire_spell_1,
+            HotbarImage::FireAoe => imgs.fire_aoe,
             HotbarImage::SwordWhirlwind => imgs.sword_whirlwind,
             HotbarImage::HammerLeap => imgs.hammerleap,
             HotbarImage::AxeLeapSlash => imgs.skill_axe_leap_slash,
