@@ -1,5 +1,5 @@
 use crate::{
-    comp::{shockwave, Attacking, CharacterState, StateUpdate},
+    comp::{shockwave, CharacterState, StateUpdate},
     event::ServerEvent,
     states::utils::*,
     sys::character_behavior::{CharacterBehavior, JoinData},
@@ -7,12 +7,13 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
+/// Separated out to condense update portions of character state
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Data {
-    /// Whether the attack can deal more damage
-    pub exhausted: bool,
+pub struct StaticData {
     /// How long until state should deal damage
     pub buildup_duration: Duration,
+    /// How long the state is swinging for
+    pub swing_duration: Duration,
     /// How long the state has until exiting
     pub recover_duration: Duration,
     /// Base damage
@@ -29,77 +30,100 @@ pub struct Data {
     pub requires_ground: bool,
 }
 
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Data {
+    /// Struct containing data that does not change over the course of the
+    /// character state
+    pub static_data: StaticData,
+    /// Timer for each stage
+    pub timer: Duration,
+    /// What section the character stage is in
+    pub stage_section: StageSection,
+}
+
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
         handle_move(data, &mut update, 0.05);
 
-        if self.buildup_duration != Duration::default() {
-            // Build up
-            update.character = CharacterState::Shockwave(Data {
-                exhausted: self.exhausted,
-                buildup_duration: self
-                    .buildup_duration
-                    .checked_sub(Duration::from_secs_f32(data.dt.0))
-                    .unwrap_or_default(),
-                recover_duration: self.recover_duration,
-                damage: self.damage,
-                knockback: self.knockback,
-                shockwave_angle: self.shockwave_angle,
-                shockwave_speed: self.shockwave_speed,
-                shockwave_duration: self.shockwave_duration,
-                requires_ground: self.requires_ground,
-            });
-        } else if !self.exhausted {
-            // Attack
-            let properties = shockwave::Properties {
-                angle: self.shockwave_angle,
-                speed: self.shockwave_speed,
-                duration: self.shockwave_duration,
-                damage: self.damage,
-                knockback: self.knockback,
-                requires_ground: self.requires_ground,
-                owner: Some(*data.uid),
-            };
-            update.server_events.push_front(ServerEvent::Shockwave {
-                properties,
-                pos: *data.pos,
-                ori: *data.ori,
-            });
+        match self.stage_section {
+            StageSection::Buildup => {
+                if self.timer < self.static_data.buildup_duration {
+                    // Build up
+                    update.character = CharacterState::Shockwave(Data {
+                        static_data: self.static_data,
+                        timer: self
+                            .timer
+                            .checked_add(Duration::from_secs_f32(data.dt.0))
+                            .unwrap_or_default(),
+                        stage_section: self.stage_section,
+                    });
+                } else {
+                    // Attack
+                    let properties = shockwave::Properties {
+                        angle: self.static_data.shockwave_angle,
+                        speed: self.static_data.shockwave_speed,
+                        duration: self.static_data.shockwave_duration,
+                        damage: self.static_data.damage,
+                        knockback: self.static_data.knockback,
+                        requires_ground: self.static_data.requires_ground,
+                        owner: Some(*data.uid),
+                    };
+                    update.server_events.push_front(ServerEvent::Shockwave {
+                        properties,
+                        pos: *data.pos,
+                        ori: *data.ori,
+                    });
 
-            update.character = CharacterState::Shockwave(Data {
-                exhausted: true,
-                buildup_duration: self.buildup_duration,
-                recover_duration: self.recover_duration,
-                damage: self.damage,
-                knockback: self.knockback,
-                shockwave_angle: self.shockwave_angle,
-                shockwave_speed: self.shockwave_speed,
-                shockwave_duration: self.shockwave_duration,
-                requires_ground: self.requires_ground,
-            });
-        } else if self.recover_duration != Duration::default() {
-            // Recovery
-            update.character = CharacterState::Shockwave(Data {
-                exhausted: self.exhausted,
-                buildup_duration: self.buildup_duration,
-                recover_duration: self
-                    .recover_duration
-                    .checked_sub(Duration::from_secs_f32(data.dt.0))
-                    .unwrap_or_default(),
-                damage: self.damage,
-                knockback: self.knockback,
-                shockwave_angle: self.shockwave_angle,
-                shockwave_speed: self.shockwave_speed,
-                shockwave_duration: self.shockwave_duration,
-                requires_ground: self.requires_ground,
-            });
-        } else {
-            // Done
-            update.character = CharacterState::Wielding;
-            // Make sure attack component is removed
-            data.updater.remove::<Attacking>(data.entity);
+                    // Transitions to swing
+                    update.character = CharacterState::Shockwave(Data {
+                        static_data: self.static_data,
+                        timer: Duration::default(),
+                        stage_section: StageSection::Swing,
+                    });
+                }
+            },
+            StageSection::Swing => {
+                if self.timer < self.static_data.swing_duration {
+                    // Swings
+                    update.character = CharacterState::Shockwave(Data {
+                        static_data: self.static_data,
+                        timer: self
+                            .timer
+                            .checked_add(Duration::from_secs_f32(data.dt.0))
+                            .unwrap_or_default(),
+                        stage_section: self.stage_section,
+                    });
+                } else {
+                    // Transitions to recover
+                    update.character = CharacterState::Shockwave(Data {
+                        static_data: self.static_data,
+                        timer: Duration::default(),
+                        stage_section: StageSection::Recover,
+                    });
+                }
+            },
+            StageSection::Recover => {
+                if self.timer < self.static_data.swing_duration {
+                    // Recovers
+                    update.character = CharacterState::Shockwave(Data {
+                        static_data: self.static_data,
+                        timer: self
+                            .timer
+                            .checked_add(Duration::from_secs_f32(data.dt.0))
+                            .unwrap_or_default(),
+                        stage_section: self.stage_section,
+                    });
+                } else {
+                    // Done
+                    update.character = CharacterState::Wielding;
+                }
+            },
+            _ => {
+                // If it somehow ends up in an incorrect stage section
+                update.character = CharacterState::Wielding;
+            },
         }
 
         update

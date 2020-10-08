@@ -24,6 +24,8 @@ pub struct Data {
     pub projectile_speed: f32,
     /// Whether the attack fired already
     pub exhausted: bool,
+    /// What key is used to press ability
+    pub ability_key: AbilityKey,
 }
 
 impl CharacterBehavior for Data {
@@ -35,7 +37,8 @@ impl CharacterBehavior for Data {
 
         if !self.exhausted
             && if self.holdable {
-                data.inputs.holding_ability_key() || self.prepare_timer < self.prepare_duration
+                ability_key_is_pressed(data, self.ability_key)
+                    || self.prepare_timer < self.prepare_duration
             } else {
                 self.prepare_timer < self.prepare_duration
             }
@@ -52,6 +55,7 @@ impl CharacterBehavior for Data {
                 projectile_gravity: self.projectile_gravity,
                 projectile_speed: self.projectile_speed,
                 exhausted: false,
+                ability_key: self.ability_key,
             });
         } else if !self.exhausted {
             // Fire
@@ -78,6 +82,7 @@ impl CharacterBehavior for Data {
                 projectile_gravity: self.projectile_gravity,
                 projectile_speed: self.projectile_speed,
                 exhausted: true,
+                ability_key: self.ability_key,
             });
         } else if self.recover_duration != Duration::default() {
             // Recovery
@@ -95,6 +100,7 @@ impl CharacterBehavior for Data {
                 projectile_gravity: self.projectile_gravity,
                 projectile_speed: self.projectile_speed,
                 exhausted: true,
+                ability_key: self.ability_key,
             });
             return update;
         } else {

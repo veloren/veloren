@@ -311,6 +311,7 @@ impl Tool {
                     projectile_light: None,
                     projectile_gravity: Some(Gravity(0.2)),
                     projectile_speed: 100.0,
+                    ability_key: AbilityKey::Mouse1,
                 },
                 ChargedRanged {
                     energy_cost: 0,
@@ -420,6 +421,7 @@ impl Tool {
                     }),
                     projectile_gravity: Some(Gravity(0.5)),
                     projectile_speed: 40.0,
+                    ability_key: AbilityKey::Mouse2,
                 },
             ],
             Staff(_) => vec![
@@ -464,6 +466,7 @@ impl Tool {
                     }),
                     projectile_gravity: Some(Gravity(0.3)),
                     projectile_speed: 60.0,
+                    ability_key: AbilityKey::Mouse1,
                 },
                 BasicBeam {
                     buildup_duration: Duration::from_millis(250),
@@ -482,7 +485,8 @@ impl Tool {
                 },
                 Shockwave {
                     energy_cost: 0,
-                    buildup_duration: Duration::from_millis(500),
+                    buildup_duration: Duration::from_millis(400),
+                    swing_duration: Duration::from_millis(100),
                     recover_duration: Duration::from_millis(300),
                     damage: (200.0 * self.base_power()) as u32,
                     knockback: 20.0,
@@ -519,7 +523,8 @@ impl Tool {
                         Shockwave {
                             energy_cost: 0,
                             buildup_duration: Duration::from_millis(500),
-                            recover_duration: Duration::from_millis(1000),
+                            swing_duration: Duration::from_millis(200),
+                            recover_duration: Duration::from_millis(800),
                             damage: 500,
                             knockback: -40.0,
                             shockwave_angle: 90.0,
@@ -573,6 +578,7 @@ impl Tool {
                             }),
                             projectile_gravity: None,
                             projectile_speed: 100.0,
+                            ability_key: AbilityKey::Skill1,
                         },
                     ]
                 } else {
