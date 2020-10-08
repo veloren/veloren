@@ -32,10 +32,12 @@ pub struct Sys;
 impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
-        Read<'a, UidAllocator>,
-        Read<'a, Time>,
-        Read<'a, DeltaTime>,
-        Read<'a, group::GroupManager>,
+        (
+            Read<'a, UidAllocator>,
+            Read<'a, Time>,
+            Read<'a, DeltaTime>,
+            Read<'a, group::GroupManager>,
+        ),
         ReadExpect<'a, SysMetrics>,
         Write<'a, EventBus<ServerEvent>>,
         Entities<'a>,
@@ -65,10 +67,7 @@ impl<'a> System<'a> for Sys {
     fn run(
         &mut self,
         (
-            uid_allocator,
-            time,
-            dt,
-            group_manager,
+            (uid_allocator, time, dt, group_manager),
             sys_metrics,
             event_bus,
             entities,
