@@ -1,6 +1,5 @@
 use crate::comp::{
-    golem,
-    biped_large,
+    biped_large, golem,
     item::{Item, ItemKind},
     Alignment, Body, CharacterAbility, ItemConfig, Loadout,
 };

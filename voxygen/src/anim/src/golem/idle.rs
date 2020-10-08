@@ -57,7 +57,6 @@ impl Animation for IdleAnimation {
         next.jaw.orientation = Quaternion::rotation_x(-0.1 + breathe * 0.1);
         next.jaw.scale = Vec3::one() * 1.02;
 
-
         next.upper_torso.position = Vec3::new(
             0.0,
             skeleton_attr.upper_torso.0,

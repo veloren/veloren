@@ -138,7 +138,7 @@ impl Animation for DashAnimation {
                             next.control.scale = Vec3::one();
 
                             next.upper_torso.orientation = Quaternion::rotation_z(short * 0.25);
-                            
+
                             next.foot_l.position = Vec3::new(
                                 2.0 - skeleton_attr.foot.0,
                                 skeleton_attr.foot.1 + foothoril * -7.5,
@@ -161,8 +161,9 @@ impl Animation for DashAnimation {
                             next.head.orientation = Quaternion::rotation_y(0.2 + movement * -0.2)
                                 * Quaternion::rotation_z(-1.1 + movement * 1.8);
 
-                            next.upper_torso.orientation = Quaternion::rotation_y(-0.2 + movement * 0.3)
-                                * Quaternion::rotation_z(1.1 + movement * -2.2);
+                            next.upper_torso.orientation =
+                                Quaternion::rotation_y(-0.2 + movement * 0.3)
+                                    * Quaternion::rotation_z(1.1 + movement * -2.2);
 
                             next.control.position = Vec3::new(-13.0 + movement * -2.0, 5.0, 4.0);
                             next.control.orientation =
@@ -200,7 +201,8 @@ impl Animation for DashAnimation {
                     Quaternion::rotation_x(-0.5) * Quaternion::rotation_z(-0.7);
 
                 next.upper_torso.position = Vec3::new(0.0, 3.0, -3.0);
-                next.upper_torso.orientation = Quaternion::rotation_x(0.4) * Quaternion::rotation_z(0.3);
+                next.upper_torso.orientation =
+                    Quaternion::rotation_x(0.4) * Quaternion::rotation_z(0.3);
 
                 next.hand_l.position = Vec3::new(-0.75, -1.0, -2.5);
                 next.hand_l.orientation = Quaternion::rotation_x(1.27);

@@ -301,7 +301,7 @@
     ),
     (Werewolf, Male): (
         head: (
-            offset: (-5.0, -7.5, -6.5),
+            offset: (-5.0, 0.0, -6.5),
             central: ("npc.werewolf.male.head"),
         ),
         torso_upper: (
@@ -331,7 +331,7 @@
     ),
     (Werewolf, Female): (
         head: (
-            offset: (-5.0, -7.5, -6.5),
+            offset: (-5.0, 0.0, -6.5),
             central: ("npc.werewolf.male.head"),
         ),
         torso_upper: (
