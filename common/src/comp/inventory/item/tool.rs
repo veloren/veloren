@@ -433,9 +433,9 @@ impl Tool {
                     projectile: Projectile {
                         hit_solid: vec![
                             projectile::Effect::Explode(Explosion {
-                                radius: 4.0,
-                                max_damage: (100.0 * self.base_power()) as u32,
-                                min_damage: (10.0 * self.base_power()) as u32,
+                                radius: 5.0,
+                                max_damage: (80.0 * self.base_power()) as u32,
+                                min_damage: (20.0 * self.base_power()) as u32,
                                 max_heal: 0,
                                 min_heal: 0,
                                 terrain_destruction_power: 0.0,
@@ -445,9 +445,9 @@ impl Tool {
                         ],
                         hit_entity: vec![
                             projectile::Effect::Explode(Explosion {
-                                radius: 4.0,
-                                max_damage: (100.0 * self.base_power()) as u32,
-                                min_damage: (10.0 * self.base_power()) as u32,
+                                radius: 5.0,
+                                max_damage: (80.0 * self.base_power()) as u32,
+                                min_damage: (20.0 * self.base_power()) as u32,
                                 max_heal: 0,
                                 min_heal: 0,
                                 terrain_destruction_power: 0.0,
@@ -474,26 +474,27 @@ impl Tool {
                     beam_duration: Duration::from_millis(500),
                     base_hps: 0,
                     base_dps: (200.0 * self.base_power()) as u32,
-                    tick_rate: 2.0,
+                    tick_rate: 3.0,
                     range: 15.0,
                     max_angle: 22.5,
                     lifesteal_eff: 0.0,
                     energy_regen: 0,
                     energy_cost: 0,
-                    energy_drain: 0,
+                    energy_drain: 400,
                     ability_key: AbilityKey::Mouse2,
                 },
                 Shockwave {
-                    energy_cost: 0,
+                    energy_cost: 600,
                     buildup_duration: Duration::from_millis(400),
                     swing_duration: Duration::from_millis(100),
                     recover_duration: Duration::from_millis(300),
                     damage: (200.0 * self.base_power()) as u32,
-                    knockback: 20.0,
+                    knockback: 25.0,
                     shockwave_angle: 360.0,
                     shockwave_speed: 20.0,
                     shockwave_duration: Duration::from_millis(500),
                     requires_ground: false,
+                    move_efficiency: 0.8,
                 },
             ],
             Shield(_) => vec![
@@ -531,6 +532,7 @@ impl Tool {
                             shockwave_speed: 20.0,
                             shockwave_duration: Duration::from_millis(2000),
                             requires_ground: true,
+                            move_efficiency: 0.05,
                         },
                     ]
                 } else {

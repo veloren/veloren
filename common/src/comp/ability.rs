@@ -190,6 +190,7 @@ pub enum CharacterAbility {
         shockwave_speed: f32,
         shockwave_duration: Duration,
         requires_ground: bool,
+        move_efficiency: f32,
     },
     BasicBeam {
         buildup_duration: Duration,
@@ -257,10 +258,6 @@ impl CharacterAbility {
             CharacterAbility::Shockwave { energy_cost, .. } => update
                 .energy
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
-                .is_ok(),
-            CharacterAbility::BasicBeam { energy_drain, .. } => update
-                .energy
-                .try_change_by(-(*energy_drain as i32), EnergySource::Ability)
                 .is_ok(),
             _ => true,
         }
@@ -637,6 +634,7 @@ impl From<&CharacterAbility> for CharacterState {
                 shockwave_speed,
                 shockwave_duration,
                 requires_ground,
+                move_efficiency,
             } => CharacterState::Shockwave(shockwave::Data {
                 static_data: shockwave::StaticData {
                     buildup_duration: *buildup_duration,
@@ -648,6 +646,7 @@ impl From<&CharacterAbility> for CharacterState {
                     shockwave_speed: *shockwave_speed,
                     shockwave_duration: *shockwave_duration,
                     requires_ground: *requires_ground,
+                    move_efficiency: *move_efficiency,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
