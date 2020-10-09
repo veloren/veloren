@@ -28,6 +28,8 @@ pub struct StaticData {
     pub shockwave_duration: Duration,
     /// Whether the shockwave requires the target to be on the ground
     pub requires_ground: bool,
+    /// Movement speed efficiency
+    pub move_efficiency: f32,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -45,7 +47,7 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        handle_move(data, &mut update, 0.05);
+        handle_move(data, &mut update, self.static_data.move_efficiency);
 
         match self.stage_section {
             StageSection::Buildup => {
