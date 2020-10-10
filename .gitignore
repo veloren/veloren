@@ -30,6 +30,7 @@ run.sh
 maps
 screenshots
 todo.txt
+userdata
 
 # Export data
 *.csv

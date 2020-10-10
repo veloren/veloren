@@ -1,9 +1,8 @@
-use crate::hud;
+use crate::{hud, settings};
 use common::character::CharacterId;
-use directories_next::ProjectDirs;
 use hashbrown::HashMap;
-use serde_derive::{Deserialize, Serialize};
-use std::{fs, io::prelude::*, path::PathBuf};
+use serde::{Deserialize, Serialize};
+use std::{fs, io::Write, path::PathBuf};
 use tracing::warn;
 
 /// Represents a character in the profile.
@@ -177,13 +176,9 @@ impl Profile {
             warn!(?path, "VOXYGEN_CONFIG points to invalid path.");
         }
 
-        let proj_dirs = ProjectDirs::from("net", "veloren", "voxygen")
-            .expect("System's $HOME directory path not found!");
-
-        proj_dirs
-            .config_dir()
-            .join("profile.ron")
-            .with_extension("ron")
+        let mut path = settings::voxygen_data_dir();
+        path.push("profile.ron");
+        path
     }
 }
 

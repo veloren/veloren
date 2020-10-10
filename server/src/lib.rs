@@ -9,6 +9,7 @@ mod character_creator;
 pub mod chunk_generator;
 pub mod client;
 pub mod cmd;
+mod data_dir;
 pub mod error;
 pub mod events;
 pub mod input;
@@ -21,13 +22,20 @@ pub mod sys;
 #[cfg(not(feature = "worldgen"))] mod test_world;
 
 // Reexports
-pub use crate::{error::Error, events::Event, input::Input, settings::ServerSettings};
+pub use crate::{
+    data_dir::DEFAULT_DATA_DIR_NAME,
+    error::Error,
+    events::Event,
+    input::Input,
+    settings::{EditableSettings, Settings},
+};
 
 use crate::{
     alias_validator::AliasValidator,
     chunk_generator::ChunkGenerator,
     client::{Client, RegionSubscription},
     cmd::ChatCommandExt,
+    data_dir::DataDir,
     login_provider::LoginProvider,
     state_ext::StateExt,
     sys::sentinel::{DeletedEntities, TrackedComps},
@@ -102,10 +110,23 @@ impl Server {
     /// Create a new `Server`
     #[allow(clippy::expect_fun_call)] // TODO: Pending review in #587
     #[allow(clippy::needless_update)] // TODO: Pending review in #587
-    pub fn new(settings: ServerSettings) -> Result<Self, Error> {
+    pub fn new(
+        settings: Settings,
+        editable_settings: EditableSettings,
+        data_dir: &std::path::Path,
+    ) -> Result<Self, Error> {
+        info!("Server is data dir is: {}", data_dir.display());
+        if settings.auth_server_address.is_none() {
+            info!("Authentication is disabled");
+        }
+
+        // Relative to data_dir
+        const PERSISTENCE_DB_DIR: &str = "saves";
+        let persistence_db_dir = data_dir.join(PERSISTENCE_DB_DIR);
+
         // Run pending DB migrations (if any)
         debug!("Running DB migrations...");
-        if let Some(e) = persistence::run_migrations(&settings.persistence_db_dir).err() {
+        if let Some(e) = persistence::run_migrations(&persistence_db_dir).err() {
             panic!("Migration error: {:?}", e);
         }
 
@@ -116,6 +137,10 @@ impl Server {
 
         let mut state = State::default();
         state.ecs_mut().insert(settings.clone());
+        state.ecs_mut().insert(editable_settings);
+        state.ecs_mut().insert(DataDir {
+            path: data_dir.to_owned(),
+        });
         state.ecs_mut().insert(EventBus::<ServerEvent>::default());
         state
             .ecs_mut()
@@ -128,13 +153,10 @@ impl Server {
             .insert(ChunkGenerator::new(chunk_gen_metrics));
         state
             .ecs_mut()
-            .insert(CharacterUpdater::new(settings.persistence_db_dir.clone())?);
+            .insert(CharacterUpdater::new(&persistence_db_dir)?);
         state
             .ecs_mut()
-            .insert(CharacterLoader::new(settings.persistence_db_dir.clone())?);
-        state
-            .ecs_mut()
-            .insert(comp::AdminList(settings.admins.clone()));
+            .insert(CharacterLoader::new(&persistence_db_dir)?);
         state.ecs_mut().insert(Vec::<Outcome>::new());
 
         // System timers for performance monitoring
@@ -339,10 +361,11 @@ impl Server {
     }
 
     pub fn get_server_info(&self) -> ServerInfo {
-        let settings = self.state.ecs().fetch::<ServerSettings>();
+        let settings = self.state.ecs().fetch::<Settings>();
+        let editable_settings = self.state.ecs().fetch::<EditableSettings>();
         ServerInfo {
             name: settings.server_name.clone(),
-            description: settings.server_description.clone(),
+            description: (&*editable_settings.server_description).clone(),
             git_hash: common::util::GIT_HASH.to_string(),
             git_date: common::util::GIT_DATE.to_string(),
             auth_provider: settings.auth_server_address.clone(),
@@ -355,13 +378,28 @@ impl Server {
     }
 
     /// Get a reference to the server's settings
-    pub fn settings(&self) -> impl Deref<Target = ServerSettings> + '_ {
-        self.state.ecs().fetch::<ServerSettings>()
+    pub fn settings(&self) -> impl Deref<Target = Settings> + '_ {
+        self.state.ecs().fetch::<Settings>()
     }
 
     /// Get a mutable reference to the server's settings
-    pub fn settings_mut(&mut self) -> impl DerefMut<Target = ServerSettings> + '_ {
-        self.state.ecs_mut().fetch_mut::<ServerSettings>()
+    pub fn settings_mut(&self) -> impl DerefMut<Target = Settings> + '_ {
+        self.state.ecs().fetch_mut::<Settings>()
+    }
+
+    /// Get a mutable reference to the server's editable settings
+    pub fn editable_settings_mut(&self) -> impl DerefMut<Target = EditableSettings> + '_ {
+        self.state.ecs().fetch_mut::<EditableSettings>()
+    }
+
+    /// Get a reference to the server's editable settings
+    pub fn editable_settings(&self) -> impl Deref<Target = EditableSettings> + '_ {
+        self.state.ecs().fetch::<EditableSettings>()
+    }
+
+    /// Get path to the directory that the server info into
+    pub fn data_dir(&self) -> impl Deref<Target = DataDir> + '_ {
+        self.state.ecs().fetch::<DataDir>()
     }
 
     /// Get a reference to the server's game state.
@@ -895,11 +933,86 @@ impl Server {
     pub fn number_of_players(&self) -> i64 {
         self.state.ecs().read_storage::<Client>().join().count() as i64
     }
+
+    // TODO: add Admin comp if ingame
+    pub fn add_admin(&self, username: &str) {
+        let mut editable_settings = self.editable_settings_mut();
+        let login_provider = self.state.ecs().fetch::<LoginProvider>();
+        let data_dir = self.data_dir();
+        add_admin(
+            username,
+            &login_provider,
+            &mut editable_settings,
+            &data_dir.path,
+        );
+    }
+
+    // TODO: remove Admin comp if ingame
+    pub fn remove_admin(&self, username: &str) {
+        let mut editable_settings = self.editable_settings_mut();
+        let login_provider = self.state.ecs().fetch::<LoginProvider>();
+        let data_dir = self.data_dir();
+        remove_admin(
+            username,
+            &login_provider,
+            &mut editable_settings,
+            &data_dir.path,
+        );
+    }
 }
 
 impl Drop for Server {
     fn drop(&mut self) {
         self.state
             .notify_registered_clients(ServerMsg::Disconnect(DisconnectReason::Shutdown));
+    }
+}
+
+pub fn add_admin(
+    username: &str,
+    login_provider: &LoginProvider,
+    editable_settings: &mut EditableSettings,
+    data_dir: &std::path::Path,
+) {
+    use crate::settings::EditableSetting;
+    match login_provider.username_to_uuid(username) {
+        Ok(uuid) => editable_settings.admins.edit(data_dir, |admins| {
+            if admins.insert(uuid) {
+                info!("Successfully added {} ({}) as an admin!", username, uuid);
+            } else {
+                info!("{} ({}) is already an admin!", username, uuid);
+            }
+        }),
+        Err(err) => error!(
+            ?err,
+            "Could not find uuid for this name either the user does not exist or there was an \
+             error communicating with the auth server."
+        ),
+    }
+}
+
+pub fn remove_admin(
+    username: &str,
+    login_provider: &LoginProvider,
+    editable_settings: &mut EditableSettings,
+    data_dir: &std::path::Path,
+) {
+    use crate::settings::EditableSetting;
+    match login_provider.username_to_uuid(username) {
+        Ok(uuid) => editable_settings.admins.edit(data_dir, |admins| {
+            if admins.remove(&uuid) {
+                info!(
+                    "Successfully removed {} ({}) from the admins",
+                    username, uuid
+                );
+            } else {
+                info!("{} ({}) is not an admin!", username, uuid);
+            }
+        }),
+        Err(err) => error!(
+            ?err,
+            "Could not find uuid for this name either the user does not exist or there was an \
+             error communicating with the auth server."
+        ),
     }
 }

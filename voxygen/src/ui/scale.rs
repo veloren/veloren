@@ -1,5 +1,5 @@
 use crate::{render::Renderer, window::Window};
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use vek::*;
 
 /// Type of scaling to use.

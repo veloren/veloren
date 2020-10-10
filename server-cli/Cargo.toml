@@ -20,6 +20,8 @@ lazy_static = "1"
 signal-hook = "0.1.16"
 tracing = { version = "0.1", default-features = false }
 tracing-subscriber = { version = "0.2.3", default-features = false, features = ["env-filter", "fmt", "chrono", "ansi", "smallvec"] }
+ron = {version = "0.6", default-features = false}
+serde = {version = "1.0", features = [ "rc", "derive" ]}
 
 # Tracy
 tracing-tracy = { version = "0.2.0", optional = true }

@@ -157,7 +157,7 @@ void main() {
 	// vec3 surf_color = srgb_to_linear(vec3(0.2, 0.5, 1.0));
     // vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
     float max_light = 0.0;
-    max_light += get_sun_diffuse2(sun_info, moon_info, f_norm, /*time_of_day.x, *//*cam_to_frag*/view_dir, k_a * f_light/* * (shade_frac * 0.5 + light_frac * 0.5)*/, k_d, k_s, alpha, emitted_light, reflected_light);
+    max_light += get_sun_diffuse2(sun_info, moon_info, f_norm, /*time_of_day.x, *//*cam_to_frag*/view_dir, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, k_d, k_s, alpha, emitted_light, reflected_light);
     // reflected_light *= /*vert_light * */point_shadow * shade_frac;
     // emitted_light *= /*vert_light * */point_shadow * max(shade_frac, MIN_SHADOW);
     // max_light *= /*vert_light * */point_shadow * shade_frac;
@@ -182,7 +182,7 @@ void main() {
 	emitted_light *= ao;
 	reflected_light *= ao;
 
-	surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light);
+	surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light) * f_light;
 	// vec3 surf_color = illuminate(f_col, light, diffuse_light, ambient_light);
 
 #if (CLOUD_MODE == CLOUD_MODE_REGULAR)

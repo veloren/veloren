@@ -24,7 +24,7 @@ pub mod visual;
 
 // Reexports
 pub use ability::{CharacterAbility, CharacterAbilityType, ItemConfig, Loadout};
-pub use admin::{Admin, AdminList};
+pub use admin::Admin;
 pub use agent::{Agent, Alignment};
 pub use beam::{Beam, BeamSegment};
 pub use body::{

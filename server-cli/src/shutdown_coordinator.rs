@@ -1,3 +1,4 @@
+use crate::settings::Settings;
 use common::comp::chat::ChatType;
 use server::Server;
 use std::{
@@ -78,9 +79,9 @@ impl ShutdownCoordinator {
     /// shutdown. If the grace period for an initiated shutdown has expired,
     /// returns `true` which triggers the loop in `main.rs` to break and
     /// exit the server process.
-    pub fn check(&mut self, server: &mut Server) -> bool {
+    pub fn check(&mut self, server: &mut Server, settings: &Settings) -> bool {
         // Check whether SIGUSR1 has been set
-        self.check_sigusr1_signal(server);
+        self.check_sigusr1_signal(server, settings);
 
         // If a shutdown is in progress, check whether it's time to send another warning
         // message or shut down if the grace period has expired.
@@ -112,12 +113,12 @@ impl ShutdownCoordinator {
     /// Veloren server to send SIGUSR1 instead of SIGTERM which allows us to
     /// react specifically to shutdowns that are for an update.
     /// NOTE: SIGUSR1 is not supported on Windows
-    fn check_sigusr1_signal(&mut self, server: &mut Server) {
+    fn check_sigusr1_signal(&mut self, server: &mut Server, settings: &Settings) {
         if self.sigusr1_signal.load(Ordering::Relaxed) && self.shutdown_initiated_at.is_none() {
             info!("Received SIGUSR1 signal, initiating graceful shutdown");
             let grace_period =
-                Duration::from_secs(server.settings().update_shutdown_grace_period_secs);
-            let shutdown_message = server.settings().update_shutdown_message.to_owned();
+                Duration::from_secs(u64::from(settings.update_shutdown_grace_period_secs));
+            let shutdown_message = settings.update_shutdown_message.to_owned();
             self.initiate_shutdown(server, grace_period, shutdown_message);
 
             // Reset the SIGUSR1 signal indicator in case shutdown is aborted and we need to

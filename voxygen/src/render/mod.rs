@@ -62,7 +62,7 @@ pub trait Pipeline {
     type Vertex: Clone + gfx::traits::Pod + gfx::pso::buffer::Structure<gfx::format::Format>;
 }
 
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 /// Anti-aliasing modes
 #[derive(PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum AaMode {

@@ -53,6 +53,7 @@ chrono = "0.4.9"
 cpal = "0.11"
 crossbeam = "=0.7.2"
 deunicode = "1.0"
+# TODO: remove
 directories-next = "1.0.1"
 dot_vox = "4.0"
 enum-iterator = "0.6"
@@ -66,8 +67,7 @@ num = "0.2"
 rand = "0.7"
 rodio = {version = "0.11", default-features = false, features = ["wav", "vorbis"]}
 ron = {version = "0.6", default-features = false}
-serde = {version = "1.0", features = [ "rc" ]}
-serde_derive = "1.0"
+serde = {version = "1.0", features = [ "rc", "derive" ]}
 treeculler = "0.1.0"
 uvth = "3.1.1"
 # vec_map = { version = "0.8.2" }

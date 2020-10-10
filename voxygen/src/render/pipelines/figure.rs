@@ -12,7 +12,7 @@ use vek::*;
 gfx_defines! {
     constant Locals {
         model_mat: [[f32; 4]; 4] = "model_mat",
-        model_col: [f32; 4] = "model_col",
+        highlight_col: [f32; 4] = "highlight_col",
         atlas_offs: [i32; 4] = "atlas_offs",
         model_pos: [f32; 3] = "model_pos",
         flags: u32 = "flags",
@@ -64,7 +64,7 @@ impl Locals {
 
         Self {
             model_mat: model_mat.into_col_arrays(),
-            model_col: col.into_array(),
+            highlight_col: col.into_array(),
             model_pos: pos.into_array(),
             atlas_offs: Vec4::from(atlas_offs).into_array(),
             flags,

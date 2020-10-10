@@ -1,4 +1,4 @@
-use crate::LOG;
+use crate::logging::LOG;
 use crossterm::{
     event::{DisableMouseCapture, EnableMouseCapture},
     execute,
@@ -26,6 +26,8 @@ pub enum Message {
     AbortShutdown,
     Shutdown { grace_period: Duration },
     Quit,
+    AddAdmin(String),
+    RemoveAdmin(String),
 }
 
 pub struct Command<'a> {
@@ -37,7 +39,8 @@ pub struct Command<'a> {
     pub cmd: fn(Vec<String>, &mut mpsc::Sender<Message>),
 }
 
-pub const COMMANDS: [Command; 4] = [
+// TODO: mabye we could be using clap here?
+pub const COMMANDS: [Command; 5] = [
     Command {
         name: "quit",
         description: "Closes the server",
@@ -71,6 +74,22 @@ pub const COMMANDS: [Command; 4] = [
         cmd: |_, sender| sender.send(Message::AbortShutdown).unwrap(),
     },
     Command {
+        name: "admin",
+        description: "Add or remove an admin via \'admin add/remove <username>\'",
+        split_spaces: true,
+        args: 2,
+        cmd: |args, sender| match args.get(..2) {
+            Some([op, username]) if op == "add" => {
+                sender.send(Message::AddAdmin(username.clone())).unwrap()
+            },
+            Some([op, username]) if op == "remove" => {
+                sender.send(Message::RemoveAdmin(username.clone())).unwrap()
+            },
+            Some(_) => error!("First arg must be add or remove"),
+            _ => error!("Not enough args, should be unreachable"),
+        },
+    },
+    Command {
         name: "help",
         description: "List all command available",
         split_spaces: true,
@@ -86,26 +105,13 @@ pub const COMMANDS: [Command; 4] = [
 ];
 
 pub struct Tui {
+    pub msg_r: mpsc::Receiver<Message>,
     background: Option<std::thread::JoinHandle<()>>,
     basic: bool,
-    msg_s: Option<mpsc::Sender<Message>>,
     running: Arc<AtomicBool>,
 }
 
 impl Tui {
-    pub fn new() -> (Self, mpsc::Receiver<Message>) {
-        let (msg_s, msg_r) = mpsc::channel();
-        (
-            Self {
-                background: None,
-                basic: false,
-                msg_s: Some(msg_s),
-                running: Arc::new(AtomicBool::new(true)),
-            },
-            msg_r,
-        )
-    }
-
     fn handle_events(input: &mut String, msg_s: &mut mpsc::Sender<Message>) {
         use crossterm::event::*;
         if let Event::Key(event) = read().unwrap() {
@@ -132,15 +138,14 @@ impl Tui {
         }
     }
 
-    pub fn run(&mut self, basic: bool) {
-        self.basic = basic;
+    pub fn run(basic: bool) -> Self {
+        let (mut msg_s, msg_r) = mpsc::channel();
+        let running = Arc::new(AtomicBool::new(true));
+        let running2 = Arc::clone(&running);
 
-        let mut msg_s = self.msg_s.take().unwrap();
-        let running = Arc::clone(&self.running);
-
-        if self.basic {
+        let background = if basic {
             std::thread::spawn(move || {
-                while running.load(Ordering::Relaxed) {
+                while running2.load(Ordering::Relaxed) {
                     let mut line = String::new();
 
                     match io::stdin().read_line(&mut line) {
@@ -163,8 +168,10 @@ impl Tui {
                     }
                 }
             });
+
+            None
         } else {
-            self.background = Some(std::thread::spawn(move || {
+            Some(std::thread::spawn(move || {
                 // Start the tui
                 let mut stdout = io::stdout();
                 execute!(stdout, EnterAlternateScreen, EnableMouseCapture).unwrap();
@@ -180,7 +187,7 @@ impl Tui {
                     error!(?e, "couldn't clean terminal");
                 };
 
-                while running.load(Ordering::Relaxed) {
+                while running2.load(Ordering::Relaxed) {
                     if let Err(e) = terminal.draw(|f| {
                         let (log_rect, input_rect) = if f.size().height > 6 {
                             let mut log_rect = f.size();
@@ -227,7 +234,14 @@ impl Tui {
                         Self::handle_events(&mut input, &mut msg_s);
                     };
                 }
-            }));
+            }))
+        };
+
+        Self {
+            msg_r,
+            background,
+            basic,
+            running,
         }
     }
 
