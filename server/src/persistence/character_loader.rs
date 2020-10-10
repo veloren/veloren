@@ -5,6 +5,7 @@ use crate::persistence::{
 };
 use common::character::{CharacterId, CharacterItem};
 use crossbeam::{channel, channel::TryIter};
+use std::path::Path;
 use tracing::error;
 
 pub(crate) type CharacterListResult = Result<Vec<CharacterItem>, Error>;
@@ -64,11 +65,11 @@ pub struct CharacterLoader {
 }
 
 impl CharacterLoader {
-    pub fn new(db_dir: String) -> diesel::QueryResult<Self> {
+    pub fn new(db_dir: &Path) -> diesel::QueryResult<Self> {
         let (update_tx, internal_rx) = channel::unbounded::<CharacterLoaderRequest>();
         let (internal_tx, update_rx) = channel::unbounded::<CharacterLoaderResponse>();
 
-        let mut conn = establish_connection(&db_dir)?;
+        let mut conn = establish_connection(db_dir)?;
 
         std::thread::spawn(move || {
             for request in internal_rx {

@@ -1,6 +1,7 @@
 mod color;
 mod dir;
 mod option;
+pub mod userdata_dir;
 
 pub const GIT_VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/githash"));
 pub const GIT_TAG: &str = include_str!(concat!(env!("OUT_DIR"), "/gittag"));

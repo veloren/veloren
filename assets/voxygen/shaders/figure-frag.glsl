@@ -48,7 +48,7 @@ uniform sampler2D t_col_light;
 layout (std140)
 uniform u_locals {
 	mat4 model_mat;
-	vec4 model_col;
+	vec4 highlight_col;
     ivec4 atlas_offs;
     vec3 model_pos;
 	// bit 0 - is player
@@ -149,7 +149,7 @@ void main() {
     DirectionalLight sun_info = get_sun_info(sun_dir, point_shadow * sun_shade_frac, /*sun_pos*/f_pos);
     DirectionalLight moon_info = get_moon_info(moon_dir, point_shadow * moon_shade_frac/*, light_pos*/);
 
-	vec3 surf_color = /*srgb_to_linear*/(model_col.rgb * f_col);
+	vec3 surf_color = /*srgb_to_linear*/f_col;
     float alpha = 1.0;
     const float n2 = 1.5;
     const float R_s2s0 = pow((1.0 - n2) / (1.0 + n2), 2);
@@ -195,8 +195,8 @@ void main() {
 	// light += point_light;
 	// diffuse_light += point_light;
     // reflected_light += point_light;
-	// vec3 surf_color = illuminate(srgb_to_linear(model_col.rgb * f_col), light, diffuse_light, ambient_light);
-	surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light);
+	// vec3 surf_color = illuminate(srgb_to_linear(highlight_col.rgb * f_col), light, diffuse_light, ambient_light);
+	surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light) * highlight_col.rgb;
 
 #if (CLOUD_MODE == CLOUD_MODE_REGULAR)
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);

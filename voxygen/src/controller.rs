@@ -4,7 +4,7 @@
 use crate::window::{GameInput, MenuInput};
 use gilrs::{ev::Code as GilCode, Axis as GilAxis, Button as GilButton};
 use hashbrown::HashMap;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 /// Contains all controller related settings and keymaps
 #[derive(Clone, Debug, Serialize, Deserialize)]

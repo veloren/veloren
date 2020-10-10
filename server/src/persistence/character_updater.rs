@@ -3,8 +3,8 @@ use common::{character::CharacterId, comp::item::ItemId};
 
 use crate::persistence::{establish_connection, VelorenConnection};
 use crossbeam::channel;
-use std::sync::Arc;
-use tracing::{debug, error};
+use std::{path::Path, sync::Arc};
+use tracing::{error, trace};
 
 pub type CharacterUpdateData = (comp::Stats, comp::Inventory, comp::Loadout);
 
@@ -19,17 +19,17 @@ pub struct CharacterUpdater {
 }
 
 impl CharacterUpdater {
-    pub fn new(db_dir: String) -> diesel::QueryResult<Self> {
+    pub fn new(db_dir: &Path) -> diesel::QueryResult<Self> {
         let (update_tx, update_rx) =
             channel::unbounded::<Vec<(CharacterId, CharacterUpdateData)>>();
 
-        let mut conn = establish_connection(&db_dir)?;
+        let mut conn = establish_connection(db_dir)?;
 
         let handle = std::thread::spawn(move || {
             while let Ok(updates) = update_rx.recv() {
-                debug!("Persistence batch update starting");
+                trace!("Persistence batch update starting");
                 execute_batch_update(updates, &mut conn);
-                debug!("Persistence batch update finished");
+                trace!("Persistence batch update finished");
             }
         });
 

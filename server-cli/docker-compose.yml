@@ -9,7 +9,7 @@ services:
       - "14005:14005"
     restart: on-failure:0
     volumes:
-        - "./saves:/opt/saves"
+        - "./userdata:/opt/userdata"
     environment:
         - RUST_LOG=debug,common::net=info
   watchtower:

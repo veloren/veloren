@@ -1,129 +1,134 @@
 #![deny(unsafe_code)]
 #![deny(clippy::clone_on_ref_ptr)]
+#![feature(bool_to_option)]
 
+mod admin;
+mod logging;
+mod settings;
 mod shutdown_coordinator;
 mod tui_runner;
 mod tuilog;
 
-#[macro_use] extern crate lazy_static;
-
 use crate::{
     shutdown_coordinator::ShutdownCoordinator,
     tui_runner::{Message, Tui},
-    tuilog::TuiLog,
 };
+use clap::{App, Arg, SubCommand};
 use common::clock::Clock;
-use server::{Event, Input, Server, ServerSettings};
-#[cfg(any(target_os = "linux", target_os = "macos"))]
-use signal_hook::SIGUSR1;
-use tracing::{info, Level};
-use tracing_subscriber::{filter::LevelFilter, EnvFilter, FmtSubscriber};
-#[cfg(feature = "tracy")]
-use tracing_subscriber::{layer::SubscriberExt, prelude::*};
-
-use clap::{App, Arg};
+use server::{Event, Input, Server};
 use std::{
     io,
     sync::{atomic::AtomicBool, mpsc, Arc},
     time::Duration,
 };
+use tracing::info;
 
 const TPS: u64 = 30;
-const RUST_LOG_ENV: &str = "RUST_LOG";
-
-lazy_static! {
-    static ref LOG: TuiLog<'static> = TuiLog::default();
-}
 
 fn main() -> io::Result<()> {
     let matches = App::new("Veloren server cli")
         .version(common::util::DISPLAY_VERSION_LONG.as_str())
         .author("The veloren devs <https://gitlab.com/veloren/veloren>")
         .about("The veloren server cli provides an easy to use interface to start a veloren server")
-        .arg(
+        .args(&[
             Arg::with_name("basic")
                 .short("b")
                 .long("basic")
-                .help("Disables the tui")
-                .takes_value(false),
+                .help("Disables the tui"),
+            Arg::with_name("interactive")
+                .short("i")
+                .long("interactive")
+                .help("Enables command input for basic mode"),
+            Arg::with_name("no-auth")
+                .long("no-auth")
+                .help("Runs without auth enabled"),
+        ])
+        .subcommand(
+            SubCommand::with_name("admin")
+                .about("Add or remove admins")
+                .subcommands(vec![
+                    SubCommand::with_name("add").about("Adds an admin").arg(
+                        Arg::with_name("username")
+                            .help("Name of the admin to add")
+                            .required(true),
+                    ),
+                    SubCommand::with_name("remove")
+                        .about("Removes an admin")
+                        .arg(
+                            Arg::with_name("username")
+                                .help("Name of the admin to remove")
+                                .required(true),
+                        ),
+                ]),
         )
         .get_matches();
 
-    let basic = matches.is_present("basic");
+    let basic = matches.is_present("basic")
+        // Default to basic with these subcommands
+        || matches
+            .subcommand_name()
+            .filter(|name| ["admin"].contains(name))
+            .is_some();
+    let interactive = matches.is_present("interactive");
+    let no_auth = matches.is_present("no-auth");
 
     let sigusr1_signal = Arc::new(AtomicBool::new(false));
 
     #[cfg(any(target_os = "linux", target_os = "macos"))]
-    let _ = signal_hook::flag::register(SIGUSR1, Arc::clone(&sigusr1_signal));
+    let _ = signal_hook::flag::register(signal_hook::SIGUSR1, Arc::clone(&sigusr1_signal));
 
-    let (mut tui, msg_r) = Tui::new();
+    logging::init(basic);
 
-    // Init logging
-    let base_exceptions = |env: EnvFilter| {
-        env.add_directive("veloren_world::sim=info".parse().unwrap())
-            .add_directive("veloren_world::civ=info".parse().unwrap())
-            .add_directive("uvth=warn".parse().unwrap())
-            .add_directive("tiny_http=warn".parse().unwrap())
-            .add_directive("mio::sys::windows=debug".parse().unwrap())
-            .add_directive(LevelFilter::INFO.into())
+    // Load settings
+    let settings = settings::Settings::load();
+
+    // Determine folder to save server data in
+    let server_data_dir = {
+        let mut path = common::userdata_dir_workspace!();
+        path.push(server::DEFAULT_DATA_DIR_NAME);
+        path
     };
 
-    #[cfg(not(feature = "tracy"))]
-    let filter = match std::env::var_os(RUST_LOG_ENV).map(|s| s.into_string()) {
-        Some(Ok(env)) => {
-            let mut filter = base_exceptions(EnvFilter::new(""));
-            for s in env.split(',').into_iter() {
-                match s.parse() {
-                    Ok(d) => filter = filter.add_directive(d),
-                    Err(err) => println!("WARN ignoring log directive: `{}`: {}", s, err),
-                };
-            }
-            filter
+    // Load server settings
+    let mut server_settings = server::Settings::load(&server_data_dir);
+    let mut editable_settings = server::EditableSettings::load(&server_data_dir);
+    #[allow(clippy::single_match)] // Note: remove this when there are more subcommands
+    match matches.subcommand() {
+        ("admin", Some(sub_m)) => {
+            admin::admin_subcommand(
+                sub_m,
+                &server_settings,
+                &mut editable_settings,
+                &server_data_dir,
+            );
+            return Ok(());
         },
-        _ => base_exceptions(EnvFilter::from_env(RUST_LOG_ENV)),
-    };
-
-    #[cfg(feature = "tracy")]
-    tracing_subscriber::registry()
-        .with(tracing_tracy::TracyLayer::new().with_stackdepth(0))
-        .init();
-
-    #[cfg(not(feature = "tracy"))]
-    // TODO: when tracing gets per Layer filters re-enable this when the tracy feature is being
-    // used (and do the same in voxygen)
-    {
-        let subscriber = FmtSubscriber::builder()
-            .with_max_level(Level::ERROR)
-            .with_env_filter(filter);
-
-        if basic {
-            subscriber.init();
-        } else {
-            subscriber.with_writer(|| LOG.clone()).init();
-        }
+        _ => {},
     }
 
     // Panic hook to ensure that console mode is set back correctly if in non-basic
     // mode
-    let hook = std::panic::take_hook();
-    std::panic::set_hook(Box::new(move |info| {
-        Tui::shutdown(basic);
-        hook(info);
-    }));
+    if !basic {
+        let hook = std::panic::take_hook();
+        std::panic::set_hook(Box::new(move |info| {
+            Tui::shutdown(basic);
+            hook(info);
+        }));
+    }
 
-    tui.run(basic);
+    let tui = (!basic || interactive).then(|| Tui::run(basic));
 
     info!("Starting server...");
 
-    // Set up an fps clock
-    let mut clock = Clock::start();
+    if no_auth {
+        server_settings.auth_server_address = None;
+    }
 
-    // Load settings
-    let settings = ServerSettings::load();
-    let server_port = &settings.gameserver_address.port();
-    let metrics_port = &settings.metrics_address.port();
+    let server_port = &server_settings.gameserver_address.port();
+    let metrics_port = &server_settings.metrics_address.port();
     // Create server
-    let mut server = Server::new(settings).expect("Failed to create server instance!");
+    let mut server = Server::new(server_settings, editable_settings, &server_data_dir)
+        .expect("Failed to create server instance!");
 
     info!(
         ?server_port,
@@ -133,9 +138,15 @@ fn main() -> io::Result<()> {
 
     let mut shutdown_coordinator = ShutdownCoordinator::new(Arc::clone(&sigusr1_signal));
 
+    // Set up an fps clock
+    let mut clock = Clock::start();
+    // Wait for a tick so we don't start with a zero dt
+    // TODO: consider integrating this into Clock::start?
+    clock.tick(Duration::from_millis(1000 / TPS));
+
     loop {
         // Terminate the server if instructed to do so by the shutdown coordinator
-        if shutdown_coordinator.check(&mut server) {
+        if shutdown_coordinator.check(&mut server, &settings) {
             break;
         }
 
@@ -156,22 +167,31 @@ fn main() -> io::Result<()> {
         #[cfg(feature = "tracy")]
         common::util::tracy_client::finish_continuous_frame!();
 
-        match msg_r.try_recv() {
-            Ok(msg) => match msg {
-                Message::AbortShutdown => shutdown_coordinator.abort_shutdown(&mut server),
-                Message::Shutdown { grace_period } => {
-                    // TODO: The TUI parser doesn't support quoted strings so it is not currently
-                    // possible to provide a shutdown reason from the console.
-                    let message = "The server is shutting down".to_owned();
-                    shutdown_coordinator.initiate_shutdown(&mut server, grace_period, message);
+        if let Some(tui) = tui.as_ref() {
+            match tui.msg_r.try_recv() {
+                Ok(msg) => match msg {
+                    Message::AbortShutdown => shutdown_coordinator.abort_shutdown(&mut server),
+                    Message::Shutdown { grace_period } => {
+                        // TODO: The TUI parser doesn't support quoted strings so it is not
+                        // currently possible to provide a shutdown reason
+                        // from the console.
+                        let message = "The server is shutting down".to_owned();
+                        shutdown_coordinator.initiate_shutdown(&mut server, grace_period, message);
+                    },
+                    Message::Quit => {
+                        info!("Closing the server");
+                        break;
+                    },
+                    Message::AddAdmin(username) => {
+                        server.add_admin(&username);
+                    },
+                    Message::RemoveAdmin(username) => {
+                        server.remove_admin(&username);
+                    },
                 },
-                Message::Quit => {
-                    info!("Closing the server");
-                    break;
-                },
-            },
-            Err(mpsc::TryRecvError::Empty) | Err(mpsc::TryRecvError::Disconnected) => {},
-        };
+                Err(mpsc::TryRecvError::Empty) | Err(mpsc::TryRecvError::Disconnected) => {},
+            }
+        }
 
         // Wait for the next tick.
         clock.tick(Duration::from_millis(1000 / TPS));

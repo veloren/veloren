@@ -20,7 +20,7 @@ use common::{
 };
 use dot_vox::DotVoxData;
 use hashbrown::HashMap;
-use serde_derive::Deserialize;
+use serde::Deserialize;
 use std::sync::Arc;
 use tracing::{error, warn};
 use vek::*;

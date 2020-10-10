@@ -1,6 +1,6 @@
 use crate::{
     comp::{
-        projectile, Damage, DamageSource, Energy, EnergySource, HealthChange, HealthSource,
+        projectile, Damage, DamageSource, Energy, EnergySource, Group, HealthChange, HealthSource,
         Loadout, Ori, PhysicsState, Pos, Projectile, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
@@ -34,6 +34,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Projectile>,
         WriteStorage<'a, Energy>,
         ReadStorage<'a, Loadout>,
+        ReadStorage<'a, Group>,
     );
 
     fn run(
@@ -52,6 +53,7 @@ impl<'a> System<'a> for Sys {
             mut projectiles,
             mut energies,
             loadouts,
+            groups,
         ): Self::SystemData,
     ) {
         let start_time = std::time::Instant::now();
@@ -71,6 +73,24 @@ impl<'a> System<'a> for Sys {
         {
             // Hit entity
             for other in physics.touch_entities.iter().copied() {
+                if projectile.ignore_group
+                    // Skip if in the same group
+                    && projectile
+                        .owner
+                        // Note: somewhat inefficient since we do the lookup for every touching
+                        // entity, but if we pull this out of the loop we would want to do it only
+                        // if there is at least one touching entity
+                        .and_then(|uid| uid_allocator.retrieve_entity_internal(uid.into()))
+                        .and_then(|e| groups.get(e))
+                        .map_or(false, |owner_group|
+                            Some(owner_group) == uid_allocator
+                            .retrieve_entity_internal(other.into())
+                            .and_then(|e| groups.get(e))
+                        )
+                {
+                    continue;
+                }
+
                 if projectile.owner == Some(other) {
                     continue;
                 }

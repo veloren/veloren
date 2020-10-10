@@ -2,7 +2,11 @@
 //! To implement a new command, add an instance of `ChatCommand` to
 //! `CHAT_COMMANDS` and provide a handler function.
 
-use crate::{client::Client, Server, StateExt};
+use crate::{
+    client::Client,
+    settings::{BanRecord, EditableSetting},
+    Server, StateExt,
+};
 use chrono::{NaiveTime, Timelike};
 use common::{
     cmd::{ChatCommand, CHAT_COMMANDS, CHAT_SHORTCUTS},
@@ -266,7 +270,7 @@ fn handle_motd(
 ) {
     server.notify_client(
         client,
-        ChatType::CommandError.server_msg(server.settings().server_description.clone()),
+        ChatType::CommandError.server_msg((*server.editable_settings().server_description).clone()),
     );
 }
 
@@ -277,18 +281,23 @@ fn handle_set_motd(
     args: String,
     action: &ChatCommand,
 ) {
+    let data_dir = server.data_dir();
     match scan_fmt!(&args, &action.arg_fmt(), String) {
         Ok(msg) => {
             server
-                .settings_mut()
-                .edit(|s| s.server_description = msg.clone());
+                .editable_settings_mut()
+                .server_description
+                .edit(data_dir.as_ref(), |d| **d = msg.clone());
             server.notify_client(
                 client,
                 ChatType::CommandError.server_msg(format!("Server description set to \"{}\"", msg)),
             );
         },
         Err(_) => {
-            server.settings_mut().edit(|s| s.server_description.clear());
+            server
+                .editable_settings_mut()
+                .server_description
+                .edit(data_dir.as_ref(), |d| d.clear());
             server.notify_client(
                 client,
                 ChatType::CommandError.server_msg("Removed server description".to_string()),
@@ -1823,24 +1832,48 @@ fn handle_whitelist(
     action: &ChatCommand,
 ) {
     if let Ok((whitelist_action, username)) = scan_fmt!(&args, &action.arg_fmt(), String, String) {
-        if whitelist_action.eq_ignore_ascii_case("add") {
+        let lookup_uuid = || {
             server
-                .settings_mut()
-                .edit(|s| s.whitelist.push(username.clone()));
-            server.notify_client(
-                client,
-                ChatType::CommandInfo.server_msg(format!("\"{}\" added to whitelist", username)),
-            );
+                .state
+                .ecs()
+                .read_resource::<LoginProvider>()
+                .username_to_uuid(&username)
+                .map_err(|_| {
+                    server.notify_client(
+                        client,
+                        ChatType::CommandError.server_msg(format!(
+                            "Unable to determine UUID for username \"{}\"",
+                            &username
+                        )),
+                    )
+                })
+                .ok()
+        };
+
+        if whitelist_action.eq_ignore_ascii_case("add") {
+            if let Some(uuid) = lookup_uuid() {
+                server
+                    .editable_settings_mut()
+                    .whitelist
+                    .edit(server.data_dir().as_ref(), |w| w.insert(uuid));
+                server.notify_client(
+                    client,
+                    ChatType::CommandInfo
+                        .server_msg(format!("\"{}\" added to whitelist", username)),
+                );
+            }
         } else if whitelist_action.eq_ignore_ascii_case("remove") {
-            server.settings_mut().edit(|s| {
-                s.whitelist
-                    .retain(|x| !x.eq_ignore_ascii_case(&username.clone()))
-            });
-            server.notify_client(
-                client,
-                ChatType::CommandInfo
-                    .server_msg(format!("\"{}\" removed from whitelist", username)),
-            );
+            if let Some(uuid) = lookup_uuid() {
+                server
+                    .editable_settings_mut()
+                    .whitelist
+                    .edit(server.data_dir().as_ref(), |w| w.remove(&uuid));
+                server.notify_client(
+                    client,
+                    ChatType::CommandInfo
+                        .server_msg(format!("\"{}\" removed from whitelist", username)),
+                );
+            }
         } else {
             server.notify_client(
                 client,
@@ -1926,17 +1959,22 @@ fn handle_ban(
             .username_to_uuid(&target_alias);
 
         if let Ok(uuid) = uuid_result {
-            if server.settings().banlist.contains_key(&uuid) {
+            if server.editable_settings().banlist.contains_key(&uuid) {
                 server.notify_client(
                     client,
                     ChatType::CommandError
                         .server_msg(format!("{} is already on the banlist", target_alias)),
                 )
             } else {
-                server.settings_mut().edit(|s| {
-                    s.banlist
-                        .insert(uuid, (target_alias.clone(), reason.clone()));
-                });
+                server
+                    .editable_settings_mut()
+                    .banlist
+                    .edit(server.data_dir().as_ref(), |b| {
+                        b.insert(uuid, BanRecord {
+                            username_when_banned: target_alias.clone(),
+                            reason: reason.clone(),
+                        });
+                    });
                 server.notify_client(
                     client,
                     ChatType::CommandInfo.server_msg(format!(
@@ -1987,9 +2025,12 @@ fn handle_unban(
             .username_to_uuid(&username);
 
         if let Ok(uuid) = uuid_result {
-            server.settings_mut().edit(|s| {
-                s.banlist.remove(&uuid);
-            });
+            server
+                .editable_settings_mut()
+                .banlist
+                .edit(server.data_dir().as_ref(), |b| {
+                    b.remove(&uuid);
+                });
             server.notify_client(
                 client,
                 ChatType::CommandInfo.server_msg(format!("{} was successfully unbanned", username)),

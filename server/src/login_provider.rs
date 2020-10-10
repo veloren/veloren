@@ -1,6 +1,7 @@
+use crate::settings::BanRecord;
 use authc::{AuthClient, AuthClientError, AuthToken, Uuid};
 use common::msg::RegisterError;
-use hashbrown::HashMap;
+use hashbrown::{HashMap, HashSet};
 use std::str::FromStr;
 use tracing::{error, info};
 
@@ -52,8 +53,9 @@ impl LoginProvider {
     pub fn try_login(
         &mut self,
         username_or_token: &str,
-        whitelist: &[String],
-        banlist: &HashMap<Uuid, (String, String)>,
+        admins: &HashSet<Uuid>,
+        whitelist: &HashSet<Uuid>,
+        banlist: &HashMap<Uuid, BanRecord>,
     ) -> Result<(String, Uuid), RegisterError> {
         self
             // resolve user information
@@ -63,12 +65,12 @@ impl LoginProvider {
                 // user cannot join if they are listed on the banlist
                 if let Some(ban_record) = banlist.get(&uuid) {
                     // Pull reason string out of ban record and send a copy of it
-                    return Err(RegisterError::Banned(ban_record.1.clone()));
+                    return Err(RegisterError::Banned(ban_record.reason.clone()));
                 }
 
                 // user can only join if he is admin, the whitelist is empty (everyone can join)
                 // or his name is in the whitelist
-                if !whitelist.is_empty() && !whitelist.contains(&username) {
+                if !whitelist.is_empty() && !whitelist.contains(&uuid) && !admins.contains(&uuid) {
                     return Err(RegisterError::NotOnWhitelist);
                 }
 

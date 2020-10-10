@@ -1,7 +1,7 @@
 use client::Client;
 use common::clock::Clock;
 use crossbeam::channel::{bounded, unbounded, Receiver, Sender, TryRecvError};
-use server::{Error as ServerError, Event, Input, Server, ServerSettings};
+use server::{Error as ServerError, Event, Input, Server};
 use std::{
     sync::{
         atomic::{AtomicBool, Ordering},
@@ -29,18 +29,19 @@ pub struct Singleplayer {
 }
 
 impl Singleplayer {
-    pub fn new(client: Option<&Client>) -> (Self, ServerSettings) {
+    pub fn new(client: Option<&Client>) -> (Self, server::Settings) {
         let (sender, receiver) = unbounded();
 
+        // Determine folder to save server data in
+        let server_data_dir = {
+            let mut path = common::userdata_dir_workspace!();
+            path.push("singleplayer");
+            path
+        };
+
         // Create server
-        let settings = ServerSettings::singleplayer(
-            crate::settings::Settings::get_settings_path()
-                .parent()
-                .unwrap()
-                .join("saves")
-                .to_string_lossy()
-                .to_string(),
-        );
+        let settings = server::Settings::singleplayer(&server_data_dir);
+        let editable_settings = server::EditableSettings::singleplayer(&server_data_dir);
 
         let thread_pool = client.map(|c| c.thread_pool().clone());
         let settings2 = settings.clone();
@@ -52,13 +53,15 @@ impl Singleplayer {
 
         let thread = thread::spawn(move || {
             let mut server = None;
-            if let Err(e) = result_sender.send(match Server::new(settings2) {
-                Ok(s) => {
-                    server = Some(s);
-                    Ok(())
+            if let Err(e) = result_sender.send(
+                match Server::new(settings2, editable_settings, &server_data_dir) {
+                    Ok(s) => {
+                        server = Some(s);
+                        Ok(())
+                    },
+                    Err(e) => Err(e),
                 },
-                Err(e) => Err(e),
-            }) {
+            ) {
                 warn!(
                     ?e,
                     "Failed to send singleplayer server initialization result. Most likely the \

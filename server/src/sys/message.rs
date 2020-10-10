@@ -6,12 +6,12 @@ use crate::{
     login_provider::LoginProvider,
     metrics::{NetworkRequestMetrics, PlayerMetrics},
     persistence::character_loader::CharacterLoader,
-    ServerSettings,
+    EditableSettings, Settings,
 };
 use common::{
     comp::{
-        Admin, AdminList, CanBuild, ChatMode, ChatType, ControlEvent, Controller, ForceUpdate, Ori,
-        Player, Pos, Stats, UnresolvedChatMsg, Vel,
+        Admin, CanBuild, ChatMode, ChatType, ControlEvent, Controller, ForceUpdate, Ori, Player,
+        Pos, Stats, UnresolvedChatMsg, Vel,
     },
     event::{EventBus, ServerEvent},
     msg::{
@@ -57,15 +57,15 @@ impl Sys {
         chat_modes: &ReadStorage<'_, ChatMode>,
         login_provider: &mut WriteExpect<'_, LoginProvider>,
         block_changes: &mut Write<'_, BlockChange>,
-        admin_list: &ReadExpect<'_, AdminList>,
         admins: &mut WriteStorage<'_, Admin>,
         positions: &mut WriteStorage<'_, Pos>,
         velocities: &mut WriteStorage<'_, Vel>,
         orientations: &mut WriteStorage<'_, Ori>,
         players: &mut WriteStorage<'_, Player>,
         controllers: &mut WriteStorage<'_, Controller>,
-        settings: &Read<'_, ServerSettings>,
+        settings: &Read<'_, Settings>,
         alias_validator: &ReadExpect<'_, AliasValidator>,
+        editable_settings: &EditableSettings,
     ) -> Result<(), crate::error::Error> {
         loop {
             let msg = client.recv().await?;
@@ -98,8 +98,9 @@ impl Sys {
                 } => {
                     let (username, uuid) = match login_provider.try_login(
                         &token_or_username,
-                        &settings.whitelist,
-                        &settings.banlist,
+                        &*editable_settings.admins,
+                        &*editable_settings.whitelist,
+                        &*editable_settings.banlist,
                     ) {
                         Err(err) => {
                             client.error_state(RequestStateError::RegisterDenied(err));
@@ -110,8 +111,8 @@ impl Sys {
 
                     let vd =
                         view_distance.map(|vd| vd.min(settings.max_view_distance.unwrap_or(vd)));
+                    let is_admin = editable_settings.admins.contains(&uuid);
                     let player = Player::new(username.clone(), None, vd, uuid);
-                    let is_admin = admin_list.contains(&username);
 
                     if !player.is_valid() {
                         // Invalid player
@@ -206,11 +207,10 @@ impl Sys {
                             });
 
                             // Give the player a welcome message
-                            if !settings.server_description.is_empty() {
-                                client.notify(
-                                    ChatType::CommandInfo
-                                        .server_msg(settings.server_description.clone()),
-                                );
+                            if !editable_settings.server_description.is_empty() {
+                                client.notify(ChatType::CommandInfo.server_msg(String::from(
+                                    &*editable_settings.server_description,
+                                )));
                             }
 
                             // Only send login message if it wasn't already
@@ -440,7 +440,6 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, ChatMode>,
         WriteExpect<'a, LoginProvider>,
         Write<'a, BlockChange>,
-        ReadExpect<'a, AdminList>,
         WriteStorage<'a, Admin>,
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
@@ -448,8 +447,9 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Player>,
         WriteStorage<'a, Client>,
         WriteStorage<'a, Controller>,
-        Read<'a, ServerSettings>,
+        Read<'a, Settings>,
         ReadExpect<'a, AliasValidator>,
+        ReadExpect<'a, EditableSettings>,
     );
 
     #[allow(clippy::match_ref_pats)] // TODO: Pending review in #587
@@ -473,7 +473,6 @@ impl<'a> System<'a> for Sys {
             chat_modes,
             mut accounts,
             mut block_changes,
-            admin_list,
             mut admins,
             mut positions,
             mut velocities,
@@ -483,6 +482,7 @@ impl<'a> System<'a> for Sys {
             mut controllers,
             settings,
             alias_validator,
+            editable_settings,
         ): Self::SystemData,
     ) {
         span!(_guard, "run", "message::Sys::run");
@@ -534,7 +534,6 @@ impl<'a> System<'a> for Sys {
                     &chat_modes,
                     &mut accounts,
                     &mut block_changes,
-                    &admin_list,
                     &mut admins,
                     &mut positions,
                     &mut velocities,
@@ -543,6 +542,7 @@ impl<'a> System<'a> for Sys {
                     &mut controllers,
                     &settings,
                     &alias_validator,
+                    &editable_settings,
                 );
                 select!(
                     _ = Delay::new(std::time::Duration::from_micros(20)).fuse() => Ok(()),
