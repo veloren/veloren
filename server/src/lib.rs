@@ -120,8 +120,9 @@ impl Server {
             info!("Authentication is disabled");
         }
 
-        // persistence_db_dir is relative to data_dir
-        let persistence_db_dir = data_dir.join(&settings.persistence_db_dir);
+        // Relative to data_dir
+        const PERSISTENCE_DB_DIR: &str = "saves";
+        let persistence_db_dir = data_dir.join(PERSISTENCE_DB_DIR);
 
         // Run pending DB migrations (if any)
         debug!("Running DB migrations...");
