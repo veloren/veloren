@@ -934,18 +934,30 @@ impl Server {
         self.state.ecs().read_storage::<Client>().join().count() as i64
     }
 
+    // TODO: add Admin comp if ingame
     pub fn add_admin(&self, username: &str) {
         let mut editable_settings = self.editable_settings_mut();
         let login_provider = self.state.ecs().fetch::<LoginProvider>();
         let data_dir = self.data_dir();
-        add_admin(username, &login_provider, &mut editable_settings, &data_dir.path);
+        add_admin(
+            username,
+            &login_provider,
+            &mut editable_settings,
+            &data_dir.path,
+        );
     }
 
+    // TODO: remove Admin comp if ingame
     pub fn remove_admin(&self, username: &str) {
         let mut editable_settings = self.editable_settings_mut();
         let login_provider = self.state.ecs().fetch::<LoginProvider>();
         let data_dir = self.data_dir();
-        remove_admin(username, &login_provider, &mut editable_settings, &data_dir.path);
+        remove_admin(
+            username,
+            &login_provider,
+            &mut editable_settings,
+            &data_dir.path,
+        );
     }
 }
 
@@ -958,14 +970,14 @@ impl Drop for Server {
 
 pub fn add_admin(
     username: &str,
-    login_provider: &LoginProvider, 
+    login_provider: &LoginProvider,
     editable_settings: &mut EditableSettings,
     data_dir: &std::path::Path,
 ) {
     use crate::settings::EditableSetting;
     match login_provider.username_to_uuid(username) {
         Ok(uuid) => editable_settings.admins.edit(data_dir, |admins| {
-            if admins.insert(uuid.clone()) {
+            if admins.insert(uuid) {
                 info!("Successfully added {} ({}) as an admin!", username, uuid);
             } else {
                 info!("{} ({}) is already an admin!", username, uuid);
@@ -973,15 +985,15 @@ pub fn add_admin(
         }),
         Err(err) => error!(
             ?err,
-            "Could not find uuid for this name either the user does not exist or \
-             there was an error communicating with the auth server."
+            "Could not find uuid for this name either the user does not exist or there was an \
+             error communicating with the auth server."
         ),
     }
 }
 
 pub fn remove_admin(
     username: &str,
-    login_provider: &LoginProvider, 
+    login_provider: &LoginProvider,
     editable_settings: &mut EditableSettings,
     data_dir: &std::path::Path,
 ) {
@@ -999,8 +1011,8 @@ pub fn remove_admin(
         }),
         Err(err) => error!(
             ?err,
-            "Could not find uuid for this name either the user does not exist or \
-             there was an error communicating with the auth server."
+            "Could not find uuid for this name either the user does not exist or there was an \
+             error communicating with the auth server."
         ),
     }
 }

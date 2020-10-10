@@ -92,6 +92,7 @@ fn main() -> io::Result<()> {
     // Load server settings
     let mut server_settings = server::Settings::load(&server_data_dir);
     let mut editable_settings = server::EditableSettings::load(&server_data_dir);
+    #[allow(clippy::single_match)] // Note: remove this when there are more subcommands
     match matches.subcommand() {
         ("admin", Some(sub_m)) => {
             admin::admin_subcommand(
