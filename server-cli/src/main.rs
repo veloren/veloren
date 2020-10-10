@@ -2,6 +2,7 @@
 #![deny(clippy::clone_on_ref_ptr)]
 #![feature(bool_to_option)]
 
+mod admin;
 mod logging;
 mod settings;
 mod shutdown_coordinator;
@@ -12,11 +13,9 @@ use crate::{
     shutdown_coordinator::ShutdownCoordinator,
     tui_runner::{Message, Tui},
 };
-use clap::{App, Arg};
+use clap::{App, Arg, SubCommand};
 use common::clock::Clock;
 use server::{Event, Input, Server};
-#[cfg(any(target_os = "linux", target_os = "macos"))]
-use signal_hook::SIGUSR1;
 use std::{
     io,
     sync::{atomic::AtomicBool, mpsc, Arc},
@@ -35,47 +34,53 @@ fn main() -> io::Result<()> {
             Arg::with_name("basic")
                 .short("b")
                 .long("basic")
-                .help("Disables the tui")
-                .takes_value(false),
+                .help("Disables the tui"),
             Arg::with_name("interactive")
                 .short("i")
                 .long("interactive")
-                .help("Enables command input for basic mode")
-                .takes_value(false),
+                .help("Enables command input for basic mode"),
             Arg::with_name("no-auth")
                 .long("no-auth")
                 .help("Runs without auth enabled"),
         ])
+        .subcommand(
+            SubCommand::with_name("admin")
+                .about("Add or remove admins")
+                .subcommands(vec![
+                    SubCommand::with_name("add").about("Adds an admin").arg(
+                        Arg::with_name("username")
+                            .help("Name of the admin to add")
+                            .required(true),
+                    ),
+                    SubCommand::with_name("remove")
+                        .about("Removes an admin")
+                        .arg(
+                            Arg::with_name("username")
+                                .help("Name of the admin to remove")
+                                .required(true),
+                        ),
+                ]),
+        )
         .get_matches();
 
-    let basic = matches.is_present("basic");
+    let basic = matches.is_present("basic")
+        // Default to basic with these subcommands
+        || matches
+            .subcommand_name()
+            .filter(|name| ["admin"].contains(name))
+            .is_some();
     let interactive = matches.is_present("interactive");
     let no_auth = matches.is_present("no-auth");
 
     let sigusr1_signal = Arc::new(AtomicBool::new(false));
 
     #[cfg(any(target_os = "linux", target_os = "macos"))]
-    let _ = signal_hook::flag::register(SIGUSR1, Arc::clone(&sigusr1_signal));
+    let _ = signal_hook::flag::register(signal_hook::SIGUSR1, Arc::clone(&sigusr1_signal));
 
     logging::init(basic);
 
     // Load settings
     let settings = settings::Settings::load();
-
-    // Panic hook to ensure that console mode is set back correctly if in non-basic
-    // mode
-    let hook = std::panic::take_hook();
-    std::panic::set_hook(Box::new(move |info| {
-        Tui::shutdown(basic);
-        hook(info);
-    }));
-
-    let tui = (!basic || interactive).then(|| Tui::run(basic));
-
-    info!("Starting server...");
-
-    // Set up an fps clock
-    let mut clock = Clock::start();
 
     // Determine folder to save server data in
     let server_data_dir = {
@@ -86,7 +91,33 @@ fn main() -> io::Result<()> {
 
     // Load server settings
     let mut server_settings = server::Settings::load(&server_data_dir);
-    let editable_settings = server::EditableSettings::load(&server_data_dir);
+    let mut editable_settings = server::EditableSettings::load(&server_data_dir);
+    match matches.subcommand() {
+        ("admin", Some(sub_m)) => {
+            admin::admin_subcommand(
+                sub_m,
+                &server_settings,
+                &mut editable_settings,
+                &server_data_dir,
+            );
+            return Ok(());
+        },
+        _ => {},
+    }
+
+    // Panic hook to ensure that console mode is set back correctly if in non-basic
+    // mode
+    if !basic {
+        let hook = std::panic::take_hook();
+        std::panic::set_hook(Box::new(move |info| {
+            Tui::shutdown(basic);
+            hook(info);
+        }));
+    }
+
+    let tui = (!basic || interactive).then(|| Tui::run(basic));
+
+    info!("Starting server...");
 
     if no_auth {
         server_settings.auth_server_address = None;
@@ -105,6 +136,12 @@ fn main() -> io::Result<()> {
     );
 
     let mut shutdown_coordinator = ShutdownCoordinator::new(Arc::clone(&sigusr1_signal));
+
+    // Set up an fps clock
+    let mut clock = Clock::start();
+    // Wait for a tick so we don't start with a zero dt
+    // TODO: consider integrating this into Clock::start?
+    clock.tick(Duration::from_millis(1000 / TPS));
 
     loop {
         // Terminate the server if instructed to do so by the shutdown coordinator
@@ -143,6 +180,12 @@ fn main() -> io::Result<()> {
                     Message::Quit => {
                         info!("Closing the server");
                         break;
+                    },
+                    Message::AddAdmin(username) => {
+                        server.add_admin(&username);
+                    },
+                    Message::RemoveAdmin(username) => {
+                        server.remove_admin(&username);
                     },
                 },
                 Err(mpsc::TryRecvError::Empty) | Err(mpsc::TryRecvError::Disconnected) => {},

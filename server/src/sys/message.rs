@@ -10,7 +10,7 @@ use crate::{
 };
 use common::{
     comp::{
-        Admin, AdminList, CanBuild, ChatMode, ChatType, ControlEvent, Controller, ForceUpdate, Ori,
+        Admin, CanBuild, ChatMode, ChatType, ControlEvent, Controller, ForceUpdate, Ori,
         Player, Pos, Stats, UnresolvedChatMsg, Vel,
     },
     event::{EventBus, ServerEvent},
@@ -57,7 +57,6 @@ impl Sys {
         chat_modes: &ReadStorage<'_, ChatMode>,
         login_provider: &mut WriteExpect<'_, LoginProvider>,
         block_changes: &mut Write<'_, BlockChange>,
-        admin_list: &ReadExpect<'_, AdminList>,
         admins: &mut WriteStorage<'_, Admin>,
         positions: &mut WriteStorage<'_, Pos>,
         velocities: &mut WriteStorage<'_, Vel>,
@@ -99,7 +98,7 @@ impl Sys {
                 } => {
                     let (username, uuid) = match login_provider.try_login(
                         &token_or_username,
-                        &settings.admins,
+                        &*editable_settings.admins,
                         &*editable_settings.whitelist,
                         &*editable_settings.banlist,
                     ) {
@@ -112,8 +111,8 @@ impl Sys {
 
                     let vd =
                         view_distance.map(|vd| vd.min(settings.max_view_distance.unwrap_or(vd)));
+                    let is_admin = editable_settings.admins.contains(&uuid);
                     let player = Player::new(username.clone(), None, vd, uuid);
-                    let is_admin = admin_list.contains(&username);
 
                     if !player.is_valid() {
                         // Invalid player
@@ -441,7 +440,6 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, ChatMode>,
         WriteExpect<'a, LoginProvider>,
         Write<'a, BlockChange>,
-        ReadExpect<'a, AdminList>,
         WriteStorage<'a, Admin>,
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
@@ -475,7 +473,6 @@ impl<'a> System<'a> for Sys {
             chat_modes,
             mut accounts,
             mut block_changes,
-            admin_list,
             mut admins,
             mut positions,
             mut velocities,
@@ -537,7 +534,6 @@ impl<'a> System<'a> for Sys {
                     &chat_modes,
                     &mut accounts,
                     &mut block_changes,
-                    &admin_list,
                     &mut admins,
                     &mut positions,
                     &mut velocities,
