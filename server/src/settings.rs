@@ -38,8 +38,6 @@ pub struct Settings {
     /// When set to None, loads the default map file (if available); otherwise,
     /// uses the value of the file options to decide how to proceed.
     pub map_file: Option<FileOpts>,
-    /// Relative paths are relative to the server data dir
-    pub persistence_db_dir: PathBuf,
     pub max_view_distance: Option<u32>,
     pub banned_words_files: Vec<PathBuf>,
     pub max_player_group_size: u32,
@@ -57,7 +55,6 @@ impl Default for Settings {
             max_players: 100,
             start_time: 9.0 * 3600.0,
             map_file: None,
-            persistence_db_dir: "saves".into(),
             max_view_distance: Some(30),
             banned_words_files: Vec::new(),
             max_player_group_size: 6,
@@ -96,7 +93,6 @@ impl Settings {
             }
             default_settings
         }
-        .apply_saves_dir_override()
     }
 
     fn save_to_file(&self, path: &Path) -> std::io::Result<()> {
@@ -146,18 +142,6 @@ impl Settings {
         let mut path = with_config_dir(path);
         path.push(SETTINGS_FILENAME);
         path
-    }
-
-    fn apply_saves_dir_override(mut self) -> Self {
-        if let Some(saves_dir) = std::env::var_os("VELOREN_SAVES_DIR") {
-            let path = PathBuf::from(&saves_dir);
-            if path.exists() || path.parent().map(|x| x.exists()).unwrap_or(false) {
-                self.persistence_db_dir = path;
-            } else {
-                warn!(?saves_dir, "VELOREN_SAVES_DIR points to an invalid path.");
-            }
-        }
-        self
     }
 }
 
