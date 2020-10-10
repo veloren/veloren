@@ -10,8 +10,8 @@ use crate::{
 };
 use common::{
     comp::{
-        Admin, CanBuild, ChatMode, ChatType, ControlEvent, Controller, ForceUpdate, Ori,
-        Player, Pos, Stats, UnresolvedChatMsg, Vel,
+        Admin, CanBuild, ChatMode, ChatType, ControlEvent, Controller, ForceUpdate, Ori, Player,
+        Pos, Stats, UnresolvedChatMsg, Vel,
     },
     event::{EventBus, ServerEvent},
     msg::{
