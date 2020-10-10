@@ -156,9 +156,6 @@ impl Server {
         state
             .ecs_mut()
             .insert(CharacterLoader::new(&persistence_db_dir)?);
-        state
-            .ecs_mut()
-            .insert(comp::AdminList(settings.admins.clone()));
         state.ecs_mut().insert(Vec::<Outcome>::new());
 
         // System timers for performance monitoring
@@ -935,11 +932,74 @@ impl Server {
     pub fn number_of_players(&self) -> i64 {
         self.state.ecs().read_storage::<Client>().join().count() as i64
     }
+
+    pub fn add_admin(&self, username: &str) {
+        let mut editable_settings = self.editable_settings_mut();
+        let login_provider = self.state.ecs().fetch::<LoginProvider>();
+        let data_dir = self.data_dir();
+        add_admin(username, &login_provider, &mut editable_settings, &data_dir.path);
+    }
+
+    pub fn remove_admin(&self, username: &str) {
+        let mut editable_settings = self.editable_settings_mut();
+        let login_provider = self.state.ecs().fetch::<LoginProvider>();
+        let data_dir = self.data_dir();
+        remove_admin(username, &login_provider, &mut editable_settings, &data_dir.path);
+    }
 }
 
 impl Drop for Server {
     fn drop(&mut self) {
         self.state
             .notify_registered_clients(ServerMsg::Disconnect(DisconnectReason::Shutdown));
+    }
+}
+
+pub fn add_admin(
+    username: &str,
+    login_provider: &LoginProvider, 
+    editable_settings: &mut EditableSettings,
+    data_dir: &std::path::Path,
+) {
+    use crate::settings::EditableSetting;
+    match login_provider.username_to_uuid(username) {
+        Ok(uuid) => editable_settings.admins.edit(data_dir, |admins| {
+            if admins.insert(uuid.clone()) {
+                info!("Successfully added {} ({}) as an admin!", username, uuid);
+            } else {
+                info!("{} ({}) is already an admin!", username, uuid);
+            }
+        }),
+        Err(err) => error!(
+            ?err,
+            "Could not find uuid for this name either the user does not exist or \
+             there was an error communicating with the auth server."
+        ),
+    }
+}
+
+pub fn remove_admin(
+    username: &str,
+    login_provider: &LoginProvider, 
+    editable_settings: &mut EditableSettings,
+    data_dir: &std::path::Path,
+) {
+    use crate::settings::EditableSetting;
+    match login_provider.username_to_uuid(username) {
+        Ok(uuid) => editable_settings.admins.edit(data_dir, |admins| {
+            if admins.remove(&uuid) {
+                info!(
+                    "Successfully removed {} ({}) from the admins",
+                    username, uuid
+                );
+            } else {
+                info!("{} ({}) is not an admin!", username, uuid);
+            }
+        }),
+        Err(err) => error!(
+            ?err,
+            "Could not find uuid for this name either the user does not exist or \
+             there was an error communicating with the auth server."
+        ),
     }
 }

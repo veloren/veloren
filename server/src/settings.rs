@@ -22,6 +22,7 @@ const SETTINGS_FILENAME: &str = "settings.ron";
 const WHITELIST_FILENAME: &str = "whitelist.ron";
 const BANLIST_FILENAME: &str = "banlist.ron";
 const SERVER_DESCRIPTION_FILENAME: &str = "description.ron";
+const ADMINS_FILENAME: &str = "admins.ron";
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
@@ -34,7 +35,6 @@ pub struct Settings {
     //pub pvp_enabled: bool,
     pub server_name: String,
     pub start_time: f64,
-    pub admins: Vec<String>,
     /// When set to None, loads the default map file (if available); otherwise,
     /// uses the value of the file options to decide how to proceed.
     pub map_file: Option<FileOpts>,
@@ -57,7 +57,6 @@ impl Default for Settings {
             max_players: 100,
             start_time: 9.0 * 3600.0,
             map_file: None,
-            admins: Vec::new(),
             persistence_db_dir: "saves".into(),
             max_view_distance: Some(30),
             banned_words_files: Vec::new(),
@@ -137,8 +136,6 @@ impl Settings {
             server_name: "Singleplayer".to_owned(),
             max_players: 100,
             start_time: 9.0 * 3600.0,
-            admins: vec!["singleplayer".to_string()], /* TODO: Let the player choose if they want
-                                                       * to use admin commands or not */
             max_view_distance: None,
             client_timeout: Duration::from_secs(180),
             ..load // Fill in remaining fields from server_settings.ron.
@@ -179,18 +176,28 @@ pub struct BanRecord {
 #[derive(Deserialize, Serialize, Default)]
 #[serde(transparent)]
 pub struct Whitelist(HashSet<Uuid>);
+
 #[derive(Deserialize, Serialize, Default)]
 #[serde(transparent)]
 pub struct Banlist(HashMap<Uuid, BanRecord>);
+
 #[derive(Deserialize, Serialize)]
 #[serde(transparent)]
 pub struct ServerDescription(String);
+impl Default for ServerDescription {
+    fn default() -> Self { Self("This is the best Veloren server".into()) }
+}
+
+#[derive(Deserialize, Serialize, Default)]
+#[serde(transparent)]
+pub struct Admins(HashSet<Uuid>);
 
 /// Combines all the editable settings into one struct that is stored in the ecs
 pub struct EditableSettings {
     pub whitelist: Whitelist,
     pub banlist: Banlist,
     pub server_description: ServerDescription,
+    pub admins: Admins,
 }
 
 impl EditableSettings {
@@ -199,6 +206,7 @@ impl EditableSettings {
             whitelist: Whitelist::load(data_dir),
             banlist: Banlist::load(data_dir),
             server_description: ServerDescription::load(data_dir),
+            admins: Admins::load(data_dir),
         }
     }
 
@@ -206,13 +214,19 @@ impl EditableSettings {
         let load = Self::load(data_dir);
         Self {
             server_description: ServerDescription("Who needs friends anyway?".into()),
+            // TODO: Let the player choose if they want to use admin commands or not
+            admins: Admins(
+                std::iter::once(
+                    // TODO: hacky
+                    crate::login_provider::LoginProvider::new(None)
+                        .username_to_uuid("singleplayer")
+                        .unwrap(),
+                )
+                .collect(),
+            ),
             ..load
         }
     }
-}
-
-impl Default for ServerDescription {
-    fn default() -> Self { Self("This is the best Veloren server".into()) }
 }
 
 impl EditableSetting for Whitelist {
@@ -225,6 +239,10 @@ impl EditableSetting for Banlist {
 
 impl EditableSetting for ServerDescription {
     const FILENAME: &'static str = SERVER_DESCRIPTION_FILENAME;
+}
+
+impl EditableSetting for Admins {
+    const FILENAME: &'static str = ADMINS_FILENAME;
 }
 
 impl Deref for Whitelist {
@@ -254,5 +272,15 @@ impl Deref for ServerDescription {
 }
 
 impl DerefMut for ServerDescription {
+    fn deref_mut(&mut self) -> &mut Self::Target { &mut self.0 }
+}
+
+impl Deref for Admins {
+    type Target = HashSet<Uuid>;
+
+    fn deref(&self) -> &Self::Target { &self.0 }
+}
+
+impl DerefMut for Admins {
     fn deref_mut(&mut self) -> &mut Self::Target { &mut self.0 }
 }

@@ -26,6 +26,8 @@ pub enum Message {
     AbortShutdown,
     Shutdown { grace_period: Duration },
     Quit,
+    AddAdmin(String),
+    RemoveAdmin(String),
 }
 
 pub struct Command<'a> {
@@ -37,7 +39,8 @@ pub struct Command<'a> {
     pub cmd: fn(Vec<String>, &mut mpsc::Sender<Message>),
 }
 
-pub const COMMANDS: [Command; 4] = [
+// TODO: mabye we could be using clap here?
+pub const COMMANDS: [Command; 5] = [
     Command {
         name: "quit",
         description: "Closes the server",
@@ -69,6 +72,22 @@ pub const COMMANDS: [Command; 4] = [
         split_spaces: false,
         args: 0,
         cmd: |_, sender| sender.send(Message::AbortShutdown).unwrap(),
+    },
+    Command {
+        name: "admin",
+        description: "Add or remove an admin via \'admin add/remove <username>\'",
+        split_spaces: true,
+        args: 2,
+        cmd: |args, sender| match args.get(..2) {
+            Some([op, username]) if op == "add" => {
+                sender.send(Message::AddAdmin(username.clone())).unwrap()
+            },
+            Some([op, username]) if op == "remove" => {
+                sender.send(Message::RemoveAdmin(username.clone())).unwrap()
+            },
+            Some(_) => error!("First arg must be add or remove"),
+            _ => error!("Not enough args, should be unreachable"),
+        },
     },
     Command {
         name: "help",
