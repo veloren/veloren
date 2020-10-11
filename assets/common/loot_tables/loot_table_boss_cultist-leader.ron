@@ -13,5 +13,5 @@
     (1, "common.items.weapons.sword.cultist_purp_2h-0"),
     // misc    
     (1, "common.items.boss_drops.lantern"),    
-    (0.05, "common.items.glider.glider_purp"),
+    (0.1, "common.items.glider.glider_purp"),
 ]
