@@ -1,6 +1,6 @@
 use super::{
     img_ids::Imgs, Show, BLACK, ERROR_COLOR, GROUP_COLOR, HP_COLOR, KILL_COLOR, LOW_HP_COLOR,
-    MANA_COLOR, TEXT_COLOR, TEXT_COLOR_GREY, UI_HIGHLIGHT_0, UI_MAIN,
+    STAMINA_COLOR, TEXT_COLOR, TEXT_COLOR_GREY, UI_HIGHLIGHT_0, UI_MAIN,
 };
 
 use crate::{
@@ -404,7 +404,7 @@ impl<'a> Widget for Group<'a> {
                         // Stamina
                         Image::new(self.imgs.bar_content)
                             .w_h(100.0 * stam_perc, 8.0)
-                            .color(Some(MANA_COLOR))
+                            .color(Some(STAMINA_COLOR))
                             .top_left_with_margins_on(state.ids.member_panels_bg[i], 26.0, 2.0)
                             .set(state.ids.member_stam[i], ui);
                     }
