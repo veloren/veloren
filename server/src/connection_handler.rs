@@ -1,17 +1,11 @@
 use crate::{Client, ClientType, ServerInfo};
 use crossbeam::{bounded, unbounded, Receiver, Sender};
+use futures_channel::oneshot;
 use futures_executor::block_on;
 use futures_timer::Delay;
 use futures_util::{select, FutureExt};
 use network::{Network, Participant, Promises};
-use std::{
-    sync::{
-        atomic::{AtomicBool, Ordering},
-        Arc,
-    },
-    thread,
-    time::Duration,
-};
+use std::{sync::Arc, thread, time::Duration};
 use tracing::{debug, error, trace, warn};
 
 pub(crate) struct ServerInfoPacket {
@@ -19,28 +13,25 @@ pub(crate) struct ServerInfoPacket {
     pub time: f64,
 }
 
-pub(crate) type ConnectionDataPacket = Client;
-
 pub(crate) struct ConnectionHandler {
     _network: Arc<Network>,
     thread_handle: Option<thread::JoinHandle<()>>,
-    pub client_receiver: Receiver<ConnectionDataPacket>,
+    pub client_receiver: Receiver<Client>,
     pub info_requester_receiver: Receiver<Sender<ServerInfoPacket>>,
-    running: Arc<AtomicBool>,
+    stop_sender: Option<oneshot::Sender<()>>,
 }
 
 /// Instead of waiting the main loop we are handling connections, especially
 /// their slow network .await part on a different thread. We need to communicate
-/// to the Server main thread sometimes tough to get the current server_info and
-/// time
+/// to the Server main thread sometimes though to get the current server_info
+/// and time
 impl ConnectionHandler {
     pub fn new(network: Network) -> Self {
         let network = Arc::new(network);
         let network_clone = Arc::clone(&network);
-        let running = Arc::new(AtomicBool::new(true));
-        let running_clone = Arc::clone(&running);
+        let (stop_sender, stop_receiver) = oneshot::channel();
 
-        let (client_sender, client_receiver) = unbounded::<ConnectionDataPacket>();
+        let (client_sender, client_receiver) = unbounded::<Client>();
         let (info_requester_sender, info_requester_receiver) =
             bounded::<Sender<ServerInfoPacket>>(1);
 
@@ -49,7 +40,7 @@ impl ConnectionHandler {
                 network_clone,
                 client_sender,
                 info_requester_sender,
-                running_clone,
+                stop_receiver,
             ));
         }));
 
@@ -58,23 +49,23 @@ impl ConnectionHandler {
             thread_handle,
             client_receiver,
             info_requester_receiver,
-            running,
+            stop_sender: Some(stop_sender),
         }
     }
 
     async fn work(
         network: Arc<Network>,
-        client_sender: Sender<ConnectionDataPacket>,
+        client_sender: Sender<Client>,
         info_requester_sender: Sender<Sender<ServerInfoPacket>>,
-        running: Arc<AtomicBool>,
+        stop_receiver: oneshot::Receiver<()>,
     ) {
-        while running.load(Ordering::Relaxed) {
-            const TIMEOUT: Duration = Duration::from_secs(5);
+        let mut stop_receiver = stop_receiver.fuse();
+        loop {
             let participant = match select!(
-                _ = Delay::new(TIMEOUT).fuse() => None,
+                _ = stop_receiver => None,
                 p = network.connected().fuse() => Some(p),
             ) {
-                None => continue, //check condition
+                None => break,
                 Some(Ok(p)) => p,
                 Some(Err(e)) => {
                     error!(
@@ -88,16 +79,20 @@ impl ConnectionHandler {
             let client_sender = client_sender.clone();
             let info_requester_sender = info_requester_sender.clone();
 
-            match Self::init_participant(participant, client_sender, info_requester_sender).await {
-                Ok(_) => (),
-                Err(e) => warn!(?e, "drop new participant, because an error occurred"),
+            match select!(
+                _ = stop_receiver => None,
+                e = Self::init_participant(participant, client_sender, info_requester_sender).fuse() => Some(e),
+            ) {
+                None => break,
+                Some(Ok(())) => (),
+                Some(Err(e)) => warn!(?e, "drop new participant, because an error occurred"),
             }
         }
     }
 
     async fn init_participant(
         participant: Participant,
-        client_sender: Sender<ConnectionDataPacket>,
+        client_sender: Sender<Client>,
         info_requester_sender: Sender<Sender<ServerInfoPacket>>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         debug!("New Participant connected to the server");
@@ -151,7 +146,7 @@ impl ConnectionHandler {
 
 impl Drop for ConnectionHandler {
     fn drop(&mut self) {
-        self.running.store(false, Ordering::Relaxed);
+        let _ = self.stop_sender.take().unwrap().send(());
         trace!("blocking till ConnectionHandler is closed");
         self.thread_handle
             .take()

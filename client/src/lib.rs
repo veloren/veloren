@@ -466,7 +466,7 @@ impl Client {
         let msg: ClientMsg = msg.into();
         #[cfg(debug_assertions)]
         {
-            //There assertions veriy that the state is correct when a msg is send!
+            // These assertions verify that the state is correct when a message is sent!
             match &msg {
                 ClientMsg::Type(_) | ClientMsg::Register(_) => assert!(
                     !self.registered,
@@ -1514,19 +1514,14 @@ impl Client {
         Ok(frontend_events)
     }
 
-    /// Get the player's entity.
     pub fn entity(&self) -> EcsEntity { self.entity }
 
-    /// Get the player's Uid.
     pub fn uid(&self) -> Option<Uid> { self.state.read_component_copied(self.entity) }
 
-    pub fn get_client_type(&self) -> ClientType { ClientType::Game }
+    pub fn in_game(&self) -> Option<ClientIngame> { self.in_game }
 
-    pub fn get_in_game(&self) -> Option<ClientIngame> { self.in_game }
+    pub fn registered(&self) -> bool { self.registered }
 
-    pub fn get_registered(&self) -> bool { self.registered }
-
-    /// Get the current tick number.
     pub fn get_tick(&self) -> u64 { self.tick }
 
     pub fn get_ping_ms(&self) -> f64 { self.last_ping_delta * 1000.0 }
