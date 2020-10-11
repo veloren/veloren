@@ -104,25 +104,21 @@ impl Animation for EquipAnimation {
                 next.control.scale = Vec3::one();
             },
             Some(ToolKind::Staff(_)) | Some(ToolKind::Sceptre(_)) => {
-                next.l_hand.position = Vec3::new(1.0, -2.0, -5.0);
+                next.l_hand.position = Vec3::new(0.0, 0.0, -4.0);
                 next.l_hand.orientation =
-                    Quaternion::rotation_x(1.47) * Quaternion::rotation_y(-0.3);
+                    Quaternion::rotation_x(1.27) * Quaternion::rotation_y(0.0);
                 next.l_hand.scale = Vec3::one() * 1.05;
-                next.r_hand.position = Vec3::new(9.0, 1.0, 0.0);
-                next.r_hand.orientation = Quaternion::rotation_x(1.8)
-                    * Quaternion::rotation_y(0.5)
-                    * Quaternion::rotation_z(-0.27);
+                next.r_hand.position = Vec3::new(0.0, 0.0, 2.0);
+                next.r_hand.orientation =
+                    Quaternion::rotation_x(1.57) * Quaternion::rotation_y(0.2);
                 next.r_hand.scale = Vec3::one() * 1.05;
-                next.main.position = Vec3::new(11.0, 9.0, 10.0);
-                next.main.orientation = Quaternion::rotation_x(-0.3)
-                    * Quaternion::rotation_y(3.14 + 0.3)
-                    * Quaternion::rotation_z(0.9);
-                next.main.scale = Vec3::one();
+                next.main.position = Vec3::new(0.0, 0.0, 13.2);
+                next.main.orientation = Quaternion::rotation_y(3.14);
 
-                next.control.position = Vec3::new(-7.0, 6.0, 6.0);
-                next.control.orientation = Quaternion::rotation_x(wave_ultra_slow * 0.2)
-                    * Quaternion::rotation_y(0.0)
-                    * Quaternion::rotation_z(wave_ultra_slow_cos * 0.1);
+                next.control.position = Vec3::new(-4.0, 7.0, 4.0);
+                next.control.orientation = Quaternion::rotation_x(-0.3)
+                    * Quaternion::rotation_y(0.15)
+                    * Quaternion::rotation_z(0.0);
                 next.control.scale = Vec3::one();
             },
             Some(ToolKind::Shield(_)) => {
