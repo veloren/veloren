@@ -251,65 +251,60 @@ impl Sys {
     ) -> Result<(), crate::error::Error> {
         match msg {
             // Request spectator state
-            ClientCharacterScreen::Spectate => {
-                if client.registered {
-                    client.in_game = Some(ClientIngame::Spectator)
-                } else {
-                    debug!("dropped Spectate msg from unregistered client");
-                }
+            ClientCharacterScreen::Spectate if client.registered => {
+                client.in_game = Some(ClientIngame::Spectator)
             },
-            ClientCharacterScreen::Character(character_id) => {
-                if client.registered && client.in_game.is_none() {
-                    // Only send login message if it wasn't already
-                    // sent previously
-                    if let Some(player) = players.get(entity) {
-                        // Send a request to load the character's component data from the
-                        // DB. Once loaded, persisted components such as stats and inventory
-                        // will be inserted for the entity
-                        character_loader.load_character_data(
-                            entity,
-                            player.uuid().to_string(),
-                            character_id,
+            ClientCharacterScreen::Spectate => {
+                debug!("dropped Spectate msg from unregistered client")
+            },
+            ClientCharacterScreen::Character(character_id)
+                if client.registered && client.in_game.is_none() =>
+            {
+                if let Some(player) = players.get(entity) {
+                    // Send a request to load the character's component data from the
+                    // DB. Once loaded, persisted components such as stats and inventory
+                    // will be inserted for the entity
+                    character_loader.load_character_data(
+                        entity,
+                        player.uuid().to_string(),
+                        character_id,
+                    );
+
+                    // Start inserting non-persisted/default components for the entity
+                    // while we load the DB data
+                    server_emitter.emit(ServerEvent::InitCharacterData {
+                        entity,
+                        character_id,
+                    });
+
+                    // Give the player a welcome message
+                    if !editable_settings.server_description.is_empty() {
+                        client.send_msg(
+                            ChatType::CommandInfo
+                                .server_msg(String::from(&*editable_settings.server_description)),
                         );
+                    }
 
-                        // Start inserting non-persisted/default components for the entity
-                        // while we load the DB data
-                        server_emitter.emit(ServerEvent::InitCharacterData {
-                            entity,
-                            character_id,
-                        });
+                    if !client.login_msg_sent {
+                        if let Some(player_uid) = uids.get(entity) {
+                            new_chat_msgs.push((None, UnresolvedChatMsg {
+                                chat_type: ChatType::Online(*player_uid),
+                                message: "".to_string(),
+                            }));
 
-                        // Give the player a welcome message
-                        if !editable_settings.server_description.is_empty() {
-                            client.send_msg(
-                                ChatType::CommandInfo.server_msg(String::from(
-                                    &*editable_settings.server_description,
-                                )),
-                            );
+                            client.login_msg_sent = true;
                         }
-
-                        // Only send login message if it wasn't already
-                        // sent previously
-                        if !client.login_msg_sent {
-                            if let Some(player_uid) = uids.get(entity) {
-                                new_chat_msgs.push((None, UnresolvedChatMsg {
-                                    chat_type: ChatType::Online(*player_uid),
-                                    message: "".to_string(),
-                                }));
-
-                                client.login_msg_sent = true;
-                            }
-                        }
-                    } else {
-                        client.send_msg(ServerCharacterScreen::CharacterDataLoadError(
-                            String::from("Failed to fetch player entity"),
-                        ))
                     }
                 } else {
-                    let registered = client.registered;
-                    let in_game = client.in_game;
-                    debug!(?registered, ?in_game, "dropped Character msg from client");
+                    client.send_msg(ServerCharacterScreen::CharacterDataLoadError(String::from(
+                        "Failed to fetch player entity",
+                    )))
                 }
+            }
+            ClientCharacterScreen::Character(_) => {
+                let registered = client.registered;
+                let in_game = client.in_game;
+                debug!(?registered, ?in_game, "dropped Character msg from client");
             },
             ClientCharacterScreen::RequestCharacterList => {
                 if let Some(player) = players.get(entity) {
@@ -461,6 +456,11 @@ impl Sys {
             client.network_error,
         );
         loop {
+            /*
+            waiting for 1 of the 5 streams to return a massage asynchronous.
+            If so, handle that msg type. This code will be refactored soon
+            */
+
             let q1 = Client::internal_recv(&mut b1, &mut client.general_stream);
             let q2 = Client::internal_recv(&mut b2, &mut client.in_game_stream);
             let q3 = Client::internal_recv(&mut b3, &mut client.character_screen_stream);
@@ -677,7 +677,7 @@ impl<'a> System<'a> for Sys {
                 )
             });
 
-            // Postbox error
+            // Network error
             if network_err.is_err() {
                 debug!(?entity, "postbox error with client, disconnecting");
                 player_metrics
