@@ -485,7 +485,7 @@ impl Tool {
                 },
                 Shockwave {
                     energy_cost: 600,
-                    buildup_duration: Duration::from_millis(400),
+                    buildup_duration: Duration::from_millis(700),
                     swing_duration: Duration::from_millis(100),
                     recover_duration: Duration::from_millis(300),
                     damage: (200.0 * self.base_power()) as u32,

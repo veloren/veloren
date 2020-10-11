@@ -8,7 +8,7 @@ use std::{f32::consts::PI, ops::Mul};
 pub struct WieldAnimation;
 
 impl Animation for WieldAnimation {
-    type Dependency = (Option<ToolKind>, Option<ToolKind>, f32, f64);
+    type Dependency = (Option<ToolKind>, Option<ToolKind>, Vec3<f32>, f64);
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -25,6 +25,7 @@ impl Animation for WieldAnimation {
     ) -> Self::Skeleton {
         *rate = 1.0;
         let lab = 1.0;
+        let speed = Vec2::<f32>::from(velocity).magnitude();
 
         let mut next = (*skeleton).clone();
         let head_look = Vec2::new(
@@ -40,6 +41,14 @@ impl Animation for WieldAnimation {
                 * 0.1,
         );
 
+        let footrotl = (((1.0)
+            / (0.5
+                + (0.5)
+                    * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.4).sin()).powf(2.0 as f32)))
+        .sqrt())
+            * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.4).sin());
+        let foothoril = (anim_time as f32 * 16.0 * lab as f32 + PI * 1.45).sin();
+
         let slowalt = (anim_time as f32 * 6.0 + PI).cos();
         let u_slow = (anim_time as f32 * 1.0 + PI).sin();
         let slow = (anim_time as f32 * 3.0 + PI).sin();
@@ -52,7 +61,7 @@ impl Animation for WieldAnimation {
         let noisea = (anim_time as f32 * 11.0 + PI / 6.0).sin();
         let noiseb = (anim_time as f32 * 19.0 + PI / 4.0).sin();
 
-        if velocity > 0.5 {
+        if speed > 0.5 {
             next.torso.position = Vec3::new(0.0, 0.0, 0.0) * skeleton_attr.scaler;
             next.torso.orientation = Quaternion::rotation_x(-0.2);
             next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
@@ -162,7 +171,7 @@ impl Animation for WieldAnimation {
                 next.r_control.position = Vec3::new(7.0, 0.0, 0.0);
             },
             Some(ToolKind::Axe(_)) => {
-                if velocity < 0.5 {
+                if speed < 0.5 {
                     next.head.position = Vec3::new(
                         0.0,
                         -3.5 + skeleton_attr.head.0,
@@ -229,21 +238,33 @@ impl Animation for WieldAnimation {
                 next.control.scale = Vec3::one();
             },
             Some(ToolKind::Staff(_)) | Some(ToolKind::Sceptre(_)) => {
-                next.l_hand.position = Vec3::new(11.0, 5.0, -4.0);
+                if speed > 0.5 && velocity.z == 0.0 {
+                    next.r_hand.position = Vec3::new(
+                        4.0 + skeleton_attr.hand.0 + foothoril * 1.3,
+                        -2.0 + skeleton_attr.hand.1 + foothoril * -6.5,
+                        -2.0 + skeleton_attr.hand.2 - foothoril * 7.0,
+                    );
+                    next.r_hand.orientation = Quaternion::rotation_x(0.6 + footrotl * -1.2)
+                        * Quaternion::rotation_y(footrotl * -0.4);
+                } else {
+                    next.r_hand.position = Vec3::new(0.0, 0.0, 2.0);
+                    next.r_hand.orientation =
+                        Quaternion::rotation_x(1.57) * Quaternion::rotation_y(0.2);
+                };
+                next.control.position = Vec3::new(-4.0, 7.0, 4.0);
+
+                next.l_hand.position = Vec3::new(0.0, 0.0, -4.0);
                 next.l_hand.orientation =
                     Quaternion::rotation_x(1.27) * Quaternion::rotation_y(0.0);
                 next.l_hand.scale = Vec3::one() * 1.05;
-                next.r_hand.position = Vec3::new(12.0, 5.5, 2.0);
-                next.r_hand.orientation =
-                    Quaternion::rotation_x(1.57) * Quaternion::rotation_y(0.2);
+
                 next.r_hand.scale = Vec3::one() * 1.05;
-                next.main.position = Vec3::new(12.0, 8.5, 13.2);
+                next.main.position = Vec3::new(0.0, 0.0, 13.2);
                 next.main.orientation = Quaternion::rotation_y(3.14);
 
-                next.control.position = Vec3::new(-18.0, 1.0, 6.0);
                 next.control.orientation = Quaternion::rotation_x(-0.3 + u_slow * 0.1)
                     * Quaternion::rotation_y(0.15)
-                    * Quaternion::rotation_z(u_slowalt * 0.08);
+                    * Quaternion::rotation_z(u_slowalt * 0.1);
                 next.control.scale = Vec3::one();
             },
             Some(ToolKind::Shield(_)) => {
@@ -317,7 +338,7 @@ impl Animation for WieldAnimation {
                 next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
             },
             Some(ToolKind::Farming(_)) => {
-                if velocity < 0.5 {
+                if speed < 0.5 {
                     next.head.orientation = Quaternion::rotation_z(head_look.x)
                         * Quaternion::rotation_x(-0.2 + head_look.y.abs());
                     next.head.scale = Vec3::one() * skeleton_attr.head_scale;

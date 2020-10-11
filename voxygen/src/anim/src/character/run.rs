@@ -130,13 +130,18 @@ impl Animation for RunAnimation {
         next.chest.orientation = Quaternion::rotation_z(short * 0.18 * walkintensity + tilt * -0.6)
             * Quaternion::rotation_y(tilt * 1.6)
             * Quaternion::rotation_x(
-                impact * 0.06 + shortalter * 0.035 + wave_stop * speed * -0.07 + (tilt.abs()),
+                impact * 0.06 + shortalter * 0.035 + wave_stop * speed * -0.09 + (tilt.abs()),
             );
         next.chest.scale = Vec3::one();
 
-        next.belt.position = Vec3::new(0.0, skeleton_attr.belt.0, skeleton_attr.belt.1);
-        next.belt.orientation =
-            Quaternion::rotation_z(short * 0.1 + tilt * -1.1) * Quaternion::rotation_y(tilt * 0.5);
+        next.belt.position = Vec3::new(
+            0.0,
+            0.25 + skeleton_attr.belt.0,
+            0.25 + skeleton_attr.belt.1,
+        );
+        next.belt.orientation = Quaternion::rotation_x(0.1)
+            * Quaternion::rotation_z(short * 0.1 + tilt * -1.1)
+            * Quaternion::rotation_y(tilt * 0.5);
         next.belt.scale = Vec3::one();
 
         next.back.position = Vec3::new(0.0, skeleton_attr.back.0, skeleton_attr.back.1);
@@ -144,9 +149,14 @@ impl Animation for RunAnimation {
             Quaternion::rotation_x(-0.25 + short * 0.1 + noisea * 0.1 + noiseb * 0.1);
         next.back.scale = Vec3::one() * 1.02;
 
-        next.shorts.position = Vec3::new(0.0, skeleton_attr.shorts.0, skeleton_attr.shorts.1);
-        next.shorts.orientation =
-            Quaternion::rotation_z(short * 0.25 + tilt * -1.5) * Quaternion::rotation_y(tilt * 0.7);
+        next.shorts.position = Vec3::new(
+            0.0,
+            0.65 + skeleton_attr.shorts.0,
+            0.65 + skeleton_attr.shorts.1,
+        );
+        next.shorts.orientation = Quaternion::rotation_x(0.2)
+            * Quaternion::rotation_z(short * 0.25 + tilt * -1.5)
+            * Quaternion::rotation_y(tilt * 0.7);
         next.shorts.scale = Vec3::one();
 
         next.l_hand.position = Vec3::new(

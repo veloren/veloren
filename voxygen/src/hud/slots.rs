@@ -126,9 +126,9 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                         _ => None,
                     }
                     .map(|image_key| match image_key {
-                        HotbarImage::Fireball => (
+                        HotbarImage::FireAoe => (
                             image_key,
-                            (energy.current() < 450).then_some(Color::Rgba(0.3, 0.3, 0.3, 0.8)),
+                            (energy.current() < 600).then_some(Color::Rgba(0.3, 0.3, 0.3, 0.8)),
                         ),
                         HotbarImage::HammerLeap => (
                             image_key,
