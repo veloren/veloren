@@ -7,5 +7,5 @@
     // necks
     (0.25, "common.items.armor.neck.neck_0"),
     // misc
-    (0.1, "common.items.glider.glider_blue"),
+    (0.05, "common.items.glider.glider_blue"),
 ]

@@ -327,7 +327,10 @@ impl Item {
                 chosen.choose()
             },
             SpriteKind::Crate => {
-                chosen = Lottery::<String>::load_expect("common.loot_tables.loot_table_food");
+                chosen = Lottery::<String>::load_expect(match rng.gen_range(0, 4) {
+                    0 => "common.loot_tables.loot_table_crafting",
+                    _ => "common.loot_tables.loot_table_food",
+                });
                 chosen.choose()
             },
             SpriteKind::Beehive => "common.items.crafting_ing.honey",
