@@ -1,6 +1,5 @@
 use super::{
-    img_ids::Imgs, BarNumbers, CrosshairType, PressBehavior, ShortcutNumbers, Show, XpBar,
-    CRITICAL_HP_COLOR, ERROR_COLOR, HP_COLOR, LOW_HP_COLOR, MANA_COLOR, MENU_BG,
+    img_ids::Imgs, BarNumbers, CrosshairType, PressBehavior, ShortcutNumbers, Show, CRITICAL_HP_COLOR, ERROR_COLOR, HP_COLOR, LOW_HP_COLOR, MENU_BG, STAMINA_COLOR,
     TEXT_BIND_CONFLICT_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
@@ -258,8 +257,7 @@ pub struct State {
 pub enum Event {
     ToggleHelp,
     ToggleDebug,
-    ToggleTips(bool),
-    ToggleXpBar(XpBar),
+    ToggleTips(bool),    
     ToggleBarNumbers(BarNumbers),
     ToggleShortcutNumbers(ShortcutNumbers),
     ChangeTab(SettingsTab),
@@ -795,41 +793,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .font_size(self.fonts.cyri.scale(18))
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
-                .set(state.ids.hotbar_title, ui);
-            // Show xp bar
-            if Button::image(match self.global_state.settings.gameplay.xp_bar {
-                XpBar::Always => self.imgs.checkbox_checked,
-                XpBar::OnGain => self.imgs.checkbox,
-            })
-            .w_h(18.0, 18.0)
-            .hover_image(match self.global_state.settings.gameplay.xp_bar {
-                XpBar::Always => self.imgs.checkbox_checked_mo,
-                XpBar::OnGain => self.imgs.checkbox_mo,
-            })
-            .press_image(match self.global_state.settings.gameplay.xp_bar {
-                XpBar::Always => self.imgs.checkbox_checked,
-                XpBar::OnGain => self.imgs.checkbox_press,
-            })
-            .down_from(state.ids.hotbar_title, 8.0)
-            .set(state.ids.show_xpbar_button, ui)
-            .was_clicked()
-            {
-                match self.global_state.settings.gameplay.xp_bar {
-                    XpBar::Always => events.push(Event::ToggleXpBar(XpBar::OnGain)),
-                    XpBar::OnGain => events.push(Event::ToggleXpBar(XpBar::Always)),
-                }
-            }
-            Text::new(
-                &self
-                    .localized_strings
-                    .get("hud.settings.toggle_bar_experience"),
-            )
-            .right_from(state.ids.show_xpbar_button, 10.0)
-            .font_size(self.fonts.cyri.scale(14))
-            .font_id(self.fonts.cyri.conrod_id)
-            .graphics_for(state.ids.show_xpbar_button)
-            .color(TEXT_COLOR)
-            .set(state.ids.show_xpbar_text, ui);
+                .set(state.ids.hotbar_title, ui);           
             // Show Shortcut Numbers
             if Button::image(match self.global_state.settings.gameplay.shortcut_numbers {
                 ShortcutNumbers::On => self.imgs.checkbox_checked,
@@ -844,7 +808,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 ShortcutNumbers::On => self.imgs.checkbox_checked,
                 ShortcutNumbers::Off => self.imgs.checkbox_press,
             })
-            .down_from(state.ids.show_xpbar_button, 8.0)
+            .down_from(state.ids.hotbar_title, 8.0)
             .set(state.ids.show_shortcuts_button, ui)
             .was_clicked()
             {
@@ -1692,7 +1656,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 0..=14 => CRITICAL_HP_COLOR,
                 15..=29 => LOW_HP_COLOR,
                 30..=50 => HP_COLOR,
-                _ => MANA_COLOR,
+                _ => STAMINA_COLOR,
             };
             Text::new(&format!("FPS: {:.0}", self.fps))
                 .color(fps_col)

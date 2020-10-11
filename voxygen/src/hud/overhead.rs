@@ -1,6 +1,6 @@
 use super::{
     img_ids::Imgs, DEFAULT_NPC, FACTION_COLOR, GROUP_COLOR, GROUP_MEMBER, HP_COLOR, LOW_HP_COLOR,
-    MANA_COLOR, REGION_COLOR, SAY_COLOR, TELL_COLOR, TEXT_BG, TEXT_COLOR,
+    REGION_COLOR, SAY_COLOR, STAMINA_COLOR, TELL_COLOR, TEXT_BG, TEXT_COLOR,
 };
 use crate::{
     i18n::VoxygenLocalization,
@@ -254,7 +254,7 @@ impl<'a> Widget for Overhead<'a> {
 
                     Rectangle::fill_with(
                         [72.0 * energy_factor * BARSIZE, MANA_BAR_HEIGHT],
-                        MANA_COLOR,
+                        STAMINA_COLOR,
                     )
                     .x_y(
                         ((3.5 + (energy_factor * 36.5)) - 36.45) * BARSIZE,
