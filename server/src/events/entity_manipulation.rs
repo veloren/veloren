@@ -747,33 +747,29 @@ pub fn handle_buff(server: &mut Server, uid: Uid, buff_change: buff::BuffChange)
                 },
                 BuffChange::RemoveById(id) => {
                     let some_predicate = |current_id: &buff::BuffId| *current_id == id;
-                    for i in 0..buffs.active_buffs.len() {
-                        if some_predicate(&mut buffs.active_buffs[i].id) {
+                    for (i, buff) in buffs.active_buffs.iter().enumerate() {
+                        if some_predicate(&buff.id) {
                             active_buff_indices_for_removal.push(i);
                         }
                     }
-                    for i in 0..buffs.inactive_buffs.len() {
-                        if some_predicate(&mut buffs.inactive_buffs[i].id) {
+                    for (i, buff) in buffs.inactive_buffs.iter().enumerate() {
+                        if some_predicate(&buff.id) {
                             inactive_buff_indices_for_removal.push(i);
                         }
                     }
                 },
                 BuffChange::RemoveByCategory(all_required, any_required) => {
-                    for i in 0..buffs.active_buffs.len() {
+                    for (i, buff) in buffs.active_buffs.iter().enumerate() {
                         let mut required_met = true;
                         for required in &all_required {
-                            if !buffs.active_buffs[i]
-                                .cat_ids
-                                .iter()
-                                .any(|cat| cat == required)
-                            {
+                            if !buff.cat_ids.iter().any(|cat| cat == required) {
                                 required_met = false;
                                 break;
                             }
                         }
                         let mut any_met = any_required.is_empty();
                         for any in &any_required {
-                            if !buffs.active_buffs[i].cat_ids.iter().any(|cat| cat == any) {
+                            if !buff.cat_ids.iter().any(|cat| cat == any) {
                                 any_met = true;
                                 break;
                             }
@@ -782,21 +778,17 @@ pub fn handle_buff(server: &mut Server, uid: Uid, buff_change: buff::BuffChange)
                             active_buff_indices_for_removal.push(i);
                         }
                     }
-                    for i in 0..buffs.inactive_buffs.len() {
+                    for (i, buff) in buffs.inactive_buffs.iter().enumerate() {
                         let mut required_met = true;
                         for required in &all_required {
-                            if !buffs.inactive_buffs[i]
-                                .cat_ids
-                                .iter()
-                                .any(|cat| cat == required)
-                            {
+                            if !buff.cat_ids.iter().any(|cat| cat == required) {
                                 required_met = false;
                                 break;
                             }
                         }
                         let mut any_met = any_required.is_empty();
                         for any in &any_required {
-                            if !buffs.inactive_buffs[i].cat_ids.iter().any(|cat| cat == any) {
+                            if !buff.cat_ids.iter().any(|cat| cat == any) {
                                 any_met = true;
                                 break;
                             }
@@ -833,16 +825,15 @@ pub fn handle_buff(server: &mut Server, uid: Uid, buff_change: buff::BuffChange)
                 }
                 let mut new_active_buff = None::<buff::Buff>;
                 let mut replacement_buff_index = 0;
-                for i in 0..buffs.inactive_buffs.len() {
-                    let inactive_buff = buffs.inactive_buffs[i].clone();
+                for (i, inactive_buff) in buffs.inactive_buffs.iter().enumerate() {
                     if discriminant(&buff_id) == discriminant(&inactive_buff.id) {
                         if let Some(ref buff) = new_active_buff {
                             if determine_replace_active_buff(buff.clone(), inactive_buff.clone()) {
-                                new_active_buff = Some(inactive_buff);
+                                new_active_buff = Some(inactive_buff.clone());
                                 replacement_buff_index = i;
                             }
                         } else {
-                            new_active_buff = Some(inactive_buff);
+                            new_active_buff = Some(inactive_buff.clone());
                             replacement_buff_index = i;
                         }
                     }
@@ -894,17 +885,17 @@ fn determine_replace_active_buff(active_buff: buff::Buff, new_buff: buff::Buff) 
 
 fn add_buff_effects(buff: buff::Buff, mut stats: Option<&mut Stats>) {
     for effect in &buff.effects {
-        #[allow(clippy::single_match)] // Remove clippy when there are more buff effects here
+        use buff::BuffEffect;
         match effect {
             // Only add an effect here if it is immediate and is not continuous
-            buff::BuffEffect::NameChange { prefix } => {
+            BuffEffect::NameChange { prefix } => {
                 if let Some(ref mut stats) = stats {
                     let mut pref = String::from(prefix);
                     pref.push_str(&stats.name);
                     stats.name = pref;
                 }
             },
-            _ => {},
+            BuffEffect::HealthChangeOverTime { .. } => {},
         }
     }
 }

@@ -7,11 +7,6 @@ use crate::{
 use specs::{Join, Read, ReadStorage, System, WriteStorage};
 use std::time::Duration;
 
-/// This system modifies entity stats, changing them using buffs
-/// Currently, the system is VERY, VERY CRUDE and SYNC UN-FRIENDLY.
-/// It does not use events and uses `Vec`s stored in component.
-///
-/// TODO: Make this production-quality system/design
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
@@ -29,11 +24,10 @@ impl<'a> System<'a> for Sys {
             let (mut active_buff_indices_for_removal, mut inactive_buff_indices_for_removal) =
                 (Vec::<usize>::new(), Vec::<usize>::new());
             // Tick all de/buffs on a Buffs component.
-            for i in 0..buff_comp.active_buffs.len() {
+            for (i, active_buff) in buff_comp.active_buffs.iter_mut().enumerate() {
                 // First, tick the buff and subtract delta from it
                 // and return how much "real" time the buff took (for tick independence).
-                // TODO: handle delta for "indefinite" buffs, i.e. time since they got removed.
-                let buff_delta = if let Some(remaining_time) = &mut buff_comp.active_buffs[i].time {
+                let buff_delta = if let Some(remaining_time) = &mut active_buff.time {
                     let pre_tick = remaining_time.as_secs_f32();
                     let new_duration = remaining_time.checked_sub(Duration::from_secs_f32(dt.0));
                     let post_tick = if let Some(dur) = new_duration {
@@ -49,21 +43,16 @@ impl<'a> System<'a> for Sys {
                     pre_tick - post_tick
                 } else {
                     // The buff is indefinite, and it takes full tick (delta).
-                    // TODO: Delta for indefinite buffs might be shorter since they can get removed
-                    // *during a tick* and this treats it as it always happens on a *tick end*.
                     dt.0
                 };
 
-                let buff_owner =
-                    if let BuffSource::Character { by: owner } = buff_comp.active_buffs[i].source {
-                        Some(owner)
-                    } else {
-                        None
-                    };
+                let buff_owner = if let BuffSource::Character { by: owner } = active_buff.source {
+                    Some(owner)
+                } else {
+                    None
+                };
                 // Now, execute the buff, based on it's delta
-                for effect in &mut buff_comp.active_buffs[i].effects {
-                    #[allow(clippy::single_match)]
-                    // Remove clippy when more effects are added here
+                for effect in &mut active_buff.effects {
                     match effect {
                         // Only add an effect here if it is continuous or it is not immediate
                         BuffEffect::HealthChangeOverTime { rate, accumulated } => {
@@ -85,15 +74,16 @@ impl<'a> System<'a> for Sys {
                                 *accumulated = 0.0;
                             };
                         },
-                        _ => {},
+                        BuffEffect::NameChange { .. } => {},
                     };
                 }
             }
-            for i in 0..buff_comp.inactive_buffs.len() {
+
+            for (i, inactive_buff) in buff_comp.inactive_buffs.iter_mut().enumerate() {
                 // First, tick the buff and subtract delta from it
                 // and return how much "real" time the buff took (for tick independence).
                 // TODO: handle delta for "indefinite" buffs, i.e. time since they got removed.
-                if let Some(remaining_time) = &mut buff_comp.inactive_buffs[i].time {
+                if let Some(remaining_time) = &mut inactive_buff.time {
                     let new_duration = remaining_time.checked_sub(Duration::from_secs_f32(dt.0));
                     if new_duration.is_some() {
                         // The buff still continues.
