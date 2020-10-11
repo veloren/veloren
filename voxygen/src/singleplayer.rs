@@ -10,7 +10,7 @@ use std::{
     thread::{self, JoinHandle},
     time::Duration,
 };
-use tracing::{info, warn};
+use tracing::{error, info, warn};
 
 const TPS: u64 = 30;
 
@@ -38,6 +38,42 @@ impl Singleplayer {
             path.push("singleplayer");
             path
         };
+
+        // Copy saves from old folder if they don't exist in the new location
+        (|| {
+            let new_path = server_data_dir.join("saves");
+            if new_path.exists() {
+                return;
+            }
+
+            let working_dir = std::path::PathBuf::from("saves");
+            let config_dir = directories_next::ProjectDirs::from("net", "veloren", "voxygen")
+                .expect("System's $HOME directory path not found!")
+                .config_dir()
+                .join("saves");
+            let old_path = if working_dir.exists() {
+                working_dir
+            } else if config_dir.exists() {
+                config_dir
+            } else {
+                return;
+            };
+
+            info!(
+                "Saves folder doesn't exist, but there is one in the old saves location, copying \
+                 it to the new location"
+            );
+            if let Some(parent) = new_path.parent() {
+                if let Err(e) = std::fs::create_dir_all(parent) {
+                    error!(?e, "Could not create folder to hold saves folder.");
+                    return;
+                }
+            }
+
+            if let Err(e) = copy_dir::copy_dir(old_path, new_path) {
+                error!(?e, "Failed to copy saves from the old location");
+            }
+        })();
 
         // Create server
         let settings = server::Settings::singleplayer(&server_data_dir);
