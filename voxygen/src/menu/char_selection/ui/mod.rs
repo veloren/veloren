@@ -13,7 +13,7 @@ use crate::{
             },
             Element, IcedRenderer, IcedUi as Ui,
         },
-        img_ids::{ImageGraphic, VoxelGraphic},
+        img_ids::ImageGraphic,
     },
     window, GlobalState,
 };
@@ -44,7 +44,8 @@ const STARTER_BOW: &str = "common.items.weapons.bow.starter_bow";
 const STARTER_AXE: &str = "common.items.weapons.axe.starter_axe";
 const STARTER_STAFF: &str = "common.items.weapons.staff.starter_staff";
 const STARTER_SWORD: &str = "common.items.weapons.sword.starter_sword";
-const STARTER_DAGGER: &str = "common.items.weapons.dagger.starter_dagger";
+const STARTER_SCEPTRE: &str = "common.items.weapons.sceptre.starter_sceptre";
+// // Use in future MR to make this a starter weapon
 
 // TODO: look into what was using this in old ui
 const UI_MAIN: iced::Color = iced::Color::from_rgba(0.61, 0.70, 0.70, 1.0); // Greenish Blue
@@ -69,12 +70,17 @@ image_ids_ice! {
         name_input: "voxygen.element.misc_bg.textbox",
 
         // Tool Icons
-        daggers: "voxygen.element.icons.daggers",
+        sceptre: "voxygen.element.icons.sceptre",
         sword: "voxygen.element.icons.sword",
         axe: "voxygen.element.icons.axe",
         hammer: "voxygen.element.icons.hammer",
         bow: "voxygen.element.icons.bow",
         staff: "voxygen.element.icons.staff",
+
+        // Dice icons
+        dice: "voxygen.element.icons.dice",
+        dice_hover: "voxygen.element.icons.dice_hover",
+        dice_press: "voxygen.element.icons.dice_press",
 
         // Species Icons
         human_m: "voxygen.element.icons.human_m",
@@ -142,7 +148,6 @@ enum Mode {
         name: String, // TODO: default to username
         body: humanoid::Body,
         loadout: comp::Loadout,
-        // TODO: does this need to be an option, never seems to be none
         tool: &'static str,
 
         body_type_buttons: [button::State; 2],
@@ -152,6 +157,7 @@ enum Mode {
         name_input: text_input::State,
         back_button: button::State,
         create_button: button::State,
+        randomize_button: button::State,
     },
 }
 
@@ -192,6 +198,7 @@ impl Mode {
             name_input: Default::default(),
             back_button: Default::default(),
             create_button: Default::default(),
+            randomize_button: Default::default(),
         }
     }
 }
@@ -248,18 +255,15 @@ enum Message {
     BodyType(humanoid::BodyType),
     Species(humanoid::Species),
     Tool(&'static str),
+    RandomizeCharacter,
     CancelDeletion,
     ConfirmDeletion,
 }
 
 impl Controls {
     fn new(fonts: Fonts, imgs: Imgs, i18n: std::sync::Arc<Localization>) -> Self {
-        let version = format!(
-            "{}-{}",
-            env!("CARGO_PKG_VERSION"),
-            common::util::GIT_VERSION.to_string()
-        );
-        let alpha = format!("Veloren Pre-Alpha {}", env!("CARGO_PKG_VERSION"),);
+        let version = common::util::DISPLAY_VERSION_LONG.clone();
+        let alpha = format!("Veloren {}", common::util::DISPLAY_VERSION.as_str());
 
         Self {
             fonts,
@@ -579,6 +583,7 @@ impl Controls {
                 ref mut name_input,
                 ref mut back_button,
                 ref mut create_button,
+                ref mut randomize_button,
             } => {
                 let unselected_style = style::button::Style::new(imgs.icon_border)
                     .hover_image(imgs.icon_border_mo)
@@ -709,7 +714,7 @@ impl Controls {
                 ])
                 .spacing(1);
 
-                let [ref mut sword_button, ref mut daggers_button, ref mut axe_button, ref mut hammer_button, ref mut bow_button, ref mut staff_button] =
+                let [ref mut sword_button, ref mut sceptre_button, ref mut axe_button, ref mut hammer_button, ref mut bow_button, ref mut staff_button] =
                     tool_buttons;
                 let tool = Column::with_children(vec![
                     Row::with_children(vec![
@@ -721,10 +726,10 @@ impl Controls {
                         )
                         .into(),
                         icon_button(
-                            daggers_button,
-                            *tool == STARTER_DAGGER,
-                            Message::Tool(STARTER_DAGGER),
-                            imgs.daggers,
+                            hammer_button,
+                            *tool == STARTER_HAMMER,
+                            Message::Tool(STARTER_HAMMER),
+                            imgs.hammer,
                         )
                         .into(),
                         icon_button(
@@ -739,10 +744,10 @@ impl Controls {
                     .into(),
                     Row::with_children(vec![
                         icon_button(
-                            hammer_button,
-                            *tool == STARTER_HAMMER,
-                            Message::Tool(STARTER_HAMMER),
-                            imgs.hammer,
+                            sceptre_button,
+                            *tool == STARTER_SCEPTRE,
+                            Message::Tool(STARTER_SCEPTRE),
+                            imgs.sceptre,
                         )
                         .into(),
                         icon_button(
@@ -812,6 +817,18 @@ impl Controls {
                     Some(Message::Back),
                 );
 
+                const DICE_SIZE: u16 = 35;
+                let randomize = Button::new(
+                    randomize_button,
+                    Space::new(Length::Units(DICE_SIZE), Length::Units(DICE_SIZE)),
+                )
+                .style(
+                    style::button::Style::new(imgs.dice)
+                        .hover_image(imgs.dice_hover)
+                        .press_image(imgs.dice_press),
+                )
+                .on_press(Message::RandomizeCharacter);
+
                 let name_input = BackgroundContainer::new(
                     Image::new(imgs.name_input)
                         .height(Length::Units(40))
@@ -821,6 +838,18 @@ impl Controls {
                         .on_submit(Message::CreateCharacter),
                 )
                 .padding(Padding::new().horizontal(7).top(5));
+
+                let bottom_center = Container::new(
+                    Row::with_children(vec![
+                        randomize.into(),
+                        name_input.into(),
+                        Space::new(Length::Units(DICE_SIZE), Length::Units(DICE_SIZE)).into(),
+                    ])
+                    .align_items(Align::Center)
+                    .spacing(5)
+                    .padding(16),
+                )
+                .style(style::container::Style::color(Rgba::new(0, 0, 0, 100)));
 
                 let create = neat_button(
                     create_button,
@@ -835,7 +864,7 @@ impl Controls {
                         .width(Length::Fill)
                         .height(Length::Units(40))
                         .into(),
-                    Container::new(name_input)
+                    Container::new(bottom_center)
                         .width(Length::Fill)
                         .center_x()
                         .into(),
@@ -938,6 +967,13 @@ impl Controls {
                 if let Mode::Create { tool, loadout, .. } = &mut self.mode {
                     *tool = value;
                     loadout.active_item = Some(LoadoutBuilder::default_item_config_from_str(*tool));
+                }
+            },
+            Message::RandomizeCharacter => {
+                if let Mode::Create { name, body, .. } = &mut self.mode {
+                    use common::npc;
+                    *body = comp::humanoid::Body::random();
+                    *name = npc::get_npc_name(npc::NpcKind::Humanoid).to_string();
                 }
             },
             Message::ConfirmDeletion => {

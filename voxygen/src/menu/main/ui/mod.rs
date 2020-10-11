@@ -181,12 +181,8 @@ impl Controls {
         i18n: std::sync::Arc<Localization>,
         settings: &Settings,
     ) -> Self {
-        let version = format!(
-            "{}-{}",
-            env!("CARGO_PKG_VERSION"),
-            common::util::GIT_VERSION.to_string()
-        );
-        let alpha = format!("Veloren Pre-Alpha {}", env!("CARGO_PKG_VERSION"),);
+        let version = common::util::DISPLAY_VERSION_LONG.clone();
+        let alpha = format!("Veloren {}", common::util::DISPLAY_VERSION.as_str());
 
         let screen = /* if settings.show_disclaimer {
             Screen::Disclaimer {
@@ -264,6 +260,7 @@ impl Controls {
                     .into()
             },
         ])
+        .padding(3)
         .width(Length::Fill);
 
         let bg_img = if matches!(&self.screen, Screen::Connecting {..}) {
@@ -319,7 +316,6 @@ impl Controls {
                 .height(Length::Fill),
         )
         .style(style::container::Style::image(bg_img))
-        .padding(3)
         .into()
     }
 

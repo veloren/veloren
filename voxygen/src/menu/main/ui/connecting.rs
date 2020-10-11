@@ -63,13 +63,6 @@ impl Screen {
                     Space::new(Length::Fill, Length::Fill).into()
                 };
 
-                let gear = Container::new(
-                    Image::new(gear_anim_image)
-                        .width(Length::Units(74))
-                        .height(Length::Units(62)),
-                )
-                .width(Length::Fill);
-
                 let cancel = Container::new(neat_button(
                     &mut self.cancel_button,
                     i18n.get("common.cancel"),
@@ -78,19 +71,52 @@ impl Screen {
                     Some(Message::CancelConnect),
                 ))
                 .width(Length::Fill)
-                .height(Length::Units(fonts.cyri.scale(50)))
+                .height(Length::Units(fonts.cyri.scale(40)))
                 .center_x()
                 .padding(3);
 
-                let gear_cancel = Row::with_children(vec![
-                    gear.into(),
-                    cancel.into(),
-                    Space::new(Length::Fill, Length::Shrink).into(),
-                ])
-                .width(Length::Fill)
-                .align_items(Align::End);
+                let tip_cancel = Column::with_children(vec![tip, cancel.into()])
+                    .width(Length::FillPortion(3))
+                    .align_items(Align::Center)
+                    .spacing(5)
+                    .padding(5);
 
-                vec![tip, gear_cancel.into()]
+                let gear = Container::new(
+                    Image::new(gear_anim_image)
+                        .width(Length::Units(74))
+                        .height(Length::Units(62)),
+                )
+                .width(Length::Fill)
+                .padding(10)
+                .align_x(Align::End);
+
+                let bottom_content = Row::with_children(vec![
+                    Space::new(Length::Fill, Length::Shrink).into(),
+                    tip_cancel.into(),
+                    gear.into(),
+                ])
+                .align_items(Align::Center)
+                .width(Length::Fill);
+
+                let left_art = Image::new(imgs.loading_art_l)
+                    .width(Length::Units(12))
+                    .height(Length::Units(12));
+                let right_art = Image::new(imgs.loading_art_r)
+                    .width(Length::Units(12))
+                    .height(Length::Units(12));
+
+                let bottom_bar = Container::new(Row::with_children(vec![
+                    left_art.into(),
+                    bottom_content.into(),
+                    right_art.into(),
+                ]))
+                .height(Length::Units(100))
+                .style(style::container::Style::image(imgs.loading_art));
+
+                vec![
+                    Space::new(Length::Fill, Length::Fill).into(),
+                    bottom_bar.into(),
+                ]
             },
             ConnectionState::AuthTrustPrompt { msg, .. } => {
                 let text = Text::new(msg).size(fonts.cyri.scale(25));
