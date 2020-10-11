@@ -126,11 +126,6 @@ pub enum BuffSource {
 /// and undone on removal of the buff (by the specs system).
 /// Example could be decreasing max health, which, if repeated each tick,
 /// would be probably an undesired effect).
-///
-/// TODO: Make this net/sync-friendly. Events could help there
-/// (probably replacing `changes`). Also, the "buff ticking" is really
-/// not needed to be synced often, only in case that a buff begins/ends
-/// (as the buff ECS system will probably run on a client too).
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct Buffs {
     /// Active de/buffs.
