@@ -7,7 +7,5 @@
     // crafted
     (0.05, "common.items.food.apple_mushroom_curry"),
     (0.10, "common.items.food.apple_stick"),
-    (0.10, "common.items.food.mushroom_stick"),
-    // misc
-    (3, "common.items.crafting_ing.cloth_scraps"),  
+    (0.10, "common.items.food.mushroom_stick"),    
 ]
