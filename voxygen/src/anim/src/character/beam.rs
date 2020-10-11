@@ -49,7 +49,7 @@ impl Animation for BeamAnimation {
         next.r_hand.orientation = Quaternion::rotation_x(1.57) * Quaternion::rotation_y(0.2);
         next.r_hand.scale = Vec3::one() * 1.05;
         next.main.position = Vec3::new(0.0, 0.0, 13.2);
-        next.main.orientation = Quaternion::rotation_y(3.14);
+        next.main.orientation = Quaternion::rotation_y(PI);
 
         next.control.position = Vec3::new(-4.0, 7.0, 4.0);
         next.control.orientation = Quaternion::rotation_x(-0.3)
