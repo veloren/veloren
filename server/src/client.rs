@@ -52,7 +52,8 @@ impl Client {
     where
         S: Into<ServerMsg>,
     {
-        const ERR: &str = "Dont do that, thats only done once at the start, no via this class";
+        const ERR: &str =
+            "Don't do that. Sending these messages is only done ONCE at connect and not by this fn";
         match msg.into() {
             ServerMsg::Info(_) => panic!(ERR),
             ServerMsg::Init(_) => panic!(ERR),
