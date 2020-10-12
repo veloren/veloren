@@ -18,6 +18,11 @@ pub fn init(basic: bool) {
             .add_directive("uvth=warn".parse().unwrap())
             .add_directive("tiny_http=warn".parse().unwrap())
             .add_directive("mio::sys::windows=debug".parse().unwrap())
+            .add_directive(
+                "veloren_server::persistence::character=info"
+                    .parse()
+                    .unwrap(),
+            )
             .add_directive(LevelFilter::INFO.into())
     };
 
