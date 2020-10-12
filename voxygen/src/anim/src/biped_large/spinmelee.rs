@@ -105,13 +105,13 @@ impl Animation for SpinMeleeAnimation {
                                 -skeleton_attr.foot.0,
                                 skeleton_attr.foot.1 + movement * 4.0,
                                 skeleton_attr.foot.2,
-                            ) / 8.0;
+                            );
                             next.foot_l.orientation = Quaternion::rotation_x(movement * 0.2);
                             next.foot_r.position = Vec3::new(
                                 skeleton_attr.foot.0,
                                 skeleton_attr.foot.1 + movement * -12.0,
                                 skeleton_attr.foot.2 + movement * 1.0 + quick * 1.0,
-                            ) / 8.0;
+                            );
                             next.foot_r.orientation = Quaternion::rotation_x(movement * -1.0)
                                 * Quaternion::rotation_z(movement * -0.8);
                         },

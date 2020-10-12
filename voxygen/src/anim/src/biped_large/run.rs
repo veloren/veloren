@@ -25,7 +25,7 @@ impl Animation for RunAnimation {
         let speed = Vec2::<f32>::from(velocity).magnitude();
         *rate = 1.0;
 
-        let lab = 0.55; //.65
+        let lab = 0.65; //.65
         let foothoril = (((1.0)
             / (0.4
                 + (0.6)
@@ -75,7 +75,6 @@ impl Animation for RunAnimation {
 
         //let shortalt = (anim_time as f32 * lab as f32 * 16.0 + PI / 2.0).sin();
 
-        let lab = 0.65; //0.72
         let amplitude = (speed / 21.0).max(0.25);
         let amplitude2 = (speed * 1.4 / 21.0).powf(0.5).max(0.6);
         let amplitude3 = (speed / 21.0).powf(0.5).max(0.35);
@@ -117,7 +116,7 @@ impl Animation for RunAnimation {
         let foot2b = (anim_time as f32 * (16.0) * lab as f32 * speedmult + 1.1 + shift2).sin(); //1.6
         //BL
         let foot3a = (anim_time as f32 * (16.0) * lab as f32 * speedmult + shift3).sin(); //0.0
-        let foot3b = (anim_time as f32 * (16.0) * lab as f32 * speedmult + 1.57 + shift3).sin(); //0.4
+        let foot3b = (anim_time as f32 * (16.0) * lab as f32 * speedmult + 0.3 + shift3).sin(); //0.4
         //BR
         let foot4a =
             (anim_time as f32 * (16.0) * lab as f32 * speedmult + 0.0 + canceler * 0.05 + shift4)
@@ -158,7 +157,7 @@ impl Animation for RunAnimation {
 
             next.tail.position = Vec3::new(0.0, skeleton_attr.tail.0, skeleton_attr.tail.1);
             next.tail.orientation =
-                Quaternion::rotation_x(canceler * 1.0 + amplitude * shortalt * 0.3)
+                Quaternion::rotation_x(canceler * 1.0 + amplitude * shortalt * 0.1)
                     * Quaternion::rotation_z(tilt * 1.5);
             next.tail.scale = Vec3::one();
 
@@ -226,7 +225,7 @@ impl Animation for RunAnimation {
                 skeleton_attr.hand.2 + (foot1a * -3.0).max(1.0) * amplitude2,
             );
             next.hand_l.orientation =
-                Quaternion::rotation_x((amplitude2 * foot1b * 0.9 + canceler * 0.9).max(0.5))
+                Quaternion::rotation_x((amplitude2 * foot1b * 0.9 + canceler * 0.9))
                     * Quaternion::rotation_y(tilt * -1.0);
             next.hand_l.scale = Vec3::one() * 0.96;
 
@@ -236,7 +235,7 @@ impl Animation for RunAnimation {
                 skeleton_attr.hand.2 + (foot2a * -3.0).max(1.0) * amplitude2,
             );
             next.hand_r.orientation =
-                Quaternion::rotation_x((amplitude2 * foot2b * 0.9 + canceler * 0.7).max(0.5))
+                Quaternion::rotation_x((amplitude2 * foot2b * 0.9 + canceler * 0.7))
                     * Quaternion::rotation_y(tilt * -1.0);
             next.hand_r.scale = Vec3::one() * 0.96;
 
@@ -246,7 +245,7 @@ impl Animation for RunAnimation {
                 0.0 + amplitude3 * foot3a * -2.5,
             );
             next.leg_control_l.orientation =
-                Quaternion::rotation_x(canceler * -0.4 + amplitude3 * foot3b * 0.3)
+                Quaternion::rotation_x(canceler * -0.4 + amplitude3 * foot3b * 0.4 + 0.5)
                     * Quaternion::rotation_y(tilt * 1.5)
                     * Quaternion::rotation_z(tilt * -1.5);
             next.leg_control_l.scale = Vec3::one() * 1.02;
@@ -257,7 +256,7 @@ impl Animation for RunAnimation {
                 0.0 + amplitude3 * foot4a * -2.5,
             );
             next.leg_control_r.orientation =
-                Quaternion::rotation_x(canceler * -0.4 + amplitude3 * foot4b * 0.3)
+                Quaternion::rotation_x(canceler * -0.4 + amplitude3 * foot4b * 0.4 + 0.5)
                     * Quaternion::rotation_y(tilt * 1.5)
                     * Quaternion::rotation_z(tilt * -1.5);
             next.leg_control_r.scale = Vec3::one() * 1.02;

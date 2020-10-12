@@ -578,17 +578,17 @@
                 "keyword": "werewolf",
                 "generic": "Werewolf"
             },
-            "lizardman_occult": {
-                "keyword": "lizardman_occult",
-                "generic": "Occult Lizardman"
+            "saurok_occult": {
+                "keyword": "saurok_occult",
+                "generic": "Occult Saurok"
             },
-            "lizardman_mighty": {
-                "keyword": "lizardman_mighty",
-                "generic": "Mighty Lizardman"
+            "saurok_mighty": {
+                "keyword": "saurok_mighty",
+                "generic": "Mighty Saurok"
             },
-            "lizardman_sly": {
-                "keyword": "lizardman_sly",
-                "generic": "Sly Lizardman"
+            "saurok_sly": {
+                "keyword": "saurok_sly",
+                "generic": "Sly Saurok"
             }
         }
     },

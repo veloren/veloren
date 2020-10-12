@@ -202,19 +202,19 @@ impl Animation for AlphaAnimation {
                     -skeleton_attr.foot.0,
                     slow * -3.0 + quick * 3.0 - 4.0,
                     skeleton_attr.foot.2,
-                ) / 8.0;
+                );
                 next.foot_l.orientation = Quaternion::rotation_x(slow * 0.6)
                     * Quaternion::rotation_y((slow * -0.2).max(0.0));
-                next.foot_l.scale = Vec3::one() / 8.0;
+                next.foot_l.scale = Vec3::one();
 
                 next.foot_r.position = Vec3::new(
                     skeleton_attr.foot.0,
                     slow * 3.0 + quick * -3.0 + 5.0,
                     skeleton_attr.foot.2,
-                ) / 8.0;
+                );
                 next.foot_r.orientation = Quaternion::rotation_x(slow * -0.6)
                     * Quaternion::rotation_y((slow * 0.2).min(0.0));
-                next.foot_r.scale = Vec3::one() / 8.0;
+                next.foot_r.scale = Vec3::one();
 
                 next.torso.position = Vec3::new(0.0, 0.0, 0.1) * 1.01;
                 next.torso.orientation = Quaternion::rotation_z(0.0)
@@ -328,19 +328,19 @@ impl Animation for AlphaAnimation {
                         -skeleton_attr.foot.0,
                         -2.5,
                         skeleton_attr.foot.2 + (slower * 2.5).max(0.0),
-                    ) / 8.0;
+                    );
                     next.foot_l.orientation = Quaternion::rotation_x(slower * -0.2 - 0.2)
                         * Quaternion::rotation_z((slower * 1.0).max(0.0));
-                    next.foot_l.scale = Vec3::one() / 8.0;
+                    next.foot_l.scale = Vec3::one();
 
                     next.foot_r.position = Vec3::new(
                         skeleton_attr.foot.0,
                         3.5 - slower * 2.0,
                         skeleton_attr.foot.2,
-                    ) / 8.0;
+                    );
                     next.foot_r.orientation = Quaternion::rotation_x(slower * 0.1)
                         * Quaternion::rotation_z((slower * 0.5).max(0.0));
-                    next.foot_r.scale = Vec3::one() / 8.0;
+                    next.foot_r.scale = Vec3::one();
                     next.torso.position = Vec3::new(0.0, 0.0, 0.1) * 1.01;
                     next.torso.orientation = Quaternion::rotation_z(0.0);
                     next.torso.scale = Vec3::one() / 8.0 * 1.01;

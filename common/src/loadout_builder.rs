@@ -82,19 +82,19 @@ impl LoadoutBuilder {
                 _ => {},
             },
             Body::BipedLarge(biped_large) => match (biped_large.species, biped_large.body_type) {
-                (biped_large::Species::Occultlizardman, _) => {
+                (biped_large::Species::Occultsaurok, _) => {
                     main_tool = Some(Item::new_from_asset_expect(
-                        "common.items.npc_weapons.staff.lizardman_staff",
+                        "common.items.npc_weapons.staff.saurok_staff",
                     ));
                 },
-                (biped_large::Species::Mightylizardman, _) => {
+                (biped_large::Species::Mightysaurok, _) => {
                     main_tool = Some(Item::new_from_asset_expect(
-                        "common.items.npc_weapons.sword.lizardman_sword",
+                        "common.items.npc_weapons.sword.saurok_sword",
                     ));
                 },
-                (biped_large::Species::Slylizardman, _) => {
+                (biped_large::Species::Slysaurok, _) => {
                     main_tool = Some(Item::new_from_asset_expect(
-                        "common.items.npc_weapons.bow.lizardman_bow",
+                        "common.items.npc_weapons.bow.saurok_bow",
                     ));
                 },
                 (biped_large::Species::Ogre, biped_large::BodyType::Male) => {

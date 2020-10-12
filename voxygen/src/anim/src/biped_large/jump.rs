@@ -130,17 +130,17 @@ impl Animation for JumpAnimation {
             -skeleton_attr.foot.0,
             -5.0 + skeleton_attr.foot.1,
             skeleton_attr.foot.2,
-        ) / 8.0;
+        );
         next.foot_l.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(-0.4);
-        next.foot_l.scale = Vec3::one() / 8.0;
+        next.foot_l.scale = Vec3::one();
 
         next.foot_r.position = Vec3::new(
             skeleton_attr.foot.0,
             5.0 + skeleton_attr.foot.1,
             skeleton_attr.foot.2,
-        ) / 8.0;
+        );
         next.foot_r.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.4);
-        next.foot_r.scale = Vec3::one() / 8.0;
+        next.foot_r.scale = Vec3::one();
 
         next.torso.position = Vec3::new(0.0, 0.0, 0.0) / 8.0;
         next.torso.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);

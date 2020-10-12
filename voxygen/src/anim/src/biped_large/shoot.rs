@@ -171,17 +171,17 @@ impl Animation for ShootAnimation {
                 -skeleton_attr.foot.0,
                 skeleton_attr.foot.1,
                 skeleton_attr.foot.2,
-            ) / 8.0;
+            );
             next.foot_l.orientation = Quaternion::rotation_z(0.0);
-            next.foot_l.scale = Vec3::one() / 8.0;
+            next.foot_l.scale = Vec3::one();
 
             next.foot_r.position = Vec3::new(
                 skeleton_attr.foot.0,
                 skeleton_attr.foot.1,
                 skeleton_attr.foot.2,
-            ) / 8.0;
+            );
             next.foot_r.orientation = Quaternion::rotation_z(0.0);
-            next.foot_r.scale = Vec3::one() / 8.0;
+            next.foot_r.scale = Vec3::one();
 
             next.torso.position = Vec3::new(0.0, 0.0, 0.0) / 8.0;
             next.torso.orientation = Quaternion::rotation_z(test * 0.0);
@@ -275,19 +275,19 @@ impl Animation for ShootAnimation {
                 -skeleton_attr.foot.0,
                 4.0 + skeleton_attr.foot.1 + foothoril * 8.5,
                 skeleton_attr.foot.2 + ((footvertl * 6.5).max(0.0)),
-            ) / 8.0;
+            );
             next.foot_l.orientation =
                 Quaternion::rotation_x(-0.5 + footrotl * 0.85) * Quaternion::rotation_y(0.0);
-            next.foot_l.scale = Vec3::one() / 8.0;
+            next.foot_l.scale = Vec3::one();
 
             next.foot_r.position = Vec3::new(
                 skeleton_attr.foot.0,
                 4.0 + skeleton_attr.foot.1 + foothorir * 8.5,
                 skeleton_attr.foot.2 + ((footvertr * 6.5).max(0.0)),
-            ) / 8.0;
+            );
             next.foot_r.orientation =
                 Quaternion::rotation_x(-0.5 + footrotr * 0.85) * Quaternion::rotation_y(0.0);
-            next.foot_r.scale = Vec3::one() / 8.0;
+            next.foot_r.scale = Vec3::one();
         }
         match active_tool_kind {
             Some(ToolKind::Bow(_)) => {
