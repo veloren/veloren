@@ -1,13 +1,14 @@
 ItemDef(
-    name: "Lizardman Staff",
-    description: "Placeholder",
+    name: "Saurok Sword",
+    description: "Placehoder",
     kind: Tool(
         (
-            kind: Staff("LizardmanStaff"),
+            kind: Sword("SaurokSword"),    
             stats: (
                 equip_time_millis: 500,
                 power: 1.00,
             ),
         )
     ),
+    quality: Low,
 )

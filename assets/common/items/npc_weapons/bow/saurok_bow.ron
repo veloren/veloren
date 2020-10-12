@@ -1,13 +1,14 @@
 ItemDef(
-    name: "Lizardman bow",
+    name: "Saurok bow",
     description: "Placeholder",
     kind: Tool(
         (
-            kind: Bow("LizardmanBow"),
+            kind: Bow("SaurokBow"),
             stats: (
                 equip_time_millis: 500,
                 power: 1.00,
             ),
         )
     ),
+    quality: Low,
 )

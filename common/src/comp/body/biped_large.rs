@@ -40,9 +40,9 @@ make_case_elim!(
         Troll = 3,
         Dullahan = 4,
         Werewolf = 5,
-        Occultlizardman = 6,
-        Mightylizardman = 7,
-        Slylizardman = 8,
+        Occultsaurok = 6,
+        Mightysaurok = 7,
+        Slysaurok = 8,
     }
 );
 
@@ -57,9 +57,9 @@ pub struct AllSpecies<SpeciesMeta> {
     pub troll: SpeciesMeta,
     pub dullahan: SpeciesMeta,
     pub werewolf: SpeciesMeta,
-    pub lizardman_occult: SpeciesMeta,
-    pub lizardman_mighty: SpeciesMeta,
-    pub lizardman_sly: SpeciesMeta,
+    pub saurok_occult: SpeciesMeta,
+    pub saurok_mighty: SpeciesMeta,
+    pub saurok_sly: SpeciesMeta,
 }
 
 impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> {
@@ -74,9 +74,9 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
             Species::Troll => &self.troll,
             Species::Dullahan => &self.dullahan,
             Species::Werewolf => &self.werewolf,
-            Species::Occultlizardman => &self.lizardman_occult,
-            Species::Mightylizardman => &self.lizardman_mighty,
-            Species::Slylizardman => &self.lizardman_sly,
+            Species::Occultsaurok => &self.saurok_occult,
+            Species::Mightysaurok => &self.saurok_mighty,
+            Species::Slysaurok => &self.saurok_sly,
         }
     }
 }
@@ -88,9 +88,9 @@ pub const ALL_SPECIES: [Species; 9] = [
     Species::Troll,
     Species::Dullahan,
     Species::Werewolf,
-    Species::Occultlizardman,
-    Species::Mightylizardman,
-    Species::Slylizardman,
+    Species::Occultsaurok,
+    Species::Mightysaurok,
+    Species::Slysaurok,
 ];
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
