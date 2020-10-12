@@ -1,25 +1,30 @@
 pub mod client;
 pub mod ecs_packet;
 pub mod server;
+pub mod world_packet;
 
 // Reexports
 pub use self::{
-    client::ClientMsg,
+    client::{ClientGeneral, ClientMsg, ClientRegister, ClientType},
     ecs_packet::EcsCompPacket,
     server::{
         CharacterInfo, DisconnectReason, InviteAnswer, Notification, PlayerInfo, PlayerListUpdate,
-        RegisterError, RequestStateError, ServerInfo, ServerMsg,
+        RegisterError, ServerGeneral, ServerInfo, ServerInit, ServerMsg, ServerRegisterAnswer,
     },
+    world_packet::WorldMapMsg,
 };
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
-pub enum ClientState {
-    Pending,
-    Connected,
-    Registered,
+pub enum ClientInGame {
     Spectator,
     Character,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub enum PingMsg {
+    Ping,
+    Pong,
 }
 
 pub const MAX_BYTES_CHAT_MSG: usize = 256;

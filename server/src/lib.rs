@@ -9,6 +9,7 @@ mod character_creator;
 pub mod chunk_generator;
 pub mod client;
 pub mod cmd;
+pub mod connection_handler;
 mod data_dir;
 pub mod error;
 pub mod events;
@@ -35,6 +36,7 @@ use crate::{
     chunk_generator::ChunkGenerator,
     client::{Client, RegionSubscription},
     cmd::ChatCommandExt,
+    connection_handler::ConnectionHandler,
     data_dir::DataDir,
     login_provider::LoginProvider,
     state_ext::StateExt,
@@ -44,7 +46,9 @@ use common::{
     cmd::ChatCommand,
     comp::{self, ChatType},
     event::{EventBus, ServerEvent},
-    msg::{server::WorldMapMsg, ClientState, DisconnectReason, ServerInfo, ServerMsg},
+    msg::{
+        ClientType, DisconnectReason, ServerGeneral, ServerInfo, ServerInit, ServerMsg, WorldMapMsg,
+    },
     outcome::Outcome,
     recipe::default_recipe_book,
     state::{State, TimeOfDay},
@@ -53,8 +57,6 @@ use common::{
     vol::{ReadVol, RectVolSize},
 };
 use futures_executor::block_on;
-use futures_timer::Delay;
-use futures_util::{select, FutureExt};
 use metrics::{ServerMetrics, StateTickMetrics, TickMetrics};
 use network::{Network, Pid, ProtocolAddr};
 use persistence::{
@@ -70,7 +72,7 @@ use std::{
 };
 #[cfg(not(feature = "worldgen"))]
 use test_world::{IndexOwned, World};
-use tracing::{debug, error, info, warn};
+use tracing::{debug, error, info, trace};
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 #[cfg(feature = "worldgen")]
@@ -97,7 +99,7 @@ pub struct Server {
     index: IndexOwned,
     map: WorldMapMsg,
 
-    network: Network,
+    connection_handler: ConnectionHandler,
 
     thread_pool: ThreadPool,
 
@@ -332,6 +334,7 @@ impl Server {
             .expect("Failed to initialize server metrics submodule.");
         thread_pool.execute(f);
         block_on(network.listen(ProtocolAddr::Tcp(settings.gameserver_address)))?;
+        let connection_handler = ConnectionHandler::new(network);
 
         let this = Self {
             state,
@@ -339,7 +342,7 @@ impl Server {
             index,
             map,
 
-            network,
+            connection_handler,
 
             thread_pool,
 
@@ -449,7 +452,7 @@ impl Server {
         let before_new_connections = Instant::now();
 
         // 3) Handle inputs from clients
-        block_on(self.handle_new_connections(&mut frontend_events))?;
+        self.handle_new_connections(&mut frontend_events)?;
 
         let before_message_system = Instant::now();
 
@@ -523,11 +526,11 @@ impl Server {
                 CharacterLoaderResponseType::CharacterList(result) => match result {
                     Ok(character_list_data) => self.notify_client(
                         query_result.entity,
-                        ServerMsg::CharacterListUpdate(character_list_data),
+                        ServerGeneral::CharacterListUpdate(character_list_data),
                     ),
                     Err(error) => self.notify_client(
                         query_result.entity,
-                        ServerMsg::CharacterActionError(error.to_string()),
+                        ServerGeneral::CharacterActionError(error.to_string()),
                     ),
                 },
                 CharacterLoaderResponseType::CharacterData(result) => {
@@ -542,7 +545,7 @@ impl Server {
                             // to display
                             self.notify_client(
                                 query_result.entity,
-                                ServerMsg::CharacterDataLoadError(error.to_string()),
+                                ServerGeneral::CharacterDataLoadError(error.to_string()),
                             );
 
                             // Clean up the entity data on the server
@@ -791,88 +794,65 @@ impl Server {
     }
 
     /// Handle new client connections.
-    async fn handle_new_connections(
-        &mut self,
-        frontend_events: &mut Vec<Event>,
-    ) -> Result<(), Error> {
-        //TIMEOUT 0.1 ms for msg handling
-        const TIMEOUT: Duration = Duration::from_micros(100);
-        const SLOWLORIS_TIMEOUT: Duration = Duration::from_millis(300);
-        loop {
-            let participant = match select!(
-                _ = Delay::new(TIMEOUT).fuse() => None,
-                pr = self.network.connected().fuse() => Some(pr),
-            ) {
-                None => return Ok(()),
-                Some(pr) => pr?,
-            };
-            debug!("New Participant connected to the server");
+    fn handle_new_connections(&mut self, frontend_events: &mut Vec<Event>) -> Result<(), Error> {
+        while let Ok(sender) = self.connection_handler.info_requester_receiver.try_recv() {
+            // can fail, e.g. due to timeout or network prob.
+            trace!("sending info to connection_handler");
+            let _ = sender.send(crate::connection_handler::ServerInfoPacket {
+                info: self.get_server_info(),
+                time: self.state.get_time(),
+            });
+        }
 
-            let singleton_stream = match select!(
-                _ = Delay::new(SLOWLORIS_TIMEOUT).fuse() => None,
-                sr = participant.opened().fuse() => Some(sr),
-            ) {
-                None => {
-                    warn!("Either Slowloris attack or very slow client, dropping");
-                    return Ok(()); //return rather then continue to give removes a tick more to send data.
-                },
-                Some(Ok(s)) => s,
-                Some(Err(e)) => {
-                    warn!(?e, "Failed to open a Stream from remote client. dropping");
-                    continue;
-                },
-            };
-
-            let mut client = Client {
-                client_state: ClientState::Connected,
-                participant: std::sync::Mutex::new(Some(participant)),
-                singleton_stream,
-                network_error: std::sync::atomic::AtomicBool::new(false),
-                last_ping: self.state.get_time(),
-                login_msg_sent: false,
-            };
+        while let Ok(data) = self.connection_handler.client_receiver.try_recv() {
+            let mut client = data;
 
             if self.settings().max_players
                 <= self.state.ecs().read_storage::<Client>().join().count()
             {
-                // Note: in this case the client is dropped
-                client.notify(ServerMsg::TooManyPlayers);
-            } else {
-                let entity = self
-                    .state
-                    .ecs_mut()
-                    .create_entity_synced()
-                    .with(client)
-                    .build();
-                self.state
-                    .ecs()
-                    .read_resource::<metrics::PlayerMetrics>()
-                    .clients_connected
-                    .inc();
-                // Send client all the tracked components currently attached to its entity as
-                // well as synced resources (currently only `TimeOfDay`)
-                debug!("Starting initial sync with client.");
-                self.state
-                    .ecs()
-                    .write_storage::<Client>()
-                    .get_mut(entity)
-                    .unwrap()
-                    .notify(ServerMsg::InitialSync {
-                        // Send client their entity
-                        entity_package: TrackedComps::fetch(&self.state.ecs())
-                            .create_entity_package(entity, None, None, None),
-                        server_info: self.get_server_info(),
-                        time_of_day: *self.state.ecs().read_resource(),
-                        max_group_size: self.settings().max_player_group_size,
-                        client_timeout: self.settings().client_timeout,
-                        world_map: self.map.clone(),
-                        recipe_book: (&*default_recipe_book()).clone(),
-                    });
-
-                frontend_events.push(Event::ClientConnected { entity });
-                debug!("Done initial sync with client.");
+                trace!(
+                    ?client.participant,
+                    "to many players, wont allow participant to connect"
+                );
+                client.register_stream.send(ServerInit::TooManyPlayers)?;
+                continue;
             }
+
+            let entity = self
+                .state
+                .ecs_mut()
+                .create_entity_synced()
+                .with(client)
+                .build();
+            self.state
+                .ecs()
+                .read_resource::<metrics::PlayerMetrics>()
+                .clients_connected
+                .inc();
+            // Send client all the tracked components currently attached to its entity as
+            // well as synced resources (currently only `TimeOfDay`)
+            debug!("Starting initial sync with client.");
+            self.state
+                .ecs()
+                .write_storage::<Client>()
+                .get_mut(entity)
+                .unwrap()
+                .register_stream
+                .send(ServerInit::GameSync {
+                    // Send client their entity
+                    entity_package: TrackedComps::fetch(&self.state.ecs())
+                        .create_entity_package(entity, None, None, None),
+                    time_of_day: *self.state.ecs().read_resource(),
+                    max_group_size: self.settings().max_player_group_size,
+                    client_timeout: self.settings().client_timeout,
+                    world_map: self.map.clone(),
+                    recipe_book: (&*default_recipe_book()).clone(),
+                })?;
+
+            frontend_events.push(Event::ClientConnected { entity });
+            debug!("Done initial sync with client.");
         }
+        Ok(())
     }
 
     pub fn notify_client<S>(&self, entity: EcsEntity, msg: S)
@@ -880,11 +860,11 @@ impl Server {
         S: Into<ServerMsg>,
     {
         if let Some(client) = self.state.ecs().write_storage::<Client>().get_mut(entity) {
-            client.notify(msg.into())
+            client.send_msg(msg.into())
         }
     }
 
-    pub fn notify_registered_clients(&mut self, msg: ServerMsg) {
+    pub fn notify_registered_clients(&mut self, msg: ServerGeneral) {
         self.state.notify_registered_clients(msg);
     }
 
@@ -964,7 +944,7 @@ impl Server {
 impl Drop for Server {
     fn drop(&mut self) {
         self.state
-            .notify_registered_clients(ServerMsg::Disconnect(DisconnectReason::Shutdown));
+            .notify_registered_clients(ServerGeneral::Disconnect(DisconnectReason::Shutdown));
     }
 }
 

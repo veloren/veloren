@@ -33,7 +33,7 @@ use crate::{
 };
 use common::{
     assets,
-    msg::server::WorldMapMsg,
+    msg::WorldMapMsg,
     store::Id,
     terrain::{
         map::MapConfig, uniform_idx_as_vec2, vec2_as_uniform_idx, BiomeKind, MapSizeLg,

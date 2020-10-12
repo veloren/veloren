@@ -38,7 +38,7 @@ use crate::{
 use common::{
     comp::{self, bird_medium, quadruped_low, quadruped_medium, quadruped_small},
     generation::{ChunkSupplement, EntityInfo},
-    msg::server::WorldMapMsg,
+    msg::WorldMapMsg,
     terrain::{Block, BlockKind, SpriteKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     vol::{ReadVol, RectVolSize, WriteVol},
 };

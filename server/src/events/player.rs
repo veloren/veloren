@@ -5,7 +5,7 @@ use crate::{
 use common::{
     comp,
     comp::{group, Player},
-    msg::{ClientState, PlayerListUpdate, ServerMsg},
+    msg::{PlayerListUpdate, ServerGeneral},
     span,
     sync::{Uid, UidAllocator},
 };
@@ -33,9 +33,8 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
         .cloned();
     if let (Some(mut client), Some(uid), Some(player)) = (maybe_client, maybe_uid, maybe_player) {
         // Tell client its request was successful
-        client.allow_state(ClientState::Registered);
-        // Tell client to clear out other entities and its own components
-        client.notify(ServerMsg::ExitIngameCleanup);
+        client.in_game = None;
+        client.send_msg(ServerGeneral::ExitInGameSuccess);
 
         let entity_builder = state.ecs_mut().create_entity().with(client).with(player);
 
@@ -90,14 +89,13 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
 
 pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event {
     span!(_guard, "handle_client_disconnect");
-    if let Some(client) = server.state().read_storage::<Client>().get(entity) {
-        let participant = match client.participant.try_lock() {
-            Ok(mut p) => p.take().unwrap(),
-            Err(e) => {
-                error!(?e, ?entity, "couldn't lock participant for removal");
-                return Event::ClientDisconnected { entity };
-            },
-        };
+    if let Some(client) = server
+        .state()
+        .ecs()
+        .write_storage::<Client>()
+        .get_mut(entity)
+    {
+        let participant = client.participant.take().unwrap();
         let pid = participant.remote_pid();
         std::thread::spawn(move || {
             let span = tracing::span!(tracing::Level::DEBUG, "client_disconnect", ?pid, ?entity);
@@ -131,8 +129,9 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
     ) {
         state.notify_registered_clients(comp::ChatType::Offline(*uid).server_msg(""));
 
-        state
-            .notify_registered_clients(ServerMsg::PlayerListUpdate(PlayerListUpdate::Remove(*uid)));
+        state.notify_registered_clients(ServerGeneral::PlayerListUpdate(PlayerListUpdate::Remove(
+            *uid,
+        )));
     }
 
     // Make sure to remove the player from the logged in list. (See LoginProvider)
