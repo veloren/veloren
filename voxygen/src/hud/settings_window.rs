@@ -1,5 +1,6 @@
 use super::{
-    img_ids::Imgs, BarNumbers, CrosshairType, PressBehavior, ShortcutNumbers, Show, CRITICAL_HP_COLOR, ERROR_COLOR, HP_COLOR, LOW_HP_COLOR, MENU_BG, STAMINA_COLOR,
+    img_ids::Imgs, BarNumbers, CrosshairType, PressBehavior, ShortcutNumbers, Show,
+    CRITICAL_HP_COLOR, ERROR_COLOR, HP_COLOR, LOW_HP_COLOR, MENU_BG, STAMINA_COLOR,
     TEXT_BIND_CONFLICT_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
@@ -257,7 +258,7 @@ pub struct State {
 pub enum Event {
     ToggleHelp,
     ToggleDebug,
-    ToggleTips(bool),    
+    ToggleTips(bool),
     ToggleBarNumbers(BarNumbers),
     ToggleShortcutNumbers(ShortcutNumbers),
     ChangeTab(SettingsTab),
@@ -793,7 +794,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .font_size(self.fonts.cyri.scale(18))
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
-                .set(state.ids.hotbar_title, ui);           
+                .set(state.ids.hotbar_title, ui);
             // Show Shortcut Numbers
             if Button::image(match self.global_state.settings.gameplay.shortcut_numbers {
                 ShortcutNumbers::On => self.imgs.checkbox_checked,

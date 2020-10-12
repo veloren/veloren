@@ -1,4 +1,5 @@
 mod bag;
+mod buffs;
 mod buttons;
 mod chat;
 mod crafting;
@@ -24,6 +25,7 @@ pub use hotbar::{SlotContents as HotbarSlotContents, State as HotbarState};
 pub use settings_window::ScaleChange;
 
 use bag::Bag;
+use buffs::Buffs;
 use buttons::Buttons;
 use chat::Chat;
 use chrono::NaiveTime;
@@ -239,6 +241,7 @@ widget_ids! {
         spell,
         skillbar,
         buttons,
+        buffs,
         esc_menu,
         small_window,
         social_window,
@@ -1754,6 +1757,24 @@ impl Hud {
             }
         }
 
+        // Buffs and Debuffs
+        if let Some(player_stats) = stats.get(client.entity()) {
+            match Buffs::new(
+                client,
+                &self.imgs,
+                &self.fonts,
+                global_state,
+                &self.rot_imgs,
+                tooltip_manager,
+                &self.voxygen_i18n,
+                &player_stats,
+            )
+            .set(self.ids.buffs, ui_widgets)
+            {
+                _ => {},
+            }
+        }
+
         // Popup (waypoint saved and similar notifications)
         Popup::new(
             &self.voxygen_i18n,
@@ -1848,9 +1869,9 @@ impl Hud {
                 &stats,
                 &loadout,
                 &energy,
-                &character_state,
+                //&character_state,
                 self.pulse,
-                &controller,
+                //&controller,
                 &inventory,
                 &self.hotbar,
                 tooltip_manager,
@@ -2031,7 +2052,7 @@ impl Hud {
                     },
                     settings_window::Event::CrosshairType(crosshair_type) => {
                         events.push(Event::CrosshairType(crosshair_type));
-                    },                    
+                    },
                     settings_window::Event::ToggleBarNumbers(bar_numbers) => {
                         events.push(Event::ToggleBarNumbers(bar_numbers));
                     },

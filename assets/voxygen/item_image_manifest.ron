@@ -1099,6 +1099,14 @@
         "voxel.armor.back.short-2",
         (0.0, -2.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
     ),
+    Armor(Back("Backpack0")): VoxTrans(
+        "voxel.armor.back.backpack-0",
+        (0.0, 0.0, 0.0), (-90.0, 0.0, 0.0), 1.0,
+    ),
+    Armor(Back("BackpackBlue0")): VoxTrans(
+        "voxel.armor.back.backpack-0",
+        (0.0, 0.0, 0.0), (-90.0, 0.0, 0.0), 1.0,
+    ),
     // Rings
     Armor(Ring("Ring0")): Png(
         "element.icons.ring-0",

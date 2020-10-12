@@ -349,6 +349,12 @@ image_ids! {
         chat_tell: "voxygen.element.icons.chat.tell",
         chat_world: "voxygen.element.icons.chat.world",
 
+        // Buffs
+        buff_plus_0: "voxygen.element.de_buffs.buff_plus_0",
+
+        // Debuffs
+        debuff_skull_0: "voxygen.element.de_buffs.debuff_skull_0",
+
         <BlankGraphic>
         nothing: (),
     }
