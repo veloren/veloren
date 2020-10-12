@@ -8,7 +8,7 @@ use crate::{
 };
 use common::{
     comp::{ForceUpdate, Inventory, InventoryUpdate, Last, Ori, Player, Pos, Vel},
-    msg::{ServerGeneral, ServerInGame},
+    msg::ServerGeneral,
     outcome::Outcome,
     region::{Event as RegionEvent, RegionMap},
     span,
@@ -320,7 +320,7 @@ impl<'a> System<'a> for Sys {
 
         // Sync inventories
         for (client, inventory, update) in (&mut clients, &inventories, &inventory_updates).join() {
-            client.send_msg(ServerInGame::InventoryUpdate(
+            client.send_msg(ServerGeneral::InventoryUpdate(
                 inventory.clone(),
                 update.event(),
             ));
@@ -341,7 +341,7 @@ impl<'a> System<'a> for Sys {
                 .cloned()
                 .collect::<Vec<_>>();
             if !outcomes.is_empty() {
-                client.send_msg(ServerInGame::Outcomes(outcomes));
+                client.send_msg(ServerGeneral::Outcomes(outcomes));
             }
         }
         outcomes.clear();
