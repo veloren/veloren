@@ -1,21 +1,24 @@
 use crate::error::Error;
-use common::msg::{ClientMsg, ClientState, RequestStateError, ServerMsg};
+use common::msg::{ClientInGame, ClientType, ServerGeneral, ServerMsg};
 use hashbrown::HashSet;
 use network::{Participant, Stream};
+use serde::{de::DeserializeOwned, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
-use std::sync::{
-    atomic::{AtomicBool, Ordering},
-    Mutex,
-};
 use tracing::debug;
 use vek::*;
 
 pub struct Client {
-    pub client_state: ClientState,
-    pub participant: Mutex<Option<Participant>>,
-    pub singleton_stream: Stream,
-    pub network_error: AtomicBool,
+    pub registered: bool,
+    pub client_type: ClientType,
+    pub in_game: Option<ClientInGame>,
+    pub participant: Option<Participant>,
+    pub general_stream: Stream,
+    pub ping_stream: Stream,
+    pub register_stream: Stream,
+    pub character_screen_stream: Stream,
+    pub in_game_stream: Stream,
+    pub network_error: bool,
     pub last_ping: f64,
     pub login_msg_sent: bool,
 }
@@ -25,53 +28,92 @@ impl Component for Client {
 }
 
 impl Client {
-    pub fn notify(&mut self, msg: ServerMsg) {
-        if !self.network_error.load(Ordering::Relaxed) {
-            if let Err(e) = self.singleton_stream.send(msg) {
+    fn internal_send<M: Serialize>(err: &mut bool, s: &mut Stream, msg: M) {
+        if !*err {
+            if let Err(e) = s.send(msg) {
                 debug!(?e, "got a network error with client");
-                self.network_error.store(true, Ordering::Relaxed);
+                *err = true;
             }
         }
     }
 
-    pub async fn recv(&mut self) -> Result<ClientMsg, Error> {
-        if !self.network_error.load(Ordering::Relaxed) {
-            match self.singleton_stream.recv().await {
+    /*
+    fn internal_send_raw(b: &AtomicBool, s: &mut Stream, msg: Arc<MessageBuffer>) {
+        if !b.load(Ordering::Relaxed) {
+            if let Err(e) = s.send_raw(msg) {
+                debug!(?e, "got a network error with client");
+                b.store(true, Ordering::Relaxed);
+            }
+        }
+    }
+     */
+
+    pub fn send_msg<S>(&mut self, msg: S)
+    where
+        S: Into<ServerMsg>,
+    {
+        const ERR: &str = "Dont do that, thats only done once at the start, no via this class";
+        match msg.into() {
+            ServerMsg::Info(_) => panic!(ERR),
+            ServerMsg::Init(_) => panic!(ERR),
+            ServerMsg::RegisterAnswer(msg) => {
+                Self::internal_send(&mut self.network_error, &mut self.register_stream, &msg)
+            },
+            ServerMsg::General(msg) => {
+                let stream = match &msg {
+                    //Character Screen related
+                    ServerGeneral::CharacterDataLoadError(_)
+                    | ServerGeneral::CharacterListUpdate(_)
+                    | ServerGeneral::CharacterActionError(_)
+                    | ServerGeneral::CharacterSuccess => &mut self.character_screen_stream,
+                    //Ingame related
+                    ServerGeneral::GroupUpdate(_)
+                    | ServerGeneral::GroupInvite { .. }
+                    | ServerGeneral::InvitePending(_)
+                    | ServerGeneral::InviteComplete { .. }
+                    | ServerGeneral::ExitInGameSuccess
+                    | ServerGeneral::InventoryUpdate(_, _)
+                    | ServerGeneral::TerrainChunkUpdate { .. }
+                    | ServerGeneral::TerrainBlockUpdates(_)
+                    | ServerGeneral::SetViewDistance(_)
+                    | ServerGeneral::Outcomes(_)
+                    | ServerGeneral::Knockback(_) => &mut self.in_game_stream,
+                    // Always possible
+                    ServerGeneral::PlayerListUpdate(_)
+                    | ServerGeneral::ChatMsg(_)
+                    | ServerGeneral::SetPlayerEntity(_)
+                    | ServerGeneral::TimeOfDay(_)
+                    | ServerGeneral::EntitySync(_)
+                    | ServerGeneral::CompSync(_)
+                    | ServerGeneral::CreateEntity(_)
+                    | ServerGeneral::DeleteEntity(_)
+                    | ServerGeneral::Disconnect(_)
+                    | ServerGeneral::Notification(_) => &mut self.general_stream,
+                };
+                Self::internal_send(&mut self.network_error, stream, &msg)
+            },
+            ServerMsg::Ping(msg) => {
+                Self::internal_send(&mut self.network_error, &mut self.ping_stream, &msg)
+            },
+        };
+    }
+
+    pub async fn internal_recv<M: DeserializeOwned>(
+        err: &mut bool,
+        s: &mut Stream,
+    ) -> Result<M, Error> {
+        if !*err {
+            match s.recv().await {
                 Ok(r) => Ok(r),
                 Err(e) => {
                     debug!(?e, "got a network error with client while recv");
-                    self.network_error.store(true, Ordering::Relaxed);
+                    *err = true;
                     Err(Error::StreamErr(e))
                 },
             }
         } else {
             Err(Error::StreamErr(network::StreamError::StreamClosed))
         }
-    }
-
-    pub fn is_registered(&self) -> bool {
-        matches!(
-            self.client_state,
-            ClientState::Registered | ClientState::Spectator | ClientState::Character
-        )
-    }
-
-    pub fn is_ingame(&self) -> bool {
-        matches!(
-            self.client_state,
-            ClientState::Spectator | ClientState::Character
-        )
-    }
-
-    pub fn allow_state(&mut self, new_state: ClientState) {
-        self.client_state = new_state;
-        let _ = self
-            .singleton_stream
-            .send(ServerMsg::StateAnswer(Ok(new_state)));
-    }
-
-    pub fn error_state(&mut self, error: RequestStateError) {
-        let _ = self.notify(ServerMsg::StateAnswer(Err((error, self.client_state))));
     }
 }
 
