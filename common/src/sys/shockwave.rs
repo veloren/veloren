@@ -170,7 +170,7 @@ impl<'a> System<'a> for Sys {
 
                 // Angle checks
                 let pos_b_ground = Vec3::new(pos_b.0.x, pos_b.0.y, pos.0.z);
-                let max_angle = 15.0_f32.to_radians();
+                let max_angle = shockwave.vertical_angle.to_radians();
 
                 // See if entities are in the same group
                 let same_group = group

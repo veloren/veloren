@@ -7,6 +7,7 @@ use std::time::Duration;
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Properties {
     pub angle: f32,
+    pub vertical_angle: f32,
     pub speed: f32,
     pub damage: u32,
     pub knockback: f32,

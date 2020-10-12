@@ -78,7 +78,7 @@ impl ParticleMgr {
                         );
                     } else {
                         self.particles.resize_with(
-                            self.particles.len() + (50.0 * power.abs()) as usize,
+                            self.particles.len() + (200.0 * power.abs()) as usize,
                             || {
                                 Particle::new(
                                     Duration::from_secs(1),

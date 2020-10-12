@@ -290,7 +290,7 @@ void main() {
 		);
 	} else if (inst_mode == FLAMETHROWER) {
 		attr = Attr(
-			(inst_dir * lifetime / inst_lifespan) + vec3(rand0, rand1, rand2) * 0.3,
+			(inst_dir * lifetime / inst_lifespan) + vec3(rand0, rand1, rand2) * (lifetime * 5 + 0.25),
 			vec3(0.6 + rand3 * 0.5 + lifetime / inst_lifespan * 5),
 			vec4(1, 0.6 + rand5 * 0.3 - 0.6 * lifetime / inst_lifespan, 0, 0.8 - 0.6 * lifetime / inst_lifespan),
 			spin_in_axis(vec3(rand6, rand7, rand8), lifetime / inst_lifespan * 10 + 3 * rand9)
