@@ -52,7 +52,7 @@ pub enum ServerInit {
         time_of_day: state::TimeOfDay,
         max_group_size: u32,
         client_timeout: Duration,
-        world_map: crate::msg::world_packet::WorldMapMsg,
+        world_map: crate::msg::world_msg::WorldMapMsg,
         recipe_book: RecipeBook,
     },
 }

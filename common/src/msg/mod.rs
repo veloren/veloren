@@ -1,7 +1,7 @@
 pub mod client;
 pub mod ecs_packet;
 pub mod server;
-pub mod world_packet;
+pub mod world_msg;
 
 // Reexports
 pub use self::{
@@ -11,7 +11,7 @@ pub use self::{
         CharacterInfo, DisconnectReason, InviteAnswer, Notification, PlayerInfo, PlayerListUpdate,
         RegisterError, ServerGeneral, ServerInfo, ServerInit, ServerMsg, ServerRegisterAnswer,
     },
-    world_packet::WorldMapMsg,
+    world_msg::WorldMapMsg,
 };
 use serde::{Deserialize, Serialize};
 
