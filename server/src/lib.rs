@@ -47,8 +47,7 @@ use common::{
     comp::{self, ChatType},
     event::{EventBus, ServerEvent},
     msg::{
-        ClientType, DisconnectReason, ServerCharacterScreen, ServerGeneral, ServerInfo, ServerInit,
-        ServerMsg, WorldMapMsg,
+        ClientType, DisconnectReason, ServerGeneral, ServerInfo, ServerInit, ServerMsg, WorldMapMsg,
     },
     outcome::Outcome,
     recipe::default_recipe_book,
@@ -527,11 +526,11 @@ impl Server {
                 CharacterLoaderResponseType::CharacterList(result) => match result {
                     Ok(character_list_data) => self.notify_client(
                         query_result.entity,
-                        ServerCharacterScreen::CharacterListUpdate(character_list_data),
+                        ServerGeneral::CharacterListUpdate(character_list_data),
                     ),
                     Err(error) => self.notify_client(
                         query_result.entity,
-                        ServerCharacterScreen::CharacterActionError(error.to_string()),
+                        ServerGeneral::CharacterActionError(error.to_string()),
                     ),
                 },
                 CharacterLoaderResponseType::CharacterData(result) => {
@@ -546,7 +545,7 @@ impl Server {
                             // to display
                             self.notify_client(
                                 query_result.entity,
-                                ServerCharacterScreen::CharacterDataLoadError(error.to_string()),
+                                ServerGeneral::CharacterDataLoadError(error.to_string()),
                             );
 
                             // Clean up the entity data on the server

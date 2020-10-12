@@ -5,10 +5,7 @@ use common::{
     character::CharacterId,
     comp,
     effect::Effect,
-    msg::{
-        CharacterInfo, ClientIngame, PlayerListUpdate, ServerCharacterScreen, ServerGeneral,
-        ServerInGame, ServerMsg,
-    },
+    msg::{CharacterInfo, ClientInGame, PlayerListUpdate, ServerGeneral, ServerMsg},
     state::State,
     sync::{Uid, UidAllocator, WorldSyncExt},
     util::Dir,
@@ -63,7 +60,7 @@ pub trait StateExt {
     /// Iterates over registered clients and send each `ServerMsg`
     fn send_chat(&self, msg: comp::UnresolvedChatMsg);
     fn notify_registered_clients(&self, msg: ServerGeneral);
-    fn notify_in_game_clients(&self, msg: ServerInGame);
+    fn notify_in_game_clients(&self, msg: ServerGeneral);
     /// Delete an entity, recording the deletion in [`DeletedEntities`]
     fn delete_entity_recorded(
         &mut self,
@@ -220,8 +217,8 @@ impl StateExt for State {
 
         // Tell the client its request was successful.
         if let Some(client) = self.ecs().write_storage::<Client>().get_mut(entity) {
-            client.in_game = Some(ClientIngame::Character);
-            client.send_msg(ServerCharacterScreen::CharacterSuccess)
+            client.in_game = Some(ClientInGame::Character);
+            client.send_msg(ServerGeneral::CharacterSuccess)
         }
     }
 
@@ -368,7 +365,7 @@ impl StateExt for State {
     }
 
     /// Sends the message to all clients playing in game
-    fn notify_in_game_clients(&self, msg: ServerInGame) {
+    fn notify_in_game_clients(&self, msg: ServerGeneral) {
         let msg: ServerMsg = msg.into();
         for client in (&mut self.ecs().write_storage::<Client>())
             .join()
@@ -401,7 +398,7 @@ impl StateExt for State {
                                 .try_map(|e| uids.get(e).copied())
                                 .map(|g| (g, c))
                         })
-                        .map(|(g, c)| c.send_msg(ServerInGame::GroupUpdate(g)));
+                        .map(|(g, c)| c.send_msg(ServerGeneral::GroupUpdate(g)));
                 },
             );
         }

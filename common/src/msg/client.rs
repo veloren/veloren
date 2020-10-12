@@ -12,16 +12,13 @@ use vek::*;
 /// streams though). It's used to verify the correctness of the state in
 /// debug_assertions
 #[derive(Debug, Clone)]
+#[allow(clippy::clippy::large_enum_variant)]
 pub enum ClientMsg {
     ///Send on the first connection ONCE to identify client intention for
     /// server
     Type(ClientType),
     ///Send ONCE to register/auth to the server
     Register(ClientRegister),
-    ///Msg only to send while in character screen, e.g. `CreateCharacter`
-    CharacterScreen(ClientCharacterScreen),
-    ///Msg only to send while playing in game, e.g. `PlayerPositionUpdates`
-    InGame(ClientInGame),
     ///Msg that can be send ALWAYS as soon as we are registered, e.g. `Chat`
     General(ClientGeneral),
     Ping(PingMsg),
@@ -47,9 +44,10 @@ pub struct ClientRegister {
     pub token_or_username: String,
 }
 
-//messages send by clients only valid when in character screen
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub enum ClientCharacterScreen {
+/// Messages sent from the client to the server
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum ClientGeneral {
+    //Only in Character Screen
     RequestCharacterList,
     CreateCharacter {
         alias: String,
@@ -59,11 +57,7 @@ pub enum ClientCharacterScreen {
     DeleteCharacter(CharacterId),
     Character(CharacterId),
     Spectate,
-}
-
-//messages send by clients only valid when in game (with a character)
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub enum ClientInGame {
+    //Only in game
     ControllerInputs(comp::ControllerInputs),
     ControlEvent(comp::ControlEvent),
     ControlAction(comp::ControlAction),
@@ -82,14 +76,57 @@ pub enum ClientInGame {
     UnlockSkill(Skill),
     RefundSkill(Skill),
     UnlockSkillGroup(SkillGroupType),
-}
-
-/// Messages sent from the client to the server
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum ClientGeneral {
+    //Always possible
     ChatMsg(String),
     Disconnect,
     Terminate,
+}
+
+impl ClientMsg {
+    pub fn verify(
+        &self,
+        c_type: ClientType,
+        registered: bool,
+        in_game: Option<super::ClientInGame>,
+    ) -> bool {
+        match self {
+            ClientMsg::Type(t) => c_type == *t,
+            ClientMsg::Register(_) => !registered && in_game.is_none(),
+            ClientMsg::General(g) => {
+                registered
+                    && match g {
+                        ClientGeneral::RequestCharacterList
+                        | ClientGeneral::CreateCharacter { .. }
+                        | ClientGeneral::DeleteCharacter(_) => {
+                            c_type != ClientType::ChatOnly && in_game.is_none()
+                        },
+                        ClientGeneral::Character(_) | ClientGeneral::Spectate => {
+                            c_type == ClientType::Game && in_game.is_none()
+                        },
+                        //Only in game
+                        ClientGeneral::ControllerInputs(_)
+                        | ClientGeneral::ControlEvent(_)
+                        | ClientGeneral::ControlAction(_)
+                        | ClientGeneral::SetViewDistance(_)
+                        | ClientGeneral::BreakBlock(_)
+                        | ClientGeneral::PlaceBlock(_, _)
+                        | ClientGeneral::ExitInGame
+                        | ClientGeneral::PlayerPhysics { .. }
+                        | ClientGeneral::TerrainChunkRequest { .. }
+                        | ClientGeneral::UnlockSkill(_)
+                        | ClientGeneral::RefundSkill(_)
+                        | ClientGeneral::UnlockSkillGroup(_) => {
+                            c_type == ClientType::Game && in_game.is_some()
+                        },
+                        //Always possible
+                        ClientGeneral::ChatMsg(_)
+                        | ClientGeneral::Disconnect
+                        | ClientGeneral::Terminate => true,
+                    }
+            },
+            ClientMsg::Ping(_) => true,
+        }
+    }
 }
 
 /*
@@ -102,14 +139,6 @@ impl Into<ClientMsg> for ClientType {
 
 impl Into<ClientMsg> for ClientRegister {
     fn into(self) -> ClientMsg { ClientMsg::Register(self) }
-}
-
-impl Into<ClientMsg> for ClientCharacterScreen {
-    fn into(self) -> ClientMsg { ClientMsg::CharacterScreen(self) }
-}
-
-impl Into<ClientMsg> for ClientInGame {
-    fn into(self) -> ClientMsg { ClientMsg::InGame(self) }
 }
 
 impl Into<ClientMsg> for ClientGeneral {

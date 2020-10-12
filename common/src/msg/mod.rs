@@ -5,21 +5,18 @@ pub mod world_packet;
 
 // Reexports
 pub use self::{
-    client::{
-        ClientCharacterScreen, ClientGeneral, ClientInGame, ClientMsg, ClientRegister, ClientType,
-    },
+    client::{ClientGeneral, ClientMsg, ClientRegister, ClientType},
     ecs_packet::EcsCompPacket,
     server::{
         CharacterInfo, DisconnectReason, InviteAnswer, Notification, PlayerInfo, PlayerListUpdate,
-        RegisterError, ServerCharacterScreen, ServerGeneral, ServerInGame, ServerInfo, ServerInit,
-        ServerMsg, ServerRegisterAnswer,
+        RegisterError, ServerGeneral, ServerInfo, ServerInit, ServerMsg, ServerRegisterAnswer,
     },
     world_packet::WorldMapMsg,
 };
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
-pub enum ClientIngame {
+pub enum ClientInGame {
     Spectator,
     Character,
 }

@@ -1,5 +1,5 @@
 use crate::error::Error;
-use common::msg::{ClientIngame, ClientType, ServerMsg};
+use common::msg::{ClientInGame, ClientType, ServerGeneral, ServerMsg};
 use hashbrown::HashSet;
 use network::{Participant, Stream};
 use serde::{de::DeserializeOwned, Serialize};
@@ -11,7 +11,7 @@ use vek::*;
 pub struct Client {
     pub registered: bool,
     pub client_type: ClientType,
-    pub in_game: Option<ClientIngame>,
+    pub in_game: Option<ClientInGame>,
     pub participant: Option<Participant>,
     pub general_stream: Stream,
     pub ping_stream: Stream,
@@ -59,16 +59,38 @@ impl Client {
             ServerMsg::RegisterAnswer(msg) => {
                 Self::internal_send(&mut self.network_error, &mut self.register_stream, &msg)
             },
-            ServerMsg::CharacterScreen(msg) => Self::internal_send(
-                &mut self.network_error,
-                &mut self.character_screen_stream,
-                &msg,
-            ),
-            ServerMsg::InGame(msg) => {
-                Self::internal_send(&mut self.network_error, &mut self.in_game_stream, &msg)
-            },
             ServerMsg::General(msg) => {
-                Self::internal_send(&mut self.network_error, &mut self.general_stream, &msg)
+                let stream = match &msg {
+                    //Character Screen related
+                    ServerGeneral::CharacterDataLoadError(_)
+                    | ServerGeneral::CharacterListUpdate(_)
+                    | ServerGeneral::CharacterActionError(_)
+                    | ServerGeneral::CharacterSuccess => &mut self.character_screen_stream,
+                    //Ingame related
+                    ServerGeneral::GroupUpdate(_)
+                    | ServerGeneral::GroupInvite { .. }
+                    | ServerGeneral::InvitePending(_)
+                    | ServerGeneral::InviteComplete { .. }
+                    | ServerGeneral::ExitInGameSuccess
+                    | ServerGeneral::InventoryUpdate(_, _)
+                    | ServerGeneral::TerrainChunkUpdate { .. }
+                    | ServerGeneral::TerrainBlockUpdates(_)
+                    | ServerGeneral::SetViewDistance(_)
+                    | ServerGeneral::Outcomes(_)
+                    | ServerGeneral::Knockback(_) => &mut self.in_game_stream,
+                    // Always possible
+                    ServerGeneral::PlayerListUpdate(_)
+                    | ServerGeneral::ChatMsg(_)
+                    | ServerGeneral::SetPlayerEntity(_)
+                    | ServerGeneral::TimeOfDay(_)
+                    | ServerGeneral::EntitySync(_)
+                    | ServerGeneral::CompSync(_)
+                    | ServerGeneral::CreateEntity(_)
+                    | ServerGeneral::DeleteEntity(_)
+                    | ServerGeneral::Disconnect(_)
+                    | ServerGeneral::Notification(_) => &mut self.general_stream,
+                };
+                Self::internal_send(&mut self.network_error, stream, &msg)
             },
             ServerMsg::Ping(msg) => {
                 Self::internal_send(&mut self.network_error, &mut self.ping_stream, &msg)
