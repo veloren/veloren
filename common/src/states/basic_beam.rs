@@ -100,7 +100,7 @@ impl CharacterBehavior for Data {
                         timer: Duration::default(),
                         stage_section: StageSection::Cast,
                         particle_ori: Some(*data.inputs.look_dir),
-                        offset: eye_height * 0.9,
+                        offset: eye_height * 0.55,
                     });
                 }
             },

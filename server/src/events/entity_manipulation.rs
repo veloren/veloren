@@ -496,9 +496,7 @@ pub fn handle_explosion(
     let ecs = &server.state.ecs();
 
     let outcome_power = if explosion.max_heal > explosion.max_damage {
-        -explosion
-            .terrain_destruction_power
-            .min(explosion.max_heal as f32 / -100.0)
+        (-explosion.terrain_destruction_power).min(explosion.max_heal as f32 / -100.0)
     } else {
         explosion
             .terrain_destruction_power

@@ -22,6 +22,8 @@ pub struct StaticData {
     pub knockback: f32,
     /// Angle of the shockwave
     pub shockwave_angle: f32,
+    /// Vertical angle of the shockwave
+    pub shockwave_vertical_angle: f32,
     /// Speed of the shockwave
     pub shockwave_speed: f32,
     /// How long the shockwave travels for
@@ -65,6 +67,7 @@ impl CharacterBehavior for Data {
                     // Attack
                     let properties = shockwave::Properties {
                         angle: self.static_data.shockwave_angle,
+                        vertical_angle: self.static_data.shockwave_vertical_angle,
                         speed: self.static_data.shockwave_speed,
                         duration: self.static_data.shockwave_duration,
                         damage: self.static_data.damage,
