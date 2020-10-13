@@ -15,6 +15,7 @@ use crossbeam_channel::{unbounded, Receiver, Sender};
 use futures::channel::oneshot;
 use std::collections::{HashMap, HashSet, VecDeque};
 #[cfg(feature = "metrics")] use std::sync::Arc;
+use tracing::trace;
 
 const PRIO_MAX: usize = 64;
 
@@ -176,9 +177,11 @@ impl PrioManager {
             if let Some(cnt) = self.sid_owned.get_mut(&sid) {
                 // register sender
                 cnt.empty_notify = Some(return_sender);
+                trace!(?sid, "register empty notify");
             } else {
                 // return immediately
                 return_sender.send(()).unwrap();
+                trace!(?sid, "return immediately that stream is empty");
             }
         }
     }
@@ -249,6 +252,7 @@ impl PrioManager {
                             let cnt = self.sid_owned.remove(&sid).unwrap();
                             if let Some(empty_notify) = cnt.empty_notify {
                                 empty_notify.send(()).unwrap();
+                                trace!(?sid, "returned that stream is empty");
                             }
                         }
                     } else {
