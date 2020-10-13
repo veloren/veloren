@@ -24,15 +24,15 @@ pub fn userdata_dir(workspace: bool, strategy: Option<&str>, manifest_dir: &str)
         // 2. The VELOREN_USERDATA_STRATEGY environment variable
         .or_else(|| match strategy {
             // "system" => system specific project data directory
-            Some(s) if s.eq_ignore_ascii_case("system") => Some(directories_next::ProjectDirs::from("net", "veloren", "userdata")
+            Some(s) if s.eq_ignore_ascii_case("system") => Some(directories_next::ProjectDirs::from("net", "veloren", "veloren")
                 .expect("System's $HOME directory path not found!")
                 .data_dir()
-                .to_owned()
+                .join("userdata")
             ),
             // "executable" => <executable dir>/userdata
             Some(s) if s.eq_ignore_ascii_case("executable") => {
                 let mut path = std::env::current_exe()
-                    .expect("Failed to retrieve executable directory!");
+                    .expect("Failed to retrieve executable path!");
                 path.pop();
                 path.push("userdata");
                 Some(path)
@@ -47,6 +47,14 @@ pub fn userdata_dir(workspace: bool, strategy: Option<&str>, manifest_dir: &str)
             if workspace {
                 path.pop();
             }
+            let exe_path = std::env::current_exe()
+                .expect("Failed to retrieve executable path!");
+            // Ensure this path exists 
+            // Ensure that the binary path is prefixed by this path
+            if !path.exists() || !exe_path.starts_with(&path) {
+                panic!("Recompile with VELOREN_USERDATA_STRATEGY set to \"system\" or \"executable\" to run the binary outside of the project folder");
+            }
+
             path.push("userdata");
             path
         })
