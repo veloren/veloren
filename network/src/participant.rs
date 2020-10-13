@@ -236,6 +236,9 @@ impl BParticipant {
             // closed
             if !closing_up && shutdown_send_mgr_receiver.try_recv().unwrap().is_some() {
                 closing_up = true;
+                //FIXME: quickfix for an error that we are WAITING on close confirmation of
+                // streams from prio manager while prio manager is already shut down.
+                async_std::task::sleep(TICK_TIME * 10).await;
             }
         }
         trace!("Stop send_mgr");
