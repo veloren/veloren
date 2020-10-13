@@ -8,7 +8,7 @@ use crate::{
     GlobalState,
 };
 use client::Client;
-use common::comp::Stats;
+use common::comp::{self, Buffs};
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Text},
@@ -24,8 +24,15 @@ widget_ids! {
         debuff_test,
     }
 }
+
+pub struct BuffInfo {
+    id: comp::BuffId,
+    is_buff: bool,
+    dur: f32,
+}
+
 #[derive(WidgetCommon)]
-pub struct Buffs<'a> {
+pub struct BuffsBar<'a> {
     client: &'a Client,
     imgs: &'a Imgs,
     fonts: &'a ConrodVoxygenFonts,
@@ -35,10 +42,10 @@ pub struct Buffs<'a> {
     rot_imgs: &'a ImgsRot,
     tooltip_manager: &'a mut TooltipManager,
     localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
-    stats: &'a Stats,
+    buffs: &'a Buffs,
 }
 
-impl<'a> Buffs<'a> {
+impl<'a> BuffsBar<'a> {
     #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn new(
         client: &'a Client,
@@ -48,7 +55,7 @@ impl<'a> Buffs<'a> {
         rot_imgs: &'a ImgsRot,
         tooltip_manager: &'a mut TooltipManager,
         localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
-        stats: &'a Stats,
+        buffs: &'a Buffs,
     ) -> Self {
         Self {
             client,
@@ -59,7 +66,7 @@ impl<'a> Buffs<'a> {
             rot_imgs,
             tooltip_manager,
             localized_strings,
-            stats,
+            buffs,
         }
     }
 }
@@ -68,7 +75,7 @@ pub struct State {
     ids: Ids,
 }
 
-impl<'a> Widget for Buffs<'a> {
+impl<'a> Widget for BuffsBar<'a> {
     type Event = ();
     type State = State;
     type Style = ();
@@ -121,5 +128,16 @@ impl<'a> Widget for Buffs<'a> {
             .w_h(20.0, 20.0)
             .bottom_left_with_margins_on(state.ids.buffs_align, 0.0, 1.0)
             .set(state.ids.buff_test, ui);
+    }
+}
+
+fn get_buff_info(buff: comp::Buff) -> BuffInfo {
+    BuffInfo {
+        id: buff.id,
+        is_buff: buff
+            .cat_ids
+            .iter()
+            .any(|cat| *cat == comp::BuffCategoryId::Buff),
+        dur: buff.time.map(|dur| dur.as_secs_f32()).unwrap_or(100.0),
     }
 }
