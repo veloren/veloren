@@ -159,7 +159,7 @@ impl<'a> System<'a> for Sys {
                                     strength: attack.base_damage as f32,
                                     duration: Some(Duration::from_secs(10)),
                                 },
-                                vec![buff::BuffCategoryId::Physical],
+                                vec![buff::BuffCategoryId::Physical, buff::BuffCategoryId::Debuff],
                                 buff::BuffSource::Character { by: *uid },
                             )),
                         });

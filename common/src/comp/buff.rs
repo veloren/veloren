@@ -41,6 +41,7 @@ pub enum BuffCategoryId {
     Divine,
     Debuff,
     Buff,
+    PersistOnDeath,
 }
 
 /// Data indicating and configuring behaviour of a de/buff.
@@ -93,9 +94,12 @@ pub enum BuffChange {
     RemoveByIndex(Vec<usize>, Vec<usize>),
     /// Removes buffs of these categories (first vec is of categories of which
     /// all are required, second vec is of categories of which at least one is
-    /// required) Note that this functionality is currently untested and
-    /// should be tested when doing so is possible
-    RemoveByCategory(Vec<BuffCategoryId>, Vec<BuffCategoryId>),
+    /// required, third vec is of categories that will not be removed)  
+    RemoveByCategory {
+        required: Vec<BuffCategoryId>,
+        optional: Vec<BuffCategoryId>,
+        blacklisted: Vec<BuffCategoryId>,
+    },
 }
 
 /// Source of the de/buff
@@ -173,6 +177,13 @@ impl Buff {
                 duration,
             ),
         };
+        assert_eq!(
+            cat_ids
+                .iter()
+                .any(|cat| *cat == BuffCategoryId::Buff || *cat == BuffCategoryId::Debuff),
+            true,
+            "Buff must have either buff or debuff category."
+        );
         Buff {
             id,
             cat_ids,

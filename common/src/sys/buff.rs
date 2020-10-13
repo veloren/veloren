@@ -1,5 +1,8 @@
 use crate::{
-    comp::{BuffChange, BuffEffect, BuffSource, Buffs, HealthChange, HealthSource},
+    comp::{
+        BuffCategoryId, BuffChange, BuffEffect, BuffSource, Buffs, HealthChange, HealthSource,
+        Stats,
+    },
     event::{EventBus, ServerEvent},
     state::DeltaTime,
     sync::Uid,
@@ -14,12 +17,13 @@ impl<'a> System<'a> for Sys {
         Read<'a, DeltaTime>,
         Read<'a, EventBus<ServerEvent>>,
         ReadStorage<'a, Uid>,
+        ReadStorage<'a, Stats>,
         WriteStorage<'a, Buffs>,
     );
 
-    fn run(&mut self, (dt, server_bus, uids, mut buffs): Self::SystemData) {
+    fn run(&mut self, (dt, server_bus, uids, stats, mut buffs): Self::SystemData) {
         let mut server_emitter = server_bus.emitter();
-        for (uid, mut buffs) in (&uids, &mut buffs.restrict_mut()).join() {
+        for (uid, stat, mut buffs) in (&uids, &stats, &mut buffs.restrict_mut()).join() {
             let buff_comp = buffs.get_mut_unchecked();
             let (mut active_buff_indices_for_removal, mut inactive_buff_indices_for_removal) =
                 (Vec::<usize>::new(), Vec::<usize>::new());
@@ -95,6 +99,7 @@ impl<'a> System<'a> for Sys {
                     };
                 }
             }
+
             server_emitter.emit(ServerEvent::Buff {
                 uid: *uid,
                 buff_change: BuffChange::RemoveByIndex(
@@ -102,6 +107,17 @@ impl<'a> System<'a> for Sys {
                     inactive_buff_indices_for_removal,
                 ),
             });
+
+            if stat.is_dead {
+                server_emitter.emit(ServerEvent::Buff {
+                    uid: *uid,
+                    buff_change: BuffChange::RemoveByCategory {
+                        required: vec![],
+                        optional: vec![],
+                        blacklisted: vec![BuffCategoryId::PersistOnDeath],
+                    },
+                });
+            }
         }
     }
 }

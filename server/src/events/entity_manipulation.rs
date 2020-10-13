@@ -758,7 +758,11 @@ pub fn handle_buff(server: &mut Server, uid: Uid, buff_change: buff::BuffChange)
                         }
                     }
                 },
-                BuffChange::RemoveByCategory(all_required, any_required) => {
+                BuffChange::RemoveByCategory {
+                    required: all_required,
+                    optional: any_required,
+                    blacklisted: none_required,
+                } => {
                     for (i, buff) in buffs.active_buffs.iter().enumerate() {
                         let mut required_met = true;
                         for required in &all_required {
@@ -774,7 +778,14 @@ pub fn handle_buff(server: &mut Server, uid: Uid, buff_change: buff::BuffChange)
                                 break;
                             }
                         }
-                        if required_met && any_met {
+                        let mut none_met = true;
+                        for none in &none_required {
+                            if buff.cat_ids.iter().any(|cat| cat == none) {
+                                none_met = false;
+                                break;
+                            }
+                        }
+                        if required_met && any_met && none_met {
                             active_buff_indices_for_removal.push(i);
                         }
                     }

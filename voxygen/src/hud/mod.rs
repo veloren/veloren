@@ -25,7 +25,7 @@ pub use hotbar::{SlotContents as HotbarSlotContents, State as HotbarState};
 pub use settings_window::ScaleChange;
 
 use bag::Bag;
-use buffs::Buffs;
+use buffs::BuffsBar;
 use buttons::Buttons;
 use chat::Chat;
 use chrono::NaiveTime;
@@ -1733,6 +1733,7 @@ impl Hud {
         // Bag button and nearby icons
         let ecs = client.state().ecs();
         let stats = ecs.read_storage::<comp::Stats>();
+        let buffs = ecs.read_storage::<comp::Buffs>();
         if let Some(player_stats) = stats.get(client.entity()) {
             match Buttons::new(
                 client,
@@ -1758,8 +1759,8 @@ impl Hud {
         }
 
         // Buffs and Debuffs
-        if let Some(player_stats) = stats.get(client.entity()) {
-            match Buffs::new(
+        if let Some(player_buffs) = buffs.get(client.entity()) {
+            match BuffsBar::new(
                 client,
                 &self.imgs,
                 &self.fonts,
@@ -1767,7 +1768,7 @@ impl Hud {
                 &self.rot_imgs,
                 tooltip_manager,
                 &self.voxygen_i18n,
-                &player_stats,
+                &player_buffs,
             )
             .set(self.ids.buffs, ui_widgets)
             {
