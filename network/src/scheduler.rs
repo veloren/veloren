@@ -305,6 +305,7 @@ impl Scheduler {
     async fn scheduler_shutdown_mgr(&self, a2s_scheduler_shutdown_r: oneshot::Receiver<()>) {
         trace!("Start scheduler_shutdown_mgr");
         a2s_scheduler_shutdown_r.await.unwrap();
+        info!("Shutdown of scheduler requested");
         self.closed.store(true, Ordering::Relaxed);
         debug!("Shutting down all BParticipants gracefully");
         let mut participants = self.participants.lock().await;
@@ -321,6 +322,7 @@ impl Scheduler {
                 (pid, finished_receiver)
             })
             .collect::<Vec<_>>();
+        drop(participants);
         debug!("Wait for partiticipants to be shut down");
         for (pid, recv) in waitings {
             if let Err(e) = recv.await {
