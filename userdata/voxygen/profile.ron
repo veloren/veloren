@@ -1,0 +1,18 @@
+(
+    servers: {
+        "Veloren Alpha": (
+            characters: {
+                24: (
+                    hotbar_slots: (None, None, None, None, None, Some(Inventory(0)), Some(Inventory(1)), None, None, None),
+                ),
+            },
+        ),
+        "Singleplayer": (
+            characters: {
+                2: (
+                    hotbar_slots: (None, None, None, None, None, Some(Inventory(0)), Some(Inventory(1)), None, None, None),
+                ),
+            },
+        ),
+    },
+)

@@ -158,7 +158,6 @@ pub enum CharacterAbility {
         charge_duration: Duration,
         swing_duration: Duration,
         recover_duration: Duration,
-        is_interruptible: bool,
     },
     ChargedRanged {
         energy_cost: u32,
@@ -538,7 +537,6 @@ impl From<&CharacterAbility> for CharacterState {
                 recover_duration,
                 range,
                 max_angle,
-                is_interruptible,
             } => CharacterState::ChargedMelee(charged_melee::Data {
                 static_data: charged_melee::StaticData {
                     energy_cost: *energy_cost,
@@ -552,7 +550,6 @@ impl From<&CharacterAbility> for CharacterState {
                     charge_duration: *charge_duration,
                     swing_duration: *swing_duration,
                     recover_duration: *recover_duration,
-                    is_interruptible: *is_interruptible,
                 },
                 stage_section: StageSection::Charge,
                 timer: Duration::default(),
