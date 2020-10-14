@@ -33,7 +33,6 @@ pub struct StaticData {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
-//#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct Data {
     /// Struct containing data that does not change over the course of the
     /// character state

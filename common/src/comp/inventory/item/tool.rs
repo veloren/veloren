@@ -262,7 +262,6 @@ impl Tool {
                     charge_duration: Duration::from_millis(1200),
                     swing_duration: Duration::from_millis(400),
                     recover_duration: Duration::from_millis(100),
-                    is_interruptible: false,
                 },
                 LeapMelee {
                     energy_cost: 700,
