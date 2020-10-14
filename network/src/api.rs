@@ -955,17 +955,13 @@ impl Drop for Participant {
 
 impl Drop for Stream {
     fn drop(&mut self) {
-        // send if closed is unnecessary but doesnt hurt, we must not crash
+        // send if closed is unnecessary but doesn't hurt, we must not crash
         if !self.send_closed.load(Ordering::Relaxed) {
             let sid = self.sid;
             let pid = self.pid;
             debug!(?pid, ?sid, "Shutting down Stream");
-            if task::block_on(self.a2b_close_stream_s.take().unwrap().send(self.sid)).is_err() {
-                warn!(
-                    "Other side got already dropped, probably due to timing, other side will \
-                     handle this gracefully"
-                );
-            };
+            task::block_on(self.a2b_close_stream_s.take().unwrap().send(self.sid))
+                .expect("bparticipant part of a gracefully shutdown must have crashed");
         } else {
             let sid = self.sid;
             let pid = self.pid;
