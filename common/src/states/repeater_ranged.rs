@@ -178,19 +178,8 @@ impl CharacterBehavior for Data {
             },
             StageSection::Recover => {
                 if self.static_data.leap == None {
-                    if !data.physics.on_ground {
-                        // Lands
-                        update.character = CharacterState::RepeaterRanged(Data {
-                            static_data: self.static_data.clone(),
-                            timer: self
-                                .timer
-                                .checked_add(Duration::from_secs_f32(data.dt.0))
-                                .unwrap_or_default(),
-                            stage_section: self.stage_section,
-                            reps_remaining: self.reps_remaining,
-                        });
-                    } else if self.timer < self.static_data.recover_duration {
-                        // Recovers from attack
+                    if !data.physics.on_ground || self.timer < self.static_data.recover_duration {
+                        // Lands or recovers from attack in air
                         update.character = CharacterState::RepeaterRanged(Data {
                             static_data: self.static_data.clone(),
                             timer: self
@@ -204,25 +193,23 @@ impl CharacterBehavior for Data {
                         // Done
                         update.character = CharacterState::Wielding;
                     }
+                } else if data.physics.on_ground {
+                    // Done
+                    update.character = CharacterState::Wielding;
+                } else if self.timer < self.static_data.recover_duration {
+                    // Recovers from attack
+                    update.character = CharacterState::RepeaterRanged(Data {
+                        static_data: self.static_data.clone(),
+                        timer: self
+                            .timer
+                            .checked_add(Duration::from_secs_f32(data.dt.0))
+                            .unwrap_or_default(),
+                        stage_section: self.stage_section,
+                        reps_remaining: self.reps_remaining,
+                    });
                 } else {
-                    if data.physics.on_ground {
-                        // Done
-                        update.character = CharacterState::Wielding;
-                    } else if self.timer < self.static_data.recover_duration {
-                        // Recovers from attack
-                        update.character = CharacterState::RepeaterRanged(Data {
-                            static_data: self.static_data.clone(),
-                            timer: self
-                                .timer
-                                .checked_add(Duration::from_secs_f32(data.dt.0))
-                                .unwrap_or_default(),
-                            stage_section: self.stage_section,
-                            reps_remaining: self.reps_remaining,
-                        });
-                    } else {
-                        // Done
-                        update.character = CharacterState::Wielding;
-                    }
+                    // Done
+                    update.character = CharacterState::Wielding;
                 }
             },
             _ => {
