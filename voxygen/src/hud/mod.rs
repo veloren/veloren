@@ -2400,7 +2400,6 @@ impl Hud {
                 self.force_ungrab = !self.force_ungrab;
                 true
             },
-            _ if !self.show.ui => false,
             WinEvent::Zoom(_) => !cursor_grabbed && !self.ui.no_widget_capturing_mouse(),
 
             WinEvent::InputUpdate(GameInput::Chat, true) => {
@@ -2624,7 +2623,7 @@ impl Hud {
 
         if !self.show.ui {
             // Optimization: skip maintaining UI when it's off.
-            return vec![];
+            return std::mem::take(&mut self.events);
         }
 
         if let Some(maybe_id) = self.to_focus.take() {
