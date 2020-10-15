@@ -69,6 +69,10 @@ pub enum CharacterState {
     SpinMelee(spin_melee::Data),
     /// A charged ranged attack (e.g. bow)
     ChargedRanged(charged_ranged::Data),
+    /// A charged melee attack
+    ChargedMelee(charged_melee::Data),
+    /// A repeating ranged attack
+    RepeaterRanged(repeater_ranged::Data),
     /// A ground shockwave attack
     GroundShockwave(ground_shockwave::Data),
     /// A continuous attack that affects all creatures in a cone originating
@@ -87,7 +91,9 @@ impl CharacterState {
             | CharacterState::BasicBlock
             | CharacterState::LeapMelee(_)
             | CharacterState::SpinMelee(_)
+            | CharacterState::ChargedMelee(_)
             | CharacterState::ChargedRanged(_)
+            | CharacterState::RepeaterRanged(_)
             | CharacterState::GroundShockwave(_)
             | CharacterState::BasicBeam(_)
         )
@@ -101,7 +107,9 @@ impl CharacterState {
             | CharacterState::ComboMelee(_)
             | CharacterState::LeapMelee(_)
             | CharacterState::SpinMelee(_)
+            | CharacterState::ChargedMelee(_)
             | CharacterState::ChargedRanged(_)
+            | CharacterState::RepeaterRanged(_)
             | CharacterState::GroundShockwave(_)
             | CharacterState::BasicBeam(_)
         )
@@ -115,7 +123,9 @@ impl CharacterState {
             | CharacterState::ComboMelee(_)
             | CharacterState::BasicBlock
             | CharacterState::LeapMelee(_)
+            | CharacterState::ChargedMelee(_)
             | CharacterState::ChargedRanged(_)
+            | CharacterState::RepeaterRanged(_)
             | CharacterState::GroundShockwave(_)
             | CharacterState::BasicBeam(_)
         )

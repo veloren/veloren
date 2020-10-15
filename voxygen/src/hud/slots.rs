@@ -85,6 +85,9 @@ pub enum HotbarImage {
     Fireball,
     SnakeArrow,
     SwordWhirlwind,
+    HammerLeap,
+    AxeLeapSlash,
+    BowJumpBurst,
 }
 
 type HotbarSource<'a> = (&'a hotbar::State, &'a Inventory, &'a Loadout, &'a Energy);
@@ -110,6 +113,9 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                     match kind {
                         ItemKind::Tool(Tool { kind, .. }) => match kind {
                             ToolKind::Staff(_) => Some(HotbarImage::Fireball),
+                            ToolKind::Hammer(_) => Some(HotbarImage::HammerLeap),
+                            ToolKind::Axe(_) => Some(HotbarImage::AxeLeapSlash),
+                            ToolKind::Bow(_) => Some(HotbarImage::BowJumpBurst),
                             ToolKind::Debug(kind) => match kind.as_ref() {
                                 "Boost" => Some(HotbarImage::SnakeArrow),
                                 _ => None,
@@ -119,11 +125,27 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                         },
                         _ => None,
                     }
-                    .map(|image_key| {
-                        (
+                    .map(|image_key| match image_key {
+                        HotbarImage::Fireball => (
                             image_key,
-                            (energy.current() < 500).then_some(Color::Rgba(0.3, 0.3, 0.3, 0.8)),
-                        )
+                            (energy.current() < 450).then_some(Color::Rgba(0.3, 0.3, 0.3, 0.8)),
+                        ),
+                        HotbarImage::HammerLeap => (
+                            image_key,
+                            (energy.current() < 700).then_some(Color::Rgba(0.3, 0.3, 0.3, 0.8)),
+                        ),
+                        HotbarImage::AxeLeapSlash => (
+                            image_key,
+                            (energy.current() < 450).then_some(Color::Rgba(0.3, 0.3, 0.3, 0.8)),
+                        ),
+                        HotbarImage::BowJumpBurst => (
+                            image_key,
+                            (energy.current() < 450).then_some(Color::Rgba(0.3, 0.3, 0.3, 0.8)),
+                        ),
+                        _ => (
+                            image_key,
+                            (energy.current() < 1000).then_some(Color::Rgba(1.0, 1.0, 1.0, 1.0)),
+                        ),
                     })
                 }),
         })
@@ -146,6 +168,9 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
             HotbarImage::SnakeArrow => imgs.snake_arrow_0,
             HotbarImage::Fireball => imgs.fire_spell_1,
             HotbarImage::SwordWhirlwind => imgs.sword_whirlwind,
+            HotbarImage::HammerLeap => imgs.hammerleap,
+            HotbarImage::AxeLeapSlash => imgs.skill_axe_leap_slash,
+            HotbarImage::BowJumpBurst => imgs.skill_bow_jump_burst,
         }
     }
 }

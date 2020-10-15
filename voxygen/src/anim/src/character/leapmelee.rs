@@ -1,12 +1,22 @@
-use super::{super::Animation, CharacterSkeleton, SkeletonAttr};
-use common::comp::item::{Hands, ToolKind};
-/* use std::f32::consts::PI; */
-use super::super::vek::*;
-
+use super::{
+    super::{vek::*, Animation},
+    CharacterSkeleton, SkeletonAttr,
+};
+use common::{
+    comp::item::{Hands, ToolKind},
+    states::utils::StageSection,
+};
+use std::f32::consts::PI;
 pub struct LeapAnimation;
 
 impl Animation for LeapAnimation {
-    type Dependency = (Option<ToolKind>, Option<ToolKind>, Vec3<f32>, f64);
+    type Dependency = (
+        Option<ToolKind>,
+        Option<ToolKind>,
+        Vec3<f32>,
+        f64,
+        Option<StageSection>,
+    );
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -16,7 +26,7 @@ impl Animation for LeapAnimation {
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, second_tool_kind, _velocity, _global_time): Self::Dependency,
+        (active_tool_kind, second_tool_kind, _velocity, _global_time, stage_section): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
@@ -24,86 +34,306 @@ impl Animation for LeapAnimation {
         *rate = 1.0;
         let mut next = (*skeleton).clone();
 
-        let lab = 1.0;
-        let slowersmooth = (anim_time as f32 * lab as f32 * 4.0).sin();
-        let slower = (((1.0)
-            / (0.0001 + 0.999 * ((anim_time as f32 * lab as f32 * 4.0).sin()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * lab as f32 * 4.0).sin());
+        let movement = (anim_time as f32 * 1.0).min(1.0);
 
         if let Some(ToolKind::Hammer(_)) = active_tool_kind {
             next.l_hand.position = Vec3::new(-12.0, 0.0, 0.0);
-            next.l_hand.orientation = Quaternion::rotation_x(-0.0) * Quaternion::rotation_y(0.0);
+            next.l_hand.orientation = Quaternion::rotation_x(PI) * Quaternion::rotation_y(0.0);
             next.l_hand.scale = Vec3::one() * 1.08;
-            next.r_hand.position = Vec3::new(3.0, 0.0, 0.0);
-            next.r_hand.orientation = Quaternion::rotation_x(0.0) * Quaternion::rotation_y(0.0);
+            next.r_hand.position = Vec3::new(2.0, 0.0, 0.0);
+            next.r_hand.orientation = Quaternion::rotation_x(PI) * Quaternion::rotation_y(0.0);
             next.r_hand.scale = Vec3::one() * 1.06;
             next.main.position = Vec3::new(0.0, 0.0, 0.0);
-            next.main.orientation = Quaternion::rotation_x(0.0)
-                * Quaternion::rotation_y(-1.57)
-                * Quaternion::rotation_z(1.57);
+            next.main.orientation = Quaternion::rotation_y(-1.57) * Quaternion::rotation_z(1.57);
 
-            next.head.position = Vec3::new(
-                0.0,
-                -2.0 + skeleton_attr.head.0 + slower * -1.0,
-                skeleton_attr.head.1,
-            );
-            next.head.orientation = Quaternion::rotation_z(slower * 0.05)
-                * Quaternion::rotation_x((slowersmooth * -0.25 + slower * 0.55).max(-0.2))
-                * Quaternion::rotation_y(slower * 0.05);
-            next.head.scale = Vec3::one() * skeleton_attr.head_scale;
-
-            next.chest.position = Vec3::new(0.0, 0.0, 7.0);
-            next.chest.orientation = Quaternion::rotation_z(slower * 0.08 + slowersmooth * 0.15)
-                * Quaternion::rotation_x(-0.3 + slower * 0.45 + slowersmooth * 0.26)
-                * Quaternion::rotation_y(slower * 0.18 + slowersmooth * 0.15);
-
-            next.belt.position = Vec3::new(0.0, 0.0, -2.0 + slower * -0.7);
-            next.belt.orientation = Quaternion::rotation_z(slower * -0.16 + slowersmooth * -0.12)
-                * Quaternion::rotation_x(0.0 + slower * -0.06)
-                * Quaternion::rotation_y(slower * -0.05);
-
-            next.shorts.position = Vec3::new(0.0, 0.0, -5.0 + slower * -0.7);
-            next.shorts.orientation = Quaternion::rotation_z(slower * -0.08 + slowersmooth * -0.08)
-                * Quaternion::rotation_x(0.0 + slower * -0.08 + slowersmooth * -0.08)
-                * Quaternion::rotation_y(slower * -0.07);
-
-            next.lantern.orientation =
-                Quaternion::rotation_x(slower * -0.7 + 0.4) * Quaternion::rotation_y(slower * 0.4);
-            next.hold.scale = Vec3::one() * 0.0;
-
-            next.l_foot.position = Vec3::new(
-                -skeleton_attr.foot.0,
-                slower * 3.0 + slowersmooth * -6.0 - 2.0,
-                skeleton_attr.foot.2,
-            );
-            next.l_foot.orientation =
-                Quaternion::rotation_x(slower * -0.2 + slowersmooth * -0.3 - 0.2);
-
-            next.r_foot.position = Vec3::new(
-                skeleton_attr.foot.0,
-                slower * 2.0 + slowersmooth * -4.0 - 1.0,
-                -2.0 + skeleton_attr.foot.2,
-            );
-            next.r_foot.orientation =
-                Quaternion::rotation_x(slower * -0.4 + slowersmooth * -0.6 - 1.0);
-
-            next.control.scale = Vec3::one();
-            next.control.position = Vec3::new(-7.0, 7.0, 1.0);
-            next.control.orientation = Quaternion::rotation_x(-0.7 + slower * 1.5)
+            next.control.position = Vec3::new(6.0, 7.0, 1.0);
+            next.control.orientation = Quaternion::rotation_x(0.3)
                 * Quaternion::rotation_y(0.0)
-                * Quaternion::rotation_z(1.4 + slowersmooth * -0.4 + slower * 0.2);
+                * Quaternion::rotation_z(0.0);
             next.control.scale = Vec3::one();
+
+            next.head.position = Vec3::new(0.0, -2.0 + skeleton_attr.head.0, skeleton_attr.head.1);
+
+            if let Some(stage_section) = stage_section {
+                match stage_section {
+                    StageSection::Buildup => {
+                        next.control.position = Vec3::new(6.0, 7.0, 1.0);
+                        next.control.orientation = Quaternion::rotation_x(0.3)
+                            * Quaternion::rotation_y(0.0)
+                            * Quaternion::rotation_z(movement * 0.5);
+                        next.chest.orientation = Quaternion::rotation_x(movement * 0.3)
+                            * Quaternion::rotation_y(0.0)
+                            * Quaternion::rotation_z(movement * 0.5);
+
+                        next.head.orientation = Quaternion::rotation_x(0.0)
+                            * Quaternion::rotation_y(0.0)
+                            * Quaternion::rotation_z(movement * -0.4);
+                    },
+
+                    StageSection::Movement => {
+                        next.control.position = Vec3::new(
+                            6.0 + movement * -10.0,
+                            7.0 + movement * 5.0,
+                            1.0 + movement * 5.0,
+                        );
+                        next.control.orientation = Quaternion::rotation_x(0.3)
+                            * Quaternion::rotation_y(0.0)
+                            * Quaternion::rotation_z(0.5 + movement * 0.5);
+                        next.chest.orientation = Quaternion::rotation_x(0.3 + movement * 0.3)
+                            * Quaternion::rotation_y(0.0)
+                            * Quaternion::rotation_z(0.5 + movement * 0.2);
+                        next.head.orientation = Quaternion::rotation_x(0.0)
+                            * Quaternion::rotation_y(movement * -0.1)
+                            * Quaternion::rotation_z(-0.4 + movement * -0.2);
+
+                        next.l_foot.position = Vec3::new(
+                            -skeleton_attr.foot.0,
+                            skeleton_attr.foot.1 - 5.0,
+                            skeleton_attr.foot.2,
+                        );
+                        next.l_foot.orientation = Quaternion::rotation_x(-0.8);
+
+                        next.r_foot.position = Vec3::new(
+                            skeleton_attr.foot.0,
+                            skeleton_attr.foot.1 + 8.0,
+                            skeleton_attr.foot.2 + 5.0,
+                        );
+                        next.r_foot.orientation = Quaternion::rotation_x(0.9);
+                    },
+                    StageSection::Swing => {
+                        next.control.position =
+                            Vec3::new(-4.0, 12.0 + movement * 5.0, 6.0 + movement * -7.0);
+                        next.control.orientation = Quaternion::rotation_x(0.3 + movement * -3.0)
+                            * Quaternion::rotation_y(0.0)
+                            * Quaternion::rotation_z(1.0 + movement * 0.5);
+                        next.chest.orientation = Quaternion::rotation_x(0.6 + movement * -0.9)
+                            * Quaternion::rotation_y(0.0)
+                            * Quaternion::rotation_z(0.7 + movement * -0.7);
+                        next.head.orientation = Quaternion::rotation_x(movement * 0.2)
+                            * Quaternion::rotation_y(-0.1)
+                            * Quaternion::rotation_z(-0.6 + movement * 0.6);
+
+                        next.l_hand.position = Vec3::new(-12.0 + movement * 10.0, 0.0, 0.0);
+
+                        next.l_foot.position = Vec3::new(
+                            -skeleton_attr.foot.0,
+                            skeleton_attr.foot.1 + 8.0,
+                            skeleton_attr.foot.2 - 5.0,
+                        );
+                        next.l_foot.orientation = Quaternion::rotation_x(0.9);
+
+                        next.r_foot.position = Vec3::new(
+                            skeleton_attr.foot.0,
+                            skeleton_attr.foot.1 - 5.0,
+                            skeleton_attr.foot.2,
+                        );
+                        next.r_foot.orientation = Quaternion::rotation_x(-0.8);
+                    },
+                    StageSection::Recover => {
+                        next.control.position = Vec3::new(-4.0, 17.0, -1.0);
+                        next.control.orientation = Quaternion::rotation_x(-2.7)
+                            * Quaternion::rotation_y(0.0)
+                            * Quaternion::rotation_z(1.5);
+                        next.chest.orientation = Quaternion::rotation_x(-0.3 + movement * 0.3)
+                            * Quaternion::rotation_y(0.0)
+                            * Quaternion::rotation_z(0.0);
+                        next.head.orientation = Quaternion::rotation_x(0.2)
+                            * Quaternion::rotation_y(-0.1)
+                            * Quaternion::rotation_z(0.0);
+
+                        next.l_hand.position = Vec3::new(-2.0, 0.0, 0.0);
+                    },
+                    _ => {},
+                }
+            }
+        } else if let Some(ToolKind::Axe(_)) = active_tool_kind {
+            next.l_hand.position = Vec3::new(-0.5, 0.0, 4.0);
+            next.l_hand.orientation = Quaternion::rotation_x(PI / 2.0)
+                * Quaternion::rotation_z(0.0)
+                * Quaternion::rotation_y(0.0);
+            next.l_hand.scale = Vec3::one() * 1.08;
+            next.r_hand.position = Vec3::new(0.5, 0.0, -2.5);
+            next.r_hand.orientation = Quaternion::rotation_x(PI / 2.0)
+                * Quaternion::rotation_z(0.0)
+                * Quaternion::rotation_y(0.0);
+            next.r_hand.scale = Vec3::one() * 1.06;
+            next.main.position = Vec3::new(-0.0, -2.0, -1.0);
+            next.main.orientation = Quaternion::rotation_x(0.0)
+                * Quaternion::rotation_y(0.0)
+                * Quaternion::rotation_z(0.0);
+
+            next.control.position = Vec3::new(-3.0, 11.0, 3.0);
+            next.control.orientation = Quaternion::rotation_x(1.8)
+                * Quaternion::rotation_y(-0.5)
+                * Quaternion::rotation_z(PI - 0.2);
+            next.control.scale = Vec3::one();
+
+            next.head.position = Vec3::new(0.0, -2.0 + skeleton_attr.head.0, skeleton_attr.head.1);
+
+            if let Some(stage_section) = stage_section {
+                match stage_section {
+                    StageSection::Buildup => {
+                        next.control.position = Vec3::new(
+                            -3.0 + movement * 3.0,
+                            11.0 + movement * 1.0,
+                            3.0 + movement * 12.0,
+                        );
+                        next.control.orientation = Quaternion::rotation_x(1.8 + movement * -1.0)
+                            * Quaternion::rotation_y(-0.5 + movement * 0.5)
+                            * Quaternion::rotation_z(PI + 0.2 - movement * 0.2);
+                        next.chest.orientation = Quaternion::rotation_x(movement * -0.3)
+                            * Quaternion::rotation_y(0.0)
+                            * Quaternion::rotation_z(movement * 0.5);
+
+                        next.head.orientation = Quaternion::rotation_x(0.0 + movement * -0.4);
+
+                        next.l_foot.position = Vec3::new(
+                            skeleton_attr.foot.0,
+                            skeleton_attr.foot.1,
+                            skeleton_attr.foot.2 - 8.0,
+                        );
+
+                        next.r_foot.position = Vec3::new(
+                            skeleton_attr.foot.0,
+                            skeleton_attr.foot.1,
+                            skeleton_attr.foot.2 - 8.0,
+                        );
+
+                        next.l_foot.orientation = Quaternion::rotation_x(movement * 0.9);
+
+                        next.r_foot.orientation = Quaternion::rotation_x(movement * 0.9);
+
+                        next.belt.orientation = Quaternion::rotation_x(movement * 0.22);
+                        next.shorts.orientation = Quaternion::rotation_x(movement * 0.3);
+
+                        next.chest.position =
+                            Vec3::new(0.0, skeleton_attr.chest.0, skeleton_attr.chest.1 - 8.0);
+                        next.torso.position =
+                            Vec3::new(0.0, 0.0, 0.0 + 8.0) * skeleton_attr.scaler / 11.0;
+                    },
+
+                    StageSection::Movement => {
+                        next.control.position = Vec3::new(
+                            0.0, 12.0, //11
+                            15.0,
+                        );
+
+                        next.chest.position =
+                            Vec3::new(0.0, skeleton_attr.chest.0, skeleton_attr.chest.1 - 8.0);
+                        next.torso.position = Vec3::new(0.0, 0.0, 0.0 + 8.0) * skeleton_attr.scaler;
+                        next.control.orientation = Quaternion::rotation_x(0.8 + movement * -0.5)
+                            * Quaternion::rotation_y(0.0)
+                            * Quaternion::rotation_z(PI);
+                        next.torso.orientation = Quaternion::rotation_x(-0.3 + movement * 6.0)
+                            * Quaternion::rotation_y(0.0)
+                            * Quaternion::rotation_z(0.0);
+                        next.head.orientation = Quaternion::rotation_x(-0.4 + movement * 0.4);
+
+                        next.l_foot.position = Vec3::new(
+                            -skeleton_attr.foot.0,
+                            skeleton_attr.foot.1 + movement * 4.0,
+                            skeleton_attr.foot.2 - 8.0 + movement * 3.0,
+                        );
+                        next.l_foot.orientation = Quaternion::rotation_x(0.9);
+
+                        next.r_foot.position = Vec3::new(
+                            skeleton_attr.foot.0,
+                            skeleton_attr.foot.1 + movement * 4.0,
+                            skeleton_attr.foot.2 - 8.0 + movement * 3.0,
+                        );
+                        next.r_foot.orientation = Quaternion::rotation_x(0.9);
+                        next.chest.position =
+                            Vec3::new(0.0, skeleton_attr.chest.0, skeleton_attr.chest.1 - 8.0);
+                        next.torso.position =
+                            Vec3::new(0.0, 0.0, 0.0 + 8.0) * skeleton_attr.scaler / 11.0;
+                        next.torso.orientation = Quaternion::rotation_x(movement * -1.8 * PI);
+                        next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
+
+                        next.belt.orientation = Quaternion::rotation_x(0.22 + movement * 0.1);
+                        next.shorts.orientation = Quaternion::rotation_x(0.3 + movement * 0.1);
+
+                        next.chest.position =
+                            Vec3::new(0.0, skeleton_attr.chest.0, skeleton_attr.chest.1 - 8.0);
+                        next.torso.position =
+                            Vec3::new(0.0, 0.0, 0.0 + 8.0) * skeleton_attr.scaler / 11.0;
+                    },
+                    StageSection::Swing => {
+                        next.control.position =
+                            Vec3::new(0.0, 12.0 + movement * 3.0, 15.0 + movement * -15.0);
+                        next.control.orientation = Quaternion::rotation_x(0.3 + movement * -1.0)
+                            * Quaternion::rotation_y(0.0)
+                            * Quaternion::rotation_z(PI);
+
+                        next.head.orientation = Quaternion::rotation_x(movement * 0.2);
+
+                        next.l_hand.position = Vec3::new(-0.5, 0.0, 4.0);
+
+                        next.l_foot.position = Vec3::new(
+                            -skeleton_attr.foot.0,
+                            skeleton_attr.foot.1 + 4.0 + movement * -8.0,
+                            skeleton_attr.foot.2 - 5.0 + movement * -3.0,
+                        );
+                        next.l_foot.orientation = Quaternion::rotation_x(0.9 - movement * 1.8);
+
+                        next.r_foot.position = Vec3::new(
+                            skeleton_attr.foot.0,
+                            skeleton_attr.foot.1 + 4.0 + movement * -8.0,
+                            skeleton_attr.foot.2 - 5.0 + movement * -3.0,
+                        );
+                        next.r_foot.orientation = Quaternion::rotation_x(0.9 - movement * 1.8);
+
+                        next.torso.orientation =
+                            Quaternion::rotation_x(-1.9 * PI - movement * 0.2 * PI);
+
+                        next.chest.position =
+                            Vec3::new(0.0, skeleton_attr.chest.0, skeleton_attr.chest.1 - 8.0);
+                        next.torso.position =
+                            Vec3::new(0.0, 0.0, 0.0 + 8.0) * skeleton_attr.scaler / 11.0;
+                    },
+                    StageSection::Recover => {
+                        next.control.position = Vec3::new(0.0, 15.0, 0.0);
+                        next.control.orientation = Quaternion::rotation_x(-0.7)
+                            * Quaternion::rotation_y(0.0)
+                            * Quaternion::rotation_z(PI);
+
+                        next.head.orientation = Quaternion::rotation_x(0.2);
+
+                        next.l_hand.position = Vec3::new(-0.5, 0.0, 4.0);
+
+                        next.chest.position =
+                            Vec3::new(0.0, skeleton_attr.chest.0, skeleton_attr.chest.1 - 8.0);
+                        next.torso.position =
+                            Vec3::new(0.0, 0.0, 0.0 + 8.0) * skeleton_attr.scaler / 11.0;
+                        next.torso.orientation =
+                            Quaternion::rotation_x(-6.7 + movement * -0.1 * PI);
+                        next.l_foot.position = Vec3::new(
+                            -skeleton_attr.foot.0,
+                            skeleton_attr.foot.1 - 4.0,
+                            skeleton_attr.foot.2 - 8.0,
+                        );
+                        next.l_foot.orientation = Quaternion::rotation_x(-0.9);
+
+                        next.r_foot.position = Vec3::new(
+                            skeleton_attr.foot.0,
+                            skeleton_attr.foot.1 - 4.0,
+                            skeleton_attr.foot.2 - 8.0,
+                        );
+                        next.r_foot.orientation = Quaternion::rotation_x(-0.9);
+                    },
+                    _ => {},
+                }
+            }
         }
-        next.lantern.position = Vec3::new(
-            skeleton_attr.lantern.0,
-            skeleton_attr.lantern.1,
-            skeleton_attr.lantern.2,
-        );
-        next.glider.position = Vec3::new(0.0, 0.0, 10.0);
-        next.glider.scale = Vec3::one() * 0.0;
-        next.l_control.scale = Vec3::one();
-        next.r_control.scale = Vec3::one();
+
+        //next.lantern.position = Vec3::new(
+        //    skeleton_attr.lantern.0,
+        //    skeleton_attr.lantern.1,
+        //    skeleton_attr.lantern.2,
+        //);
+        //next.glider.position = Vec3::new(0.0, 0.0, 10.0);
+        //next.glider.scale = Vec3::one() * 0.0;
+        //next.l_control.scale = Vec3::one();
+        //next.r_control.scale = Vec3::one();
 
         next.second.scale = match (
             active_tool_kind.map(|tk| tk.hands()),
@@ -113,9 +343,9 @@ impl Animation for LeapAnimation {
             (_, _) => Vec3::zero(),
         };
 
-        next.torso.position = Vec3::new(0.0, 0.0, 0.0) * skeleton_attr.scaler;
-        next.torso.orientation = Quaternion::rotation_z(0.0);
-        next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
+        //next.torso.position = Vec3::new(0.0, 0.0, 0.0) * skeleton_attr.scaler;
+        //next.torso.orientation = Quaternion::rotation_z(0.0);
+        //next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
         next
     }
 }

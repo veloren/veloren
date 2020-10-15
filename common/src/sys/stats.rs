@@ -112,7 +112,9 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::SpinMelee { .. }
                 | CharacterState::ComboMelee { .. }
                 | CharacterState::BasicRanged { .. }
+                | CharacterState::ChargedMelee { .. }
                 | CharacterState::ChargedRanged { .. }
+                | CharacterState::RepeaterRanged { .. }
                 | CharacterState::GroundShockwave { .. }
                 | CharacterState::BasicBeam { .. } => {
                     if energy.get_unchecked().regen_rate != 0.0 {

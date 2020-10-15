@@ -21,6 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Theropod body
 - Several new animals
 - Item quality indicators
+- Added a jump/burst attack for the bow to the skillbar
+- Gave the axe a third attack
+- A new secondary charged melee attack for the hammer
 
 ### Changed
 
@@ -46,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reworked healing sceptre
 - Split out the sections of the server settings that can be edited and saved by the server.
 - Revamped structure of where settings, logs, and game saves are stored so that almost everything is in one place.
+- Moved hammer leap attack to skillbar
 
 ### Removed
 

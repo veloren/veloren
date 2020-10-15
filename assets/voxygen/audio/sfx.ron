@@ -73,7 +73,6 @@
         ),
         GliderClose: (
             files: [
-                // Event Missing or not implemented?
                 "voxygen.audio.sfx.glider_close",
             ],
             threshold: 0.5,
@@ -112,11 +111,17 @@
             ],
             threshold: 0.7,
         ),
-        Attack(DashMelee, Sword): (
+        Attack(DashMelee(Swing), Sword): (
             files: [
                 "voxygen.audio.sfx.abilities.sword_dash",
             ],
             threshold: 0.8,
+        ),
+        Attack(SpinMelee(Swing), Sword): (
+            files: [
+                "voxygen.audio.sfx.abilities.swing_sword",
+            ],
+            threshold: 0.7,
         ),
         Inventory(CollectedTool(Sword)): (
             files: [
@@ -146,9 +151,15 @@
             ],
             threshold: 0.7,
         ),
-        Attack(LeapMelee, Hammer): (
+        Attack(ChargedMelee(Swing), Hammer): (
             files: [
-                //
+                "voxygen.audio.sfx.abilities.swing",
+            ],
+            threshold: 0.7,
+        ),
+        Attack(LeapMelee(Swing), Hammer): (
+            files: [
+                "voxygen.audio.sfx.abilities.swing",
             ],
             threshold: 0.8,
         ),
@@ -180,7 +191,13 @@
             ],
             threshold: 0.7,
         ),
-        Attack(SpinMelee, Axe): (
+        Attack(SpinMelee(Swing), Axe): (
+            files: [
+                "voxygen.audio.sfx.abilities.swing",
+            ],
+            threshold: 0.8,
+        ),
+        Attack(LeapMelee(Swing), Axe): (
             files: [
                 "voxygen.audio.sfx.abilities.swing",
             ],
@@ -276,7 +293,7 @@
             ],
             threshold: 0.8,
         ),
-        Attack(DashMelee, Dagger): (
+        Attack(DashMelee(Swing), Dagger): (
             files: [
                 "voxygen.audio.sfx.abilities.sword_dash",
             ],
