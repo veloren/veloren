@@ -824,7 +824,7 @@ impl Stream {
     ///     # stream_p.send("Hello World");
     ///     let participant_a = network.connected().await?;
     ///     let mut stream_a = participant_a.opened().await?;
-    ///     //Send  Message
+    ///     //Recv  Message
     ///     println!("{}", stream_a.recv::<String>().await?);
     ///     # Ok(())
     /// })
@@ -848,6 +848,50 @@ impl Stream {
     pub async fn recv_raw(&mut self) -> Result<MessageBuffer, StreamError> {
         let msg = self.b2a_msg_recv_r.next().await?;
         Ok(msg.buffer)
+    }
+
+    /// use `try_recv` to check for a Message send from the remote side by their
+    /// `Stream`. This function does not block and returns immediately. It's
+    /// intended for use in non-async context only. Other then that, the
+    /// same rules apply than for [`recv`].
+    ///
+    /// # Example
+    /// ```
+    /// use veloren_network::{Network, ProtocolAddr, Pid};
+    /// # use veloren_network::Promises;
+    /// use futures::executor::block_on;
+    ///
+    /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
+    /// // Create a Network, listen on Port `2220` and wait for a Stream to be opened, then listen on it
+    /// let (network, f) = Network::new(Pid::new());
+    /// std::thread::spawn(f);
+    /// # let (remote, fr) = Network::new(Pid::new());
+    /// # std::thread::spawn(fr);
+    /// block_on(async {
+    ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2230".parse().unwrap())).await?;
+    ///     # let remote_p = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2230".parse().unwrap())).await?;
+    ///     # let mut stream_p = remote_p.open(16, Promises::ORDERED | Promises::CONSISTENCY).await?;
+    ///     # stream_p.send("Hello World");
+    ///     # std::thread::sleep(std::time::Duration::from_secs(1));
+    ///     let participant_a = network.connected().await?;
+    ///     let mut stream_a = participant_a.opened().await?;
+    ///     //Try Recv  Message
+    ///     println!("{:?}", stream_a.try_recv::<String>()?);
+    ///     # Ok(())
+    /// })
+    /// # }
+    /// ```
+    #[inline]
+    pub fn try_recv<M: DeserializeOwned>(&mut self) -> Result<Option<M>, StreamError> {
+        match self.b2a_msg_recv_r.try_next() {
+            Err(_) => Ok(None),
+            Ok(None) => Err(StreamError::StreamClosed),
+            Ok(Some(msg)) => Ok(Some(message::deserialize::<M>(
+                msg.buffer,
+                #[cfg(feature = "compression")]
+                self.promises.contains(Promises::COMPRESSED),
+            )?)),
+        }
     }
 }
 
