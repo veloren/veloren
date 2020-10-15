@@ -848,6 +848,36 @@ impl FigureMgr {
                                 )
                             }
                         },
+                        CharacterState::ChargedMelee(s) => {
+                            let stage_time = s.timer.as_secs_f64();
+
+                            let stage_progress = match s.stage_section {
+                                StageSection::Charge => {
+                                    stage_time / s.static_data.charge_duration.as_secs_f64()
+                                },
+                                StageSection::Swing => {
+                                    stage_time / s.static_data.swing_duration.as_secs_f64()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                },
+                                _ => 0.0,
+                            };
+
+                            anim::character::ChargeswingAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    active_tool_kind,
+                                    second_tool_kind,
+                                    vel.0,
+                                    time,
+                                    Some(s.stage_section),
+                                ),
+                                stage_progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         CharacterState::ChargedRanged(data) => {
                             if data.exhausted {
                                 anim::character::ShootAnimation::update_skeleton(
@@ -873,6 +903,39 @@ impl FigureMgr {
                                     skeleton_attr,
                                 )
                             }
+                        },
+                        CharacterState::RepeaterRanged(s) => {
+                            let stage_time = s.timer.as_secs_f64();
+
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                },
+                                StageSection::Movement => {
+                                    stage_time / s.static_data.movement_duration.as_secs_f64()
+                                },
+                                StageSection::Shoot => {
+                                    stage_time / s.static_data.shoot_duration.as_secs_f64()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                },
+                                _ => 0.0,
+                            };
+
+                            anim::character::RepeaterAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    active_tool_kind,
+                                    second_tool_kind,
+                                    vel.0,
+                                    time,
+                                    Some(s.stage_section),
+                                ),
+                                stage_progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
                         },
                         CharacterState::Sneak { .. } => {
                             anim::character::SneakAnimation::update_skeleton(
@@ -928,11 +991,42 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        CharacterState::LeapMelee(_) => {
+                        CharacterState::LeapMelee(s) => {
+                            let stage_progress = match active_tool_kind {
+                                Some(ToolKind::Axe(_) | ToolKind::Hammer(_)) => {
+                                    let stage_time = s.timer.as_secs_f64();
+                                    match s.stage_section {
+                                        StageSection::Buildup => {
+                                            stage_time
+                                                / s.static_data.buildup_duration.as_secs_f64()
+                                        },
+                                        StageSection::Movement => {
+                                            stage_time
+                                                / s.static_data.movement_duration.as_secs_f64()
+                                        },
+                                        StageSection::Swing => {
+                                            stage_time / s.static_data.swing_duration.as_secs_f64()
+                                        },
+                                        StageSection::Recover => {
+                                            stage_time
+                                                / s.static_data.recover_duration.as_secs_f64()
+                                        },
+                                        _ => 0.0,
+                                    }
+                                },
+                                _ => state.state_time,
+                            };
+
                             anim::character::LeapAnimation::update_skeleton(
                                 &target_base,
-                                (active_tool_kind, second_tool_kind, vel.0, time),
-                                state.state_time,
+                                (
+                                    active_tool_kind,
+                                    second_tool_kind,
+                                    vel.0,
+                                    time,
+                                    Some(s.stage_section),
+                                ),
+                                stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
                             )

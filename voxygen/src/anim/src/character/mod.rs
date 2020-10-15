@@ -3,6 +3,7 @@ pub mod beta;
 pub mod block;
 pub mod blockidle;
 pub mod charge;
+pub mod chargeswing;
 pub mod climb;
 pub mod dance;
 pub mod dash;
@@ -12,6 +13,7 @@ pub mod gliding;
 pub mod idle;
 pub mod jump;
 pub mod leapmelee;
+pub mod repeater;
 pub mod roll;
 pub mod run;
 pub mod shoot;
@@ -27,13 +29,14 @@ pub mod wield;
 // Reexports
 pub use self::{
     alpha::AlphaAnimation, beta::BetaAnimation, block::BlockAnimation,
-    blockidle::BlockIdleAnimation, charge::ChargeAnimation, climb::ClimbAnimation,
-    dance::DanceAnimation, dash::DashAnimation, equip::EquipAnimation,
+    blockidle::BlockIdleAnimation, charge::ChargeAnimation, chargeswing::ChargeswingAnimation,
+    climb::ClimbAnimation, dance::DanceAnimation, dash::DashAnimation, equip::EquipAnimation,
     glidewield::GlideWieldAnimation, gliding::GlidingAnimation, idle::IdleAnimation,
-    jump::JumpAnimation, leapmelee::LeapAnimation, roll::RollAnimation, run::RunAnimation,
-    shoot::ShootAnimation, sit::SitAnimation, sneak::SneakAnimation, spin::SpinAnimation,
-    spinmelee::SpinMeleeAnimation, stand::StandAnimation, swim::SwimAnimation,
-    swimwield::SwimWieldAnimation, wield::WieldAnimation,
+    jump::JumpAnimation, leapmelee::LeapAnimation, repeater::RepeaterAnimation,
+    roll::RollAnimation, run::RunAnimation, shoot::ShootAnimation, sit::SitAnimation,
+    sneak::SneakAnimation, spin::SpinAnimation, spinmelee::SpinMeleeAnimation,
+    stand::StandAnimation, swim::SwimAnimation, swimwield::SwimWieldAnimation,
+    wield::WieldAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};

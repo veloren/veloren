@@ -696,7 +696,7 @@ impl<'a> Widget for Skillbar<'a> {
             Some(ToolKind::Sword(_)) => self.imgs.twohsword_m2,
             Some(ToolKind::Dagger(_)) => self.imgs.onehdagger_m2,
             Some(ToolKind::Shield(_)) => self.imgs.onehshield_m2,
-            Some(ToolKind::Hammer(_)) => self.imgs.hammerleap,
+            Some(ToolKind::Hammer(_)) => self.imgs.hammergolf,
             Some(ToolKind::Axe(_)) => self.imgs.axespin,
             Some(ToolKind::Bow(_)) => self.imgs.bow_m2,
             Some(ToolKind::Sceptre(_)) => self.imgs.heal_bomb,
@@ -719,6 +719,13 @@ impl<'a> Widget for Skillbar<'a> {
             },
             Some(ToolKind::Sceptre(_)) => {
                 if self.energy.current() as f64 >= 400.0 {
+                    Color::Rgba(1.0, 1.0, 1.0, 1.0)
+                } else {
+                    Color::Rgba(0.3, 0.3, 0.3, 0.8)
+                }
+            },
+            Some(ToolKind::Axe(_)) => {
+                if self.energy.current() as f64 >= 100.0 {
                     Color::Rgba(1.0, 1.0, 1.0, 1.0)
                 } else {
                     Color::Rgba(0.3, 0.3, 0.3, 0.8)
@@ -785,6 +792,14 @@ impl<'a> Widget for Skillbar<'a> {
                         .map(|i| i.item.kind())
                         .and_then(|kind| match kind {
                             ItemKind::Tool(Tool { kind, .. }) => match kind {
+                                ToolKind::Hammer(_) => Some((
+                                    "Smash of Doom",
+                                    "\nAn AOE attack with knockback. \nLeaps to position of \
+                                     cursor.",
+                                )),
+                                ToolKind::Axe(_) => {
+                                    Some(("Spin Leap", "\nA slashing running spin leap."))
+                                },
                                 ToolKind::Staff(_) => Some((
                                     "Firebomb",
                                     "\nWhirls a big fireball into the air. \nExplodes the ground \
@@ -793,6 +808,10 @@ impl<'a> Widget for Skillbar<'a> {
                                 ToolKind::Sword(_) => Some((
                                     "Whirlwind",
                                     "\nMove forward while spinning with \n your sword.",
+                                )),
+                                ToolKind::Bow(_) => Some((
+                                    "Burst",
+                                    "\nLaunches a burst of arrows at the top \nof a running leap.",
                                 )),
                                 ToolKind::Debug(kind) => match kind.as_ref() {
                                     "Boost" => Some((

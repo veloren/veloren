@@ -140,7 +140,7 @@ image_ids! {
         flyingrod_m1: "voxygen.element.icons.debug_wand_m1",
         flyingrod_m2: "voxygen.element.icons.debug_wand_m2",
         sword_pierce: "voxygen.element.icons.skill_sword_pierce",
-        hammerleap: "voxygen.element.icons.skill_hammerleap",
+        hammergolf: "voxygen.element.icons.skill_hammergolf",
         axespin: "voxygen.element.icons.skill_axespin",
 
         // Skillbar
@@ -277,6 +277,9 @@ image_ids! {
         heal_0: "voxygen.element.icons.heal_0",
         sword_whirlwind: "voxygen.element.icons.sword_whirlwind",
         heal_bomb: "voxygen.element.icons.heal_bomb",
+        hammerleap: "voxygen.element.icons.skill_hammerleap",
+        skill_axe_leap_slash: "voxygen.element.icons.skill_axe_leap_slash",
+        skill_bow_jump_burst: "voxygen.element.icons.skill_bow_jump_burst",
 
         // Buttons
         button: "voxygen.element.buttons.button",
