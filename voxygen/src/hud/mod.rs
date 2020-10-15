@@ -2623,7 +2623,7 @@ impl Hud {
 
         if !self.show.ui {
             // Optimization: skip maintaining UI when it's off.
-            return std::mem::replace(&mut self.events, Vec::new());
+            return std::mem::take(&mut self.events);
         }
 
         if let Some(maybe_id) = self.to_focus.take() {
