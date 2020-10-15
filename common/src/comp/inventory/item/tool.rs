@@ -2,11 +2,9 @@
 // version in voxygen\src\meta.rs in order to reset save files to being empty
 
 use crate::{
-    comp::{
-        body::object, projectile, Body, CharacterAbility, Explosion, Gravity, LightEmitter,
-        Projectile,
-    },
+    comp::{body::object, projectile, Body, CharacterAbility, Gravity, LightEmitter, Projectile},
     states::{combo_melee, utils::AbilityKey},
+    Explosion,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;

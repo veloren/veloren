@@ -1,8 +1,9 @@
 use common::{
-    comp::{self, HealthSource, Object, PhysicsState, Pos, Vel},
+    comp::{HealthSource, Object, PhysicsState, Pos, Vel},
     event::{EventBus, ServerEvent},
     span,
     state::DeltaTime,
+    Explosion,
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 
@@ -46,7 +47,7 @@ impl<'a> System<'a> for Sys {
                         });
                         server_emitter.emit(ServerEvent::Explosion {
                             pos: pos.0,
-                            explosion: comp::Explosion {
+                            explosion: Explosion {
                                 radius: 12.0,
                                 max_damage: 500,
                                 min_damage: 100,
@@ -69,7 +70,7 @@ impl<'a> System<'a> for Sys {
                         });
                         server_emitter.emit(ServerEvent::Explosion {
                             pos: pos.0,
-                            explosion: comp::Explosion {
+                            explosion: Explosion {
                                 radius: 12.0,
                                 max_damage: 50,
                                 min_damage: 10,
