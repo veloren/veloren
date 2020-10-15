@@ -19,6 +19,7 @@ use common::{
     sys::combat::BLOCK_ANGLE,
     terrain::{Block, TerrainGrid},
     vol::ReadVol,
+    Explosion,
 };
 use comp::item::Reagent;
 use rand::prelude::*;
@@ -487,7 +488,7 @@ pub fn handle_respawn(server: &Server, entity: EcsEntity) {
 pub fn handle_explosion(
     server: &Server,
     pos: Vec3<f32>,
-    explosion: comp::Explosion,
+    explosion: Explosion,
     owner: Option<Uid>,
     friendly_damage: bool,
     reagent: Option<Reagent>,

@@ -19,7 +19,7 @@ use common::{
     terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
     util::Dir,
     vol::RectVolSize,
-    LoadoutBuilder,
+    Explosion, LoadoutBuilder,
 };
 use rand::Rng;
 use specs::{Builder, Entity as EcsEntity, Join, WorldExt};
@@ -1129,7 +1129,7 @@ fn handle_explosion(
             ecs.read_resource::<EventBus<ServerEvent>>()
                 .emit_now(ServerEvent::Explosion {
                     pos: pos.0,
-                    explosion: comp::Explosion {
+                    explosion: Explosion {
                         radius: 3.0 * power,
                         max_damage: (100.0 * power) as u32,
                         min_damage: 0,
