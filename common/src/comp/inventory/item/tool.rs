@@ -3,7 +3,7 @@
 
 use crate::{
     comp::{body::object, projectile, Body, CharacterAbility, Gravity, LightEmitter, Projectile},
-    states::{combo_melee, utils::AbilityKey},
+    states::combo_melee,
     Explosion,
 };
 use serde::{Deserialize, Serialize};
@@ -309,7 +309,6 @@ impl Tool {
                     projectile_light: None,
                     projectile_gravity: Some(Gravity(0.2)),
                     projectile_speed: 100.0,
-                    ability_key: AbilityKey::Mouse1,
                 },
                 ChargedRanged {
                     energy_cost: 0,
@@ -376,7 +375,6 @@ impl Tool {
                     energy_regen: 50,
                     energy_cost: 100,
                     energy_drain: 0,
-                    ability_key: AbilityKey::Mouse1,
                 },
                 BasicRanged {
                     energy_cost: 800,
@@ -419,7 +417,6 @@ impl Tool {
                     }),
                     projectile_gravity: Some(Gravity(0.5)),
                     projectile_speed: 40.0,
-                    ability_key: AbilityKey::Mouse2,
                 },
             ],
             Staff(_) => vec![
@@ -464,7 +461,6 @@ impl Tool {
                     }),
                     projectile_gravity: Some(Gravity(0.3)),
                     projectile_speed: 60.0,
-                    ability_key: AbilityKey::Mouse1,
                 },
                 BasicBeam {
                     buildup_duration: Duration::from_millis(250),
@@ -479,7 +475,6 @@ impl Tool {
                     energy_regen: 0,
                     energy_cost: 0,
                     energy_drain: 350,
-                    ability_key: AbilityKey::Mouse2,
                 },
                 Shockwave {
                     energy_cost: 600,
@@ -580,7 +575,6 @@ impl Tool {
                             }),
                             projectile_gravity: None,
                             projectile_speed: 100.0,
-                            ability_key: AbilityKey::Skill1,
                         },
                     ]
                 } else {

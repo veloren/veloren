@@ -253,7 +253,7 @@ pub fn handle_ability1_input(data: &JoinData, update: &mut StateUpdate) {
             .and_then(|i| i.ability1.as_ref())
             .filter(|ability| ability.requirements_paid(data, update))
         {
-            update.character = ability.into();
+            update.character = (ability, AbilityKey::Mouse1).into();
         }
     }
 }
@@ -283,7 +283,7 @@ pub fn handle_ability2_input(data: &JoinData, update: &mut StateUpdate) {
                     .and_then(|i| i.ability2.as_ref())
                     .filter(|ability| ability.requirements_paid(data, update))
                 {
-                    update.character = ability.into();
+                    update.character = (ability, AbilityKey::Mouse2).into();
                 }
             },
             (_, Some(Hands::OneHand)) => {
@@ -294,7 +294,7 @@ pub fn handle_ability2_input(data: &JoinData, update: &mut StateUpdate) {
                     .and_then(|i| i.ability2.as_ref())
                     .filter(|ability| ability.requirements_paid(data, update))
                 {
-                    update.character = ability.into();
+                    update.character = (ability, AbilityKey::Mouse2).into();
                 }
             },
             (_, _) => {},
@@ -312,7 +312,7 @@ pub fn handle_ability3_input(data: &JoinData, update: &mut StateUpdate) {
             .and_then(|i| i.ability3.as_ref())
             .filter(|ability| ability.requirements_paid(data, update))
         {
-            update.character = ability.into();
+            update.character = (ability, AbilityKey::Skill1).into();
         }
     }
 }
@@ -329,12 +329,12 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
             .filter(|ability| ability.requirements_paid(data, update))
         {
             if data.character.is_wield() {
-                update.character = ability.into();
+                update.character = (ability, AbilityKey::Dodge).into();
                 if let CharacterState::Roll(roll) = &mut update.character {
                     roll.was_wielded = true;
                 }
             } else {
-                update.character = ability.into();
+                update.character = (ability, AbilityKey::Dodge).into();
             }
         }
     }
@@ -360,6 +360,7 @@ pub fn ability_key_is_pressed(data: &JoinData, ability_key: AbilityKey) -> bool 
         AbilityKey::Mouse1 => data.inputs.primary.is_pressed(),
         AbilityKey::Mouse2 => data.inputs.secondary.is_pressed(),
         AbilityKey::Skill1 => data.inputs.ability3.is_pressed(),
+        AbilityKey::Dodge => data.inputs.roll.is_pressed(),
     }
 }
 
@@ -382,4 +383,5 @@ pub enum AbilityKey {
     Mouse1,
     Mouse2,
     Skill1,
+    Dodge,
 }

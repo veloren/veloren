@@ -545,8 +545,8 @@ pub fn handle_explosion(
             }
             // Don't heal if outside group
             // Don't damage in the same group
-            let is_damage = (friendly_damage || !same_group) && (explosion.max_damage > 0);
-            let is_heal = same_group && (explosion.max_heal > 0);
+            let is_damage = (friendly_damage || !same_group) && explosion.max_damage > 0;
+            let is_heal = same_group && explosion.max_heal > 0 && !friendly_damage;
             if !is_heal && !is_damage {
                 continue;
             }

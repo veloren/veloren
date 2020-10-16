@@ -75,7 +75,6 @@ pub enum CharacterAbility {
         projectile_light: Option<LightEmitter>,
         projectile_gravity: Option<Gravity>,
         projectile_speed: f32,
-        ability_key: AbilityKey,
     },
     RepeaterRanged {
         energy_cost: u32,
@@ -206,7 +205,6 @@ pub enum CharacterAbility {
         energy_regen: u32,
         energy_cost: u32,
         energy_drain: u32,
-        ability_key: AbilityKey,
     },
 }
 
@@ -353,8 +351,8 @@ impl Loadout {
     }
 }
 
-impl From<&CharacterAbility> for CharacterState {
-    fn from(ability: &CharacterAbility) -> Self {
+impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
+    fn from((ability, key): (&CharacterAbility, AbilityKey)) -> Self {
         match ability {
             CharacterAbility::BasicMelee {
                 buildup_duration,
@@ -383,7 +381,6 @@ impl From<&CharacterAbility> for CharacterState {
                 projectile_gravity,
                 projectile_speed,
                 energy_cost: _,
-                ability_key,
             } => CharacterState::BasicRanged(basic_ranged::Data {
                 exhausted: false,
                 prepare_timer: Duration::default(),
@@ -395,7 +392,7 @@ impl From<&CharacterAbility> for CharacterState {
                 projectile_light: *projectile_light,
                 projectile_gravity: *projectile_gravity,
                 projectile_speed: *projectile_speed,
-                ability_key: *ability_key,
+                ability_key: key,
             }),
             CharacterAbility::Boost { duration, only_up } => CharacterState::Boost(boost::Data {
                 duration: *duration,
@@ -667,7 +664,6 @@ impl From<&CharacterAbility> for CharacterState {
                 energy_regen,
                 energy_cost,
                 energy_drain,
-                ability_key,
             } => CharacterState::BasicBeam(basic_beam::Data {
                 static_data: basic_beam::StaticData {
                     buildup_duration: *buildup_duration,
@@ -682,7 +678,7 @@ impl From<&CharacterAbility> for CharacterState {
                     energy_regen: *energy_regen,
                     energy_cost: *energy_cost,
                     energy_drain: *energy_drain,
-                    ability_key: *ability_key,
+                    ability_key: key,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
