@@ -1,11 +1,14 @@
 use crate::{
-    client::Client, persistence::PersistedComponents, sys::sentinel::DeletedEntities, SpawnPoint,
+    client::{CharacterScreenStream, Client, GeneralStream},
+    persistence::PersistedComponents,
+    sys::sentinel::DeletedEntities,
+    SpawnPoint,
 };
 use common::{
     character::CharacterId,
     comp,
     effect::Effect,
-    msg::{CharacterInfo, ClientInGame, PlayerListUpdate, ServerGeneral, ServerMsg},
+    msg::{CharacterInfo, ClientInGame, PlayerListUpdate, ServerGeneral},
     state::State,
     sync::{Uid, UidAllocator, WorldSyncExt},
     util::Dir,
@@ -222,8 +225,16 @@ impl StateExt for State {
 
         // Tell the client its request was successful.
         if let Some(client) = self.ecs().write_storage::<Client>().get_mut(entity) {
-            client.in_game = Some(ClientInGame::Character);
-            client.send_msg(ServerGeneral::CharacterSuccess)
+            if let Some(character_screen_stream) = self
+                .ecs()
+                .write_storage::<CharacterScreenStream>()
+                .get_mut(entity)
+            {
+                client.in_game = Some(ClientInGame::Character);
+                let _ = character_screen_stream
+                    .0
+                    .send(ServerGeneral::CharacterSuccess);
+            }
         }
     }
 
@@ -293,14 +304,16 @@ impl StateExt for State {
                 }
             },
             comp::ChatType::Tell(u, t) => {
-                for (client, uid) in (
-                    &mut ecs.write_storage::<Client>(),
+                for (general_stream, uid) in (
+                    &mut ecs.write_storage::<GeneralStream>(),
                     &ecs.read_storage::<Uid>(),
                 )
                     .join()
                 {
                     if uid == u || uid == t {
-                        client.send_msg(ServerGeneral::ChatMsg(resolved_msg.clone()));
+                        let _ = general_stream
+                            .0
+                            .send(ServerGeneral::ChatMsg(resolved_msg.clone()));
                     }
                 }
             },
@@ -310,9 +323,13 @@ impl StateExt for State {
                     (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0);
                 let positions = ecs.read_storage::<comp::Pos>();
                 if let Some(speaker_pos) = entity_opt.and_then(|e| positions.get(e)) {
-                    for (client, pos) in (&mut ecs.write_storage::<Client>(), &positions).join() {
+                    for (general_stream, pos) in
+                        (&mut ecs.write_storage::<GeneralStream>(), &positions).join()
+                    {
                         if is_within(comp::ChatMsg::SAY_DISTANCE, pos, speaker_pos) {
-                            client.send_msg(ServerGeneral::ChatMsg(resolved_msg.clone()));
+                            let _ = general_stream
+                                .0
+                                .send(ServerGeneral::ChatMsg(resolved_msg.clone()));
                         }
                     }
                 }
@@ -322,9 +339,13 @@ impl StateExt for State {
                     (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0);
                 let positions = ecs.read_storage::<comp::Pos>();
                 if let Some(speaker_pos) = entity_opt.and_then(|e| positions.get(e)) {
-                    for (client, pos) in (&mut ecs.write_storage::<Client>(), &positions).join() {
+                    for (general_stream, pos) in
+                        (&mut ecs.write_storage::<GeneralStream>(), &positions).join()
+                    {
                         if is_within(comp::ChatMsg::REGION_DISTANCE, pos, speaker_pos) {
-                            client.send_msg(ServerGeneral::ChatMsg(resolved_msg.clone()));
+                            let _ = general_stream
+                                .0
+                                .send(ServerGeneral::ChatMsg(resolved_msg.clone()));
                         }
                     }
                 }
@@ -334,35 +355,43 @@ impl StateExt for State {
                     (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0);
                 let positions = ecs.read_storage::<comp::Pos>();
                 if let Some(speaker_pos) = entity_opt.and_then(|e| positions.get(e)) {
-                    for (client, pos) in (&mut ecs.write_storage::<Client>(), &positions).join() {
+                    for (general_stream, pos) in
+                        (&mut ecs.write_storage::<GeneralStream>(), &positions).join()
+                    {
                         if is_within(comp::ChatMsg::NPC_DISTANCE, pos, speaker_pos) {
-                            client.send_msg(ServerGeneral::ChatMsg(resolved_msg.clone()));
+                            let _ = general_stream
+                                .0
+                                .send(ServerGeneral::ChatMsg(resolved_msg.clone()));
                         }
                     }
                 }
             },
 
             comp::ChatType::FactionMeta(s) | comp::ChatType::Faction(_, s) => {
-                for (client, faction) in (
-                    &mut ecs.write_storage::<Client>(),
+                for (general_stream, faction) in (
+                    &mut ecs.write_storage::<GeneralStream>(),
                     &ecs.read_storage::<comp::Faction>(),
                 )
                     .join()
                 {
                     if s == &faction.0 {
-                        client.send_msg(ServerGeneral::ChatMsg(resolved_msg.clone()));
+                        let _ = general_stream
+                            .0
+                            .send(ServerGeneral::ChatMsg(resolved_msg.clone()));
                     }
                 }
             },
             comp::ChatType::GroupMeta(g) | comp::ChatType::Group(_, g) => {
-                for (client, group) in (
-                    &mut ecs.write_storage::<Client>(),
+                for (general_stream, group) in (
+                    &mut ecs.write_storage::<GeneralStream>(),
                     &ecs.read_storage::<comp::Group>(),
                 )
                     .join()
                 {
                     if g == group {
-                        client.send_msg(ServerGeneral::ChatMsg(resolved_msg.clone()));
+                        let _ = general_stream
+                            .0
+                            .send(ServerGeneral::ChatMsg(resolved_msg.clone()));
                     }
                 }
             },
@@ -371,23 +400,27 @@ impl StateExt for State {
 
     /// Sends the message to all connected clients
     fn notify_registered_clients(&self, msg: ServerGeneral) {
-        let msg: ServerMsg = msg.into();
-        for client in (&mut self.ecs().write_storage::<Client>())
+        for (general_stream, _) in (
+            &mut self.ecs().write_storage::<GeneralStream>(),
+            &self.ecs().read_storage::<Client>(),
+        )
             .join()
-            .filter(|c| c.registered)
+            .filter(|(_, c)| c.registered)
         {
-            client.send_msg(msg.clone());
+            let _ = general_stream.0.send(msg.clone());
         }
     }
 
     /// Sends the message to all clients playing in game
     fn notify_in_game_clients(&self, msg: ServerGeneral) {
-        let msg: ServerMsg = msg.into();
-        for client in (&mut self.ecs().write_storage::<Client>())
+        for (general_stream, _) in (
+            &mut self.ecs().write_storage::<GeneralStream>(),
+            &self.ecs().read_storage::<Client>(),
+        )
             .join()
-            .filter(|c| c.in_game.is_some())
+            .filter(|(_, c)| c.in_game.is_some())
         {
-            client.send_msg(msg.clone());
+            let _ = general_stream.0.send(msg.clone());
         }
     }
 
@@ -397,7 +430,7 @@ impl StateExt for State {
     ) -> Result<(), specs::error::WrongGeneration> {
         // Remove entity from a group if they are in one
         {
-            let mut clients = self.ecs().write_storage::<Client>();
+            let mut general_streams = self.ecs().write_storage::<GeneralStream>();
             let uids = self.ecs().read_storage::<Uid>();
             let mut group_manager = self.ecs().write_resource::<comp::group::GroupManager>();
             group_manager.entity_deleted(
@@ -407,14 +440,14 @@ impl StateExt for State {
                 &uids,
                 &self.ecs().entities(),
                 &mut |entity, group_change| {
-                    clients
+                    general_streams
                         .get_mut(entity)
-                        .and_then(|c| {
+                        .and_then(|s| {
                             group_change
                                 .try_map(|e| uids.get(e).copied())
-                                .map(|g| (g, c))
+                                .map(|g| (g, s))
                         })
-                        .map(|(g, c)| c.send_msg(ServerGeneral::GroupUpdate(g)));
+                        .map(|(g, s)| s.0.send(ServerGeneral::GroupUpdate(g)));
                 },
             );
         }

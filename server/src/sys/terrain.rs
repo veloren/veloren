@@ -1,5 +1,5 @@
 use super::SysTimer;
-use crate::{chunk_generator::ChunkGenerator, client::Client, Tick};
+use crate::{chunk_generator::ChunkGenerator, client::InGameStream, Tick};
 use common::{
     comp::{self, bird_medium, Alignment, Player, Pos},
     event::{EventBus, ServerEvent},
@@ -34,7 +34,7 @@ impl<'a> System<'a> for Sys {
         Write<'a, TerrainChanges>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Player>,
-        WriteStorage<'a, Client>,
+        WriteStorage<'a, InGameStream>,
     );
 
     fn run(
@@ -48,7 +48,7 @@ impl<'a> System<'a> for Sys {
             mut terrain_changes,
             positions,
             players,
-            mut clients,
+            mut in_game_streams,
         ): Self::SystemData,
     ) {
         span!(_guard, "run", "terrain::Sys::run");
@@ -62,8 +62,8 @@ impl<'a> System<'a> for Sys {
             let (chunk, supplement) = match res {
                 Ok((chunk, supplement)) => (chunk, supplement),
                 Err(Some(entity)) => {
-                    if let Some(client) = clients.get_mut(entity) {
-                        client.send_msg(ServerGeneral::TerrainChunkUpdate {
+                    if let Some(in_game_stream) = in_game_streams.get_mut(entity) {
+                        let _ = in_game_stream.0.send(ServerGeneral::TerrainChunkUpdate {
                             key,
                             chunk: Err(()),
                         });
@@ -75,10 +75,10 @@ impl<'a> System<'a> for Sys {
                 },
             };
             // Send the chunk to all nearby players.
-            for (view_distance, pos, client) in (&players, &positions, &mut clients)
+            for (view_distance, pos, in_game_stream) in (&players, &positions, &mut in_game_streams)
                 .join()
-                .filter_map(|(player, pos, client)| {
-                    player.view_distance.map(|vd| (vd, pos, client))
+                .filter_map(|(player, pos, in_game_stream)| {
+                    player.view_distance.map(|vd| (vd, pos, in_game_stream))
                 })
             {
                 let chunk_pos = terrain.pos_key(pos.0.map(|e| e as i32));
@@ -90,7 +90,7 @@ impl<'a> System<'a> for Sys {
                     .magnitude_squared();
 
                 if adjusted_dist_sqr <= view_distance.pow(2) {
-                    client.send_msg(ServerGeneral::TerrainChunkUpdate {
+                    let _ = in_game_stream.0.send(ServerGeneral::TerrainChunkUpdate {
                         key,
                         chunk: Ok(Box::new(chunk.clone())),
                     });

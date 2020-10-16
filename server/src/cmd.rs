@@ -3,7 +3,6 @@
 //! `CHAT_COMMANDS` and provide a handler function.
 
 use crate::{
-    client::Client,
     settings::{BanRecord, EditableSetting},
     Server, StateExt,
 };
@@ -27,7 +26,7 @@ use std::convert::TryFrom;
 use vek::*;
 use world::util::Sampler;
 
-use crate::login_provider::LoginProvider;
+use crate::{client::InGameStream, login_provider::LoginProvider};
 use scan_fmt::{scan_fmt, scan_fmt_some};
 use tracing::error;
 
@@ -650,7 +649,8 @@ fn handle_spawn(
                             // Add to group system if a pet
                             if matches!(alignment, comp::Alignment::Owned { .. }) {
                                 let state = server.state();
-                                let mut clients = state.ecs().write_storage::<Client>();
+                                let mut in_game_streams =
+                                    state.ecs().write_storage::<InGameStream>();
                                 let uids = state.ecs().read_storage::<Uid>();
                                 let mut group_manager =
                                     state.ecs().write_resource::<comp::group::GroupManager>();
@@ -662,15 +662,15 @@ fn handle_spawn(
                                     &state.ecs().read_storage(),
                                     &uids,
                                     &mut |entity, group_change| {
-                                        clients
+                                        in_game_streams
                                             .get_mut(entity)
-                                            .and_then(|c| {
+                                            .and_then(|s| {
                                                 group_change
                                                     .try_map(|e| uids.get(e).copied())
-                                                    .map(|g| (g, c))
+                                                    .map(|g| (g, s))
                                             })
-                                            .map(|(g, c)| {
-                                                c.send_msg(ServerGeneral::GroupUpdate(g))
+                                            .map(|(g, s)| {
+                                                let _ = s.0.send(ServerGeneral::GroupUpdate(g));
                                             });
                                     },
                                 );

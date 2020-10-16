@@ -1,5 +1,5 @@
 use crate::{
-    client::Client,
+    client::{Client, InGameStream},
     comp::{biped_large, quadruped_medium, quadruped_small},
     Server, SpawnPoint, StateExt,
 };
@@ -42,9 +42,9 @@ pub fn handle_knockback(server: &Server, entity: EcsEntity, impulse: Vec3<f32>) 
     if let Some(vel) = velocities.get_mut(entity) {
         vel.0 = impulse;
     }
-    let mut clients = state.ecs().write_storage::<Client>();
-    if let Some(client) = clients.get_mut(entity) {
-        client.send_msg(ServerGeneral::Knockback(impulse));
+    let mut in_game_streams = state.ecs().write_storage::<InGameStream>();
+    if let Some(in_game_stream) = in_game_streams.get_mut(entity) {
+        let _ = in_game_stream.0.send(ServerGeneral::Knockback(impulse));
     }
 }
 
