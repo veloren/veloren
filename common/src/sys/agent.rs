@@ -60,7 +60,6 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Invite>,
         Read<'a, TimeOfDay>,
         ReadStorage<'a, LightEmitter>,
-        ReadStorage<'a, Energy>,
     );
 
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
@@ -90,7 +89,6 @@ impl<'a> System<'a> for Sys {
             invites,
             time_of_day,
             light_emitter,
-            energies,
         ): Self::SystemData,
     ) {
         let start_time = std::time::Instant::now();
@@ -111,7 +109,6 @@ impl<'a> System<'a> for Sys {
             mount_state,
             group,
             light_emitter,
-            energy,
         ) in (
             &entities,
             &energies,
@@ -128,7 +125,6 @@ impl<'a> System<'a> for Sys {
             mount_states.maybe(),
             groups.maybe(),
             light_emitter.maybe(),
-            &energies,
         )
             .join()
         {

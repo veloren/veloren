@@ -238,7 +238,6 @@ impl Animation for WieldAnimation {
                 next.control.scale = Vec3::one();
             },
             Some(ToolKind::Staff(_)) | Some(ToolKind::Sceptre(_)) => {
-<<<<<<< HEAD
                 if speed > 0.5 && velocity.z == 0.0 {
                     next.hand_r.position = Vec3::new(
                         4.0 + skeleton_attr.hand.0 + foothoril * 1.3,
