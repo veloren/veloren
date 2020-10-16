@@ -3,7 +3,7 @@
 //!
 //! (cd network/examples/async_recv && RUST_BACKTRACE=1 cargo run)
 use crate::{
-    message::{self, partial_eq_bincode, IncomingMessage, MessageBuffer, OutgoingMessage},
+    message::{partial_eq_bincode, IncomingMessage, Message, OutgoingMessage},
     participant::{A2bStreamOpen, S2bShutdownBparticipant},
     scheduler::Scheduler,
     types::{Mid, Pid, Prio, Promises, Sid},
@@ -77,7 +77,7 @@ pub struct Stream {
     promises: Promises,
     send_closed: Arc<AtomicBool>,
     a2b_msg_s: crossbeam_channel::Sender<(Prio, Sid, OutgoingMessage)>,
-    b2a_msg_recv_r: mpsc::UnboundedReceiver<IncomingMessage>,
+    b2a_msg_recv_r: Option<mpsc::UnboundedReceiver<IncomingMessage>>,
     a2b_close_stream_s: Option<mpsc::UnboundedSender<Sid>>,
 }
 
@@ -667,7 +667,7 @@ impl Stream {
             promises,
             send_closed,
             a2b_msg_s,
-            b2a_msg_recv_r,
+            b2a_msg_recv_r: Some(b2a_msg_recv_r),
             a2b_close_stream_s: Some(a2b_close_stream_s),
         }
     }
@@ -727,21 +727,18 @@ impl Stream {
     /// [`Serialized`]: Serialize
     #[inline]
     pub fn send<M: Serialize>(&mut self, msg: M) -> Result<(), StreamError> {
-        self.send_raw(Arc::new(message::serialize(
-            &msg,
-            #[cfg(feature = "compression")]
-            self.promises.contains(Promises::COMPRESSED),
-        )))
+        self.send_raw(&Message::serialize(&msg, &self))
     }
 
     /// This methods give the option to skip multiple calls of [`bincode`] and
     /// [`compress`], e.g. in case the same Message needs to send on
     /// multiple `Streams` to multiple [`Participants`]. Other then that,
-    /// the same rules apply than for [`send`]
+    /// the same rules apply than for [`send`].
+    /// You need to create a Message via [`Message::serialize`].
     ///
     /// # Example
     /// ```rust
-    /// use veloren_network::{Network, ProtocolAddr, Pid, MessageBuffer};
+    /// use veloren_network::{Network, ProtocolAddr, Pid, Message};
     /// # use veloren_network::Promises;
     /// use futures::executor::block_on;
     /// use bincode;
@@ -767,13 +764,10 @@ impl Stream {
     ///     let mut stream_b = participant_b.opened().await?;
     ///
     ///     //Prepare Message and decode it
-    ///     let msg = "Hello World";
-    ///     let raw_msg = Arc::new(MessageBuffer{
-    ///         data: bincode::serialize(&msg).unwrap(),
-    ///     });
+    ///     let msg = Message::serialize("Hello World", &stream_a);
     ///     //Send same Message to multiple Streams
-    ///     stream_a.send_raw(raw_msg.clone());
-    ///     stream_b.send_raw(raw_msg.clone());
+    ///     stream_a.send_raw(&msg);
+    ///     stream_b.send_raw(&msg);
     ///     # Ok(())
     /// })
     /// # }
@@ -782,12 +776,15 @@ impl Stream {
     /// [`send`]: Stream::send
     /// [`Participants`]: crate::api::Participant
     /// [`compress`]: lz_fear::raw::compress2
-    pub fn send_raw(&mut self, messagebuffer: Arc<MessageBuffer>) -> Result<(), StreamError> {
+    /// [`Message::serialize`]: crate::message::Message::serialize
+    pub fn send_raw(&mut self, message: &Message) -> Result<(), StreamError> {
         if self.send_closed.load(Ordering::Relaxed) {
             return Err(StreamError::StreamClosed);
         }
+        #[cfg(debug_assertions)]
+        message.verify(&self);
         self.a2b_msg_s.send((self.prio, self.sid, OutgoingMessage {
-            buffer: messagebuffer,
+            buffer: Arc::clone(&message.buffer),
             cursor: 0,
             mid: self.mid,
             sid: self.sid,
@@ -832,22 +829,60 @@ impl Stream {
     /// ```
     #[inline]
     pub async fn recv<M: DeserializeOwned>(&mut self) -> Result<M, StreamError> {
-        message::deserialize(
-            self.recv_raw().await?,
-            #[cfg(feature = "compression")]
-            self.promises.contains(Promises::COMPRESSED),
-        )
+        self.recv_raw().await?.deserialize()
     }
 
     /// the equivalent like [`send_raw`] but for [`recv`], no [`bincode`] or
     /// [`decompress`] is executed for performance reasons.
     ///
+    /// # Example
+    /// ```
+    /// use veloren_network::{Network, ProtocolAddr, Pid};
+    /// # use veloren_network::Promises;
+    /// use futures::executor::block_on;
+    ///
+    /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
+    /// // Create a Network, listen on Port `2230` and wait for a Stream to be opened, then listen on it
+    /// let (network, f) = Network::new(Pid::new());
+    /// std::thread::spawn(f);
+    /// # let (remote, fr) = Network::new(Pid::new());
+    /// # std::thread::spawn(fr);
+    /// block_on(async {
+    ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2230".parse().unwrap())).await?;
+    ///     # let remote_p = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2230".parse().unwrap())).await?;
+    ///     # let mut stream_p = remote_p.open(16, Promises::ORDERED | Promises::CONSISTENCY).await?;
+    ///     # stream_p.send("Hello World");
+    ///     let participant_a = network.connected().await?;
+    ///     let mut stream_a = participant_a.opened().await?;
+    ///     //Recv  Message
+    ///     let msg = stream_a.recv_raw().await?;
+    ///     //Resend Message, without deserializing
+    ///     stream_a.send_raw(&msg)?;
+    ///     # Ok(())
+    /// })
+    /// # }
+    /// ```
+    ///
     /// [`send_raw`]: Stream::send_raw
     /// [`recv`]: Stream::recv
     /// [`decompress`]: lz_fear::raw::decompress_raw
-    pub async fn recv_raw(&mut self) -> Result<MessageBuffer, StreamError> {
-        let msg = self.b2a_msg_recv_r.next().await?;
-        Ok(msg.buffer)
+    pub async fn recv_raw(&mut self) -> Result<Message, StreamError> {
+        match &mut self.b2a_msg_recv_r {
+            Some(b2a_msg_recv_r) => {
+                match b2a_msg_recv_r.next().await {
+                    Some(msg) => Ok(Message {
+                        buffer: Arc::new(msg.buffer),
+                        #[cfg(feature = "compression")]
+                        compressed: self.promises.contains(Promises::COMPRESSED),
+                    }),
+                    None => {
+                        self.b2a_msg_recv_r = None; //prevent panic
+                        Err(StreamError::StreamClosed)
+                    },
+                }
+            },
+            None => Err(StreamError::StreamClosed),
+        }
     }
 
     /// use `try_recv` to check for a Message send from the remote side by their
@@ -862,14 +897,14 @@ impl Stream {
     /// use futures::executor::block_on;
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
-    /// // Create a Network, listen on Port `2220` and wait for a Stream to be opened, then listen on it
+    /// // Create a Network, listen on Port `2240` and wait for a Stream to be opened, then listen on it
     /// let (network, f) = Network::new(Pid::new());
     /// std::thread::spawn(f);
     /// # let (remote, fr) = Network::new(Pid::new());
     /// # std::thread::spawn(fr);
     /// block_on(async {
-    ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2230".parse().unwrap())).await?;
-    ///     # let remote_p = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2230".parse().unwrap())).await?;
+    ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2240".parse().unwrap())).await?;
+    ///     # let remote_p = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2240".parse().unwrap())).await?;
     ///     # let mut stream_p = remote_p.open(16, Promises::ORDERED | Promises::CONSISTENCY).await?;
     ///     # stream_p.send("Hello World");
     ///     # std::thread::sleep(std::time::Duration::from_secs(1));
@@ -881,21 +916,33 @@ impl Stream {
     /// })
     /// # }
     /// ```
+    ///
+    /// [`recv`]: Stream::recv
     #[inline]
     pub fn try_recv<M: DeserializeOwned>(&mut self) -> Result<Option<M>, StreamError> {
-        match self.b2a_msg_recv_r.try_next() {
-            Err(_) => Ok(None),
-            Ok(None) => Err(StreamError::StreamClosed),
-            Ok(Some(msg)) => Ok(Some(message::deserialize::<M>(
-                msg.buffer,
-                #[cfg(feature = "compression")]
-                self.promises.contains(Promises::COMPRESSED),
-            )?)),
+        match &mut self.b2a_msg_recv_r {
+            Some(b2a_msg_recv_r) => match b2a_msg_recv_r.try_next() {
+                Err(_) => Ok(None),
+                Ok(None) => {
+                    self.b2a_msg_recv_r = None; //prevent panic
+                    Err(StreamError::StreamClosed)
+                },
+                Ok(Some(msg)) => Ok(Some(
+                    Message {
+                        buffer: Arc::new(msg.buffer),
+                        #[cfg(feature = "compression")]
+                        compressed: self.promises().contains(Promises::COMPRESSED),
+                    }
+                    .deserialize()?,
+                )),
+            },
+            None => Err(StreamError::StreamClosed),
         }
     }
+
+    pub fn promises(&self) -> Promises { self.promises }
 }
 
-///
 impl core::cmp::PartialEq for Participant {
     fn eq(&self, other: &Self) -> bool {
         //don't check local_pid, 2 Participant from different network should match if
