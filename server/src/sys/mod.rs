@@ -1,5 +1,6 @@
 pub mod entity_sync;
 pub mod invite_timeout;
+pub mod msg;
 pub mod message;
 pub mod object;
 pub mod persistence;
