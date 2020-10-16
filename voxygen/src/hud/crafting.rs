@@ -393,7 +393,7 @@ impl<'a> Widget for Crafting<'a> {
             for (i, (item_def, amount)) in recipe.inputs.iter().enumerate() {
                 // Grey color for images and text if their amount is too low to craft the item
                 let item_count_in_inventory = self.inventory.item_count(item_def);
-                let col = if item_count_in_inventory >= u64::from(*amount) {
+                let col = if item_count_in_inventory >= u64::from(*amount.max(&1)) {
                     TEXT_COLOR
                 } else {
                     TEXT_DULL_RED_COLOR
@@ -459,7 +459,7 @@ impl<'a> Widget for Crafting<'a> {
                         .down_from(state.ids.ingredient_frame[i - 1], 20.0)
                         .font_id(self.fonts.cyri.conrod_id)
                         .font_size(self.fonts.cyri.scale(14))
-                        .color(col)
+                        .color(TEXT_COLOR)
                         .set(state.ids.req_text[i], ui);
                     Text::new(&item_def.name())
                         .right_from(state.ids.ingredient_frame[i], 10.0)
