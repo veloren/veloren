@@ -3,7 +3,7 @@ use super::{
     SysTimer,
 };
 use crate::{
-    client::{Client, RegionSubscription},
+    client::{Client, GeneralStream, InGameStream, RegionSubscription},
     Tick,
 };
 use common::{
@@ -43,6 +43,8 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Last<Vel>>,
         WriteStorage<'a, Last<Ori>>,
         WriteStorage<'a, Client>,
+        WriteStorage<'a, InGameStream>,
+        WriteStorage<'a, GeneralStream>,
         WriteStorage<'a, ForceUpdate>,
         WriteStorage<'a, InventoryUpdate>,
         Write<'a, DeletedEntities>,
@@ -70,6 +72,8 @@ impl<'a> System<'a> for Sys {
             mut last_vel,
             mut last_ori,
             mut clients,
+            mut in_game_streams,
+            mut general_streams,
             mut force_updates,
             mut inventory_updates,
             mut deleted_entities,
@@ -104,15 +108,31 @@ impl<'a> System<'a> for Sys {
         for (key, region) in region_map.iter() {
             // Assemble subscriber list for this region by iterating through clients and
             // checking if they are subscribed to this region
-            let mut subscribers = (&mut clients, &entities, &subscriptions, &positions)
+            let mut subscribers = (
+                &mut clients,
+                &entities,
+                &subscriptions,
+                &positions,
+                &mut in_game_streams,
+                &mut general_streams,
+            )
                 .join()
-                .filter_map(|(client, entity, subscription, pos)| {
-                    if client.in_game.is_some() && subscription.regions.contains(&key) {
-                        Some((client, &subscription.regions, entity, *pos))
-                    } else {
-                        None
-                    }
-                })
+                .filter_map(
+                    |(client, entity, subscription, pos, in_game_stream, general_stream)| {
+                        if client.in_game.is_some() && subscription.regions.contains(&key) {
+                            Some((
+                                client,
+                                &subscription.regions,
+                                entity,
+                                *pos,
+                                in_game_stream,
+                                general_stream,
+                            ))
+                        } else {
+                            None
+                        }
+                    },
+                )
                 .collect::<Vec<_>>();
 
             for event in region.events() {
@@ -135,7 +155,9 @@ impl<'a> System<'a> for Sys {
                                     vel.copied(),
                                     ori.copied(),
                                 ));
-                            for (client, regions, client_entity, _) in &mut subscribers {
+                            for (_, regions, client_entity, _, _, general_stream) in
+                                &mut subscribers
+                            {
                                 if maybe_key
                                     .as_ref()
                                     .map(|key| !regions.contains(key))
@@ -143,7 +165,7 @@ impl<'a> System<'a> for Sys {
                                     // Client doesn't need to know about itself
                                     && *client_entity != entity
                                 {
-                                    client.send_msg(create_msg.clone());
+                                    let _ = general_stream.0.send(create_msg.clone());
                                 }
                             }
                         }
@@ -151,13 +173,13 @@ impl<'a> System<'a> for Sys {
                     RegionEvent::Left(id, maybe_key) => {
                         // Lookup UID for entity
                         if let Some(&uid) = uids.get(entities.entity(*id)) {
-                            for (client, regions, _, _) in &mut subscribers {
+                            for (_, regions, _, _, _, general_stream) in &mut subscribers {
                                 if maybe_key
                                     .as_ref()
                                     .map(|key| !regions.contains(key))
                                     .unwrap_or(true)
                                 {
-                                    client.send_msg(ServerGeneral::DeleteEntity(uid));
+                                    let _ = general_stream.0.send(ServerGeneral::DeleteEntity(uid));
                                 }
                             }
                         }
@@ -176,17 +198,19 @@ impl<'a> System<'a> for Sys {
             );
             let entity_sync_msg = ServerGeneral::EntitySync(entity_sync_package);
             let comp_sync_msg = ServerGeneral::CompSync(comp_sync_package);
-            subscribers.iter_mut().for_each(move |(client, _, _, _)| {
-                client.send_msg(entity_sync_msg.clone());
-                client.send_msg(comp_sync_msg.clone());
-            });
+            subscribers
+                .iter_mut()
+                .for_each(move |(_, _, _, _, _, general_stream)| {
+                    let _ = general_stream.0.send(entity_sync_msg.clone());
+                    let _ = general_stream.0.send(comp_sync_msg.clone());
+                });
 
-            let mut send_msg = |msg: ServerGeneral,
-                                entity: EcsEntity,
-                                pos: Pos,
-                                force_update: Option<&ForceUpdate>,
-                                throttle: bool| {
-                for (client, _, client_entity, client_pos) in &mut subscribers {
+            let mut send_general = |msg: ServerGeneral,
+                                    entity: EcsEntity,
+                                    pos: Pos,
+                                    force_update: Option<&ForceUpdate>,
+                                    throttle: bool| {
+                for (_, _, client_entity, client_pos, _, general_stream) in &mut subscribers {
                     if if client_entity == &entity {
                         // Don't send client physics updates about itself unless force update is set
                         force_update.is_some()
@@ -212,7 +236,7 @@ impl<'a> System<'a> for Sys {
                             true // Closer than 100 blocks
                         }
                     } {
-                        client.send_msg(msg.clone());
+                        let _ = general_stream.0.send(msg.clone());
                     }
                 }
             };
@@ -286,7 +310,7 @@ impl<'a> System<'a> for Sys {
                     comp_sync_package.comp_removed::<Ori>(uid);
                 }
 
-                send_msg(
+                send_general(
                     ServerGeneral::CompSync(comp_sync_package),
                     entity,
                     pos,
@@ -299,19 +323,20 @@ impl<'a> System<'a> for Sys {
         // Handle entity deletion in regions that don't exist in RegionMap
         // (theoretically none)
         for (region_key, deleted) in deleted_entities.take_remaining_deleted() {
-            for client in
-                (&mut clients, &subscriptions)
-                    .join()
-                    .filter_map(|(client, subscription)| {
-                        if client.in_game.is_some() && subscription.regions.contains(&region_key) {
-                            Some(client)
-                        } else {
-                            None
-                        }
-                    })
+            for general_stream in (&mut clients, &subscriptions, &mut general_streams)
+                .join()
+                .filter_map(|(client, subscription, general_stream)| {
+                    if client.in_game.is_some() && subscription.regions.contains(&region_key) {
+                        Some(general_stream)
+                    } else {
+                        None
+                    }
+                })
             {
                 for uid in &deleted {
-                    client.send_msg(ServerGeneral::DeleteEntity(Uid(*uid)));
+                    let _ = general_stream
+                        .0
+                        .send(ServerGeneral::DeleteEntity(Uid(*uid)));
                 }
             }
         }
@@ -319,15 +344,19 @@ impl<'a> System<'a> for Sys {
         // TODO: Sync clients that don't have a position?
 
         // Sync inventories
-        for (client, inventory, update) in (&mut clients, &inventories, &inventory_updates).join() {
-            client.send_msg(ServerGeneral::InventoryUpdate(
+        for (inventory, update, in_game_stream) in
+            (&inventories, &inventory_updates, &mut in_game_streams).join()
+        {
+            let _ = in_game_stream.0.send(ServerGeneral::InventoryUpdate(
                 inventory.clone(),
                 update.event(),
             ));
         }
 
         // Sync outcomes
-        for (client, player, pos) in (&mut clients, &players, positions.maybe()).join() {
+        for (player, pos, in_game_stream) in
+            (&players, positions.maybe(), &mut in_game_streams).join()
+        {
             let is_near = |o_pos: Vec3<f32>| {
                 pos.zip_with(player.view_distance, |pos, vd| {
                     pos.0.xy().distance_squared(o_pos.xy())
@@ -341,7 +370,7 @@ impl<'a> System<'a> for Sys {
                 .cloned()
                 .collect::<Vec<_>>();
             if !outcomes.is_empty() {
-                client.send_msg(ServerGeneral::Outcomes(outcomes));
+                let _ = in_game_stream.0.send(ServerGeneral::Outcomes(outcomes));
             }
         }
         outcomes.clear();
@@ -354,8 +383,8 @@ impl<'a> System<'a> for Sys {
         // TODO: doesn't really belong in this system (rename system or create another
         // system?)
         let tof_msg = ServerGeneral::TimeOfDay(*time_of_day);
-        for client in (&mut clients).join() {
-            client.send_msg(tof_msg.clone());
+        for general_stream in (&mut general_streams).join() {
+            let _ = general_stream.0.send(tof_msg.clone());
         }
 
         timer.end();

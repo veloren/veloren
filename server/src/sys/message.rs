@@ -2,7 +2,9 @@ use super::SysTimer;
 use crate::{
     alias_validator::AliasValidator,
     character_creator,
-    client::Client,
+    client::{
+        CharacterScreenStream, Client, GeneralStream, InGameStream, PingStream, RegisterStream,
+    },
     login_provider::LoginProvider,
     metrics::{NetworkRequestMetrics, PlayerMetrics},
     persistence::character_loader::CharacterLoader,
@@ -41,6 +43,7 @@ impl Sys {
         new_chat_msgs: &mut Vec<(Option<specs::Entity>, UnresolvedChatMsg)>,
         entity: specs::Entity,
         client: &mut Client,
+        general_stream: &mut GeneralStream,
         player_metrics: &ReadExpect<'_, PlayerMetrics>,
         uids: &ReadStorage<'_, Uid>,
         chat_modes: &ReadStorage<'_, ChatMode>,
@@ -68,7 +71,9 @@ impl Sys {
                 }
             },
             ClientGeneral::Disconnect => {
-                client.send_msg(ServerGeneral::Disconnect(DisconnectReason::Requested));
+                general_stream
+                    .0
+                    .send(ServerGeneral::Disconnect(DisconnectReason::Requested))?;
             },
             ClientGeneral::Terminate => {
                 debug!(?entity, "Client send message to termitate session");
@@ -88,6 +93,7 @@ impl Sys {
         server_emitter: &mut common::event::Emitter<'_, ServerEvent>,
         entity: specs::Entity,
         client: &mut Client,
+        in_game_stream: &mut InGameStream,
         terrain: &ReadExpect<'_, TerrainGrid>,
         network_metrics: &ReadExpect<'_, NetworkRequestMetrics>,
         can_build: &ReadStorage<'_, CanBuild>,
@@ -115,7 +121,7 @@ impl Sys {
             ClientGeneral::ExitInGame => {
                 client.in_game = None;
                 server_emitter.emit(ServerEvent::ExitIngame { entity });
-                client.send_msg(ServerGeneral::ExitInGameSuccess);
+                in_game_stream.0.send(ServerGeneral::ExitInGameSuccess)?;
             },
             ClientGeneral::SetViewDistance(view_distance) => {
                 players.get_mut(entity).map(|player| {
@@ -133,9 +139,9 @@ impl Sys {
                     .map(|max| view_distance > max)
                     .unwrap_or(false)
                 {
-                    client.send_msg(ServerGeneral::SetViewDistance(
+                    in_game_stream.0.send(ServerGeneral::SetViewDistance(
                         settings.max_view_distance.unwrap_or(0),
-                    ));
+                    ))?;
                 }
             },
             ClientGeneral::ControllerInputs(inputs) => {
@@ -203,10 +209,10 @@ impl Sys {
                     match terrain.get_key(key) {
                         Some(chunk) => {
                             network_metrics.chunks_served_from_memory.inc();
-                            client.send_msg(ServerGeneral::TerrainChunkUpdate {
+                            in_game_stream.0.send(ServerGeneral::TerrainChunkUpdate {
                                 key,
                                 chunk: Ok(Box::new(chunk.clone())),
-                            })
+                            })?
                         },
                         None => {
                             network_metrics.chunks_generation_triggered.inc();
@@ -243,6 +249,7 @@ impl Sys {
         new_chat_msgs: &mut Vec<(Option<specs::Entity>, UnresolvedChatMsg)>,
         entity: specs::Entity,
         client: &mut Client,
+        character_screen_stream: &mut CharacterScreenStream,
         character_loader: &ReadExpect<'_, CharacterLoader>,
         uids: &ReadStorage<'_, Uid>,
         players: &mut WriteStorage<'_, Player>,
@@ -278,10 +285,11 @@ impl Sys {
 
                     // Give the player a welcome message
                     if !editable_settings.server_description.is_empty() {
-                        client.send_msg(
-                            ChatType::CommandInfo
-                                .server_msg(String::from(&*editable_settings.server_description)),
-                        );
+                        character_screen_stream
+                            .0
+                            .send(ChatType::CommandInfo.server_msg(String::from(
+                                &*editable_settings.server_description,
+                            )))?;
                     }
 
                     if !client.login_msg_sent {
@@ -295,9 +303,11 @@ impl Sys {
                         }
                     }
                 } else {
-                    client.send_msg(ServerGeneral::CharacterDataLoadError(String::from(
-                        "Failed to fetch player entity",
-                    )))
+                    character_screen_stream
+                        .0
+                        .send(ServerGeneral::CharacterDataLoadError(String::from(
+                            "Failed to fetch player entity",
+                        )))?
                 }
             }
             ClientGeneral::Character(_) => {
@@ -313,7 +323,9 @@ impl Sys {
             ClientGeneral::CreateCharacter { alias, tool, body } => {
                 if let Err(error) = alias_validator.validate(&alias) {
                     debug!(?error, ?alias, "denied alias as it contained a banned word");
-                    client.send_msg(ServerGeneral::CharacterActionError(error.to_string()));
+                    character_screen_stream
+                        .0
+                        .send(ServerGeneral::CharacterActionError(error.to_string()))?;
                 } else if let Some(player) = players.get(entity) {
                     character_creator::create_character(
                         entity,
@@ -340,9 +352,13 @@ impl Sys {
     }
 
     #[allow(clippy::too_many_arguments)]
-    fn handle_ping_msg(client: &mut Client, msg: PingMsg) -> Result<(), crate::error::Error> {
+    fn handle_ping_msg(
+        client: &mut Client,
+        ping_stream: &mut PingStream,
+        msg: PingMsg,
+    ) -> Result<(), crate::error::Error> {
         match msg {
-            PingMsg::Ping => client.send_msg(PingMsg::Pong),
+            PingMsg::Ping => ping_stream.0.send(PingMsg::Pong)?,
             PingMsg::Pong => {},
         }
         Ok(())
@@ -354,6 +370,7 @@ impl Sys {
         new_players: &mut Vec<specs::Entity>,
         entity: specs::Entity,
         client: &mut Client,
+        register_stream: &mut RegisterStream,
         player_metrics: &ReadExpect<'_, PlayerMetrics>,
         login_provider: &mut WriteExpect<'_, LoginProvider>,
         admins: &mut WriteStorage<'_, Admin>,
@@ -368,9 +385,7 @@ impl Sys {
             &*editable_settings.banlist,
         ) {
             Err(err) => {
-                client
-                    .register_stream
-                    .send(ServerRegisterAnswer::Err(err))?;
+                register_stream.0.send(ServerRegisterAnswer::Err(err))?;
                 return Ok(());
             },
             Ok((username, uuid)) => (username, uuid),
@@ -382,8 +397,8 @@ impl Sys {
 
         if !player.is_valid() {
             // Invalid player
-            client
-                .register_stream
+            register_stream
+                .0
                 .send(ServerRegisterAnswer::Err(RegisterError::InvalidCharacter))?;
             return Ok(());
         }
@@ -401,12 +416,14 @@ impl Sys {
 
             // Tell the client its request was successful.
             client.registered = true;
-            client.register_stream.send(ServerRegisterAnswer::Ok(()))?;
+            register_stream.0.send(ServerRegisterAnswer::Ok(()))?;
 
             // Send initial player list
-            client.send_msg(ServerGeneral::PlayerListUpdate(PlayerListUpdate::Init(
-                player_list.clone(),
-            )));
+            register_stream
+                .0
+                .send(ServerGeneral::PlayerListUpdate(PlayerListUpdate::Init(
+                    player_list.clone(),
+                )))?;
 
             // Add to list to notify all clients of the new player
             new_players.push(entity);
@@ -446,19 +463,8 @@ impl Sys {
         editable_settings: &ReadExpect<'_, EditableSettings>,
         alias_validator: &ReadExpect<'_, AliasValidator>,
     ) -> Result<(), crate::error::Error> {
-        let (mut b1, mut b2, mut b3, mut b4, mut b5) = (
-            client.network_error,
-            client.network_error,
-            client.network_error,
-            client.network_error,
-            client.network_error,
-        );
         loop {
             /*
-            waiting for 1 of the 5 streams to return a massage asynchronous.
-            If so, handle that msg type. This code will be refactored soon
-            */
-
             let q1 = Client::internal_recv(&mut b1, &mut client.general_stream);
             let q2 = Client::internal_recv(&mut b2, &mut client.in_game_stream);
             let q3 = Client::internal_recv(&mut b3, &mut client.character_screen_stream);
@@ -540,7 +546,7 @@ impl Sys {
                     editable_settings,
                     msg?,
                 )?;
-            }
+            }*/
         }
     }
 }
@@ -571,6 +577,11 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Ori>,
         WriteStorage<'a, Player>,
         WriteStorage<'a, Client>,
+        WriteStorage<'a, GeneralStream>,
+        //WriteStorage<'a, PingStream>,
+        //WriteStorage<'a, RegisterStream>,
+        //WriteStorage<'a, CharacterScreenStream>,
+        //WriteStorage<'a, InGameStream>,
         WriteStorage<'a, Controller>,
         Read<'a, Settings>,
         ReadExpect<'a, EditableSettings>,
@@ -604,6 +615,11 @@ impl<'a> System<'a> for Sys {
             mut orientations,
             mut players,
             mut clients,
+            mut general_streams,
+            //mut ping_streams,
+            //mut register_streams,
+            //mut character_screen_streams,
+            //mut in_game_streams,
             mut controllers,
             settings,
             editable_settings,
@@ -697,7 +713,8 @@ impl<'a> System<'a> for Sys {
                 server_emitter.emit(ServerEvent::ClientDisconnect(entity));
             } else if time.0 - client.last_ping > settings.client_timeout.as_secs() as f64 * 0.5 {
                 // Try pinging the client if the timeout is nearing.
-                client.send_msg(PingMsg::Ping);
+                //FIXME
+                //client.send_msg(PingMsg::Ping);
             }
         }
 
@@ -713,7 +730,8 @@ impl<'a> System<'a> for Sys {
                         character: None, // new players will be on character select.
                     }));
                 for client in (&mut clients).join().filter(|c| c.registered) {
-                    client.send_msg(msg.clone())
+                    //FIXME
+                    //client.send_msg(msg.clone())
                 }
             }
         }

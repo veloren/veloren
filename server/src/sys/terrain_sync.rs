@@ -1,5 +1,5 @@
 use super::SysTimer;
-use crate::client::Client;
+use crate::client::InGameStream;
 use common::{
     comp::{Player, Pos},
     msg::ServerGeneral,
@@ -20,25 +20,26 @@ impl<'a> System<'a> for Sys {
         Write<'a, SysTimer<Self>>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Player>,
-        WriteStorage<'a, Client>,
+        WriteStorage<'a, InGameStream>,
     );
 
     fn run(
         &mut self,
-        (terrain, terrain_changes, mut timer, positions, players, mut clients): Self::SystemData,
+        (terrain, terrain_changes, mut timer, positions, players, mut in_game_streams): Self::SystemData,
     ) {
         span!(_guard, "run", "terrain_sync::Sys::run");
         timer.start();
 
         // Sync changed chunks
         'chunk: for chunk_key in &terrain_changes.modified_chunks {
-            for (player, pos, client) in (&players, &positions, &mut clients).join() {
+            for (player, pos, in_game_stream) in (&players, &positions, &mut in_game_streams).join()
+            {
                 if player
                     .view_distance
                     .map(|vd| super::terrain::chunk_in_vd(pos.0, *chunk_key, &terrain, vd))
                     .unwrap_or(false)
                 {
-                    client.send_msg(ServerGeneral::TerrainChunkUpdate {
+                    let _ = in_game_stream.0.send(ServerGeneral::TerrainChunkUpdate {
                         key: *chunk_key,
                         chunk: Ok(Box::new(match terrain.get_key(*chunk_key) {
                             Some(chunk) => chunk.clone(),
@@ -52,9 +53,9 @@ impl<'a> System<'a> for Sys {
         // TODO: Don't send all changed blocks to all clients
         // Sync changed blocks
         let msg = ServerGeneral::TerrainBlockUpdates(terrain_changes.modified_blocks.clone());
-        for (player, client) in (&players, &mut clients).join() {
+        for (player, in_game_stream) in (&players, &mut in_game_streams).join() {
             if player.view_distance.is_some() {
-                client.send_msg(msg.clone());
+                let _ = in_game_stream.0.send(msg.clone());
             }
         }
 

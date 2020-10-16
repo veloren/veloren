@@ -1,5 +1,5 @@
 use super::SysTimer;
-use crate::client::Client;
+use crate::client::GeneralStream;
 use common::{
     comp::{Player, Pos, Waypoint, WaypointArea},
     msg::{Notification, ServerGeneral},
@@ -22,28 +22,38 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Player>,
         ReadStorage<'a, WaypointArea>,
         WriteStorage<'a, Waypoint>,
-        WriteStorage<'a, Client>,
+        WriteStorage<'a, GeneralStream>,
         Read<'a, Time>,
         Write<'a, SysTimer<Self>>,
     );
 
     fn run(
         &mut self,
-        (entities, positions, players, waypoint_areas, mut waypoints, mut clients, time, mut timer): Self::SystemData,
+        (
+            entities,
+            positions,
+            players,
+            waypoint_areas,
+            mut waypoints,
+            mut general_streams,
+            time,
+            mut timer,
+        ): Self::SystemData,
     ) {
         span!(_guard, "run", "waypoint::Sys::run");
         timer.start();
 
-        for (entity, player_pos, _, client) in
-            (&entities, &positions, &players, &mut clients).join()
+        for (entity, player_pos, _, general_stream) in
+            (&entities, &positions, &players, &mut general_streams).join()
         {
             for (waypoint_pos, waypoint_area) in (&positions, &waypoint_areas).join() {
                 if player_pos.0.distance_squared(waypoint_pos.0) < waypoint_area.radius().powi(2) {
                     if let Ok(wp_old) = waypoints.insert(entity, Waypoint::new(player_pos.0, *time))
                     {
                         if wp_old.map_or(true, |w| w.elapsed(*time) > NOTIFY_TIME) {
-                            client
-                                .send_msg(ServerGeneral::Notification(Notification::WaypointSaved));
+                            let _ = general_stream
+                                .0
+                                .send(ServerGeneral::Notification(Notification::WaypointSaved));
                         }
                     }
                 }

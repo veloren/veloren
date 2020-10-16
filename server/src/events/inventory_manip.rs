@@ -1,4 +1,4 @@
-use crate::{client::Client, Server, StateExt};
+use crate::{client::InGameStream, Server, StateExt};
 use common::{
     comp::{
         self, item,
@@ -279,7 +279,8 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                             .insert(tameable_entity, comp::Alignment::Owned(uid));
 
                                         // Add to group system
-                                        let mut clients = state.ecs().write_storage::<Client>();
+                                        let mut in_game_streams =
+                                            state.ecs().write_storage::<InGameStream>();
                                         let uids = state.ecs().read_storage::<Uid>();
                                         let mut group_manager = state
                                             .ecs()
@@ -293,15 +294,15 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                             &state.ecs().read_storage(),
                                             &uids,
                                             &mut |entity, group_change| {
-                                                clients
+                                                in_game_streams
                                                     .get_mut(entity)
-                                                    .and_then(|c| {
+                                                    .and_then(|s| {
                                                         group_change
                                                             .try_map(|e| uids.get(e).copied())
-                                                            .map(|g| (g, c))
+                                                            .map(|g| (g, s))
                                                     })
-                                                    .map(|(g, c)| {
-                                                        c.send_msg(ServerGeneral::GroupUpdate(g))
+                                                    .map(|(g, s)| {
+                                                        s.0.send(ServerGeneral::GroupUpdate(g))
                                                     });
                                             },
                                         );

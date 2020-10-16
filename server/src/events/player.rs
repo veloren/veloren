@@ -1,6 +1,12 @@
 use super::Event;
 use crate::{
-    client::Client, login_provider::LoginProvider, persistence, state_ext::StateExt, Server,
+    client::{
+        CharacterScreenStream, Client, GeneralStream, InGameStream, PingStream, RegisterStream,
+    },
+    login_provider::LoginProvider,
+    persistence,
+    state_ext::StateExt,
+    Server,
 };
 use common::{
     comp,
@@ -17,26 +23,61 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
     span!(_guard, "handle_exit_ingame");
     let state = server.state_mut();
 
-    // Create new entity with just `Client`, `Uid`, and `Player` components
-    // Easier than checking and removing all other known components
+    // Create new entity with just `Client`, `Uid`, `Player`, and `...Stream`
+    // components Easier than checking and removing all other known components
     // Note: If other `ServerEvent`s are referring to this entity they will be
     // disrupted
     let maybe_client = state.ecs().write_storage::<Client>().remove(entity);
     let maybe_uid = state.read_component_copied::<Uid>(entity);
     let maybe_player = state.ecs().write_storage::<comp::Player>().remove(entity);
     let maybe_admin = state.ecs().write_storage::<comp::Admin>().remove(entity);
+    let maybe_general_stream = state.ecs().write_storage::<GeneralStream>().remove(entity);
+    let maybe_ping_stream = state.ecs().write_storage::<PingStream>().remove(entity);
+    let maybe_register_stream = state.ecs().write_storage::<RegisterStream>().remove(entity);
+    let maybe_character_screen_stream = state
+        .ecs()
+        .write_storage::<CharacterScreenStream>()
+        .remove(entity);
+    let maybe_in_game_stream = state.ecs().write_storage::<InGameStream>().remove(entity);
 
     let maybe_group = state
         .ecs()
         .write_storage::<group::Group>()
         .get(entity)
         .cloned();
-    if let (Some(mut client), Some(uid), Some(player)) = (maybe_client, maybe_uid, maybe_player) {
+    if let (
+        Some(mut client),
+        Some(uid),
+        Some(player),
+        Some(mut general_stream),
+        Some(ping_stream),
+        Some(register_stream),
+        Some(character_screen_stream),
+        Some(in_game_stream),
+    ) = (
+        maybe_client,
+        maybe_uid,
+        maybe_player,
+        maybe_general_stream,
+        maybe_ping_stream,
+        maybe_register_stream,
+        maybe_character_screen_stream,
+        maybe_in_game_stream,
+    ) {
         // Tell client its request was successful
         client.in_game = None;
-        client.send_msg(ServerGeneral::ExitInGameSuccess);
+        let _ = general_stream.0.send(ServerGeneral::ExitInGameSuccess);
 
-        let entity_builder = state.ecs_mut().create_entity().with(client).with(player);
+        let entity_builder = state
+            .ecs_mut()
+            .create_entity()
+            .with(client)
+            .with(player)
+            .with(general_stream)
+            .with(ping_stream)
+            .with(register_stream)
+            .with(character_screen_stream)
+            .with(in_game_stream);
 
         // Preserve group component if present
         let entity_builder = match maybe_group {

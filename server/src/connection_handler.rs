@@ -1,4 +1,7 @@
-use crate::{Client, ClientType, ServerInfo};
+use crate::{
+    CharacterScreenStream, Client, ClientType, GeneralStream, InGameStream, PingStream,
+    RegisterStream, ServerInfo,
+};
 use crossbeam::{bounded, unbounded, Receiver, Sender};
 use futures_channel::oneshot;
 use futures_executor::block_on;
@@ -13,10 +16,19 @@ pub(crate) struct ServerInfoPacket {
     pub time: f64,
 }
 
+pub(crate) struct ClientPackage {
+    pub client: Client,
+    pub general: GeneralStream,
+    pub ping: PingStream,
+    pub register: RegisterStream,
+    pub character: CharacterScreenStream,
+    pub in_game: InGameStream,
+}
+
 pub(crate) struct ConnectionHandler {
     _network: Arc<Network>,
     thread_handle: Option<thread::JoinHandle<()>>,
-    pub client_receiver: Receiver<Client>,
+    pub client_receiver: Receiver<ClientPackage>,
     pub info_requester_receiver: Receiver<Sender<ServerInfoPacket>>,
     stop_sender: Option<oneshot::Sender<()>>,
 }
@@ -31,7 +43,7 @@ impl ConnectionHandler {
         let network_clone = Arc::clone(&network);
         let (stop_sender, stop_receiver) = oneshot::channel();
 
-        let (client_sender, client_receiver) = unbounded::<Client>();
+        let (client_sender, client_receiver) = unbounded::<ClientPackage>();
         let (info_requester_sender, info_requester_receiver) =
             bounded::<Sender<ServerInfoPacket>>(1);
 
@@ -55,7 +67,7 @@ impl ConnectionHandler {
 
     async fn work(
         network: Arc<Network>,
-        client_sender: Sender<Client>,
+        client_sender: Sender<ClientPackage>,
         info_requester_sender: Sender<Sender<ServerInfoPacket>>,
         stop_receiver: oneshot::Receiver<()>,
     ) {
@@ -92,7 +104,7 @@ impl ConnectionHandler {
 
     async fn init_participant(
         participant: Participant,
-        client_sender: Sender<Client>,
+        client_sender: Sender<ClientPackage>,
         info_requester_sender: Sender<Sender<ServerInfoPacket>>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         debug!("New Participant connected to the server");
@@ -129,17 +141,20 @@ impl ConnectionHandler {
             client_type,
             in_game: None,
             participant: Some(participant),
-            general_stream,
-            ping_stream,
-            register_stream,
-            in_game_stream,
-            character_screen_stream,
-            network_error: false,
             last_ping: server_data.time,
             login_msg_sent: false,
         };
 
-        client_sender.send(client)?;
+        let package = ClientPackage {
+            client,
+            general: GeneralStream(general_stream),
+            ping: PingStream(ping_stream),
+            register: RegisterStream(register_stream),
+            character: CharacterScreenStream(character_screen_stream),
+            in_game: InGameStream(in_game_stream),
+        };
+
+        client_sender.send(package)?;
         Ok(())
     }
 }
