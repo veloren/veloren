@@ -134,6 +134,111 @@ impl MusicChannel {
     }
 }
 
+/// Each `AmbientChannel` has a `AmbientChannelTag` which help us determine when
+/// we should transition between two types of in-game music. For example, we
+/// transition between `TitleMusic` and `Exploration` when a player enters the
+/// world by crossfading over a slow duration. In the future, transitions in the
+/// world such as `Exploration` -> `BossBattle` would transition more rapidly.
+#[derive(PartialEq, Clone, Copy)]
+pub enum AmbientChannelTag {
+    TitleMusic,
+    Exploration,
+}
+
+/// An AmbientChannel uses a non-positional audio sink designed to play ambient
+/// sound which is always heard at the player's position.
+///
+/// See also: [`Rodio::Sink`](https://docs.rs/rodio/0.11.0/rodio/struct.Sink.html)
+pub struct AmbientChannel {
+    tag: AmbientChannelTag,
+    sink: Sink,
+    state: ChannelState,
+    fader: Fader,
+}
+impl AmbientChannel {
+    pub fn new(device: &Device) -> Self {
+        Self {
+            sink: Sink::new(device),
+            tag: AmbientChannelTag::TitleMusic,
+            state: ChannelState::Stopped,
+            fader: Fader::default(),
+        }
+    }
+
+    // Play an ambient track item on this channel. If the channel has an existing
+    // track playing, the new sounds will be appended and played once they
+    // complete. Otherwise it will begin playing immediately.
+    pub fn play<S>(&mut self, source: S, tag: AmbientChannelTag)
+    where
+        S: Source + Send + 'static,
+        S::Item: Sample,
+        S::Item: Send,
+        <S as std::iter::Iterator>::Item: std::fmt::Debug,
+    {
+        self.tag = tag;
+        if !self.sink.len() > 0 {
+            self.sink.append(source);
+        }
+
+        self.state = if !self.fader.is_finished() {
+            ChannelState::Fading
+        } else {
+            ChannelState::Playing
+        };
+    }
+
+    /// Set the volume of the current channel. If the channel is currently
+    /// fading, the volume of the fader is updated to this value.
+    pub fn set_volume(&mut self, volume: f32) {
+        if !self.fader.is_finished() {
+            self.fader.update_target_volume(volume);
+        } else {
+            self.sink.set_volume(volume);
+        }
+    }
+
+    /// Set a fader for the channel. If a fader exists already, it is replaced.
+    /// If the channel has not begun playing, and the fader is set to fade in,
+    /// we set the volume of the channel to the initial volume of the fader so
+    /// that the volumes match when playing begins.
+    pub fn set_fader(&mut self, fader: Fader) {
+        self.fader = fader;
+        self.state = ChannelState::Fading;
+
+        if self.state == ChannelState::Stopped && fader.direction() == FadeDirection::In {
+            self.sink.set_volume(fader.get_volume());
+        }
+    }
+
+    /// Returns true if either the channels sink reports itself as empty (no
+    /// more sounds in the queue) or we have forcibly set the channels state to
+    /// the 'Stopped' state
+    pub fn is_done(&self) -> bool { self.sink.empty() || self.state == ChannelState::Stopped }
+
+    pub fn get_tag(&self) -> AmbientChannelTag { self.tag }
+
+    /// Maintain the fader attached to this channel. If the channel is not
+    /// fading, no action is taken.
+    pub fn maintain(&mut self, dt: f32) {
+        if self.state == ChannelState::Fading {
+            self.fader.update(dt);
+            self.sink.set_volume(self.fader.get_volume());
+
+            if self.fader.is_finished() {
+                match self.fader.direction() {
+                    FadeDirection::Out => {
+                        self.state = ChannelState::Stopped;
+                        self.sink.stop();
+                    },
+                    FadeDirection::In => {
+                        self.state = ChannelState::Playing;
+                    },
+                }
+            }
+        }
+    }
+}
+
 /// An SfxChannel uses a positional audio sink, and is designed for short-lived
 /// audio which can be spatially controlled, but does not need control over
 /// playback or fading/transitions

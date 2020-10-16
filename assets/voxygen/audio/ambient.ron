@@ -1,0 +1,22 @@
+// TODO: Add an ambient-soundtrack that runs independently from the musical soundtrack
+
+(
+    tracks: [
+        (
+            title: "Forest Day", // Ambience Track
+            path: "voxygen.audio.ambient.forest_day",
+            length: 629.0,
+            timing: Some(Night),
+            biome: Some(Forest),
+            artist: "https://www.youtube.com/watch?v=FwVTkB-BIvM",
+        ), 
+        (
+            title: "Forest Morning", // Ambience Track
+            path: "voxygen.audio.ambient.forest_morning",
+            length: 600.0,
+            timing: Some(Day),
+            biome: Some(Forest),
+            artist: "https://www.youtube.com/watch?v=eq4nfIdK6C4",
+        ),
+    ]
+)
