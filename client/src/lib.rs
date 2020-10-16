@@ -37,6 +37,7 @@ use common::{
     terrain::{block::Block, neighbors, TerrainChunk, TerrainChunkSize},
     vol::RectVolSize,
 };
+use comp::BuffId;
 use futures_executor::block_on;
 use futures_timer::Delay;
 use futures_util::{select, FutureExt};
@@ -629,6 +630,12 @@ impl Client {
 
     pub fn disable_lantern(&mut self) {
         self.send_msg(ClientGeneral::ControlEvent(ControlEvent::DisableLantern));
+    }
+
+    pub fn remove_buff(&mut self, buff_id: BuffId) {
+        self.send_msg(ClientGeneral::ControlEvent(ControlEvent::RemoveBuff(
+            buff_id,
+        )));
     }
 
     pub fn max_group_size(&self) -> u32 { self.max_group_size }

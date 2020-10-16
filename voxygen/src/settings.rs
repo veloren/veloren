@@ -1,5 +1,5 @@
 use crate::{
-    hud::{BarNumbers, CrosshairType, Intro, PressBehavior, ShortcutNumbers, XpBar},
+    hud::{BarNumbers, BuffPosition, CrosshairType, Intro, PressBehavior, ShortcutNumbers, XpBar},
     i18n,
     render::RenderMode,
     ui::ScaleMode,
@@ -507,6 +507,7 @@ pub struct GameplaySettings {
     pub intro_show: Intro,
     pub xp_bar: XpBar,
     pub shortcut_numbers: ShortcutNumbers,
+    pub buff_position: BuffPosition,
     pub bar_numbers: BarNumbers,
     pub ui_scale: ScaleMode,
     pub free_look_behavior: PressBehavior,
@@ -537,6 +538,7 @@ impl Default for GameplaySettings {
             intro_show: Intro::Show,
             xp_bar: XpBar::Always,
             shortcut_numbers: ShortcutNumbers::On,
+            buff_position: BuffPosition::Bar,
             bar_numbers: BarNumbers::Values,
             ui_scale: ScaleMode::RelativeToWindow([1920.0, 1080.0].into()),
             free_look_behavior: PressBehavior::Toggle,

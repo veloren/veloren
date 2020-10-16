@@ -715,6 +715,7 @@ pub fn handle_buff(server: &mut Server, uid: Uid, buff_change: buff::BuffChange)
                         add_buff_effects(new_buff.clone(), stats.get_mut(entity));
                         buffs.active_buffs.push(new_buff);
                     } else {
+                        let mut duplicate_existed = false;
                         for i in 0..buffs.active_buffs.len() {
                             let active_buff = &buffs.active_buffs[i];
                             // Checks if new buff has the same id as an already active buff. If it
@@ -724,6 +725,7 @@ pub fn handle_buff(server: &mut Server, uid: Uid, buff_change: buff::BuffChange)
                             // inactive buffs and add new buff to active
                             // buffs.
                             if discriminant(&active_buff.id) == discriminant(&new_buff.id) {
+                                duplicate_existed = true;
                                 if determine_replace_active_buff(
                                     active_buff.clone(),
                                     new_buff.clone(),
@@ -731,13 +733,20 @@ pub fn handle_buff(server: &mut Server, uid: Uid, buff_change: buff::BuffChange)
                                     active_buff_indices_for_removal.push(i);
                                     add_buff_effects(new_buff.clone(), stats.get_mut(entity));
                                     buffs.active_buffs.push(new_buff.clone());
-                                } else {
-                                    buffs.inactive_buffs.push(new_buff.clone());
+                                } else if let Some(active_dur) = active_buff.time {
+                                    if let Some(new_dur) = new_buff.time {
+                                        if new_dur > active_dur {
+                                            buffs.inactive_buffs.push(new_buff.clone());
+                                        }
+                                    } else {
+                                        buffs.inactive_buffs.push(new_buff.clone());
+                                    }
                                 }
-                            } else {
-                                add_buff_effects(new_buff.clone(), stats.get_mut(entity));
-                                buffs.active_buffs.push(new_buff.clone());
                             }
+                        }
+                        if !duplicate_existed {
+                            add_buff_effects(new_buff.clone(), stats.get_mut(entity));
+                            buffs.active_buffs.push(new_buff.clone());
                         }
                     }
                 },
@@ -871,7 +880,7 @@ fn determine_replace_active_buff(active_buff: buff::Buff, new_buff: buff::Buff) 
                 duration: _,
             } = active_buff.id
             {
-                new_strength > active_strength
+                new_strength >= active_strength
             } else {
                 false
             }
@@ -885,7 +894,7 @@ fn determine_replace_active_buff(active_buff: buff::Buff, new_buff: buff::Buff) 
                 duration: _,
             } = active_buff.id
             {
-                new_strength > active_strength
+                new_strength >= active_strength
             } else {
                 false
             }

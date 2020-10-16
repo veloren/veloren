@@ -4,6 +4,7 @@ use super::{
     TEXT_BIND_CONFLICT_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
+    hud::BuffPosition,
     i18n::{list_localizations, LanguageMetadata, VoxygenLocalization},
     render::{AaMode, CloudMode, FluidMode, LightingMode, RenderMode, ShadowMapMode, ShadowMode},
     ui::{fonts::ConrodVoxygenFonts, ImageSlider, ScaleMode, ToggleButton},
@@ -159,6 +160,7 @@ widget_ids! {
         sfx_volume_text,
         audio_device_list,
         audio_device_text,
+        //
         hotbar_title,
         bar_numbers_title,
         show_bar_numbers_none_button,
@@ -167,18 +169,20 @@ widget_ids! {
         show_bar_numbers_values_text,
         show_bar_numbers_percentage_button,
         show_bar_numbers_percentage_text,
+        //
         show_shortcuts_button,
         show_shortcuts_text,
-        show_xpbar_button,
-        show_xpbar_text,
-        show_bars_button,
-        show_bars_text,
-        placeholder,
+        buff_pos_bar_button,
+        buff_pos_bar_text,
+        buff_pos_map_button,
+        buff_pos_map_text,
+        //
         chat_transp_title,
         chat_transp_text,
         chat_transp_slider,
         chat_char_name_text,
         chat_char_name_button,
+        //
         sct_title,
         sct_show_text,
         sct_show_radio,
@@ -195,6 +199,7 @@ widget_ids! {
         sct_num_dur_text,
         sct_num_dur_slider,
         sct_num_dur_value,
+        //
         speech_bubble_text,
         speech_bubble_dark_mode_text,
         speech_bubble_dark_mode_button,
@@ -261,6 +266,7 @@ pub enum Event {
     ToggleTips(bool),
     ToggleBarNumbers(BarNumbers),
     ToggleShortcutNumbers(ShortcutNumbers),
+    BuffPosition(BuffPosition),
     ChangeTab(SettingsTab),
     Close,
     AdjustMousePan(u32),
@@ -829,11 +835,61 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .graphics_for(state.ids.show_shortcuts_button)
                 .color(TEXT_COLOR)
                 .set(state.ids.show_shortcuts_text, ui);
-
-            Rectangle::fill_with([60.0 * 4.0, 1.0 * 4.0], color::TRANSPARENT)
-                .down_from(state.ids.show_shortcuts_text, 30.0)
-                .set(state.ids.placeholder, ui);
-
+            // Buff Position
+            // Buffs above skills
+            if Button::image(match self.global_state.settings.gameplay.buff_position {
+                BuffPosition::Bar => self.imgs.checkbox_checked,
+                BuffPosition::Map => self.imgs.checkbox,
+            })
+            .w_h(18.0, 18.0)
+            .hover_image(match self.global_state.settings.gameplay.buff_position {
+                BuffPosition::Bar => self.imgs.checkbox_checked_mo,
+                BuffPosition::Map => self.imgs.checkbox_mo,
+            })
+            .press_image(match self.global_state.settings.gameplay.buff_position {
+                BuffPosition::Bar => self.imgs.checkbox_checked,
+                BuffPosition::Map => self.imgs.checkbox_press,
+            })
+            .down_from(state.ids.show_shortcuts_button, 8.0)
+            .set(state.ids.buff_pos_bar_button, ui)
+            .was_clicked()
+            {
+                events.push(Event::BuffPosition(BuffPosition::Bar))
+            }
+            Text::new(&self.localized_strings.get("hud.settings.buffs_skillbar"))
+                .right_from(state.ids.buff_pos_bar_button, 10.0)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
+                .graphics_for(state.ids.show_shortcuts_button)
+                .color(TEXT_COLOR)
+                .set(state.ids.buff_pos_bar_text, ui);
+            // Buffs left from minimap
+            if Button::image(match self.global_state.settings.gameplay.buff_position {
+                BuffPosition::Map => self.imgs.checkbox_checked,
+                BuffPosition::Bar => self.imgs.checkbox,
+            })
+            .w_h(18.0, 18.0)
+            .hover_image(match self.global_state.settings.gameplay.buff_position {
+                BuffPosition::Map => self.imgs.checkbox_checked_mo,
+                BuffPosition::Bar => self.imgs.checkbox_mo,
+            })
+            .press_image(match self.global_state.settings.gameplay.buff_position {
+                BuffPosition::Map => self.imgs.checkbox_checked,
+                BuffPosition::Bar => self.imgs.checkbox_press,
+            })
+            .down_from(state.ids.buff_pos_bar_button, 8.0)
+            .set(state.ids.buff_pos_map_button, ui)
+            .was_clicked()
+            {
+                events.push(Event::BuffPosition(BuffPosition::Map))
+            }
+            Text::new(&self.localized_strings.get("hud.settings.buffs_mmap"))
+                .right_from(state.ids.buff_pos_map_button, 10.0)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
+                .graphics_for(state.ids.show_shortcuts_button)
+                .color(TEXT_COLOR)
+                .set(state.ids.buff_pos_map_text, ui);
             // Content Right Side
 
             /*Scrolling Combat text

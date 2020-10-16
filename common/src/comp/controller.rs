@@ -1,4 +1,8 @@
-use crate::{comp::inventory::slot::Slot, sync::Uid, util::Dir};
+use crate::{
+    comp::{inventory::slot::Slot, BuffId},
+    sync::Uid,
+    util::Dir,
+};
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
@@ -37,6 +41,7 @@ pub enum ControlEvent {
     Unmount,
     InventoryManip(InventoryManip),
     GroupManip(GroupManip),
+    RemoveBuff(BuffId),
     Respawn,
 }
 

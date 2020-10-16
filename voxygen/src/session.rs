@@ -894,6 +894,10 @@ impl PlayState for SessionState {
                         global_state.settings.gameplay.shortcut_numbers = shortcut_numbers;
                         global_state.settings.save_to_file_warn();
                     },
+                    HudEvent::BuffPosition(buff_position) => {
+                        global_state.settings.gameplay.buff_position = buff_position;
+                        global_state.settings.save_to_file_warn();
+                    },
                     HudEvent::UiScale(scale_change) => {
                         global_state.settings.gameplay.ui_scale =
                             self.hud.scale_change(scale_change);
@@ -920,6 +924,10 @@ impl PlayState for SessionState {
                     HudEvent::ChangeMaxFPS(fps) => {
                         global_state.settings.graphics.max_fps = fps;
                         global_state.settings.save_to_file_warn();
+                    },
+                    HudEvent::RemoveBuff(buff_id) => {
+                        let mut client = self.client.borrow_mut();
+                        client.remove_buff(buff_id);
                     },
                     HudEvent::UseSlot(x) => self.client.borrow_mut().use_slot(x),
                     HudEvent::SwapSlots(a, b) => self.client.borrow_mut().swap_slots(a, b),

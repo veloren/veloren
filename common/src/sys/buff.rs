@@ -62,7 +62,7 @@ impl<'a> System<'a> for Sys {
                         BuffEffect::HealthChangeOverTime { rate, accumulated } => {
                             *accumulated += *rate * buff_delta;
                             // Apply only 0.5 or higher damage
-                            if accumulated.abs() > 5.0 {
+                            if accumulated.abs() > 50.0 {
                                 let cause = if *accumulated > 0.0 {
                                     HealthSource::Healing { by: buff_owner }
                                 } else {
