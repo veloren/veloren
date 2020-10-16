@@ -1,12 +1,13 @@
 //! Handles audio device detection and playback of sound effects and music
 
+pub mod ambient;
 pub mod channel;
 pub mod fader;
 pub mod music;
 pub mod sfx;
 pub mod soundcache;
 
-use channel::{MusicChannel, MusicChannelTag, SfxChannel};
+use channel::{AmbientChannel, AmbientChannelTag, MusicChannel, MusicChannelTag, SfxChannel};
 use fader::Fader;
 use soundcache::SoundCache;
 use std::time::Duration;
@@ -38,9 +39,11 @@ pub struct AudioFrontend {
 
     music_channels: Vec<MusicChannel>,
     sfx_channels: Vec<SfxChannel>,
+    ambient_channels: Vec<AmbientChannel>,
 
     sfx_volume: f32,
     music_volume: f32,
+    ambient_volume: f32,
 
     listener: Listener,
 }
@@ -61,9 +64,11 @@ impl AudioFrontend {
             audio_device,
             sound_cache: SoundCache::default(),
             music_channels: Vec::new(),
+            ambient_channels: Vec::new(),
             sfx_channels,
             sfx_volume: 1.0,
             music_volume: 1.0,
+            ambient_volume: 1.0,
 
             listener: Listener::default(),
         }
@@ -77,9 +82,11 @@ impl AudioFrontend {
             audio_device: None,
             sound_cache: SoundCache::default(),
             music_channels: Vec::new(),
+            ambient_channels: Vec::new(),
             sfx_channels: Vec::new(),
             sfx_volume: 1.0,
             music_volume: 1.0,
+            ambient_volume: 1.0,
             listener: Listener::default(),
         }
     }
@@ -87,8 +94,13 @@ impl AudioFrontend {
     /// Drop any unused music channels, and update their faders
     pub fn maintain(&mut self, dt: Duration) {
         self.music_channels.retain(|c| !c.is_done());
+        self.ambient_channels.retain(|c| !c.is_done());
 
         for channel in self.music_channels.iter_mut() {
+            channel.maintain(dt);
+        }
+
+        for channel in self.ambient_channels.iter_mut() {
             channel.maintain(dt);
         }
     }
@@ -141,6 +153,35 @@ impl AudioFrontend {
         self.music_channels.last_mut()
     }
 
+    fn get_ambient_channel(
+        &mut self,
+        next_channel_tag: AmbientChannelTag,
+    ) -> Option<&mut AmbientChannel> {
+        if let Some(audio_device) = &self.audio_device {
+            if self.ambient_channels.is_empty() {
+                let mut next_ambient_channel = AmbientChannel::new(&audio_device);
+                next_ambient_channel.set_volume(self.ambient_volume);
+
+                self.ambient_channels.push(next_ambient_channel);
+            } else {
+                let existing_channel = self.ambient_channels.last_mut()?;
+
+                if existing_channel.get_tag() != next_channel_tag {
+                    // Fade the existing channel out. It will be removed when the fade completes.
+                    existing_channel.set_fader(Fader::fade_out(2.0, self.ambient_volume));
+
+                    let mut next_ambient_channel = AmbientChannel::new(&audio_device);
+
+                    next_ambient_channel.set_fader(Fader::fade_in(12.0, self.ambient_volume));
+
+                    self.ambient_channels.push(next_ambient_channel);
+                }
+            }
+        }
+
+        self.ambient_channels.last_mut()
+    }
+
     /// Play (once) an sfx file by file path at the give position and volume
     pub fn play_sfx(&mut self, sound: &str, pos: Vec3<f32>, vol: Option<f32>) {
         if self.audio_device.is_some() {
@@ -160,6 +201,15 @@ impl AudioFrontend {
 
     fn play_music(&mut self, sound: &str, channel_tag: MusicChannelTag) {
         if let Some(channel) = self.get_music_channel(channel_tag) {
+            let file = assets::load_file(&sound, &["ogg"]).expect("Failed to load sound");
+            let sound = Decoder::new(file).expect("Failed to decode sound");
+
+            channel.play(sound, channel_tag);
+        }
+    }
+
+    fn play_ambient(&mut self, sound: &str, channel_tag: AmbientChannelTag) {
+        if let Some(channel) = self.get_ambient_channel(channel_tag) {
             let file = assets::load_file(&sound, &["ogg"]).expect("Failed to load sound");
             let sound = Decoder::new(file).expect("Failed to decode sound");
 
@@ -199,13 +249,23 @@ impl AudioFrontend {
         }
     }
 
+    pub fn play_exploration_ambient(&mut self, item: &str) {
+        if self.ambient_enabled() {
+            self.play_ambient(item, AmbientChannelTag::Exploration)
+        }
+    }
+
     pub fn get_sfx_volume(&self) -> f32 { self.sfx_volume }
 
     pub fn get_music_volume(&self) -> f32 { self.music_volume }
 
+    pub fn get_ambient_volume(&self) -> f32 { self.ambient_volume }
+
     pub fn sfx_enabled(&self) -> bool { self.sfx_volume > 0.0 }
 
     pub fn music_enabled(&self) -> bool { self.music_volume > 0.0 }
+
+    pub fn ambient_enabled(&self) -> bool { self.ambient_volume > 0.0 }
 
     pub fn set_sfx_volume(&mut self, sfx_volume: f32) {
         self.sfx_volume = sfx_volume;
@@ -220,6 +280,14 @@ impl AudioFrontend {
 
         for channel in self.music_channels.iter_mut() {
             channel.set_volume(music_volume);
+        }
+    }
+
+    pub fn set_ambient_volume(&mut self, ambient_volume: f32) {
+        self.ambient_volume = ambient_volume;
+
+        for channel in self.ambient_channels.iter_mut() {
+            channel.set_volume(ambient_volume);
         }
     }
 

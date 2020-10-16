@@ -1,8 +1,8 @@
-//! Handles music playback and transitions
+//! Handles ambient sound playback and transitions
 //!
-//! Game music is controlled though a configuration file found in the source at
-//! `/assets/voxygen/audio/soundtrack.ron`. Each track enabled in game has a
-//! configuration corresponding to the
+//! Game ambient sound is controlled though a configuration file found in the
+//! source at `/assets/voxygen/audio/ambient.ron`. Each track enabled in game
+//! has a configuration corresponding to the
 //! [`SoundtrackItem`](struct.SoundtrackItem.html) format, as well as the
 //! corresponding `.ogg` file in the `/assets/voxygen/audio/soundtrack/`
 //! directory.
@@ -10,7 +10,7 @@
 //! If there are errors while reading or deserialising the configuration file, a
 //! warning is logged and music will be disabled.
 //!
-//! ## Adding new music
+//! ## Adding new ambient sound
 //!
 //! To add a new item, append the details to the audio configuration file, and
 //! add the audio file (in `.ogg` format) to the assets directory.
@@ -50,13 +50,13 @@ const DAY_START_SECONDS: u32 = 28800; // 8:00
 const DAY_END_SECONDS: u32 = 70200; // 19:30
 
 #[derive(Debug, Default, Deserialize)]
-struct SoundtrackCollection {
-    tracks: Vec<SoundtrackItem>,
+struct AmbientSoundtrackCollection {
+    tracks: Vec<AmbientSoundtrackItem>,
 }
 
 /// Configuration for a single music track in the soundtrack
 #[derive(Debug, Deserialize)]
-pub struct SoundtrackItem {
+pub struct AmbientSoundtrackItem {
     title: String,
     path: String,
     /// Length of the track in seconds
@@ -76,8 +76,8 @@ enum DayPeriod {
 }
 
 /// Provides methods to control music playback
-pub struct MusicMgr {
-    soundtrack: SoundtrackCollection,
+pub struct AmbientMgr {
+    ambient_soundtrack: AmbientSoundtrackCollection,
     began_playing: Instant,
     next_track_change: f64,
     /// The title of the last track played. Used to prevent a track
@@ -85,11 +85,11 @@ pub struct MusicMgr {
     last_track: String,
 }
 
-impl MusicMgr {
+impl AmbientMgr {
     #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> Self {
         Self {
-            soundtrack: Self::load_soundtrack_items(),
+            ambient_soundtrack: Self::load_ambient_soundtrack_items(),
             began_playing: Instant::now(),
             next_track_change: 0.0,
             last_track: String::from("None"),
@@ -100,7 +100,7 @@ impl MusicMgr {
     /// request to play the next (random) track
     pub fn maintain(&mut self, audio: &mut AudioFrontend, state: &State, client: &Client) {
         if audio.music_enabled()
-            && !self.soundtrack.tracks.is_empty()
+            && !self.ambient_soundtrack.tracks.is_empty()
             && self.began_playing.elapsed().as_secs_f64() > self.next_track_change
         {
             self.play_random_track(audio, state, client);
@@ -113,11 +113,11 @@ impl MusicMgr {
         let game_time = (state.get_time_of_day() as u64 % 86400) as u32;
         let current_period_of_day = Self::get_current_day_period(game_time);
         let current_biome = Self::get_current_biome(client);
-        println!("======> Music Current biome: {:?}", current_biome);
+        println!("Ambient Current biome: {:?}", current_biome);
         let mut rng = thread_rng();
 
         let maybe_track = self
-            .soundtrack
+            .ambient_soundtrack
             .tracks
             .iter()
             .filter(|track| {
@@ -138,7 +138,7 @@ impl MusicMgr {
             self.began_playing = Instant::now();
             self.next_track_change = track.length + SILENCE_BETWEEN_TRACKS_SECONDS;
 
-            audio.play_exploration_music(&track.path);
+            audio.play_exploration_ambient(&track.path);
         }
     }
 
@@ -157,8 +157,8 @@ impl MusicMgr {
         }
     }
 
-    fn load_soundtrack_items() -> SoundtrackCollection {
-        match assets::load_file("voxygen.audio.soundtrack", &["ron"]) {
+    fn load_ambient_soundtrack_items() -> AmbientSoundtrackCollection {
+        match assets::load_file("voxygen.audio.ambient", &["ron"]) {
             Ok(file) => match ron::de::from_reader(file) {
                 Ok(config) => config,
                 Err(error) => {
@@ -167,7 +167,7 @@ impl MusicMgr {
                         format!("{:#?}", error)
                     );
 
-                    SoundtrackCollection::default()
+                    AmbientSoundtrackCollection::default()
                 },
             },
             Err(error) => {
@@ -176,7 +176,7 @@ impl MusicMgr {
                     format!("{:#?}", error)
                 );
 
-                SoundtrackCollection::default()
+                AmbientSoundtrackCollection::default()
             },
         }
     }
