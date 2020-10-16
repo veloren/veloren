@@ -88,6 +88,7 @@ impl Sys {
         Ok(())
     }
 
+    /*
     #[allow(clippy::too_many_arguments)]
     fn handle_client_in_game_msg(
         server_emitter: &mut common::event::Emitter<'_, ServerEvent>,
@@ -242,6 +243,7 @@ impl Sys {
         }
         Ok(())
     }
+    */
 
     #[allow(clippy::too_many_arguments)]
     fn handle_client_character_screen_msg(
@@ -454,44 +456,81 @@ impl Sys {
         login_provider: &mut WriteExpect<'_, LoginProvider>,
         block_changes: &mut Write<'_, BlockChange>,
         admins: &mut WriteStorage<'_, Admin>,
-        positions: &mut WriteStorage<'_, Pos>,
-        velocities: &mut WriteStorage<'_, Vel>,
-        orientations: &mut WriteStorage<'_, Ori>,
+        //positions: &mut WriteStorage<'_, Pos>,
+        //velocities: &mut WriteStorage<'_, Vel>,
+        //orientations: &mut WriteStorage<'_, Ori>,
         players: &mut WriteStorage<'_, Player>,
+        general_stream: &mut GeneralStream,
+        ping_stream: &mut PingStream,
+        register_stream: &mut RegisterStream,
+        character_screen_stream: &mut CharacterScreenStream,
+        //in_game_stream: &mut InGameStream,
         controllers: &mut WriteStorage<'_, Controller>,
         settings: &Read<'_, Settings>,
         editable_settings: &ReadExpect<'_, EditableSettings>,
         alias_validator: &ReadExpect<'_, AliasValidator>,
     ) -> Result<(), crate::error::Error> {
         loop {
-            /*
-            let q1 = Client::internal_recv(&mut b1, &mut client.general_stream);
-            let q2 = Client::internal_recv(&mut b2, &mut client.in_game_stream);
-            let q3 = Client::internal_recv(&mut b3, &mut client.character_screen_stream);
-            let q4 = Client::internal_recv(&mut b4, &mut client.ping_stream);
-            let q5 = Client::internal_recv(&mut b5, &mut client.register_stream);
-
-            let (m1, m2, m3, m4, m5) = select!(
-                msg = q1.fuse() => (Some(msg), None, None, None, None),
-                msg = q2.fuse() => (None, Some(msg), None, None, None),
-                msg = q3.fuse() => (None, None, Some(msg), None, None),
-                msg = q4.fuse() => (None, None, None, Some(msg), None),
-                msg = q5.fuse() => (None, None, None, None,Some(msg)),
-            );
-            *cnt += 1;
-            if let Some(msg) = m1 {
-                client.network_error |= b1;
+            if let Some(msg) = general_stream.0.try_recv()? {
                 Self::handle_client_msg(
                     server_emitter,
                     new_chat_msgs,
                     entity,
                     client,
+                    general_stream,
                     player_metrics,
                     uids,
                     chat_modes,
-                    msg?,
+                    msg,
                 )?;
+                *cnt += 1;
+                continue;
             }
+
+            if let Some(msg) = ping_stream.0.try_recv()? {
+                Self::handle_ping_msg(client, ping_stream, msg)?;
+                *cnt += 1;
+                continue;
+            }
+
+            if let Some(msg) = register_stream.0.try_recv()? {
+                Self::handle_register_msg(
+                    player_list,
+                    new_players,
+                    entity,
+                    client,
+                    register_stream,
+                    player_metrics,
+                    login_provider,
+                    admins,
+                    players,
+                    editable_settings,
+                    msg,
+                )?;
+                *cnt += 1;
+                continue;
+            }
+
+            if let Some(msg) = character_screen_stream.0.try_recv()? {
+                Self::handle_client_character_screen_msg(
+                    server_emitter,
+                    new_chat_msgs,
+                    entity,
+                    client,
+                    character_screen_stream,
+                    character_loader,
+                    uids,
+                    players,
+                    editable_settings,
+                    alias_validator,
+                    msg,
+                )?;
+                *cnt += 1;
+                continue;
+            }
+
+            break Ok(())
+            /*
             if let Some(msg) = m2 {
                 client.network_error |= b2;
                 Self::handle_client_in_game_msg(
@@ -510,40 +549,6 @@ impl Sys {
                     players,
                     controllers,
                     settings,
-                    msg?,
-                )?;
-            }
-            if let Some(msg) = m3 {
-                client.network_error |= b3;
-                Self::handle_client_character_screen_msg(
-                    server_emitter,
-                    new_chat_msgs,
-                    entity,
-                    client,
-                    character_loader,
-                    uids,
-                    players,
-                    editable_settings,
-                    alias_validator,
-                    msg?,
-                )?;
-            }
-            if let Some(msg) = m4 {
-                client.network_error |= b4;
-                Self::handle_ping_msg(client, msg?)?;
-            }
-            if let Some(msg) = m5 {
-                client.network_error |= b5;
-                Self::handle_register_msg(
-                    player_list,
-                    new_players,
-                    entity,
-                    client,
-                    player_metrics,
-                    login_provider,
-                    admins,
-                    players,
-                    editable_settings,
                     msg?,
                 )?;
             }*/
@@ -572,15 +577,15 @@ impl<'a> System<'a> for Sys {
         WriteExpect<'a, LoginProvider>,
         Write<'a, BlockChange>,
         WriteStorage<'a, Admin>,
-        WriteStorage<'a, Pos>,
-        WriteStorage<'a, Vel>,
-        WriteStorage<'a, Ori>,
+        //WriteStorage<'a, Pos>,
+        //WriteStorage<'a, Vel>,
+        //WriteStorage<'a, Ori>,
         WriteStorage<'a, Player>,
         WriteStorage<'a, Client>,
         WriteStorage<'a, GeneralStream>,
-        //WriteStorage<'a, PingStream>,
-        //WriteStorage<'a, RegisterStream>,
-        //WriteStorage<'a, CharacterScreenStream>,
+        WriteStorage<'a, PingStream>,
+        WriteStorage<'a, RegisterStream>,
+        WriteStorage<'a, CharacterScreenStream>,
         //WriteStorage<'a, InGameStream>,
         WriteStorage<'a, Controller>,
         Read<'a, Settings>,
@@ -610,15 +615,15 @@ impl<'a> System<'a> for Sys {
             mut accounts,
             mut block_changes,
             mut admins,
-            mut positions,
-            mut velocities,
-            mut orientations,
+            //mut positions,
+            //mut velocities,
+            //mut orientations,
             mut players,
             mut clients,
             mut general_streams,
-            //mut ping_streams,
-            //mut register_streams,
-            //mut character_screen_streams,
+            mut ping_streams,
+            mut register_streams,
+            mut character_screen_streams,
             //mut in_game_streams,
             mut controllers,
             settings,
@@ -651,7 +656,7 @@ impl<'a> System<'a> for Sys {
         // List of new players to update player lists of all clients.
         let mut new_players = Vec::new();
 
-        for (entity, client) in (&entities, &mut clients).join() {
+        for (entity, client, general_stream, ping_stream, register_stream, character_screen_stream) in (&entities, &mut clients, &mut general_streams, &mut ping_streams, &mut register_streams, &mut character_screen_streams).join() {
             let mut cnt = 0;
 
             let network_err: Result<(), crate::error::Error> = block_on(async {
@@ -676,10 +681,14 @@ impl<'a> System<'a> for Sys {
                     &mut accounts,
                     &mut block_changes,
                     &mut admins,
-                    &mut positions,
-                    &mut velocities,
-                    &mut orientations,
+                    //&mut positions,
+                    //&mut velocities,
+                    //&mut orientations,
                     &mut players,
+                    general_stream,
+                    ping_stream,
+                    register_stream,
+                    character_screen_stream,
                     &mut controllers,
                     &settings,
                     &editable_settings,
