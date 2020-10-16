@@ -65,12 +65,12 @@ impl Animation for ChargeswingAnimation {
         .sqrt())
             * ((anim_time as f32 * 8.0 * lab as f32 + PI * 0.4).sin());
         if let Some(ToolKind::Hammer(_)) = active_tool_kind {
-            next.l_hand.position = Vec3::new(-12.0, 0.0, 0.0);
-            next.l_hand.orientation = Quaternion::rotation_x(-0.0) * Quaternion::rotation_y(0.0);
-            next.l_hand.scale = Vec3::one() * 1.08;
-            next.r_hand.position = Vec3::new(2.0, 0.0, 0.0);
-            next.r_hand.orientation = Quaternion::rotation_x(0.0) * Quaternion::rotation_y(0.0);
-            next.r_hand.scale = Vec3::one() * 1.06;
+            next.hand_l.position = Vec3::new(-12.0, 0.0, 0.0);
+            next.hand_l.orientation = Quaternion::rotation_x(-0.0) * Quaternion::rotation_y(0.0);
+            next.hand_l.scale = Vec3::one() * 1.08;
+            next.hand_r.position = Vec3::new(2.0, 0.0, 0.0);
+            next.hand_r.orientation = Quaternion::rotation_x(0.0) * Quaternion::rotation_y(0.0);
+            next.hand_r.scale = Vec3::one() * 1.06;
             next.main.position = Vec3::new(0.0, 0.0, 0.0);
             next.main.orientation = Quaternion::rotation_y(-1.57) * Quaternion::rotation_z(1.57);
 
@@ -115,43 +115,43 @@ impl Animation for ChargeswingAnimation {
 
                         next.shorts.orientation = Quaternion::rotation_z(short * 0.15);
                         if speed > 0.5 {
-                            next.l_foot.position = Vec3::new(
+                            next.foot_l.position = Vec3::new(
                                 -skeleton_attr.foot.0,
                                 skeleton_attr.foot.1 + foothoril * -2.5 - 3.5,
                                 skeleton_attr.foot.2 + ((footvertl * -1.2).max(-1.0)),
                             );
 
-                            next.r_foot.position = Vec3::new(
+                            next.foot_r.position = Vec3::new(
                                 skeleton_attr.foot.0,
                                 skeleton_attr.foot.1 + foothorir * -2.5 + 6.0,
                                 skeleton_attr.foot.2 + ((footvertr * -1.2).max(-1.0)),
                             );
 
-                            next.l_foot.orientation =
+                            next.foot_l.orientation =
                                 Quaternion::rotation_x(-0.4 + footrotl * -0.2)
                                     * Quaternion::rotation_z((movement * 0.5).min(0.5));
-                            next.l_foot.scale = Vec3::one();
+                            next.foot_l.scale = Vec3::one();
 
-                            next.r_foot.orientation =
+                            next.foot_r.orientation =
                                 Quaternion::rotation_x(-0.4 + footrotr * -0.2)
                                     * Quaternion::rotation_z((movement * 0.5).min(0.5));
                         } else {
-                            next.l_foot.position = Vec3::new(
+                            next.foot_l.position = Vec3::new(
                                 -skeleton_attr.foot.0,
                                 skeleton_attr.foot.1 - 5.0,
                                 skeleton_attr.foot.2,
                             );
 
-                            next.r_foot.position = Vec3::new(
+                            next.foot_r.position = Vec3::new(
                                 skeleton_attr.foot.0,
                                 skeleton_attr.foot.1 + 7.0,
                                 skeleton_attr.foot.2,
                             );
 
-                            next.l_foot.orientation =
+                            next.foot_l.orientation =
                                 Quaternion::rotation_x(-0.2) * Quaternion::rotation_z(0.5);
 
-                            next.r_foot.orientation =
+                            next.foot_r.orientation =
                                 Quaternion::rotation_x(0.2) * Quaternion::rotation_z(0.5);
                         };
                     },
@@ -163,7 +163,7 @@ impl Animation for ChargeswingAnimation {
                             * Quaternion::rotation_y(-1.6)
                             * Quaternion::rotation_z(0.3 - movement * 2.5);
                         next.head.orientation = Quaternion::rotation_z(0.8);
-                        next.l_hand.position = Vec3::new(-3.0, 0.0, 0.0);
+                        next.hand_l.position = Vec3::new(-3.0, 0.0, 0.0);
                     },
                     StageSection::Recover => {
                         next.chest.orientation = Quaternion::rotation_z(-0.5 + movement * 0.5);
@@ -172,7 +172,7 @@ impl Animation for ChargeswingAnimation {
                             * Quaternion::rotation_y(-1.6 + movement * 1.6)
                             * Quaternion::rotation_z(-2.2 + movement * 2.2);
                         next.head.orientation = Quaternion::rotation_z(0.8 + movement * -0.8);
-                        next.l_hand.position = Vec3::new(-3.0 + movement * -9.0, 0.0, 0.0);
+                        next.hand_l.position = Vec3::new(-3.0 + movement * -9.0, 0.0, 0.0);
                     },
                     _ => {},
                 }
