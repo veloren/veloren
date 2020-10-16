@@ -9,13 +9,12 @@ use clap::{App, Arg};
 use futures::executor::block_on;
 use serde::{Deserialize, Serialize};
 use std::{
-    sync::Arc,
     thread,
     time::{Duration, Instant},
 };
 use tracing::*;
 use tracing_subscriber::EnvFilter;
-use veloren_network::{MessageBuffer, Network, Pid, Promises, ProtocolAddr};
+use veloren_network::{Message, Network, Pid, Promises, ProtocolAddr};
 
 #[derive(Serialize, Deserialize, Debug)]
 enum Msg {
@@ -156,15 +155,15 @@ fn client(address: ProtocolAddr) {
     let mut s1 = block_on(p1.open(16, Promises::ORDERED | Promises::CONSISTENCY)).unwrap(); //remote representation of s1
     let mut last = Instant::now();
     let mut id = 0u64;
-    let raw_msg = Arc::new(MessageBuffer {
-        data: bincode::serialize(&Msg::Ping {
+    let raw_msg = Message::serialize(
+        &Msg::Ping {
             id,
             data: vec![0; 1000],
-        })
-        .unwrap(),
-    });
+        },
+        &s1,
+    );
     loop {
-        s1.send_raw(raw_msg.clone()).unwrap();
+        s1.send_raw(&raw_msg).unwrap();
         id += 1;
         if id.rem_euclid(1000000) == 0 {
             let new = Instant::now();
