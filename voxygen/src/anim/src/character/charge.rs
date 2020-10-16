@@ -112,8 +112,8 @@ impl Animation for ChargeAnimation {
 
                 next.control.position = Vec3::new(
                     -7.0 + quick * 3.5 * (1.0 / (stopa + 0.1)),
-                    6.0 + quicka * 3.5 * (1.0 / (stopa + 0.1)),
-                    6.0 - stop * 3.0,
+                    0.0 + quicka * 3.5 * (1.0 / (stopa + 0.1)),
+                    8.0 - stop * 3.0,
                 );
                 next.control.orientation =
                     Quaternion::rotation_x(stop * -0.2) * Quaternion::rotation_z(stop * 0.2);

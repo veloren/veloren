@@ -3,7 +3,10 @@ use crate::{
         item::{armor::Protection, Item, ItemKind},
         Body, CharacterState, EnergySource, Gravity, LightEmitter, Projectile, StateUpdate,
     },
-    states::{utils::StageSection, *},
+    states::{
+        utils::{AbilityKey, StageSection},
+        *,
+    },
     sys::character_behavior::JoinData,
 };
 use arraygen::Arraygen;
@@ -25,7 +28,7 @@ pub enum CharacterAbilityType {
     ComboMelee(StageSection, u32),
     LeapMelee(StageSection),
     SpinMelee(StageSection),
-    GroundShockwave,
+    Shockwave,
     BasicBeam,
     RepeaterRanged,
 }
@@ -43,7 +46,7 @@ impl From<&CharacterState> for CharacterAbilityType {
             CharacterState::SpinMelee(data) => Self::SpinMelee(data.stage_section),
             CharacterState::ChargedMelee(data) => Self::ChargedMelee(data.stage_section),
             CharacterState::ChargedRanged(_) => Self::ChargedRanged,
-            CharacterState::GroundShockwave(_) => Self::ChargedRanged,
+            CharacterState::Shockwave(_) => Self::ChargedRanged,
             CharacterState::BasicBeam(_) => Self::BasicBeam,
             CharacterState::RepeaterRanged(_) => Self::RepeaterRanged,
             _ => Self::BasicMelee,
@@ -175,19 +178,21 @@ pub enum CharacterAbility {
         initial_projectile_speed: f32,
         max_projectile_speed: f32,
     },
-    GroundShockwave {
+    Shockwave {
         energy_cost: u32,
         buildup_duration: Duration,
+        swing_duration: Duration,
         recover_duration: Duration,
         damage: u32,
         knockback: f32,
         shockwave_angle: f32,
+        shockwave_vertical_angle: f32,
         shockwave_speed: f32,
         shockwave_duration: Duration,
         requires_ground: bool,
+        move_efficiency: f32,
     },
     BasicBeam {
-        energy_cost: u32,
         buildup_duration: Duration,
         recover_duration: Duration,
         beam_duration: Duration,
@@ -198,6 +203,7 @@ pub enum CharacterAbility {
         max_angle: f32,
         lifesteal_eff: f32,
         energy_regen: u32,
+        energy_cost: u32,
         energy_drain: u32,
     },
 }
@@ -248,11 +254,7 @@ impl CharacterAbility {
                 .energy
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
-            CharacterAbility::GroundShockwave { energy_cost, .. } => update
-                .energy
-                .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
-                .is_ok(),
-            CharacterAbility::BasicBeam { energy_cost, .. } => update
+            CharacterAbility::Shockwave { energy_cost, .. } => update
                 .energy
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
@@ -349,8 +351,8 @@ impl Loadout {
     }
 }
 
-impl From<&CharacterAbility> for CharacterState {
-    fn from(ability: &CharacterAbility) -> Self {
+impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
+    fn from((ability, key): (&CharacterAbility, AbilityKey)) -> Self {
         match ability {
             CharacterAbility::BasicMelee {
                 buildup_duration,
@@ -390,6 +392,7 @@ impl From<&CharacterAbility> for CharacterState {
                 projectile_light: *projectile_light,
                 projectile_gravity: *projectile_gravity,
                 projectile_speed: *projectile_speed,
+                ability_key: key,
             }),
             CharacterAbility::Boost { duration, only_up } => CharacterState::Boost(boost::Data {
                 duration: *duration,
@@ -618,29 +621,37 @@ impl From<&CharacterAbility> for CharacterState {
                 stage_section: StageSection::Movement,
                 reps_remaining: *reps_remaining,
             }),
-            CharacterAbility::GroundShockwave {
+            CharacterAbility::Shockwave {
                 energy_cost: _,
                 buildup_duration,
+                swing_duration,
                 recover_duration,
                 damage,
                 knockback,
                 shockwave_angle,
+                shockwave_vertical_angle,
                 shockwave_speed,
                 shockwave_duration,
                 requires_ground,
-            } => CharacterState::GroundShockwave(ground_shockwave::Data {
-                exhausted: false,
-                buildup_duration: *buildup_duration,
-                recover_duration: *recover_duration,
-                damage: *damage,
-                knockback: *knockback,
-                shockwave_angle: *shockwave_angle,
-                shockwave_speed: *shockwave_speed,
-                shockwave_duration: *shockwave_duration,
-                requires_ground: *requires_ground,
+                move_efficiency,
+            } => CharacterState::Shockwave(shockwave::Data {
+                static_data: shockwave::StaticData {
+                    buildup_duration: *buildup_duration,
+                    swing_duration: *swing_duration,
+                    recover_duration: *recover_duration,
+                    damage: *damage,
+                    knockback: *knockback,
+                    shockwave_angle: *shockwave_angle,
+                    shockwave_vertical_angle: *shockwave_vertical_angle,
+                    shockwave_speed: *shockwave_speed,
+                    shockwave_duration: *shockwave_duration,
+                    requires_ground: *requires_ground,
+                    move_efficiency: *move_efficiency,
+                },
+                timer: Duration::default(),
+                stage_section: StageSection::Buildup,
             }),
             CharacterAbility::BasicBeam {
-                energy_cost: _,
                 buildup_duration,
                 recover_duration,
                 beam_duration,
@@ -651,6 +662,7 @@ impl From<&CharacterAbility> for CharacterState {
                 max_angle,
                 lifesteal_eff,
                 energy_regen,
+                energy_cost,
                 energy_drain,
             } => CharacterState::BasicBeam(basic_beam::Data {
                 static_data: basic_beam::StaticData {
@@ -664,7 +676,9 @@ impl From<&CharacterAbility> for CharacterState {
                     max_angle: *max_angle,
                     lifesteal_eff: *lifesteal_eff,
                     energy_regen: *energy_regen,
+                    energy_cost: *energy_cost,
                     energy_drain: *energy_drain,
+                    ability_key: key,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,

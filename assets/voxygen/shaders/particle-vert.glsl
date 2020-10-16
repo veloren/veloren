@@ -51,6 +51,8 @@ const int BEE = 11;
 const int GROUND_SHOCKWAVE = 12;
 const int HEALING_BEAM = 13;
 const int ENERGY_NATURE = 14;
+const int FLAMETHROWER = 15;
+const int FIRE_SHOCKWAVE = 16;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -172,9 +174,9 @@ void main() {
 		attr = Attr(
 			linear_motion(
 				vec3(0),
-				vec3(rand4, rand5, rand6) * 40.0 + grav_vel(earth_gravity)
+				vec3(rand4, rand5, rand6) * 30.0 + grav_vel(earth_gravity)
 			),
-			vec3(3.0 + rand0),
+			vec3(2.0 + rand0),
 			vec4(vec3(0.6 + rand7 * 0.4), 1),
 			spin_in_axis(vec3(1,0,0),0)
 		);
@@ -285,6 +287,20 @@ void main() {
 			vec3(0.8),
 			vec4(vec3(0, 1, 0), 1),
 			spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3)
+		);
+	} else if (inst_mode == FLAMETHROWER) {
+		attr = Attr(
+			(inst_dir * lifetime / inst_lifespan) + vec3(rand0, rand1, rand2) * (lifetime * 5 + 0.25),
+			vec3(0.6 + rand3 * 0.5 + lifetime / inst_lifespan * 5),
+			vec4(1, 0.6 + rand5 * 0.3 - 0.6 * lifetime / inst_lifespan, 0, 0.8 - 0.6 * lifetime / inst_lifespan),
+			spin_in_axis(vec3(rand6, rand7, rand8), lifetime / inst_lifespan * 10 + 3 * rand9)
+		);
+	} else if (inst_mode == FIRE_SHOCKWAVE) {
+		attr = Attr(
+			vec3(rand0, rand1, lifetime * 10 + rand2),
+			vec3(1.6 + rand3 * 1.5 + 10 * (lifetime + inst_lifespan)),
+			vec4(1, 0.6 + rand7 * 0.3 - 5 * inst_lifespan + 2 * lifetime, 0, 0.8 - 3.5 * inst_lifespan),
+			spin_in_axis(vec3(rand3, rand4, rand5), rand6)
 		);
 	} else {
 		attr = Attr(

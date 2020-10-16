@@ -7,6 +7,7 @@ use std::time::Duration;
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Properties {
     pub angle: f32,
+    pub vertical_angle: f32,
     pub speed: f32,
     pub damage: u32,
     pub knockback: f32,
@@ -33,4 +34,13 @@ impl std::ops::Deref for Shockwave {
     type Target = Properties;
 
     fn deref(&self) -> &Properties { &self.properties }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ShockwaveHitEntities {
+    pub hit_entities: Vec<Uid>,
+}
+
+impl Component for ShockwaveHitEntities {
+    type Storage = IdvStorage<Self>;
 }

@@ -232,7 +232,7 @@ impl<'a> System<'a> for Sys {
                         if let Some(energy_mut) = beam_owner.and_then(|o| energies.get_mut(o)) {
                             if energy_mut
                                 .try_change_by(
-                                    -(beam_segment.energy_drain as i32), // Stamina use
+                                    -(beam_segment.energy_cost as i32), // Stamina use
                                     EnergySource::Ability,
                                 )
                                 .is_ok()

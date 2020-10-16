@@ -389,8 +389,9 @@ impl Scene {
             Outcome::Explosion {
                 pos,
                 power,
+                radius: _,
+                is_attack: _,
                 reagent,
-                percent_damage,
             } => self.event_lights.push(EventLight {
                 light: Light::new(
                     *pos,
@@ -401,14 +402,14 @@ impl Scene {
                         Some(Reagent::Red) => Rgb::new(1.0, 0.0, 0.0),
                         Some(Reagent::Yellow) => Rgb::new(1.0, 1.0, 0.0),
                         None => {
-                            if *percent_damage < 0.5 {
+                            if *power < 0.0 {
                                 Rgb::new(0.0, 1.0, 0.0)
                             } else {
                                 Rgb::new(1.0, 0.5, 0.0)
                             }
                         },
                     },
-                    *power
+                    power.abs()
                         * match reagent {
                             Some(_) => 5.0,
                             None => 2.5,

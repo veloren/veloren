@@ -50,6 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Split out the sections of the server settings that can be edited and saved by the server.
 - Revamped structure of where settings, logs, and game saves are stored so that almost everything is in one place.
 - Moved hammer leap attack to skillbar
+- Reworked fire staff
 
 ### Removed
 

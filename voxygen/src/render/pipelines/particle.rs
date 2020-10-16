@@ -111,6 +111,8 @@ pub enum ParticleMode {
     GroundShockwave = 12,
     HealingBeam = 13,
     EnergyNature = 14,
+    FlameThrower = 15,
+    FireShockwave = 16,
 }
 
 impl ParticleMode {

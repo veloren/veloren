@@ -74,7 +74,7 @@ pub enum CharacterState {
     /// A repeating ranged attack
     RepeaterRanged(repeater_ranged::Data),
     /// A ground shockwave attack
-    GroundShockwave(ground_shockwave::Data),
+    Shockwave(shockwave::Data),
     /// A continuous attack that affects all creatures in a cone originating
     /// from the source
     BasicBeam(basic_beam::Data),
@@ -94,7 +94,7 @@ impl CharacterState {
             | CharacterState::ChargedMelee(_)
             | CharacterState::ChargedRanged(_)
             | CharacterState::RepeaterRanged(_)
-            | CharacterState::GroundShockwave(_)
+            | CharacterState::Shockwave(_)
             | CharacterState::BasicBeam(_)
         )
     }
@@ -110,7 +110,7 @@ impl CharacterState {
             | CharacterState::ChargedMelee(_)
             | CharacterState::ChargedRanged(_)
             | CharacterState::RepeaterRanged(_)
-            | CharacterState::GroundShockwave(_)
+            | CharacterState::Shockwave(_)
             | CharacterState::BasicBeam(_)
         )
     }
@@ -126,7 +126,7 @@ impl CharacterState {
             | CharacterState::ChargedMelee(_)
             | CharacterState::ChargedRanged(_)
             | CharacterState::RepeaterRanged(_)
-            | CharacterState::GroundShockwave(_)
+            | CharacterState::Shockwave(_)
             | CharacterState::BasicBeam(_)
         )
     }
