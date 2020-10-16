@@ -1,4 +1,4 @@
-use crate::sync::Uid;
+use crate::{sync::Uid, Explosion};
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
@@ -9,7 +9,7 @@ pub enum Effect {
     Damage(i32),
     Knockback(f32),
     RewardEnergy(u32),
-    Explode { power: f32, percent_damage: f32 },
+    Explode(Explosion),
     Vanish,
     Stick,
     Possess,

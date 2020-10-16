@@ -135,17 +135,19 @@ image_ids! {
         twohaxe_m2: "voxygen.element.icons.2haxe_m2",
         bow_m1: "voxygen.element.icons.bow_m1",
         bow_m2: "voxygen.element.icons.bow_m2",
-        staff_m1: "voxygen.element.icons.staff_m1",
-        staff_m2: "voxygen.element.icons.staff_m2",
+        staff_melee: "voxygen.element.icons.staff_m1",
+        fireball: "voxygen.element.icons.staff_m2",
         flyingrod_m1: "voxygen.element.icons.debug_wand_m1",
         flyingrod_m2: "voxygen.element.icons.debug_wand_m2",
         sword_pierce: "voxygen.element.icons.skill_sword_pierce",
         hammergolf: "voxygen.element.icons.skill_hammergolf",
         axespin: "voxygen.element.icons.skill_axespin",
+        fire_aoe: "voxygen.element.icons.skill_fire_aoe",
+        flamethrower: "voxygen.element.icons.skill_flamethrower",
 
         // Skillbar
         level_up: "voxygen.element.misc_bg.level_up",
-        level_down:"voxygen.element.misc_bg.level_down",
+        level_down: "voxygen.element.misc_bg.level_down",
         xp_bar_mid: "voxygen.element.skillbar.xp_bar_mid",
         xp_bar_left: "voxygen.element.skillbar.xp_bar_left",
         xp_bar_right: "voxygen.element.skillbar.xp_bar_right",
@@ -262,9 +264,9 @@ image_ids! {
         fitness_ico: "voxygen.element.icons.fitness",
         protection_ico: "voxygen.element.icons.protection",
 
-        not_found:"voxygen.element.not_found",
+        not_found: "voxygen.element.not_found",
 
-        help:"voxygen.element.help",
+        help: "voxygen.element.help",
 
         death_bg: "voxygen.background.death",
         hurt_bg: "voxygen.background.hurt",

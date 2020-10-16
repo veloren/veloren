@@ -1,4 +1,4 @@
-use crate::{character::CharacterId, comp, sync::Uid, util::Dir};
+use crate::{character::CharacterId, comp, sync::Uid, util::Dir, Explosion};
 use comp::{
     item::{Item, Reagent},
     Ori, Pos,
@@ -29,11 +29,10 @@ pub enum LocalEvent {
 pub enum ServerEvent {
     Explosion {
         pos: Vec3<f32>,
-        power: f32,
+        explosion: Explosion,
         owner: Option<Uid>,
         friendly_damage: bool,
         reagent: Option<Reagent>,
-        percent_damage: f32,
     },
     Damage {
         uid: Uid,

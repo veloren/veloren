@@ -1,7 +1,7 @@
 use crate::{
-    comp::{beam, humanoid, Body, CharacterState, Ori, Pos, StateUpdate},
+    comp::{beam, humanoid, Body, CharacterState, EnergySource, Ori, Pos, StateUpdate},
     event::ServerEvent,
-    states::utils::{StageSection, *},
+    states::utils::*,
     sync::Uid,
     sys::character_behavior::{CharacterBehavior, JoinData},
 };
@@ -34,7 +34,11 @@ pub struct StaticData {
     /// Energy regened per second for damage ticks
     pub energy_regen: u32,
     /// Energy consumed per second for heal ticks
+    pub energy_cost: u32,
+    /// Energy drained per
     pub energy_drain: u32,
+    /// What key is used to press ability
+    pub ability_key: AbilityKey,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -96,20 +100,22 @@ impl CharacterBehavior for Data {
                         timer: Duration::default(),
                         stage_section: StageSection::Cast,
                         particle_ori: Some(*data.inputs.look_dir),
-                        offset: eye_height * 0.9,
+                        offset: eye_height * 0.55,
                     });
                 }
             },
             StageSection::Cast => {
-                if data.inputs.primary.is_pressed() {
+                if ability_key_is_pressed(data, self.static_data.ability_key)
+                    && (self.static_data.energy_drain == 0 || update.energy.current() > 0)
+                {
                     let damage =
                         (self.static_data.base_dps as f32 / self.static_data.tick_rate) as u32;
                     let heal =
                         (self.static_data.base_hps as f32 / self.static_data.tick_rate) as u32;
                     let energy_regen =
                         (self.static_data.energy_regen as f32 / self.static_data.tick_rate) as u32;
-                    let energy_drain =
-                        (self.static_data.energy_drain as f32 / self.static_data.tick_rate) as u32;
+                    let energy_cost =
+                        (self.static_data.energy_cost as f32 / self.static_data.tick_rate) as u32;
                     let speed =
                         self.static_data.range / self.static_data.beam_duration.as_secs_f32();
                     let properties = beam::Properties {
@@ -119,7 +125,7 @@ impl CharacterBehavior for Data {
                         heal,
                         lifesteal_eff: self.static_data.lifesteal_eff,
                         energy_regen,
-                        energy_drain,
+                        energy_cost,
                         duration: self.static_data.beam_duration,
                         owner: Some(*data.uid),
                     };
@@ -132,11 +138,20 @@ impl CharacterBehavior for Data {
                     });
                     update.character = CharacterState::BasicBeam(Data {
                         static_data: self.static_data,
-                        timer: self.timer,
+                        timer: self
+                            .timer
+                            .checked_add(Duration::from_secs_f32(data.dt.0))
+                            .unwrap_or_default(),
                         stage_section: self.stage_section,
                         particle_ori: Some(*data.inputs.look_dir),
                         offset: self.offset,
                     });
+
+                    // Consumes energy if there's enough left and ability key is held down
+                    update.energy.change_by(
+                        -(self.static_data.energy_drain as f32 * data.dt.0) as i32,
+                        EnergySource::Ability,
+                    );
                 } else {
                     update.character = CharacterState::BasicBeam(Data {
                         static_data: self.static_data,

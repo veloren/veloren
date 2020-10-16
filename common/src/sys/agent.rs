@@ -5,9 +5,9 @@ use crate::{
         group,
         group::Invite,
         item::{tool::ToolKind, ItemKind},
-        Agent, Alignment, Body, CharacterState, ControlAction, ControlEvent, Controller,
-        GroupManip, LightEmitter, Loadout, MountState, Ori, PhysicsState, Pos, Scale, Stats,
-        UnresolvedChatMsg, Vel,
+        Agent, Alignment, Body, ControlAction, ControlEvent, Controller, Energy, GroupManip,
+        LightEmitter, Loadout, MountState, Ori, PhysicsState, Pos, Scale, Stats, UnresolvedChatMsg,
+        Vel,
     },
     event::{EventBus, ServerEvent},
     metrics::SysMetrics,
@@ -45,7 +45,6 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Scale>,
         ReadStorage<'a, Stats>,
         ReadStorage<'a, Loadout>,
-        ReadStorage<'a, CharacterState>,
         ReadStorage<'a, PhysicsState>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, group::Group>,
@@ -58,6 +57,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Invite>,
         Read<'a, TimeOfDay>,
         ReadStorage<'a, LightEmitter>,
+        ReadStorage<'a, Energy>,
     );
 
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
@@ -77,7 +77,6 @@ impl<'a> System<'a> for Sys {
             scales,
             stats,
             loadouts,
-            character_states,
             physics_states,
             uids,
             groups,
@@ -90,6 +89,7 @@ impl<'a> System<'a> for Sys {
             invites,
             time_of_day,
             light_emitter,
+            energies,
         ): Self::SystemData,
     ) {
         let start_time = std::time::Instant::now();
@@ -101,7 +101,6 @@ impl<'a> System<'a> for Sys {
             ori,
             alignment,
             loadout,
-            character_state,
             physics_state,
             body,
             uid,
@@ -110,6 +109,7 @@ impl<'a> System<'a> for Sys {
             mount_state,
             group,
             light_emitter,
+            energy,
         ) in (
             &entities,
             &positions,
@@ -117,7 +117,6 @@ impl<'a> System<'a> for Sys {
             &orientations,
             alignments.maybe(),
             &loadouts,
-            &character_states,
             &physics_states,
             bodies.maybe(),
             &uids,
@@ -126,6 +125,7 @@ impl<'a> System<'a> for Sys {
             mount_states.maybe(),
             groups.maybe(),
             light_emitter.maybe(),
+            &energies,
         )
             .join()
         {
@@ -298,6 +298,7 @@ impl<'a> System<'a> for Sys {
                         powerup,
                         ..
                     } => {
+                        #[derive(Eq, PartialEq)]
                         enum Tactic {
                             Melee,
                             RangedPowerup,
@@ -389,7 +390,10 @@ impl<'a> System<'a> for Sys {
                                 } else {
                                     do_idle = true;
                                 }
-                            } else if dist_sqrd < (MIN_ATTACK_DIST * scale).powf(2.0) {
+                            } else if (tactic == Tactic::Staff
+                                && dist_sqrd < (5.0 * MIN_ATTACK_DIST * scale).powf(2.0))
+                                || dist_sqrd < (MIN_ATTACK_DIST * scale).powf(2.0)
+                            {
                                 // Close-range attack
                                 inputs.move_dir = Vec2::from(tgt_pos.0 - pos.0)
                                     .try_normalized()
@@ -397,8 +401,15 @@ impl<'a> System<'a> for Sys {
                                     * 0.1;
 
                                 match tactic {
-                                    Tactic::Melee | Tactic::Staff | Tactic::StoneGolemBoss => {
+                                    Tactic::Melee | Tactic::StoneGolemBoss => {
                                         inputs.primary.set_state(true)
+                                    },
+                                    Tactic::Staff => {
+                                        if energy.current() > 10 {
+                                            inputs.secondary.set_state(true)
+                                        } else {
+                                            inputs.primary.set_state(true)
+                                        }
                                     },
                                     Tactic::RangedPowerup => inputs.roll.set_state(true),
                                 }
@@ -424,11 +435,13 @@ impl<'a> System<'a> for Sys {
                                             *powerup += dt.0;
                                         }
                                     } else if let Tactic::Staff = tactic {
-                                        if !character_state.is_wield() {
+                                        if *powerup > 2.5 {
+                                            inputs.primary.set_state(false);
+                                            *powerup = 0.0;
+                                        } else {
                                             inputs.primary.set_state(true);
+                                            *powerup += dt.0;
                                         }
-
-                                        inputs.secondary.set_state(true);
                                     } else if let Tactic::StoneGolemBoss = tactic {
                                         if *powerup > 5.0 {
                                             inputs.secondary.set_state(true);

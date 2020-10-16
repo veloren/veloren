@@ -991,6 +991,34 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
+                        CharacterState::Shockwave(s) => {
+                            let stage_time = s.timer.as_secs_f64();
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                },
+                                StageSection::Swing => {
+                                    stage_time / s.static_data.swing_duration.as_secs_f64()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                },
+                                _ => 0.0,
+                            };
+                            anim::character::ShockwaveAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    active_tool_kind,
+                                    second_tool_kind,
+                                    time,
+                                    vel.0.magnitude(),
+                                    Some(s.stage_section),
+                                ),
+                                stage_progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         CharacterState::LeapMelee(s) => {
                             let stage_progress = match active_tool_kind {
                                 Some(ToolKind::Axe(_) | ToolKind::Hammer(_)) => {
@@ -1067,18 +1095,28 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        CharacterState::BasicBeam(_) => {
-                            anim::character::ChargeAnimation::update_skeleton(
+                        CharacterState::BasicBeam(s) => {
+                            let stage_time = s.timer.as_secs_f64();
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                },
+                                StageSection::Cast => s.timer.as_secs_f64(),
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                },
+                                _ => 0.0,
+                            };
+                            anim::character::BeamAnimation::update_skeleton(
                                 &target_base,
                                 (
                                     active_tool_kind,
                                     second_tool_kind,
-                                    vel.0.magnitude(),
-                                    ori,
-                                    state.last_ori,
                                     time,
+                                    vel.0.magnitude(),
+                                    Some(s.stage_section),
                                 ),
-                                state.state_time,
+                                stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
                             )
@@ -1188,7 +1226,7 @@ impl FigureMgr {
                             } else {
                                 anim::character::WieldAnimation::update_skeleton(
                                     &target_base,
-                                    (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
+                                    (active_tool_kind, second_tool_kind, vel.0, time),
                                     state.state_time,
                                     &mut state_animation_rate,
                                     skeleton_attr,
@@ -2322,7 +2360,7 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        CharacterState::GroundShockwave(_) => {
+                        CharacterState::Shockwave(_) => {
                             anim::golem::ShockwaveAnimation::update_skeleton(
                                 &target_base,
                                 (vel.0.magnitude(), time),

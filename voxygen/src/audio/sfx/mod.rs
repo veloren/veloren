@@ -286,7 +286,7 @@ impl SfxMgr {
                     // TODO: from sfx config?
                     "voxygen.audio.sfx.explosion",
                     *pos,
-                    Some((*power / 2.5).min(1.5)),
+                    Some((power.abs() / 2.5).min(1.5)),
                 );
             },
             Outcome::ProjectileShot { pos, body, .. } => {

@@ -1,4 +1,5 @@
 pub mod alpha;
+pub mod beam;
 pub mod beta;
 pub mod block;
 pub mod blockidle;
@@ -16,6 +17,7 @@ pub mod leapmelee;
 pub mod repeater;
 pub mod roll;
 pub mod run;
+pub mod shockwave;
 pub mod shoot;
 pub mod sit;
 pub mod sneak;
@@ -28,13 +30,13 @@ pub mod wield;
 
 // Reexports
 pub use self::{
-    alpha::AlphaAnimation, beta::BetaAnimation, block::BlockAnimation,
+    alpha::AlphaAnimation, beam::BeamAnimation, beta::BetaAnimation, block::BlockAnimation,
     blockidle::BlockIdleAnimation, charge::ChargeAnimation, chargeswing::ChargeswingAnimation,
     climb::ClimbAnimation, dance::DanceAnimation, dash::DashAnimation, equip::EquipAnimation,
     glidewield::GlideWieldAnimation, gliding::GlidingAnimation, idle::IdleAnimation,
     jump::JumpAnimation, leapmelee::LeapAnimation, repeater::RepeaterAnimation,
-    roll::RollAnimation, run::RunAnimation, shoot::ShootAnimation, sit::SitAnimation,
-    sneak::SneakAnimation, spin::SpinAnimation, spinmelee::SpinMeleeAnimation,
+    roll::RollAnimation, run::RunAnimation, shockwave::ShockwaveAnimation, shoot::ShootAnimation,
+    sit::SitAnimation, sneak::SneakAnimation, spin::SpinAnimation, spinmelee::SpinMeleeAnimation,
     stand::StandAnimation, swim::SwimAnimation, swimwield::SwimWieldAnimation,
     wield::WieldAnimation,
 };

@@ -25,6 +25,7 @@ pub mod cmd;
 pub mod comp;
 pub mod effect;
 pub mod event;
+pub mod explosion;
 pub mod figure;
 pub mod generation;
 pub mod loadout_builder;
@@ -50,4 +51,5 @@ pub mod util;
 pub mod vol;
 pub mod volumes;
 
+pub use explosion::Explosion;
 pub use loadout_builder::LoadoutBuilder;

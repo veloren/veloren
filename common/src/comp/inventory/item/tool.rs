@@ -4,6 +4,7 @@
 use crate::{
     comp::{body::object, projectile, Body, CharacterAbility, Gravity, LightEmitter, Projectile},
     states::combo_melee,
+    Explosion,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -362,18 +363,18 @@ impl Tool {
             }],
             Sceptre(_) => vec![
                 BasicBeam {
-                    energy_cost: 0,
                     buildup_duration: Duration::from_millis(250),
                     recover_duration: Duration::from_millis(250),
                     beam_duration: Duration::from_secs(1),
                     base_hps: (60.0 * self.base_power()) as u32,
-                    base_dps: (40.0 * self.base_power()) as u32,
+                    base_dps: (60.0 * self.base_power()) as u32,
                     tick_rate: 2.0,
                     range: 25.0,
                     max_angle: 1.0,
-                    lifesteal_eff: 0.25,
+                    lifesteal_eff: 0.20,
                     energy_regen: 50,
-                    energy_drain: 100,
+                    energy_cost: 100,
+                    energy_drain: 0,
                 },
                 BasicRanged {
                     energy_cost: 800,
@@ -382,17 +383,27 @@ impl Tool {
                     recover_duration: Duration::from_millis(50),
                     projectile: Projectile {
                         hit_solid: vec![
-                            projectile::Effect::Explode {
-                                power: 1.4 * self.base_power(),
-                                percent_damage: 0.2,
-                            },
+                            projectile::Effect::Explode(Explosion {
+                                radius: 3.0 + 2.5 * self.base_power(),
+                                max_damage: (50.0 * self.base_power()) as u32,
+                                min_damage: (20.0 * self.base_power()) as u32,
+                                max_heal: (140.0 * self.base_power()) as u32,
+                                min_heal: (50.0 * self.base_power()) as u32,
+                                terrain_destruction_power: 0.0,
+                                energy_regen: 0,
+                            }),
                             projectile::Effect::Vanish,
                         ],
                         hit_entity: vec![
-                            projectile::Effect::Explode {
-                                power: 1.4 * self.base_power(),
-                                percent_damage: 0.2,
-                            },
+                            projectile::Effect::Explode(Explosion {
+                                radius: 3.0 + 2.5 * self.base_power(),
+                                max_damage: (50.0 * self.base_power()) as u32,
+                                min_damage: (20.0 * self.base_power()) as u32,
+                                max_heal: (140.0 * self.base_power()) as u32,
+                                min_heal: (50.0 * self.base_power()) as u32,
+                                terrain_destruction_power: 0.0,
+                                energy_regen: 0,
+                            }),
                             projectile::Effect::Vanish,
                         ],
                         time_left: Duration::from_secs(20),
@@ -409,25 +420,34 @@ impl Tool {
                 },
             ],
             Staff(_) => vec![
-                BasicMelee {
-                    energy_cost: 0,
-                    buildup_duration: Duration::from_millis(100),
-                    recover_duration: Duration::from_millis(300),
-                    base_healthchange: (-40.0 * self.base_power()) as i32,
-                    knockback: 0.0,
-                    range: 3.5,
-                    max_angle: 20.0,
-                },
                 BasicRanged {
                     energy_cost: 0,
                     holdable: false,
-                    prepare_duration: Duration::from_millis(250),
-                    recover_duration: Duration::from_millis(600),
+                    prepare_duration: Duration::from_millis(500),
+                    recover_duration: Duration::from_millis(350),
                     projectile: Projectile {
-                        hit_solid: vec![projectile::Effect::Vanish],
+                        hit_solid: vec![
+                            projectile::Effect::Explode(Explosion {
+                                radius: 5.0,
+                                max_damage: (100.0 * self.base_power()) as u32,
+                                min_damage: 0,
+                                max_heal: 0,
+                                min_heal: 0,
+                                terrain_destruction_power: 0.0,
+                                energy_regen: 50,
+                            }),
+                            projectile::Effect::Vanish,
+                        ],
                         hit_entity: vec![
-                            projectile::Effect::Damage((-40.0 * self.base_power()) as i32),
-                            projectile::Effect::RewardEnergy(150),
+                            projectile::Effect::Explode(Explosion {
+                                radius: 5.0,
+                                max_damage: (100.0 * self.base_power()) as u32,
+                                min_damage: 0,
+                                max_heal: 0,
+                                min_heal: 0,
+                                terrain_destruction_power: 0.0,
+                                energy_regen: 50,
+                            }),
                             projectile::Effect::Vanish,
                         ],
                         time_left: Duration::from_secs(20),
@@ -436,43 +456,39 @@ impl Tool {
                     },
                     projectile_body: Body::Object(object::Body::BoltFire),
                     projectile_light: Some(LightEmitter {
-                        col: (0.85, 0.5, 0.11).into(),
-                        ..Default::default()
-                    }),
-                    projectile_gravity: None,
-                    projectile_speed: 100.0,
-                },
-                BasicRanged {
-                    energy_cost: 400,
-                    holdable: true,
-                    prepare_duration: Duration::from_millis(800),
-                    recover_duration: Duration::from_millis(50),
-                    projectile: Projectile {
-                        hit_solid: vec![
-                            projectile::Effect::Explode {
-                                power: 1.4 * self.base_power(),
-                                percent_damage: 1.0,
-                            },
-                            projectile::Effect::Vanish,
-                        ],
-                        hit_entity: vec![
-                            projectile::Effect::Explode {
-                                power: 1.4 * self.base_power(),
-                                percent_damage: 1.0,
-                            },
-                            projectile::Effect::Vanish,
-                        ],
-                        time_left: Duration::from_secs(20),
-                        owner: None,
-                        ignore_group: true,
-                    },
-                    projectile_body: Body::Object(object::Body::BoltFireBig),
-                    projectile_light: Some(LightEmitter {
                         col: (1.0, 0.75, 0.11).into(),
                         ..Default::default()
                     }),
-                    projectile_gravity: None,
-                    projectile_speed: 100.0,
+                    projectile_gravity: Some(Gravity(0.3)),
+                    projectile_speed: 60.0,
+                },
+                BasicBeam {
+                    buildup_duration: Duration::from_millis(250),
+                    recover_duration: Duration::from_millis(250),
+                    beam_duration: Duration::from_millis(500),
+                    base_hps: 0,
+                    base_dps: (150.0 * self.base_power()) as u32,
+                    tick_rate: 3.0,
+                    range: 15.0,
+                    max_angle: 22.5,
+                    lifesteal_eff: 0.0,
+                    energy_regen: 0,
+                    energy_cost: 0,
+                    energy_drain: 350,
+                },
+                Shockwave {
+                    energy_cost: 600,
+                    buildup_duration: Duration::from_millis(700),
+                    swing_duration: Duration::from_millis(100),
+                    recover_duration: Duration::from_millis(300),
+                    damage: (200.0 * self.base_power()) as u32,
+                    knockback: 25.0,
+                    shockwave_angle: 360.0,
+                    shockwave_vertical_angle: 90.0,
+                    shockwave_speed: 20.0,
+                    shockwave_duration: Duration::from_millis(500),
+                    requires_ground: false,
+                    move_efficiency: 0.1,
                 },
             ],
             Shield(_) => vec![
@@ -499,16 +515,19 @@ impl Tool {
                             range: 5.0,
                             max_angle: 120.0,
                         },
-                        GroundShockwave {
+                        Shockwave {
                             energy_cost: 0,
                             buildup_duration: Duration::from_millis(500),
-                            recover_duration: Duration::from_millis(1000),
+                            swing_duration: Duration::from_millis(200),
+                            recover_duration: Duration::from_millis(800),
                             damage: 500,
                             knockback: -40.0,
                             shockwave_angle: 90.0,
+                            shockwave_vertical_angle: 15.0,
                             shockwave_speed: 20.0,
                             shockwave_duration: Duration::from_millis(2000),
                             requires_ground: true,
+                            move_efficiency: 0.05,
                         },
                     ]
                 } else {
