@@ -60,7 +60,10 @@ use client::Client;
 use common::{
     assets::Asset,
     comp,
-    comp::item::{ItemDesc, Quality},
+    comp::{
+        item::{ItemDesc, Quality},
+        BuffId,
+    },
     span,
     sync::Uid,
     terrain::TerrainChunk,
@@ -97,6 +100,8 @@ const STAMINA_COLOR: Color = Color::Rgba(0.29, 0.62, 0.75, 0.9);
 //const TRANSPARENT: Color = Color::Rgba(0.0, 0.0, 0.0, 0.0);
 //const FOCUS_COLOR: Color = Color::Rgba(1.0, 0.56, 0.04, 1.0);
 //const RAGE_COLOR: Color = Color::Rgba(0.5, 0.04, 0.13, 1.0);
+const BUFF_COLOR: Color = Color::Rgba(0.06, 0.69, 0.12, 1.0);
+const DEBUFF_COLOR: Color = Color::Rgba(0.79, 0.19, 0.17, 1.0);
 
 // Item Quality Colors
 const QUALITY_LOW: Color = Color::Rgba(0.41, 0.41, 0.41, 1.0); // Grey - Trash, can be sold to vendors
@@ -267,6 +272,13 @@ widget_ids! {
     }
 }
 
+#[derive(Clone, Copy)]
+pub struct BuffInfo {
+    id: comp::BuffId,
+    is_buff: bool,
+    dur: f32,
+}
+
 pub struct DebugInfo {
     pub tps: f64,
     pub frame_time: Duration,
@@ -318,6 +330,7 @@ pub enum Event {
     ChatTransp(f32),
     ChatCharName(bool),
     CrosshairType(CrosshairType),
+    BuffPosition(BuffPosition),
     ToggleXpBar(XpBar),
     Intro(Intro),
     ToggleBarNumbers(BarNumbers),
@@ -351,6 +364,7 @@ pub enum Event {
     KickMember(common::sync::Uid),
     LeaveGroup,
     AssignLeader(common::sync::Uid),
+    RemoveBuff(BuffId),
 }
 
 // TODO: Are these the possible layouts we want?
@@ -391,6 +405,13 @@ pub enum ShortcutNumbers {
     On,
     Off,
 }
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub enum BuffPosition {
+    Bar,
+    Map,
+}
+
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum PressBehavior {
     Toggle = 0,
@@ -725,6 +746,7 @@ impl Hud {
             let ecs = client.state().ecs();
             let pos = ecs.read_storage::<comp::Pos>();
             let stats = ecs.read_storage::<comp::Stats>();
+            let buffs = ecs.read_storage::<comp::Buffs>();
             let energy = ecs.read_storage::<comp::Energy>();
             let hp_floater_lists = ecs.read_storage::<vcomp::HpFloaterList>();
             let uids = ecs.read_storage::<common::sync::Uid>();
@@ -1123,11 +1145,12 @@ impl Hud {
             let speech_bubbles = &self.speech_bubbles;
 
             // Render overhead name tags and health bars
-            for (pos, info, bubble, stats, height_offset, hpfl, in_group) in (
+            for (pos, info, bubble, stats, buffs, height_offset, hpfl, in_group) in (
                 &entities,
                 &pos,
                 interpolated.maybe(),
                 &stats,
+                &buffs,
                 energy.maybe(),
                 scales.maybe(),
                 &bodies,
@@ -1141,7 +1164,7 @@ impl Hud {
                     entity != me && !stats.is_dead
                 })
                 .filter_map(
-                    |(entity, pos, interpolated, stats, energy, scale, body, hpfl, uid)| {
+                    |(entity, pos, interpolated, stats, buffs, energy, scale, body, hpfl, uid)| {
                         // Use interpolated position if available
                         let pos = interpolated.map_or(pos.0, |i| i.pos);
                         let in_group = client.group_members().contains_key(uid);
@@ -1171,6 +1194,7 @@ impl Hud {
                         let info = display_overhead_info.then(|| overhead::Info {
                             name: &stats.name,
                             stats,
+                            buffs,
                             energy,
                         });
                         let bubble = if dist_sqr < SPEECH_BUBBLE_RANGE.powi(2) {
@@ -1185,6 +1209,7 @@ impl Hud {
                                 info,
                                 bubble,
                                 stats,
+                                buffs,
                                 body.height() * scale.map_or(1.0, |s| s.0) + 0.5,
                                 hpfl,
                                 in_group,
@@ -1760,22 +1785,48 @@ impl Hud {
 
         // Buffs and Debuffs
         if let Some(player_buffs) = buffs.get(client.entity()) {
-            match BuffsBar::new(
-                client,
+            for event in BuffsBar::new(
                 &self.imgs,
                 &self.fonts,
-                global_state,
                 &self.rot_imgs,
                 tooltip_manager,
                 &self.voxygen_i18n,
                 &player_buffs,
+                self.pulse,
+                &global_state,
             )
             .set(self.ids.buffs, ui_widgets)
             {
-                _ => {},
+                match event {
+                    buffs::Event::RemoveBuff(buff_id) => events.push(Event::RemoveBuff(buff_id)),
+                }
             }
         }
-
+        // Group Window
+        let buffs = buffs.get(client.entity()).unwrap();
+        for event in Group::new(
+            &mut self.show,
+            client,
+            &global_state.settings,
+            &self.imgs,
+            &self.rot_imgs,
+            &self.fonts,
+            &self.voxygen_i18n,
+            self.pulse,
+            &global_state,
+            &buffs,
+            tooltip_manager,
+        )
+        .set(self.ids.group_window, ui_widgets)
+        {
+            match event {
+                group::Event::Accept => events.push(Event::AcceptInvite),
+                group::Event::Decline => events.push(Event::DeclineInvite),
+                group::Event::Kick(uid) => events.push(Event::KickMember(uid)),
+                group::Event::LeaveGroup => events.push(Event::LeaveGroup),
+                group::Event::AssignLeader(uid) => events.push(Event::AssignLeader(uid)),
+            }
+        }
         // Popup (waypoint saved and similar notifications)
         Popup::new(
             &self.voxygen_i18n,
@@ -1850,8 +1901,8 @@ impl Hud {
             Some(stats),
             Some(loadout),
             Some(energy),
-            Some(character_state),
-            Some(controller),
+            Some(_character_state),
+            Some(_controller),
             Some(inventory),
         ) = (
             stats.get(entity),
@@ -2018,6 +2069,9 @@ impl Hud {
                     settings_window::Event::ToggleZoomInvert(zoom_inverted) => {
                         events.push(Event::ToggleZoomInvert(zoom_inverted));
                     },
+                    settings_window::Event::BuffPosition(buff_position) => {
+                        events.push(Event::BuffPosition(buff_position));
+                    },
                     settings_window::Event::ToggleMouseYInvert(mouse_y_inverted) => {
                         events.push(Event::ToggleMouseYInvert(mouse_y_inverted));
                     },
@@ -2140,27 +2194,6 @@ impl Hud {
                         social::Event::Invite(uid) => events.push(Event::InviteMember(uid)),
                     }
                 }
-            }
-        }
-        // Group Window
-        for event in Group::new(
-            &mut self.show,
-            client,
-            &global_state.settings,
-            &self.imgs,
-            &self.fonts,
-            &self.voxygen_i18n,
-            self.pulse,
-            &global_state,
-        )
-        .set(self.ids.group_window, ui_widgets)
-        {
-            match event {
-                group::Event::Accept => events.push(Event::AcceptInvite),
-                group::Event::Decline => events.push(Event::DeclineInvite),
-                group::Event::Kick(uid) => events.push(Event::KickMember(uid)),
-                group::Event::LeaveGroup => events.push(Event::LeaveGroup),
-                group::Event::AssignLeader(uid) => events.push(Event::AssignLeader(uid)),
             }
         }
 
@@ -2692,5 +2725,19 @@ pub fn get_quality_col<I: ItemDesc>(item: &I) -> Color {
         Quality::Legendary => QUALITY_LEGENDARY,
         Quality::Artifact => QUALITY_ARTIFACT,
         Quality::Debug => QUALITY_DEBUG,
+    }
+}
+// Get info about applied buffs
+fn get_buff_info(buff: comp::Buff) -> BuffInfo {
+    BuffInfo {
+        id: buff.id,
+        is_buff: buff
+            .cat_ids
+            .iter()
+            .any(|cat| *cat == comp::BuffCategoryId::Buff),
+        dur: buff
+            .time
+            .map(|dur| dur.as_secs_f32())
+            .unwrap_or(10e6 as f32),
     }
 }

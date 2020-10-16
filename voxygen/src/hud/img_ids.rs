@@ -272,6 +272,7 @@ image_ids! {
         hammerleap: "voxygen.element.icons.skill_hammerleap",
         skill_axe_leap_slash: "voxygen.element.icons.skill_axe_leap_slash",
         skill_bow_jump_burst: "voxygen.element.icons.skill_bow_jump_burst",
+        missing_icon: "voxygen.element.icons.missing_icon_grey",
 
         // Buttons
         button: "voxygen.element.buttons.button",
@@ -350,10 +351,22 @@ image_ids! {
         chat_world: "voxygen.element.icons.chat.world",
 
         // Buffs
-        buff_plus_0: "voxygen.element.de_buffs.buff_plus_0",
+        buff_plus_0: "voxygen.element.icons.de_buffs.buff_plus_0",
 
         // Debuffs
-        debuff_skull_0: "voxygen.element.de_buffs.debuff_skull_0",
+        debuff_skull_0: "voxygen.element.icons.de_buffs.debuff_skull_0",
+        debuff_bleed_0: "voxygen.element.icons.de_buffs.debuff_bleed_0",
+
+        // Animation Frames
+        // Buff Frame
+        buff_0: "voxygen.element.animation.buff_frame.1",
+        buff_1: "voxygen.element.animation.buff_frame.2",
+        buff_2: "voxygen.element.animation.buff_frame.3",
+        buff_3: "voxygen.element.animation.buff_frame.4",
+        buff_4: "voxygen.element.animation.buff_frame.5",
+        buff_5: "voxygen.element.animation.buff_frame.6",
+        buff_6: "voxygen.element.animation.buff_frame.7",
+        buff_7: "voxygen.element.animation.buff_frame.8",
 
         <BlankGraphic>
         nothing: (),

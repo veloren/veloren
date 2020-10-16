@@ -151,16 +151,10 @@ impl Buff {
     pub fn new(id: BuffId, cat_ids: Vec<BuffCategoryId>, source: BuffSource) -> Self {
         let (effects, time) = match id {
             BuffId::Bleeding { strength, duration } => (
-                vec![
-                    BuffEffect::HealthChangeOverTime {
-                        rate: -strength,
-                        accumulated: 0.0,
-                    },
-                    // This effect is for testing purposes
-                    BuffEffect::NameChange {
-                        prefix: String::from("Injured "),
-                    },
-                ],
+                vec![BuffEffect::HealthChangeOverTime {
+                    rate: -strength,
+                    accumulated: 0.0,
+                }],
                 duration,
             ),
             BuffId::Regeneration { strength, duration } => (

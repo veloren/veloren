@@ -157,8 +157,27 @@ impl<'a> System<'a> for Sys {
                             buff_change: buff::BuffChange::Add(buff::Buff::new(
                                 buff::BuffId::Bleeding {
                                     strength: attack.base_damage as f32,
-                                    duration: Some(Duration::from_secs(10)),
+                                    duration: Some(Duration::from_secs(30)),
                                 },
+                                vec![buff::BuffCategoryId::Physical, buff::BuffCategoryId::Debuff],
+                                buff::BuffSource::Character { by: *uid },
+                            )),
+                        });
+                        server_emitter.emit(ServerEvent::Buff {
+                            uid: *uid_b,
+                            buff_change: buff::BuffChange::Add(buff::Buff::new(
+                                buff::BuffId::Regeneration {
+                                    strength: 100.0,
+                                    duration: Some(Duration::from_secs(60)),
+                                },
+                                vec![buff::BuffCategoryId::Physical, buff::BuffCategoryId::Buff],
+                                buff::BuffSource::Character { by: *uid },
+                            )),
+                        });
+                        server_emitter.emit(ServerEvent::Buff {
+                            uid: *uid_b,
+                            buff_change: buff::BuffChange::Add(buff::Buff::new(
+                                buff::BuffId::Cursed { duration: None },
                                 vec![buff::BuffCategoryId::Physical, buff::BuffCategoryId::Debuff],
                                 buff::BuffSource::Character { by: *uid },
                             )),

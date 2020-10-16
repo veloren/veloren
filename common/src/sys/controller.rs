@@ -1,7 +1,7 @@
 use crate::{
     comp::{
         slot::{EquipSlot, Slot},
-        CharacterState, ControlEvent, Controller, InventoryManip,
+        BuffChange, CharacterState, ControlEvent, Controller, InventoryManip,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::SysMetrics,
@@ -51,7 +51,7 @@ impl<'a> System<'a> for Sys {
         span!(_guard, "run", "controller::Sys::run");
         let mut server_emitter = server_bus.emitter();
 
-        for (entity, _uid, controller, character_state) in
+        for (entity, uid, controller, character_state) in
             (&entities, &uids, &mut controllers, &mut character_states).join()
         {
             let mut inputs = &mut controller.inputs;
@@ -82,6 +82,12 @@ impl<'a> System<'a> for Sys {
                         {
                             server_emitter.emit(ServerEvent::Mount(entity, mountee_entity));
                         }
+                    },
+                    ControlEvent::RemoveBuff(buff_id) => {
+                        server_emitter.emit(ServerEvent::Buff {
+                            uid: *uid,
+                            buff_change: BuffChange::RemoveById(buff_id),
+                        });
                     },
                     ControlEvent::Unmount => server_emitter.emit(ServerEvent::Unmount(entity)),
                     ControlEvent::EnableLantern => {
