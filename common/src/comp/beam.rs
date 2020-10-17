@@ -1,4 +1,4 @@
-use crate::sync::Uid;
+use crate::{sync::Uid, Damages};
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
@@ -8,8 +8,7 @@ use std::time::Duration;
 pub struct Properties {
     pub angle: f32,
     pub speed: f32,
-    pub damage: u32,
-    pub heal: u32,
+    pub damages: Damages,
     pub lifesteal_eff: f32,
     pub energy_regen: u32,
     pub energy_cost: u32,

@@ -4,6 +4,7 @@ use crate::{
     states::utils::*,
     sync::Uid,
     sys::character_behavior::{CharacterBehavior, JoinData},
+    Damage, Damages,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -108,10 +109,12 @@ impl CharacterBehavior for Data {
                 if ability_key_is_pressed(data, self.static_data.ability_key)
                     && (self.static_data.energy_drain == 0 || update.energy.current() > 0)
                 {
-                    let damage =
-                        (self.static_data.base_dps as f32 / self.static_data.tick_rate) as u32;
-                    let heal =
-                        (self.static_data.base_hps as f32 / self.static_data.tick_rate) as u32;
+                    let damage = Damage::Energy(
+                        self.static_data.base_dps as f32 / self.static_data.tick_rate,
+                    );
+                    let heal = Damage::Healing(
+                        self.static_data.base_hps as f32 / self.static_data.tick_rate,
+                    );
                     let energy_regen =
                         (self.static_data.energy_regen as f32 / self.static_data.tick_rate) as u32;
                     let energy_cost =
@@ -121,8 +124,7 @@ impl CharacterBehavior for Data {
                     let properties = beam::Properties {
                         angle: self.static_data.max_angle.to_radians(),
                         speed,
-                        damage,
-                        heal,
+                        damages: Damages::new(Some(damage), Some(heal)),
                         lifesteal_eff: self.static_data.lifesteal_eff,
                         energy_regen,
                         energy_cost,

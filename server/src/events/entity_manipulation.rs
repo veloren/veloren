@@ -8,18 +8,17 @@ use common::{
     comp::{
         self, buff,
         chat::{KillSource, KillType},
-        object, Alignment, Body, Damage, DamageSource, Group, HealthChange, HealthSource, Item,
-        Player, Pos, Stats,
+        object, Alignment, Body, Group, HealthChange, HealthSource, Item, Player, Pos, Stats,
     },
     lottery::Lottery,
     msg::{PlayerListUpdate, ServerGeneral},
     outcome::Outcome,
     state::BlockChange,
     sync::{Uid, UidAllocator, WorldSyncExt},
-    sys::combat::BLOCK_ANGLE,
+    sys::melee::BLOCK_ANGLE,
     terrain::{Block, TerrainGrid},
     vol::ReadVol,
-    Explosion,
+    Damage, Explosion,
 };
 use comp::item::Reagent;
 use rand::prelude::*;
@@ -456,17 +455,10 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
     if vel.z <= -30.0 {
         if let Some(stats) = state.ecs().write_storage::<comp::Stats>().get_mut(entity) {
             let falldmg = (vel.z.powi(2) / 20.0 - 40.0) * 10.0;
-            let mut damage = Damage {
-                healthchange: -falldmg,
-                source: DamageSource::Falling,
-            };
-            if let Some(loadout) = state.ecs().read_storage::<comp::Loadout>().get(entity) {
-                damage.modify_damage(false, loadout);
-            }
-            stats.health.change_by(comp::HealthChange {
-                amount: damage.healthchange as i32,
-                cause: comp::HealthSource::World,
-            });
+            let damage = Damage::Falling(falldmg);
+            let loadouts = state.ecs().read_storage::<comp::Loadout>();
+            let change = damage.modify_damage(false, loadouts.get(entity), None);
+            stats.health.change_by(change);
         }
     }
 }
@@ -576,43 +568,26 @@ pub fn handle_explosion(
                 continue;
             }
 
-            // Weapon gives base damage
-            let source = if is_heal {
-                DamageSource::Healing
-            } else {
-                DamageSource::Explosion
-            };
             let strength = 1.0 - distance_squared / explosion.radius.powi(2);
-            let healthchange = if is_heal {
-                explosion.min_heal as f32
-                    + (explosion.max_heal - explosion.min_heal) as f32 * strength
+            let damage = if is_heal {
+                Damage::Healing(
+                    explosion.min_heal as f32
+                        + (explosion.max_heal - explosion.min_heal) as f32 * strength,
+                )
             } else {
-                -(explosion.min_damage as f32
-                    + (explosion.max_damage - explosion.min_damage) as f32 * strength)
-            };
-
-            let mut damage = Damage {
-                healthchange,
-                source,
+                Damage::Explosion(
+                    explosion.min_damage as f32
+                        + (explosion.max_damage - explosion.min_damage) as f32 * strength,
+                )
             };
 
             let block = character_b.map(|c_b| c_b.is_block()).unwrap_or(false)
                 && ori_b.0.angle_between(pos - pos_b.0) < BLOCK_ANGLE.to_radians() / 2.0;
 
-            if let Some(loadout) = loadout_b {
-                damage.modify_damage(block, loadout);
-            }
+            let change = damage.modify_damage(block, loadout_b, owner);
 
-            if damage.healthchange != 0.0 {
-                let cause = if is_heal {
-                    HealthSource::Healing { by: owner }
-                } else {
-                    HealthSource::Explosion { owner }
-                };
-                stats_b.health.change_by(HealthChange {
-                    amount: damage.healthchange as i32,
-                    cause,
-                });
+            if change.amount != 0 {
+                stats_b.health.change_by(change);
                 if let Some(owner) = owner_entity {
                     if let Some(energy) = ecs.write_storage::<comp::Energy>().get_mut(owner) {
                         energy

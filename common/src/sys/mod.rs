@@ -2,8 +2,8 @@ pub mod agent;
 mod beam;
 mod buff;
 pub mod character_behavior;
-pub mod combat;
 pub mod controller;
+pub mod melee;
 mod mount;
 pub mod phys;
 mod projectile;
@@ -15,7 +15,7 @@ use specs::DispatcherBuilder;
 
 // System names
 pub const CHARACTER_BEHAVIOR_SYS: &str = "character_behavior_sys";
-pub const COMBAT_SYS: &str = "combat_sys";
+pub const MELEE_SYS: &str = "melee_sys";
 pub const AGENT_SYS: &str = "agent_sys";
 pub const BEAM_SYS: &str = "beam_sys";
 pub const CONTROLLER_SYS: &str = "controller_sys";
@@ -39,5 +39,5 @@ pub fn add_local_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch_builder.add(projectile::Sys, PROJECTILE_SYS, &[PHYS_SYS]);
     dispatch_builder.add(shockwave::Sys, SHOCKWAVE_SYS, &[PHYS_SYS]);
     dispatch_builder.add(beam::Sys, BEAM_SYS, &[PHYS_SYS]);
-    dispatch_builder.add(combat::Sys, COMBAT_SYS, &[PROJECTILE_SYS]);
+    dispatch_builder.add(melee::Sys, MELEE_SYS, &[PROJECTILE_SYS]);
 }
