@@ -3,7 +3,7 @@ use super::{
     REGION_COLOR, SAY_COLOR, STAMINA_COLOR, TELL_COLOR, TEXT_BG, TEXT_COLOR,
 };
 use crate::{
-    hud::{get_buff_info, BuffInfo},
+    hud::get_buff_info,
     i18n::VoxygenLocalization,
     settings::GameplaySettings,
     ui::{fonts::ConrodVoxygenFonts, Ingameable},
@@ -135,14 +135,18 @@ impl<'a> Ingameable for Overhead<'a> {
         //   - 1 Rect::new for mana
         // If there are Buffs
         // - 1 Alignment Rectangle
-        // - 10 + 10 Buffs and Timer Overlays
+        // - 10 + 10 Buffs and Timer Overlays (only if there is no speech bubble)
         // If there's a speech bubble
         // - 2 Text::new for speech bubble
         // - 1 Image::new for icon
         // - 10 Image::new for speech bubble (9-slice + tail)
         self.info.map_or(0, |info| {
             2 + 1
-                + info.buffs.active_buffs.len().min(10) * 2
+                + if self.bubble.is_none() {
+                    info.buffs.active_buffs.len().min(10) * 2
+                } else {
+                    0
+                }
                 + if show_healthbar(info.stats) {
                     5 + if info.energy.is_some() { 1 } else { 0 }
                 } else {
@@ -191,11 +195,6 @@ impl<'a> Widget for Overhead<'a> {
             } else {
                 MANA_BAR_Y + 32.0
             };
-            let mut buffs_vec = Vec::<BuffInfo>::new();
-            for buff in buffs.active_buffs.clone() {
-                let info = get_buff_info(buff);
-                buffs_vec.push(info);
-            }
             let font_size = if hp_percentage.abs() > 99.9 { 24 } else { 20 };
             // Show K for numbers above 10^3 and truncate them
             // Show M for numbers above 10^6 and truncate them
@@ -211,76 +210,80 @@ impl<'a> Widget for Overhead<'a> {
             };
             // Buffs
             // Alignment
+            let buff_count = buffs.active_buffs.len().min(11);
             Rectangle::fill_with([tweak!(168.0), tweak!(100.0)], color::TRANSPARENT)
                 .x_y(-1.0, name_y + tweak!(60.0))
                 .parent(id)
                 .set(state.ids.buffs_align, ui);
-            if state.ids.buffs.len() < buffs_vec.len() {
-                state.update(|state| {
-                    state
-                        .ids
-                        .buffs
-                        .resize(buffs_vec.len(), &mut ui.widget_id_generator())
-                });
+
+            let gen = &mut ui.widget_id_generator();
+            if state.ids.buffs.len() < buff_count {
+                state.update(|state| state.ids.buffs.resize(buff_count, gen));
             };
-            if state.ids.buff_timers.len() < buffs_vec.len() {
-                state.update(|state| {
-                    state
-                        .ids
-                        .buff_timers
-                        .resize(buffs_vec.len(), &mut ui.widget_id_generator())
-                });
+            if state.ids.buff_timers.len() < buff_count {
+                state.update(|state| state.ids.buff_timers.resize(buff_count, gen));
             };
+
             let buff_ani = ((self.pulse * 4.0).cos() * 0.5 + 0.8) + 0.5; //Animation timer
             let pulsating_col = Color::Rgba(1.0, 1.0, 1.0, buff_ani);
             let norm_col = Color::Rgba(1.0, 1.0, 1.0, 1.0);
             // Create Buff Widgets
-            for (i, buff) in buffs_vec.iter().enumerate() {
-                if i < 11 && self.bubble.is_none() {
-                    // Limit displayed buffs
-                    let max_duration = match buff.id {
-                        BuffId::Regeneration { duration, .. } => duration.unwrap().as_secs_f32(),
-                        _ => 10.0,
-                    };
-                    let current_duration = buff.dur;
-                    let duration_percentage = (current_duration / max_duration * 1000.0) as u32; // Percentage to determine which frame of the timer overlay is displayed
-                    let buff_img = match buff.id {
-                        BuffId::Regeneration { .. } => self.imgs.buff_plus_0,
-                        BuffId::Bleeding { .. } => self.imgs.debuff_bleed_0,
-                        BuffId::Cursed { .. } => self.imgs.debuff_skull_0,
-                    };
-                    let buff_widget = Image::new(buff_img).w_h(20.0, 20.0);
-                    // Sort buffs into rows of 5 slots
-                    let x = i % 5;
-                    let y = i / 5;
-                    let buff_widget = buff_widget.bottom_left_with_margins_on(
-                        state.ids.buffs_align,
-                        0.0 + y as f64 * (21.0),
-                        0.0 + x as f64 * (21.0),
-                    );
-                    buff_widget
-                        .color(if current_duration < 10.0 {
-                            Some(pulsating_col)
-                        } else {
-                            Some(norm_col)
-                        })
-                        .set(state.ids.buffs[i], ui);
+            if self.bubble.is_none() {
+                state
+                    .ids
+                    .buffs
+                    .iter()
+                    .copied()
+                    .zip(state.ids.buff_timers.iter().copied())
+                    .zip(buffs.active_buffs.iter().map(get_buff_info))
+                    .enumerate()
+                    .for_each(|(i, ((id, timer_id), buff))| {
+                        // Limit displayed buffs
+                        let max_duration = match buff.id {
+                            BuffId::Regeneration { duration, .. } => {
+                                duration.unwrap().as_secs_f32()
+                            },
+                            _ => 10.0,
+                        };
+                        let current_duration = buff.dur;
+                        let duration_percentage = (current_duration / max_duration * 1000.0) as u32; // Percentage to determine which frame of the timer overlay is displayed
+                        let buff_img = match buff.id {
+                            BuffId::Regeneration { .. } => self.imgs.buff_plus_0,
+                            BuffId::Bleeding { .. } => self.imgs.debuff_bleed_0,
+                            BuffId::Cursed { .. } => self.imgs.debuff_skull_0,
+                        };
+                        let buff_widget = Image::new(buff_img).w_h(20.0, 20.0);
+                        // Sort buffs into rows of 5 slots
+                        let x = i % 5;
+                        let y = i / 5;
+                        let buff_widget = buff_widget.bottom_left_with_margins_on(
+                            state.ids.buffs_align,
+                            0.0 + y as f64 * (21.0),
+                            0.0 + x as f64 * (21.0),
+                        );
+                        buff_widget
+                            .color(if current_duration < 10.0 {
+                                Some(pulsating_col)
+                            } else {
+                                Some(norm_col)
+                            })
+                            .set(id, ui);
 
-                    Image::new(match duration_percentage as u64 {
-                        875..=1000 => self.imgs.nothing, // 8/8
-                        750..=874 => self.imgs.buff_0,   // 7/8
-                        625..=749 => self.imgs.buff_1,   // 6/8
-                        500..=624 => self.imgs.buff_2,   // 5/8
-                        375..=499 => self.imgs.buff_3,   // 4/8
-                        250..=374 => self.imgs.buff_4,   //3/8
-                        125..=249 => self.imgs.buff_5,   // 2/8
-                        0..=124 => self.imgs.buff_6,     // 1/8
-                        _ => self.imgs.nothing,
-                    })
-                    .w_h(20.0, 20.0)
-                    .middle_of(state.ids.buffs[i])
-                    .set(state.ids.buff_timers[i], ui);
-                };
+                        Image::new(match duration_percentage as u64 {
+                            875..=1000 => self.imgs.nothing, // 8/8
+                            750..=874 => self.imgs.buff_0,   // 7/8
+                            625..=749 => self.imgs.buff_1,   // 6/8
+                            500..=624 => self.imgs.buff_2,   // 5/8
+                            375..=499 => self.imgs.buff_3,   // 4/8
+                            250..=374 => self.imgs.buff_4,   //3/8
+                            125..=249 => self.imgs.buff_5,   // 2/8
+                            0..=124 => self.imgs.buff_6,     // 1/8
+                            _ => self.imgs.nothing,
+                        })
+                        .w_h(20.0, 20.0)
+                        .middle_of(id)
+                        .set(timer_id, ui);
+                    });
             }
             // Name
             Text::new(name)

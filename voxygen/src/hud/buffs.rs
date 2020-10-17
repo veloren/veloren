@@ -9,7 +9,6 @@ use crate::{
     GlobalState,
 };
 
-use crate::hud::BuffInfo;
 use common::comp::{BuffId, Buffs};
 use conrod_core::{
     color,
@@ -131,55 +130,51 @@ impl<'a> Widget for BuffsBar<'a> {
                 .set(state.ids.buffs_align, ui);
 
             // Buffs and Debuffs
-            // Create two vecs to display buffs and debuffs separately
-            let mut buffs_vec = Vec::<BuffInfo>::new();
-            let mut debuffs_vec = Vec::<BuffInfo>::new();
-            for buff in buffs.active_buffs.clone() {
-                let info = get_buff_info(buff);
-                if info.is_buff {
-                    buffs_vec.push(info);
-                } else {
-                    debuffs_vec.push(info);
-                }
-            }
-            if state.ids.buffs.len() < buffs_vec.len() {
-                state.update(|state| {
-                    state
-                        .ids
-                        .buffs
-                        .resize(buffs_vec.len(), &mut ui.widget_id_generator())
-                });
+            let (buff_count, debuff_count) = buffs.active_buffs.iter().map(get_buff_info).fold(
+                (0, 0),
+                |(buff_count, debuff_count), info| {
+                    if info.is_buff {
+                        (buff_count + 1, debuff_count)
+                    } else {
+                        (buff_count, debuff_count + 1)
+                    }
+                },
+            );
+            // Limit displayed buffs
+            let buff_count = buff_count.min(22);
+            let debuff_count = debuff_count.min(22);
+
+            let gen = &mut ui.widget_id_generator();
+            if state.ids.buffs.len() < buff_count {
+                state.update(|state| state.ids.buffs.resize(buff_count, gen));
             };
-            if state.ids.debuffs.len() < debuffs_vec.len() {
-                state.update(|state| {
-                    state
-                        .ids
-                        .debuffs
-                        .resize(debuffs_vec.len(), &mut ui.widget_id_generator())
-                });
+            if state.ids.debuffs.len() < debuff_count {
+                state.update(|state| state.ids.debuffs.resize(debuff_count, gen));
             };
-            if state.ids.buff_timers.len() < buffs_vec.len() {
-                state.update(|state| {
-                    state
-                        .ids
-                        .buff_timers
-                        .resize(buffs_vec.len(), &mut ui.widget_id_generator())
-                });
+            if state.ids.buff_timers.len() < buff_count {
+                state.update(|state| state.ids.buff_timers.resize(buff_count, gen));
             };
-            if state.ids.debuff_timers.len() < debuffs_vec.len() {
-                state.update(|state| {
-                    state
-                        .ids
-                        .debuff_timers
-                        .resize(debuffs_vec.len(), &mut ui.widget_id_generator())
-                });
+            if state.ids.debuff_timers.len() < debuff_count {
+                state.update(|state| state.ids.debuff_timers.resize(debuff_count, gen));
             };
             let pulsating_col = Color::Rgba(1.0, 1.0, 1.0, buff_ani);
             let norm_col = Color::Rgba(1.0, 1.0, 1.0, 1.0);
             // Create Buff Widgets
-            for (i, buff) in buffs_vec.iter().enumerate() {
-                if i < 22 {
-                    // Limit displayed buffs
+            state
+                .ids
+                .buffs
+                .iter()
+                .copied()
+                .zip(state.ids.buff_timers.iter().copied())
+                .zip(
+                    buffs
+                        .active_buffs
+                        .iter()
+                        .map(get_buff_info)
+                        .filter(|info| info.is_buff),
+                )
+                .enumerate()
+                .for_each(|(i, ((id, timer_id), buff))| {
                     let max_duration = match buff.id {
                         BuffId::Regeneration { duration, .. } => duration.unwrap().as_secs_f32(),
                         _ => 10.0,
@@ -205,7 +200,7 @@ impl<'a> Widget for BuffsBar<'a> {
                         } else {
                             Some(norm_col)
                         })
-                        .set(state.ids.buffs[i], ui);
+                        .set(id, ui);
                     // Create Buff tooltip
                     let title = match buff.id {
                         BuffId::Regeneration { .. } => {
@@ -239,7 +234,7 @@ impl<'a> Widget for BuffsBar<'a> {
                         _ => self.imgs.nothing,
                     })
                     .w_h(20.0, 20.0)
-                    .middle_of(state.ids.buffs[i])
+                    .middle_of(id)
                     .with_tooltip(
                         self.tooltip_manager,
                         title,
@@ -247,18 +242,28 @@ impl<'a> Widget for BuffsBar<'a> {
                         &buffs_tooltip,
                         BUFF_COLOR,
                     )
-                    .set(state.ids.buff_timers[i], ui)
+                    .set(timer_id, ui)
                     .was_clicked()
                     {
                         event.push(Event::RemoveBuff(buff.id));
                     };
-                };
-            }
+                });
             // Create Debuff Widgets
-            for (i, debuff) in debuffs_vec.iter().enumerate() {
-                if i < 22 {
-                    // Limit displayed buffs
-
+            state
+                .ids
+                .debuffs
+                .iter()
+                .copied()
+                .zip(state.ids.debuff_timers.iter().copied())
+                .zip(
+                    buffs
+                        .active_buffs
+                        .iter()
+                        .map(get_buff_info)
+                        .filter(|info| !info.is_buff),
+                )
+                .enumerate()
+                .for_each(|(i, ((id, timer_id), debuff))| {
                     let max_duration = match debuff.id {
                         BuffId::Bleeding { duration, .. } => {
                             duration.unwrap_or(Duration::from_secs(60)).as_secs_f32()
@@ -292,7 +297,7 @@ impl<'a> Widget for BuffsBar<'a> {
                         } else {
                             Some(norm_col)
                         })
-                        .set(state.ids.debuffs[i], ui);
+                        .set(id, ui);
                     // Create Debuff tooltip
                     let title = match debuff.id {
                         BuffId::Bleeding { .. } => {
@@ -324,7 +329,7 @@ impl<'a> Widget for BuffsBar<'a> {
                         _ => self.imgs.nothing,
                     })
                     .w_h(20.0, 20.0)
-                    .middle_of(state.ids.debuffs[i])
+                    .middle_of(id)
                     .with_tooltip(
                         self.tooltip_manager,
                         title,
@@ -332,10 +337,10 @@ impl<'a> Widget for BuffsBar<'a> {
                         &buffs_tooltip,
                         DEBUFF_COLOR,
                     )
-                    .set(state.ids.debuff_timers[i], ui);
-                };
-            }
+                    .set(timer_id, ui);
+                });
         }
+
         if let BuffPosition::Map = buff_position {
             // Alignment
             Rectangle::fill_with([tweak!(300.0), tweak!(280.0)], color::RED)
