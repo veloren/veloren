@@ -1,7 +1,10 @@
 use crate::{
     comp::{Attacking, CharacterState, EnergySource, StateUpdate},
     states::utils::*,
-    sys::character_behavior::{CharacterBehavior, JoinData},
+    sys::{
+        character_behavior::{CharacterBehavior, JoinData},
+        phys::GRAVITY,
+    },
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -56,7 +59,8 @@ impl CharacterBehavior for Data {
         let mut update = StateUpdate::from(data);
 
         if self.static_data.is_helicopter {
-            update.vel.0 = Vec3::new(data.inputs.move_dir.x, data.inputs.move_dir.y, 0.0) * 5.0;
+            update.vel.0 = Vec3::new(0.0, 0.0, update.vel.0.z + GRAVITY * data.dt.0)
+                + data.inputs.move_dir * 5.0;
         }
 
         // Allows for other states to interrupt this state
