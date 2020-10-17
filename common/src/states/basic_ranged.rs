@@ -7,25 +7,34 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
+/// Separated out to condense update portions of character state
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Data {
-    /// Can you hold the ability beyond the prepare duration
-    pub holdable: bool,
-    /// How long we have to prepare the weapon
-    pub prepare_duration: Duration,
-    /// How long we prepared the weapon already
-    pub prepare_timer: Duration,
+pub struct StaticData {
+    /// How much buildup is required before the attack
+    pub buildup_duration: Duration,
     /// How long the state has until exiting
     pub recover_duration: Duration,
+    /// Projectile variables
     pub projectile: Projectile,
     pub projectile_body: Body,
     pub projectile_light: Option<LightEmitter>,
     pub projectile_gravity: Option<Gravity>,
     pub projectile_speed: f32,
-    /// Whether the attack fired already
-    pub exhausted: bool,
     /// What key is used to press ability
     pub ability_key: AbilityKey,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Data {
+    /// Struct containing data that does not change over the course of the
+    /// character state
+    pub static_data: StaticData,
+    /// Timer for each stage
+    pub timer: Duration,
+    /// What section the character stage is in
+    pub stage_section: StageSection,
+    /// Whether the attack fired already
+    pub exhausted: bool,
 }
 
 impl CharacterBehavior for Data {
@@ -35,77 +44,70 @@ impl CharacterBehavior for Data {
         handle_move(data, &mut update, 0.3);
         handle_jump(data, &mut update);
 
-        if !self.exhausted
-            && if self.holdable {
-                ability_key_is_pressed(data, self.ability_key)
-                    || self.prepare_timer < self.prepare_duration
-            } else {
-                self.prepare_timer < self.prepare_duration
-            }
-        {
-            // Prepare (draw the bow)
-            update.character = CharacterState::BasicRanged(Data {
-                prepare_timer: self.prepare_timer + Duration::from_secs_f32(data.dt.0),
-                holdable: self.holdable,
-                prepare_duration: self.prepare_duration,
-                recover_duration: self.recover_duration,
-                projectile: self.projectile.clone(),
-                projectile_body: self.projectile_body,
-                projectile_light: self.projectile_light,
-                projectile_gravity: self.projectile_gravity,
-                projectile_speed: self.projectile_speed,
-                exhausted: false,
-                ability_key: self.ability_key,
-            });
-        } else if !self.exhausted {
-            // Fire
-            let mut projectile = self.projectile.clone();
-            projectile.owner = Some(*data.uid);
-            update.server_events.push_front(ServerEvent::Shoot {
-                entity: data.entity,
-                dir: data.inputs.look_dir,
-                body: self.projectile_body,
-                projectile,
-                light: self.projectile_light,
-                gravity: self.projectile_gravity,
-                speed: self.projectile_speed,
-            });
+        match self.stage_section {
+            StageSection::Buildup => {
+                if self.timer < self.static_data.buildup_duration {
+                    // Build up
+                    update.character = CharacterState::BasicRanged(Data {
+                        static_data: self.static_data.clone(),
+                        timer: self
+                            .timer
+                            .checked_add(Duration::from_secs_f32(data.dt.0))
+                            .unwrap_or_default(),
+                        stage_section: self.stage_section,
+                        exhausted: self.exhausted,
+                    });
+                } else {
+                    // Transitions to recover section of stage
+                    update.character = CharacterState::BasicRanged(Data {
+                        static_data: self.static_data.clone(),
+                        timer: Duration::default(),
+                        stage_section: StageSection::Recover,
+                        exhausted: self.exhausted,
+                    });
+                }
+            },
+            StageSection::Recover => {
+                if !self.exhausted {
+                    // Fire
+                    let mut projectile = self.static_data.projectile.clone();
+                    projectile.owner = Some(*data.uid);
+                    update.server_events.push_front(ServerEvent::Shoot {
+                        entity: data.entity,
+                        dir: data.inputs.look_dir,
+                        body: self.static_data.projectile_body,
+                        projectile,
+                        light: self.static_data.projectile_light,
+                        gravity: self.static_data.projectile_gravity,
+                        speed: self.static_data.projectile_speed,
+                    });
 
-            update.character = CharacterState::BasicRanged(Data {
-                prepare_timer: self.prepare_timer,
-                holdable: self.holdable,
-                prepare_duration: self.prepare_duration,
-                recover_duration: self.recover_duration,
-                projectile: self.projectile.clone(),
-                projectile_body: self.projectile_body,
-                projectile_light: self.projectile_light,
-                projectile_gravity: self.projectile_gravity,
-                projectile_speed: self.projectile_speed,
-                exhausted: true,
-                ability_key: self.ability_key,
-            });
-        } else if self.recover_duration != Duration::default() {
-            // Recovery
-            update.character = CharacterState::BasicRanged(Data {
-                prepare_timer: self.prepare_timer,
-                holdable: self.holdable,
-                prepare_duration: self.prepare_duration,
-                recover_duration: self
-                    .recover_duration
-                    .checked_sub(Duration::from_secs_f32(data.dt.0))
-                    .unwrap_or_default(),
-                projectile: self.projectile.clone(),
-                projectile_body: self.projectile_body,
-                projectile_light: self.projectile_light,
-                projectile_gravity: self.projectile_gravity,
-                projectile_speed: self.projectile_speed,
-                exhausted: true,
-                ability_key: self.ability_key,
-            });
-            return update;
-        } else {
-            // Done
-            update.character = CharacterState::Wielding;
+                    update.character = CharacterState::BasicRanged(Data {
+                        static_data: self.static_data.clone(),
+                        timer: self.timer,
+                        stage_section: self.stage_section,
+                        exhausted: true,
+                    });
+                } else if self.timer < self.static_data.recover_duration {
+                    // Recovers
+                    update.character = CharacterState::BasicRanged(Data {
+                        static_data: self.static_data.clone(),
+                        timer: self
+                            .timer
+                            .checked_add(Duration::from_secs_f32(data.dt.0))
+                            .unwrap_or_default(),
+                        stage_section: self.stage_section,
+                        exhausted: self.exhausted,
+                    });
+                } else {
+                    // Done
+                    update.character = CharacterState::Wielding;
+                }
+            },
+            _ => {
+                // If it somehow ends up in an incorrect stage section
+                update.character = CharacterState::Wielding;
+            },
         }
 
         update
