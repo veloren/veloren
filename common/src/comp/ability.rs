@@ -234,10 +234,13 @@ impl CharacterAbility {
                 .energy
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
-            CharacterAbility::LeapMelee { energy_cost, .. } => update
-                .energy
-                .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
-                .is_ok(),
+            CharacterAbility::LeapMelee { energy_cost, .. } => {
+                update.vel.0.z >= 0.0
+                    && update
+                        .energy
+                        .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
+                        .is_ok()
+            },
             CharacterAbility::SpinMelee { energy_cost, .. } => update
                 .energy
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
@@ -250,10 +253,15 @@ impl CharacterAbility {
                 .energy
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
-            CharacterAbility::RepeaterRanged { energy_cost, .. } => update
-                .energy
-                .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
-                .is_ok(),
+            CharacterAbility::RepeaterRanged {
+                energy_cost, leap, ..
+            } => {
+                (leap.is_none() || update.vel.0.z >= 0.0)
+                    && update
+                        .energy
+                        .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
+                        .is_ok()
+            },
             CharacterAbility::Shockwave { energy_cost, .. } => update
                 .energy
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
