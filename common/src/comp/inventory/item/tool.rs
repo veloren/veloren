@@ -173,8 +173,8 @@ impl Tool {
                 },
                 DashMelee {
                     energy_cost: 200,
-                    base_damage: (120.0 * self.base_power()) as u32,
-                    max_damage: (260.0 * self.base_power()) as u32,
+                    base_damage: (100.0 * self.base_power()) as u32,
+                    max_damage: (250.0 * self.base_power()) as u32,
                     base_knockback: 10.0,
                     max_knockback: 20.0,
                     range: 5.0,
