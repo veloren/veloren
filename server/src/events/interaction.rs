@@ -1,7 +1,7 @@
 use crate::{
-    client::{
-        CharacterScreenStream, Client, GeneralStream, InGameStream, PingStream, RegionSubscription,
-        RegisterStream,
+    client::{Client, RegionSubscription},
+    streams::{
+        CharacterScreenStream, GeneralStream, GetStream, InGameStream, PingStream, RegisterStream,
     },
     Server,
 };
@@ -153,55 +153,34 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
                 Some(c) => c,
                 None => return,
             };
-            let _ = general_stream
-                .0
-                .send(ServerGeneral::SetPlayerEntity(possesse_uid));
-            clients
-                .insert(possesse, client)
-                .err()
-                .map(|e| error!(?e, "Error inserting client component during possession"));
-            general_streams
-                .insert(possesse, general_stream)
-                .err()
-                .map(|e| {
-                    error!(
-                        ?e,
-                        "Error inserting general_streams component during possession"
-                    )
-                });
-            ping_streams.insert(possesse, ping_stream).err().map(|e| {
-                error!(
-                    ?e,
-                    "Error inserting ping_streams component during possession"
-                )
-            });
-            register_streams
-                .insert(possesse, register_stream)
-                .err()
-                .map(|e| {
-                    error!(
-                        ?e,
-                        "Error inserting register_streams component during possession"
-                    )
-                });
-            character_screen_streams
-                .insert(possesse, character_screen_stream)
-                .err()
-                .map(|e| {
-                    error!(
-                        ?e,
-                        "Error inserting character_screen_streams component during possession"
-                    )
-                });
-            in_game_streams
-                .insert(possesse, in_game_stream)
-                .err()
-                .map(|e| {
-                    error!(
-                        ?e,
-                        "Error inserting in_game_streams component during possession"
-                    )
-                });
+            general_stream.send_unchecked(ServerGeneral::SetPlayerEntity(possesse_uid));
+            let err_fn = |c, e: Option<specs::error::Error>| {
+                e.map(|e| error!(?e, "Error inserting {} component during possession", c));
+            };
+
+            err_fn("client", clients.insert(possesse, client).err());
+            err_fn(
+                "general_streams",
+                general_streams.insert(possesse, general_stream).err(),
+            );
+            err_fn(
+                "ping_streams",
+                ping_streams.insert(possesse, ping_stream).err(),
+            );
+            err_fn(
+                "register_streams",
+                register_streams.insert(possesse, register_stream).err(),
+            );
+            err_fn(
+                "character_screen_streams",
+                character_screen_streams
+                    .insert(possesse, character_screen_stream)
+                    .err(),
+            );
+            err_fn(
+                "in_game_streams",
+                in_game_streams.insert(possesse, in_game_stream).err(),
+            );
             // Put possess item into loadout
             let mut loadouts = ecs.write_storage::<comp::Loadout>();
             let loadout = loadouts
@@ -229,22 +208,14 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
             {
                 let mut players = ecs.write_storage::<comp::Player>();
                 if let Some(player) = players.remove(possessor) {
-                    players
-                        .insert(possesse, player)
-                        .err()
-                        .map(|e| error!(?e, "Error inserting player component during possession"));
+                    err_fn("player", players.insert(possesse, player).err());
                 }
             }
             // Transfer region subscription
             {
                 let mut subscriptions = ecs.write_storage::<RegionSubscription>();
                 if let Some(s) = subscriptions.remove(possessor) {
-                    subscriptions.insert(possesse, s).err().map(|e| {
-                        error!(
-                            ?e,
-                            "Error inserting subscription component during possession"
-                        )
-                    });
+                    err_fn("subscription", subscriptions.insert(possesse, s).err());
                 }
             }
             // Remove will of the entity
@@ -257,19 +228,14 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
             {
                 let mut admins = ecs.write_storage::<comp::Admin>();
                 if let Some(admin) = admins.remove(possessor) {
-                    admins
-                        .insert(possesse, admin)
-                        .err()
-                        .map(|e| error!(?e, "Error inserting admin component during possession"));
+                    err_fn("admin", admins.insert(possesse, admin).err());
                 }
             }
             // Transfer waypoint
             {
                 let mut waypoints = ecs.write_storage::<comp::Waypoint>();
                 if let Some(waypoint) = waypoints.remove(possessor) {
-                    waypoints.insert(possesse, waypoint).err().map(|e| {
-                        error!(?e, "Error inserting waypoint component during possession",)
-                    });
+                    err_fn("waypoints", waypoints.insert(possesse, waypoint).err());
                 }
             }
         }

@@ -1,7 +1,6 @@
 pub mod entity_sync;
 pub mod invite_timeout;
 pub mod msg;
-pub mod message;
 pub mod object;
 pub mod persistence;
 pub mod sentinel;
@@ -17,7 +16,11 @@ use std::{
 };
 
 pub type EntitySyncTimer = SysTimer<entity_sync::Sys>;
-pub type MessageTimer = SysTimer<message::Sys>;
+pub type GeneralMsgTimer = SysTimer<msg::general::Sys>;
+pub type PingMsgTimer = SysTimer<msg::ping::Sys>;
+pub type RegisterMsgTimer = SysTimer<msg::register::Sys>;
+pub type CharacterScreenMsgTimer = SysTimer<msg::character_screen::Sys>;
+pub type InGameMsgTimer = SysTimer<msg::in_game::Sys>;
 pub type SentinelTimer = SysTimer<sentinel::Sys>;
 pub type SubscriptionTimer = SysTimer<subscription::Sys>;
 pub type TerrainTimer = SysTimer<terrain::Sys>;

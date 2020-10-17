@@ -26,7 +26,10 @@ use std::convert::TryFrom;
 use vek::*;
 use world::util::Sampler;
 
-use crate::{client::InGameStream, login_provider::LoginProvider};
+use crate::{
+    login_provider::LoginProvider,
+    streams::{GetStream, InGameStream},
+};
 use scan_fmt::{scan_fmt, scan_fmt_some};
 use tracing::error;
 
@@ -670,7 +673,7 @@ fn handle_spawn(
                                                     .map(|g| (g, s))
                                             })
                                             .map(|(g, s)| {
-                                                let _ = s.0.send(ServerGeneral::GroupUpdate(g));
+                                                s.send_unchecked(ServerGeneral::GroupUpdate(g));
                                             });
                                     },
                                 );

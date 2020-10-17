@@ -2,7 +2,10 @@ use super::{
     sentinel::{DeletedEntities, TrackedComps},
     SysTimer,
 };
-use crate::client::{self, Client, InGameStream, RegionSubscription};
+use crate::{
+    client::{self, Client, RegionSubscription},
+    streams::{GeneralStream, GetStream},
+};
 use common::{
     comp::{Ori, Player, Pos, Vel},
     msg::ServerGeneral,
@@ -33,7 +36,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Ori>,
         ReadStorage<'a, Player>,
         ReadStorage<'a, Client>,
-        WriteStorage<'a, InGameStream>,
+        WriteStorage<'a, GeneralStream>,
         WriteStorage<'a, RegionSubscription>,
         Write<'a, DeletedEntities>,
         TrackedComps<'a>,
@@ -52,7 +55,7 @@ impl<'a> System<'a> for Sys {
             orientations,
             players,
             clients,
-            mut in_game_streams,
+            mut general_streams,
             mut subscriptions,
             mut deleted_entities,
             tracked_comps,
@@ -73,13 +76,13 @@ impl<'a> System<'a> for Sys {
         // 7. Determine list of regions that are in range and iterate through it
         //    - check if in hashset (hash calc) if not add it
         let mut regions_to_remove = Vec::new();
-        for (_, subscription, pos, vd, client_entity, in_game_stream) in (
+        for (_, subscription, pos, vd, client_entity, general_stream) in (
             &clients,
             &mut subscriptions,
             &positions,
             &players,
             &entities,
-            &mut in_game_streams,
+            &mut general_streams,
         )
             .join()
             .filter_map(|(client, s, pos, player, e, stream)| {
@@ -156,9 +159,8 @@ impl<'a> System<'a> for Sys {
                                             .map(|key| subscription.regions.contains(key))
                                             .unwrap_or(false)
                                         {
-                                            let _ = in_game_stream
-                                                .0
-                                                .send(ServerGeneral::DeleteEntity(uid));
+                                            general_stream
+                                                .send_unchecked(ServerGeneral::DeleteEntity(uid));
                                         }
                                     }
                                 },
@@ -166,7 +168,7 @@ impl<'a> System<'a> for Sys {
                         }
                         // Tell client to delete entities in the region
                         for (&uid, _) in (&uids, region.entities()).join() {
-                            let _ = in_game_stream.0.send(ServerGeneral::DeleteEntity(uid));
+                            let _ = general_stream.send(ServerGeneral::DeleteEntity(uid));
                         }
                     }
                     // Send deleted entities since they won't be processed for this client in entity
@@ -176,9 +178,7 @@ impl<'a> System<'a> for Sys {
                         .iter()
                         .flat_map(|v| v.iter())
                     {
-                        let _ = in_game_stream
-                            .0
-                            .send(ServerGeneral::DeleteEntity(Uid(*uid)));
+                        general_stream.send_unchecked(ServerGeneral::DeleteEntity(Uid(*uid)));
                     }
                 }
 
@@ -203,7 +203,7 @@ impl<'a> System<'a> for Sys {
                             {
                                 // Send message to create entity and tracked components and physics
                                 // components
-                                let _ = in_game_stream.0.send(ServerGeneral::CreateEntity(
+                                general_stream.send_unchecked(ServerGeneral::CreateEntity(
                                     tracked_comps.create_entity_package(
                                         entity,
                                         Some(*pos),
@@ -224,14 +224,14 @@ impl<'a> System<'a> for Sys {
 
 /// Initialize region subscription
 pub fn initialize_region_subscription(world: &World, entity: specs::Entity) {
-    if let (Some(client_pos), Some(client_vd), Some(in_game_stream)) = (
+    if let (Some(client_pos), Some(client_vd), Some(general_stream)) = (
         world.read_storage::<Pos>().get(entity),
         world
             .read_storage::<Player>()
             .get(entity)
             .map(|pl| pl.view_distance)
             .and_then(|v| v),
-        world.write_storage::<InGameStream>().get_mut(entity),
+        world.write_storage::<GeneralStream>().get_mut(entity),
     ) {
         let fuzzy_chunk = (Vec2::<f32>::from(client_pos.0))
             .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e as i32 / sz as i32);
@@ -256,7 +256,7 @@ pub fn initialize_region_subscription(world: &World, entity: specs::Entity) {
                     .join()
                 {
                     // Send message to create entity and tracked components and physics components
-                    let _ = in_game_stream.0.send(ServerGeneral::CreateEntity(
+                    general_stream.send_unchecked(ServerGeneral::CreateEntity(
                         tracked_comps.create_entity_package(
                             entity,
                             Some(*pos),
