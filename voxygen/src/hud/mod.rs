@@ -1803,7 +1803,6 @@ impl Hud {
             }
         }
         // Group Window
-        let buffs = buffs.get(client.entity()).unwrap();
         for event in Group::new(
             &mut self.show,
             client,
@@ -1814,7 +1813,6 @@ impl Hud {
             &self.voxygen_i18n,
             self.pulse,
             &global_state,
-            &buffs,
             tooltip_manager,
         )
         .set(self.ids.group_window, ui_widgets)
@@ -2728,7 +2726,7 @@ pub fn get_quality_col<I: ItemDesc>(item: &I) -> Color {
     }
 }
 // Get info about applied buffs
-fn get_buff_info(buff: comp::Buff) -> BuffInfo {
+fn get_buff_info(buff: &comp::Buff) -> BuffInfo {
     BuffInfo {
         id: buff.id,
         is_buff: buff

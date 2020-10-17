@@ -5,7 +5,7 @@ use super::{
 };
 
 use crate::{
-    hud::{get_buff_info, BuffInfo},
+    hud::get_buff_info,
     i18n::VoxygenLocalization,
     settings::Settings,
     ui::{fonts::ConrodVoxygenFonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
@@ -75,7 +75,6 @@ pub struct Group<'a> {
     localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
     pulse: f32,
     global_state: &'a GlobalState,
-    buffs: &'a Buffs,
     tooltip_manager: &'a mut TooltipManager,
 
     #[conrod(common_builder)]
@@ -94,7 +93,6 @@ impl<'a> Group<'a> {
         localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
         pulse: f32,
         global_state: &'a GlobalState,
-        buffs: &'a Buffs,
         tooltip_manager: &'a mut TooltipManager,
     ) -> Self {
         Self {
@@ -107,7 +105,6 @@ impl<'a> Group<'a> {
             localized_strings,
             pulse,
             global_state,
-            buffs,
             tooltip_manager,
             common: widget::CommonBuilder::default(),
         }
@@ -145,7 +142,6 @@ impl<'a> Widget for Group<'a> {
         let widget::UpdateArgs { state, ui, .. } = args;
         let mut events = Vec::new();
         let localized_strings = self.localized_strings;
-        //let buffs = self.buffs;
         let buff_ani = ((self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8) + 0.5; //Animation timer
         let buffs_tooltip = Tooltip::new({
             // Edge images [t, b, r, l]
@@ -333,6 +329,8 @@ impl<'a> Widget for Group<'a> {
                 .ecs()
                 .read_resource::<common::sync::UidAllocator>();
 
+            // Keep track of the total number of widget ids we are using for buffs
+            let mut total_buff_count = 0;
             for (i, &uid) in group_members.iter().copied().enumerate() {
                 self.show.group = true;
                 let entity = uid_allocator.retrieve_entity_internal(uid.into());
@@ -447,27 +445,29 @@ impl<'a> Widget for Group<'a> {
                             .set(state.ids.member_stam[i], ui);
                     }
                     if let Some(buffs) = buffs {
-                        let mut buffs_vec = Vec::<BuffInfo>::new();
-                        for buff in buffs.active_buffs.clone() {
-                            let info = get_buff_info(buff);
-                            buffs_vec.push(info);
+                        // Limit displayed buffs to 11
+                        let buff_count = buffs.active_buffs.len().min(11);
+                        total_buff_count += buff_count;
+                        let gen = &mut ui.widget_id_generator();
+                        if state.ids.buffs.len() < total_buff_count {
+                            state.update(|state| state.ids.buffs.resize(total_buff_count, gen));
                         }
-                        state.update(|state| {
-                            state.ids.buffs.resize(
-                                state.ids.buffs.len() + buffs_vec.len(),
-                                &mut ui.widget_id_generator(),
-                            )
-                        });
-                        state.update(|state| {
-                            state.ids.buff_timers.resize(
-                                state.ids.buff_timers.len() + buffs_vec.len(),
-                                &mut ui.widget_id_generator(),
-                            )
-                        });
+                        if state.ids.buff_timers.len() < total_buff_count {
+                            state.update(|state| {
+                                state.ids.buff_timers.resize(total_buff_count, gen)
+                            });
+                        }
                         // Create Buff Widgets
-                        for (x, buff) in buffs_vec.iter().enumerate() {
-                            if x < 11 {
-                                // Limit displayed buffs
+                        let mut prev_id = None;
+                        state
+                            .ids
+                            .buffs
+                            .iter()
+                            .copied()
+                            .zip(state.ids.buff_timers.iter().copied())
+                            .skip(total_buff_count - buff_count)
+                            .zip(buffs.active_buffs.iter().map(get_buff_info))
+                            .for_each(|((id, timer_id), buff)| {
                                 let max_duration = match buff.id {
                                     BuffId::Regeneration { duration, .. } => {
                                         duration.unwrap().as_secs_f32()
@@ -485,22 +485,23 @@ impl<'a> Widget for Group<'a> {
                                     BuffId::Cursed { .. } => self.imgs.debuff_skull_0,
                                 };
                                 let buff_widget = Image::new(buff_img).w_h(20.0, 20.0);
-                                let buff_widget = if x == 0 {
+                                let buff_widget = if let Some(id) = prev_id {
+                                    buff_widget.right_from(id, 1.0)
+                                } else {
                                     buff_widget.bottom_left_with_margins_on(
                                         state.ids.member_panels_frame[i],
                                         -21.0,
                                         1.0,
                                     )
-                                } else {
-                                    buff_widget.right_from(state.ids.buffs[state.ids.buffs.len() - buffs_vec.len() + x - 1/*x - 1*/], 1.0)
                                 };
+                                prev_id = Some(id);
                                 buff_widget
                                     .color(if current_duration < 10.0 {
                                         Some(pulsating_col)
                                     } else {
                                         Some(norm_col)
                                     })
-                                    .set(state.ids.buffs[state.ids.buffs.len() - buffs_vec.len() + x/*x*/], ui);
+                                    .set(id, ui);
                                 // Create Buff tooltip
                                 let title = match buff.id {
                                     BuffId::Regeneration { .. } => {
@@ -538,17 +539,20 @@ impl<'a> Widget for Group<'a> {
                                     _ => self.imgs.nothing,
                                 })
                                 .w_h(20.0, 20.0)
-                                .middle_of(state.ids.buffs[state.ids.buffs.len() - buffs_vec.len() + x/*x*/])
+                                .middle_of(id)
                                 .with_tooltip(
                                     self.tooltip_manager,
                                     title,
                                     &desc,
                                     &buffs_tooltip,
-                                    if buff.is_buff {BUFF_COLOR} else {DEBUFF_COLOR},
+                                    if buff.is_buff {
+                                        BUFF_COLOR
+                                    } else {
+                                        DEBUFF_COLOR
+                                    },
                                 )
-                                .set(state.ids.buff_timers[state.ids.buffs.len() - buffs_vec.len() + x/*x*/], ui);
-                            };
-                        }
+                                .set(timer_id, ui);
+                            });
                     } else {
                         // Values N.A.
                         Text::new(&stats.name.to_string())
