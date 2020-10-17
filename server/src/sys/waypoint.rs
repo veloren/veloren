@@ -1,5 +1,5 @@
 use super::SysTimer;
-use crate::client::GeneralStream;
+use crate::streams::{GeneralStream, GetStream};
 use common::{
     comp::{Player, Pos, Waypoint, WaypointArea},
     msg::{Notification, ServerGeneral},
@@ -51,9 +51,9 @@ impl<'a> System<'a> for Sys {
                     if let Ok(wp_old) = waypoints.insert(entity, Waypoint::new(player_pos.0, *time))
                     {
                         if wp_old.map_or(true, |w| w.elapsed(*time) > NOTIFY_TIME) {
-                            let _ = general_stream
-                                .0
-                                .send(ServerGeneral::Notification(Notification::WaypointSaved));
+                            general_stream.send_unchecked(ServerGeneral::Notification(
+                                Notification::WaypointSaved,
+                            ));
                         }
                     }
                 }

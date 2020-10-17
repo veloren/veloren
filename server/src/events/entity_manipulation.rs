@@ -1,6 +1,7 @@
 use crate::{
-    client::{Client, InGameStream},
+    client::Client,
     comp::{biped_large, quadruped_medium, quadruped_small},
+    streams::{GetStream, InGameStream},
     Server, SpawnPoint, StateExt,
 };
 use common::{
@@ -44,7 +45,7 @@ pub fn handle_knockback(server: &Server, entity: EcsEntity, impulse: Vec3<f32>) 
     }
     let mut in_game_streams = state.ecs().write_storage::<InGameStream>();
     if let Some(in_game_stream) = in_game_streams.get_mut(entity) {
-        let _ = in_game_stream.0.send(ServerGeneral::Knockback(impulse));
+        in_game_stream.send_unchecked(ServerGeneral::Knockback(impulse));
     }
 }
 

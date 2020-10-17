@@ -1,33 +1,9 @@
 use common::msg::{ClientInGame, ClientType};
 use hashbrown::HashSet;
-use network::{Participant, Stream};
+use network::Participant;
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
 use vek::*;
-
-// Streams
-// we ignore errors on send, and do unified error handling in recv
-pub struct GeneralStream(pub Stream);
-pub struct PingStream(pub Stream);
-pub struct RegisterStream(pub Stream);
-pub struct CharacterScreenStream(pub Stream);
-pub struct InGameStream(pub Stream);
-
-impl Component for GeneralStream {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
-}
-impl Component for PingStream {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
-}
-impl Component for RegisterStream {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
-}
-impl Component for CharacterScreenStream {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
-}
-impl Component for InGameStream {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
-}
 
 pub struct Client {
     pub registered: bool,

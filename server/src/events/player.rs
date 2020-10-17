@@ -1,11 +1,12 @@
 use super::Event;
 use crate::{
-    client::{
-        CharacterScreenStream, Client, GeneralStream, InGameStream, PingStream, RegisterStream,
-    },
+    client::Client,
     login_provider::LoginProvider,
     persistence,
     state_ext::StateExt,
+    streams::{
+        CharacterScreenStream, GeneralStream, GetStream, InGameStream, PingStream, RegisterStream,
+    },
     Server,
 };
 use common::{
@@ -49,11 +50,11 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
         Some(mut client),
         Some(uid),
         Some(player),
-        Some(mut general_stream),
+        Some(general_stream),
         Some(ping_stream),
         Some(register_stream),
         Some(character_screen_stream),
-        Some(in_game_stream),
+        Some(mut in_game_stream),
     ) = (
         maybe_client,
         maybe_uid,
@@ -66,7 +67,7 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
     ) {
         // Tell client its request was successful
         client.in_game = None;
-        let _ = general_stream.0.send(ServerGeneral::ExitInGameSuccess);
+        in_game_stream.send_unchecked(ServerGeneral::ExitInGameSuccess);
 
         let entity_builder = state
             .ecs_mut()

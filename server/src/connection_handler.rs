@@ -1,6 +1,6 @@
 use crate::{
-    CharacterScreenStream, Client, ClientType, GeneralStream, InGameStream, PingStream,
-    RegisterStream, ServerInfo,
+    streams::{CharacterScreenStream, GeneralStream, InGameStream, PingStream, RegisterStream},
+    Client, ClientType, ServerInfo,
 };
 use crossbeam::{bounded, unbounded, Receiver, Sender};
 use futures_channel::oneshot;

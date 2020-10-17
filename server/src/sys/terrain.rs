@@ -1,5 +1,9 @@
 use super::SysTimer;
-use crate::{chunk_generator::ChunkGenerator, client::InGameStream, Tick};
+use crate::{
+    chunk_generator::ChunkGenerator,
+    streams::{GetStream, InGameStream},
+    Tick,
+};
 use common::{
     comp::{self, bird_medium, Alignment, Player, Pos},
     event::{EventBus, ServerEvent},
@@ -63,7 +67,7 @@ impl<'a> System<'a> for Sys {
                 Ok((chunk, supplement)) => (chunk, supplement),
                 Err(Some(entity)) => {
                     if let Some(in_game_stream) = in_game_streams.get_mut(entity) {
-                        let _ = in_game_stream.0.send(ServerGeneral::TerrainChunkUpdate {
+                        in_game_stream.send_unchecked(ServerGeneral::TerrainChunkUpdate {
                             key,
                             chunk: Err(()),
                         });
@@ -90,7 +94,7 @@ impl<'a> System<'a> for Sys {
                     .magnitude_squared();
 
                 if adjusted_dist_sqr <= view_distance.pow(2) {
-                    let _ = in_game_stream.0.send(ServerGeneral::TerrainChunkUpdate {
+                    in_game_stream.send_unchecked(ServerGeneral::TerrainChunkUpdate {
                         key,
                         chunk: Ok(Box::new(chunk.clone())),
                     });

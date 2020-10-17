@@ -1,5 +1,5 @@
 use super::SysTimer;
-use crate::client::InGameStream;
+use crate::streams::{GetStream, InGameStream};
 use common::{
     comp::{Player, Pos},
     msg::ServerGeneral,
@@ -39,7 +39,7 @@ impl<'a> System<'a> for Sys {
                     .map(|vd| super::terrain::chunk_in_vd(pos.0, *chunk_key, &terrain, vd))
                     .unwrap_or(false)
                 {
-                    let _ = in_game_stream.0.send(ServerGeneral::TerrainChunkUpdate {
+                    let _ = in_game_stream.send(ServerGeneral::TerrainChunkUpdate {
                         key: *chunk_key,
                         chunk: Ok(Box::new(match terrain.get_key(*chunk_key) {
                             Some(chunk) => chunk.clone(),
@@ -55,7 +55,7 @@ impl<'a> System<'a> for Sys {
         let msg = ServerGeneral::TerrainBlockUpdates(terrain_changes.modified_blocks.clone());
         for (player, in_game_stream) in (&players, &mut in_game_streams).join() {
             if player.view_distance.is_some() {
-                let _ = in_game_stream.0.send(msg.clone());
+                in_game_stream.send_unchecked(msg.clone());
             }
         }
 

@@ -1,5 +1,5 @@
 use super::SysTimer;
-use crate::client::InGameStream;
+use crate::streams::{GetStream, InGameStream};
 use common::{
     comp::group::{Invite, PendingInvites},
     msg::{InviteAnswer, ServerGeneral},
@@ -55,7 +55,7 @@ impl<'a> System<'a> for Sys {
                     in_game_streams.get_mut(*inviter),
                     uids.get(invitee).copied(),
                 ) {
-                    let _ = in_game_stream.0.send(ServerGeneral::InviteComplete {
+                    in_game_stream.send_unchecked(ServerGeneral::InviteComplete {
                         target,
                         answer: InviteAnswer::TimedOut,
                     });

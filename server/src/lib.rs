@@ -19,6 +19,7 @@ pub mod metrics;
 pub mod persistence;
 pub mod settings;
 pub mod state_ext;
+pub mod streams;
 pub mod sys;
 #[cfg(not(feature = "worldgen"))] mod test_world;
 
@@ -34,15 +35,15 @@ pub use crate::{
 use crate::{
     alias_validator::AliasValidator,
     chunk_generator::ChunkGenerator,
-    client::{
-        CharacterScreenStream, Client, GeneralStream, InGameStream, PingStream, RegionSubscription,
-        RegisterStream,
-    },
+    client::{Client, RegionSubscription},
     cmd::ChatCommandExt,
     connection_handler::ConnectionHandler,
     data_dir::DataDir,
     login_provider::LoginProvider,
     state_ext::StateExt,
+    streams::{
+        CharacterScreenStream, GeneralStream, GetStream, InGameStream, PingStream, RegisterStream,
+    },
     sys::sentinel::{DeletedEntities, TrackedComps},
 };
 use common::{
@@ -166,7 +167,13 @@ impl Server {
 
         // System timers for performance monitoring
         state.ecs_mut().insert(sys::EntitySyncTimer::default());
-        state.ecs_mut().insert(sys::MessageTimer::default());
+        state.ecs_mut().insert(sys::GeneralMsgTimer::default());
+        state.ecs_mut().insert(sys::PingMsgTimer::default());
+        state.ecs_mut().insert(sys::RegisterMsgTimer::default());
+        state
+            .ecs_mut()
+            .insert(sys::CharacterScreenMsgTimer::default());
+        state.ecs_mut().insert(sys::InGameMsgTimer::default());
         state.ecs_mut().insert(sys::SentinelTimer::default());
         state.ecs_mut().insert(sys::SubscriptionTimer::default());
         state.ecs_mut().insert(sys::TerrainSyncTimer::default());
@@ -466,7 +473,12 @@ impl Server {
 
         // Run message receiving sys before the systems in common for decreased latency
         // (e.g. run before controller system)
-        sys::message::Sys.run_now(&self.state.ecs());
+        //TODO: run in parallel
+        sys::msg::general::Sys.run_now(&self.state.ecs());
+        sys::msg::register::Sys.run_now(&self.state.ecs());
+        sys::msg::character_screen::Sys.run_now(&self.state.ecs());
+        sys::msg::in_game::Sys.run_now(&self.state.ecs());
+        sys::msg::ping::Sys.run_now(&self.state.ecs());
 
         let before_state_tick = Instant::now();
 
@@ -615,7 +627,14 @@ impl Server {
             .ecs()
             .read_resource::<sys::EntitySyncTimer>()
             .nanos as i64;
-        let message_nanos = self.state.ecs().read_resource::<sys::MessageTimer>().nanos as i64;
+        let message_nanos = {
+            let state = self.state.ecs();
+            (state.read_resource::<sys::GeneralMsgTimer>().nanos
+                + state.read_resource::<sys::PingMsgTimer>().nanos
+                + state.read_resource::<sys::RegisterMsgTimer>().nanos
+                + state.read_resource::<sys::CharacterScreenMsgTimer>().nanos
+                + state.read_resource::<sys::InGameMsgTimer>().nanos) as i64
+        };
         let sentinel_nanos = self.state.ecs().read_resource::<sys::SentinelTimer>().nanos as i64;
         let subscription_nanos = self
             .state
@@ -882,7 +901,7 @@ impl Server {
                     .ecs()
                     .write_storage::<RegisterStream>()
                     .get_mut(entity)
-                    .map(|s| s.0.send(msg));
+                    .map(|s| s.send(msg));
             },
             ServerMsg::General(msg) => {
                 match &msg {
@@ -895,7 +914,7 @@ impl Server {
                         .ecs()
                         .write_storage::<CharacterScreenStream>()
                         .get_mut(entity)
-                        .map(|s| s.0.send(msg)),
+                        .map(|s| s.send(msg)),
                     //Ingame related
                     ServerGeneral::GroupUpdate(_)
                     | ServerGeneral::GroupInvite { .. }
@@ -912,7 +931,7 @@ impl Server {
                         .ecs()
                         .write_storage::<InGameStream>()
                         .get_mut(entity)
-                        .map(|s| s.0.send(msg)),
+                        .map(|s| s.send(msg)),
                     // Always possible
                     ServerGeneral::PlayerListUpdate(_)
                     | ServerGeneral::ChatMsg(_)
@@ -928,7 +947,7 @@ impl Server {
                         .ecs()
                         .write_storage::<GeneralStream>()
                         .get_mut(entity)
-                        .map(|s| s.0.send(msg)),
+                        .map(|s| s.send(msg)),
                 };
             },
             ServerMsg::Ping(msg) => {
@@ -936,7 +955,7 @@ impl Server {
                     .ecs()
                     .write_storage::<PingStream>()
                     .get_mut(entity)
-                    .map(|s| s.0.send(msg));
+                    .map(|s| s.send(msg));
             },
         }
     }

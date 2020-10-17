@@ -1,33 +1,20 @@
 use super::super::SysTimer;
 use crate::{
-    alias_validator::AliasValidator,
-    client::{
-        Client, InGameStream,
-    },
-    login_provider::LoginProvider,
-    metrics::{NetworkRequestMetrics, PlayerMetrics},
-    persistence::character_loader::CharacterLoader,
-    EditableSettings, Settings,
+    client::Client,
+    metrics::NetworkRequestMetrics,
+    streams::{GetStream, InGameStream},
+    Settings,
 };
 use common::{
-    comp::{
-        Admin, CanBuild, ChatMode, ControlEvent, Controller, ForceUpdate, Ori, Player,
-        Pos, Stats, Vel,
-    },
+    comp::{CanBuild, ControlEvent, Controller, ForceUpdate, Ori, Player, Pos, Stats, Vel},
     event::{EventBus, ServerEvent},
-    msg::{
-        ClientGeneral, ClientInGame,
-        ServerGeneral,
-    },
+    msg::{ClientGeneral, ClientInGame, ServerGeneral},
     span,
     state::{BlockChange, Time},
-    sync::Uid,
     terrain::{TerrainChunkSize, TerrainGrid},
     vol::{ReadVol, RectVolSize},
 };
-use specs::{
-    Entities, Join, Read, ReadExpect, ReadStorage, System, Write, WriteExpect, WriteStorage,
-};
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, Write, WriteStorage};
 use tracing::{debug, trace};
 
 impl Sys {
@@ -64,7 +51,7 @@ impl Sys {
             ClientGeneral::ExitInGame => {
                 client.in_game = None;
                 server_emitter.emit(ServerEvent::ExitIngame { entity });
-                in_game_stream.0.send(ServerGeneral::ExitInGameSuccess)?;
+                in_game_stream.send(ServerGeneral::ExitInGameSuccess)?;
             },
             ClientGeneral::SetViewDistance(view_distance) => {
                 players.get_mut(entity).map(|player| {
@@ -82,7 +69,7 @@ impl Sys {
                     .map(|max| view_distance > max)
                     .unwrap_or(false)
                 {
-                    in_game_stream.0.send(ServerGeneral::SetViewDistance(
+                    in_game_stream.send(ServerGeneral::SetViewDistance(
                         settings.max_view_distance.unwrap_or(0),
                     ))?;
                 }
@@ -152,7 +139,7 @@ impl Sys {
                     match terrain.get_key(key) {
                         Some(chunk) => {
                             network_metrics.chunks_served_from_memory.inc();
-                            in_game_stream.0.send(ServerGeneral::TerrainChunkUpdate {
+                            in_game_stream.send(ServerGeneral::TerrainChunkUpdate {
                                 key,
                                 chunk: Ok(Box::new(chunk.clone())),
                             })?
@@ -195,19 +182,13 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         Read<'a, EventBus<ServerEvent>>,
         Read<'a, Time>,
-        ReadExpect<'a, CharacterLoader>,
         ReadExpect<'a, TerrainGrid>,
         ReadExpect<'a, NetworkRequestMetrics>,
-        ReadExpect<'a, PlayerMetrics>,
         Write<'a, SysTimer<Self>>,
-        ReadStorage<'a, Uid>,
         ReadStorage<'a, CanBuild>,
         ReadStorage<'a, ForceUpdate>,
         WriteStorage<'a, Stats>,
-        ReadStorage<'a, ChatMode>,
-        WriteExpect<'a, LoginProvider>,
         Write<'a, BlockChange>,
-        WriteStorage<'a, Admin>,
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
@@ -216,8 +197,6 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, InGameStream>,
         WriteStorage<'a, Controller>,
         Read<'a, Settings>,
-        ReadExpect<'a, EditableSettings>,
-        ReadExpect<'a, AliasValidator>,
     );
 
     #[allow(clippy::match_ref_pats)] // TODO: Pending review in #587
@@ -229,19 +208,13 @@ impl<'a> System<'a> for Sys {
             entities,
             server_event_bus,
             time,
-            character_loader,
             terrain,
             network_metrics,
-            player_metrics,
             mut timer,
-            uids,
             can_build,
             force_updates,
             mut stats,
-            chat_modes,
-            mut accounts,
             mut block_changes,
-            mut admins,
             mut positions,
             mut velocities,
             mut orientations,
@@ -250,8 +223,6 @@ impl<'a> System<'a> for Sys {
             mut in_game_streams,
             mut controllers,
             settings,
-            editable_settings,
-            alias_validator,
         ): Self::SystemData,
     ) {
         span!(_guard, "run", "msg::in_game::Sys::run");
@@ -259,43 +230,37 @@ impl<'a> System<'a> for Sys {
 
         let mut server_emitter = server_event_bus.emitter();
 
-        for (entity, client, mut in_game_stream) in (&entities, &mut clients, &mut in_game_streams).join() {
-            let mut cnt = 0;
+        for (entity, client, in_game_stream) in
+            (&entities, &mut clients, &mut in_game_streams).join()
+        {
+            let res = super::try_recv_all(in_game_stream, |in_game_stream, msg| {
+                Self::handle_client_in_game_msg(
+                    &mut server_emitter,
+                    entity,
+                    client,
+                    in_game_stream,
+                    &terrain,
+                    &network_metrics,
+                    &can_build,
+                    &force_updates,
+                    &mut stats,
+                    &mut block_changes,
+                    &mut positions,
+                    &mut velocities,
+                    &mut orientations,
+                    &mut players,
+                    &mut controllers,
+                    &settings,
+                    msg,
+                )
+            });
 
-            let network_err: Result<(), crate::error::Error> = {
-                loop {
-                    let msg = match in_game_stream.0.try_recv() {
-                        Ok(Some(msg)) => msg,
-                        Ok(None) => break Ok(()),
-                        Err(e) => break Err(e.into()),
-                    };
-                    if let Err(e) = Self::handle_client_in_game_msg(
-                        &mut server_emitter,
-                        entity,
-                        client,
-                        &mut in_game_stream,
-                        &terrain,
-                        &network_metrics,
-                        &can_build,
-                        &force_updates,
-                        &mut stats,
-                        &mut block_changes,
-                        &mut positions,
-                        &mut velocities,
-                        &mut orientations,
-                        &mut players,
-                        &mut controllers,
-                        &settings,
-                        msg,
-                    ) {
-                        break Err(e);
-                    }
-                    cnt += 1;
-                }
-            };
-
-            if cnt > 0 { // Update client ping.
-                client.last_ping = time.0
+            match res {
+                Ok(1_u64..=u64::MAX) => {
+                    // Update client ping.
+                    client.last_ping = time.0
+                },
+                _ => (/*handled by ping*/),
             }
         }
 

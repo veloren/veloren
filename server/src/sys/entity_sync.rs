@@ -3,7 +3,8 @@ use super::{
     SysTimer,
 };
 use crate::{
-    client::{Client, GeneralStream, InGameStream, RegionSubscription},
+    client::{Client, RegionSubscription},
+    streams::{GeneralStream, GetStream, InGameStream},
     Tick,
 };
 use common::{
@@ -165,7 +166,7 @@ impl<'a> System<'a> for Sys {
                                     // Client doesn't need to know about itself
                                     && *client_entity != entity
                                 {
-                                    let _ = general_stream.0.send(create_msg.clone());
+                                    general_stream.send_unchecked(create_msg.clone());
                                 }
                             }
                         }
@@ -179,7 +180,7 @@ impl<'a> System<'a> for Sys {
                                     .map(|key| !regions.contains(key))
                                     .unwrap_or(true)
                                 {
-                                    let _ = general_stream.0.send(ServerGeneral::DeleteEntity(uid));
+                                    general_stream.send_unchecked(ServerGeneral::DeleteEntity(uid));
                                 }
                             }
                         }
@@ -201,8 +202,8 @@ impl<'a> System<'a> for Sys {
             subscribers
                 .iter_mut()
                 .for_each(move |(_, _, _, _, _, general_stream)| {
-                    let _ = general_stream.0.send(entity_sync_msg.clone());
-                    let _ = general_stream.0.send(comp_sync_msg.clone());
+                    general_stream.send_unchecked(entity_sync_msg.clone());
+                    general_stream.send_unchecked(comp_sync_msg.clone());
                 });
 
             let mut send_general = |msg: ServerGeneral,
@@ -236,7 +237,7 @@ impl<'a> System<'a> for Sys {
                             true // Closer than 100 blocks
                         }
                     } {
-                        let _ = general_stream.0.send(msg.clone());
+                        general_stream.send_unchecked(msg.clone());
                     }
                 }
             };
@@ -334,9 +335,7 @@ impl<'a> System<'a> for Sys {
                 })
             {
                 for uid in &deleted {
-                    let _ = general_stream
-                        .0
-                        .send(ServerGeneral::DeleteEntity(Uid(*uid)));
+                    general_stream.send_unchecked(ServerGeneral::DeleteEntity(Uid(*uid)));
                 }
             }
         }
@@ -347,7 +346,7 @@ impl<'a> System<'a> for Sys {
         for (inventory, update, in_game_stream) in
             (&inventories, &inventory_updates, &mut in_game_streams).join()
         {
-            let _ = in_game_stream.0.send(ServerGeneral::InventoryUpdate(
+            in_game_stream.send_unchecked(ServerGeneral::InventoryUpdate(
                 inventory.clone(),
                 update.event(),
             ));
@@ -370,7 +369,7 @@ impl<'a> System<'a> for Sys {
                 .cloned()
                 .collect::<Vec<_>>();
             if !outcomes.is_empty() {
-                let _ = in_game_stream.0.send(ServerGeneral::Outcomes(outcomes));
+                in_game_stream.send_unchecked(ServerGeneral::Outcomes(outcomes));
             }
         }
         outcomes.clear();
@@ -384,7 +383,7 @@ impl<'a> System<'a> for Sys {
         // system?)
         let tof_msg = ServerGeneral::TimeOfDay(*time_of_day);
         for general_stream in (&mut general_streams).join() {
-            let _ = general_stream.0.send(tof_msg.clone());
+            general_stream.send_unchecked(tof_msg.clone());
         }
 
         timer.end();
