@@ -22,6 +22,7 @@ pub mod astar;
 pub mod character;
 pub mod clock;
 pub mod cmd;
+pub mod combat;
 pub mod comp;
 pub mod effect;
 pub mod event;
@@ -51,5 +52,6 @@ pub mod util;
 pub mod vol;
 pub mod volumes;
 
+pub use combat::{Damage, Damages};
 pub use explosion::Explosion;
 pub use loadout_builder::LoadoutBuilder;

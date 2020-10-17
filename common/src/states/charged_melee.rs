@@ -2,6 +2,7 @@ use crate::{
     comp::{Attacking, CharacterState, EnergySource, StateUpdate},
     states::utils::{StageSection, *},
     sys::character_behavior::*,
+    Damage, Damages,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -115,17 +116,16 @@ impl CharacterBehavior for Data {
             },
             StageSection::Swing => {
                 if !self.exhausted {
-                    let damage = self.static_data.initial_damage
-                        + ((self.static_data.max_damage - self.static_data.initial_damage) as f32
-                            * self.charge_amount) as u32;
+                    let damage = self.static_data.initial_damage as f32
+                        + (self.static_data.max_damage - self.static_data.initial_damage) as f32
+                            * self.charge_amount;
                     let knockback = self.static_data.initial_knockback
                         + (self.static_data.max_knockback - self.static_data.initial_knockback)
                             * self.charge_amount;
 
                     // Hit attempt
                     data.updater.insert(data.entity, Attacking {
-                        base_damage: damage as u32,
-                        base_heal: 0,
+                        damages: Damages::new(Some(Damage::Melee(damage)), None),
                         range: self.static_data.range,
                         max_angle: self.static_data.max_angle.to_radians(),
                         applied: false,

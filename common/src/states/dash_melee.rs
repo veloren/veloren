@@ -2,6 +2,7 @@ use crate::{
     comp::{Attacking, CharacterState, EnergySource, StateUpdate},
     states::utils::*,
     sys::character_behavior::{CharacterBehavior, JoinData},
+    Damage, Damages,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -121,8 +122,7 @@ impl CharacterBehavior for Data {
                             * charge_frac
                             + self.static_data.base_knockback;
                         data.updater.insert(data.entity, Attacking {
-                            base_damage: damage as u32,
-                            base_heal: 0,
+                            damages: Damages::new(Some(Damage::Melee(damage)), None),
                             range: self.static_data.range,
                             max_angle: self.static_data.angle.to_radians(),
                             applied: false,

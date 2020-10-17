@@ -4,7 +4,7 @@
 use crate::{
     comp::{body::object, projectile, Body, CharacterAbility, Gravity, LightEmitter, Projectile},
     states::combo_melee,
-    Explosion,
+    Damage, Damages, Explosion,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -298,7 +298,10 @@ impl Tool {
                     projectile: Projectile {
                         hit_solid: vec![projectile::Effect::Stick],
                         hit_entity: vec![
-                            projectile::Effect::Damage((-40.0 * self.base_power()) as i32),
+                            projectile::Effect::Damages(Damages::new(
+                                Some(Damage::Projectile(40.0 * self.base_power())),
+                                None,
+                            )),
                             projectile::Effect::Knockback(10.0),
                             projectile::Effect::RewardEnergy(50),
                             projectile::Effect::Vanish,
@@ -338,7 +341,10 @@ impl Tool {
                     projectile: Projectile {
                         hit_solid: vec![projectile::Effect::Stick],
                         hit_entity: vec![
-                            projectile::Effect::Damage((-40.0 * self.base_power()) as i32),
+                            projectile::Effect::Damages(Damages::new(
+                                Some(Damage::Projectile(40.0 * self.base_power())),
+                                None,
+                            )),
                             projectile::Effect::Knockback(10.0),
                             projectile::Effect::RewardEnergy(50),
                             projectile::Effect::Vanish,

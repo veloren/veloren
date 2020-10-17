@@ -1,11 +1,12 @@
 use crate::{
     comp::{
-        group, Beam, BeamSegment, Body, CharacterState, Damage, DamageSource, Energy, EnergySource,
-        HealthChange, HealthSource, Last, Loadout, Ori, Pos, Scale, Stats,
+        group, Beam, BeamSegment, Body, CharacterState, Energy, EnergySource, HealthChange,
+        HealthSource, Last, Loadout, Ori, Pos, Scale, Stats,
     },
     event::{EventBus, ServerEvent},
     state::{DeltaTime, Time},
     sync::{Uid, UidAllocator},
+    Damage,
 };
 use specs::{saveload::MarkerAllocator, Entities, Join, Read, ReadStorage, System, WriteStorage};
 use std::time::Duration;
@@ -166,54 +167,31 @@ impl<'a> System<'a> for Sys {
                     if Some(*uid_b) == beam_segment.owner {
                         continue;
                     }
-                    // Don't heal if outside group
-                    // Don't damage in the same group
-                    let is_damage = !same_group && (beam_segment.damage > 0);
-                    let is_heal = same_group && (beam_segment.heal > 0);
-                    if !is_heal && !is_damage {
+
+                    let damage = if !same_group && beam_segment.damages.enemy.is_some() {
+                        beam_segment.damages.enemy.unwrap()
+                    } else if same_group && beam_segment.damages.group.is_some() {
+                        beam_segment.damages.group.unwrap()
+                    } else {
                         continue;
-                    }
-
-                    // Weapon gives base damage
-                    let source = if is_heal {
-                        DamageSource::Healing
-                    } else {
-                        DamageSource::Energy
-                    };
-                    let healthchange = if is_heal {
-                        beam_segment.heal as f32
-                    } else {
-                        -(beam_segment.damage as f32)
-                    };
-
-                    let mut damage = Damage {
-                        healthchange,
-                        source,
                     };
 
                     let block = character_b.map(|c_b| c_b.is_block()).unwrap_or(false)
                         // TODO: investigate whether this calculation is proper for beams
                         && ori_b.0.angle_between(pos.0 - pos_b.0) < BLOCK_ANGLE.to_radians() / 2.0;
 
-                    if let Some(loadout) = loadouts.get(b) {
-                        damage.modify_damage(block, loadout);
-                    }
+                    let change = damage.modify_damage(block, loadouts.get(b), beam_segment.owner);
 
-                    if is_damage {
+                    if let Damage::Energy(_) = damage {
                         server_emitter.emit(ServerEvent::Damage {
                             uid: *uid_b,
-                            change: HealthChange {
-                                amount: damage.healthchange as i32,
-                                cause: HealthSource::Energy {
-                                    owner: beam_segment.owner,
-                                },
-                            },
+                            change,
                         });
                         if beam_segment.lifesteal_eff > 0.0 {
                             server_emitter.emit(ServerEvent::Damage {
                                 uid: beam_segment.owner.unwrap_or(*uid),
                                 change: HealthChange {
-                                    amount: (-damage.healthchange * beam_segment.lifesteal_eff)
+                                    amount: (-change.amount as f32 * beam_segment.lifesteal_eff)
                                         as i32,
                                     cause: HealthSource::Healing {
                                         by: beam_segment.owner,
@@ -228,7 +206,7 @@ impl<'a> System<'a> for Sys {
                             );
                         }
                     }
-                    if is_heal {
+                    if let Damage::Healing(_) = damage {
                         if let Some(energy_mut) = beam_owner.and_then(|o| energies.get_mut(o)) {
                             if energy_mut
                                 .try_change_by(
@@ -239,12 +217,7 @@ impl<'a> System<'a> for Sys {
                             {
                                 server_emitter.emit(ServerEvent::Damage {
                                     uid: *uid_b,
-                                    change: HealthChange {
-                                        amount: damage.healthchange as i32,
-                                        cause: HealthSource::Healing {
-                                            by: beam_segment.owner,
-                                        },
-                                    },
+                                    change,
                                 });
                             }
                         }
