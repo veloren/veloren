@@ -524,6 +524,14 @@ impl<'a> Widget for Skillbar<'a> {
                         .map(|i| i.item.kind())
                         .and_then(|kind| match kind {
                             ItemKind::Tool(Tool { kind, .. }) => match kind {
+                                ToolKind::Hammer(_) => Some((
+                                    "Smash of Doom",
+                                    "\nAn AOE attack with knockback. \nLeaps to position of \
+                                     cursor.",
+                                )),
+                                ToolKind::Axe(_) => {
+                                    Some(("Spin Leap", "\nA slashing running spin leap."))
+                                },
                                 ToolKind::Staff(_) => Some((
                                     "Firebomb",
                                     "\nWhirls a big fireball into the air. \nExplodes the ground \
@@ -533,14 +541,14 @@ impl<'a> Widget for Skillbar<'a> {
                                     "Whirlwind",
                                     "\nMove forward while spinning with \n your sword.",
                                 )),
-                                ToolKind::Debug(kind) => match kind.as_ref() {
-                                    "Boost" => Some((
-                                        "Possessing Arrow",
-                                        "\nShoots a poisonous arrow.\nLets you control your \
-                                         target.",
-                                    )),
-                                    _ => None,
-                                },
+                                ToolKind::Bow(_) => Some((
+                                    "Burst",
+                                    "\nLaunches a burst of arrows at the top \nof a running leap.",
+                                )),
+                                ToolKind::Debug(_) => Some((
+                                    "Possessing Arrow",
+                                    "\nShoots a poisonous arrow.\nLets you control your target.",
+                                )),
                                 _ => None,
                             },
                             _ => None,
@@ -621,10 +629,7 @@ impl<'a> Widget for Skillbar<'a> {
                     ToolKind::Bow(_) => self.imgs.bow_m1,
                     ToolKind::Sceptre(_) => self.imgs.heal_0,
                     ToolKind::Staff(_) => self.imgs.fireball,
-                    ToolKind::Debug(kind) => match kind.as_ref() {
-                        "Boost" => self.imgs.flyingrod_m1,
-                        _ => self.imgs.nothing,
-                    },
+                    ToolKind::Debug(_) => self.imgs.flyingrod_m1,
                     _ => self.imgs.nothing,
                 },
                 _ => self.imgs.nothing,
@@ -671,10 +676,7 @@ impl<'a> Widget for Skillbar<'a> {
             Some(ToolKind::Bow(_)) => self.imgs.bow_m2,
             Some(ToolKind::Sceptre(_)) => self.imgs.heal_bomb,
             Some(ToolKind::Staff(_)) => self.imgs.flamethrower,
-            Some(ToolKind::Debug(kind)) => match kind.as_ref() {
-                "Boost" => self.imgs.flyingrod_m2,
-                _ => self.imgs.nothing,
-            },
+            Some(ToolKind::Debug(_)) => self.imgs.flyingrod_m2,
             _ => self.imgs.nothing,
         })
         .w_h(36.0, 36.0)

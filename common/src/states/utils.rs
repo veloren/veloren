@@ -9,6 +9,7 @@ use crate::{
     util::Dir,
 };
 use serde::{Deserialize, Serialize};
+use std::time::Duration;
 use vek::*;
 
 pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;
@@ -161,7 +162,10 @@ pub fn handle_wield(data: &JoinData, update: &mut StateUpdate) {
 pub fn attempt_wield(data: &JoinData, update: &mut StateUpdate) {
     if let Some(ItemKind::Tool(tool)) = data.loadout.active_item.as_ref().map(|i| i.item.kind()) {
         update.character = CharacterState::Equipping(equipping::Data {
-            time_left: tool.equip_time(),
+            static_data: equipping::StaticData {
+                buildup_duration: tool.equip_time(),
+            },
+            timer: Duration::default(),
         });
     } else {
         update.character = CharacterState::Idle;

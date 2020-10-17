@@ -116,10 +116,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                             ToolKind::Hammer(_) => Some(HotbarImage::HammerLeap),
                             ToolKind::Axe(_) => Some(HotbarImage::AxeLeapSlash),
                             ToolKind::Bow(_) => Some(HotbarImage::BowJumpBurst),
-                            ToolKind::Debug(kind) => match kind.as_ref() {
-                                "Boost" => Some(HotbarImage::SnakeArrow),
-                                _ => None,
-                            },
+                            ToolKind::Debug(_) => Some(HotbarImage::SnakeArrow),
                             ToolKind::Sword(_) => Some(HotbarImage::SwordWhirlwind),
                             _ => None,
                         },
