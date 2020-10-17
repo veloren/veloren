@@ -35,6 +35,19 @@ impl Animation for BetaAnimation {
 
         let lab = 1.0;
 
+        let (movement1, movement2, movement3) = match stage_section {
+            Some(StageSection::Buildup) => {
+                (anim_time as f32, 0.0, 0.0)
+            },
+            Some(StageSection::Cast) => {
+                (1.0, anim_time as f32, 0.0)
+            },
+            Some(StageSection::Recover) => {
+                (1.0, 1.0, anim_time as f32)
+            },
+            _ => (0.0, 0.0, 0.0),
+        };
+
         let fast = (((5.0)
             / (1.1 + 3.9 * ((anim_time as f32 * lab as f32 * 28.0).sin()).powf(2.0 as f32)))
         .sqrt())
@@ -52,11 +65,6 @@ impl Animation for BetaAnimation {
         .sqrt())
             * ((anim_time as f32 * lab as f32 * 14.0).sin());
 
-        let recover = (anim_time as f32 * 8.0).sin();
-
-        let movement = anim_time as f32 * 1.0;
-        let stab = (anim_time as f32 * 2.5).sin();
-
         if let Some(ToolKind::Sword(_)) = active_tool_kind {
             next.hand_l.position = Vec3::new(-0.75, -1.0, 2.5);
             next.hand_l.orientation = Quaternion::rotation_x(1.47) * Quaternion::rotation_y(-0.2);
@@ -71,48 +79,18 @@ impl Animation for BetaAnimation {
 
             next.head.position = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1);
 
-            if let Some(stage_section) = stage_section {
-                match stage_section {
-                    StageSection::Buildup => {
-                        //println!("{:.3} recover", anim_time);
-                        next.control.position = Vec3::new(
-                            -8.0 + movement * -5.0,
-                            1.0 - recover * 0.8 + movement * 2.0,
-                            2.0 - recover * 0.4,
-                        );
-                        next.control.orientation = Quaternion::rotation_x(-1.57)
-                            * Quaternion::rotation_y(0.0 + movement * 1.5)
-                            * Quaternion::rotation_z(1.0);
-                        next.chest.orientation = Quaternion::rotation_y(-0.1)
-                            * Quaternion::rotation_z(0.4 + movement * 1.5);
-                        next.head.orientation = Quaternion::rotation_y(0.1)
-                            * Quaternion::rotation_z(-0.1 + movement * -1.1);
-                    },
-                    StageSection::Swing => {
-                        //println!("{:.3} swing", anim_time);
-                        next.control.position =
-                            Vec3::new(-8.0 + stab * 30.0, 6.0 + movement * 2.0, 6.0);
-                        next.control.orientation = Quaternion::rotation_x(-1.57)
-                            * Quaternion::rotation_y(1.5 + stab * 0.5)
-                            * Quaternion::rotation_z(1.0 + stab * 1.0);
-                        next.chest.orientation = Quaternion::rotation_y(-0.1)
-                            * Quaternion::rotation_z(1.9 + stab * -0.5);
-                        next.head.orientation = Quaternion::rotation_y(0.1)
-                            * Quaternion::rotation_z(-1.2 + stab * -0.5);
-                    },
-                    StageSection::Recover => {
-                        next.control.position = Vec3::new(10.0 + movement * -5.0, 8.0, 6.0);
-                        next.control.orientation = Quaternion::rotation_x(-1.57)
-                            * Quaternion::rotation_y(2.0)
-                            * Quaternion::rotation_z(2.0);
-                        next.chest.orientation = Quaternion::rotation_y(-0.1)
-                            * Quaternion::rotation_z(1.4 + movement * 1.0);
-                        next.head.orientation =
-                            Quaternion::rotation_y(0.1) * Quaternion::rotation_z(-1.5);
-                    },
-                    _ => {},
-                }
-            }
+            next.control.position = Vec3::new(
+                -8.0 + movement1 * -5.0 + (movement2 as f32 * 2.5).sin() * 30.0 + movement3 * -5.0,
+                1.0 - (movement1 as f32 * 8.0).sin() * 0.8 + movement1 * 2.0  + movement3 * 2.0,
+                2.0 - (movement1 as f32 * 8.0).sin() * 0.4,
+            );
+            next.control.orientation = Quaternion::rotation_x(-1.57)
+                * Quaternion::rotation_y(0.0 + movement1 * 1.5 + (movement2 as f32 * 2.5).sin() * 0.5)
+                * Quaternion::rotation_z(1.0 + (movement2 as f32 * 2.5).sin() * 1.0);
+            next.chest.orientation = Quaternion::rotation_y(-0.1)
+                * Quaternion::rotation_z(0.4 + movement1 * 1.5 + (movement2 as f32 * 2.5).sin() * -0.5 + movement3 * 1.0);
+            next.head.orientation = Quaternion::rotation_y(0.1)
+                * Quaternion::rotation_z(-0.1 + movement1 * -1.1 + (movement2 as f32 * 2.5).sin() * -0.5);
         }
 
         match active_tool_kind {
