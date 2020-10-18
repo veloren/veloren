@@ -12,7 +12,7 @@ use crate::{
 use common::comp::{BuffId, Buffs};
 use conrod_core::{
     color,
-    widget::{self, Button, Text, Image, Rectangle},
+    widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 use inline_tweak::*;
@@ -375,15 +375,15 @@ impl<'a> Widget for BuffsBar<'a> {
                 .zip(state.ids.buff_txts.iter().copied())
                 .zip(buffs.active_buffs.iter().map(get_buff_info))
                 .enumerate()
-                .for_each(|(i, (((id, timer_id),txt_id), buff))| {
+                .for_each(|(i, (((id, timer_id), txt_id), buff))| {
                     let max_duration = match buff.id {
                         BuffId::Regeneration { duration, .. } => duration.unwrap().as_secs_f32(),
                         BuffId::Bleeding { duration, .. } => duration.unwrap().as_secs_f32(),
-                        _ => 10e6,                        
+                        _ => 10e6,
                     };
                     let current_duration = buff.dur;
                     // Percentage to determine which frame of the timer overlay is displayed
-                    let duration_percentage = (current_duration / max_duration * 1000.0) as u32; 
+                    let duration_percentage = (current_duration / max_duration * 1000.0) as u32;
                     let buff_img = match buff.id {
                         BuffId::Regeneration { .. } => self.imgs.buff_plus_0,
                         BuffId::Bleeding { .. } => self.imgs.debuff_bleed_0,
@@ -467,14 +467,14 @@ impl<'a> Widget for BuffsBar<'a> {
                             event.push(Event::RemoveBuff(buff.id));
                         }
                     }
-                Text::new(&remaining_time)
-                    .down_from(timer_id, tweak!(1.0))
-                    .font_size(self.fonts.cyri.scale(tweak!(10)))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .graphics_for(timer_id)
-                    .color(TEXT_COLOR)
-                    .set(txt_id, ui);
-                    });
+                    Text::new(&remaining_time)
+                        .down_from(timer_id, tweak!(1.0))
+                        .font_size(self.fonts.cyri.scale(tweak!(10)))
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .graphics_for(timer_id)
+                        .color(TEXT_COLOR)
+                        .set(txt_id, ui);
+                });
         }
         event
     }
