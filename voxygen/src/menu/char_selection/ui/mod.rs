@@ -5,11 +5,14 @@ use crate::{
         self,
         fonts::IcedFonts as Fonts,
         ice::{
-            component::neat_button,
+            component::{
+                neat_button,
+                tooltip::{self, WithTooltip},
+            },
             style,
             widget::{
                 mouse_detector, AspectRatioContainer, BackgroundContainer, Image, MouseDetector,
-                Overlay, Padding,
+                Overlay, Padding, TooltipManager,
             },
             Element, IcedRenderer, IcedUi as Ui,
         },
@@ -36,8 +39,11 @@ use vek::Rgba;
 
 pub const TEXT_COLOR: iced::Color = iced::Color::from_rgb(1.0, 1.0, 1.0);
 pub const DISABLED_TEXT_COLOR: iced::Color = iced::Color::from_rgba(1.0, 1.0, 1.0, 0.2);
+pub const TOOLTIP_BACK_COLOR: Rgba<u8> = Rgba::new(20, 18, 10, 255);
 const FILL_FRAC_ONE: f32 = 0.77;
 const FILL_FRAC_TWO: f32 = 0.60;
+const TOOLTIP_HOVER_DUR: std::time::Duration = std::time::Duration::from_millis(500);
+const TOOLTIP_FADE_DUR: std::time::Duration = std::time::Duration::from_millis(500);
 
 const STARTER_HAMMER: &str = "common.items.weapons.hammer.starter_hammer";
 const STARTER_BOW: &str = "common.items.weapons.bow.starter_bow";
@@ -104,19 +110,12 @@ image_ids_ice! {
         button: "voxygen.element.buttons.button",
         button_hover: "voxygen.element.buttons.button_hover",
         button_press: "voxygen.element.buttons.button_press",
-    }
-}
 
-// TODO: do rotation in widget renderer
-/*rotation_image_ids! {
-    pub struct ImgsRot {
-        <VoxelGraphic>
-
-        // Tooltip Test
-        tt_side: "voxygen/element/frames/tt_test_edge",
+        // Tooltips
+        tt_edge: "voxygen/element/frames/tt_test_edge",
         tt_corner: "voxygen/element/frames/tt_test_corner_tr",
     }
-}*/
+}
 
 pub enum Event {
     Logout,
@@ -235,6 +234,7 @@ struct Controls {
     // Alpha disclaimer
     alpha: String,
 
+    tooltip_manager: TooltipManager,
     // Zone for rotating the character with the mouse
     mouse_detector: mouse_detector::State,
     // enter: bool,
@@ -272,6 +272,7 @@ impl Controls {
             version,
             alpha,
 
+            tooltip_manager: TooltipManager::new(TOOLTIP_HOVER_DUR, TOOLTIP_FADE_DUR),
             mouse_detector: Default::default(),
             mode: Mode::select(),
         }
@@ -279,18 +280,32 @@ impl Controls {
 
     fn view(&mut self, settings: &Settings, client: &Client) -> Element<Message> {
         // TODO: use font scale thing for text size (use on button size for buttons with
-        // text) TODO: if enter key pressed and character is selected then enter
-        // the world TODO: tooltip widget
+        // text)
+        // TODO: if enter key pressed and character is selected then enter the world
+
+        // Maintain tooltip manager
+        self.tooltip_manager.maintain();
 
         let imgs = &self.imgs;
         let fonts = &self.fonts;
         let i18n = &self.i18n;
+        let tooltip_manager = &self.tooltip_manager;
 
         let button_style = style::button::Style::new(imgs.button)
             .hover_image(imgs.button_hover)
             .press_image(imgs.button_press)
             .text_color(TEXT_COLOR)
             .disabled_text_color(DISABLED_TEXT_COLOR);
+
+        let tooltip_style = tooltip::Style {
+            container: style::container::Style::color_with_image_border(
+                TOOLTIP_BACK_COLOR,
+                imgs.tt_corner,
+                imgs.tt_edge,
+            ),
+            text_color: TEXT_COLOR,
+            text_size: self.fonts.cyri.scale(15),
+        };
 
         let version = iced::Text::new(&self.version)
             .size(self.fonts.cyri.scale(15))
@@ -382,11 +397,21 @@ impl Controls {
                                     Button::new(
                                         delete_button,
                                         Column::with_children(vec![
-                                            Text::new("Hi").into(),
-                                            Text::new("Hi").into(),
-                                            Text::new("Hi").into(),
+                                            Text::new(&character.character.alias).into(),
+                                            // TODO: only construct string once when characters are
+                                            // loaded
+                                            Text::new(
+                                                i18n.get("char_selection.level_fmt").replace(
+                                                    "{level_nb}",
+                                                    &character.level.to_string(),
+                                                ),
+                                            )
+                                            .into(),
+                                            Text::new(i18n.get("char_selection.uncanny_valley"))
+                                                .into(),
                                         ]),
                                     )
+                                    .padding(8)
                                     .style(
                                         style::button::Style::new(imgs.selection)
                                             .hover_image(imgs.selection_hover)
@@ -394,7 +419,16 @@ impl Controls {
                                     )
                                     .width(Length::Fill)
                                     .height(Length::Fill)
-                                    .on_press(Message::Select(i)),
+                                    .on_press(Message::Select(i))
+                                    .with_tooltip(
+                                        tooltip_manager,
+                                        move || {
+                                            tooltip::text(
+                                                i18n.get("char_selection.delete_permanently"),
+                                                tooltip_style,
+                                            )
+                                        },
+                                    ),
                                 )
                                 .ratio_of_image(imgs.selection),
                             )
@@ -516,7 +550,7 @@ impl Controls {
                     let over: Element<_> = match info_content {
                         InfoContent::Deletion(_) => Container::new(
                             Column::with_children(vec![
-                                Text::new(self.i18n.get("char_selection.delete_permanently"))
+                                Text::new(i18n.get("char_selection.delete_permanently"))
                                     .size(fonts.cyri.scale(24))
                                     .into(),
                                 Row::with_children(vec![

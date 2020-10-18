@@ -1,5 +1,6 @@
 use crate::ui::{graphic, ice::widget::image};
 
+#[derive(Debug)]
 pub enum Primitive {
     // Allocation :(
     Group {

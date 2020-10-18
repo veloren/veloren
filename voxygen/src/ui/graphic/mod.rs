@@ -28,7 +28,7 @@ pub enum Graphic {
     Blank,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum Rotation {
     None,
     Cw90,

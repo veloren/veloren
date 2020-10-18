@@ -72,6 +72,14 @@ where
             .iter()
             .for_each(|child| child.hash_layout(state));
     }
+
+    fn overlay(&mut self, layout: Layout<'_>) -> Option<iced::overlay::Element<'_, M, R>> {
+        self.children
+            .iter_mut()
+            .zip(layout.children())
+            .filter_map(|(child, layout)| child.overlay(layout))
+            .next()
+    }
 }
 
 pub trait Renderer: iced::Renderer {
