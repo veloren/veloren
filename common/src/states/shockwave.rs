@@ -3,7 +3,7 @@ use crate::{
     event::ServerEvent,
     states::utils::*,
     sys::character_behavior::{CharacterBehavior, JoinData},
-    Damage, Damages,
+    Damage, Damages, Knockback,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -20,7 +20,7 @@ pub struct StaticData {
     /// Base damage
     pub damage: u32,
     /// Knockback
-    pub knockback: f32,
+    pub knockback: Knockback,
     /// Angle of the shockwave
     pub shockwave_angle: f32,
     /// Vertical angle of the shockwave

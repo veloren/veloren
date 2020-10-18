@@ -1,4 +1,4 @@
-use crate::{sync::Uid, Damages, Explosion};
+use crate::{sync::Uid, Damages, Explosion, Knockback};
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
@@ -7,7 +7,7 @@ use std::time::Duration;
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Effect {
     Damages(Damages),
-    Knockback(f32),
+    Knockback(Knockback),
     RewardEnergy(u32),
     Explode(Explosion),
     Vanish,

@@ -3,7 +3,7 @@ use crate::{
     event::{LocalEvent, ServerEvent},
     states::*,
     sys::character_behavior::JoinData,
-    Damages,
+    Damages, Knockback,
 };
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage, VecStorage};
@@ -158,7 +158,7 @@ pub struct Attacking {
     pub max_angle: f32,
     pub applied: bool,
     pub hit_count: u32,
-    pub knockback: f32,
+    pub knockback: Knockback,
 }
 
 impl Component for Attacking {

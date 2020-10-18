@@ -212,17 +212,11 @@ impl<'a> System<'a> for Sys {
                             change,
                         });
                         shockwave_hit_list.hit_entities.push(*uid_b);
-                    }
-                    if shockwave.knockback != 0.0 {
                         let kb_dir = Dir::new((pos_b.0 - pos.0).try_normalized().unwrap_or(*ori.0));
-                        let impulse = if shockwave.knockback < 0.0 {
-                            shockwave.knockback
-                                * *Dir::slerp(kb_dir, Dir::new(Vec3::new(0.0, 0.0, -1.0)), 0.85)
-                        } else {
-                            shockwave.knockback
-                                * *Dir::slerp(kb_dir, Dir::new(Vec3::new(0.0, 0.0, 1.0)), 0.5)
-                        };
-                        server_emitter.emit(ServerEvent::Knockback { entity: b, impulse });
+                        server_emitter.emit(ServerEvent::Knockback {
+                            entity: b,
+                            impulse: shockwave.knockback.get_knockback(kb_dir),
+                        });
                     }
                 }
             }
