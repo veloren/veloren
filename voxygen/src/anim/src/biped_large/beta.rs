@@ -74,7 +74,6 @@ impl Animation for BetaAnimation {
             if let Some(stage_section) = stage_section {
                 match stage_section {
                     StageSection::Buildup => {
-                        //println!("{:.3} recover", anim_time);
                         next.control.position = Vec3::new(
                             -8.0 + movement * -5.0,
                             1.0 - recover * 0.8 + movement * 2.0,
@@ -89,7 +88,6 @@ impl Animation for BetaAnimation {
                             * Quaternion::rotation_z(-0.1 + movement * -1.1);
                     },
                     StageSection::Swing => {
-                        //println!("{:.3} swing", anim_time);
                         next.control.position =
                             Vec3::new(-8.0 + stab * 30.0, 6.0 + movement * 2.0, 6.0);
                         next.control.orientation = Quaternion::rotation_x(-1.57)

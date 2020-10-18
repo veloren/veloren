@@ -142,7 +142,6 @@ impl Animation for SwimWieldAnimation {
             next.shorts.orientation = Quaternion::rotation_z(0.3);
         }
         match active_tool_kind {
-            //TODO: Inventory
             Some(ToolKind::Sword(_)) => {
                 next.hand_l.position = Vec3::new(-0.75, -1.0, -2.5);
                 next.hand_l.orientation =
@@ -164,15 +163,9 @@ impl Animation for SwimWieldAnimation {
                 next.control.scale = Vec3::one();
             },
             Some(ToolKind::Dagger(_)) => {
-                // hands should be larger when holding a dagger grip,
-                // also reduce flicker with overlapping polygons
                 let hand_scale = 1.12;
 
                 next.control.position = Vec3::new(0.0, 0.0, 0.0);
-                //next.control.orientation = Quaternion::rotation_x(slow * 1.0);
-                //     * Quaternion::rotation_y(0.0)
-                //     * Quaternion::rotation_z(u_slowalt * 0.08);
-                // next.control.scale = Vec3::one();
 
                 next.hand_l.position = Vec3::new(0.0, 0.0, 0.0);
                 next.hand_l.orientation = Quaternion::rotation_x(0.0 * PI)
@@ -186,10 +179,6 @@ impl Animation for SwimWieldAnimation {
                     * Quaternion::rotation_z(0.0 * PI);
 
                 next.control_l.position = Vec3::new(-7.0, 0.0, 0.0);
-                // next.control_l.orientation = Quaternion::rotation_x(u_slow * 0.15 + 1.0)
-                //     * Quaternion::rotation_y(0.0)
-                //     * Quaternion::rotation_z(u_slowalt * 0.08);
-                // next.control_l.scale = Vec3::one();
 
                 next.hand_r.position = Vec3::new(0.0, 0.0, 0.0);
                 next.hand_r.orientation = Quaternion::rotation_x(0.0 * PI)
@@ -204,10 +193,6 @@ impl Animation for SwimWieldAnimation {
                 next.second.scale = Vec3::one();
 
                 next.control_r.position = Vec3::new(7.0, 0.0, 0.0);
-                // next.control_r.orientation = Quaternion::rotation_x(0.0 * PI)
-                // * Quaternion::rotation_y(0.0 * PI)
-                // * Quaternion::rotation_z(0.0 * PI);
-                // next.control_r.scale = Vec3::one();
             },
             Some(ToolKind::Axe(_)) => {
                 if velocity < 0.5 {
@@ -299,15 +284,9 @@ impl Animation for SwimWieldAnimation {
                 next.control.scale = Vec3::one();
             },
             Some(ToolKind::Shield(_)) => {
-                // hands should be larger when holding a dagger grip,
-                // also reduce flicker with overlapping polygons
                 let hand_scale = 1.12;
 
                 next.control.position = Vec3::new(0.0, 0.0, 0.0);
-                // next.control.orientation = Quaternion::rotation_x(u_slow * 0.15 + 1.0)
-                //     * Quaternion::rotation_y(0.0)
-                //     * Quaternion::rotation_z(u_slowalt * 0.08);
-                // next.control.scale = Vec3::one();
 
                 next.hand_l.position = Vec3::new(0.0, 0.0, 0.0);
                 next.hand_l.orientation = Quaternion::rotation_x(0.0 * PI)
@@ -321,10 +300,6 @@ impl Animation for SwimWieldAnimation {
                     * Quaternion::rotation_z(0.0 * PI);
 
                 next.control_l.position = Vec3::new(-7.0, 0.0, 0.0);
-                // next.control_l.orientation = Quaternion::rotation_x(u_slow * 0.15 + 1.0)
-                //     * Quaternion::rotation_y(0.0)
-                //     * Quaternion::rotation_z(u_slowalt * 0.08);
-                // next.control_l.scale = Vec3::one();
 
                 next.hand_r.position = Vec3::new(0.0, 0.0, 0.0);
                 next.hand_r.orientation = Quaternion::rotation_x(0.0 * PI)
@@ -339,10 +314,6 @@ impl Animation for SwimWieldAnimation {
                 next.second.scale = Vec3::one();
 
                 next.control_r.position = Vec3::new(7.0, 0.0, 0.0);
-                // next.control_r.orientation = Quaternion::rotation_x(0.0 * PI)
-                // * Quaternion::rotation_y(0.0 * PI)
-                // * Quaternion::rotation_z(0.0 * PI);
-                // next.control_r.scale = Vec3::one();
             },
             Some(ToolKind::Bow(_)) => {
                 next.hand_l.position = Vec3::new(2.0, 1.5, 0.0);

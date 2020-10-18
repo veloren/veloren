@@ -62,9 +62,7 @@ impl Animation for BeamAnimation {
 
         let fast = (anim_time as f32 * 16.0).sin();
 
-        //println!("{:?}", anim_time);
         match active_tool_kind {
-            //TODO: Inventory
             Some(ToolKind::Staff(_)) | Some(ToolKind::Sceptre(_)) => {
                 if let Some(stage_section) = stage_section {
                     match stage_section {

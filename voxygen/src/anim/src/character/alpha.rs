@@ -90,7 +90,6 @@ impl Animation for AlphaAnimation {
             if let Some(stage_section) = stage_section {
                 match stage_section {
                     StageSection::Buildup => {
-                        //println!("{:.3} build", anim_time);
                         next.control.position =
                             Vec3::new(-7.0, 7.0 + movement * -4.0, 2.0 + movement * 1.0);
                         next.control.orientation = Quaternion::rotation_x(movement * -0.5)
@@ -101,7 +100,6 @@ impl Animation for AlphaAnimation {
                         next.head.orientation = Quaternion::rotation_z(movement * -0.9);
                     },
                     StageSection::Swing => {
-                        //println!("{:.3} swing", anim_time);
                         next.control.position = Vec3::new(-7.0, 3.0 + movement * 16.0, 3.0);
                         next.control.orientation =
                             Quaternion::rotation_x(-0.5 + movement * -1.0 * 0.0)
@@ -110,19 +108,8 @@ impl Animation for AlphaAnimation {
 
                         next.chest.orientation = Quaternion::rotation_z(1.5 + test * -3.0);
                         next.head.orientation = Quaternion::rotation_z(-0.9 + test * 2.5);
-                        //next.head.orientation = Quaternion::rotation_z(-test
-                        // * 0.8); next.chest.
-                        // orientation = Quaternion::rotation_x(test * 0.15)
-                        //* Quaternion::rotation_y(movement * 0.3)
-                        //* Quaternion::rotation_z(movement * 1.5);
-                        //next.belt.orientation = Quaternion::rotation_z(test2
-                        // * 0.5); next.shorts.
-                        // orientation = Quaternion::rotation_z(test2 * 1.5);
-                        // next.torso.orientation = Quaternion::rotation_z(test2
-                        // * 7.2);
                     },
                     StageSection::Recover => {
-                        //println!("{:.3} recover", anim_time);
                         next.control.position = Vec3::new(-7.0, 15.0, 2.0);
                         next.control.orientation = Quaternion::rotation_x(-0.5)
                             * Quaternion::rotation_y(-1.57 + movement * 1.0)
@@ -140,7 +127,6 @@ impl Animation for AlphaAnimation {
         }
 
         match active_tool_kind {
-            //TODO: Inventory
             Some(ToolKind::Dagger(_)) => {
                 next.head.position =
                     Vec3::new(0.0, -2.0 + skeleton_attr.head.0, skeleton_attr.head.1);
@@ -162,7 +148,6 @@ impl Animation for AlphaAnimation {
                     Vec3::new(0.0, skeleton_attr.shorts.0, skeleton_attr.shorts.1);
                 next.shorts.orientation = next.chest.orientation * -0.45;
 
-                // TODO: Fix animation
                 next.hand_l.position = Vec3::new(0.0, 0.0, 0.0);
                 next.hand_l.orientation = Quaternion::rotation_x(0.0);
                 next.hand_l.scale = Vec3::one() * 1.12;
@@ -186,23 +171,6 @@ impl Animation for AlphaAnimation {
                 next.control_r.position = Vec3::new(8.0, 0.0, 0.0);
                 next.control_r.orientation = Quaternion::rotation_x(0.0);
                 next.control_r.scale = Vec3::one();
-
-                // next.control_r.position = Vec3::new(-10.0 + push * 5.0, 6.0 + push * 5.0,
-                // 2.0); next.control_r.orientation =
-                // Quaternion::rotation_x(-1.4 + slow * 0.4)
-                //     * Quaternion::rotation_y(slow * -1.3)
-                //     * Quaternion::rotation_z(1.4 + slow * -0.5);
-                // next.control_r.scale = Vec3::one();
-
-                // next.hand_r.position = Vec3::new(0.75, -1.5, -5.5);
-                // next.hand_r.orientation = Quaternion::rotation_x(1.27);
-                // next.hand_r.scale = Vec3::one() * 1.05;
-
-                // next.control.position = Vec3::new(-10.0 + push * 5.0, 6.0 + push * 5.0, 2.0);
-                // next.control.orientation = Quaternion::rotation_x(-1.4 + slow * 0.4)
-                //     * Quaternion::rotation_y(slow * -1.3)
-                //     * Quaternion::rotation_z(1.4 + slow * -0.5);
-                // next.control.scale = Vec3::one();
 
                 next.foot_l.position = Vec3::new(
                     -skeleton_attr.foot.0,

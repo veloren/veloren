@@ -216,10 +216,7 @@ impl Animation for LeapAnimation {
                     },
 
                     StageSection::Movement => {
-                        next.control.position = Vec3::new(
-                            0.0, 12.0, //11
-                            15.0,
-                        );
+                        next.control.position = Vec3::new(0.0, 12.0, 15.0);
 
                         next.upper_torso.position = Vec3::new(
                             0.0,
@@ -338,16 +335,6 @@ impl Animation for LeapAnimation {
             }
         }
 
-        //next.lantern.position = Vec3::new(
-        //    skeleton_attr.lantern.0,
-        //    skeleton_attr.lantern.1,
-        //    skeleton_attr.lantern.2,
-        //);
-        //next.glider.position = Vec3::new(0.0, 0.0, 10.0);
-        //next.glider.scale = Vec3::one() * 0.0;
-        //next.l_control.scale = Vec3::one();
-        //next.r_control.scale = Vec3::one();
-
         next.second.scale = match (
             active_tool_kind.map(|tk| tk.hands()),
             second_tool_kind.map(|tk| tk.hands()),
@@ -356,9 +343,6 @@ impl Animation for LeapAnimation {
             (_, _) => Vec3::zero(),
         };
 
-        //next.torso.position = Vec3::new(0.0, 0.0, 0.0) * skeleton_attr.scaler;
-        //next.torso.orientation = Quaternion::rotation_z(0.0);
-        //next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
         next
     }
 }
