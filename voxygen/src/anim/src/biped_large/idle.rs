@@ -170,7 +170,7 @@ impl Animation for IdleAnimation {
             skeleton_attr.leg.2 + torso * 0.2,
         );
         next.leg_l.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
-        next.leg_l.scale = Vec3::one();
+        next.leg_l.scale = Vec3::one() * 1.02;
 
         next.leg_r.position = Vec3::new(
             skeleton_attr.leg.0,
@@ -178,7 +178,7 @@ impl Animation for IdleAnimation {
             skeleton_attr.leg.2 + torso * 0.2,
         );
         next.leg_r.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
-        next.leg_r.scale = Vec3::one();
+        next.leg_r.scale = Vec3::one() * 1.02;
 
         next.foot_l.position = Vec3::new(
             -skeleton_attr.foot.0,

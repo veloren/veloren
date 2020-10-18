@@ -114,7 +114,12 @@ impl LoadoutBuilder {
                 },
                 (biped_large::Species::Wendigo, _) => {
                     main_tool = Some(Item::new_from_asset_expect(
-                        "common.items.npc_weapons.hammer.wendigo_hammer",
+                        "common.items.npc_weapons.npcweapon.beast_claws",
+                    ));
+                },
+                (biped_large::Species::Werewolf, _) => {
+                    main_tool = Some(Item::new_from_asset_expect(
+                        "common.items.npc_weapons.npcweapon.beast_claws",
                     ));
                 },
                 (biped_large::Species::Cyclops, _) => {
