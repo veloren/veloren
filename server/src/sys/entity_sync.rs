@@ -197,13 +197,28 @@ impl<'a> System<'a> for Sys {
                     .take_deleted_in_region(key)
                     .unwrap_or_default(),
             );
-            let entity_sync_msg = ServerGeneral::EntitySync(entity_sync_package);
-            let comp_sync_msg = ServerGeneral::CompSync(comp_sync_package);
+            let mut entity_sync_package = Some(entity_sync_package);
+            let mut comp_sync_package = Some(comp_sync_package);
+            let mut entity_sync_lazymsg = None;
+            let mut comp_sync_lazymsg = None;
             subscribers
                 .iter_mut()
                 .for_each(move |(_, _, _, _, _, general_stream)| {
-                    general_stream.send_unchecked(entity_sync_msg.clone());
-                    general_stream.send_unchecked(comp_sync_msg.clone());
+                    if entity_sync_lazymsg.is_none() {
+                        entity_sync_lazymsg = Some(general_stream.prepare(
+                            &ServerGeneral::EntitySync(entity_sync_package.take().unwrap()),
+                        ));
+                        comp_sync_lazymsg =
+                            Some(general_stream.prepare(&ServerGeneral::CompSync(
+                                comp_sync_package.take().unwrap(),
+                            )));
+                    }
+                    entity_sync_lazymsg
+                        .as_ref()
+                        .map(|msg| general_stream.0.send_raw(&msg));
+                    comp_sync_lazymsg
+                        .as_ref()
+                        .map(|msg| general_stream.0.send_raw(&msg));
                 });
 
             let mut send_general = |msg: ServerGeneral,
@@ -381,9 +396,14 @@ impl<'a> System<'a> for Sys {
         // Sync resources
         // TODO: doesn't really belong in this system (rename system or create another
         // system?)
-        let tof_msg = ServerGeneral::TimeOfDay(*time_of_day);
+        let mut tof_lazymsg = None;
         for general_stream in (&mut general_streams).join() {
-            general_stream.send_unchecked(tof_msg.clone());
+            if tof_lazymsg.is_none() {
+                tof_lazymsg = Some(general_stream.prepare(&ServerGeneral::TimeOfDay(*time_of_day)));
+            }
+            tof_lazymsg
+                .as_ref()
+                .map(|msg| general_stream.0.send_raw(&msg));
         }
 
         timer.end();

@@ -32,6 +32,8 @@ impl<'a> System<'a> for Sys {
 
         // Sync changed chunks
         'chunk: for chunk_key in &terrain_changes.modified_chunks {
+            let mut lazy_msg = None;
+
             for (player, pos, in_game_stream) in (&players, &positions, &mut in_game_streams).join()
             {
                 if player
@@ -39,23 +41,36 @@ impl<'a> System<'a> for Sys {
                     .map(|vd| super::terrain::chunk_in_vd(pos.0, *chunk_key, &terrain, vd))
                     .unwrap_or(false)
                 {
-                    let _ = in_game_stream.send(ServerGeneral::TerrainChunkUpdate {
-                        key: *chunk_key,
-                        chunk: Ok(Box::new(match terrain.get_key(*chunk_key) {
-                            Some(chunk) => chunk.clone(),
-                            None => break 'chunk,
-                        })),
-                    });
+                    if lazy_msg.is_none() {
+                        lazy_msg =
+                            Some(in_game_stream.prepare(&ServerGeneral::TerrainChunkUpdate {
+                                key: *chunk_key,
+                                chunk: Ok(Box::new(match terrain.get_key(*chunk_key) {
+                                    Some(chunk) => chunk.clone(),
+                                    None => break 'chunk,
+                                })),
+                            }));
+                    }
+                    lazy_msg
+                        .as_ref()
+                        .map(|ref msg| in_game_stream.0.send_raw(&msg));
                 }
             }
         }
 
         // TODO: Don't send all changed blocks to all clients
         // Sync changed blocks
-        let msg = ServerGeneral::TerrainBlockUpdates(terrain_changes.modified_blocks.clone());
+        let mut lazy_msg = None;
         for (player, in_game_stream) in (&players, &mut in_game_streams).join() {
+            if lazy_msg.is_none() {
+                lazy_msg = Some(in_game_stream.prepare(&ServerGeneral::TerrainBlockUpdates(
+                    terrain_changes.modified_blocks.clone(),
+                )));
+            }
             if player.view_distance.is_some() {
-                in_game_stream.send_unchecked(msg.clone());
+                lazy_msg
+                    .as_ref()
+                    .map(|ref msg| in_game_stream.0.send_raw(&msg));
             }
         }
 

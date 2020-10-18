@@ -1,6 +1,6 @@
 use common::msg::{ClientGeneral, ClientRegister, PingMsg, ServerGeneral, ServerRegisterAnswer};
 
-use network::{Stream, StreamError};
+use network::{Message, Stream, StreamError};
 use serde::{de::DeserializeOwned, Serialize};
 
 use specs::Component;
@@ -22,6 +22,14 @@ pub(crate) trait GetStream {
     }
 
     fn send_unchecked(&mut self, msg: Self::SendMsg) { let _ = self.send(msg); }
+
+    fn prepare(&mut self, msg: &Self::SendMsg) -> Message {
+        if Self::verify(&msg) {
+            Message::serialize(&msg, &self.get_mut())
+        } else {
+            unreachable!("sending this msg isn't allowed! got: {:?}", msg)
+        }
+    }
 }
 
 // Streams
