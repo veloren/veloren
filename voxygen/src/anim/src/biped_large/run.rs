@@ -225,7 +225,7 @@ impl Animation for RunAnimation {
                 skeleton_attr.hand.2 + (foot1a * -3.0).max(1.0) * amplitude2,
             );
             next.hand_l.orientation =
-                Quaternion::rotation_x((amplitude2 * foot1b * 0.9 + canceler * 0.9))
+                Quaternion::rotation_x(amplitude2 * foot1b * 0.9 + canceler * 0.9)
                     * Quaternion::rotation_y(tilt * -1.0);
             next.hand_l.scale = Vec3::one() * 0.96;
 
@@ -235,7 +235,7 @@ impl Animation for RunAnimation {
                 skeleton_attr.hand.2 + (foot2a * -3.0).max(1.0) * amplitude2,
             );
             next.hand_r.orientation =
-                Quaternion::rotation_x((amplitude2 * foot2b * 0.9 + canceler * 0.7))
+                Quaternion::rotation_x(amplitude2 * foot2b * 0.9 + canceler * 0.7)
                     * Quaternion::rotation_y(tilt * -1.0);
             next.hand_r.scale = Vec3::one() * 0.96;
 

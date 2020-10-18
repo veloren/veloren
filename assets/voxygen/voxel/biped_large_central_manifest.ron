@@ -18,7 +18,7 @@
         ),
         tail: (
             offset: (0.0, 0.0, 0.0),
-            central: ("armor.empty"),        
+            central: ("armor.empty"),
         ),
         second: (
             offset: (0.0, 0.0, 0.0),
@@ -48,7 +48,7 @@
         ),
         tail: (
             offset: (0.0, 0.0, 0.0),
-            central: ("armor.empty"),        
+            central: ("armor.empty"),
         ),
         second: (
             offset: (0.0, 0.0, 0.0),
@@ -78,7 +78,7 @@
         ),
         tail: (
             offset: (0.0, 0.0, 0.0),
-            central: ("armor.empty"),        
+            central: ("armor.empty"),
         ),
         second: (
             offset: (0.0, 0.0, 0.0),
@@ -108,7 +108,7 @@
         ),
         tail: (
             offset: (0.0, 0.0, 0.0),
-            central: ("armor.empty"),        
+            central: ("armor.empty"),
         ),
         second: (
             offset: (0.0, 0.0, 0.0),
@@ -138,15 +138,15 @@
         ),
         tail: (
             offset: (0.0, 0.0, 0.0),
-            central: ("armor.empty"),        
+            central: ("armor.empty"),
         ),
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
         ),
         main: (
-            offset: (-3.0, -3.5, -8.0),
-            central: ("weapon.hammer.2hhammer_wendigo"),
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     (Wendigo, Female): (
@@ -168,15 +168,15 @@
         ),
         tail: (
             offset: (0.0, 0.0, 0.0),
-            central: ("armor.empty"),        
+            central: ("armor.empty"),
         ),
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
         ),
         main: (
-            offset: (-5.0, -6.5, -4.0),
-            central: ("weapon.hammer.2hhammer_wendigo"),
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     (Troll, Male): (
@@ -198,7 +198,7 @@
         ),
         tail: (
             offset: (0.0, 0.0, 0.0),
-            central: ("armor.empty"),        
+            central: ("armor.empty"),
         ),
         second: (
             offset: (0.0, 0.0, 0.0),
@@ -228,7 +228,7 @@
         ),
         tail: (
             offset: (0.0, 0.0, 0.0),
-            central: ("armor.empty"),        
+            central: ("armor.empty"),
         ),
         second: (
             offset: (0.0, 0.0, 0.0),
@@ -258,7 +258,7 @@
         ),
         tail: (
             offset: (0.0, 0.0, 0.0),
-            central: ("armor.empty"),        
+            central: ("armor.empty"),
         ),
         second: (
             offset: (0.0, 0.0, 0.0),
@@ -288,7 +288,7 @@
         ),
         tail: (
             offset: (0.0, 0.0, 0.0),
-            central: ("armor.empty"),        
+            central: ("armor.empty"),
         ),
         second: (
             offset: (0.0, 0.0, 0.0),
