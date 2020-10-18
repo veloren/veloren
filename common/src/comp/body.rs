@@ -250,6 +250,7 @@ impl Body {
                 quadruped_medium::Species::Bonerattler => 400,
                 quadruped_medium::Species::Deer => 300,
                 quadruped_medium::Species::Hirdrasil => 500,
+                quadruped_medium::Species::Roshwalr => 600,
                 _ => 400,
             },
             Body::BirdMedium(bird_medium) => match bird_medium.species {
@@ -319,6 +320,7 @@ impl Body {
                 quadruped_medium::Species::Bonerattler => 30,
                 quadruped_medium::Species::Deer => 30,
                 quadruped_medium::Species::Hirdrasil => 30,
+                quadruped_medium::Species::Roshwalr => 30,
                 _ => 20,
             },
             Body::BirdMedium(bird_medium) => match bird_medium.species {
@@ -388,6 +390,7 @@ impl Body {
                 quadruped_medium::Species::Bonerattler => 10,
                 quadruped_medium::Species::Deer => 7,
                 quadruped_medium::Species::Hirdrasil => 10,
+                quadruped_medium::Species::Roshwalr => 10,
                 _ => 6,
             },
             Body::BirdMedium(bird_medium) => match bird_medium.species {
@@ -466,6 +469,7 @@ impl Body {
                 quadruped_medium::Species::Bonerattler => 50,
                 quadruped_medium::Species::Deer => 30,
                 quadruped_medium::Species::Hirdrasil => 50,
+                quadruped_medium::Species::Roshwalr => 60,
                 _ => 40,
             },
             Body::BirdMedium(bird_medium) => match bird_medium.species {

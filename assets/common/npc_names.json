@@ -294,6 +294,10 @@
             "hirdrasil": {
                 "keyword": "hirdrasil",
                 "generic": "Hirdrasil"
+            },
+            "roshwalr": {
+                "keyword": "roshwalr",
+                "generic": "Roshwalr"
             }
         }
     },

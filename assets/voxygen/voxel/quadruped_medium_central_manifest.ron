@@ -779,4 +779,64 @@
             central: ("npc.hirdrasil.male.tail"),
         ),
     ),
+    (Roshwalr, Male): (
+        head: (
+            offset: (-13.0, 0.0, -12.0),
+            central: ("npc.roshwalr.male.head"),
+        ),
+        neck: (
+            offset: (-7.0, -3.0, -11.5),
+            central: ("npc.roshwalr.male.neck"),
+        ),
+        jaw: (
+            offset: (-5.0, 0.0, -3.0),
+            central: ("npc.roshwalr.male.jaw"),
+        ),
+        torso_front: (
+            offset: (-8.0, -12.0, -10.5),
+            central: ("npc.roshwalr.male.torso_front"),
+        ),
+        torso_back: (
+            offset: (-6.0, -12.0, -7.0),
+            central: ("npc.roshwalr.male.torso_back"),
+        ),
+        ears: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        tail: (
+            offset: (-4.0, -13.0, -8.0),
+            central: ("npc.roshwalr.male.tail"),
+        ),
+    ),
+    (Roshwalr, Female): (
+        head: (
+            offset: (-13.0, 0.0, -12.0),
+            central: ("npc.roshwalr.male.head"),
+        ),
+        neck: (
+            offset: (-7.0, -3.0, -11.5),
+            central: ("npc.roshwalr.male.neck"),
+        ),
+        jaw: (
+            offset: (-5.0, 0.0, -3.0),
+            central: ("npc.roshwalr.male.jaw"),
+        ),
+        torso_front: (
+            offset: (-8.0, -12.0, -10.5),
+            central: ("npc.roshwalr.male.torso_front"),
+        ),
+        torso_back: (
+            offset: (-6.0, -12.0, -7.0),
+            central: ("npc.roshwalr.male.torso_back"),
+        ),
+        ears: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        tail: (
+            offset: (-4.0, -13.0, -8.0),
+            central: ("npc.roshwalr.male.tail"),
+        ),
+    ),
 })
