@@ -36,5 +36,10 @@ pub enum Primitive {
         offset: vek::Vec2<u32>,
         content: Box<Primitive>,
     },
+    // Make content translucent
+    Opacity {
+        alpha: f32,
+        content: Box<Primitive>,
+    },
     Nothing,
 }

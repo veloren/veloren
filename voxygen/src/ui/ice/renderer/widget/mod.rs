@@ -13,3 +13,4 @@ mod slider;
 mod space;
 mod text;
 mod text_input;
+mod tooltip;

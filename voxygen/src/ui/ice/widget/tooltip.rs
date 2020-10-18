@@ -119,16 +119,37 @@ impl TooltipManager {
 
     fn update(&self, update: Update) { *self.update.lock().unwrap() = Some(update); }
 
-    fn showing(&self, aabr: Aabr<i32>) -> bool {
+    /// Returns an options with the position of the cursor when the tooltip
+    /// started being show and the transparency if it is fading
+    fn showing(&self, aabr: Aabr<i32>) -> Option<(Point, f32)> {
         match self.state {
-            State::Idle | State::Start(_) => false,
-            State::Showing(show) | State::Fading(_, show, _) => show.aabr == aabr,
+            State::Idle | State::Start(_) => None,
+            State::Showing(show) => (show.aabr == aabr).then(|| {
+                (
+                    Point {
+                        x: show.hover_pos.x as f32,
+                        y: show.hover_pos.y as f32,
+                    },
+                    1.0,
+                )
+            }),
+            State::Fading(start, show, _) => (show.aabr == aabr)
+                .then(|| {
+                    (
+                        Point {
+                            x: show.hover_pos.x as f32,
+                            y: show.hover_pos.y as f32,
+                        },
+                        1.0 - start.elapsed().as_secs_f32() / self.fade_dur.as_secs_f32(),
+                    )
+                })
+                .filter(|(_, fade)| *fade > 0.0),
         }
     }
 }
 
 /// A widget used to display tooltips when the content element is hovered
-pub struct Tooltip<'a, M, R: iced::Renderer> {
+pub struct Tooltip<'a, M, R: self::Renderer> {
     content: Element<'a, M, R>,
     hover_content: Box<dyn 'a + FnMut() -> Element<'a, M, R>>,
     manager: &'a TooltipManager,
@@ -136,7 +157,7 @@ pub struct Tooltip<'a, M, R: iced::Renderer> {
 
 impl<'a, M, R> Tooltip<'a, M, R>
 where
-    R: iced::Renderer,
+    R: self::Renderer,
 {
     pub fn new<C, H>(content: C, hover_content: H, manager: &'a TooltipManager) -> Self
     where
@@ -153,7 +174,7 @@ where
 
 impl<'a, M, R> Widget<M, R> for Tooltip<'a, M, R>
 where
-    R: iced::Renderer,
+    R: self::Renderer,
 {
     fn width(&self) -> Length { self.content.width() }
 
@@ -207,13 +228,10 @@ where
         let bounds = layout.bounds();
         let aabr = aabr_from_bounds(bounds);
 
-        self.manager.showing(aabr).then(|| {
+        self.manager.showing(aabr).map(|(pos, alpha)| {
             iced::overlay::Element::new(
-                Point {
-                    x: self.manager.hover_pos.x as f32,
-                    y: self.manager.hover_pos.y as f32,
-                },
-                Box::new(Overlay::new((self.hover_content)(), bounds)),
+                pos,
+                Box::new(Overlay::new((self.hover_content)(), bounds, alpha)),
             )
         })
     }
@@ -227,7 +245,7 @@ where
 
 impl<'a, M, R> From<Tooltip<'a, M, R>> for Element<'a, M, R>
 where
-    R: 'a + iced::Renderer,
+    R: 'a + self::Renderer,
     M: 'a,
 {
     fn from(tooltip: Tooltip<'a, M, R>) -> Element<'a, M, R> { Element::new(tooltip) }
@@ -239,41 +257,56 @@ fn aabr_from_bounds(bounds: iced::Rectangle) -> Aabr<i32> {
     Aabr { min, max }
 }
 
-struct Overlay<'a, M, R: iced::Renderer> {
+struct Overlay<'a, M, R: self::Renderer> {
     content: Element<'a, M, R>,
     /// Area to avoid overlapping with
     avoid: Rectangle,
+    /// Alpha for fading out
+    alpha: f32,
 }
 
-impl<'a, M, R: iced::Renderer> Overlay<'a, M, R> {
-    pub fn new(content: Element<'a, M, R>, avoid: Rectangle) -> Self { Self { content, avoid } }
+impl<'a, M, R: self::Renderer> Overlay<'a, M, R> {
+    pub fn new(content: Element<'a, M, R>, avoid: Rectangle, alpha: f32) -> Self {
+        Self {
+            content,
+            avoid,
+            alpha,
+        }
+    }
 }
 
 impl<'a, M, R> iced::Overlay<M, R> for Overlay<'a, M, R>
 where
-    R: iced::Renderer,
+    R: self::Renderer,
 {
     fn layout(&self, renderer: &R, bounds: Size, position: Point) -> layout::Node {
-        // TODO: Avoid avoid area
-        let space_below = bounds.height - position.y;
-        let space_above = position.y;
+        let avoid = self.avoid;
+        const PAD: f32 = 8.0; // TODO: allow configuration
+        let space_above = (avoid.y - PAD).max(0.0);
+        let space_below = (bounds.height - avoid.y - avoid.height - PAD).max(0.0);
+        //let space_left = avoid.x.min(0.0)
+        //let space_right = (bounds.width - avoid.x - avoid.width).min(0.0);
 
         let limits = layout::Limits::new(
             Size::ZERO,
-            Size::new(
-                bounds.width - position.x,
-                if space_below > space_above {
-                    space_below
-                } else {
-                    space_above
-                },
-            ),
-        )
-        .width(self.content.width());
+            Size::new(bounds.width, space_above.max(space_below)),
+        );
+        //.width(self.content.width());
 
         let mut node = self.content.layout(renderer, &limits);
 
-        node.move_to(position - iced::Vector::new(0.0, node.size().height));
+        let size = node.size();
+
+        node.move_to(Point {
+            x: (bounds.width - size.width).min(position.x),
+            y: if space_above >= space_below {
+                avoid.y - size.height - PAD
+            } else {
+                avoid.y + avoid.height + PAD
+            },
+        });
+
+        node
     }
 
     fn hash_layout(&self, state: &mut Hasher, position: Point) {
@@ -292,7 +325,17 @@ where
         layout: Layout<'_>,
         cursor_position: Point,
     ) -> R::Output {
-        self.content
-            .draw(renderer, defaults, layout, cursor_position)
+        renderer.draw(self.alpha, defaults, cursor_position, &self.content, layout)
     }
+}
+
+pub trait Renderer: iced::Renderer {
+    fn draw<M>(
+        &mut self,
+        alpha: f32,
+        defaults: &Self::Defaults,
+        cursor_position: Point,
+        content: &Element<'_, M, Self>,
+        content_layout: Layout<'_>,
+    ) -> Self::Output;
 }

@@ -181,7 +181,7 @@ impl IcedRenderer {
 
         //self.current_scissor = default_scissor(renderer);
 
-        self.draw_primitive(primitive, Vec2::zero(), renderer);
+        self.draw_primitive(primitive, Vec2::zero(), 1.0, renderer);
 
         // Enter the final command.
         self.draw_commands.push(match self.current_state {
@@ -434,12 +434,18 @@ impl IcedRenderer {
             .collect()
     }
 
-    fn draw_primitive(&mut self, primitive: Primitive, offset: Vec2<u32>, renderer: &mut Renderer) {
+    fn draw_primitive(
+        &mut self,
+        primitive: Primitive,
+        offset: Vec2<u32>,
+        alpha: f32,
+        renderer: &mut Renderer,
+    ) {
         match primitive {
             Primitive::Group { primitives } => {
                 primitives
                     .into_iter()
-                    .for_each(|p| self.draw_primitive(p, offset, renderer));
+                    .for_each(|p| self.draw_primitive(p, offset, alpha, renderer));
             },
             Primitive::Image {
                 handle,
@@ -447,8 +453,9 @@ impl IcedRenderer {
                 color,
             } => {
                 let color = srgba_to_linear(color.map(|e| e as f32 / 255.0));
+                let color = apply_alpha(color, alpha);
                 // Don't draw a transparent image.
-                if color[3] == 0.0 {
+                if color.a == 0.0 {
                     return;
                 }
 
@@ -524,7 +531,9 @@ impl IcedRenderer {
                 bottom_linear_color,
             } => {
                 // Don't draw a transparent rectangle.
-                if top_linear_color[3] == 0.0 && bottom_linear_color[3] == 0.0 {
+                let top_linear_color = apply_alpha(top_linear_color, alpha);
+                let bottom_linear_color = apply_alpha(bottom_linear_color, alpha);
+                if top_linear_color.a == 0.0 && bottom_linear_color.a == 0.0 {
                     return;
                 }
 
@@ -552,8 +561,9 @@ impl IcedRenderer {
                 bounds,
                 linear_color,
             } => {
+                let linear_color = apply_alpha(linear_color, alpha);
                 // Don't draw a transparent rectangle.
-                if linear_color[3] == 0.0 {
+                if linear_color.a == 0.0 {
                     return;
                 }
 
@@ -583,6 +593,7 @@ impl IcedRenderer {
                  *horizontal_alignment,
                  *vertical_alignment, */
             } => {
+                let linear_color = apply_alpha(linear_color, alpha);
                 self.switch_state(State::Plain);
 
                 // TODO: makes sure we are not doing all this work for hidden text
@@ -684,7 +695,7 @@ impl IcedRenderer {
                 // TODO: cull primitives outside the current scissor
 
                 // Renderer child
-                self.draw_primitive(*content, offset + clip_offset, renderer);
+                self.draw_primitive(*content, offset + clip_offset, alpha, renderer);
 
                 // Reset scissor
                 self.draw_commands.push(match self.current_state {
@@ -697,6 +708,9 @@ impl IcedRenderer {
 
                 self.draw_commands
                     .push(DrawCommand::Scissor(self.window_scissor));
+            },
+            Primitive::Opacity { alpha: a, content } => {
+                self.draw_primitive(*content, offset, alpha * a, renderer);
             },
             Primitive::Nothing => {},
         }
@@ -806,4 +820,10 @@ impl iced::Renderer for IcedRenderer {
     }
 }
 
+fn apply_alpha(color: Rgba<f32>, alpha: f32) -> Rgba<f32> {
+    Rgba {
+        a: alpha * color.a,
+        ..color
+    }
+}
 // TODO: impl Debugger

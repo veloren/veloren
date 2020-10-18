@@ -11,6 +11,7 @@ pub struct Style {
     pub container: style::container::Style,
     pub text_color: iced::Color,
     pub text_size: u16,
+    pub padding: u16,
 }
 
 /// Tooltip that is just text
@@ -21,16 +22,19 @@ pub fn text<'a, M: 'a>(text: &'a str, style: Style) -> Element<'a, M, ui::IcedRe
             .size(style.text_size),
     )
     .style(style.container)
+    .padding(style.padding)
     .into()
 }
 
-pub trait WithTooltip<'a, M, R: iced::Renderer> {
+pub trait WithTooltip<'a, M, R: ui::widget::tooltip::Renderer> {
     fn with_tooltip<H>(self, manager: &'a TooltipManager, hover_content: H) -> Tooltip<'a, M, R>
     where
         H: 'a + FnMut() -> Element<'a, M, R>;
 }
 
-impl<'a, M, R: iced::Renderer, E: Into<Element<'a, M, R>>> WithTooltip<'a, M, R> for E {
+impl<'a, M, R: ui::widget::tooltip::Renderer, E: Into<Element<'a, M, R>>> WithTooltip<'a, M, R>
+    for E
+{
     fn with_tooltip<H>(self, manager: &'a TooltipManager, hover_content: H) -> Tooltip<'a, M, R>
     where
         H: 'a + FnMut() -> Element<'a, M, R>,

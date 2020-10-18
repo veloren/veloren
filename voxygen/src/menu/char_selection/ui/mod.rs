@@ -42,8 +42,8 @@ pub const DISABLED_TEXT_COLOR: iced::Color = iced::Color::from_rgba(1.0, 1.0, 1.
 pub const TOOLTIP_BACK_COLOR: Rgba<u8> = Rgba::new(20, 18, 10, 255);
 const FILL_FRAC_ONE: f32 = 0.77;
 const FILL_FRAC_TWO: f32 = 0.60;
-const TOOLTIP_HOVER_DUR: std::time::Duration = std::time::Duration::from_millis(500);
-const TOOLTIP_FADE_DUR: std::time::Duration = std::time::Duration::from_millis(500);
+const TOOLTIP_HOVER_DUR: std::time::Duration = std::time::Duration::from_millis(300);
+const TOOLTIP_FADE_DUR: std::time::Duration = std::time::Duration::from_millis(400);
 
 const STARTER_HAMMER: &str = "common.items.weapons.hammer.starter_hammer";
 const STARTER_BOW: &str = "common.items.weapons.bow.starter_bow";
@@ -112,8 +112,8 @@ image_ids_ice! {
         button_press: "voxygen.element.buttons.button_press",
 
         // Tooltips
-        tt_edge: "voxygen/element/frames/tt_test_edge",
-        tt_corner: "voxygen/element/frames/tt_test_corner_tr",
+        tt_edge: "voxygen/element/frames/tooltip/edge",
+        tt_corner: "voxygen/element/frames/tooltip/corner",
     }
 }
 
@@ -304,7 +304,8 @@ impl Controls {
                 imgs.tt_edge,
             ),
             text_color: TEXT_COLOR,
-            text_size: self.fonts.cyri.scale(15),
+            text_size: self.fonts.cyri.scale(17),
+            padding: 10,
         };
 
         let version = iced::Text::new(&self.version)
@@ -384,7 +385,7 @@ impl Controls {
                         .map(|(i, (character, (select_button, delete_button)))| {
                             Overlay::new(
                                 Button::new(
-                                    select_button,
+                                    delete_button,
                                     Space::new(Length::Units(16), Length::Units(16)),
                                 )
                                 .style(
@@ -392,10 +393,19 @@ impl Controls {
                                         .hover_image(imgs.delete_button_hover)
                                         .press_image(imgs.delete_button_press),
                                 )
-                                .on_press(Message::Delete(i)),
+                                .on_press(Message::Delete(i))
+                                .with_tooltip(
+                                    tooltip_manager,
+                                    move || {
+                                        tooltip::text(
+                                            i18n.get("char_selection.delete_permanently"),
+                                            tooltip_style,
+                                        )
+                                    },
+                                ),
                                 AspectRatioContainer::new(
                                     Button::new(
-                                        delete_button,
+                                        select_button,
                                         Column::with_children(vec![
                                             Text::new(&character.character.alias).into(),
                                             // TODO: only construct string once when characters are
@@ -411,7 +421,7 @@ impl Controls {
                                                 .into(),
                                         ]),
                                     )
-                                    .padding(8)
+                                    .padding(10)
                                     .style(
                                         style::button::Style::new(imgs.selection)
                                             .hover_image(imgs.selection_hover)
@@ -419,16 +429,7 @@ impl Controls {
                                     )
                                     .width(Length::Fill)
                                     .height(Length::Fill)
-                                    .on_press(Message::Select(i))
-                                    .with_tooltip(
-                                        tooltip_manager,
-                                        move || {
-                                            tooltip::text(
-                                                i18n.get("char_selection.delete_permanently"),
-                                                tooltip_style,
-                                            )
-                                        },
-                                    ),
+                                    .on_press(Message::Select(i)),
                                 )
                                 .ratio_of_image(imgs.selection),
                             )
