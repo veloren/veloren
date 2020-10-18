@@ -12,8 +12,8 @@ use crate::{
 use common::comp::{BuffId, Buffs};
 use conrod_core::{
     color,
-    widget::{self, Button, Image, Rectangle},
-    widget_ids, Color, Positionable, Sizeable, Widget, WidgetCommon,
+    widget::{self, Button, Text, Image, Rectangle},
+    widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 use inline_tweak::*;
 use std::time::Duration;
@@ -28,6 +28,7 @@ widget_ids! {
         buff_timers[],
         debuffs[],
         debuff_timers[],
+        buff_txts[],
     }
 }
 
@@ -99,6 +100,8 @@ impl<'a> Widget for BuffsBar<'a> {
         let localized_strings = self.localized_strings;
         let buffs = self.buffs;
         let buff_ani = ((self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8) + 0.5; //Animation timer
+        let pulsating_col = Color::Rgba(1.0, 1.0, 1.0, buff_ani);
+        let norm_col = Color::Rgba(1.0, 1.0, 1.0, 1.0);
         let buff_position = self.global_state.settings.gameplay.buff_position;
         let buffs_tooltip = Tooltip::new({
             // Edge images [t, b, r, l]
@@ -157,8 +160,7 @@ impl<'a> Widget for BuffsBar<'a> {
             if state.ids.debuff_timers.len() < debuff_count {
                 state.update(|state| state.ids.debuff_timers.resize(debuff_count, gen));
             };
-            let pulsating_col = Color::Rgba(1.0, 1.0, 1.0, buff_ani);
-            let norm_col = Color::Rgba(1.0, 1.0, 1.0, 1.0);
+
             // Create Buff Widgets
             state
                 .ids
@@ -343,9 +345,136 @@ impl<'a> Widget for BuffsBar<'a> {
 
         if let BuffPosition::Map = buff_position {
             // Alignment
-            Rectangle::fill_with([tweak!(300.0), tweak!(280.0)], color::RED)
-                .top_right_with_margins_on(ui.window, tweak!(5.0), tweak!(270.0))
+            Rectangle::fill_with([210.0, 210.0], color::TRANSPARENT)
+                .top_right_with_margins_on(ui.window, 5.0, tweak!(270.0))
                 .set(state.ids.align, ui);
+
+            // Buffs and Debuffs
+            let buff_count = buffs.active_buffs.len().min(11);
+            // Limit displayed buffs
+            let buff_count = buff_count.min(20);
+
+            let gen = &mut ui.widget_id_generator();
+            if state.ids.buffs.len() < buff_count {
+                state.update(|state| state.ids.buffs.resize(buff_count, gen));
+            };
+            if state.ids.buff_timers.len() < buff_count {
+                state.update(|state| state.ids.buff_timers.resize(buff_count, gen));
+            };
+            if state.ids.buff_txts.len() < buff_count {
+                state.update(|state| state.ids.buff_txts.resize(buff_count, gen));
+            };
+
+            // Create Buff Widgets
+            state
+                .ids
+                .buffs
+                .iter()
+                .copied()
+                .zip(state.ids.buff_timers.iter().copied())
+                .zip(state.ids.buff_txts.iter().copied())
+                .zip(buffs.active_buffs.iter().map(get_buff_info))
+                .enumerate()
+                .for_each(|(i, (((id, timer_id),txt_id), buff))| {
+                    let max_duration = match buff.id {
+                        BuffId::Regeneration { duration, .. } => duration.unwrap().as_secs_f32(),
+                        BuffId::Bleeding { duration, .. } => duration.unwrap().as_secs_f32(),
+                        _ => 10e6,                        
+                    };
+                    let current_duration = buff.dur;
+                    // Percentage to determine which frame of the timer overlay is displayed
+                    let duration_percentage = (current_duration / max_duration * 1000.0) as u32; 
+                    let buff_img = match buff.id {
+                        BuffId::Regeneration { .. } => self.imgs.buff_plus_0,
+                        BuffId::Bleeding { .. } => self.imgs.debuff_bleed_0,
+                        BuffId::Cursed { .. } => self.imgs.debuff_skull_0,
+                    };
+                    let buff_widget = Image::new(buff_img).w_h(40.0, 40.0);
+                    // Sort buffs into rows of 6 slots
+                    let x = i % 6;
+                    let y = i / 6;
+                    let buff_widget = buff_widget.top_right_with_margins_on(
+                        state.ids.align,
+                        0.0 + y as f64 * (54.0),
+                        0.0 + x as f64 * (42.0),
+                    );
+                    buff_widget
+                        .color(if current_duration < 10.0 {
+                            Some(pulsating_col)
+                        } else {
+                            Some(norm_col)
+                        })
+                        .set(id, ui);
+                    // Create Buff tooltip
+                    let title = match buff.id {
+                        BuffId::Regeneration { .. } => {
+                            *&localized_strings.get("buff.title.heal_test")
+                        },
+                        BuffId::Bleeding { .. } => {
+                            *&localized_strings.get("debuff.title.bleed_test")
+                        },
+                        _ => *&localized_strings.get("buff.title.missing"),
+                    };
+                    let remaining_time = if current_duration == 10e6 as f32 {
+                        "".to_string()
+                    } else {
+                        format!("{:.0}s", current_duration)
+                    };
+                    let click_to_remove = format!("<{}>", &localized_strings.get("buff.remove"));
+                    let desc_txt = match buff.id {
+                        BuffId::Regeneration { .. } => {
+                            *&localized_strings.get("buff.desc.heal_test")
+                        },
+                        BuffId::Bleeding { .. } => {
+                            *&localized_strings.get("debuff.desc.bleed_test")
+                        },
+                        _ => *&localized_strings.get("buff.desc.missing"),
+                    };
+                    let desc = if buff.is_buff {
+                        format!("{}\n\n{}", desc_txt, click_to_remove)
+                    } else {
+                        format!("{}", desc_txt)
+                    };
+                    // Timer overlay
+                    if Button::image(match duration_percentage as u64 {
+                        875..=1000 => self.imgs.nothing, // 8/8
+                        750..=874 => self.imgs.buff_0,   // 7/8
+                        625..=749 => self.imgs.buff_1,   // 6/8
+                        500..=624 => self.imgs.buff_2,   // 5/8
+                        375..=499 => self.imgs.buff_3,   // 4/8
+                        250..=374 => self.imgs.buff_4,   //3/8
+                        125..=249 => self.imgs.buff_5,   // 2/8
+                        0..=124 => self.imgs.buff_6,     // 1/8
+                        _ => self.imgs.nothing,
+                    })
+                    .w_h(40.0, 40.0)
+                    .middle_of(id)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        title,
+                        &desc,
+                        &buffs_tooltip,
+                        if buff.is_buff {
+                            BUFF_COLOR
+                        } else {
+                            DEBUFF_COLOR
+                        },
+                    )
+                    .set(timer_id, ui)
+                    .was_clicked()
+                    {
+                        if buff.is_buff {
+                            event.push(Event::RemoveBuff(buff.id));
+                        }
+                    }
+                Text::new(&remaining_time)
+                    .down_from(timer_id, tweak!(1.0))
+                    .font_size(self.fonts.cyri.scale(tweak!(10)))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .graphics_for(timer_id)
+                    .color(TEXT_COLOR)
+                    .set(txt_id, ui);
+                    });
         }
         event
     }
