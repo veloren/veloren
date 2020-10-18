@@ -195,6 +195,13 @@ where
         self.over.hash_layout(state);
         self.under.hash_layout(state);
     }
+
+    fn overlay(&mut self, layout: Layout<'_>) -> Option<iced::overlay::Element<'_, M, R>> {
+        let mut children = layout.children();
+        let (over, under) = (&mut self.over, &mut self.under);
+        over.overlay(children.next().unwrap())
+            .or_else(move || under.overlay(children.next().unwrap()))
+    }
 }
 
 pub trait Renderer: iced::Renderer {

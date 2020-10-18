@@ -2,6 +2,7 @@ use super::super::super::widget::image;
 use vek::Rgba;
 
 /// Container Border
+#[derive(Clone, Copy)]
 pub enum Border {
     DoubleCornerless {
         inner: Rgba<u8>,
@@ -15,6 +16,7 @@ pub enum Border {
 }
 
 /// Background of the container
+#[derive(Clone, Copy)]
 pub enum Style {
     Image(image::Handle, Rgba<u8>),
     Color(Rgba<u8>, Border),

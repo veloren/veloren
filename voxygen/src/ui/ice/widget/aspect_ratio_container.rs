@@ -160,6 +160,10 @@ where
 
         self.content.hash_layout(state);
     }
+
+    fn overlay(&mut self, layout: Layout<'_>) -> Option<iced::overlay::Element<'_, M, R>> {
+        self.content.overlay(layout.children().next().unwrap())
+    }
 }
 
 pub trait Renderer: iced::Renderer {

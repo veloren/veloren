@@ -1,13 +1,14 @@
 use iced::{
-    layout, mouse, Align, Clipboard, Element, Event, Hasher, Layout, Length, Point, Rectangle,
-    Size, Widget,
+    layout, Clipboard, Element, Event, Hasher, Layout, Length, Point, Rectangle, Size, Widget,
 };
-use std::time::Instant;
-use std::time::Duration;
-use std::hash::Hash;
+use std::{
+    hash::Hash,
+    sync::Mutex,
+    time::{Duration, Instant},
+};
 use vek::*;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 struct Hover {
     start: Instant,
     aabr: Aabr<i32>,
@@ -22,26 +23,29 @@ impl Hover {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 struct Show {
     hover_pos: Vec2<i32>,
     aabr: Aabr<i32>,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 enum State {
     Idle,
     Start(Hover),
     Showing(Show),
-    Fading(Instant, Show, Option<Hover>)
+    Fading(Instant, Show, Option<Hover>),
 }
 
 // Reports which widget the mouse is over
-pub struct Update((Aabr<i32>, Vec2<i32>));
+#[derive(Copy, Clone, Debug)]
+struct Update((Aabr<i32>, Vec2<i32>));
 
+#[derive(Debug)]
+// TODO: consider moving all this state into the Renderer
 pub struct TooltipManager {
     state: State,
-    hover_widget: Option<Aabr<i32>>,
+    update: Mutex<Option<Update>>,
     hover_pos: Vec2<i32>,
     // How long before a tooltip is displayed when hovering
     hover_dur: Duration,
@@ -53,27 +57,35 @@ impl TooltipManager {
     pub fn new(hover_dur: Duration, fade_dur: Duration) -> Self {
         Self {
             state: State::Idle,
-            hover_widget: None,
+            update: Mutex::new(None),
             hover_pos: Default::default(),
             hover_dur,
             fade_dur,
         }
     }
-    /// Call this at the top of your view function or for minimum latency at the end of message
-    /// handling
-    /// Only call this once per frame as it assumes no updates being received between calls means
+
+    /// Call this at the top of your view function or for minimum latency at the
+    /// end of message handling
     /// that there is no tooltipped widget currently being hovered
     pub fn maintain(&mut self) {
+        let update = self.update.get_mut().unwrap().take();
         // Handle changes based on pointer moving
-        self.state = if let Some(aabr) = self.hover_widget.take() {
+        self.state = if let Some(Update((aabr, hover_pos))) = update {
+            self.hover_pos = hover_pos;
             match self.state {
                 State::Idle => State::Start(Hover::start(aabr)),
                 State::Start(hover) if hover.aabr != aabr => State::Start(Hover::start(aabr)),
                 State::Start(hover) => State::Start(hover),
-                State::Showing(show) if show.aabr != aabr => State::Fading(Instant::now(), show, Some(Hover::start(aabr))),
+                State::Showing(show) if show.aabr != aabr => {
+                    State::Fading(Instant::now(), show, Some(Hover::start(aabr)))
+                },
                 State::Showing(show) => State::Showing(show),
-                State::Fading(start, show, Some(hover)) if hover.aabr == aabr => State::Fading(start, show, Some(hover)),
-                State::Fading(start, show, _) => State::Fading(start, show, Some(Hover::start(aabr))),
+                State::Fading(start, show, Some(hover)) if hover.aabr == aabr => {
+                    State::Fading(start, show, Some(hover))
+                },
+                State::Fading(start, show, _) => {
+                    State::Fading(start, show, Some(Hover::start(aabr)))
+                },
             }
         } else {
             match self.state {
@@ -85,22 +97,29 @@ impl TooltipManager {
 
         // Handle temporal changes
         self.state = match self.state {
-            State::Start(Hover { start, aabr}) | State::Fading(_, _, Some(Hover { start, aabr })) if start.elapsed() >= self.hover_dur =>
-                State::Showing(Show { aabr, hover_pos: self.hover_pos }),
+            State::Start(Hover { start, aabr })
+            | State::Fading(_, _, Some(Hover { start, aabr }))
+                if start.elapsed() >= self.hover_dur =>
+            {
+                State::Showing(Show {
+                    aabr,
+                    hover_pos: self.hover_pos,
+                })
+            },
             State::Fading(start, _, hover) if start.elapsed() >= self.fade_dur => match hover {
                 Some(hover) => State::Start(hover),
                 None => State::Idle,
             },
-            state @ State::Idle | state @ State::Start(_) | state @ State::Showing(_) | state @ State::Fading(_, _, _) => state,
-        }
+            state @ State::Idle
+            | state @ State::Start(_)
+            | state @ State::Showing(_)
+            | state @ State::Fading(_, _, _) => state,
+        };
     }
 
-    pub fn update(&mut self, update: Update) {
-        self.hover_widget = Some(update.0.0);
-        self.hover_pos = update.0.1;
-    }
+    fn update(&self, update: Update) { *self.update.lock().unwrap() = Some(update); }
 
-    pub fn showing(&self, aabr: Aabr<i32>) -> bool {
+    fn showing(&self, aabr: Aabr<i32>) -> bool {
         match self.state {
             State::Idle | State::Start(_) => false,
             State::Showing(show) | State::Fading(_, show, _) => show.aabr == aabr,
@@ -108,12 +127,10 @@ impl TooltipManager {
     }
 }
 
-
 /// A widget used to display tooltips when the content element is hovered
 pub struct Tooltip<'a, M, R: iced::Renderer> {
     content: Element<'a, M, R>,
-    hover_content: Option<Box<dyn 'a + FnOnce() -> Element<'a, M, R>>>,
-    on_update: Box<dyn Fn(Update) -> M>,
+    hover_content: Box<dyn 'a + FnMut() -> Element<'a, M, R>>,
     manager: &'a TooltipManager,
 }
 
@@ -121,16 +138,14 @@ impl<'a, M, R> Tooltip<'a, M, R>
 where
     R: iced::Renderer,
 {
-    pub fn new<C, H, F>(content: C, hover_content: H, on_update: F, manager: &'a TooltipManager) -> Self
+    pub fn new<C, H>(content: C, hover_content: H, manager: &'a TooltipManager) -> Self
     where
         C: Into<Element<'a, M, R>>,
-        H: 'a + FnOnce() -> Element<'a, M, R>,
-        F: 'static + Fn(Update) -> M,
+        H: 'a + FnMut() -> Element<'a, M, R>,
     {
         Self {
             content: content.into(),
-            hover_content: Some(Box::new(hover_content)),
-            on_update: Box::new(on_update),
+            hover_content: Box::new(hover_content),
             manager,
         }
     }
@@ -157,13 +172,6 @@ where
         renderer: &R,
         clipboard: Option<&dyn Clipboard>,
     ) {
-        let bounds = layout.bounds();
-        if bounds.contains(cursor_position) {
-            let aabr = aabr_from_bounds(bounds);
-            let m_pos = Vec2::new(cursor_position.x.trunc() as i32, cursor_position.y.trunc() as i32);
-            messages.push((self.on_update)(Update((aabr, m_pos))));
-        }
-
         self.content.on_event(
             event,
             layout,
@@ -181,32 +189,33 @@ where
         layout: Layout<'_>,
         cursor_position: Point,
     ) -> R::Output {
-        self.content.draw(
-            renderer,
-            defaults,
-            layout,
-            cursor_position,
-        )
+        let bounds = layout.bounds();
+        if bounds.contains(cursor_position) {
+            let aabr = aabr_from_bounds(bounds);
+            let m_pos = Vec2::new(
+                cursor_position.x.trunc() as i32,
+                cursor_position.y.trunc() as i32,
+            );
+            self.manager.update(Update((aabr, m_pos)));
+        }
+
+        self.content
+            .draw(renderer, defaults, layout, cursor_position)
     }
 
-    fn overlay(
-        &mut self,
-        layout: Layout<'_>,
-    ) -> Option<iced::overlay::Element<'_, M, R>> {
+    fn overlay(&mut self, layout: Layout<'_>) -> Option<iced::overlay::Element<'_, M, R>> {
         let bounds = layout.bounds();
         let aabr = aabr_from_bounds(bounds);
 
-        self.manager.showing(aabr)
-            .then(|| self.hover_content.take())
-            .flatten()
-            .map(|content| iced::overlay::Element::new(
-                Point { x: self.manager.hover_pos.x as f32, y: self.manager.hover_pos.y as f32 },
-                Box::new(Overlay::new(
-                    content(),
-                    bounds,
-                ))
-            ))
-
+        self.manager.showing(aabr).then(|| {
+            iced::overlay::Element::new(
+                Point {
+                    x: self.manager.hover_pos.x as f32,
+                    y: self.manager.hover_pos.y as f32,
+                },
+                Box::new(Overlay::new((self.hover_content)(), bounds)),
+            )
+        })
     }
 
     fn hash_layout(&self, state: &mut Hasher) {
@@ -236,24 +245,15 @@ struct Overlay<'a, M, R: iced::Renderer> {
     avoid: Rectangle,
 }
 
-impl<'a, M, R: iced::Renderer> Overlay<'a, M, R>
-{
-    pub fn new(content: Element<'a, M, R>, avoid: Rectangle) -> Self {
-        Self { content, avoid }
-    }
+impl<'a, M, R: iced::Renderer> Overlay<'a, M, R> {
+    pub fn new(content: Element<'a, M, R>, avoid: Rectangle) -> Self { Self { content, avoid } }
 }
 
-impl<'a, M, R> iced::Overlay<M, R>
-    for Overlay<'a, M, R>
+impl<'a, M, R> iced::Overlay<M, R> for Overlay<'a, M, R>
 where
     R: iced::Renderer,
 {
-    fn layout(
-        &self,
-        renderer: &R,
-        bounds: Size,
-        position: Point,
-    ) -> layout::Node {
+    fn layout(&self, renderer: &R, bounds: Size, position: Point) -> layout::Node {
         // TODO: Avoid avoid area
         let space_below = bounds.height - position.y;
         let space_above = position.y;
@@ -274,8 +274,6 @@ where
         let mut node = self.content.layout(renderer, &limits);
 
         node.move_to(position - iced::Vector::new(0.0, node.size().height));
-
-        node
     }
 
     fn hash_layout(&self, state: &mut Hasher, position: Point) {
@@ -294,6 +292,7 @@ where
         layout: Layout<'_>,
         cursor_position: Point,
     ) -> R::Output {
-        self.content.draw(renderer, defaults, layout, cursor_position)
+        self.content
+            .draw(renderer, defaults, layout, cursor_position)
     }
 }
