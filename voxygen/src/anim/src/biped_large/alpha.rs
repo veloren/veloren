@@ -85,13 +85,13 @@ impl Animation for AlphaAnimation {
         let switch = if random > 0.5 { 1.0 } else { -1.0 };
 
         if let Some(ToolKind::Sword(_)) = active_tool_kind {
-            next.hand_l.position = Vec3::new(-0.75, -1.0, 2.5);
+            next.hand_l.position = Vec3::new(-4.75, -1.0, 2.5);
             next.hand_l.orientation = Quaternion::rotation_x(1.47) * Quaternion::rotation_y(-0.2);
             next.hand_l.scale = Vec3::one() * 1.04;
             next.hand_r.position = Vec3::new(0.75, -1.5, -0.5);
             next.hand_r.orientation = Quaternion::rotation_x(1.47) * Quaternion::rotation_y(0.3);
             next.hand_r.scale = Vec3::one() * 1.05;
-            next.main.position = Vec3::new(0.0, 5.0, 2.0);
+            next.main.position = Vec3::new(0.0, 5.0, -6.0);
             next.main.orientation = Quaternion::rotation_x(-0.1)
                 * Quaternion::rotation_y(0.0)
                 * Quaternion::rotation_z(0.0);

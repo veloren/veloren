@@ -1,10 +1,13 @@
 pub mod alpha;
+pub mod beam;
 pub mod beta;
 pub mod charge;
 pub mod dash;
 pub mod idle;
 pub mod jump;
+pub mod leapmelee;
 pub mod run;
+pub mod shockwave;
 pub mod shoot;
 pub mod spin;
 pub mod spinmelee;
@@ -12,9 +15,10 @@ pub mod wield;
 
 // Reexports
 pub use self::{
-    alpha::AlphaAnimation, beta::BetaAnimation, charge::ChargeAnimation, dash::DashAnimation,
-    idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation, shoot::ShootAnimation,
-    spin::SpinAnimation, spinmelee::SpinMeleeAnimation, wield::WieldAnimation,
+    alpha::AlphaAnimation, beam::BeamAnimation, beta::BetaAnimation, charge::ChargeAnimation,
+    dash::DashAnimation, idle::IdleAnimation, jump::JumpAnimation, leapmelee::LeapAnimation,
+    run::RunAnimation, shockwave::ShockwaveAnimation, shoot::ShootAnimation, spin::SpinAnimation,
+    spinmelee::SpinMeleeAnimation, wield::WieldAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};
