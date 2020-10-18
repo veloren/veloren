@@ -47,9 +47,11 @@ pub struct Data {
     /// character state
     pub static_data: StaticData,
     /// Whether the charge should end
-    pub end_charge: bool,
+    pub auto_charge: bool,
     /// Timer for each stage
     pub timer: Duration,
+    /// Timer used to limit how often another attack will be applied
+    pub refresh_timer: Duration,
     /// What section the character stage is in
     pub stage_section: StageSection,
     /// Whether the state should attempt attacking again
@@ -80,11 +82,12 @@ impl CharacterBehavior for Data {
                     // Build up
                     update.character = CharacterState::DashMelee(Data {
                         static_data: self.static_data,
-                        end_charge: self.end_charge,
+                        auto_charge: self.auto_charge,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
+                        refresh_timer: self.refresh_timer,
                         stage_section: self.stage_section,
                         exhausted: self.exhausted,
                     });
@@ -92,103 +95,86 @@ impl CharacterBehavior for Data {
                     // Transitions to charge section of stage
                     update.character = CharacterState::DashMelee(Data {
                         static_data: self.static_data,
-                        end_charge: self.end_charge,
+                        auto_charge: !data.inputs.secondary.is_pressed(),
                         timer: Duration::default(),
+                        refresh_timer: self.refresh_timer,
                         stage_section: StageSection::Charge,
                         exhausted: self.exhausted,
                     });
                 }
             },
             StageSection::Charge => {
-                if (self.timer < self.static_data.charge_duration
-                    || (self.static_data.infinite_charge && data.inputs.secondary.is_pressed()))
+                if (self.static_data.infinite_charge
+                    || self.timer < self.static_data.charge_duration)
+                    && (data.inputs.secondary.is_pressed()
+                        || (self.auto_charge && self.timer < self.static_data.charge_duration))
                     && update.energy.current() > 0
-                    && !self.end_charge
                 {
                     // Forward movement
                     forward_move(data, &mut update, 0.1, self.static_data.forward_speed);
 
-                    // Hit attempt (also checks if player is moving)
-                    if !self.exhausted && update.vel.0.distance_squared(Vec3::zero()) > 1.0 {
-                        let charge_frac = (self.timer.as_secs_f32()
-                            / self.static_data.charge_duration.as_secs_f32())
-                        .min(1.0);
-                        let damage = (self.static_data.max_damage as f32
-                            - self.static_data.base_damage as f32)
-                            * charge_frac
-                            + self.static_data.base_damage as f32;
-                        let knockback = (self.static_data.max_knockback
-                            - self.static_data.base_knockback)
-                            * charge_frac
-                            + self.static_data.base_knockback;
-                        data.updater.insert(data.entity, Attacking {
-                            damages: Damages::new(Some(Damage::Melee(damage)), None),
-                            range: self.static_data.range,
-                            max_angle: self.static_data.angle.to_radians(),
-                            applied: false,
-                            hit_count: 0,
-                            knockback,
-                        });
-                    }
-
                     // This logic basically just decides if a charge should end, and prevents the
                     // character state spamming attacks while checking if it has hit something
                     if !self.exhausted {
+                        // Hit attempt (also checks if player is moving)
+                        if update.vel.0.distance_squared(Vec3::zero()) > 1.0 {
+                            let charge_frac = (self.timer.as_secs_f32()
+                                / self.static_data.charge_duration.as_secs_f32())
+                            .min(1.0);
+                            let damage = (self.static_data.max_damage as f32
+                                - self.static_data.base_damage as f32)
+                                * charge_frac
+                                + self.static_data.base_damage as f32;
+                            let knockback = (self.static_data.max_knockback
+                                - self.static_data.base_knockback)
+                                * charge_frac
+                                + self.static_data.base_knockback;
+                            data.updater.insert(data.entity, Attacking {
+                                damages: Damages::new(Some(Damage::Melee(damage)), None),
+                                range: self.static_data.range,
+                                max_angle: self.static_data.angle.to_radians(),
+                                applied: false,
+                                hit_count: 0,
+                                knockback,
+                            });
+                        }
                         update.character = CharacterState::DashMelee(Data {
                             static_data: self.static_data,
-                            end_charge: self.end_charge,
+                            auto_charge: self.auto_charge,
                             timer: self
                                 .timer
                                 .checked_add(Duration::from_secs_f32(data.dt.0))
                                 .unwrap_or_default(),
-                            stage_section: StageSection::Charge,
+                            refresh_timer: self.refresh_timer,
+                            stage_section: self.stage_section,
                             exhausted: true,
                         })
-                    } else if let Some(attack) = data.attacking {
-                        if attack.applied && attack.hit_count > 0 {
-                            update.character = CharacterState::DashMelee(Data {
-                                static_data: self.static_data,
-                                end_charge: !self.static_data.infinite_charge,
-                                timer: self
-                                    .timer
-                                    .checked_add(Duration::from_secs_f32(data.dt.0))
-                                    .unwrap_or_default(),
-                                stage_section: StageSection::Charge,
-                                exhausted: false,
-                            })
-                        } else if attack.applied {
-                            update.character = CharacterState::DashMelee(Data {
-                                static_data: self.static_data,
-                                end_charge: self.end_charge,
-                                timer: self
-                                    .timer
-                                    .checked_add(Duration::from_secs_f32(data.dt.0))
-                                    .unwrap_or_default(),
-                                stage_section: StageSection::Charge,
-                                exhausted: false,
-                            })
-                        } else {
-                            update.character = CharacterState::DashMelee(Data {
-                                static_data: self.static_data,
-                                end_charge: !self.static_data.infinite_charge,
-                                timer: self
-                                    .timer
-                                    .checked_add(Duration::from_secs_f32(data.dt.0))
-                                    .unwrap_or_default(),
-                                stage_section: StageSection::Charge,
-                                exhausted: self.exhausted,
-                            })
-                        }
+                    } else if self.refresh_timer < Duration::from_millis(50) {
+                        update.character = CharacterState::DashMelee(Data {
+                            static_data: self.static_data,
+                            auto_charge: self.auto_charge,
+                            timer: self
+                                .timer
+                                .checked_add(Duration::from_secs_f32(data.dt.0))
+                                .unwrap_or_default(),
+                            refresh_timer: self
+                                .refresh_timer
+                                .checked_add(Duration::from_secs_f32(data.dt.0))
+                                .unwrap_or_default(),
+                            stage_section: self.stage_section,
+                            exhausted: self.exhausted,
+                        })
                     } else {
                         update.character = CharacterState::DashMelee(Data {
                             static_data: self.static_data,
-                            end_charge: !self.static_data.infinite_charge,
+                            auto_charge: self.auto_charge,
                             timer: self
                                 .timer
                                 .checked_add(Duration::from_secs_f32(data.dt.0))
                                 .unwrap_or_default(),
-                            stage_section: StageSection::Charge,
-                            exhausted: self.exhausted,
+                            refresh_timer: Duration::default(),
+                            stage_section: self.stage_section,
+                            exhausted: false,
                         })
                     }
 
@@ -201,8 +187,9 @@ impl CharacterBehavior for Data {
                     // Transitions to swing section of stage
                     update.character = CharacterState::DashMelee(Data {
                         static_data: self.static_data,
-                        end_charge: self.end_charge,
+                        auto_charge: self.auto_charge,
                         timer: Duration::default(),
+                        refresh_timer: self.refresh_timer,
                         stage_section: StageSection::Swing,
                         exhausted: self.exhausted,
                     });
@@ -213,11 +200,12 @@ impl CharacterBehavior for Data {
                     // Swings
                     update.character = CharacterState::DashMelee(Data {
                         static_data: self.static_data,
-                        end_charge: self.end_charge,
+                        auto_charge: self.auto_charge,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
+                        refresh_timer: self.refresh_timer,
                         stage_section: self.stage_section,
                         exhausted: self.exhausted,
                     });
@@ -225,8 +213,9 @@ impl CharacterBehavior for Data {
                     // Transitions to recover section of stage
                     update.character = CharacterState::DashMelee(Data {
                         static_data: self.static_data,
-                        end_charge: self.end_charge,
+                        auto_charge: self.auto_charge,
                         timer: Duration::default(),
+                        refresh_timer: self.refresh_timer,
                         stage_section: StageSection::Recover,
                         exhausted: self.exhausted,
                     });
@@ -237,11 +226,12 @@ impl CharacterBehavior for Data {
                     // Recover
                     update.character = CharacterState::DashMelee(Data {
                         static_data: self.static_data,
-                        end_charge: self.end_charge,
+                        auto_charge: self.auto_charge,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
+                        refresh_timer: self.refresh_timer,
                         stage_section: self.stage_section,
                         exhausted: self.exhausted,
                     });
