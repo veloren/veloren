@@ -406,7 +406,8 @@ impl<'a> System<'a> for Sys {
                                     | Tactic::Hammer
                                     | Tactic::StoneGolemBoss => inputs.primary.set_state(true),
                                     Tactic::Staff => {
-                                        if energy.current() > 600 && thread_rng().gen::<f32>() > 0.6
+                                        // Kind of arbitrary values, but feel right in game
+                                        if energy.current() > 800 && thread_rng().gen::<f32>() > 0.8
                                         {
                                             inputs.ability3.set_state(true)
                                         } else if energy.current() > 10 {
@@ -446,13 +447,7 @@ impl<'a> System<'a> for Sys {
                                             *powerup += dt.0;
                                         }
                                     } else if let Tactic::Staff = tactic {
-                                        if *powerup > 1.5 {
-                                            inputs.primary.set_state(false);
-                                            *powerup = 0.0;
-                                        } else {
-                                            inputs.primary.set_state(true);
-                                            *powerup += dt.0;
-                                        }
+                                        inputs.primary.set_state(true);
                                     } else if let Tactic::Hammer = tactic {
                                         if *powerup > 5.0 {
                                             inputs.secondary.set_state(true);
