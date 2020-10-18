@@ -2211,8 +2211,8 @@ impl FigureMgr {
 
                     let target_base = match (
                         physics.on_ground,
-                        vel.0.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
-                        physics.in_fluid.is_some(),                       // In water
+                        vel.0.magnitude_squared() > 0.15, // Moving
+                        physics.in_fluid.is_some(),       // In water
                     ) {
                         // Standing
                         (true, false, false) => anim::biped_large::IdleAnimation::update_skeleton(

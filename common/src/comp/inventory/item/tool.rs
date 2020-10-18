@@ -531,17 +531,15 @@ impl Tool {
                         },
                     ]
                 } else if kind == "BeastClaws" {
-                    vec![
-                        BasicMelee {
-                            energy_cost: 0,
-                            buildup_duration: Duration::from_millis(500),
-                            recover_duration: Duration::from_millis(250),
-                            knockback: 25.0,
-                            base_healthchange: -200,
-                            range: 5.0,
-                            max_angle: 120.0,
-                        },
-                    ]
+                    vec![BasicMelee {
+                        energy_cost: 0,
+                        buildup_duration: Duration::from_millis(500),
+                        recover_duration: Duration::from_millis(250),
+                        knockback: 25.0,
+                        base_healthchange: -200,
+                        range: 5.0,
+                        max_angle: 120.0,
+                    }]
                 } else {
                     vec![BasicMelee {
                         energy_cost: 0,

@@ -79,7 +79,11 @@ impl LoadoutBuilder {
                         "common.items.npc_weapons.npcweapon.stone_golems_fist",
                     ));
                 },
-                _ => {},
+                golem::Species::Treant => {
+                    main_tool = Some(Item::new_from_asset_expect(
+                        "common.items.npc_weapons.npcweapon.stone_golems_fist",
+                    ));
+                },
             },
             Body::BipedLarge(biped_large) => match (biped_large.species, biped_large.body_type) {
                 (biped_large::Species::Occultsaurok, _) => {
@@ -132,7 +136,6 @@ impl LoadoutBuilder {
                         "common.items.npc_weapons.sword.dullahan_sword",
                     ));
                 },
-                _ => {},
             },
             Body::Humanoid(_) => {
                 if is_giant {

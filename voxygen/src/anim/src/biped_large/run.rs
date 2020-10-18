@@ -23,6 +23,8 @@ impl Animation for RunAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
         let speed = Vec2::<f32>::from(velocity).magnitude();
+        let speedavg = Vec2::<f32>::from(avg_vel).magnitude();
+
         *rate = 1.0;
 
         let lab = 0.65; //.65
@@ -57,23 +59,6 @@ impl Animation for RunAnimation {
                     * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.4).sin()).powf(2.0 as f32)))
         .sqrt())
             * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.4).sin());
-
-        let foothoril2 = (((1.0)
-            / (0.5
-                + (0.6)
-                    * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.5).sin()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.5).sin());
-        let foothorir2 = (((1.0)
-            / (0.5
-                + (0.6)
-                    * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.5).sin()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.5).sin());
-
-        //let short = (anim_time as f32 * lab as f32 * 16.0).sin();
-
-        //let shortalt = (anim_time as f32 * lab as f32 * 16.0 + PI / 2.0).sin();
 
         let amplitude = (speed / 21.0).max(0.25);
         let amplitude2 = (speed * 1.4 / 21.0).powf(0.5).max(0.6);
@@ -145,7 +130,7 @@ impl Animation for RunAnimation {
         if skeleton_attr.beast {
             next.head.position = Vec3::new(0.0, skeleton_attr.head.0, 3.0 + skeleton_attr.head.1);
             next.head.orientation = Quaternion::rotation_x(
-                look.y * 0.3 / ((canceler).max(0.5)) + amplitude * short * -0.18 + 0.6,
+                look.y * 0.3 + (speedavg * 0.05) + amplitude * short * -0.18,
             ) * Quaternion::rotation_z(
                 look.x * 0.3 / ((canceler).max(0.5)) + tilt * -1.2,
             ) * Quaternion::rotation_y(tilt * 0.8);
@@ -296,10 +281,10 @@ impl Animation for RunAnimation {
             next.torso.position = Vec3::new(
                 0.0,
                 0.0 + (short * 0.75).max(-2.0),
-                canceler * 2.0 + (short * 0.75).max(-2.0),
+                speedavg * 0.15 + (short * 0.75).max(-2.0),
             ) / 8.0;
             next.torso.orientation =
-                Quaternion::rotation_x(x_tilt + amplitude * short * 0.1 + canceler * -0.7);
+                Quaternion::rotation_x(x_tilt + amplitude * short * 0.1 + speedavg * -0.045);
             next.torso.scale = Vec3::one() / 8.0;
 
             next.hold.scale = Vec3::one() * 0.0;
