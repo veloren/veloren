@@ -538,7 +538,7 @@ impl Default for GameplaySettings {
             intro_show: Intro::Show,
             xp_bar: XpBar::Always,
             shortcut_numbers: ShortcutNumbers::On,
-            buff_position: BuffPosition::Bar,
+            buff_position: BuffPosition::Map,
             bar_numbers: BarNumbers::Values,
             ui_scale: ScaleMode::RelativeToWindow([1920.0, 1080.0].into()),
             free_look_behavior: PressBehavior::Toggle,

@@ -14,7 +14,7 @@ use crate::{
 };
 use client::{self, Client};
 use common::{
-    comp::{group::Role, BuffId, Buffs, Stats},
+    comp::{group::Role, BuffId, Stats},
     sync::{Uid, WorldSyncExt},
 };
 use conrod_core::{
@@ -328,7 +328,11 @@ impl<'a> Widget for Group<'a> {
             let uid_allocator = client_state
                 .ecs()
                 .read_resource::<common::sync::UidAllocator>();
-
+            let offset = if self.global_state.settings.gameplay.toggle_debug {
+                    tweak!(320.0)
+                } else {
+                    110.0
+                };
             // Keep track of the total number of widget ids we are using for buffs
             let mut total_buff_count = 0;
             for (i, &uid) in group_members.iter().copied().enumerate() {
@@ -342,12 +346,7 @@ impl<'a> Widget for Group<'a> {
                     let char_name = stats.name.to_string();
                     let health_perc = stats.health.current() as f64 / stats.health.maximum() as f64;
 
-                    // change panel positions when debug info is shown
-                    let offset = if self.global_state.settings.gameplay.toggle_debug {
-                        290.0
-                    } else {
-                        110.0
-                    };
+                    // change panel positions when debug info is shown                   
                     let back = if i == 0 {
                         Image::new(self.imgs.member_bg)
                             .top_left_with_margins_on(ui.window, offset, 20.0)
@@ -484,13 +483,13 @@ impl<'a> Widget for Group<'a> {
                                     BuffId::Bleeding { .. } => self.imgs.debuff_bleed_0,
                                     BuffId::Cursed { .. } => self.imgs.debuff_skull_0,
                                 };
-                                let buff_widget = Image::new(buff_img).w_h(20.0, 20.0);
+                                let buff_widget = Image::new(buff_img).w_h(15.0, 15.0);
                                 let buff_widget = if let Some(id) = prev_id {
                                     buff_widget.right_from(id, 1.0)
                                 } else {
                                     buff_widget.bottom_left_with_margins_on(
                                         state.ids.member_panels_frame[i],
-                                        -21.0,
+                                        -16.0,
                                         1.0,
                                     )
                                 };
@@ -538,7 +537,7 @@ impl<'a> Widget for Group<'a> {
                                     0..=124 => self.imgs.buff_6,     // 1/8
                                     _ => self.imgs.nothing,
                                 })
-                                .w_h(20.0, 20.0)
+                                .w_h(15.0, 15.0)
                                 .middle_of(id)
                                 .with_tooltip(
                                     self.tooltip_manager,
@@ -560,12 +559,7 @@ impl<'a> Widget for Group<'a> {
                             .font_size(20)
                             .font_id(self.fonts.cyri.conrod_id)
                             .color(GROUP_COLOR)
-                            .set(state.ids.member_panels_txt[i], ui);
-                        let offset = if self.global_state.settings.gameplay.toggle_debug {
-                            210.0
-                        } else {
-                            110.0
-                        };
+                            .set(state.ids.member_panels_txt[i], ui);                        
                         let back = if i == 0 {
                             Image::new(self.imgs.member_bg)
                                 .top_left_with_margins_on(ui.window, offset, 20.0)
