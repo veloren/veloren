@@ -390,6 +390,7 @@ impl StateExt for State {
 
     /// Sends the message to all connected clients
     fn notify_registered_clients(&self, msg: ServerGeneral) {
+        let mut lazy_msg = None;
         for (general_stream, _) in (
             &mut self.ecs().write_storage::<GeneralStream>(),
             &self.ecs().read_storage::<Client>(),
@@ -397,12 +398,18 @@ impl StateExt for State {
             .join()
             .filter(|(_, c)| c.registered)
         {
-            general_stream.send_unchecked(msg.clone());
+            if lazy_msg.is_none() {
+                lazy_msg = Some(general_stream.prepare(&msg));
+            }
+            lazy_msg
+                .as_ref()
+                .map(|ref msg| general_stream.0.send_raw(&msg));
         }
     }
 
     /// Sends the message to all clients playing in game
     fn notify_in_game_clients(&self, msg: ServerGeneral) {
+        let mut lazy_msg = None;
         for (general_stream, _) in (
             &mut self.ecs().write_storage::<GeneralStream>(),
             &self.ecs().read_storage::<Client>(),
@@ -410,7 +417,12 @@ impl StateExt for State {
             .join()
             .filter(|(_, c)| c.in_game.is_some())
         {
-            general_stream.send_unchecked(msg.clone());
+            if lazy_msg.is_none() {
+                lazy_msg = Some(general_stream.prepare(&msg));
+            }
+            lazy_msg
+                .as_ref()
+                .map(|ref msg| general_stream.0.send_raw(&msg));
         }
     }
 

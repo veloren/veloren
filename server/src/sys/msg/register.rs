@@ -181,18 +181,24 @@ impl<'a> System<'a> for Sys {
         // Tell all clients to add them to the player list.
         for entity in new_players {
             if let (Some(uid), Some(player)) = (uids.get(entity), players.get(entity)) {
-                let msg =
-                    ServerGeneral::PlayerListUpdate(PlayerListUpdate::Add(*uid, PlayerInfo {
-                        player_alias: player.alias.clone(),
-                        is_online: true,
-                        is_admin: admins.get(entity).is_some(),
-                        character: None, // new players will be on character select.
-                    }));
+                let mut lazy_msg = None;
                 for (_, general_stream) in (&mut clients, &mut general_streams)
                     .join()
                     .filter(|(c, _)| c.registered)
                 {
-                    let _ = general_stream.send(msg.clone());
+                    if lazy_msg.is_none() {
+                        lazy_msg = Some(general_stream.prepare(&ServerGeneral::PlayerListUpdate(
+                            PlayerListUpdate::Add(*uid, PlayerInfo {
+                                player_alias: player.alias.clone(),
+                                is_online: true,
+                                is_admin: admins.get(entity).is_some(),
+                                character: None, // new players will be on character select.
+                            }),
+                        )));
+                    }
+                    lazy_msg
+                        .as_ref()
+                        .map(|ref msg| general_stream.0.send_raw(&msg));
                 }
             }
         }
