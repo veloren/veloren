@@ -717,7 +717,7 @@ pub fn handle_buff(server: &mut Server, uid: Uid, buff_change: buff::BuffChange)
                     } else {
                         let mut duplicate_existed = false;
                         for i in 0..buffs.active_buffs.len() {
-                            let active_buff = &buffs.active_buffs[i];
+                            let active_buff = &buffs.active_buffs[i].clone();
                             // Checks if new buff has the same id as an already active buff. If it
                             // doesn't, new buff added to active buffs. If it does, compares the new
                             // buff and the active buff, and decides to either add new buff to
@@ -726,6 +726,7 @@ pub fn handle_buff(server: &mut Server, uid: Uid, buff_change: buff::BuffChange)
                             // buffs.
                             if discriminant(&active_buff.id) == discriminant(&new_buff.id) {
                                 duplicate_existed = true;
+                                // Determines if active buff is weaker than newer buff
                                 if determine_replace_active_buff(
                                     active_buff.clone(),
                                     new_buff.clone(),
@@ -733,6 +734,15 @@ pub fn handle_buff(server: &mut Server, uid: Uid, buff_change: buff::BuffChange)
                                     active_buff_indices_for_removal.push(i);
                                     add_buff_effects(new_buff.clone(), stats.get_mut(entity));
                                     buffs.active_buffs.push(new_buff.clone());
+                                    // Sees if weaker active has longer duration than new buff
+                                    #[allow(clippy::blocks_in_if_conditions)]
+                                    if active_buff.time.map_or(true, |act_dur| {
+                                        new_buff.time.map_or(false, |new_dur| act_dur > new_dur)
+                                    }) {
+                                        buffs.inactive_buffs.push(active_buff.clone());
+                                    }
+                                // Sees if weaker new buff has longer duration
+                                // than active buff
                                 } else if let Some(active_dur) = active_buff.time {
                                     if let Some(new_dur) = new_buff.time {
                                         if new_dur > active_dur {
@@ -742,11 +752,12 @@ pub fn handle_buff(server: &mut Server, uid: Uid, buff_change: buff::BuffChange)
                                         buffs.inactive_buffs.push(new_buff.clone());
                                     }
                                 }
+                                break;
                             }
                         }
                         if !duplicate_existed {
                             add_buff_effects(new_buff.clone(), stats.get_mut(entity));
-                            buffs.active_buffs.push(new_buff.clone());
+                            buffs.active_buffs.push(new_buff);
                         }
                     }
                 },
@@ -873,33 +884,45 @@ fn determine_replace_active_buff(active_buff: buff::Buff, new_buff: buff::Buff) 
     match new_buff.id {
         BuffId::Bleeding {
             strength: new_strength,
-            duration: _,
+            duration: new_duration,
         } => {
             if let BuffId::Bleeding {
                 strength: active_strength,
                 duration: _,
             } = active_buff.id
             {
-                new_strength >= active_strength
+                new_strength > active_strength
+                    || (new_strength >= active_strength
+                        && new_duration.map_or(true, |new_dur| {
+                            active_buff.time.map_or(false, |act_dur| new_dur > act_dur)
+                        }))
             } else {
                 false
             }
         },
         BuffId::Regeneration {
             strength: new_strength,
-            duration: _,
+            duration: new_duration,
         } => {
             if let BuffId::Regeneration {
                 strength: active_strength,
                 duration: _,
             } = active_buff.id
             {
-                new_strength >= active_strength
+                new_strength > active_strength
+                    || (new_strength >= active_strength
+                        && new_duration.map_or(true, |new_dur| {
+                            active_buff.time.map_or(false, |act_dur| new_dur > act_dur)
+                        }))
             } else {
                 false
             }
         },
-        BuffId::Cursed { duration: _ } => false,
+        BuffId::Cursed {
+            duration: new_duration,
+        } => new_duration.map_or(true, |new_dur| {
+            active_buff.time.map_or(false, |act_dur| new_dur > act_dur)
+        }),
     }
 }
 

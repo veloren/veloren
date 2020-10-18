@@ -329,10 +329,10 @@ impl<'a> Widget for Group<'a> {
                 .ecs()
                 .read_resource::<common::sync::UidAllocator>();
             let offset = if self.global_state.settings.gameplay.toggle_debug {
-                    tweak!(320.0)
-                } else {
-                    110.0
-                };
+                tweak!(320.0)
+            } else {
+                110.0
+            };
             // Keep track of the total number of widget ids we are using for buffs
             let mut total_buff_count = 0;
             for (i, &uid) in group_members.iter().copied().enumerate() {
@@ -346,7 +346,7 @@ impl<'a> Widget for Group<'a> {
                     let char_name = stats.name.to_string();
                     let health_perc = stats.health.current() as f64 / stats.health.maximum() as f64;
 
-                    // change panel positions when debug info is shown                   
+                    // change panel positions when debug info is shown
                     let back = if i == 0 {
                         Image::new(self.imgs.member_bg)
                             .top_left_with_margins_on(ui.window, offset, 20.0)
@@ -559,7 +559,7 @@ impl<'a> Widget for Group<'a> {
                             .font_size(20)
                             .font_id(self.fonts.cyri.conrod_id)
                             .color(GROUP_COLOR)
-                            .set(state.ids.member_panels_txt[i], ui);                        
+                            .set(state.ids.member_panels_txt[i], ui);
                         let back = if i == 0 {
                             Image::new(self.imgs.member_bg)
                                 .top_left_with_margins_on(ui.window, offset, 20.0)
