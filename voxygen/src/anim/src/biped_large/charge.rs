@@ -2,7 +2,7 @@ use super::{
     super::{vek::*, Animation},
     BipedLargeSkeleton, SkeletonAttr,
 };
-use common::comp::item::{Hands, ToolKind};
+use common::comp::item::ToolKind;
 use std::{f32::consts::PI, ops::Mul};
 
 pub struct ChargeAnimation;
@@ -51,19 +51,6 @@ impl Animation for ChargeAnimation {
                 * 0.125,
         );
 
-        let look = Vec2::new(
-            ((global_time + anim_time) as f32 / 8.0)
-                .floor()
-                .mul(7331.0)
-                .sin()
-                * 0.5,
-            ((global_time + anim_time) as f32 / 8.0)
-                .floor()
-                .mul(1337.0)
-                .sin()
-                * 0.25,
-        );
-
         let foothoril = (((1.0)
             / (0.4
                 + (0.6)
@@ -110,7 +97,6 @@ impl Animation for ChargeAnimation {
             * ((anim_time as f32 * lab as f32 * 20.0).cos());
 
         let short = (anim_time as f32 * lab as f32 * 16.0).sin();
-        let shortalt = (anim_time as f32 * lab as f32 * 16.0 + PI / 2.0).sin();
         let stop = ((anim_time as f32).powf(0.3 as f32)).min(1.2);
         let stopa = ((anim_time as f32).powf(0.9 as f32)).min(5.0);
 
@@ -374,7 +360,7 @@ impl Animation for ChargeAnimation {
 
                 next.main.position = Vec3::new(8.0, 8.5, 13.2);
                 next.main.orientation = Quaternion::rotation_x(0.0)
-                    * Quaternion::rotation_y(3.14)
+                    * Quaternion::rotation_y(PI)
                     * Quaternion::rotation_z(0.0);
 
                 next.control.position = Vec3::new(

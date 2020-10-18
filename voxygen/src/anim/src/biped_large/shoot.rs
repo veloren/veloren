@@ -2,7 +2,7 @@ use super::{
     super::{vek::*, Animation},
     BipedLargeSkeleton, SkeletonAttr,
 };
-use common::comp::item::{Hands, ToolKind};
+use common::comp::item::ToolKind;
 use std::{f32::consts::PI, ops::Mul};
 
 pub struct ShootAnimation;
@@ -17,7 +17,7 @@ impl Animation for ShootAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_shoot")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, second_tool_kind, velocity, global_time): Self::Dependency,
+        (active_tool_kind, _second_tool_kind, velocity, global_time): Self::Dependency,
         anim_time: f64,
         _rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
@@ -373,7 +373,7 @@ impl Animation for ShootAnimation {
 
                 next.main.position = Vec3::new(10.0, 12.5, 13.2);
                 next.main.orientation = Quaternion::rotation_x(0.0)
-                    * Quaternion::rotation_y(3.14)
+                    * Quaternion::rotation_y(PI)
                     * Quaternion::rotation_z(0.0);
 
                 next.control.position = Vec3::new(-7.0, 6.0, 6.0 - exp * 5.0);

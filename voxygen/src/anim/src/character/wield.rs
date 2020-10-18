@@ -128,7 +128,7 @@ impl Animation for WieldAnimation {
                 next.hand_r.orientation =
                     Quaternion::rotation_x(1.47) * Quaternion::rotation_y(0.3);
                 next.hand_r.scale = Vec3::one() * 1.05;
-                next.main.position = Vec3::new(0.0, 0.0, -3.0);
+                next.main.position = Vec3::new(0.0, 0.0, 2.0);
                 next.main.orientation = Quaternion::rotation_x(-0.1);
 
                 next.control.position = Vec3::new(-7.0, 7.0, 2.0);

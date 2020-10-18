@@ -245,8 +245,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Slysaurok, _) => (3.0, 0.5, -6.0),
             },
             foot: match (body.species, body.body_type) {
-                (Ogre, Male) => (4.0, 2.5, -14.0),
-                (Ogre, Female) => (4.0, 0.5, -14.0),
+                (Ogre, Male) => (4.0, 1.0, -13.5),
+                (Ogre, Female) => (4.0, 0.5, -13.5),
                 (Cyclops, _) => (4.0, 0.5, -17.0),
                 (Wendigo, _) => (5.0, 2.5, -17.0),
                 (Troll, _) => (6.0, 1.5, -13.0),
@@ -256,10 +256,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mightysaurok, _) => (3.5, 2.0, -12.0),
                 (Slysaurok, _) => (3.5, 2.0, -12.0),
             },
-            beast: match (body.species, body.body_type) {
-                (Werewolf, _) => (true),
-                _ => (false),
-            },
+            beast: matches!((body.species, body.body_type), (Werewolf, _)),
         }
     }
 }
