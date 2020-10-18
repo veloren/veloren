@@ -177,7 +177,7 @@ impl Sys {
 /// This system will handle new messages from clients
 pub struct Sys;
 impl<'a> System<'a> for Sys {
-    #[allow(clippy::type_complexity)] // TODO: Pending review in #587
+    #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
         Read<'a, EventBus<ServerEvent>>,
@@ -199,9 +199,6 @@ impl<'a> System<'a> for Sys {
         Read<'a, Settings>,
     );
 
-    #[allow(clippy::match_ref_pats)] // TODO: Pending review in #587
-    #[allow(clippy::single_char_pattern)] // TODO: Pending review in #587
-    #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn run(
         &mut self,
         (
@@ -255,12 +252,9 @@ impl<'a> System<'a> for Sys {
                 )
             });
 
-            match res {
-                Ok(1_u64..=u64::MAX) => {
-                    // Update client ping.
-                    client.last_ping = time.0
-                },
-                _ => (/*handled by ping*/),
+            if let Ok(1_u64..=u64::MAX) = res {
+                // Update client ping.
+                client.last_ping = time.0
             }
         }
 
