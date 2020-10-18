@@ -320,7 +320,7 @@ impl Body {
                 quadruped_medium::Species::Bonerattler => 30,
                 quadruped_medium::Species::Deer => 30,
                 quadruped_medium::Species::Hirdrasil => 30,
-                quadruped_medium::Species::Roshwalr => 30,
+                quadruped_medium::Species::Roshwalr => 40,
                 _ => 20,
             },
             Body::BirdMedium(bird_medium) => match bird_medium.species {

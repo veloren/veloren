@@ -893,11 +893,11 @@
             lateral: ("npc.roshwalr.male.leg_fr"),
         ),
         leg_bl: (
-            offset: (-2.0, -1.0, -2.5),
+            offset: (-2.0, -4.0, -2.5),
             lateral: ("npc.roshwalr.male.leg_bl"),
         ),
         leg_br: (
-            offset: (-2.0, -1.0, -2.5),
+            offset: (-2.0, -4.0, -2.5),
             lateral: ("npc.roshwalr.male.leg_br"),
         ),
         foot_fl: (
@@ -927,11 +927,11 @@
             lateral: ("npc.roshwalr.male.leg_fr"),
         ),
         leg_bl: (
-            offset: (-2.0, -1.0, -2.5),
+            offset: (-2.0, -4.0, -2.5),
             lateral: ("npc.roshwalr.male.leg_bl"),
         ),
         leg_br: (
-            offset: (-2.0, -1.0, -2.5),
+            offset: (-2.0, -4.0, -2.5),
             lateral: ("npc.roshwalr.male.leg_br"),
         ),
         foot_fl: (
