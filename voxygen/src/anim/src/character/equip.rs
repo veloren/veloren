@@ -39,7 +39,6 @@ impl Animation for EquipAnimation {
 
         let wave = (anim_time as f32 * 16.0).sin();
         match active_tool_kind {
-            //TODO: Inventory
             Some(ToolKind::Sword(_)) => {
                 next.hand_l.position = Vec3::new(-0.75, -1.0, -2.5);
                 next.hand_l.orientation =
@@ -156,18 +155,7 @@ impl Animation for EquipAnimation {
                 next.control.scale = Vec3::one();
             },
             Some(ToolKind::Dagger(_)) => {
-                // TODO: Fix animation
-                // next.hand_l.position = Vec3::new(-6.0, 3.5, 0.0);
-                // next.hand_l.orientation = Quaternion::rotation_x(-0.3);
-                // next.hand_l.scale = Vec3::one() * 1.01;
-
-                // next.main.position = Vec3::new(-6.0, 4.5, 0.0);
-                // next.main.orientation = Quaternion::rotation_x(-0.3);
                 next.main.scale = Vec3::one();
-
-                // next.hand_r.position = Vec3::new(-6.0, 3.0, -2.0);
-                // next.hand_r.orientation = Quaternion::rotation_x(-0.3);
-                // next.hand_r.scale = Vec3::one() * 1.01;
             },
             Some(ToolKind::Debug(_)) => {
                 next.hand_l.position = Vec3::new(-7.0, 4.0, 3.0);

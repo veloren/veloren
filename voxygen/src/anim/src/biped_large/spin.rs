@@ -72,7 +72,6 @@ impl Animation for SpinAnimation {
             if let Some(stage_section) = stage_section {
                 match stage_section {
                     StageSection::Buildup => {
-                        //println!("{:.3} build", anim_time);
                         next.control.position =
                             Vec3::new(5.0, 11.0 + build * 0.6, 2.0 + build * 0.6);
                         next.control.orientation = Quaternion::rotation_x(0.0)
@@ -87,7 +86,6 @@ impl Animation for SpinAnimation {
                             * Quaternion::rotation_z(1.07 + movement * 0.4);
                     },
                     StageSection::Swing => {
-                        //println!("{:.3} swing", anim_time);
                         next.control.position = Vec3::new(
                             7.0 + movement * -8.0,
                             11.0 + stab * 3.0,
@@ -105,7 +103,6 @@ impl Animation for SpinAnimation {
                         next.torso.orientation = Quaternion::rotation_z(rotate * 7.2);
                     },
                     StageSection::Recover => {
-                        //println!("{:.3} recover", anim_time);
                         next.control.position = Vec3::new(
                             -8.0,
                             11.0 - recover * 0.8 + movement * -10.0,
@@ -123,11 +120,9 @@ impl Animation for SpinAnimation {
                 }
             }
         }
-        //        println!("{:?}", stage_progress),
 
         if let Some(ToolKind::Axe(_) | ToolKind::Hammer(_) | ToolKind::Dagger(_)) = active_tool_kind
         {
-            //INTENTION: SWORD
             next.hand_l.position = Vec3::new(-0.75, -1.0, -2.5);
             next.hand_l.orientation = Quaternion::rotation_x(1.27);
             next.hand_l.scale = Vec3::one() * 1.04;
