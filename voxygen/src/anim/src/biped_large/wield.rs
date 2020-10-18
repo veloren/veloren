@@ -446,8 +446,11 @@ impl Animation for WieldAnimation {
                     next.hand_r.orientation =
                         Quaternion::rotation_x(0.57) * Quaternion::rotation_z(1.57);
                     next.hand_r.scale = Vec3::one() * 1.02;
+                    next.hand_r.orientation =
+                        Quaternion::rotation_x(0.57) * Quaternion::rotation_z(1.57);
+                    next.hand_r.scale = Vec3::one() * 1.02;
 
-                    next.control.position = Vec3::new(0.0, 0.0, 0.0);
+                    next.control.position = Vec3::new(7.0, 9.0, -10.0);
                     next.control.orientation = Quaternion::rotation_x(test * 0.02)
                         * Quaternion::rotation_y(test * 0.02)
                         * Quaternion::rotation_z(test * 0.02);
@@ -455,7 +458,7 @@ impl Animation for WieldAnimation {
 
                     next.main.position = Vec3::new(0.0, 0.0, 0.0);
                     next.main.orientation = Quaternion::rotation_x(0.0)
-                        * Quaternion::rotation_y(1.57)
+                        * Quaternion::rotation_y(-1.57)
                         * Quaternion::rotation_z(1.0);
                     next.main.scale = Vec3::one() * 1.02;
                 },
@@ -497,12 +500,13 @@ impl Animation for WieldAnimation {
                     next.control.scale = Vec3::one();
                 },
                 Some(ToolKind::NpcWeapon(_)) => {
-                    /*next.shoulder_l.position = Vec3::new(
+                    next.shoulder_l.position = Vec3::new(
                         -skeleton_attr.shoulder.0,
                         skeleton_attr.shoulder.1,
                         skeleton_attr.shoulder.2,
                     );
-                    next.shoulder_l.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(breathe);
+                    next.shoulder_l.orientation =
+                        Quaternion::rotation_z(0.0) * Quaternion::rotation_x(breathe);
                     next.shoulder_l.scale = Vec3::one() + breathe;
 
                     next.shoulder_r.position = Vec3::new(
@@ -510,7 +514,8 @@ impl Animation for WieldAnimation {
                         skeleton_attr.shoulder.1,
                         skeleton_attr.shoulder.2,
                     );
-                    next.shoulder_r.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(breathe);
+                    next.shoulder_r.orientation =
+                        Quaternion::rotation_z(0.0) * Quaternion::rotation_x(breathe);
                     next.shoulder_r.scale = Vec3::one() + breathe;
 
                     next.hand_l.position = Vec3::new(
@@ -518,7 +523,8 @@ impl Animation for WieldAnimation {
                         skeleton_attr.hand.1,
                         skeleton_attr.hand.2 + torso * 0.6,
                     );
-                    next.hand_l.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
+                    next.hand_l.orientation =
+                        Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
                     next.hand_l.scale = Vec3::one() * 1.02;
 
                     next.hand_r.position = Vec3::new(
@@ -526,12 +532,13 @@ impl Animation for WieldAnimation {
                         skeleton_attr.hand.1,
                         skeleton_attr.hand.2 + torso * 0.6,
                     );
-                    next.hand_r.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
+                    next.hand_r.orientation =
+                        Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
                     next.hand_r.scale = Vec3::one() * 1.02;
 
                     next.control.position = Vec3::new(0.0, 0.0, 0.0);
                     next.control.orientation = Quaternion::rotation_z(0.0);
-                    next.control.scale = Vec3::one();*/
+                    next.control.scale = Vec3::one();
                     if velocity < 0.5 {
                         next.head.position = Vec3::new(
                             0.0,

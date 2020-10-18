@@ -211,8 +211,8 @@ impl Animation for AlphaAnimation {
 
                 next.foot_l.position = Vec3::new(
                     -skeleton_attr.foot.0,
-                    slow * -3.0 + quick * 3.0 - 4.0,
-                    skeleton_attr.foot.2,
+                    skeleton_attr.foot.1 + slow * -3.0 + quick * 3.0 - 4.0,
+                    skeleton_attr.foot.2 + skeleton_attr.foot.2,
                 );
                 next.foot_l.orientation = Quaternion::rotation_x(slow * 0.6)
                     * Quaternion::rotation_y((slow * -0.2).max(0.0));
@@ -220,8 +220,8 @@ impl Animation for AlphaAnimation {
 
                 next.foot_r.position = Vec3::new(
                     skeleton_attr.foot.0,
-                    slow * 3.0 + quick * -3.0 + 5.0,
-                    skeleton_attr.foot.2,
+                    skeleton_attr.foot.1 + slow * 3.0 + quick * -3.0 + 5.0,
+                    skeleton_attr.foot.2 + skeleton_attr.foot.2,
                 );
                 next.foot_r.orientation = Quaternion::rotation_x(slow * -0.6)
                     * Quaternion::rotation_y((slow * 0.2).min(0.0));
@@ -241,11 +241,19 @@ impl Animation for AlphaAnimation {
                     * Quaternion::rotation_y(0.2);
                 next.head.scale = Vec3::one() * 1.01;
 
-                next.upper_torso.position = Vec3::new(0.0, 0.0, 7.0);
+                next.upper_torso.position = Vec3::new(
+                    0.0,
+                    skeleton_attr.upper_torso.0,
+                    skeleton_attr.upper_torso.1,
+                );
                 next.upper_torso.orientation = Quaternion::rotation_z(0.2 + axe * 0.2);
                 next.upper_torso.scale = Vec3::one();
 
-                next.lower_torso.position = Vec3::new(0.0, 0.0, -5.0);
+                next.lower_torso.position = Vec3::new(
+                    0.0,
+                    skeleton_attr.lower_torso.0,
+                    skeleton_attr.lower_torso.1,
+                );
                 next.lower_torso.orientation = Quaternion::rotation_z(0.2 + axe * -0.2);
 
                 next.hand_l.position = Vec3::new(-0.5, 0.0, 4.0);
@@ -302,7 +310,7 @@ impl Animation for AlphaAnimation {
                 next.head.position =
                     Vec3::new(0.0, -2.0 + skeleton_attr.head.0, skeleton_attr.head.1);
                 next.head.orientation = Quaternion::rotation_z(slower * 0.03)
-                    * Quaternion::rotation_x(slowersmooth * 0.1)
+                    * Quaternion::rotation_x(-0.3 + slowersmooth * 0.1)
                     * Quaternion::rotation_y(slower * 0.05 + slowersmooth * 0.06)
                     * Quaternion::rotation_z((slowersmooth * -0.4).max(0.0));
                 next.head.scale = Vec3::one() * 1.01;
@@ -317,7 +325,11 @@ impl Animation for AlphaAnimation {
                         * Quaternion::rotation_x(0.0 + slower * 0.18 + slowersmooth * 0.15)
                         * Quaternion::rotation_y(0.0);
 
-                next.lower_torso.position = Vec3::new(0.0, 0.0, -5.0);
+                next.lower_torso.position = Vec3::new(
+                    0.0,
+                    skeleton_attr.lower_torso.0,
+                    skeleton_attr.lower_torso.1,
+                );
                 next.lower_torso.orientation =
                     Quaternion::rotation_z(slower * -0.1 + slowersmooth * -0.075)
                         * Quaternion::rotation_x(0.0 + slower * -0.1)
