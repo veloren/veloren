@@ -6,6 +6,7 @@ pub mod image;
 pub mod mouse_detector;
 pub mod overlay;
 pub mod stack;
+pub mod tooltip;
 
 pub use self::{
     aspect_ratio_container::AspectRatioContainer,
@@ -14,4 +15,5 @@ pub use self::{
     image::Image,
     mouse_detector::MouseDetector,
     overlay::Overlay,
+    tooltip::{Tooltip, TooltipManager},
 };
