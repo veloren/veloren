@@ -294,7 +294,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Bonerattler, _) => (-0.5, -3.0, -2.5),
                 (Deer, _) => (-0.5, -0.5, -2.5),
                 (Hirdrasil, _) => (-0.5, -3.0, -3.5),
-                (Roshwalr, _) => (0.5, -0.5, -3.0),
+                (Roshwalr, _) => (0.5, 0.0, -3.0),
             },
             feet_b: match (body.species, body.body_type) {
                 (Grolgar, _) => (0.5, -1.5, -3.0),
@@ -310,7 +310,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Bonerattler, _) => (0.0, 3.0, -2.5),
                 (Deer, _) => (-1.0, -0.5, -2.0),
                 (Hirdrasil, _) => (-1.0, -2.0, -4.5),
-                (Roshwalr, _) => (0.5, 1.0, -3.5),
+                (Roshwalr, _) => (0.5, -1.0, -3.5),
             },
             scaler: match (body.species, body.body_type) {
                 (Grolgar, _) => (1.3),

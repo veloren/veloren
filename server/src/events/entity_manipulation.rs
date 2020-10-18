@@ -330,8 +330,9 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                 },
                 Some(common::comp::Body::QuadrupedMedium(quadruped_medium)) => {
                     match quadruped_medium.species {
-                        quadruped_medium::Species::Frostfang => {
-                            "common.loot_tables.loot_table_frostfang"
+                        quadruped_medium::Species::Frostfang
+                        | quadruped_medium::Species::Roshwalr => {
+                            "common.loot_tables.loot_table_animal_ice"
                         },
                         _ => match rng.gen_range(0, 4) {
                             0 => "common.loot_tables.loot_table_food",
