@@ -8,6 +8,7 @@ use crate::{
         *,
     },
     sys::character_behavior::JoinData,
+    Knockback,
 };
 use arraygen::Arraygen;
 use serde::{Deserialize, Serialize};
@@ -184,7 +185,7 @@ pub enum CharacterAbility {
         swing_duration: Duration,
         recover_duration: Duration,
         damage: u32,
-        knockback: f32,
+        knockback: Knockback,
         shockwave_angle: f32,
         shockwave_vertical_angle: f32,
         shockwave_speed: f32,

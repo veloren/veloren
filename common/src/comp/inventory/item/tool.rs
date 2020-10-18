@@ -4,7 +4,7 @@
 use crate::{
     comp::{body::object, projectile, Body, CharacterAbility, Gravity, LightEmitter, Projectile},
     states::combo_melee,
-    Damage, Damages, Explosion,
+    Damage, Damages, Explosion, Knockback,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -302,7 +302,7 @@ impl Tool {
                                 Some(Damage::Projectile(40.0 * self.base_power())),
                                 None,
                             )),
-                            projectile::Effect::Knockback(10.0),
+                            projectile::Effect::Knockback(Knockback::Away(10.0)),
                             projectile::Effect::RewardEnergy(50),
                             projectile::Effect::Vanish,
                         ],
@@ -345,8 +345,7 @@ impl Tool {
                                 Some(Damage::Projectile(40.0 * self.base_power())),
                                 None,
                             )),
-                            projectile::Effect::Knockback(10.0),
-                            projectile::Effect::RewardEnergy(50),
+                            projectile::Effect::Knockback(Knockback::Away(10.0)),
                             projectile::Effect::Vanish,
                         ],
                         time_left: Duration::from_secs(15),
@@ -489,7 +488,7 @@ impl Tool {
                     swing_duration: Duration::from_millis(100),
                     recover_duration: Duration::from_millis(300),
                     damage: (200.0 * self.base_power()) as u32,
-                    knockback: 25.0,
+                    knockback: Knockback::Away(25.0),
                     shockwave_angle: 360.0,
                     shockwave_vertical_angle: 90.0,
                     shockwave_speed: 20.0,
@@ -530,7 +529,7 @@ impl Tool {
                             swing_duration: Duration::from_millis(200),
                             recover_duration: Duration::from_millis(800),
                             damage: 500,
-                            knockback: -40.0,
+                            knockback: Knockback::TowardsUp(40.0),
                             shockwave_angle: 90.0,
                             shockwave_vertical_angle: 15.0,
                             shockwave_speed: 20.0,

@@ -5,7 +5,7 @@ use crate::{
         character_behavior::{CharacterBehavior, JoinData},
         phys::GRAVITY,
     },
-    Damage, Damages,
+    Damage, Damages, Knockback,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -119,7 +119,7 @@ impl CharacterBehavior for Data {
                         max_angle: 180_f32.to_radians(),
                         applied: false,
                         hit_count: 0,
-                        knockback: self.static_data.knockback,
+                        knockback: Knockback::Away(self.static_data.knockback),
                     });
                 } else if self.timer < self.static_data.swing_duration {
                     if !self.static_data.is_helicopter {

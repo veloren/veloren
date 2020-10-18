@@ -2,7 +2,7 @@ use crate::{
     comp::{Attacking, CharacterState, EnergySource, StateUpdate},
     states::utils::*,
     sys::character_behavior::{CharacterBehavior, JoinData},
-    Damage, Damages,
+    Damage, Damages, Knockback,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -137,7 +137,9 @@ impl CharacterBehavior for Data {
                         max_angle: self.static_data.stage_data[stage_index].angle.to_radians(),
                         applied: false,
                         hit_count: 0,
-                        knockback: self.static_data.stage_data[stage_index].knockback,
+                        knockback: Knockback::Away(
+                            self.static_data.stage_data[stage_index].knockback,
+                        ),
                     });
                 }
             },

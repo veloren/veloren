@@ -6,7 +6,7 @@ use crate::{
     event::ServerEvent,
     states::utils::*,
     sys::character_behavior::{CharacterBehavior, JoinData},
-    Damage, Damages,
+    Damage, Damages, Knockback,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -102,7 +102,7 @@ impl CharacterBehavior for Data {
                                 Some(Damage::Projectile(damage)),
                                 None,
                             )),
-                            projectile::Effect::Knockback(knockback),
+                            projectile::Effect::Knockback(Knockback::Away(knockback)),
                             projectile::Effect::Vanish,
                         ],
                         time_left: Duration::from_secs(15),

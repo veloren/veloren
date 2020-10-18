@@ -150,12 +150,11 @@ impl<'a> System<'a> for Sys {
                         attack.hit_count += 1;
                     }
 
-                    if attack.knockback != 0.0 && change.amount != 0 {
+                    if change.amount != 0 {
                         let kb_dir = Dir::new((pos_b.0 - pos.0).try_normalized().unwrap_or(*ori.0));
                         server_emitter.emit(ServerEvent::Knockback {
                             entity: b,
-                            impulse: attack.knockback
-                                * *Dir::slerp(kb_dir, Dir::new(Vec3::new(0.0, 0.0, 1.0)), 0.5),
+                            impulse: attack.knockback.get_knockback(kb_dir),
                         });
                     }
                 }

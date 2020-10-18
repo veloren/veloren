@@ -1,8 +1,10 @@
 use crate::{
     comp::{HealthChange, HealthSource, Loadout},
     sync::Uid,
+    util::Dir,
 };
 use serde::{Deserialize, Serialize};
+use vek::*;
 
 pub const BLOCK_EFFICIENCY: f32 = 0.9;
 
@@ -155,6 +157,29 @@ impl Damage {
                     amount: -damage as i32,
                     cause: HealthSource::World,
                 }
+            },
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum Knockback {
+    Away(f32),
+    Towards(f32),
+    Up(f32),
+    TowardsUp(f32),
+}
+
+impl Knockback {
+    pub fn get_knockback(self, dir: Dir) -> Vec3<f32> {
+        match self {
+            Knockback::Away(strength) => strength * *Dir::slerp(dir, Dir::new(Vec3::unit_z()), 0.5),
+            Knockback::Towards(strength) => {
+                strength * *Dir::slerp(-dir, Dir::new(Vec3::unit_z()), 0.5)
+            },
+            Knockback::Up(strength) => strength * Vec3::unit_z(),
+            Knockback::TowardsUp(strength) => {
+                strength * *Dir::slerp(-dir, Dir::new(Vec3::unit_z()), 0.85)
             },
         }
     }

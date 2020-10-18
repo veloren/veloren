@@ -2,7 +2,7 @@ use crate::{
     comp::{Attacking, CharacterState, EnergySource, StateUpdate},
     states::utils::{StageSection, *},
     sys::character_behavior::*,
-    Damage, Damages,
+    Damage, Damages, Knockback,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -130,7 +130,7 @@ impl CharacterBehavior for Data {
                         max_angle: self.static_data.max_angle.to_radians(),
                         applied: false,
                         hit_count: 0,
-                        knockback,
+                        knockback: Knockback::Away(knockback),
                     });
 
                     // Starts swinging

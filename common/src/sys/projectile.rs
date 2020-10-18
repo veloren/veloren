@@ -8,13 +8,11 @@ use crate::{
     span,
     state::DeltaTime,
     sync::UidAllocator,
-    util::Dir,
 };
 use specs::{
     saveload::MarkerAllocator, Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage,
 };
 use std::time::Duration;
-use vek::*;
 
 /// This system is responsible for handling projectile effect triggers
 pub struct Sys;
@@ -125,8 +123,7 @@ impl<'a> System<'a> for Sys {
                             {
                                 local_emitter.emit(LocalEvent::ApplyImpulse {
                                     entity,
-                                    impulse: knockback
-                                        * *Dir::slerp(ori.0, Dir::new(Vec3::unit_z()), 0.5),
+                                    impulse: knockback.get_knockback(ori.0),
                                 });
                             }
                         },

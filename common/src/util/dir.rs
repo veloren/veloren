@@ -98,6 +98,13 @@ impl std::ops::Deref for Dir {
 impl From<Vec3<f32>> for Dir {
     fn from(dir: Vec3<f32>) -> Self { Dir::new(dir) }
 }
+
+impl std::ops::Neg for Dir {
+    type Output = Dir;
+
+    fn neg(self) -> Dir { Dir::new(-self.0) }
+}
+
 /// Begone ye NaN's
 /// Slerp two `Vec3`s skipping the slerp if their directions are very close
 /// This avoids a case where `vek`s slerp produces NaN's
