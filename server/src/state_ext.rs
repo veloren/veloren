@@ -269,8 +269,7 @@ impl StateExt for State {
         });
 
         match &msg.chat_type {
-            comp::ChatType::Online(_)
-            | comp::ChatType::Offline(_)
+            comp::ChatType::Offline(_)
             | comp::ChatType::CommandInfo
             | comp::ChatType::CommandError
             | comp::ChatType::Loot
@@ -278,6 +277,18 @@ impl StateExt for State {
             | comp::ChatType::Meta
             | comp::ChatType::World(_) => {
                 self.notify_registered_clients(ServerGeneral::ChatMsg(resolved_msg))
+            },
+            comp::ChatType::Online(u) => {
+                for (client, uid) in (
+                    &mut ecs.write_storage::<Client>(),
+                    &ecs.read_storage::<Uid>(),
+                )
+                    .join()
+                {
+                    if uid != u {
+                        client.send_msg(ServerGeneral::ChatMsg(resolved_msg.clone()));
+                    }
+                }
             },
             comp::ChatType::Tell(u, t) => {
                 for (client, uid) in (
