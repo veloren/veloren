@@ -66,6 +66,7 @@ impl LoadoutBuilder {
     }
 
     /// Builds loadout of creature when spawned
+    #[allow(clippy::single_match)]
     pub fn build_loadout(
         body: Body,
         alignment: Alignment,
@@ -79,11 +80,7 @@ impl LoadoutBuilder {
                         "common.items.npc_weapons.npcweapon.stone_golems_fist",
                     ));
                 },
-                golem::Species::Treant => {
-                    main_tool = Some(Item::new_from_asset_expect(
-                        "common.items.npc_weapons.npcweapon.stone_golems_fist",
-                    ));
-                },
+                _ => {},
             },
             Body::BipedLarge(biped_large) => match (biped_large.species, biped_large.body_type) {
                 (biped_large::Species::Occultsaurok, _) => {
