@@ -113,5 +113,5 @@ mod types;
 pub use api::{
     Network, NetworkError, Participant, ParticipantError, ProtocolAddr, Stream, StreamError,
 };
-pub use message::MessageBuffer;
+pub use message::Message;
 pub use types::{Pid, Promises};
