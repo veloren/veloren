@@ -300,6 +300,7 @@ impl<'a> System<'a> for Sys {
                         #[derive(Eq, PartialEq)]
                         enum Tactic {
                             Melee,
+                            Axe,
                             Hammer,
                             Sword,
                             RangedPowerup,
@@ -318,6 +319,7 @@ impl<'a> System<'a> for Sys {
                             Some(ToolKind::Staff(_)) => Tactic::Staff,
                             Some(ToolKind::Hammer(_)) => Tactic::Hammer,
                             Some(ToolKind::Sword(_)) => Tactic::Sword,
+                            Some(ToolKind::Axe(_)) => Tactic::Axe,
                             Some(ToolKind::NpcWeapon(kind)) => match kind.as_str() {
                                 "StoneGolemsFist" => Tactic::StoneGolemBoss,
                                 _ => Tactic::Melee,
@@ -416,6 +418,18 @@ impl<'a> System<'a> for Sys {
                                             inputs.primary.set_state(true)
                                         }
                                     },
+                                    Tactic::Axe => {
+                                        if *powerup > 6.0 {
+                                            inputs.secondary.set_state(false);
+                                            *powerup = 0.0;
+                                        } else if *powerup > 4.0 && energy.current() > 10 {
+                                            inputs.secondary.set_state(true);
+                                            *powerup += dt.0;
+                                        } else {
+                                            inputs.primary.set_state(true);
+                                            *powerup += dt.0;
+                                        }
+                                    },
                                     Tactic::RangedPowerup => inputs.roll.set_state(true),
                                 }
                             } else if dist_sqrd < MAX_CHASE_DIST.powf(2.0)
@@ -450,7 +464,7 @@ impl<'a> System<'a> for Sys {
                                         inputs.primary.set_state(true);
                                     } else if let Tactic::Hammer = tactic {
                                         if *powerup > 5.0 {
-                                            inputs.secondary.set_state(true);
+                                            inputs.ability3.set_state(true);
                                             *powerup = 0.0;
                                         } else {
                                             *powerup += dt.0;
