@@ -167,7 +167,7 @@ impl<'a> System<'a> for Sys {
                             uid: *uid_b,
                             buff_change: buff::BuffChange::Add(buff::Buff::new(
                                 buff::BuffId::Regeneration {
-                                    strength: 100.0,
+                                    strength: 1.0,
                                     duration: Some(Duration::from_secs(60)),
                                 },
                                 vec![buff::BuffCategoryId::Physical, buff::BuffCategoryId::Buff],
