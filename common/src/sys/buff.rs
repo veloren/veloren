@@ -61,8 +61,12 @@ impl<'a> System<'a> for Sys {
                         // Only add an effect here if it is continuous or it is not immediate
                         BuffEffect::HealthChangeOverTime { rate, accumulated } => {
                             *accumulated += *rate * buff_delta;
-                            // Apply only 0.5 or higher damage
-                            if accumulated.abs() > 50.0 {
+                            // Apply damage only once a second (with a minimum of 1 damage), or when a buff is removed
+                            if accumulated.abs() > rate.abs().max(10.0)
+                                || active_buff_indices_for_removal
+                                    .iter()
+                                    .any(|index| *index == i)
+                            {
                                 let cause = if *accumulated > 0.0 {
                                     HealthSource::Healing { by: buff_owner }
                                 } else {
