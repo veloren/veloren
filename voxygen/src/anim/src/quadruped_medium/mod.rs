@@ -150,6 +150,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Deer, Male) => (0.5, 3.5),
                 (Deer, Female) => (0.5, 3.5),
                 (Hirdrasil, _) => (0.0, 5.0),
+                (Roshwalr, _) => (1.0, 0.5),
             },
             neck: match (body.species, body.body_type) {
                 (Grolgar, _) => (1.0, -1.0),
@@ -165,6 +166,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Bonerattler, _) => (7.0, -1.5),
                 (Deer, _) => (-0.5, 1.0),
                 (Hirdrasil, _) => (-1.0, 0.5),
+                (Roshwalr, _) => (0.0, 1.0),
             },
             jaw: match (body.species, body.body_type) {
                 (Grolgar, _) => (7.0, 2.0),
@@ -180,6 +182,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Bonerattler, _) => (3.0, -2.5),
                 (Deer, _) => (3.5, 2.5),
                 (Hirdrasil, _) => (2.5, 3.0),
+                (Roshwalr, _) => (4.0, -1.0),
             },
             tail: match (body.species, body.body_type) {
                 (Grolgar, _) => (-11.5, -0.5),
@@ -195,6 +198,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Bonerattler, _) => (-10.0, 1.5),
                 (Deer, _) => (-8.5, 0.5),
                 (Hirdrasil, _) => (-11.0, 2.0),
+                (Roshwalr, _) => (-8.5, -1.0),
             },
             torso_front: match (body.species, body.body_type) {
                 (Grolgar, _) => (10.0, 13.0),
@@ -210,6 +214,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Bonerattler, _) => (6.0, 12.5),
                 (Deer, _) => (11.0, 13.5),
                 (Hirdrasil, _) => (11.0, 14.5),
+                (Roshwalr, _) => (6.0, 12.5),
             },
             torso_back: match (body.species, body.body_type) {
                 (Grolgar, _) => (-10.0, 1.5),
@@ -225,6 +230,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Bonerattler, _) => (-5.0, 0.0),
                 (Deer, _) => (-9.0, 0.5),
                 (Hirdrasil, _) => (-9.0, -0.5),
+                (Roshwalr, _) => (-9.0, -3.5),
             },
             ears: match (body.species, body.body_type) {
                 (Grolgar, _) => (5.0, 8.0),
@@ -240,6 +246,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Bonerattler, _) => (2.0, 3.5),
                 (Deer, _) => (2.5, 5.0),
                 (Hirdrasil, _) => (2.5, 5.0),
+                (Roshwalr, _) => (5.0, 8.0),
             },
             leg_f: match (body.species, body.body_type) {
                 (Grolgar, _) => (7.5, -5.5, -1.0),
@@ -255,6 +262,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Bonerattler, _) => (5.5, 5.0, -4.0),
                 (Deer, _) => (3.5, -4.5, -3.5),
                 (Hirdrasil, _) => (4.5, -5.0, -2.5),
+                (Roshwalr, _) => (8.0, -2.5, -2.5),
             },
             leg_b: match (body.species, body.body_type) {
                 (Grolgar, _) => (6.0, -6.5, -4.0),
@@ -270,6 +278,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Bonerattler, _) => (6.0, -8.0, -4.0),
                 (Deer, _) => (3.0, -6.5, -3.5),
                 (Hirdrasil, _) => (4.0, -6.5, -3.0),
+                (Roshwalr, _) => (7.0, -7.0, -2.5),
             },
             feet_f: match (body.species, body.body_type) {
                 (Grolgar, _) => (0.0, 0.0, -4.0),
@@ -285,6 +294,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Bonerattler, _) => (-0.5, -3.0, -2.5),
                 (Deer, _) => (-0.5, -0.5, -2.5),
                 (Hirdrasil, _) => (-0.5, -3.0, -3.5),
+                (Roshwalr, _) => (0.5, 0.0, -3.0),
             },
             feet_b: match (body.species, body.body_type) {
                 (Grolgar, _) => (0.5, -1.5, -3.0),
@@ -300,6 +310,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Bonerattler, _) => (0.0, 3.0, -2.5),
                 (Deer, _) => (-1.0, -0.5, -2.0),
                 (Hirdrasil, _) => (-1.0, -2.0, -4.5),
+                (Roshwalr, _) => (0.5, -1.0, -3.5),
             },
             scaler: match (body.species, body.body_type) {
                 (Grolgar, _) => (1.3),
@@ -315,6 +326,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Bonerattler, _) => (1.0),
                 (Deer, _) => (1.0),
                 (Hirdrasil, _) => (1.0),
+                (Roshwalr, _) => (1.2),
             },
             startangle: match (body.species, body.body_type) {
                 //changes the default angle of front feet
@@ -331,6 +343,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Bonerattler, _) => (-0.7),
                 (Deer, _) => (0.0),
                 (Hirdrasil, _) => (0.0),
+                (Roshwalr, _) => (-0.3),
             },
             tempo: match (body.species, body.body_type) {
                 (Grolgar, _) => (0.95),
@@ -346,6 +359,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Bonerattler, _) => (1.0),
                 (Deer, _) => (0.85),
                 (Hirdrasil, _) => (0.85),
+                (Roshwalr, _) => (0.95),
             },
             spring: match (body.species, body.body_type) {
                 (Grolgar, _) => (1.0),
@@ -361,6 +375,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Bonerattler, _) => (1.1),
                 (Deer, _) => (0.9),
                 (Hirdrasil, _) => (1.1),
+                (Roshwalr, _) => (1.0),
             },
             feed: match (body.species, body.body_type) {
                 (Tuskram, _) => (true, 0.5),

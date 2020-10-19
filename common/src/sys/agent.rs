@@ -32,13 +32,16 @@ pub struct Sys;
 impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
-        Read<'a, UidAllocator>,
-        Read<'a, Time>,
-        Read<'a, DeltaTime>,
-        Read<'a, group::GroupManager>,
+        (
+            Read<'a, UidAllocator>,
+            Read<'a, Time>,
+            Read<'a, DeltaTime>,
+            Read<'a, group::GroupManager>,
+        ),
         ReadExpect<'a, SysMetrics>,
         Write<'a, EventBus<ServerEvent>>,
         Entities<'a>,
+        ReadStorage<'a, Energy>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Vel>,
         ReadStorage<'a, Ori>,
@@ -57,20 +60,17 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Invite>,
         Read<'a, TimeOfDay>,
         ReadStorage<'a, LightEmitter>,
-        ReadStorage<'a, Energy>,
     );
 
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     fn run(
         &mut self,
         (
-            uid_allocator,
-            time,
-            dt,
-            group_manager,
+            (uid_allocator, time, dt, group_manager),
             sys_metrics,
             event_bus,
             entities,
+            energies,
             positions,
             velocities,
             orientations,
@@ -89,13 +89,13 @@ impl<'a> System<'a> for Sys {
             invites,
             time_of_day,
             light_emitter,
-            energies,
         ): Self::SystemData,
     ) {
         let start_time = std::time::Instant::now();
         span!(_guard, "run", "agent::Sys::run");
         for (
             entity,
+            energy,
             pos,
             vel,
             ori,
@@ -109,9 +109,9 @@ impl<'a> System<'a> for Sys {
             mount_state,
             group,
             light_emitter,
-            energy,
         ) in (
             &entities,
+            &energies,
             &positions,
             &velocities,
             &orientations,
@@ -125,7 +125,6 @@ impl<'a> System<'a> for Sys {
             mount_states.maybe(),
             groups.maybe(),
             light_emitter.maybe(),
-            &energies,
         )
             .join()
         {
@@ -301,6 +300,9 @@ impl<'a> System<'a> for Sys {
                         #[derive(Eq, PartialEq)]
                         enum Tactic {
                             Melee,
+                            Axe,
+                            Hammer,
+                            Sword,
                             RangedPowerup,
                             Staff,
                             StoneGolemBoss,
@@ -315,12 +317,12 @@ impl<'a> System<'a> for Sys {
                         }) {
                             Some(ToolKind::Bow(_)) => Tactic::RangedPowerup,
                             Some(ToolKind::Staff(_)) => Tactic::Staff,
-                            Some(ToolKind::NpcWeapon(kind)) => {
-                                if kind == "StoneGolemsFist" {
-                                    Tactic::StoneGolemBoss
-                                } else {
-                                    Tactic::Melee
-                                }
+                            Some(ToolKind::Hammer(_)) => Tactic::Hammer,
+                            Some(ToolKind::Sword(_)) => Tactic::Sword,
+                            Some(ToolKind::Axe(_)) => Tactic::Axe,
+                            Some(ToolKind::NpcWeapon(kind)) => match kind.as_str() {
+                                "StoneGolemsFist" => Tactic::StoneGolemBoss,
+                                _ => Tactic::Melee,
                             },
                             _ => Tactic::Melee,
                         };
@@ -378,11 +380,10 @@ impl<'a> System<'a> for Sys {
                                             min_tgt_dist: 1.25,
                                         },
                                     ) {
-                                        inputs.move_dir = Vec2::from(bearing)
-                                            .try_normalized()
-                                            .unwrap_or(Vec2::zero())
-                                            * speed
-                                            * 0.2; //Let small/slow animals flee slower than the player
+                                        inputs.move_dir =
+                                            bearing.xy().try_normalized().unwrap_or(Vec2::zero())
+                                                * speed
+                                                * 0.2; //Let small/slow animals flee slower than the player
                                         inputs.jump.set_state(bearing.z > 1.5);
                                         inputs.swimup.set_state(bearing.z > 0.5);
                                         inputs.swimdown.set_state(bearing.z < 0.5);
@@ -395,20 +396,38 @@ impl<'a> System<'a> for Sys {
                                 || dist_sqrd < (MIN_ATTACK_DIST * scale).powf(2.0)
                             {
                                 // Close-range attack
-                                inputs.move_dir = Vec2::from(tgt_pos.0 - pos.0)
+                                inputs.move_dir = (tgt_pos.0 - pos.0)
+                                    .xy()
                                     .try_normalized()
                                     .unwrap_or(Vec2::unit_y())
                                     * 0.1;
 
                                 match tactic {
-                                    Tactic::Melee | Tactic::StoneGolemBoss => {
-                                        inputs.primary.set_state(true)
-                                    },
+                                    Tactic::Sword
+                                    | Tactic::Melee
+                                    | Tactic::Hammer
+                                    | Tactic::StoneGolemBoss => inputs.primary.set_state(true),
                                     Tactic::Staff => {
-                                        if energy.current() > 10 {
+                                        // Kind of arbitrary values, but feel right in game
+                                        if energy.current() > 800 && thread_rng().gen::<f32>() > 0.8
+                                        {
+                                            inputs.ability3.set_state(true)
+                                        } else if energy.current() > 10 {
                                             inputs.secondary.set_state(true)
                                         } else {
                                             inputs.primary.set_state(true)
+                                        }
+                                    },
+                                    Tactic::Axe => {
+                                        if *powerup > 6.0 {
+                                            inputs.secondary.set_state(false);
+                                            *powerup = 0.0;
+                                        } else if *powerup > 4.0 && energy.current() > 10 {
+                                            inputs.secondary.set_state(true);
+                                            *powerup += dt.0;
+                                        } else {
+                                            inputs.primary.set_state(true);
+                                            *powerup += dt.0;
                                         }
                                     },
                                     Tactic::RangedPowerup => inputs.roll.set_state(true),
@@ -427,19 +446,27 @@ impl<'a> System<'a> for Sys {
 
                                 if can_see_tgt {
                                     if let Tactic::RangedPowerup = tactic {
-                                        if *powerup > 2.0 {
+                                        if *powerup > 1.5 {
                                             inputs.primary.set_state(false);
                                             *powerup = 0.0;
                                         } else {
                                             inputs.primary.set_state(true);
                                             *powerup += dt.0;
                                         }
-                                    } else if let Tactic::Staff = tactic {
-                                        if *powerup > 2.5 {
-                                            inputs.primary.set_state(false);
+                                    } else if let Tactic::Sword = tactic {
+                                        if *powerup > 4.0 {
+                                            inputs.secondary.set_state(true);
                                             *powerup = 0.0;
                                         } else {
-                                            inputs.primary.set_state(true);
+                                            *powerup += dt.0;
+                                        }
+                                    } else if let Tactic::Staff = tactic {
+                                        inputs.primary.set_state(true);
+                                    } else if let Tactic::Hammer = tactic {
+                                        if *powerup > 5.0 {
+                                            inputs.ability3.set_state(true);
+                                            *powerup = 0.0;
+                                        } else {
                                             *powerup += dt.0;
                                         }
                                     } else if let Tactic::StoneGolemBoss = tactic {
@@ -469,13 +496,40 @@ impl<'a> System<'a> for Sys {
                                         min_tgt_dist: 1.25,
                                     },
                                 ) {
-                                    inputs.move_dir = Vec2::from(bearing)
-                                        .try_normalized()
-                                        .unwrap_or(Vec2::zero())
-                                        * speed;
-                                    inputs.jump.set_state(bearing.z > 1.5);
-                                    inputs.swimup.set_state(bearing.z > 0.5);
-                                    inputs.swimdown.set_state(bearing.z < 0.5);
+                                    if can_see_tgt {
+                                        match tactic {
+                                            Tactic::RangedPowerup => {
+                                                inputs.move_dir = bearing
+                                                    .xy()
+                                                    .rotated_z(thread_rng().gen_range(0.5, 1.57))
+                                                    .try_normalized()
+                                                    .unwrap_or(Vec2::zero())
+                                                    * speed;
+                                            },
+                                            Tactic::Staff => {
+                                                inputs.move_dir = bearing
+                                                    .xy()
+                                                    .rotated_z(thread_rng().gen_range(-1.57, -0.5))
+                                                    .try_normalized()
+                                                    .unwrap_or(Vec2::zero())
+                                                    * speed;
+                                            },
+                                            _ => {
+                                                inputs.move_dir = bearing
+                                                    .xy()
+                                                    .try_normalized()
+                                                    .unwrap_or(Vec2::zero())
+                                                    * speed;
+                                            },
+                                        }
+                                    } else {
+                                        inputs.move_dir =
+                                            bearing.xy().try_normalized().unwrap_or(Vec2::zero())
+                                                * speed;
+                                        inputs.jump.set_state(bearing.z > 1.5);
+                                        inputs.swimup.set_state(bearing.z > 0.5);
+                                        inputs.swimdown.set_state(bearing.z < 0.5);
+                                    }
                                 }
 
                                 if dist_sqrd < 16.0f32.powf(2.0)

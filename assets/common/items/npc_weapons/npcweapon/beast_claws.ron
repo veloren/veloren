@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Beast Claws",
+    description: "Was attached to a beast.",
+    kind: Tool(
+        (
+            kind: NpcWeapon("BeastClaws"),
+            stats: (
+                equip_time_millis: 500,
+                power: 1.00),
+        )
+    ),
+    quality: Low,
+)

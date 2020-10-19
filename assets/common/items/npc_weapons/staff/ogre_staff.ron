@@ -1,0 +1,14 @@
+ItemDef(
+    name: "Ogre Staff",
+    description: "Placeholder",
+    kind: Tool(
+        (
+            kind: Staff("OgreStaff"),    
+            stats: (
+                equip_time_millis: 500,
+                power: 1.00,
+            ),
+        )
+    ),
+    quality: Low,
+)

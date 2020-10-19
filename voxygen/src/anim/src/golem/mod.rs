@@ -18,6 +18,7 @@ pub type Body = comp::golem::Body;
 
 skeleton_impls!(struct GolemSkeleton {
     + head,
+    + jaw,
     + upper_torso,
     + lower_torso,
     + shoulder_l,
@@ -35,7 +36,7 @@ impl Skeleton for GolemSkeleton {
     type Attr = SkeletonAttr;
     type Body = Body;
 
-    const BONE_COUNT: usize = 11;
+    const BONE_COUNT: usize = 12;
     #[cfg(feature = "use-dyn-lib")]
     const COMPUTE_FN: &'static [u8] = b"golem_compute_mats\0";
 
@@ -55,6 +56,7 @@ impl Skeleton for GolemSkeleton {
 
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
             make_bone(upper_torso_mat * Mat4::<f32>::from(self.head)),
+            make_bone(upper_torso_mat * Mat4::<f32>::from(self.head) * Mat4::<f32>::from(self.jaw)),
             make_bone(upper_torso_mat),
             make_bone(lower_torso_mat),
             make_bone(upper_torso_mat * Mat4::<f32>::from(self.shoulder_l)),
@@ -72,6 +74,7 @@ impl Skeleton for GolemSkeleton {
 
 pub struct SkeletonAttr {
     head: (f32, f32),
+    jaw: (f32, f32),
     upper_torso: (f32, f32),
     lower_torso: (f32, f32),
     shoulder: (f32, f32, f32),
@@ -95,6 +98,7 @@ impl Default for SkeletonAttr {
     fn default() -> Self {
         Self {
             head: (0.0, 0.0),
+            jaw: (0.0, 0.0),
             upper_torso: (0.0, 0.0),
             lower_torso: (0.0, 0.0),
             shoulder: (0.0, 0.0, 0.0),
@@ -111,24 +115,35 @@ impl<'a> From<&'a Body> for SkeletonAttr {
         Self {
             head: match (body.species, body.body_type) {
                 (StoneGolem, _) => (0.0, 2.0),
+                (Treant, _) => (18.0, -8.0),
+            },
+            jaw: match (body.species, body.body_type) {
+                (StoneGolem, _) => (0.0, 0.0),
+                (Treant, _) => (-6.5, -1.0),
             },
             upper_torso: match (body.species, body.body_type) {
                 (StoneGolem, _) => (0.0, 34.5),
+                (Treant, _) => (0.0, 28.5),
             },
             lower_torso: match (body.species, body.body_type) {
                 (StoneGolem, _) => (0.0, -10.5),
+                (Treant, _) => (0.0, -10.5),
             },
             shoulder: match (body.species, body.body_type) {
                 (StoneGolem, _) => (8.0, -1.5, 4.0),
+                (Treant, _) => (8.0, 4.5, -3.0),
             },
             hand: match (body.species, body.body_type) {
                 (StoneGolem, _) => (12.5, -1.0, -7.0),
+                (Treant, _) => (8.5, -1.0, -7.0),
             },
             leg: match (body.species, body.body_type) {
                 (StoneGolem, _) => (4.0, 0.0, -3.5),
+                (Treant, _) => (2.0, 9.5, -1.0),
             },
             foot: match (body.species, body.body_type) {
                 (StoneGolem, _) => (3.5, 0.5, -9.5),
+                (Treant, _) => (3.5, -5.0, -8.5),
             },
         }
     }

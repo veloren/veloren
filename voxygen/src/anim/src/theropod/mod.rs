@@ -80,6 +80,7 @@ pub struct SkeletonAttr {
     hand: (f32, f32, f32),
     leg: (f32, f32, f32),
     foot: (f32, f32, f32),
+    scaler: f32,
 }
 
 impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
@@ -106,6 +107,7 @@ impl Default for SkeletonAttr {
             hand: (0.0, 0.0, 0.0),
             leg: (0.0, 0.0, 0.0),
             foot: (0.0, 0.0, 0.0),
+            scaler: 0.0,
         }
     }
 }
@@ -117,42 +119,79 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             head: match (body.species, body.body_type) {
                 (Archaeos, _) => (8.0, 4.0),
                 (Odonto, _) => (2.0, 2.0),
+                (Sandraptor, _) => (8.0, 5.0),
+                (Snowraptor, _) => (8.0, 5.0),
+                (Woodraptor, _) => (8.0, 5.0),
             },
             jaw: match (body.species, body.body_type) {
                 (Archaeos, _) => (1.0, -7.0),
                 (Odonto, _) => (2.0, -7.0),
+                (Sandraptor, _) => (0.0, -4.0),
+                (Snowraptor, _) => (0.0, -4.0),
+                (Woodraptor, _) => (0.0, -4.0),
             },
             neck: match (body.species, body.body_type) {
                 (Archaeos, _) => (4.5, -2.0),
                 (Odonto, _) => (4.0, 0.0),
+                (Sandraptor, _) => (4.0, 2.5),
+                (Snowraptor, _) => (4.0, 2.5),
+                (Woodraptor, _) => (4.0, 2.5),
             },
             chest_front: match (body.species, body.body_type) {
                 (Archaeos, _) => (0.0, 20.0),
                 (Odonto, _) => (0.0, 13.0),
+                (Sandraptor, _) => (0.0, 15.5),
+                (Snowraptor, _) => (0.0, 15.5),
+                (Woodraptor, _) => (0.0, 15.5),
             },
             chest_back: match (body.species, body.body_type) {
                 (Archaeos, _) => (-5.5, -1.0),
                 (Odonto, _) => (-5.0, 2.0),
+                (Sandraptor, _) => (-3.0, 0.5),
+                (Snowraptor, _) => (-3.0, 0.5),
+                (Woodraptor, _) => (-3.0, 0.5),
             },
             tail_front: match (body.species, body.body_type) {
                 (Archaeos, _) => (-9.0, -1.5),
                 (Odonto, _) => (-7.0, -1.0),
+                (Sandraptor, _) => (-9.5, -1.0),
+                (Snowraptor, _) => (-9.5, -1.0),
+                (Woodraptor, _) => (-9.5, -1.0),
             },
             tail_back: match (body.species, body.body_type) {
                 (Archaeos, _) => (-8.0, -0.5),
                 (Odonto, _) => (-8.0, 0.5),
+                (Sandraptor, _) => (-10.5, 0.5),
+                (Snowraptor, _) => (-10.5, 1.0),
+                (Woodraptor, _) => (-10.5, 0.5),
             },
             hand: match (body.species, body.body_type) {
                 (Archaeos, _) => (3.0, 0.0, -4.0),
                 (Odonto, _) => (3.5, 3.0, -4.0),
+                (Sandraptor, _) => (2.5, 3.0, 1.0),
+                (Snowraptor, _) => (2.5, 3.0, 1.0),
+                (Woodraptor, _) => (2.5, 3.0, 1.0),
             },
             leg: match (body.species, body.body_type) {
                 (Archaeos, _) => (4.5, -3.0, -4.0),
                 (Odonto, _) => (5.5, -2.5, -4.0),
+                (Sandraptor, _) => (1.5, -2.5, -3.0),
+                (Snowraptor, _) => (1.5, -2.5, -3.0),
+                (Woodraptor, _) => (1.5, -2.5, -3.0),
             },
             foot: match (body.species, body.body_type) {
                 (Archaeos, _) => (1.0, -0.5, -7.0),
                 (Odonto, _) => (2.0, -6.5, -3.0),
+                (Sandraptor, _) => (2.0, 0.0, -3.0),
+                (Snowraptor, _) => (2.0, 0.0, -3.0),
+                (Woodraptor, _) => (2.0, 0.0, -3.0),
+            },
+            scaler: match (body.species, body.body_type) {
+                (Archaeos, _) => (3.0),
+                (Odonto, _) => (3.0),
+                (Sandraptor, _) => (7.0),
+                (Snowraptor, _) => (7.0),
+                (Woodraptor, _) => (7.0),
             },
         }
     }

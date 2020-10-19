@@ -41,16 +41,16 @@ impl Animation for RepeaterAnimation {
         let fire = (anim_time as f32 * 18.0 * lab as f32).sin();
 
         if let Some(ToolKind::Bow(_)) = active_tool_kind {
-            next.l_hand.position = Vec3::new(2.0, 1.5, 0.0);
-            next.l_hand.orientation = Quaternion::rotation_x(1.20)
+            next.hand_l.position = Vec3::new(2.0, 1.5, 0.0);
+            next.hand_l.orientation = Quaternion::rotation_x(1.20)
                 * Quaternion::rotation_y(-0.6)
                 * Quaternion::rotation_z(-0.3);
-            next.l_hand.scale = Vec3::one() * 1.05;
-            next.r_hand.position = Vec3::new(5.9, 4.5, -5.0);
-            next.r_hand.orientation = Quaternion::rotation_x(1.20)
+            next.hand_l.scale = Vec3::one() * 1.05;
+            next.hand_r.position = Vec3::new(5.9, 4.5, -5.0);
+            next.hand_r.orientation = Quaternion::rotation_x(1.20)
                 * Quaternion::rotation_y(-0.6)
                 * Quaternion::rotation_z(-0.3);
-            next.r_hand.scale = Vec3::one() * 1.05;
+            next.hand_r.scale = Vec3::one() * 1.05;
             next.main.position = Vec3::new(3.0, 2.0, -13.0);
             next.main.orientation = Quaternion::rotation_x(-0.3)
                 * Quaternion::rotation_y(0.3)
@@ -68,20 +68,20 @@ impl Animation for RepeaterAnimation {
             if let Some(stage_section) = stage_section {
                 match stage_section {
                     StageSection::Movement => {
-                        next.l_foot.position = Vec3::new(
+                        next.foot_l.position = Vec3::new(
                             -skeleton_attr.foot.0 + movement * -0.75 - 0.75,
                             skeleton_attr.foot.1 + movement * 4.0 + 4.0,
                             skeleton_attr.foot.2 + movement * 2.5 + 2.5,
                         );
-                        next.l_foot.orientation = Quaternion::rotation_x(movement * 0.6 + 0.6)
+                        next.foot_l.orientation = Quaternion::rotation_x(movement * 0.6 + 0.6)
                             * Quaternion::rotation_z(movement * 0.3 + 0.3);
 
-                        next.r_foot.position = Vec3::new(
+                        next.foot_r.position = Vec3::new(
                             skeleton_attr.foot.0 + movement * 0.75 + 0.75,
                             skeleton_attr.foot.1 + movement * 4.0 + 4.0,
                             skeleton_attr.foot.2 + movement * 2.5 + 2.5,
                         );
-                        next.r_foot.orientation = Quaternion::rotation_x(movement * 0.6 + 0.6)
+                        next.foot_r.orientation = Quaternion::rotation_x(movement * 0.6 + 0.6)
                             * Quaternion::rotation_z(movement * -0.3 - 0.3);
                         next.shorts.position = Vec3::new(
                             0.0,
@@ -107,20 +107,20 @@ impl Animation for RepeaterAnimation {
                     },
 
                     StageSection::Buildup => {
-                        next.l_foot.position = Vec3::new(
+                        next.foot_l.position = Vec3::new(
                             -skeleton_attr.foot.0 - 1.5,
                             skeleton_attr.foot.1 + 8.0,
                             skeleton_attr.foot.2 + 5.0,
                         );
-                        next.l_foot.orientation = Quaternion::rotation_x(1.2 + movement * -0.2)
+                        next.foot_l.orientation = Quaternion::rotation_x(1.2 + movement * -0.2)
                             * Quaternion::rotation_z(0.6);
 
-                        next.r_foot.position = Vec3::new(
+                        next.foot_r.position = Vec3::new(
                             skeleton_attr.foot.0 + 1.5,
                             skeleton_attr.foot.1 + 8.0,
                             skeleton_attr.foot.2 + 5.0,
                         );
-                        next.r_foot.orientation = Quaternion::rotation_x(1.2 + movement * -0.2)
+                        next.foot_r.orientation = Quaternion::rotation_x(1.2 + movement * -0.2)
                             * Quaternion::rotation_z(-0.6);
                         next.shorts.position = Vec3::new(
                             0.0,
@@ -139,20 +139,20 @@ impl Animation for RepeaterAnimation {
                     },
 
                     StageSection::Shoot => {
-                        next.l_foot.position = Vec3::new(
+                        next.foot_l.position = Vec3::new(
                             -skeleton_attr.foot.0 - 1.5,
                             skeleton_attr.foot.1 + 8.0,
                             skeleton_attr.foot.2 + 5.0,
                         );
-                        next.l_foot.orientation =
+                        next.foot_l.orientation =
                             Quaternion::rotation_x(1.0) * Quaternion::rotation_z(0.6);
 
-                        next.r_foot.position = Vec3::new(
+                        next.foot_r.position = Vec3::new(
                             skeleton_attr.foot.0 + 1.5,
                             skeleton_attr.foot.1 + 8.0,
                             skeleton_attr.foot.2 + 5.0,
                         );
-                        next.r_foot.orientation =
+                        next.foot_r.orientation =
                             Quaternion::rotation_x(1.0) * Quaternion::rotation_z(-0.6);
                         next.shorts.position = Vec3::new(
                             0.0,
@@ -169,9 +169,9 @@ impl Animation for RepeaterAnimation {
                         next.head.orientation = Quaternion::rotation_y(0.2);
                         next.torso.orientation = Quaternion::rotation_x(0.2 + movement * 0.15);
 
-                        next.l_hand.position =
+                        next.hand_l.position =
                             Vec3::new(2.0 + fire * -6.0 - 3.0, 1.5 + fire * -6.0 - 3.0, 0.0);
-                        next.l_hand.orientation = Quaternion::rotation_x(1.20)
+                        next.hand_l.orientation = Quaternion::rotation_x(1.20)
                             * Quaternion::rotation_y(-0.6)
                             * Quaternion::rotation_z(-0.3);
                         next.hold.scale = Vec3::one() * 0.0;

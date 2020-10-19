@@ -66,14 +66,14 @@ impl Animation for ShootAnimation {
         match active_tool_kind {
             //TODO: Inventory
             Some(ToolKind::Staff(_)) | Some(ToolKind::Sceptre(_)) => {
-                next.l_hand.position = Vec3::new(11.0, 5.0, -4.0);
-                next.l_hand.orientation =
+                next.hand_l.position = Vec3::new(11.0, 5.0, -4.0);
+                next.hand_l.orientation =
                     Quaternion::rotation_x(1.27) * Quaternion::rotation_y(0.0);
-                next.l_hand.scale = Vec3::one() * 1.05;
-                next.r_hand.position = Vec3::new(12.0, 5.5, 2.0);
-                next.r_hand.orientation =
+                next.hand_l.scale = Vec3::one() * 1.05;
+                next.hand_r.position = Vec3::new(12.0, 5.5, 2.0);
+                next.hand_r.orientation =
                     Quaternion::rotation_x(1.57) * Quaternion::rotation_y(0.2);
-                next.r_hand.scale = Vec3::one() * 1.05;
+                next.hand_r.scale = Vec3::one() * 1.05;
                 next.main.position = Vec3::new(12.0, 8.5, 13.2);
                 next.main.orientation = Quaternion::rotation_x(0.0)
                     * Quaternion::rotation_y(3.14)
@@ -86,17 +86,17 @@ impl Animation for ShootAnimation {
                 next.control.scale = Vec3::one();
             },
             Some(ToolKind::Bow(_)) => {
-                next.l_hand.position =
+                next.hand_l.position =
                     Vec3::new(1.0 - exp * 2.0, -4.0 - exp * 4.0, -1.0 + exp * 6.0);
-                next.l_hand.orientation = Quaternion::rotation_x(1.20)
+                next.hand_l.orientation = Quaternion::rotation_x(1.20)
                     * Quaternion::rotation_y(-0.6 + exp * 0.8)
                     * Quaternion::rotation_z(-0.3 + exp * 0.9);
-                next.l_hand.scale = Vec3::one() * 1.05;
-                next.r_hand.position = Vec3::new(4.9, 3.0, -4.0);
-                next.r_hand.orientation = Quaternion::rotation_x(1.20)
+                next.hand_l.scale = Vec3::one() * 1.05;
+                next.hand_r.position = Vec3::new(4.9, 3.0, -4.0);
+                next.hand_r.orientation = Quaternion::rotation_x(1.20)
                     * Quaternion::rotation_y(-0.6)
                     * Quaternion::rotation_z(-0.3);
-                next.r_hand.scale = Vec3::one() * 1.05;
+                next.hand_r.scale = Vec3::one() * 1.05;
                 next.main.position = Vec3::new(3.0, 2.0, -13.0);
                 next.main.orientation = Quaternion::rotation_x(-0.3)
                     * Quaternion::rotation_y(0.3)
@@ -111,40 +111,40 @@ impl Animation for ShootAnimation {
             _ => {},
         }
         if velocity > 0.5 {
-            next.l_foot.position = Vec3::new(
+            next.foot_l.position = Vec3::new(
                 -skeleton_attr.foot.0 - foot * 1.0 + exp * -1.0,
                 foote * 0.8 + exp * 1.5,
                 skeleton_attr.foot.2,
             );
-            next.l_foot.orientation = Quaternion::rotation_x(exp * 0.5)
+            next.foot_l.orientation = Quaternion::rotation_x(exp * 0.5)
                 * Quaternion::rotation_z(exp * 0.4)
                 * Quaternion::rotation_y(0.15);
-            next.l_foot.scale = Vec3::one();
+            next.foot_l.scale = Vec3::one();
 
-            next.r_foot.position = Vec3::new(
+            next.foot_r.position = Vec3::new(
                 skeleton_attr.foot.0 + foot * 1.0 + exp * 1.0,
                 foote * -0.8 + exp * -1.0,
                 skeleton_attr.foot.2,
             );
-            next.r_foot.orientation = Quaternion::rotation_x(exp * -0.5)
+            next.foot_r.orientation = Quaternion::rotation_x(exp * -0.5)
                 * Quaternion::rotation_z(exp * 0.4)
                 * Quaternion::rotation_y(0.0);
-            next.r_foot.scale = Vec3::one();
+            next.foot_r.scale = Vec3::one();
             next.torso.position = Vec3::new(0.0, 0.0, 0.1) * skeleton_attr.scaler;
             next.torso.orientation = Quaternion::rotation_x(-0.15);
             next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
         } else {
-            next.l_foot.position = Vec3::new(
+            next.foot_l.position = Vec3::new(
                 -skeleton_attr.foot.0,
                 -2.5,
                 skeleton_attr.foot.2 + exp * 2.5,
             );
-            next.l_foot.orientation =
+            next.foot_l.orientation =
                 Quaternion::rotation_x(exp * -0.2 - 0.2) * Quaternion::rotation_z(exp * 1.0);
 
-            next.r_foot.position =
+            next.foot_r.position =
                 Vec3::new(skeleton_attr.foot.0, 3.5 - exp * 2.0, skeleton_attr.foot.2);
-            next.r_foot.orientation =
+            next.foot_r.orientation =
                 Quaternion::rotation_x(exp * 0.1) * Quaternion::rotation_z(exp * 0.5);
             next.torso.position = Vec3::new(0.0, 0.0, 0.1) * skeleton_attr.scaler;
             next.torso.orientation = Quaternion::rotation_z(0.0);
@@ -154,13 +154,13 @@ impl Animation for ShootAnimation {
         next.back.orientation = Quaternion::rotation_x(-0.3);
         next.back.scale = Vec3::one() * 1.02;
 
-        next.l_shoulder.position = Vec3::new(-5.0, 0.0, 4.7);
-        next.l_shoulder.orientation = Quaternion::rotation_x(0.0);
-        next.l_shoulder.scale = Vec3::one() * 1.1;
+        next.shoulder_l.position = Vec3::new(-5.0, 0.0, 4.7);
+        next.shoulder_l.orientation = Quaternion::rotation_x(0.0);
+        next.shoulder_l.scale = Vec3::one() * 1.1;
 
-        next.r_shoulder.position = Vec3::new(5.0, 0.0, 4.7);
-        next.r_shoulder.orientation = Quaternion::rotation_x(0.0);
-        next.r_shoulder.scale = Vec3::one() * 1.1;
+        next.shoulder_r.position = Vec3::new(5.0, 0.0, 4.7);
+        next.shoulder_r.orientation = Quaternion::rotation_x(0.0);
+        next.shoulder_r.scale = Vec3::one() * 1.1;
 
         next.glider.position = Vec3::new(0.0, 5.0, 0.0);
         next.glider.orientation = Quaternion::rotation_y(0.0);
@@ -181,13 +181,13 @@ impl Animation for ShootAnimation {
             * Quaternion::rotation_z(0.0);
         next.hold.scale = Vec3::one() * 0.0;
 
-        next.l_control.position = Vec3::new(0.0, 0.0, 0.0);
-        next.l_control.orientation = Quaternion::rotation_x(0.0);
-        next.l_control.scale = Vec3::one();
+        next.control_l.position = Vec3::new(0.0, 0.0, 0.0);
+        next.control_l.orientation = Quaternion::rotation_x(0.0);
+        next.control_l.scale = Vec3::one();
 
-        next.r_control.position = Vec3::new(0.0, 0.0, 0.0);
-        next.r_control.orientation = Quaternion::rotation_x(0.0);
-        next.r_control.scale = Vec3::one();
+        next.control_r.position = Vec3::new(0.0, 0.0, 0.0);
+        next.control_r.orientation = Quaternion::rotation_x(0.0);
+        next.control_r.scale = Vec3::one();
 
         next.second.scale = match (
             active_tool_kind.map(|tk| tk.hands()),

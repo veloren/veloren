@@ -294,6 +294,10 @@
             "hirdrasil": {
                 "keyword": "hirdrasil",
                 "generic": "Hirdrasil"
+            },
+            "roshwalr": {
+                "keyword": "roshwalr",
+                "generic": "Roshwalr"
             }
         }
     },
@@ -550,7 +554,7 @@
         "body": {
             "keyword": "biped_large",
             "names": [
-                "Leroy Brown"
+                "Tobermory"
             ]
         },
         "species": {
@@ -573,6 +577,22 @@
             "dullahan": {
                 "keyword": "dullahan",
                 "generic": "Dullahan"
+            },
+            "werewolf": {
+                "keyword": "werewolf",
+                "generic": "Werewolf"
+            },
+            "saurok_occult": {
+                "keyword": "saurok_occult",
+                "generic": "Occult Saurok"
+            },
+            "saurok_mighty": {
+                "keyword": "saurok_mighty",
+                "generic": "Mighty Saurok"
+            },
+            "saurok_sly": {
+                "keyword": "saurok_sly",
+                "generic": "Sly Saurok"
             }
         }
     },
@@ -587,6 +607,10 @@
             "stonegolem": {
                 "keyword": "stonegolem",
                 "generic": "StoneGolem"
+            },
+            "treant": {
+                "keyword": "treant",
+                "generic": "Treant"
             }
         }
     },
@@ -605,6 +629,18 @@
             "odonto": {
                 "keyword": "odonto",
                 "generic": "Odonto"
+            },
+            "raptor_sand": {
+                "keyword": "raptor_sand",
+                "generic": "Sand Raptor"
+            },
+            "raptor_snow": {
+                "keyword": "raptor_snow",
+                "generic": "Snow Raptor"
+            },
+            "raptor_wood": {
+                "keyword": "raptor_wood",
+                "generic": "Wood Raptor"
             }
         }
     },

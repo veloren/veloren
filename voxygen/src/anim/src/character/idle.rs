@@ -62,52 +62,52 @@ impl Animation for IdleAnimation {
         next.back.position = Vec3::new(0.0, skeleton_attr.back.0, skeleton_attr.back.1);
         next.back.scale = Vec3::one() * 1.02;
 
-        next.l_hand.position = Vec3::new(
+        next.hand_l.position = Vec3::new(
             -skeleton_attr.hand.0,
             skeleton_attr.hand.1 + wave_ultra_slow_cos * 0.15,
             skeleton_attr.hand.2 + wave_ultra_slow * 0.5,
         );
 
-        next.l_hand.orientation = Quaternion::rotation_x(0.0 + wave_ultra_slow * -0.06);
-        next.l_hand.scale = Vec3::one();
+        next.hand_l.orientation = Quaternion::rotation_x(0.0 + wave_ultra_slow * -0.06);
+        next.hand_l.scale = Vec3::one();
 
-        next.r_hand.position = Vec3::new(
+        next.hand_r.position = Vec3::new(
             skeleton_attr.hand.0,
             skeleton_attr.hand.1 + wave_ultra_slow_cos * 0.15,
             skeleton_attr.hand.2 + wave_ultra_slow * 0.5 + head_abs * -0.05,
         );
-        next.r_hand.orientation = Quaternion::rotation_x(0.0 + wave_ultra_slow * -0.06);
-        next.r_hand.scale = Vec3::one() + head_abs * -0.05;
+        next.hand_r.orientation = Quaternion::rotation_x(0.0 + wave_ultra_slow * -0.06);
+        next.hand_r.scale = Vec3::one() + head_abs * -0.05;
 
-        next.l_foot.position = Vec3::new(
+        next.foot_l.position = Vec3::new(
             -skeleton_attr.foot.0,
             skeleton_attr.foot.1,
             skeleton_attr.foot.2,
         );
-        next.l_foot.scale = Vec3::one();
+        next.foot_l.scale = Vec3::one();
 
-        next.r_foot.position = Vec3::new(
+        next.foot_r.position = Vec3::new(
             skeleton_attr.foot.0,
             skeleton_attr.foot.1,
             skeleton_attr.foot.2,
         );
-        next.r_foot.scale = Vec3::one();
+        next.foot_r.scale = Vec3::one();
 
-        next.l_shoulder.position = Vec3::new(
+        next.shoulder_l.position = Vec3::new(
             -skeleton_attr.shoulder.0,
             skeleton_attr.shoulder.1,
             skeleton_attr.shoulder.2,
         );
-        next.l_shoulder.orientation = Quaternion::rotation_x(0.0);
-        next.l_shoulder.scale = (Vec3::one() + head_abs * -0.05) * 1.15;
+        next.shoulder_l.orientation = Quaternion::rotation_x(0.0);
+        next.shoulder_l.scale = (Vec3::one() + head_abs * -0.05) * 1.15;
 
-        next.r_shoulder.position = Vec3::new(
+        next.shoulder_r.position = Vec3::new(
             skeleton_attr.shoulder.0,
             skeleton_attr.shoulder.1,
             skeleton_attr.shoulder.2,
         );
-        next.r_shoulder.orientation = Quaternion::rotation_x(0.0);
-        next.r_shoulder.scale = (Vec3::one() + head_abs * -0.05) * 1.15;
+        next.shoulder_r.orientation = Quaternion::rotation_x(0.0);
+        next.shoulder_r.scale = (Vec3::one() + head_abs * -0.05) * 1.15;
 
         next.glider.scale = Vec3::one() * 0.0;
 
@@ -165,13 +165,13 @@ impl Animation for IdleAnimation {
         next.control.orientation = Quaternion::rotation_x(0.0);
         next.control.scale = Vec3::one();
 
-        next.l_control.position = Vec3::new(0.0, 0.0, 0.0);
-        next.l_control.orientation = Quaternion::rotation_x(0.0);
-        next.l_control.scale = Vec3::one();
+        next.control_l.position = Vec3::new(0.0, 0.0, 0.0);
+        next.control_l.orientation = Quaternion::rotation_x(0.0);
+        next.control_l.scale = Vec3::one();
 
-        next.r_control.position = Vec3::new(0.0, 0.0, 0.0);
-        next.r_control.orientation = Quaternion::rotation_x(0.0);
-        next.r_control.scale = Vec3::one();
+        next.control_r.position = Vec3::new(0.0, 0.0, 0.0);
+        next.control_r.orientation = Quaternion::rotation_x(0.0);
+        next.control_r.scale = Vec3::one();
 
         next.second.scale = match (
             active_tool_kind.map(|tk| tk.hands()),
