@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Gave the axe a third attack
 - A new secondary charged melee attack for the hammer
 - Added Dutch translations
+- Buff system
 
 ### Changed
 

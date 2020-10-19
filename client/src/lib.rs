@@ -37,7 +37,7 @@ use common::{
     terrain::{block::Block, neighbors, TerrainChunk, TerrainChunkSize},
     vol::RectVolSize,
 };
-use comp::BuffId;
+use comp::BuffKind;
 use futures_executor::block_on;
 use futures_timer::Delay;
 use futures_util::{select, FutureExt};
@@ -632,7 +632,7 @@ impl Client {
         self.send_msg(ClientGeneral::ControlEvent(ControlEvent::DisableLantern));
     }
 
-    pub fn remove_buff(&mut self, buff_id: BuffId) {
+    pub fn remove_buff(&mut self, buff_id: BuffKind) {
         self.send_msg(ClientGeneral::ControlEvent(ControlEvent::RemoveBuff(
             buff_id,
         )));
@@ -971,6 +971,11 @@ impl Client {
 
         // 4) Tick the client's LocalState
         self.state.tick(dt, add_foreign_systems, true);
+        // TODO: avoid emitting these in the first place
+        self.state
+            .ecs()
+            .fetch::<EventBus<common::event::ServerEvent>>()
+            .recv_all();
 
         // 5) Terrain
         let pos = self

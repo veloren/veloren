@@ -14,7 +14,7 @@ use crate::{
 };
 use client::{self, Client};
 use common::{
-    comp::{group::Role, BuffId, Stats},
+    comp::{group::Role, BuffKind, Stats},
     sync::{Uid, WorldSyncExt},
 };
 use conrod_core::{
@@ -23,7 +23,6 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Scrollbar, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-use inline_tweak::*;
 use specs::{saveload::MarkerAllocator, WorldExt};
 widget_ids! {
     pub struct Ids {
@@ -329,7 +328,7 @@ impl<'a> Widget for Group<'a> {
                 .ecs()
                 .read_resource::<common::sync::UidAllocator>();
             let offset = if self.global_state.settings.gameplay.toggle_debug {
-                tweak!(320.0)
+                320.0
             } else {
                 110.0
             };
@@ -467,21 +466,23 @@ impl<'a> Widget for Group<'a> {
                             .skip(total_buff_count - buff_count)
                             .zip(buffs.active_buffs.iter().map(get_buff_info))
                             .for_each(|((id, timer_id), buff)| {
-                                let max_duration = match buff.id {
-                                    BuffId::Regeneration { duration, .. } => {
-                                        duration.unwrap().as_secs_f32()
-                                    },
-                                    _ => 10.0,
+                                let max_duration = match buff.kind {
+                                    BuffKind::Bleeding { duration, .. } => duration,
+                                    BuffKind::Regeneration { duration, .. } => duration,
+                                    BuffKind::Cursed { duration } => duration,
                                 };
                                 let pulsating_col = Color::Rgba(1.0, 1.0, 1.0, buff_ani);
                                 let norm_col = Color::Rgba(1.0, 1.0, 1.0, 1.0);
                                 let current_duration = buff.dur;
-                                let duration_percentage =
-                                    (current_duration / max_duration * 1000.0) as u32; // Percentage to determine which frame of the timer overlay is displayed
-                                let buff_img = match buff.id {
-                                    BuffId::Regeneration { .. } => self.imgs.buff_plus_0,
-                                    BuffId::Bleeding { .. } => self.imgs.debuff_bleed_0,
-                                    BuffId::Cursed { .. } => self.imgs.debuff_skull_0,
+                                let duration_percentage = current_duration.map_or(1000.0, |cur| {
+                                    max_duration.map_or(1000.0, |max| {
+                                        cur.as_secs_f32() / max.as_secs_f32() * 1000.0
+                                    })
+                                }) as u32; // Percentage to determine which frame of the timer overlay is displayed
+                                let buff_img = match buff.kind {
+                                    BuffKind::Regeneration { .. } => self.imgs.buff_plus_0,
+                                    BuffKind::Bleeding { .. } => self.imgs.debuff_bleed_0,
+                                    BuffKind::Cursed { .. } => self.imgs.debuff_skull_0,
                                 };
                                 let buff_widget = Image::new(buff_img).w_h(15.0, 15.0);
                                 let buff_widget = if let Some(id) = prev_id {
@@ -495,35 +496,42 @@ impl<'a> Widget for Group<'a> {
                                 };
                                 prev_id = Some(id);
                                 buff_widget
-                                    .color(if current_duration < 10.0 {
-                                        Some(pulsating_col)
-                                    } else {
-                                        Some(norm_col)
-                                    })
+                                    .color(
+                                        if current_duration
+                                            .map_or(false, |cur| cur.as_secs_f32() < 10.0)
+                                        {
+                                            Some(pulsating_col)
+                                        } else {
+                                            Some(norm_col)
+                                        },
+                                    )
                                     .set(id, ui);
                                 // Create Buff tooltip
-                                let title = match buff.id {
-                                    BuffId::Regeneration { .. } => {
-                                        *&localized_strings.get("buff.title.heal_test")
+                                let title = match buff.kind {
+                                    BuffKind::Regeneration { .. } => {
+                                        localized_strings.get("buff.title.heal_test")
                                     },
-                                    BuffId::Bleeding { .. } => {
-                                        *&localized_strings.get("debuff.title.bleed_test")
+                                    BuffKind::Bleeding { .. } => {
+                                        localized_strings.get("debuff.title.bleed_test")
                                     },
-                                    _ => *&localized_strings.get("buff.title.missing"),
+                                    _ => localized_strings.get("buff.title.missing"),
                                 };
-                                let remaining_time = if current_duration == 10e6 as f32 {
+                                let remaining_time = if current_duration.is_none() {
                                     "Permanent".to_string()
                                 } else {
-                                    format!("Remaining: {:.0}s", current_duration)
+                                    format!(
+                                        "Remaining: {:.0}s",
+                                        current_duration.unwrap().as_secs_f32()
+                                    )
                                 };
-                                let desc_txt = match buff.id {
-                                    BuffId::Regeneration { .. } => {
-                                        *&localized_strings.get("buff.desc.heal_test")
+                                let desc_txt = match buff.kind {
+                                    BuffKind::Regeneration { .. } => {
+                                        localized_strings.get("buff.desc.heal_test")
                                     },
-                                    BuffId::Bleeding { .. } => {
-                                        *&localized_strings.get("debuff.desc.bleed_test")
+                                    BuffKind::Bleeding { .. } => {
+                                        localized_strings.get("debuff.desc.bleed_test")
                                     },
-                                    _ => *&localized_strings.get("buff.desc.missing"),
+                                    _ => localized_strings.get("buff.desc.missing"),
                                 };
                                 let desc = format!("{}\n\n{}", desc_txt, remaining_time);
                                 Image::new(match duration_percentage as u64 {

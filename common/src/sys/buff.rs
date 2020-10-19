@@ -23,33 +23,62 @@ impl<'a> System<'a> for Sys {
 
     fn run(&mut self, (dt, server_bus, uids, stats, mut buffs): Self::SystemData) {
         let mut server_emitter = server_bus.emitter();
-        for (uid, stat, mut buffs) in (&uids, &stats, &mut buffs.restrict_mut()).join() {
-            let buff_comp = buffs.get_mut_unchecked();
+        // Set to false to avoid spamming server
+        buffs.set_event_emission(false);
+        for (buff_comp, uid) in (&mut buffs, &uids).join() {
             let (mut active_buff_indices_for_removal, mut inactive_buff_indices_for_removal) =
                 (Vec::<usize>::new(), Vec::<usize>::new());
-            // Tick all de/buffs on a Buffs component.
             for (i, active_buff) in buff_comp.active_buffs.iter_mut().enumerate() {
-                // First, tick the buff and subtract delta from it
-                // and return how much "real" time the buff took (for tick independence).
-                let buff_delta = if let Some(remaining_time) = &mut active_buff.time {
-                    let pre_tick = remaining_time.as_secs_f32();
+                // Tick the buff and subtract delta from it
+                if let Some(remaining_time) = &mut active_buff.time {
                     let new_duration = remaining_time.checked_sub(Duration::from_secs_f32(dt.0));
-                    let post_tick = if let Some(dur) = new_duration {
+                    if new_duration.is_some() {
                         // The buff still continues.
                         *remaining_time -= Duration::from_secs_f32(dt.0);
-                        dur.as_secs_f32()
                     } else {
                         // The buff has expired.
                         // Remove it.
                         active_buff_indices_for_removal.push(i);
-                        0.0
+                        active_buff.time = Some(Duration::default());
                     };
-                    pre_tick - post_tick
-                } else {
-                    // The buff is indefinite, and it takes full tick (delta).
-                    dt.0
-                };
+                }
+            }
 
+            for (i, inactive_buff) in buff_comp.inactive_buffs.iter_mut().enumerate() {
+                // Tick the buff and subtract delta from it
+                if let Some(remaining_time) = &mut inactive_buff.time {
+                    let new_duration = remaining_time.checked_sub(Duration::from_secs_f32(dt.0));
+                    if new_duration.is_some() {
+                        // The buff still continues.
+                        *remaining_time -= Duration::from_secs_f32(dt.0);
+                    } else {
+                        // The buff has expired.
+                        // Remove it.
+                        inactive_buff_indices_for_removal.push(i);
+                        inactive_buff.time = Some(Duration::default());
+                    };
+                }
+            }
+
+            if !active_buff_indices_for_removal.is_empty()
+                || !inactive_buff_indices_for_removal.is_empty()
+            {
+                server_emitter.emit(ServerEvent::Buff {
+                    uid: *uid,
+                    buff_change: BuffChange::RemoveExpiredByIndex(
+                        active_buff_indices_for_removal,
+                        inactive_buff_indices_for_removal,
+                    ),
+                });
+            }
+        }
+        // Set back to true after timer decrement
+        buffs.set_event_emission(true);
+        for (uid, stat, mut buffs) in (&uids, &stats, &mut buffs.restrict_mut()).join() {
+            let buff_comp = buffs.get_mut_unchecked();
+            // Tick all de/buffs on a Buffs component.
+            for active_buff in buff_comp.active_buffs.iter_mut() {
+                // Get buff owner
                 let buff_owner = if let BuffSource::Character { by: owner } = active_buff.source {
                     Some(owner)
                 } else {
@@ -60,12 +89,13 @@ impl<'a> System<'a> for Sys {
                     match effect {
                         // Only add an effect here if it is continuous or it is not immediate
                         BuffEffect::HealthChangeOverTime { rate, accumulated } => {
-                            *accumulated += *rate * buff_delta;
-                            // Apply damage only once a second (with a minimum of 1 damage), or when a buff is removed
+                            *accumulated += *rate * dt.0;
+                            // Apply damage only once a second (with a minimum of 1 damage), or when
+                            // a buff is removed
                             if accumulated.abs() > rate.abs().max(10.0)
-                                || active_buff_indices_for_removal
-                                    .iter()
-                                    .any(|index| *index == i)
+                                || active_buff
+                                    .time
+                                    .map_or(false, |dur| dur == Duration::default())
                             {
                                 let cause = if *accumulated > 0.0 {
                                     HealthSource::Healing { by: buff_owner }
@@ -86,31 +116,6 @@ impl<'a> System<'a> for Sys {
                     };
                 }
             }
-
-            for (i, inactive_buff) in buff_comp.inactive_buffs.iter_mut().enumerate() {
-                // First, tick the buff and subtract delta from it
-                // and return how much "real" time the buff took (for tick independence).
-                // TODO: handle delta for "indefinite" buffs, i.e. time since they got removed.
-                if let Some(remaining_time) = &mut inactive_buff.time {
-                    let new_duration = remaining_time.checked_sub(Duration::from_secs_f32(dt.0));
-                    if new_duration.is_some() {
-                        // The buff still continues.
-                        *remaining_time -= Duration::from_secs_f32(dt.0);
-                    } else {
-                        // The buff has expired.
-                        // Remove it.
-                        inactive_buff_indices_for_removal.push(i);
-                    };
-                }
-            }
-
-            server_emitter.emit(ServerEvent::Buff {
-                uid: *uid,
-                buff_change: BuffChange::RemoveByIndex(
-                    active_buff_indices_for_removal,
-                    inactive_buff_indices_for_removal,
-                ),
-            });
 
             if stat.is_dead {
                 server_emitter.emit(ServerEvent::Buff {

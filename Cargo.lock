@@ -4957,7 +4957,6 @@ dependencies = [
  "guillotiere",
  "hashbrown 0.7.2",
  "image",
- "inline_tweak",
  "itertools",
  "native-dialog",
  "num 0.2.1",
@@ -4989,7 +4988,6 @@ name = "veloren-voxygen-anim"
 version = "0.7.0"
 dependencies = [
  "find_folder",
- "inline_tweak",
  "lazy_static",
  "libloading 0.6.3",
  "notify",

@@ -4,17 +4,12 @@ use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::time::Duration;
 
-/// De/buff ID.
-/// ID can be independant of an actual type/config of a `BuffEffect`.
-/// Therefore, information provided by `BuffId` can be incomplete/incorrect.
-///
-/// For example, there could be two regeneration buffs, each with
-/// different strength, but they could use the same `BuffId`,
-/// making it harder to recognize which is which.
-///
-/// Also, this should be dehardcoded eventually.
+/// De/buff Kind.
+/// This is used to determine what effects a buff will have, as well as
+/// determine the strength and duration of the buff effects using the internal
+/// values
 #[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
-pub enum BuffId {
+pub enum BuffKind {
     /// Restores health/time for some period
     Regeneration {
         strength: f32,
@@ -31,22 +26,21 @@ pub enum BuffId {
 }
 
 /// De/buff category ID.
-/// Similar to `BuffId`, but to mark a category (for more generic usage, like
+/// Similar to `BuffKind`, but to mark a category (for more generic usage, like
 /// positive/negative buffs).
 #[derive(Clone, Copy, Eq, PartialEq, Debug, Serialize, Deserialize)]
 pub enum BuffCategoryId {
+    // Buff and debuff get added in builder function based off of the buff kind
+    Debuff,
+    Buff,
     Natural,
     Physical,
     Magical,
     Divine,
-    Debuff,
-    Buff,
     PersistOnDeath,
 }
 
 /// Data indicating and configuring behaviour of a de/buff.
-///
-/// NOTE: Contents of this enum are WIP/Placeholder
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum BuffEffect {
     /// Periodically damages or heals entity
@@ -58,23 +52,16 @@ pub enum BuffEffect {
 /// Actual de/buff.
 /// Buff can timeout after some time if `time` is Some. If `time` is None,
 /// Buff will last indefinitely, until removed manually (by some action, like
-/// uncursing). The `time` field might be moved into the `Buffs` component
-/// (so that `Buff` does not own this information).
+/// uncursing).
 ///
-/// Buff has an id and data, which can be independent on each other.
-/// This makes it hard to create buff stacking "helpers", as the system
-/// does not assume that the same id is always the same behaviour (data).
-/// Therefore id=behaviour relationship has to be enforced elsewhere (if
-/// desired).
+/// Buff has a kind, which is used to determine the effects in a builder
+/// function.
 ///
 /// To provide more classification info when needed,
 /// buff can be in one or more buff category.
-///
-/// `data` is separate, to make this system more flexible
-/// (at the cost of the fact that id=behaviour relationship might not apply).
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Buff {
-    pub id: BuffId,
+    pub kind: BuffKind,
     pub cat_ids: Vec<BuffCategoryId>,
     pub time: Option<Duration>,
     pub effects: Vec<BuffEffect>,
@@ -88,10 +75,12 @@ pub enum BuffChange {
     /// Adds this buff.
     Add(Buff),
     /// Removes all buffs with this ID.
-    RemoveById(BuffId),
+    RemoveByKind(BuffKind),
+    /// Removes all buffs with this ID, but not debuffs.
+    RemoveFromClient(BuffKind),
     /// Removes buffs of these indices (first vec is for active buffs, second is
-    /// for inactive buffs)
-    RemoveByIndex(Vec<usize>, Vec<usize>),
+    /// for inactive buffs), should only be called when buffs expire
+    RemoveExpiredByIndex(Vec<usize>, Vec<usize>),
     /// Removes buffs of these categories (first vec is of categories of which
     /// all are required, second vec is of categories of which at least one is
     /// required, third vec is of categories that will not be removed)  
@@ -139,37 +128,40 @@ pub struct Buffs {
     pub inactive_buffs: Vec<Buff>,
 }
 
-impl Buffs {
-    /// This is a primitive check if a specific buff is present and active.
-    /// (for purposes like blocking usage of abilities or something like this).
-    pub fn has_buff_id(&self, id: &BuffId) -> bool {
-        self.active_buffs.iter().any(|buff| buff.id == *id)
-    }
-}
-
 impl Buff {
-    pub fn new(id: BuffId, cat_ids: Vec<BuffCategoryId>, source: BuffSource) -> Self {
-        let (effects, time) = match id {
-            BuffId::Bleeding { strength, duration } => (
-                vec![BuffEffect::HealthChangeOverTime {
-                    rate: -strength,
-                    accumulated: 0.0,
-                }],
-                duration,
-            ),
-            BuffId::Regeneration { strength, duration } => (
-                vec![BuffEffect::HealthChangeOverTime {
-                    rate: strength,
-                    accumulated: 0.0,
-                }],
-                duration,
-            ),
-            BuffId::Cursed { duration } => (
-                vec![BuffEffect::NameChange {
-                    prefix: String::from("Cursed "),
-                }],
-                duration,
-            ),
+    /// Builder function for buffs
+    pub fn new(kind: BuffKind, cat_ids: Vec<BuffCategoryId>, source: BuffSource) -> Self {
+        let mut cat_ids = cat_ids;
+        let (effects, time) = match kind {
+            BuffKind::Bleeding { strength, duration } => {
+                cat_ids.push(BuffCategoryId::Debuff);
+                (
+                    vec![BuffEffect::HealthChangeOverTime {
+                        rate: -strength,
+                        accumulated: 0.0,
+                    }],
+                    duration,
+                )
+            },
+            BuffKind::Regeneration { strength, duration } => {
+                cat_ids.push(BuffCategoryId::Buff);
+                (
+                    vec![BuffEffect::HealthChangeOverTime {
+                        rate: strength,
+                        accumulated: 0.0,
+                    }],
+                    duration,
+                )
+            },
+            BuffKind::Cursed { duration } => {
+                cat_ids.push(BuffCategoryId::Debuff);
+                (
+                    vec![BuffEffect::NameChange {
+                        prefix: String::from("Cursed "),
+                    }],
+                    duration,
+                )
+            },
         };
         assert_eq!(
             cat_ids
@@ -179,7 +171,7 @@ impl Buff {
             "Buff must have either buff or debuff category."
         );
         Buff {
-            id,
+            kind,
             cat_ids,
             time,
             effects,

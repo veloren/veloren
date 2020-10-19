@@ -724,7 +724,7 @@ pub fn handle_buff(server: &mut Server, uid: Uid, buff_change: buff::BuffChange)
                             // inactive buffs, or move active buff to
                             // inactive buffs and add new buff to active
                             // buffs.
-                            if discriminant(&active_buff.id) == discriminant(&new_buff.id) {
+                            if discriminant(&active_buff.kind) == discriminant(&new_buff.kind) {
                                 duplicate_existed = true;
                                 // Determines if active buff is weaker than newer buff
                                 if determine_replace_active_buff(
@@ -761,19 +761,40 @@ pub fn handle_buff(server: &mut Server, uid: Uid, buff_change: buff::BuffChange)
                         }
                     }
                 },
-                BuffChange::RemoveByIndex(active_indices, inactive_indices) => {
+                BuffChange::RemoveExpiredByIndex(active_indices, inactive_indices) => {
                     active_buff_indices_for_removal = active_indices;
                     inactive_buff_indices_for_removal = inactive_indices;
                 },
-                BuffChange::RemoveById(id) => {
-                    let some_predicate = |current_id: &buff::BuffId| *current_id == id;
+                BuffChange::RemoveByKind(kind) => {
                     for (i, buff) in buffs.active_buffs.iter().enumerate() {
-                        if some_predicate(&buff.id) {
+                        if discriminant(&kind) == discriminant(&buff.kind) {
                             active_buff_indices_for_removal.push(i);
                         }
                     }
                     for (i, buff) in buffs.inactive_buffs.iter().enumerate() {
-                        if some_predicate(&buff.id) {
+                        if discriminant(&kind) == discriminant(&buff.kind) {
+                            inactive_buff_indices_for_removal.push(i);
+                        }
+                    }
+                },
+                BuffChange::RemoveFromClient(kind) => {
+                    for (i, buff) in buffs.active_buffs.iter().enumerate() {
+                        if discriminant(&kind) == discriminant(&buff.kind)
+                            && buff
+                                .cat_ids
+                                .iter()
+                                .any(|cat| *cat == buff::BuffCategoryId::Buff)
+                        {
+                            active_buff_indices_for_removal.push(i);
+                        }
+                    }
+                    for (i, buff) in buffs.inactive_buffs.iter().enumerate() {
+                        if discriminant(&kind) == discriminant(&buff.kind)
+                            && buff
+                                .cat_ids
+                                .iter()
+                                .any(|cat| *cat == buff::BuffCategoryId::Buff)
+                        {
                             inactive_buff_indices_for_removal.push(i);
                         }
                     }
@@ -830,11 +851,11 @@ pub fn handle_buff(server: &mut Server, uid: Uid, buff_change: buff::BuffChange)
                     }
                 },
             }
-            let mut removed_active_buff_ids = Vec::new();
+            let mut removed_active_buff_kinds = Vec::new();
             while !active_buff_indices_for_removal.is_empty() {
                 if let Some(i) = active_buff_indices_for_removal.pop() {
                     let buff = buffs.active_buffs.remove(i);
-                    removed_active_buff_ids.push(buff.id);
+                    removed_active_buff_kinds.push(buff.kind);
                     remove_buff_effects(buff, stats.get_mut(entity));
                 }
             }
@@ -845,19 +866,19 @@ pub fn handle_buff(server: &mut Server, uid: Uid, buff_change: buff::BuffChange)
             }
             // Checks after buffs are removed so that it doesn't grab incorrect
             // index
-            for buff_id in removed_active_buff_ids {
+            for buff_kind in removed_active_buff_kinds {
                 // Checks to verify that there are no active buffs with the same id
                 if buffs
                     .active_buffs
                     .iter()
-                    .any(|buff| discriminant(&buff.id) == discriminant(&buff_id))
+                    .any(|buff| discriminant(&buff.kind) == discriminant(&buff_kind))
                 {
                     continue;
                 }
                 let mut new_active_buff = None::<buff::Buff>;
                 let mut replacement_buff_index = 0;
                 for (i, inactive_buff) in buffs.inactive_buffs.iter().enumerate() {
-                    if discriminant(&buff_id) == discriminant(&inactive_buff.id) {
+                    if discriminant(&buff_kind) == discriminant(&inactive_buff.kind) {
                         if let Some(ref buff) = new_active_buff {
                             if determine_replace_active_buff(buff.clone(), inactive_buff.clone()) {
                                 new_active_buff = Some(inactive_buff.clone());
@@ -880,16 +901,16 @@ pub fn handle_buff(server: &mut Server, uid: Uid, buff_change: buff::BuffChange)
 }
 
 fn determine_replace_active_buff(active_buff: buff::Buff, new_buff: buff::Buff) -> bool {
-    use buff::BuffId;
-    match new_buff.id {
-        BuffId::Bleeding {
+    use buff::BuffKind;
+    match new_buff.kind {
+        BuffKind::Bleeding {
             strength: new_strength,
             duration: new_duration,
         } => {
-            if let BuffId::Bleeding {
+            if let BuffKind::Bleeding {
                 strength: active_strength,
                 duration: _,
-            } = active_buff.id
+            } = active_buff.kind
             {
                 new_strength > active_strength
                     || (new_strength >= active_strength
@@ -900,14 +921,14 @@ fn determine_replace_active_buff(active_buff: buff::Buff, new_buff: buff::Buff) 
                 false
             }
         },
-        BuffId::Regeneration {
+        BuffKind::Regeneration {
             strength: new_strength,
             duration: new_duration,
         } => {
-            if let BuffId::Regeneration {
+            if let BuffKind::Regeneration {
                 strength: active_strength,
                 duration: _,
-            } = active_buff.id
+            } = active_buff.kind
             {
                 new_strength > active_strength
                     || (new_strength >= active_strength
@@ -918,7 +939,7 @@ fn determine_replace_active_buff(active_buff: buff::Buff, new_buff: buff::Buff) 
                 false
             }
         },
-        BuffId::Cursed {
+        BuffKind::Cursed {
             duration: new_duration,
         } => new_duration.map_or(true, |new_dur| {
             active_buff.time.map_or(false, |act_dur| new_dur > act_dur)
