@@ -42,8 +42,8 @@ pub const DISABLED_TEXT_COLOR: iced::Color = iced::Color::from_rgba(1.0, 1.0, 1.
 pub const TOOLTIP_BACK_COLOR: Rgba<u8> = Rgba::new(20, 18, 10, 255);
 const FILL_FRAC_ONE: f32 = 0.77;
 const FILL_FRAC_TWO: f32 = 0.60;
-const TOOLTIP_HOVER_DUR: std::time::Duration = std::time::Duration::from_millis(300);
-const TOOLTIP_FADE_DUR: std::time::Duration = std::time::Duration::from_millis(400);
+const TOOLTIP_HOVER_DUR: std::time::Duration = std::time::Duration::from_millis(150);
+const TOOLTIP_FADE_DUR: std::time::Duration = std::time::Duration::from_millis(350);
 
 const STARTER_HAMMER: &str = "common.items.weapons.hammer.starter_hammer";
 const STARTER_BOW: &str = "common.items.weapons.bow.starter_bow";
@@ -650,6 +650,12 @@ impl Controls {
                     )
                     .style(style::container::Style::image(img))
                 };
+                let icon_button_tooltip = |button, selected, msg, img, tooltip_i18n_key| {
+                    icon_button(button, selected, msg, img)
+                        .with_tooltip(tooltip_manager, move || {
+                            tooltip::text(i18n.get(tooltip_i18n_key), tooltip_style)
+                        })
+                };
 
                 let (body_m_ico, body_f_ico) = match body.species {
                     humanoid::Species::Human => (imgs.human_m, imgs.human_f),
@@ -704,50 +710,56 @@ impl Controls {
                     species_buttons;
                 let species = Column::with_children(vec![
                     Row::with_children(vec![
-                        icon_button(
+                        icon_button_tooltip(
                             human_button,
                             matches!(body.species, humanoid::Species::Human),
                             Message::Species(humanoid::Species::Human),
                             human_icon,
+                            "common.species.human",
                         )
                         .into(),
-                        icon_button(
+                        icon_button_tooltip(
                             orc_button,
                             matches!(body.species, humanoid::Species::Orc),
                             Message::Species(humanoid::Species::Orc),
                             orc_icon,
+                            "common.species.orc",
                         )
                         .into(),
-                        icon_button(
+                        icon_button_tooltip(
                             dwarf_button,
                             matches!(body.species, humanoid::Species::Dwarf),
                             Message::Species(humanoid::Species::Dwarf),
                             dwarf_icon,
+                            "common.species.dwarf",
                         )
                         .into(),
                     ])
                     .spacing(1)
                     .into(),
                     Row::with_children(vec![
-                        icon_button(
+                        icon_button_tooltip(
                             elf_button,
                             matches!(body.species, humanoid::Species::Elf),
                             Message::Species(humanoid::Species::Elf),
                             elf_icon,
+                            "common.species.elf",
                         )
                         .into(),
-                        icon_button(
+                        icon_button_tooltip(
                             undead_button,
                             matches!(body.species, humanoid::Species::Undead),
                             Message::Species(humanoid::Species::Undead),
                             undead_icon,
+                            "common.species.undead",
                         )
                         .into(),
-                        icon_button(
+                        icon_button_tooltip(
                             danari_button,
                             matches!(body.species, humanoid::Species::Danari),
                             Message::Species(humanoid::Species::Danari),
                             danari_icon,
+                            "common.species.danari",
                         )
                         .into(),
                     ])
@@ -760,50 +772,56 @@ impl Controls {
                     tool_buttons;
                 let tool = Column::with_children(vec![
                     Row::with_children(vec![
-                        icon_button(
+                        icon_button_tooltip(
                             sword_button,
                             *tool == STARTER_SWORD,
                             Message::Tool(STARTER_SWORD),
                             imgs.sword,
+                            "common.weapons.sword",
                         )
                         .into(),
-                        icon_button(
+                        icon_button_tooltip(
                             hammer_button,
                             *tool == STARTER_HAMMER,
                             Message::Tool(STARTER_HAMMER),
                             imgs.hammer,
+                            "common.weapons.hammer",
                         )
                         .into(),
-                        icon_button(
+                        icon_button_tooltip(
                             axe_button,
                             *tool == STARTER_AXE,
                             Message::Tool(STARTER_AXE),
                             imgs.axe,
+                            "common.weapons.axe",
                         )
                         .into(),
                     ])
                     .spacing(1)
                     .into(),
                     Row::with_children(vec![
-                        icon_button(
+                        icon_button_tooltip(
                             sceptre_button,
                             *tool == STARTER_SCEPTRE,
                             Message::Tool(STARTER_SCEPTRE),
                             imgs.sceptre,
+                            "common.weapons.sceptre",
                         )
                         .into(),
-                        icon_button(
+                        icon_button_tooltip(
                             bow_button,
                             *tool == STARTER_BOW,
                             Message::Tool(STARTER_BOW),
                             imgs.bow,
+                            "common.weapons.bow",
                         )
                         .into(),
-                        icon_button(
+                        icon_button_tooltip(
                             staff_button,
                             *tool == STARTER_STAFF,
                             Message::Tool(STARTER_STAFF),
                             imgs.staff,
+                            "common.weapons.staff",
                         )
                         .into(),
                     ])
@@ -869,7 +887,10 @@ impl Controls {
                         .hover_image(imgs.dice_hover)
                         .press_image(imgs.dice_press),
                 )
-                .on_press(Message::RandomizeCharacter);
+                .on_press(Message::RandomizeCharacter)
+                .with_tooltip(tooltip_manager, move || {
+                    tooltip::text(i18n.get("common.rand_appearance"), tooltip_style)
+                });
 
                 let name_input = BackgroundContainer::new(
                     Image::new(imgs.name_input)
@@ -900,6 +921,19 @@ impl Controls {
                     button_style,
                     (!name.is_empty()).then_some(Message::CreateCharacter),
                 );
+
+                let create: Element<Message> = if name.is_empty() {
+                    create
+                        .with_tooltip(tooltip_manager, move || {
+                            tooltip::text(
+                                i18n.get("char_selection.create_info_name"),
+                                tooltip_style,
+                            )
+                        })
+                        .into()
+                } else {
+                    create.into()
+                };
 
                 let bottom = Row::with_children(vec![
                     Container::new(back)
