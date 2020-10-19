@@ -371,6 +371,7 @@ impl Controls {
                     // Ensure we have enough button states
                     character_buttons.resize_with(num * 2, Default::default);
 
+                    // Character Selection List
                     let mut characters = characters
                         .iter()
                         .zip(character_buttons.chunks_exact_mut(2))
@@ -384,6 +385,7 @@ impl Controls {
                         .enumerate()
                         .map(|(i, (character, (select_button, delete_button)))| {
                             Overlay::new(
+                                // Delete button
                                 Button::new(
                                     delete_button,
                                     Space::new(Length::Units(16), Length::Units(16)),
@@ -403,6 +405,7 @@ impl Controls {
                                         )
                                     },
                                 ),
+                                // Select Button
                                 AspectRatioContainer::new(
                                     Button::new(
                                         select_button,
@@ -423,9 +426,13 @@ impl Controls {
                                     )
                                     .padding(10)
                                     .style(
-                                        style::button::Style::new(imgs.selection)
-                                            .hover_image(imgs.selection_hover)
-                                            .press_image(imgs.selection_press),
+                                        style::button::Style::new(if Some(i) == *selected {
+                                            imgs.selection_hover
+                                        } else {
+                                            imgs.selection
+                                        })
+                                        .hover_image(imgs.selection_hover)
+                                        .press_image(imgs.selection_press),
                                     )
                                     .width(Length::Fill)
                                     .height(Length::Fill)
@@ -1048,6 +1055,7 @@ impl Controls {
 pub struct CharSelectionUi {
     ui: Ui,
     controls: Controls,
+    enter_pressed: bool,
 }
 
 impl CharSelectionUi {
@@ -1080,7 +1088,11 @@ impl CharSelectionUi {
             i18n,
         );
 
-        Self { ui, controls }
+        Self {
+            ui,
+            controls,
+            enter_pressed: false,
+        }
     }
 
     pub fn display_body_loadout<'a>(
@@ -1093,6 +1105,16 @@ impl CharSelectionUi {
     pub fn handle_event(&mut self, event: window::Event) -> bool {
         match event {
             window::Event::IcedUi(event) => {
+                // Enter Key pressed
+                use iced::keyboard;
+                if let iced::Event::Keyboard(keyboard::Event::KeyPressed {
+                    key_code: keyboard::KeyCode::Enter,
+                    ..
+                }) = event
+                {
+                    self.enter_pressed = true;
+                }
+
                 self.ui.handle_event(event);
                 true
             },
@@ -1107,10 +1129,15 @@ impl CharSelectionUi {
     pub fn maintain(&mut self, global_state: &mut GlobalState, client: &mut Client) -> Vec<Event> {
         let mut events = Vec::new();
 
-        let (messages, _) = self.ui.maintain(
+        let (mut messages, _) = self.ui.maintain(
             self.controls.view(&global_state.settings, &client),
             global_state.window.renderer_mut(),
         );
+
+        if self.enter_pressed {
+            self.enter_pressed = false;
+            messages.push(Message::EnterWorld);
+        }
 
         messages.into_iter().for_each(|message| {
             self.controls
