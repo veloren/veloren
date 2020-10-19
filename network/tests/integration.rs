@@ -24,6 +24,16 @@ fn stream_simple() {
 }
 
 #[test]
+fn stream_try_recv() {
+    let (_, _) = helper::setup(false, 0);
+    let (_n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = block_on(network_participant_stream(tcp()));
+
+    s1_a.send(4242u32).unwrap();
+    std::thread::sleep(std::time::Duration::from_secs(1));
+    assert_eq!(s1_b.try_recv(), Ok(Some(4242u32)));
+}
+
+#[test]
 fn stream_simple_3msg() {
     let (_, _) = helper::setup(false, 0);
     let (_n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = block_on(network_participant_stream(tcp()));
@@ -181,4 +191,21 @@ fn wrong_parse() {
         Err(StreamError::Deserialize(_)) => (),
         _ => panic!("this should fail, but it doesnt!"),
     }
+}
+
+#[test]
+fn multiple_try_recv() {
+    let (_, _) = helper::setup(false, 0);
+    let (_n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = block_on(network_participant_stream(tcp()));
+
+    s1_a.send("asd").unwrap();
+    s1_a.send(11u32).unwrap();
+    std::thread::sleep(std::time::Duration::from_secs(1));
+    assert_eq!(s1_b.try_recv(), Ok(Some("asd".to_string())));
+    assert_eq!(s1_b.try_recv::<u32>(), Ok(Some(11u32)));
+    assert_eq!(s1_b.try_recv::<String>(), Ok(None));
+
+    drop(s1_a);
+    std::thread::sleep(std::time::Duration::from_secs(1));
+    assert_eq!(s1_b.try_recv::<String>(), Err(StreamError::StreamClosed));
 }

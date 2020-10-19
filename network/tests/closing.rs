@@ -343,3 +343,46 @@ fn close_network_scheduler_completely() {
     ha.join().unwrap();
     hb.join().unwrap();
 }
+
+#[test]
+fn dont_panic_on_multiply_recv_after_close() {
+    let (_, _) = helper::setup(false, 0);
+    let (_n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = block_on(network_participant_stream(tcp()));
+
+    s1_a.send(11u32).unwrap();
+    drop(s1_a);
+    std::thread::sleep(std::time::Duration::from_secs(1));
+    assert_eq!(s1_b.try_recv::<u32>(), Ok(Some(11u32)));
+    assert_eq!(s1_b.try_recv::<String>(), Err(StreamError::StreamClosed));
+    // There was a "Feature" in futures::channels that they panic when you call recv
+    // a second time after it showed end of stream
+    assert_eq!(s1_b.try_recv::<String>(), Err(StreamError::StreamClosed));
+}
+
+#[test]
+fn dont_panic_on_recv_send_after_close() {
+    let (_, _) = helper::setup(false, 0);
+    let (_n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = block_on(network_participant_stream(tcp()));
+
+    s1_a.send(11u32).unwrap();
+    drop(s1_a);
+    std::thread::sleep(std::time::Duration::from_secs(1));
+    assert_eq!(s1_b.try_recv::<u32>(), Ok(Some(11u32)));
+    assert_eq!(s1_b.try_recv::<String>(), Err(StreamError::StreamClosed));
+    assert_eq!(s1_b.send("foobar"), Err(StreamError::StreamClosed));
+}
+
+#[test]
+fn dont_panic_on_multiple_send_after_close() {
+    let (_, _) = helper::setup(false, 0);
+    let (_n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = block_on(network_participant_stream(tcp()));
+
+    s1_a.send(11u32).unwrap();
+    drop(s1_a);
+    drop(_p_a);
+    std::thread::sleep(std::time::Duration::from_secs(1));
+    assert_eq!(s1_b.try_recv::<u32>(), Ok(Some(11u32)));
+    assert_eq!(s1_b.try_recv::<String>(), Err(StreamError::StreamClosed));
+    assert_eq!(s1_b.send("foobar"), Err(StreamError::StreamClosed));
+    assert_eq!(s1_b.send("foobar"), Err(StreamError::StreamClosed));
+}
