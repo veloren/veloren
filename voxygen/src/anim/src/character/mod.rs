@@ -53,12 +53,12 @@ skeleton_impls!(struct CharacterSkeleton {
     + belt,
     + back,
     + shorts,
-    + l_hand,
-    + r_hand,
-    + l_foot,
-    + r_foot,
-    + l_shoulder,
-    + r_shoulder,
+    + hand_l,
+    + hand_r,
+    + foot_l,
+    + foot_r,
+    + shoulder_l,
+    + shoulder_r,
     + glider,
     + main,
     + second,
@@ -66,8 +66,8 @@ skeleton_impls!(struct CharacterSkeleton {
     + hold,
     torso,
     control,
-    l_control,
-    r_control,
+    control_l,
+    control_r,
 });
 
 impl Skeleton for CharacterSkeleton {
@@ -90,10 +90,10 @@ impl Skeleton for CharacterSkeleton {
         let head_mat = chest_mat * Mat4::<f32>::from(self.head);
         let shorts_mat = chest_mat * Mat4::<f32>::from(self.shorts);
         let control_mat = chest_mat * Mat4::<f32>::from(self.control);
-        let l_control_mat = control_mat * Mat4::<f32>::from(self.l_control);
-        let r_control_mat = control_mat * Mat4::<f32>::from(self.r_control);
+        let control_l_mat = control_mat * Mat4::<f32>::from(self.control_l);
+        let control_r_mat = control_mat * Mat4::<f32>::from(self.control_r);
 
-        let l_hand_mat = Mat4::<f32>::from(self.l_hand);
+        let hand_l_mat = Mat4::<f32>::from(self.hand_l);
         let lantern_mat = Mat4::<f32>::from(self.lantern);
 
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
@@ -102,18 +102,18 @@ impl Skeleton for CharacterSkeleton {
             make_bone(chest_mat * Mat4::<f32>::from(self.belt)),
             make_bone(chest_mat * Mat4::<f32>::from(self.back)),
             make_bone(shorts_mat),
-            make_bone(l_control_mat * l_hand_mat),
-            make_bone(r_control_mat * Mat4::<f32>::from(self.r_hand)),
-            make_bone(torso_mat * Mat4::<f32>::from(self.l_foot)),
-            make_bone(torso_mat * Mat4::<f32>::from(self.r_foot)),
-            make_bone(chest_mat * Mat4::<f32>::from(self.l_shoulder)),
-            make_bone(chest_mat * Mat4::<f32>::from(self.r_shoulder)),
+            make_bone(control_l_mat * hand_l_mat),
+            make_bone(control_r_mat * Mat4::<f32>::from(self.hand_r)),
+            make_bone(torso_mat * Mat4::<f32>::from(self.foot_l)),
+            make_bone(torso_mat * Mat4::<f32>::from(self.foot_r)),
+            make_bone(chest_mat * Mat4::<f32>::from(self.shoulder_l)),
+            make_bone(chest_mat * Mat4::<f32>::from(self.shoulder_r)),
             make_bone(chest_mat * Mat4::<f32>::from(self.glider)),
-            make_bone(l_control_mat * Mat4::<f32>::from(self.main)),
-            make_bone(r_control_mat * Mat4::<f32>::from(self.second)),
+            make_bone(control_l_mat * Mat4::<f32>::from(self.main)),
+            make_bone(control_r_mat * Mat4::<f32>::from(self.second)),
             make_bone(shorts_mat * lantern_mat),
-            // FIXME: Should this be l_control_mat?
-            make_bone(control_mat * l_hand_mat * Mat4::<f32>::from(self.hold)),
+            // FIXME: Should this be control_l_mat?
+            make_bone(control_mat * hand_l_mat * Mat4::<f32>::from(self.hold)),
         ];
         // NOTE: lantern_mat.cols.w = lantern_mat * Vec4::unit_w()
         (head_mat * lantern_mat.cols.w).xyz()

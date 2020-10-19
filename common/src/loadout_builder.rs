@@ -1,5 +1,5 @@
 use crate::comp::{
-    golem,
+    biped_large, golem,
     item::{Item, ItemKind},
     Alignment, Body, CharacterAbility, ItemConfig, Loadout,
 };
@@ -66,18 +66,71 @@ impl LoadoutBuilder {
     }
 
     /// Builds loadout of creature when spawned
+    #[allow(clippy::single_match)]
     pub fn build_loadout(
         body: Body,
         alignment: Alignment,
         mut main_tool: Option<Item>,
         is_giant: bool,
     ) -> Self {
-        #![allow(clippy::single_match)] // For when this is done to more than just golems.
         match body {
             Body::Golem(golem) => match golem.species {
                 golem::Species::StoneGolem => {
                     main_tool = Some(Item::new_from_asset_expect(
                         "common.items.npc_weapons.npcweapon.stone_golems_fist",
+                    ));
+                },
+                _ => {},
+            },
+            Body::BipedLarge(biped_large) => match (biped_large.species, biped_large.body_type) {
+                (biped_large::Species::Occultsaurok, _) => {
+                    main_tool = Some(Item::new_from_asset_expect(
+                        "common.items.npc_weapons.staff.saurok_staff",
+                    ));
+                },
+                (biped_large::Species::Mightysaurok, _) => {
+                    main_tool = Some(Item::new_from_asset_expect(
+                        "common.items.npc_weapons.sword.saurok_sword",
+                    ));
+                },
+                (biped_large::Species::Slysaurok, _) => {
+                    main_tool = Some(Item::new_from_asset_expect(
+                        "common.items.npc_weapons.bow.saurok_bow",
+                    ));
+                },
+                (biped_large::Species::Ogre, biped_large::BodyType::Male) => {
+                    main_tool = Some(Item::new_from_asset_expect(
+                        "common.items.npc_weapons.hammer.ogre_hammer",
+                    ));
+                },
+                (biped_large::Species::Ogre, biped_large::BodyType::Female) => {
+                    main_tool = Some(Item::new_from_asset_expect(
+                        "common.items.npc_weapons.staff.ogre_staff",
+                    ));
+                },
+                (biped_large::Species::Troll, _) => {
+                    main_tool = Some(Item::new_from_asset_expect(
+                        "common.items.npc_weapons.hammer.troll_hammer",
+                    ));
+                },
+                (biped_large::Species::Wendigo, _) => {
+                    main_tool = Some(Item::new_from_asset_expect(
+                        "common.items.npc_weapons.npcweapon.beast_claws",
+                    ));
+                },
+                (biped_large::Species::Werewolf, _) => {
+                    main_tool = Some(Item::new_from_asset_expect(
+                        "common.items.npc_weapons.npcweapon.beast_claws",
+                    ));
+                },
+                (biped_large::Species::Cyclops, _) => {
+                    main_tool = Some(Item::new_from_asset_expect(
+                        "common.items.npc_weapons.hammer.cyclops_hammer",
+                    ));
+                },
+                (biped_large::Species::Dullahan, _) => {
+                    main_tool = Some(Item::new_from_asset_expect(
+                        "common.items.npc_weapons.sword.dullahan_sword",
                     ));
                 },
             },
@@ -258,6 +311,24 @@ impl LoadoutBuilder {
                     head: None,
                     tabard: None,
                 },
+                _ => LoadoutBuilder::animal(body).build(),
+            },
+            Body::BipedLarge(_) => Loadout {
+                active_item,
+                second_item: None,
+                shoulder: None,
+                chest: None,
+                belt: None,
+                hand: None,
+                pants: None,
+                foot: None,
+                back: None,
+                ring: None,
+                neck: None,
+                lantern: None,
+                glider: None,
+                head: None,
+                tabard: None,
             },
             _ => LoadoutBuilder::animal(body).build(),
         };

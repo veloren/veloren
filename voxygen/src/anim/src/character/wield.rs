@@ -89,19 +89,19 @@ impl Animation for WieldAnimation {
             next.torso.position = Vec3::new(0.0, 0.0, 0.0) * skeleton_attr.scaler;
             next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
 
-            next.l_foot.position = Vec3::new(
+            next.foot_l.position = Vec3::new(
                 -skeleton_attr.foot.0,
                 -2.0 + skeleton_attr.foot.1,
                 skeleton_attr.foot.2,
             );
-            next.l_foot.orientation = Quaternion::rotation_x(u_slowalt * 0.035 - 0.2);
+            next.foot_l.orientation = Quaternion::rotation_x(u_slowalt * 0.035 - 0.2);
 
-            next.r_foot.position = Vec3::new(
+            next.foot_r.position = Vec3::new(
                 skeleton_attr.foot.0,
                 2.0 + skeleton_attr.foot.1,
                 skeleton_attr.foot.2,
             );
-            next.r_foot.orientation = Quaternion::rotation_x(u_slow * 0.035);
+            next.foot_r.orientation = Quaternion::rotation_x(u_slow * 0.035);
 
             next.chest.orientation =
                 Quaternion::rotation_y(u_slowalt * 0.04) * Quaternion::rotation_z(0.15);
@@ -120,15 +120,15 @@ impl Animation for WieldAnimation {
         match active_tool_kind {
             //TODO: Inventory
             Some(ToolKind::Sword(_)) => {
-                next.l_hand.position = Vec3::new(-0.75, -1.0, 2.5);
-                next.l_hand.orientation =
+                next.hand_l.position = Vec3::new(-0.75, -1.0, 2.5);
+                next.hand_l.orientation =
                     Quaternion::rotation_x(1.47) * Quaternion::rotation_y(-0.2);
-                next.l_hand.scale = Vec3::one() * 1.04;
-                next.r_hand.position = Vec3::new(0.75, -1.5, -0.5);
-                next.r_hand.orientation =
+                next.hand_l.scale = Vec3::one() * 1.04;
+                next.hand_r.position = Vec3::new(0.75, -1.5, -0.5);
+                next.hand_r.orientation =
                     Quaternion::rotation_x(1.47) * Quaternion::rotation_y(0.3);
-                next.r_hand.scale = Vec3::one() * 1.05;
-                next.main.position = Vec3::new(0.0, 0.0, -3.0);
+                next.hand_r.scale = Vec3::one() * 1.05;
+                next.main.position = Vec3::new(0.0, 0.0, 2.0);
                 next.main.orientation = Quaternion::rotation_x(-0.1);
 
                 next.control.position = Vec3::new(-7.0, 7.0, 2.0);
@@ -143,24 +143,24 @@ impl Animation for WieldAnimation {
 
                 next.control.position = Vec3::new(0.0, 0.0, 0.0);
 
-                next.l_hand.position = Vec3::new(0.0, 0.0, 0.0);
-                next.l_hand.orientation = Quaternion::rotation_x(0.0 * PI)
+                next.hand_l.position = Vec3::new(0.0, 0.0, 0.0);
+                next.hand_l.orientation = Quaternion::rotation_x(0.0 * PI)
                     * Quaternion::rotation_y(0.0 * PI)
                     * Quaternion::rotation_z(0.0 * PI);
-                next.l_hand.scale = Vec3::one() * hand_scale;
+                next.hand_l.scale = Vec3::one() * hand_scale;
 
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation = Quaternion::rotation_x(0.0 * PI)
                     * Quaternion::rotation_y(0.0 * PI)
                     * Quaternion::rotation_z(0.0 * PI);
 
-                next.l_control.position = Vec3::new(-7.0, 0.0, 0.0);
+                next.control_l.position = Vec3::new(-7.0, 0.0, 0.0);
 
-                next.r_hand.position = Vec3::new(0.0, 0.0, 0.0);
-                next.r_hand.orientation = Quaternion::rotation_x(0.0 * PI)
+                next.hand_r.position = Vec3::new(0.0, 0.0, 0.0);
+                next.hand_r.orientation = Quaternion::rotation_x(0.0 * PI)
                     * Quaternion::rotation_y(0.0 * PI)
                     * Quaternion::rotation_z(0.0 * PI);
-                next.r_hand.scale = Vec3::one() * hand_scale;
+                next.hand_r.scale = Vec3::one() * hand_scale;
 
                 next.second.position = Vec3::new(0.0, 0.0, 0.0);
                 next.second.orientation = Quaternion::rotation_x(0.0 * PI)
@@ -168,7 +168,7 @@ impl Animation for WieldAnimation {
                     * Quaternion::rotation_z(0.0 * PI);
                 next.second.scale = Vec3::one();
 
-                next.r_control.position = Vec3::new(7.0, 0.0, 0.0);
+                next.control_r.position = Vec3::new(7.0, 0.0, 0.0);
             },
             Some(ToolKind::Axe(_)) => {
                 if speed < 0.5 {
@@ -202,16 +202,16 @@ impl Animation for WieldAnimation {
                         * Quaternion::rotation_z(PI - 0.2);
                     next.control.scale = Vec3::one();
                 }
-                next.l_hand.position = Vec3::new(-0.5, 0.0, 4.0);
-                next.l_hand.orientation = Quaternion::rotation_x(PI / 2.0)
+                next.hand_l.position = Vec3::new(-0.5, 0.0, 4.0);
+                next.hand_l.orientation = Quaternion::rotation_x(PI / 2.0)
                     * Quaternion::rotation_z(0.0)
                     * Quaternion::rotation_y(0.0);
-                next.l_hand.scale = Vec3::one() * 1.08;
-                next.r_hand.position = Vec3::new(0.5, 0.0, -2.5);
-                next.r_hand.orientation = Quaternion::rotation_x(PI / 2.0)
+                next.hand_l.scale = Vec3::one() * 1.08;
+                next.hand_r.position = Vec3::new(0.5, 0.0, -2.5);
+                next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0)
                     * Quaternion::rotation_z(0.0)
                     * Quaternion::rotation_y(0.0);
-                next.r_hand.scale = Vec3::one() * 1.06;
+                next.hand_r.scale = Vec3::one() * 1.06;
                 next.main.position = Vec3::new(-0.0, -2.0, -1.0);
                 next.main.orientation = Quaternion::rotation_x(0.0)
                     * Quaternion::rotation_y(0.0)
@@ -220,13 +220,13 @@ impl Animation for WieldAnimation {
                 next.control.position = Vec3::new(-3.0, 11.0, 3.0);
             },
             Some(ToolKind::Hammer(_)) => {
-                next.l_hand.position = Vec3::new(-12.0, 0.0, 0.0);
-                next.l_hand.orientation =
+                next.hand_l.position = Vec3::new(-12.0, 0.0, 0.0);
+                next.hand_l.orientation =
                     Quaternion::rotation_x(-0.0) * Quaternion::rotation_y(0.0);
-                next.l_hand.scale = Vec3::one() * 1.08;
-                next.r_hand.position = Vec3::new(2.0, 0.0, 0.0);
-                next.r_hand.orientation = Quaternion::rotation_x(0.0) * Quaternion::rotation_y(0.0);
-                next.r_hand.scale = Vec3::one() * 1.06;
+                next.hand_l.scale = Vec3::one() * 1.08;
+                next.hand_r.position = Vec3::new(2.0, 0.0, 0.0);
+                next.hand_r.orientation = Quaternion::rotation_x(0.0) * Quaternion::rotation_y(0.0);
+                next.hand_r.scale = Vec3::one() * 1.06;
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation =
                     Quaternion::rotation_y(-1.57) * Quaternion::rotation_z(1.57);
@@ -239,26 +239,26 @@ impl Animation for WieldAnimation {
             },
             Some(ToolKind::Staff(_)) | Some(ToolKind::Sceptre(_)) => {
                 if speed > 0.5 && velocity.z == 0.0 {
-                    next.r_hand.position = Vec3::new(
+                    next.hand_r.position = Vec3::new(
                         4.0 + skeleton_attr.hand.0 + foothoril * 1.3,
                         -2.0 + skeleton_attr.hand.1 + foothoril * -6.5,
                         -2.0 + skeleton_attr.hand.2 - foothoril * 7.0,
                     );
-                    next.r_hand.orientation = Quaternion::rotation_x(0.6 + footrotl * -1.2)
+                    next.hand_r.orientation = Quaternion::rotation_x(0.6 + footrotl * -1.2)
                         * Quaternion::rotation_y(footrotl * -0.4);
                 } else {
-                    next.r_hand.position = Vec3::new(0.0, 0.0, 2.0);
-                    next.r_hand.orientation =
+                    next.hand_r.position = Vec3::new(0.0, 0.0, 2.0);
+                    next.hand_r.orientation =
                         Quaternion::rotation_x(1.57) * Quaternion::rotation_y(0.2);
                 };
                 next.control.position = Vec3::new(-4.0, 7.0, 4.0);
 
-                next.l_hand.position = Vec3::new(0.0, 0.0, -4.0);
-                next.l_hand.orientation =
+                next.hand_l.position = Vec3::new(0.0, 0.0, -4.0);
+                next.hand_l.orientation =
                     Quaternion::rotation_x(1.27) * Quaternion::rotation_y(0.0);
-                next.l_hand.scale = Vec3::one() * 1.05;
+                next.hand_l.scale = Vec3::one() * 1.05;
 
-                next.r_hand.scale = Vec3::one() * 1.05;
+                next.hand_r.scale = Vec3::one() * 1.05;
                 next.main.position = Vec3::new(0.0, 0.0, 13.2);
                 next.main.orientation = Quaternion::rotation_y(3.14);
 
@@ -274,38 +274,38 @@ impl Animation for WieldAnimation {
 
                 next.control.position = Vec3::new(0.0, 0.0, 0.0);
 
-                next.l_hand.position = Vec3::new(0.0, 0.0, 0.0);
-                next.l_hand.orientation = Quaternion::rotation_x(0.0 * PI);
-                next.l_hand.scale = Vec3::one() * hand_scale;
+                next.hand_l.position = Vec3::new(0.0, 0.0, 0.0);
+                next.hand_l.orientation = Quaternion::rotation_x(0.0 * PI);
+                next.hand_l.scale = Vec3::one() * hand_scale;
 
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation = Quaternion::rotation_x(0.0 * PI);
 
-                next.l_control.position = Vec3::new(-7.0, 0.0, 0.0);
+                next.control_l.position = Vec3::new(-7.0, 0.0, 0.0);
 
-                next.r_hand.position = Vec3::new(0.0, 0.0, 0.0);
-                next.r_hand.orientation = Quaternion::rotation_x(0.0 * PI)
+                next.hand_r.position = Vec3::new(0.0, 0.0, 0.0);
+                next.hand_r.orientation = Quaternion::rotation_x(0.0 * PI)
                     * Quaternion::rotation_y(0.0 * PI)
                     * Quaternion::rotation_z(0.0 * PI);
-                next.r_hand.scale = Vec3::one() * hand_scale;
+                next.hand_r.scale = Vec3::one() * hand_scale;
 
                 next.second.position = Vec3::new(0.0, 0.0, 0.0);
                 next.second.orientation = Quaternion::rotation_x(0.0 * PI);
                 next.second.scale = Vec3::one();
 
-                next.r_control.position = Vec3::new(7.0, 0.0, 0.0);
+                next.control_r.position = Vec3::new(7.0, 0.0, 0.0);
             },
             Some(ToolKind::Bow(_)) => {
-                next.l_hand.position = Vec3::new(2.0, 1.5, 0.0);
-                next.l_hand.orientation = Quaternion::rotation_x(1.20)
+                next.hand_l.position = Vec3::new(2.0, 1.5, 0.0);
+                next.hand_l.orientation = Quaternion::rotation_x(1.20)
                     * Quaternion::rotation_y(-0.6)
                     * Quaternion::rotation_z(-0.3);
-                next.l_hand.scale = Vec3::one() * 1.05;
-                next.r_hand.position = Vec3::new(5.9, 4.5, -5.0);
-                next.r_hand.orientation = Quaternion::rotation_x(1.20)
+                next.hand_l.scale = Vec3::one() * 1.05;
+                next.hand_r.position = Vec3::new(5.9, 4.5, -5.0);
+                next.hand_r.orientation = Quaternion::rotation_x(1.20)
                     * Quaternion::rotation_y(-0.6)
                     * Quaternion::rotation_z(-0.3);
-                next.r_hand.scale = Vec3::one() * 1.05;
+                next.hand_r.scale = Vec3::one() * 1.05;
                 next.main.position = Vec3::new(3.0, 2.0, -13.0);
                 next.main.orientation = Quaternion::rotation_x(-0.3)
                     * Quaternion::rotation_y(0.3)
@@ -323,11 +323,11 @@ impl Animation for WieldAnimation {
                 next.control.scale = Vec3::one();
             },
             Some(ToolKind::Debug(_)) => {
-                next.l_hand.position = Vec3::new(-7.0, 4.0, 3.0);
-                next.l_hand.orientation = Quaternion::rotation_x(1.27)
+                next.hand_l.position = Vec3::new(-7.0, 4.0, 3.0);
+                next.hand_l.orientation = Quaternion::rotation_x(1.27)
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(0.0);
-                next.l_hand.scale = Vec3::one() * 1.01;
+                next.hand_l.scale = Vec3::one() * 1.01;
                 next.main.position = Vec3::new(-5.0, 5.0, 23.0);
                 next.main.orientation = Quaternion::rotation_z(0.0)
                     * Quaternion::rotation_x(PI)
@@ -343,13 +343,13 @@ impl Animation for WieldAnimation {
                         * Quaternion::rotation_x(-0.2 + head_look.y.abs());
                     next.head.scale = Vec3::one() * skeleton_attr.head_scale;
                 }
-                next.l_hand.position = Vec3::new(9.0, 1.0, 1.0);
-                next.l_hand.orientation =
+                next.hand_l.position = Vec3::new(9.0, 1.0, 1.0);
+                next.hand_l.orientation =
                     Quaternion::rotation_x(1.57) * Quaternion::rotation_y(0.0);
-                next.l_hand.scale = Vec3::one() * 1.05;
-                next.r_hand.position = Vec3::new(9.0, 1.0, 11.0);
-                next.r_hand.orientation = Quaternion::rotation_x(1.57);
-                next.r_hand.scale = Vec3::one() * 1.05;
+                next.hand_l.scale = Vec3::one() * 1.05;
+                next.hand_r.position = Vec3::new(9.0, 1.0, 11.0);
+                next.hand_r.orientation = Quaternion::rotation_x(1.57);
+                next.hand_r.scale = Vec3::one() * 1.05;
                 next.main.position = Vec3::new(7.5, 7.5, 13.2);
                 next.main.orientation = Quaternion::rotation_y(3.14);
 
@@ -362,9 +362,9 @@ impl Animation for WieldAnimation {
             _ => {},
         }
 
-        next.l_control.scale = Vec3::one();
+        next.control_l.scale = Vec3::one();
 
-        next.r_control.scale = Vec3::one();
+        next.control_r.scale = Vec3::one();
 
         next.second.scale = match (
             active_tool_kind.map(|tk| tk.hands()),

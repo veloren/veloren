@@ -1,0 +1,14 @@
+ItemDef(
+    name: "Wendigo Hammer",
+    description: "Placeholder",
+    kind: Tool(
+        (
+            kind: Hammer("WendigoHammer"),    
+            stats: (
+                equip_time_millis: 500,
+                power: 1.00,
+            ),
+        )
+    ),
+    quality: Low,
+)

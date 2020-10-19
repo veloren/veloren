@@ -78,52 +78,52 @@ impl Animation for StandAnimation {
             Quaternion::rotation_z(head_look.x * -0.2) * Quaternion::rotation_x(impact * -0.04);
         next.shorts.scale = Vec3::one() + breathe * -0.03;
 
-        next.l_hand.position = Vec3::new(
+        next.hand_l.position = Vec3::new(
             -skeleton_attr.hand.0,
             skeleton_attr.hand.1 + slow * 0.15 - impact * 0.2,
             skeleton_attr.hand.2 + slow * 0.5 + impact * -0.1,
         );
 
-        next.l_hand.orientation = Quaternion::rotation_x(slow * -0.06 + impact * -0.1);
-        next.l_hand.scale = Vec3::one();
+        next.hand_l.orientation = Quaternion::rotation_x(slow * -0.06 + impact * -0.1);
+        next.hand_l.scale = Vec3::one();
 
-        next.r_hand.position = Vec3::new(
+        next.hand_r.position = Vec3::new(
             skeleton_attr.hand.0,
             skeleton_attr.hand.1 + slow * 0.15 - impact * 0.2,
             skeleton_attr.hand.2 + slow * 0.5 + impact * -0.1,
         );
-        next.r_hand.orientation = Quaternion::rotation_x(slow * -0.06 + impact * -0.1);
-        next.r_hand.scale = Vec3::one();
+        next.hand_r.orientation = Quaternion::rotation_x(slow * -0.06 + impact * -0.1);
+        next.hand_r.scale = Vec3::one();
 
-        next.l_foot.position = Vec3::new(
+        next.foot_l.position = Vec3::new(
             -skeleton_attr.foot.0,
             skeleton_attr.foot.1 - impact * 0.15,
             skeleton_attr.foot.2,
         );
-        next.l_foot.orientation = Quaternion::rotation_x(impact * 0.02);
-        next.l_foot.scale = Vec3::one();
+        next.foot_l.orientation = Quaternion::rotation_x(impact * 0.02);
+        next.foot_l.scale = Vec3::one();
 
-        next.r_foot.position = Vec3::new(
+        next.foot_r.position = Vec3::new(
             skeleton_attr.foot.0,
             skeleton_attr.foot.1 + impact * 0.15,
             skeleton_attr.foot.2,
         );
-        next.r_foot.orientation = Quaternion::rotation_x(impact * -0.02);
-        next.r_foot.scale = Vec3::one();
+        next.foot_r.orientation = Quaternion::rotation_x(impact * -0.02);
+        next.foot_r.scale = Vec3::one();
 
-        next.l_shoulder.position = Vec3::new(
+        next.shoulder_l.position = Vec3::new(
             -skeleton_attr.shoulder.0,
             skeleton_attr.shoulder.1,
             skeleton_attr.shoulder.2,
         );
-        next.l_shoulder.scale = (Vec3::one() + breathe * -0.05) * 1.15;
+        next.shoulder_l.scale = (Vec3::one() + breathe * -0.05) * 1.15;
 
-        next.r_shoulder.position = Vec3::new(
+        next.shoulder_r.position = Vec3::new(
             skeleton_attr.shoulder.0,
             skeleton_attr.shoulder.1,
             skeleton_attr.shoulder.2,
         );
-        next.r_shoulder.scale = (Vec3::one() + breathe * -0.05) * 1.15;
+        next.shoulder_r.scale = (Vec3::one() + breathe * -0.05) * 1.15;
 
         next.glider.position = Vec3::new(0.0, 0.0, 10.0);
         next.glider.scale = Vec3::one() * 0.0;
@@ -180,9 +180,9 @@ impl Animation for StandAnimation {
 
         next.control.scale = Vec3::one();
 
-        next.l_control.scale = Vec3::one();
+        next.control_l.scale = Vec3::one();
 
-        next.r_control.scale = Vec3::one();
+        next.control_r.scale = Vec3::one();
 
         next.second.scale = match (
             active_tool_kind.map(|tk| tk.hands()),

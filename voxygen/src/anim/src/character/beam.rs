@@ -42,12 +42,12 @@ impl Animation for BeamAnimation {
 
         next.head.position = Vec3::new(0.0, -2.0 + skeleton_attr.head.0, skeleton_attr.head.1);
 
-        next.l_hand.position = Vec3::new(0.0, 0.0, -4.0);
-        next.l_hand.orientation = Quaternion::rotation_x(1.27) * Quaternion::rotation_y(0.0);
-        next.l_hand.scale = Vec3::one() * 1.05;
-        next.r_hand.position = Vec3::new(0.0, 0.0, 2.0);
-        next.r_hand.orientation = Quaternion::rotation_x(1.57) * Quaternion::rotation_y(0.2);
-        next.r_hand.scale = Vec3::one() * 1.05;
+        next.hand_l.position = Vec3::new(0.0, 0.0, -4.0);
+        next.hand_l.orientation = Quaternion::rotation_x(1.27) * Quaternion::rotation_y(0.0);
+        next.hand_l.scale = Vec3::one() * 1.05;
+        next.hand_r.position = Vec3::new(0.0, 0.0, 2.0);
+        next.hand_r.orientation = Quaternion::rotation_x(1.57) * Quaternion::rotation_y(0.2);
+        next.hand_r.scale = Vec3::one() * 1.05;
         next.main.position = Vec3::new(0.0, 0.0, 13.2);
         next.main.orientation = Quaternion::rotation_y(PI);
 
@@ -81,7 +81,7 @@ impl Animation for BeamAnimation {
                             next.head.orientation =
                                 Quaternion::rotation_x(0.0) * Quaternion::rotation_z(0.0);
 
-                            next.l_hand.position = Vec3::new(
+                            next.hand_l.position = Vec3::new(
                                 0.0 + movement * -1.0,
                                 0.0 + movement * -5.0,
                                 -4.0 + movement * 19.0,
@@ -90,20 +90,20 @@ impl Animation for BeamAnimation {
                             if velocity < 0.5 {
                                 next.head.orientation = Quaternion::rotation_z(movement * -0.5);
 
-                                next.l_foot.position = Vec3::new(
+                                next.foot_l.position = Vec3::new(
                                     -skeleton_attr.foot.0,
                                     skeleton_attr.foot.1 + movement * -3.0,
                                     skeleton_attr.foot.2,
                                 );
-                                next.l_foot.orientation = Quaternion::rotation_x(movement * -0.5)
+                                next.foot_l.orientation = Quaternion::rotation_x(movement * -0.5)
                                     * Quaternion::rotation_z(movement * 0.5);
 
-                                next.r_foot.position = Vec3::new(
+                                next.foot_r.position = Vec3::new(
                                     skeleton_attr.foot.0,
                                     skeleton_attr.foot.1 + movement * 4.0,
                                     skeleton_attr.foot.2,
                                 );
-                                next.r_foot.orientation = Quaternion::rotation_z(movement * 0.5);
+                                next.foot_r.orientation = Quaternion::rotation_z(movement * 0.5);
                                 next.chest.orientation = Quaternion::rotation_x(movement * -0.2)
                                     * Quaternion::rotation_z(movement * 0.5);
                                 next.belt.orientation = Quaternion::rotation_x(movement * 0.1)
@@ -119,31 +119,31 @@ impl Animation for BeamAnimation {
                                 * Quaternion::rotation_y(-1.25 + fast * 0.07)
                                 * Quaternion::rotation_z(-1.7 + slowmid * 0.3);
 
-                            next.l_hand.position = Vec3::new(
+                            next.hand_l.position = Vec3::new(
                                 -1.0 + slow * 3.5,
                                 -5.0 + slow * -2.0 + fast * -1.5,
                                 15.0 + slowalt * 3.5,
                             );
-                            next.l_hand.orientation = Quaternion::rotation_x(1.57)
+                            next.hand_l.orientation = Quaternion::rotation_x(1.57)
                                 * Quaternion::rotation_y(-1.1 + slowmid * -0.3)
                                 * Quaternion::rotation_z(-2.8);
                             if velocity < 0.5 {
                                 next.head.orientation = Quaternion::rotation_z(-0.5 + fast * 0.05);
 
-                                next.l_foot.position = Vec3::new(
+                                next.foot_l.position = Vec3::new(
                                     -skeleton_attr.foot.0,
                                     skeleton_attr.foot.1 - 3.0,
                                     skeleton_attr.foot.2,
                                 );
-                                next.l_foot.orientation =
+                                next.foot_l.orientation =
                                     Quaternion::rotation_x(-0.5) * Quaternion::rotation_z(0.5);
 
-                                next.r_foot.position = Vec3::new(
+                                next.foot_r.position = Vec3::new(
                                     skeleton_attr.foot.0,
                                     skeleton_attr.foot.1 + 4.0,
                                     skeleton_attr.foot.2,
                                 );
-                                next.r_foot.orientation = Quaternion::rotation_z(0.5);
+                                next.foot_r.orientation = Quaternion::rotation_z(0.5);
                                 next.chest.orientation = Quaternion::rotation_x(-0.2 + slow * 0.05)
                                     * Quaternion::rotation_z(0.5);
                                 next.belt.orientation =
@@ -164,33 +164,33 @@ impl Animation for BeamAnimation {
                                 Quaternion::rotation_x(-1.5 + movement * 1.2)
                                     * Quaternion::rotation_y(-1.25 + movement * 1.4)
                                     * Quaternion::rotation_z(-1.7 + movement * 1.7);
-                            next.l_hand.position = Vec3::new(
+                            next.hand_l.position = Vec3::new(
                                 -1.0 + movement,
                                 -5.0 + movement * 5.0,
                                 15.0 + movement * -19.0,
                             );
-                            next.l_hand.orientation =
+                            next.hand_l.orientation =
                                 Quaternion::rotation_x(1.57 + movement * -0.3)
                                     * Quaternion::rotation_y(-1.1 + movement * 1.1)
                                     * Quaternion::rotation_z(-2.8 + movement * 2.8);
                             if velocity < 0.5 {
                                 next.head.orientation = Quaternion::rotation_z(movement * 0.5);
 
-                                next.l_foot.position = Vec3::new(
+                                next.foot_l.position = Vec3::new(
                                     -skeleton_attr.foot.0,
                                     skeleton_attr.foot.1 - 3.0 + movement * 3.0,
                                     skeleton_attr.foot.2,
                                 );
-                                next.l_foot.orientation =
+                                next.foot_l.orientation =
                                     Quaternion::rotation_x(-0.5 + movement * 0.5)
                                         * Quaternion::rotation_z(0.5 + movement * -0.5);
 
-                                next.r_foot.position = Vec3::new(
+                                next.foot_r.position = Vec3::new(
                                     skeleton_attr.foot.0,
                                     skeleton_attr.foot.1 + 4.0 + movement * -4.0,
                                     skeleton_attr.foot.2,
                                 );
-                                next.r_foot.orientation =
+                                next.foot_r.orientation =
                                     Quaternion::rotation_z(0.5 + movement * -0.5);
                                 next.chest.orientation =
                                     Quaternion::rotation_x(-0.2 + movement * 0.2)

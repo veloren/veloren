@@ -4,6 +4,10 @@
             offset: (-3.5, -4.0, -0.0),
             central: ("npc.stonegolem.male.head"),
         ),
+        jaw: (
+            offset: (-3.5, -4.0, -0.0),
+            central: ("armor.empty"),
+        ),
         torso_upper: (
             offset: (-10.5, -10.5, -10.5),
             central: ("npc.stonegolem.male.chest_upper"),
@@ -18,6 +22,10 @@
             offset: (-3.5, -4.0, -0.0),
             central: ("npc.stonegolem.male.head"),
         ),
+        jaw: (
+            offset: (-3.5, -4.0, -0.0),
+            central: ("armor.empty"),
+        ),
         torso_upper: (
             offset: (-10.5, -10.5, -10.5),
             central: ("npc.stonegolem.male.chest_upper"),
@@ -25,6 +33,42 @@
         torso_lower: (
             offset: (-4.5, -4.5, -7.0),
             central: ("npc.stonegolem.male.chest_lower"),
+        ),
+    ),
+    (Treant, Male): (
+        head: (
+            offset: (-6.0, -6.5, -0.0),
+            central: ("npc.treant.male.head"),
+        ),
+        jaw: (
+            offset: (-4.0, 0.0, -3.0),
+            central: ("npc.treant.male.jaw"),
+        ),
+        torso_upper: (
+            offset: (-18.0, -16.0, -15.5),
+            central: ("npc.treant.male.chest_upper"),
+        ),
+        torso_lower: (
+            offset: (-8.0, -9.0, -8.0),
+            central: ("npc.treant.male.chest_lower"),
+        ),
+    ),
+    (Treant, Female): (
+        head: (
+            offset: (-6.0, -6.5, -0.0),
+            central: ("npc.treant.male.head"),
+        ),
+        jaw: (
+            offset: (-4.0, 0.0, -3.0),
+            central: ("npc.treant.male.jaw"),
+        ),
+        torso_upper: (
+            offset: (-18.0, -16.0, -15.5),
+            central: ("npc.treant.male.chest_upper"),
+        ),
+        torso_lower: (
+            offset: (-8.0, -9.0, -8.0),
+            central: ("npc.treant.male.chest_lower"),
         ),
     ),
 })

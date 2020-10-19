@@ -89,45 +89,45 @@ impl Animation for GlidingAnimation {
         next.shorts.position = Vec3::new(0.0, skeleton_attr.shorts.0, skeleton_attr.shorts.1);
         next.shorts.orientation = Quaternion::rotation_z(slowa * 0.12 + tilt * tiltcancel * 16.0);
 
-        next.l_hand.position = Vec3::new(-9.5, -3.0, 10.0);
-        next.l_hand.orientation = Quaternion::rotation_x(-2.7 + slowa * -0.1);
+        next.hand_l.position = Vec3::new(-9.5, -3.0, 10.0);
+        next.hand_l.orientation = Quaternion::rotation_x(-2.7 + slowa * -0.1);
 
-        next.r_hand.position = Vec3::new(9.5, -3.0, 10.0);
-        next.r_hand.orientation = Quaternion::rotation_x(-2.7 + slowa * -0.10);
+        next.hand_r.position = Vec3::new(9.5, -3.0, 10.0);
+        next.hand_r.orientation = Quaternion::rotation_x(-2.7 + slowa * -0.10);
 
-        next.l_foot.position = Vec3::new(
+        next.foot_l.position = Vec3::new(
             -skeleton_attr.foot.0,
             skeleton_attr.foot.1 + slowa * -1.0 + tilt * tiltcancel * -35.0,
             -1.0 + skeleton_attr.foot.2,
         );
-        next.l_foot.orientation = Quaternion::rotation_x(
+        next.foot_l.orientation = Quaternion::rotation_x(
             (wave_stop * -0.7 - quicka * -0.21 + slow * 0.19) * speed * 0.04,
         ) * Quaternion::rotation_z(tilt * tiltcancel * 20.0);
-        next.l_foot.scale = Vec3::one();
+        next.foot_l.scale = Vec3::one();
 
-        next.r_foot.position = Vec3::new(
+        next.foot_r.position = Vec3::new(
             skeleton_attr.foot.0,
             skeleton_attr.foot.1 + slowa * 1.0 + tilt * tiltcancel * 35.0,
             -1.0 + skeleton_attr.foot.2,
         );
-        next.r_foot.orientation = Quaternion::rotation_x(
+        next.foot_r.orientation = Quaternion::rotation_x(
             (wave_stop * -0.8 + quick * -0.25 + slowb * 0.13) * speed * 0.04,
         ) * Quaternion::rotation_z(tilt * tiltcancel * 20.0);
-        next.r_foot.scale = Vec3::one();
+        next.foot_r.scale = Vec3::one();
 
-        next.l_shoulder.position = Vec3::new(
+        next.shoulder_l.position = Vec3::new(
             -skeleton_attr.shoulder.0,
             skeleton_attr.shoulder.1,
             skeleton_attr.shoulder.2,
         );
-        next.l_shoulder.scale = Vec3::one() * 1.1;
+        next.shoulder_l.scale = Vec3::one() * 1.1;
 
-        next.r_shoulder.position = Vec3::new(
+        next.shoulder_r.position = Vec3::new(
             skeleton_attr.shoulder.0,
             skeleton_attr.shoulder.1,
             skeleton_attr.shoulder.2,
         );
-        next.r_shoulder.scale = Vec3::one() * 1.1;
+        next.shoulder_r.scale = Vec3::one() * 1.1;
 
         next.glider.position = Vec3::new(0.0, -13.0 + slow * 0.10, 8.0);
         next.glider.orientation =
@@ -170,9 +170,9 @@ impl Animation for GlidingAnimation {
 
         next.control.scale = Vec3::one();
 
-        next.l_control.scale = Vec3::one();
+        next.control_l.scale = Vec3::one();
 
-        next.r_control.scale = Vec3::one();
+        next.control_r.scale = Vec3::one();
 
         next.second.scale = match (
             active_tool_kind.map(|tk| tk.hands()),

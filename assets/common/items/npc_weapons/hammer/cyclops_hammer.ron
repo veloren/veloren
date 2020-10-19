@@ -1,0 +1,14 @@
+ItemDef(
+    name: "Cyclops Hammer",
+    description: "Placeholder",
+    kind: Tool(
+        (
+            kind: Hammer("CyclopsHammer"),    
+            stats: (
+                equip_time_millis: 500,
+                power: 1.00,
+            ),
+        )
+    ),
+    quality: Low,
+)

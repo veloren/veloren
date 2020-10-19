@@ -61,9 +61,9 @@ impl Animation for IdleAnimation {
             0.0,
             skeleton_attr.chest_front.0,
             skeleton_attr.chest_front.1 + breathe * 0.3,
-        ) / 3.0;
+        ) / skeleton_attr.scaler;
         next.chest_front.orientation = Quaternion::rotation_x(breathe * 0.04);
-        next.chest_front.scale = Vec3::one() / 3.0;
+        next.chest_front.scale = Vec3::one() / skeleton_attr.scaler;
 
         next.chest_back.position =
             Vec3::new(0.0, skeleton_attr.chest_back.0, skeleton_attr.chest_back.1);
@@ -75,8 +75,11 @@ impl Animation for IdleAnimation {
         next.tail_front.orientation = Quaternion::rotation_x(0.1);
         next.tail_front.scale = Vec3::one();
 
-        next.tail_back.position =
-            Vec3::new(0.0, skeleton_attr.tail_back.0, skeleton_attr.tail_back.1);
+        next.tail_back.position = Vec3::new(
+            0.0,
+            skeleton_attr.tail_back.0,
+            skeleton_attr.tail_back.1 - 0.5,
+        );
         next.tail_back.orientation = Quaternion::rotation_x(0.1);
         next.tail_back.scale = Vec3::one();
 

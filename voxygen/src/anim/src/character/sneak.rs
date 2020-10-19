@@ -93,21 +93,21 @@ impl Animation for SneakAnimation {
         next.hold.scale = Vec3::one() * 0.0;
 
         if speed > 0.5 {
-            next.l_hand.position = Vec3::new(
+            next.hand_l.position = Vec3::new(
                 1.0 - skeleton_attr.hand.0,
                 4.0 + skeleton_attr.hand.1,
                 1.0 + skeleton_attr.hand.2,
             );
-            next.l_hand.orientation = Quaternion::rotation_x(1.0);
-            next.l_hand.scale = Vec3::one();
+            next.hand_l.orientation = Quaternion::rotation_x(1.0);
+            next.hand_l.scale = Vec3::one();
 
-            next.r_hand.position = Vec3::new(
+            next.hand_r.position = Vec3::new(
                 -1.0 + skeleton_attr.hand.0,
                 -1.0 + skeleton_attr.hand.1,
                 skeleton_attr.hand.2,
             );
-            next.r_hand.orientation = Quaternion::rotation_x(0.4);
-            next.r_hand.scale = Vec3::one();
+            next.hand_r.orientation = Quaternion::rotation_x(0.4);
+            next.hand_r.scale = Vec3::one();
             next.head.position = Vec3::new(
                 0.0,
                 -4.0 + skeleton_attr.head.0,
@@ -154,41 +154,41 @@ impl Animation for SneakAnimation {
                 * Quaternion::rotation_x(0.3);
             next.shorts.scale = Vec3::one();
 
-            next.l_foot.position = Vec3::new(
+            next.foot_l.position = Vec3::new(
                 -skeleton_attr.foot.0,
                 skeleton_attr.foot.1 + foothoril * -10.5 * walkintensity - lower * 1.0,
                 1.0 + skeleton_attr.foot.2 + ((footvertl * -1.7).max(-1.0)) * walkintensity,
             );
-            next.l_foot.orientation =
+            next.foot_l.orientation =
                 Quaternion::rotation_x(-0.2 + footrotl * -0.8 * walkintensity)
                     * Quaternion::rotation_y(tilt * 1.8);
-            next.l_foot.scale = Vec3::one();
+            next.foot_l.scale = Vec3::one();
 
-            next.r_foot.position = Vec3::new(
+            next.foot_r.position = Vec3::new(
                 skeleton_attr.foot.0,
                 skeleton_attr.foot.1 + foothorir * -10.5 * walkintensity - lower * 1.0,
                 1.0 + skeleton_attr.foot.2 + ((footvertr * -1.7).max(-1.0)) * walkintensity,
             );
-            next.r_foot.orientation =
+            next.foot_r.orientation =
                 Quaternion::rotation_x(-0.2 + footrotr * -0.8 * walkintensity)
                     * Quaternion::rotation_y(tilt * 1.8);
-            next.r_foot.scale = Vec3::one();
+            next.foot_r.scale = Vec3::one();
 
-            next.l_shoulder.position = Vec3::new(
+            next.shoulder_l.position = Vec3::new(
                 -skeleton_attr.shoulder.0,
                 skeleton_attr.shoulder.1,
                 skeleton_attr.shoulder.2,
             );
-            next.l_shoulder.orientation = Quaternion::rotation_x(short * 0.15 * walkintensity);
-            next.l_shoulder.scale = Vec3::one() * 1.1;
+            next.shoulder_l.orientation = Quaternion::rotation_x(short * 0.15 * walkintensity);
+            next.shoulder_l.scale = Vec3::one() * 1.1;
 
-            next.r_shoulder.position = Vec3::new(
+            next.shoulder_r.position = Vec3::new(
                 skeleton_attr.shoulder.0,
                 skeleton_attr.shoulder.1,
                 skeleton_attr.shoulder.2,
             );
-            next.r_shoulder.orientation = Quaternion::rotation_x(short * -0.15 * walkintensity);
-            next.r_shoulder.scale = Vec3::one() * 1.1;
+            next.shoulder_r.orientation = Quaternion::rotation_x(short * -0.15 * walkintensity);
+            next.shoulder_r.scale = Vec3::one() * 1.1;
 
             next.main.position = Vec3::new(-7.0, -6.5, 15.0);
             next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
@@ -213,9 +213,9 @@ impl Animation for SneakAnimation {
             next.control.orientation = Quaternion::rotation_x(0.0);
             next.control.scale = Vec3::one();
 
-            next.l_control.scale = Vec3::one();
+            next.control_l.scale = Vec3::one();
 
-            next.r_control.scale = Vec3::one();
+            next.control_r.scale = Vec3::one();
         } else {
             next.head.position = Vec3::new(
                 0.0,
@@ -238,21 +238,21 @@ impl Animation for SneakAnimation {
             next.belt.orientation = Quaternion::rotation_z(0.3 + head_look.x * -0.1);
             next.belt.scale = Vec3::one() + breathe * -0.03;
 
-            next.l_hand.position = Vec3::new(
+            next.hand_l.position = Vec3::new(
                 1.0 - skeleton_attr.hand.0,
                 5.0 + skeleton_attr.hand.1,
                 0.0 + skeleton_attr.hand.2,
             );
-            next.l_hand.orientation = Quaternion::rotation_x(1.35);
-            next.l_hand.scale = Vec3::one();
+            next.hand_l.orientation = Quaternion::rotation_x(1.35);
+            next.hand_l.scale = Vec3::one();
 
-            next.r_hand.position = Vec3::new(
+            next.hand_r.position = Vec3::new(
                 -1.0 + skeleton_attr.hand.0,
                 skeleton_attr.hand.1,
                 skeleton_attr.hand.2,
             );
-            next.r_hand.orientation = Quaternion::rotation_x(0.4);
-            next.r_hand.scale = Vec3::one();
+            next.hand_r.orientation = Quaternion::rotation_x(0.4);
+            next.hand_r.scale = Vec3::one();
 
             next.glider.orientation = Quaternion::rotation_x(0.35);
             next.glider.position = Vec3::new(0.0, 0.0, 10.0);
@@ -265,35 +265,35 @@ impl Animation for SneakAnimation {
             next.shorts.orientation = Quaternion::rotation_z(0.6 + head_look.x * -0.2);
             next.shorts.scale = Vec3::one() + breathe * -0.03;
 
-            next.l_foot.position = Vec3::new(
+            next.foot_l.position = Vec3::new(
                 -skeleton_attr.foot.0,
                 -6.0 + skeleton_attr.foot.1,
                 1.0 + skeleton_attr.foot.2,
             );
-            next.l_foot.orientation = Quaternion::rotation_x(-0.5);
-            next.l_foot.scale = Vec3::one();
+            next.foot_l.orientation = Quaternion::rotation_x(-0.5);
+            next.foot_l.scale = Vec3::one();
 
-            next.r_foot.position = Vec3::new(
+            next.foot_r.position = Vec3::new(
                 skeleton_attr.foot.0,
                 4.0 + skeleton_attr.foot.1,
                 skeleton_attr.foot.2,
             );
-            next.r_foot.orientation = Quaternion::rotation_x(0.0);
-            next.r_foot.scale = Vec3::one();
+            next.foot_r.orientation = Quaternion::rotation_x(0.0);
+            next.foot_r.scale = Vec3::one();
 
-            next.l_shoulder.position = Vec3::new(
+            next.shoulder_l.position = Vec3::new(
                 -skeleton_attr.shoulder.0,
                 skeleton_attr.shoulder.1,
                 skeleton_attr.shoulder.2,
             );
-            next.l_shoulder.scale = (Vec3::one() + breathe * -0.05) * 1.15;
+            next.shoulder_l.scale = (Vec3::one() + breathe * -0.05) * 1.15;
 
-            next.r_shoulder.position = Vec3::new(
+            next.shoulder_r.position = Vec3::new(
                 skeleton_attr.shoulder.0,
                 skeleton_attr.shoulder.1,
                 skeleton_attr.shoulder.2,
             );
-            next.r_shoulder.scale = (Vec3::one() + breathe * -0.05) * 1.15;
+            next.shoulder_r.scale = (Vec3::one() + breathe * -0.05) * 1.15;
 
             next.main.position = Vec3::new(-7.0, -5.0, 15.0);
             next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
@@ -316,9 +316,9 @@ impl Animation for SneakAnimation {
 
             next.control.scale = Vec3::one();
 
-            next.l_control.scale = Vec3::one();
+            next.control_l.scale = Vec3::one();
 
-            next.r_control.scale = Vec3::one();
+            next.control_r.scale = Vec3::one();
         }
         next
     }

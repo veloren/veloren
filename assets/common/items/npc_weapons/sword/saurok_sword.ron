@@ -1,0 +1,14 @@
+ItemDef(
+    name: "Saurok Sword",
+    description: "Placehoder",
+    kind: Tool(
+        (
+            kind: Sword("SaurokSword"),    
+            stats: (
+                equip_time_millis: 500,
+                power: 1.00,
+            ),
+        )
+    ),
+    quality: Low,
+)

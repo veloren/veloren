@@ -107,7 +107,7 @@ impl StateExt for State {
             .with(body)
             .with(stats)
             .with(comp::Alignment::Npc)
-            .with(comp::Energy::new(500))
+            .with(comp::Energy::new(body.base_energy()))
             .with(comp::Gravity(1.0))
             .with(comp::CharacterState::default())
             .with(loadout)
