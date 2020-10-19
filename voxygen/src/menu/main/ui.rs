@@ -18,7 +18,6 @@ use conrod_core::{
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
 use image::DynamicImage;
-//use inline_tweak::*;
 use rand::{seq::SliceRandom, thread_rng, Rng};
 use std::time::Duration;
 

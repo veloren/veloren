@@ -27,7 +27,6 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-use inline_tweak::*;
 use std::time::{Duration, Instant};
 use vek::*;
 
@@ -347,9 +346,9 @@ impl<'a> Widget for Skillbar<'a> {
             .set(state.ids.bg, ui);
         // Level
         let lvl_size = match self.stats.level.level() {
-            11..=99 => tweak!(13),
-            100..=999 => tweak!(10),
-            _ => tweak!(14),
+            11..=99 => 13,
+            100..=999 => 10,
+            _ => 14,
         };
         Text::new(&level)
             .mid_top_with_margin_on(state.ids.bg, 3.0)
@@ -1009,11 +1008,11 @@ impl<'a> Widget for Skillbar<'a> {
         // TODO Don't show this if key bindings are changed
         Image::new(self.imgs.m1_ico)
             .w_h(16.0, 18.0)
-            .mid_bottom_with_margin_on(state.ids.m1_content, tweak!(-11.0))
+            .mid_bottom_with_margin_on(state.ids.m1_content, -11.0)
             .set(state.ids.m1_ico, ui);
         Image::new(self.imgs.m2_ico)
             .w_h(16.0, 18.0)
-            .mid_bottom_with_margin_on(state.ids.m2_content, tweak!(-11.0))
+            .mid_bottom_with_margin_on(state.ids.m2_content, -11.0)
             .set(state.ids.m2_ico, ui);
 
         // Buffs

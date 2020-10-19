@@ -20,7 +20,6 @@ use conrod_core::{
 };
 use core::convert::TryFrom;
 
-use inline_tweak::*;
 use itertools::Itertools;
 use std::iter::once;
 use winit::monitor::VideoMode;
@@ -2709,8 +2708,8 @@ impl<'a> Widget for SettingsWindow<'a> {
                 });
             };
             for (i, language) in language_list.iter().enumerate() {
-                let button_w = tweak!(400.0);
-                let button_h = tweak!(50.0);
+                let button_w = 400.0;
+                let button_h = 50.0;
                 let button = Button::image(if selected_language == &language.language_identifier {
                     self.imgs.selection
                 } else {
@@ -2727,7 +2726,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                     .hover_image(self.imgs.selection_hover)
                     .press_image(self.imgs.selection_press)
                     .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(22)))
+                    .label_font_size(self.fonts.cyri.scale(22))
                     .label_font_id(self.fonts.cyri.conrod_id)
                     .label_y(conrod_core::position::Relative::Scalar(2.0))
                     .set(state.ids.language_list[i], ui)

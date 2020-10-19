@@ -1,5 +1,5 @@
 use crate::{
-    comp::{inventory::slot::Slot, BuffId},
+    comp::{inventory::slot::Slot, BuffKind},
     sync::Uid,
     util::Dir,
 };
@@ -41,7 +41,7 @@ pub enum ControlEvent {
     Unmount,
     InventoryManip(InventoryManip),
     GroupManip(GroupManip),
-    RemoveBuff(BuffId),
+    RemoveBuff(BuffKind),
     Respawn,
 }
 

@@ -8,14 +8,13 @@ use crate::{
     settings::GameplaySettings,
     ui::{fonts::ConrodVoxygenFonts, Ingameable},
 };
-use common::comp::{BuffId, Buffs, Energy, SpeechBubble, SpeechBubbleType, Stats};
+use common::comp::{BuffKind, Buffs, Energy, SpeechBubble, SpeechBubbleType, Stats};
 use conrod_core::{
     color,
     position::Align,
     widget::{self, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-use inline_tweak::*;
 const MAX_BUBBLE_WIDTH: f64 = 250.0;
 
 widget_ids! {
@@ -54,11 +53,6 @@ widget_ids! {
         buff_timers[],
     }
 }
-
-/*pub struct BuffInfo {
-    id: comp::BuffId,
-    dur: f32,
-}*/
 
 #[derive(Clone, Copy)]
 pub struct Info<'a> {
@@ -211,8 +205,8 @@ impl<'a> Widget for Overhead<'a> {
             // Buffs
             // Alignment
             let buff_count = buffs.active_buffs.len().min(11);
-            Rectangle::fill_with([tweak!(168.0), tweak!(100.0)], color::TRANSPARENT)
-                .x_y(-1.0, name_y + tweak!(60.0))
+            Rectangle::fill_with([168.0, 100.0], color::TRANSPARENT)
+                .x_y(-1.0, name_y + 60.0)
                 .parent(id)
                 .set(state.ids.buffs_align, ui);
 
@@ -239,18 +233,21 @@ impl<'a> Widget for Overhead<'a> {
                     .enumerate()
                     .for_each(|(i, ((id, timer_id), buff))| {
                         // Limit displayed buffs
-                        let max_duration = match buff.id {
-                            BuffId::Regeneration { duration, .. } => {
-                                duration.unwrap().as_secs_f32()
-                            },
-                            _ => 10.0,
+                        let max_duration = match buff.kind {
+                            BuffKind::Bleeding { duration, .. } => duration,
+                            BuffKind::Regeneration { duration, .. } => duration,
+                            BuffKind::Cursed { duration } => duration,
                         };
                         let current_duration = buff.dur;
-                        let duration_percentage = (current_duration / max_duration * 1000.0) as u32; // Percentage to determine which frame of the timer overlay is displayed
-                        let buff_img = match buff.id {
-                            BuffId::Regeneration { .. } => self.imgs.buff_plus_0,
-                            BuffId::Bleeding { .. } => self.imgs.debuff_bleed_0,
-                            BuffId::Cursed { .. } => self.imgs.debuff_skull_0,
+                        let duration_percentage = current_duration.map_or(1000.0, |cur| {
+                            max_duration.map_or(1000.0, |max| {
+                                cur.as_secs_f32() / max.as_secs_f32() * 1000.0
+                            })
+                        }) as u32; // Percentage to determine which frame of the timer overlay is displayed
+                        let buff_img = match buff.kind {
+                            BuffKind::Regeneration { .. } => self.imgs.buff_plus_0,
+                            BuffKind::Bleeding { .. } => self.imgs.debuff_bleed_0,
+                            BuffKind::Cursed { .. } => self.imgs.debuff_skull_0,
                         };
                         let buff_widget = Image::new(buff_img).w_h(20.0, 20.0);
                         // Sort buffs into rows of 5 slots
@@ -262,11 +259,13 @@ impl<'a> Widget for Overhead<'a> {
                             0.0 + x as f64 * (21.0),
                         );
                         buff_widget
-                            .color(if current_duration < 10.0 {
-                                Some(pulsating_col)
-                            } else {
-                                Some(norm_col)
-                            })
+                            .color(
+                                if current_duration.map_or(false, |cur| cur.as_secs_f32() < 10.0) {
+                                    Some(pulsating_col)
+                                } else {
+                                    Some(norm_col)
+                                },
+                            )
                             .set(id, ui);
 
                         Image::new(match duration_percentage as u64 {
@@ -275,7 +274,7 @@ impl<'a> Widget for Overhead<'a> {
                             625..=749 => self.imgs.buff_1,   // 6/8
                             500..=624 => self.imgs.buff_2,   // 5/8
                             375..=499 => self.imgs.buff_3,   // 4/8
-                            250..=374 => self.imgs.buff_4,   //3/8
+                            250..=374 => self.imgs.buff_4,   // 3/8
                             125..=249 => self.imgs.buff_5,   // 2/8
                             0..=124 => self.imgs.buff_6,     // 1/8
                             _ => self.imgs.nothing,

@@ -62,7 +62,7 @@ use common::{
     comp,
     comp::{
         item::{ItemDesc, Quality},
-        BuffId,
+        BuffKind,
     },
     span,
     sync::Uid,
@@ -274,9 +274,9 @@ widget_ids! {
 
 #[derive(Clone, Copy)]
 pub struct BuffInfo {
-    id: comp::BuffId,
+    kind: comp::BuffKind,
     is_buff: bool,
-    dur: f32,
+    dur: Option<Duration>,
 }
 
 pub struct DebugInfo {
@@ -364,7 +364,7 @@ pub enum Event {
     KickMember(common::sync::Uid),
     LeaveGroup,
     AssignLeader(common::sync::Uid),
-    RemoveBuff(BuffId),
+    RemoveBuff(BuffKind),
 }
 
 // TODO: Are these the possible layouts we want?
@@ -1145,7 +1145,7 @@ impl Hud {
             let speech_bubbles = &self.speech_bubbles;
 
             // Render overhead name tags and health bars
-            for (pos, info, bubble, stats, buffs, height_offset, hpfl, in_group) in (
+            for (pos, info, bubble, stats, _, height_offset, hpfl, in_group) in (
                 &entities,
                 &pos,
                 interpolated.maybe(),
@@ -2728,14 +2728,11 @@ pub fn get_quality_col<I: ItemDesc>(item: &I) -> Color {
 // Get info about applied buffs
 fn get_buff_info(buff: &comp::Buff) -> BuffInfo {
     BuffInfo {
-        id: buff.id,
+        kind: buff.kind,
         is_buff: buff
             .cat_ids
             .iter()
             .any(|cat| *cat == comp::BuffCategoryId::Buff),
-        dur: buff
-            .time
-            .map(|dur| dur.as_secs_f32())
-            .unwrap_or(10e6 as f32),
+        dur: buff.time,
     }
 }

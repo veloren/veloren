@@ -86,7 +86,7 @@ impl<'a> System<'a> for Sys {
                     ControlEvent::RemoveBuff(buff_id) => {
                         server_emitter.emit(ServerEvent::Buff {
                             uid: *uid,
-                            buff_change: BuffChange::RemoveById(buff_id),
+                            buff_change: BuffChange::RemoveFromClient(buff_id),
                         });
                     },
                     ControlEvent::Unmount => server_emitter.emit(ServerEvent::Unmount(entity)),

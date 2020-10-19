@@ -9,6 +9,7 @@ use crate::{
     sync::Uid,
     util::Dir,
 };
+use rand::{thread_rng, Rng};
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
 use std::time::Duration;
 use vek::*;
@@ -151,37 +152,21 @@ impl<'a> System<'a> for Sys {
                                 cause,
                             },
                         });
-                        // Test for server event of buff, remove before merging
-                        server_emitter.emit(ServerEvent::Buff {
-                            uid: *uid_b,
-                            buff_change: buff::BuffChange::Add(buff::Buff::new(
-                                buff::BuffId::Bleeding {
-                                    strength: attack.base_damage as f32,
-                                    duration: Some(Duration::from_secs(30)),
-                                },
-                                vec![buff::BuffCategoryId::Physical, buff::BuffCategoryId::Debuff],
-                                buff::BuffSource::Character { by: *uid },
-                            )),
-                        });
-                        server_emitter.emit(ServerEvent::Buff {
-                            uid: *uid_b,
-                            buff_change: buff::BuffChange::Add(buff::Buff::new(
-                                buff::BuffId::Regeneration {
-                                    strength: 1.0,
-                                    duration: Some(Duration::from_secs(60)),
-                                },
-                                vec![buff::BuffCategoryId::Physical, buff::BuffCategoryId::Buff],
-                                buff::BuffSource::Character { by: *uid },
-                            )),
-                        });
-                        server_emitter.emit(ServerEvent::Buff {
-                            uid: *uid_b,
-                            buff_change: buff::BuffChange::Add(buff::Buff::new(
-                                buff::BuffId::Cursed { duration: None },
-                                vec![buff::BuffCategoryId::Physical, buff::BuffCategoryId::Debuff],
-                                buff::BuffSource::Character { by: *uid },
-                            )),
-                        });
+                        // Apply bleeding buff on melee hits with 10% chance
+                        // TODO: Don't have buff uniformly applied on all melee attacks
+                        if thread_rng().gen::<f32>() < 0.1 {
+                            server_emitter.emit(ServerEvent::Buff {
+                                uid: *uid_b,
+                                buff_change: buff::BuffChange::Add(buff::Buff::new(
+                                    buff::BuffKind::Bleeding {
+                                        strength: attack.base_damage as f32 / 10.0,
+                                        duration: Some(Duration::from_secs(10)),
+                                    },
+                                    vec![buff::BuffCategoryId::Physical],
+                                    buff::BuffSource::Character { by: *uid },
+                                )),
+                            });
+                        }
                         attack.hit_count += 1;
                     }
                     if attack.knockback != 0.0 && damage.healthchange != 0.0 {
