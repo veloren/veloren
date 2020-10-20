@@ -195,7 +195,7 @@ impl Animation for EquipAnimation {
         } else {
             next.head.position = Vec3::new(
                 0.0,
-                -3.0 + skeleton_attr.head.0,
+                0.0 + skeleton_attr.head.0,
                 skeleton_attr.head.1 + short * 0.2,
             );
             next.head.orientation =

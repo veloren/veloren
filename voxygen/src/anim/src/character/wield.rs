@@ -70,7 +70,7 @@ impl Animation for WieldAnimation {
         } else {
             next.head.position = Vec3::new(
                 0.0,
-                -2.0 + skeleton_attr.head.0,
+                0.0 + skeleton_attr.head.0,
                 skeleton_attr.head.1 + u_slow * 0.1,
             );
             next.head.orientation =
@@ -154,7 +154,7 @@ impl Animation for WieldAnimation {
                 if speed < 0.5 {
                     next.head.position = Vec3::new(
                         0.0,
-                        -1.5 + skeleton_attr.head.0,
+                        0.0 + skeleton_attr.head.0,
                         skeleton_attr.head.1 + u_slow * 0.1,
                     );
                     next.head.orientation = Quaternion::rotation_z(head_look.x)

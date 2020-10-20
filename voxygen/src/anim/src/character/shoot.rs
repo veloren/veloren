@@ -38,7 +38,7 @@ impl Animation for ShootAnimation {
 
         let exp = ((anim_time as f32).powf(0.3 as f32)).min(1.2);
 
-        next.head.position = Vec3::new(0.0, -2.0 + skeleton_attr.head.0, skeleton_attr.head.1);
+        next.head.position = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1);
         next.head.orientation = Quaternion::rotation_z(exp * -0.4)
             * Quaternion::rotation_x(0.0)
             * Quaternion::rotation_y(exp * 0.1);
