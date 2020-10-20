@@ -2,7 +2,6 @@ pub mod alpha;
 pub mod beam;
 pub mod beta;
 pub mod block;
-pub mod blockidle;
 pub mod charge;
 pub mod chargeswing;
 pub mod climb;
@@ -31,8 +30,8 @@ pub mod wield;
 // Reexports
 pub use self::{
     alpha::AlphaAnimation, beam::BeamAnimation, beta::BetaAnimation, block::BlockAnimation,
-    blockidle::BlockIdleAnimation, charge::ChargeAnimation, chargeswing::ChargeswingAnimation,
-    climb::ClimbAnimation, dance::DanceAnimation, dash::DashAnimation, equip::EquipAnimation,
+    charge::ChargeAnimation, chargeswing::ChargeswingAnimation, climb::ClimbAnimation,
+    dance::DanceAnimation, dash::DashAnimation, equip::EquipAnimation,
     glidewield::GlideWieldAnimation, gliding::GlidingAnimation, idle::IdleAnimation,
     jump::JumpAnimation, leapmelee::LeapAnimation, repeater::RepeaterAnimation,
     roll::RollAnimation, run::RunAnimation, shockwave::ShockwaveAnimation, shoot::ShootAnimation,
@@ -184,18 +183,18 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Danari, Female) => 1.15,
             },
             head: match (body.species, body.body_type) {
-                (Orc, Male) => (0.0, 13.5),
-                (Orc, Female) => (0.0, 13.0),
-                (Human, Male) => (0.3, 13.0),
-                (Human, Female) => (0.0, 13.0),
-                (Elf, Male) => (0.5, 13.0),
-                (Elf, Female) => (1.0, 13.0),
-                (Dwarf, Male) => (0.0, 14.0),
-                (Dwarf, Female) => (0.0, 13.5),
-                (Undead, Male) => (0.5, 13.0),
-                (Undead, Female) => (0.5, 14.0),
-                (Danari, Male) => (0.5, 12.5),
-                (Danari, Female) => (0.5, 13.5),
+                (Orc, Male) => (-2.0, 13.5),
+                (Orc, Female) => (-2.0, 13.0),
+                (Human, Male) => (-2.3, 13.0),
+                (Human, Female) => (-2.0, 13.0),
+                (Elf, Male) => (-2.5, 13.0),
+                (Elf, Female) => (-1.0, 13.0),
+                (Dwarf, Male) => (-2.0, 14.0),
+                (Dwarf, Female) => (-2.0, 13.5),
+                (Undead, Male) => (-1.5, 13.0),
+                (Undead, Female) => (-1.5, 14.0),
+                (Danari, Male) => (-1.5, 12.5),
+                (Danari, Female) => (-1.5, 13.5),
             },
             chest: match (body.species, body.body_type) {
                 (_, _) => (0.0, 8.0),

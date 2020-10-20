@@ -63,8 +63,6 @@ impl Animation for ClimbAnimation {
         );
         let stagnant = if speed > -0.7 { 1.0 } else { 0.0 }; //sets static position when there is no movement
 
-        next.hold.scale = Vec3::one() * 0.0;
-
         if speed > 0.7 || lateral > 0.1 {
             next.head.position = Vec3::new(
                 0.0,
@@ -74,7 +72,6 @@ impl Animation for ClimbAnimation {
             next.head.orientation = Quaternion::rotation_z(smooth * 0.1)
                 * Quaternion::rotation_x(0.6)
                 * Quaternion::rotation_y(quick * 0.1);
-            next.head.scale = Vec3::one() * skeleton_attr.head_scale;
 
             next.chest.position = Vec3::new(
                 0.0,
@@ -84,23 +81,16 @@ impl Animation for ClimbAnimation {
             next.chest.orientation = Quaternion::rotation_z(quick * 0.25)
                 * Quaternion::rotation_x(-0.15)
                 * Quaternion::rotation_y(quick * -0.12);
-            next.chest.scale = Vec3::one();
 
             next.belt.position = Vec3::new(0.0, skeleton_attr.belt.0 + 1.0, skeleton_attr.belt.1);
-            next.belt.orientation =
-                Quaternion::rotation_z(quick * 0.0) * Quaternion::rotation_x(0.0);
-            next.belt.scale = Vec3::one();
 
-            next.back.position = Vec3::new(0.0, skeleton_attr.back.0, skeleton_attr.back.1);
             next.back.orientation = Quaternion::rotation_x(-0.2);
-            next.back.scale = Vec3::one() * 1.02;
 
             next.shorts.position =
                 Vec3::new(0.0, skeleton_attr.shorts.0 + 1.0, skeleton_attr.shorts.1);
             next.shorts.orientation = Quaternion::rotation_z(quick * 0.0)
                 * Quaternion::rotation_x(0.1)
                 * Quaternion::rotation_y(quick * 0.10);
-            next.shorts.scale = Vec3::one();
 
             next.hand_l.position = Vec3::new(
                 -skeleton_attr.hand.0,
@@ -108,7 +98,6 @@ impl Animation for ClimbAnimation {
                 5.0 + skeleton_attr.hand.2 - quick * 4.0,
             );
             next.hand_l.orientation = Quaternion::rotation_x(2.2 + quicka * 0.5);
-            next.hand_l.scale = Vec3::one();
 
             next.hand_r.position = Vec3::new(
                 skeleton_attr.hand.0,
@@ -116,7 +105,6 @@ impl Animation for ClimbAnimation {
                 5.0 + skeleton_attr.hand.2 + quick * 4.0,
             );
             next.hand_r.orientation = Quaternion::rotation_x(2.2 - quicka * 0.5);
-            next.hand_r.scale = Vec3::one();
 
             match active_tool_kind {
                 Some(ToolKind::Dagger(_)) => {
@@ -135,8 +123,6 @@ impl Animation for ClimbAnimation {
                         Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
                 },
             }
-            next.main.scale = Vec3::one();
-
             match second_tool_kind {
                 Some(ToolKind::Dagger(_)) => {
                     next.second.position = Vec3::new(4.0, -6.0, 7.0);
@@ -154,14 +140,12 @@ impl Animation for ClimbAnimation {
                         Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
                 },
             }
-            next.second.scale = Vec3::one();
             next.foot_l.position = Vec3::new(
                 -skeleton_attr.foot.0,
                 5.0 + skeleton_attr.foot.1,
                 skeleton_attr.foot.2 + quick * 2.5,
             );
             next.foot_l.orientation = Quaternion::rotation_x(0.2 - quicka * 0.5);
-            next.foot_l.scale = Vec3::one();
 
             next.foot_r.position = Vec3::new(
                 skeleton_attr.foot.0,
@@ -169,23 +153,10 @@ impl Animation for ClimbAnimation {
                 skeleton_attr.foot.2 - quick * 2.5,
             );
             next.foot_r.orientation = Quaternion::rotation_x(0.2 + quicka * 0.5);
-            next.foot_r.scale = Vec3::one();
 
-            next.shoulder_l.position = Vec3::new(
-                -skeleton_attr.shoulder.0,
-                skeleton_attr.shoulder.1,
-                skeleton_attr.shoulder.2,
-            );
             next.shoulder_l.orientation = Quaternion::rotation_x(smootha * 0.15);
-            next.shoulder_l.scale = Vec3::one() * 1.1;
 
-            next.shoulder_r.position = Vec3::new(
-                skeleton_attr.shoulder.0,
-                skeleton_attr.shoulder.1,
-                skeleton_attr.shoulder.2,
-            );
             next.shoulder_r.orientation = Quaternion::rotation_x(smooth * 0.15);
-            next.shoulder_r.scale = Vec3::one() * 1.1;
 
             next.glider.position = Vec3::new(0.0, 0.0, 10.0);
             next.glider.scale = Vec3::one() * 0.0;
@@ -193,24 +164,14 @@ impl Animation for ClimbAnimation {
             next.main.position = Vec3::new(-7.0, -5.0, 18.0);
             next.main.orientation =
                 Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57 + smootha * 0.25);
-            next.main.scale = Vec3::one();
 
             next.second.position = Vec3::new(0.0, 0.0, 0.0);
             next.second.orientation = Quaternion::rotation_y(0.0);
-            next.second.scale = Vec3::one() * 0.0;
 
-            next.lantern.position = Vec3::new(
-                skeleton_attr.lantern.0,
-                skeleton_attr.lantern.1,
-                skeleton_attr.lantern.2,
-            );
             next.lantern.orientation =
                 Quaternion::rotation_x(smooth * -0.3) * Quaternion::rotation_y(smooth * -0.3);
-            next.lantern.scale = Vec3::one() * 0.65;
 
             next.torso.position = Vec3::new(0.0, -0.2 + smooth * -0.08, 0.4) * skeleton_attr.scaler;
-            next.torso.orientation = Quaternion::rotation_x(0.0) * Quaternion::rotation_y(0.0);
-            next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
         } else {
             next.head.position = Vec3::new(
                 0.0,
@@ -220,28 +181,22 @@ impl Animation for ClimbAnimation {
             next.head.orientation = Quaternion::rotation_x(
                 -0.25 * (1.0 - stagnant) + stagnant * 2.0 * head_look.x.abs(),
             ) * Quaternion::rotation_z(stagnant * 3.5 * head_look.x.abs());
-            next.head.scale = Vec3::one() * skeleton_attr.head_scale;
 
             next.chest.position =
                 Vec3::new(0.0, 1.0 + skeleton_attr.chest.0, skeleton_attr.chest.1);
             next.chest.orientation = Quaternion::rotation_z(0.6 * stagnant)
                 * Quaternion::rotation_x((0.2 + drop * 0.05) * (1.0 - stagnant));
-            next.chest.scale = Vec3::one();
 
             next.belt.position = Vec3::new(0.0, skeleton_attr.belt.0 + 0.5, skeleton_attr.belt.1);
             next.belt.orientation = Quaternion::rotation_x(0.1 + dropa * 0.1);
-            next.belt.scale = Vec3::one();
 
-            next.back.position = Vec3::new(0.0, skeleton_attr.back.0, skeleton_attr.back.1);
             next.back.orientation = Quaternion::rotation_x(
                 -0.2 + dropa * 0.1 - 0.15 * (1.0 - stagnant) + stagnant * 0.1,
             );
-            next.back.scale = Vec3::one() * 1.02;
 
             next.shorts.position =
                 Vec3::new(0.0, skeleton_attr.shorts.0 + 1.0, skeleton_attr.shorts.1);
             next.shorts.orientation = Quaternion::rotation_x(0.1 + dropa * 0.12 * (1.0 - stagnant));
-            next.shorts.scale = Vec3::one();
 
             next.hand_l.position = Vec3::new(
                 -skeleton_attr.hand.0,
@@ -250,7 +205,6 @@ impl Animation for ClimbAnimation {
             );
             next.hand_l.orientation = Quaternion::rotation_x(2.2 + stagnant * -1.4)
                 * Quaternion::rotation_y((0.3 + dropa * 0.1) * (1.0 - stagnant));
-            next.hand_l.scale = Vec3::one();
 
             next.hand_r.position = Vec3::new(
                 skeleton_attr.hand.0,
@@ -259,7 +213,6 @@ impl Animation for ClimbAnimation {
             );
             next.hand_r.orientation = Quaternion::rotation_x(2.2)
                 * Quaternion::rotation_y(-0.3 + drop * 0.1 * (1.0 - stagnant));
-            next.hand_r.scale = Vec3::one();
 
             next.foot_l.position = Vec3::new(
                 -skeleton_attr.foot.0,
@@ -267,7 +220,6 @@ impl Animation for ClimbAnimation {
                 1.0 + skeleton_attr.foot.2 + drop * -2.0 * (1.0 - stagnant),
             );
             next.foot_l.orientation = Quaternion::rotation_x(0.55 + drop * 0.1 * (1.0 - stagnant));
-            next.foot_l.scale = Vec3::one();
 
             next.foot_r.position = Vec3::new(
                 skeleton_attr.foot.0,
@@ -276,50 +228,15 @@ impl Animation for ClimbAnimation {
             );
             next.foot_r.orientation =
                 Quaternion::rotation_x(0.2 + smooth * 0.15 * (1.0 - stagnant));
-            next.foot_r.scale = Vec3::one();
-
-            next.shoulder_l.position = Vec3::new(
-                -skeleton_attr.shoulder.0,
-                skeleton_attr.shoulder.1,
-                skeleton_attr.shoulder.2,
-            );
-            next.shoulder_l.orientation = Quaternion::rotation_x(0.0);
-            next.shoulder_l.scale = Vec3::one() * 1.1;
-
-            next.shoulder_r.position = Vec3::new(
-                skeleton_attr.shoulder.0,
-                skeleton_attr.shoulder.1,
-                skeleton_attr.shoulder.2,
-            );
-            next.shoulder_r.orientation = Quaternion::rotation_x(0.0);
-            next.shoulder_r.scale = Vec3::one() * 1.1;
 
             next.glider.position = Vec3::new(0.0, 0.0, 10.0);
             next.glider.scale = Vec3::one() * 0.0;
 
             next.main.position = Vec3::new(-7.0, -5.0, 18.0);
             next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
-            next.main.scale = Vec3::one();
-
-            next.second.position = Vec3::new(0.0, 0.0, 0.0);
-            next.second.orientation = Quaternion::rotation_y(0.0);
-            next.second.scale = Vec3::one() * 0.0;
-
-            next.lantern.position = Vec3::new(
-                skeleton_attr.lantern.0,
-                skeleton_attr.lantern.1,
-                skeleton_attr.lantern.2,
-            );
-            next.lantern.orientation = Quaternion::rotation_x(0.0);
-            next.lantern.scale = Vec3::one() * 0.65;
 
             next.torso.position = Vec3::new(0.0, -0.2, 0.4) * skeleton_attr.scaler;
-            next.torso.orientation = Quaternion::rotation_x(0.0);
-            next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
         };
-        next.control.scale = Vec3::one();
-        next.control_r.scale = Vec3::one();
-        next.control_l.scale = Vec3::one();
 
         next.second.scale = match (
             active_tool_kind.map(|tk| tk.hands()),

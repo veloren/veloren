@@ -45,12 +45,10 @@ impl Animation for RepeaterAnimation {
             next.hand_l.orientation = Quaternion::rotation_x(1.20)
                 * Quaternion::rotation_y(-0.6)
                 * Quaternion::rotation_z(-0.3);
-            next.hand_l.scale = Vec3::one() * 1.05;
             next.hand_r.position = Vec3::new(5.9, 4.5, -5.0);
             next.hand_r.orientation = Quaternion::rotation_x(1.20)
                 * Quaternion::rotation_y(-0.6)
                 * Quaternion::rotation_z(-0.3);
-            next.hand_r.scale = Vec3::one() * 1.05;
             next.main.position = Vec3::new(3.0, 2.0, -13.0);
             next.main.orientation = Quaternion::rotation_x(-0.3)
                 * Quaternion::rotation_y(0.3)
@@ -64,7 +62,6 @@ impl Animation for RepeaterAnimation {
 
             next.control.position = Vec3::new(-7.0, 6.0, 6.0);
             next.control.orientation = Quaternion::rotation_x(0.0) * Quaternion::rotation_z(0.0);
-            next.control.scale = Vec3::one();
             if let Some(stage_section) = stage_section {
                 match stage_section {
                     StageSection::Movement => {
@@ -174,7 +171,6 @@ impl Animation for RepeaterAnimation {
                         next.hand_l.orientation = Quaternion::rotation_x(1.20)
                             * Quaternion::rotation_y(-0.6)
                             * Quaternion::rotation_z(-0.3);
-                        next.hold.scale = Vec3::one() * 0.0;
                     },
                     StageSection::Recover => {},
                     _ => {},
@@ -190,9 +186,6 @@ impl Animation for RepeaterAnimation {
             (_, _) => Vec3::zero(),
         };
 
-        //next.torso.position = Vec3::new(0.0, 0.0, 0.0) * skeleton_attr.scaler;
-        //next.torso.orientation = Quaternion::rotation_z(0.0);
-        //next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
         next
     }
 }

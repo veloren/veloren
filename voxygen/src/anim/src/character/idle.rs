@@ -30,7 +30,7 @@ impl Animation for IdleAnimation {
 
         next.head.position = Vec3::new(
             0.0,
-            -2.0 + skeleton_attr.head.0,
+            skeleton_attr.head.0,
             skeleton_attr.head.1 + wave_ultra_slow * 0.1 + head_abs * -0.5,
         );
 
@@ -57,7 +57,6 @@ impl Animation for IdleAnimation {
             skeleton_attr.shorts.1 + wave_ultra_slow * 0.1,
         );
         next.shorts.orientation = Quaternion::rotation_x(0.0);
-        next.shorts.scale = Vec3::one();
 
         next.back.position = Vec3::new(0.0, skeleton_attr.back.0, skeleton_attr.back.1);
         next.back.scale = Vec3::one() * 1.02;
@@ -69,7 +68,6 @@ impl Animation for IdleAnimation {
         );
 
         next.hand_l.orientation = Quaternion::rotation_x(0.0 + wave_ultra_slow * -0.06);
-        next.hand_l.scale = Vec3::one();
 
         next.hand_r.position = Vec3::new(
             skeleton_attr.hand.0,
@@ -77,7 +75,6 @@ impl Animation for IdleAnimation {
             skeleton_attr.hand.2 + wave_ultra_slow * 0.5 + head_abs * -0.05,
         );
         next.hand_r.orientation = Quaternion::rotation_x(0.0 + wave_ultra_slow * -0.06);
-        next.hand_r.scale = Vec3::one() + head_abs * -0.05;
 
         next.foot_l.position = Vec3::new(
             -skeleton_attr.foot.0,
@@ -158,21 +155,7 @@ impl Animation for IdleAnimation {
         next.hold.scale = Vec3::one() * 0.0;
 
         next.torso.position = Vec3::new(0.0, -0.2, 0.1) * skeleton_attr.scaler;
-        next.torso.orientation = Quaternion::rotation_x(0.0);
         next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
-
-        next.control.position = Vec3::new(0.0, 0.0, 0.0);
-        next.control.orientation = Quaternion::rotation_x(0.0);
-        next.control.scale = Vec3::one();
-
-        next.control_l.position = Vec3::new(0.0, 0.0, 0.0);
-        next.control_l.orientation = Quaternion::rotation_x(0.0);
-        next.control_l.scale = Vec3::one();
-
-        next.control_r.position = Vec3::new(0.0, 0.0, 0.0);
-        next.control_r.orientation = Quaternion::rotation_x(0.0);
-        next.control_r.scale = Vec3::one();
-
         next.second.scale = match (
             active_tool_kind.map(|tk| tk.hands()),
             second_tool_kind.map(|tk| tk.hands()),

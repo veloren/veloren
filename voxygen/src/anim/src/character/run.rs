@@ -114,7 +114,7 @@ impl Animation for RunAnimation {
 
         next.head.position = Vec3::new(
             0.0,
-            -3.0 + skeleton_attr.head.0,
+            -1.0 + skeleton_attr.head.0,
             skeleton_attr.head.1 + short * 0.1,
         );
         next.head.orientation =
@@ -132,7 +132,6 @@ impl Animation for RunAnimation {
             * Quaternion::rotation_x(
                 impact * 0.06 + shortalter * 0.035 + wave_stop * speed * -0.09 + (tilt.abs()),
             );
-        next.chest.scale = Vec3::one();
 
         next.belt.position = Vec3::new(
             0.0,
@@ -142,12 +141,10 @@ impl Animation for RunAnimation {
         next.belt.orientation = Quaternion::rotation_x(0.1)
             * Quaternion::rotation_z(short * 0.1 + tilt * -1.1)
             * Quaternion::rotation_y(tilt * 0.5);
-        next.belt.scale = Vec3::one();
 
         next.back.position = Vec3::new(0.0, skeleton_attr.back.0, skeleton_attr.back.1);
         next.back.orientation =
             Quaternion::rotation_x(-0.25 + short * 0.1 + noisea * 0.1 + noiseb * 0.1);
-        next.back.scale = Vec3::one() * 1.02;
 
         next.shorts.position = Vec3::new(
             0.0,
@@ -157,7 +154,6 @@ impl Animation for RunAnimation {
         next.shorts.orientation = Quaternion::rotation_x(0.2)
             * Quaternion::rotation_z(short * 0.25 + tilt * -1.5)
             * Quaternion::rotation_y(tilt * 0.7);
-        next.shorts.scale = Vec3::one();
 
         next.hand_l.position = Vec3::new(
             -skeleton_attr.hand.0 + foothorir * -1.3,
@@ -166,7 +162,6 @@ impl Animation for RunAnimation {
         );
         next.hand_l.orientation = Quaternion::rotation_x(0.6 + footrotr * -1.2 * walkintensity)
             * Quaternion::rotation_y(footrotr * 0.4 * walkintensity);
-        next.hand_l.scale = Vec3::one();
 
         next.hand_r.position = Vec3::new(
             skeleton_attr.hand.0 + foothoril * 1.3,
@@ -175,7 +170,6 @@ impl Animation for RunAnimation {
         );
         next.hand_r.orientation = Quaternion::rotation_x(0.6 + footrotl * -1.2 * walkintensity)
             * Quaternion::rotation_y(footrotl * -0.4 * walkintensity);
-        next.hand_r.scale = Vec3::one();
 
         next.foot_l.position = Vec3::new(
             -skeleton_attr.foot.0,
@@ -184,7 +178,6 @@ impl Animation for RunAnimation {
         );
         next.foot_l.orientation = Quaternion::rotation_x(-0.2 + footrotl * -1.2 * walkintensity)
             * Quaternion::rotation_y(tilt * 1.8);
-        next.foot_l.scale = Vec3::one();
 
         next.foot_r.position = Vec3::new(
             skeleton_attr.foot.0,
@@ -193,7 +186,6 @@ impl Animation for RunAnimation {
         );
         next.foot_r.orientation = Quaternion::rotation_x(-0.2 + footrotr * -1.2 * walkintensity)
             * Quaternion::rotation_y(tilt * 1.8);
-        next.foot_r.scale = Vec3::one();
 
         next.shoulder_l.position = Vec3::new(
             -skeleton_attr.shoulder.0,
@@ -230,7 +222,6 @@ impl Animation for RunAnimation {
                 next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
             },
         }
-        next.main.scale = Vec3::one();
 
         match second_tool_kind {
             Some(ToolKind::Dagger(_)) => {
@@ -249,7 +240,6 @@ impl Animation for RunAnimation {
                     Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
             },
         }
-        next.second.scale = Vec3::one();
 
         next.lantern.position = Vec3::new(
             skeleton_attr.lantern.0,
@@ -262,16 +252,7 @@ impl Animation for RunAnimation {
         next.hold.scale = Vec3::one() * 0.0;
 
         next.torso.position = Vec3::new(0.0, -0.3, 0.0) * skeleton_attr.scaler;
-        next.torso.orientation = Quaternion::rotation_y(0.0);
         next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
-
-        next.control.position = Vec3::new(0.0, 0.0, 0.0);
-        next.control.orientation = Quaternion::rotation_x(0.0);
-        next.control.scale = Vec3::one();
-
-        next.control_l.scale = Vec3::one();
-
-        next.control_r.scale = Vec3::one();
 
         next.second.scale = match (
             active_tool_kind.map(|tk| tk.hands()),

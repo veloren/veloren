@@ -114,7 +114,6 @@ impl Animation for SwimAnimation {
             -10.0 + skeleton_attr.chest.1 + short * 0.3 * intensity,
         );
         next.chest.orientation = Quaternion::rotation_z(short * 0.1 * intensity);
-        next.chest.scale = Vec3::one();
 
         next.belt.position = Vec3::new(0.0, skeleton_attr.belt.0, skeleton_attr.belt.1);
         next.belt.orientation = Quaternion::rotation_x(velocity.z.abs() * -0.005 + abstilt * 1.0)
@@ -136,7 +135,7 @@ impl Animation for SwimAnimation {
         );
         next.hand_l.orientation = Quaternion::rotation_x(1.5 + foot * -1.2 * intensity * squash)
             * Quaternion::rotation_y(0.4 + foot * -0.35);
-        next.hand_l.scale = Vec3::one();
+        next.hand_l.scale = Vec3::one() * 1.04;
 
         next.hand_r.position = Vec3::new(
             1.0 + skeleton_attr.hand.0,
@@ -145,7 +144,7 @@ impl Animation for SwimAnimation {
         );
         next.hand_r.orientation = Quaternion::rotation_x(1.5 + foot * 1.2 * intensity * squash)
             * Quaternion::rotation_y(-0.4 + foot * -0.35);
-        next.hand_r.scale = Vec3::one();
+        next.hand_r.scale = Vec3::one() * 1.04;
 
         next.foot_l.position = Vec3::new(
             -skeleton_attr.foot.0,
@@ -154,7 +153,6 @@ impl Animation for SwimAnimation {
         );
         next.foot_l.orientation =
             Quaternion::rotation_x(-0.8 * squash + footrotl * 0.4 * intensity * squash);
-        next.foot_l.scale = Vec3::one();
 
         next.foot_r.position = Vec3::new(
             skeleton_attr.foot.0,
@@ -163,7 +161,6 @@ impl Animation for SwimAnimation {
         );
         next.foot_r.orientation =
             Quaternion::rotation_x(-0.8 * squash + footrotr * 0.4 * intensity * squash);
-        next.foot_r.scale = Vec3::one();
 
         next.shoulder_l.position = Vec3::new(
             -skeleton_attr.shoulder.0,
@@ -200,7 +197,6 @@ impl Animation for SwimAnimation {
                 next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
             },
         }
-        next.main.scale = Vec3::one();
 
         match second_tool_kind {
             Some(ToolKind::Dagger(_)) => {
@@ -226,7 +222,6 @@ impl Animation for SwimAnimation {
             skeleton_attr.lantern.1,
             skeleton_attr.lantern.2,
         );
-        next.lantern.orientation = Quaternion::rotation_x(0.0) * Quaternion::rotation_y(0.0);
         next.lantern.scale = Vec3::one() * 0.65;
         next.hold.scale = Vec3::one() * 0.0;
 
@@ -242,12 +237,6 @@ impl Animation for SwimAnimation {
         ) * Quaternion::rotation_y(tilt * 8.0)
             * Quaternion::rotation_z(tilt * 8.0);
         next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
-
-        next.control.scale = Vec3::one(); //avgspeed*-0.14*reverse + 
-
-        next.control_l.scale = Vec3::one();
-
-        next.control_r.scale = Vec3::one();
 
         next.second.scale = match (
             active_tool_kind.map(|tk| tk.hands()),
