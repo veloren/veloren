@@ -21,7 +21,7 @@ impl Animation for SwimWieldAnimation {
         (active_tool_kind, second_tool_kind, velocity, global_time): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
-        skeleton_attr: &SkeletonAttr,
+        s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
         *rate = 1.0;
@@ -70,73 +70,58 @@ impl Animation for SwimWieldAnimation {
         let noiseb = (anim_time as f32 * 19.0 + PI / 4.0).sin();
 
         next.foot_l.position = Vec3::new(
-            -skeleton_attr.foot.0,
-            skeleton_attr.foot.1 + foothoril * 1.5 * intensity,
-            -10.0 + skeleton_attr.foot.2 + footrotl * 3.0 * intensity,
+            -s_a.foot.0,
+            s_a.foot.1 + foothoril * 1.5 * intensity,
+            -10.0 + s_a.foot.2 + footrotl * 3.0 * intensity,
         );
         next.foot_l.orientation = Quaternion::rotation_x(-0.8 + footrotl * 0.4 * intensity);
 
         next.foot_r.position = Vec3::new(
-            skeleton_attr.foot.0,
-            skeleton_attr.foot.1 + foothorir * 1.5 * intensity,
-            -10.0 + skeleton_attr.foot.2 + footrotr * 3.0 * intensity,
+            s_a.foot.0,
+            s_a.foot.1 + foothorir * 1.5 * intensity,
+            -10.0 + s_a.foot.2 + footrotr * 3.0 * intensity,
         );
         next.foot_r.orientation = Quaternion::rotation_x(-0.8 + footrotr * 0.4 * intensity);
 
         next.hold.scale = Vec3::one() * 0.0;
 
         if velocity > 0.01 {
-            next.torso.position = Vec3::new(0.0, 0.0, 1.0) * skeleton_attr.scaler;
+            next.torso.position = Vec3::new(0.0, 0.0, 1.0) * s_a.scaler;
             next.torso.orientation = Quaternion::rotation_x(velocity * -0.05);
-            next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
+            next.torso.scale = Vec3::one() / 11.0 * s_a.scaler;
 
-            next.back.position = Vec3::new(0.0, skeleton_attr.back.0, skeleton_attr.back.1);
+            next.back.position = Vec3::new(0.0, s_a.back.0, s_a.back.1);
             next.back.orientation = Quaternion::rotation_x(
                 (-0.5 + short * 0.3 + noisea * 0.3 + noiseb * 0.3).min(-0.1),
             );
             next.back.scale = Vec3::one() * 1.02;
         } else {
-            next.head.position = Vec3::new(
-                0.0,
-                skeleton_attr.head.0,
-                skeleton_attr.head.1 + u_slow * 0.1,
-            );
+            next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1 + u_slow * 0.1);
             next.head.orientation =
                 Quaternion::rotation_z(head_look.x) * Quaternion::rotation_x(head_look.y.abs());
-            next.head.scale = Vec3::one() * skeleton_attr.head_scale;
+            next.head.scale = Vec3::one() * s_a.head_scale;
 
-            next.chest.position = Vec3::new(
-                0.0 + slowalt * 0.5,
-                skeleton_attr.chest.0,
-                skeleton_attr.chest.1 + u_slow * 0.5,
-            );
-            next.torso.position = Vec3::new(0.0, 0.0, 0.0) * skeleton_attr.scaler;
-            next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
+            next.chest.position =
+                Vec3::new(0.0 + slowalt * 0.5, s_a.chest.0, s_a.chest.1 + u_slow * 0.5);
+            next.torso.position = Vec3::new(0.0, 0.0, 0.0) * s_a.scaler;
+            next.torso.scale = Vec3::one() / 11.0 * s_a.scaler;
 
-            next.foot_l.position = Vec3::new(
-                -skeleton_attr.foot.0,
-                -2.0 + skeleton_attr.foot.1,
-                skeleton_attr.foot.2,
-            );
+            next.foot_l.position = Vec3::new(-s_a.foot.0, -2.0 + s_a.foot.1, s_a.foot.2);
 
-            next.foot_r.position = Vec3::new(
-                skeleton_attr.foot.0,
-                2.0 + skeleton_attr.foot.1,
-                skeleton_attr.foot.2,
-            );
+            next.foot_r.position = Vec3::new(s_a.foot.0, 2.0 + s_a.foot.1, s_a.foot.2);
 
             next.chest.orientation =
                 Quaternion::rotation_y(u_slowalt * 0.04) * Quaternion::rotation_z(0.25);
 
-            next.belt.position = Vec3::new(0.0, skeleton_attr.belt.0, skeleton_attr.belt.1);
+            next.belt.position = Vec3::new(0.0, s_a.belt.0, s_a.belt.1);
             next.belt.orientation =
                 Quaternion::rotation_y(u_slowalt * 0.03) * Quaternion::rotation_z(0.22);
             next.belt.scale = Vec3::one() * 1.02;
 
-            next.back.position = Vec3::new(0.0, skeleton_attr.back.0, skeleton_attr.back.1);
+            next.back.position = Vec3::new(0.0, s_a.back.0, s_a.back.1);
             next.back.orientation = Quaternion::rotation_x(-0.2);
             next.back.scale = Vec3::one() * 1.02;
-            next.shorts.position = Vec3::new(0.0, skeleton_attr.shorts.0, skeleton_attr.shorts.1);
+            next.shorts.position = Vec3::new(0.0, s_a.shorts.0, s_a.shorts.1);
             next.shorts.orientation = Quaternion::rotation_z(0.3);
         }
         match active_tool_kind {
@@ -194,24 +179,19 @@ impl Animation for SwimWieldAnimation {
             },
             Some(ToolKind::Axe(_)) => {
                 if velocity < 0.5 {
-                    next.head.position = Vec3::new(
-                        0.0,
-                        -3.5 + skeleton_attr.head.0,
-                        skeleton_attr.head.1 + u_slow * 0.1,
-                    );
+                    next.head.position =
+                        Vec3::new(0.0, -3.5 + s_a.head.0, s_a.head.1 + u_slow * 0.1);
                     next.head.orientation = Quaternion::rotation_z(head_look.x)
                         * Quaternion::rotation_x(0.35 + head_look.y.abs());
-                    next.head.scale = Vec3::one() * skeleton_attr.head_scale;
+                    next.head.scale = Vec3::one() * s_a.head_scale;
                     next.chest.orientation = Quaternion::rotation_x(-0.35)
                         * Quaternion::rotation_y(u_slowalt * 0.04)
                         * Quaternion::rotation_z(0.15);
-                    next.belt.position =
-                        Vec3::new(0.0, 1.0 + skeleton_attr.belt.0, skeleton_attr.belt.1);
+                    next.belt.position = Vec3::new(0.0, 1.0 + s_a.belt.0, s_a.belt.1);
                     next.belt.orientation = Quaternion::rotation_x(0.15)
                         * Quaternion::rotation_y(u_slowalt * 0.03)
                         * Quaternion::rotation_z(0.15);
-                    next.shorts.position =
-                        Vec3::new(0.0, 1.0 + skeleton_attr.shorts.0, skeleton_attr.shorts.1);
+                    next.shorts.position = Vec3::new(0.0, 1.0 + s_a.shorts.0, s_a.shorts.1);
                     next.shorts.orientation =
                         Quaternion::rotation_x(0.15) * Quaternion::rotation_z(0.25);
                     next.control.orientation = Quaternion::rotation_x(1.8)
@@ -365,7 +345,7 @@ impl Animation for SwimWieldAnimation {
                 if velocity < 0.5 {
                     next.head.orientation = Quaternion::rotation_z(head_look.x)
                         * Quaternion::rotation_x(-0.2 + head_look.y.abs());
-                    next.head.scale = Vec3::one() * skeleton_attr.head_scale;
+                    next.head.scale = Vec3::one() * s_a.head_scale;
                 }
                 next.hand_l.position = Vec3::new(9.0, 1.0, 1.0);
                 next.hand_l.orientation =

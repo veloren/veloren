@@ -29,7 +29,7 @@ impl Animation for ChargeAnimation {
         (active_tool_kind, second_tool_kind, velocity, orientation, last_ori, _global_time): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
-        skeleton_attr: &SkeletonAttr,
+        s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         *rate = 1.0;
 
@@ -76,23 +76,19 @@ impl Animation for ChargeAnimation {
             0.0
         } * 1.3;
 
-        next.head.position = Vec3::new(
-            stop * -2.0,
-            -1.5 + stop * 2.5 + skeleton_attr.head.0,
-            skeleton_attr.head.1,
-        );
+        next.head.position = Vec3::new(stop * -2.0, -1.5 + stop * 2.5 + s_a.head.0, s_a.head.1);
         next.head.orientation =
             Quaternion::rotation_z(stop * -1.0 + tilt * -2.0) * Quaternion::rotation_y(stop * -0.3);
-        next.head.scale = Vec3::one() * skeleton_attr.head_scale;
+        next.head.scale = Vec3::one() * s_a.head_scale;
 
-        next.chest.position = Vec3::new(0.0, skeleton_attr.chest.0, skeleton_attr.chest.1);
+        next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1);
         next.chest.orientation =
             Quaternion::rotation_z(stop * 1.2 + stress * stop * 0.02 + tilt * -2.0);
 
-        next.belt.position = Vec3::new(0.0, skeleton_attr.belt.0, skeleton_attr.belt.1);
+        next.belt.position = Vec3::new(0.0, s_a.belt.0, s_a.belt.1);
         next.belt.orientation = Quaternion::rotation_z(stop * -0.5 + tilt * 2.0);
 
-        next.shorts.position = Vec3::new(0.0, skeleton_attr.shorts.0, skeleton_attr.shorts.1);
+        next.shorts.position = Vec3::new(0.0, s_a.shorts.0, s_a.shorts.1);
         next.shorts.orientation = Quaternion::rotation_z(stop * -0.7 + tilt * 4.0);
 
         match active_tool_kind {
@@ -160,42 +156,39 @@ impl Animation for ChargeAnimation {
 
         if velocity > 0.2 {
             next.foot_l.position = Vec3::new(
-                -skeleton_attr.foot.0 - foot * 1.5,
-                skeleton_attr.foot.1 + foote * 2.0,
-                skeleton_attr.foot.2,
+                -s_a.foot.0 - foot * 1.5,
+                s_a.foot.1 + foote * 2.0,
+                s_a.foot.2,
             );
             next.foot_l.orientation = Quaternion::rotation_x(foote * -0.1)
                 * Quaternion::rotation_z(0.4)
                 * Quaternion::rotation_y(0.15);
 
             next.foot_r.position = Vec3::new(
-                skeleton_attr.foot.0 + foot * 1.5,
-                skeleton_attr.foot.1 + foote * -1.5,
-                skeleton_attr.foot.2,
+                s_a.foot.0 + foot * 1.5,
+                s_a.foot.1 + foote * -1.5,
+                s_a.foot.2,
             );
             next.foot_r.orientation = Quaternion::rotation_x(0.0)
                 * Quaternion::rotation_z(0.4)
                 * Quaternion::rotation_y(0.0);
         } else {
             next.foot_l.position = Vec3::new(
-                -skeleton_attr.foot.0,
+                -s_a.foot.0,
                 -2.5 + stop * -1.3,
-                skeleton_attr.foot.2 + tilt * -4.0 * foot,
+                s_a.foot.2 + tilt * -4.0 * foot,
             );
             next.foot_l.orientation =
                 Quaternion::rotation_x(stop * -0.2 - 0.2 + stop * stress * 0.02)
                     * Quaternion::rotation_z(stop * 0.1)
                     * Quaternion::rotation_y(stop * 0.08);
 
-            next.foot_r.position = Vec3::new(
-                skeleton_attr.foot.0,
-                3.5 + stop * 1.5,
-                skeleton_attr.foot.2 + tilt * 4.0 * foot,
-            );
+            next.foot_r.position =
+                Vec3::new(s_a.foot.0, 3.5 + stop * 1.5, s_a.foot.2 + tilt * 4.0 * foot);
             next.foot_r.orientation =
                 Quaternion::rotation_x(stop * 0.1) * Quaternion::rotation_z(stop * 0.1);
         }
-        next.back.position = Vec3::new(0.0, skeleton_attr.back.0, skeleton_attr.back.1);
+        next.back.position = Vec3::new(0.0, s_a.back.0, s_a.back.1);
         next.back.orientation = Quaternion::rotation_x(-0.3);
 
         next.glider.position = Vec3::new(0.0, 0.0, 10.0);

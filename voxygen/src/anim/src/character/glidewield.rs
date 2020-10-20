@@ -30,7 +30,7 @@ impl Animation for GlideWieldAnimation {
         (active_tool_kind, second_tool_kind, velocity, _orientation, _last_ori, _global_time): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
-        skeleton_attr: &SkeletonAttr,
+        s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
         let speed = Vec2::<f32>::from(velocity).magnitude();
@@ -43,19 +43,11 @@ impl Animation for GlideWieldAnimation {
         .sqrt())
             * ((anim_time as f32 * lab as f32 * 16.0).sin());
 
-        next.hand_l.position = Vec3::new(
-            -2.0 - skeleton_attr.hand.0,
-            skeleton_attr.hand.1,
-            skeleton_attr.hand.2 + 15.0,
-        );
+        next.hand_l.position = Vec3::new(-2.0 - s_a.hand.0, s_a.hand.1, s_a.hand.2 + 15.0);
         next.hand_l.orientation = Quaternion::rotation_x(3.35);
         next.hand_l.scale = Vec3::one();
 
-        next.hand_r.position = Vec3::new(
-            2.0 + skeleton_attr.hand.0,
-            skeleton_attr.hand.1,
-            skeleton_attr.hand.2 + 15.0,
-        );
+        next.hand_r.position = Vec3::new(2.0 + s_a.hand.0, s_a.hand.1, s_a.hand.2 + 15.0);
         next.hand_r.orientation = Quaternion::rotation_x(3.35);
         next.hand_r.scale = Vec3::one();
 

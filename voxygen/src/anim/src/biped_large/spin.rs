@@ -8,9 +8,6 @@ use common::{
 };
 use std::f32::consts::PI;
 
-pub struct Input {
-    pub attack: bool,
-}
 pub struct SpinAnimation;
 
 impl Animation for SpinAnimation {
@@ -31,7 +28,7 @@ impl Animation for SpinAnimation {
         (active_tool_kind, second_tool_kind, _global_time, stage_section): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
-        skeleton_attr: &SkeletonAttr,
+        s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         *rate = 1.0;
         let mut next = (*skeleton).clone();
@@ -55,7 +52,7 @@ impl Animation for SpinAnimation {
         let stab = (anim_time as f32 * 8.0).sin();
         let rotate = (anim_time as f32 * 1.0).sin();
 
-        next.head.position = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1);
+        next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
 
         if let Some(ToolKind::Sword(_)) = active_tool_kind {
             next.hand_l.position = Vec3::new(-4.75, -1.0, 2.5);
@@ -140,19 +137,11 @@ impl Animation for SpinAnimation {
                 * Quaternion::rotation_y(0.2 + spin * -2.0)
                 * Quaternion::rotation_z(1.4 + spin * 0.1);
             next.control.scale = Vec3::one();
-            next.head.position = Vec3::new(
-                0.0,
-                skeleton_attr.head.0 + spin * -0.8,
-                skeleton_attr.head.1,
-            );
+            next.head.position = Vec3::new(0.0, s_a.head.0 + spin * -0.8, s_a.head.1);
             next.head.orientation = Quaternion::rotation_z(spin * -0.25)
                 * Quaternion::rotation_x(0.0 + spin * -0.1)
                 * Quaternion::rotation_y(spin * -0.2);
-            next.upper_torso.position = Vec3::new(
-                0.0,
-                skeleton_attr.upper_torso.0,
-                skeleton_attr.upper_torso.1,
-            );
+            next.upper_torso.position = Vec3::new(0.0, s_a.upper_torso.0, s_a.upper_torso.1);
             next.upper_torso.orientation = Quaternion::rotation_z(spin * 0.1)
                 * Quaternion::rotation_x(0.0 + spin * 0.1)
                 * Quaternion::rotation_y(decel * -0.2);
@@ -166,13 +155,11 @@ impl Animation for SpinAnimation {
                 * Quaternion::rotation_y(0.0);
             next.torso.scale = Vec3::one() / 11.0 * 1.01;
 
-            next.foot_l.position =
-                Vec3::new(-skeleton_attr.foot.0, foot * 1.0, skeleton_attr.foot.2);
+            next.foot_l.position = Vec3::new(-s_a.foot.0, foot * 1.0, s_a.foot.2);
             next.foot_l.orientation = Quaternion::rotation_x(foot * -1.2);
             next.foot_l.scale = Vec3::one();
 
-            next.foot_r.position =
-                Vec3::new(skeleton_attr.foot.0, foot * -1.0, skeleton_attr.foot.2);
+            next.foot_r.position = Vec3::new(s_a.foot.0, foot * -1.0, s_a.foot.2);
             next.foot_r.orientation = Quaternion::rotation_x(foot * 1.2);
             next.foot_r.scale = Vec3::one();
 
