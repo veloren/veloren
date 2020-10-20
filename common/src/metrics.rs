@@ -11,3 +11,10 @@ pub struct SysMetrics {
     pub projectile_ns: AtomicI64,
     pub melee_ns: AtomicI64,
 }
+
+#[derive(Default)]
+pub struct PhysicsMetrics {
+    pub velocities_cache_len: i64,
+    pub entity_entity_collision_checks: i64,
+    pub entity_entity_collisions: i64,
+}

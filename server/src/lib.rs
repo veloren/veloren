@@ -59,7 +59,7 @@ use common::{
     vol::{ReadVol, RectVolSize},
 };
 use futures_executor::block_on;
-use metrics::{ServerMetrics, StateTickMetrics, TickMetrics};
+use metrics::{PhysicsMetrics, ServerMetrics, StateTickMetrics, TickMetrics};
 use network::{Network, Pid, ProtocolAddr};
 use persistence::{
     character_loader::{CharacterLoader, CharacterLoaderResponseType},
@@ -108,6 +108,7 @@ pub struct Server {
     metrics: ServerMetrics,
     tick_metrics: TickMetrics,
     state_tick_metrics: StateTickMetrics,
+    physics_metrics: PhysicsMetrics,
 }
 
 impl Server {
@@ -327,12 +328,14 @@ impl Server {
         let (tick_metrics, registry_tick) = TickMetrics::new(metrics.tick_clone())
             .expect("Failed to initialize server tick metrics submodule.");
         let (state_tick_metrics, registry_state) = StateTickMetrics::new().unwrap();
+        let (physics_metrics, registry_physics) = PhysicsMetrics::new().unwrap();
 
         registry_chunk(&metrics.registry()).expect("failed to register chunk gen metrics");
         registry_network(&metrics.registry()).expect("failed to register network request metrics");
         registry_player(&metrics.registry()).expect("failed to register player metrics");
         registry_tick(&metrics.registry()).expect("failed to register tick metrics");
         registry_state(&metrics.registry()).expect("failed to register state metrics");
+        registry_physics(&metrics.registry()).expect("failed to register state metrics");
 
         let thread_pool = ThreadPoolBuilder::new()
             .name("veloren-worker".to_string())
@@ -358,6 +361,7 @@ impl Server {
             metrics,
             tick_metrics,
             state_tick_metrics,
+            physics_metrics,
         };
 
         debug!(?settings, "created veloren server with");
@@ -775,6 +779,24 @@ impl Server {
                 .observe(projectile_ns as f64 / NANOSEC_PER_SEC);
             h.with_label_values(&[common::sys::MELEE_SYS])
                 .observe(melee_ns as f64 / NANOSEC_PER_SEC);
+        }
+
+        //detailed physics metrics
+        {
+            let res = self
+                .state
+                .ecs()
+                .read_resource::<common::metrics::PhysicsMetrics>();
+
+            self.physics_metrics
+                .velocities_cache_len
+                .set(res.velocities_cache_len);
+            self.physics_metrics
+                .entity_entity_collision_checks_count
+                .inc_by(res.entity_entity_collision_checks);
+            self.physics_metrics
+                .entity_entity_collisions_count
+                .inc_by(res.entity_entity_collisions);
         }
 
         // Report other info
