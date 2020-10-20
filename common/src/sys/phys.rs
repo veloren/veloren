@@ -4,7 +4,7 @@ use crate::{
         Shockwave, Sticky, Vel,
     },
     event::{EventBus, ServerEvent},
-    metrics::SysMetrics,
+    metrics::{PhysicsMetrics, SysMetrics},
     span,
     state::DeltaTime,
     sync::Uid,
@@ -12,7 +12,9 @@ use crate::{
     vol::ReadVol,
 };
 use rayon::iter::ParallelIterator;
-use specs::{Entities, Join, ParJoin, Read, ReadExpect, ReadStorage, System, WriteStorage};
+use specs::{
+    Entities, Join, ParJoin, Read, ReadExpect, ReadStorage, System, WriteExpect, WriteStorage,
+};
 use std::ops::Range;
 use vek::*;
 
@@ -53,6 +55,7 @@ impl<'a> System<'a> for Sys {
         ReadExpect<'a, TerrainGrid>,
         Read<'a, DeltaTime>,
         ReadExpect<'a, SysMetrics>,
+        WriteExpect<'a, PhysicsMetrics>,
         Read<'a, EventBus<ServerEvent>>,
         ReadStorage<'a, Scale>,
         ReadStorage<'a, Sticky>,
@@ -79,6 +82,7 @@ impl<'a> System<'a> for Sys {
             terrain,
             dt,
             sys_metrics,
+            mut physics_metrics,
             event_bus,
             scales,
             stickies,
@@ -143,7 +147,7 @@ impl<'a> System<'a> for Sys {
             .join()
         {
             let id = entity.id() as usize;
-            let vel_dt = vel.0.clone() * dt.0;
+            let vel_dt = vel.0 * dt.0;
             if id >= old_velocities_times_dt.len() {
                 old_velocities_times_dt.resize(id + 1, Vec3::zero());
             }
@@ -151,7 +155,7 @@ impl<'a> System<'a> for Sys {
         }
         drop(guard);
         span!(guard, "Apply pushback");
-        for (entity, pos, vel, scale, mass, collider, _, _, physics, projectile) in (
+        let metrics = (
             &entities,
             &positions,
             &mut velocities,
@@ -165,120 +169,138 @@ impl<'a> System<'a> for Sys {
             // should interact into the collider component or into a separate component
             projectiles.maybe(),
         )
-            .join()
+            .par_join()
             .filter(|(_, _, _, _, _, _, _, sticky, physics, _)| {
                 sticky.is_none() || (physics.on_wall.is_none() && !physics.on_ground)
             })
-        {
-            let scale = scale.map(|s| s.0).unwrap_or(1.0);
-            let radius = collider.map(|c| c.get_radius()).unwrap_or(0.5);
-            let z_limits = collider.map(|c| c.get_z_limits()).unwrap_or((-0.5, 0.5));
-            let mass = mass.map(|m| m.0).unwrap_or(scale);
-            let vel_dt = old_velocities_times_dt[entity.id() as usize];
+            .fold(PhysicsMetrics::default,
+                |mut metrics,(entity, pos, vel, scale, mass, collider, _, _, physics, projectile)| {
+                    let scale = scale.map(|s| s.0).unwrap_or(1.0);
+                    let radius = collider.map(|c| c.get_radius()).unwrap_or(0.5);
+                    let z_limits = collider.map(|c| c.get_z_limits()).unwrap_or((-0.5, 0.5));
+                    let mass = mass.map(|m| m.0).unwrap_or(scale);
+                    let vel_dt = old_velocities_times_dt[entity.id() as usize];
 
-            // Resets touch_entities in physics
-            physics.touch_entities.clear();
+                    // Resets touch_entities in physics
+                    physics.touch_entities.clear();
 
-            let is_projectile = projectile.is_some();
+                    let is_projectile = projectile.is_some();
 
-            let mut vel_delta = Vec3::zero();
+                    let mut vel_delta = Vec3::zero();
 
-            for (
-                entity_other,
-                other,
-                pos_other,
-                scale_other,
-                mass_other,
-                collider_other,
-                _,
-                _,
-                _,
-                _,
-            ) in (
-                &entities,
-                &uids,
-                &positions,
-                scales.maybe(),
-                masses.maybe(),
-                colliders.maybe(),
-                !&projectiles,
-                !&mountings,
-                !&beams,
-                !&shockwaves,
-            )
-                .join()
-            {
-                if entity == entity_other {
-                    continue;
-                }
-
-                let scale_other = scale_other.map(|s| s.0).unwrap_or(1.0);
-                let radius_other = collider_other.map(|c| c.get_radius()).unwrap_or(0.5);
-
-                let collision_dist = scale * radius + scale_other * radius_other;
-                let collision_dist_sqr = collision_dist * collision_dist;
-                let vel_dt_other = old_velocities_times_dt[entity_other.id() as usize];
-
-                let pos_diff_squared = (pos.0 - pos_other.0).magnitude_squared();
-                let vel_diff_squared = (vel_dt - vel_dt_other).magnitude_squared();
-
-                // Sanity check: don't try colliding entities that are too far from each other
-                // Note: I think this catches all cases. If you get entity collision problems,
-                // try removing this!
-                if pos_diff_squared > vel_diff_squared + collision_dist_sqr {
-                    continue;
-                }
-
-                let z_limits_other = collider_other
-                    .map(|c| c.get_z_limits())
-                    .unwrap_or((-0.5, 0.5));
-                let mass_other = mass_other.map(|m| m.0).unwrap_or(scale_other);
-                //This check after the pos check, as we currently don't have that many massless
-                // entites [citation needed]
-                if mass_other == 0.0 {
-                    continue;
-                }
-
-                const MIN_COLLISION_DIST: f32 = 0.3;
-                let increments = (vel_diff_squared.sqrt() / MIN_COLLISION_DIST)
-                    .max(1.0)
-                    .ceil() as usize;
-                let step_delta = 1.0 / increments as f32;
-                let mut collided = false;
-
-                for i in 0..increments {
-                    let factor = i as f32 * step_delta;
-                    let pos = pos.0 + vel_dt * factor;
-                    let pos_other = pos_other.0 + vel_dt_other * factor;
-
-                    let diff = pos.xy() - pos_other.xy();
-
-                    if diff.magnitude_squared() <= collision_dist_sqr
-                        && pos.z + z_limits.1 * scale
-                            >= pos_other.z + z_limits_other.0 * scale_other
-                        && pos.z + z_limits.0 * scale
-                            <= pos_other.z + z_limits_other.1 * scale_other
+                    for (
+                        entity_other,
+                        other,
+                        pos_other,
+                        scale_other,
+                        mass_other,
+                        collider_other,
+                        _,
+                        _,
+                        _,
+                        _,
+                    ) in (
+                        &entities,
+                        &uids,
+                        &positions,
+                        scales.maybe(),
+                        masses.maybe(),
+                        colliders.maybe(),
+                        !&projectiles,
+                        !&mountings,
+                        !&beams,
+                        !&shockwaves,
+                    )
+                        .join()
                     {
-                        if !collided {
-                            physics.touch_entities.push(*other);
+                        if entity == entity_other {
+                            continue;
                         }
 
-                        // Don't apply repulsive force to projectiles
-                        if diff.magnitude_squared() > 0.0 && !is_projectile {
-                            let force = 400.0 * (collision_dist - diff.magnitude()) * mass_other
-                                / (mass + mass_other);
+                        let scale_other = scale_other.map(|s| s.0).unwrap_or(1.0);
+                        let radius_other = collider_other.map(|c| c.get_radius()).unwrap_or(0.5);
 
-                            vel_delta += Vec3::from(diff.normalized()) * force * step_delta;
+                        let collision_dist = scale * radius + scale_other * radius_other;
+                        let collision_dist_sqr = collision_dist * collision_dist;
+                        let vel_dt_other = old_velocities_times_dt[entity_other.id() as usize];
+
+                        let pos_diff_squared = (pos.0 - pos_other.0).magnitude_squared();
+                        let vel_diff_squared = (vel_dt - vel_dt_other).magnitude_squared();
+
+                        // Sanity check: don't try colliding entities that are too far from each
+                        // other Note: I think this catches all cases. If
+                        // you get entity collision problems, try removing
+                        // this!
+                        if pos_diff_squared > vel_diff_squared + collision_dist_sqr {
+                            continue;
                         }
 
-                        collided = true;
+                        let z_limits_other = collider_other
+                            .map(|c| c.get_z_limits())
+                            .unwrap_or((-0.5, 0.5));
+                        let mass_other = mass_other.map(|m| m.0).unwrap_or(scale_other);
+                        //This check after the pos check, as we currently don't have that many
+                        // massless entites [citation needed]
+                        if mass_other == 0.0 {
+                            continue;
+                        }
+
+                        metrics.entity_entity_collision_checks += 1;
+
+                        const MIN_COLLISION_DIST: f32 = 0.3;
+                        let increments = (vel_diff_squared.sqrt() / MIN_COLLISION_DIST)
+                            .max(1.0)
+                            .ceil() as usize;
+                        let step_delta = 1.0 / increments as f32;
+                        let mut collided = false;
+
+                        for i in 0..increments {
+                            let factor = i as f32 * step_delta;
+                            let pos = pos.0 + vel_dt * factor;
+                            let pos_other = pos_other.0 + vel_dt_other * factor;
+
+                            let diff = pos.xy() - pos_other.xy();
+
+                            if diff.magnitude_squared() <= collision_dist_sqr
+                                && pos.z + z_limits.1 * scale
+                                    >= pos_other.z + z_limits_other.0 * scale_other
+                                && pos.z + z_limits.0 * scale
+                                    <= pos_other.z + z_limits_other.1 * scale_other
+                            {
+                                if !collided {
+                                    physics.touch_entities.push(*other);
+                                    metrics.entity_entity_collisions += 1;
+                                }
+
+                                // Don't apply repulsive force to projectiles
+                                if diff.magnitude_squared() > 0.0 && !is_projectile {
+                                    let force =
+                                        400.0 * (collision_dist - diff.magnitude()) * mass_other
+                                            / (mass + mass_other);
+
+                                    vel_delta += Vec3::from(diff.normalized()) * force * step_delta;
+                                }
+
+                                collided = true;
+                            }
+                        }
                     }
-                }
-            }
 
-            // Change velocity
-            vel.0 += vel_delta * dt.0;
-        }
+                    // Change velocity
+                    vel.0 += vel_delta * dt.0;
+                    metrics
+                },
+            )
+            .reduce(PhysicsMetrics::default, |old, new| {
+                PhysicsMetrics {
+                    velocities_cache_len: 0,
+                    entity_entity_collision_checks: old.entity_entity_collision_checks + new.entity_entity_collision_checks,
+                    entity_entity_collisions: old.entity_entity_collisions + new.entity_entity_collisions,
+                }
+            });
+        physics_metrics.velocities_cache_len = old_velocities_times_dt.len() as i64;
+        physics_metrics.entity_entity_collision_checks = metrics.entity_entity_collision_checks;
+        physics_metrics.entity_entity_collisions = metrics.entity_entity_collisions;
         drop(guard);
 
         // Apply movement inputs
