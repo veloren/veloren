@@ -67,10 +67,8 @@ impl Animation for ChargeswingAnimation {
         if let Some(ToolKind::Hammer(_)) = active_tool_kind {
             next.hand_l.position = Vec3::new(-12.0, 0.0, 0.0);
             next.hand_l.orientation = Quaternion::rotation_x(-0.0) * Quaternion::rotation_y(0.0);
-            next.hand_l.scale = Vec3::one() * 1.08;
             next.hand_r.position = Vec3::new(2.0, 0.0, 0.0);
             next.hand_r.orientation = Quaternion::rotation_x(0.0) * Quaternion::rotation_y(0.0);
-            next.hand_r.scale = Vec3::one() * 1.06;
             next.main.position = Vec3::new(0.0, 0.0, 0.0);
             next.main.orientation = Quaternion::rotation_y(-1.57) * Quaternion::rotation_z(1.57);
 
@@ -78,7 +76,6 @@ impl Animation for ChargeswingAnimation {
             next.control.orientation = Quaternion::rotation_x(0.3)
                 * Quaternion::rotation_y(0.0)
                 * Quaternion::rotation_z(0.0);
-            next.control.scale = Vec3::one();
             if let Some(stage_section) = stage_section {
                 match stage_section {
                     StageSection::Charge => {
@@ -130,7 +127,6 @@ impl Animation for ChargeswingAnimation {
                             next.foot_l.orientation =
                                 Quaternion::rotation_x(-0.4 + footrotl * -0.2)
                                     * Quaternion::rotation_z((movement * 0.5).min(0.5));
-                            next.foot_l.scale = Vec3::one();
 
                             next.foot_r.orientation =
                                 Quaternion::rotation_x(-0.4 + footrotr * -0.2)
@@ -186,10 +182,6 @@ impl Animation for ChargeswingAnimation {
             (Some(Hands::OneHand), Some(Hands::OneHand)) => Vec3::one(),
             (_, _) => Vec3::zero(),
         };
-
-        //next.torso.position = Vec3::new(0.0, 0.0, 0.0) * skeleton_attr.scaler;
-        //next.torso.orientation = Quaternion::rotation_z(0.0);
-        //next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
         next
     }
 }

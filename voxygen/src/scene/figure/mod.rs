@@ -942,7 +942,7 @@ impl FigureMgr {
                         },
                         CharacterState::Sneak { .. } => {
                             anim::character::SneakAnimation::update_skeleton(
-                                &CharacterSkeleton::default(),
+                                &target_base,
                                 (active_tool_kind, vel.0, ori, state.last_ori, time),
                                 state.state_time,
                                 &mut state_animation_rate,
@@ -1190,7 +1190,7 @@ impl FigureMgr {
                             }
                         },
                         CharacterState::BasicBlock { .. } => {
-                            anim::character::BlockIdleAnimation::update_skeleton(
+                            anim::character::BlockAnimation::update_skeleton(
                                 &CharacterSkeleton::default(),
                                 (active_tool_kind, second_tool_kind, time),
                                 state.state_time,
@@ -1254,7 +1254,7 @@ impl FigureMgr {
                         },
                         CharacterState::Climb { .. } => {
                             anim::character::ClimbAnimation::update_skeleton(
-                                &CharacterSkeleton::default(),
+                                &target_base,
                                 (active_tool_kind, second_tool_kind, vel.0, ori, time),
                                 state.state_time,
                                 &mut state_animation_rate,
@@ -1263,7 +1263,7 @@ impl FigureMgr {
                         },
                         CharacterState::Sit { .. } => {
                             anim::character::SitAnimation::update_skeleton(
-                                &CharacterSkeleton::default(),
+                                &target_base,
                                 (active_tool_kind, second_tool_kind, time),
                                 state.state_time,
                                 &mut state_animation_rate,
@@ -1272,7 +1272,7 @@ impl FigureMgr {
                         },
                         CharacterState::GlideWield { .. } => {
                             anim::character::GlideWieldAnimation::update_skeleton(
-                                &CharacterSkeleton::default(),
+                                &target_base,
                                 (
                                     active_tool_kind,
                                     second_tool_kind,
@@ -1288,7 +1288,7 @@ impl FigureMgr {
                         },
                         CharacterState::Dance { .. } => {
                             anim::character::DanceAnimation::update_skeleton(
-                                &CharacterSkeleton::default(),
+                                &target_base,
                                 (active_tool_kind, second_tool_kind, time),
                                 state.state_time,
                                 &mut state_animation_rate,

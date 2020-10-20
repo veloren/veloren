@@ -57,7 +57,7 @@ impl Animation for JumpAnimation {
 
         next.head.position = Vec3::new(
             0.0,
-            -3.0 + skeleton_attr.head.0,
+            -1.0 + skeleton_attr.head.0,
             -1.0 + skeleton_attr.head.1,
         );
         next.head.orientation =
@@ -66,11 +66,9 @@ impl Animation for JumpAnimation {
 
         next.chest.position = Vec3::new(0.0, skeleton_attr.chest.0, skeleton_attr.chest.1 + 1.0);
         next.chest.orientation = Quaternion::rotation_z(tilt * -2.0);
-        next.chest.scale = Vec3::one() * 1.01;
 
         next.belt.position = Vec3::new(0.0, skeleton_attr.belt.0, skeleton_attr.belt.1);
         next.belt.orientation = Quaternion::rotation_z(tilt * 2.0);
-        next.belt.scale = Vec3::one();
 
         next.back.position = Vec3::new(0.0, skeleton_attr.back.0, skeleton_attr.back.1);
         next.back.orientation = Quaternion::rotation_z(0.0);
@@ -78,7 +76,6 @@ impl Animation for JumpAnimation {
 
         next.shorts.position = Vec3::new(0.0, skeleton_attr.shorts.0, skeleton_attr.shorts.1);
         next.shorts.orientation = Quaternion::rotation_z(tilt * 3.0);
-        next.shorts.scale = Vec3::one();
 
         if random > 0.5 {
             next.hand_l.position = Vec3::new(
@@ -106,7 +103,6 @@ impl Animation for JumpAnimation {
             );
             next.hand_l.orientation =
                 Quaternion::rotation_x(-0.5 + slow * -0.4) * Quaternion::rotation_y(0.2);
-            next.hand_l.scale = Vec3::one();
 
             next.hand_r.position = Vec3::new(
                 skeleton_attr.hand.0,
@@ -115,7 +111,6 @@ impl Animation for JumpAnimation {
             );
             next.hand_r.orientation =
                 Quaternion::rotation_x(1.9 + slow * 0.4) * Quaternion::rotation_y(-0.2);
-            next.hand_r.scale = Vec3::one();
         };
 
         next.foot_l.position = Vec3::new(
@@ -124,7 +119,6 @@ impl Animation for JumpAnimation {
             1.0 + skeleton_attr.foot.2 + slow * 1.5,
         );
         next.foot_l.orientation = Quaternion::rotation_x(-1.2 * switch + slow * -0.2 * switch);
-        next.foot_l.scale = Vec3::one();
 
         next.foot_r.position = Vec3::new(
             skeleton_attr.foot.0,
@@ -132,7 +126,6 @@ impl Animation for JumpAnimation {
             1.0 + skeleton_attr.foot.2 + slow * 1.5,
         );
         next.foot_r.orientation = Quaternion::rotation_x(1.2 * switch + slow * 0.2 * switch);
-        next.foot_r.scale = Vec3::one();
 
         next.shoulder_l.position = Vec3::new(
             -skeleton_attr.shoulder.0,
@@ -203,18 +196,6 @@ impl Animation for JumpAnimation {
         next.torso.position = Vec3::new(0.0, 0.0, 0.0) * skeleton_attr.scaler;
         next.torso.orientation = Quaternion::rotation_x(-0.2);
         next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
-
-        next.control.position = Vec3::new(0.0, 0.0, 0.0);
-        next.control.orientation = Quaternion::rotation_x(0.0);
-        next.control.scale = Vec3::one();
-
-        next.control_l.position = Vec3::new(0.0, 0.0, 0.0);
-        next.control_l.orientation = Quaternion::rotation_x(0.0);
-        next.control_l.scale = Vec3::one();
-
-        next.control_r.position = Vec3::new(0.0, 0.0, 0.0);
-        next.control_r.orientation = Quaternion::rotation_x(0.0);
-        next.control_r.scale = Vec3::one();
 
         next.second.scale = match (
             active_tool_kind.map(|tk| tk.hands()),
