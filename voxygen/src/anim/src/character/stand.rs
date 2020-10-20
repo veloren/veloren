@@ -41,7 +41,7 @@ impl Animation for StandAnimation {
         );
         next.head.position = Vec3::new(
             0.0,
-            skeleton_attr.head.0,
+            2.0 + skeleton_attr.head.0,
             skeleton_attr.head.1 + slow * 0.3 + breathe * -0.05,
         );
         next.head.orientation = Quaternion::rotation_z(head_look.x)

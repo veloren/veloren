@@ -56,7 +56,7 @@ impl Animation for DanceAnimation {
                 * 0.15,
         );
 
-        next.head.position = Vec3::new(0.0, -2.0 + skeleton_attr.head.0, skeleton_attr.head.1);
+        next.head.position = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1);
         next.head.orientation = Quaternion::rotation_z(short * -0.6)
             * Quaternion::rotation_x(0.2 + head_look.y.max(0.0) + shorte.abs() * -0.2);
         next.head.scale = Vec3::one() * skeleton_attr.head_scale;

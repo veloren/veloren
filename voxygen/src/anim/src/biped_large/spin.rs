@@ -142,7 +142,7 @@ impl Animation for SpinAnimation {
             next.control.scale = Vec3::one();
             next.head.position = Vec3::new(
                 0.0,
-                -2.0 + skeleton_attr.head.0 + spin * -0.8,
+                skeleton_attr.head.0 + spin * -0.8,
                 skeleton_attr.head.1,
             );
             next.head.orientation = Quaternion::rotation_z(spin * -0.25)

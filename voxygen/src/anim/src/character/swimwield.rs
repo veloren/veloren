@@ -98,7 +98,7 @@ impl Animation for SwimWieldAnimation {
         } else {
             next.head.position = Vec3::new(
                 0.0,
-                -2.0 + skeleton_attr.head.0,
+                skeleton_attr.head.0,
                 skeleton_attr.head.1 + u_slow * 0.1,
             );
             next.head.orientation =

@@ -52,7 +52,7 @@ impl Animation for LeapAnimation {
             next.main.position = Vec3::new(0.0, 0.0, 0.0);
             next.main.orientation = Quaternion::rotation_y(-1.57) * Quaternion::rotation_z(1.57);
 
-            next.head.position = Vec3::new(0.0, -2.0 + skeleton_attr.head.0, skeleton_attr.head.1);
+            next.head.position = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1);
 
             next.control.position = Vec3::new(
                 6.0 + movement1 * -10.0,
@@ -106,7 +106,7 @@ impl Animation for LeapAnimation {
                 * Quaternion::rotation_z(PI - 0.2);
             next.control.scale = Vec3::one();
 
-            next.head.position = Vec3::new(0.0, -2.0 + skeleton_attr.head.0, skeleton_attr.head.1);
+            next.head.position = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1);
 
             next.control.position = Vec3::new(
                 -3.0 + movement1 * 3.0,
