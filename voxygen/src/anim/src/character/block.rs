@@ -20,7 +20,7 @@ impl Animation for BlockAnimation {
         (active_tool_kind, second_tool_kind, global_time): Self::Dependency,
         anim_time: f64,
         _rate: &mut f32,
-        skeleton_attr: &SkeletonAttr,
+        s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
@@ -36,33 +36,23 @@ impl Animation for BlockAnimation {
                 .sin()
                 * 0.15,
         );
-        next.head.position = Vec3::new(
-            0.0,
-            -1.0 + skeleton_attr.head.0,
-            skeleton_attr.head.1 + 19.5,
-        );
+        next.head.position = Vec3::new(0.0, -1.0 + s_a.head.0, s_a.head.1 + 19.5);
         next.head.orientation = Quaternion::rotation_x(-0.25);
-        next.head.scale = Vec3::one() * skeleton_attr.head_scale;
+        next.head.scale = Vec3::one() * s_a.head_scale;
 
-        next.chest.position = Vec3::new(0.0, skeleton_attr.chest.0, skeleton_attr.chest.1);
+        next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1);
 
-        next.belt.position = Vec3::new(0.0, skeleton_attr.belt.0, skeleton_attr.belt.1);
+        next.belt.position = Vec3::new(0.0, s_a.belt.0, s_a.belt.1);
 
-        next.shorts.position = Vec3::new(0.0, skeleton_attr.shorts.0, skeleton_attr.shorts.1);
+        next.shorts.position = Vec3::new(0.0, s_a.shorts.0, s_a.shorts.1);
 
         match active_tool_kind {
             Some(ToolKind::Shield(_)) => {
-                next.hand_l.position = Vec3::new(
-                    skeleton_attr.hand.0 - 6.0,
-                    skeleton_attr.hand.1 + 3.5,
-                    skeleton_attr.hand.2 + 0.0,
-                );
+                next.hand_l.position =
+                    Vec3::new(s_a.hand.0 - 6.0, s_a.hand.1 + 3.5, s_a.hand.2 + 0.0);
                 next.hand_l.orientation = Quaternion::rotation_x(-0.3);
-                next.hand_r.position = Vec3::new(
-                    skeleton_attr.hand.0 - 6.0,
-                    skeleton_attr.hand.1 + 3.0,
-                    skeleton_attr.hand.2 - 2.0,
-                );
+                next.hand_r.position =
+                    Vec3::new(s_a.hand.0 - 6.0, s_a.hand.1 + 3.0, s_a.hand.2 - 2.0);
                 next.hand_r.orientation = Quaternion::rotation_x(-0.3);
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation = Quaternion::rotation_x(-0.3);
@@ -73,15 +63,11 @@ impl Animation for BlockAnimation {
         next.glider.position = Vec3::new(0.0, 0.0, 10.0);
         next.glider.scale = Vec3::one() * 0.0;
 
-        next.lantern.position = Vec3::new(
-            skeleton_attr.lantern.0,
-            skeleton_attr.lantern.1,
-            skeleton_attr.lantern.2,
-        );
+        next.lantern.position = Vec3::new(s_a.lantern.0, s_a.lantern.1, s_a.lantern.2);
         next.lantern.scale = Vec3::one() * 0.65;
         next.hold.scale = Vec3::one() * 0.0;
 
-        next.torso.position = Vec3::new(0.0, -0.2, 0.1) * skeleton_attr.scaler;
+        next.torso.position = Vec3::new(0.0, -0.2, 0.1) * s_a.scaler;
 
         next.second.scale = match (
             active_tool_kind.map(|tk| tk.hands()),

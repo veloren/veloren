@@ -29,7 +29,7 @@ impl Animation for LeapAnimation {
         (active_tool_kind, second_tool_kind, _velocity, _global_time, stage_section): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
-        skeleton_attr: &SkeletonAttr,
+        s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         *rate = 1.0;
         let mut next = (*skeleton).clone();
@@ -52,7 +52,7 @@ impl Animation for LeapAnimation {
             next.main.position = Vec3::new(0.0, 0.0, 0.0);
             next.main.orientation = Quaternion::rotation_y(-1.57) * Quaternion::rotation_z(1.57);
 
-            next.head.position = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1);
+            next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
 
             next.control.position = Vec3::new(
                 6.0 + movement1 * -10.0,
@@ -74,16 +74,16 @@ impl Animation for LeapAnimation {
             next.hand_l.position = Vec3::new(-12.0 + movement3 * 10.0, 0.0, 0.0);
 
             next.foot_l.position = Vec3::new(
-                -skeleton_attr.foot.0,
-                skeleton_attr.foot.1 - 5.0 + movement3 * 13.0,
-                skeleton_attr.foot.2 + movement3 * -5.0,
+                -s_a.foot.0,
+                s_a.foot.1 - 5.0 + movement3 * 13.0,
+                s_a.foot.2 + movement3 * -5.0,
             );
             next.foot_l.orientation = Quaternion::rotation_x(-0.8 + movement3 * 1.7);
 
             next.foot_r.position = Vec3::new(
-                skeleton_attr.foot.0,
-                skeleton_attr.foot.1 + 8.0 + movement3 * -13.0,
-                skeleton_attr.foot.2 + 5.0 + movement3 * -5.0,
+                s_a.foot.0,
+                s_a.foot.1 + 8.0 + movement3 * -13.0,
+                s_a.foot.2 + 5.0 + movement3 * -5.0,
             );
             next.foot_r.orientation = Quaternion::rotation_x(0.9 + movement3 * -1.7);
         } else if let Some(ToolKind::Axe(_)) = active_tool_kind {
@@ -106,7 +106,7 @@ impl Animation for LeapAnimation {
                 * Quaternion::rotation_z(PI - 0.2);
             next.control.scale = Vec3::one();
 
-            next.head.position = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1);
+            next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
 
             next.control.position = Vec3::new(
                 -3.0 + movement1 * 3.0,
@@ -127,15 +127,15 @@ impl Animation for LeapAnimation {
                 Quaternion::rotation_x(0.0 + movement1 * -0.4 + movement2 * 0.4 + movement3 * 0.2);
 
             next.foot_l.position = Vec3::new(
-                skeleton_attr.foot.0,
-                skeleton_attr.foot.1 + movement2 * 4.0 + movement3 * -8.0,
-                skeleton_attr.foot.2 - 8.0 + movement2 * 3.0 + movement3 * -3.0,
+                s_a.foot.0,
+                s_a.foot.1 + movement2 * 4.0 + movement3 * -8.0,
+                s_a.foot.2 - 8.0 + movement2 * 3.0 + movement3 * -3.0,
             );
 
             next.foot_r.position = Vec3::new(
-                skeleton_attr.foot.0,
-                skeleton_attr.foot.1 + movement2 * 4.0 + movement3 * -8.0,
-                skeleton_attr.foot.2 - 8.0 + movement2 * 3.0 + movement3 * -3.0,
+                s_a.foot.0,
+                s_a.foot.1 + movement2 * 4.0 + movement3 * -8.0,
+                s_a.foot.2 - 8.0 + movement2 * 3.0 + movement3 * -3.0,
             );
 
             next.foot_l.orientation = Quaternion::rotation_x(movement1 * 0.9 - movement3 * 1.8);
@@ -145,9 +145,8 @@ impl Animation for LeapAnimation {
             next.belt.orientation = Quaternion::rotation_x(movement1 * 0.22 + movement2 * 0.1);
             next.shorts.orientation = Quaternion::rotation_x(movement1 * 0.3 + movement2 * 0.1);
 
-            next.chest.position =
-                Vec3::new(0.0, skeleton_attr.chest.0, skeleton_attr.chest.1 - 8.0);
-            next.torso.position = Vec3::new(0.0, 0.0, 0.0 + 8.0) * skeleton_attr.scaler / 11.0;
+            next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1 - 8.0);
+            next.torso.position = Vec3::new(0.0, 0.0, 0.0 + 8.0) * s_a.scaler / 11.0;
         }
 
         next.second.scale = match (

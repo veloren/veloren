@@ -8,9 +8,6 @@ use common::{
 };
 use std::f32::consts::PI;
 
-pub struct Input {
-    pub attack: bool,
-}
 pub struct BeamAnimation;
 
 impl Animation for BeamAnimation {
@@ -33,7 +30,7 @@ impl Animation for BeamAnimation {
         (active_tool_kind, second_tool_kind, _global_time, velocity, stage_section): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
-        skeleton_attr: &SkeletonAttr,
+        s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         *rate = 1.0;
         let mut next = (*skeleton).clone();
@@ -105,19 +102,13 @@ impl Animation for BeamAnimation {
                     next.head.orientation =
                         Quaternion::rotation_z(movement1 * -0.5 + (movement2 * 16.0).sin() * 0.05);
 
-                    next.foot_l.position = Vec3::new(
-                        -skeleton_attr.foot.0,
-                        skeleton_attr.foot.1 + movement1 * -3.0,
-                        skeleton_attr.foot.2,
-                    );
+                    next.foot_l.position =
+                        Vec3::new(-s_a.foot.0, s_a.foot.1 + movement1 * -3.0, s_a.foot.2);
                     next.foot_l.orientation = Quaternion::rotation_x(movement1 * -0.5)
                         * Quaternion::rotation_z(movement1 * 0.5);
 
-                    next.foot_r.position = Vec3::new(
-                        skeleton_attr.foot.0,
-                        skeleton_attr.foot.1 + movement1 * 4.0,
-                        skeleton_attr.foot.2,
-                    );
+                    next.foot_r.position =
+                        Vec3::new(s_a.foot.0, s_a.foot.1 + movement1 * 4.0, s_a.foot.2);
                     next.foot_r.orientation = Quaternion::rotation_z(movement1 * 0.5);
                     next.upper_torso.orientation =
                         Quaternion::rotation_x(movement1 * -0.2 + (movement2 * 8.0).sin() * 0.05)

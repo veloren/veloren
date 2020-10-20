@@ -20,7 +20,7 @@ impl Animation for EquipAnimation {
         (active_tool_kind, second_tool_kind, velocity, global_time): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
-        skeleton_attr: &SkeletonAttr,
+        s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         *rate = 1.0;
         let mut next = (*skeleton).clone();
@@ -190,38 +190,26 @@ impl Animation for EquipAnimation {
         next.hold.scale = Vec3::one() * 0.0;
 
         if velocity > 0.5 {
-            next.torso.position = Vec3::new(0.0, 0.0, 0.0) * skeleton_attr.scaler;
+            next.torso.position = Vec3::new(0.0, 0.0, 0.0) * s_a.scaler;
             next.torso.orientation = Quaternion::rotation_x(-0.2);
         } else {
-            next.head.position = Vec3::new(
-                0.0,
-                0.0 + skeleton_attr.head.0,
-                skeleton_attr.head.1 + short * 0.2,
-            );
+            next.head.position = Vec3::new(0.0, 0.0 + s_a.head.0, s_a.head.1 + short * 0.2);
             next.head.orientation =
                 Quaternion::rotation_z(head_look.x) * Quaternion::rotation_x(head_look.y);
 
-            next.foot_l.position = Vec3::new(
-                -skeleton_attr.foot.0,
-                skeleton_attr.foot.1,
-                skeleton_attr.foot.2,
-            );
+            next.foot_l.position = Vec3::new(-s_a.foot.0, s_a.foot.1, s_a.foot.2);
             next.foot_l.orientation = Quaternion::rotation_x(wave_ultra_slow_cos * 0.035 - 0.2);
 
-            next.foot_r.position = Vec3::new(
-                skeleton_attr.foot.0,
-                skeleton_attr.foot.1,
-                skeleton_attr.foot.2,
-            );
+            next.foot_r.position = Vec3::new(s_a.foot.0, s_a.foot.1, s_a.foot.2);
             next.foot_r.orientation = Quaternion::rotation_x(wave_ultra_slow * 0.035);
 
-            next.chest.position = Vec3::new(0.0, skeleton_attr.chest.0, skeleton_attr.chest.1);
+            next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1);
 
-            next.belt.position = Vec3::new(0.0, skeleton_attr.belt.0, skeleton_attr.belt.1);
+            next.belt.position = Vec3::new(0.0, s_a.belt.0, s_a.belt.1);
 
-            next.shorts.position = Vec3::new(0.0, skeleton_attr.shorts.0, skeleton_attr.shorts.1);
+            next.shorts.position = Vec3::new(0.0, s_a.shorts.0, s_a.shorts.1);
 
-            next.torso.position = Vec3::new(0.0, 0.0, 0.0) * skeleton_attr.scaler;
+            next.torso.position = Vec3::new(0.0, 0.0, 0.0) * s_a.scaler;
         }
 
         next.second.scale = match (

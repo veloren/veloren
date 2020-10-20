@@ -19,7 +19,7 @@ impl Animation for FlyAnimation {
         _global_time: Self::Dependency,
         anim_time: f64,
         _rate: &mut f32,
-        skeleton_attr: &SkeletonAttr,
+        s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
@@ -40,8 +40,8 @@ impl Animation for FlyAnimation {
 
         next.head_upper.position = Vec3::new(
             0.0,
-            skeleton_attr.head_upper.0,
-            skeleton_attr.head_upper.1 + wave_ultra_slow * 0.20,
+            s_a.head_upper.0,
+            s_a.head_upper.1 + wave_ultra_slow * 0.20,
         );
         next.head_upper.orientation =
             Quaternion::rotation_z(0.0) * Quaternion::rotation_x(wave_ultra_slow * -0.10);
@@ -49,8 +49,8 @@ impl Animation for FlyAnimation {
 
         next.head_lower.position = Vec3::new(
             0.0,
-            skeleton_attr.head_lower.0,
-            skeleton_attr.head_lower.1 + wave_ultra_slow * 0.20,
+            s_a.head_lower.0,
+            s_a.head_lower.1 + wave_ultra_slow * 0.20,
         );
         next.head_lower.orientation =
             Quaternion::rotation_z(0.0) * Quaternion::rotation_x(wave_ultra_slow * -0.10);
@@ -58,102 +58,59 @@ impl Animation for FlyAnimation {
 
         next.jaw.position = Vec3::new(
             0.0,
-            skeleton_attr.jaw.0 - wave_ultra_slow_cos * 0.12,
-            skeleton_attr.jaw.1 + wave_slow * 0.2,
+            s_a.jaw.0 - wave_ultra_slow_cos * 0.12,
+            s_a.jaw.1 + wave_slow * 0.2,
         );
         next.jaw.orientation = Quaternion::rotation_x(wave_slow * 0.03);
         next.jaw.scale = Vec3::one() * 1.05;
 
-        next.tail_front.position = Vec3::new(
-            0.0,
-            skeleton_attr.tail_front.0,
-            skeleton_attr.tail_front.1 + centeroffset * 0.6,
-        );
+        next.tail_front.position =
+            Vec3::new(0.0, s_a.tail_front.0, s_a.tail_front.1 + centeroffset * 0.6);
         next.tail_front.orientation = Quaternion::rotation_x(center * 0.03);
         next.tail_front.scale = Vec3::one() * 0.98;
 
-        next.tail_rear.position = Vec3::new(
-            0.0,
-            skeleton_attr.tail_rear.0,
-            skeleton_attr.tail_rear.1 + centeroffset * 0.6,
-        );
+        next.tail_rear.position =
+            Vec3::new(0.0, s_a.tail_rear.0, s_a.tail_rear.1 + centeroffset * 0.6);
         next.tail_rear.orientation = Quaternion::rotation_x(center * 0.03);
         next.tail_rear.scale = Vec3::one() * 0.98;
 
-        next.chest_front.position = Vec3::new(
-            0.0,
-            skeleton_attr.chest_front.0,
-            skeleton_attr.chest_front.1,
-        );
+        next.chest_front.position = Vec3::new(0.0, s_a.chest_front.0, s_a.chest_front.1);
         next.chest_front.orientation = Quaternion::rotation_y(center * 0.05);
         next.chest_front.scale = Vec3::one();
 
-        next.chest_rear.position =
-            Vec3::new(0.0, skeleton_attr.chest_rear.0, skeleton_attr.chest_rear.1);
+        next.chest_rear.position = Vec3::new(0.0, s_a.chest_rear.0, s_a.chest_rear.1);
         next.chest_rear.orientation = Quaternion::rotation_y(center * 0.05);
         next.chest_rear.scale = Vec3::one();
 
-        next.foot_fl.position = Vec3::new(
-            -skeleton_attr.feet_f.0,
-            skeleton_attr.feet_f.1,
-            skeleton_attr.feet_f.2,
-        );
+        next.foot_fl.position = Vec3::new(-s_a.feet_f.0, s_a.feet_f.1, s_a.feet_f.2);
         next.foot_fl.orientation = Quaternion::rotation_x(-1.3 + footl * 0.06);
         next.foot_fl.scale = Vec3::one();
 
-        next.foot_fr.position = Vec3::new(
-            skeleton_attr.feet_f.0,
-            skeleton_attr.feet_f.1,
-            skeleton_attr.feet_f.2,
-        );
+        next.foot_fr.position = Vec3::new(s_a.feet_f.0, s_a.feet_f.1, s_a.feet_f.2);
         next.foot_fr.orientation = Quaternion::rotation_x(-1.3 + footr * 0.06);
         next.foot_fr.scale = Vec3::one();
 
-        next.foot_bl.position = Vec3::new(
-            -skeleton_attr.feet_b.0,
-            skeleton_attr.feet_b.1,
-            skeleton_attr.feet_b.2,
-        );
+        next.foot_bl.position = Vec3::new(-s_a.feet_b.0, s_a.feet_b.1, s_a.feet_b.2);
         next.foot_bl.orientation = Quaternion::rotation_x(-1.3 + footl * 0.06);
         next.foot_bl.scale = Vec3::one();
 
-        next.foot_br.position = Vec3::new(
-            skeleton_attr.feet_b.0,
-            skeleton_attr.feet_b.1,
-            skeleton_attr.feet_b.2,
-        );
+        next.foot_br.position = Vec3::new(s_a.feet_b.0, s_a.feet_b.1, s_a.feet_b.2);
         next.foot_br.orientation = Quaternion::rotation_x(-1.3 + footr * 0.06);
         next.foot_br.scale = Vec3::one();
 
-        next.wing_in_l.position = Vec3::new(
-            -skeleton_attr.wing_in.0,
-            skeleton_attr.wing_in.1,
-            skeleton_attr.wing_in.2,
-        );
+        next.wing_in_l.position = Vec3::new(-s_a.wing_in.0, s_a.wing_in.1, s_a.wing_in.2);
         next.wing_in_l.orientation = Quaternion::rotation_y(0.4 + wingl * 0.6);
         next.wing_in_l.scale = Vec3::one();
 
-        next.wing_in_r.position = Vec3::new(
-            skeleton_attr.wing_in.0,
-            skeleton_attr.wing_in.1,
-            skeleton_attr.wing_in.2,
-        );
+        next.wing_in_r.position = Vec3::new(s_a.wing_in.0, s_a.wing_in.1, s_a.wing_in.2);
         next.wing_in_r.orientation = Quaternion::rotation_y(-0.4 + wingr * 0.6);
         next.wing_in_r.scale = Vec3::one();
 
-        next.wing_out_l.position = Vec3::new(
-            -skeleton_attr.wing_out.0,
-            skeleton_attr.wing_out.1,
-            skeleton_attr.wing_out.2,
-        );
+        next.wing_out_l.position = Vec3::new(-s_a.wing_out.0, s_a.wing_out.1, s_a.wing_out.2);
         next.wing_out_l.orientation = Quaternion::rotation_y((0.35 + wingl * 0.6).max(0.2));
         next.wing_out_l.scale = Vec3::one();
 
-        next.wing_out_r.position = Vec3::new(
-            skeleton_attr.wing_out.0,
-            skeleton_attr.wing_out.1,
-            skeleton_attr.wing_out.2,
-        );
+        next.wing_out_r.position = Vec3::new(s_a.wing_out.0, s_a.wing_out.1, s_a.wing_out.2);
         next.wing_out_r.orientation = Quaternion::rotation_y((-0.35 + wingr * 0.6).min(-0.2));
         next.wing_out_r.scale = Vec3::one();
 

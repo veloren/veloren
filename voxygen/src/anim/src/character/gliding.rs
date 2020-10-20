@@ -30,7 +30,7 @@ impl Animation for GlidingAnimation {
         (active_tool_kind, second_tool_kind, velocity, orientation, last_ori, global_time): Self::Dependency,
         anim_time: f64,
         _rate: &mut f32,
-        skeleton_attr: &SkeletonAttr,
+        s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
@@ -76,17 +76,17 @@ impl Animation for GlidingAnimation {
             anim_time as f32
         };
 
-        next.head.position = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1);
+        next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
         next.head.orientation = Quaternion::rotation_x(0.35 - slow * 0.10 + head_look.y)
             * Quaternion::rotation_z(head_look.x + slowa * 0.15);
 
-        next.chest.position = Vec3::new(0.0, skeleton_attr.chest.0, skeleton_attr.chest.1);
+        next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1);
         next.chest.orientation = Quaternion::rotation_z(slowa * 0.02);
 
         next.belt.position = Vec3::new(0.0, 0.0, -2.0);
         next.belt.orientation = Quaternion::rotation_z(slowa * 0.1 + tilt * tiltcancel * 12.0);
 
-        next.shorts.position = Vec3::new(0.0, skeleton_attr.shorts.0, skeleton_attr.shorts.1);
+        next.shorts.position = Vec3::new(0.0, s_a.shorts.0, s_a.shorts.1);
         next.shorts.orientation = Quaternion::rotation_z(slowa * 0.12 + tilt * tiltcancel * 16.0);
 
         next.hand_l.position = Vec3::new(-9.5, -3.0, 10.0);
@@ -96,18 +96,18 @@ impl Animation for GlidingAnimation {
         next.hand_r.orientation = Quaternion::rotation_x(-2.7 + slowa * -0.10);
 
         next.foot_l.position = Vec3::new(
-            -skeleton_attr.foot.0,
-            skeleton_attr.foot.1 + slowa * -1.0 + tilt * tiltcancel * -35.0,
-            -1.0 + skeleton_attr.foot.2,
+            -s_a.foot.0,
+            s_a.foot.1 + slowa * -1.0 + tilt * tiltcancel * -35.0,
+            -1.0 + s_a.foot.2,
         );
         next.foot_l.orientation = Quaternion::rotation_x(
             (wave_stop * -0.7 - quicka * -0.21 + slow * 0.19) * speed * 0.04,
         ) * Quaternion::rotation_z(tilt * tiltcancel * 20.0);
 
         next.foot_r.position = Vec3::new(
-            skeleton_attr.foot.0,
-            skeleton_attr.foot.1 + slowa * 1.0 + tilt * tiltcancel * 35.0,
-            -1.0 + skeleton_attr.foot.2,
+            s_a.foot.0,
+            s_a.foot.1 + slowa * 1.0 + tilt * tiltcancel * 35.0,
+            -1.0 + s_a.foot.2,
         );
         next.foot_r.orientation = Quaternion::rotation_x(
             (wave_stop * -0.8 + quick * -0.25 + slowb * 0.13) * speed * 0.04,
@@ -135,7 +135,7 @@ impl Animation for GlidingAnimation {
             },
         }
 
-        next.torso.position = Vec3::new(0.0, -4.0, 10.0) / 11.0 * skeleton_attr.scaler;
+        next.torso.position = Vec3::new(0.0, -4.0, 10.0) / 11.0 * s_a.scaler;
         next.torso.orientation = Quaternion::rotation_x(-0.06 * speed.max(12.0) + slow * 0.04)
             * Quaternion::rotation_y(tilt * tiltcancel * 32.0);
 

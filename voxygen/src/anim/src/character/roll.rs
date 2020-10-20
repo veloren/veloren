@@ -27,7 +27,7 @@ impl Animation for RollAnimation {
         (active_tool_kind, second_tool_kind, orientation, last_ori, _global_time): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
-        skeleton_attr: &SkeletonAttr,
+        s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         *rate = 1.0;
         let mut next = (*skeleton).clone();
@@ -47,52 +47,32 @@ impl Animation for RollAnimation {
             0.0
         };
 
-        next.head.position = Vec3::new(0.0, skeleton_attr.head.0 + 3.0, skeleton_attr.head.1 - 1.0);
+        next.head.position = Vec3::new(0.0, s_a.head.0 + 3.0, s_a.head.1 - 1.0);
         next.head.orientation = Quaternion::rotation_x(-0.75);
-        next.head.scale = Vec3::one() * skeleton_attr.head_scale;
+        next.head.scale = Vec3::one() * s_a.head_scale;
 
-        next.chest.position = Vec3::new(0.0, skeleton_attr.chest.0, -9.5 + skeleton_attr.chest.1);
+        next.chest.position = Vec3::new(0.0, s_a.chest.0, -9.5 + s_a.chest.1);
         next.chest.orientation = Quaternion::rotation_x(-0.2);
 
-        next.belt.position = Vec3::new(0.0, skeleton_attr.belt.0 + 1.0, skeleton_attr.belt.1 + 1.0);
+        next.belt.position = Vec3::new(0.0, s_a.belt.0 + 1.0, s_a.belt.1 + 1.0);
         next.belt.orientation = Quaternion::rotation_x(0.55);
 
-        next.back.position = Vec3::new(0.0, skeleton_attr.back.0, skeleton_attr.back.1);
+        next.back.position = Vec3::new(0.0, s_a.back.0, s_a.back.1);
 
-        next.shorts.position = Vec3::new(
-            0.0,
-            skeleton_attr.shorts.0 + 4.5,
-            skeleton_attr.shorts.1 + 2.5,
-        );
+        next.shorts.position = Vec3::new(0.0, s_a.shorts.0 + 4.5, s_a.shorts.1 + 2.5);
         next.shorts.orientation = Quaternion::rotation_x(0.8);
 
-        next.hand_l.position = Vec3::new(
-            -skeleton_attr.hand.0,
-            skeleton_attr.hand.1 + 1.0,
-            skeleton_attr.hand.2 + 2.0,
-        );
+        next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1 + 1.0, s_a.hand.2 + 2.0);
 
         next.hand_l.orientation = Quaternion::rotation_x(0.6);
 
-        next.hand_r.position = Vec3::new(
-            -1.0 + skeleton_attr.hand.0,
-            skeleton_attr.hand.1 + 1.0,
-            skeleton_attr.hand.2 + 2.0,
-        );
+        next.hand_r.position = Vec3::new(-1.0 + s_a.hand.0, s_a.hand.1 + 1.0, s_a.hand.2 + 2.0);
         next.hand_r.orientation = Quaternion::rotation_x(0.6);
 
-        next.foot_l.position = Vec3::new(
-            1.0 - skeleton_attr.foot.0,
-            skeleton_attr.foot.1 + 5.5,
-            skeleton_attr.foot.2 - 5.0,
-        );
+        next.foot_l.position = Vec3::new(1.0 - s_a.foot.0, s_a.foot.1 + 5.5, s_a.foot.2 - 5.0);
         next.foot_l.orientation = Quaternion::rotation_x(0.9);
 
-        next.foot_r.position = Vec3::new(
-            skeleton_attr.foot.0,
-            skeleton_attr.foot.1 + 5.5,
-            skeleton_attr.foot.2 - 5.0,
-        );
+        next.foot_r.position = Vec3::new(s_a.foot.0, s_a.foot.1 + 5.5, s_a.foot.2 - 5.0);
         next.foot_r.orientation = Quaternion::rotation_x(0.9);
 
         next.glider.position = Vec3::new(0.0, 0.0, 10.0);
@@ -136,10 +116,10 @@ impl Animation for RollAnimation {
         next.lantern.scale = Vec3::one() * 0.65;
         next.hold.scale = Vec3::one() * 0.0;
 
-        next.torso.position = Vec3::new(0.0, 0.0, 8.0) / 11.0 * skeleton_attr.scaler;
+        next.torso.position = Vec3::new(0.0, 0.0, 8.0) / 11.0 * s_a.scaler;
         next.torso.orientation =
             Quaternion::rotation_x(spin * -10.0) * Quaternion::rotation_z(tilt * -10.0);
-        next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
+        next.torso.scale = Vec3::one() / 11.0 * s_a.scaler;
 
         next.second.scale = match (
             active_tool_kind.map(|tk| tk.hands()),
