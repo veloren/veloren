@@ -83,6 +83,8 @@ pub struct MusicMgr {
     /// The title of the last track played. Used to prevent a track
     /// being played twice in a row
     last_track: String,
+    last_biome: BiomeKind,
+    playing: bool,
 }
 
 impl MusicMgr {
@@ -93,27 +95,46 @@ impl MusicMgr {
             began_playing: Instant::now(),
             next_track_change: 0.0,
             last_track: String::from("None"),
+            last_biome: BiomeKind::Void,
+            playing: false,
         }
     }
 
     /// Checks whether the previous track has completed. If so, sends a
     /// request to play the next (random) track
     pub fn maintain(&mut self, audio: &mut AudioFrontend, state: &State, client: &Client) {
+        // Gets the current player biome
+        let current_biome: BiomeKind = match client.current_chunk() {
+            Some(chunk) => chunk.meta().biome(),
+            _ => self.last_biome,
+        };
+
         if audio.music_enabled()
             && !self.soundtrack.tracks.is_empty()
-            && self.began_playing.elapsed().as_secs_f64() > self.next_track_change
+            && (self.began_playing.elapsed().as_secs_f64() > self.next_track_change
+                || !self.playing)
         {
+            println!("It shoooooooooooooooooooooooooooooooooooooooooooooooooooooooould play!!!");
             self.play_random_track(audio, state, client);
+            self.playing = true;
+        } else if current_biome != self.last_biome {
+            println!(
+                "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSStop!\
+                 !!"
+            );
+            audio.stop_exploration_music();
+            self.playing = false;
         }
+        self.last_biome = current_biome;
     }
 
     fn play_random_track(&mut self, audio: &mut AudioFrontend, state: &State, client: &Client) {
-        const SILENCE_BETWEEN_TRACKS_SECONDS: f64 = 45.0;
+        //const SILENCE_BETWEEN_TRACKS_SECONDS: f64 = 45.0;
+        const SILENCE_BETWEEN_TRACKS_SECONDS: f64 = 5.0;
 
         let game_time = (state.get_time_of_day() as u64 % 86400) as u32;
         let current_period_of_day = Self::get_current_day_period(game_time);
         let current_biome = Self::get_current_biome(client);
-        println!("======> Music Current biome: {:?}", current_biome);
         let mut rng = thread_rng();
 
         let maybe_track = self

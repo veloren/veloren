@@ -62,9 +62,9 @@ impl MusicChannel {
         }
     }
 
-    // Play a music track item on this channel. If the channel has an existing track
-    // playing, the new sounds will be appended and played once they complete.
-    // Otherwise it will begin playing immediately.
+    /// Play a music track item on this channel. If the channel has an existing
+    /// track playing, the new sounds will be appended and played once they
+    /// complete. Otherwise it will begin playing immediately.
     pub fn play<S>(&mut self, source: S, tag: MusicChannelTag)
     where
         S: Source + Send + 'static,
@@ -80,6 +80,12 @@ impl MusicChannel {
         } else {
             ChannelState::Playing
         };
+    }
+
+    /// Stop whatever is playing on a given channel
+    pub fn stop(&mut self, tag: MusicChannelTag) {
+        self.tag = tag;
+        self.sink.stop();
     }
 
     /// Set the volume of the current channel. If the channel is currently
