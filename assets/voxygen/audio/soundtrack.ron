@@ -31,8 +31,8 @@
             title: "Wandering Voices",
             path: "voxygen.audio.soundtrack.wandering_voices",
             length: 137.0,
-            timing: Some(Night),
-            biome: Some(Snowlands),
+            timing: Some(Day),
+            biome: Some(Grassland),
             artist: "Aeronic",
         ),
         (
@@ -48,7 +48,7 @@
             path: "voxygen.audio.soundtrack.mineral_deposits",
             length: 148.0,
             timing: Some(Day),
-            biome: Some(Snowlands),
+            biome: Some(Forest),
             artist: "Aeronic",
         ),
         (
@@ -56,7 +56,7 @@
             path: "voxygen.audio.soundtrack.moonbeams",
             length: 158.0,
             timing: Some(Night),
-            biome: Some(Snowlands),
+            biome: Some(Forest),
             artist: "Aeronic",
         ),
         (

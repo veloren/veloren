@@ -113,7 +113,6 @@ impl AmbientMgr {
         let game_time = (state.get_time_of_day() as u64 % 86400) as u32;
         let current_period_of_day = Self::get_current_day_period(game_time);
         let current_biome = Self::get_current_biome(client);
-        println!("Ambient Current biome: {:?}", current_biome);
         let mut rng = thread_rng();
 
         let maybe_track = self

@@ -205,6 +205,15 @@ impl AudioFrontend {
             let sound = Decoder::new(file).expect("Failed to decode sound");
 
             channel.play(sound, channel_tag);
+            //channel.set_fader(Fader::fade_in(2.0, music_volume));
+        }
+    }
+
+    fn stop_music(&mut self, channel_tag: MusicChannelTag) {
+        let music_volume = self.music_volume;
+        if let Some(channel) = self.get_music_channel(channel_tag) {
+            //channel.set_fader(Fader::fade_out(5.0, music_volume));
+            channel.stop(channel_tag);
         }
     }
 
@@ -246,6 +255,12 @@ impl AudioFrontend {
     pub fn play_exploration_music(&mut self, item: &str) {
         if self.music_enabled() {
             self.play_music(item, MusicChannelTag::Exploration)
+        }
+    }
+
+    pub fn stop_exploration_music(&mut self) {
+        if self.music_enabled() {
+            self.stop_music(MusicChannelTag::Exploration)
         }
     }
 
