@@ -82,7 +82,7 @@ impl MusicChannel {
         };
     }
 
-    /// Stop whatever is playing on a given channel
+    /// Stop whatever is playing on a given music channel
     pub fn stop(&mut self, tag: MusicChannelTag) {
         self.tag = tag;
         self.sink.stop();
@@ -191,6 +191,12 @@ impl AmbientChannel {
         } else {
             ChannelState::Playing
         };
+    }
+
+    /// Stop whatever is playing on a given channel
+    pub fn stop(&mut self, tag: AmbientChannelTag) {
+        self.tag = tag;
+        self.sink.stop();
     }
 
     /// Set the volume of the current channel. If the channel is currently

@@ -54,7 +54,7 @@ struct AmbientSoundtrackCollection {
     tracks: Vec<AmbientSoundtrackItem>,
 }
 
-/// Configuration for a single music track in the soundtrack
+/// Configuration for a single ambient sound track in the soundtrack
 #[derive(Debug, Deserialize)]
 pub struct AmbientSoundtrackItem {
     title: String,
@@ -75,14 +75,26 @@ enum DayPeriod {
     Night,
 }
 
-/// Provides methods to control music playback
+/// Determines whether the sound is stopped, playing, or fading
+#[derive(Debug, Deserialize, PartialEq)]
+enum PlayState {
+    Playing,
+    Stopped,
+    FadingOut,
+    FadingIn,
+}
+
+/// Provides methods to control ambient sound playback
 pub struct AmbientMgr {
     ambient_soundtrack: AmbientSoundtrackCollection,
     began_playing: Instant,
+    began_fading: Instant,
     next_track_change: f64,
     /// The title of the last track played. Used to prevent a track
     /// being played twice in a row
     last_track: String,
+    last_biome: BiomeKind,
+    playing: PlayState,
 }
 
 impl AmbientMgr {
@@ -91,25 +103,45 @@ impl AmbientMgr {
         Self {
             ambient_soundtrack: Self::load_ambient_soundtrack_items(),
             began_playing: Instant::now(),
+            began_fading: Instant::now(),
             next_track_change: 0.0,
             last_track: String::from("None"),
+            last_biome: BiomeKind::Void,
+            playing: PlayState::Stopped,
         }
     }
 
     /// Checks whether the previous track has completed. If so, sends a
     /// request to play the next (random) track
     pub fn maintain(&mut self, audio: &mut AudioFrontend, state: &State, client: &Client) {
-        if audio.music_enabled()
+        // Gets the current player biome
+        let current_biome: BiomeKind = match client.current_chunk() {
+            Some(chunk) => chunk.meta().biome(),
+            _ => self.last_biome,
+        };
+
+        if audio.music_enabled() // TODO: Change this to ambient_enabled
             && !self.ambient_soundtrack.tracks.is_empty()
-            && self.began_playing.elapsed().as_secs_f64() > self.next_track_change
+            && (self.began_playing.elapsed().as_secs_f64() > self.next_track_change
+                || self.playing == PlayState::Stopped)
+            && self.playing != PlayState::FadingOut
         {
             self.play_random_track(audio, state, client);
+            self.playing = PlayState::Playing;
+        } else if current_biome != self.last_biome && self.playing == PlayState::Playing {
+            audio.fade_out_exploration_ambient();
+            self.began_fading = Instant::now();
+            self.playing = PlayState::FadingOut;
+        } else if self.began_fading.elapsed().as_secs_f64() > 5.0
+            && self.playing == PlayState::FadingOut
+        {
+            audio.stop_exploration_ambient();
+            self.playing = PlayState::Stopped;
         }
+        self.last_biome = current_biome;
     }
 
     fn play_random_track(&mut self, audio: &mut AudioFrontend, state: &State, client: &Client) {
-        const SILENCE_BETWEEN_TRACKS_SECONDS: f64 = 45.0;
-
         let game_time = (state.get_time_of_day() as u64 % 86400) as u32;
         let current_period_of_day = Self::get_current_day_period(game_time);
         let current_biome = Self::get_current_biome(client);
@@ -119,12 +151,9 @@ impl AmbientMgr {
             .ambient_soundtrack
             .tracks
             .iter()
-            .filter(|track| {
-                !track.title.eq(&self.last_track)
-                    && match &track.timing {
-                        Some(period_of_day) => period_of_day == &current_period_of_day,
-                        None => true,
-                    }
+            .filter(|track| match &track.timing {
+                Some(period_of_day) => period_of_day == &current_period_of_day,
+                None => true,
             })
             .filter(|track| match &track.biome {
                 Some(biome) => biome == &current_biome,
@@ -135,8 +164,9 @@ impl AmbientMgr {
         if let Some(track) = maybe_track {
             self.last_track = String::from(&track.title);
             self.began_playing = Instant::now();
-            self.next_track_change = track.length + SILENCE_BETWEEN_TRACKS_SECONDS;
+            self.next_track_change = track.length;
 
+            audio.fade_in_exploration_ambient();
             audio.play_exploration_ambient(&track.path);
         }
     }
@@ -162,7 +192,8 @@ impl AmbientMgr {
                 Ok(config) => config,
                 Err(error) => {
                     warn!(
-                        "Error parsing music config file, music will not be available: {}",
+                        "Error parsing ambient sound config file, ambient sound will not be \
+                         available: {}",
                         format!("{:#?}", error)
                     );
 
@@ -171,7 +202,8 @@ impl AmbientMgr {
             },
             Err(error) => {
                 warn!(
-                    "Error reading music config file, music will not be available: {}",
+                    "Error reading ambient sound config file, ambient sound will not be \
+                     available: {}",
                     format!("{:#?}", error)
                 );
 
