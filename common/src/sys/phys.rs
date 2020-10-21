@@ -129,10 +129,32 @@ impl<'a> System<'a> for Sys {
         // terrain collision code below, although that's not trivial to do since
         // it means the step needs to take into account the speeds of both
         // entities.
+        span!(guard, "Clone pushback velocities");
+        //just prereserve for 1000 entities
+        let mut old_velocities_times_dt = Vec::with_capacity(1000);
+        for (entity, vel, _, _, _, _) in (
+            &entities,
+            &velocities,
+            &positions,
+            !&mountings,
+            !&beams,
+            !&shockwaves,
+        )
+            .join()
+        {
+            let id = entity.id() as usize;
+            let vel_dt = vel.0.clone() * dt.0;
+            if id >= old_velocities_times_dt.len() {
+                old_velocities_times_dt.resize(id + 1, Vec3::zero());
+            }
+            old_velocities_times_dt[id] = vel_dt;
+        }
+        drop(guard);
         span!(guard, "Apply pushback");
-        for (entity, pos, scale, mass, collider, _, _, physics, projectile) in (
+        for (entity, pos, vel, scale, mass, collider, _, _, physics, projectile) in (
             &entities,
             &positions,
+            &mut velocities,
             scales.maybe(),
             masses.maybe(),
             colliders.maybe(),
@@ -144,7 +166,7 @@ impl<'a> System<'a> for Sys {
             projectiles.maybe(),
         )
             .join()
-            .filter(|(_, _, _, _, _, _, sticky, physics, _)| {
+            .filter(|(_, _, _, _, _, _, _, sticky, physics, _)| {
                 sticky.is_none() || (physics.on_wall.is_none() && !physics.on_ground)
             })
         {
@@ -152,6 +174,7 @@ impl<'a> System<'a> for Sys {
             let radius = collider.map(|c| c.get_radius()).unwrap_or(0.5);
             let z_limits = collider.map(|c| c.get_z_limits()).unwrap_or((-0.5, 0.5));
             let mass = mass.map(|m| m.0).unwrap_or(scale);
+            let vel_dt = old_velocities_times_dt[entity.id() as usize];
 
             // Resets touch_entities in physics
             physics.touch_entities.clear();
@@ -191,42 +214,46 @@ impl<'a> System<'a> for Sys {
 
                 let scale_other = scale_other.map(|s| s.0).unwrap_or(1.0);
                 let radius_other = collider_other.map(|c| c.get_radius()).unwrap_or(0.5);
-                let z_limits_other = collider_other
-                    .map(|c| c.get_z_limits())
-                    .unwrap_or((-0.5, 0.5));
-                let mass_other = mass_other.map(|m| m.0).unwrap_or(scale_other);
-                if mass_other == 0.0 {
-                    continue;
-                }
 
                 let collision_dist = scale * radius + scale_other * radius_other;
+                let collision_dist_sqr = collision_dist * collision_dist;
+                let vel_dt_other = old_velocities_times_dt[entity_other.id() as usize];
 
-                let vel = velocities.get(entity).copied().unwrap_or_default().0;
-                let vel_other = velocities.get(entity_other).copied().unwrap_or_default().0;
+                let pos_diff_squared = (pos.0 - pos_other.0).magnitude_squared();
+                let vel_diff_squared = (vel_dt - vel_dt_other).magnitude_squared();
 
                 // Sanity check: don't try colliding entities that are too far from each other
                 // Note: I think this catches all cases. If you get entity collision problems,
                 // try removing this!
-                if (pos.0 - pos_other.0).xy().magnitude()
-                    > ((vel - vel_other) * dt.0).xy().magnitude() + collision_dist
-                {
+                if pos_diff_squared > vel_diff_squared + collision_dist_sqr {
                     continue;
                 }
 
-                let min_collision_dist = 0.3;
-                let increments = ((vel - vel_other).magnitude() * dt.0 / min_collision_dist)
+                let z_limits_other = collider_other
+                    .map(|c| c.get_z_limits())
+                    .unwrap_or((-0.5, 0.5));
+                let mass_other = mass_other.map(|m| m.0).unwrap_or(scale_other);
+                //This check after the pos check, as we currently don't have that many massless
+                // entites [citation needed]
+                if mass_other == 0.0 {
+                    continue;
+                }
+
+                const MIN_COLLISION_DIST: f32 = 0.3;
+                let increments = (vel_diff_squared.sqrt() / MIN_COLLISION_DIST)
                     .max(1.0)
                     .ceil() as usize;
                 let step_delta = 1.0 / increments as f32;
                 let mut collided = false;
+
                 for i in 0..increments {
                     let factor = i as f32 * step_delta;
-                    let pos = pos.0 + vel * dt.0 * factor;
-                    let pos_other = pos_other.0 + vel_other * dt.0 * factor;
+                    let pos = pos.0 + vel_dt * factor;
+                    let pos_other = pos_other.0 + vel_dt_other * factor;
 
                     let diff = pos.xy() - pos_other.xy();
 
-                    if diff.magnitude_squared() <= collision_dist.powf(2.0)
+                    if diff.magnitude_squared() <= collision_dist_sqr
                         && pos.z + z_limits.1 * scale
                             >= pos_other.z + z_limits_other.0 * scale_other
                         && pos.z + z_limits.0 * scale
@@ -250,9 +277,7 @@ impl<'a> System<'a> for Sys {
             }
 
             // Change velocity
-            velocities
-                .get_mut(entity)
-                .map(|vel| vel.0 += vel_delta * dt.0);
+            vel.0 += vel_delta * dt.0;
         }
         drop(guard);
 

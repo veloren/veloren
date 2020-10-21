@@ -62,8 +62,8 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
             });
             if already_in_same_group {
                 // Inform of failure
-                if let Some(general_stream) = clients.get(entity) {
-                    general_stream.send_fallible(ChatType::Meta.server_msg(
+                if let Some(client) = clients.get(entity) {
+                    client.send_fallible(ChatType::Meta.server_msg(
                         "Invite failed, can't invite someone already in your group".to_owned(),
                     ));
                 }
@@ -92,8 +92,8 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                 >= max_group_size as usize;
             if group_size_limit_reached {
                 // Inform inviter that they have reached the group size limit
-                if let Some(general_stream) = clients.get(entity) {
-                    general_stream.send_fallible(
+                if let Some(client) = clients.get(entity) {
+                    client.send_fallible(
                         ChatType::Meta.server_msg(
                             "Invite failed, pending invites plus current group size have reached \
                              the group size limit"
