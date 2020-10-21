@@ -380,6 +380,7 @@ impl Scene {
             &self.postprocess.model,
             &self.data.globals,
             &self.postprocess.locals,
+            &self.lod,
         );
     }
 }

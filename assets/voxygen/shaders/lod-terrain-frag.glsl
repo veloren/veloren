@@ -446,7 +446,7 @@ void main() {
     voxel_norm = normalize(mix(voxel_norm, lerpy_norm, clamp(my_norm.z * my_norm.z - (1.0 - DIST), 0, 1) / DIST));
 
     f_pos.xyz += abs(voxel_norm) * delta_sides;
-    voxel_norm = voxel_norm == vec3(0.0) ? f_norm : voxel_norm;
+    voxel_norm = mix(voxel_norm == vec3(0.0) ? f_norm : voxel_norm, my_norm, clamp((f_orig_len - view_distance.x) / 3500, 0, 1));
 
     vec3 hash_pos = f_pos + focus_off.xyz;
     const float A = 0.055;
@@ -555,7 +555,9 @@ void main() {
     // vec3 light, diffuse_light, ambient_light;
     // get_sun_diffuse(f_norm, time_of_day.x, cam_to_frag, (0.25 * shade_frac + 0.25 * light_frac) * f_col, 0.5 * shade_frac * f_col, 0.5 * shade_frac * /*vec3(1.0)*/f_col, 2.0, emitted_light, reflected_light);
     float max_light = 0.0;
-    max_light += get_sun_diffuse2(sun_info, moon_info, voxel_norm/*l_norm*/, view_dir, f_pos, vec3(0.0), cam_attenuation, fluid_alt, vec3(1.0)/* * (0.5 * light_frac + vec3(0.5 * shade_frac))*/, vec3(1.0), /*0.5 * shade_frac * *//*vec3(1.0)*//*f_col*/vec3(R_s), alpha, voxel_norm, dist_lerp/*max(distance(focus_pos.xy, f_pos.xyz) - view_distance.x, 0.0) / 1000 < 1.0*/, emitted_light, reflected_light);
+    vec3 k_a = vec3(1.0);
+    vec3 k_d = vec3(1.0);
+    max_light += get_sun_diffuse2(sun_info, moon_info, voxel_norm/*l_norm*/, view_dir, f_pos, vec3(0.0), cam_attenuation, fluid_alt, k_a/* * (0.5 * light_frac + vec3(0.5 * shade_frac))*/, k_d, /*0.5 * shade_frac * *//*vec3(1.0)*//*f_col*/vec3(R_s), alpha, voxel_norm, dist_lerp/*max(distance(focus_pos.xy, f_pos.xyz) - view_distance.x, 0.0) / 1000 < 1.0*/, emitted_light, reflected_light);
     // emitted_light = vec3(1.0);
     // emitted_light *= max(shade_frac, MIN_SHADOW);
     // reflected_light *= shade_frac;
@@ -614,20 +616,10 @@ void main() {
     // f_col = f_col + (hash(vec4(floor(vec3(focus_pos.xy + splay(v_pos_orig), f_pos.z)) * 3.0 - round(f_norm) * 0.5, 0)) - 0.5) * 0.05; // Small-scale noise
     vec3 surf_color = /*illuminate(emitted_light, reflected_light)*/illuminate(max_light, view_dir, f_col * emitted_light, f_col * reflected_light);
 
-    float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
-
-#if (CLOUD_MODE == CLOUD_MODE_REGULAR)
-    vec4 clouds;
-    vec3 fog_color = get_sky_color(cam_to_frag/*view_dir*/, time_of_day.x, cam_pos.xyz, f_pos, 1.0, /*true*/false, clouds);
-    vec3 color = mix(mix(surf_color, fog_color, fog_level), clouds.rgb, clouds.a);
-#elif (CLOUD_MODE == CLOUD_MODE_NONE)
-    vec3 color = surf_color;
-#endif
-
     // float mist_factor = max(1 - (f_pos.z + (texture(t_noise, f_pos.xy * 0.0005 + time_of_day.x * 0.0003).x - 0.5) * 128.0) / 400.0, 0.0);
     // //float mist_factor = f_norm.z * 2.0;
     // color = mix(color, vec3(1.0) * /*diffuse_light*/reflected_light, clamp(mist_factor * 0.00005 * distance(f_pos.xy, focus_pos.xy), 0, 0.3));
     // color = surf_color;
 
-    tgt_color = vec4(color, 1.0);
+    tgt_color = vec4(surf_color, 1.0);
 }

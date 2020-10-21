@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Revamped structure of where settings, logs, and game saves are stored so that almost everything is in one place.
 - Moved hammer leap attack to skillbar
 - Reworked fire staff
+- Overhauled cloud shaders to add mist, light attenuation, an approximation of rayleigh scattering, etc.
 
 ### Removed
 

@@ -2,7 +2,7 @@
 
     #if (SHADOW_MODE == SHADOW_MODE_MAP)
 struct ShadowLocals {
-	mat4 shadowMatrices;
+    mat4 shadowMatrices;
     mat4 texture_mat;
 };
 

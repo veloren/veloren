@@ -2052,12 +2052,27 @@ impl<'a> Widget for SettingsWindow<'a> {
             .color(TEXT_COLOR)
             .set(state.ids.cloud_mode_text, ui);
 
-            let mode_list = [CloudMode::None, CloudMode::Regular];
+            let mode_list = [
+                CloudMode::None,
+                CloudMode::Minimal,
+                CloudMode::Low,
+                CloudMode::Medium,
+                CloudMode::High,
+            ];
             let mode_label_list = [
                 &self.localized_strings.get("common.none"),
                 &self
                     .localized_strings
-                    .get("hud.settings.cloud_rendering_mode.regular"),
+                    .get("hud.settings.cloud_rendering_mode.minimal"),
+                &self
+                    .localized_strings
+                    .get("hud.settings.cloud_rendering_mode.low"),
+                &self
+                    .localized_strings
+                    .get("hud.settings.cloud_rendering_mode.medium"),
+                &self
+                    .localized_strings
+                    .get("hud.settings.cloud_rendering_mode.high"),
             ];
 
             // Get which cloud rendering mode is currently active

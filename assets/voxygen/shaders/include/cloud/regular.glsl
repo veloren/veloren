@@ -1,85 +1,152 @@
 #include <random.glsl>
+#include <lod.glsl>
 
 const float CLOUD_THRESHOLD = 0.27;
 const float CLOUD_SCALE = 5.0;
-const float CLOUD_DENSITY = 100.0;
+const float CLOUD_DENSITY = 150.0;
 
-float vsum(vec3 v) {
-	return v.x + v.y + v.z;
+vec2 get_cloud_heights(vec2 pos) {
+    const float CLOUD_HALF_WIDTH = 300;
+    const float CLOUD_HEIGHT_VARIATION = 1000.0;
+    float cloud_alt = CLOUD_AVG_ALT + (texture(t_noise, pos.xy * 0.0001).x - 0.5) * CLOUD_HEIGHT_VARIATION;
+    #if (CLOUD_MODE != CLOUD_MODE_MINIMAL)
+        cloud_alt += (texture(t_noise, pos.xy * 0.001).x - 0.5) * 0.1 * CLOUD_HEIGHT_VARIATION;
+    #endif
+    return vec2(cloud_alt, CLOUD_HALF_WIDTH);
 }
 
-vec3 get_cloud_heights() {
-    float CLOUD_AVG_HEIGHT = /*1025.0*/view_distance.z + 0.7 * view_distance.w;
-    float CLOUD_HEIGHT_MIN = CLOUD_AVG_HEIGHT - 60.0;
-    float CLOUD_HEIGHT_MAX = CLOUD_AVG_HEIGHT + 60.0;
-    return vec3(CLOUD_AVG_HEIGHT, CLOUD_HEIGHT_MIN, CLOUD_HEIGHT_MAX);
+// Returns vec4(r, g, b, density)
+vec3 cloud_at(vec3 pos, float dist) {
+    // Natural attenuation of air (air naturally attenuates light that passes through it)
+    // Simulate the atmosphere thinning above 3000 metres down to nothing at 5000 metres
+    float air = 0.00005 * clamp((3000.0 - pos.z) / 2000, 0, 1);
+
+    // Mist sits close to the ground in valleys (TODO: use base_alt to put it closer to water)
+    float MIST_MIN = 300;
+    const float MIST_FADE_HEIGHT = 250;
+    float mist = 0.00025 * pow(clamp(1.0 - (pos.z - MIST_MIN) / MIST_FADE_HEIGHT, 0.0, 1), 2) / (1.0 + pow(1.0 + dist / 20000.0, 2.0));
+
+    vec3 wind_pos = vec3(pos.xy + wind_offset, pos.z);
+
+    // Clouds
+    float cloud_tendency = cloud_tendency_at(pos.xy);
+    float sun_access = 0.05;
+    float cloud = 0;
+
+    vec2 cloud_attr = get_cloud_heights(wind_pos.xy);
+    float cloud_factor = 0.0;
+    // This is a silly optimisation but it actually nets us a fair few fps by skipping quite a few expensive calcs
+    if (cloud_tendency > 0 || mist > 0.0) {
+        // Turbulence (small variations in clouds/mist)
+        const float turb_speed = -1.0; // Turbulence goes the opposite way
+        vec3 turb_offset = vec3(1, 1, 0) * time_of_day.x * turb_speed;
+        #if (CLOUD_MODE == CLOUD_MODE_MINIMAL)
+            float turb_noise = 0.0;
+        #else
+            float turb_noise = noise_3d((wind_pos + turb_offset) * 0.001) - 0.5;
+        #endif
+        #if (CLOUD_MODE == CLOUD_MODE_MEDIUM || CLOUD_MODE == CLOUD_MODE_HIGH)
+            turb_noise += (noise_3d((wind_pos + turb_offset * 0.3) * 0.004) - 0.5) * 0.25;
+        #endif
+        mist *= (1.0 + turb_noise);
+
+        cloud_factor = 0.25 * (1.0 - pow(min(abs(pos.z - cloud_attr.x) / (cloud_attr.y * pow(max(cloud_tendency * 20.0, 0), 0.5)), 1.0), 2.0));
+        float cloud_flat = min(cloud_tendency, 0.07) * 0.05;
+        cloud_flat *= (1.0 + turb_noise * 7.0 * max(0, 1.0 - cloud_factor * 5));
+        cloud = cloud_flat * pow(cloud_factor, 2) * 20 / (1 + pow(1.0 + dist / 10000.0, 2.0));
+    }
+
+    // What proportion of sunlight is *not* being blocked by nearby cloud? (approximation)
+    sun_access = clamp((pos.z - cloud_attr.x) * 0.002 + 0.35 + mist * 10000, 0.0, 1);
+
+    // Prevent clouds and mist appearing underground (but fade them out gently)
+    float not_underground = clamp(1.0 - (alt_at(pos.xy - focus_off.xy) - (pos.z - focus_off.z)) / 80.0, 0, 1);
+    float vapor_density = (mist + cloud) * not_underground;
+
+    // We track vapor density and air density separately. Why? Because photons will ionize particles in air
+    // leading to rayleigh scattering, but water vapor will not. Tracking these indepedently allows us to
+    // get more correct colours.
+    return vec3(sun_access, vapor_density, air);
 }
 
-vec2 cloud_at(vec3 pos) {
-    vec3 max_heights = get_cloud_heights();
-	vec2 scaled_pos = pos.xy / CLOUD_SCALE;
-
-	float tick_offs = 0.0
-		+ texture(t_noise, scaled_pos * 0.0005 - time_of_day.x * 0.00001).x * 0.5
-		+ texture(t_noise, scaled_pos * 0.0015).x * 0.15;
-
-	float value = (
-		0.0
-		+ texture(t_noise, scaled_pos * 0.0003 + tick_offs).x
-		+ texture(t_noise, scaled_pos * 0.0015 - tick_offs * 2.0).x * 0.5
-	) / 3.0;
-
-	value += (0.0
-		+ texture(t_noise, scaled_pos * 0.008 + time_of_day.x * 0.0002).x * 0.25
-		+ texture(t_noise, scaled_pos * 0.02 + tick_offs + time_of_day.x * 0.0002).x * 0.15
-	) * value;
-
-	float density = max((value - CLOUD_THRESHOLD) - abs(pos.z - max_heights.x) / 200.0, 0.0) * CLOUD_DENSITY;
-
-	float SHADE_GRADIENT = 1.5 / (max_heights.x - max_heights.y);
-	float shade = ((pos.z - max_heights.x) / (max_heights.z - max_heights.y)) * 5.0 + 0.3;
-
-	return vec2(shade, density / (1.0 + vsum(abs(pos - cam_pos.xyz)) / 5000));
+float atan2(in float y, in float x) {
+    bool s = (abs(x) > abs(y));
+    return mix(PI/2.0 - atan(x,y), atan(y,x), s);
 }
 
-vec4 get_cloud_color(vec3 dir, vec3 origin, float time_of_day, float max_dist, float quality) {
-	const int ITERS = 12;
-	const float INCR = 1.0 / ITERS;
-    origin = origin + focus_off.xyz;
+const float DIST_CAP = 50000;
+#if (CLOUD_MODE == CLOUD_MODE_HIGH)
+    const uint QUALITY = 100u;
+#elif (CLOUD_MODE == CLOUD_MODE_MEDIUM)
+    const uint QUALITY = 40u;
+#elif (CLOUD_MODE == CLOUD_MODE_LOW)
+    const uint QUALITY = 20u;
+#elif (CLOUD_MODE == CLOUD_MODE_MINIMAL)
+    const uint QUALITY = 7u;
+#endif
 
-    vec3 max_heights = get_cloud_heights();
-	float mind = (max_heights.y - origin.z) / dir.z;
-	float maxd = (max_heights.z - origin.z) / dir.z;
+const float STEP_SCALE = DIST_CAP / (10.0 * float(QUALITY));
 
-	float start = max(min(mind, maxd), 0.0);
-	float delta = min(abs(mind - maxd), max_dist);
+float step_to_dist(float step) {
+    return pow(step, 2) * STEP_SCALE;
+}
 
-	float fuzz = sin(texture(t_noise, dir.xz * 100000.0 + tick.x).x * 100.0) * INCR * delta * pow(abs(maxd - mind), 0.3) * 2.0;
+float dist_to_step(float dist) {
+    return pow(dist / STEP_SCALE, 0.5);
+}
 
-	float cloud_shade = 1.0;
-	float passthrough = 1.0;
-	if ((mind > 0.0 || maxd > 0.0) && start < max_dist) {
-		float dist = start;
-		for (int i = 0; i < ITERS; i ++) {
-			dist += fuzz * 0.01 * min(pow(dist * 0.005, 2.0), 1.0);
+vec3 get_cloud_color(vec3 surf_color, const vec3 dir, vec3 origin, const float time_of_day, float max_dist, const float quality) {
+    // Limit the marching distance to reduce maximum jumps
+    max_dist = min(max_dist, DIST_CAP);
 
-			vec3 pos = origin + dir * min(dist, max_dist);
-			vec2 sample_ = cloud_at(pos);
+    origin.xyz += focus_off.xyz;
 
-			float integral = sample_.y * INCR;
-			passthrough *= 1.0 - integral;
-			cloud_shade = mix(cloud_shade, sample_.x, passthrough * integral);
-			dist += INCR * delta;
+    float splay = 1.0;
+    // This hack adds a little direction-dependent noise to clouds. It's not correct, but it very cheaply
+    // improves visual quality for low cloud settings
+    #if (CLOUD_MODE == CLOUD_MODE_MINIMAL)
+        splay += (texture(t_noise, vec2(atan2(dir.x, dir.y) * 2 / PI, dir.z) * 1.5 - time_of_day * 0.000025).x - 0.5) * 0.4 / (1.0 + pow(dir.z, 2) * 10);
+    #endif
+    #if (CLOUD_MODE == CLOUD_MODE_MINIMAL || CLOUD_MODE == CLOUD_MODE_LOW)
+        splay += (texture(t_noise, vec2(atan2(dir.x, dir.y) * 2 / PI, dir.z) * 10.0 - time_of_day * 0.00005).x - 0.5) * 0.075 / (1.0 + pow(dir.z, 2) * 10);
+    #endif
+    splay = clamp(splay, 0.5, 1.5);
 
-			if (passthrough < 0.1) {
-				break;
-			}
-		}
-	}
+    // Proportion of sunlight that get scattered back into the camera by clouds
+    float sun_scatter = max(dot(-dir, sun_dir.xyz), 0.5);
+    float moon_scatter = max(dot(-dir, moon_dir.xyz), 0.5);
+    vec3 sky_color = get_sky_color();
+    vec3 directed_scatter =
+        // Sun scatter
+        get_sun_color() * get_sun_brightness() * sun_scatter +
+        // Moon scatter
+        get_moon_color() * get_moon_brightness() * moon_scatter;
 
-	float total_density = 1.0 - passthrough / (1.0 + pow(max_dist, 0.5) * 0.0001 + max((0.015 - dir.z) * 0.0001, 0.0) * max_dist);
+    float cdist = max_dist;
+    vec3 last_sample = cloud_at(origin + dir * cdist, cdist);
+    while (cdist > 10) {
+        float ndist = step_to_dist(trunc(dist_to_step(cdist - 10)));
+        vec3 next_sample = cloud_at(origin + dir * ndist * splay, ndist);
 
-	total_density = max(total_density - 1.0 / pow(max_dist, 0.25), 0.0); // Hack
+        vec3 sample_avg = last_sample;//(last_sample + next_sample) / 2.0;
+        vec2 density_integrals = sample_avg.yz * (cdist - ndist);
 
-	return vec4(vec3(cloud_shade), total_density);
+        float sun_access = sample_avg.x;
+        float scatter_factor = 1.0 - 1.0 / (1.0 + density_integrals.x);
+
+        surf_color =
+            // Attenuate light passing through the clouds, removing light due to rayleigh scattering (transmission component)
+            surf_color * (1.0 - scatter_factor) - surf_color * density_integrals.y * sky_color +
+            // This is not rayleigh scattering, but it's good enough for our purposes
+            sky_color * density_integrals.y +
+            // Add the directed light light scattered into the camera by the clouds
+            directed_scatter * sun_access * scatter_factor +
+            // Global illumination (uniform scatter from the sky)
+            sky_color * sun_access * scatter_factor;
+
+        cdist = ndist;
+        last_sample = next_sample;
+    }
+
+    return surf_color;
 }

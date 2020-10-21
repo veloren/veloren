@@ -1,7 +1,5 @@
 #include <random.glsl>
 #include <srgb.glsl>
-#include <cloud.glsl>
-#include <srgb.glsl>
 #include <shadows.glsl>
 #include <globals.glsl>
 
@@ -25,7 +23,7 @@ const vec3 SKY_DUSK_TOP = vec3(0.06, 0.1, 0.20);
 const vec3 SKY_DUSK_MID = vec3(0.35, 0.1, 0.15);
 const vec3 SKY_DUSK_BOT = vec3(0.0, 0.1, 0.23);
 const vec3 DUSK_LIGHT   = vec3(9.0, 1.5, 0.15);
-const vec3 SUN_HALO_DUSK = vec3(1.2, 0.15, 0.0);
+const vec3 SUN_HALO_DUSK = vec3(1.2, 0.25, 0.0);
 
 const vec3 SKY_NIGHT_TOP = vec3(0.001, 0.001, 0.0025);
 const vec3 SKY_NIGHT_MID = vec3(0.001, 0.005, 0.02);
@@ -66,12 +64,35 @@ const float PERSISTENT_AMBIANCE = 1.0 / 32.0;// 1.0 / 80; // 1.0 / 512; // 0.001
 //    return normalize(-vec3(sin(moon_angle_rad), 0.0, cos(moon_angle_rad) - 0.5));
 //}
 
+float CLOUD_AVG_ALT = view_distance.z + 0.75 * view_distance.w;
+
+const float wind_speed = 0.25;
+vec2 wind_offset = vec2(time_of_day.x * wind_speed);
+
+float cloud_tendency_at(vec2 pos) {
+    return clamp(texture(t_noise, (pos + wind_offset) * 0.000075).x - 0.5, 0, 1);
+}
+
+float cloud_shadow(vec3 pos, vec3 light_dir) {
+    #if (CLOUD_MODE == CLOUD_MODE_NONE || CLOUD_MODE == CLOUD_MODE_MINIMAL)
+        return 1.0;
+    #else
+        vec2 xy_offset = light_dir.xy * ((CLOUD_AVG_ALT - pos.z) / -light_dir.z);
+
+        // Fade out shadow if the sun angle is too steep (simulates a widening penumbra with distance)
+        const vec2 FADE_RANGE = vec2(1500, 10000);
+        float fade = 1.0 - clamp((length(xy_offset) - FADE_RANGE.x) / (FADE_RANGE.y - FADE_RANGE.x), 0, 1);
+
+        return max(0, 1 - fade * cloud_tendency_at(pos.xy + focus_off.xy - xy_offset) * 3.0);
+    #endif
+}
+
 float get_sun_brightness(/*vec3 sun_dir*/) {
     return max(-sun_dir.z + 0.6, 0.0) * 0.9;
 }
 
 float get_moon_brightness(/*vec3 moon_dir*/) {
-    return max(-moon_dir.z + 0.6, 0.0) * 0.4;
+    return max(-moon_dir.z + 0.6, 0.0) * 0.1;
 }
 
 vec3 get_sun_color(/*vec3 sun_dir*/) {
@@ -82,6 +103,20 @@ vec3 get_sun_color(/*vec3 sun_dir*/) {
             max(sun_dir.z, 0)
         ),
         DAY_LIGHT,
+        max(-sun_dir.z, 0)
+    );
+}
+
+
+// Average sky colour (i.e: perfectly scattered light from the sky)
+vec3 get_sky_color(/*vec3 sun_dir*/) {
+    return mix(
+        mix(
+            (SKY_DUSK_TOP + SKY_DUSK_MID) / 2,
+            (SKY_NIGHT_TOP + SKY_NIGHT_MID) / 2,
+            max(sun_dir.z, 0)
+        ),
+        (SKY_DAY_TOP + SKY_DAY_MID) / 2,
         max(-sun_dir.z, 0)
     );
 }
@@ -204,8 +239,8 @@ float get_sun_diffuse2(DirectionalLight sun_info, DirectionalLight moon_info, ve
 //     float sun_shadow = 1.0;
 //     float moon_shadow = 1.0;
 // #endif
-    float sun_shadow = sun_info.shadow;
-    float moon_shadow = moon_info.shadow;
+    float sun_shadow = sun_info.shadow * cloud_shadow(wpos, sun_dir);
+    float moon_shadow = moon_info.shadow * cloud_shadow(wpos, moon_dir);
 
     // https://en.m.wikipedia.org/wiki/Diffuse_sky_radiation
     //
@@ -356,115 +391,102 @@ float is_star_at(vec3 dir) {
     return 0.0;
 }
 
-vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float quality, bool with_stars, float refractionIndex, out vec4 clouds) {
-#if (CLOUD_MODE == CLOUD_MODE_NONE)
-    const bool has_clouds = false;
-#elif (CLOUD_MODE == CLOUD_MODE_REGULAR)
-    const bool has_clouds = true;
-#endif
+vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float quality, bool with_features, float refractionIndex) {
+    // Sky color
+    /* vec3 sun_dir = get_sun_dir(time_of_day);
+    vec3 moon_dir = get_moon_dir(time_of_day); */
+    vec3 sun_dir = sun_dir.xyz;
+    vec3 moon_dir = moon_dir.xyz;
 
-    if (with_stars || has_clouds) {
-        // Sky color
-        /* vec3 sun_dir = get_sun_dir(time_of_day);
-        vec3 moon_dir = get_moon_dir(time_of_day); */
-        vec3 sun_dir = sun_dir.xyz;
-        vec3 moon_dir = moon_dir.xyz;
+    // sun_dir = sun_dir.z <= 0 ? refract(sun_dir/*-view_dir*/, vec3(0.0, 0.0, 1.0), refractionIndex) : sun_dir;
+    // moon_dir = moon_dir.z <= 0 ? refract(moon_dir/*-view_dir*/, vec3(0.0, 0.0, 1.0), refractionIndex) : moon_dir;
 
-        // sun_dir = sun_dir.z <= 0 ? refract(sun_dir/*-view_dir*/, vec3(0.0, 0.0, 1.0), refractionIndex) : sun_dir;
-        // moon_dir = moon_dir.z <= 0 ? refract(moon_dir/*-view_dir*/, vec3(0.0, 0.0, 1.0), refractionIndex) : moon_dir;
-
-        // Add white dots for stars. Note these flicker and jump due to FXAA
-        float star = 0.0;
-        if (with_stars) {
-            vec3 star_dir = normalize(sun_dir * dir.z + cross(sun_dir, vec3(0, 1, 0)) * dir.x + vec3(0, 1, 0) * dir.y);
-            star = is_star_at(star_dir);
-        }
-
-        // Sun
-        const vec3 SUN_SURF_COLOR = vec3(1.5, 0.9, 0.35) * 200.0;
-
-        vec3 sun_halo_color = mix(
-            SUN_HALO_DUSK,
-            SUN_HALO_DAY,
-            max(-sun_dir.z, 0)
-        );
-
-        vec3 sun_halo = pow(max(dot(dir, -sun_dir) + 0.1, 0.0), 8.0) * sun_halo_color;
-        vec3 sun_surf = pow(max(dot(dir, -sun_dir) - 0.001, 0.0), 3000.0) * SUN_SURF_COLOR * SUN_COLOR_FACTOR;
-        vec3 sun_light = (sun_halo + sun_surf) * clamp(dir.z * 10.0, 0, 1);
-
-        // Moon
-        const vec3 MOON_SURF_COLOR = vec3(0.7, 1.0, 1.5) * 500.0;
-        const vec3 MOON_HALO_COLOR = vec3(0.015, 0.015, 0.05);
-
-        vec3 moon_halo = pow(max(dot(dir, -moon_dir) + 0.1, 0.0), 8.0) * MOON_HALO_COLOR;
-        vec3 moon_surf = pow(max(dot(dir, -moon_dir) - 0.001, 0.0), 3000.0) * MOON_SURF_COLOR;
-        vec3 moon_light = clamp(moon_halo + moon_surf, vec3(0), vec3(max(dir.z * 3.0, 0)));
-
-        // Replaced all clamp(sun_dir, 0, 1) with max(sun_dir, 0) because sun_dir is calculated from sin and cos, which are never > 1
-
-        vec3 sky_top = mix(
-            mix(
-                SKY_DUSK_TOP + star / (1.0 + moon_surf * 100.0),
-                SKY_NIGHT_TOP + star / (1.0 + moon_surf * 100.0),
-                max(pow(sun_dir.z, 0.2), 0)
-            ),
-            SKY_DAY_TOP,
-            max(-sun_dir.z, 0)
-        );
-
-        vec3 sky_mid = mix(
-            mix( SKY_DUSK_MID,
-                SKY_NIGHT_MID,
-                max(pow(sun_dir.z, 0.2), 0)
-            ),
-            SKY_DAY_MID,
-            max(-sun_dir.z, 0)
-        );
-
-        vec3 sky_bot = mix(
-            mix(
-                SKY_DUSK_BOT,
-                SKY_NIGHT_BOT,
-                max(pow(sun_dir.z, 0.2), 0)
-            ),
-            SKY_DAY_BOT,
-            max(-sun_dir.z, 0)
-        );
-
-        vec3 sky_color = mix(
-            mix(
-                sky_mid,
-                sky_bot,
-                pow(max(-dir.z, 0), 0.4)
-            ),
-            sky_top,
-            max(dir.z, 0)
-        );
-
-        // Approximate distance to fragment
-        float f_dist = distance(origin, f_pos);
-
-    // Clouds
-    #if (CLOUD_MODE == CLOUD_MODE_NONE)
-        clouds = vec4(0.0);
-    #elif (CLOUD_MODE == CLOUD_MODE_REGULAR)
-        clouds = get_cloud_color(dir, origin, time_of_day, f_dist, quality);
-        clouds.rgb *= get_sun_brightness(/*sun_dir*/) * (sun_halo * 1.5 + get_sun_color(/*sun_dir*/)) + get_moon_brightness(/*moon_dir*/) * (moon_halo * 80.0 + get_moon_color(/*moon_dir*/) + 0.25);
-    #endif
-
-        if (f_dist > 5000.0) {
-            sky_color += sun_light + moon_light;
-        }
-        return mix(sky_color, clouds.rgb, clouds.a);
-    } else {
-        clouds = vec4(0.0);
-        return vec3(0.0);
+    // Add white dots for stars. Note these flicker and jump due to FXAA
+    float star = 0.0;
+    if (with_features) {
+        vec3 star_dir = normalize(sun_dir * dir.z + cross(sun_dir, vec3(0, 1, 0)) * dir.x + vec3(0, 1, 0) * dir.y);
+        star = is_star_at(star_dir);
     }
+
+    // Sun
+    const vec3 SUN_SURF_COLOR = vec3(1.5, 0.9, 0.35) * 200.0;
+
+    vec3 sun_halo_color = mix(
+        SUN_HALO_DUSK,
+        SUN_HALO_DAY,
+        max(-sun_dir.z, 0.0)
+    );
+
+    vec3 sun_halo = pow(max(dot(dir, -sun_dir) + 0.1, 0.0), 8.0) * sun_halo_color;
+    vec3 sun_surf = vec3(0);
+    if (with_features) {
+        sun_surf = pow(max(dot(dir, -sun_dir) - 0.001, 0.0), 5000.0) * SUN_SURF_COLOR * SUN_COLOR_FACTOR; // Hack to prevent sun vanishing too early
+    }
+    vec3 sun_light = sun_halo + sun_surf;
+
+    // Moon
+    const vec3 MOON_SURF_COLOR = vec3(0.7, 1.0, 1.5) * 500.0;
+    const vec3 MOON_HALO_COLOR = vec3(0.015, 0.015, 0.05);
+
+    vec3 moon_halo = pow(max(dot(dir, -moon_dir) + 0.1, 0.0), 8.0) * MOON_HALO_COLOR;
+    vec3 moon_surf = vec3(0);
+    if (with_features) {
+        moon_surf = pow(max(dot(dir, -moon_dir) - 0.001, 0.0), 5000.0) * MOON_SURF_COLOR; // Hack to prevent moon vanishing too early
+    }
+    vec3 moon_light = moon_halo + moon_surf;
+
+    // Replaced all clamp(sun_dir, 0, 1) with max(sun_dir, 0) because sun_dir is calculated from sin and cos, which are never > 1
+
+    vec3 sky_top = mix(
+        mix(
+            SKY_DUSK_TOP + star / (1.0 + moon_surf * 100.0),
+            SKY_NIGHT_TOP + star / (1.0 + moon_surf * 100.0),
+            max(pow(sun_dir.z, 0.2), 0)
+        ),
+        SKY_DAY_TOP,
+        max(-sun_dir.z, 0)
+    );
+
+    vec3 sky_mid = mix(
+        mix( SKY_DUSK_MID,
+            SKY_NIGHT_MID,
+            max(pow(sun_dir.z, 0.2), 0)
+        ),
+        SKY_DAY_MID,
+        max(-sun_dir.z, 0)
+    );
+
+    vec3 sky_bot = mix(
+        mix(
+            SKY_DUSK_BOT,
+            SKY_NIGHT_BOT,
+            max(pow(sun_dir.z, 0.2), 0)
+        ),
+        SKY_DAY_BOT,
+        max(-sun_dir.z, 0)
+    );
+
+    vec3 sky_color = mix(
+        mix(
+            sky_mid,
+            sky_bot,
+            pow(max(-dir.z, 0), 0.4)
+        ),
+        sky_top,
+        max(dir.z, 0)
+    );
+
+    // Approximate distance to fragment
+    float f_dist = distance(origin, f_pos);
+
+    if (f_dist > 5000.0) {
+        sky_color += sun_light + moon_light;
+    }
+    return sky_color;
 }
 
-vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float quality, bool with_stars, out vec4 clouds) {
-    return get_sky_color(dir, time_of_day, origin, f_pos, quality, with_stars, 1.0, clouds);
+vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float quality, bool with_stars) {
+    return get_sky_color(dir, time_of_day, origin, f_pos, quality, with_stars, 1.0);
 }
 
 float fog(vec3 f_pos, vec3 focus_pos, uint medium) {
