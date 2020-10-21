@@ -45,8 +45,8 @@ VoxygenLocalization(
         /// Start Common section
         // Texts used in multiple locations with the same formatting
         "common.username": "Spelernaam",
-        "common.singleplayer": "Singleplayer",
-        "common.multiplayer": "Multiplayer",
+        "common.singleplayer": "Alleen spelen",
+        "common.multiplayer": "Samen spelen",
         "common.servers": "Servers",
         "common.quit": "Quit",
         "common.settings": "Instellingen",
@@ -80,8 +80,8 @@ VoxygenLocalization(
         "common.gameplay_settings": "Gameplay Instellingen",
         "common.controls_settings": "Besturing Instellingen",
         "common.video_settings": "Grafische instellingen",
-        "common.sound_settings": "Geluidsinstellingen",
-        "common.language_settings": "Taalinstellingen",
+        "common.sound_settings": "Geluids instellingen",
+        "common.language_settings": "Taal instellingen",
 
         // Message when connection to the server is lost
         "common.connection_lost": r#"Verbinding verloren!
