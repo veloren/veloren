@@ -69,18 +69,23 @@ impl Animation for RunAnimation {
         } else {
             0.0
         } * 1.3;
+
+        next.head.scale = Vec3::one() * 1.02;
+        next.jaw.scale = Vec3::one() * 1.02;
+        next.upper_torso.scale = Vec3::one() / 8.0;
+        next.hand_l.scale = Vec3::one() * 1.02;
+        next.hand_r.scale = Vec3::one() * 1.02;
+        next.leg_l.scale = Vec3::one() * 1.02;
+        next.leg_r.scale = Vec3::one() * 1.02;
+
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1) * 1.02;
         next.head.orientation = Quaternion::rotation_z(short * -0.3) * Quaternion::rotation_x(-0.2);
-        next.head.scale = Vec3::one() * 1.02;
 
         next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1) * 1.02;
-        next.jaw.scale = Vec3::one() * 1.02;
 
         next.upper_torso.position =
             Vec3::new(0.0, s_a.upper_torso.0, s_a.upper_torso.1 + short * 1.0) / 8.0;
-        next.upper_torso.orientation =
-            Quaternion::rotation_z(tilt * -4.0 + short * 0.40) * Quaternion::rotation_x(0.0);
-        next.upper_torso.scale = Vec3::one() / 8.0;
+        next.upper_torso.orientation = Quaternion::rotation_z(tilt * -4.0 + short * 0.40);
 
         next.lower_torso.position = Vec3::new(0.0, s_a.lower_torso.0, s_a.lower_torso.1);
         next.lower_torso.orientation = Quaternion::rotation_z(tilt * 4.0 + shortalt * 0.2);
@@ -90,38 +95,32 @@ impl Animation for RunAnimation {
         next.shoulder_l.orientation = Quaternion::rotation_z(footrotl * 0.07)
             * Quaternion::rotation_y(0.15)
             * Quaternion::rotation_x(footrotl * -0.25);
-        next.shoulder_l.scale = Vec3::one();
 
         next.shoulder_r.position = Vec3::new(s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
         next.shoulder_r.orientation = Quaternion::rotation_z(footrotr * -0.07)
             * Quaternion::rotation_y(-0.15)
             * Quaternion::rotation_x(footrotr * -0.25);
-        next.shoulder_r.scale = Vec3::one();
 
         next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2);
         next.hand_l.orientation = Quaternion::rotation_x(0.3 + footrotl * -0.06)
             * Quaternion::rotation_y(0.1)
             * Quaternion::rotation_z(-0.35 + footrotl * -0.1);
-        next.hand_l.scale = Vec3::one() * 1.02;
 
         next.hand_r.position = Vec3::new(s_a.hand.0, s_a.hand.1, s_a.hand.2);
         next.hand_r.orientation = Quaternion::rotation_x(0.3 + footrotr * -0.06)
             * Quaternion::rotation_y(-0.1)
             * Quaternion::rotation_z(0.35 + footrotr * 0.1);
-        next.hand_r.scale = Vec3::one() * 1.02;
 
         next.leg_l.position = Vec3::new(-s_a.leg.0, s_a.leg.1, s_a.leg.2) * 1.02;
         next.leg_l.orientation = Quaternion::rotation_x(footrotl * 0.3)
             * Quaternion::rotation_y(0.1)
             * Quaternion::rotation_z(footrotl * -0.2);
-        next.leg_l.scale = Vec3::one() * 1.02;
 
         next.leg_r.position = Vec3::new(s_a.leg.0, s_a.leg.1, s_a.leg.2) * 1.02;
 
         next.leg_r.orientation = Quaternion::rotation_x(footrotr * 0.3)
             * Quaternion::rotation_y(-0.1)
             * Quaternion::rotation_z(footrotr * 0.2);
-        next.leg_r.scale = Vec3::one() * 1.02;
 
         next.foot_l.position = Vec3::new(
             -s_a.foot.0,
@@ -130,7 +129,6 @@ impl Animation for RunAnimation {
         );
         next.foot_l.orientation =
             Quaternion::rotation_x(footrotl * 0.2) * Quaternion::rotation_y(-0.08);
-        next.foot_l.scale = Vec3::one() * 0.98;
 
         next.foot_r.position = Vec3::new(
             s_a.foot.0,
@@ -140,11 +138,9 @@ impl Animation for RunAnimation {
         next.foot_r.orientation = Quaternion::rotation_z(0.0)
             * Quaternion::rotation_x(footrotr * 0.2)
             * Quaternion::rotation_y(0.08);
-        next.foot_r.scale = Vec3::one() * 0.98;
 
         next.torso.position = Vec3::new(0.0, 0.0, 0.0);
-        next.torso.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(-0.2);
-        next.torso.scale = Vec3::one();
+        next.torso.orientation = Quaternion::rotation_x(-0.2);
         next
     }
 }
