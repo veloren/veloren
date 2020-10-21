@@ -121,124 +121,96 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
             return;
         }
 
-        // You can't possess other players
         let mut clients = ecs.write_storage::<Client>();
         let mut general_streams = ecs.write_storage::<GeneralStream>();
-        let mut ping_streams = ecs.write_storage::<PingStream>();
-        let mut register_streams = ecs.write_storage::<RegisterStream>();
-        let mut character_screen_streams = ecs.write_storage::<CharacterScreenStream>();
-        let mut in_game_streams = ecs.write_storage::<InGameStream>();
-        if clients.get_mut(possesse).is_none() {
-            let client = match clients.remove(possessor) {
-                Some(c) => c,
-                None => return,
-            };
-            let mut general_stream = match general_streams.remove(possessor) {
-                Some(c) => c,
-                None => return,
-            };
-            let ping_stream = match ping_streams.remove(possessor) {
-                Some(c) => c,
-                None => return,
-            };
-            let register_stream = match register_streams.remove(possessor) {
-                Some(c) => c,
-                None => return,
-            };
-            let character_screen_stream = match character_screen_streams.remove(possessor) {
-                Some(c) => c,
-                None => return,
-            };
-            let in_game_stream = match in_game_streams.remove(possessor) {
-                Some(c) => c,
-                None => return,
-            };
-            general_stream.send_unchecked(ServerGeneral::SetPlayerEntity(possesse_uid));
-            let err_fn = |c, e: Option<specs::error::Error>| {
-                e.map(|e| error!(?e, "Error inserting {} component during possession", c));
-            };
 
-            err_fn("client", clients.insert(possesse, client).err());
-            err_fn(
-                "general_streams",
-                general_streams.insert(possesse, general_stream).err(),
-            );
-            err_fn(
-                "ping_streams",
-                ping_streams.insert(possesse, ping_stream).err(),
-            );
-            err_fn(
-                "register_streams",
-                register_streams.insert(possesse, register_stream).err(),
-            );
-            err_fn(
-                "character_screen_streams",
-                character_screen_streams
-                    .insert(possesse, character_screen_stream)
-                    .err(),
-            );
-            err_fn(
-                "in_game_streams",
-                in_game_streams.insert(possesse, in_game_stream).err(),
-            );
-            // Put possess item into loadout
-            let mut loadouts = ecs.write_storage::<comp::Loadout>();
-            let loadout = loadouts
-                .entry(possesse)
-                .expect("Could not read loadouts component while possessing")
-                .or_insert(comp::Loadout::default());
-
-            let item = comp::Item::new_from_asset_expect("common.items.debug.possess");
-            if let item::ItemKind::Tool(tool) = item.kind() {
-                let mut abilities = tool.get_abilities();
-                let mut ability_drain = abilities.drain(..);
-                let debug_item = comp::ItemConfig {
-                    item,
-                    ability1: ability_drain.next(),
-                    ability2: ability_drain.next(),
-                    ability3: ability_drain.next(),
-                    block_ability: None,
-                    dodge_ability: None,
-                };
-                std::mem::swap(&mut loadout.active_item, &mut loadout.second_item);
-                loadout.active_item = Some(debug_item);
-            }
-
-            // Move player component
-            {
-                let mut players = ecs.write_storage::<comp::Player>();
-                if let Some(player) = players.remove(possessor) {
-                    err_fn("player", players.insert(possesse, player).err());
-                }
-            }
-            // Transfer region subscription
-            {
-                let mut subscriptions = ecs.write_storage::<RegionSubscription>();
-                if let Some(s) = subscriptions.remove(possessor) {
-                    err_fn("subscription", subscriptions.insert(possesse, s).err());
-                }
-            }
-            // Remove will of the entity
-            ecs.write_storage::<comp::Agent>().remove(possesse);
-            // Reset controller of former shell
-            ecs.write_storage::<comp::Controller>()
-                .get_mut(possessor)
-                .map(|c| c.reset());
-            // Transfer admin powers
-            {
-                let mut admins = ecs.write_storage::<comp::Admin>();
-                if let Some(admin) = admins.remove(possessor) {
-                    err_fn("admin", admins.insert(possesse, admin).err());
-                }
-            }
-            // Transfer waypoint
-            {
-                let mut waypoints = ecs.write_storage::<comp::Waypoint>();
-                if let Some(waypoint) = waypoints.remove(possessor) {
-                    err_fn("waypoints", waypoints.insert(possesse, waypoint).err());
-                }
-            }
+        if clients.get_mut(possesse).is_some() {
+            error!("can't possess other players");
+            return;
         }
+
+        match (|| -> Option<Result<(), specs::error::Error>> {
+            let mut ping_streams = ecs.write_storage::<PingStream>();
+            let mut register_streams = ecs.write_storage::<RegisterStream>();
+            let mut character_screen_streams = ecs.write_storage::<CharacterScreenStream>();
+            let mut in_game_streams = ecs.write_storage::<InGameStream>();
+
+            let c = clients.remove(possessor)?;
+            clients.insert(possesse, c).ok()?;
+            let s = general_streams.remove(possessor)?;
+            general_streams.insert(possesse, s).ok()?;
+            let s = ping_streams.remove(possessor)?;
+            ping_streams.insert(possesse, s).ok()?;
+            let s = register_streams.remove(possessor)?;
+            register_streams.insert(possesse, s).ok()?;
+            let s = character_screen_streams.remove(possessor)?;
+            character_screen_streams.insert(possesse, s).ok()?;
+            let s = in_game_streams.remove(possessor)?;
+            in_game_streams.insert(possesse, s).ok()?;
+            //optional entities
+            let mut players = ecs.write_storage::<comp::Player>();
+            let mut subscriptions = ecs.write_storage::<RegionSubscription>();
+            let mut admins = ecs.write_storage::<comp::Admin>();
+            let mut waypoints = ecs.write_storage::<comp::Waypoint>();
+            players
+                .remove(possessor)
+                .map(|p| players.insert(possesse, p).ok()?);
+            subscriptions
+                .remove(possessor)
+                .map(|s| subscriptions.insert(possesse, s).ok()?);
+            admins
+                .remove(possessor)
+                .map(|a| admins.insert(possesse, a).ok()?);
+            waypoints
+                .remove(possessor)
+                .map(|w| waypoints.insert(possesse, w).ok()?);
+
+            Some(Ok(()))
+        })() {
+            Some(Ok(())) => (),
+            Some(Err(e)) => {
+                error!(?e, ?possesse, "Error inserting component during possession");
+                return;
+            },
+            None => {
+                error!(?possessor, "Error removing component during possession");
+                return;
+            },
+        }
+
+        general_streams
+            .get_mut(possesse)
+            .map(|s| s.send_fallible(ServerGeneral::SetPlayerEntity(possesse_uid)));
+
+        // Put possess item into loadout
+        let mut loadouts = ecs.write_storage::<comp::Loadout>();
+        let loadout = loadouts
+            .entry(possesse)
+            .expect("Could not read loadouts component while possessing")
+            .or_insert(comp::Loadout::default());
+
+        let item = comp::Item::new_from_asset_expect("common.items.debug.possess");
+        if let item::ItemKind::Tool(tool) = item.kind() {
+            let mut abilities = tool.get_abilities();
+            let mut ability_drain = abilities.drain(..);
+            let debug_item = comp::ItemConfig {
+                item,
+                ability1: ability_drain.next(),
+                ability2: ability_drain.next(),
+                ability3: ability_drain.next(),
+                block_ability: None,
+                dodge_ability: None,
+            };
+            std::mem::swap(&mut loadout.active_item, &mut loadout.second_item);
+            loadout.active_item = Some(debug_item);
+        }
+
+        // Remove will of the entity
+        ecs.write_storage::<comp::Agent>().remove(possesse);
+        // Reset controller of former shell
+        ecs.write_storage::<comp::Controller>()
+            .get_mut(possessor)
+            .map(|c| c.reset());
     }
 }
 

@@ -232,7 +232,7 @@ impl StateExt for State {
                 .get_mut(entity)
             {
                 client.in_game = Some(ClientInGame::Character);
-                character_screen_stream.send_unchecked(ServerGeneral::CharacterSuccess);
+                character_screen_stream.send_fallible(ServerGeneral::CharacterSuccess);
             }
         }
     }
@@ -298,7 +298,7 @@ impl StateExt for State {
                     .join()
                 {
                     if uid != u {
-                        general_stream.send_unchecked(ServerGeneral::ChatMsg(resolved_msg.clone()));
+                        general_stream.send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
                     }
                 }
             },
@@ -310,7 +310,7 @@ impl StateExt for State {
                     .join()
                 {
                     if uid == u || uid == t {
-                        general_stream.send_unchecked(ServerGeneral::ChatMsg(resolved_msg.clone()));
+                        general_stream.send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
                     }
                 }
             },
@@ -325,7 +325,7 @@ impl StateExt for State {
                     {
                         if is_within(comp::ChatMsg::SAY_DISTANCE, pos, speaker_pos) {
                             general_stream
-                                .send_unchecked(ServerGeneral::ChatMsg(resolved_msg.clone()));
+                                .send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
                         }
                     }
                 }
@@ -340,7 +340,7 @@ impl StateExt for State {
                     {
                         if is_within(comp::ChatMsg::REGION_DISTANCE, pos, speaker_pos) {
                             general_stream
-                                .send_unchecked(ServerGeneral::ChatMsg(resolved_msg.clone()));
+                                .send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
                         }
                     }
                 }
@@ -355,7 +355,7 @@ impl StateExt for State {
                     {
                         if is_within(comp::ChatMsg::NPC_DISTANCE, pos, speaker_pos) {
                             general_stream
-                                .send_unchecked(ServerGeneral::ChatMsg(resolved_msg.clone()));
+                                .send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
                         }
                     }
                 }
@@ -369,7 +369,7 @@ impl StateExt for State {
                     .join()
                 {
                     if s == &faction.0 {
-                        general_stream.send_unchecked(ServerGeneral::ChatMsg(resolved_msg.clone()));
+                        general_stream.send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
                     }
                 }
             },
@@ -381,7 +381,7 @@ impl StateExt for State {
                     .join()
                 {
                     if g == group {
-                        general_stream.send_unchecked(ServerGeneral::ChatMsg(resolved_msg.clone()));
+                        general_stream.send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
                     }
                 }
             },

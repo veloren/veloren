@@ -8,7 +8,10 @@ use crate::streams::GetStream;
 
 /// handles all send msg and calls a handle fn
 /// Aborts when a error occurred returns cnt of successful msg otherwise
-pub(crate) fn try_recv_all<T, F>(stream: &mut T, mut f: F) -> Result<u64, crate::error::Error>
+pub(in crate::sys::msg) fn try_recv_all<T, F>(
+    stream: &mut T,
+    mut f: F,
+) -> Result<u64, crate::error::Error>
 where
     T: GetStream,
     F: FnMut(&mut T, T::RecvMsg) -> Result<(), crate::error::Error>,

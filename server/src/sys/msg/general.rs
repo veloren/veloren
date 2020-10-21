@@ -61,6 +61,8 @@ impl Sys {
                     .clients_disconnected
                     .with_label_values(&["gracefully"])
                     .inc();
+                client.registered = false;
+                client.in_game = None;
                 server_emitter.emit(ServerEvent::ClientDisconnect(entity));
             },
             _ => unreachable!("not a client_general msg"),

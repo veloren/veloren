@@ -67,11 +67,19 @@ impl<'a> System<'a> for Sys {
 
             match res {
                 Err(e) => {
-                    debug!(?entity, ?e, "network error with client, disconnecting");
-                    player_metrics
-                        .clients_disconnected
-                        .with_label_values(&["network_error"])
-                        .inc();
+                    let reg = client.registered;
+                    debug!(
+                        ?entity,
+                        ?e,
+                        ?reg,
+                        "network error with client, disconnecting"
+                    );
+                    if reg {
+                        player_metrics
+                            .clients_disconnected
+                            .with_label_values(&["network_error"])
+                            .inc();
+                    }
                     server_emitter.emit(ServerEvent::ClientDisconnect(entity));
                 },
                 Ok(1_u64..=u64::MAX) => {
@@ -82,17 +90,20 @@ impl<'a> System<'a> for Sys {
                     if time.0 - client.last_ping > settings.client_timeout.as_secs() as f64
                     // Timeout
                     {
-                        info!(?entity, "timeout error with client, disconnecting");
-                        player_metrics
-                            .clients_disconnected
-                            .with_label_values(&["timeout"])
-                            .inc();
+                        let reg = client.registered;
+                        info!(?entity, ?reg, "timeout error with client, disconnecting");
+                        if reg {
+                            player_metrics
+                                .clients_disconnected
+                                .with_label_values(&["timeout"])
+                                .inc();
+                        }
                         server_emitter.emit(ServerEvent::ClientDisconnect(entity));
                     } else if time.0 - client.last_ping
                         > settings.client_timeout.as_secs() as f64 * 0.5
                     {
                         // Try pinging the client if the timeout is nearing.
-                        ping_stream.send_unchecked(PingMsg::Ping);
+                        ping_stream.send_fallible(PingMsg::Ping);
                     }
                 },
             }

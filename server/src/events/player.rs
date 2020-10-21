@@ -28,46 +28,40 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
     // components Easier than checking and removing all other known components
     // Note: If other `ServerEvent`s are referring to this entity they will be
     // disrupted
-    let maybe_client = state.ecs().write_storage::<Client>().remove(entity);
-    let maybe_uid = state.read_component_copied::<Uid>(entity);
-    let maybe_player = state.ecs().write_storage::<comp::Player>().remove(entity);
-    let maybe_admin = state.ecs().write_storage::<comp::Admin>().remove(entity);
-    let maybe_general_stream = state.ecs().write_storage::<GeneralStream>().remove(entity);
-    let maybe_ping_stream = state.ecs().write_storage::<PingStream>().remove(entity);
-    let maybe_register_stream = state.ecs().write_storage::<RegisterStream>().remove(entity);
-    let maybe_character_screen_stream = state
-        .ecs()
-        .write_storage::<CharacterScreenStream>()
-        .remove(entity);
-    let maybe_in_game_stream = state.ecs().write_storage::<InGameStream>().remove(entity);
 
+    let maybe_admin = state.ecs().write_storage::<comp::Admin>().remove(entity);
     let maybe_group = state
         .ecs()
         .write_storage::<group::Group>()
         .get(entity)
         .cloned();
-    if let (
-        Some(mut client),
-        Some(uid),
-        Some(player),
-        Some(general_stream),
-        Some(ping_stream),
-        Some(register_stream),
-        Some(character_screen_stream),
-        Some(mut in_game_stream),
-    ) = (
-        maybe_client,
-        maybe_uid,
-        maybe_player,
-        maybe_general_stream,
-        maybe_ping_stream,
-        maybe_register_stream,
-        maybe_character_screen_stream,
-        maybe_in_game_stream,
-    ) {
+
+    if let Some((
+        mut client,
+        uid,
+        player,
+        general_stream,
+        ping_stream,
+        register_stream,
+        character_screen_stream,
+        mut in_game_stream,
+    )) = (|| {
+        let ecs = state.ecs();
+        Some((
+            ecs.write_storage::<Client>().remove(entity)?,
+            ecs.write_storage::<Uid>().remove(entity)?,
+            ecs.write_storage::<comp::Player>().remove(entity)?,
+            ecs.write_storage::<GeneralStream>().remove(entity)?,
+            ecs.write_storage::<PingStream>().remove(entity)?,
+            ecs.write_storage::<RegisterStream>().remove(entity)?,
+            ecs.write_storage::<CharacterScreenStream>()
+                .remove(entity)?,
+            ecs.write_storage::<InGameStream>().remove(entity)?,
+        ))
+    })() {
         // Tell client its request was successful
         client.in_game = None;
-        in_game_stream.send_unchecked(ServerGeneral::ExitInGameSuccess);
+        in_game_stream.send_fallible(ServerGeneral::ExitInGameSuccess);
 
         let entity_builder = state
             .ecs_mut()
