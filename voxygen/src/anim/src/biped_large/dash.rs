@@ -42,11 +42,6 @@ impl Animation for DashAnimation {
             _ => (0.0, 0.0, 0.0, 0.0),
         };
 
-        fn slow(x: f32) -> f32 {
-            (((5.0) / (1.1 + 3.9 * ((x * 12.4).sin()).powf(2.0 as f32))).sqrt())
-                * ((x * 12.4).sin())
-        }
-
         fn short(x: f32) -> f32 {
             (((5.0) / (1.5 + 3.5 * ((x * 5.0).sin()).powf(2.0 as f32))).sqrt()) * ((x * 5.0).sin())
         }
@@ -68,18 +63,12 @@ impl Animation for DashAnimation {
 
         fn shortalt(x: f32) -> f32 { (x * 5.0 + PI / 2.0).sin() }
 
-        next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
-
         next.hand_l.position = Vec3::new(-0.75, -1.0, 2.5);
         next.hand_l.orientation = Quaternion::rotation_x(1.47) * Quaternion::rotation_y(-0.2);
-        next.hand_l.scale = Vec3::one() * 1.02;
         next.hand_r.position = Vec3::new(0.75, -1.5, -0.5);
         next.hand_r.orientation = Quaternion::rotation_x(1.47) * Quaternion::rotation_y(0.3);
-        next.hand_r.scale = Vec3::one() * 1.02;
         next.main.position = Vec3::new(0.0, 0.0, 2.0);
-        next.main.orientation = Quaternion::rotation_x(-0.1)
-            * Quaternion::rotation_y(0.0)
-            * Quaternion::rotation_z(0.0);
+        next.main.orientation = Quaternion::rotation_x(-0.1);
 
         match active_tool_kind {
             //TODO: Inventory
@@ -109,7 +98,6 @@ impl Animation for DashAnimation {
                     Quaternion::rotation_x(movement1 * -1.0 + movement3 * -0.5)
                         * Quaternion::rotation_y(movement1 * 1.5 + movement3 * -2.5)
                         * Quaternion::rotation_z(0.0);
-                next.control.scale = Vec3::one();
 
                 next.lower_torso.orientation =
                     Quaternion::rotation_z(short(movement2).min(1.0) * 0.25);
@@ -130,90 +118,13 @@ impl Animation for DashAnimation {
                 next.foot_r.orientation = Quaternion::rotation_x(-0.6 + footrotr(movement2) * -0.6)
                     * Quaternion::rotation_z(-0.2);
             },
-            Some(ToolKind::Dagger(_)) => {
-                next.head.position = Vec3::new(0.0, s_a.head.0, -2.0 + s_a.head.1);
-                next.head.orientation = Quaternion::rotation_z(0.0)
-                    * Quaternion::rotation_x(0.0)
-                    * Quaternion::rotation_y(0.0);
-                next.head.scale = Vec3::one();
-
-                next.upper_torso.position = Vec3::new(0.0, 0.0, 7.0 + slow(anim_time as f32) * 2.0);
-                next.upper_torso.orientation =
-                    Quaternion::rotation_x(-0.5) * Quaternion::rotation_z(-0.7);
-
-                next.lower_torso.position = Vec3::new(0.0, 3.0, -3.0);
-                next.lower_torso.orientation =
-                    Quaternion::rotation_x(0.4) * Quaternion::rotation_z(0.3);
-
-                next.hand_l.position = Vec3::new(-0.75, -1.0, -2.5);
-                next.hand_l.orientation = Quaternion::rotation_x(1.27);
-                next.hand_l.scale = Vec3::one() * 1.04;
-                next.hand_r.position = Vec3::new(0.75, -1.5, -5.5);
-                next.hand_r.orientation = Quaternion::rotation_x(1.27);
-                next.hand_r.scale = Vec3::one() * 1.05;
-                next.main.position = Vec3::new(0.0, 6.0, -1.0);
-                next.main.orientation = Quaternion::rotation_x(-0.3);
-                next.main.scale = Vec3::one();
-
-                next.control.position = Vec3::new(-8.0 - slow(anim_time as f32) * 0.5, 3.0, 3.0);
-                next.control.orientation = Quaternion::rotation_x(-0.3)
-                    * Quaternion::rotation_z(1.1 + slow(anim_time as f32) * 0.2);
-                next.control.scale = Vec3::one();
-                next.foot_l.position = Vec3::new(-1.4, 2.0, s_a.foot.2);
-                next.foot_l.orientation = Quaternion::rotation_x(-0.8);
-
-                next.foot_r.position = Vec3::new(5.4, -1.0, s_a.foot.2);
-                next.foot_r.orientation = Quaternion::rotation_x(-0.8);
-            },
+            Some(ToolKind::Dagger(_)) => {},
             _ => {},
         }
         match second_tool_kind {
-            //TODO: Inventory
-            Some(ToolKind::Dagger(_)) => {
-                next.head.position = Vec3::new(0.0, s_a.head.0, -2.0 + s_a.head.1);
-                next.head.orientation = Quaternion::rotation_z(0.0)
-                    * Quaternion::rotation_x(0.0)
-                    * Quaternion::rotation_y(0.0);
-                next.head.scale = Vec3::one();
-
-                next.upper_torso.position = Vec3::new(0.0, 0.0, 7.0 + slow(anim_time as f32) * 2.0);
-                next.upper_torso.orientation = Quaternion::rotation_x(0.0);
-
-                next.lower_torso.position = Vec3::new(0.0, 3.0, -3.0);
-                next.lower_torso.orientation = Quaternion::rotation_x(0.0);
-
-                next.control.position = Vec3::new(0.0, 0.0, 0.0);
-                next.control.orientation = Quaternion::rotation_x(0.0);
-                next.control.scale = Vec3::one();
-
-                next.hand_l.position = Vec3::new(0.0, 0.0, 0.0);
-                next.hand_l.orientation = Quaternion::rotation_x(0.0);
-                next.hand_l.scale = Vec3::one() * 1.04;
-
-                next.main.position = Vec3::new(0.0, 0.0, 0.0);
-                next.main.orientation = Quaternion::rotation_x(0.0);
-                next.main.scale = Vec3::one();
-
-                next.hand_r.position = Vec3::new(0.0, 0.0, 0.0);
-                next.hand_r.orientation = Quaternion::rotation_x(0.0);
-                next.hand_r.scale = Vec3::one() * 1.05;
-
-                next.second.position = Vec3::new(0.0, 6.0, -1.0);
-                next.second.orientation = Quaternion::rotation_x(-0.3);
-                next.second.scale = Vec3::one();
-
-                next.foot_l.position = Vec3::new(-1.4, 2.0, s_a.foot.2);
-                next.foot_l.orientation = Quaternion::rotation_x(-0.8);
-
-                next.foot_r.position = Vec3::new(5.4, -1.0, s_a.foot.2);
-                next.foot_r.orientation = Quaternion::rotation_x(-0.8);
-            },
+            Some(ToolKind::Dagger(_)) => {},
             _ => {},
         }
-
-        next.hold.scale = Vec3::one() * 0.0;
-
-        next.torso.scale = Vec3::one() / 8.0;
 
         next.second.scale = match (
             active_tool_kind.map(|tk| tk.hands()),

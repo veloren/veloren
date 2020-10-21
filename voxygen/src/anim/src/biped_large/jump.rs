@@ -28,9 +28,12 @@ impl Animation for JumpAnimation {
 
         let wave_slow = (anim_time as f32 * 0.8).sin();
 
+        next.head.scale = Vec3::one() * 1.02;
+
+        next.hand_l.scale = Vec3::one() * 1.04;
+
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1 + torso * 0.2) * 1.02;
         next.head.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
-        next.head.scale = Vec3::one() * 1.02;
 
         next.upper_torso.position =
             Vec3::new(0.0, s_a.upper_torso.0, s_a.upper_torso.1 + torso * 0.5);
@@ -74,7 +77,6 @@ impl Animation for JumpAnimation {
 
         next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2 + torso * 0.6);
         next.hand_l.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.8);
-        next.hand_l.scale = Vec3::one() * 1.02;
 
         next.hand_r.position = Vec3::new(s_a.hand.0, s_a.hand.1, s_a.hand.2 + torso * 0.6);
         next.hand_r.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(-0.8);
