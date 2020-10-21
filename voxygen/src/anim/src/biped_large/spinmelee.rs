@@ -64,11 +64,9 @@ impl Animation for SpinMeleeAnimation {
                 next.hand_l.position = Vec3::new(-0.75, -1.0, 2.5);
                 next.hand_l.orientation =
                     Quaternion::rotation_x(1.47) * Quaternion::rotation_y(-0.2);
-                next.hand_l.scale = Vec3::one() * 1.02;
                 next.hand_r.position = Vec3::new(0.75, -1.5, -0.5);
                 next.hand_r.orientation =
                     Quaternion::rotation_x(1.47) * Quaternion::rotation_y(0.3);
-                next.hand_r.scale = Vec3::one() * 1.02;
                 next.main.position = Vec3::new(0.0, 5.0, 2.0);
                 next.main.orientation = Quaternion::rotation_x(-0.1)
                     * Quaternion::rotation_y(0.0)
@@ -142,80 +140,54 @@ impl Animation for SpinMeleeAnimation {
             },
             Some(ToolKind::Axe(_)) => {
                 next.hand_l.position = Vec3::new(-0.5, 0.0, 4.0);
-                next.hand_l.orientation = Quaternion::rotation_x(PI / 2.0)
-                    * Quaternion::rotation_z(0.0)
-                    * Quaternion::rotation_y(PI);
-                next.hand_l.scale = Vec3::one() * 1.08;
+                next.hand_l.orientation =
+                    Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_y(PI);
                 next.hand_r.position = Vec3::new(0.5, 0.0, -2.5);
-                next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0)
-                    * Quaternion::rotation_z(0.0)
-                    * Quaternion::rotation_y(0.0);
-                next.hand_r.scale = Vec3::one() * 1.06;
+                next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0);
                 next.main.position = Vec3::new(-0.0, -2.0, -1.0);
-                next.main.orientation = Quaternion::rotation_x(0.0)
-                    * Quaternion::rotation_y(0.0)
-                    * Quaternion::rotation_z(0.0);
+                next.main.orientation = Quaternion::rotation_x(0.0);
 
                 next.control.position = Vec3::new(0.0, 16.0, 3.0);
-                next.control.orientation = Quaternion::rotation_x(-1.4)
-                    * Quaternion::rotation_y(0.0)
-                    * Quaternion::rotation_z(1.4);
-                next.control.scale = Vec3::one();
+                next.control.orientation =
+                    Quaternion::rotation_x(-1.4) * Quaternion::rotation_z(1.4);
 
                 next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
-                next.head.orientation = Quaternion::rotation_z(0.0)
-                    * Quaternion::rotation_x(-0.15)
-                    * Quaternion::rotation_y(0.08);
+                next.head.orientation =
+                    Quaternion::rotation_x(-0.15) * Quaternion::rotation_y(0.08);
                 next.upper_torso.position =
                     Vec3::new(0.0, s_a.upper_torso.0 - 3.0, s_a.upper_torso.1 - 2.0);
-                next.upper_torso.orientation = Quaternion::rotation_z(0.0)
-                    * Quaternion::rotation_x(-0.1)
-                    * Quaternion::rotation_y(0.3);
-                next.upper_torso.scale = Vec3::one();
+                next.upper_torso.orientation =
+                    Quaternion::rotation_x(-0.1) * Quaternion::rotation_y(0.3);
 
                 next.lower_torso.position = Vec3::new(0.0, 3.0, -2.5);
-                next.lower_torso.orientation = Quaternion::rotation_z(0.0)
-                    * Quaternion::rotation_x(0.7)
-                    * Quaternion::rotation_y(0.0);
-                next.lower_torso.scale = Vec3::one();
+                next.lower_torso.orientation = Quaternion::rotation_x(0.7);
                 next.torso.position = Vec3::new(
                     -xshift * (anim_time as f32).min(0.6),
                     -yshift * (anim_time as f32).min(0.6),
                     0.0,
                 ) * 1.01;
-                next.torso.orientation = Quaternion::rotation_z(spin * -16.0)
-                    * Quaternion::rotation_x(0.0)
-                    * Quaternion::rotation_y(0.0);
+                next.torso.orientation = Quaternion::rotation_z(spin * -16.0);
                 next.torso.scale = Vec3::one() / 11.0 * 1.01;
                 if velocity.z.abs() > 0.1 {
                     next.foot_l.position = Vec3::new(-s_a.foot.0, 8.0, s_a.foot.2 + 2.0);
-                    next.foot_l.orientation =
-                        Quaternion::rotation_x(1.0) * Quaternion::rotation_z(0.0);
-                    next.foot_l.scale = Vec3::one();
+                    next.foot_l.orientation = Quaternion::rotation_x(1.0);
 
                     next.foot_r.position = Vec3::new(s_a.foot.0, 8.0, s_a.foot.2 + 2.0);
                     next.foot_r.orientation = Quaternion::rotation_x(1.0);
                     next.foot_r.scale = Vec3::one();
                 } else if speed < 0.5 {
                     next.foot_l.position = Vec3::new(-s_a.foot.0, 2.0 + quick * -6.0, s_a.foot.2);
-                    next.foot_l.orientation = Quaternion::rotation_x(0.5 + slowersmooth * 0.2)
-                        * Quaternion::rotation_z(0.0);
-                    next.foot_l.scale = Vec3::one();
+                    next.foot_l.orientation = Quaternion::rotation_x(0.5 + slowersmooth * 0.2);
 
                     next.foot_r.position = Vec3::new(s_a.foot.0, 4.0, s_a.foot.2);
                     next.foot_r.orientation = Quaternion::rotation_x(0.5 - slowersmooth * 0.2)
                         * Quaternion::rotation_y(-0.4);
-                    next.foot_r.scale = Vec3::one();
                 } else {
                     next.foot_l.position = Vec3::new(-s_a.foot.0, 2.0 + quick * -6.0, s_a.foot.2);
-                    next.foot_l.orientation = Quaternion::rotation_x(0.5 + slowersmooth * 0.2)
-                        * Quaternion::rotation_z(0.0);
-                    next.foot_l.scale = Vec3::one();
+                    next.foot_l.orientation = Quaternion::rotation_x(0.5 + slowersmooth * 0.2);
 
                     next.foot_r.position = Vec3::new(s_a.foot.0, 2.0 + quick * 6.0, s_a.foot.2);
-                    next.foot_r.orientation = Quaternion::rotation_x(0.5 - slowersmooth * 0.2)
-                        * Quaternion::rotation_z(0.0);
-                    next.foot_r.scale = Vec3::one();
+                    next.foot_r.orientation = Quaternion::rotation_x(0.5 - slowersmooth * 0.2);
                 };
             },
             _ => {},
