@@ -48,7 +48,7 @@ VoxygenLocalization(
         "common.singleplayer": "Alleen spelen",
         "common.multiplayer": "Samen spelen",
         "common.servers": "Servers",
-        "common.quit": "Quit",
+        "common.quit": "Afsluiten",
         "common.settings": "Instellingen",
         "common.languages": "Talen",
         "common.interface": "Interface",
@@ -85,7 +85,7 @@ VoxygenLocalization(
 
         // Message when connection to the server is lost
         "common.connection_lost": r#"Verbinding verloren!
-Is de server herstart?
+Is de server opniew opgestart?
 Is je client nog up to date?"#,
 
 
@@ -300,15 +300,15 @@ met magie gevulde objecten bemachtigen?"#,
         "hud.settings.speech_bubble": "Spraakbubbel",
         "hud.settings.speech_bubble_dark_mode": "Donkere Modus",
         "hud.settings.speech_bubble_icon": "Spraakbubbel Icoon",
-        "hud.settings.energybar_numbers": "Energiebalk getallen",
+        "hud.settings.energybar_numbers": "Energiebalk Getallen",
         "hud.settings.values": "Waarden",
         "hud.settings.percentages": "Percentages",
         "hud.settings.chat": "Chat",
-        "hud.settings.background_transparency": "Transparantie achtergrond",
-        "hud.settings.chat_character_name": "Karakternamen in de chat",
-        "hud.settings.loading_tips": "Laadscherm tips",
+        "hud.settings.background_transparency": "Transparantie Achtergrond",
+        "hud.settings.chat_character_name": "Karakternamen in de Chat",
+        "hud.settings.loading_tips": "Laadscherm Tips",
 
-        "hud.settings.pan_sensitivity": "Pan-gevoeligheid",
+        "hud.settings.pan_sensitivity": "Camera-gevoeligheid",
         "hud.settings.zoom_sensitivity": "Zoom-gevoeligheid",
         "hud.settings.invert_scroll_zoom": "Inverteer Zoom Scrollen",
         "hud.settings.invert_mouse_y_axis": "Inverteer muis Y As",
