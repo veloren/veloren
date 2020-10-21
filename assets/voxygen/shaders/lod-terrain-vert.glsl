@@ -24,7 +24,7 @@ in vec2 v_pos;
 
 layout (std140)
 uniform u_locals {
-	vec4 nul;
+    vec4 nul;
 };
 
 out vec3 f_pos;
@@ -43,16 +43,16 @@ void main() {
     f_norm = lod_norm(f_pos.xy, f_square);
     // v_pos_orig = v_pos;
 
-	// f_pos = lod_pos(focus_pos.xy + splay(v_pos) * /*1000000.0*/(1 << 20), square);
+    // f_pos = lod_pos(focus_pos.xy + splay(v_pos) * /*1000000.0*/(1 << 20), square);
 
-	// f_norm = lod_norm(f_pos.xy);
+    // f_norm = lod_norm(f_pos.xy);
 
     // f_shadow = textureBicubic(t_horizon, pos_to_tex(f_pos.xy));
 
-	pull_down = 1.0 / pow(distance(focus_pos.xy, f_pos.xy) / (view_distance.x * 0.95), 20.0);
-	f_pos.z -= pull_down;
+    pull_down = 1.0 / pow(distance(focus_pos.xy, f_pos.xy) / (view_distance.x * 0.95), 20.0);
+    f_pos.z -= pull_down;
 
-	// f_pos.z -= 100.0 * pow(1.0 + 0.01 / view_distance.x, -pow(distance(focus_pos.xy, f_pos.xy), 2.0));
+    // f_pos.z -= 100.0 * pow(1.0 + 0.01 / view_distance.x, -pow(distance(focus_pos.xy, f_pos.xy), 2.0));
     // f_pos.z = mix(-f_pos.z, f_pos.z, view_distance.x <= distance(focus_pos.xy, f_pos.xy) + 32.0);
 
     // bool faces_fluid = false;// bool((f_pos_norm >> 28) & 0x1u);
@@ -61,8 +61,8 @@ void main() {
     // // float surfaceAlt = mix(view_distance.z, floor(max(cam_pos.z, alt_at_real(cam_pos.xy))), medium.x);
     // // float surfaceAlt = min(floor(f_pos.z), floor(alt_at_real(cam_pos.xy))); // faces_fluid ? max(ceil(f_pos.z), floor(f_alt)) : floor(f_alt);
 
-	// f_pos.z -= max(sign(view_distance.x - distance(focus_pos.xy, f_pos.xy)), 0.0) * (32.0 * view_distance.z / 255 + 32.0 * max(0.0, f_pos.z - cam_pos.z));
-	// f_pos.z -= 0.1 + max(view_distance.x - distance(focus_pos.xy, f_pos.xy), 0.0) * (1.0 + max(1.0, ceil(f_pos.z - focus_pos.z)));
+    // f_pos.z -= max(sign(view_distance.x - distance(focus_pos.xy, f_pos.xy)), 0.0) * (32.0 * view_distance.z / 255 + 32.0 * max(0.0, f_pos.z - cam_pos.z));
+    // f_pos.z -= 0.1 + max(view_distance.x - distance(focus_pos.xy, f_pos.xy), 0.0) * (1.0 + max(1.0, ceil(f_pos.z - focus_pos.z)));
 
     // vec3 wRayinitial = f_pos; // cam_pos.z < f_pos.z ? f_pos : cam_pos.xyz;
     // vec3 wRayfinal = cam_pos.xyz; // cam_pos.z < f_pos.z ? cam_pos.xyz : f_pos;
@@ -88,19 +88,19 @@ void main() {
 
     // vec3 newRay = (dot(wRayDir3, focus_pos.xyz - cam_pos.xyz) < 0.0 && /*dot(wRayDir, wRayNormal) > 0.0 && *//*surfaceAlt < wRayinitial.z && */wIntersectsSurface && medium.x == 1u) ? wPoint - wRayDir3 * wRayLength * n2 / n1/*wPoint - wRayDir3 * wRayLength * n2 / n1*/ : f_pos;// - (wRayfinal - wPoint) * n2 / n1; // wPoint + n2 * (wRayfinal - wPoint) - n2 / n1 * wRayLength * wRayDir3;
 
-	// newRay.z -= max(view_distance.x - distance(focus_pos.xy, f_pos.xy), 0.0) * (1.0 + max(0.0, f_pos.z - focus_pos.z));
+    // newRay.z -= max(view_distance.x - distance(focus_pos.xy, f_pos.xy), 0.0) * (1.0 + max(0.0, f_pos.z - focus_pos.z));
 
 
-	// f_light = 1.0;
+    // f_light = 1.0;
 
-	gl_Position =
-		/* proj_mat *
-		view_mat * */
+    gl_Position =
+        /* proj_mat *
+        view_mat * */
         all_mat *
-		vec4(f_pos/*newRay*/, 1);
+        vec4(f_pos/*newRay*/, 1);
     // gl_Position.z = -gl_Position.z / gl_Position.w;
     // gl_Position.z = -gl_Position.z / gl_Position.w;
     // gl_Position.z = -gl_Position.z * gl_Position.w;
-	// gl_Position.z = -gl_Position.z / 100.0;
-	// gl_Position.z = -1000.0 / (gl_Position.z + 10000.0);
+    // gl_Position.z = -gl_Position.z / 100.0;
+    // gl_Position.z = -1000.0 / (gl_Position.z + 10000.0);
 }

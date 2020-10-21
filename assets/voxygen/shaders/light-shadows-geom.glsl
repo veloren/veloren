@@ -31,14 +31,14 @@
 // #include <light.glsl>
 
 /* struct Light {
-	vec4 light_pos;
-	vec4 light_col;
+    vec4 light_pos;
+    vec4 light_col;
     // mat4 light_proj;
 };
 
 layout (std140)
 uniform u_lights {
-	Light lights[31];
+    Light lights[31];
 }; */
 
 // Since our output primitive is a triangle strip, we have to render three vertices
@@ -186,7 +186,7 @@ layout (triangles/*, invocations = 6*/) in;
 layout (triangle_strip, max_vertices = /*MAX_LAYER_VERTICES_PER_FACE*//*96*/18) out;
 
 //struct ShadowLocals {
-//	mat4 shadowMatrices;
+//  mat4 shadowMatrices;
 //    mat4 texture_mat;
 //};
 //

@@ -2,29 +2,29 @@
 #include <shadows.glsl>
 
 struct Light {
-	vec4 light_pos;
-	vec4 light_col;
+    vec4 light_pos;
+    vec4 light_col;
     // mat4 light_proj;
 };
 
 layout (std140)
 uniform u_lights {
-	Light lights[31];
+    Light lights[31];
 };
 
 struct Shadow {
-	vec4 shadow_pos_radius;
+    vec4 shadow_pos_radius;
 };
 
 layout (std140)
 uniform u_shadows {
-	Shadow shadows[24];
+    Shadow shadows[24];
 };
 
 float attenuation_strength(vec3 rpos) {
-	// This is not how light attenuation works at all, but it produces visually pleasing and mechanically useful properties
-	float d2 = rpos.x * rpos.x + rpos.y * rpos.y + rpos.z * rpos.z;
-	return max(2.0 / pow(d2 + 10, 0.35) - pow(d2 / 50000.0, 0.8), 0.0);
+    // This is not how light attenuation works at all, but it produces visually pleasing and mechanically useful properties
+    float d2 = rpos.x * rpos.x + rpos.y * rpos.y + rpos.z * rpos.z;
+    return max(2.0 / pow(d2 + 10, 0.35) - pow(d2 / 50000.0, 0.8), 0.0);
 }
 
 // // Compute attenuation due to light passing through a substance that fills an area below a horizontal plane
@@ -59,58 +59,58 @@ float attenuation_strength(vec3 rpos) {
 // }
 
 vec3 light_at(vec3 wpos, vec3 wnorm) {
-	const float LIGHT_AMBIANCE = 0.025;
+    const float LIGHT_AMBIANCE = 0.025;
 
-	vec3 light = vec3(0);
+    vec3 light = vec3(0);
 
-	for (uint i = 0u; i < light_shadow_count.x; i ++) {
+    for (uint i = 0u; i < light_shadow_count.x; i ++) {
 
-		// Only access the array once
-		Light L = lights[i];
+        // Only access the array once
+        Light L = lights[i];
 
-		vec3 light_pos = L.light_pos.xyz - focus_off.xyz;
+        vec3 light_pos = L.light_pos.xyz - focus_off.xyz;
 
-		// Pre-calculate difference between light and fragment
-		vec3 difference = light_pos - wpos;
+        // Pre-calculate difference between light and fragment
+        vec3 difference = light_pos - wpos;
 
-		float strength = attenuation_strength(difference);
+        float strength = attenuation_strength(difference);
 
-		// Multiply the vec3 only once
-		vec3 color = srgb_to_linear(L.light_col.rgb) * (strength * L.light_col.a);
+        // Multiply the vec3 only once
+        vec3 color = srgb_to_linear(L.light_col.rgb) * (strength * L.light_col.a);
 
-		light += color * (max(0, max(dot(normalize(difference), wnorm), 0.15)) + LIGHT_AMBIANCE);
-	}
-	return light;
+        light += color * (max(0, max(dot(normalize(difference), wnorm), 0.15)) + LIGHT_AMBIANCE);
+    }
+    return light;
 }
 
 float shadow_at(vec3 wpos, vec3 wnorm) {
-	float shadow = 1.0;
+    float shadow = 1.0;
 
 #if (SHADOW_MODE == SHADOW_MODE_NONE || SHADOW_MODE == SHADOW_MODE_MAP)
     return shadow;
 #elif (SHADOW_MODE == SHADOW_MODE_CHEAP)
-	for (uint i = 0u; i < light_shadow_count.y; i ++) {
+    for (uint i = 0u; i < light_shadow_count.y; i ++) {
 
-		// Only access the array once
-		Shadow S = shadows[i];
+        // Only access the array once
+        Shadow S = shadows[i];
 
-		vec3 shadow_pos = S.shadow_pos_radius.xyz - focus_off.xyz;
-		float radius = S.shadow_pos_radius.w;
+        vec3 shadow_pos = S.shadow_pos_radius.xyz - focus_off.xyz;
+        float radius = S.shadow_pos_radius.w;
 
-		vec3 diff = shadow_pos - wpos;
-		if (diff.z >= 0.0) {
-			diff.z = -sign(diff.z) * diff.z * 0.1;
-		}
+        vec3 diff = shadow_pos - wpos;
+        if (diff.z >= 0.0) {
+            diff.z = -sign(diff.z) * diff.z * 0.1;
+        }
 
-		float shade = max(pow(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z, 0.25) / pow(radius * radius * 0.5, 0.25), 0.5);
-		// float shade = max(pow(dot(diff, diff) / (radius * radius * 0.5), 0.25), 0.5);
+        float shade = max(pow(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z, 0.25) / pow(radius * radius * 0.5, 0.25), 0.5);
+        // float shade = max(pow(dot(diff, diff) / (radius * radius * 0.5), 0.25), 0.5);
         // float shade = dot(diff, diff) / (radius * radius * 0.5);
 
-		shadow = min(shadow, shade);
-	}
+        shadow = min(shadow, shade);
+    }
     // NOTE: Squared to compenate for prior saturation.
-	return min(shadow, 1.0);
-	// return min(shadow * shadow, 1.0);
+    return min(shadow, 1.0);
+    // return min(shadow * shadow, 1.0);
 #endif
 }
 
@@ -121,48 +121,48 @@ float shadow_at(vec3 wpos, vec3 wnorm) {
 // surface_alt is the altitude of the attenuating surface.
 float lights_at(vec3 wpos, vec3 wnorm, vec3 /*cam_to_frag*/view_dir, vec3 mu, vec3 cam_attenuation, float surface_alt, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 voxel_norm, float voxel_lighting, inout vec3 emitted_light, inout vec3 reflected_light/*, out float shadow*/) {
     // return 0.0;
-	// shadow = 0.0;
+    // shadow = 0.0;
     // vec3 ambient_light = vec3(0.0);
     vec3 directed_light = vec3(0.0);
     vec3 max_light = vec3(0.0);
 
-	const float LIGHT_AMBIANCE = 0.0;//0.015625;
+    const float LIGHT_AMBIANCE = 0.0;//0.015625;
 
-	for (uint i = 0u; i < /*light_shadow_count.x*//*0u*/light_shadow_count.x/*32u*/; i ++) {
+    for (uint i = 0u; i < /*light_shadow_count.x*//*0u*/light_shadow_count.x/*32u*/; i ++) {
 
-		// Only access the array once
-		Light L = lights[i];
+        // Only access the array once
+        Light L = lights[i];
 
-		vec3 light_pos = L.light_pos.xyz - focus_off.xyz;
+        vec3 light_pos = L.light_pos.xyz - focus_off.xyz;
 
-		// Pre-calculate difference between light and fragment
-		vec3 difference = light_pos - wpos;
+        // Pre-calculate difference between light and fragment
+        vec3 difference = light_pos - wpos;
         float distance_2 = dot(difference, difference);
 
-		// float strength = attenuation_strength(difference);// pow(attenuation_strength(difference), 0.6);
+        // float strength = attenuation_strength(difference);// pow(attenuation_strength(difference), 0.6);
         // NOTE: This normalizes strength to 0.25 at the center of the point source.
         float strength = 1.0 / (4 + distance_2);
 
-		// Multiply the vec3 only once
+        // Multiply the vec3 only once
         const float PI = 3.1415926535897932384626433832795;
         const float PI_2 = 2 * PI;
         float square_factor = /*2.0 * PI_2 * *//*2.0 * */L.light_col.a;
-		vec3 color = /*srgb_to_linear*/L.light_col.rgb;
+        vec3 color = /*srgb_to_linear*/L.light_col.rgb;
 
-		// // Only access the array once
-		// Shadow S = shadows[i];
+        // // Only access the array once
+        // Shadow S = shadows[i];
 
-		// vec3 shadow_pos = S.shadow_pos_radius.xyz;
-		// float radius = S.shadow_pos_radius.w;
+        // vec3 shadow_pos = S.shadow_pos_radius.xyz;
+        // float radius = S.shadow_pos_radius.w;
 
-		// vec3 diff = shadow_pos - wpos;
-		// if (diff.z >= 0.0) {
-		// 	diff.z = -sign(diff.z) * diff.z * 0.1;
-		// }
+        // vec3 diff = shadow_pos - wpos;
+        // if (diff.z >= 0.0) {
+        //  diff.z = -sign(diff.z) * diff.z * 0.1;
+        // }
 
-		// float shade = max(pow(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z, 0.25) / pow(radius * radius * 0.5, 0.25), /*0.5*/0.0);
+        // float shade = max(pow(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z, 0.25) / pow(radius * radius * 0.5, 0.25), /*0.5*/0.0);
 
-		// shadow = min(shadow, shade);
+        // shadow = min(shadow, shade);
 
         // Compute reflectance.
         float light_distance = sqrt(distance_2);
@@ -210,13 +210,13 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 /*cam_to_frag*/view_dir, vec3 mu, ve
         // float both_strength = mix(cam_strength, strength, cam_distance_2 / sqrt(cam_distance_2 + distance_2));
         max_light += /*max(1.0, cam_strength)*//*min(cam_strength, 1.0)*//*max*//*max(both_strength, 1.0) * *//*cam_strength*/computed_shadow * both_strength * square_factor * square_factor * PI * color;
         // max_light += /*max(1.0, cam_strength)*//*min(cam_strength, 1.0)*//*max*/max(cam_strength, 1.0/*, strength*//*1.0*/) * square_factor * square_factor * PI * color;
-		// light += color * (max(0, max(dot(normalize(difference), wnorm), 0.15)) + LIGHT_AMBIANCE);
+        // light += color * (max(0, max(dot(normalize(difference), wnorm), 0.15)) + LIGHT_AMBIANCE);
         // Compute emiittance.
         // float ambient_sides = clamp(mix(0.15, 0.0, abs(dot(wnorm, light_dir)) * 10000.0), 0.0, 0.15);
         // float ambient_sides = 0.0;// max(dot(wnorm, light_dir) - 0.15, 0.15);
         // // float ambient_sides = 0.0;
         // ambient_light += color * (ambient_sides + LIGHT_AMBIANCE);
-	}
+    }
 
     // shadow = shadow_at(wpos, wnorm);
     // float shadow = shadow_at(wpos, wnorm);

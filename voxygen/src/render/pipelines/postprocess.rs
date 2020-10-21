@@ -1,11 +1,12 @@
 use super::{
-    super::{Mesh, Pipeline, Tri, WinColorFmt, WinDepthFmt},
+    super::{Mesh, Pipeline, TgtColorFmt, TgtDepthStencilFmt, Tri, WinColorFmt},
     Globals,
 };
 use gfx::{
     self, gfx_constant_struct_meta, gfx_defines, gfx_impl_struct_meta, gfx_pipeline,
     gfx_pipeline_inner, gfx_vertex_struct_meta,
 };
+use vek::*;
 
 gfx_defines! {
     vertex Vertex {
@@ -13,7 +14,8 @@ gfx_defines! {
     }
 
     constant Locals {
-        nul: [f32; 4] = "nul",
+        proj_mat_inv: [[f32; 4]; 4] = "proj_mat_inv",
+        view_mat_inv: [[f32; 4]; 4] = "view_mat_inv",
     }
 
     pipeline pipe {
@@ -22,15 +24,30 @@ gfx_defines! {
         locals: gfx::ConstantBuffer<Locals> = "u_locals",
         globals: gfx::ConstantBuffer<Globals> = "u_globals",
 
-        src_sampler: gfx::TextureSampler<<WinColorFmt as gfx::format::Formatted>::View> = "src_color",
+        map: gfx::TextureSampler<[f32; 4]> = "t_map",
+        alt: gfx::TextureSampler<[f32; 2]> = "t_alt",
+        horizon: gfx::TextureSampler<[f32; 4]> = "t_horizon",
+
+        color_sampler: gfx::TextureSampler<<TgtColorFmt as gfx::format::Formatted>::View> = "src_color",
+        depth_sampler: gfx::TextureSampler<<TgtDepthStencilFmt as gfx::format::Formatted>::View> = "src_depth",
+
+        noise: gfx::TextureSampler<f32> = "t_noise",
 
         tgt_color: gfx::RenderTarget<WinColorFmt> = "tgt_color",
-        tgt_depth: gfx::DepthTarget<WinDepthFmt> = gfx::preset::depth::PASS_TEST,
     }
 }
 
+impl Default for Locals {
+    fn default() -> Self { Self::new(Mat4::identity(), Mat4::identity()) }
+}
+
 impl Locals {
-    pub fn default() -> Self { Self { nul: [0.0; 4] } }
+    pub fn new(proj_mat_inv: Mat4<f32>, view_mat_inv: Mat4<f32>) -> Self {
+        Self {
+            proj_mat_inv: proj_mat_inv.into_col_arrays(),
+            view_mat_inv: view_mat_inv.into_col_arrays(),
+        }
+    }
 }
 
 pub struct PostProcessPipeline;

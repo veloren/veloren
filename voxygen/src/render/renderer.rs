@@ -83,6 +83,12 @@ pub type TgtColorRes = gfx::handle::ShaderResourceView<
     <TgtColorFmt as gfx::format::Formatted>::View,
 >;
 
+/// A handle to a render depth target as a resource.
+pub type TgtDepthRes = gfx::handle::ShaderResourceView<
+    gfx_backend::Resources,
+    <TgtDepthStencilFmt as gfx::format::Formatted>::View,
+>;
+
 /// A handle to a greedy meshed color-light texture as a resource.
 pub type ColLightRes = gfx::handle::ShaderResourceView<
     gfx_backend::Resources,
@@ -144,6 +150,7 @@ pub struct Renderer {
     tgt_depth_stencil_view: TgtDepthStencilView,
 
     tgt_color_res: TgtColorRes,
+    tgt_depth_res: TgtDepthRes,
 
     sampler: Sampler<gfx_backend::Resources>,
 
@@ -218,7 +225,7 @@ impl Renderer {
             &mut shader_reload_indicator,
         )?;
 
-        let (tgt_color_view, tgt_depth_stencil_view, tgt_color_res) =
+        let (tgt_color_view, tgt_depth_stencil_view, tgt_color_res, tgt_depth_res) =
             Self::create_rt_views(&mut factory, (dims.0, dims.1), &mode)?;
 
         let shadow_map = if let (
@@ -281,6 +288,7 @@ impl Renderer {
             tgt_depth_stencil_view,
 
             tgt_color_res,
+            tgt_depth_res,
 
             sampler,
 
@@ -355,9 +363,10 @@ impl Renderer {
 
         // Avoid panics when creating texture with w,h of 0,0.
         if dims.0 != 0 && dims.1 != 0 {
-            let (tgt_color_view, tgt_depth_stencil_view, tgt_color_res) =
+            let (tgt_color_view, tgt_depth_stencil_view, tgt_color_res, tgt_depth_res) =
                 Self::create_rt_views(&mut self.factory, (dims.0, dims.1), &self.mode)?;
             self.tgt_color_res = tgt_color_res;
+            self.tgt_depth_res = tgt_depth_res;
             self.tgt_color_view = tgt_color_view;
             self.tgt_depth_stencil_view = tgt_depth_stencil_view;
             if let (Some(shadow_map), ShadowMode::Map(mode)) =
@@ -394,7 +403,7 @@ impl Renderer {
         factory: &mut gfx_device_gl::Factory,
         size: (u16, u16),
         mode: &RenderMode,
-    ) -> Result<(TgtColorView, TgtDepthStencilView, TgtColorRes), RenderError> {
+    ) -> Result<(TgtColorView, TgtDepthStencilView, TgtColorRes, TgtDepthRes), RenderError> {
         let kind = match mode.aa {
             AaMode::None | AaMode::Fxaa => {
                 gfx::texture::Kind::D2(size.0, size.1, gfx::texture::AaMode::Single)
@@ -435,14 +444,24 @@ impl Renderer {
         let tgt_depth_stencil_tex = factory.create_texture(
             kind,
             levels,
-            gfx::memory::Bind::DEPTH_STENCIL,
+            gfx::memory::Bind::SHADER_RESOURCE | gfx::memory::Bind::DEPTH_STENCIL,
             gfx::memory::Usage::Data,
             Some(depth_stencil_cty),
+        )?;
+        let tgt_depth_res = factory.view_texture_as_shader_resource::<TgtDepthStencilFmt>(
+            &tgt_depth_stencil_tex,
+            (0, levels - 1),
+            gfx::format::Swizzle::new(),
         )?;
         let tgt_depth_stencil_view =
             factory.view_texture_as_depth_stencil_trivial(&tgt_depth_stencil_tex)?;
 
-        Ok((tgt_color_view, tgt_depth_stencil_view, tgt_color_res))
+        Ok((
+            tgt_color_view,
+            tgt_depth_stencil_view,
+            tgt_color_res,
+            tgt_depth_res,
+        ))
     }
 
     /// Create textures and views for shadow maps.
@@ -1629,6 +1648,7 @@ impl Renderer {
         model: &Model<postprocess::PostProcessPipeline>,
         globals: &Consts<Globals>,
         locals: &Consts<postprocess::Locals>,
+        lod: &lod_terrain::LodData,
     ) {
         self.encoder.draw(
             &gfx::Slice {
@@ -1643,9 +1663,13 @@ impl Renderer {
                 vbuf: model.vbuf.clone(),
                 locals: locals.buf.clone(),
                 globals: globals.buf.clone(),
-                src_sampler: (self.tgt_color_res.clone(), self.sampler.clone()),
+                map: (lod.map.srv.clone(), lod.map.sampler.clone()),
+                alt: (lod.alt.srv.clone(), lod.alt.sampler.clone()),
+                horizon: (lod.horizon.srv.clone(), lod.horizon.sampler.clone()),
+                color_sampler: (self.tgt_color_res.clone(), self.sampler.clone()),
+                depth_sampler: (self.tgt_depth_res.clone(), self.sampler.clone()),
+                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
                 tgt_color: self.win_color_view.clone(),
-                tgt_depth: self.win_depth_view.clone(),
             },
         )
     }
@@ -1715,12 +1739,15 @@ fn create_pipelines(
         },
         match mode.cloud {
             CloudMode::None => "CLOUD_MODE_NONE",
-            CloudMode::Regular => "CLOUD_MODE_REGULAR",
+            CloudMode::Minimal => "CLOUD_MODE_MINIMAL",
+            CloudMode::Low => "CLOUD_MODE_LOW",
+            CloudMode::Medium => "CLOUD_MODE_MEDIUM",
+            CloudMode::High => "CLOUD_MODE_HIGH",
         },
         match mode.lighting {
             LightingMode::Ashikhmin => "LIGHTING_ALGORITHM_ASHIKHMIN",
             LightingMode::BlinnPhong => "LIGHTING_ALGORITHM_BLINN_PHONG",
-            LightingMode::Lambertian => "CLOUD_MODE_NONE",
+            LightingMode::Lambertian => "LIGHTING_ALGORITHM_LAMBERTIAN",
         },
         match mode.shadow {
             ShadowMode::None => "SHADOW_MODE_NONE",
@@ -1745,7 +1772,7 @@ fn create_pipelines(
     let cloud = Glsl::load_watched(
         &["voxygen.shaders.include.cloud.", match mode.cloud {
             CloudMode::None => "none",
-            CloudMode::Regular => "regular",
+            _ => "regular",
         }]
         .concat(),
         shader_reload_indicator,

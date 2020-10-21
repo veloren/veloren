@@ -10,14 +10,14 @@ const float MIN_SHADOW = 0.33;
 vec2 pos_to_uv(sampler2D sampler, vec2 pos) {
     // Want: (pixel + 0.5) / W
     vec2 texSize = textureSize(sampler, 0);
-	vec2 uv_pos = (focus_off.xy + pos + 16) / (32.0 * texSize);
-	return vec2(uv_pos.x, /*1.0 - */uv_pos.y);
+    vec2 uv_pos = (focus_off.xy + pos + 16) / (32.0 * texSize);
+    return vec2(uv_pos.x, /*1.0 - */uv_pos.y);
 }
 
 vec2 pos_to_tex(vec2 pos) {
     // Want: (pixel + 0.5)
-	vec2 uv_pos = (focus_off.xy + pos + 16) / 32.0;
-	return vec2(uv_pos.x, uv_pos.y);
+    vec2 uv_pos = (focus_off.xy + pos + 16) / 32.0;
+    return vec2(uv_pos.x, uv_pos.y);
 }
 
 // textureBicubic from https://stackoverflow.com/a/42179924
@@ -74,8 +74,8 @@ vec4 textureBicubic(sampler2D sampler, vec2 texCoords) {
 }
 
 float alt_at(vec2 pos) {
-	return (/*round*/(texture/*textureBicubic*/(t_alt, pos_to_uv(t_alt, pos)).r * (/*1300.0*//*1278.7266845703125*/view_distance.w)) + /*140.0*/view_distance.z - focus_off.z);
-		//+ (texture(t_noise, pos * 0.002).x - 0.5) * 64.0;
+    return (/*round*/(texture/*textureBicubic*/(t_alt, pos_to_uv(t_alt, pos)).r * (/*1300.0*//*1278.7266845703125*/view_distance.w)) + /*140.0*/view_distance.z - focus_off.z);
+        //+ (texture(t_noise, pos * 0.002).x - 0.5) * 64.0;
 
     // return 0.0
     //     + pow(texture(t_noise, pos * 0.00005).x * 1.4, 3.0) * 1000.0
@@ -86,11 +86,11 @@ float alt_at(vec2 pos) {
 float alt_at_real(vec2 pos) {
     // Basic idea: only really need the real altitude for an accurate water height estimation, so if we are in the cheap shader take a shortcut.
 // #if (FLUID_MODE == FLUID_MODE_CHEAP)
-// 	return alt_at(pos);
+//  return alt_at(pos);
 // #elif (FLUID_MODE == FLUID_MODE_SHINY)
-	return (/*round*/(textureBicubic(t_alt, pos_to_tex(pos)).r * (/*1300.0*//*1278.7266845703125*/view_distance.w)) + /*140.0*/view_distance.z - focus_off.z);
+    return (/*round*/(textureBicubic(t_alt, pos_to_tex(pos)).r * (/*1300.0*//*1278.7266845703125*/view_distance.w)) + /*140.0*/view_distance.z - focus_off.z);
 // #endif
-		//+ (texture(t_noise, pos * 0.002).x - 0.5) * 64.0;
+        //+ (texture(t_noise, pos * 0.002).x - 0.5) * 64.0;
 
     // return 0.0
     //     + pow(texture(t_noise, pos * 0.00005).x * 1.4, 3.0) * 1000.0
@@ -200,18 +200,18 @@ vec2 splay(vec2 pos) {
     float len_2 = dot(pos, pos);
     float len_pow = len_2 * sqrt(len_2);
     // float len_pow = pow(len/* * SQRT_2*//* * 0.5*/, 3.0);
-	// vec2 splayed = pos * pow(len * 0.5, 3.0) * SPLAY_MULT;
+    // vec2 splayed = pos * pow(len * 0.5, 3.0) * SPLAY_MULT;
     const float SQRT_2 = sqrt(2.0) / 2.0;
     // /const float CBRT_2 = cbrt(2.0) / 2.0;
-	// vec2 splayed = pos * (view_distance.x * SQRT_2 + pow(len * 0.5, 3.0) * (SPLAY_MULT - view_distance.x));
-	vec2 splayed = pos * (view_distance.x * SQRT_2 + len_pow * (textureSize(t_alt, 0) * 32.0/* - view_distance.x*/));
+    // vec2 splayed = pos * (view_distance.x * SQRT_2 + pow(len * 0.5, 3.0) * (SPLAY_MULT - view_distance.x));
+    vec2 splayed = pos * (view_distance.x * SQRT_2 + len_pow * (textureSize(t_alt, 0) * 32.0/* - view_distance.x*/));
     return splayed;
 
     // Radial: pos.x = r - view_distance.x from focus_pos, pos.y = θ from cam_pos to focus_pos on xy plane.
     // const float PI_2 = 3.1415926535897932384626433832795;
     // float squared = pos.x * pos.x;
-	// // // vec2 splayed2 = pos * vec2(squared * (SPLAY_MULT - view_distance.x), PI);
-	// vec2 splayed2 = pos * vec2(squared * (textureSize(t_alt, 0).x * 32.0 - view_distance.x), PI);
+    // // // vec2 splayed2 = pos * vec2(squared * (SPLAY_MULT - view_distance.x), PI);
+    // vec2 splayed2 = pos * vec2(squared * (textureSize(t_alt, 0).x * 32.0 - view_distance.x), PI);
     // float r = splayed2.x + view_distance.x;
     // vec2 theta = vec2(cos(splayed2.y), sin(splayed2.y));
     // return r * theta;
@@ -221,34 +221,34 @@ vec2 splay(vec2 pos) {
 }
 
 vec3 lod_norm(vec2 f_pos/*vec3 pos*/, vec4 square) {
-	// const float SAMPLE_W = 32;
+    // const float SAMPLE_W = 32;
 
     // vec2 f_pos = pos.xy;
-	// float altx0 = alt_at_real(f_pos + vec2(-1.0, 0) * SAMPLE_W);
-	// float altx1 = alt_at_real(f_pos + vec2(1.0, 0) * SAMPLE_W);
-	// float alty0 = alt_at_real(f_pos + vec2(0, -1.0) * SAMPLE_W);
-	// float alty1 = alt_at_real(f_pos + vec2(0, 1.0) * SAMPLE_W);
-	float altx0 = alt_at(vec2(square.x, f_pos.y));
-	float altx1 = alt_at(vec2(square.z, f_pos.y));
-	float alty0 = alt_at(vec2(f_pos.x, square.y));
-	float alty1 = alt_at(vec2(f_pos.x, square.w));
-	float slope = abs(altx1 - altx0) + abs(alty0 - alty1);
+    // float altx0 = alt_at_real(f_pos + vec2(-1.0, 0) * SAMPLE_W);
+    // float altx1 = alt_at_real(f_pos + vec2(1.0, 0) * SAMPLE_W);
+    // float alty0 = alt_at_real(f_pos + vec2(0, -1.0) * SAMPLE_W);
+    // float alty1 = alt_at_real(f_pos + vec2(0, 1.0) * SAMPLE_W);
+    float altx0 = alt_at(vec2(square.x, f_pos.y));
+    float altx1 = alt_at(vec2(square.z, f_pos.y));
+    float alty0 = alt_at(vec2(f_pos.x, square.y));
+    float alty1 = alt_at(vec2(f_pos.x, square.w));
+    float slope = abs(altx1 - altx0) + abs(alty0 - alty1);
 
     // vec3 norm = normalize(cross(
     //     vec3(/*2.0 * SAMPLE_W*/square.z - square.x, 0.0, altx1 - altx0),
     //     vec3(0.0, /*2.0 * SAMPLE_W*/square.w - square.y, alty1 - alty0)
     // ));
     vec3 norm = normalize(vec3(
-		(altx0 - altx1) / (square.z - square.x),
-		(alty0 - alty1) / (square.w - square.y),
+        (altx0 - altx1) / (square.z - square.x),
+        (alty0 - alty1) / (square.w - square.y),
         1.0
-		//(abs(square.w - square.y) + abs(square.z - square.x)) / (slope + 0.00001) // Avoid NaN
+        //(abs(square.w - square.y) + abs(square.z - square.x)) / (slope + 0.00001) // Avoid NaN
     ));
-	/* vec3 norm = normalize(vec3(
-		(altx0 - altx1) / (2.0 * SAMPLE_W),
-		(alty0 - alty1) / (2.0 * SAMPLE_W),
-		(2.0 * SAMPLE_W) / (slope + 0.00001) // Avoid NaN
-	)); */
+    /* vec3 norm = normalize(vec3(
+        (altx0 - altx1) / (2.0 * SAMPLE_W),
+        (alty0 - alty1) / (2.0 * SAMPLE_W),
+        (2.0 * SAMPLE_W) / (slope + 0.00001) // Avoid NaN
+    )); */
 
     return faceforward(norm, vec3(0.0, 0.0, -1.0)/*pos - cam_pos.xyz*/, norm);
 }
@@ -261,29 +261,29 @@ vec3 lod_norm(vec2 f_pos/*vec3 pos*/) {
 
 
 vec3 lod_pos(vec2 pos, vec2 focus_pos) {
-	// Remove spiking by "pushing" vertices towards local optima
+    // Remove spiking by "pushing" vertices towards local optima
     vec2 delta = splay(pos);
     vec2 hpos = focus_pos + delta;
-	vec2 nhpos = hpos;
+    vec2 nhpos = hpos;
     // vec2 lod_shift = splay(abs(pos) - 1.0 / view_distance.y);
     float shift = 15.0;// min(lod_shift.x, lod_shift.y) * 0.5;
-	for (int i = 0; i < 3; i ++) {
+    for (int i = 0; i < 3; i ++) {
         // vec4 square = focus_pos.xy + vec4(splay(pos - vec2(1.0, 1.0), splay(pos + vec2(1.0, 1.0))));
-		nhpos -= lod_norm(hpos).xy * shift;
-	}
-	hpos = hpos + normalize(nhpos - hpos + 0.001) * min(length(nhpos - hpos), 32);
+        nhpos -= lod_norm(hpos).xy * shift;
+    }
+    hpos = hpos + normalize(nhpos - hpos + 0.001) * min(length(nhpos - hpos), 32);
 
-	return vec3(hpos, alt_at_real(hpos));
+    return vec3(hpos, alt_at_real(hpos));
 }
 
 #ifdef HAS_LOD_FULL_INFO
 uniform sampler2D t_map;
 
 vec3 lod_col(vec2 pos) {
-	//return vec3(0, 0.5, 0);
-	// return /*linear_to_srgb*/vec3(alt_at(pos), textureBicubic(t_map, pos_to_tex(pos)).gb);
-	return /*linear_to_srgb*/(textureBicubic(t_map, pos_to_tex(pos)).rgb)
-		;//+ (texture(t_noise, pos * 0.04 + texture(t_noise, pos * 0.005).xy * 2.0 + texture(t_noise, pos * 0.06).xy * 0.6).x - 0.5) * 0.1;
-		//+ (texture(t_noise, pos * 0.04 + texture(t_noise, pos * 0.005).xy * 2.0 + texture(t_noise, pos * 0.06).xy * 0.6).x - 0.5) * 0.1;
+    //return vec3(0, 0.5, 0);
+    // return /*linear_to_srgb*/vec3(alt_at(pos), textureBicubic(t_map, pos_to_tex(pos)).gb);
+    return /*linear_to_srgb*/(textureBicubic(t_map, pos_to_tex(pos)).rgb)
+        ;//+ (texture(t_noise, pos * 0.04 + texture(t_noise, pos * 0.005).xy * 2.0 + texture(t_noise, pos * 0.06).xy * 0.6).x - 0.5) * 0.1;
+        //+ (texture(t_noise, pos * 0.04 + texture(t_noise, pos * 0.005).xy * 2.0 + texture(t_noise, pos * 0.06).xy * 0.6).x - 0.5) * 0.1;
 }
 #endif
