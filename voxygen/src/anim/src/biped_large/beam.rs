@@ -44,22 +44,17 @@ impl Animation for BeamAnimation {
 
         next.hand_l.position = Vec3::new(0.0, 0.0, -4.0);
         next.hand_l.orientation = Quaternion::rotation_x(1.27) * Quaternion::rotation_y(0.0);
-        next.hand_l.scale = Vec3::one() * 1.05;
+        next.hand_l.scale = Vec3::one() * 1.04;
         next.hand_r.position = Vec3::new(0.0, 0.0, 2.0);
         next.hand_r.orientation = Quaternion::rotation_x(1.57) * Quaternion::rotation_y(0.2);
-        next.hand_r.scale = Vec3::one() * 1.05;
+        next.hand_r.scale = Vec3::one() * 1.04;
         next.main.position = Vec3::new(0.0, 8.0, 13.2);
         next.main.orientation = Quaternion::rotation_y(PI);
 
         next.control.position = Vec3::new(-4.0, 7.0, 4.0);
-        next.control.orientation = Quaternion::rotation_x(-0.3)
-            * Quaternion::rotation_y(0.15)
-            * Quaternion::rotation_z(0.0);
-        next.control.scale = Vec3::one();
+        next.control.orientation = Quaternion::rotation_x(-0.3) * Quaternion::rotation_y(0.15);
 
-        //println!("{:?}", anim_time);
         match active_tool_kind {
-            //TODO: Inventory
             Some(ToolKind::Staff(_)) | Some(ToolKind::Sceptre(_)) => {
                 next.control.position = Vec3::new(
                     -4.0 + movement1 * 16.0 + movement3 * -16.0,

@@ -30,10 +30,15 @@ impl Animation for RunAnimation {
         let center = (anim_time as f32 * lab as f32 + PI / 2.0).sin();
         let centeroffset = (anim_time as f32 * lab as f32 + PI * 1.5).sin();
 
+        next.torso.scale = Vec3::one() / 11.0;
+        next.wing_l.scale = Vec3::one() * 1.05;
+        next.wing_r.scale = Vec3::one() * 1.05;
+        next.leg_l.scale = Vec3::one() / 11.0;
+        next.leg_r.scale = Vec3::one() / 11.0;
+
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1 + center * 0.5);
         next.head.orientation =
             Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0 + center * 0.03);
-        next.head.scale = Vec3::one();
 
         next.torso.position = Vec3::new(
             0.0,
@@ -45,23 +50,18 @@ impl Animation for RunAnimation {
 
         next.tail.position = Vec3::new(0.0, s_a.tail.0, s_a.tail.1 + centeroffset * 0.6);
         next.tail.orientation = Quaternion::rotation_x(center * 0.03);
-        next.tail.scale = Vec3::one();
 
         next.wing_l.position = Vec3::new(-s_a.wing.0, s_a.wing.1, s_a.wing.2);
         next.wing_l.orientation = Quaternion::rotation_y((footl * 0.35).max(0.0));
-        next.wing_l.scale = Vec3::one() * 1.05;
 
         next.wing_r.position = Vec3::new(s_a.wing.0, s_a.wing.1, s_a.wing.2);
         next.wing_r.orientation = Quaternion::rotation_y((footr * 0.35).min(0.0));
-        next.wing_r.scale = Vec3::one() * 1.05;
 
         next.leg_l.position = Vec3::new(-s_a.foot.0, s_a.foot.1 + footl * 1.0, s_a.foot.2) / 11.0;
         next.leg_l.orientation = Quaternion::rotation_x(footl * 0.5);
-        next.leg_l.scale = Vec3::one() / 11.0;
 
         next.leg_r.position = Vec3::new(s_a.foot.0, s_a.foot.1 + footr * 1.0, s_a.foot.2) / 11.0;
         next.leg_r.orientation = Quaternion::rotation_x(footr * 0.5);
-        next.leg_r.scale = Vec3::one() / 11.0;
         next
     }
 }
