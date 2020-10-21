@@ -166,7 +166,7 @@ impl<'a> System<'a> for Sys {
                                     // Client doesn't need to know about itself
                                     && *client_entity != entity
                                 {
-                                    general_stream.send_unchecked(create_msg.clone());
+                                    general_stream.send_fallible(create_msg.clone());
                                 }
                             }
                         }
@@ -180,7 +180,7 @@ impl<'a> System<'a> for Sys {
                                     .map(|key| !regions.contains(key))
                                     .unwrap_or(true)
                                 {
-                                    general_stream.send_unchecked(ServerGeneral::DeleteEntity(uid));
+                                    general_stream.send_fallible(ServerGeneral::DeleteEntity(uid));
                                 }
                             }
                         }
@@ -252,7 +252,7 @@ impl<'a> System<'a> for Sys {
                             true // Closer than 100 blocks
                         }
                     } {
-                        general_stream.send_unchecked(msg.clone());
+                        general_stream.send_fallible(msg.clone());
                     }
                 }
             };
@@ -350,7 +350,7 @@ impl<'a> System<'a> for Sys {
                 })
             {
                 for uid in &deleted {
-                    general_stream.send_unchecked(ServerGeneral::DeleteEntity(Uid(*uid)));
+                    general_stream.send_fallible(ServerGeneral::DeleteEntity(Uid(*uid)));
                 }
             }
         }
@@ -361,7 +361,7 @@ impl<'a> System<'a> for Sys {
         for (inventory, update, in_game_stream) in
             (&inventories, &inventory_updates, &mut in_game_streams).join()
         {
-            in_game_stream.send_unchecked(ServerGeneral::InventoryUpdate(
+            in_game_stream.send_fallible(ServerGeneral::InventoryUpdate(
                 inventory.clone(),
                 update.event(),
             ));
@@ -384,7 +384,7 @@ impl<'a> System<'a> for Sys {
                 .cloned()
                 .collect::<Vec<_>>();
             if !outcomes.is_empty() {
-                in_game_stream.send_unchecked(ServerGeneral::Outcomes(outcomes));
+                in_game_stream.send_fallible(ServerGeneral::Outcomes(outcomes));
             }
         }
         outcomes.clear();

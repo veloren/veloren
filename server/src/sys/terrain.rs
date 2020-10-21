@@ -67,7 +67,7 @@ impl<'a> System<'a> for Sys {
                 Ok((chunk, supplement)) => (chunk, supplement),
                 Err(Some(entity)) => {
                     if let Some(in_game_stream) = in_game_streams.get_mut(entity) {
-                        in_game_stream.send_unchecked(ServerGeneral::TerrainChunkUpdate {
+                        in_game_stream.send_fallible(ServerGeneral::TerrainChunkUpdate {
                             key,
                             chunk: Err(()),
                         });
@@ -94,7 +94,7 @@ impl<'a> System<'a> for Sys {
                     .magnitude_squared();
 
                 if adjusted_dist_sqr <= view_distance.pow(2) {
-                    in_game_stream.send_unchecked(ServerGeneral::TerrainChunkUpdate {
+                    in_game_stream.send_fallible(ServerGeneral::TerrainChunkUpdate {
                         key,
                         chunk: Ok(Box::new(chunk.clone())),
                     });

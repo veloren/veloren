@@ -34,7 +34,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                 None => {
                     // Inform of failure
                     if let Some(general_stream) = general_streams.get_mut(entity) {
-                        general_stream.send_unchecked(
+                        general_stream.send_fallible(
                             ChatType::Meta
                                 .server_msg("Invite failed, target does not exist.".to_owned()),
                         );
@@ -66,7 +66,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
             if already_in_same_group {
                 // Inform of failure
                 if let Some(general_stream) = general_streams.get_mut(entity) {
-                    general_stream.send_unchecked(ChatType::Meta.server_msg(
+                    general_stream.send_fallible(ChatType::Meta.server_msg(
                         "Invite failed, can't invite someone already in your group".to_owned(),
                     ));
                 }
@@ -96,7 +96,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
             if group_size_limit_reached {
                 // Inform inviter that they have reached the group size limit
                 if let Some(general_stream) = general_streams.get_mut(entity) {
-                    general_stream.send_unchecked(
+                    general_stream.send_fallible(
                         ChatType::Meta.server_msg(
                             "Invite failed, pending invites plus current group size have reached \
                              the group size limit"
@@ -113,7 +113,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
             if invites.contains(invitee) {
                 // Inform inviter that there is already an invite
                 if let Some(general_stream) = general_streams.get_mut(entity) {
-                    general_stream.send_unchecked(
+                    general_stream.send_fallible(
                         ChatType::Meta
                             .server_msg("This player already has a pending invite.".to_owned()),
                     );
@@ -160,7 +160,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                 (in_game_streams.get_mut(invitee), uids.get(entity).copied())
             {
                 if send_invite() {
-                    in_game_stream.send_unchecked(ServerGeneral::GroupInvite {
+                    in_game_stream.send_fallible(ServerGeneral::GroupInvite {
                         inviter,
                         timeout: PRESENTED_INVITE_TIMEOUT_DUR,
                     });
@@ -168,7 +168,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
             } else if agents.contains(invitee) {
                 send_invite();
             } else if let Some(general_stream) = general_streams.get_mut(entity) {
-                general_stream.send_unchecked(
+                general_stream.send_fallible(
                     ChatType::Meta.server_msg("Can't invite, not a player or npc".to_owned()),
                 );
             }
@@ -176,7 +176,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
             // Notify inviter that the invite is pending
             if invite_sent {
                 if let Some(in_game_stream) = in_game_streams.get_mut(entity) {
-                    in_game_stream.send_unchecked(ServerGeneral::InvitePending(uid));
+                    in_game_stream.send_fallible(ServerGeneral::InvitePending(uid));
                 }
             }
         },
@@ -201,7 +201,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                 if let (Some(in_game_stream), Some(target)) =
                     (in_game_streams.get_mut(inviter), uids.get(entity).copied())
                 {
-                    in_game_stream.send_unchecked(ServerGeneral::InviteComplete {
+                    in_game_stream.send_fallible(ServerGeneral::InviteComplete {
                         target,
                         answer: InviteAnswer::Accepted,
                     });
@@ -249,7 +249,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                 if let (Some(in_game_stream), Some(target)) =
                     (in_game_streams.get_mut(inviter), uids.get(entity).copied())
                 {
-                    in_game_stream.send_unchecked(ServerGeneral::InviteComplete {
+                    in_game_stream.send_fallible(ServerGeneral::InviteComplete {
                         target,
                         answer: InviteAnswer::Declined,
                     });
@@ -288,7 +288,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                 None => {
                     // Inform of failure
                     if let Some(general_stream) = general_streams.get_mut(entity) {
-                        general_stream.send_unchecked(
+                        general_stream.send_fallible(
                             ChatType::Meta
                                 .server_msg("Kick failed, target does not exist.".to_owned()),
                         );
@@ -301,7 +301,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
             if matches!(alignments.get(target), Some(comp::Alignment::Owned(owner)) if uids.get(target).map_or(true, |u| u != owner))
             {
                 if let Some(general_stream) = general_streams.get_mut(entity) {
-                    general_stream.send_unchecked(
+                    general_stream.send_fallible(
                         ChatType::Meta.server_msg("Kick failed, you can't kick pets.".to_owned()),
                     );
                 }
@@ -310,7 +310,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
             // Can't kick yourself
             if uids.get(entity).map_or(false, |u| *u == uid) {
                 if let Some(general_stream) = general_streams.get_mut(entity) {
-                    general_stream.send_unchecked(
+                    general_stream.send_fallible(
                         ChatType::Meta
                             .server_msg("Kick failed, you can't kick yourself.".to_owned()),
                     );
@@ -348,7 +348,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
 
                     // Tell them the have been kicked
                     if let Some(general_stream) = general_streams.get_mut(target) {
-                        general_stream.send_unchecked(
+                        general_stream.send_fallible(
                             ChatType::Meta
                                 .server_msg("You were removed from the group.".to_owned()),
                         );
@@ -356,13 +356,13 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                     // Tell kicker that they were succesful
                     if let Some(general_stream) = general_streams.get_mut(entity) {
                         general_stream
-                            .send_unchecked(ChatType::Meta.server_msg("Player kicked.".to_owned()));
+                            .send_fallible(ChatType::Meta.server_msg("Player kicked.".to_owned()));
                     }
                 },
                 Some(_) => {
                     // Inform kicker that they are not the leader
                     if let Some(general_stream) = general_streams.get_mut(entity) {
-                        general_stream.send_unchecked(ChatType::Meta.server_msg(
+                        general_stream.send_fallible(ChatType::Meta.server_msg(
                             "Kick failed: You are not the leader of the target's group.".to_owned(),
                         ));
                     }
@@ -370,7 +370,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                 None => {
                     // Inform kicker that the target is not in a group
                     if let Some(general_stream) = general_streams.get_mut(entity) {
-                        general_stream.send_unchecked(
+                        general_stream.send_fallible(
                             ChatType::Meta.server_msg(
                                 "Kick failed: Your target is not in a group.".to_owned(),
                             ),
@@ -387,7 +387,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                 None => {
                     // Inform of failure
                     if let Some(general_stream) = general_streams.get_mut(entity) {
-                        general_stream.send_unchecked(ChatType::Meta.server_msg(
+                        general_stream.send_fallible(ChatType::Meta.server_msg(
                             "Leadership transfer failed, target does not exist".to_owned(),
                         ));
                     }
@@ -423,13 +423,13 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                     );
                     // Tell them they are the leader
                     if let Some(general_stream) = general_streams.get_mut(target) {
-                        general_stream.send_unchecked(
+                        general_stream.send_fallible(
                             ChatType::Meta.server_msg("You are the group leader now.".to_owned()),
                         );
                     }
                     // Tell the old leader that the transfer was succesful
                     if let Some(general_stream) = general_streams.get_mut(target) {
-                        general_stream.send_unchecked(
+                        general_stream.send_fallible(
                             ChatType::Meta
                                 .server_msg("You are no longer the group leader.".to_owned()),
                         );
@@ -439,7 +439,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                     // Inform transferer that they are not the leader
                     let mut general_streams = state.ecs().write_storage::<GeneralStream>();
                     if let Some(general_stream) = general_streams.get_mut(entity) {
-                        general_stream.send_unchecked(
+                        general_stream.send_fallible(
                             ChatType::Meta.server_msg(
                                 "Transfer failed: You are not the leader of the target's group."
                                     .to_owned(),
@@ -451,7 +451,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                     // Inform transferer that the target is not in a group
                     let mut general_streams = state.ecs().write_storage::<GeneralStream>();
                     if let Some(general_stream) = general_streams.get_mut(entity) {
-                        general_stream.send_unchecked(ChatType::Meta.server_msg(
+                        general_stream.send_fallible(ChatType::Meta.server_msg(
                             "Transfer failed: Your target is not in a group.".to_owned(),
                         ));
                     }

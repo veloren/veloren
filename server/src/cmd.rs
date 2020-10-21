@@ -673,7 +673,7 @@ fn handle_spawn(
                                                     .map(|g| (g, s))
                                             })
                                             .map(|(g, s)| {
-                                                s.send_unchecked(ServerGeneral::GroupUpdate(g));
+                                                s.send_fallible(ServerGeneral::GroupUpdate(g));
                                             });
                                     },
                                 );

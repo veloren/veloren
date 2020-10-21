@@ -45,7 +45,7 @@ pub fn handle_knockback(server: &Server, entity: EcsEntity, impulse: Vec3<f32>) 
     }
     let mut in_game_streams = state.ecs().write_storage::<InGameStream>();
     if let Some(in_game_stream) = in_game_streams.get_mut(entity) {
-        in_game_stream.send_unchecked(ServerGeneral::Knockback(impulse));
+        in_game_stream.send_fallible(ServerGeneral::Knockback(impulse));
     }
 }
 

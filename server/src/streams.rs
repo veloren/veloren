@@ -21,7 +21,7 @@ pub(crate) trait GetStream {
         }
     }
 
-    fn send_unchecked(&mut self, msg: Self::SendMsg) { let _ = self.send(msg); }
+    fn send_fallible(&mut self, msg: Self::SendMsg) { let _ = self.send(msg); }
 
     fn prepare(&mut self, msg: &Self::SendMsg) -> Message {
         if Self::verify(&msg) {

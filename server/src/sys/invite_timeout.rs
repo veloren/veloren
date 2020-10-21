@@ -55,7 +55,7 @@ impl<'a> System<'a> for Sys {
                     in_game_streams.get_mut(*inviter),
                     uids.get(invitee).copied(),
                 ) {
-                    in_game_stream.send_unchecked(ServerGeneral::InviteComplete {
+                    in_game_stream.send_fallible(ServerGeneral::InviteComplete {
                         target,
                         answer: InviteAnswer::TimedOut,
                     });

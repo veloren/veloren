@@ -160,7 +160,7 @@ impl<'a> System<'a> for Sys {
                                             .unwrap_or(false)
                                         {
                                             general_stream
-                                                .send_unchecked(ServerGeneral::DeleteEntity(uid));
+                                                .send_fallible(ServerGeneral::DeleteEntity(uid));
                                         }
                                     }
                                 },
@@ -178,7 +178,7 @@ impl<'a> System<'a> for Sys {
                         .iter()
                         .flat_map(|v| v.iter())
                     {
-                        general_stream.send_unchecked(ServerGeneral::DeleteEntity(Uid(*uid)));
+                        general_stream.send_fallible(ServerGeneral::DeleteEntity(Uid(*uid)));
                     }
                 }
 
@@ -203,7 +203,7 @@ impl<'a> System<'a> for Sys {
                             {
                                 // Send message to create entity and tracked components and physics
                                 // components
-                                general_stream.send_unchecked(ServerGeneral::CreateEntity(
+                                general_stream.send_fallible(ServerGeneral::CreateEntity(
                                     tracked_comps.create_entity_package(
                                         entity,
                                         Some(*pos),
@@ -256,7 +256,7 @@ pub fn initialize_region_subscription(world: &World, entity: specs::Entity) {
                     .join()
                 {
                     // Send message to create entity and tracked components and physics components
-                    general_stream.send_unchecked(ServerGeneral::CreateEntity(
+                    general_stream.send_fallible(ServerGeneral::CreateEntity(
                         tracked_comps.create_entity_package(
                             entity,
                             Some(*pos),

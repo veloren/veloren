@@ -16,7 +16,7 @@ pub(crate) struct ServerInfoPacket {
     pub time: f64,
 }
 
-pub(crate) struct ClientPackage {
+pub(crate) struct IncomingClient {
     pub client: Client,
     pub general: GeneralStream,
     pub ping: PingStream,
@@ -28,7 +28,7 @@ pub(crate) struct ClientPackage {
 pub(crate) struct ConnectionHandler {
     _network: Arc<Network>,
     thread_handle: Option<thread::JoinHandle<()>>,
-    pub client_receiver: Receiver<ClientPackage>,
+    pub client_receiver: Receiver<IncomingClient>,
     pub info_requester_receiver: Receiver<Sender<ServerInfoPacket>>,
     stop_sender: Option<oneshot::Sender<()>>,
 }
@@ -43,7 +43,7 @@ impl ConnectionHandler {
         let network_clone = Arc::clone(&network);
         let (stop_sender, stop_receiver) = oneshot::channel();
 
-        let (client_sender, client_receiver) = unbounded::<ClientPackage>();
+        let (client_sender, client_receiver) = unbounded::<IncomingClient>();
         let (info_requester_sender, info_requester_receiver) =
             bounded::<Sender<ServerInfoPacket>>(1);
 
@@ -67,7 +67,7 @@ impl ConnectionHandler {
 
     async fn work(
         network: Arc<Network>,
-        client_sender: Sender<ClientPackage>,
+        client_sender: Sender<IncomingClient>,
         info_requester_sender: Sender<Sender<ServerInfoPacket>>,
         stop_receiver: oneshot::Receiver<()>,
     ) {
@@ -104,7 +104,7 @@ impl ConnectionHandler {
 
     async fn init_participant(
         participant: Participant,
-        client_sender: Sender<ClientPackage>,
+        client_sender: Sender<IncomingClient>,
         info_requester_sender: Sender<Sender<ServerInfoPacket>>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         debug!("New Participant connected to the server");
@@ -130,7 +130,7 @@ impl ConnectionHandler {
             t = register_stream.recv::<ClientType>().fuse() => Some(t),
         ) {
             None => {
-                debug!("slow client connection detected, dropping it");
+                debug!("Timeout for incoming client elapsed, aborting connection");
                 return Ok(());
             },
             Some(client_type) => client_type?,
@@ -145,7 +145,7 @@ impl ConnectionHandler {
             login_msg_sent: false,
         };
 
-        let package = ClientPackage {
+        let package = IncomingClient {
             client,
             general: GeneralStream(general_stream),
             ping: PingStream(ping_stream),
