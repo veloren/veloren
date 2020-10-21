@@ -186,13 +186,5 @@ void main() {
     // vec4 color = vec4(surf_color, passthrough * 1.0 / (1.0 + min_refl));// * (1.0 - /*log(1.0 + cam_attenuation)*//*cam_attenuation*/1.0 / (2.0 - log_cam)));
     vec4 color = mix(vec4(surf_color, 1.0), vec4(surf_color, 1.0 / (1.0 + /*diffuse_light*//*(f_light * point_shadow + point_light)*//*4.0 * reflected_light_point*/min_refl/* * 0.25*/)), passthrough);
 
-#if (CLOUD_MODE == CLOUD_MODE_REGULAR)
-    float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
-    vec4 clouds;
-    vec3 fog_color = get_sky_color(cam_to_frag, time_of_day.x, cam_pos.xyz, f_pos, 0.25, false, clouds);
-    vec4 final_color = mix(mix(color, vec4(fog_color, 0.0), fog_level), vec4(clouds.rgb, 0.0), clouds.a);
-#elif (CLOUD_MODE == CLOUD_MODE_NONE)
-    vec4 final_color = color;
-#endif
-    tgt_color = final_color;
+    tgt_color = color;
 }

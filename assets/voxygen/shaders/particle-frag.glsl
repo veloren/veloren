@@ -50,7 +50,7 @@ void main() {
     DirectionalLight sun_info = get_sun_info(sun_dir, point_shadow * sun_shade_frac, f_pos);
     DirectionalLight moon_info = get_moon_info(moon_dir, point_shadow * moon_shade_frac);
 
-	vec3 surf_color = f_col.rgb;
+    vec3 surf_color = f_col.rgb;
     float alpha = 1.0;
     const float n2 = 1.5;
     const float R_s2s0 = pow((1.0 - n2) / (1.0 + n2), 2);
@@ -71,20 +71,11 @@ void main() {
 
     max_light += lights_at(f_pos, f_norm, view_dir, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
 
-	// Allow particles to glow at night
-	// TODO: Not this
-	emitted_light += max(f_col.rgb - 1.0, vec3(0));
+    // Allow particles to glow at night
+    // TODO: Not this
+    emitted_light += max(f_col.rgb - 1.0, vec3(0));
 
-	surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light);
+    surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light);
 
-#if (CLOUD_MODE == CLOUD_MODE_REGULAR)
-	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
-	vec4 clouds;
-	vec3 fog_color = get_sky_color(cam_to_frag, time_of_day.x, cam_pos.xyz, f_pos, 0.5, false, clouds);
-	vec3 color = mix(mix(surf_color, fog_color, fog_level), clouds.rgb, clouds.a);
-#elif (CLOUD_MODE == CLOUD_MODE_NONE)
-    vec3 color = surf_color;
-#endif
-
-	tgt_color = vec4(color, f_col.a);
+    tgt_color = vec4(surf_color, f_col.a);
 }

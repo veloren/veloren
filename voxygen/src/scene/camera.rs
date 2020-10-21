@@ -27,7 +27,9 @@ impl Default for CameraMode {
 #[derive(Clone, Copy)]
 pub struct Dependents {
     pub view_mat: Mat4<f32>,
+    pub view_mat_inv: Mat4<f32>,
     pub proj_mat: Mat4<f32>,
+    pub proj_mat_inv: Mat4<f32>,
     pub cam_pos: Vec3<f32>,
     pub cam_dir: Vec3<f32>,
 }
@@ -67,7 +69,9 @@ impl Camera {
 
             dependents: Dependents {
                 view_mat: Mat4::identity(),
+                view_mat_inv: Mat4::identity(),
                 proj_mat: Mat4::identity(),
+                proj_mat_inv: Mat4::identity(),
                 cam_pos: Vec3::zero(),
                 cam_dir: Vec3::unit_y(),
             },
@@ -112,9 +116,11 @@ impl Camera {
             * Mat4::rotation_y(self.ori.x)
             * Mat4::rotation_3d(PI / 2.0, -Vec4::unit_x())
             * Mat4::translation_3d(-self.focus.map(|e| e.fract()));
+        self.dependents.view_mat_inv = self.dependents.view_mat.inverted();
 
         self.dependents.proj_mat =
             Mat4::perspective_rh_no(self.fov, self.aspect, NEAR_PLANE, FAR_PLANE);
+        self.dependents.proj_mat_inv = self.dependents.proj_mat.inverted();
 
         // TODO: Make this more efficient.
         self.dependents.cam_pos = Vec3::from(self.dependents.view_mat.inverted() * Vec4::unit_w());

@@ -37,38 +37,38 @@ in uint v_atlas_pos;
 
 layout (std140)
 uniform u_locals {
-	mat4 model_mat;
-	vec4 highlight_col;
+    mat4 model_mat;
+    vec4 highlight_col;
     ivec4 atlas_offs;
     vec3 model_pos;
-	// bit 0 - is player
-	// bit 1-31 - unused
-	int flags;
+    // bit 0 - is player
+    // bit 1-31 - unused
+    int flags;
 };
 
 struct BoneData {
-	mat4 bone_mat;
+    mat4 bone_mat;
     mat4 normals_mat;
 };
 
 layout (std140)
 uniform u_bones {
-	// Warning: might not actually be 16 elements long. Don't index out of bounds!
-	BoneData bones[16];
+    // Warning: might not actually be 16 elements long. Don't index out of bounds!
+    BoneData bones[16];
 };
 
 // out vec4 shadowMapCoord;
 
 void main() {
 #if (SHADOW_MODE == SHADOW_MODE_MAP)
-	uint bone_idx = (v_pos_norm >> 27) & 0xFu;
-	vec3 pos = (vec3((uvec3(v_pos_norm) >> uvec3(0, 9, 18)) & uvec3(0x1FFu)) - 256.0) / 2.0;
+    uint bone_idx = (v_pos_norm >> 27) & 0xFu;
+    vec3 pos = (vec3((uvec3(v_pos_norm) >> uvec3(0, 9, 18)) & uvec3(0x1FFu)) - 256.0) / 2.0;
 
-	vec3 f_pos = (
+    vec3 f_pos = (
         bones[bone_idx].bone_mat *
         vec4(pos, 1.0)
     ).xyz + (model_pos - focus_off.xyz/* + vec3(0.0, 0.0, 0.0001)*/);
 
-	gl_Position = shadowMats[/*layer_face*/0].shadowMatrices * vec4(f_pos, 1.0);
+    gl_Position = shadowMats[/*layer_face*/0].shadowMatrices * vec4(f_pos, 1.0);
 #endif
 }

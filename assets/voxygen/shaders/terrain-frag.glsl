@@ -48,8 +48,8 @@ uniform sampler2D t_col_light;
 
 layout (std140)
 uniform u_locals {
-	vec3 model_offs;
-	float load_time;
+    vec3 model_offs;
+    float load_time;
     ivec4 atlas_offs;
 };
 
@@ -64,8 +64,8 @@ void main() {
     // vec4 f_col_light = textureGrad(t_col_light, f_uv_pos / texSize, 0.25, 0.25);
     // vec4 f_col_light = texture(t_col_light, (f_uv_pos) / texSize);
 
-	// First 3 normals are negative, next 3 are positive
-	const vec3 normals[8] = vec3[](vec3(-1,0,0), vec3(1,0,0), vec3(0,-1,0), vec3(0,1,0), vec3(0,0,-1), vec3(0,0,1), vec3(0,0,0), vec3(0,0,0));
+    // First 3 normals are negative, next 3 are positive
+    const vec3 normals[8] = vec3[](vec3(-1,0,0), vec3(1,0,0), vec3(0,-1,0), vec3(0,1,0), vec3(0,0,-1), vec3(0,0,1), vec3(0,0,0), vec3(0,0,0));
 
     // uint norm_index = (f_pos_norm >> 29) & 0x7u;
     // vec2 uv_delta = (norm_index & 0u) == 0u ? vec2(-1.0) : vec2(0);
@@ -77,7 +77,7 @@ void main() {
     // float f_light = f_col_light.a;
     // vec4 f_col_light = texelFetch(t_col_light, ivec2(int(f_uv_pos.x), int(f_uv_pos.y)/* + uv_delta*//* - f_norm * 0.00001*/), 0);
     vec3 f_col = /*linear_to_srgb*//*srgb_to_linear*/(f_col_light.rgb);
-	// vec3 f_col = vec3(1.0);
+    // vec3 f_col = vec3(1.0);
     float f_light = texture(t_col_light, (f_uv_pos + 0.5) / textureSize(t_col_light, 0)).a;//1.0;//f_col_light.a * 4.0;// f_light = float(v_col_light & 0x3Fu) / 64.0;
     // vec2 texSize = textureSize(t_col_light, 0);
     // float f_light = texture(t_col_light, f_uv_pos/* + vec2(atlas_offs.xy)*/).a;//1.0;//f_col_light.a * 4.0;// f_light = float(v_col_light & 0x3Fu) / 64.0;
@@ -109,9 +109,9 @@ void main() {
     // tgt_color = vec4(light_shadow_count.x <= 31u ? f_col : vec3(0.0), 1.0);
     // tgt_color = vec4(0.0, 0.0, 0.0, 1.0);
     // float sum = 0.0;
-	// for (uint i = 0u; i < /* 6 * */light_shadow_count.x; i ++) {
+    // for (uint i = 0u; i < /* 6 * */light_shadow_count.x; i ++) {
     //     // uint i = 1u;
-	// 	Light L = lights[i/* / 6*/];
+    //     Light L = lights[i/* / 6*/];
 
     //     /* vec4 light_col = vec4(
     //         hash(vec4(1.0, 0.0, 0.0, i)),
@@ -123,10 +123,10 @@ void main() {
     //     float light_strength = L.light_col.a / 255.0;
     //     // float light_strength = 1.0 / light_shadow_count.x;
 
-	// 	vec3 light_pos = L.light_pos.xyz;
+    //     vec3 light_pos = L.light_pos.xyz;
 
-	// 	// Pre-calculate difference between light and fragment
-	// 	vec3 fragToLight = f_pos - light_pos;
+    //     // Pre-calculate difference between light and fragment
+    //     vec3 fragToLight = f_pos - light_pos;
 
     //     //  vec3 f_norm = normals[(f_pos_norm >> 29) & 0x7u];
 
@@ -151,14 +151,14 @@ void main() {
     //     sum += light_strength;
     // }
 
-	// TODO: last 3 bits in v_pos_norm should be a number between 0 and 5, rather than 0-2 and a direction.
-	// uint norm_axis = (f_pos_norm >> 30) & 0x3u;
-	// // Increase array access by 3 to access positive values
-	// uint norm_dir = ((f_pos_norm >> 29) & 0x1u) * 3u;
-	// Use an array to avoid conditional branching
+    // TODO: last 3 bits in v_pos_norm should be a number between 0 and 5, rather than 0-2 and a direction.
+    // uint norm_axis = (f_pos_norm >> 30) & 0x3u;
+    // // Increase array access by 3 to access positive values
+    // uint norm_dir = ((f_pos_norm >> 29) & 0x1u) * 3u;
+    // Use an array to avoid conditional branching
     // uint norm_index = (f_pos_norm >> 29) & 0x7u;
-	// vec3 f_norm = normals[norm_index];
-	vec3 f_norm = normals[(f_pos_norm >> 29) & 0x7u];
+    // vec3 f_norm = normals[norm_index];
+    vec3 f_norm = normals[(f_pos_norm >> 29) & 0x7u];
     // vec3 du = dFdx(f_pos);
     // vec3 dv = dFdy(f_pos);
     // vec3 f_norm = normalize(cross(du, dv));
@@ -205,7 +205,7 @@ void main() {
     vec3 k_s = vec3(R_s);
 
     // float sun_light = get_sun_brightness(sun_dir);
-	// float moon_light = get_moon_brightness(moon_dir);
+    // float moon_light = get_moon_brightness(moon_dir);
     /* float sun_shade_frac = horizon_at(f_pos, sun_dir);
     float moon_shade_frac = horizon_at(f_pos, moon_dir); */
     // float f_alt = alt_at(f_pos.xy);
@@ -264,31 +264,31 @@ void main() {
 
     // float f_ao = 1.0;
 
-	// float ao = /*pow(f_ao, 0.5)*/f_ao * 0.9 + 0.1;
-	// emitted_light *= ao;
-	// reflected_light *= ao;
+    // float ao = /*pow(f_ao, 0.5)*/f_ao * 0.9 + 0.1;
+    // emitted_light *= ao;
+    // reflected_light *= ao;
     /* vec3 point_light = light_at(f_pos, f_norm);
     emitted_light += point_light;
     reflected_light += point_light; */
 
-	// float point_shadow = shadow_at(f_pos, f_norm);
-	// vec3 point_light = light_at(f_pos, f_norm);
-	// vec3 light, diffuse_light, ambient_light;
+    // float point_shadow = shadow_at(f_pos, f_norm);
+    // vec3 point_light = light_at(f_pos, f_norm);
+    // vec3 light, diffuse_light, ambient_light;
 
     // get_sun_diffuse(f_norm, time_of_day.x, cam_to_frag, k_a * f_light, k_d * f_light, k_s * f_light, alpha, emitted_light, reflected_light);
-	// get_sun_diffuse(f_norm, time_of_day.x, light, diffuse_light, ambient_light, 1.0);
-	// float point_shadow = shadow_at(f_pos, f_norm);
-	// diffuse_light *= f_light * point_shadow;
-	// ambient_light *= f_light * point_shadow;
-	// vec3 point_light = light_at(f_pos, f_norm);
-	// light += point_light;
-	// diffuse_light += point_light;
+    // get_sun_diffuse(f_norm, time_of_day.x, light, diffuse_light, ambient_light, 1.0);
+    // float point_shadow = shadow_at(f_pos, f_norm);
+    // diffuse_light *= f_light * point_shadow;
+    // ambient_light *= f_light * point_shadow;
+    // vec3 point_light = light_at(f_pos, f_norm);
+    // light += point_light;
+    // diffuse_light += point_light;
     // reflected_light += point_light;
     // reflected_light += light_reflection_factor(norm, cam_to_frag, , vec3 k_d, vec3 k_s, float alpha) {
 
     // light_reflection_factorplight_reflection_factor
 
-	// vec3 surf_color = illuminate(srgb_to_linear(f_col), light, diffuse_light, ambient_light);
+    // vec3 surf_color = illuminate(srgb_to_linear(f_col), light, diffuse_light, ambient_light);
     vec3 f_chunk_pos = f_pos - (model_offs - focus_off.xyz);
     float noise = hash(vec4(floor(f_chunk_pos * 3.0 - f_norm * 0.5), 0));//0.005/* - 0.01*/;
 
@@ -356,18 +356,9 @@ void main() {
     // vec3 col = (f_col + noise_delta);
     vec3 col = noise_delta * noise_delta * W_2;
     // vec3 col = srgb_to_linear(linear_to_srgb(f_col) + noise * 0.02);
-	// vec3 col = /*srgb_to_linear*/(f_col + noise); // Small-scale noise
-	// vec3 col = /*srgb_to_linear*/(f_col + hash(vec4(floor(f_pos * 3.0 - f_norm * 0.5), 0)) * 0.01); // Small-scale noise
+    // vec3 col = /*srgb_to_linear*/(f_col + noise); // Small-scale noise
+    // vec3 col = /*srgb_to_linear*/(f_col + hash(vec4(floor(f_pos * 3.0 - f_norm * 0.5), 0)) * 0.01); // Small-scale noise
     vec3 surf_color = illuminate(max_light, view_dir, col * emitted_light, col * reflected_light);
 
-#if (CLOUD_MODE == CLOUD_MODE_REGULAR)
-    float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
-	vec4 clouds;
-	vec3 fog_color = get_sky_color(cam_to_frag/*view_dir*/, time_of_day.x, cam_pos.xyz, f_pos, 1.0, false, clouds);
-	vec3 color = mix(mix(surf_color, fog_color, fog_level), clouds.rgb, clouds.a);
-#elif (CLOUD_MODE == CLOUD_MODE_NONE)
-    vec3 color = surf_color;
-#endif
-
-	tgt_color = vec4(color, 1.0);
+    tgt_color = vec4(surf_color, 1.0);
 }

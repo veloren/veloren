@@ -23,21 +23,21 @@ in float f_ao;
 
 layout (std140)
 uniform u_locals {
-	mat4 model_mat;
-	vec4 highlight_col;
+    mat4 model_mat;
+    vec4 highlight_col;
     ivec4 atlas_offs;
     vec3 model_pos;
-	int flags;
+    int flags;
 };
 
 struct BoneData {
-	mat4 bone_mat;
+    mat4 bone_mat;
     mat4 normals_mat;
 };
 
 layout (std140)
 uniform u_bones {
-	BoneData bones[16];
+    BoneData bones[16];
 };
 
 #include <sky.glsl>
@@ -47,17 +47,17 @@ uniform u_bones {
 out vec4 tgt_color;
 
 void main() {
-	// float distance = distance(vec3(cam_pos), focus_pos.xyz) - 2;
+    // float distance = distance(vec3(cam_pos), focus_pos.xyz) - 2;
 
-	// float opacity = clamp(distance / distance_divider, 0, 1);
+    // float opacity = clamp(distance / distance_divider, 0, 1);
 
-	// if(threshold_matrix[int(gl_FragCoord.x) % 4][int(gl_FragCoord.y) % 4] > opacity) {
-	// 	discard;
-	// }
+    // if(threshold_matrix[int(gl_FragCoord.x) % 4][int(gl_FragCoord.y) % 4] > opacity) {
+    //  discard;
+    // }
 
-	// if(threshold_matrix[int(gl_FragCoord.x) % 4][int(gl_FragCoord.y) % 4] > shadow_dithering) {
-	// 	discard;
-	// }
+    // if(threshold_matrix[int(gl_FragCoord.x) % 4][int(gl_FragCoord.y) % 4] > shadow_dithering) {
+    //  discard;
+    // }
 
-	tgt_color = vec4(0.0,0.0,0.0, 1.0);
+    tgt_color = vec4(0.0,0.0,0.0, 1.0);
 }

@@ -20,12 +20,16 @@
 // Note: The sampler uniform is declared here because it differs for MSAA
 #include <anti-aliasing.glsl>
 #include <srgb.glsl>
+#include <cloud.glsl>
+
+uniform sampler2D src_depth;
 
 in vec2 f_pos;
 
 layout (std140)
 uniform u_locals {
-	vec4 nul;
+    mat4 proj_mat_inv;
+    mat4 view_mat_inv;
 };
 
 out vec4 tgt_color;
@@ -46,7 +50,7 @@ vec3 hsv2rgb(vec3 c) {
     return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
 }
 
-vec3 illuminate(float max_light, vec3 view_dir, /*vec3 max_light, */vec3 emitted, vec3 reflected) {
+vec3 _illuminate(float max_light, vec3 view_dir, /*vec3 max_light, */vec3 emitted, vec3 reflected) {
     const float NIGHT_EXPOSURE = 10.0;
     const float DUSK_EXPOSURE = 2.0;//0.8;
     const float DAY_EXPOSURE = 1.0;//0.7;
@@ -76,14 +80,14 @@ vec3 illuminate(float max_light, vec3 view_dir, /*vec3 max_light, */vec3 emitted
     // vec3 T = /*color*//*lum*/color;//normalize(color) * lum / (1.0 + lum);
     // float alpha = 0.5;//2.0;
     // float alpha = mix(
-	// 	mix(
-	// 		DUSK_EXPOSURE,
-	// 		NIGHT_EXPOSURE,
-	// 		max(sun_dir.z, 0)
-	// 	),
-	// 	DAY_EXPOSURE,
-	// 	max(-sun_dir.z, 0)
-	// );
+    //     mix(
+    //         DUSK_EXPOSURE,
+    //         NIGHT_EXPOSURE,
+    //         max(sun_dir.z, 0)
+    //     ),
+    //     DAY_EXPOSURE,
+    //     max(-sun_dir.z, 0)
+    // );
     float alpha = 1.0;//log(1.0 - lum) / lum;
     // vec3 now_light = moon_dir.z < 0 ? moon_dir : sun_dir;
     // float cos_view_light = dot(-now_light, view_dir);
@@ -119,14 +123,14 @@ vec3 illuminate(float max_light, vec3 view_dir, /*vec3 max_light, */vec3 emitted
     // const float s = 0.8;
     float s = 1.0;
     // float s = mix(
-	// 	mix(
-	// 		DUSK_SATURATION,
-	// 		NIGHT_SATURATION,
-	// 		max(sun_dir.z, 0)
-	// 	),
-	// 	DAY_SATURATION,
-	// 	max(-sun_dir.z, 0)
-	// );
+    //     mix(
+    //         DUSK_SATURATION,
+    //         NIGHT_SATURATION,
+    //         max(sun_dir.z, 0)
+    //     ),
+    //     DAY_SATURATION,
+    //     max(-sun_dir.z, 0)
+    // );
     // s = max(s, (max_light) / (1.0 + s));
     // s = max(s, max_light / (1.0 + max_light));
     // s = max_light / (1.0 + max_light);
@@ -141,12 +145,34 @@ vec3 illuminate(float max_light, vec3 view_dir, /*vec3 max_light, */vec3 emitted
     // return /*srgb_to_linear*/(/*0.5*//*0.125 * */vec3(pow(color.x, gamma), pow(color.y, gamma), pow(color.z, gamma)));
 }
 
-void main() {
-	vec2 uv = (f_pos + 1.0) * 0.5;
+float depth_at(vec2 uv) {
+    float buf_depth = texture(src_depth, uv).x;
+    vec4 clip_space = vec4(uv * 2.0 - 1.0, buf_depth, 1.0);
+    vec4 view_space = proj_mat_inv * clip_space;
+    view_space /= view_space.w;
+    return -view_space.z;
+}
 
-	/* if (medium.x == 1u) {
-		uv = clamp(uv + vec2(sin(uv.y * 16.0 + tick.x), sin(uv.x * 24.0 + tick.x)) * 0.005, 0, 1);
-	} */
+vec3 wpos_at(vec2 uv) {
+    float buf_depth = texture(src_depth, uv).x * 2.0 - 1.0;
+    mat4 inv = view_mat_inv * proj_mat_inv;//inverse(all_mat);
+    vec4 clip_space = vec4(uv * 2.0 - 1.0, buf_depth, 1.0);
+    vec4 view_space = inv * clip_space;
+    view_space /= view_space.w;
+    if (buf_depth == 1.0) {
+        vec3 direction = normalize(view_space.xyz);
+        return direction.xyz * 100000.0 + cam_pos.xyz;
+    } else {
+        return view_space.xyz;
+    }
+}
+
+void main() {
+    vec2 uv = (f_pos + 1.0) * 0.5;
+
+    /* if (medium.x == 1u) {
+        uv = clamp(uv + vec2(sin(uv.y * 16.0 + tick.x), sin(uv.x * 24.0 + tick.x)) * 0.005, 0, 1);
+    } */
 
     vec2 c_uv = vec2(0.5);//uv;//vec2(0.5);//uv;
     vec2 delta = /*sqrt*//*sqrt(2.0) / 2.0*//*sqrt(2.0) / 2.0*//*0.5 - */min(uv, 1.0 - uv);//min(uv * (1.0 - uv), 0.25) * 2.0;
@@ -174,23 +200,47 @@ void main() {
 
     // float bright_color = (bright_color0 + bright_color1 + bright_color2 + bright_color3 + bright_color4) / 5.0;
 
-	vec4 aa_color = aa_apply(src_color, uv * screen_res.xy, screen_res.xy);
+    vec4 aa_color = aa_apply(src_color, uv * screen_res.xy, screen_res.xy);
+
+    // Apply clouds to `aa_color`
+    #if (CLOUD_MODE != CLOUD_MODE_NONE)
+        vec3 wpos = wpos_at(uv);
+        float dist = distance(wpos, cam_pos.xyz);
+        vec3 dir = (wpos - cam_pos.xyz) / dist;
+
+        aa_color.rgb = get_cloud_color(aa_color.rgb, dir, cam_pos.xyz, time_of_day.x, dist, 1.0);
+    #endif
+
+    // aa_color.rgb = (wpos + focus_off.xyz) / vec3(32768, 32768, /*view_distance.w*/2048);
+    // aa_color.rgb = mod((wpos + focus_off.xyz), vec3(32768, 32768, view_distance.w)) / vec3(32768, 32768, view_distance.w);// / vec3(32768, 32768, view_distance.w);
+    // aa_color.rgb = mod((wpos + focus_off.xyz), vec3(32, 32, 16)) / vec3(32, 32, 16);// / vec3(32768, 32768, view_distance.w);
+    // aa_color.rgb = focus_off.xyz / vec3(32768, 32768, view_distance.w);
+
+    /* aa_color.rgb = wpos / 10000.0; */
+
+    /* aa_color.rgb = vec3((texture(src_depth, uv).x - 0.99) * 100.0); */
+
+    /* aa_color.rgb = vec3((dist - 100000) / 300000.0, 1, 1); */
+
+    /* vec3 scatter_color = get_sun_color() * get_sun_brightness() + get_moon_color() * get_moon_brightness(); */
+
+    /* aa_color.rgb += cloud_color.rgb * scatter_color;//mix(aa_color, vec4(cloud_color.rgb * scatter_color, 1), cloud_color.a); */
 
     // aa_color.rgb = illuminate(1.0 - 1.0 / (1.0 + bright_color), normalize(cam_pos.xyz - focus_pos.xyz), /*vec3 max_light, */vec3(0.0), aa_color.rgb);
 
-	//vec4 hsva_color = vec4(rgb2hsv(fxaa_color.rgb), fxaa_color.a);
-	//hsva_color.y *= 1.45;
-	//hsva_color.z *= 0.85;
-	//hsva_color.z = 1.0 - 1.0 / (1.0 * hsva_color.z + 1.0);
-	//vec4 final_color = vec4(hsv2rgb(hsva_color.rgb), hsva_color.a);
+    //vec4 hsva_color = vec4(rgb2hsv(fxaa_color.rgb), fxaa_color.a);
+    //hsva_color.y *= 1.45;
+    //hsva_color.z *= 0.85;
+    //hsva_color.z = 1.0 - 1.0 / (1.0 * hsva_color.z + 1.0);
+    //vec4 final_color = vec4(hsv2rgb(hsva_color.rgb), hsva_color.a);
 
-	vec4 final_color = pow(aa_color, gamma);
+    vec4 final_color = pow(aa_color, gamma);
 
 #if (FLUID_MODE == FLUID_MODE_CHEAP)
-	if (medium.x == 1u) {
-		final_color *= vec4(0.2, 0.2, 0.8, 1.0);
-	}
+    if (medium.x == 1u) {
+        final_color *= vec4(0.2, 0.2, 0.8, 1.0);
+    }
 #endif
 
-	tgt_color = vec4(final_color.rgb, 1);
+    tgt_color = vec4(final_color.rgb, 1);
 }
