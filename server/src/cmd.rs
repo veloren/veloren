@@ -605,7 +605,7 @@ fn handle_spawn(
                     .and_then(|a| a.parse().ok())
                     .filter(|x| *x > 0)
                     .unwrap_or(1)
-                    .min(10);
+                    .min(50);
 
                 let ai = opt_ai.unwrap_or_else(|| "true".to_string());
 
