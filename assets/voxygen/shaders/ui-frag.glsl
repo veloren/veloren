@@ -8,7 +8,7 @@ flat in uint f_mode;
 
 layout (std140)
 uniform u_locals {
-	vec4 w_pos;
+    vec4 w_pos;
 };
 
 uniform sampler2D u_tex;

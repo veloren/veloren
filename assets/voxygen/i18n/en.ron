@@ -275,7 +275,7 @@ magically infused items?"#,
         "hud.map.map_title": "Map",
         "hud.map.qlog_title": "Quests",
 
-        // Settings        
+        // Settings
         "hud.settings.general": "General",
         "hud.settings.none": "None",
         "hud.settings.press_behavior.toggle": "Toggle",
@@ -328,7 +328,10 @@ magically infused items?"#,
         "hud.settings.fluid_rendering_mode": "Fluid Rendering Mode",
         "hud.settings.fluid_rendering_mode.cheap": "Cheap",
         "hud.settings.fluid_rendering_mode.shiny": "Shiny",
-        "hud.settings.cloud_rendering_mode.regular": "Regular",
+        "hud.settings.cloud_rendering_mode.minimal": "Minimal",
+        "hud.settings.cloud_rendering_mode.low": "Low",
+        "hud.settings.cloud_rendering_mode.medium": "Medium",
+        "hud.settings.cloud_rendering_mode.high": "High",
         "hud.settings.fullscreen": "Fullscreen",
         "hud.settings.fullscreen_mode": "Fullscreen Mode",
         "hud.settings.fullscreen_mode.exclusive": "Exclusive",
@@ -455,7 +458,7 @@ magically infused items?"#,
         "gameinput.sneak": "Sneak",
         "gameinput.swimdown": "Swim downwards",
         "gameinput.swimup": "Swim upwards",
-        
+
         /// End GameInput section
 
 
@@ -503,12 +506,12 @@ Protection
         /// Start Escape Menu Section
         "esc_menu.logout": "Logout",
         "esc_menu.quit_game": "Quit Game",
-        /// End Escape Menu Section        
+        /// End Escape Menu Section
 
     },
 
-    
-    vector_map: {     
+
+    vector_map: {
         "loading.tips": [
             "Press 'G' to light your lantern.",
             "Press 'F1' to see all default keybindings.",
@@ -519,17 +522,17 @@ Protection
             "NPCs with the same level can have a different difficulty.",
             "Keep an eye out for food, chests and other loot spread all around the world!",
             "Inventory filled with food? Try crafting better food from it!",
-            "Wondering what's there to do? Dungeons are marked with brown spots on the map!",    
+            "Wondering what's there to do? Dungeons are marked with brown spots on the map!",
             "Don't forget to adjust the graphics for your system. Press 'N' to open the settings.",
-            "Playing with others is fun! Press 'O' to see who is online.", 
+            "Playing with others is fun! Press 'O' to see who is online.",
             "An NPC with a skull beneath their healthbar is quite powerful compared to yourself.",
             "Press 'J' to dance. Party!",
             "Press 'L-Shift' to open your Glider and conquer the skies.",
             "Veloren is still in Pre-Alpha. We do our best to improve it every day!",
-            "If you want to join the Dev-Team or just have a chat with us join our Discord-Server.", 
+            "If you want to join the Dev-Team or just have a chat with us join our Discord-Server.",
             "You can toggle showing your amount of health on the healthbar in the settings.",
-            "In order to see your stats click the 'Stats' button in the inventory.",           
-        ],         
+            "In order to see your stats click the 'Stats' button in the inventory.",
+        ],
         "npc.speech.villager_under_attack": [
             "Help, I'm under attack!",
             "Help! I'm under attack!",
@@ -610,6 +613,6 @@ Protection
             "Please don't do that again.",
             "Guards, throw this monster in the lake!",
             "I'll set my tarrasque on you!",
-        ],        
+        ],
     }
 )

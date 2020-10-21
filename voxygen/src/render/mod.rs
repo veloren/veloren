@@ -137,11 +137,14 @@ pub enum CloudMode {
     ///   *every* fragment shader.  For machines that can't optimize the check,
     ///   this is absurdly expensive, so we should look at alternatives in the
     ///   future that player better with the GPU.
-    Regular,
+    Minimal,
+    Low,
+    Medium,
+    High,
 }
 
 impl Default for CloudMode {
-    fn default() -> Self { CloudMode::Regular }
+    fn default() -> Self { CloudMode::Medium }
 }
 
 /// Fluid modes

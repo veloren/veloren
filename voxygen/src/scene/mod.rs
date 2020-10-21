@@ -523,7 +523,9 @@ impl Scene {
         self.camera.compute_dependents(&*scene_data.state.terrain());
         let camera::Dependents {
             view_mat,
+            view_mat_inv,
             proj_mat,
+            proj_mat_inv,
             cam_pos,
             ..
         } = self.camera.dependents();
@@ -662,6 +664,12 @@ impl Scene {
                 scene_data.sprite_render_distance as f32 - 20.0,
             )])
             .expect("Failed to update global constants");
+        renderer
+            .update_consts(&mut self.postprocess.locals, &[PostProcessLocals::new(
+                proj_mat_inv,
+                view_mat_inv,
+            )])
+            .expect("Failed to update post-process locals");
 
         // Maintain LoD.
         self.lod.maintain(renderer);
@@ -1071,6 +1079,7 @@ impl Scene {
             &self.postprocess.model,
             &global.globals,
             &self.postprocess.locals,
+            self.lod.get_data(),
         );
     }
 }
