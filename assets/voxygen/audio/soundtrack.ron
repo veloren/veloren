@@ -7,16 +7,16 @@
             title: "A Solemn Quest",
             path: "voxygen.audio.soundtrack.a_solemn_quest",
             length: 206.0,
-            timing: Some(Night),
-            biome: Some(Grassland),
+            timing: Some(Day),
+            biome: Some(Forest),
             artist: "Eden",
         ),        
         (
             title: "Into The Dark Forest",
             path: "voxygen.audio.soundtrack.into_the_dark_forest",
             length: 184.0,
-            timing: Some(Night),
-            biome: Some(Snowlands),
+            timing: Some(Day),
+            biome: Some(Grassland),
             artist: "Aeronic",
         ),
         (
@@ -24,7 +24,7 @@
             path: "voxygen.audio.soundtrack.field_grazing",
             length: 154.0,
             timing: Some(Day),
-            biome: Some(Grassland),
+            biome: Some(Snowlands),
             artist: "Aeronic",
         ),
         (
@@ -32,7 +32,7 @@
             path: "voxygen.audio.soundtrack.wandering_voices",
             length: 137.0,
             timing: Some(Day),
-            biome: Some(Grassland),
+            biome: Some(Desert),
             artist: "Aeronic",
         ),
         (
@@ -40,7 +40,7 @@
             path: "voxygen.audio.soundtrack.snowtop_volume",
             length: 89.0,
             timing: Some(Day),
-            biome: Some(Snowlands),
+            biome: Some(Desert),
             artist: "Aeronic",
         ),
         (
@@ -48,7 +48,7 @@
             path: "voxygen.audio.soundtrack.mineral_deposits",
             length: 148.0,
             timing: Some(Day),
-            biome: Some(Forest),
+            biome: Some(Desert),
             artist: "Aeronic",
         ),
         (
@@ -56,7 +56,7 @@
             path: "voxygen.audio.soundtrack.moonbeams",
             length: 158.0,
             timing: Some(Night),
-            biome: Some(Forest),
+            biome: Some(Desert),
             artist: "Aeronic",
         ),
         (
@@ -64,7 +64,7 @@
             path: "voxygen.audio.soundtrack.serene_meadows",
             length: 173.0,
             timing: Some(Night),
-            biome: Some(Snowlands),
+            biome: Some(Desert),
             artist: "Aeronic",
         ),
         /*(
@@ -72,7 +72,7 @@
             path: "voxygen.audio.soundtrack.rest_assured",
             length: 185.0,
             timing: Some(Day),
-            biome: Some(Snowlands),
+            biome: Some(Desert),
             artist: "badbbad",
         ),*/
         (
@@ -80,7 +80,7 @@
             path: "voxygen.audio.soundtrack.just_the_beginning",
             length: 188.0,
             timing: Some(Day),
-            biome: Some(Snowlands),
+            biome: Some(Desert),
             artist: "badbbad",
         ),
         (
@@ -88,7 +88,7 @@
             path: "voxygen.audio.soundtrack.campfire_stories",
             length: 100.0,
             timing: Some(Night),
-            biome: Some(Snowlands),
+            biome: Some(Desert),
             artist: "badbbad",
         ),
         (
@@ -96,7 +96,7 @@
             path: "voxygen.audio.soundtrack.limits",
             length: 203.0,
             timing: Some(Night),
-            biome: Some(Snowlands),
+            biome: Some(Desert),
             artist: "badbbad",
         ),
         /*(  // Dungeon 
@@ -104,7 +104,7 @@
             path: "voxygen.audio.soundtrack.down_the_rabbit_hole",
             length: 244.0,
             timing: Some(Night),
-            biome: Some(Snowlands),
+            biome: Some(Desert),
             artist: "badbbad",
         ),*/
         (
@@ -112,7 +112,7 @@
             path: "voxygen.audio.soundtrack.between_the_fairies",
             length: 175.0,
             timing: Some(Night),
-            biome: Some(Snowlands),
+            biome: Some(Desert),
             artist: "badbbad",
         ),
     ]

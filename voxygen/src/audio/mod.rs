@@ -205,15 +205,46 @@ impl AudioFrontend {
             let sound = Decoder::new(file).expect("Failed to decode sound");
 
             channel.play(sound, channel_tag);
-            //channel.set_fader(Fader::fade_in(2.0, music_volume));
+        }
+    }
+
+    fn fade_out_music(&mut self, channel_tag: MusicChannelTag) {
+        let music_volume = self.music_volume;
+        if let Some(channel) = self.get_music_channel(channel_tag) {
+            channel.set_fader(Fader::fade_out(5.0, music_volume));
+        }
+    }
+
+    fn fade_in_music(&mut self, channel_tag: MusicChannelTag) {
+        let music_volume = self.music_volume;
+        if let Some(channel) = self.get_music_channel(channel_tag) {
+            channel.set_fader(Fader::fade_in(5.0, music_volume));
         }
     }
 
     fn stop_music(&mut self, channel_tag: MusicChannelTag) {
-        let music_volume = self.music_volume;
         if let Some(channel) = self.get_music_channel(channel_tag) {
-            //channel.set_fader(Fader::fade_out(5.0, music_volume));
             channel.stop(channel_tag);
+        }
+    }
+
+    fn stop_ambient(&mut self, channel_tag: AmbientChannelTag) {
+        if let Some(channel) = self.get_ambient_channel(channel_tag) {
+            channel.stop(channel_tag);
+        }
+    }
+
+    fn fade_out_ambient(&mut self, channel_tag: AmbientChannelTag) {
+        let ambient_volume = self.ambient_volume;
+        if let Some(channel) = self.get_ambient_channel(channel_tag) {
+            channel.set_fader(Fader::fade_out(2.0, ambient_volume));
+        }
+    }
+
+    fn fade_in_ambient(&mut self, channel_tag: AmbientChannelTag) {
+        let ambient_volume = self.ambient_volume;
+        if let Some(channel) = self.get_ambient_channel(channel_tag) {
+            channel.set_fader(Fader::fade_in(2.0, ambient_volume));
         }
     }
 
@@ -258,6 +289,18 @@ impl AudioFrontend {
         }
     }
 
+    pub fn fade_out_exploration_music(&mut self) {
+        if self.music_enabled() {
+            self.fade_out_music(MusicChannelTag::Exploration)
+        }
+    }
+
+    pub fn fade_in_exploration_music(&mut self) {
+        if self.music_enabled() {
+            self.fade_in_music(MusicChannelTag::Exploration)
+        }
+    }
+
     pub fn stop_exploration_music(&mut self) {
         if self.music_enabled() {
             self.stop_music(MusicChannelTag::Exploration)
@@ -265,8 +308,26 @@ impl AudioFrontend {
     }
 
     pub fn play_exploration_ambient(&mut self, item: &str) {
-        if self.ambient_enabled() {
+        if self.music_enabled() {
             self.play_ambient(item, AmbientChannelTag::Exploration)
+        }
+    }
+
+    pub fn fade_out_exploration_ambient(&mut self) {
+        if self.music_enabled() {
+            self.fade_out_ambient(AmbientChannelTag::Exploration)
+        }
+    }
+
+    pub fn fade_in_exploration_ambient(&mut self) {
+        if self.music_enabled() {
+            self.fade_in_ambient(AmbientChannelTag::Exploration)
+        }
+    }
+
+    pub fn stop_exploration_ambient(&mut self) {
+        if self.music_enabled() {
+            self.stop_ambient(AmbientChannelTag::Exploration)
         }
     }
 

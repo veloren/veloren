@@ -75,16 +75,26 @@ enum DayPeriod {
     Night,
 }
 
+/// Determines whether the sound is stopped, playing, or fading
+#[derive(Debug, Deserialize, PartialEq)]
+enum PlayState {
+    Playing,
+    Stopped,
+    FadingOut,
+    FadingIn,
+}
+
 /// Provides methods to control music playback
 pub struct MusicMgr {
     soundtrack: SoundtrackCollection,
     began_playing: Instant,
+    began_fading: Instant,
     next_track_change: f64,
     /// The title of the last track played. Used to prevent a track
     /// being played twice in a row
     last_track: String,
     last_biome: BiomeKind,
-    playing: bool,
+    playing: PlayState,
 }
 
 impl MusicMgr {
@@ -93,10 +103,11 @@ impl MusicMgr {
         Self {
             soundtrack: Self::load_soundtrack_items(),
             began_playing: Instant::now(),
+            began_fading: Instant::now(),
             next_track_change: 0.0,
             last_track: String::from("None"),
             last_biome: BiomeKind::Void,
-            playing: false,
+            playing: PlayState::Stopped,
         }
     }
 
@@ -112,25 +123,27 @@ impl MusicMgr {
         if audio.music_enabled()
             && !self.soundtrack.tracks.is_empty()
             && (self.began_playing.elapsed().as_secs_f64() > self.next_track_change
-                || !self.playing)
+                || self.playing == PlayState::Stopped)
+            && self.playing != PlayState::FadingOut
         {
-            println!("It shoooooooooooooooooooooooooooooooooooooooooooooooooooooooould play!!!");
             self.play_random_track(audio, state, client);
-            self.playing = true;
-        } else if current_biome != self.last_biome {
-            println!(
-                "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSStop!\
-                 !!"
-            );
+            self.playing = PlayState::Playing;
+        } else if current_biome != self.last_biome && self.playing == PlayState::Playing {
+            audio.fade_out_exploration_music();
+            self.began_fading = Instant::now();
+            self.playing = PlayState::FadingOut;
+        } else if self.began_fading.elapsed().as_secs_f64() > 5.0
+            && self.playing == PlayState::FadingOut
+        {
             audio.stop_exploration_music();
-            self.playing = false;
+            self.playing = PlayState::Stopped;
         }
         self.last_biome = current_biome;
     }
 
     fn play_random_track(&mut self, audio: &mut AudioFrontend, state: &State, client: &Client) {
-        //const SILENCE_BETWEEN_TRACKS_SECONDS: f64 = 45.0;
-        const SILENCE_BETWEEN_TRACKS_SECONDS: f64 = 5.0;
+        const SILENCE_BETWEEN_TRACKS_SECONDS: f64 = 45.0;
+        //const SILENCE_BETWEEN_TRACKS_SECONDS: f64 = 5.0;
 
         let game_time = (state.get_time_of_day() as u64 % 86400) as u32;
         let current_period_of_day = Self::get_current_day_period(game_time);
