@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a jump/burst attack for the bow to the skillbar
 - Gave the axe a third attack
 - A new secondary charged melee attack for the hammer
+- Added Dutch translations
 
 ### Changed
 
