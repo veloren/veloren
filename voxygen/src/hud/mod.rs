@@ -22,7 +22,6 @@ mod util;
 pub use hotbar::{SlotContents as HotbarSlotContents, State as HotbarState};
 
 pub use settings_window::ScaleChange;
-use std::time::Duration;
 
 use bag::Bag;
 use buttons::Buttons;
@@ -74,7 +73,7 @@ use specs::{Join, WorldExt};
 use std::{
     collections::{HashMap, VecDeque},
     sync::Arc,
-    time::Instant,
+    time::{Duration, Instant},
 };
 use vek::*;
 
@@ -267,6 +266,7 @@ widget_ids! {
 
 pub struct DebugInfo {
     pub tps: f64,
+    pub frame_time: Duration,
     pub ping_ms: f64,
     pub coordinates: Option<comp::Pos>,
     pub velocity: Option<comp::Vel>,
@@ -1482,12 +1482,16 @@ impl Hud {
                 .color(TEXT_COLOR)
                 .set(self.ids.version, ui_widgets);
             // Ticks per second
-            Text::new(&format!("FPS: {:.0}", debug_info.tps))
-                .color(TEXT_COLOR)
-                .down_from(self.ids.version, 5.0)
-                .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(14))
-                .set(self.ids.fps_counter, ui_widgets);
+            Text::new(&format!(
+                "FPS: {:.0} ({}ms)",
+                debug_info.tps,
+                debug_info.frame_time.as_millis()
+            ))
+            .color(TEXT_COLOR)
+            .down_from(self.ids.version, 5.0)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(14))
+            .set(self.ids.fps_counter, ui_widgets);
             // Ping
             Text::new(&format!("Ping: {:.0}ms", debug_info.ping_ms))
                 .color(TEXT_COLOR)

@@ -712,6 +712,7 @@ impl PlayState for SessionState {
                 .toggle_debug
                 .then(|| DebugInfo {
                     tps: global_state.clock.get_tps(),
+                    frame_time: global_state.clock.get_avg_delta(),
                     ping_ms: self.client.borrow().get_ping_ms_rolling_avg(),
                     coordinates: self
                         .client
