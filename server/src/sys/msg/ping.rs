@@ -67,20 +67,14 @@ impl<'a> System<'a> for Sys {
 
             match res {
                 Err(e) => {
-                    let reg = client.registered;
-                    debug!(
-                        ?entity,
-                        ?e,
-                        ?reg,
-                        "network error with client, disconnecting"
-                    );
-                    if reg {
+                    if !client.terminate_msg_recv {
+                        debug!(?entity, ?e, "network error with client, disconnecting");
                         player_metrics
                             .clients_disconnected
                             .with_label_values(&["network_error"])
                             .inc();
+                        server_emitter.emit(ServerEvent::ClientDisconnect(entity));
                     }
-                    server_emitter.emit(ServerEvent::ClientDisconnect(entity));
                 },
                 Ok(1_u64..=u64::MAX) => {
                     // Update client ping.
@@ -90,15 +84,14 @@ impl<'a> System<'a> for Sys {
                     if time.0 - client.last_ping > settings.client_timeout.as_secs() as f64
                     // Timeout
                     {
-                        let reg = client.registered;
-                        info!(?entity, ?reg, "timeout error with client, disconnecting");
-                        if reg {
+                        if !client.terminate_msg_recv {
+                            info!(?entity, "timeout error with client, disconnecting");
                             player_metrics
                                 .clients_disconnected
                                 .with_label_values(&["timeout"])
                                 .inc();
+                            server_emitter.emit(ServerEvent::ClientDisconnect(entity));
                         }
-                        server_emitter.emit(ServerEvent::ClientDisconnect(entity));
                     } else if time.0 - client.last_ping
                         > settings.client_timeout.as_secs() as f64 * 0.5
                     {

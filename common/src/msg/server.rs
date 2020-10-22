@@ -163,8 +163,6 @@ pub enum Notification {
 pub enum DisconnectReason {
     /// Server shut down
     Shutdown,
-    /// Client sent disconnect message
-    Requested,
     /// Client was kicked
     Kicked(String),
 }

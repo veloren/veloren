@@ -78,7 +78,6 @@ pub enum ClientGeneral {
     UnlockSkillGroup(SkillGroupType),
     //Always possible
     ChatMsg(String),
-    Disconnect,
     Terminate,
 }
 
@@ -119,9 +118,7 @@ impl ClientMsg {
                             c_type == ClientType::Game && in_game.is_some()
                         },
                         //Always possible
-                        ClientGeneral::ChatMsg(_)
-                        | ClientGeneral::Disconnect
-                        | ClientGeneral::Terminate => true,
+                        ClientGeneral::ChatMsg(_) | ClientGeneral::Terminate => true,
                     }
             },
             ClientMsg::Ping(_) => true,

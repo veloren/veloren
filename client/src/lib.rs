@@ -500,9 +500,9 @@ impl Client {
                     | ClientGeneral::RefundSkill(_)
                     | ClientGeneral::UnlockSkillGroup(_) => &mut self.in_game_stream,
                     //Always possible
-                    ClientGeneral::ChatMsg(_)
-                    | ClientGeneral::Disconnect
-                    | ClientGeneral::Terminate => &mut self.general_stream,
+                    ClientGeneral::ChatMsg(_) | ClientGeneral::Terminate => {
+                        &mut self.general_stream
+                    },
                 };
                 stream.send(msg)
             },
@@ -552,9 +552,11 @@ impl Client {
     }
 
     /// Send disconnect message to the server
-    pub fn request_logout(&mut self) {
-        debug!("Requesting logout from server");
-        self.send_msg(ClientGeneral::Disconnect);
+    pub fn logout(&mut self) {
+        debug!("Sending logout from server");
+        self.send_msg(ClientGeneral::Terminate);
+        self.registered = false;
+        self.in_game = None;
     }
 
     /// Request a state transition to `ClientState::Registered` from an ingame
@@ -1133,11 +1135,6 @@ impl Client {
         match msg {
             ServerGeneral::Disconnect(reason) => match reason {
                 DisconnectReason::Shutdown => return Err(Error::ServerShutdown),
-                DisconnectReason::Requested => {
-                    debug!("finally sending ClientMsg::Terminate");
-                    frontend_events.push(Event::Disconnect);
-                    self.send_msg_err(ClientGeneral::Terminate)?;
-                },
                 DisconnectReason::Kicked(reason) => {
                     debug!("sending ClientMsg::Terminate because we got kicked");
                     frontend_events.push(Event::Kicked(reason));
@@ -1840,7 +1837,7 @@ impl Drop for Client {
     fn drop(&mut self) {
         trace!("Dropping client");
         if self.registered {
-            if let Err(e) = self.send_msg_err(ClientGeneral::Disconnect) {
+            if let Err(e) = self.send_msg_err(ClientGeneral::Terminate) {
                 warn!(
                     ?e,
                     "Error during drop of client, couldn't send disconnect package, is the \
