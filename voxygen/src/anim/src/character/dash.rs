@@ -73,20 +73,27 @@ impl Animation for DashAnimation {
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
 
-        next.hand_l.position = Vec3::new(-0.75, -1.0, 2.5);
-        next.hand_l.orientation = Quaternion::rotation_x(1.47) * Quaternion::rotation_y(-0.2);
-        next.hand_l.scale = Vec3::one() * 1.02;
-        next.hand_r.position = Vec3::new(0.75, -1.5, -0.5);
-        next.hand_r.orientation = Quaternion::rotation_x(1.47) * Quaternion::rotation_y(0.3);
-        next.hand_r.scale = Vec3::one() * 1.02;
-        next.main.position = Vec3::new(0.0, 0.0, 2.0);
-        next.main.orientation = Quaternion::rotation_x(-0.1)
-            * Quaternion::rotation_y(0.0)
-            * Quaternion::rotation_z(0.0);
-
         match active_tool_kind {
-            //TODO: Inventory
             Some(ToolKind::Sword(_)) => {
+                next.main.position = Vec3::new(0.0, 0.0, 0.0);
+                next.main.orientation = Quaternion::rotation_x(0.0);
+
+                next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
+                next.hand_l.orientation =
+                    Quaternion::rotation_x(s_a.shl.3) * Quaternion::rotation_y(s_a.shl.4);
+                next.hand_r.position = Vec3::new(s_a.shr.0, s_a.shr.1, s_a.shr.2);
+                next.hand_r.orientation =
+                    Quaternion::rotation_x(s_a.shr.3) * Quaternion::rotation_y(s_a.shr.4);
+
+                next.control.position = Vec3::new(
+                    s_a.sc.0 + movement1 * -5.0 + movement3 * -2.0,
+                    s_a.sc.1 + movement2.min(1.0) * -2.0,
+                    s_a.sc.2 + movement2.min(1.0) * 2.0,
+                );
+                next.control.orientation =
+                    Quaternion::rotation_x(s_a.sc.3 + movement1 * -1.0 + movement3 * -0.5)
+                        * Quaternion::rotation_y(s_a.sc.4 + movement1 * 1.5 + movement3 * -2.5);
+
                 next.head.position =
                     Vec3::new(0.0, 0.0 + s_a.head.0, s_a.head.1 + movement2.min(1.0) * 1.0);
                 next.head.orientation = Quaternion::rotation_x(0.0)
@@ -102,17 +109,6 @@ impl Animation for DashAnimation {
                     Quaternion::rotation_x(movement2.min(1.0) * -0.4 + movement3 * 0.4)
                         * Quaternion::rotation_y(movement2.min(1.0) * -0.2 + movement3 * 0.3)
                         * Quaternion::rotation_z(movement1 * 1.1 + movement3 * -2.2);
-
-                next.control.position = Vec3::new(
-                    -7.0 + movement1 * -5.0 + movement3 * -2.0,
-                    7.0 + movement2.min(1.0) * -2.0,
-                    2.0 + movement2.min(1.0) * 2.0,
-                );
-                next.control.orientation =
-                    Quaternion::rotation_x(movement1 * -1.0 + movement3 * -0.5)
-                        * Quaternion::rotation_y(movement1 * 1.5 + movement3 * -2.5)
-                        * Quaternion::rotation_z(0.0);
-                next.control.scale = Vec3::one();
 
                 next.shorts.orientation = Quaternion::rotation_z(short(movement2).min(1.0) * 0.25);
 
@@ -134,106 +130,16 @@ impl Animation for DashAnimation {
                 next.foot_r.orientation = Quaternion::rotation_x(-0.6 + footrotr(movement2) * -0.6)
                     * Quaternion::rotation_z(-0.2);
             },
-            Some(ToolKind::Dagger(_)) => {
-                next.head.position = Vec3::new(0.0, s_a.head.0, -2.0 + s_a.head.1);
-                next.head.orientation = Quaternion::rotation_z(0.0)
-                    * Quaternion::rotation_x(0.0)
-                    * Quaternion::rotation_y(0.0);
-                next.head.scale = Vec3::one() * s_a.head_scale;
-
-                next.chest.position = Vec3::new(0.0, 0.0, 7.0 + slow(anim_time as f32) * 2.0);
-                next.chest.orientation =
-                    Quaternion::rotation_x(-0.5) * Quaternion::rotation_z(-0.7);
-
-                next.belt.position = Vec3::new(0.0, 1.0, -1.0);
-                next.belt.orientation = Quaternion::rotation_x(0.2) * Quaternion::rotation_z(0.2);
-
-                next.shorts.position = Vec3::new(0.0, 3.0, -3.0);
-                next.shorts.orientation = Quaternion::rotation_x(0.4) * Quaternion::rotation_z(0.3);
-
-                next.hand_l.position = Vec3::new(-0.75, -1.0, -2.5);
-                next.hand_l.orientation = Quaternion::rotation_x(1.27);
-                next.hand_l.scale = Vec3::one() * 1.04;
-                next.hand_r.position = Vec3::new(0.75, -1.5, -5.5);
-                next.hand_r.orientation = Quaternion::rotation_x(1.27);
-                next.hand_r.scale = Vec3::one() * 1.05;
-                next.main.position = Vec3::new(0.0, 6.0, -1.0);
-                next.main.orientation = Quaternion::rotation_x(-0.3);
-                next.main.scale = Vec3::one();
-
-                next.control.position = Vec3::new(-8.0 - slow(anim_time as f32) * 0.5, 3.0, 3.0);
-                next.control.orientation = Quaternion::rotation_x(-0.3)
-                    * Quaternion::rotation_z(1.1 + slow(anim_time as f32) * 0.2);
-                next.control.scale = Vec3::one();
-                next.foot_l.position = Vec3::new(-1.4, 2.0, s_a.foot.2);
-                next.foot_l.orientation = Quaternion::rotation_x(-0.8);
-
-                next.foot_r.position = Vec3::new(5.4, -1.0, s_a.foot.2);
-                next.foot_r.orientation = Quaternion::rotation_x(-0.8);
-            },
             _ => {},
         }
         match second_tool_kind {
-            //TODO: Inventory
-            Some(ToolKind::Dagger(_)) => {
-                next.head.position = Vec3::new(0.0, s_a.head.0, -2.0 + s_a.head.1);
-                next.head.orientation = Quaternion::rotation_z(0.0)
-                    * Quaternion::rotation_x(0.0)
-                    * Quaternion::rotation_y(0.0);
-                next.head.scale = Vec3::one() * s_a.head_scale;
-
-                next.chest.position = Vec3::new(0.0, 0.0, 7.0 + slow(anim_time as f32) * 2.0);
-                next.chest.orientation = Quaternion::rotation_x(0.0);
-
-                next.belt.position = Vec3::new(0.0, 1.0, -1.0);
-                next.belt.orientation = Quaternion::rotation_x(0.0);
-
-                next.shorts.position = Vec3::new(0.0, 3.0, -3.0);
-                next.shorts.orientation = Quaternion::rotation_x(0.0);
-
-                next.control.position = Vec3::new(0.0, 0.0, 0.0);
-                next.control.orientation = Quaternion::rotation_x(0.0);
-                next.control.scale = Vec3::one();
-
-                next.control_l.position = Vec3::new(-8.0, -10.0, 0.0);
-
-                next.hand_l.position = Vec3::new(0.0, 0.0, 0.0);
-                next.hand_l.orientation = Quaternion::rotation_x(0.0);
-                next.hand_l.scale = Vec3::one() * 1.04;
-
-                next.main.position = Vec3::new(0.0, 0.0, 0.0);
-                next.main.orientation = Quaternion::rotation_x(0.0);
-                next.main.scale = Vec3::one();
-
-                next.control_r.position = Vec3::new(8.0, 10.0, 0.0);
-
-                next.hand_r.position = Vec3::new(0.0, 0.0, 0.0);
-                next.hand_r.orientation = Quaternion::rotation_x(0.0);
-                next.hand_r.scale = Vec3::one() * 1.05;
-
-                next.second.position = Vec3::new(0.0, 6.0, -1.0);
-                next.second.orientation = Quaternion::rotation_x(-0.3);
-                next.second.scale = Vec3::one();
-
-                next.foot_l.position = Vec3::new(-1.4, 2.0, s_a.foot.2);
-                next.foot_l.orientation = Quaternion::rotation_x(-0.8);
-
-                next.foot_r.position = Vec3::new(5.4, -1.0, s_a.foot.2);
-                next.foot_r.orientation = Quaternion::rotation_x(-0.8);
-            },
             _ => {},
         }
 
-        next.lantern.position = Vec3::new(s_a.lantern.0, s_a.lantern.1, s_a.lantern.2);
         next.lantern.orientation = Quaternion::rotation_x(slow(anim_time as f32) * -0.7 + 0.4)
             * Quaternion::rotation_y(slow(anim_time as f32) * 0.4);
-        next.hold.scale = Vec3::one() * 0.0;
 
         next.torso.scale = Vec3::one() / 11.0 * s_a.scaler;
-
-        next.control_l.scale = Vec3::one();
-
-        next.control_r.scale = Vec3::one();
 
         next.second.scale = match (
             active_tool_kind.map(|tk| tk.hands()),

@@ -39,7 +39,6 @@ pub use self::{
     stand::StandAnimation, swim::SwimAnimation, swimwield::SwimWieldAnimation,
     wield::WieldAnimation,
 };
-
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};
 use common::comp;
 use core::convert::TryFrom;
@@ -131,6 +130,12 @@ pub struct SkeletonAttr {
     foot: (f32, f32, f32),
     shoulder: (f32, f32, f32),
     lantern: (f32, f32, f32),
+    shl: (f32, f32, f32, f32, f32, f32),
+    shr: (f32, f32, f32, f32, f32, f32),
+    sc: (f32, f32, f32, f32, f32, f32),
+    hhl: (f32, f32, f32, f32, f32, f32),
+    hhr: (f32, f32, f32, f32, f32, f32),
+    hc: (f32, f32, f32, f32, f32, f32),
 }
 
 impl Default for SkeletonAttr {
@@ -147,6 +152,12 @@ impl Default for SkeletonAttr {
             foot: (0.0, 0.0, 0.0),
             shoulder: (0.0, 0.0, 0.0),
             lantern: (0.0, 0.0, 0.0),
+            shl: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            shr: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            sc: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            hhl: (0.0, 0.0, 10.0, 0.0, 0.0, 0.0),
+            hhr: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            hc: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
         }
     }
 }
@@ -219,6 +230,24 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             },
             lantern: match (body.species, body.body_type) {
                 (_, _) => (5.0, 2.5, 5.5),
+            },
+            shl: match (body.species, body.body_type) {
+                (_, _) => (-0.75, -1.0, 0.5, 1.47, -0.2, 0.0),
+            },
+            shr: match (body.species, body.body_type) {
+                (_, _) => (0.75, -1.5, -2.5, 1.47, 0.3, 0.0),
+            },
+            sc: match (body.species, body.body_type) {
+                (_, _) => (-7.0, 7.0, 2.0, -0.1, 0.0, 0.0),
+            },
+            hhl: match (body.species, body.body_type) {
+                (_, _) => (-0.5, -1.0, 10.0, 1.57, 0.0, 0.0),
+            },
+            hhr: match (body.species, body.body_type) {
+                (_, _) => (0.0, 0.0, 0.0, 1.57, 0.0, 0.0),
+            },
+            hc: match (body.species, body.body_type) {
+                (_, _) => (6.0, 7.0, 1.0, -0.3, -1.57, 0.5),
             },
         }
     }
