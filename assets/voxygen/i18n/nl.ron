@@ -1,0 +1,619 @@
+/// Translation document instructions
+///
+/// In order to keep localization documents readible please follow the following
+/// rules:
+/// - separate the string map sections using a commentary describing the purpose
+///   of the next section
+/// - prepend multi-line strings with a commentary
+/// - append one blank lines after a multi-line strings and two after sections
+///
+/// To add a new language in Veloren, just write an additional `.ron` file in
+/// `assets/voxygen/i18n` and that's it!
+///
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for "global" English
+VoxygenLocalization(
+    metadata: (
+        language_name: "Nederlands",
+        language_identifier: "nl",
+    ),
+    convert_utf8_to_ascii: false,
+    fonts: {
+        "opensans": Font (
+            asset_key: "voxygen.font.OpenSans-Regular",
+            scale_ratio: 1.0,
+        ),
+        "metamorph": Font (
+            asset_key: "voxygen.font.Metamorphous-Regular",
+            scale_ratio: 1.0,
+        ),
+        "alkhemi": Font (
+            asset_key: "voxygen.font.Alkhemikal",
+            scale_ratio: 1.0,
+        ),
+        "wizard": Font (
+            asset_key: "voxygen.font.wizard",
+            scale_ratio: 1.0,
+        ),
+        "cyri": Font (
+            asset_key: "voxygen.font.haxrcorp_4089_cyrillic_altgr_extended",
+            scale_ratio: 1.0,
+        ),
+    },
+    string_map: {
+        /// Start Common section
+        // Texts used in multiple locations with the same formatting
+        "common.username": "Spelernaam",
+        "common.singleplayer": "Alleen spelen",
+        "common.multiplayer": "Samen spelen",
+        "common.servers": "Servers",
+        "common.quit": "Afsluiten",
+        "common.settings": "Instellingen",
+        "common.languages": "Talen",
+        "common.interface": "Interface",
+        "common.gameplay": "Gameplay",
+        "common.controls": "Besturing",
+        "common.video": "Grafische weergave",
+        "common.sound": "Geluid",
+        "common.languages": "Talen",
+        "common.resume": "Verder spelen",
+        "common.characters": "Karakters",
+        "common.close": "Sluiten",
+        "common.yes": "Ja",
+        "common.no": "Nee",
+        "common.back": "Terug",
+        "common.create": "Aanmaken",
+        "common.okay": "Oké",
+        "common.accept": "Aanvaarden",
+        "common.decline": "Afwijzen",
+        "common.disclaimer": "Disclaimer",
+        "common.cancel": "Annuleren",
+        "common.none": "Geen",
+        "common.error": "Fout",
+        "common.fatal_error": "Fatale fout",
+        "common.you": "Jij",
+        "common.automatic": "Auto",
+        "common.random": "Willekeurig",
+        // Settings Window title
+        "common.interface_settings": "Interface Instellingen",
+        "common.gameplay_settings": "Gameplay Instellingen",
+        "common.controls_settings": "Besturing Instellingen",
+        "common.video_settings": "Grafische instellingen",
+        "common.sound_settings": "Geluids instellingen",
+        "common.language_settings": "Taal instellingen",
+
+        // Message when connection to the server is lost
+        "common.connection_lost": r#"Verbinding verloren!
+Is de server opniew opgestart?
+Is je client nog up to date?"#,
+
+
+        "common.species.orc": "Orc",
+        "common.species.human": "Mens",
+        "common.species.dwarf": "Dwerg",
+        "common.species.elf": "Elf",
+        "common.species.undead": "Ondood",
+        "common.species.danari": "Danari",
+
+        "common.weapons.axe": "Bijl",
+        "common.weapons.sword": "Zwaard",
+        "common.weapons.staff": "Staf",
+        "common.weapons.bow": "Boog",
+        "common.weapons.hammer": "Hamer",
+        "common.weapons.sceptre": "Genezende scepter",
+        "common.rand_appearance": "Willekeurig uiterlijk en naam",
+        /// End Common section
+
+
+        /// Start Main screen section
+        "main.connecting": "Verbinden",
+        "main.creating_world": "Wereld aan het maken",
+        "main.tip": "Tip:",
+
+        // Welcome notice that appears the first time Veloren is started
+        "main.notice": r#"Welkom bij de Alpha versie van Veloren!
+
+Voordat de fun begint zijn hier enkele dingen om rekening mee te houden:
+
+- Dit is een hele vroege alpha. Verwacht bugs, extreem onafgemaakte gameplay, ruwe spelmechanics en missende functies.
+
+- Als je constructieve feedback hebt of bugs wil melden, kan je ons contacteren via Reddit, Gitlab of onze community Discord.
+
+- Veloren is onder de GPL 3 open-source licentie gelicensieerd. Dat betekent dat je vrij bent om het spel te spelen, bewerken en doorgeven op welke manier
+je ook wil (zo lang afgeleide werken ook onder GPL 3 gelicensieerd zijn)
+
+- Veloren is een non-profit community project, en iedereen dat er aan meehelpt is een vrijwilliger.
+Als je interesse hebt kan je je aansluiten bij onze ontwikkeling- of ontwerpteams!
+
+Bedankt voor de tijd te nemen om deze melding te lezen, we hopen dat je van het spel zult genieten!
+Thanks for taking the time to read this notice, we hope you enjoy the game!
+
+~ De Veloren ontwikkelaars"#,
+
+        // Login process description
+        "main.login_process": r#"Information over het loginproces:
+
+Hou er rekening mee dat je tegenwoordig een account nodig hebt
+om op servers met authenticatie te spelen
+
+Je kan een account maken op
+
+https://account.veloren.net."#,
+        "main.login.server_not_found": "Server nie gevonden",
+        "main.login.authentication_error": "Authenticatie mislukt",
+        "main.login.server_full": "Server zit vol",
+        "main.login.untrusted_auth_server": "Onvertrouwde authenticatie server",
+        "main.login.outdated_client_or_server": "Versieprobleem: De versie tussen de client en de server komen niet overeen. Check of er updates zijn/",
+        "main.login.timeout": "Timeout: De server deed er te lang over om te antwoorden. (Overblast of netwerk problemen).",
+        "main.login.server_shut_down": "Server is afgesloten",
+        "main.login.already_logged_in": "Je account is al reeds ingelogd op de server.",
+        "main.login.network_error": "Network problemen",
+        "main.login.failed_sending_request": "Kon verzoek niet naar authenticatie server sturen",
+        "main.login.invalid_character": "Het geselecteerde karakter is ongeldig",
+        "main.login.client_crashed": "Client is gecrashed",
+        "main.login.not_on_whitelist": "Je moet op de whitelist staan om deze wereld te joinen",
+        "main.login.banned": "Je bent verbannen voor de volgende reden",
+        "main.login.kicked": "Je bent gekicked voor de volgende reden",
+
+        /// End Main screen section
+
+
+        /// Start HUD Section
+        "hud.do_not_show_on_startup": "Niet meer bij opstarten tonen",
+        "hud.show_tips": "Tips tonen",
+        "hud.quests": "Quests",
+        "hud.you_died": "Je bent gedood",
+        "hud.waypoint_saved": "Waypoint Opgeslagen",
+
+        "hud.press_key_to_show_keybindings_fmt": "[{key}] Besturing",
+        "hud.press_key_to_toggle_lantern_fmt": "[{key}] Lantaarn",
+        "hud.press_key_to_show_debug_info_fmt": "Druk op {key} om debug info te tonen",
+        "hud.press_key_to_toggle_keybindings_fmt": "Druk op {key} om te de besturing aan/uit te zetten",
+        "hud.press_key_to_toggle_debug_info_fmt": "Druk op {key} om debug info aan/uit te zetten",
+
+        // Chat outputs
+        "hud.chat.online_msg": "[{name}] is nu online",
+        "hud.chat.offline_msg": "{name} is offline gegaan",
+
+        "hud.chat.default_death_msg": "[{name}] is gestorven",
+        "hud.chat.environmental_kill_msg": "[{name}] is gestorven in {environment}",
+        "hud.chat.fall_kill_msg": "[{name}] is gestorven door te vallen",
+        "hud.chat.suicide_msg": "[{name}] is gestorven door zelf toegebrachte verwondingen",
+
+        "hud.chat.pvp_melee_kill_msg": "[{attacker}] versloeg [{victim}]",
+        "hud.chat.pvp_ranged_kill_msg": "[{attacker}] schoot [{victim}] neer",
+        "hud.chat.pvp_explosion_kill_msg": "[{attacker}] blies [{victim}] op",
+        "hud.chat.pvp_energy_kill_msg": "[{attacker}] gebruikte magie om [{victim}] te vermoorden",
+
+        "hud.chat.npc_melee_kill_msg": "{attacker} dode [{victim}]",
+        "hud.chat.npc_ranged_kill_msg": "{attacker} schoot [{victim}]",
+        "hud.chat.npc_explosion_kill_msg": "{attacker} blies [{victim}] op",
+
+        "hud.chat.loot_msg": "Je raapte [{item}] op",
+        "hud.chat.loot_fail": "Jouw inventory is vol!",
+        "hud.chat.goodbye": "Vaarwel!",
+        "hud.chat.connection_lost": "Verbinding verloren. Je wordt in {time} seconden gekicked.",
+
+        // SCT outputs
+        "hud.sct.experience": "{amount} Exp",
+        "hud.sct.block": "GEBLOCKED",
+
+        // Respawn message
+        "hud.press_key_to_respawn": r#"Druk op {key} om te respawnen bij het laatste kampvuur dat je bezocht."#,
+
+        // Welcome message
+        "hud.welcome": r#"Welcome bij de Veloren Alpha!
+
+Wat tips voor je start:
+
+
+Druk op F1 om de besturing te zien.
+
+Type /help in chat om de chat commando's te zien.
+
+
+Er verschijnen kisten en andere objecten willekeurig in de wereld!
+
+Gebruik rechtermuisknop om ze te verzamelen!
+
+Om effectief hetgene dat je van de kisten krijgt te gebruiken, open je je inventory met 'B'.
+
+Dubbelklik op de voorwerpen in je rugzak om ze aan te doen of te gebruiken.
+
+Gooi dingen weg door ze eenmaal aan te klikken en dan buiten je rugzak te klikken.
+
+
+Nachten kunnen vrij donker worden in Veloren.
+
+Gebruik je lantaarn door 'G' te drukken
+
+
+Wil je je cursor gebruiken om dit venster te sluiten? Druk TAB!
+
+
+Geniet van je verblijf in de wereld van Veloren."#,
+
+"hud.temp_quest_headline": r#"Help ons alsjeblieft, reiziger!"#,
+"hud.temp_quest_text": r#"Kerkers vol met kwaaraardige sektes
+komen overal tevoorschijn rond onze vreedzame dorpen!
+
+
+Verzamel wat gezelschap, vul je voedselrantsoenen aan
+en versla hun kwaadaardige leiders en volgelingen.
+
+
+Misschien kan je zelfs een van hun
+Maybe you can even obtain one of their
+met magie gevulde objecten bemachtigen?"#,
+
+
+
+        // Inventory
+        "hud.bag.inventory": "{playername}'s Rugzak",
+        "hud.bag.stats_title": "{playername}'s Stats",
+        "hud.bag.exp": "Exp",
+        "hud.bag.armor": "Armor",
+        "hud.bag.stats": "Stats",
+        "hud.bag.head": "Hoofd",
+        "hud.bag.neck": "Nek",
+        "hud.bag.tabard": "Tabberd",
+        "hud.bag.shoulders": "Schouders",
+        "hud.bag.chest": "Borstkas",
+        "hud.bag.hands": "Handen",
+        "hud.bag.lantern": "Lantaarn",
+        "hud.bag.glider": "Deltavlieger",
+        "hud.bag.belt": "Riem",
+        "hud.bag.ring": "Ring",
+        "hud.bag.back": "Rug",
+        "hud.bag.legs": "Benen",
+        "hud.bag.feet": "Voeten",
+        "hud.bag.mainhand": "Dominante hand",
+        "hud.bag.offhand": "Tweede hand",
+
+
+        // Map and Questlog
+        "hud.map.map_title": "Kaart",
+        "hud.map.qlog_title": "Quests",
+
+        // Settings        
+        "hud.settings.general": "Algemeen",
+        "hud.settings.none": "Geen",
+        "hud.settings.press_behavior.toggle": "Omschakelbaar",
+        "hud.settings.press_behavior.hold": "Inhouden",
+        "hud.settings.help_window": "Help Venster",
+        "hud.settings.debug_info": "Debug Informatie",
+        "hud.settings.tips_on_startup": "Tips-Bij-Opstarten",
+        "hud.settings.ui_scale": "UI-Schaal",
+        "hud.settings.relative_scaling": "Relatief Schalen",
+        "hud.settings.custom_scaling": "Aangepast Schalen",
+        "hud.settings.crosshair": "Richtkruis",
+        "hud.settings.transparency": "Doorschijnbaarheid",
+        "hud.settings.hotbar": "Hotbar",
+        "hud.settings.toggle_shortcuts": "Toon Sneltoetsen",
+        "hud.settings.toggle_bar_experience": "Toon Experience Balk",
+        "hud.settings.scrolling_combat_text": "Pop-up Gevechtstext",
+        "hud.settings.single_damage_number": "Aparte Schade Getallen",
+        "hud.settings.cumulated_damage": "Cumulatieve Schade Getallen",
+        "hud.settings.incoming_damage": "Inkomende Schade Getallen",
+        "hud.settings.cumulated_incoming_damage": "Cumulatieve Inkomende Schade Getallen",
+        "hud.settings.speech_bubble": "Spraakbubbel",
+        "hud.settings.speech_bubble_dark_mode": "Donkere Modus",
+        "hud.settings.speech_bubble_icon": "Spraakbubbel Icoon",
+        "hud.settings.energybar_numbers": "Energiebalk Getallen",
+        "hud.settings.values": "Waarden",
+        "hud.settings.percentages": "Percentages",
+        "hud.settings.chat": "Chat",
+        "hud.settings.background_transparency": "Transparantie Achtergrond",
+        "hud.settings.chat_character_name": "Karakternamen in de Chat",
+        "hud.settings.loading_tips": "Laadscherm Tips",
+
+        "hud.settings.pan_sensitivity": "Camera-gevoeligheid",
+        "hud.settings.zoom_sensitivity": "Zoom-gevoeligheid",
+        "hud.settings.invert_scroll_zoom": "Inverteer Zoom Scrollen",
+        "hud.settings.invert_mouse_y_axis": "Inverteer muis Y As",
+        "hud.settings.enable_mouse_smoothing": "Camerabeweging gelijkmaken",
+        "hud.settings.free_look_behavior": "Vrije camera gedrag",
+        "hud.settings.auto_walk_behavior": "Automatisch wandelgedrag",
+        "hud.settings.stop_auto_walk_on_input": "Stop automatisch
+wandelen bij bewegen",
+
+        "hud.settings.view_distance": "Kijkafstand",
+        "hud.settings.sprites_view_distance": "Kijkafstand sprites",
+        "hud.settings.figures_view_distance": "Kijkafstand entiteiten",
+        "hud.settings.maximum_fps": "Maximum FPS",
+        "hud.settings.fov": "Gezichtsveld (graden)",
+        "hud.settings.gamma": "Gamma",
+        "hud.settings.ambiance": "Omgevingshelderheid",
+        "hud.settings.antialiasing_mode": "AntiAliasing Modus",
+        "hud.settings.cloud_rendering_mode": "Wolk Rendering Modus",
+        "hud.settings.fluid_rendering_mode": "Vloeistoffen Rendering Mode",
+        "hud.settings.fluid_rendering_mode.cheap": "Goedkoop",
+        "hud.settings.fluid_rendering_mode.shiny": "Schitterend",
+        "hud.settings.cloud_rendering_mode.regular": "Gewoon",
+        "hud.settings.fullscreen": "Volledig scherm",
+        "hud.settings.fullscreen_mode": "Volledige scherm modus",
+        "hud.settings.fullscreen_mode.exclusive": "Exclusief",
+        "hud.settings.fullscreen_mode.borderless": "Randloos",
+        "hud.settings.particles": "Deeltjes",
+        "hud.settings.resolution": "Resolutie",
+        "hud.settings.bit_depth": "Bit diepte",
+        "hud.settings.refresh_rate": "Vernieuwingssnelheid",
+        "hud.settings.save_window_size": "Venster grootte opslaan",
+        "hud.settings.lighting_rendering_mode": "Licht Rendering Modus",
+        "hud.settings.lighting_rendering_mode.ashikhmin": "Type A",
+        "hud.settings.lighting_rendering_mode.blinnphong": "Type B",
+        "hud.settings.lighting_rendering_mode.lambertian": "Type L",
+        "hud.settings.shadow_rendering_mode": "Schaduw Rendering Mode",
+        "hud.settings.shadow_rendering_mode.none": "Geen",
+        "hud.settings.shadow_rendering_mode.cheap": "Goedkoop",
+        "hud.settings.shadow_rendering_mode.map": "Kaart",
+        "hud.settings.shadow_rendering_mode.map.resolution": "Resolutie",
+        "hud.settings.lod_detail": "LoD Detail",
+        "hud.settings.save_window_size": "Venster grootte opslaan",
+
+
+        "hud.settings.music_volume": "Muziek Volume",
+        "hud.settings.sound_effect_volume": "Geluidseffecten Volume",
+        "hud.settings.audio_device": "Audio Apparaat",
+
+        "hud.settings.awaitingkey": "Druk op een toets...",
+        "hud.settings.unbound": "Geen",
+        "hud.settings.reset_keybinds": "Standaardwaarden
+herstellen",
+
+        "hud.social": "Andere spelers",
+        "hud.social.online": "Online:",
+        "hud.social.friends": "Vrienden",
+        "hud.social.not_yet_available": "Nog niet beschikbaar",
+        "hud.social.faction": "Factie",
+        "hud.social.play_online_fmt": "{nb_player} speler(s) online",
+        "hud.social.name": "Naam",
+        "hud.social.level": "Level",
+        "hud.social.zone": "Zone",
+        "hud.social.account": "Account",
+
+
+        "hud.crafting": "Fabriceren",
+        "hud.crafting.recipes": "Recepten",
+        "hud.crafting.ingredients": "Ingrediënten:",
+        "hud.crafting.craft": "Maak",
+        "hud.crafting.tool_cata": "Vereisten:",
+
+        "hud.group": "Groep",
+        "hud.group.invite_to_join": "{name} heeft je voor zijn/haar groep uitgenodigd!",
+        "hud.group.invite": "Uitnodigen",
+        "hud.group.kick": "Kick",
+        "hud.group.assign_leader": "Maak Leider",
+        "hud.group.leave": "Groep Verlaten",
+        "hud.group.dead" : "Dood",
+        "hud.group.out_of_range": "Buiten Bereik",
+        "hud.group.add_friend": "Aan Vrienden Toevoegen",
+        "hud.group.link_group": "Link Groups",
+        "hud.group.in_menu": "In Menu",
+        "hud.group.members": "Groepsleden",
+
+        "hud.spell": "Spreuken",
+
+        "hud.free_look_indicator": "Vrij rondkijken aan. Druk {key} om uit te zetten.",
+        "hud.auto_walk_indicator": "Automatisch wandelen aan",
+
+        /// End HUD section
+
+
+        /// Start GameInput section
+
+        "gameinput.primary": "Gewone aanval",
+        "gameinput.secondary": "Alternatieve Aanval/Block/Mikken",
+        "gameinput.slot1": "Hotbar Slot 1",
+        "gameinput.slot2": "Hotbar Slot 2",
+        "gameinput.slot3": "Hotbar Slot 3",
+        "gameinput.slot4": "Hotbar Slot 4",
+        "gameinput.slot5": "Hotbar Slot 5",
+        "gameinput.slot6": "Hotbar Slot 6",
+        "gameinput.slot7": "Hotbar Slot 7",
+        "gameinput.slot8": "Hotbar Slot 8",
+        "gameinput.slot9": "Hotbar Slot 9",
+        "gameinput.slot10": "Hotbar Slot 10",
+        "gameinput.swaploadout": "Uitrusting Wisselen",
+        "gameinput.togglecursor": "Cursor Aan/Uit",
+        "gameinput.help": "Help Venster Aan/Uit",
+        "gameinput.toggleinterface": "Interface Aan/Uit",
+        "gameinput.toggledebug": "FPS en Debug Info Aan/Uit",
+        "gameinput.screenshot": "Screenshot maken",
+        "gameinput.toggleingameui": "Naamplaatjes Aan/Uit",
+        "gameinput.fullscreen": "Volledig Scherm Aan/Uit",
+        "gameinput.moveforward": "Voorwaards Bewegen",
+        "gameinput.moveleft": "Links Bewegen",
+        "gameinput.moveright": "Rechts Bewegen",
+        "gameinput.moveback": "Achteruit Bewegen",
+        "gameinput.jump": "Springen",
+        "gameinput.glide": "Deltavlieger",
+        "gameinput.roll": "Rollen",
+        "gameinput.climb": "Klimmen",
+        "gameinput.climbdown": "Naar Beneden Klimmen",
+        "gameinput.wallleap": "Muursprong",
+        "gameinput.togglelantern": "Lantaarn Aan/Uit",
+        "gameinput.mount": "Berijden",
+        "gameinput.chat": "Chat",
+        "gameinput.command": "Commando",
+        "gameinput.escape": "Sluiten",
+        "gameinput.map": "Kaart",
+        "gameinput.bag": "Rugzak",
+        "gameinput.social": "Sociaal",
+        "gameinput.sit": "Zit",
+        "gameinput.spellbook": "Spreuken",
+        "gameinput.settings": "Instellingen",
+        "gameinput.respawn": "Respawn",
+        "gameinput.charge": "Opladen",
+        "gameinput.togglewield": "Wapen Vastnemen/Wegsteken",
+        "gameinput.interact": "Gebruik",
+        "gameinput.freelook": "Vrije Camera",
+        "gameinput.autowalk": "Automatisch Wandelen",
+        "gameinput.dance": "Dans",
+        "gameinput.select": "Selecteer Entiteit",
+        "gameinput.acceptgroupinvite": "Accepteer Groepsuitnodiging",
+        "gameinput.declinegroupinvite": "Wijs Groepsuitnodiging Af",
+        "gameinput.crafting": "Fabriceermenu",
+        "gameinput.sneak": "Sluipen",
+        "gameinput.swimdown": "Naar Beneden Zwemmen",
+        "gameinput.swimup": "Naar Boven Zwemmen",
+        
+        /// End GameInput section
+
+
+        /// Start chracter selection section
+        "char_selection.loading_characters": "Karakters Worden Geladen...",
+        "char_selection.delete_permanently": "Karakter Permanent Verwijderen?",
+        "char_selection.deleting_character": "Karakter Wordt Verwijderen...",
+        "char_selection.change_server": "Server Wisselen",
+        "char_selection.enter_world": "Wereld Betreden",
+        "char_selection.logout": "Uitloggen",
+        "char_selection.create_new_charater": "Nieuw Karakter Maken",
+        "char_selection.creating_character": "Karakter Wordt Aangemaakt...",
+        "char_selection.character_creation": "Karaktercreatie",
+
+        "char_selection.human_default": "Standaard Mens",
+        "char_selection.level_fmt": "Level {level_nb}",
+        "char_selection.uncanny_valley": "Wildernis",
+        "char_selection.plains_of_uncertainty": "Vlaktes van Onzekerheid",
+        "char_selection.beard": "Baard",
+        "char_selection.hair_style": "Haarstijl",
+        "char_selection.hair_color": "Haarkleur",
+        "char_selection.eye_color": "Oogkleur",
+        "char_selection.skin": "Huid",
+        "char_selection.eyeshape": "Oogdetails",
+        "char_selection.accessories": "Accessoires",
+        "char_selection.create_info_name": "Je karakter heeft een naam nodig!",
+
+        /// End chracter selection section
+
+
+        /// Start character window section
+        "character_window.character_name": "Karakter Naam",
+        // Character stats
+        "character_window.character_stats": r#"Uithouding
+
+Fitheid
+
+Willskracht
+
+Bescherming
+"#,
+        /// End character window section
+
+
+        /// Start Escape Menu Section
+        "esc_menu.logout": "Uitloggen",
+        "esc_menu.quit_game": "Spel Verlaten",
+        /// End Escape Menu Section        
+
+    },
+
+    
+    vector_map: {     
+        "loading.tips": [
+            "Druk op 'G' om je lantaarn te doen schijnen.",
+            "Druk op 'F1' om alle standaardbesturingen te zien.",
+            "Je kan /say of /s typen om enkel met spelers rondom je te praten.",
+            "Je kan /region of /r typen om enkel met spelers binnen een hondertal blokken te praten.",
+            "Je kan /group of /g typen om enkel met je groepsleden te praten.",
+            "Om privéberichten te sturen gebruik je /tell gevolgd door de speler zijn naam en dan je bericht",
+            "NPCs met hetzelfde level zijn niet per sé altijd even sterk.",
+            "Hou je ogen open voor eten, kisten en andere buit verspreid over de wereld!",
+            "Zit je Inventory vol met eten? Probeer beter eten er van te craften!",
+            "Weet je niet wat te doen? Kerkers zijn met een bruine vlek op je kaart aangeduid!",
+            "Vergeet je grafische instellingen niet aan te passen naar je systeem. Druk 'N' om het instellingenmenu te openen.",
+            "Met anderen spelen is plezanter! Druk op 'O' om te zien wie er nog online is!",
+            "Een NPC met een doodshoofd onder zijn levensbalk is zeer sterk vergeleken met jezelf.",
+            "Druk op 'J' om te dansen. Feestje!",
+            "Druk op 'L-Shift' om je deltavlieger te openen en het luchtruim te veroveren.",
+            "Veloren is nog steeds in Pre-Alpha. We doen ons best om het elke dag te verbeteren!",
+            "Als je het ontwikkelingsteam wil versterken of gewoon een babbeltje wil doen met ons, kom dan langs op onze Discord-Server.",
+            "Je kan numerieke waarden in de levensbalk aan of uit zetten in de instellingen.",
+            "Om je stats te zien kan je op 'Stats' klikken in je Inventory.",
+        ],         
+        "npc.speech.villager_under_attack": [
+            "Help, Ik word aangevallen!",
+            "Help! Ik word aangevallen!",
+            "Ow! Ik word aangevallen!",
+            "Ow! Ik word aangevallen! Help!",
+            "Help me! Ik word aangevallen!",
+            "Ik word aangevallen! Help!",
+            "Ik word aangevallen! Help me!",
+            "Help!",
+            "Help! Help!",
+            "Help! Help! Help!",
+            "Ik word aangevallen!",
+            "AAAHHH! Ik word aangevallen!",
+            "AAAHHH! Ik word aangevallen! Help!",
+            "Help! We worden aangevallen!",
+            "Help! Moordenaar!",
+            "Help! Er loopt een moordenaar rond!",
+            "Help! Ze proberen mij te vermoorden!",
+            "Wachters, Ik word aangevallen!",
+            "Wachters! Ik word aangevallen!",
+            "Ik word aangevallen! Wachters!",
+            "Help! Wachters! Ik word aangevallen!",
+            "Wachters! Kom snel!",
+            "Wachters! Wachters!",
+            "Wachters! Er is een snodaard mij aan het aanvallen!",
+            "Wachters, slacht deze kwaadaardige snodaard!",
+            "Wachters! Er is een moordenaar!",
+            "Wachters! Help me!",
+            "Hier kom je niet mee weg! Wachters!",
+            "Jij boosdoener!",
+            "Help me!",
+            "Help! Alsjeblieft!",
+            "Ow! Wachters! Help!",
+            "Ze zitten achter me aan!",
+            "Help! Help! Ik word onderdrukt!",
+            "Ah, nu zien we het geweld eigen aan het systeem.",
+            "Het is maar een schrammetje!",
+            "Stop daarmee!",
+            "Wat heb ik jouw ooit aangedaan?!",
+            "Alsjeblieft stop met aanvallen!",
+            "Hey! Pas op waar je dat ding wijst!",
+            "Gruwelijke ellendeling, wegwezen!",
+            "Stop ermee! Wegwezen!",
+            "Nu maak je me boos!",
+            "Oi! Wie denk je wel niet dat je bent?!",
+            "Hiervoor ga je boeten!",
+            "Stop, Alsjeblieft! Ik heb niks waardevol!",
+            "Ik stuur mijn broer op je af, hij is groter dan ik!",
+            "Neeeee, ik ga het tegen je mama zeggen!",
+            "Vervloek u!",
+            "Alsjeblieft niet doen.",
+            "Dat was niet erg vriendelijk!",
+            "Je wapen werkt, je mag het nu wegsteken hoor!",
+            "Genade!",
+            "Ik smeek je, ik heb een familie!",
+            "Ik ben te jong om te sterven!",
+            "Ik ben te mooi om te sterven!",
+            "Kunnen we erover praten?",
+            "Geweld is nooit het antwoord!",
+            "Vandaag zit vol met tegenslagen...",
+            "Hey, dat doet pijn!",
+            "Eek!",
+            "Hoe onbeleefd!",
+            "Stop, ik smeek je!",
+            "Ik wens je de mazelen toe!",
+            "Dit is niet plezant.",
+            "Hoe durf je?!",
+            "Ik zet het je betaald!",
+            "Blijf zo doorgaan en je zult spijt krijgen!",
+            "Zorg er niet voor dat ik je moet pijn doen!",
+            "Er moet een soort van misverstand zijn!",
+            "Je moet dit niet doen!",
+            "Vertrek, duivel!",
+            "Dat deed echt pijn!",
+            "Waarom doe je dit?",
+            "Bij alles dat heilig is, stop!",
+            "Je verward mij met iemand anders!",
+            "Ik verdien dit niet!",
+            "Doe dat alsjeblieft niet meer.",
+            "Wachters, gooi dit monster het meer in!",
+            "Ik laat mijn Tarasque op je los!",
+        ],        
+    }
+)
