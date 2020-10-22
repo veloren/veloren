@@ -147,7 +147,6 @@ impl Animation for SpinAnimation {
 
             next.foot_l.position = Vec3::new(-s_a.foot.0, foot * 1.0, s_a.foot.2);
             next.foot_l.orientation = Quaternion::rotation_x(foot * -1.2);
-            next.foot_l.scale = Vec3::one();
 
             next.foot_r.position = Vec3::new(s_a.foot.0, foot * -1.0, s_a.foot.2);
             next.foot_r.orientation = Quaternion::rotation_x(foot * 1.2);

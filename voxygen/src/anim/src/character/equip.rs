@@ -69,7 +69,6 @@ impl Animation for EquipAnimation {
                 next.control.position = Vec3::new(0.0, 0.0, 0.0);
                 next.control.orientation =
                     Quaternion::rotation_x(0.2) * Quaternion::rotation_y(-0.3);
-                next.control.scale = Vec3::one();
             },
             Some(ToolKind::Hammer(_)) => {
                 next.hand_l.position = Vec3::new(-7.0, 5.5, 3.5);
@@ -107,23 +106,21 @@ impl Animation for EquipAnimation {
                 next.hand_l.orientation = Quaternion::rotation_x(1.20)
                     * Quaternion::rotation_y(-0.6)
                     * Quaternion::rotation_z(-0.3);
-                next.hand_l.scale = Vec3::one() * 1.05;
+                next.hand_l.scale = Vec3::one() * 1.04;
                 next.hand_r.position = Vec3::new(5.9, 4.5, -5.0);
                 next.hand_r.orientation = Quaternion::rotation_x(1.20)
                     * Quaternion::rotation_y(-0.6)
                     * Quaternion::rotation_z(-0.3);
-                next.hand_r.scale = Vec3::one() * 1.05;
+                next.hand_r.scale = Vec3::one() * 1.04;
                 next.main.position = Vec3::new(3.0, 2.0, -13.0);
                 next.main.orientation = Quaternion::rotation_x(-0.3)
                     * Quaternion::rotation_y(0.3)
                     * Quaternion::rotation_z(-0.6);
-                next.main.scale = Vec3::one();
 
                 next.control.position = Vec3::new(-7.0, 6.0, 6.0);
                 next.control.orientation = Quaternion::rotation_x(0.0)
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(0.0);
-                next.control.scale = Vec3::one();
             },
             _ => {},
         }

@@ -81,12 +81,10 @@ impl Animation for JumpAnimation {
             );
             next.hand_l.orientation =
                 Quaternion::rotation_x(1.9 + slow * 0.4) * Quaternion::rotation_y(0.2);
-            next.hand_l.scale = Vec3::one();
 
             next.hand_r.position = Vec3::new(s_a.hand.0, s_a.hand.1 - 3.0, s_a.hand.2 + slow * 1.5);
             next.hand_r.orientation =
                 Quaternion::rotation_x(-0.5 + slow * -0.4) * Quaternion::rotation_y(-0.2);
-            next.hand_r.scale = Vec3::one();
         } else {
             next.hand_l.position =
                 Vec3::new(-s_a.hand.0, s_a.hand.1 - 3.0, s_a.hand.2 + slow * 1.5);
@@ -143,7 +141,6 @@ impl Animation for JumpAnimation {
                 next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
             },
         }
-        next.main.scale = Vec3::one();
 
         match second_tool_kind {
             Some(ToolKind::Dagger(_)) => {
@@ -162,7 +159,6 @@ impl Animation for JumpAnimation {
                     Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
             },
         }
-        next.second.scale = Vec3::one();
 
         next.lantern.position = Vec3::new(s_a.lantern.0, s_a.lantern.1, s_a.lantern.2);
         next.lantern.orientation = Quaternion::rotation_x(1.0 * switch + slow * 0.3 * switch)

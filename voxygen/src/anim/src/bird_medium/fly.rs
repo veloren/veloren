@@ -39,7 +39,6 @@ impl Animation for FlyAnimation {
         next.head.position = Vec3::new(0.0, s_a.head.0 + 0.5, s_a.head.1 + center * 0.5 - 1.0);
         next.head.orientation =
             Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0 + center * 0.03);
-        next.head.scale = Vec3::one();
 
         next.torso.position = Vec3::new(
             0.0,

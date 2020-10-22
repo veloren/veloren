@@ -65,11 +65,9 @@ impl Animation for DanceAnimation {
         next.chest.orientation = Quaternion::rotation_z(short * 0.35)
             * Quaternion::rotation_y(shorte * 0.08)
             * Quaternion::rotation_x(foot * 0.07);
-        next.chest.scale = Vec3::one();
 
         next.belt.position = Vec3::new(0.0, s_a.belt.0, s_a.belt.1);
         next.belt.orientation = Quaternion::rotation_z(shorte * 0.25);
-        next.belt.scale = Vec3::one();
 
         next.back.position = Vec3::new(0.0, s_a.back.0, s_a.back.1);
         next.back.orientation =
@@ -78,7 +76,6 @@ impl Animation for DanceAnimation {
 
         next.shorts.position = Vec3::new(0.0, s_a.shorts.0, s_a.shorts.1);
         next.shorts.orientation = Quaternion::rotation_z(foot * 0.35);
-        next.shorts.scale = Vec3::one();
 
         next.hand_l.position = Vec3::new(
             1.0 - s_a.hand.0,
@@ -87,7 +84,6 @@ impl Animation for DanceAnimation {
         );
         next.hand_l.orientation =
             Quaternion::rotation_x(1.4 + foot * 0.15) * Quaternion::rotation_y(0.2);
-        next.hand_l.scale = Vec3::one();
 
         next.hand_r.position = Vec3::new(
             -1.0 + s_a.hand.0,
@@ -96,7 +92,6 @@ impl Animation for DanceAnimation {
         );
         next.hand_r.orientation =
             Quaternion::rotation_x(1.4 + foot * -0.15) * Quaternion::rotation_y(-0.2);
-        next.hand_r.scale = Vec3::one();
 
         next.foot_l.position = Vec3::new(
             -s_a.foot.0 + foot * 0.8,
@@ -105,7 +100,6 @@ impl Animation for DanceAnimation {
         );
         next.foot_l.orientation =
             Quaternion::rotation_x(foot * -0.3) * Quaternion::rotation_z(short * -0.15);
-        next.foot_l.scale = Vec3::one();
 
         next.foot_r.position = Vec3::new(
             s_a.foot.0 + foot * 0.8,
@@ -114,7 +108,6 @@ impl Animation for DanceAnimation {
         );
         next.foot_r.orientation =
             Quaternion::rotation_x(foot * 0.3) * Quaternion::rotation_z(short * 0.15);
-        next.foot_r.scale = Vec3::one();
 
         next.shoulder_l.position = Vec3::new(-s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
         next.shoulder_l.orientation = Quaternion::rotation_x(shorte * 0.15);
@@ -143,7 +136,6 @@ impl Animation for DanceAnimation {
                 next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
             },
         }
-        next.main.scale = Vec3::one();
 
         match second_tool_kind {
             Some(ToolKind::Dagger(_)) => {
@@ -162,7 +154,6 @@ impl Animation for DanceAnimation {
                     Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
             },
         }
-        next.second.scale = Vec3::one();
 
         next.lantern.position = Vec3::new(s_a.lantern.0, s_a.lantern.1, s_a.lantern.2);
         next.lantern.orientation =
@@ -176,11 +167,8 @@ impl Animation for DanceAnimation {
 
         next.control.position = Vec3::new(0.0, 0.0, 0.0);
         next.control.orientation = Quaternion::rotation_x(0.0);
-        next.control.scale = Vec3::one();
 
-        next.control_l.scale = Vec3::one();
 
-        next.control_r.scale = Vec3::one();
 
         next.second.scale = match (
             active_tool_kind.map(|tk| tk.hands()),

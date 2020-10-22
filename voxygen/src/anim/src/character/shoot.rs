@@ -127,10 +127,7 @@ impl Animation for ShootAnimation {
         next.lantern.orientation =
             Quaternion::rotation_x(exp * -0.7 + 0.4) * Quaternion::rotation_y(exp * 0.4);
 
-        next.hold.position = Vec3::new(17.5, -25.0, -10.5);
-        next.hold.orientation = Quaternion::rotation_x(-1.6)
-            * Quaternion::rotation_y(-0.1)
-            * Quaternion::rotation_z(0.0);
+        next.hold.scale = Vec3::one() * 0.0;
 
         next.second.scale = match (
             active_tool_kind.map(|tk| tk.hands()),

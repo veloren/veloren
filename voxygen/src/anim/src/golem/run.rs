@@ -73,8 +73,8 @@ impl Animation for RunAnimation {
         next.head.scale = Vec3::one() * 1.02;
         next.jaw.scale = Vec3::one() * 1.02;
         next.upper_torso.scale = Vec3::one() / 8.0;
-        next.hand_l.scale = Vec3::one() * 1.02;
-        next.hand_r.scale = Vec3::one() * 1.02;
+        next.hand_l.scale = Vec3::one() * 1.04;
+        next.hand_r.scale = Vec3::one() * 1.04;
         next.leg_l.scale = Vec3::one() * 1.02;
         next.leg_r.scale = Vec3::one() * 1.02;
 
@@ -89,7 +89,6 @@ impl Animation for RunAnimation {
 
         next.lower_torso.position = Vec3::new(0.0, s_a.lower_torso.0, s_a.lower_torso.1);
         next.lower_torso.orientation = Quaternion::rotation_z(tilt * 4.0 + shortalt * 0.2);
-        next.lower_torso.scale = Vec3::one();
 
         next.shoulder_l.position = Vec3::new(-s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
         next.shoulder_l.orientation = Quaternion::rotation_z(footrotl * 0.07)

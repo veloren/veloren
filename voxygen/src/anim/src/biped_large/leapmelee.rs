@@ -45,10 +45,10 @@ impl Animation for LeapAnimation {
         if let Some(ToolKind::Hammer(_)) = active_tool_kind {
             next.hand_l.position = Vec3::new(-12.0, 0.0, 0.0);
             next.hand_l.orientation = Quaternion::rotation_x(PI) * Quaternion::rotation_y(0.0);
-            next.hand_l.scale = Vec3::one() * 1.08;
+            next.hand_l.scale = Vec3::one() * 1.04;
             next.hand_r.position = Vec3::new(2.0, 0.0, 0.0);
             next.hand_r.orientation = Quaternion::rotation_x(PI) * Quaternion::rotation_y(0.0);
-            next.hand_r.scale = Vec3::one() * 1.06;
+            next.hand_r.scale = Vec3::one() * 1.04;
             next.main.position = Vec3::new(0.0, 0.0, 12.0);
             next.main.orientation = Quaternion::rotation_y(-1.57) * Quaternion::rotation_z(1.57);
 
@@ -91,12 +91,12 @@ impl Animation for LeapAnimation {
             next.hand_l.orientation = Quaternion::rotation_x(PI / 2.0)
                 * Quaternion::rotation_z(0.0)
                 * Quaternion::rotation_y(0.0);
-            next.hand_l.scale = Vec3::one() * 1.08;
+            next.hand_l.scale = Vec3::one() * 1.04;
             next.hand_r.position = Vec3::new(0.5, 0.0, -2.5);
             next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0)
                 * Quaternion::rotation_z(0.0)
                 * Quaternion::rotation_y(0.0);
-            next.hand_r.scale = Vec3::one() * 1.06;
+            next.hand_r.scale = Vec3::one() * 1.04;
             next.main.position = Vec3::new(-0.0, -2.0, -1.0);
             next.main.orientation = Quaternion::rotation_x(0.0);
 
@@ -104,7 +104,6 @@ impl Animation for LeapAnimation {
             next.control.orientation = Quaternion::rotation_x(1.8)
                 * Quaternion::rotation_y(-0.5)
                 * Quaternion::rotation_z(PI - 0.2);
-            next.control.scale = Vec3::one();
 
             next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
 

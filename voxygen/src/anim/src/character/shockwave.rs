@@ -58,7 +58,6 @@ impl Animation for ShockwaveAnimation {
         next.control.orientation = Quaternion::rotation_x(-0.3)
             * Quaternion::rotation_y(0.15)
             * Quaternion::rotation_z(0.0);
-        next.control.scale = Vec3::one();
 
         let twist = movement1 * 0.8;
 

@@ -114,7 +114,6 @@ impl Animation for StandAnimation {
                 next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
             },
         }
-        next.main.scale = Vec3::one();
 
         match second_tool_kind {
             Some(ToolKind::Dagger(_)) => {

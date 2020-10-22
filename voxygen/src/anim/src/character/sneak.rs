@@ -124,7 +124,6 @@ impl Animation for SneakAnimation {
             next.shorts.orientation = Quaternion::rotation_z(short * 0.16 + tilt * -1.5)
                 * Quaternion::rotation_y(tilt * 0.7)
                 * Quaternion::rotation_x(0.3);
-            next.shorts.scale = Vec3::one();
 
             next.foot_l.position = Vec3::new(
                 -s_a.foot.0,
