@@ -1,16 +1,9 @@
 use super::super::SysTimer;
-use crate::{
-    client::Client,
-    metrics::PlayerMetrics,
-    streams::{GeneralStream, GetStream},
-};
+use crate::{client::Client, metrics::PlayerMetrics, streams::GeneralStream};
 use common::{
     comp::{ChatMode, UnresolvedChatMsg},
     event::{EventBus, ServerEvent},
-    msg::{
-        validate_chat_msg, ChatMsgValidationError, ClientGeneral, DisconnectReason, ServerGeneral,
-        MAX_BYTES_CHAT_MSG,
-    },
+    msg::{validate_chat_msg, ChatMsgValidationError, ClientGeneral, MAX_BYTES_CHAT_MSG},
     span,
     state::Time,
     sync::Uid,
@@ -25,7 +18,6 @@ impl Sys {
         new_chat_msgs: &mut Vec<(Option<specs::Entity>, UnresolvedChatMsg)>,
         entity: specs::Entity,
         client: &mut Client,
-        general_stream: &mut GeneralStream,
         player_metrics: &ReadExpect<'_, PlayerMetrics>,
         uids: &ReadStorage<'_, Uid>,
         chat_modes: &ReadStorage<'_, ChatMode>,
@@ -52,17 +44,13 @@ impl Sys {
                     }
                 }
             },
-            ClientGeneral::Disconnect => {
-                general_stream.send(ServerGeneral::Disconnect(DisconnectReason::Requested))?;
-            },
             ClientGeneral::Terminate => {
                 debug!(?entity, "Client send message to termitate session");
                 player_metrics
                     .clients_disconnected
                     .with_label_values(&["gracefully"])
                     .inc();
-                client.registered = false;
-                client.in_game = None;
+                client.terminate_msg_recv = true;
                 server_emitter.emit(ServerEvent::ClientDisconnect(entity));
             },
             _ => unreachable!("not a client_general msg"),
@@ -110,13 +98,12 @@ impl<'a> System<'a> for Sys {
         for (entity, client, general_stream) in
             (&entities, &mut clients, &mut general_streams).join()
         {
-            let res = super::try_recv_all(general_stream, |general_stream, msg| {
+            let res = super::try_recv_all(general_stream, |_, msg| {
                 Self::handle_general_msg(
                     &mut server_emitter,
                     &mut new_chat_msgs,
                     entity,
                     client,
-                    general_stream,
                     &player_metrics,
                     &uids,
                     &chat_modes,

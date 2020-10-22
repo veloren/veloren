@@ -763,7 +763,10 @@ impl PlayState for SessionState {
                     HudEvent::CharacterSelection => {
                         self.client.borrow_mut().request_remove_character()
                     },
-                    HudEvent::Logout => self.client.borrow_mut().request_logout(),
+                    HudEvent::Logout => {
+                        self.client.borrow_mut().logout();
+                        return PlayStateResult::Pop;
+                    },
                     HudEvent::Quit => {
                         return PlayStateResult::Shutdown;
                     },

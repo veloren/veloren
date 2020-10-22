@@ -12,6 +12,7 @@ pub struct Client {
     pub participant: Option<Participant>,
     pub last_ping: f64,
     pub login_msg_sent: bool,
+    pub terminate_msg_recv: bool,
 }
 
 impl Component for Client {

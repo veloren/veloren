@@ -143,6 +143,7 @@ impl ConnectionHandler {
             participant: Some(participant),
             last_ping: server_data.time,
             login_msg_sent: false,
+            terminate_msg_recv: false,
         };
 
         let package = IncomingClient {
