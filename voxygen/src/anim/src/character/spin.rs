@@ -60,32 +60,39 @@ impl Animation for SpinAnimation {
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
 
         if let Some(ToolKind::Sword(_)) = active_tool_kind {
-            next.hand_l.position = Vec3::new(-0.75, -1.0, 2.5);
-            next.hand_l.orientation = Quaternion::rotation_x(1.47) * Quaternion::rotation_y(-0.2);
-            next.hand_r.position = Vec3::new(0.75, -1.5, -0.5);
-            next.hand_r.orientation = Quaternion::rotation_x(1.47) * Quaternion::rotation_y(0.3);
-            next.main.position = Vec3::new(0.0, 0.0, 2.0);
-            next.main.orientation = Quaternion::rotation_x(-0.1)
-                * Quaternion::rotation_y(0.0)
-                * Quaternion::rotation_z(0.0);
+            next.main.position = Vec3::new(0.0, 0.0, 0.0);
+            next.main.orientation = Quaternion::rotation_x(0.0);
+
+            next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
+            next.hand_l.orientation =
+                Quaternion::rotation_x(s_a.shl.3) * Quaternion::rotation_y(s_a.shl.4);
+            next.hand_r.position = Vec3::new(s_a.shr.0, s_a.shr.1, s_a.shr.2);
+            next.hand_r.orientation =
+                Quaternion::rotation_x(s_a.shr.3) * Quaternion::rotation_y(s_a.shr.4);
 
             next.control.position = Vec3::new(
-                5.0 + movement1 * 2.0 + movement2 * -8.0 + movement3 * -7.0,
-                11.0 + slow(movement1) * 0.6
+                s_a.sc.0 + movement1 * 2.0 + movement2 * -8.0 + movement3 * -7.0,
+                s_a.sc.1
+                    + 8.0
+                    + slow(movement1) * 0.6
                     + slow(movement2) * 3.0
                     + slow(movement3) * -0.8
                     + movement3 * -10.0,
-                2.0 + slow(movement1) * 0.6
+                s_a.sc.2
+                    + 1.0
+                    + slow(movement1) * 0.6
                     + slow(movement2) * 3.5
                     + movement2 * 3.0
                     + slow(movement3) * -0.4
                     + movement3 * -4.0,
             );
             next.control.orientation = Quaternion::rotation_x(
-                movement1 * -1.57 + movement2 * -0.6 + slow(movement2) * -0.25,
+                -0.5 + s_a.sc.4 + movement1 * -1.57 + movement2 * -0.6 + slow(movement2) * -0.25,
             ) * Quaternion::rotation_y(
-                -0.57 + movement1 * 2.0 + movement2 * -2.0,
-            ) * Quaternion::rotation_z(movement1 + movement2);
+                s_a.sc.4 - 0.6 + movement1 * 2.0 + movement2 * -2.0,
+            ) * Quaternion::rotation_z(
+                s_a.sc.5 + 0.1 + movement1 + movement2,
+            );
 
             next.head.orientation = Quaternion::rotation_z(slow(movement2) * -0.8);
 

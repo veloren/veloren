@@ -45,7 +45,7 @@ impl Animation for RepeaterAnimation {
 
         // end spin stuff
 
-        fn fire (x: f32) -> f32 { (x * 18.0).sin() }
+        fn fire(x: f32) -> f32 { (x * 18.0).sin() }
 
         if let Some(ToolKind::Bow(_)) = active_tool_kind {
             next.hand_l.position = Vec3::new(2.0, 1.5, 0.0);
@@ -75,37 +75,42 @@ impl Animation for RepeaterAnimation {
                 s_a.foot.1 + movement1 * 4.0 + 4.0,
                 s_a.foot.2 + movement1 * 2.5 + 2.5,
             );
-            next.foot_l.orientation = Quaternion::rotation_x(movement1 * 0.6 + 0.6 + movement2 * -0.2)
-                * Quaternion::rotation_z(movement1 * 0.3 + 0.3);
+            next.foot_l.orientation =
+                Quaternion::rotation_x(movement1 * 0.6 + 0.6 + movement2 * -0.2)
+                    * Quaternion::rotation_z(movement1 * 0.3 + 0.3);
 
             next.foot_r.position = Vec3::new(
                 s_a.foot.0 + movement1 * 0.75 + 0.75,
                 s_a.foot.1 + movement1 * 4.0 + 4.0,
                 s_a.foot.2 + movement1 * 2.5 + 2.5,
             );
-            next.foot_r.orientation = Quaternion::rotation_x(movement1 * 0.6 + 0.6 + movement2 * -0.2)
-                * Quaternion::rotation_z(movement1 * -0.3 - 0.3);
+            next.foot_r.orientation =
+                Quaternion::rotation_x(movement1 * 0.6 + 0.6 + movement2 * -0.2)
+                    * Quaternion::rotation_z(movement1 * -0.3 - 0.3);
             next.shorts.position = Vec3::new(
                 0.0,
                 s_a.shorts.0 + movement1 * 4.0,
                 s_a.shorts.1 + movement1 * 1.0,
             );
             next.shorts.orientation = Quaternion::rotation_x(movement1 * 0.6);
-            next.belt.position =
-                Vec3::new(0.0, s_a.belt.0 + movement1 * 2.0, s_a.belt.1);
+            next.belt.position = Vec3::new(0.0, s_a.belt.0 + movement1 * 2.0, s_a.belt.1);
             next.belt.orientation = Quaternion::rotation_x(movement1 * 0.2);
             next.control.position = Vec3::new(
                 -7.0 + movement1 * 5.0,
                 6.0 + movement1 * 3.0,
                 6.0 + movement1 * 1.0,
             );
-            next.control.orientation = Quaternion::rotation_x(movement1 * 0.4)
-                * Quaternion::rotation_y(movement1 * 0.8);
+            next.control.orientation =
+                Quaternion::rotation_x(movement1 * 0.4) * Quaternion::rotation_y(movement1 * 0.8);
             next.head.orientation = Quaternion::rotation_y(movement1 * 0.15 + movement2 * 0.05);
-            next.torso.orientation = Quaternion::rotation_x(movement1 * 0.1 + movement2 * 0.1 + movement3 * 0.15);
+            next.torso.orientation =
+                Quaternion::rotation_x(movement1 * 0.1 + movement2 * 0.1 + movement3 * 0.15);
 
-            next.hand_l.position =
-                Vec3::new(2.0 + fire(movement3) * -6.0 - 3.0, 1.5 + fire(movement3) * -6.0 - 3.0, 0.0);
+            next.hand_l.position = Vec3::new(
+                2.0 + fire(movement3) * -6.0 - 3.0,
+                1.5 + fire(movement3) * -6.0 - 3.0,
+                0.0,
+            );
             next.hand_l.orientation = Quaternion::rotation_x(1.20)
                 * Quaternion::rotation_y(-0.6)
                 * Quaternion::rotation_z(-0.3);

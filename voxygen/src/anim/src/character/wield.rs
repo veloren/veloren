@@ -92,23 +92,21 @@ impl Animation for WieldAnimation {
         }
         match active_tool_kind {
             Some(ToolKind::Sword(_)) => {
-                next.hand_l.position = Vec3::new(-0.75, -1.0, 2.5);
-                next.hand_l.orientation =
-                    Quaternion::rotation_x(1.47) * Quaternion::rotation_y(-0.2);
-                next.hand_r.position = Vec3::new(0.75, -1.5, -0.5);
-                next.hand_r.orientation =
-                    Quaternion::rotation_x(1.47) * Quaternion::rotation_y(0.3);
-                next.main.position = Vec3::new(0.0, 0.0, 2.0);
-                next.main.orientation = Quaternion::rotation_x(-0.1);
+                next.main.position = Vec3::new(0.0, 0.0, 0.0);
+                next.main.orientation = Quaternion::rotation_x(0.0);
 
-                next.control.position = Vec3::new(-7.0, 7.0, 2.0);
-                next.control.orientation = Quaternion::rotation_x(u_slow * 0.15)
+                next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
+                next.hand_l.orientation =
+                    Quaternion::rotation_x(s_a.shl.3) * Quaternion::rotation_y(s_a.shl.4);
+                next.hand_r.position = Vec3::new(s_a.shr.0, s_a.shr.1, s_a.shr.2);
+                next.hand_r.orientation =
+                    Quaternion::rotation_x(s_a.shr.3) * Quaternion::rotation_y(s_a.shr.4);
+
+                next.control.position = Vec3::new(s_a.sc.0, s_a.sc.1, s_a.sc.2);
+                next.control.orientation = Quaternion::rotation_x(s_a.sc.3 + u_slow * 0.15)
                     * Quaternion::rotation_z(u_slowalt * 0.08);
             },
             Some(ToolKind::Dagger(_)) => {
-                // hands should be larger when holding a dagger grip,
-                // also reduce flicker with overlapping polygons
-
                 next.control.position = Vec3::new(0.0, 0.0, 0.0);
 
                 next.hand_l.position = Vec3::new(0.0, 0.0, 0.0);
@@ -175,19 +173,19 @@ impl Animation for WieldAnimation {
                 next.control.position = Vec3::new(-3.0, 11.0, 3.0);
             },
             Some(ToolKind::Hammer(_)) => {
-                next.hand_l.position = Vec3::new(-12.0, 0.0, 0.0);
-                next.hand_l.orientation =
-                    Quaternion::rotation_x(-0.0) * Quaternion::rotation_y(0.0);
-                next.hand_r.position = Vec3::new(2.0, 0.0, 0.0);
-                next.hand_r.orientation = Quaternion::rotation_x(0.0) * Quaternion::rotation_y(0.0);
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
-                next.main.orientation =
-                    Quaternion::rotation_y(-1.57) * Quaternion::rotation_z(1.57);
+                next.main.orientation = Quaternion::rotation_x(0.0);
+                next.hand_l.position = Vec3::new(s_a.hhl.0, s_a.hhl.1, s_a.hhl.2);
+                next.hand_l.orientation =
+                    Quaternion::rotation_x(s_a.hhl.3) * Quaternion::rotation_y(s_a.hhl.4);
+                next.hand_r.position = Vec3::new(s_a.hhr.0, s_a.hhr.1, s_a.hhr.2);
+                next.hand_r.orientation =
+                    Quaternion::rotation_x(s_a.hhr.3) * Quaternion::rotation_y(s_a.hhr.4);
 
-                next.control.position = Vec3::new(6.0, 7.0, 1.0);
-                next.control.orientation = Quaternion::rotation_x(0.3 + u_slow * 0.15)
-                    * Quaternion::rotation_y(0.0)
-                    * Quaternion::rotation_z(u_slowalt * 0.08);
+                next.control.position = Vec3::new(s_a.hc.0, s_a.hc.1, s_a.hc.2);
+                next.control.orientation = Quaternion::rotation_x(s_a.hc.3 + u_slow * 0.15)
+                    * Quaternion::rotation_y(s_a.hc.4)
+                    * Quaternion::rotation_z(s_a.hc.5 + u_slowalt * 0.08);
             },
             Some(ToolKind::Staff(_)) | Some(ToolKind::Sceptre(_)) => {
                 if speed > 0.5 && velocity.z == 0.0 {
