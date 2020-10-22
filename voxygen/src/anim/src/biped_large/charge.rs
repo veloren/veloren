@@ -129,20 +129,17 @@ impl Animation for ChargeAnimation {
         if velocity < 0.5 {
             next.jaw.position = Vec3::new(0.0, s_a.jaw.0 - slower * 0.12, s_a.jaw.1 + slow * 0.2);
             next.jaw.orientation = Quaternion::rotation_x(slow * 0.05);
-            next.jaw.scale = Vec3::one() * 0.98;
+            next.jaw.scale = Vec3::one() * 1.02;
 
             next.tail.position = Vec3::new(0.0, s_a.tail.0, s_a.tail.1);
             next.tail.orientation =
                 Quaternion::rotation_z(0.0 + slow * 0.2 + tailmove.x) * Quaternion::rotation_x(0.0);
-            next.tail.scale = Vec3::one();
 
             next.shoulder_l.position = Vec3::new(-s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
             next.shoulder_l.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
-            next.shoulder_l.scale = Vec3::one();
 
             next.shoulder_r.position = Vec3::new(s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
             next.shoulder_r.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
-            next.shoulder_r.scale = Vec3::one();
 
             next.leg_l.position =
                 Vec3::new(-s_a.leg.0, s_a.leg.1, s_a.leg.2 + breathe * 0.2) * 1.02;
@@ -155,11 +152,9 @@ impl Animation for ChargeAnimation {
 
             next.foot_l.position = Vec3::new(-s_a.foot.0, s_a.foot.1, s_a.foot.2);
             next.foot_l.orientation = Quaternion::rotation_z(0.0);
-            next.foot_l.scale = Vec3::one();
 
             next.foot_r.position = Vec3::new(s_a.foot.0, s_a.foot.1, s_a.foot.2);
             next.foot_r.orientation = Quaternion::rotation_z(0.0);
-            next.foot_r.scale = Vec3::one();
 
             next.torso.position = Vec3::new(0.0, 0.0, 0.0) / 8.0;
             next.torso.orientation = Quaternion::rotation_z(test * 0.0);
@@ -169,16 +164,14 @@ impl Animation for ChargeAnimation {
             next.control.orientation = Quaternion::rotation_x(test * 0.02)
                 * Quaternion::rotation_y(test * 0.02)
                 * Quaternion::rotation_z(test * 0.02);
-            next.control.scale = Vec3::one();
         } else {
             next.jaw.position = Vec3::new(0.0, s_a.jaw.0 - slower * 0.12, s_a.jaw.1 + slow * 0.2);
             next.jaw.orientation = Quaternion::rotation_x(slow * 0.05);
-            next.jaw.scale = Vec3::one() * 0.98;
+            next.jaw.scale = Vec3::one() * 1.02;
 
             next.tail.position = Vec3::new(0.0, s_a.tail.0, s_a.tail.1);
             next.tail.orientation =
                 Quaternion::rotation_z(0.0 + slow * 0.2 + tailmove.x) * Quaternion::rotation_x(0.0);
-            next.tail.scale = Vec3::one();
 
             next.torso.position = Vec3::new(0.0, 0.0, 0.0) / 8.0;
             next.torso.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(-0.25);
@@ -202,7 +195,6 @@ impl Animation for ChargeAnimation {
             );
             next.foot_l.orientation =
                 Quaternion::rotation_x(-0.5 + footrotl * 0.85) * Quaternion::rotation_y(0.0);
-            next.foot_l.scale = Vec3::one();
 
             next.foot_r.position = Vec3::new(
                 s_a.foot.0,
@@ -211,7 +203,6 @@ impl Animation for ChargeAnimation {
             );
             next.foot_r.orientation =
                 Quaternion::rotation_x(-0.5 + footrotr * 0.85) * Quaternion::rotation_y(0.0);
-            next.foot_r.scale = Vec3::one();
         }
         match active_tool_kind {
             Some(ToolKind::Bow(_)) => {
@@ -219,13 +210,13 @@ impl Animation for ChargeAnimation {
                 next.hand_l.orientation = Quaternion::rotation_x(1.20)
                     * Quaternion::rotation_y(-0.6)
                     * Quaternion::rotation_z(-0.3);
-                next.hand_l.scale = Vec3::one() * 1.05;
+                next.hand_l.scale = Vec3::one() * 1.04;
 
                 next.hand_r.position = Vec3::new(5.9, 0.0, -5.0);
                 next.hand_r.orientation = Quaternion::rotation_x(1.20)
                     * Quaternion::rotation_y(-0.6)
                     * Quaternion::rotation_z(-0.3);
-                next.hand_r.scale = Vec3::one() * 1.05;
+                next.hand_r.scale = Vec3::one() * 1.04;
 
                 next.shoulder_l.position = Vec3::new(
                     -s_a.shoulder.0,
@@ -235,7 +226,6 @@ impl Animation for ChargeAnimation {
                 next.shoulder_l.orientation = Quaternion::rotation_x(1.4 + footrotl * -0.06)
                     * Quaternion::rotation_y(-0.9)
                     * Quaternion::rotation_z(footrotl * -0.05);
-                next.shoulder_l.scale = Vec3::one();
 
                 next.shoulder_r.position = Vec3::new(
                     s_a.shoulder.0,
@@ -245,7 +235,6 @@ impl Animation for ChargeAnimation {
                 next.shoulder_r.orientation = Quaternion::rotation_x(1.3 + footrotr * -0.06)
                     * Quaternion::rotation_y(-0.5) //1.9
                     * Quaternion::rotation_z(footrotr * -0.05);
-                next.shoulder_r.scale = Vec3::one();
 
                 next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
                 next.jaw.orientation = Quaternion::rotation_x(stop * 0.05);
@@ -253,7 +242,6 @@ impl Animation for ChargeAnimation {
                 next.tail.position = Vec3::new(0.0, s_a.tail.0, s_a.tail.1);
                 next.tail.orientation = Quaternion::rotation_z(0.02 * stress * stop + tilt * 2.0)
                     * Quaternion::rotation_x(-0.2 * stop);
-                next.tail.scale = Vec3::one();
 
                 next.main.position = Vec3::new(7.0, 2.0, -13.0);
                 next.main.orientation = Quaternion::rotation_x(-0.3)
@@ -270,17 +258,16 @@ impl Animation for ChargeAnimation {
                 next.control.orientation = Quaternion::rotation_x(0.0)
                     * Quaternion::rotation_y(stop * -0.4)
                     * Quaternion::rotation_z(stop * -0.6);
-                next.control.scale = Vec3::one();
             },
             Some(ToolKind::Staff(_)) => {
                 next.hand_l.position = Vec3::new(11.0, 5.0, -4.0);
                 next.hand_l.orientation = Quaternion::rotation_x(1.27);
-                next.hand_l.scale = Vec3::one() * 1.05;
+                next.hand_l.scale = Vec3::one() * 1.04;
 
                 next.hand_r.position = Vec3::new(12.0, 5.5, 2.0);
                 next.hand_r.orientation =
                     Quaternion::rotation_x(1.57) * Quaternion::rotation_y(0.2);
-                next.hand_r.scale = Vec3::one() * 1.05;
+                next.hand_r.scale = Vec3::one() * 1.04;
 
                 next.shoulder_l.position = Vec3::new(
                     -s_a.shoulder.0,
@@ -290,7 +277,6 @@ impl Animation for ChargeAnimation {
                 next.shoulder_l.orientation = Quaternion::rotation_x(0.5 + footrotl * -0.16)
                     * Quaternion::rotation_y(0.1)
                     * Quaternion::rotation_z(footrotl * 0.1);
-                next.shoulder_l.scale = Vec3::one();
 
                 next.shoulder_r.position = Vec3::new(
                     s_a.shoulder.0,
@@ -300,12 +286,10 @@ impl Animation for ChargeAnimation {
                 next.shoulder_r.orientation = Quaternion::rotation_x(0.5 + footrotr * -0.16)
                     * Quaternion::rotation_y(-0.1)
                     * Quaternion::rotation_z(footrotr * -0.1);
-                next.shoulder_r.scale = Vec3::one();
 
                 next.tail.position = Vec3::new(0.0, s_a.tail.0, s_a.tail.1);
                 next.tail.orientation = Quaternion::rotation_z(0.02 * stress * stop + tilt * 2.0)
                     * Quaternion::rotation_x(-0.2 * stop);
-                next.tail.scale = Vec3::one();
 
                 next.main.position = Vec3::new(8.0, 8.5, 13.2);
                 next.main.orientation = Quaternion::rotation_x(0.0)
@@ -319,7 +303,6 @@ impl Animation for ChargeAnimation {
                 );
                 next.control.orientation =
                     Quaternion::rotation_x(stop * -0.2) * Quaternion::rotation_z(stop * 0.2);
-                next.control.scale = Vec3::one();
             },
             _ => {},
         }

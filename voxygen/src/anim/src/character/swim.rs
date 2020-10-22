@@ -114,7 +114,6 @@ impl Animation for SwimAnimation {
         next.belt.position = Vec3::new(0.0, s_a.belt.0, s_a.belt.1);
         next.belt.orientation = Quaternion::rotation_x(velocity.z.abs() * -0.005 + abstilt * 1.0)
             * Quaternion::rotation_z(short * -0.2 * intensity);
-        next.belt.scale = Vec3::one();
 
         next.back.position = Vec3::new(0.0, s_a.back.0, s_a.back.1);
         next.back.scale = Vec3::one() * 1.02;
@@ -122,7 +121,6 @@ impl Animation for SwimAnimation {
         next.shorts.position = Vec3::new(0.0, s_a.shorts.0, s_a.shorts.1);
         next.shorts.orientation = Quaternion::rotation_x(velocity.z.abs() * -0.005 + abstilt * 1.0)
             * Quaternion::rotation_z(short * -0.3 * intensity);
-        next.shorts.scale = Vec3::one();
 
         next.hand_l.position = Vec3::new(
             -1.0 - s_a.hand.0,
@@ -203,7 +201,6 @@ impl Animation for SwimAnimation {
                     Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
             },
         }
-        next.second.scale = Vec3::one();
 
         next.lantern.position = Vec3::new(s_a.lantern.0, s_a.lantern.1, s_a.lantern.2);
         next.lantern.scale = Vec3::one() * 0.65;

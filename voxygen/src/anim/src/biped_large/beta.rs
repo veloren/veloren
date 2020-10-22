@@ -46,7 +46,7 @@ impl Animation for BetaAnimation {
                 next.hand_r.position = Vec3::new(0.75, -1.5, -0.5);
                 next.hand_r.orientation =
                     Quaternion::rotation_x(1.47) * Quaternion::rotation_y(0.3);
-                next.hand_r.scale = Vec3::one() * 1.05;
+                next.hand_r.scale = Vec3::one() * 1.04;
                 next.main.position = Vec3::new(0.0, 5.0, -6.0);
                 next.main.orientation = Quaternion::rotation_x(-0.1)
                     * Quaternion::rotation_y(0.0)

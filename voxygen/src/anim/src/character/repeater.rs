@@ -33,8 +33,6 @@ impl Animation for RepeaterAnimation {
         *rate = 1.0;
         let mut next = (*skeleton).clone();
 
-        let lab = 1.0;
-
         let (movement1, movement2, movement3, _movement4) = match stage_section {
             Some(StageSection::Movement) => (anim_time as f32, 0.0, 0.0, 0.0),
             Some(StageSection::Buildup) => (1.0, anim_time as f32, 0.0, 0.0),

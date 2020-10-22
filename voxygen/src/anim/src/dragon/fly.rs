@@ -77,7 +77,6 @@ impl Animation for FlyAnimation {
 
         next.chest_front.position = Vec3::new(0.0, s_a.chest_front.0, s_a.chest_front.1);
         next.chest_front.orientation = Quaternion::rotation_y(center * 0.05);
-        next.chest_front.scale = Vec3::one();
 
         next.chest_rear.position = Vec3::new(0.0, s_a.chest_rear.0, s_a.chest_rear.1);
         next.chest_rear.orientation = Quaternion::rotation_y(center * 0.05);

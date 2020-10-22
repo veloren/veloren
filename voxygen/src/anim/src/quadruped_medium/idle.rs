@@ -76,7 +76,6 @@ impl Animation for IdleAnimation {
         next.tail.position = Vec3::new(0.0, s_a.tail.0, s_a.tail.1);
         next.tail.orientation =
             Quaternion::rotation_z(0.0 + slow * 0.2 + tailmove.x) * Quaternion::rotation_x(0.0);
-        next.tail.scale = Vec3::one();
 
         next.torso_front.position =
             Vec3::new(0.0, s_a.torso_front.0, s_a.torso_front.1 + slower * 0.3) * s_a.scaler / 11.0;

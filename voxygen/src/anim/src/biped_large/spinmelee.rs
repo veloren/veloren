@@ -124,7 +124,6 @@ impl Animation for SpinMeleeAnimation {
 
                     next.foot_r.position = Vec3::new(s_a.foot.0, 8.0, s_a.foot.2 + 2.0);
                     next.foot_r.orientation = Quaternion::rotation_x(1.0);
-                    next.foot_r.scale = Vec3::one();
                 } else if speed < 0.5 {
                     next.foot_l.position = Vec3::new(-s_a.foot.0, 2.0 + quick * -6.0, s_a.foot.2);
                     next.foot_l.orientation = Quaternion::rotation_x(0.5 + slowersmooth * 0.2);
