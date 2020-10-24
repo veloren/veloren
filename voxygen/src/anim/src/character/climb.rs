@@ -97,40 +97,6 @@ impl Animation for ClimbAnimation {
             );
             next.hand_r.orientation = Quaternion::rotation_x(2.2 - quicka * 0.5);
 
-            match active_tool_kind {
-                Some(ToolKind::Dagger(_)) => {
-                    next.main.position = Vec3::new(-4.0, -5.0, 7.0);
-                    next.main.orientation =
-                        Quaternion::rotation_y(0.25 * PI) * Quaternion::rotation_z(1.5 * PI);
-                },
-                Some(ToolKind::Shield(_)) => {
-                    next.main.position = Vec3::new(-0.0, -5.0, 3.0);
-                    next.main.orientation =
-                        Quaternion::rotation_y(0.25 * PI) * Quaternion::rotation_z(-1.5 * PI);
-                },
-                _ => {
-                    next.main.position = Vec3::new(-7.0, -5.0, 15.0);
-                    next.main.orientation =
-                        Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
-                },
-            }
-            match second_tool_kind {
-                Some(ToolKind::Dagger(_)) => {
-                    next.second.position = Vec3::new(4.0, -6.0, 7.0);
-                    next.second.orientation =
-                        Quaternion::rotation_y(-0.25 * PI) * Quaternion::rotation_z(-1.5 * PI);
-                },
-                Some(ToolKind::Shield(_)) => {
-                    next.second.position = Vec3::new(0.0, -4.0, 3.0);
-                    next.second.orientation =
-                        Quaternion::rotation_y(-0.25 * PI) * Quaternion::rotation_z(1.5 * PI);
-                },
-                _ => {
-                    next.second.position = Vec3::new(-7.0, -5.0, 15.0);
-                    next.second.orientation =
-                        Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
-                },
-            }
             next.foot_l.position =
                 Vec3::new(-s_a.foot.0, 5.0 + s_a.foot.1, s_a.foot.2 + quick * 2.5);
             next.foot_l.orientation = Quaternion::rotation_x(0.2 - quicka * 0.5);
@@ -142,16 +108,6 @@ impl Animation for ClimbAnimation {
             next.shoulder_l.orientation = Quaternion::rotation_x(smootha * 0.15);
 
             next.shoulder_r.orientation = Quaternion::rotation_x(smooth * 0.15);
-
-            next.glider.position = Vec3::new(0.0, 0.0, 10.0);
-            next.glider.scale = Vec3::one() * 0.0;
-
-            next.main.position = Vec3::new(-7.0, -5.0, 18.0);
-            next.main.orientation =
-                Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57 + smootha * 0.25);
-
-            next.second.position = Vec3::new(0.0, 0.0, 0.0);
-            next.second.orientation = Quaternion::rotation_y(0.0);
 
             next.lantern.orientation =
                 Quaternion::rotation_x(smooth * -0.3) * Quaternion::rotation_y(smooth * -0.3);
@@ -210,9 +166,6 @@ impl Animation for ClimbAnimation {
 
             next.glider.position = Vec3::new(0.0, 0.0, 10.0);
             next.glider.scale = Vec3::one() * 0.0;
-
-            next.main.position = Vec3::new(-7.0, -5.0, 18.0);
-            next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
 
             next.torso.position = Vec3::new(0.0, -0.2, 0.4) * s_a.scaler;
         };

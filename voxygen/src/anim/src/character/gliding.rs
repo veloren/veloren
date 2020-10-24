@@ -76,17 +76,13 @@ impl Animation for GlidingAnimation {
             anim_time as f32
         };
 
-        next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
         next.head.orientation = Quaternion::rotation_x(0.35 - slow * 0.10 + head_look.y)
             * Quaternion::rotation_z(head_look.x + slowa * 0.15);
 
-        next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1);
         next.chest.orientation = Quaternion::rotation_z(slowa * 0.02);
 
-        next.belt.position = Vec3::new(0.0, 0.0, -2.0);
         next.belt.orientation = Quaternion::rotation_z(slowa * 0.1 + tilt * tiltcancel * 12.0);
 
-        next.shorts.position = Vec3::new(0.0, s_a.shorts.0, s_a.shorts.1);
         next.shorts.orientation = Quaternion::rotation_z(slowa * 0.12 + tilt * tiltcancel * 16.0);
 
         next.hand_l.position = Vec3::new(-9.5, -3.0, 10.0);
@@ -117,23 +113,6 @@ impl Animation for GlidingAnimation {
         next.glider.orientation =
             Quaternion::rotation_x(0.8) * Quaternion::rotation_y(slowa * 0.04);
         next.glider.scale = Vec3::one();
-
-        match active_tool_kind {
-            Some(ToolKind::Dagger(_)) => {
-                next.main.position = Vec3::new(-4.0, -5.0, 7.0);
-                next.main.orientation =
-                    Quaternion::rotation_y(0.25 * PI) * Quaternion::rotation_z(1.5 * PI);
-            },
-            Some(ToolKind::Shield(_)) => {
-                next.main.position = Vec3::new(-0.0, -5.0, 3.0);
-                next.main.orientation =
-                    Quaternion::rotation_y(0.25 * PI) * Quaternion::rotation_z(-1.5 * PI);
-            },
-            _ => {
-                next.main.position = Vec3::new(-7.0, -5.0, 15.0);
-                next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
-            },
-        }
 
         next.torso.position = Vec3::new(0.0, -4.0, 10.0) / 11.0 * s_a.scaler;
         next.torso.orientation = Quaternion::rotation_x(-0.06 * speed.max(12.0) + slow * 0.04)

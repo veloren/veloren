@@ -168,8 +168,6 @@ impl Animation for DanceAnimation {
         next.control.position = Vec3::new(0.0, 0.0, 0.0);
         next.control.orientation = Quaternion::rotation_x(0.0);
 
-
-
         next.second.scale = match (
             active_tool_kind.map(|tk| tk.hands()),
             second_tool_kind.map(|tk| tk.hands()),

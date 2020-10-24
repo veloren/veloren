@@ -136,6 +136,9 @@ pub struct SkeletonAttr {
     hhl: (f32, f32, f32, f32, f32, f32),
     hhr: (f32, f32, f32, f32, f32, f32),
     hc: (f32, f32, f32, f32, f32, f32),
+    sthl: (f32, f32, f32, f32, f32, f32),
+    sthr: (f32, f32, f32, f32, f32, f32),
+    stc: (f32, f32, f32, f32, f32, f32),
 }
 
 impl Default for SkeletonAttr {
@@ -158,6 +161,9 @@ impl Default for SkeletonAttr {
             hhl: (0.0, 0.0, 10.0, 0.0, 0.0, 0.0),
             hhr: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
             hc: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            sthl: (0.0, 0.0, 10.0, 0.0, 0.0, 0.0),
+            sthr: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            stc: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
         }
     }
 }
@@ -248,6 +254,15 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             },
             hc: match (body.species, body.body_type) {
                 (_, _) => (6.0, 7.0, 1.0, -0.3, -1.57, 0.5),
+            },
+            sthl: match (body.species, body.body_type) {
+                (_, _) => (0.0, 0.0, 1.0, 1.27, 0.0, 0.0),
+            },
+            sthr: match (body.species, body.body_type) {
+                (_, _) => (0.0, 0.0, 7.0, 1.57, 0.2, 0.0),
+            },
+            stc: match (body.species, body.body_type) {
+                (_, _) => (-5.0, 5.0, -1.0, -0.3, 0.15, 0.0),
             },
         }
     }

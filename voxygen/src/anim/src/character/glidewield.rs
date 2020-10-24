@@ -77,42 +77,6 @@ impl Animation for GlideWieldAnimation {
             next.glider.orientation = Quaternion::rotation_x(0.35);
             next.glider.position = Vec3::new(0.0, -9.0, 17.0);
             next.glider.scale = Vec3::one() * 1.0;
-
-            match active_tool_kind {
-                Some(ToolKind::Dagger(_)) => {
-                    next.main.position = Vec3::new(-4.0, -5.0, 7.0);
-                    next.main.orientation =
-                        Quaternion::rotation_y(0.25 * PI) * Quaternion::rotation_z(1.5 * PI);
-                },
-                Some(ToolKind::Shield(_)) => {
-                    next.main.position = Vec3::new(-0.0, -5.0, 3.0);
-                    next.main.orientation =
-                        Quaternion::rotation_y(0.25 * PI) * Quaternion::rotation_z(-1.5 * PI);
-                },
-                _ => {
-                    next.main.position = Vec3::new(-7.0, -5.0, 15.0);
-                    next.main.orientation =
-                        Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
-                },
-            }
-
-            match second_tool_kind {
-                Some(ToolKind::Dagger(_)) => {
-                    next.second.position = Vec3::new(4.0, -6.0, 7.0);
-                    next.second.orientation =
-                        Quaternion::rotation_y(-0.25 * PI) * Quaternion::rotation_z(-1.5 * PI);
-                },
-                Some(ToolKind::Shield(_)) => {
-                    next.second.position = Vec3::new(0.0, -4.0, 3.0);
-                    next.second.orientation =
-                        Quaternion::rotation_y(-0.25 * PI) * Quaternion::rotation_z(1.5 * PI);
-                },
-                _ => {
-                    next.second.position = Vec3::new(-7.0, -5.0, 15.0);
-                    next.second.orientation =
-                        Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
-                },
-            }
         }
 
         next.second.scale = match (

@@ -75,46 +75,8 @@ impl Animation for RollAnimation {
         next.foot_r.position = Vec3::new(s_a.foot.0, s_a.foot.1 + 5.5, s_a.foot.2 - 5.0);
         next.foot_r.orientation = Quaternion::rotation_x(0.9);
 
-        next.glider.position = Vec3::new(0.0, 0.0, 10.0);
-
-        match active_tool_kind {
-            Some(ToolKind::Dagger(_)) => {
-                next.main.position = Vec3::new(-4.0, -5.0, 7.0);
-                next.main.orientation =
-                    Quaternion::rotation_y(0.25 * PI) * Quaternion::rotation_z(1.5 * PI);
-            },
-            Some(ToolKind::Shield(_)) => {
-                next.main.position = Vec3::new(-0.0, -5.0, 3.0);
-                next.main.orientation =
-                    Quaternion::rotation_y(0.25 * PI) * Quaternion::rotation_z(-1.5 * PI);
-            },
-            _ => {
-                next.main.position = Vec3::new(-7.0, -5.0, 15.0);
-                next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
-            },
-        }
-
-        match second_tool_kind {
-            Some(ToolKind::Dagger(_)) => {
-                next.second.position = Vec3::new(4.0, -6.0, 7.0);
-                next.second.orientation =
-                    Quaternion::rotation_y(-0.25 * PI) * Quaternion::rotation_z(-1.5 * PI);
-            },
-            Some(ToolKind::Shield(_)) => {
-                next.second.position = Vec3::new(0.0, -4.0, 3.0);
-                next.second.orientation =
-                    Quaternion::rotation_y(-0.25 * PI) * Quaternion::rotation_z(1.5 * PI);
-            },
-            _ => {
-                next.second.position = Vec3::new(-7.0, -5.0, 15.0);
-                next.second.orientation =
-                    Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
-            },
-        }
-
         next.lantern.orientation = Quaternion::rotation_x(0.1) * Quaternion::rotation_y(0.1);
         next.lantern.scale = Vec3::one() * 0.65;
-        next.hold.scale = Vec3::one() * 0.0;
 
         next.torso.position = Vec3::new(0.0, 0.0, 8.0) / 11.0 * s_a.scaler;
         next.torso.orientation =

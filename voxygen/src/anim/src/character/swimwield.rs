@@ -359,8 +359,6 @@ impl Animation for SwimWieldAnimation {
             _ => {},
         }
 
-
-
         next.second.scale = match (
             active_tool_kind.map(|tk| tk.hands()),
             second_tool_kind.map(|tk| tk.hands()),
