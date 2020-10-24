@@ -92,7 +92,6 @@ impl Animation for ChargeAnimation {
         next.shorts.orientation = Quaternion::rotation_z(stop * -0.7 + tilt * 4.0);
 
         match active_tool_kind {
-            //TODO: Inventory
             Some(ToolKind::Staff(_)) | Some(ToolKind::Sceptre(_)) => {
                 next.hand_l.position = Vec3::new(s_a.sthl.0, s_a.sthl.1, s_a.sthl.2);
                 next.hand_l.orientation = Quaternion::rotation_x(s_a.sthl.3);
@@ -114,43 +113,25 @@ impl Animation for ChargeAnimation {
                     * Quaternion::rotation_z(s_a.stc.5 + stop * 0.2);
             },
             Some(ToolKind::Bow(_)) => {
-                next.hand_l.position = Vec3::new(1.0, -2.0 + stop * -1.0, 0.0);
-                next.hand_l.orientation = Quaternion::rotation_x(1.20)
-                    * Quaternion::rotation_y(-0.6)
-                    * Quaternion::rotation_z(-0.3);
-                next.hand_r.position = Vec3::new(4.9, 1.0, -5.0);
-                next.hand_r.orientation = Quaternion::rotation_x(1.20)
-                    * Quaternion::rotation_y(-0.6)
-                    * Quaternion::rotation_z(-0.3);
-                next.main.position = Vec3::new(3.0, -1.0, -14.0);
-                next.main.orientation = Quaternion::rotation_x(-0.3)
-                    * Quaternion::rotation_y(0.3)
-                    * Quaternion::rotation_z(-0.6);
+                next.main.position = Vec3::new(0.0, 0.0, 0.0);
+                next.main.orientation = Quaternion::rotation_x(0.0);
+                next.hand_l.position = Vec3::new(s_a.bhl.0, s_a.bhl.1, s_a.bhl.2);
+                next.hand_l.orientation = Quaternion::rotation_x(s_a.bhl.3);
+                next.hand_r.position = Vec3::new(s_a.bhr.0, s_a.bhr.1, s_a.bhr.2);
+                next.hand_r.orientation = Quaternion::rotation_x(s_a.bhr.3);
 
-                next.hold.position = Vec3::new(0.4, -0.3, -5.8);
-                next.hold.orientation = Quaternion::rotation_x(-1.6)
-                    * Quaternion::rotation_y(-0.1)
-                    * Quaternion::rotation_z(0.0);
+                next.hold.position = Vec3::new(0.0, -1.0, -5.2);
+                next.hold.orientation = Quaternion::rotation_x(-1.57);
                 next.hold.scale = Vec3::one() * 1.0;
 
-                next.control.position = Vec3::new(-10.0 + stop * 13.0, 6.0 + stop * 4.0, 8.0);
-                next.control.orientation = Quaternion::rotation_x(0.0)
-                    * Quaternion::rotation_y(stop * -0.4)
-                    * Quaternion::rotation_z(stop * -0.6);
-            },
-            Some(ToolKind::Hammer(_)) => {
-                next.hand_l.position = Vec3::new(-8.0, -2.0 + stop * -1.0, 13.0);
-                next.hand_l.orientation = Quaternion::rotation_x(2.1)
-                    * Quaternion::rotation_y(0.7)
-                    * Quaternion::rotation_z(-0.3);
-                next.hand_r.position = Vec3::new(-11.0, 2.0, 6.0);
-                next.hand_r.orientation = Quaternion::rotation_x(1.8)
-                    * Quaternion::rotation_y(2.3)
-                    * Quaternion::rotation_z(0.3);
-                next.main.position = Vec3::new(-12.0, 1.0, 4.0);
-                next.main.orientation = Quaternion::rotation_x(0.3)
-                    * Quaternion::rotation_y(0.3)
-                    * Quaternion::rotation_z(0.6);
+                next.control.position = Vec3::new(
+                    3.0 + s_a.bc.0 + stop * 13.0,
+                    -5.0 + s_a.bc.1 + stop * 4.0,
+                    6.0 + s_a.bc.2,
+                );
+                next.control.orientation = Quaternion::rotation_x(0.2 + s_a.bc.3)
+                    * Quaternion::rotation_y(-0.8 + s_a.bc.4 + stop * -0.4)
+                    * Quaternion::rotation_z(s_a.bc.5 + stop * -0.6);
             },
             _ => {},
         }
@@ -170,9 +151,7 @@ impl Animation for ChargeAnimation {
                 s_a.foot.1 + foote * -1.5,
                 s_a.foot.2,
             );
-            next.foot_r.orientation = Quaternion::rotation_x(0.0)
-                * Quaternion::rotation_z(0.4)
-                * Quaternion::rotation_y(0.0);
+            next.foot_r.orientation = Quaternion::rotation_z(0.4);
         } else {
             next.foot_l.position = Vec3::new(
                 -s_a.foot.0,
@@ -189,13 +168,6 @@ impl Animation for ChargeAnimation {
             next.foot_r.orientation =
                 Quaternion::rotation_x(stop * 0.1) * Quaternion::rotation_z(stop * 0.1);
         }
-        next.back.position = Vec3::new(0.0, s_a.back.0, s_a.back.1);
-        next.back.orientation = Quaternion::rotation_x(-0.3);
-
-        next.glider.position = Vec3::new(0.0, 0.0, 10.0);
-
-        next.lantern.orientation = Quaternion::rotation_x(0.1) * Quaternion::rotation_y(0.1);
-        next.lantern.scale = Vec3::one() * 0.65;
 
         next.second.scale = match (
             active_tool_kind.map(|tk| tk.hands()),

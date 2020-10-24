@@ -3,7 +3,6 @@ use super::{
     CharacterSkeleton, SkeletonAttr,
 };
 use common::comp::item::{Hands, ToolKind};
-use std::f32::consts::PI;
 
 pub struct RollAnimation;
 
