@@ -58,7 +58,7 @@ impl Body {
         self.hair_color = self.hair_color.min(self.species.num_hair_colors() - 1);
         self.skin = self.skin.min(self.species.num_skin_colors() - 1);
         self.eyes = self.eyes.min(self.species.num_eyes(self.body_type) - 1);
-        self.eye_color = self.hair_style.min(self.species.num_eye_colors() - 1);
+        self.eye_color = self.eye_color.min(self.species.num_eye_colors() - 1);
         self.accessory = self
             .accessory
             .min(self.species.num_accessories(self.body_type) - 1);

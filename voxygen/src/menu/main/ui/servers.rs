@@ -3,12 +3,7 @@ use crate::{
     i18n::Localization,
     ui::{
         fonts::IcedFonts as Fonts,
-        ice::{
-            component::neat_button,
-            style,
-            widget::background_container::{BackgroundContainer, Padding},
-            Element,
-        },
+        ice::{component::neat_button, style, Element},
     },
 };
 use iced::{

@@ -3,9 +3,9 @@ use common::util::srgba_to_linear;
 use iced::{mouse, scrollable, Rectangle};
 use style::scrollable::{Scroller, Track};
 
-const SCROLLBAR_WIDTH: u16 = 10;
+const SCROLLBAR_WIDTH: u16 = 6;
 const SCROLLBAR_MIN_HEIGHT: u16 = 6;
-const SCROLLBAR_MARGIN: u16 = 2;
+const SCROLLBAR_MARGIN: u16 = 1;
 
 impl scrollable::Renderer for IcedRenderer {
     type Style = style::scrollable::Style;
