@@ -1014,11 +1014,5 @@ impl<'a> Widget for Skillbar<'a> {
             .w_h(16.0, 18.0)
             .mid_bottom_with_margin_on(state.ids.m2_content, -11.0)
             .set(state.ids.m2_ico, ui);
-
-        // Buffs
-        // Add debuff slots above the health bar
-        // Add buff slots above the mana bar
-
-        // Debuffs
     }
 }

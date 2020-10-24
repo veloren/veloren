@@ -158,11 +158,12 @@ impl<'a> System<'a> for Sys {
                             server_emitter.emit(ServerEvent::Buff {
                                 uid: *uid_b,
                                 buff_change: buff::BuffChange::Add(buff::Buff::new(
-                                    buff::BuffKind::Bleeding {
+                                    buff::BuffKind::Bleeding,
+                                    buff::BuffData {
                                         strength: attack.base_damage as f32 / 10.0,
                                         duration: Some(Duration::from_secs(10)),
                                     },
-                                    vec![buff::BuffCategoryId::Physical],
+                                    vec![buff::BuffCategory::Physical],
                                     buff::BuffSource::Character { by: *uid },
                                 )),
                             });

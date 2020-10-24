@@ -137,7 +137,7 @@ impl<'a> Ingameable for Overhead<'a> {
         self.info.map_or(0, |info| {
             2 + 1
                 + if self.bubble.is_none() {
-                    info.buffs.active_buffs.len().min(10) * 2
+                    info.buffs.kinds.len().min(10) * 2
                 } else {
                     0
                 }
@@ -204,7 +204,7 @@ impl<'a> Widget for Overhead<'a> {
             };
             // Buffs
             // Alignment
-            let buff_count = buffs.active_buffs.len().min(11);
+            let buff_count = buffs.kinds.len().min(11);
             Rectangle::fill_with([168.0, 100.0], color::TRANSPARENT)
                 .x_y(-1.0, name_y + 60.0)
                 .parent(id)
@@ -229,15 +229,11 @@ impl<'a> Widget for Overhead<'a> {
                     .iter()
                     .copied()
                     .zip(state.ids.buff_timers.iter().copied())
-                    .zip(buffs.active_buffs.iter().map(get_buff_info))
+                    .zip(buffs.iter_active().map(get_buff_info))
                     .enumerate()
                     .for_each(|(i, ((id, timer_id), buff))| {
                         // Limit displayed buffs
-                        let max_duration = match buff.kind {
-                            BuffKind::Bleeding { duration, .. } => duration,
-                            BuffKind::Regeneration { duration, .. } => duration,
-                            BuffKind::Cursed { duration } => duration,
-                        };
+                        let max_duration = buff.data.duration;
                         let current_duration = buff.dur;
                         let duration_percentage = current_duration.map_or(1000.0, |cur| {
                             max_duration.map_or(1000.0, |max| {
