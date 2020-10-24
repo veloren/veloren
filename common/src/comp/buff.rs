@@ -172,8 +172,11 @@ pub enum BuffSource {
 /// would be probably an undesired effect).
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct Buffs {
+    /// Uid used for synchronization
     id_counter: u64,
+    /// Maps Kinds of buff to Id's of currently applied buffs of that kind
     pub kinds: HashMap<BuffKind, Vec<BuffId>>,
+    // All currently applied buffs stored by Id
     pub buffs: HashMap<BuffId, Buff>,
 }
 
