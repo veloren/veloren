@@ -14,7 +14,8 @@ impl<'a> TuiLog<'a> {
     pub fn resize(&self, h: usize) {
         let mut inner = self.inner.lock().unwrap();
 
-        inner.lines.truncate(h);
+        let len = inner.lines.len().saturating_sub(h);
+        inner.lines.drain(..len);
     }
 }
 
