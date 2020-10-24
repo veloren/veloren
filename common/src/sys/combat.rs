@@ -152,19 +152,34 @@ impl<'a> System<'a> for Sys {
                                 cause,
                             },
                         });
+
+                        use buff::*;
+                        server_emitter.emit(ServerEvent::Buff {
+                            uid: *uid_b,
+                            buff_change: BuffChange::Add(Buff::new(
+                                BuffKind::Cursed,
+                                BuffData {
+                                    strength: attack.base_damage as f32 / 10.0,
+                                    duration: Some(Duration::from_secs(10)),
+                                },
+                                vec![BuffCategory::Physical],
+                                BuffSource::Character { by: *uid },
+                            )),
+                        });
+
                         // Apply bleeding buff on melee hits with 10% chance
                         // TODO: Don't have buff uniformly applied on all melee attacks
                         if thread_rng().gen::<f32>() < 0.1 {
                             server_emitter.emit(ServerEvent::Buff {
                                 uid: *uid_b,
-                                buff_change: buff::BuffChange::Add(buff::Buff::new(
-                                    buff::BuffKind::Bleeding,
-                                    buff::BuffData {
+                                buff_change: BuffChange::Add(Buff::new(
+                                    BuffKind::Bleeding,
+                                    BuffData {
                                         strength: attack.base_damage as f32 / 10.0,
                                         duration: Some(Duration::from_secs(10)),
                                     },
-                                    vec![buff::BuffCategory::Physical],
-                                    buff::BuffSource::Character { by: *uid },
+                                    vec![BuffCategory::Physical],
+                                    BuffSource::Character { by: *uid },
                                 )),
                             });
                         }

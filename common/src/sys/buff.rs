@@ -1,7 +1,7 @@
 use crate::{
     comp::{
         BuffCategory, BuffChange, BuffEffect, BuffId, BuffSource, Buffs, HealthChange,
-        HealthSource, Stats,
+        HealthSource, ModifierKind, Stats,
     },
     event::{EventBus, ServerEvent},
     state::DeltaTime,
@@ -17,15 +17,15 @@ impl<'a> System<'a> for Sys {
         Read<'a, DeltaTime>,
         Read<'a, EventBus<ServerEvent>>,
         ReadStorage<'a, Uid>,
-        ReadStorage<'a, Stats>,
+        WriteStorage<'a, Stats>,
         WriteStorage<'a, Buffs>,
     );
 
-    fn run(&mut self, (dt, server_bus, uids, stats, mut buffs): Self::SystemData) {
+    fn run(&mut self, (dt, server_bus, uids, mut stats, mut buffs): Self::SystemData) {
         let mut server_emitter = server_bus.emitter();
         // Set to false to avoid spamming server
-        buffs.set_event_emission(false);
-        for (buff_comp, uid, stat) in (&mut buffs, &uids, &stats).join() {
+        // buffs.set_event_emission(false);
+        for (buff_comp, uid, stat) in (&mut buffs, &uids, &mut stats).join() {
             let mut expired_buffs = Vec::<BuffId>::new();
             for (id, buff) in buff_comp.buffs.iter_mut() {
                 // Tick the buff and subtract delta from it
@@ -36,6 +36,9 @@ impl<'a> System<'a> for Sys {
                         // The buff still continues.
                         *remaining_time = new_duration;
                     } else {
+                        // checked_sub returns None when remaining time
+                        // went below 0, so set to 0
+                        *remaining_time = Duration::default();
                         // The buff has expired.
                         // Remove it.
                         expired_buffs.push(*id);
@@ -43,14 +46,20 @@ impl<'a> System<'a> for Sys {
                 }
             }
 
+            // Call to reset stats to base values
+            stat.health.reset_max();
+
+            // Iterator over the lists of buffs by kind
             for buff_ids in buff_comp.kinds.values() {
+                // Get the strongest of this buff kind
                 if let Some(buff) = buff_comp.buffs.get_mut(&buff_ids[0]) {
-                    // Get buff owner
+                    // Get buff owner?
                     let buff_owner = if let BuffSource::Character { by: owner } = buff.source {
                         Some(owner)
                     } else {
                         None
                     };
+
                     // Now, execute the buff, based on it's delta
                     for effect in &mut buff.effects {
                         match effect {
@@ -77,7 +86,18 @@ impl<'a> System<'a> for Sys {
                                     *accumulated = 0.0;
                                 };
                             },
-                            BuffEffect::NameChange { .. } => {},
+                            BuffEffect::MaxHealthModifier { value, kind } => match kind {
+                                ModifierKind::Multiplicative => {
+                                    stat.health.set_maximum(
+                                        (stat.health.maximum() as f32 * *value) as u32,
+                                    );
+                                },
+                                ModifierKind::Additive => {
+                                    stat.health.set_maximum(
+                                        (stat.health.maximum() as f32 + *value) as u32,
+                                    );
+                                },
+                            },
                         };
                     }
                 }
@@ -103,6 +123,6 @@ impl<'a> System<'a> for Sys {
                 });
             }
         }
-        buffs.set_event_emission(true);
+        // buffs.set_event_emission(true);
     }
 }
