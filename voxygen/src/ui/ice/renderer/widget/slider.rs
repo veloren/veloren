@@ -4,14 +4,12 @@ use core::ops::RangeInclusive;
 use iced::{mouse, slider, Point, Rectangle};
 use style::slider::{Bar, Cursor, Style};
 
-const CURSOR_WIDTH: f32 = 10.0;
-const CURSOR_HEIGHT: f32 = 16.0;
-const BAR_HEIGHT: f32 = 18.0;
+const CURSOR_DRAG_SHIFT: f32 = 0.7;
 
 impl slider::Renderer for IcedRenderer {
     type Style = Style;
 
-    const DEFAULT_HEIGHT: u16 = 20;
+    const DEFAULT_HEIGHT: u16 = 25;
 
     fn draw(
         &mut self,
@@ -23,7 +21,8 @@ impl slider::Renderer for IcedRenderer {
         style: &Self::Style,
     ) -> Self::Output {
         let bar_bounds = Rectangle {
-            height: BAR_HEIGHT,
+            height: style.bar_height as f32,
+            y: bounds.y + (bounds.height - style.bar_height as f32) / 2.0,
             ..bounds
         };
         let bar = match style.bar {
@@ -31,20 +30,30 @@ impl slider::Renderer for IcedRenderer {
                 bounds: bar_bounds,
                 linear_color: srgba_to_linear(color),
             },
-            Bar::Image(handle, color) => Primitive::Image {
+            // Note: bar_pad adds to the size of the bar currently since the dragging logic wouldn't
+            // account for shrinking the area that the cursor is shown in
+            Bar::Image(handle, color, bar_pad) => Primitive::Image {
                 handle: (handle, Rotation::None),
-                bounds: bar_bounds,
+                bounds: Rectangle {
+                    x: bar_bounds.x - bar_pad as f32,
+                    width: bar_bounds.width + bar_pad as f32 * 2.0,
+                    ..bar_bounds
+                },
                 color,
             },
         };
 
-        let (max, min) = range.into_inner();
-        let offset = bounds.width as f32 * (max - min) / (value - min);
+        let (cursor_width, cursor_height) = style.cursor_size;
+        let (cursor_width, cursor_height) = (f32::from(cursor_width), f32::from(cursor_height));
+        let (min, max) = range.into_inner();
+        let offset = bounds.width as f32 * (value - min) / (max - min);
         let cursor_bounds = Rectangle {
-            x: bounds.x + offset - CURSOR_WIDTH / 2.0,
-            y: bounds.y + if is_dragging { 2.0 } else { 0.0 },
-            width: CURSOR_WIDTH,
-            height: CURSOR_HEIGHT,
+            x: bounds.x + offset - cursor_width / 2.0,
+            y: bounds.y
+                + if is_dragging { CURSOR_DRAG_SHIFT } else { 0.0 }
+                + (bounds.height - cursor_height) / 2.0,
+            width: cursor_width,
+            height: cursor_height,
         };
         let cursor = match style.cursor {
             Cursor::Color(color) => Primitive::Rectangle {

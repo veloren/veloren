@@ -1,8 +1,6 @@
 use super::super::{super::widget::overlay, IcedRenderer, Primitive};
 use iced::{mouse::Interaction, Element, Layout, Point, Rectangle};
 
-const BORDER_SIZE: u16 = 8;
-
 impl overlay::Renderer for IcedRenderer {
     fn draw<M>(
         &mut self,

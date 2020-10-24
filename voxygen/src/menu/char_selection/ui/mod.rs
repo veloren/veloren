@@ -32,8 +32,8 @@ use crate::settings::Settings;
 //use std::time::Duration;
 //use ui::ice::widget;
 use iced::{
-    button, scrollable, text_input, Align, Button, Column, Container, HorizontalAlignment, Length,
-    Row, Scrollable, Space, Text, TextInput,
+    button, scrollable, slider, text_input, Align, Button, Column, Container, HorizontalAlignment,
+    Length, Row, Scrollable, Slider, Space, Text, TextInput,
 };
 use vek::Rgba;
 
@@ -44,6 +44,7 @@ const FILL_FRAC_ONE: f32 = 0.77;
 const FILL_FRAC_TWO: f32 = 0.60;
 const TOOLTIP_HOVER_DUR: std::time::Duration = std::time::Duration::from_millis(150);
 const TOOLTIP_FADE_DUR: std::time::Duration = std::time::Duration::from_millis(350);
+const BANNER_ALPHA: u8 = 210;
 
 const STARTER_HAMMER: &str = "common.items.weapons.hammer.starter_hammer";
 const STARTER_BOW: &str = "common.items.weapons.bow.starter_bow";
@@ -51,14 +52,17 @@ const STARTER_AXE: &str = "common.items.weapons.axe.starter_axe";
 const STARTER_STAFF: &str = "common.items.weapons.staff.starter_staff";
 const STARTER_SWORD: &str = "common.items.weapons.sword.starter_sword";
 const STARTER_SCEPTRE: &str = "common.items.weapons.sceptre.starter_sceptre";
+// TODO: what does this comment mean?
 // // Use in future MR to make this a starter weapon
 
-// TODO: look into what was using this in old ui
+// TODO: use for info popup frame/background and for char list scrollbar
 const UI_MAIN: iced::Color = iced::Color::from_rgba(0.61, 0.70, 0.70, 1.0); // Greenish Blue
 
 image_ids_ice! {
     struct Imgs {
         <ImageGraphic>
+        frame_bottom: "voxygen.element.frames.banner_bot",
+
         slider_range: "voxygen.element.slider.track",
         slider_indicator: "voxygen.element.slider.indicator",
 
@@ -139,7 +143,6 @@ enum Mode {
         new_character_button: button::State,
         logout_button: button::State,
         enter_world_button: button::State,
-        change_server_button: button::State,
         yes_button: button::State,
         no_button: button::State,
     },
@@ -152,6 +155,7 @@ enum Mode {
         body_type_buttons: [button::State; 2],
         species_buttons: [button::State; 6],
         tool_buttons: [button::State; 6],
+        sliders: Sliders,
         scroll: scrollable::State,
         name_input: text_input::State,
         back_button: button::State,
@@ -170,7 +174,6 @@ impl Mode {
             new_character_button: Default::default(),
             logout_button: Default::default(),
             enter_world_button: Default::default(),
-            change_server_button: Default::default(),
             yes_button: Default::default(),
             no_button: Default::default(),
         }
@@ -193,6 +196,7 @@ impl Mode {
             body_type_buttons: Default::default(),
             species_buttons: Default::default(),
             tool_buttons: Default::default(),
+            sliders: Default::default(),
             scroll: Default::default(),
             name_input: Default::default(),
             back_button: Default::default(),
@@ -248,7 +252,6 @@ enum Message {
     EnterWorld,
     Select(usize),
     Delete(usize),
-    ChangeServer,
     NewCharacter,
     CreateCharacter,
     Name(String),
@@ -258,6 +261,16 @@ enum Message {
     RandomizeCharacter,
     CancelDeletion,
     ConfirmDeletion,
+    HairStyle(u8),
+    HairColor(u8),
+    Skin(u8),
+    Eyes(u8),
+    EyeColor(u8),
+    Accessory(u8),
+    Beard(u8),
+    // Workaround for widgets that require a message but we don't want them to actually do
+    // anything
+    DoNothing,
 }
 
 impl Controls {
@@ -334,7 +347,6 @@ impl Controls {
                 ref mut new_character_button,
                 ref mut logout_button,
                 ref mut enter_world_button,
-                ref mut change_server_button,
                 ref mut yes_button,
                 ref mut no_button,
             } => {
@@ -343,24 +355,11 @@ impl Controls {
                         Text::new(&client.server_info.name)
                             .size(fonts.cyri.scale(25))
                             .into(),
-                        Container::new(neat_button(
-                            change_server_button,
-                            i18n.get("char_selection.change_server"),
-                            FILL_FRAC_TWO,
-                            button_style,
-                            Some(Message::ChangeServer),
-                        ))
-                        .height(Length::Units(35))
-                        .into(),
                     ])
                     .spacing(5)
                     .align_items(Align::Center),
                 )
-                .style(style::container::Style::color_with_image_border(
-                    Rgba::new(0, 0, 0, 217),
-                    imgs.gray_corner,
-                    imgs.gray_edge,
-                ))
+                .style(style::container::Style::color(Rgba::new(0, 0, 0, 217)))
                 .padding(12)
                 .center_x()
                 .width(Length::Fill);
@@ -490,23 +489,32 @@ impl Controls {
 
                 // TODO: could replace column with scrollable completely if it had a with
                 // children method
-                let characters = Container::new(
-                    Scrollable::new(characters_scroll)
-                        .push(Column::with_children(characters).spacing(4)),
-                )
-                .style(style::container::Style::color_with_image_border(
-                    Rgba::new(0, 0, 0, 217),
-                    imgs.gray_corner,
-                    imgs.gray_edge,
-                ))
-                .padding(9)
-                .width(Length::Fill)
+                let characters = Column::with_children(vec![
+                    Container::new(
+                        Scrollable::new(characters_scroll)
+                            .push(Column::with_children(characters).spacing(4))
+                            .width(Length::Fill),
+                    )
+                    .padding(5)
+                    .style(style::container::Style::color(Rgba::from_translucent(
+                        0,
+                        BANNER_ALPHA,
+                    )))
+                    .width(Length::Units(320))
+                    .height(Length::Fill)
+                    .center_x()
+                    .into(),
+                    Image::new(imgs.frame_bottom)
+                        .height(Length::Units(40))
+                        .width(Length::Units(320))
+                        .color(Rgba::from_translucent(0, BANNER_ALPHA))
+                        .into(),
+                ])
                 .height(Length::Fill);
 
                 let right_column = Column::with_children(vec![server.into(), characters.into()])
-                    .padding(15)
                     .spacing(10)
-                    .width(Length::Units(360)) // TODO: see if we can get iced to work with settings below
+                    .width(Length::Units(320)) // TODO: see if we can get iced to work with settings below
                     //.max_width(360)
                     //.width(Length::Fill)
                     .height(Length::Fill);
@@ -622,6 +630,7 @@ impl Controls {
                 ref mut body_type_buttons,
                 ref mut species_buttons,
                 ref mut tool_buttons,
+                ref mut sliders,
                 ref mut name_input,
                 ref mut back_button,
                 ref mut create_button,
@@ -639,7 +648,7 @@ impl Controls {
                     Container::new(
                         Button::<_, IcedRenderer>::new(
                             button,
-                            Space::new(Length::Units(70), Length::Units(70)),
+                            Space::new(Length::Units(60), Length::Units(60)),
                         )
                         .style(if selected {
                             selected_style
@@ -830,42 +839,183 @@ impl Controls {
                 ])
                 .spacing(1);
 
-                let column_content = vec![body_type.into(), species.into(), tool.into()];
+                const SLIDER_TEXT_SIZE: u16 = 20;
+                const SLIDER_CURSOR_SIZE: (u16, u16) = (9, 21);
+                const SLIDER_BAR_HEIGHT: u16 = 9;
+                const SLIDER_BAR_PAD: u16 = 5;
 
-                let right_column = Container::new(
+                fn char_slider<'a>(
+                    text: &str,
+                    state: &'a mut slider::State,
+                    max: u8,
+                    selected_val: u8,
+                    on_change: impl 'static + Fn(u8) -> Message,
+                    (fonts, imgs): (&Fonts, &Imgs),
+                ) -> Element<'a, Message> {
                     Column::with_children(vec![
-                        Text::new(i18n.get("char_selection.character_creation"))
-                            .size(fonts.cyri.scale(26))
+                        Text::new(text)
+                            .size(fonts.cyri.scale(SLIDER_TEXT_SIZE))
                             .into(),
-                        Scrollable::new(scroll)
-                            .push(
-                                Column::with_children(column_content)
-                                    .align_items(Align::Center)
-                                    .spacing(16),
-                            )
+                        Slider::new(state, 0..=max, selected_val, on_change)
+                            .style(style::slider::Style::images(
+                                imgs.slider_indicator,
+                                imgs.slider_range,
+                                SLIDER_BAR_PAD,
+                                SLIDER_CURSOR_SIZE,
+                                SLIDER_BAR_HEIGHT,
+                            ))
                             .into(),
                     ])
-                    .spacing(20)
-                    .padding(10)
-                    .width(Length::Fill)
-                    .align_items(Align::Center),
+                    .align_items(Align::Center)
+                    .into()
+                };
+                fn char_slider_greyable<'a>(
+                    active: bool,
+                    text: &str,
+                    state: &'a mut slider::State,
+                    max: u8,
+                    selected_val: u8,
+                    on_change: impl 'static + Fn(u8) -> Message,
+                    (fonts, imgs): (&Fonts, &Imgs),
+                ) -> Element<'a, Message> {
+                    if active {
+                        char_slider(text, state, max, selected_val, on_change, (fonts, imgs))
+                    } else {
+                        Column::with_children(vec![
+                            Text::new(text)
+                                .size(fonts.cyri.scale(SLIDER_TEXT_SIZE))
+                                .color(DISABLED_TEXT_COLOR)
+                                .into(),
+                            // "Disabled" slider
+                            // TODO: add iced support for disabled sliders (like buttons)
+                            Slider::new(state, 0..=max, selected_val, |_| Message::DoNothing)
+                                .style(style::slider::Style {
+                                    cursor: style::slider::Cursor::Color(Rgba::zero()),
+                                    bar: style::slider::Bar::Image(
+                                        imgs.slider_range,
+                                        Rgba::from_translucent(255, 51),
+                                        SLIDER_BAR_PAD,
+                                    ),
+                                    labels: false,
+                                    ..Default::default()
+                                })
+                                .into(),
+                        ])
+                        .align_items(Align::Center)
+                        .into()
+                    }
+                };
+
+                let slider_options = Column::with_children(vec![
+                    char_slider(
+                        i18n.get("char_selection.hair_style"),
+                        &mut sliders.hair_style,
+                        body.species.num_hair_styles(body.body_type) - 1,
+                        body.hair_style,
+                        Message::HairStyle,
+                        (fonts, imgs),
+                    ),
+                    char_slider(
+                        i18n.get("char_selection.hair_color"),
+                        &mut sliders.hair_color,
+                        body.species.num_hair_colors() - 1,
+                        body.hair_color,
+                        Message::HairColor,
+                        (fonts, imgs),
+                    ),
+                    char_slider(
+                        i18n.get("char_selection.skin"),
+                        &mut sliders.skin,
+                        body.species.num_skin_colors() - 1,
+                        body.skin,
+                        Message::Skin,
+                        (fonts, imgs),
+                    ),
+                    char_slider(
+                        i18n.get("char_selection.eyeshape"),
+                        &mut sliders.eyes,
+                        body.species.num_eyes(body.body_type) - 1,
+                        body.eyes,
+                        Message::Eyes,
+                        (fonts, imgs),
+                    ),
+                    char_slider(
+                        i18n.get("char_selection.eye_color"),
+                        &mut sliders.eye_color,
+                        body.species.num_eye_colors() - 1,
+                        body.eye_color,
+                        Message::EyeColor,
+                        (fonts, imgs),
+                    ),
+                    char_slider_greyable(
+                        body.species.num_accessories(body.body_type) > 1,
+                        i18n.get("char_selection.accessories"),
+                        &mut sliders.accessory,
+                        body.species.num_accessories(body.body_type) - 1,
+                        body.accessory,
+                        Message::Accessory,
+                        (fonts, imgs),
+                    ),
+                    char_slider_greyable(
+                        body.species.num_beards(body.body_type) > 1,
+                        i18n.get("char_selection.beard"),
+                        &mut sliders.beard,
+                        body.species.num_beards(body.body_type) - 1,
+                        body.beard,
+                        Message::Beard,
+                        (fonts, imgs),
+                    ),
+                ])
+                .max_width(200)
+                .spacing(3)
+                .padding(5);
+
+                let column_content = vec![
+                    body_type.into(),
+                    species.into(),
+                    tool.into(),
+                    slider_options.into(),
+                ];
+
+                let right_column = Container::new(
+                    Scrollable::new(scroll)
+                        .push(
+                            Column::with_children(column_content)
+                                .align_items(Align::Center)
+                                .width(Length::Fill)
+                                .spacing(5),
+                        )
+                        .padding(5)
+                        .width(Length::Fill)
+                        .align_items(Align::Center),
                 )
-                .style(style::container::Style::color_with_image_border(
-                    Rgba::new(0, 0, 0, 217),
-                    imgs.gray_corner,
-                    imgs.gray_edge,
-                ))
-                .padding(10)
-                .width(Length::Units(360)) // TODO: see if we can get iced to work with settings below
+                .width(Length::Units(320)) // TODO: see if we can get iced to work with settings below
                 //.max_width(360)
                 //.width(Length::Fill)
+                .height(Length::Fill);
+
+                let right_column = Column::with_children(vec![
+                    Container::new(right_column)
+                        .style(style::container::Style::color(Rgba::from_translucent(
+                            0,
+                            BANNER_ALPHA,
+                        )))
+                        .width(Length::Units(320))
+                        .center_x()
+                        .into(),
+                    Image::new(imgs.frame_bottom)
+                        .height(Length::Units(40))
+                        .width(Length::Units(320))
+                        .color(Rgba::from_translucent(0, BANNER_ALPHA))
+                        .into(),
+                ])
                 .height(Length::Fill);
 
                 let top = Row::with_children(vec![
                     right_column.into(),
                     MouseDetector::new(&mut self.mouse_detector, Length::Fill, Length::Fill).into(),
                 ])
-                .padding(15)
+                .padding(10)
                 .width(Length::Fill)
                 .height(Length::Fill);
 
@@ -1001,9 +1151,6 @@ impl Controls {
                     *info_content = Some(InfoContent::Deletion(idx));
                 }
             },
-            Message::ChangeServer => {
-                events.push(Event::Logout);
-            },
             Message::NewCharacter => {
                 if matches!(&self.mode, Mode::Select { .. }) {
                     self.mode = Mode::create(String::new());
@@ -1069,6 +1216,49 @@ impl Controls {
                     }
                 }
             },
+            Message::HairStyle(value) => {
+                if let Mode::Create { body, .. } = &mut self.mode {
+                    body.hair_style = value;
+                    body.validate();
+                }
+            },
+            Message::HairColor(value) => {
+                if let Mode::Create { body, .. } = &mut self.mode {
+                    body.hair_color = value;
+                    body.validate();
+                }
+            },
+            Message::Skin(value) => {
+                if let Mode::Create { body, .. } = &mut self.mode {
+                    body.skin = value;
+                    body.validate();
+                }
+            },
+            Message::Eyes(value) => {
+                if let Mode::Create { body, .. } = &mut self.mode {
+                    body.eyes = value;
+                    body.validate();
+                }
+            },
+            Message::EyeColor(value) => {
+                if let Mode::Create { body, .. } = &mut self.mode {
+                    body.eye_color = value;
+                    body.validate();
+                }
+            },
+            Message::Accessory(value) => {
+                if let Mode::Create { body, .. } = &mut self.mode {
+                    body.accessory = value;
+                    body.validate();
+                }
+            },
+            Message::Beard(value) => {
+                if let Mode::Create { body, .. } = &mut self.mode {
+                    body.beard = value;
+                    body.validate();
+                }
+            },
+            Message::DoNothing => {},
         }
     }
 
@@ -1183,4 +1373,15 @@ impl CharSelectionUi {
 
     // TODO: do we need globals?
     pub fn render(&self, renderer: &mut Renderer) { self.ui.render(renderer); }
+}
+
+#[derive(Default)]
+struct Sliders {
+    hair_style: slider::State,
+    hair_color: slider::State,
+    skin: slider::State,
+    eyes: slider::State,
+    eye_color: slider::State,
+    accessory: slider::State,
+    beard: slider::State,
 }
