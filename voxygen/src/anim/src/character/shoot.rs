@@ -56,20 +56,22 @@ impl Animation for ShootAnimation {
         next.shorts.orientation = next.chest.orientation * -0.08;
 
         match active_tool_kind {
-            //TODO: Inventory
             Some(ToolKind::Staff(_)) | Some(ToolKind::Sceptre(_)) => {
-                next.hand_l.position = Vec3::new(11.0, 5.0, -4.0);
-                next.hand_l.orientation =
-                    Quaternion::rotation_x(1.27) * Quaternion::rotation_y(0.0);
-                next.hand_r.position = Vec3::new(12.0, 5.5, 2.0);
-                next.hand_r.orientation =
-                    Quaternion::rotation_x(1.57) * Quaternion::rotation_y(0.2);
-                next.main.position = Vec3::new(12.0, 8.5, 13.2);
-                next.main.orientation = Quaternion::rotation_y(3.14);
+                next.hand_l.position = Vec3::new(s_a.sthl.0, s_a.sthl.1, s_a.sthl.2);
+                next.hand_l.orientation = Quaternion::rotation_x(s_a.sthl.3);
 
-                next.control.position = Vec3::new(-7.0, 6.0, 6.0 - exp * 5.0);
-                next.control.orientation =
-                    Quaternion::rotation_x(exp * 1.3) * Quaternion::rotation_z(exp * 1.5);
+                next.hand_r.position = Vec3::new(s_a.sthr.0, s_a.sthr.1, s_a.sthr.2);
+                next.hand_r.orientation =
+                    Quaternion::rotation_x(s_a.sthr.3) * Quaternion::rotation_y(s_a.sthr.4);
+
+                next.main.position = Vec3::new(0.0, 0.0, 0.0);
+                next.main.orientation = Quaternion::rotation_y(0.0);
+
+                next.control.position =
+                    Vec3::new(s_a.stc.0, s_a.stc.1 + exp * 5.0, s_a.stc.2 - exp * 5.0);
+                next.control.orientation = Quaternion::rotation_x(s_a.stc.3 + exp * 0.4)
+                    * Quaternion::rotation_y(s_a.stc.4)
+                    * Quaternion::rotation_z(s_a.stc.5 + exp * 1.5);
             },
             Some(ToolKind::Bow(_)) => {
                 next.hand_l.position =

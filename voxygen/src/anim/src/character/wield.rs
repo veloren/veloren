@@ -50,8 +50,8 @@ impl Animation for WieldAnimation {
         let foothoril = (anim_time as f32 * 16.0 * lab as f32 + PI * 1.45).sin();
 
         let slowalt = (anim_time as f32 * 6.0 + PI).cos();
-        let u_slow = (anim_time as f32 * 1.0 + PI).sin();
-        let slow = (anim_time as f32 * 3.0 + PI).sin();
+        let u_slow = (anim_time as f32 * 2.5 + PI).sin();
+        let slow = (anim_time as f32 * 5.0 + PI).sin();
 
         let u_slowalt = (anim_time as f32 * 3.0 + PI).cos();
         let short = (((5.0)
@@ -182,37 +182,37 @@ impl Animation for WieldAnimation {
                 next.hand_r.orientation =
                     Quaternion::rotation_x(s_a.hhr.3) * Quaternion::rotation_y(s_a.hhr.4);
 
-                next.control.position = Vec3::new(s_a.hc.0, s_a.hc.1, s_a.hc.2);
+                next.control.position =
+                    Vec3::new(s_a.hc.0, s_a.hc.1 + speed * 0.2, s_a.hc.2 + speed * 0.8);
                 next.control.orientation = Quaternion::rotation_x(s_a.hc.3 + u_slow * 0.15)
-                    * Quaternion::rotation_y(s_a.hc.4)
-                    * Quaternion::rotation_z(s_a.hc.5 + u_slowalt * 0.08);
+                    * Quaternion::rotation_y(s_a.hc.4 + speed * -0.04)
+                    * Quaternion::rotation_z(s_a.hc.5 + u_slowalt * 0.07);
             },
             Some(ToolKind::Staff(_)) | Some(ToolKind::Sceptre(_)) => {
                 if speed > 0.5 && velocity.z == 0.0 {
                     next.hand_r.position = Vec3::new(
                         4.0 + s_a.hand.0 + foothoril * 1.3,
-                        -2.0 + s_a.hand.1 + foothoril * -6.5,
-                        -2.0 + s_a.hand.2 - foothoril * 7.0,
+                        s_a.hand.1 + foothoril * -6.5,
+                        5.0 + s_a.hand.2 - foothoril * 7.0,
                     );
                     next.hand_r.orientation = Quaternion::rotation_x(0.6 + footrotl * -1.2)
                         * Quaternion::rotation_y(footrotl * -0.4);
                 } else {
-                    next.hand_r.position = Vec3::new(0.0, 0.0, 2.0);
+                    next.hand_r.position = Vec3::new(s_a.sthr.0, s_a.sthr.1, s_a.sthr.2);
                     next.hand_r.orientation =
-                        Quaternion::rotation_x(1.57) * Quaternion::rotation_y(0.2);
+                        Quaternion::rotation_x(s_a.sthr.3) * Quaternion::rotation_y(s_a.sthr.4);
                 };
-                next.control.position = Vec3::new(-4.0, 7.0, 4.0);
+                next.main.position = Vec3::new(0.0, 0.0, 0.0);
+                next.main.orientation = Quaternion::rotation_y(0.0);
 
-                next.hand_l.position = Vec3::new(0.0, 0.0, -4.0);
-                next.hand_l.orientation =
-                    Quaternion::rotation_x(1.27) * Quaternion::rotation_y(0.0);
+                next.control.position = Vec3::new(s_a.stc.0, s_a.stc.1, s_a.stc.2);
 
-                next.main.position = Vec3::new(0.0, 0.0, 13.2);
-                next.main.orientation = Quaternion::rotation_y(3.14);
+                next.hand_l.position = Vec3::new(s_a.sthl.0, s_a.sthl.1, s_a.sthl.2);
+                next.hand_l.orientation = Quaternion::rotation_x(s_a.sthl.3);
 
-                next.control.orientation = Quaternion::rotation_x(-0.3 + u_slow * 0.1)
-                    * Quaternion::rotation_y(0.15)
-                    * Quaternion::rotation_z(u_slowalt * 0.1);
+                next.control.orientation = Quaternion::rotation_x(s_a.stc.3 + u_slow * 0.1)
+                    * Quaternion::rotation_y(s_a.stc.4)
+                    * Quaternion::rotation_z(s_a.stc.5 + u_slowalt * 0.1);
             },
             Some(ToolKind::Shield(_)) => {
                 next.control.position = Vec3::new(0.0, 0.0, 0.0);

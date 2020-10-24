@@ -267,8 +267,8 @@ impl Tool {
                     range: 3.5,
                     max_angle: 30.0,
                     charge_duration: Duration::from_millis(1200),
-                    swing_duration: Duration::from_millis(400),
-                    recover_duration: Duration::from_millis(100),
+                    swing_duration: Duration::from_millis(200),
+                    recover_duration: Duration::from_millis(300),
                 },
                 LeapMelee {
                     energy_cost: 700,

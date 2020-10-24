@@ -94,23 +94,24 @@ impl Animation for ChargeAnimation {
         match active_tool_kind {
             //TODO: Inventory
             Some(ToolKind::Staff(_)) | Some(ToolKind::Sceptre(_)) => {
-                next.hand_l.position = Vec3::new(11.0, 5.0, -4.0);
-                next.hand_l.orientation = Quaternion::rotation_x(1.27);
-                next.hand_r.position = Vec3::new(12.0, 5.5, 2.0);
+                next.hand_l.position = Vec3::new(s_a.sthl.0, s_a.sthl.1, s_a.sthl.2);
+                next.hand_l.orientation = Quaternion::rotation_x(s_a.sthl.3);
+
+                next.hand_r.position = Vec3::new(s_a.sthr.0, s_a.sthr.1, s_a.sthr.2);
                 next.hand_r.orientation =
-                    Quaternion::rotation_x(1.57) * Quaternion::rotation_y(0.2);
-                next.main.position = Vec3::new(12.0, 8.5, 13.2);
-                next.main.orientation = Quaternion::rotation_x(0.0)
-                    * Quaternion::rotation_y(3.14)
-                    * Quaternion::rotation_z(0.0);
+                    Quaternion::rotation_x(s_a.sthr.3) * Quaternion::rotation_y(s_a.sthr.4);
+
+                next.main.position = Vec3::new(0.0, 0.0, 0.0);
+                next.main.orientation = Quaternion::rotation_y(0.0);
 
                 next.control.position = Vec3::new(
-                    -7.0 + quick * 3.5 * (1.0 / (stopa + 0.1)),
-                    0.0 + quicka * 3.5 * (1.0 / (stopa + 0.1)),
-                    8.0 - stop * 3.0,
+                    s_a.stc.0 + quick * 3.5 * (1.0 / (stopa + 0.1)),
+                    s_a.stc.1,
+                    s_a.stc.2 - stop * 3.0,
                 );
-                next.control.orientation =
-                    Quaternion::rotation_x(stop * -0.2) * Quaternion::rotation_z(stop * 0.2);
+                next.control.orientation = Quaternion::rotation_x(s_a.stc.3 + stop * -0.2)
+                    * Quaternion::rotation_y(s_a.stc.4)
+                    * Quaternion::rotation_z(s_a.stc.5 + stop * 0.2);
             },
             Some(ToolKind::Bow(_)) => {
                 next.hand_l.position = Vec3::new(1.0, -2.0 + stop * -1.0, 0.0);

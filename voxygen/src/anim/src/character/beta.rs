@@ -34,9 +34,9 @@ impl Animation for BetaAnimation {
         let mut next = (*skeleton).clone();
 
         let (movement1, movement2, movement3) = match stage_section {
-            Some(StageSection::Buildup) => (anim_time as f32, 0.0, 0.0),
-            Some(StageSection::Cast) => (1.0, anim_time as f32, 0.0),
-            Some(StageSection::Recover) => (1.0, 1.0, anim_time as f32),
+            Some(StageSection::Buildup) => ((anim_time as f32).powf(0.25), 0.0, 0.0),
+            Some(StageSection::Swing) => (1.0, anim_time as f32, 0.0),
+            Some(StageSection::Recover) => (1.0, 1.0, (anim_time as f32).powf(4.0)),
             _ => (0.0, 0.0, 0.0),
         };
 
@@ -53,40 +53,28 @@ impl Animation for BetaAnimation {
                     Quaternion::rotation_x(s_a.shr.3) * Quaternion::rotation_y(s_a.shr.4);
 
                 next.control.position = Vec3::new(
-                    s_a.sc.0
-                        + movement1 * -5.0
-                        + (movement2 as f32 * 2.5).sin() * 30.0
-                        + movement3 * -5.0,
-                    s_a.sc.1 - (movement1 as f32 * 8.0).sin() * 0.8
-                        + movement1 * 2.0
-                        + movement3 * 2.0,
-                    s_a.sc.2 - (movement1 as f32 * 8.0).sin() * 0.4,
+                    s_a.sc.0 + (-1.4 + movement1 * -3.0 + movement2 * -2.0) * (1.0 - movement3),
+                    s_a.sc.1 + (-1.4 + movement1 * 3.0 + movement2 * 3.0) * (1.0 - movement3),
+                    s_a.sc.2 + (-1.9 + movement1 * 2.5 * (1.0 - movement3)),
                 );
-                next.control.orientation = Quaternion::rotation_x(-1.57 + s_a.sc.3)
-                    * Quaternion::rotation_y(
-                        s_a.sc.4 + movement1 * 1.5 + (movement2 as f32 * 2.5).sin() * 0.5,
-                    )
-                    * Quaternion::rotation_z(1.0 + s_a.sc.5 + (movement2 as f32 * 2.5).sin() * 1.0);
-                next.chest.orientation = Quaternion::rotation_y(-0.1)
+                next.control.orientation =
+                    Quaternion::rotation_x(s_a.sc.3 + (-1.7) * (1.0 - movement3))
+                        * Quaternion::rotation_y(
+                            s_a.sc.4
+                                + (0.4 + movement1 * 1.5 + movement2 * -2.5) * (1.0 - movement3),
+                        )
+                        * Quaternion::rotation_z(
+                            s_a.sc.5 + (1.67 + movement2 * 1.57) * (1.0 - movement3),
+                        );
+                next.chest.orientation = Quaternion::rotation_x(0.15)
+                    * Quaternion::rotation_y((-0.1) * (1.0 - movement3))
                     * Quaternion::rotation_z(
-                        0.4 + movement1 * 1.5
-                            + (movement2 as f32 * 2.5).sin() * -0.5
-                            + movement3 * 1.0,
+                        (0.4 + movement1 * 1.5 + movement2 * -2.5) * (1.0 - movement3),
                     );
-                next.head.orientation = Quaternion::rotation_y(0.1)
-                    * Quaternion::rotation_z(
-                        -0.1 + movement1 * -1.1 + (movement2 as f32 * 2.5).sin() * -0.5,
-                    );
+                next.head.orientation = Quaternion::rotation_z((-0.4) * (1.0 - movement3));
             },
             _ => {},
         }
-
-        next.glider.position = Vec3::new(0.0, 0.0, 10.0);
-        next.glider.scale = Vec3::one() * 0.0;
-
-        next.lantern.orientation = Quaternion::rotation_x(0.4);
-        next.lantern.scale = Vec3::one() * 0.65;
-        next.hold.scale = Vec3::one() * 0.0;
 
         next.second.scale = match (
             active_tool_kind.map(|tk| tk.hands()),
