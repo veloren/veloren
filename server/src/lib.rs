@@ -58,7 +58,7 @@ use common::{
     state::{State, TimeOfDay},
     sync::WorldSyncExt,
     terrain::TerrainChunkSize,
-    vol::{ReadVol, RectVolSize},
+    vol::RectVolSize,
 };
 use futures_executor::block_on;
 use metrics::{PhysicsMetrics, ServerMetrics, StateTickMetrics, TickMetrics};

@@ -1598,6 +1598,7 @@ fn handle_debug_column(
         let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / sz as i32);
         let chunk = sim.get(chunk_pos)?;
         let col = sampler.get((wpos, server.index.as_index_ref()))?;
+        let gradient = sim.get_gradient_approx(chunk_pos)?;
         let downhill = chunk.downhill;
         let river = &chunk.river;
         let flux = chunk.flux;
@@ -1608,6 +1609,7 @@ alt {:?} ({:?})
 water_alt {:?} ({:?})
 basement {:?}
 river {:?}
+gradient {:?}
 downhill {:?}
 chaos {:?}
 flux {:?}
@@ -1623,6 +1625,7 @@ spawn_rate {:?} "#,
             col.water_level,
             basement,
             river,
+            gradient,
             downhill,
             chaos,
             flux,

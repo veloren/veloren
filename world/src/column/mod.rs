@@ -981,6 +981,8 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             5.0
         };
 
+        let gradient = sim.get_gradient_approx(chunk_pos);
+
         let path = sim.get_nearest_path(wpos);
         let cave = sim.get_nearest_cave(wpos);
 
@@ -1024,6 +1026,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             spawn_rate,
             stone_col,
             water_dist,
+            gradient,
             path,
             cave,
             snow_cover,
@@ -1053,6 +1056,7 @@ pub struct ColumnSample<'a> {
     pub spawn_rate: f32,
     pub stone_col: Rgb<u8>,
     pub water_dist: Option<f32>,
+    pub gradient: Option<f32>,
     pub path: Option<(f32, Vec2<f32>, Path, Vec2<f32>)>,
     pub cave: Option<(f32, Vec2<f32>, Cave, Vec2<f32>)>,
     pub snow_cover: bool,
