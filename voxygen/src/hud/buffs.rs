@@ -90,8 +90,7 @@ impl<'a> Widget for BuffsBar<'a> {
         }
     }
 
-    #[allow(clippy::unused_unit)] // TODO: Pending review in #587
-    fn style(&self) -> Self::Style { () }
+    fn style(&self) -> Self::Style {}
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
@@ -132,7 +131,7 @@ impl<'a> Widget for BuffsBar<'a> {
                 .set(state.ids.buffs_align, ui);
 
             // Buffs and Debuffs
-            let (buff_count, debuff_count) = buffs.active_buffs.iter().map(get_buff_info).fold(
+            let (buff_count, debuff_count) = buffs.iter_active().map(get_buff_info).fold(
                 (0, 0),
                 |(buff_count, debuff_count), info| {
                     if info.is_buff {
@@ -169,18 +168,13 @@ impl<'a> Widget for BuffsBar<'a> {
                 .zip(state.ids.buff_timers.iter().copied())
                 .zip(
                     buffs
-                        .active_buffs
-                        .iter()
+                        .iter_active()
                         .map(get_buff_info)
                         .filter(|info| info.is_buff),
                 )
                 .enumerate()
                 .for_each(|(i, ((id, timer_id), buff))| {
-                    let max_duration = match buff.kind {
-                        BuffKind::Bleeding { duration, .. } => duration,
-                        BuffKind::Regeneration { duration, .. } => duration,
-                        BuffKind::Cursed { duration } => duration,
-                    };
+                    let max_duration = buff.data.duration;
                     let current_duration = buff.dur;
                     let duration_percentage = current_duration.map_or(1000.0, |cur| {
                         max_duration
@@ -264,18 +258,13 @@ impl<'a> Widget for BuffsBar<'a> {
                 .zip(state.ids.debuff_timers.iter().copied())
                 .zip(
                     buffs
-                        .active_buffs
-                        .iter()
+                        .iter_active()
                         .map(get_buff_info)
                         .filter(|info| !info.is_buff),
                 )
                 .enumerate()
                 .for_each(|(i, ((id, timer_id), debuff))| {
-                    let max_duration = match debuff.kind {
-                        BuffKind::Bleeding { duration, .. } => duration,
-                        BuffKind::Regeneration { duration, .. } => duration,
-                        BuffKind::Cursed { duration } => duration,
-                    };
+                    let max_duration = debuff.data.duration;
                     let current_duration = debuff.dur;
                     let duration_percentage = current_duration.map_or(1000.0, |cur| {
                         max_duration
@@ -355,7 +344,7 @@ impl<'a> Widget for BuffsBar<'a> {
                 .set(state.ids.align, ui);
 
             // Buffs and Debuffs
-            let buff_count = buffs.active_buffs.len().min(11);
+            let buff_count = buffs.kinds.len().min(11);
             // Limit displayed buffs
             let buff_count = buff_count.min(20);
 
@@ -378,14 +367,10 @@ impl<'a> Widget for BuffsBar<'a> {
                 .copied()
                 .zip(state.ids.buff_timers.iter().copied())
                 .zip(state.ids.buff_txts.iter().copied())
-                .zip(buffs.active_buffs.iter().map(get_buff_info))
+                .zip(buffs.iter_active().map(get_buff_info))
                 .enumerate()
                 .for_each(|(i, (((id, timer_id), txt_id), buff))| {
-                    let max_duration = match buff.kind {
-                        BuffKind::Bleeding { duration, .. } => duration,
-                        BuffKind::Regeneration { duration, .. } => duration,
-                        BuffKind::Cursed { duration } => duration,
-                    };
+                    let max_duration = buff.data.duration;
                     let current_duration = buff.dur;
                     // Percentage to determine which frame of the timer overlay is displayed
                     let duration_percentage = current_duration.map_or(1000.0, |cur| {

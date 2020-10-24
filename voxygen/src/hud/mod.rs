@@ -275,6 +275,7 @@ widget_ids! {
 #[derive(Clone, Copy)]
 pub struct BuffInfo {
     kind: comp::BuffKind,
+    data: comp::BuffData,
     is_buff: bool,
     dur: Option<Duration>,
 }
@@ -2729,10 +2730,8 @@ pub fn get_quality_col<I: ItemDesc>(item: &I) -> Color {
 fn get_buff_info(buff: &comp::Buff) -> BuffInfo {
     BuffInfo {
         kind: buff.kind,
-        is_buff: buff
-            .cat_ids
-            .iter()
-            .any(|cat| *cat == comp::BuffCategoryId::Buff),
+        data: buff.data,
+        is_buff: buff.kind.is_buff(),
         dur: buff.time,
     }
 }

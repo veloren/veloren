@@ -32,7 +32,9 @@ pub use body::{
     biped_large, bird_medium, bird_small, dragon, fish_medium, fish_small, golem, humanoid, object,
     quadruped_low, quadruped_medium, quadruped_small, theropod, AllBodies, Body, BodyData,
 };
-pub use buff::{Buff, BuffCategoryId, BuffChange, BuffEffect, BuffKind, BuffSource, Buffs};
+pub use buff::{
+    Buff, BuffCategory, BuffChange, BuffData, BuffEffect, BuffId, BuffKind, BuffSource, Buffs,
+};
 pub use character_state::{Attacking, CharacterState, StateUpdate};
 pub use chat::{
     ChatMode, ChatMsg, ChatType, Faction, SpeechBubble, SpeechBubbleType, UnresolvedChatMsg,

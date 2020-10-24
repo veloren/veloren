@@ -2,37 +2,46 @@ use crate::sync::Uid;
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
-use std::time::Duration;
+use std::{collections::HashMap, time::Duration};
 
 /// De/buff Kind.
 /// This is used to determine what effects a buff will have, as well as
 /// determine the strength and duration of the buff effects using the internal
 /// values
-#[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
 pub enum BuffKind {
     /// Restores health/time for some period
-    Regeneration {
-        strength: f32,
-        duration: Option<Duration>,
-    },
+    Regeneration,
     /// Lowers health over time for some duration
-    Bleeding {
-        strength: f32,
-        duration: Option<Duration>,
-    },
+    Bleeding,
     /// Prefixes an entity's name with "Cursed"
     /// Currently placeholder buff to show other stuff is possible
-    Cursed { duration: Option<Duration> },
+    Cursed,
+}
+
+impl BuffKind {
+    // Checks if buff is buff or debuff
+    pub fn is_buff(self) -> bool {
+        match self {
+            BuffKind::Regeneration { .. } => true,
+            BuffKind::Bleeding { .. } => false,
+            BuffKind::Cursed { .. } => false,
+        }
+    }
+}
+
+// Struct used to store data relevant to a buff
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub struct BuffData {
+    pub strength: f32,
+    pub duration: Option<Duration>,
 }
 
 /// De/buff category ID.
 /// Similar to `BuffKind`, but to mark a category (for more generic usage, like
 /// positive/negative buffs).
 #[derive(Clone, Copy, Eq, PartialEq, Debug, Serialize, Deserialize)]
-pub enum BuffCategoryId {
-    // Buff and debuff get added in builder function based off of the buff kind
-    Debuff,
-    Buff,
+pub enum BuffCategory {
     Natural,
     Physical,
     Magical,
@@ -62,7 +71,8 @@ pub enum BuffEffect {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Buff {
     pub kind: BuffKind,
-    pub cat_ids: Vec<BuffCategoryId>,
+    pub data: BuffData,
+    pub cat_ids: Vec<BuffCategory>,
     pub time: Option<Duration>,
     pub effects: Vec<BuffEffect>,
     pub source: BuffSource,
@@ -70,25 +80,66 @@ pub struct Buff {
 
 /// Information about whether buff addition or removal was requested.
 /// This to implement "on_add" and "on_remove" hooks for constant buffs.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug)]
 pub enum BuffChange {
     /// Adds this buff.
     Add(Buff),
     /// Removes all buffs with this ID.
     RemoveByKind(BuffKind),
     /// Removes all buffs with this ID, but not debuffs.
-    RemoveFromClient(BuffKind),
+    RemoveFromController(BuffKind),
     /// Removes buffs of these indices (first vec is for active buffs, second is
     /// for inactive buffs), should only be called when buffs expire
-    RemoveExpiredByIndex(Vec<usize>, Vec<usize>),
+    RemoveById(Vec<BuffId>),
     /// Removes buffs of these categories (first vec is of categories of which
     /// all are required, second vec is of categories of which at least one is
     /// required, third vec is of categories that will not be removed)  
     RemoveByCategory {
-        required: Vec<BuffCategoryId>,
-        optional: Vec<BuffCategoryId>,
-        blacklisted: Vec<BuffCategoryId>,
+        all_required: Vec<BuffCategory>,
+        any_required: Vec<BuffCategory>,
+        none_required: Vec<BuffCategory>,
     },
+}
+
+impl Buff {
+    /// Builder function for buffs
+    pub fn new(
+        kind: BuffKind,
+        data: BuffData,
+        cat_ids: Vec<BuffCategory>,
+        source: BuffSource,
+    ) -> Self {
+        let (effects, time) = match kind {
+            BuffKind::Bleeding => (
+                vec![BuffEffect::HealthChangeOverTime {
+                    rate: -data.strength,
+                    accumulated: 0.0,
+                }],
+                data.duration,
+            ),
+            BuffKind::Regeneration => (
+                vec![BuffEffect::HealthChangeOverTime {
+                    rate: data.strength,
+                    accumulated: 0.0,
+                }],
+                data.duration,
+            ),
+            BuffKind::Cursed => (
+                vec![BuffEffect::NameChange {
+                    prefix: String::from("Cursed "),
+                }],
+                data.duration,
+            ),
+        };
+        Buff {
+            kind,
+            data,
+            cat_ids,
+            time,
+            effects,
+            source,
+        }
+    }
 }
 
 /// Source of the de/buff
@@ -121,64 +172,83 @@ pub enum BuffSource {
 /// would be probably an undesired effect).
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct Buffs {
-    /// Active de/buffs.
-    pub active_buffs: Vec<Buff>,
-    /// Inactive de/buffs (used so that only 1 buff of a particular type is
-    /// active at any time)
-    pub inactive_buffs: Vec<Buff>,
+    id_counter: u64,
+    pub kinds: HashMap<BuffKind, Vec<BuffId>>,
+    pub buffs: HashMap<BuffId, Buff>,
 }
 
-impl Buff {
-    /// Builder function for buffs
-    pub fn new(kind: BuffKind, cat_ids: Vec<BuffCategoryId>, source: BuffSource) -> Self {
-        let mut cat_ids = cat_ids;
-        let (effects, time) = match kind {
-            BuffKind::Bleeding { strength, duration } => {
-                cat_ids.push(BuffCategoryId::Debuff);
-                (
-                    vec![BuffEffect::HealthChangeOverTime {
-                        rate: -strength,
-                        accumulated: 0.0,
-                    }],
-                    duration,
-                )
-            },
-            BuffKind::Regeneration { strength, duration } => {
-                cat_ids.push(BuffCategoryId::Buff);
-                (
-                    vec![BuffEffect::HealthChangeOverTime {
-                        rate: strength,
-                        accumulated: 0.0,
-                    }],
-                    duration,
-                )
-            },
-            BuffKind::Cursed { duration } => {
-                cat_ids.push(BuffCategoryId::Debuff);
-                (
-                    vec![BuffEffect::NameChange {
-                        prefix: String::from("Cursed "),
-                    }],
-                    duration,
-                )
-            },
-        };
-        assert_eq!(
-            cat_ids
-                .iter()
-                .any(|cat| *cat == BuffCategoryId::Buff || *cat == BuffCategoryId::Debuff),
-            true,
-            "Buff must have either buff or debuff category."
-        );
-        Buff {
-            kind,
-            cat_ids,
-            time,
-            effects,
-            source,
+impl Buffs {
+    fn sort_kind(&mut self, kind: BuffKind) {
+        if let Some(buff_order) = self.kinds.get_mut(&kind) {
+            if buff_order.len() == 0 {
+                self.kinds.remove(&kind);
+            } else {
+                let buffs = &self.buffs;
+                buff_order.sort_by(|a, b| {
+                    buffs[&b]
+                        .data
+                        .strength
+                        .partial_cmp(&buffs[&a].data.strength)
+                        .unwrap()
+                });
+            }
         }
     }
+
+    pub fn remove_kind(&mut self, kind: BuffKind) {
+        if let Some(buff_ids) = self.kinds.get_mut(&kind) {
+            for id in buff_ids {
+                self.buffs.remove(id);
+            }
+            self.kinds.remove(&kind);
+        }
+        self.sort_kind(kind);
+    }
+
+    pub fn force_insert(&mut self, id: BuffId, buff: Buff) -> BuffId {
+        let kind = buff.kind;
+        self.kinds.entry(kind).or_default().push(id);
+        self.buffs.insert(id, buff);
+        self.sort_kind(kind);
+        id
+    }
+
+    pub fn insert(&mut self, buff: Buff) -> BuffId {
+        self.id_counter += 1;
+        self.force_insert(self.id_counter, buff)
+    }
+
+    // Iterate through buffs of a given kind in effect order (most powerful first)
+    pub fn iter_kind(&self, kind: BuffKind) -> impl Iterator<Item = (BuffId, &Buff)> + '_ {
+        self.kinds
+            .get(&kind)
+            .map(|ids| ids.iter())
+            .unwrap_or((&[]).iter())
+            .map(move |id| (*id, &self.buffs[id]))
+    }
+
+    // Iterates through all active buffs (the most powerful buff of each kind)
+    pub fn iter_active(&self) -> impl Iterator<Item = &Buff> + '_ {
+        self.kinds
+            .values()
+            .map(move |ids| self.buffs.get(&ids[0]))
+            .filter(|buff| buff.is_some())
+            .map(|buff| buff.unwrap())
+    }
+
+    // Gets most powerful buff of a given kind
+    // pub fn get_active_kind(&self, kind: BuffKind) -> Buff
+
+    pub fn remove(&mut self, buff_id: BuffId) {
+        let kind = self.buffs.remove(&buff_id).unwrap().kind;
+        self.kinds
+            .get_mut(&kind)
+            .map(|ids| ids.retain(|id| *id != buff_id));
+        self.sort_kind(kind);
+    }
 }
+
+pub type BuffId = u64;
 
 impl Component for Buffs {
     type Storage = FlaggedStorage<Self, IdvStorage<Self>>;

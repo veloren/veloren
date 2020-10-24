@@ -74,6 +74,7 @@ treeculler = "0.1.0"
 uvth = "3.1.1"
 # vec_map = { version = "0.8.2" }
 const-tweaker = {version = "0.3.1", optional = true}
+inline_tweak = "1.0.2"
 itertools = "0.9.0"
 
 # Logging

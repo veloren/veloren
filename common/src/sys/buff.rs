@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        BuffCategoryId, BuffChange, BuffEffect, BuffSource, Buffs, HealthChange, HealthSource,
-        Stats,
+        BuffCategory, BuffChange, BuffEffect, BuffId, BuffSource, Buffs, HealthChange,
+        HealthSource, Stats,
     },
     event::{EventBus, ServerEvent},
     state::DeltaTime,
@@ -25,108 +25,84 @@ impl<'a> System<'a> for Sys {
         let mut server_emitter = server_bus.emitter();
         // Set to false to avoid spamming server
         buffs.set_event_emission(false);
-        for (buff_comp, uid) in (&mut buffs, &uids).join() {
-            let (mut active_buff_indices_for_removal, mut inactive_buff_indices_for_removal) =
-                (Vec::<usize>::new(), Vec::<usize>::new());
-            for (i, active_buff) in buff_comp.active_buffs.iter_mut().enumerate() {
+        for (buff_comp, uid, stat) in (&mut buffs, &uids, &stats).join() {
+            let mut expired_buffs = Vec::<BuffId>::new();
+            for (id, buff) in buff_comp.buffs.iter_mut() {
                 // Tick the buff and subtract delta from it
-                if let Some(remaining_time) = &mut active_buff.time {
-                    let new_duration = remaining_time.checked_sub(Duration::from_secs_f32(dt.0));
-                    if new_duration.is_some() {
+                if let Some(remaining_time) = &mut buff.time {
+                    if let Some(new_duration) =
+                        remaining_time.checked_sub(Duration::from_secs_f32(dt.0))
+                    {
                         // The buff still continues.
-                        *remaining_time -= Duration::from_secs_f32(dt.0);
+                        *remaining_time = new_duration;
                     } else {
                         // The buff has expired.
                         // Remove it.
-                        active_buff_indices_for_removal.push(i);
-                        active_buff.time = Some(Duration::default());
-                    };
+                        expired_buffs.push(*id);
+                    }
                 }
             }
 
-            for (i, inactive_buff) in buff_comp.inactive_buffs.iter_mut().enumerate() {
-                // Tick the buff and subtract delta from it
-                if let Some(remaining_time) = &mut inactive_buff.time {
-                    let new_duration = remaining_time.checked_sub(Duration::from_secs_f32(dt.0));
-                    if new_duration.is_some() {
-                        // The buff still continues.
-                        *remaining_time -= Duration::from_secs_f32(dt.0);
+            for buff_ids in buff_comp.kinds.values() {
+                if let Some(buff) = buff_comp.buffs.get_mut(&buff_ids[0]) {
+                    // Get buff owner
+                    let buff_owner = if let BuffSource::Character { by: owner } = buff.source {
+                        Some(owner)
                     } else {
-                        // The buff has expired.
-                        // Remove it.
-                        inactive_buff_indices_for_removal.push(i);
-                        inactive_buff.time = Some(Duration::default());
+                        None
                     };
+                    // Now, execute the buff, based on it's delta
+                    for effect in &mut buff.effects {
+                        match effect {
+                            // Only add an effect here if it is continuous or it is not immediate
+                            BuffEffect::HealthChangeOverTime { rate, accumulated } => {
+                                *accumulated += *rate * dt.0;
+                                // Apply damage only once a second (with a minimum of 1 damage), or
+                                // when a buff is removed
+                                if accumulated.abs() > rate.abs().max(10.0)
+                                    || buff.time.map_or(false, |dur| dur == Duration::default())
+                                {
+                                    let cause = if *accumulated > 0.0 {
+                                        HealthSource::Healing { by: buff_owner }
+                                    } else {
+                                        HealthSource::Buff { owner: buff_owner }
+                                    };
+                                    server_emitter.emit(ServerEvent::Damage {
+                                        uid: *uid,
+                                        change: HealthChange {
+                                            amount: *accumulated as i32,
+                                            cause,
+                                        },
+                                    });
+                                    *accumulated = 0.0;
+                                };
+                            },
+                            BuffEffect::NameChange { .. } => {},
+                        };
+                    }
                 }
             }
 
-            if !active_buff_indices_for_removal.is_empty()
-                || !inactive_buff_indices_for_removal.is_empty()
-            {
+            // Remove buffs that expire
+            if !expired_buffs.is_empty() {
                 server_emitter.emit(ServerEvent::Buff {
                     uid: *uid,
-                    buff_change: BuffChange::RemoveExpiredByIndex(
-                        active_buff_indices_for_removal,
-                        inactive_buff_indices_for_removal,
-                    ),
+                    buff_change: BuffChange::RemoveById(expired_buffs),
                 });
             }
-        }
-        // Set back to true after timer decrement
-        buffs.set_event_emission(true);
-        for (uid, stat, mut buffs) in (&uids, &stats, &mut buffs.restrict_mut()).join() {
-            let buff_comp = buffs.get_mut_unchecked();
-            // Tick all de/buffs on a Buffs component.
-            for active_buff in buff_comp.active_buffs.iter_mut() {
-                // Get buff owner
-                let buff_owner = if let BuffSource::Character { by: owner } = active_buff.source {
-                    Some(owner)
-                } else {
-                    None
-                };
-                // Now, execute the buff, based on it's delta
-                for effect in &mut active_buff.effects {
-                    match effect {
-                        // Only add an effect here if it is continuous or it is not immediate
-                        BuffEffect::HealthChangeOverTime { rate, accumulated } => {
-                            *accumulated += *rate * dt.0;
-                            // Apply damage only once a second (with a minimum of 1 damage), or when
-                            // a buff is removed
-                            if accumulated.abs() > rate.abs().max(10.0)
-                                || active_buff
-                                    .time
-                                    .map_or(false, |dur| dur == Duration::default())
-                            {
-                                let cause = if *accumulated > 0.0 {
-                                    HealthSource::Healing { by: buff_owner }
-                                } else {
-                                    HealthSource::Buff { owner: buff_owner }
-                                };
-                                server_emitter.emit(ServerEvent::Damage {
-                                    uid: *uid,
-                                    change: HealthChange {
-                                        amount: *accumulated as i32,
-                                        cause,
-                                    },
-                                });
-                                *accumulated = 0.0;
-                            };
-                        },
-                        BuffEffect::NameChange { .. } => {},
-                    };
-                }
-            }
 
+            // Remove stats that don't persist on death
             if stat.is_dead {
                 server_emitter.emit(ServerEvent::Buff {
                     uid: *uid,
                     buff_change: BuffChange::RemoveByCategory {
-                        required: vec![],
-                        optional: vec![],
-                        blacklisted: vec![BuffCategoryId::PersistOnDeath],
+                        all_required: vec![],
+                        any_required: vec![],
+                        none_required: vec![BuffCategory::PersistOnDeath],
                     },
                 });
             }
         }
+        buffs.set_event_emission(true);
     }
 }

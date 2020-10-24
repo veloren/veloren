@@ -2038,6 +2038,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "inline_tweak"
+version = "1.0.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7033e97b20277cc0d043226d1940fa7719ff08d2305d1fc7421e53066d00eb4b"
+dependencies = [
+ "lazy_static",
+]
+
+[[package]]
 name = "inotify"
 version = "0.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4957,6 +4966,7 @@ dependencies = [
  "guillotiere",
  "hashbrown 0.7.2",
  "image",
+ "inline_tweak",
  "itertools",
  "native-dialog",
  "num 0.2.1",
@@ -4988,6 +4998,7 @@ name = "veloren-voxygen-anim"
 version = "0.7.0"
 dependencies = [
  "find_folder",
+ "inline_tweak",
  "lazy_static",
  "libloading 0.6.3",
  "notify",

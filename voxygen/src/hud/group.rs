@@ -444,7 +444,7 @@ impl<'a> Widget for Group<'a> {
                     }
                     if let Some(buffs) = buffs {
                         // Limit displayed buffs to 11
-                        let buff_count = buffs.active_buffs.len().min(11);
+                        let buff_count = buffs.kinds.len().min(11);
                         total_buff_count += buff_count;
                         let gen = &mut ui.widget_id_generator();
                         if state.ids.buffs.len() < total_buff_count {
@@ -464,13 +464,9 @@ impl<'a> Widget for Group<'a> {
                             .copied()
                             .zip(state.ids.buff_timers.iter().copied())
                             .skip(total_buff_count - buff_count)
-                            .zip(buffs.active_buffs.iter().map(get_buff_info))
+                            .zip(buffs.iter_active().map(get_buff_info))
                             .for_each(|((id, timer_id), buff)| {
-                                let max_duration = match buff.kind {
-                                    BuffKind::Bleeding { duration, .. } => duration,
-                                    BuffKind::Regeneration { duration, .. } => duration,
-                                    BuffKind::Cursed { duration } => duration,
-                                };
+                                let max_duration = buff.data.duration;
                                 let pulsating_col = Color::Rgba(1.0, 1.0, 1.0, buff_ani);
                                 let norm_col = Color::Rgba(1.0, 1.0, 1.0, 1.0);
                                 let current_duration = buff.dur;
