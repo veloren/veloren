@@ -53,63 +53,68 @@ impl CharacterBehavior for Data {
         handle_jump(data, &mut update);
 
         match self.stage_section {
+            // Delay before leaping into the air
             StageSection::Buildup => {
+                // Wait for `buildup_duration` to expire
                 if self.timer < self.static_data.buildup_duration {
-                    // Buildup
                     update.character = CharacterState::LeapMelee(Data {
-                        static_data: self.static_data,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
                 } else {
-                    // Transitions to leap portion of state
+                    // Transitions to leap portion of state after buildup delay
                     update.character = CharacterState::LeapMelee(Data {
-                        static_data: self.static_data,
                         timer: Duration::default(),
                         stage_section: StageSection::Movement,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
                 }
             },
             StageSection::Movement => {
-                // Jumping
-                update.vel.0 = Vec3::new(
-                    data.inputs.look_dir.x,
-                    data.inputs.look_dir.y,
-                    self.static_data.vertical_leap_strength,
-                ) * 2.0
-                    * (1.0
-                        - self.timer.as_secs_f32()
-                            / self.static_data.movement_duration.as_secs_f32())
-                    + (update.vel.0 * Vec3::new(2.0, 2.0, 0.0)
-                        + 0.25 * data.inputs.move_dir.try_normalized().unwrap_or_default())
-                    .try_normalized()
-                    .unwrap_or_default()
-                        * self.static_data.forward_leap_strength
-                        * (1.0 - data.inputs.look_dir.z.abs());
-
                 if self.timer < self.static_data.movement_duration {
-                    // Movement duration
+                    // Apply jumping force while in Movement portion of state
+                    update.vel.0 = Vec3::new(
+                        data.inputs.look_dir.x,
+                        data.inputs.look_dir.y,
+                        self.static_data.vertical_leap_strength,
+                    ) * 2.0
+                        // Multiply decreasing amount linearly over time of
+                        // movement duration
+                        * (1.0
+                            - self.timer.as_secs_f32()
+                                / self.static_data.movement_duration.as_secs_f32())
+                        // Apply inputted movement directions at 0.25 strength
+                        + (update.vel.0 * Vec3::new(2.0, 2.0, 0.0)
+                            + 0.25 * data.inputs.move_dir.try_normalized().unwrap_or_default())
+                        .try_normalized()
+                        .unwrap_or_default()
+                        // Multiply by forward leap strength
+                            * self.static_data.forward_leap_strength
+                        // Control forward movement based on look direction.
+                        // This allows players to stop moving forward when they
+                        // look downward at target
+                            * (1.0 - data.inputs.look_dir.z.abs());
+
+                    // Increment duration
+                    // If we were to set a timeout for state, this would be
+                    // outside if block and have else check for > movement
+                    // duration * some multiplier
                     update.character = CharacterState::LeapMelee(Data {
-                        static_data: self.static_data,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
-                } else {
-                    // Transitions to swing portion of state
+                } else if data.physics.on_ground {
+                    // Transitions to swing portion of state upon hitting ground
                     update.character = CharacterState::LeapMelee(Data {
-                        static_data: self.static_data,
                         timer: Duration::default(),
                         stage_section: StageSection::Swing,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
                 }
             },
@@ -117,38 +122,24 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.swing_duration {
                     // Swings weapons
                     update.character = CharacterState::LeapMelee(Data {
-                        static_data: self.static_data,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
                 } else {
                     // Transitions to recover portion
                     update.character = CharacterState::LeapMelee(Data {
-                        static_data: self.static_data,
                         timer: Duration::default(),
                         stage_section: StageSection::Recover,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
                 }
             },
             StageSection::Recover => {
-                if !data.physics.on_ground {
-                    // Falls
-                    update.character = CharacterState::LeapMelee(Data {
-                        static_data: self.static_data,
-                        timer: self
-                            .timer
-                            .checked_add(Duration::from_secs_f32(data.dt.0))
-                            .unwrap_or_default(),
-                        stage_section: self.stage_section,
-                        exhausted: self.exhausted,
-                    });
-                } else if !self.exhausted {
-                    // Hit attempt
+                if !self.exhausted {
+                    // Hit attempt, when animation plays
                     data.updater.insert(data.entity, Attacking {
                         base_damage: self.static_data.base_damage,
                         base_heal: 0,
@@ -160,24 +151,21 @@ impl CharacterBehavior for Data {
                     });
 
                     update.character = CharacterState::LeapMelee(Data {
-                        static_data: self.static_data,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
                         exhausted: true,
+                        ..*self
                     });
                 } else if self.timer < self.static_data.recover_duration {
-                    // Recovers
+                    // Complete recovery delay before finishing state
                     update.character = CharacterState::LeapMelee(Data {
-                        static_data: self.static_data,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
                 } else {
                     // Done
