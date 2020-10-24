@@ -704,7 +704,6 @@ pub fn handle_buff(server: &mut Server, uid: Uid, buff_change: buff::BuffChange)
     let mut buffs_all = ecs.write_storage::<comp::Buffs>();
     if let Some(entity) = ecs.entity_from_uid(uid.into()) {
         if let Some(buffs) = buffs_all.get_mut(entity) {
-            let mut stats = ecs.write_storage::<comp::Stats>();
             use buff::BuffChange;
             match buff_change {
                 BuffChange::Add(new_buff) => {
@@ -760,39 +759,6 @@ pub fn handle_buff(server: &mut Server, uid: Uid, buff_change: buff::BuffChange)
                     }
                 },
             }
-        }
-    }
-}
-
-fn add_buff_effects(buff: buff::Buff, mut stats: Option<&mut Stats>) {
-    for effect in &buff.effects {
-        use buff::BuffEffect;
-        match effect {
-            // Only add an effect here if it is immediate and is not continuous
-            BuffEffect::NameChange { prefix } => {
-                if let Some(ref mut stats) = stats {
-                    let mut pref = String::from(prefix);
-                    pref.push_str(&stats.name);
-                    stats.name = pref;
-                }
-            },
-            BuffEffect::HealthChangeOverTime { .. } => {},
-        }
-    }
-}
-
-fn remove_buff_effects(buff: buff::Buff, mut stats: Option<&mut Stats>) {
-    for effect in &buff.effects {
-        #[allow(clippy::single_match)] // Remove clippy when there are more buff effects here
-        match effect {
-            // Only remove an effect here if its effect was not continuously
-            // applied
-            buff::BuffEffect::NameChange { prefix } => {
-                if let Some(ref mut stats) = stats {
-                    stats.name = stats.name.replacen(prefix, "", 1);
-                }
-            },
-            _ => {},
         }
     }
 }

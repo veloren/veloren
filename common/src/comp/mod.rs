@@ -34,6 +34,7 @@ pub use body::{
 };
 pub use buff::{
     Buff, BuffCategory, BuffChange, BuffData, BuffEffect, BuffId, BuffKind, BuffSource, Buffs,
+    ModifierKind,
 };
 pub use character_state::{Attacking, CharacterState, StateUpdate};
 pub use chat::{

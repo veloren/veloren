@@ -49,13 +49,19 @@ pub enum BuffCategory {
     PersistOnDeath,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum ModifierKind {
+    Additive,
+    Multiplicative,
+}
+
 /// Data indicating and configuring behaviour of a de/buff.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum BuffEffect {
     /// Periodically damages or heals entity
     HealthChangeOverTime { rate: f32, accumulated: f32 },
-    /// Changes name on_add/on_remove
-    NameChange { prefix: String },
+    /// Changes maximum health by a certain amount
+    MaxHealthModifier { value: f32, kind: ModifierKind },
 }
 
 /// Actual de/buff.
@@ -125,8 +131,9 @@ impl Buff {
                 data.duration,
             ),
             BuffKind::Cursed => (
-                vec![BuffEffect::NameChange {
-                    prefix: String::from("Cursed "),
+                vec![BuffEffect::MaxHealthModifier {
+                    value: -100.,
+                    kind: ModifierKind::Additive,
                 }],
                 data.duration,
             ),
