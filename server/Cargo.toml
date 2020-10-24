@@ -25,7 +25,7 @@ futures-timer = "2.0"
 futures-channel = "0.3"
 itertools = "0.9"
 lazy_static = "1.4.0"
-scan_fmt = "0.2.4"
+scan_fmt = { git = "https://github.com/Imberflur/scan_fmt" }
 ron = { version = "0.6", default-features = false }
 serde = { version = "1.0.110", features = ["derive"] }
 serde_json = "1.0.50"
