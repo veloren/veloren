@@ -123,15 +123,13 @@ vec3 get_cloud_color(vec3 surf_color, const vec3 dir, vec3 origin, const float t
         get_moon_color() * get_moon_brightness() * moon_scatter;
 
     float cdist = max_dist;
-    vec3 last_sample = cloud_at(origin + dir * cdist, cdist);
-    while (cdist > 10) {
-        float ndist = step_to_dist(trunc(dist_to_step(cdist - 10)));
-        vec3 next_sample = cloud_at(origin + dir * ndist * splay, ndist);
+    while (cdist > 1) {
+        float ndist = step_to_dist(trunc(dist_to_step(cdist - 0.25)));
+        vec3 sample = cloud_at(origin + dir * ndist * splay, ndist);
 
-        vec3 sample_avg = last_sample;//(last_sample + next_sample) / 2.0;
-        vec2 density_integrals = sample_avg.yz * (cdist - ndist);
+        vec2 density_integrals = sample.yz * (cdist - ndist);
 
-        float sun_access = sample_avg.x;
+        float sun_access = sample.x;
         float scatter_factor = 1.0 - 1.0 / (1.0 + density_integrals.x);
 
         surf_color =
@@ -145,7 +143,6 @@ vec3 get_cloud_color(vec3 surf_color, const vec3 dir, vec3 origin, const float t
             sky_color * sun_access * scatter_factor;
 
         cdist = ndist;
-        last_sample = next_sample;
     }
 
     return surf_color;
