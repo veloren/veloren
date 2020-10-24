@@ -74,22 +74,23 @@ impl Animation for ShootAnimation {
                     * Quaternion::rotation_z(s_a.stc.5 + exp * 1.5);
             },
             Some(ToolKind::Bow(_)) => {
-                next.hand_l.position =
-                    Vec3::new(1.0 - exp * 2.0, -4.0 - exp * 4.0, -1.0 + exp * 6.0);
-                next.hand_l.orientation = Quaternion::rotation_x(1.20)
-                    * Quaternion::rotation_y(-0.6 + exp * 0.8)
-                    * Quaternion::rotation_z(-0.3 + exp * 0.9);
-                next.hand_r.position = Vec3::new(4.9, 3.0, -4.0);
-                next.hand_r.orientation = Quaternion::rotation_x(1.20)
-                    * Quaternion::rotation_y(-0.6)
-                    * Quaternion::rotation_z(-0.3);
-                next.main.position = Vec3::new(3.0, 2.0, -13.0);
-                next.main.orientation = Quaternion::rotation_x(-0.3)
-                    * Quaternion::rotation_y(0.3)
-                    * Quaternion::rotation_z(-0.6);
+                next.hand_l.position = Vec3::new(
+                    s_a.bhl.0 - exp * 2.0,
+                    s_a.bhl.1 - exp * 4.0,
+                    s_a.bhl.2 + exp * 6.0,
+                );
+                next.hand_l.orientation = Quaternion::rotation_x(s_a.bhl.3)
+                    * Quaternion::rotation_y(s_a.bhl.4 + exp * 0.8)
+                    * Quaternion::rotation_z(s_a.bhl.5 + exp * 0.9);
+                next.hand_r.position = Vec3::new(s_a.bhr.0, s_a.bhr.1, s_a.bhr.2);
+                next.hand_r.orientation = Quaternion::rotation_x(s_a.bhl.3)
+                    * Quaternion::rotation_y(s_a.bhr.4)
+                    * Quaternion::rotation_z(s_a.bhr.5);
+                next.main.position = Vec3::new(0.0, 0.0, 0.0);
+                next.main.orientation = Quaternion::rotation_x(0.0);
 
-                next.control.position = Vec3::new(-9.0, 6.0, 8.0);
-                next.control.orientation = Quaternion::rotation_x(exp * 0.4);
+                next.control.position = Vec3::new(s_a.bc.0, s_a.bc.1, 4.0 + s_a.bc.2);
+                next.control.orientation = Quaternion::rotation_x(s_a.bc.3 + exp * 0.4);
             },
             _ => {},
         }
@@ -128,8 +129,6 @@ impl Animation for ShootAnimation {
 
         next.lantern.orientation =
             Quaternion::rotation_x(exp * -0.7 + 0.4) * Quaternion::rotation_y(exp * 0.4);
-
-        next.hold.scale = Vec3::one() * 0.0;
 
         next.second.scale = match (
             active_tool_kind.map(|tk| tk.hands()),

@@ -58,7 +58,6 @@ impl Animation for SwimWieldAnimation {
 
         let slowalt = (anim_time as f32 * 6.0 + PI).cos();
         let u_slow = (anim_time as f32 * 1.0 + PI).sin();
-        let slow = (anim_time as f32 * 3.0 + PI).sin();
         let foothoril = (anim_time as f32 * 6.0 * lab as f32 + PI * 1.45).sin();
         let foothorir = (anim_time as f32 * 6.0 * lab as f32 + PI * (0.45)).sin();
         let u_slowalt = (anim_time as f32 * 3.0 + PI).cos();
@@ -330,31 +329,6 @@ impl Animation for SwimWieldAnimation {
                 next.control.position = Vec3::new(0.0, 6.0, 6.0);
                 next.control.orientation =
                     Quaternion::rotation_x(u_slow * 0.2) * Quaternion::rotation_z(u_slowalt * 0.1);
-            },
-            Some(ToolKind::Farming(_)) => {
-                if velocity < 0.5 {
-                    next.head.orientation = Quaternion::rotation_z(head_look.x)
-                        * Quaternion::rotation_x(-0.2 + head_look.y.abs());
-                    next.head.scale = Vec3::one() * s_a.head_scale;
-                }
-                next.hand_l.position = Vec3::new(9.0, 1.0, 1.0);
-                next.hand_l.orientation =
-                    Quaternion::rotation_x(1.57) * Quaternion::rotation_y(0.0);
-                next.hand_l.scale = Vec3::one() * 1.04;
-                next.hand_r.position = Vec3::new(9.0, 1.0, 11.0);
-                next.hand_r.orientation = Quaternion::rotation_x(1.57)
-                    * Quaternion::rotation_y(0.0)
-                    * Quaternion::rotation_z(0.0);
-                next.hand_r.scale = Vec3::one() * 1.04;
-                next.main.position = Vec3::new(7.5, 7.5, 13.2);
-                next.main.orientation = Quaternion::rotation_x(0.0)
-                    * Quaternion::rotation_y(3.14)
-                    * Quaternion::rotation_z(0.0);
-
-                next.control.position = Vec3::new(-11.0 + slow * 2.0, 1.8, 4.0);
-                next.control.orientation = Quaternion::rotation_x(u_slow * 0.1)
-                    * Quaternion::rotation_y(0.6 + u_slow * 0.1)
-                    * Quaternion::rotation_z(u_slowalt * 0.1);
             },
             _ => {},
         }
