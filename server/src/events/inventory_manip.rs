@@ -68,13 +68,11 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
 
                 // Grab the stats from the player and check if the player is dead.
                 let stats = state.ecs().read_storage::<comp::Stats>();
-                if let Some(entity_stats) = stats.get(entity){
+                if let Some(entity_stats) = stats.get(entity) {
                     if entity_stats.is_dead {
                         debug!("Failed to pick up item as the player is dead");
                         return; // If dead, don't continue
                     }
-                }else{
-                    debug!("Entity stats component wasn't found")
                 }
 
                 // Attempt to add the item to the player's inventory
