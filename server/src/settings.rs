@@ -72,13 +72,15 @@ impl Settings {
             match ron::de::from_reader(file) {
                 Ok(x) => x,
                 Err(e) => {
+                    let default_settings = Self::default();
+                    let template_path = path.with_extension("template.ron");
                     warn!(
                         ?e,
                         "Failed to parse setting file! Falling back to default settings and \
-                         creating a template file for you to migrate your current settings file"
+                         creating a template file for you to migrate your current settings file: \
+                         {}",
+                        template_path.display()
                     );
-                    let default_settings = Self::default();
-                    let template_path = path.with_extension("template.ron");
                     if let Err(e) = default_settings.save_to_file(&template_path) {
                         error!(?e, "Failed to create template settings file")
                     }
