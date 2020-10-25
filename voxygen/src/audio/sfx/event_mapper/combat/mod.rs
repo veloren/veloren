@@ -2,7 +2,7 @@
 /// emits sfx related to weapons and attacks/abilities
 use crate::{
     audio::sfx::{SfxEvent, SfxEventItem, SfxTriggerItem, SfxTriggers, SFX_DIST_LIMIT_SQR},
-    scene::Camera,
+    scene::{Camera, Terrain},
 };
 
 use super::EventMapper;
@@ -11,6 +11,7 @@ use common::{
     comp::{item::ItemKind, CharacterAbilityType, CharacterState, Loadout, Pos},
     event::EventBus,
     state::State,
+    terrain::TerrainChunk,
 };
 use hashbrown::HashMap;
 use specs::{Entity as EcsEntity, Join, WorldExt};
@@ -44,6 +45,7 @@ impl EventMapper for CombatEventMapper {
         player_entity: specs::Entity,
         camera: &Camera,
         triggers: &SfxTriggers,
+        terrain: &Terrain<TerrainChunk>,
     ) {
         let ecs = state.ecs();
 

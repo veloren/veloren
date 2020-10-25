@@ -996,6 +996,7 @@ impl Scene {
             scene_data.state,
             scene_data.player_entity,
             &self.camera,
+            &self.terrain,
         );
         self.music_mgr.maintain(audio, scene_data.state, client);
         self.ambient_mgr.maintain(audio, scene_data.state, client);

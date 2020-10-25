@@ -4,10 +4,10 @@ use super::EventMapper;
 
 use crate::{
     audio::sfx::{SfxEvent, SfxEventItem, SfxTriggers},
-    scene::Camera,
+    scene::{Camera, Terrain},
 };
 
-use common::{comp::Stats, event::EventBus, state::State};
+use common::{comp::Stats, event::EventBus, state::State, terrain::TerrainChunk};
 use specs::WorldExt;
 
 #[derive(Clone, PartialEq)]
@@ -32,6 +32,7 @@ impl EventMapper for ProgressionEventMapper {
         player_entity: specs::Entity,
         _camera: &Camera,
         triggers: &SfxTriggers,
+        terrain: &Terrain<TerrainChunk>,
     ) {
         let ecs = state.ecs();
 

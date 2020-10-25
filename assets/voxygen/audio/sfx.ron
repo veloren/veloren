@@ -65,12 +65,12 @@
             ],
             threshold: 0.5,
         ),
-        Glide: (
-            files: [
-                // Event Missing or not implemented?
-            ],
-            threshold: 0.5,
-        ),
+        //Glide: ( 
+        //    files: [
+        //        // Event Missing or not implemented?
+        //    ],
+        //    threshold: 0.5,
+        //),
         GliderClose: (
             files: [
                 "voxygen.audio.sfx.glider_close",

@@ -4,12 +4,13 @@
 use super::EventMapper;
 use crate::{
     audio::sfx::{SfxEvent, SfxEventItem, SfxTriggerItem, SfxTriggers, SFX_DIST_LIMIT_SQR},
-    scene::Camera,
+    scene::{Camera, Terrain},
 };
 use common::{
     comp::{Body, CharacterState, PhysicsState, Pos, Vel},
     event::EventBus,
     state::State,
+    terrain::TerrainChunk,
 };
 use hashbrown::HashMap;
 use specs::{Entity as EcsEntity, Join, WorldExt};
@@ -44,6 +45,7 @@ impl EventMapper for MovementEventMapper {
         player_entity: specs::Entity,
         camera: &Camera,
         triggers: &SfxTriggers,
+        terrain: &Terrain<TerrainChunk>,
     ) {
         let ecs = state.ecs();
 
