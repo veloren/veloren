@@ -123,7 +123,14 @@ impl CharacterBehavior for Data {
                     });
                 } else if self.timer < self.static_data.swing_duration {
                     if !self.static_data.is_helicopter {
-                        forward_move(data, &mut update, 0.1, self.static_data.forward_speed);
+                        handle_forced_movement(
+                            data,
+                            &mut update,
+                            ForcedMovement::Forward {
+                                strength: self.static_data.forward_speed,
+                            },
+                            0.1,
+                        );
                         handle_orientation(data, &mut update, 1.0);
                     }
 

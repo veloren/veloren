@@ -337,7 +337,7 @@ impl Tool {
                     buildup_duration: Duration::from_millis(200),
                     shoot_duration: Duration::from_millis(200),
                     recover_duration: Duration::from_millis(800),
-                    leap: Some(10.0),
+                    leap: Some(5.0),
                     projectile: Projectile {
                         hit_solid: vec![projectile::Effect::Stick],
                         hit_entity: vec![
