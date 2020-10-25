@@ -25,7 +25,6 @@ impl Animation for StandAnimation {
         let mut next = (*skeleton).clone();
 
         let slow = (anim_time as f32 * 1.0).sin();
-        let breathe = ((anim_time as f32 * 0.5).sin()).abs();
         let impact = (avg_vel.z).max(-15.0);
         let head_look = Vec2::new(
             ((global_time + anim_time) as f32 / 12.0)
@@ -39,17 +38,18 @@ impl Animation for StandAnimation {
                 .sin()
                 * 0.15,
         );
-        next.head.scale = Vec3::one() * s_a.head_scale + breathe * -0.05;
-        next.chest.scale = Vec3::one() * 1.01 + breathe * 0.03;
+        next.head.scale = Vec3::one() * s_a.head_scale;
+        next.chest.scale = Vec3::one() * 1.01;
         next.hand_l.scale = Vec3::one() * 1.04;
         next.hand_r.scale = Vec3::one() * 1.04;
         next.back.scale = Vec3::one() * 1.02;
-        next.belt.scale = Vec3::one() + breathe * -0.03;
         next.hold.scale = Vec3::one() * 0.0;
         next.lantern.scale = Vec3::one() * 0.65;
         next.torso.scale = Vec3::one() / 11.0 * s_a.scaler;
+        next.shoulder_l.scale = Vec3::one() * 1.1;
+        next.shoulder_r.scale = Vec3::one() * 1.1;
 
-        next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1 + slow * 0.3 + breathe * -0.05);
+        next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1 + slow * 0.3);
         next.head.orientation = Quaternion::rotation_z(head_look.x)
             * Quaternion::rotation_x(impact * -0.02 + head_look.y.abs());
 
@@ -66,7 +66,6 @@ impl Animation for StandAnimation {
         next.shorts.position = Vec3::new(0.0, s_a.shorts.0 + impact * -0.2, s_a.shorts.1);
         next.shorts.orientation =
             Quaternion::rotation_z(head_look.x * -0.2) * Quaternion::rotation_x(impact * -0.04);
-        next.shorts.scale = Vec3::one() + breathe * -0.03;
 
         next.hand_l.position = Vec3::new(
             -s_a.hand.0,
@@ -90,10 +89,8 @@ impl Animation for StandAnimation {
         next.foot_r.orientation = Quaternion::rotation_x(impact * -0.02);
 
         next.shoulder_l.position = Vec3::new(-s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
-        next.shoulder_l.scale = (Vec3::one() + breathe * -0.05) * 1.15;
 
         next.shoulder_r.position = Vec3::new(s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
-        next.shoulder_r.scale = (Vec3::one() + breathe * -0.05) * 1.15;
 
         next.glider.position = Vec3::new(0.0, 0.0, 10.0);
         next.glider.scale = Vec3::one() * 0.0;

@@ -2,10 +2,7 @@ use super::{
     super::{vek::*, Animation},
     CharacterSkeleton, SkeletonAttr,
 };
-use common::{
-    comp::item::{Hands, ToolKind},
-    states::utils::StageSection,
-};
+use common::{comp::item::ToolKind, states::utils::StageSection};
 pub struct RepeaterAnimation;
 
 impl Animation for RepeaterAnimation {
@@ -25,7 +22,7 @@ impl Animation for RepeaterAnimation {
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, second_tool_kind, _velocity, _global_time, stage_section): Self::Dependency,
+        (active_tool_kind, _second_tool_kind, _velocity, _global_time, stage_section): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -113,14 +110,6 @@ impl Animation for RepeaterAnimation {
                 * Quaternion::rotation_y(-0.6)
                 * Quaternion::rotation_z(-0.3);
         }
-
-        next.second.scale = match (
-            active_tool_kind.map(|tk| tk.hands()),
-            second_tool_kind.map(|tk| tk.hands()),
-        ) {
-            (Some(Hands::OneHand), Some(Hands::OneHand)) => Vec3::one(),
-            (_, _) => Vec3::zero(),
-        };
 
         next
     }

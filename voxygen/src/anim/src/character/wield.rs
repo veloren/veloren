@@ -2,7 +2,7 @@ use super::{
     super::{vek::*, Animation},
     CharacterSkeleton, SkeletonAttr,
 };
-use common::comp::item::{Hands, ToolKind};
+use common::comp::item::ToolKind;
 use std::{f32::consts::PI, ops::Mul};
 
 pub struct WieldAnimation;
@@ -18,7 +18,7 @@ impl Animation for WieldAnimation {
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, second_tool_kind, velocity, global_time): Self::Dependency,
+        (active_tool_kind, _second_tool_kind, velocity, global_time): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -267,14 +267,6 @@ impl Animation for WieldAnimation {
             },
             _ => {},
         }
-
-        next.second.scale = match (
-            active_tool_kind.map(|tk| tk.hands()),
-            second_tool_kind.map(|tk| tk.hands()),
-        ) {
-            (Some(Hands::OneHand), Some(Hands::OneHand)) => Vec3::one(),
-            (_, _) => Vec3::zero(),
-        };
 
         next
     }

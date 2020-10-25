@@ -2,7 +2,7 @@ use super::{
     super::{vek::*, Animation},
     CharacterSkeleton, SkeletonAttr,
 };
-use common::comp::item::{Hands, ToolKind};
+use common::comp::item::ToolKind;
 use std::{f32::consts::PI, ops::Mul};
 
 pub struct GlidingAnimation;
@@ -27,7 +27,7 @@ impl Animation for GlidingAnimation {
 
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, second_tool_kind, velocity, orientation, last_ori, global_time): Self::Dependency,
+        (_active_tool_kind, _second_tool_kind, velocity, orientation, last_ori, global_time): Self::Dependency,
         anim_time: f64,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -117,14 +117,6 @@ impl Animation for GlidingAnimation {
         next.torso.position = Vec3::new(0.0, -4.0, 10.0) / 11.0 * s_a.scaler;
         next.torso.orientation = Quaternion::rotation_x(-0.06 * speed.max(12.0) + slow * 0.04)
             * Quaternion::rotation_y(tilt * tiltcancel * 32.0);
-
-        next.second.scale = match (
-            active_tool_kind.map(|tk| tk.hands()),
-            second_tool_kind.map(|tk| tk.hands()),
-        ) {
-            (Some(Hands::OneHand), Some(Hands::OneHand)) => Vec3::one(),
-            (_, _) => Vec3::zero(),
-        };
 
         next
     }

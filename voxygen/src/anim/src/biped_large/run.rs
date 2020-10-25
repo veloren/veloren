@@ -127,6 +127,12 @@ impl Animation for RunAnimation {
 
         let x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude());
 
+        next.jaw.scale = Vec3::one() * 1.02;
+        next.shoulder_l.scale = Vec3::one() * 1.1;
+        next.shoulder_r.scale = Vec3::one() * 1.1;
+        next.hand_l.scale = Vec3::one() * 1.04;
+        next.hand_r.scale = Vec3::one() * 1.04;
+        next.hold.scale = Vec3::one() * 0.0;
         next.torso.scale = Vec3::one() / 8.0;
 
         if s_a.beast {
@@ -139,7 +145,6 @@ impl Animation for RunAnimation {
 
             next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
             next.jaw.orientation = Quaternion::rotation_x(0.0);
-            next.jaw.scale = Vec3::one() * 1.02;
 
             next.tail.position = Vec3::new(0.0, s_a.tail.0, s_a.tail.1);
             next.tail.orientation =
@@ -183,10 +188,8 @@ impl Animation for RunAnimation {
                     * Quaternion::rotation_y(tilt * 1.5);
 
             next.shoulder_l.position = Vec3::new(-s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
-            next.shoulder_l.scale = Vec3::one() * 1.1;
 
             next.shoulder_r.position = Vec3::new(s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
-            next.shoulder_r.scale = Vec3::one() * 1.1;
 
             next.hand_l.position = Vec3::new(
                 -s_a.hand.0,
@@ -196,7 +199,6 @@ impl Animation for RunAnimation {
             next.hand_l.orientation =
                 Quaternion::rotation_x(amplitude2 * foot1b * 0.9 + canceler * 0.9)
                     * Quaternion::rotation_y(tilt * -1.0);
-            next.hand_l.scale = Vec3::one() * 0.96;
 
             next.hand_r.position = Vec3::new(
                 s_a.hand.0,
@@ -206,7 +208,6 @@ impl Animation for RunAnimation {
             next.hand_r.orientation =
                 Quaternion::rotation_x(amplitude2 * foot2b * 0.9 + canceler * 0.7)
                     * Quaternion::rotation_y(tilt * -1.0);
-            next.hand_r.scale = Vec3::one() * 0.96;
 
             next.leg_control_l.position = Vec3::new(
                 0.0,
@@ -217,7 +218,6 @@ impl Animation for RunAnimation {
                 Quaternion::rotation_x(canceler * -0.4 + amplitude3 * foot3b * 0.4 + 0.5)
                     * Quaternion::rotation_y(tilt * 1.5)
                     * Quaternion::rotation_z(tilt * -1.5);
-            next.leg_control_l.scale = Vec3::one() * 1.02;
 
             next.leg_control_r.position = Vec3::new(
                 0.0,
@@ -228,8 +228,6 @@ impl Animation for RunAnimation {
                 Quaternion::rotation_x(canceler * -0.4 + amplitude3 * foot4b * 0.4 + 0.5)
                     * Quaternion::rotation_y(tilt * 1.5)
                     * Quaternion::rotation_z(tilt * -1.5);
-            next.leg_control_r.scale = Vec3::one() * 1.02;
-
             next.leg_l.position = Vec3::new(-s_a.leg.0, s_a.leg.1, s_a.leg.2);
 
             next.leg_r.position = Vec3::new(s_a.leg.0, s_a.leg.1, s_a.leg.2);
@@ -241,7 +239,6 @@ impl Animation for RunAnimation {
             );
             next.foot_l.orientation = Quaternion::rotation_x(amplitude2 * foot3b * 0.45 + 0.5)
                 * Quaternion::rotation_y(tilt * -1.0);
-            next.foot_l.scale = Vec3::one() * 0.96;
 
             next.foot_r.position = Vec3::new(
                 s_a.foot.0,
@@ -250,7 +247,6 @@ impl Animation for RunAnimation {
             );
             next.foot_r.orientation = Quaternion::rotation_x(amplitude2 * foot4b * 0.45 + 0.5)
                 * Quaternion::rotation_y(tilt * -1.0);
-            next.foot_r.scale = Vec3::one() * 0.96;
 
             next.torso.position = Vec3::new(
                 0.0,
@@ -259,13 +255,10 @@ impl Animation for RunAnimation {
             ) / 8.0;
             next.torso.orientation =
                 Quaternion::rotation_x(x_tilt + amplitude * short * 0.1 + speedavg * -0.045);
-
-            next.hold.scale = Vec3::one() * 0.0;
         } else {
             next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1) * 1.02;
             next.head.orientation =
                 Quaternion::rotation_z(short * -0.18) * Quaternion::rotation_x(-0.05);
-            next.head.scale = Vec3::one() * 1.02;
 
             next.upper_torso.position =
                 Vec3::new(0.0, s_a.upper_torso.0, s_a.upper_torso.1 + shortalt * -1.5);
@@ -277,7 +270,6 @@ impl Animation for RunAnimation {
 
             next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
             next.jaw.orientation = Quaternion::rotation_x(0.0);
-            next.jaw.scale = Vec3::one() * 1.02;
 
             next.tail.position = Vec3::new(0.0, s_a.tail.0, s_a.tail.1);
             next.tail.orientation = Quaternion::rotation_x(shortalt * 0.3);
@@ -286,10 +278,6 @@ impl Animation for RunAnimation {
             next.second.orientation = Quaternion::rotation_x(PI)
                 * Quaternion::rotation_y(0.0)
                 * Quaternion::rotation_z(0.0);
-            next.second.scale = Vec3::one() * 0.0;
-
-            next.control.position = Vec3::new(0.0, 0.0, 0.0);
-            next.control.orientation = Quaternion::rotation_z(0.0);
 
             next.main.position = Vec3::new(-5.0, -7.0, 7.0);
             next.main.orientation = Quaternion::rotation_x(PI)
@@ -321,7 +309,6 @@ impl Animation for RunAnimation {
             );
             next.hand_l.orientation = Quaternion::rotation_x(0.15 + (handhoril * -1.2).max(-0.3))
                 * Quaternion::rotation_y(handhoril * -0.1);
-            next.hand_l.scale = Vec3::one() * 1.04;
 
             next.hand_r.position = Vec3::new(
                 1.0 + s_a.hand.0,
@@ -330,18 +317,15 @@ impl Animation for RunAnimation {
             );
             next.hand_r.orientation = Quaternion::rotation_x(0.15 + (handhorir * -1.2).max(-0.3))
                 * Quaternion::rotation_y(handhorir * 0.1);
-            next.hand_r.scale = Vec3::one() * 1.04;
 
             next.leg_l.position = Vec3::new(-s_a.leg.0, s_a.leg.1, s_a.leg.2) * 0.98;
             next.leg_l.orientation =
                 Quaternion::rotation_z(short * 0.18) * Quaternion::rotation_x(foothoril * 0.3);
-            next.leg_l.scale = Vec3::one() * 0.98;
 
             next.leg_r.position = Vec3::new(s_a.leg.0, s_a.leg.1, s_a.leg.2) * 0.98;
 
             next.leg_r.orientation =
                 Quaternion::rotation_z(short * 0.18) * Quaternion::rotation_x(foothorir * 0.3);
-            next.leg_r.scale = Vec3::one() * 0.98;
 
             next.foot_l.position = Vec3::new(
                 -s_a.foot.0,
@@ -360,9 +344,7 @@ impl Animation for RunAnimation {
                 Quaternion::rotation_x(-0.5 + footrotr * 0.85) * Quaternion::rotation_y(0.0);
 
             next.torso.position = Vec3::new(0.0, 0.0, 0.0) / 8.0;
-            next.torso.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(-0.25);
-
-            next.hold.scale = Vec3::one() * 0.0;
+            next.torso.orientation = Quaternion::rotation_x(-0.25);
         }
         next
     }

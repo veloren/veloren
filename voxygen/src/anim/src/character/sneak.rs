@@ -114,9 +114,6 @@ impl Animation for SneakAnimation {
                 * Quaternion::rotation_y(tilt * 0.5)
                 * Quaternion::rotation_x(0.2);
 
-            next.glider.orientation = Quaternion::rotation_x(0.0);
-            next.glider.position = Vec3::new(0.0, 0.0, 10.0);
-
             next.back.orientation =
                 Quaternion::rotation_x(-0.25 + short * 0.1 + noisea * 0.1 + noiseb * 0.1);
 
@@ -170,9 +167,6 @@ impl Animation for SneakAnimation {
             next.hand_r.position = Vec3::new(-1.0 + s_a.hand.0, s_a.hand.1, s_a.hand.2);
             next.hand_r.orientation = Quaternion::rotation_x(0.4);
 
-            next.glider.orientation = Quaternion::rotation_x(0.35);
-            next.glider.position = Vec3::new(0.0, 0.0, 10.0);
-
             next.shorts.position = Vec3::new(0.0, s_a.shorts.0, s_a.shorts.1);
             next.shorts.orientation = Quaternion::rotation_z(0.6 + head_look.x * -0.2);
 
@@ -180,13 +174,6 @@ impl Animation for SneakAnimation {
             next.foot_l.orientation = Quaternion::rotation_x(-0.5);
 
             next.foot_r.position = Vec3::new(s_a.foot.0, 4.0 + s_a.foot.1, s_a.foot.2);
-
-            next.shoulder_l.scale = (Vec3::one() + breathe * -0.05) * 1.15;
-
-            next.shoulder_r.scale = (Vec3::one() + breathe * -0.05) * 1.15;
-
-            next.main.position = Vec3::new(-7.0, -5.0, 15.0);
-            next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
         }
         next
     }

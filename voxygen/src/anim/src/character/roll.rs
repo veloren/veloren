@@ -2,7 +2,7 @@ use super::{
     super::{vek::*, Animation},
     CharacterSkeleton, SkeletonAttr,
 };
-use common::comp::item::{Hands, ToolKind};
+use common::comp::item::ToolKind;
 
 pub struct RollAnimation;
 
@@ -23,7 +23,7 @@ impl Animation for RollAnimation {
 
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, second_tool_kind, orientation, last_ori, _global_time): Self::Dependency,
+        (_active_tool_kind, _second_tool_kind, orientation, last_ori, _global_time): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -48,7 +48,6 @@ impl Animation for RollAnimation {
 
         next.head.position = Vec3::new(0.0, s_a.head.0 + 3.0, s_a.head.1 - 1.0);
         next.head.orientation = Quaternion::rotation_x(-0.75);
-        next.head.scale = Vec3::one() * s_a.head_scale;
 
         next.chest.position = Vec3::new(0.0, s_a.chest.0, -9.5 + s_a.chest.1);
         next.chest.orientation = Quaternion::rotation_x(-0.2);
@@ -74,21 +73,9 @@ impl Animation for RollAnimation {
         next.foot_r.position = Vec3::new(s_a.foot.0, s_a.foot.1 + 5.5, s_a.foot.2 - 5.0);
         next.foot_r.orientation = Quaternion::rotation_x(0.9);
 
-        next.lantern.orientation = Quaternion::rotation_x(0.1) * Quaternion::rotation_y(0.1);
-        next.lantern.scale = Vec3::one() * 0.65;
-
         next.torso.position = Vec3::new(0.0, 0.0, 8.0) / 11.0 * s_a.scaler;
         next.torso.orientation =
             Quaternion::rotation_x(spin * -10.0) * Quaternion::rotation_z(tilt * -10.0);
-        next.torso.scale = Vec3::one() / 11.0 * s_a.scaler;
-
-        next.second.scale = match (
-            active_tool_kind.map(|tk| tk.hands()),
-            second_tool_kind.map(|tk| tk.hands()),
-        ) {
-            (Some(Hands::OneHand), Some(Hands::OneHand)) => Vec3::one(),
-            (_, _) => Vec3::zero(),
-        };
 
         next
     }

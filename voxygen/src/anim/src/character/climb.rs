@@ -2,7 +2,7 @@ use super::{
     super::{vek::*, Animation},
     CharacterSkeleton, SkeletonAttr,
 };
-use common::comp::item::{Hands, ToolKind};
+use common::comp::item::ToolKind;
 use std::{f32::consts::PI, ops::Mul};
 
 pub struct ClimbAnimation;
@@ -23,7 +23,7 @@ impl Animation for ClimbAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_climb")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, second_tool_kind, velocity, _orientation, global_time): Self::Dependency,
+        (_active_tool_kind, _second_tool_kind, velocity, _orientation, global_time): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -164,18 +164,7 @@ impl Animation for ClimbAnimation {
             next.foot_r.orientation =
                 Quaternion::rotation_x(0.2 + smooth * 0.15 * (1.0 - stagnant));
 
-            next.glider.position = Vec3::new(0.0, 0.0, 10.0);
-            next.glider.scale = Vec3::one() * 0.0;
-
             next.torso.position = Vec3::new(0.0, -0.2, 0.4) * s_a.scaler;
-        };
-
-        next.second.scale = match (
-            active_tool_kind.map(|tk| tk.hands()),
-            second_tool_kind.map(|tk| tk.hands()),
-        ) {
-            (Some(Hands::OneHand), Some(Hands::OneHand)) => Vec3::one(),
-            (_, _) => Vec3::zero(),
         };
 
         next

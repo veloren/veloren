@@ -2,8 +2,7 @@ use super::{
     super::{vek::*, Animation},
     CharacterSkeleton, SkeletonAttr,
 };
-use common::comp::item::{Hands, ToolKind};
-use std::f32::consts::PI;
+use common::comp::item::ToolKind;
 
 pub struct ChargeAnimation;
 
@@ -26,7 +25,7 @@ impl Animation for ChargeAnimation {
 
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, second_tool_kind, velocity, orientation, last_ori, _global_time): Self::Dependency,
+        (active_tool_kind, _second_tool_kind, velocity, orientation, last_ori, _global_time): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -53,12 +52,6 @@ impl Animation for ChargeAnimation {
             / (3.5 + 1.5 * ((anim_time as f32 * lab as f32 * 8.0).sin()).powf(2.0 as f32)))
         .sqrt())
             * ((anim_time as f32 * lab as f32 * 8.0).sin());
-        let quicka = (((5.0)
-            / (3.5
-                + 1.5
-                    * ((anim_time as f32 * lab as f32 * 8.0 + PI / 2.0).sin()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * lab as f32 * 8.0 + PI / 2.0).sin());
         let stop = ((anim_time as f32).powf(0.3 as f32)).min(1.2);
         let stopa = ((anim_time as f32).powf(0.9 as f32)).min(5.0);
 
@@ -168,14 +161,6 @@ impl Animation for ChargeAnimation {
             next.foot_r.orientation =
                 Quaternion::rotation_x(stop * 0.1) * Quaternion::rotation_z(stop * 0.1);
         }
-
-        next.second.scale = match (
-            active_tool_kind.map(|tk| tk.hands()),
-            second_tool_kind.map(|tk| tk.hands()),
-        ) {
-            (Some(Hands::OneHand), Some(Hands::OneHand)) => Vec3::one(),
-            (_, _) => Vec3::zero(),
-        };
 
         next
     }

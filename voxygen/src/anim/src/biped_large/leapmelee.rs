@@ -2,10 +2,7 @@ use super::{
     super::{vek::*, Animation},
     BipedLargeSkeleton, SkeletonAttr,
 };
-use common::{
-    comp::item::{Hands, ToolKind},
-    states::utils::StageSection,
-};
+use common::{comp::item::ToolKind, states::utils::StageSection};
 use std::f32::consts::PI;
 pub struct LeapAnimation;
 
@@ -26,7 +23,7 @@ impl Animation for LeapAnimation {
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, second_tool_kind, _velocity, _global_time, stage_section): Self::Dependency,
+        (active_tool_kind, _second_tool_kind, _velocity, _global_time, stage_section): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -88,15 +85,9 @@ impl Animation for LeapAnimation {
             next.foot_r.orientation = Quaternion::rotation_x(0.9 + movement3 * -1.7);
         } else if let Some(ToolKind::Axe(_)) = active_tool_kind {
             next.hand_l.position = Vec3::new(-0.5, 0.0, 4.0);
-            next.hand_l.orientation = Quaternion::rotation_x(PI / 2.0)
-                * Quaternion::rotation_z(0.0)
-                * Quaternion::rotation_y(0.0);
-            next.hand_l.scale = Vec3::one() * 1.04;
+            next.hand_l.orientation = Quaternion::rotation_x(PI / 2.0);
             next.hand_r.position = Vec3::new(0.5, 0.0, -2.5);
-            next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0)
-                * Quaternion::rotation_z(0.0)
-                * Quaternion::rotation_y(0.0);
-            next.hand_r.scale = Vec3::one() * 1.04;
+            next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0);
             next.main.position = Vec3::new(-0.0, -2.0, -1.0);
             next.main.orientation = Quaternion::rotation_x(0.0);
 
@@ -119,8 +110,7 @@ impl Animation for LeapAnimation {
 
             next.torso.orientation = Quaternion::rotation_x(
                 -0.3 + movement2 * -1.8 * PI + movement3 * -0.2 * PI + movement4 * -0.1 * PI,
-            ) * Quaternion::rotation_y(0.0)
-                * Quaternion::rotation_z(0.0);
+            );
 
             next.head.orientation =
                 Quaternion::rotation_x(0.0 + movement1 * -0.4 + movement2 * 0.4 + movement3 * 0.2);
@@ -147,14 +137,6 @@ impl Animation for LeapAnimation {
             next.upper_torso.position = Vec3::new(0.0, s_a.upper_torso.0, s_a.upper_torso.1 - 8.0);
             next.torso.position = Vec3::new(0.0, 0.0, 0.0 + 8.0);
         }
-
-        next.second.scale = match (
-            active_tool_kind.map(|tk| tk.hands()),
-            second_tool_kind.map(|tk| tk.hands()),
-        ) {
-            (Some(Hands::OneHand), Some(Hands::OneHand)) => Vec3::one(),
-            (_, _) => Vec3::zero(),
-        };
 
         next
     }

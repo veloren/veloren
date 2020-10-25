@@ -2,7 +2,7 @@ use super::{
     super::{vek::*, Animation},
     CharacterSkeleton, SkeletonAttr,
 };
-use common::comp::item::{Hands, ToolKind};
+use common::comp::item::ToolKind;
 
 pub struct ShootAnimation;
 
@@ -17,7 +17,7 @@ impl Animation for ShootAnimation {
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, second_tool_kind, velocity, _global_time): Self::Dependency,
+        (active_tool_kind, _second_tool_kind, velocity, _global_time): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -42,7 +42,6 @@ impl Animation for ShootAnimation {
         next.head.orientation = Quaternion::rotation_z(exp * -0.4)
             * Quaternion::rotation_x(0.0)
             * Quaternion::rotation_y(exp * 0.1);
-        next.head.scale = Vec3::one() * s_a.head_scale;
 
         next.chest.position = Vec3::new(0.0, s_a.chest.0 - exp * 1.5, s_a.chest.1);
         next.chest.orientation = Quaternion::rotation_z(0.4 + exp * 1.0)
@@ -121,22 +120,11 @@ impl Animation for ShootAnimation {
             next.foot_r.position = Vec3::new(s_a.foot.0, 3.5 - exp * 2.0, s_a.foot.2);
             next.foot_r.orientation =
                 Quaternion::rotation_x(exp * 0.1) * Quaternion::rotation_z(exp * 0.5);
-            next.torso.position = Vec3::new(0.0, 0.0, 0.1) * s_a.scaler;
-            next.torso.orientation = Quaternion::rotation_z(0.0);
-            next.torso.scale = Vec3::one() / 11.0 * s_a.scaler;
         }
         next.back.orientation = Quaternion::rotation_x(-0.3);
 
         next.lantern.orientation =
             Quaternion::rotation_x(exp * -0.7 + 0.4) * Quaternion::rotation_y(exp * 0.4);
-
-        next.second.scale = match (
-            active_tool_kind.map(|tk| tk.hands()),
-            second_tool_kind.map(|tk| tk.hands()),
-        ) {
-            (Some(Hands::OneHand), Some(Hands::OneHand)) => Vec3::one(),
-            (_, _) => Vec3::zero(),
-        };
 
         next
     }
