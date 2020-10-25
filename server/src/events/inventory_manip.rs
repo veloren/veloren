@@ -66,6 +66,16 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     return;
                 };
 
+                let stats = state.ecs().read_storage::<comp::Stats>();
+                match stats.get(entity){
+                    Some(x) => if x.is_dead {
+                        debug!("Failed to pick up item as the player is dead");
+                        return;
+                    },
+
+                    None => debug!("Stats wasn't found"),
+                }
+
                 // Attempt to add the item to the player's inventory
                 match inv.push(item) {
                     None => Some(item_entity),
