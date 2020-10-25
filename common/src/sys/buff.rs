@@ -1,7 +1,7 @@
 use crate::{
     comp::{
         BuffCategory, BuffChange, BuffEffect, BuffId, BuffSource, Buffs, HealthChange,
-        HealthSource, ModifierKind, Stats,
+        HealthSource, Loadout, ModifierKind, Stats,
     },
     event::{EventBus, ServerEvent},
     state::DeltaTime,
@@ -18,11 +18,15 @@ impl<'a> System<'a> for Sys {
         Read<'a, DeltaTime>,
         Read<'a, EventBus<ServerEvent>>,
         ReadStorage<'a, Uid>,
+        ReadStorage<'a, Loadout>,
         WriteStorage<'a, Stats>,
         WriteStorage<'a, Buffs>,
     );
 
-    fn run(&mut self, (entities, dt, server_bus, uids, mut stats, mut buffs): Self::SystemData) {
+    fn run(
+        &mut self,
+        (entities, dt, server_bus, uids, loadouts, mut stats, mut buffs): Self::SystemData,
+    ) {
         let mut server_emitter = server_bus.emitter();
         // Set to false to avoid spamming server
         buffs.set_event_emission(false);
@@ -43,6 +47,17 @@ impl<'a> System<'a> for Sys {
                         // The buff has expired.
                         // Remove it.
                         expired_buffs.push(*id);
+                    }
+                }
+            }
+
+            if let Some(loadout) = loadouts.get(entity) {
+                let damage_reduction = loadout.get_damage_reduction();
+                if (damage_reduction - 1.0).abs() < f32::EPSILON {
+                    for (id, buff) in buff_comp.buffs.iter() {
+                        if !buff.kind.is_buff() {
+                            expired_buffs.push(*id);
+                        }
                     }
                 }
             }
