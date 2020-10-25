@@ -12,13 +12,14 @@ pub mod shoot;
 pub mod spin;
 pub mod spinmelee;
 pub mod wield;
+pub mod equip;
 
 // Reexports
 pub use self::{
     alpha::AlphaAnimation, beam::BeamAnimation, beta::BetaAnimation, charge::ChargeAnimation,
     dash::DashAnimation, idle::IdleAnimation, jump::JumpAnimation, leapmelee::LeapAnimation,
     run::RunAnimation, shockwave::ShockwaveAnimation, shoot::ShootAnimation, spin::SpinAnimation,
-    spinmelee::SpinMeleeAnimation, wield::WieldAnimation,
+    spinmelee::SpinMeleeAnimation, wield::WieldAnimation, equip::EquipAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};
@@ -119,6 +120,21 @@ pub struct SkeletonAttr {
     hand: (f32, f32, f32),
     leg: (f32, f32, f32),
     foot: (f32, f32, f32),
+    shl: (f32, f32, f32, f32, f32, f32),
+    shr: (f32, f32, f32, f32, f32, f32),
+    sc: (f32, f32, f32, f32, f32, f32),
+    hhl: (f32, f32, f32, f32, f32, f32),
+    hhr: (f32, f32, f32, f32, f32, f32),
+    hc: (f32, f32, f32, f32, f32, f32),
+    sthl: (f32, f32, f32, f32, f32, f32),
+    sthr: (f32, f32, f32, f32, f32, f32),
+    stc: (f32, f32, f32, f32, f32, f32),
+    ahl: (f32, f32, f32, f32, f32, f32),
+    ahr: (f32, f32, f32, f32, f32, f32),
+    ac: (f32, f32, f32, f32, f32, f32),
+    bhl: (f32, f32, f32, f32, f32, f32),
+    bhr: (f32, f32, f32, f32, f32, f32),
+    bc: (f32, f32, f32, f32, f32, f32),
     beast: bool,
 }
 
@@ -145,6 +161,21 @@ impl Default for SkeletonAttr {
             hand: (0.0, 0.0, 0.0),
             leg: (0.0, 0.0, 0.0),
             foot: (0.0, 0.0, 0.0),
+            shl: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            shr: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            sc: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            hhl: (0.0, 0.0, 10.0, 0.0, 0.0, 0.0),
+            hhr: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            hc: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            sthl: (0.0, 0.0, 10.0, 0.0, 0.0, 0.0),
+            sthr: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            stc: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            ahl: (0.0, 0.0, 10.0, 0.0, 0.0, 0.0),
+            ahr: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            ac: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            bhl: (0.0, 0.0, 10.0, 0.0, 0.0, 0.0),
+            bhr: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            bc: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
             beast: false,
         }
     }
@@ -182,7 +213,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Ogre, Female) => (0.0, 28.0),
                 (Cyclops, _) => (-2.0, 27.0),
                 (Wendigo, _) => (-1.0, 29.0),
-                (Troll, _) => (-1.0, 27.5),
+                (Troll, _) => (-1.0, 26.5),
                 (Dullahan, _) => (0.0, 29.0),
                 (Werewolf, _) => (3.0, 26.0),
                 (Occultsaurok, _) => (3.0, 23.0),
@@ -259,6 +290,75 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Occultsaurok, _) => (3.5, 2.0, -12.0),
                 (Mightysaurok, _) => (3.5, 2.0, -12.0),
                 (Slysaurok, _) => (3.5, 2.0, -12.0),
+            },
+            shl: match (body.species, body.body_type) {
+                (Dullahan, _) => (-4.75, -11.0, 8.5, 1.47, -0.2, 0.0),
+                (Mightysaurok, _) => (-4.75, -11.0, 8.5, 1.47, -0.2, 0.0),
+                (_, _) => (-4.75, -1.0, 2.5, 1.47, -0.2, 0.0),
+            },
+            shr: match (body.species, body.body_type) {
+                (Dullahan, _) => (5.75, -11.5, 4.5, 1.47, 0.3, 0.0),
+                (Mightysaurok, _) => (-4.75, -11.0, 8.5, 1.47, -0.2, 0.0),
+                (_, _) => (3.75, -1.5, -0.5, 1.47, 0.3, 0.0),
+            },
+            sc: match (body.species, body.body_type) {
+                (Dullahan, _) => (-7.0, 17.0, -16.0, -0.1, 0.0, 0.0),
+                (Mightysaurok, _) => (-4.75, -11.0, 8.5, 1.47, -0.2, 0.0),
+                (_, _) => (-7.0, 7.0, -10.0, -0.1, 0.0, 0.0),
+            },
+            hhl: match (body.species, body.body_type) {
+                (Ogre, Male) => (-6.0, -10.0, 17.0, 1.57, -0.57, 0.0),
+                (Cyclops, _) => (-6.0, -10.0, 17.0, 1.57, -0.57, 0.0),
+                (Troll, _) => (-6.0, -10.0, 17.0, 1.57, -0.57, 0.0),
+                (_, _) => (-6.0, -10.0, 17.0, 1.57, -0.57, 0.0),
+            },
+            hhr: match (body.species, body.body_type) {
+                (Ogre, Male) => (-6.0, -10.0, 0.0, 1.57, -0.57, 0.0),
+                (Cyclops, _) => (-6.0, -10.0, 0.0, 1.57, -0.57, 0.0),
+                (Troll, _) => (-6.0, -10.0, 0.0, 1.57, -0.57, 0.0),
+                (_, _) => (-6.0, -10.0, 0.0, 1.57, -0.57, 0.0),
+            },
+            hc: match (body.species, body.body_type) {
+                (Ogre, Male) => (8.5, 6.0, -12.0, -0.57, -1.57, 1.0),
+                (Cyclops, _) => (8.5, 6.0, -12.0, -0.57, -1.57, 1.0),
+                (Troll, _) => (8.5, 6.0, -12.0, -0.57, -1.57, 1.0),
+                (_, _) => (8.5, 6.0, -12.0, -0.57, -1.57, 1.0),
+            },
+            sthl: match (body.species, body.body_type) {
+                (Ogre, Female) => (11.0, 5.0, -4.0, 1.27, 0.0, 0.0),
+                (Occultsaurok, _) => (11.0, 5.0, -4.0, 1.27, 0.0, 0.0),
+                (_, _) => (11.0, 5.0, -4.0, 1.27, 0.0, 0.0),
+            },
+            sthr: match (body.species, body.body_type) {
+                (Ogre, Female) => (17.0, 7.5, 2.0, 1.57, 0.8, 0.0),
+                (Occultsaurok, _) => (17.0, 7.5, 2.0, 1.57, 0.8, 0.0),
+                (_, _) => (17.0, 7.5, 2.0, 1.57, 0.8, 0.0),
+            },
+            stc: match (body.species, body.body_type) {
+                (Ogre, Female) => (-18.0, 1.0, -2.0, -0.3, 0.15, 0.0),
+                (Occultsaurok, _) => (-18.0, 1.0, -2.0, -0.3, 0.15, 0.0),
+                (_, _) => (-18.0, 1.0, -2.0, -0.3, 0.15, 0.0),
+            },
+            ahl: match (body.species, body.body_type) {
+                (_, _) => (-0.5, -1.0, 7.0, 1.87, 0.0, 0.0),
+            },
+            ahr: match (body.species, body.body_type) {
+                (_, _) => (0.0, -1.0, 1.0, 4.34, 0.2, 0.0),
+            },
+            ac: match (body.species, body.body_type) {
+                (_, _) => (-8.0, 11.0, 3.0, 2.0, 0.0, 3.14),
+            },
+            bhl: match (body.species, body.body_type) {
+                (Slysaurok, _) => (3.0, 2.5, 0.0, 1.2, -0.6, -0.3),
+                (_, _) => (3.0, 2.5, 0.0, 1.2, -0.6, -0.3),
+            },
+            bhr: match (body.species, body.body_type) {
+                (Slysaurok, _) => (3.0, 2.5, 0.0, 1.2, -0.6, -0.3),
+                (_, _) => (5.9, 5.5, -5.0, 1.2, -0.6, -0.3),
+            },
+            bc: match (body.species, body.body_type) {
+                (Slysaurok, _) => (3.0, 2.5, 0.0, 1.2, -0.6, -0.3),
+                (_, _) => (-7.0, 3.0, -8.0, 0.0, 0.0, 0.0),
             },
             beast: matches!((body.species, body.body_type), (Werewolf, _)),
         }

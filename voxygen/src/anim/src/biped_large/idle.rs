@@ -63,12 +63,12 @@ impl Animation for IdleAnimation {
         next.head.scale = Vec3::one() * 1.02 + breathe * 0.4;
 
         next.upper_torso.position =
-            Vec3::new(0.0, s_a.upper_torso.0, s_a.upper_torso.1 + torso * 0.5);
+            Vec3::new(0.0, s_a.upper_torso.0, s_a.upper_torso.1 + torso * -0.5);
         next.upper_torso.orientation = Quaternion::rotation_x(-breathe);
         next.upper_torso.scale = Vec3::one() - breathe * 0.4;
 
         next.lower_torso.position =
-            Vec3::new(0.0, s_a.lower_torso.0, s_a.lower_torso.1 + torso * 0.15);
+            Vec3::new(0.0, s_a.lower_torso.0, s_a.lower_torso.1 + torso * 0.5);
         next.lower_torso.orientation =
             Quaternion::rotation_z(0.0) * Quaternion::rotation_x(breathe);
         next.lower_torso.scale = Vec3::one() * 1.02 + breathe * 0.4;
@@ -109,9 +109,9 @@ impl Animation for IdleAnimation {
         next.leg_r.position = Vec3::new(s_a.leg.0, s_a.leg.1, s_a.leg.2 + torso * 0.2);
         next.leg_r.scale = Vec3::one() * 1.02;
 
-        next.foot_l.position = Vec3::new(-s_a.foot.0, s_a.foot.1, s_a.foot.2 + torso * -0.6);
+        next.foot_l.position = Vec3::new(-s_a.foot.0, s_a.foot.1, s_a.foot.2);
 
-        next.foot_r.position = Vec3::new(s_a.foot.0, s_a.foot.1, s_a.foot.2 + torso * -0.6);
+        next.foot_r.position = Vec3::new(s_a.foot.0, s_a.foot.1, s_a.foot.2);
 
         next.torso.position = Vec3::new(0.0, 0.0, 0.0) / 8.0;
         next.torso.scale = Vec3::one() / 8.0;
