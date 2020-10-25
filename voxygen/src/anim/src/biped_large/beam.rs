@@ -2,10 +2,7 @@ use super::{
     super::{vek::*, Animation},
     BipedLargeSkeleton, SkeletonAttr,
 };
-use common::{
-    comp::item::{Hands, ToolKind},
-    states::utils::StageSection,
-};
+use common::{comp::item::ToolKind, states::utils::StageSection};
 use std::f32::consts::PI;
 
 pub struct BeamAnimation;
@@ -27,7 +24,7 @@ impl Animation for BeamAnimation {
     #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, second_tool_kind, _global_time, velocity, stage_section): Self::Dependency,
+        (active_tool_kind, _second_tool_kind, _global_time, velocity, stage_section): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -44,10 +41,8 @@ impl Animation for BeamAnimation {
 
         next.hand_l.position = Vec3::new(0.0, 0.0, -4.0);
         next.hand_l.orientation = Quaternion::rotation_x(1.27) * Quaternion::rotation_y(0.0);
-        next.hand_l.scale = Vec3::one() * 1.04;
         next.hand_r.position = Vec3::new(0.0, 0.0, 2.0);
         next.hand_r.orientation = Quaternion::rotation_x(1.57) * Quaternion::rotation_y(0.2);
-        next.hand_r.scale = Vec3::one() * 1.04;
         next.main.position = Vec3::new(0.0, 8.0, 13.2);
         next.main.orientation = Quaternion::rotation_y(PI);
 
@@ -115,14 +110,6 @@ impl Animation for BeamAnimation {
             },
             _ => {},
         }
-        next.second.scale = match (
-            active_tool_kind.map(|tk| tk.hands()),
-            second_tool_kind.map(|tk| tk.hands()),
-        ) {
-            (Some(Hands::OneHand), Some(Hands::OneHand)) => Vec3::one(),
-            (_, _) => Vec3::zero(),
-        };
-
         next
     }
 }

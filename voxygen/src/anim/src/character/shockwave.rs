@@ -2,10 +2,7 @@ use super::{
     super::{vek::*, Animation},
     CharacterSkeleton, SkeletonAttr,
 };
-use common::{
-    comp::item::{Hands, ToolKind},
-    states::utils::StageSection,
-};
+use common::{comp::item::ToolKind, states::utils::StageSection};
 use std::f32::consts::PI;
 
 pub struct Input {
@@ -30,7 +27,7 @@ impl Animation for ShockwaveAnimation {
     #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, second_tool_kind, _global_time, velocity, stage_section): Self::Dependency,
+        (_active_tool_kind, _second_tool_kind, _global_time, velocity, stage_section): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -55,9 +52,7 @@ impl Animation for ShockwaveAnimation {
         next.main.orientation = Quaternion::rotation_y(PI);
 
         next.control.position = Vec3::new(-4.0, 7.0, 4.0);
-        next.control.orientation = Quaternion::rotation_x(-0.3)
-            * Quaternion::rotation_y(0.15)
-            * Quaternion::rotation_z(0.0);
+        next.control.orientation = Quaternion::rotation_x(-0.3) * Quaternion::rotation_y(0.15);
 
         let twist = movement1 * 0.8;
 
@@ -107,14 +102,6 @@ impl Animation for ShockwaveAnimation {
             next.foot_r.orientation = Quaternion::rotation_y(movement1 * -0.3 + movement2 * 0.3)
                 * Quaternion::rotation_z(movement1 * 0.4 + movement2 * -0.4);
         }
-        next.second.scale = match (
-            active_tool_kind.map(|tk| tk.hands()),
-            second_tool_kind.map(|tk| tk.hands()),
-        ) {
-            (Some(Hands::OneHand), Some(Hands::OneHand)) => Vec3::one(),
-            (_, _) => Vec3::zero(),
-        };
-
         next
     }
 }

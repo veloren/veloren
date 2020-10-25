@@ -2,10 +2,7 @@ use super::{
     super::{vek::*, Animation},
     BipedLargeSkeleton, SkeletonAttr,
 };
-use common::{
-    comp::item::{Hands, ToolKind},
-    states::utils::StageSection,
-};
+use common::{comp::item::ToolKind, states::utils::StageSection};
 use std::f32::consts::PI;
 
 pub struct SpinAnimation;
@@ -25,7 +22,7 @@ impl Animation for SpinAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_spin")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, second_tool_kind, _global_time, stage_section): Self::Dependency,
+        (active_tool_kind, _second_tool_kind, _global_time, stage_section): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -62,10 +59,8 @@ impl Animation for SpinAnimation {
         if let Some(ToolKind::Sword(_)) = active_tool_kind {
             next.hand_l.position = Vec3::new(-4.75, -1.0, 2.5);
             next.hand_l.orientation = Quaternion::rotation_x(1.47) * Quaternion::rotation_y(-0.2);
-            next.hand_l.scale = Vec3::one() * 1.04;
             next.hand_r.position = Vec3::new(0.75, -1.5, -0.5);
             next.hand_r.orientation = Quaternion::rotation_x(1.47) * Quaternion::rotation_y(0.3);
-            next.hand_r.scale = Vec3::one() * 1.04;
             next.main.position = Vec3::new(0.0, 5.0, -6.0);
             next.main.orientation = Quaternion::rotation_x(-0.1)
                 * Quaternion::rotation_y(0.0)
@@ -110,14 +105,10 @@ impl Animation for SpinAnimation {
         {
             next.hand_l.position = Vec3::new(-0.75, -1.0, -2.5);
             next.hand_l.orientation = Quaternion::rotation_x(1.27);
-            next.hand_l.scale = Vec3::one() * 1.04;
             next.hand_r.position = Vec3::new(0.75, -1.5, -5.5);
             next.hand_r.orientation = Quaternion::rotation_x(1.27);
-            next.hand_r.scale = Vec3::one() * 1.04;
             next.main.position = Vec3::new(0.0, 6.0, -1.0);
-            next.main.orientation = Quaternion::rotation_x(-0.3)
-                * Quaternion::rotation_y(0.0)
-                * Quaternion::rotation_z(0.0);
+            next.main.orientation = Quaternion::rotation_x(-0.3);
 
             next.control.position = Vec3::new(-4.5 + spinhalf * 4.0, 11.0, 8.0);
             next.control.orientation = Quaternion::rotation_x(-1.7)
@@ -129,15 +120,10 @@ impl Animation for SpinAnimation {
                 * Quaternion::rotation_y(spin * -0.2);
             next.upper_torso.position = Vec3::new(0.0, s_a.upper_torso.0, s_a.upper_torso.1);
             next.upper_torso.orientation = Quaternion::rotation_z(spin * 0.1)
-                * Quaternion::rotation_x(0.0 + spin * 0.1)
+                * Quaternion::rotation_x(spin * 0.1)
                 * Quaternion::rotation_y(decel * -0.2);
 
-            next.lower_torso.position = Vec3::new(0.0, 0.0, -5.0);
-            next.torso.position = Vec3::new(0.0, 0.0, 0.1) * 1.01;
-            next.torso.orientation = Quaternion::rotation_z((spin * 7.0).max(0.3))
-                * Quaternion::rotation_x(0.0)
-                * Quaternion::rotation_y(0.0);
-            next.torso.scale = Vec3::one() / 11.0 * 1.01;
+            next.torso.orientation = Quaternion::rotation_z((spin * 7.0).max(0.3));
 
             next.foot_l.position = Vec3::new(-s_a.foot.0, foot * 1.0, s_a.foot.2);
             next.foot_l.orientation = Quaternion::rotation_x(foot * -1.2);
@@ -145,22 +131,10 @@ impl Animation for SpinAnimation {
             next.foot_r.position = Vec3::new(s_a.foot.0, foot * -1.0, s_a.foot.2);
             next.foot_r.orientation = Quaternion::rotation_x(foot * 1.2);
 
-            next.shoulder_l.position = Vec3::new(-5.0, 0.0, 4.7);
             next.shoulder_l.orientation = Quaternion::rotation_x(0.0);
-            next.shoulder_l.scale = Vec3::one() * 1.1;
 
-            next.shoulder_r.position = Vec3::new(5.0, 0.0, 4.7);
             next.shoulder_r.orientation = Quaternion::rotation_x(0.0);
-            next.shoulder_r.scale = Vec3::one() * 1.1;
         }
-        next.second.scale = match (
-            active_tool_kind.map(|tk| tk.hands()),
-            second_tool_kind.map(|tk| tk.hands()),
-        ) {
-            (Some(Hands::OneHand), Some(Hands::OneHand)) => Vec3::one(),
-            (_, _) => Vec3::zero(),
-        };
-
         next
     }
 }

@@ -2,10 +2,7 @@ use super::{
     super::{vek::*, Animation},
     CharacterSkeleton, SkeletonAttr,
 };
-use common::{
-    comp::item::{Hands, ToolKind},
-    states::utils::StageSection,
-};
+use common::{comp::item::ToolKind, states::utils::StageSection};
 use std::f32::consts::PI;
 
 pub struct Input {
@@ -138,16 +135,6 @@ impl Animation for DashAnimation {
 
         next.lantern.orientation = Quaternion::rotation_x(slow(anim_time as f32) * -0.7 + 0.4)
             * Quaternion::rotation_y(slow(anim_time as f32) * 0.4);
-
-        next.torso.scale = Vec3::one() / 11.0 * s_a.scaler;
-
-        next.second.scale = match (
-            active_tool_kind.map(|tk| tk.hands()),
-            second_tool_kind.map(|tk| tk.hands()),
-        ) {
-            (Some(Hands::OneHand), Some(Hands::OneHand)) => Vec3::one(),
-            (_, _) => Vec3::zero(),
-        };
 
         next
     }
