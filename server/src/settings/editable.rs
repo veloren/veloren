@@ -37,7 +37,7 @@ pub trait EditableSetting: Serialize + DeserializeOwned + Default {
                         new_path = path.with_extension(format!("invalid{}.ron", i));
                     }
 
-                    warn!("Renaming invalid settings file to: {}", path.display());
+                    warn!("Renaming invalid settings file to: {}", new_path.display());
                     if let Err(e) = fs::rename(&path, &new_path) {
                         warn!(?e, ?path, ?new_path, "Failed to rename settings file.");
                     }
