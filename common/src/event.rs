@@ -107,7 +107,7 @@ pub enum ServerEvent {
     /// Send a chat message to the player from an npc or other player
     Chat(comp::UnresolvedChatMsg),
     Buff {
-        uid: Uid,
+        entity: EcsEntity,
         buff_change: comp::BuffChange,
     },
 }

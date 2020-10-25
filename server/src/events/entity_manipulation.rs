@@ -699,66 +699,64 @@ pub fn handle_level_up(server: &mut Server, entity: EcsEntity, new_level: u32) {
         ));
 }
 
-pub fn handle_buff(server: &mut Server, uid: Uid, buff_change: buff::BuffChange) {
+pub fn handle_buff(server: &mut Server, entity: EcsEntity, buff_change: buff::BuffChange) {
     let ecs = &server.state.ecs();
     let mut buffs_all = ecs.write_storage::<comp::Buffs>();
-    if let Some(entity) = ecs.entity_from_uid(uid.into()) {
-        if let Some(buffs) = buffs_all.get_mut(entity) {
-            use buff::BuffChange;
-            match buff_change {
-                BuffChange::Add(new_buff) => {
-                    buffs.insert(new_buff);
-                },
-                BuffChange::RemoveById(ids) => {
-                    for id in ids {
-                        buffs.remove(id);
-                    }
-                },
-                BuffChange::RemoveByKind(kind) => {
+    if let Some(buffs) = buffs_all.get_mut(entity) {
+        use buff::BuffChange;
+        match buff_change {
+            BuffChange::Add(new_buff) => {
+                buffs.insert(new_buff);
+            },
+            BuffChange::RemoveById(ids) => {
+                for id in ids {
+                    buffs.remove(id);
+                }
+            },
+            BuffChange::RemoveByKind(kind) => {
+                buffs.remove_kind(kind);
+            },
+            BuffChange::RemoveFromController(kind) => {
+                if kind.is_buff() {
                     buffs.remove_kind(kind);
-                },
-                BuffChange::RemoveFromController(kind) => {
-                    if kind.is_buff() {
-                        buffs.remove_kind(kind);
-                    }
-                },
-                BuffChange::RemoveByCategory {
-                    all_required,
-                    any_required,
-                    none_required,
-                } => {
-                    let mut ids_to_remove = Vec::new();
-                    for (id, buff) in buffs.buffs.iter() {
-                        let mut required_met = true;
-                        for required in &all_required {
-                            if !buff.cat_ids.iter().any(|cat| cat == required) {
-                                required_met = false;
-                                break;
-                            }
-                        }
-                        let mut any_met = any_required.is_empty();
-                        for any in &any_required {
-                            if buff.cat_ids.iter().any(|cat| cat == any) {
-                                any_met = true;
-                                break;
-                            }
-                        }
-                        let mut none_met = true;
-                        for none in &none_required {
-                            if buff.cat_ids.iter().any(|cat| cat == none) {
-                                none_met = false;
-                                break;
-                            }
-                        }
-                        if required_met && any_met && none_met {
-                            ids_to_remove.push(*id);
+                }
+            },
+            BuffChange::RemoveByCategory {
+                all_required,
+                any_required,
+                none_required,
+            } => {
+                let mut ids_to_remove = Vec::new();
+                for (id, buff) in buffs.buffs.iter() {
+                    let mut required_met = true;
+                    for required in &all_required {
+                        if !buff.cat_ids.iter().any(|cat| cat == required) {
+                            required_met = false;
+                            break;
                         }
                     }
-                    for id in ids_to_remove {
-                        buffs.remove(id);
+                    let mut any_met = any_required.is_empty();
+                    for any in &any_required {
+                        if buff.cat_ids.iter().any(|cat| cat == any) {
+                            any_met = true;
+                            break;
+                        }
                     }
-                },
-            }
+                    let mut none_met = true;
+                    for none in &none_required {
+                        if buff.cat_ids.iter().any(|cat| cat == none) {
+                            none_met = false;
+                            break;
+                        }
+                    }
+                    if required_met && any_met && none_met {
+                        ids_to_remove.push(*id);
+                    }
+                }
+                for id in ids_to_remove {
+                    buffs.remove(id);
+                }
+            },
         }
     }
 }

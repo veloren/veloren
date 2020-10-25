@@ -2,7 +2,7 @@ use crate::sync::Uid;
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
-use std::{collections::HashMap, time::Duration};
+use std::{cmp::Ordering, collections::HashMap, time::Duration};
 
 /// De/buff Kind.
 /// This is used to determine what effects a buff will have, as well as
@@ -132,7 +132,7 @@ impl Buff {
             ),
             BuffKind::Cursed => (
                 vec![BuffEffect::MaxHealthModifier {
-                    value: -100.,
+                    value: -100. * data.strength,
                     kind: ModifierKind::Additive,
                 }],
                 data.duration,
@@ -146,6 +146,34 @@ impl Buff {
             effects,
             source,
         }
+    }
+}
+
+impl PartialOrd for Buff {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        if self.data.strength > other.data.strength {
+            Some(Ordering::Greater)
+        } else if self.data.strength < other.data.strength {
+            Some(Ordering::Less)
+        } else if compare_duration(self.time, other.time) {
+            Some(Ordering::Greater)
+        } else if compare_duration(other.time, self.time) {
+            Some(Ordering::Less)
+        } else if self == other {
+            Some(Ordering::Equal)
+        } else {
+            None
+        }
+    }
+}
+
+fn compare_duration(a: Option<Duration>, b: Option<Duration>) -> bool {
+    a.map_or(true, |dur_a| b.map_or(false, |dur_b| dur_a > dur_b))
+}
+
+impl PartialEq for Buff {
+    fn eq(&self, other: &Self) -> bool {
+        self.data.strength == other.data.strength || self.time == other.time
     }
 }
 
@@ -190,17 +218,13 @@ pub struct Buffs {
 impl Buffs {
     fn sort_kind(&mut self, kind: BuffKind) {
         if let Some(buff_order) = self.kinds.get_mut(&kind) {
-            if buff_order.len() == 0 {
+            if buff_order.is_empty() {
                 self.kinds.remove(&kind);
             } else {
                 let buffs = &self.buffs;
-                buff_order.sort_by(|a, b| {
-                    buffs[&b]
-                        .data
-                        .strength
-                        .partial_cmp(&buffs[&a].data.strength)
-                        .unwrap()
-                });
+                // Intentionally sorted in reverse so that the strongest buffs are earlier in
+                // the vector
+                buff_order.sort_by(|a, b| buffs[&b].partial_cmp(&buffs[&a]).unwrap());
             }
         }
     }
@@ -233,7 +257,7 @@ impl Buffs {
         self.kinds
             .get(&kind)
             .map(|ids| ids.iter())
-            .unwrap_or((&[]).iter())
+            .unwrap_or_else(|| (&[]).iter())
             .map(move |id| (*id, &self.buffs[id]))
     }
 
