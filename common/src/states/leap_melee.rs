@@ -6,7 +6,6 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
-use vek::Vec3;
 
 /// Separated out to condense update portions of character state
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -76,28 +75,20 @@ impl CharacterBehavior for Data {
             },
             StageSection::Movement => {
                 if self.timer < self.static_data.movement_duration {
-                    // Apply jumping force while in Movement portion of state
-                    update.vel.0 = Vec3::new(
-                        data.inputs.look_dir.x,
-                        data.inputs.look_dir.y,
-                        self.static_data.vertical_leap_strength,
-                    ) * 2.0
-                        // Multiply decreasing amount linearly over time of
-                        // movement duration
-                        * (1.0
-                            - self.timer.as_secs_f32()
-                                / self.static_data.movement_duration.as_secs_f32())
-                        // Apply inputted movement directions at 0.25 strength
-                        + (update.vel.0 * Vec3::new(2.0, 2.0, 0.0)
-                            + 0.25 * data.inputs.move_dir.try_normalized().unwrap_or_default())
-                        .try_normalized()
-                        .unwrap_or_default()
-                        // Multiply by forward leap strength
-                            * self.static_data.forward_leap_strength
-                        // Control forward movement based on look direction.
-                        // This allows players to stop moving forward when they
-                        // look downward at target
-                            * (1.0 - data.inputs.look_dir.z.abs());
+                    // Apply jumping force
+                    let progress = 1.0
+                        - self.timer.as_secs_f32()
+                            / self.static_data.movement_duration.as_secs_f32();
+                    handle_forced_movement(
+                        data,
+                        &mut update,
+                        ForcedMovement::Leap {
+                            vertical: self.static_data.vertical_leap_strength,
+                            forward: self.static_data.forward_leap_strength,
+                            progress,
+                        },
+                        0.15,
+                    );
 
                     // Increment duration
                     // If we were to set a timeout for state, this would be

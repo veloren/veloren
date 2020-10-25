@@ -146,11 +146,13 @@ impl CharacterBehavior for Data {
             StageSection::Swing => {
                 if self.timer < self.static_data.stage_data[stage_index].base_swing_duration {
                     // Forward movement
-                    forward_move(
+                    handle_forced_movement(
                         data,
                         &mut update,
+                        ForcedMovement::Forward {
+                            strength: self.static_data.stage_data[stage_index].forward_movement,
+                        },
                         0.3,
-                        self.static_data.stage_data[stage_index].forward_movement,
                     );
 
                     // Swings

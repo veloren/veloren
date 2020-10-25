@@ -54,13 +54,18 @@ impl CharacterBehavior for Data {
             StageSection::Movement => {
                 // Jumping
                 if let Some(leap_strength) = self.static_data.leap {
-                    update.vel.0 = Vec3::new(
-                        data.vel.0.x,
-                        data.vel.0.y,
-                        leap_strength
-                            * (1.0
-                                - self.timer.as_secs_f32()
-                                    / self.static_data.movement_duration.as_secs_f32()),
+                    let progress = 1.0
+                        - self.timer.as_secs_f32()
+                            / self.static_data.movement_duration.as_secs_f32();
+                    handle_forced_movement(
+                        data,
+                        &mut update,
+                        ForcedMovement::Leap {
+                            vertical: leap_strength,
+                            forward: 10.0,
+                            progress,
+                        },
+                        1.0,
                     );
                 }
                 if self.timer < self.static_data.movement_duration {
@@ -87,7 +92,12 @@ impl CharacterBehavior for Data {
             StageSection::Buildup => {
                 // Aim gliding
                 if self.static_data.leap.is_some() {
-                    update.vel.0 = Vec3::new(data.vel.0.x, data.vel.0.y, 0.0);
+                    handle_forced_movement(
+                        data,
+                        &mut update,
+                        ForcedMovement::Hover { move_input: 0.1 },
+                        1.0,
+                    );
                 }
                 if self.timer < self.static_data.buildup_duration {
                     // Buildup to attack

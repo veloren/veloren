@@ -111,7 +111,14 @@ impl CharacterBehavior for Data {
                     && update.energy.current() > 0
                 {
                     // Forward movement
-                    forward_move(data, &mut update, 0.1, self.static_data.forward_speed);
+                    handle_forced_movement(
+                        data,
+                        &mut update,
+                        ForcedMovement::Forward {
+                            strength: self.static_data.forward_speed,
+                        },
+                        0.1,
+                    );
 
                     // This logic basically just decides if a charge should end, and prevents the
                     // character state spamming attacks while checking if it has hit something
