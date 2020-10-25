@@ -82,7 +82,10 @@
 
 mod event_mapper;
 
-use crate::{audio::AudioFrontend, scene::Camera};
+use crate::{
+    audio::AudioFrontend,
+    scene::{Camera, Terrain},
+};
 
 use common::{
     assets,
@@ -93,6 +96,7 @@ use common::{
     event::EventBus,
     outcome::Outcome,
     state::State,
+    terrain::TerrainChunk,
 };
 use event_mapper::SfxEventMapper;
 use hashbrown::HashMap;
@@ -228,6 +232,7 @@ impl SfxMgr {
         state: &State,
         player_entity: specs::Entity,
         camera: &Camera,
+        terrain: &Terrain<TerrainChunk>,
     ) {
         if !audio.sfx_enabled() {
             return;
@@ -241,7 +246,7 @@ impl SfxMgr {
 
         // TODO: replace; deprecated in favor of outcomes
         self.event_mapper
-            .maintain(state, player_entity, camera, &self.triggers);
+            .maintain(state, player_entity, camera, &self.triggers, terrain);
 
         // TODO: replace; deprecated in favor of outcomes
         let events = ecs.read_resource::<EventBus<SfxEventItem>>().recv_all();
