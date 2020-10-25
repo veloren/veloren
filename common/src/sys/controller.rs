@@ -51,7 +51,7 @@ impl<'a> System<'a> for Sys {
         span!(_guard, "run", "controller::Sys::run");
         let mut server_emitter = server_bus.emitter();
 
-        for (entity, uid, controller, character_state) in
+        for (entity, _uid, controller, character_state) in
             (&entities, &uids, &mut controllers, &mut character_states).join()
         {
             let mut inputs = &mut controller.inputs;
@@ -85,7 +85,7 @@ impl<'a> System<'a> for Sys {
                     },
                     ControlEvent::RemoveBuff(buff_id) => {
                         server_emitter.emit(ServerEvent::Buff {
-                            uid: *uid,
+                            entity,
                             buff_change: BuffChange::RemoveFromController(buff_id),
                         });
                     },

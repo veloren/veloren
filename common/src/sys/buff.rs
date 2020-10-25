@@ -7,13 +7,14 @@ use crate::{
     state::DeltaTime,
     sync::Uid,
 };
-use specs::{Join, Read, ReadStorage, System, WriteStorage};
+use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 use std::time::Duration;
 
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
+        Entities<'a>,
         Read<'a, DeltaTime>,
         Read<'a, EventBus<ServerEvent>>,
         ReadStorage<'a, Uid>,
@@ -21,11 +22,11 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Buffs>,
     );
 
-    fn run(&mut self, (dt, server_bus, uids, mut stats, mut buffs): Self::SystemData) {
+    fn run(&mut self, (entities, dt, server_bus, uids, mut stats, mut buffs): Self::SystemData) {
         let mut server_emitter = server_bus.emitter();
         // Set to false to avoid spamming server
-        // buffs.set_event_emission(false);
-        for (buff_comp, uid, stat) in (&mut buffs, &uids, &mut stats).join() {
+        buffs.set_event_emission(false);
+        for (entity, buff_comp, uid, stat) in (&entities, &mut buffs, &uids, &mut stats).join() {
             let mut expired_buffs = Vec::<BuffId>::new();
             for (id, buff) in buff_comp.buffs.iter_mut() {
                 // Tick the buff and subtract delta from it
@@ -63,7 +64,6 @@ impl<'a> System<'a> for Sys {
                     // Now, execute the buff, based on it's delta
                     for effect in &mut buff.effects {
                         match effect {
-                            // Only add an effect here if it is continuous or it is not immediate
                             BuffEffect::HealthChangeOverTime { rate, accumulated } => {
                                 *accumulated += *rate * dt.0;
                                 // Apply damage only once a second (with a minimum of 1 damage), or
@@ -106,7 +106,7 @@ impl<'a> System<'a> for Sys {
             // Remove buffs that expire
             if !expired_buffs.is_empty() {
                 server_emitter.emit(ServerEvent::Buff {
-                    uid: *uid,
+                    entity,
                     buff_change: BuffChange::RemoveById(expired_buffs),
                 });
             }
@@ -114,7 +114,7 @@ impl<'a> System<'a> for Sys {
             // Remove stats that don't persist on death
             if stat.is_dead {
                 server_emitter.emit(ServerEvent::Buff {
-                    uid: *uid,
+                    entity,
                     buff_change: BuffChange::RemoveByCategory {
                         all_required: vec![],
                         any_required: vec![],
@@ -123,6 +123,6 @@ impl<'a> System<'a> for Sys {
                 });
             }
         }
-        // buffs.set_event_emission(true);
+        buffs.set_event_emission(true);
     }
 }
