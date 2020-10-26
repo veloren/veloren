@@ -95,17 +95,17 @@ impl<V: RectRasterableVol> RectSizedVol for V {
 /// A volume that provides read access to its voxel data.
 pub trait ReadVol: BaseVol {
     /// Get a reference to the voxel at the provided position in the volume.
-    fn get<'a>(&'a self, pos: Vec3<i32>) -> Result<&'a Self::Vox, Self::Error>;
+    fn get(&self, pos: Vec3<i32>) -> Result<&Self::Vox, Self::Error>;
 
     #[allow(clippy::type_complexity)] // TODO: Pending review in #587
     /// NOTE: By default, this ray will simply run from `from` to `to` without
     /// stopping.  To make something interesting happen, call `until` or
     /// `for_each`.
-    fn ray<'a>(
-        &'a self,
+    fn ray(
+        &self,
         from: Vec3<f32>,
         to: Vec3<f32>,
-    ) -> Ray<'a, Self, fn(&Self::Vox) -> bool, fn(&Self::Vox, Vec3<i32>)>
+    ) -> Ray<Self, fn(&Self::Vox) -> bool, fn(&Self::Vox, Vec3<i32>)>
     where
         Self: Sized,
     {
@@ -295,5 +295,5 @@ impl<'a, T: ReadVol> Iterator for DefaultVolIterator<'a, T> {
 
 impl<'b, T: ReadVol> ReadVol for &'b T {
     #[inline(always)]
-    fn get<'a>(&'a self, pos: Vec3<i32>) -> Result<&'a Self::Vox, Self::Error> { (*self).get(pos) }
+    fn get(&self, pos: Vec3<i32>) -> Result<&'_ Self::Vox, Self::Error> { (*self).get(pos) }
 }

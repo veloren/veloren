@@ -73,7 +73,7 @@ impl ChunkGenerator {
         }
     }
 
-    pub fn pending_chunks<'a>(&'a self) -> impl Iterator<Item = Vec2<i32>> + 'a {
+    pub fn pending_chunks(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
         self.pending_chunks.keys().copied()
     }
 

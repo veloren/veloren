@@ -2289,11 +2289,11 @@ pub fn get_lakes<F: Float>(
 }
 
 /// Iterate through set neighbors of multi-receiver flow.
-pub fn mrec_downhill<'a>(
+pub fn mrec_downhill(
     map_size_lg: MapSizeLg,
-    mrec: &'a [u8],
+    mrec: &[u8],
     posi: usize,
-) -> impl Clone + Iterator<Item = (usize, usize)> + 'a {
+) -> impl Clone + Iterator<Item = (usize, usize)> {
     let pos = uniform_idx_as_vec2(map_size_lg, posi);
     let mrec_i = mrec[posi];
     NEIGHBOR_DELTA
