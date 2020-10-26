@@ -2,12 +2,13 @@ use super::{
     super::{vek::*, Animation},
     BipedLargeSkeleton, SkeletonAttr,
 };
+use common::comp::item::ToolKind;
 use std::f32::consts::PI;
 
 pub struct JumpAnimation;
 
 impl Animation for JumpAnimation {
-    type Dependency = f64;
+    type Dependency = (Option<ToolKind>, Option<ToolKind>, f64);
     type Skeleton = BipedLargeSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -16,7 +17,7 @@ impl Animation for JumpAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_jump")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        _global_time: Self::Dependency,
+        (active_tool_kind, _second_tool_kind, _global_time): Self::Dependency,
         anim_time: f64,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -58,10 +59,28 @@ impl Animation for JumpAnimation {
             Quaternion::rotation_x(PI) * Quaternion::rotation_y(0.0) * Quaternion::rotation_z(0.0);
         next.second.scale = Vec3::one() * 0.0;
 
-        next.main.position = Vec3::new(-5.0, -7.0, 7.0);
-        next.main.orientation =
-            Quaternion::rotation_x(PI) * Quaternion::rotation_y(0.6) * Quaternion::rotation_z(1.57);
-        next.main.scale = Vec3::one() * 1.02;
+        match active_tool_kind {
+            Some(ToolKind::Bow(_)) => {
+                next.main.position = Vec3::new(-2.0, -5.0, -6.0);
+                next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
+            },
+            Some(ToolKind::Staff(_)) | Some(ToolKind::Sceptre(_)) => {
+                next.main.position = Vec3::new(-6.0, -5.0, -12.0);
+                next.main.orientation = Quaternion::rotation_y(0.6) * Quaternion::rotation_z(1.57);
+            },
+            Some(ToolKind::Sword(_)) => {
+                next.main.position = Vec3::new(-10.0, -8.0, 12.0);
+                next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
+            },
+            Some(ToolKind::Hammer(_)) => {
+                next.main.position = Vec3::new(-10.0, -8.0, 12.0);
+                next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
+            },
+            _ => {
+                next.main.position = Vec3::new(-2.0, -5.0, -6.0);
+                next.main.orientation = Quaternion::rotation_y(0.6) * Quaternion::rotation_z(1.57);
+            },
+        }
 
         next.shoulder_l.position = Vec3::new(-s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
         next.shoulder_l.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.5);

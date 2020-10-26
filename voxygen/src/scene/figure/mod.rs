@@ -2217,18 +2217,18 @@ impl FigureMgr {
                         vel.0.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
                         physics.in_fluid.is_some(),                       // In water
                     ) {
-                        // Standing
-                        (true, false, false) => anim::biped_large::IdleAnimation::update_skeleton(
-                            &BipedLargeSkeleton::default(),
-                            time,
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
                         // Running
                         (true, true, false) => anim::biped_large::RunAnimation::update_skeleton(
                             &BipedLargeSkeleton::default(),
-                            (vel.0.magnitude(), ori, state.last_ori, time, state.avg_vel),
+                            (
+                                active_tool_kind.clone(),
+                                second_tool_kind.clone(),
+                                vel.0.magnitude(),
+                                ori,
+                                state.last_ori,
+                                time,
+                                state.avg_vel,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -2236,14 +2236,14 @@ impl FigureMgr {
                         // In air
                         (false, _, false) => anim::biped_large::JumpAnimation::update_skeleton(
                             &BipedLargeSkeleton::default(),
-                            time,
+                            (active_tool_kind.clone(), second_tool_kind.clone(), time),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
                         _ => anim::biped_large::IdleAnimation::update_skeleton(
                             &BipedLargeSkeleton::default(),
-                            time,
+                            (active_tool_kind.clone(), second_tool_kind.clone(), time),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
