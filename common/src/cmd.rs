@@ -500,6 +500,7 @@ impl Display for ChatCommand {
 impl FromStr for ChatCommand {
     type Err = ();
 
+    #[allow(clippy::manual_strip)]
     fn from_str(keyword: &str) -> Result<ChatCommand, ()> {
         let kwd = if keyword.starts_with('/') {
             &keyword[1..]

@@ -21,16 +21,16 @@ benchmarks:
     max: 2
 
 # Coverage is needed on master for the README.md badge to work
-# tmp remove platform_intrinsics from vek as it doesnt work with tarpaulin
+# tmp remove simd as it doesnt work with tarpaulin: https://github.com/rust-lang/rust/issues/77529
 coverage:
-  extends: .recompile-branch
+  extends: .recompile
   stage: build
   script:
     - ln -s /dockercache/cache-tarpaulin target
     - find ./* -name "Cargo.toml" -exec sed -i 's/, "simd"]/]/g' {} \;
     - find ./* -name "Cargo.toml" -exec sed -i 's/"simd"]/]/g' {} \;
     - sed -i 's/vek /#vek /g' ./Cargo.toml;
-    - cargo tarpaulin -v --test-threads=2
+    - cargo tarpaulin -v -- --test-threads=2
   retry:
     max: 2
 

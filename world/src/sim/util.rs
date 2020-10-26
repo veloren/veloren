@@ -236,11 +236,11 @@ pub fn local_cells(map_size_lg: MapSizeLg, posi: usize) -> impl Clone + Iterator
 }
 
 // Note that we should already have okay cache locality since we have a grid.
-pub fn uphill<'a>(
+pub fn uphill(
     map_size_lg: MapSizeLg,
-    dh: &'a [isize],
+    dh: &[isize],
     posi: usize,
-) -> impl Clone + Iterator<Item = usize> + 'a {
+) -> impl Clone + Iterator<Item = usize> + '_ {
     neighbors(map_size_lg, posi).filter(move |&posj| dh[posj] == posi as isize)
 }
 
