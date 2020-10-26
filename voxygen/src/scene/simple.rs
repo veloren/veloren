@@ -33,7 +33,7 @@ impl BaseVol for VoidVol {
     type Vox = ();
 }
 impl ReadVol for VoidVol {
-    fn get<'a>(&'a self, _pos: Vec3<i32>) -> Result<&'a Self::Vox, Self::Error> { Ok(&()) }
+    fn get(&self, _pos: Vec3<i32>) -> Result<&'_ Self::Vox, Self::Error> { Ok(&()) }
 }
 
 fn generate_mesh<'a>(

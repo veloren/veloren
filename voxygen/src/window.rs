@@ -1253,23 +1253,18 @@ impl Window {
     pub fn set_fullscreen_mode(&mut self, fullscreen: FullScreenSettings) {
         let window = self.window.window();
         self.fullscreen = fullscreen;
-        window.set_fullscreen(
-            fullscreen
-                .enabled
-                .then(|| match fullscreen.mode {
-                    FullscreenMode::Exclusive => {
-                        winit::window::Fullscreen::Exclusive(self.select_video_mode(
-                            fullscreen.resolution,
-                            fullscreen.bit_depth,
-                            fullscreen.refresh_rate,
-                        ))
-                    },
-                    FullscreenMode::Borderless => {
-                        winit::window::Fullscreen::Borderless(window.current_monitor())
-                    },
-                })
-                .or_else(|| None),
-        );
+        window.set_fullscreen(fullscreen.enabled.then(|| match fullscreen.mode {
+            FullscreenMode::Exclusive => {
+                winit::window::Fullscreen::Exclusive(self.select_video_mode(
+                    fullscreen.resolution,
+                    fullscreen.bit_depth,
+                    fullscreen.refresh_rate,
+                ))
+            },
+            FullscreenMode::Borderless => {
+                winit::window::Fullscreen::Borderless(window.current_monitor())
+            },
+        }));
     }
 
     pub fn needs_refresh_resize(&mut self) { self.needs_refresh_resize = true; }
