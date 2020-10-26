@@ -20,15 +20,19 @@ benchmarks:
   retry:
     max: 2
 
-# # Coverage is needed on master for the README.md badge to work
-# coverage:
-#   extends: .recompile
-#   stage: build
-#   script:
-#     - ln -s /dockercache/cache-tarpaulin target
-#     - cargo tarpaulin -v
-#   retry:
-#     max: 2
+# Coverage is needed on master for the README.md badge to work
+# tmp remove platform_intrinsics from vek as it doesnt work with tarpaulin
+coverage:
+  extends: .recompile-branch
+  stage: build
+  script:
+    - ln -s /dockercache/cache-tarpaulin target
+    - find ./* -name "Cargo.toml" -exec sed -i 's/, "simd"]/]/g' {} \;
+    - find ./* -name "Cargo.toml" -exec sed -i 's/"simd"]/]/g' {} \;
+    - sed -i 's/vek /#vek /g' ./Cargo.toml;
+    - cargo tarpaulin -v --test-threads=2
+  retry:
+    max: 2
 
 #linux, windows, macos builds here as template
 .tlinux:

@@ -493,7 +493,10 @@ impl FigureMgr {
             let collides_with_aabr = |a: math::Aabr<f32>, b: math::Aabr<f32>| {
                 let min = math::Vec4::new(a.min.x, a.min.y, b.min.x, b.min.y);
                 let max = math::Vec4::new(b.max.x, b.max.y, a.max.x, a.max.y);
-                min.partial_cmple_simd(max).reduce_and()
+                #[cfg(feature = "simd")]
+                return min.partial_cmple_simd(max).reduce_and();
+                #[cfg(not(feature = "simd"))]
+                return min.partial_cmple(&max).reduce_and();
             };
             move |pos: (anim::vek::Vec3<f32>,), radius: f32| {
                 // Short circuit when there are no shadows to cast.
