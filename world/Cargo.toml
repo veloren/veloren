@@ -4,6 +4,11 @@ version = "0.7.0"
 authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 edition = "2018"
 
+[features]
+simd = ["vek/platform_intrinsics"]
+
+default = ["simd"]
+
 [dependencies]
 bincode = "1.2.0"
 common = { package = "veloren-common", path = "../common" }
@@ -11,7 +16,7 @@ bitvec = "0.17.4"
 fxhash = "0.2.1"
 image = { version = "0.23.8", default-features = false, features = ["png"] }
 itertools = "0.9"
-vek = { version = "0.12.0", features = ["platform_intrinsics", "serde"] }
+vek = { version = "0.12.0", features = ["serde"] }
 noise = { version = "0.6.0", default-features = false }
 num = "0.2"
 ordered-float = "1.0"
@@ -21,7 +26,7 @@ tracing = { version = "0.1", default-features = false }
 rand = "0.7"
 rand_chacha = "0.2.1"
 arr_macro = "0.1.2"
-packed_simd = "0.3.3"
+packed_simd = { version = "0.3.4", package = "packed_simd_2" }
 rayon = "^1.3.0"
 serde = { version = "1.0.110", features = ["derive"] }
 ron = { version = "0.6", default-features = false }

@@ -403,7 +403,7 @@ impl fmt::Display for KeyMouse {
             Key(Numpad9) => "Numpad 9",
             Key(AbntC1) => "Abnt C1",
             Key(AbntC2) => "Abnt C2",
-            Key(Add) => "Numpad +",
+            Key(NumpadAdd) => "Numpad +",
             Key(Apostrophe) => "'",
             Key(Apps) => "Context Menu",
             Key(At) => "@",
@@ -414,8 +414,8 @@ impl fmt::Display for KeyMouse {
             Key(Colon) => ":",
             Key(Comma) => ",",
             Key(Convert) => "Convert",
-            Key(Decimal) => "Numpad .",
-            Key(Divide) => "Numpad /",
+            Key(NumpadDecimal) => "Numpad .",
+            Key(NumpadDivide) => "Numpad /",
             Key(Equals) => "=",
             Key(Grave) => "`",
             Key(Kana) => "Kana",
@@ -429,7 +429,7 @@ impl fmt::Display for KeyMouse {
             Key(MediaSelect) => "MediaSelect",
             Key(MediaStop) => "MediaStop",
             Key(Minus) => "-",
-            Key(Multiply) => "Numpad *",
+            Key(NumpadMultiply) => "Numpad *",
             Key(Mute) => "Mute",
             Key(MyComputer) => "My Computer",
             Key(NavigateForward) => "Navigate Forward",
@@ -453,7 +453,7 @@ impl fmt::Display for KeyMouse {
             Key(Slash) => "/",
             Key(Sleep) => "Sleep",
             Key(Stop) => "Media Stop",
-            Key(Subtract) => "Num -",
+            Key(NumpadSubtract) => "Num -",
             Key(Sysrq) => "Sysrq",
             Key(Tab) => "Tab",
             Key(Underline) => "_",
@@ -472,6 +472,8 @@ impl fmt::Display for KeyMouse {
             Key(Copy) => "Copy",
             Key(Paste) => "Paste",
             Key(Cut) => "Cut",
+            Key(Asterisk) => "*",
+            Key(Plus) => "+",
             Mouse(MouseButton::Left) => "M1",
             Mouse(MouseButton::Right) => "M2",
             Mouse(MouseButton::Middle) => "M3",
@@ -1087,6 +1089,7 @@ impl Window {
             let window = self.window.window();
             window
                 .current_monitor()
+                .unwrap()
                 .video_modes()
                 .filter(|mode| mode.size().width == resolution[0] as u32)
                 .filter(|mode| mode.size().height == resolution[1] as u32)
@@ -1237,7 +1240,7 @@ impl Window {
                 self
                     .window
                     .window()
-                    .current_monitor()
+                    .current_monitor().unwrap()
                     .video_modes()
                     // Prefer bit depth over refresh rate
                     .sorted_by_key(|mode| mode.refresh_rate())
