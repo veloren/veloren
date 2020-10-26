@@ -43,11 +43,13 @@ impl Animation for BeamAnimation {
         next.hand_l.orientation = Quaternion::rotation_x(1.27) * Quaternion::rotation_y(0.0);
         next.hand_r.position = Vec3::new(0.0, 0.0, 2.0);
         next.hand_r.orientation = Quaternion::rotation_x(1.57) * Quaternion::rotation_y(0.2);
-        next.main.position = Vec3::new(0.0, 8.0, 13.2);
+        next.main.position = Vec3::new(0.0, 0.0, 13.2);
         next.main.orientation = Quaternion::rotation_y(PI);
 
         next.control.position = Vec3::new(-4.0, 7.0, 4.0);
-        next.control.orientation = Quaternion::rotation_x(-0.3) * Quaternion::rotation_y(0.15);
+        next.control.orientation = Quaternion::rotation_x(-0.3)
+            * Quaternion::rotation_y(0.15)
+            * Quaternion::rotation_z(0.0);
 
         match active_tool_kind {
             Some(ToolKind::Staff(_)) | Some(ToolKind::Sceptre(_)) => {
@@ -110,6 +112,7 @@ impl Animation for BeamAnimation {
             },
             _ => {},
         }
+
         next
     }
 }

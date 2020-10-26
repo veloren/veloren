@@ -46,7 +46,7 @@ impl Animation for LeapAnimation {
             next.hand_r.position = Vec3::new(2.0, 0.0, 0.0);
             next.hand_r.orientation = Quaternion::rotation_x(PI) * Quaternion::rotation_y(0.0);
             next.hand_r.scale = Vec3::one() * 1.04;
-            next.main.position = Vec3::new(0.0, 0.0, 12.0);
+            next.main.position = Vec3::new(0.0, 0.0, 0.0);
             next.main.orientation = Quaternion::rotation_y(-1.57) * Quaternion::rotation_z(1.57);
 
             next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
@@ -110,7 +110,8 @@ impl Animation for LeapAnimation {
 
             next.torso.orientation = Quaternion::rotation_x(
                 -0.3 + movement2 * -1.8 * PI + movement3 * -0.2 * PI + movement4 * -0.1 * PI,
-            );
+            ) * Quaternion::rotation_y(0.0)
+                * Quaternion::rotation_z(0.0);
 
             next.head.orientation =
                 Quaternion::rotation_x(0.0 + movement1 * -0.4 + movement2 * 0.4 + movement3 * 0.2);
@@ -135,7 +136,6 @@ impl Animation for LeapAnimation {
                 Quaternion::rotation_x(movement1 * 0.3 + movement2 * 0.1);
 
             next.upper_torso.position = Vec3::new(0.0, s_a.upper_torso.0, s_a.upper_torso.1 - 8.0);
-            next.torso.position = Vec3::new(0.0, 0.0, 0.0 + 8.0);
         }
 
         next

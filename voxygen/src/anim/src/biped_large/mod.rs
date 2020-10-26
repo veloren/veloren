@@ -294,17 +294,17 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             },
             shl: match (body.species, body.body_type) {
                 (Dullahan, _) => (-4.75, -11.0, 8.5, 1.47, -0.2, 0.0),
-                (Mightysaurok, _) => (-4.75, -11.0, 8.5, 1.47, -0.2, 0.0),
+                (Mightysaurok, _) => (-1.75, -9.0, 3.5, 1.47, -0.2, 0.0),
                 (_, _) => (-4.75, -1.0, 2.5, 1.47, -0.2, 0.0),
             },
             shr: match (body.species, body.body_type) {
                 (Dullahan, _) => (5.75, -11.5, 4.5, 1.47, 0.3, 0.0),
-                (Mightysaurok, _) => (-4.75, -11.0, 8.5, 1.47, -0.2, 0.0),
+                (Mightysaurok, _) => (2.75, -9.5, -0.5, 1.47, 0.3, 0.0),
                 (_, _) => (3.75, -1.5, -0.5, 1.47, 0.3, 0.0),
             },
             sc: match (body.species, body.body_type) {
                 (Dullahan, _) => (-7.0, 17.0, -16.0, -0.1, 0.0, 0.0),
-                (Mightysaurok, _) => (-4.75, -11.0, 8.5, 1.47, -0.2, 0.0),
+                (Mightysaurok, _) => (-7.0, 15.0, -11.0, -0.1, 0.0, 0.0),
                 (_, _) => (-7.0, 7.0, -10.0, -0.1, 0.0, 0.0),
             },
             hhl: match (body.species, body.body_type) {
@@ -326,18 +326,18 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (_, _) => (8.5, 6.0, -12.0, -0.57, -1.57, 1.0),
             },
             sthl: match (body.species, body.body_type) {
-                (Ogre, Female) => (11.0, 5.0, -4.0, 1.27, 0.0, 0.0),
-                (Occultsaurok, _) => (11.0, 5.0, -4.0, 1.27, 0.0, 0.0),
+                (Ogre, Female) => (-1.0, -5.0, 12.0, 1.27, 0.0, 0.0),
+                (Occultsaurok, _) => (-1.0, -7.0, 12.0, 1.27, 0.0, 0.0),
                 (_, _) => (11.0, 5.0, -4.0, 1.27, 0.0, 0.0),
             },
             sthr: match (body.species, body.body_type) {
-                (Ogre, Female) => (17.0, 7.5, 2.0, 1.57, 0.8, 0.0),
-                (Occultsaurok, _) => (17.0, 7.5, 2.0, 1.57, 0.8, 0.0),
+                (Ogre, Female) => (5.0, -3.5, 18.0, 1.57, 0.8, 0.0),
+                (Occultsaurok, _) => (7.0, -3.5, 18.0, 1.57, 0.8, 0.0),
                 (_, _) => (17.0, 7.5, 2.0, 1.57, 0.8, 0.0),
             },
             stc: match (body.species, body.body_type) {
                 (Ogre, Female) => (-18.0, 1.0, -2.0, -0.3, 0.15, 0.0),
-                (Occultsaurok, _) => (-18.0, 1.0, -2.0, -0.3, 0.15, 0.0),
+                (Occultsaurok, _) => (-10.0, 7.0, -22.0, -0.3, 0.15, 0.0),
                 (_, _) => (-18.0, 1.0, -2.0, -0.3, 0.15, 0.0),
             },
             ahl: match (body.species, body.body_type) {
@@ -350,15 +350,15 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (_, _) => (-8.0, 11.0, 3.0, 2.0, 0.0, 3.14),
             },
             bhl: match (body.species, body.body_type) {
-                (Slysaurok, _) => (3.0, 2.5, 0.0, 1.2, -0.6, -0.3),
+                (Slysaurok, _) => (-1.0, -12.0, 1.0, 1.57, 0.0, 0.0),
                 (_, _) => (3.0, 2.5, 0.0, 1.2, -0.6, -0.3),
             },
             bhr: match (body.species, body.body_type) {
-                (Slysaurok, _) => (3.0, 2.5, 0.0, 1.2, -0.6, -0.3),
+                (Slysaurok, _) => (0.0, -6.0, -2.0, 1.57, 0.0, 0.0),
                 (_, _) => (5.9, 5.5, -5.0, 1.2, -0.6, -0.3),
             },
             bc: match (body.species, body.body_type) {
-                (Slysaurok, _) => (3.0, 2.5, 0.0, 1.2, -0.6, -0.3),
+                (Slysaurok, _) => (1.0, 13.0, -8.0, 0.0, 1.2, -0.6),
                 (_, _) => (-7.0, 3.0, -8.0, 0.0, 0.0, 0.0),
             },
             beast: matches!((body.species, body.body_type), (Werewolf, _)),

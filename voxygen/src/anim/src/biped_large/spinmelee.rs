@@ -63,20 +63,20 @@ impl Animation for SpinMeleeAnimation {
 
         match active_tool_kind {
             Some(ToolKind::Sword(_)) => {
-                next.hand_l.position = Vec3::new(-0.75, -1.0, 2.5);
-                next.hand_l.orientation =
-                    Quaternion::rotation_x(1.47) * Quaternion::rotation_y(-0.2);
-                next.hand_r.position = Vec3::new(0.75, -1.5, -0.5);
-                next.hand_r.orientation =
-                    Quaternion::rotation_x(1.47) * Quaternion::rotation_y(0.3);
-                next.main.position = Vec3::new(3.0, 6.0, -5.0);
-                next.main.orientation = Quaternion::rotation_x(-0.1)
-                    * Quaternion::rotation_y(0.0)
-                    * Quaternion::rotation_z(0.0);
+                next.main.position = Vec3::new(0.0, 0.0, 0.0);
+                next.main.orientation = Quaternion::rotation_x(0.0);
 
-                next.control.position = Vec3::new(-7.0, 7.0, 2.0);
-                next.control.orientation = Quaternion::rotation_x(-PI / 2.0 + movement3 * PI / 2.0)
-                    * Quaternion::rotation_z(-PI / 2.0 + movement3 * PI / 2.0);
+                next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
+                next.hand_l.orientation =
+                    Quaternion::rotation_x(s_a.shl.3) * Quaternion::rotation_y(s_a.shl.4);
+                next.hand_r.position = Vec3::new(s_a.shr.0, s_a.shr.1, s_a.shr.2);
+                next.hand_r.orientation =
+                    Quaternion::rotation_x(s_a.shr.3) * Quaternion::rotation_y(s_a.shr.4);
+
+                next.control.position = Vec3::new(s_a.sc.0, s_a.sc.1, s_a.sc.2);
+                next.control.orientation =
+                    Quaternion::rotation_x(s_a.sc.3 - PI / 2.0 + movement3 * PI / 2.0)
+                        * Quaternion::rotation_z(s_a.sc.5 - PI / 2.0 + movement3 * PI / 2.0);
                 next.torso.orientation = Quaternion::rotation_z(movement2 * PI * 2.0);
 
                 next.upper_torso.position = Vec3::new(0.0, s_a.upper_torso.0, s_a.upper_torso.1);
@@ -98,25 +98,30 @@ impl Animation for SpinMeleeAnimation {
                 next.control.orientation =
                     Quaternion::rotation_x(-1.4) * Quaternion::rotation_z(1.4);
 
-                next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
                 next.head.orientation =
                     Quaternion::rotation_x(-0.15) * Quaternion::rotation_y(0.08);
                 next.upper_torso.position =
                     Vec3::new(0.0, s_a.upper_torso.0 - 3.0, s_a.upper_torso.1 - 2.0);
-                next.upper_torso.orientation =
-                    Quaternion::rotation_x(-0.1) * Quaternion::rotation_y(0.3);
+                next.upper_torso.orientation = Quaternion::rotation_z(0.0)
+                    * Quaternion::rotation_x(-0.1)
+                    * Quaternion::rotation_y(0.3);
 
                 next.lower_torso.position = Vec3::new(0.0, 3.0, -2.5);
-                next.lower_torso.orientation = Quaternion::rotation_x(0.7);
+                next.lower_torso.orientation = Quaternion::rotation_z(0.0)
+                    * Quaternion::rotation_x(0.7)
+                    * Quaternion::rotation_y(0.0);
                 next.torso.position = Vec3::new(
                     -xshift * (anim_time as f32).min(0.6),
                     -yshift * (anim_time as f32).min(0.6),
                     0.0,
-                ) * 1.01;
-                next.torso.orientation = Quaternion::rotation_z(spin * -16.0);
+                );
+                next.torso.orientation = Quaternion::rotation_z(spin * -16.0)
+                    * Quaternion::rotation_x(0.0)
+                    * Quaternion::rotation_y(0.0);
                 if velocity.z.abs() > 0.1 {
                     next.foot_l.position = Vec3::new(-s_a.foot.0, 8.0, s_a.foot.2 + 2.0);
-                    next.foot_l.orientation = Quaternion::rotation_x(1.0);
+                    next.foot_l.orientation =
+                        Quaternion::rotation_x(1.0) * Quaternion::rotation_z(0.0);
 
                     next.foot_r.position = Vec3::new(s_a.foot.0, 8.0, s_a.foot.2 + 2.0);
                     next.foot_r.orientation = Quaternion::rotation_x(1.0);
@@ -137,6 +142,7 @@ impl Animation for SpinMeleeAnimation {
             },
             _ => {},
         }
+
         next
     }
 }

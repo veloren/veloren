@@ -2,12 +2,21 @@ use super::{
     super::{vek::*, Animation},
     BipedLargeSkeleton, SkeletonAttr,
 };
+use common::comp::item::ToolKind;
 use std::{f32::consts::PI, ops::Mul};
 
 pub struct RunAnimation;
 
 impl Animation for RunAnimation {
-    type Dependency = (f32, Vec3<f32>, Vec3<f32>, f64, Vec3<f32>);
+    type Dependency = (
+        Option<ToolKind>,
+        Option<ToolKind>,
+        f32,
+        Vec3<f32>,
+        Vec3<f32>,
+        f64,
+        Vec3<f32>,
+    );
     type Skeleton = BipedLargeSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -16,7 +25,15 @@ impl Animation for RunAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_run")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (velocity, orientation, last_ori, global_time, avg_vel): Self::Dependency,
+        (
+            active_tool_kind,
+            _second_tool_kind,
+            velocity,
+            orientation,
+            last_ori,
+            global_time,
+            avg_vel,
+        ): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -279,10 +296,33 @@ impl Animation for RunAnimation {
                 * Quaternion::rotation_y(0.0)
                 * Quaternion::rotation_z(0.0);
 
-            next.main.position = Vec3::new(-5.0, -7.0, 7.0);
-            next.main.orientation = Quaternion::rotation_x(PI)
-                * Quaternion::rotation_y(0.6)
-                * Quaternion::rotation_z(1.57);
+            match active_tool_kind {
+                Some(ToolKind::Bow(_)) => {
+                    next.main.position = Vec3::new(-2.0, -5.0, -6.0);
+                    next.main.orientation =
+                        Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
+                },
+                Some(ToolKind::Staff(_)) | Some(ToolKind::Sceptre(_)) => {
+                    next.main.position = Vec3::new(-6.0, -5.0, -12.0);
+                    next.main.orientation =
+                        Quaternion::rotation_y(0.6) * Quaternion::rotation_z(1.57);
+                },
+                Some(ToolKind::Sword(_)) => {
+                    next.main.position = Vec3::new(-10.0, -8.0, 12.0);
+                    next.main.orientation =
+                        Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
+                },
+                Some(ToolKind::Hammer(_)) => {
+                    next.main.position = Vec3::new(-10.0, -8.0, 12.0);
+                    next.main.orientation =
+                        Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
+                },
+                _ => {
+                    next.main.position = Vec3::new(-2.0, -5.0, -6.0);
+                    next.main.orientation =
+                        Quaternion::rotation_y(0.6) * Quaternion::rotation_z(1.57);
+                },
+            }
 
             next.shoulder_l.position = Vec3::new(
                 -s_a.shoulder.0,

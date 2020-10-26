@@ -130,6 +130,7 @@ impl Animation for WieldAnimation {
 
             next.main.position = Vec3::new(0.0, 0.0, 0.0);
             next.main.orientation = Quaternion::rotation_y(0.0);
+            next.hold.scale = Vec3::one() * 0.0;
 
             if velocity > 0.5 {
                 next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1) * 1.02;
@@ -233,15 +234,14 @@ impl Animation for WieldAnimation {
                     next.main.position = Vec3::new(0.0, 0.0, 0.0);
                     next.main.orientation = Quaternion::rotation_y(0.0);
 
-                    next.hold.position = Vec3::new(1.2, -1.0, -14.2);
-                    next.hold.orientation = Quaternion::rotation_x(-1.7)
-                        * Quaternion::rotation_y(0.0)
-                        * Quaternion::rotation_z(-0.1);
+                    next.hold.position = Vec3::new(0.0, -1.0, -15.2);
+                    next.hold.orientation = Quaternion::rotation_x(-1.57);
                     next.hold.scale = Vec3::one() * 1.0;
 
                     next.control.position = Vec3::new(s_a.bc.0, s_a.bc.1, s_a.bc.2);
-                    next.control.orientation = Quaternion::rotation_x(u_slow * 0.2)
-                        * Quaternion::rotation_z(u_slowalt * 0.1);
+                    next.control.orientation = Quaternion::rotation_x(u_slow * 0.06)
+                        * Quaternion::rotation_y(s_a.bc.4)
+                        * Quaternion::rotation_z(s_a.bc.5 + u_slowalt * 0.1);
                 },
                 Some(ToolKind::Hammer(_)) => {
                     next.hand_l.position = Vec3::new(s_a.hhl.0, s_a.hhl.1, s_a.hhl.2);
