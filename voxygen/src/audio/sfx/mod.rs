@@ -135,6 +135,7 @@ impl SfxEventItem {
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
 pub enum SfxEvent {
+    Embers,
     Idle,
     Run,
     Roll,
