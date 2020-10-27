@@ -3,7 +3,11 @@ ItemDef(
     description: "Increases Exp by 10\n\nSmall runes sparkle on its surface",
     kind: Consumable(
         kind: "VeloriteFrag",
-        effect: Xp(10),
+        effect: Some(
+            [
+                Xp(10),
+            ]
+        ),
     ),
-    quality: Moderate,     
+    quality: Moderate,
 )

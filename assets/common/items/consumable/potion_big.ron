@@ -3,10 +3,14 @@ ItemDef(
     description: "Restores 100 Health",
     kind: Consumable(
         kind: "PotionLarge",
-        effect: Health((
-            amount: 1000,
-            cause: Item,
-        )),
+        effect: Some(
+            [
+                Health((
+                    amount: 1000,
+                    cause: Item,
+                )),
+            ]
+        ),
     ),
     quality: Common,
 )

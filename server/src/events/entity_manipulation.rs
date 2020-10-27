@@ -649,7 +649,7 @@ pub fn handle_explosion(
 
                         if is_alive {
                             effect.modify_strength(strength);
-                            server.state().apply_effect(entity_b, effect, owner);
+                            server.state().apply_effect(entity_b, effect.clone(), owner);
                             // Apply energy change
                             if let Some(owner) = owner_entity {
                                 if let Some(energy) =

@@ -1,12 +1,23 @@
 ItemDef(
     name: "Apple",
-    description: "Restores 10 Health\n\nRed and juicy",
+    description: "Restores 10 Health over 10 seconds\n\nRed and juicy",
     kind: Consumable(
         kind: "Apple",
-        effect: Health((
-            amount: 100,
-            cause: Item,
-        )),        
+        effect: Some(
+            [
+                Buff((
+                    kind: Saturation,
+                    data: (
+                        strength: 10.0,
+                        duration: Some((
+                                secs: 10,
+                                nanos: 0,
+                            )),
+                        ),
+                    cat_ids: [Natural],
+                )),
+            ]
+        ),
     ),
     quality: Common,
 )
