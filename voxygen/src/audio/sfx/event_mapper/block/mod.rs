@@ -1,7 +1,7 @@
 /// EventMapper::Block watches the sound emitting blocks in the same
 /// chunk as the player and emits ambient sfx
 use crate::{
-    audio::sfx::{SfxEvent, SfxEventItem, SfxTriggers, SFX_DIST_LIMIT_SQR},
+    audio::sfx::{SfxEvent, SfxEventItem, SfxTriggerItem, SfxTriggers, SFX_DIST_LIMIT_SQR},
     scene::{terrain::BlocksOfInterest, Camera, Terrain},
 };
 
@@ -10,22 +10,49 @@ use common::{
     comp::Pos, event::EventBus, spiral::Spiral2d, state::State, terrain::TerrainChunk,
     vol::RectRasterableVol,
 };
+use hashbrown::HashMap;
 use rand::{prelude::SliceRandom, thread_rng};
-use specs::{Join, WorldExt};
+use specs::WorldExt;
 use std::time::Instant;
 use vek::*;
 
-enum BlockEmitter {
-    Leaves,
-    Grass,
-    Embers,
-    Beehives,
-    Reeds,
-    Flowers,
+//enum BlockEmitter {
+//    Leaves,
+//    Grass,
+//    Embers,
+//    Beehives,
+//    Reeds,
+//    Flowers,
+//}
+
+#[derive(Clone, PartialEq)]
+struct PreviousBlockState {
+    event: SfxEvent,
+    time: Instant,
+}
+
+impl Default for PreviousBlockState {
+    fn default() -> Self {
+        Self {
+            event: SfxEvent::Idle,
+            time: Instant::now(),
+        }
+    }
+}
+
+impl PreviousBlockState {
+    fn new(event: SfxEvent, pos: Vec3<f32>) -> Self {
+        PreviousBlockState {
+            event,
+            time: Instant::now(),
+        }
+    }
 }
 
 pub struct BlockEventMapper {
     timer: Instant,
+    counter: usize,
+    history: HashMap<Vec3<i32>, PreviousBlockState>,
 }
 
 impl EventMapper for BlockEventMapper {
@@ -45,13 +72,6 @@ impl EventMapper for BlockEventMapper {
         let focus_off = camera.get_focus_pos().map(f32::trunc);
         let cam_pos = camera.dependents().cam_pos + focus_off;
 
-        //for (entity, pos) in (&ecs.entities(), &ecs.read_storage::<Pos>())
-        //    .join()
-        //    .filter(|(_, e_pos, ..)| (e_pos.0.distance_squared(cam_pos)) <
-        // SFX_DIST_LIMIT_SQR)
-        //{
-        //}
-
         let player_pos = state
             .read_component_copied::<Pos>(player_entity)
             .unwrap_or_default();
@@ -64,153 +84,193 @@ impl EventMapper for BlockEventMapper {
             blocks: fn(&'a BlocksOfInterest) -> &'a [Vec3<i32>],
             // The range, in chunks, that the particles should be generated in from the player
             range: usize,
-            // The emission rate, per block per second, of the generated particles
-            rate: f32,
-            // The number of seconds that each particle should live for
-            lifetime: f32,
+            // The spacing between sfx, per block, seconds
+            spacing: f32,
             // The sound of the generated particle
-            sound: SfxEvent,
+            sfx: SfxEvent,
+            // The volume of the sfx
+            volume: f32,
             // Condition that must be true
             cond: fn(&State) -> bool,
         }
         let sounds: &[BlockSounds] = &[
-            BlockSounds {
-                blocks: |boi| &boi.leaves,
-                range: 4,
-                rate: 0.1,
-                lifetime: 3.0,
-                sound: SfxEvent::LevelUp,
-                cond: |_| true,
-            },
+            //BlockSounds {
+            //    blocks: |boi| &boi.leaves,
+            //    range: 4,
+            //    spacing: 1.5,
+            //    sfx: SfxEvent::LevelUp,
+            //    volume: 1.0
+            //    cond: |_| true,
+            //},
             BlockSounds {
                 blocks: |boi| &boi.embers,
-                range: 2,
-                rate: 0.5,
-                lifetime: 2.25,
-                sound: SfxEvent::Roll,
-                cond: |_| true,
-            },
-            BlockSounds {
-                blocks: |boi| &boi.reeds,
-                range: 6,
-                rate: 0.4,
-                lifetime: 4.0,
-                sound: SfxEvent::Roll,
-                cond: |st| st.get_day_period().is_dark(),
-            },
-            BlockSounds {
-                blocks: |boi| &boi.flowers,
-                range: 5,
-                rate: 0.2,
-                lifetime: 4.0,
-                sound: SfxEvent::Roll,
-                cond: |st| st.get_day_period().is_dark(),
-            },
-            BlockSounds {
-                blocks: |boi| &boi.beehives,
                 range: 3,
-                rate: 0.5,
-                lifetime: 3.0,
-                sound: SfxEvent::Roll,
-                cond: |st| st.get_day_period().is_light(),
+                spacing: 1.2,
+                sfx: SfxEvent::Embers,
+                volume: 0.5,
+                //volume: 0.05,
+                cond: |_| true,
+                //cond: |st| st.get_day_period().is_dark(),
             },
+            //BlockSounds {
+            //    blocks: |boi| &boi.reeds,
+            //    range: 4,
+            //    spacing: 2.0,
+            //    sfx: SfxEvent::Run,
+            //    volume: 1.0,
+            //    //cond: |st| st.get_day_period().is_dark(),
+            //    cond: |_| true,
+            //},
+            //BlockSounds {
+            //    blocks: |boi| &boi.flowers,
+            //    range: 4,
+            //    spacing: 2.5,
+            //    sfx: SfxEvent::LevelUp,
+            //    volume: 1.0,
+            //    cond: |st| st.get_day_period().is_dark(),
+            //},
+            //BlockSounds {
+            //    blocks: |boi| &boi.grass,
+            //    range: 4,
+            //    spacing: 2.5,
+            //    sfx: SfxEvent::Roll,
+            //    volume: 1.0,
+            //    //cond: |st| st.get_day_period().is_light(),
+            //    cond: |_| false,
+            //},
+            //BlockSounds {
+            //    blocks: |boi| &boi.beehives,
+            //    range: 4,
+            //    spacing: 1.5,
+            //    sfx: SfxEvent::Roll,
+            //    volume: 1.0,
+            //    //cond: |st| st.get_day_period().is_light(),
+            //    cond: |_| true,
+            //},
         ];
         let mut rng = thread_rng();
+
+        // Iterate through each kind of block of interest
         for sounds in sounds.iter() {
             if !(sounds.cond)(state) {
                 continue;
             }
+            // For chunks surrounding the player position
             for offset in Spiral2d::new().take((sounds.range * 2 + 1).pow(2)) {
                 let chunk_pos = player_chunk + offset;
 
+                // Get all the blocks of interest in this chunk
                 terrain.get(chunk_pos).map(|chunk_data| {
+                    // Get all the blocks of type sounds
                     let blocks = (sounds.blocks)(&chunk_data.blocks_of_interest);
-                    let block_pos: Vec3<i32> =
-                        Vec3::from(chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32))
-                            + blocks
-                                .choose(&mut rng)
-                                .copied()
-                                .unwrap_or_else(|| Vec3::new(0, 0, 0));
 
-                    let block_pos = Vec3::new(
-                        block_pos[0] as f32,
-                        block_pos[1] as f32,
-                        block_pos[2] as f32,
-                    );
+                    let absolute_pos: Vec3<i32> =
+                        Vec3::from(chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32));
 
-                    if (block_pos.distance_squared(cam_pos)) < SFX_DIST_LIMIT_SQR {
-                        if let Some(mapped_event) = self.map_event(BlockEmitter::Leaves) {
-                            let sfx_trigger_item = triggers.get_trigger(&mapped_event);
-                            if sfx_trigger_item.is_some() {
-                                println!("sound");
-                                ecs.read_resource::<EventBus<SfxEventItem>>().emit_now(
-                                    SfxEventItem::new(
-                                        mapped_event.clone(),
-                                        Some(block_pos),
-                                        Some(1.0),
-                                    ),
-                                );
-                            }
+                    // Iterate through each individual block
+                    for block in blocks {
+                        let block_pos: Vec3<i32> = absolute_pos + block;
+                        let state = self.history.entry(block_pos).or_default();
+
+                        // Convert to f32 for sfx emitter
+                        let block_pos = Vec3::new(
+                            block_pos[0] as f32,
+                            block_pos[1] as f32,
+                            block_pos[2] as f32,
+                        );
+
+                        if Self::should_emit(state, triggers.get_key_value(&sounds.sfx)) {
+                            sfx_emitter.emit(SfxEventItem::new(sounds.sfx.clone(), Some(block_pos), Some(sounds.volume)));
+                            state.time = Instant::now();
+                            state.event = sounds.sfx.clone();
                         }
                     }
+
+                        //// If the timer for this block is over the spacing
+                        //// and the block is in the history
+                        //if self.history.contains_key(&block_pos) {
+                        //    if self
+                        //        .history
+                        //        .get(&block_pos)
+                        //        .unwrap() // can't fail as the key is in the hashmap
+                        //        .elapsed()
+                        //        .as_secs_f32()
+                        //        > sounds.spacing
+                        //    {
+                        //        // Reset timer for this block
+                        //        self.history.insert(block_pos, Instant::now());
+
+                        //        // Convert to f32 for distance_squared function
+                        //        let block_pos = Vec3::new(
+                        //            block_pos[0] as f32,
+                        //            block_pos[1] as f32,
+                        //            block_pos[2] as f32,
+                        //        );
+
+                        //        // If the camera is within SFX distance
+                        //        if (block_pos.distance_squared(cam_pos)) < SFX_DIST_LIMIT_SQR {
+                        //            // Emit the sound
+                        //            let sfx_trigger_item = triggers.get_trigger(&sounds.sfx);
+                        //            if sfx_trigger_item.is_some() {
+                        //                ecs.read_resource::<EventBus<SfxEventItem>>().emit_now(
+                        //                    SfxEventItem::new(
+                        //                        sounds.sfx.clone(),
+                        //                        Some(block_pos),
+                        //                        Some(sounds.volume),
+                        //                    ),
+                        //                );
+                        //            }
+                        //        }
+                        //    }
+                        //} else {
+                        //    // Start the timer for this block
+                        //    self.history.insert(block_pos, Instant::now());
+                        //}
+                    //}
                 });
             }
         }
     }
-    //let leaves_pos = BlocksOfInterest::from_chunk(&player_chunk).leaves;
-    //if leaves_pos.len() > 0 {
-    //    let my_leaf_pos = Vec3::new(
-    //        leaves_pos[0][0] as f32,
-    //        leaves_pos[0][1] as f32,
-    //        leaves_pos[0][2] as f32,
-    //    );
-    //    println!("my leaf pos: {:?}", my_leaf_pos);
-
-    //    if let Some(mapped_event) = self.map_event(BlockEmitter::Leaves) {
-    //        let sfx_trigger_item = triggers.get_trigger(&mapped_event);
-
-    //        if leaves_pos.len() > 0 {
-    //            println!("Num leaves: {:?}", leaves_pos.len());
-    //        }
-    //        //for i in 0..leaves_pos.len() {
-    //        //    if i < 5 {
-    //        if sfx_trigger_item.is_some() {
-    //            println!("sound");
-    //            ecs.read_resource::<EventBus<SfxEventItem>>()
-    //                .emit_now(SfxEventItem::new(
-    //                    mapped_event.clone(),
-    //                    Some(my_leaf_pos),
-    //                    Some(1.0),
-    //                ));
-    //        }
-    //        //    }
-    //        //}
-    //    }
-    //}
 }
 
 impl BlockEventMapper {
     pub fn new() -> Self {
         Self {
             timer: Instant::now(),
+            counter: 0,
+            history: HashMap::new(),
         }
     }
 
-    fn map_event(&mut self, blocktype: BlockEmitter) -> Option<SfxEvent> {
-        if self.timer.elapsed().as_secs_f32() > 1.0 {
-            self.timer = Instant::now();
-            let sfx_event = match blocktype {
-                BlockEmitter::Leaves => Some(SfxEvent::LevelUp),
-                BlockEmitter::Grass => Some(SfxEvent::Roll),
-                BlockEmitter::Embers => Some(SfxEvent::Roll),
-                BlockEmitter::Beehives => Some(SfxEvent::Roll),
-                BlockEmitter::Reeds => Some(SfxEvent::Roll),
-                BlockEmitter::Flowers => Some(SfxEvent::Roll),
-            };
-
-            sfx_event
+    fn should_emit(
+        previous_state: &PreviousBlockState,
+        sfx_trigger_item: Option<(&SfxEvent, &SfxTriggerItem)>,
+    ) -> bool {
+        if let Some((event, item)) = sfx_trigger_item {
+            if &previous_state.event == event {
+                previous_state.time.elapsed().as_secs_f64() >= item.threshold
+            } else {
+                true
+            }
         } else {
-            None
+            false
         }
     }
+    //fn map_event(&mut self, blocktype: BlockEmitter) -> Option<SfxEvent> {
+    //    if self.timer.elapsed().as_secs_f32() > 1.0 {
+    //        self.timer = Instant::now();
+    //        let sfx_event = match blocktype {
+    //            BlockEmitter::Leaves => Some(SfxEvent::LevelUp),
+    //            BlockEmitter::Grass => Some(SfxEvent::Roll),
+    //            BlockEmitter::Embers => Some(SfxEvent::Roll),
+    //            BlockEmitter::Beehives => Some(SfxEvent::Roll),
+    //            BlockEmitter::Reeds => Some(SfxEvent::Roll),
+    //            BlockEmitter::Flowers => Some(SfxEvent::Roll),
+    //        };
+
+    //        sfx_event
+    //    } else {
+    //        None
+    //    }
+    //}
 }

@@ -1,5 +1,14 @@
 (
     {
+        // 
+        // Ambient
+        //
+        Embers: (
+            files: [
+                "voxygen.audio.sfx.ambient.embers",
+            ],
+            threshold: 1.2,
+        ),
         //
         // Character States
         //
