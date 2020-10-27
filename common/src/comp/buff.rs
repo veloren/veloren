@@ -5,16 +5,14 @@ use specs_idvs::IdvStorage;
 use std::{cmp::Ordering, collections::HashMap, time::Duration};
 
 /// De/buff Kind.
-/// This is used to determine what effects a buff will have, as well as
-/// determine the strength and duration of the buff effects using the internal
-/// values
+/// This is used to determine what effects a buff will have
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
 pub enum BuffKind {
     /// Restores health/time for some period
     Regeneration,
     /// Lowers health over time for some duration
     Bleeding,
-    /// Prefixes an entity's name with "Cursed"
+    /// Lower a creature's max health
     /// Currently placeholder buff to show other stuff is possible
     Cursed,
 }
@@ -151,7 +149,9 @@ impl Buff {
 
 impl PartialOrd for Buff {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        if self.data.strength > other.data.strength {
+        if self == other {
+            Some(Ordering::Equal)
+        } else if self.data.strength > other.data.strength {
             Some(Ordering::Greater)
         } else if self.data.strength < other.data.strength {
             Some(Ordering::Less)
@@ -159,8 +159,6 @@ impl PartialOrd for Buff {
             Some(Ordering::Greater)
         } else if compare_duration(other.time, self.time) {
             Some(Ordering::Less)
-        } else if self == other {
-            Some(Ordering::Equal)
         } else {
             None
         }
@@ -173,7 +171,7 @@ fn compare_duration(a: Option<Duration>, b: Option<Duration>) -> bool {
 
 impl PartialEq for Buff {
     fn eq(&self, other: &Self) -> bool {
-        self.data.strength == other.data.strength || self.time == other.time
+        self.data.strength == other.data.strength && self.time == other.time
     }
 }
 
@@ -236,7 +234,6 @@ impl Buffs {
             }
             self.kinds.remove(&kind);
         }
-        self.sort_kind(kind);
     }
 
     pub fn force_insert(&mut self, id: BuffId, buff: Buff) -> BuffId {

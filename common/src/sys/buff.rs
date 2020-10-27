@@ -30,6 +30,7 @@ impl<'a> System<'a> for Sys {
         let mut server_emitter = server_bus.emitter();
         // Set to false to avoid spamming server
         buffs.set_event_emission(false);
+        stats.set_event_emission(false);
         for (entity, buff_comp, uid, stat) in (&entities, &mut buffs, &uids, &mut stats).join() {
             let mut expired_buffs = Vec::<BuffId>::new();
             for (id, buff) in buff_comp.buffs.iter_mut() {
@@ -138,6 +139,8 @@ impl<'a> System<'a> for Sys {
                 });
             }
         }
+        // Turned back to true
         buffs.set_event_emission(true);
+        stats.set_event_emission(true);
     }
 }
