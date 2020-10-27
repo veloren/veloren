@@ -70,7 +70,9 @@ impl Health {
         self.last_change = (0.0, change);
     }
 
-    // This is private because max hp is based on the level
+    // This function changes the modified max health value, not the base health
+    // value. The modified health value takes into account buffs and other temporary
+    // changes to max health.
     pub fn set_maximum(&mut self, amount: u32) {
         self.maximum = amount;
         self.current = self.current.min(self.maximum);
