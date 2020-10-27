@@ -8,8 +8,8 @@ use entity_creation::{
     handle_loaded_character_data, handle_shockwave, handle_shoot,
 };
 use entity_manipulation::{
-    handle_damage, handle_destroy, handle_explosion, handle_knockback, handle_land_on_ground,
-    handle_level_up, handle_respawn,
+    handle_buff, handle_damage, handle_destroy, handle_explosion, handle_knockback,
+    handle_land_on_ground, handle_level_up, handle_respawn,
 };
 use group_manip::handle_group;
 use interaction::{handle_lantern, handle_mount, handle_possess, handle_unmount};
@@ -133,6 +133,10 @@ impl Server {
                 ServerEvent::Chat(msg) => {
                     chat_messages.push(msg);
                 },
+                ServerEvent::Buff {
+                    entity,
+                    buff_change,
+                } => handle_buff(self, entity, buff_change),
             }
         }
 

@@ -65,6 +65,7 @@ VoxygenLocalization(
         "common.create": "Crear",
         "common.okay": "Ok",
         "common.accept": "Aceptar",
+        "common.decline": "Rechazar",
         "common.disclaimer": "Cuidado",
         "common.cancel": "Cancelar",
         "common.none": "Ninguno",
@@ -73,6 +74,13 @@ VoxygenLocalization(
         "common.you": "Tu",
         "common.automatic": "Automatico",
         "common.random": "Aleatorio",
+        // Settings Window title
+        "common.interface_settings": "Ajustes de Interfaz",
+        "common.gameplay_settings": "Ajustes de Jugabilidad",
+        "common.controls_settings": "Ajustes de Controles",
+        "common.video_settings": "Ajustes de Graficos",
+        "common.sound_settings": "Ajustes de Sonido",
+        "common.language_settings": "Ajustes de Idiomas",
 
         // Message when connection to the server is lost
         "common.connection_lost": r#"Conexión perdida!
@@ -89,9 +97,11 @@ El cliente está actualizado?"#,
 
         "common.weapons.axe": "Hacha",
         "common.weapons.sword": "Espada",
-        "common.weapons.staff": "Báculo",
+        "common.weapons.staff": "Vara Mágica",
         "common.weapons.bow": "Arco",
         "common.weapons.hammer": "Martillo",
+        "common.weapons.sceptre": "Cetro curativo",
+        "common.rand_appearance": "Nombre y Apariencia Aleatoria",
         /// End Common section
 
 
@@ -141,6 +151,9 @@ https://account.veloren.net."#,
         "main.login.invalid_character": "El personaje seleccionado no es válido",
         "main.login.client_crashed": "El cliente crasheó",
         "main.login.not_on_whitelist": "No estas en la lista. Contacta al Dueño del Servidor si quieres unirte.",
+        "main.login.banned": "Usted ha sido baneado por la siguiente razón",
+        "main.login.kicked": "Te han echado por la siguiente razón",
+
 
         /// End Main screen section
 
@@ -153,6 +166,7 @@ https://account.veloren.net."#,
         "hud.waypoint_saved": "Marcador Guardado",
 
         "hud.press_key_to_show_keybindings_fmt": "Presiona {key} para mostrar los controles del teclado",
+        "hud.press_key_to_toggle_lantern_fmt": "[{key}] Encender Linterna",
         "hud.press_key_to_show_debug_info_fmt": "Presiona {key} para mostrar información de depuración",
         "hud.press_key_to_toggle_keybindings_fmt": "Presiona {key} para alternar los controles del teclado",
         "hud.press_key_to_toggle_debug_info_fmt": "Presiona {key} para alternar la información de depuración",
@@ -160,6 +174,21 @@ https://account.veloren.net."#,
         // Chat outputs
         "hud.chat.online_msg": "[{name}] se ha conectado.",
         "hud.chat.offline_msg": "[{name}] se ha desconectado.",
+        
+        "hud.chat.default_death_msg": "[{name}] Murió",
+        "hud.chat.environmental_kill_msg": "[{name}] Murió en {environment}",
+        "hud.chat.fall_kill_msg": "[{name}] Murió por el daño de la caída",
+        "hud.chat.suicide_msg": "[{name}] Murió por heridas autoinfligidas",
+
+        "hud.chat.pvp_melee_kill_msg": "[{attacker}] Derroto a [{victim}]",
+        "hud.chat.pvp_ranged_kill_msg": "[{attacker}] Le Disparo a [{victim}]",
+        "hud.chat.pvp_explosion_kill_msg": "[{attacker}] Hizo explotar a [{victim}]",
+        "hud.chat.pvp_energy_kill_msg": "[{attacker}] usó magia para matar [{victim}]",
+
+        "hud.chat.npc_melee_kill_msg": "{attacker} Mató a [{victim}]",
+        "hud.chat.npc_ranged_kill_msg": "{attacker} Le Disparo a [{victim}]",
+        "hud.chat.npc_explosion_kill_msg": "{attacker} Hizo explotar a [{victim}]",
+        
         "hud.chat.loot_msg": "Recogiste [{item}]",
         "hud.chat.loot_fail": "Tu inventario está lleno!",
         "hud.chat.goodbye": "Adiós!",
@@ -197,7 +226,7 @@ Deshazte de ellos haciendo click en ellos y luego arrastralos fuera de la bolsa.
 
 Las noches pueden volverse bastante oscuras en Veloren.
 
-Enciende tu farol escribiendo /lantern en el chat o presionando la G.
+Enciende tu Linterna escribiendo /lantern en el chat o presionando la G.
 
 
 Quieres liberar tu cursor para cerrar esta ventana? Presiona TAB!
@@ -232,6 +261,7 @@ objetos infundidos con magia?"#,
         "hud.bag.chest": "Torso",
         "hud.bag.hands": "Manos",
         "hud.bag.lantern": "Linterna",
+        "hud.bag.glider": "Planeador",
         "hud.bag.belt": "Cinturón",
         "hud.bag.ring": "Anillo",
         "hud.bag.back": "Espalda",
@@ -282,8 +312,8 @@ objetos infundidos con magia?"#,
         "hud.settings.invert_scroll_zoom": "Invertir Desplazamiento de Zoom",
         "hud.settings.invert_mouse_y_axis": "Invertir eje Y del Ratón",
         "hud.settings.enable_mouse_smoothing": "Suavizado de la Cámara",
-        "hud.settings.free_look_behavior": "Comportamiento de vista libre",
-        "hud.settings.auto_walk_behavior": "Comportamiento al caminar automaticamente",
+        "hud.settings.free_look_behavior": "Modo de vista libre",
+        "hud.settings.auto_walk_behavior": "Modo de caminata automática",
         "hud.settings.stop_auto_walk_on_input": "Frenar caminata automática",
 
         "hud.settings.view_distance": "Distancia de Visión",
@@ -292,22 +322,43 @@ objetos infundidos con magia?"#,
         "hud.settings.maximum_fps": "FPS Máximos",
         "hud.settings.fov": "Campo de Visión (grados)",
         "hud.settings.gamma": "Gama",
+        "hud.settings.ambiance": "Brillo del Ambiente",
         "hud.settings.antialiasing_mode": "Modo Anti-Aliasing",
         "hud.settings.cloud_rendering_mode": "Modo de Renderizado de Nubes",
-        "hud.settings.fluid_rendering_mode": "Modo de Renderizado de Fluidos",
-        "hud.settings.fluid_rendering_mode.cheap": "Barato",
-        "hud.settings.fluid_rendering_mode.shiny": "Brillante",
-        "hud.settings.cloud_rendering_mode.regular": "Regular",
+        "hud.settings.fluid_rendering_mode": "Modo de Renderizado del Agua",
+        "hud.settings.fluid_rendering_mode.cheap": "Bajo",
+        "hud.settings.fluid_rendering_mode.shiny": "Alto",
+        "hud.settings.cloud_rendering_mode.regular": "Normal",
         "hud.settings.fullscreen": "Pantalla Completa",
-        "hud.settings.save_window_size": "Guardar tamaño de la ventana",
-
+        "hud.settings.fullscreen_mode": "Modo de Pantalla Completa",
+        "hud.settings.fullscreen_mode.exclusive": "Completo",
+        "hud.settings.fullscreen_mode.borderless": "Con Bordes",
+        "hud.settings.particles": "Particulas",
+        "hud.settings.resolution": "Resolución",
+        "hud.settings.bit_depth": "Profundidad de Bits",
+        "hud.settings.refresh_rate": "Taza de Refresco",
+        "hud.settings.save_window_size": "  Guardar tamaño de ventana",
+        "hud.settings.shadow_rendering_mode": "Renderizado de Sombras",
+        "hud.settings.shadow_rendering_mode.none": "Ninguno",
+        "hud.settings.shadow_rendering_mode.cheap": "Bajo",
+        "hud.settings.shadow_rendering_mode.map": "Alto",
+        "hud.settings.lighting_rendering_mode": "Renderizado de la luz de la Linterna",
+        "hud.settings.lighting_rendering_mode.ashikhmin": "Tipo A",
+        "hud.settings.lighting_rendering_mode.blinnphong": "Tipo B",
+        "hud.settings.lighting_rendering_mode.lambertian": "Tipo L",
+        "hud.settings.shadow_rendering_mode": "Renderizado de Sombras",
+        "hud.settings.shadow_rendering_mode.none": "Ninguno",
+        "hud.settings.shadow_rendering_mode.cheap": "Bajo",
+        "hud.settings.shadow_rendering_mode.map": "Alto",
+        "hud.settings.shadow_rendering_mode.map.resolution": "Resolución",
+        "hud.settings.lod_detail": "Detalle de LoD",
         "hud.settings.music_volume": "Volumen de Musica",
         "hud.settings.sound_effect_volume": "Volumen de Efectos de Sonido",
         "hud.settings.audio_device": "Dispositivo de Audio",
 
         "hud.settings.awaitingkey": "Presiona una tecla...",
         "hud.settings.unbound": "Ninguno",
-        "hud.settings.reset_keybinds": "Reestablecer a los valores predeterminados",
+        "hud.settings.reset_keybinds": "Reestablecer Controles",
 
         "hud.social": "Lista de jugadores",
         "hud.social.online": "En Línea",
@@ -315,12 +366,29 @@ objetos infundidos con magia?"#,
         "hud.social.not_yet_available": "Aún no esta disponible",
         "hud.social.faction": "Facción",
         "hud.social.play_online_fmt": "{nb_player} jugador(es) en línea",
+        "hud.social.name": "Nombre",
+        "hud.social.level": "Nivel",
+        "hud.social.zone": "Zona",
+        "hud.social.account": "Cuenta",
 
         "hud.crafting": "Crafteo",
         "hud.crafting.recipes": "Recetas",
         "hud.crafting.ingredients": "Ingredientes:",
         "hud.crafting.craft": "Fabricar",
         "hud.crafting.tool_cata": "Requisitos:",
+        
+        "hud.group": "Grupo",
+        "hud.group.invite_to_join": "{name} Te invito a su Grupo!",
+        "hud.group.invite": "Invitar",
+        "hud.group.kick": "Echar",
+        "hud.group.assign_leader": "Asignar Lider",
+        "hud.group.leave": "Salir del Grupo",
+        "hud.group.dead" : "Muerto",
+        "hud.group.out_of_range": "Fuera de Alcance",
+        "hud.group.add_friend": "Agregar a Amigos",
+        "hud.group.link_group": "Conectar Grupos",
+        "hud.group.in_menu": "Eligiendo Personaje",
+        "hud.group.members": "Miembros del Grupo",
 
         "hud.spell": "Hechizos",        
 
@@ -381,6 +449,9 @@ objetos infundidos con magia?"#,
         "gameinput.freelook": "Vista Libre",
         "gameinput.autowalk": "Caminata Automática",
         "gameinput.dance": "Bailar",
+        "gameinput.select": "Seleccione la Entidad",
+        "gameinput.acceptgroupinvite": "Aceptar invitación al grupo",
+        "gameinput.declinegroupinvite": "Rechazar invitación al grupo",
         "gameinput.crafting": "Craftear",
         "gameinput.sneak": "Agacharse",
         "gameinput.swimdown": "Sumergirse",
@@ -423,7 +494,7 @@ objetos infundidos con magia?"#,
 
 Estado Físico
 
-Fuerza de Voluntad
+Valentía
 
 Protección
 "#,

@@ -105,7 +105,7 @@ impl<'a> Widget for MiniMap<'a> {
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
         let zoom = state.zoom;
-        const SCALE: f64 = 1.5;
+        const SCALE: f64 = 1.5; // TODO Make this a setting
         if self.show.mini_map {
             Image::new(self.imgs.mmap_frame)
                 .w_h(174.0 * SCALE, 190.0 * SCALE)

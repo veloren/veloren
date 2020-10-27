@@ -601,6 +601,7 @@ impl<'a> System<'a> for Sys {
                     if let comp::HealthSource::Attack { by }
                     | comp::HealthSource::Projectile { owner: Some(by) }
                     | comp::HealthSource::Energy { owner: Some(by) }
+                    | comp::HealthSource::Buff { owner: Some(by) }
                     | comp::HealthSource::Explosion { owner: Some(by) } =
                         my_stats.health.last_change.1.cause
                     {

@@ -1,15 +1,20 @@
 use super::{
-    img_ids::Imgs, Show, BLACK, ERROR_COLOR, GROUP_COLOR, HP_COLOR, KILL_COLOR, LOW_HP_COLOR,
-    MANA_COLOR, TEXT_COLOR, TEXT_COLOR_GREY, UI_HIGHLIGHT_0, UI_MAIN,
+    img_ids::{Imgs, ImgsRot},
+    Show, BLACK, BUFF_COLOR, DEBUFF_COLOR, ERROR_COLOR, GROUP_COLOR, HP_COLOR, KILL_COLOR,
+    LOW_HP_COLOR, STAMINA_COLOR, TEXT_COLOR, TEXT_COLOR_GREY, UI_HIGHLIGHT_0, UI_MAIN,
 };
 
 use crate::{
-    i18n::VoxygenLocalization, settings::Settings, ui::fonts::ConrodVoxygenFonts,
-    window::GameInput, GlobalState,
+    hud::get_buff_info,
+    i18n::VoxygenLocalization,
+    settings::Settings,
+    ui::{fonts::ConrodVoxygenFonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
+    window::GameInput,
+    GlobalState,
 };
 use client::{self, Client};
 use common::{
-    comp::{group::Role, Stats},
+    comp::{group::Role, BuffKind, Stats},
     sync::{Uid, WorldSyncExt},
 };
 use conrod_core::{
@@ -19,7 +24,6 @@ use conrod_core::{
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 use specs::{saveload::MarkerAllocator, WorldExt};
-
 widget_ids! {
     pub struct Ids {
         group_button,
@@ -44,6 +48,8 @@ widget_ids! {
         member_panels_txt[],
         member_health[],
         member_stam[],
+        buffs[],
+        buff_timers[],
         dead_txt[],
         health_txt[],
         timeout_bg,
@@ -63,10 +69,12 @@ pub struct Group<'a> {
     client: &'a Client,
     settings: &'a Settings,
     imgs: &'a Imgs,
+    rot_imgs: &'a ImgsRot,
     fonts: &'a ConrodVoxygenFonts,
     localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
     pulse: f32,
     global_state: &'a GlobalState,
+    tooltip_manager: &'a mut TooltipManager,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -79,20 +87,24 @@ impl<'a> Group<'a> {
         client: &'a Client,
         settings: &'a Settings,
         imgs: &'a Imgs,
+        rot_imgs: &'a ImgsRot,
         fonts: &'a ConrodVoxygenFonts,
         localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
         pulse: f32,
         global_state: &'a GlobalState,
+        tooltip_manager: &'a mut TooltipManager,
     ) -> Self {
         Self {
             show,
             client,
             settings,
             imgs,
+            rot_imgs,
             fonts,
             localized_strings,
             pulse,
             global_state,
+            tooltip_manager,
             common: widget::CommonBuilder::default(),
         }
     }
@@ -127,8 +139,26 @@ impl<'a> Widget for Group<'a> {
     #[allow(clippy::blocks_in_if_conditions)] // TODO: Pending review in #587
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
-
         let mut events = Vec::new();
+        let localized_strings = self.localized_strings;
+        let buff_ani = ((self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8) + 0.5; //Animation timer
+        let buffs_tooltip = Tooltip::new({
+            // Edge images [t, b, r, l]
+            // Corner images [tr, tl, br, bl]
+            let edge = &self.rot_imgs.tt_side;
+            let corner = &self.rot_imgs.tt_corner;
+            ImageFrame::new(
+                [edge.cw180, edge.none, edge.cw270, edge.cw90],
+                [corner.none, corner.cw270, corner.cw90, corner.cw180],
+                Color::Rgba(0.08, 0.07, 0.04, 1.0),
+                5.0,
+            )
+        })
+        .title_font_size(self.fonts.cyri.scale(15))
+        .parent(ui.window)
+        .desc_font_size(self.fonts.cyri.scale(12))
+        .font_id(self.fonts.cyri.conrod_id)
+        .desc_text_color(TEXT_COLOR);
 
         // Don't show pets
         let group_members = self
@@ -293,31 +323,35 @@ impl<'a> Widget for Group<'a> {
             let client_state = self.client.state();
             let stats = client_state.ecs().read_storage::<common::comp::Stats>();
             let energy = client_state.ecs().read_storage::<common::comp::Energy>();
+            let buffs = client_state.ecs().read_storage::<common::comp::Buffs>();
             let uid_allocator = client_state
                 .ecs()
                 .read_resource::<common::sync::UidAllocator>();
-
+            let offset = if self.global_state.settings.gameplay.toggle_debug {
+                320.0
+            } else {
+                110.0
+            };
+            // Keep track of the total number of widget ids we are using for buffs
+            let mut total_buff_count = 0;
             for (i, &uid) in group_members.iter().copied().enumerate() {
                 self.show.group = true;
                 let entity = uid_allocator.retrieve_entity_internal(uid.into());
                 let stats = entity.and_then(|entity| stats.get(entity));
                 let energy = entity.and_then(|entity| energy.get(entity));
+                let buffs = entity.and_then(|entity| buffs.get(entity));
+
                 if let Some(stats) = stats {
                     let char_name = stats.name.to_string();
                     let health_perc = stats.health.current() as f64 / stats.health.maximum() as f64;
 
                     // change panel positions when debug info is shown
-                    let offset = if self.global_state.settings.gameplay.toggle_debug {
-                        290.0
-                    } else {
-                        110.0
-                    };
                     let back = if i == 0 {
                         Image::new(self.imgs.member_bg)
                             .top_left_with_margins_on(ui.window, offset, 20.0)
                     } else {
                         Image::new(self.imgs.member_bg)
-                            .down_from(state.ids.member_panels_bg[i - 1], 40.0)
+                            .down_from(state.ids.member_panels_bg[i - 1], 45.0)
                     };
                     let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8; //Animation timer
                     let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
@@ -386,66 +420,174 @@ impl<'a> Widget for Group<'a> {
                         .set(state.ids.member_panels_frame[i], ui);
                     // Panel Text
                     Text::new(&char_name)
-                        .top_left_with_margins_on(state.ids.member_panels_frame[i], -22.0, 0.0)
-                        .font_size(20)
-                        .font_id(self.fonts.cyri.conrod_id)
-                        .color(BLACK)
-                        .w(300.0) // limit name length display
-                        .set(state.ids.member_panels_txt_bg[i], ui);
+                            .top_left_with_margins_on(state.ids.member_panels_frame[i], -22.0, 0.0)
+                            .font_size(20)
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(BLACK)
+                            .w(300.0) // limit name length display
+                            .set(state.ids.member_panels_txt_bg[i], ui);
                     Text::new(&char_name)
-                        .bottom_left_with_margins_on(state.ids.member_panels_txt_bg[i], 2.0, 2.0)
-                        .font_size(20)
-                        .font_id(self.fonts.cyri.conrod_id)
-                        .color(if is_leader { ERROR_COLOR } else { GROUP_COLOR })
-                        .w(300.0) // limit name length display
-                        .set(state.ids.member_panels_txt[i], ui);
+                            .bottom_left_with_margins_on(state.ids.member_panels_txt_bg[i], 2.0, 2.0)
+                            .font_size(20)
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(if is_leader { ERROR_COLOR } else { GROUP_COLOR })
+                            .w(300.0) // limit name length display
+                            .set(state.ids.member_panels_txt[i], ui);
                     if let Some(energy) = energy {
                         let stam_perc = energy.current() as f64 / energy.maximum() as f64;
                         // Stamina
                         Image::new(self.imgs.bar_content)
                             .w_h(100.0 * stam_perc, 8.0)
-                            .color(Some(MANA_COLOR))
+                            .color(Some(STAMINA_COLOR))
                             .top_left_with_margins_on(state.ids.member_panels_bg[i], 26.0, 2.0)
                             .set(state.ids.member_stam[i], ui);
                     }
-                } else {
-                    // Values N.A.
-                    if let Some(stats) = stats {
+                    if let Some(buffs) = buffs {
+                        // Limit displayed buffs to 11
+                        let buff_count = buffs.kinds.len().min(11);
+                        total_buff_count += buff_count;
+                        let gen = &mut ui.widget_id_generator();
+                        if state.ids.buffs.len() < total_buff_count {
+                            state.update(|state| state.ids.buffs.resize(total_buff_count, gen));
+                        }
+                        if state.ids.buff_timers.len() < total_buff_count {
+                            state.update(|state| {
+                                state.ids.buff_timers.resize(total_buff_count, gen)
+                            });
+                        }
+                        // Create Buff Widgets
+                        let mut prev_id = None;
+                        state
+                            .ids
+                            .buffs
+                            .iter()
+                            .copied()
+                            .zip(state.ids.buff_timers.iter().copied())
+                            .skip(total_buff_count - buff_count)
+                            .zip(buffs.iter_active().map(get_buff_info))
+                            .for_each(|((id, timer_id), buff)| {
+                                let max_duration = buff.data.duration;
+                                let pulsating_col = Color::Rgba(1.0, 1.0, 1.0, buff_ani);
+                                let norm_col = Color::Rgba(1.0, 1.0, 1.0, 1.0);
+                                let current_duration = buff.dur;
+                                let duration_percentage = current_duration.map_or(1000.0, |cur| {
+                                    max_duration.map_or(1000.0, |max| {
+                                        cur.as_secs_f32() / max.as_secs_f32() * 1000.0
+                                    })
+                                }) as u32; // Percentage to determine which frame of the timer overlay is displayed
+                                let buff_img = match buff.kind {
+                                    BuffKind::Regeneration { .. } => self.imgs.buff_plus_0,
+                                    BuffKind::Bleeding { .. } => self.imgs.debuff_bleed_0,
+                                    BuffKind::Cursed { .. } => self.imgs.debuff_skull_0,
+                                };
+                                let buff_widget = Image::new(buff_img).w_h(15.0, 15.0);
+                                let buff_widget = if let Some(id) = prev_id {
+                                    buff_widget.right_from(id, 1.0)
+                                } else {
+                                    buff_widget.bottom_left_with_margins_on(
+                                        state.ids.member_panels_frame[i],
+                                        -16.0,
+                                        1.0,
+                                    )
+                                };
+                                prev_id = Some(id);
+                                buff_widget
+                                    .color(
+                                        if current_duration
+                                            .map_or(false, |cur| cur.as_secs_f32() < 10.0)
+                                        {
+                                            Some(pulsating_col)
+                                        } else {
+                                            Some(norm_col)
+                                        },
+                                    )
+                                    .set(id, ui);
+                                // Create Buff tooltip
+                                let title = match buff.kind {
+                                    BuffKind::Regeneration { .. } => {
+                                        localized_strings.get("buff.title.heal_test")
+                                    },
+                                    BuffKind::Bleeding { .. } => {
+                                        localized_strings.get("debuff.title.bleed_test")
+                                    },
+                                    _ => localized_strings.get("buff.title.missing"),
+                                };
+                                let remaining_time = if current_duration.is_none() {
+                                    "Permanent".to_string()
+                                } else {
+                                    format!(
+                                        "Remaining: {:.0}s",
+                                        current_duration.unwrap().as_secs_f32()
+                                    )
+                                };
+                                let desc_txt = match buff.kind {
+                                    BuffKind::Regeneration { .. } => {
+                                        localized_strings.get("buff.desc.heal_test")
+                                    },
+                                    BuffKind::Bleeding { .. } => {
+                                        localized_strings.get("debuff.desc.bleed_test")
+                                    },
+                                    _ => localized_strings.get("buff.desc.missing"),
+                                };
+                                let desc = format!("{}\n\n{}", desc_txt, remaining_time);
+                                Image::new(match duration_percentage as u64 {
+                                    875..=1000 => self.imgs.nothing, // 8/8
+                                    750..=874 => self.imgs.buff_0,   // 7/8
+                                    625..=749 => self.imgs.buff_1,   // 6/8
+                                    500..=624 => self.imgs.buff_2,   // 5/8
+                                    375..=499 => self.imgs.buff_3,   // 4/8
+                                    250..=374 => self.imgs.buff_4,   // 3/8
+                                    125..=249 => self.imgs.buff_5,   // 2/8
+                                    0..=124 => self.imgs.buff_6,     // 1/8
+                                    _ => self.imgs.nothing,
+                                })
+                                .w_h(15.0, 15.0)
+                                .middle_of(id)
+                                .with_tooltip(
+                                    self.tooltip_manager,
+                                    title,
+                                    &desc,
+                                    &buffs_tooltip,
+                                    if buff.is_buff {
+                                        BUFF_COLOR
+                                    } else {
+                                        DEBUFF_COLOR
+                                    },
+                                )
+                                .set(timer_id, ui);
+                            });
+                    } else {
+                        // Values N.A.
                         Text::new(&stats.name.to_string())
                             .top_left_with_margins_on(state.ids.member_panels_frame[i], -22.0, 0.0)
                             .font_size(20)
                             .font_id(self.fonts.cyri.conrod_id)
                             .color(GROUP_COLOR)
                             .set(state.ids.member_panels_txt[i], ui);
-                    };
-                    let offset = if self.global_state.settings.gameplay.toggle_debug {
-                        210.0
-                    } else {
-                        110.0
-                    };
-                    let back = if i == 0 {
-                        Image::new(self.imgs.member_bg)
-                            .top_left_with_margins_on(ui.window, offset, 20.0)
-                    } else {
-                        Image::new(self.imgs.member_bg)
-                            .down_from(state.ids.member_panels_bg[i - 1], 40.0)
-                    };
-                    back.w_h(152.0, 36.0)
-                        .color(Some(TEXT_COLOR))
-                        .set(state.ids.member_panels_bg[i], ui);
-                    // Panel Frame
-                    Image::new(self.imgs.member_frame)
-                        .w_h(152.0, 36.0)
-                        .middle_of(state.ids.member_panels_bg[i])
-                        .color(Some(UI_HIGHLIGHT_0))
-                        .set(state.ids.member_panels_frame[i], ui);
-                    // Panel Text
-                    Text::new(&self.localized_strings.get("hud.group.out_of_range"))
-                        .mid_top_with_margin_on(state.ids.member_panels_bg[i], 3.0)
-                        .font_size(16)
-                        .font_id(self.fonts.cyri.conrod_id)
-                        .color(TEXT_COLOR)
-                        .set(state.ids.dead_txt[i], ui);
+                        let back = if i == 0 {
+                            Image::new(self.imgs.member_bg)
+                                .top_left_with_margins_on(ui.window, offset, 20.0)
+                        } else {
+                            Image::new(self.imgs.member_bg)
+                                .down_from(state.ids.member_panels_bg[i - 1], 40.0)
+                        };
+                        back.w_h(152.0, 36.0)
+                            .color(Some(TEXT_COLOR))
+                            .set(state.ids.member_panels_bg[i], ui);
+                        // Panel Frame
+                        Image::new(self.imgs.member_frame)
+                            .w_h(152.0, 36.0)
+                            .middle_of(state.ids.member_panels_bg[i])
+                            .color(Some(UI_HIGHLIGHT_0))
+                            .set(state.ids.member_panels_frame[i], ui);
+                        // Panel Text
+                        Text::new(&self.localized_strings.get("hud.group.out_of_range"))
+                            .mid_top_with_margin_on(state.ids.member_panels_bg[i], 3.0)
+                            .font_size(16)
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(TEXT_COLOR)
+                            .set(state.ids.dead_txt[i], ui);
+                    }
                 }
             }
 

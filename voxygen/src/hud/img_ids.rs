@@ -147,22 +147,12 @@ image_ids! {
 
         // Skillbar
         level_up: "voxygen.element.misc_bg.level_up",
-        level_down: "voxygen.element.misc_bg.level_down",
-        xp_bar_mid: "voxygen.element.skillbar.xp_bar_mid",
-        xp_bar_left: "voxygen.element.skillbar.xp_bar_left",
-        xp_bar_right: "voxygen.element.skillbar.xp_bar_right",
-        healthbar_bg: "voxygen.element.skillbar.healthbar_bg",
-        energybar_bg: "voxygen.element.skillbar.energybar_bg",
+        level_down:"voxygen.element.misc_bg.level_down",
         bar_content: "voxygen.element.skillbar.bar_content",
-        skillbar_slot_big: "voxygen.element.skillbar.skillbar_slot_big",
-        skillbar_slot_big_bg: "voxygen.element.skillbar.skillbar_slot_big",
-        skillbar_slot_big_act: "voxygen.element.skillbar.skillbar_slot_big",
-        skillbar_slot: "voxygen.element.skillbar.skillbar_slot",
-        skillbar_slot_act: "voxygen.element.skillbar.skillbar_slot_active",
-        skillbar_slot_l: "voxygen.element.skillbar.skillbar_slot_l",
-        skillbar_slot_r: "voxygen.element.skillbar.skillbar_slot_r",
-        skillbar_slot_l_act: "voxygen.element.skillbar.skillbar_slot_l_active",
-        skillbar_slot_r_act: "voxygen.element.skillbar.skillbar_slot_r_active",
+        skillbar_bg: "voxygen.element.skillbar.bg",
+        skillbar_frame: "voxygen.element.skillbar.frame",
+        m1_ico: "voxygen.element.icons.m1",
+        m2_ico: "voxygen.element.icons.m2",
 
         // Other Icons/Art
         skull: "voxygen.element.icons.skull",
@@ -282,6 +272,7 @@ image_ids! {
         hammerleap: "voxygen.element.icons.skill_hammerleap",
         skill_axe_leap_slash: "voxygen.element.icons.skill_axe_leap_slash",
         skill_bow_jump_burst: "voxygen.element.icons.skill_bow_jump_burst",
+        missing_icon: "voxygen.element.icons.missing_icon_grey",
 
         // Buttons
         button: "voxygen.element.buttons.button",
@@ -358,6 +349,24 @@ image_ids! {
         chat_say: "voxygen.element.icons.chat.say",
         chat_tell: "voxygen.element.icons.chat.tell",
         chat_world: "voxygen.element.icons.chat.world",
+
+        // Buffs
+        buff_plus_0: "voxygen.element.icons.de_buffs.buff_plus_0",
+
+        // Debuffs
+        debuff_skull_0: "voxygen.element.icons.de_buffs.debuff_skull_0",
+        debuff_bleed_0: "voxygen.element.icons.de_buffs.debuff_bleed_0",
+
+        // Animation Frames
+        // Buff Frame
+        buff_0: "voxygen.element.animation.buff_frame.1",
+        buff_1: "voxygen.element.animation.buff_frame.2",
+        buff_2: "voxygen.element.animation.buff_frame.3",
+        buff_3: "voxygen.element.animation.buff_frame.4",
+        buff_4: "voxygen.element.animation.buff_frame.5",
+        buff_5: "voxygen.element.animation.buff_frame.6",
+        buff_6: "voxygen.element.animation.buff_frame.7",
+        buff_7: "voxygen.element.animation.buff_frame.8",
 
         <BlankGraphic>
         nothing: (),

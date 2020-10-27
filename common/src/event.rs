@@ -106,6 +106,10 @@ pub enum ServerEvent {
     ChatCmd(EcsEntity, String),
     /// Send a chat message to the player from an npc or other player
     Chat(comp::UnresolvedChatMsg),
+    Buff {
+        entity: EcsEntity,
+        buff_change: comp::BuffChange,
+    },
 }
 
 pub struct EventBus<E> {

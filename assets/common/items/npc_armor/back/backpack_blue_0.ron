@@ -1,0 +1,12 @@
+ItemDef(
+    name: "Rugged Backpack",
+    description: "Keeps all your stuff together.",
+    kind: Armor(
+        (
+            kind: Back("BackpackBlue0"),
+            stats: (
+                protection: Normal(0.0)),            
+        )
+    ),
+    quality: Moderate,
+)
