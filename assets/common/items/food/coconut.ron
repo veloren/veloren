@@ -1,12 +1,23 @@
 ItemDef(
     name: "Coconut",
-    description: "Restores 20 health\n\nReliable source of water and fat",
+    description: "Restores 20 health over 10 seconds\n\nReliable source of water and fat",
     kind: Consumable(
         kind: "Coconut",
-        effect: Health((
-            amount: 200,
-            cause: Item,
-        )),       
+        effect: Some(
+            [
+                Buff((
+                    kind: Saturation,
+                    data: (
+                        strength: 20.0,
+                        duration: Some((
+                                secs: 10,
+                                nanos: 0,
+                            )),
+                        ),
+                    cat_ids: [Natural],
+                )),
+            ]
+        ),
     ),
     quality: Common,
 )

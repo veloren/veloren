@@ -83,7 +83,7 @@ pub enum ItemKind {
     Glider(Glider),
     Consumable {
         kind: String,
-        effect: Effect,
+        effect: Option<Vec<Effect>>,
     },
     Throwable {
         kind: Throwable,

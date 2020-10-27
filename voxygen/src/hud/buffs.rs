@@ -182,6 +182,7 @@ impl<'a> Widget for BuffsBar<'a> {
                     }) as u32; // Percentage to determine which frame of the timer overlay is displayed
                     let buff_img = match buff.kind {
                         BuffKind::Regeneration { .. } => self.imgs.buff_plus_0,
+                        BuffKind::Saturation { .. } => self.imgs.buff_plus_0,
                         _ => self.imgs.missing_icon,
                     };
                     let buff_widget = Image::new(buff_img).w_h(20.0, 20.0);
@@ -207,6 +208,9 @@ impl<'a> Widget for BuffsBar<'a> {
                         BuffKind::Regeneration { .. } => {
                             localized_strings.get("buff.title.heal_test")
                         },
+                        BuffKind::Saturation { .. } => {
+                            localized_strings.get("buff.title.saturation_test")
+                        },
                         _ => localized_strings.get("buff.title.missing"),
                     };
                     let remaining_time = if current_duration.is_none() {
@@ -218,6 +222,9 @@ impl<'a> Widget for BuffsBar<'a> {
                     let desc_txt = match buff.kind {
                         BuffKind::Regeneration { .. } => {
                             localized_strings.get("buff.desc.heal_test")
+                        },
+                        BuffKind::Saturation { .. } => {
+                            localized_strings.get("buff.desc.saturation_test")
                         },
                         _ => localized_strings.get("buff.desc.missing"),
                     };
@@ -379,6 +386,7 @@ impl<'a> Widget for BuffsBar<'a> {
                     }) as u32;
                     let buff_img = match buff.kind {
                         BuffKind::Regeneration { .. } => self.imgs.buff_plus_0,
+                        BuffKind::Saturation { .. } => self.imgs.buff_plus_0,
                         BuffKind::Bleeding { .. } => self.imgs.debuff_bleed_0,
                         BuffKind::Cursed { .. } => self.imgs.debuff_skull_0,
                     };
@@ -405,6 +413,9 @@ impl<'a> Widget for BuffsBar<'a> {
                         BuffKind::Regeneration { .. } => {
                             localized_strings.get("buff.title.heal_test")
                         },
+                        BuffKind::Saturation { .. } => {
+                            localized_strings.get("buff.title.saturation_test")
+                        },
                         BuffKind::Bleeding { .. } => {
                             localized_strings.get("debuff.title.bleed_test")
                         },
@@ -419,6 +430,9 @@ impl<'a> Widget for BuffsBar<'a> {
                     let desc_txt = match buff.kind {
                         BuffKind::Regeneration { .. } => {
                             localized_strings.get("buff.desc.heal_test")
+                        },
+                        BuffKind::Saturation { .. } => {
+                            localized_strings.get("buff.desc.saturation_test")
                         },
                         BuffKind::Bleeding { .. } => {
                             localized_strings.get("debuff.desc.bleed_test")
