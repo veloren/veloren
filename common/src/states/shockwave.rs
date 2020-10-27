@@ -57,12 +57,11 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.buildup_duration {
                     // Build up
                     update.character = CharacterState::Shockwave(Data {
-                        static_data: self.static_data,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
+                        ..*self
                     });
                 } else {
                     // Attack
@@ -87,9 +86,9 @@ impl CharacterBehavior for Data {
 
                     // Transitions to swing
                     update.character = CharacterState::Shockwave(Data {
-                        static_data: self.static_data,
                         timer: Duration::default(),
                         stage_section: StageSection::Swing,
+                        ..*self
                     });
                 }
             },
@@ -97,19 +96,18 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.swing_duration {
                     // Swings
                     update.character = CharacterState::Shockwave(Data {
-                        static_data: self.static_data,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
+                        ..*self
                     });
                 } else {
                     // Transitions to recover
                     update.character = CharacterState::Shockwave(Data {
-                        static_data: self.static_data,
                         timer: Duration::default(),
                         stage_section: StageSection::Recover,
+                        ..*self
                     });
                 }
             },
@@ -117,12 +115,11 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.swing_duration {
                     // Recovers
                     update.character = CharacterState::Shockwave(Data {
-                        static_data: self.static_data,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
+                        ..*self
                     });
                 } else {
                     // Done

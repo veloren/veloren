@@ -68,14 +68,12 @@ impl CharacterBehavior for Data {
 
                     // Charge the attack
                     update.character = CharacterState::ChargedMelee(Data {
-                        static_data: self.static_data,
-                        stage_section: self.stage_section,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        exhausted: self.exhausted,
                         charge_amount: charge,
+                        ..*self
                     });
 
                     // Consumes energy if there's enough left and RMB is held down
@@ -88,14 +86,11 @@ impl CharacterBehavior for Data {
                 {
                     // Maintains charge
                     update.character = CharacterState::ChargedMelee(Data {
-                        static_data: self.static_data,
-                        stage_section: self.stage_section,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        exhausted: self.exhausted,
-                        charge_amount: self.charge_amount,
+                        ..*self
                     });
 
                     // Consumes energy if there's enough left and RMB is held down
@@ -106,11 +101,9 @@ impl CharacterBehavior for Data {
                 } else {
                     // Transitions to swing
                     update.character = CharacterState::ChargedMelee(Data {
-                        static_data: self.static_data,
                         stage_section: StageSection::Swing,
                         timer: Duration::default(),
-                        exhausted: self.exhausted,
-                        charge_amount: self.charge_amount,
+                        ..*self
                     });
                 }
             },
@@ -135,35 +128,28 @@ impl CharacterBehavior for Data {
 
                     // Starts swinging
                     update.character = CharacterState::ChargedMelee(Data {
-                        static_data: self.static_data,
-                        stage_section: self.stage_section,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
                         exhausted: true,
-                        charge_amount: self.charge_amount,
+                        ..*self
                     });
                 } else if self.timer < self.static_data.swing_duration {
                     // Swings
                     update.character = CharacterState::ChargedMelee(Data {
-                        static_data: self.static_data,
-                        stage_section: self.stage_section,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        exhausted: self.exhausted,
-                        charge_amount: self.charge_amount,
+                        ..*self
                     });
                 } else {
                     // Transitions to recover
                     update.character = CharacterState::ChargedMelee(Data {
-                        static_data: self.static_data,
                         stage_section: StageSection::Recover,
                         timer: Duration::default(),
-                        exhausted: self.exhausted,
-                        charge_amount: self.charge_amount,
+                        ..*self
                     });
                 }
             },
@@ -171,14 +157,11 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.recover_duration {
                     // Recovers
                     update.character = CharacterState::ChargedMelee(Data {
-                        static_data: self.static_data,
-                        stage_section: self.stage_section,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        exhausted: self.exhausted,
-                        charge_amount: self.charge_amount,
+                        ..*self
                     });
                 } else {
                     // Done

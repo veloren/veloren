@@ -8,14 +8,22 @@ use vek::*;
 
 pub const BLOCK_EFFICIENCY: f32 = 0.9;
 
+/// Each section of this struct determines what damage is applied to a
+/// particular target, using some identifier
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Damages {
+    /// Targets enemies, and all other creatures not in your group
     pub enemy: Option<Damage>,
+    /// Targets people in the same group as you, and any pets you have
     pub group: Option<Damage>,
 }
 
 impl Damages {
     pub fn new(enemy: Option<Damage>, group: Option<Damage>) -> Self { Damages { enemy, group } }
+
+    pub fn get_damage(self, same_group: bool) -> Option<Damage> {
+        if same_group { self.group } else { self.enemy }
+    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -49,11 +57,7 @@ impl Damage {
                     damage *= 1.0 - BLOCK_EFFICIENCY
                 }
                 // Armor
-                let damage_reduction = if let Some(loadout) = loadout {
-                    loadout.get_damage_reduction()
-                } else {
-                    0.0
-                };
+                let damage_reduction = loadout.map_or(0.0, |l| l.get_damage_reduction());
                 damage *= 1.0 - damage_reduction;
 
                 // Critical damage applies after armor for melee
@@ -77,11 +81,7 @@ impl Damage {
                     damage *= 1.0 - BLOCK_EFFICIENCY
                 }
                 // Armor
-                let damage_reduction = if let Some(loadout) = loadout {
-                    loadout.get_damage_reduction()
-                } else {
-                    0.0
-                };
+                let damage_reduction = loadout.map_or(0.0, |l| l.get_damage_reduction());
                 damage *= 1.0 - damage_reduction;
 
                 HealthChange {
@@ -96,11 +96,7 @@ impl Damage {
                     damage *= 1.0 - BLOCK_EFFICIENCY
                 }
                 // Armor
-                let damage_reduction = if let Some(loadout) = loadout {
-                    loadout.get_damage_reduction()
-                } else {
-                    0.0
-                };
+                let damage_reduction = loadout.map_or(0.0, |l| l.get_damage_reduction());
                 damage *= 1.0 - damage_reduction;
 
                 HealthChange {
@@ -111,11 +107,7 @@ impl Damage {
             Damage::Shockwave(damage) => {
                 let mut damage = damage;
                 // Armor
-                let damage_reduction = if let Some(loadout) = loadout {
-                    loadout.get_damage_reduction()
-                } else {
-                    0.0
-                };
+                let damage_reduction = loadout.map_or(0.0, |l| l.get_damage_reduction());
                 damage *= 1.0 - damage_reduction;
 
                 HealthChange {
@@ -126,11 +118,7 @@ impl Damage {
             Damage::Energy(damage) => {
                 let mut damage = damage;
                 // Armor
-                let damage_reduction = if let Some(loadout) = loadout {
-                    loadout.get_damage_reduction()
-                } else {
-                    0.0
-                };
+                let damage_reduction = loadout.map_or(0.0, |l| l.get_damage_reduction());
                 damage *= 1.0 - damage_reduction;
 
                 HealthChange {
@@ -145,11 +133,7 @@ impl Damage {
             Damage::Falling(damage) => {
                 let mut damage = damage;
                 // Armor
-                let damage_reduction = if let Some(loadout) = loadout {
-                    loadout.get_damage_reduction()
-                } else {
-                    0.0
-                };
+                let damage_reduction = loadout.map_or(0.0, |l| l.get_damage_reduction());
                 if (damage_reduction - 1.0).abs() < f32::EPSILON {
                     damage = 0.0;
                 }
@@ -171,7 +155,7 @@ pub enum Knockback {
 }
 
 impl Knockback {
-    pub fn get_knockback(self, dir: Dir) -> Vec3<f32> {
+    pub fn calculate_impulse(self, dir: Dir) -> Vec3<f32> {
         match self {
             Knockback::Away(strength) => strength * *Dir::slerp(dir, Dir::new(Vec3::unit_z()), 0.5),
             Knockback::Towards(strength) => {

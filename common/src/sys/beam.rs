@@ -168,10 +168,8 @@ impl<'a> System<'a> for Sys {
                         continue;
                     }
 
-                    let damage = if !same_group && beam_segment.damages.enemy.is_some() {
-                        beam_segment.damages.enemy.unwrap()
-                    } else if same_group && beam_segment.damages.group.is_some() {
-                        beam_segment.damages.group.unwrap()
+                    let damage = if let Some(damage) = beam_segment.damages.get_damage(same_group) {
+                        damage
                     } else {
                         continue;
                     };
@@ -182,7 +180,7 @@ impl<'a> System<'a> for Sys {
 
                     let change = damage.modify_damage(block, loadouts.get(b), beam_segment.owner);
 
-                    if let Damage::Energy(_) = damage {
+                    if matches!(damage, Damage::Healing(_)) {
                         server_emitter.emit(ServerEvent::Damage {
                             uid: *uid_b,
                             change,
@@ -205,21 +203,18 @@ impl<'a> System<'a> for Sys {
                                 EnergySource::HitEnemy,
                             );
                         }
-                    }
-                    if let Damage::Healing(_) = damage {
-                        if let Some(energy_mut) = beam_owner.and_then(|o| energies.get_mut(o)) {
-                            if energy_mut
-                                .try_change_by(
-                                    -(beam_segment.energy_cost as i32), // Stamina use
-                                    EnergySource::Ability,
-                                )
-                                .is_ok()
-                            {
-                                server_emitter.emit(ServerEvent::Damage {
-                                    uid: *uid_b,
-                                    change,
-                                });
-                            }
+                    } else if let Some(energy_mut) = beam_owner.and_then(|o| energies.get_mut(o)) {
+                        if energy_mut
+                            .try_change_by(
+                                -(beam_segment.energy_cost as i32), // Stamina use
+                                EnergySource::Ability,
+                            )
+                            .is_ok()
+                        {
+                            server_emitter.emit(ServerEvent::Damage {
+                                uid: *uid_b,
+                                change,
+                            });
                         }
                     }
                     // Adds entities that were hit to the hit_entities list on the beam, sees if it

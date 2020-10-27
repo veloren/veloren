@@ -54,21 +54,18 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.buildup_duration {
                     // Build up
                     update.character = CharacterState::Roll(Data {
-                        static_data: self.static_data,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
-                        was_wielded: self.was_wielded,
+                        ..*self
                     });
                 } else {
                     // Transitions to movement section of stage
                     update.character = CharacterState::Roll(Data {
-                        static_data: self.static_data,
                         timer: Duration::default(),
                         stage_section: StageSection::Movement,
-                        was_wielded: self.was_wielded,
+                        ..*self
                     });
                 }
             },
@@ -76,21 +73,18 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.movement_duration {
                     // Movement
                     update.character = CharacterState::Roll(Data {
-                        static_data: self.static_data,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
-                        was_wielded: self.was_wielded,
+                        ..*self
                     });
                 } else {
                     // Transitions to recover section of stage
                     update.character = CharacterState::Roll(Data {
-                        static_data: self.static_data,
                         timer: Duration::default(),
                         stage_section: StageSection::Recover,
-                        was_wielded: self.was_wielded,
+                        ..*self
                     });
                 }
             },
@@ -98,13 +92,11 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.recover_duration {
                     // Build up
                     update.character = CharacterState::Roll(Data {
-                        static_data: self.static_data,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
-                        was_wielded: self.was_wielded,
+                        ..*self
                     });
                 } else {
                     // Done

@@ -32,11 +32,11 @@ impl CharacterBehavior for Data {
         if self.timer < self.static_data.buildup_duration {
             // Draw weapon
             update.character = CharacterState::Equipping(Data {
-                static_data: self.static_data,
                 timer: self
                     .timer
                     .checked_add(Duration::from_secs_f32(data.dt.0))
                     .unwrap_or_default(),
+                ..*self
             });
         } else {
             // Done

@@ -80,34 +80,27 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.buildup_duration {
                     // Build up
                     update.character = CharacterState::SpinMelee(Data {
-                        static_data: self.static_data,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        spins_remaining: self.spins_remaining,
-                        stage_section: self.stage_section,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
                 } else {
                     // Transitions to swing section of stage
                     update.character = CharacterState::SpinMelee(Data {
-                        static_data: self.static_data,
                         timer: Duration::default(),
-                        spins_remaining: self.spins_remaining,
                         stage_section: StageSection::Swing,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
                 }
             },
             StageSection::Swing => {
                 if !self.exhausted {
                     update.character = CharacterState::SpinMelee(Data {
-                        static_data: self.static_data,
                         timer: Duration::default(),
-                        spins_remaining: self.spins_remaining,
-                        stage_section: self.stage_section,
                         exhausted: true,
+                        ..*self
                     });
                     // Hit attempt
                     data.updater.insert(data.entity, Attacking {
@@ -136,14 +129,11 @@ impl CharacterBehavior for Data {
 
                     // Swings
                     update.character = CharacterState::SpinMelee(Data {
-                        static_data: self.static_data,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        spins_remaining: self.spins_remaining,
-                        stage_section: self.stage_section,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
                 } else if update.energy.current() >= self.static_data.energy_cost
                     && (self.spins_remaining != 0
@@ -155,11 +145,10 @@ impl CharacterBehavior for Data {
                         self.spins_remaining - 1
                     };
                     update.character = CharacterState::SpinMelee(Data {
-                        static_data: self.static_data,
                         timer: Duration::default(),
                         spins_remaining: new_spins_remaining,
-                        stage_section: self.stage_section,
                         exhausted: false,
+                        ..*self
                     });
                     // Consumes energy if there's enough left and RMB is held down
                     update.energy.change_by(
@@ -169,11 +158,9 @@ impl CharacterBehavior for Data {
                 } else {
                     // Transitions to recover section of stage
                     update.character = CharacterState::SpinMelee(Data {
-                        static_data: self.static_data,
                         timer: Duration::default(),
-                        spins_remaining: self.spins_remaining,
                         stage_section: StageSection::Recover,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
                 }
             },
@@ -181,14 +168,11 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.recover_duration {
                     // Recover
                     update.character = CharacterState::SpinMelee(Data {
-                        static_data: self.static_data,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        spins_remaining: self.spins_remaining,
-                        stage_section: self.stage_section,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
                 } else {
                     // Done

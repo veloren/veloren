@@ -74,14 +74,12 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.buildup_duration {
                     // Build up
                     update.character = CharacterState::BasicBeam(Data {
-                        static_data: self.static_data,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
                         particle_ori: Some(*data.inputs.look_dir),
-                        offset: self.offset,
+                        ..*self
                     });
                 } else {
                     // Creates beam
@@ -97,11 +95,11 @@ impl CharacterBehavior for Data {
                     };
                     // Build up
                     update.character = CharacterState::BasicBeam(Data {
-                        static_data: self.static_data,
                         timer: Duration::default(),
                         stage_section: StageSection::Cast,
                         particle_ori: Some(*data.inputs.look_dir),
                         offset: eye_height * 0.55,
+                        ..*self
                     });
                 }
             },
@@ -139,14 +137,12 @@ impl CharacterBehavior for Data {
                         ori: Ori(data.inputs.look_dir),
                     });
                     update.character = CharacterState::BasicBeam(Data {
-                        static_data: self.static_data,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
                         particle_ori: Some(*data.inputs.look_dir),
-                        offset: self.offset,
+                        ..*self
                     });
 
                     // Consumes energy if there's enough left and ability key is held down
@@ -156,25 +152,22 @@ impl CharacterBehavior for Data {
                     );
                 } else {
                     update.character = CharacterState::BasicBeam(Data {
-                        static_data: self.static_data,
                         timer: Duration::default(),
                         stage_section: StageSection::Recover,
                         particle_ori: Some(*data.inputs.look_dir),
-                        offset: self.offset,
+                        ..*self
                     });
                 }
             },
             StageSection::Recover => {
                 if self.timer < self.static_data.recover_duration {
                     update.character = CharacterState::BasicBeam(Data {
-                        static_data: self.static_data,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
                         particle_ori: Some(*data.inputs.look_dir),
-                        offset: self.offset,
+                        ..*self
                     });
                 } else {
                     // Done
