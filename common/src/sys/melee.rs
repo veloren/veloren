@@ -11,7 +11,6 @@ use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage}
 use std::time::Duration;
 use vek::*;
 
-pub const BLOCK_EFFICIENCY: f32 = 0.9;
 pub const BLOCK_ANGLE: f32 = 180.0;
 
 /// This system is responsible for handling accepted inputs like moving or
@@ -111,10 +110,8 @@ impl<'a> System<'a> for Sys {
                         .map(|group_a| Some(group_a) == groups.get(b))
                         .unwrap_or(false);
 
-                    let damage = if !same_group && attack.damages.enemy.is_some() {
-                        attack.damages.enemy.unwrap()
-                    } else if same_group && attack.damages.group.is_some() {
-                        attack.damages.group.unwrap()
+                    let damage = if let Some(damage) = attack.damages.get_damage(same_group) {
+                        damage
                     } else {
                         continue;
                     };
@@ -152,10 +149,10 @@ impl<'a> System<'a> for Sys {
 
                     if change.amount != 0 {
                         let kb_dir = Dir::new((pos_b.0 - pos.0).try_normalized().unwrap_or(*ori.0));
-                        server_emitter.emit(ServerEvent::Knockback {
-                            entity: b,
-                            impulse: attack.knockback.get_knockback(kb_dir),
-                        });
+                        let impulse = attack.knockback.calculate_impulse(kb_dir);
+                        if !impulse.is_approx_zero() {
+                            server_emitter.emit(ServerEvent::Knockback { entity: b, impulse });
+                        }
                     }
                 }
             }

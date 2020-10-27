@@ -76,8 +76,7 @@ impl CharacterBehavior for Data {
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
-                        reps_remaining: self.reps_remaining,
+                        ..*self
                     });
                 } else {
                     // Transition to buildup
@@ -85,7 +84,7 @@ impl CharacterBehavior for Data {
                         static_data: self.static_data.clone(),
                         timer: Duration::default(),
                         stage_section: StageSection::Buildup,
-                        reps_remaining: self.reps_remaining,
+                        ..*self
                     });
                 }
             },
@@ -107,8 +106,7 @@ impl CharacterBehavior for Data {
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
-                        reps_remaining: self.reps_remaining,
+                        ..*self
                     });
                 } else {
                     // Transition to shoot
@@ -116,7 +114,7 @@ impl CharacterBehavior for Data {
                         static_data: self.static_data.clone(),
                         timer: Duration::default(),
                         stage_section: StageSection::Shoot,
-                        reps_remaining: self.reps_remaining,
+                        ..*self
                     });
                 }
             },
@@ -162,8 +160,8 @@ impl CharacterBehavior for Data {
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
                         reps_remaining: self.reps_remaining - 1,
+                        ..*self
                     });
                 } else if self.timer < self.static_data.shoot_duration {
                     // Finish shooting
@@ -173,8 +171,7 @@ impl CharacterBehavior for Data {
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
-                        reps_remaining: self.reps_remaining,
+                        ..*self
                     });
                 } else {
                     // Transition to recover
@@ -182,7 +179,7 @@ impl CharacterBehavior for Data {
                         static_data: self.static_data.clone(),
                         timer: Duration::default(),
                         stage_section: StageSection::Recover,
-                        reps_remaining: self.reps_remaining,
+                        ..*self
                     });
                 }
             },
@@ -198,8 +195,7 @@ impl CharacterBehavior for Data {
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
-                        reps_remaining: self.reps_remaining,
+                        ..*self
                     });
                 } else {
                     // Done

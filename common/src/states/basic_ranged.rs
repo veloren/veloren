@@ -54,8 +54,7 @@ impl CharacterBehavior for Data {
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
                 } else {
                     // Transitions to recover section of stage
@@ -63,7 +62,7 @@ impl CharacterBehavior for Data {
                         static_data: self.static_data.clone(),
                         timer: Duration::default(),
                         stage_section: StageSection::Recover,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
                 }
             },
@@ -84,9 +83,8 @@ impl CharacterBehavior for Data {
 
                     update.character = CharacterState::BasicRanged(Data {
                         static_data: self.static_data.clone(),
-                        timer: self.timer,
-                        stage_section: self.stage_section,
                         exhausted: true,
+                        ..*self
                     });
                 } else if self.timer < self.static_data.recover_duration {
                     // Recovers
@@ -96,8 +94,7 @@ impl CharacterBehavior for Data {
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
                 } else {
                     // Done

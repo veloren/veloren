@@ -81,25 +81,19 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.buildup_duration {
                     // Build up
                     update.character = CharacterState::DashMelee(Data {
-                        static_data: self.static_data,
-                        auto_charge: self.auto_charge,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        refresh_timer: self.refresh_timer,
-                        stage_section: self.stage_section,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
                 } else {
                     // Transitions to charge section of stage
                     update.character = CharacterState::DashMelee(Data {
-                        static_data: self.static_data,
                         auto_charge: !data.inputs.secondary.is_pressed(),
                         timer: Duration::default(),
-                        refresh_timer: self.refresh_timer,
                         stage_section: StageSection::Charge,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
                 }
             },
@@ -146,20 +140,15 @@ impl CharacterBehavior for Data {
                             });
                         }
                         update.character = CharacterState::DashMelee(Data {
-                            static_data: self.static_data,
-                            auto_charge: self.auto_charge,
                             timer: self
                                 .timer
                                 .checked_add(Duration::from_secs_f32(data.dt.0))
                                 .unwrap_or_default(),
-                            refresh_timer: self.refresh_timer,
-                            stage_section: self.stage_section,
                             exhausted: true,
+                            ..*self
                         })
                     } else if self.refresh_timer < Duration::from_millis(50) {
                         update.character = CharacterState::DashMelee(Data {
-                            static_data: self.static_data,
-                            auto_charge: self.auto_charge,
                             timer: self
                                 .timer
                                 .checked_add(Duration::from_secs_f32(data.dt.0))
@@ -168,20 +157,17 @@ impl CharacterBehavior for Data {
                                 .refresh_timer
                                 .checked_add(Duration::from_secs_f32(data.dt.0))
                                 .unwrap_or_default(),
-                            stage_section: self.stage_section,
-                            exhausted: self.exhausted,
+                            ..*self
                         })
                     } else {
                         update.character = CharacterState::DashMelee(Data {
-                            static_data: self.static_data,
-                            auto_charge: self.auto_charge,
                             timer: self
                                 .timer
                                 .checked_add(Duration::from_secs_f32(data.dt.0))
                                 .unwrap_or_default(),
                             refresh_timer: Duration::default(),
-                            stage_section: self.stage_section,
                             exhausted: false,
+                            ..*self
                         })
                     }
 
@@ -193,12 +179,9 @@ impl CharacterBehavior for Data {
                 } else {
                     // Transitions to swing section of stage
                     update.character = CharacterState::DashMelee(Data {
-                        static_data: self.static_data,
-                        auto_charge: self.auto_charge,
                         timer: Duration::default(),
-                        refresh_timer: self.refresh_timer,
                         stage_section: StageSection::Swing,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
                 }
             },
@@ -206,25 +189,18 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.swing_duration {
                     // Swings
                     update.character = CharacterState::DashMelee(Data {
-                        static_data: self.static_data,
-                        auto_charge: self.auto_charge,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        refresh_timer: self.refresh_timer,
-                        stage_section: self.stage_section,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
                 } else {
                     // Transitions to recover section of stage
                     update.character = CharacterState::DashMelee(Data {
-                        static_data: self.static_data,
-                        auto_charge: self.auto_charge,
                         timer: Duration::default(),
-                        refresh_timer: self.refresh_timer,
                         stage_section: StageSection::Recover,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
                 }
             },
@@ -232,15 +208,11 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.recover_duration {
                     // Recover
                     update.character = CharacterState::DashMelee(Data {
-                        static_data: self.static_data,
-                        auto_charge: self.auto_charge,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        refresh_timer: self.refresh_timer,
-                        stage_section: self.stage_section,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
                 } else {
                     // Done

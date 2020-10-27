@@ -36,11 +36,11 @@ impl CharacterBehavior for Data {
                 update.vel.0 += *data.inputs.look_dir * 500.0 * data.dt.0;
             }
             update.character = CharacterState::Boost(Data {
-                static_data: self.static_data,
                 timer: self
                     .timer
                     .checked_add(Duration::from_secs_f32(data.dt.0))
                     .unwrap_or_default(),
+                ..*self
             });
         } else {
             // Done

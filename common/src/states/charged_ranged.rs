@@ -63,21 +63,18 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.buildup_duration {
                     // Build up
                     update.character = CharacterState::ChargedRanged(Data {
-                        static_data: self.static_data,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
                 } else {
                     // Transitions to swing section of stage
                     update.character = CharacterState::ChargedRanged(Data {
-                        static_data: self.static_data,
                         timer: Duration::default(),
                         stage_section: StageSection::Charge,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
                 }
             },
@@ -124,23 +121,21 @@ impl CharacterBehavior for Data {
                     });
 
                     update.character = CharacterState::ChargedRanged(Data {
-                        static_data: self.static_data,
                         timer: Duration::default(),
                         stage_section: StageSection::Recover,
                         exhausted: true,
+                        ..*self
                     });
                 } else if self.timer < self.static_data.charge_duration
                     && data.inputs.secondary.is_pressed()
                 {
                     // Charges
                     update.character = CharacterState::ChargedRanged(Data {
-                        static_data: self.static_data,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
 
                     // Consumes energy if there's enough left and RMB is held down
@@ -151,13 +146,11 @@ impl CharacterBehavior for Data {
                 } else if data.inputs.secondary.is_pressed() {
                     // Holds charge
                     update.character = CharacterState::ChargedRanged(Data {
-                        static_data: self.static_data,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
 
                     // Consumes energy if there's enough left and RMB is held down
@@ -171,13 +164,11 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.recover_duration {
                     // Recovers
                     update.character = CharacterState::ChargedRanged(Data {
-                        static_data: self.static_data,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
                 } else {
                     // Done

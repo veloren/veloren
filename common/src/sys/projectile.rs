@@ -100,10 +100,8 @@ impl<'a> System<'a> for Sys {
                             if Some(other) == projectile.owner {
                                 continue;
                             }
-                            let damage = if !same_group && damages.enemy.is_some() {
-                                damages.enemy.unwrap()
-                            } else if same_group && damages.group.is_some() {
-                                damages.group.unwrap()
+                            let damage = if let Some(damage) = damages.get_damage(same_group) {
+                                damage
                             } else {
                                 continue;
                             };
@@ -121,10 +119,11 @@ impl<'a> System<'a> for Sys {
                             if let Some(entity) =
                                 uid_allocator.retrieve_entity_internal(other.into())
                             {
-                                local_emitter.emit(LocalEvent::ApplyImpulse {
-                                    entity,
-                                    impulse: knockback.get_knockback(ori.0),
-                                });
+                                let impulse = knockback.calculate_impulse(ori.0);
+                                if !impulse.is_approx_zero() {
+                                    local_emitter
+                                        .emit(LocalEvent::ApplyImpulse { entity, impulse });
+                                }
                             }
                         },
                         projectile::Effect::RewardEnergy(energy) => {

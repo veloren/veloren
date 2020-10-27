@@ -51,31 +51,27 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.buildup_duration {
                     // Build up
                     update.character = CharacterState::BasicMelee(Data {
-                        static_data: self.static_data,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
                 } else {
                     // Transitions to swing section of stage
                     update.character = CharacterState::BasicMelee(Data {
-                        static_data: self.static_data,
                         timer: Duration::default(),
                         stage_section: StageSection::Swing,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
                 }
             },
             StageSection::Swing => {
                 if !self.exhausted {
                     update.character = CharacterState::BasicMelee(Data {
-                        static_data: self.static_data,
                         timer: Duration::default(),
-                        stage_section: self.stage_section,
                         exhausted: true,
+                        ..*self
                     });
 
                     // Hit attempt
@@ -93,21 +89,18 @@ impl CharacterBehavior for Data {
                 } else if self.timer < self.static_data.swing_duration {
                     // Swings
                     update.character = CharacterState::BasicMelee(Data {
-                        static_data: self.static_data,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
                 } else {
                     // Transitions to recover section of stage
                     update.character = CharacterState::BasicMelee(Data {
-                        static_data: self.static_data,
                         timer: Duration::default(),
                         stage_section: StageSection::Recover,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
                 }
             },
@@ -115,13 +108,11 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.recover_duration {
                     // Recovery
                     update.character = CharacterState::BasicMelee(Data {
-                        static_data: self.static_data,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
                 } else {
                     // Done

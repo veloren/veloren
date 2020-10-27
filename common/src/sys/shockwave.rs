@@ -192,10 +192,8 @@ impl<'a> System<'a> for Sys {
                     && (!shockwave.requires_ground || physics_state_b.on_ground);
 
                 if hit {
-                    let damage = if !same_group && shockwave.damages.enemy.is_some() {
-                        shockwave.damages.enemy.unwrap()
-                    } else if same_group && shockwave.damages.group.is_some() {
-                        shockwave.damages.group.unwrap()
+                    let damage = if let Some(damage) = shockwave.damages.get_damage(same_group) {
+                        damage
                     } else {
                         continue;
                     };
@@ -213,10 +211,10 @@ impl<'a> System<'a> for Sys {
                         });
                         shockwave_hit_list.hit_entities.push(*uid_b);
                         let kb_dir = Dir::new((pos_b.0 - pos.0).try_normalized().unwrap_or(*ori.0));
-                        server_emitter.emit(ServerEvent::Knockback {
-                            entity: b,
-                            impulse: shockwave.knockback.get_knockback(kb_dir),
-                        });
+                        let impulse = shockwave.knockback.calculate_impulse(kb_dir);
+                        if !impulse.is_approx_zero() {
+                            server_emitter.emit(ServerEvent::Knockback { entity: b, impulse });
+                        }
                     }
                 }
             }
