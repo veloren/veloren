@@ -1,7 +1,7 @@
 use crate::{
     comp::{
         slot::{EquipSlot, Slot},
-        CharacterState, ControlEvent, Controller, InventoryManip,
+        BuffChange, CharacterState, ControlEvent, Controller, InventoryManip,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::SysMetrics,
@@ -82,6 +82,12 @@ impl<'a> System<'a> for Sys {
                         {
                             server_emitter.emit(ServerEvent::Mount(entity, mountee_entity));
                         }
+                    },
+                    ControlEvent::RemoveBuff(buff_id) => {
+                        server_emitter.emit(ServerEvent::Buff {
+                            entity,
+                            buff_change: BuffChange::RemoveFromController(buff_id),
+                        });
                     },
                     ControlEvent::Unmount => server_emitter.emit(ServerEvent::Unmount(entity)),
                     ControlEvent::EnableLantern => {

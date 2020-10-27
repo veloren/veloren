@@ -3,6 +3,7 @@ mod admin;
 pub mod agent;
 pub mod beam;
 pub mod body;
+pub mod buff;
 mod character_state;
 pub mod chat;
 mod controller;
@@ -30,6 +31,10 @@ pub use beam::{Beam, BeamSegment};
 pub use body::{
     biped_large, bird_medium, bird_small, dragon, fish_medium, fish_small, golem, humanoid, object,
     quadruped_low, quadruped_medium, quadruped_small, theropod, AllBodies, Body, BodyData,
+};
+pub use buff::{
+    Buff, BuffCategory, BuffChange, BuffData, BuffEffect, BuffId, BuffKind, BuffSource, Buffs,
+    ModifierKind,
 };
 pub use character_state::{Attacking, CharacterState, StateUpdate};
 pub use chat::{

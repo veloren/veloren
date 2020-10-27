@@ -23,6 +23,14 @@
       "Short2": (
           vox_spec: ("armor.back.short-2", (-5.0, -1.0, -11.0)),
           color: None
+      ),
+      "Backpack0": (
+          vox_spec: ("armor.back.backpack-0", (-7.0, -5.0, -10.0)),
+          color: None
+      ),   
+      "BackpackBlue0": (
+          vox_spec: ("armor.back.backpack-grey", (-7.0, -5.0, -10.0)),
+          color: Some((76, 72, 178))
       ),   
     },
 ))

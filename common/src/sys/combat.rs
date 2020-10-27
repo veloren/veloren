@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        group, Attacking, Body, CharacterState, Damage, DamageSource, HealthChange, HealthSource,
-        Loadout, Ori, Pos, Scale, Stats,
+        buff, group, Attacking, Body, CharacterState, Damage, DamageSource, HealthChange,
+        HealthSource, Loadout, Ori, Pos, Scale, Stats,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::SysMetrics,
@@ -9,7 +9,9 @@ use crate::{
     sync::Uid,
     util::Dir,
 };
+use rand::{thread_rng, Rng};
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
+use std::time::Duration;
 use vek::*;
 
 pub const BLOCK_EFFICIENCY: f32 = 0.9;
@@ -150,6 +152,24 @@ impl<'a> System<'a> for Sys {
                                 cause,
                             },
                         });
+
+                        // Apply bleeding buff on melee hits with 10% chance
+                        // TODO: Don't have buff uniformly applied on all melee attacks
+                        if thread_rng().gen::<f32>() < 0.1 {
+                            use buff::*;
+                            server_emitter.emit(ServerEvent::Buff {
+                                entity: b,
+                                buff_change: BuffChange::Add(Buff::new(
+                                    BuffKind::Bleeding,
+                                    BuffData {
+                                        strength: attack.base_damage as f32 / 10.0,
+                                        duration: Some(Duration::from_secs(10)),
+                                    },
+                                    vec![BuffCategory::Physical],
+                                    BuffSource::Character { by: *uid },
+                                )),
+                            });
+                        }
                         attack.hit_count += 1;
                     }
                     if attack.knockback != 0.0 && damage.healthchange != 0.0 {

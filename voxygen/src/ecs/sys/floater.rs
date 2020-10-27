@@ -76,6 +76,7 @@ impl<'a> System<'a> for Sys {
                     | HealthSource::Projectile { owner: Some(by) }
                     | HealthSource::Energy { owner: Some(by) }
                     | HealthSource::Explosion { owner: Some(by) }
+                    | HealthSource::Buff { owner: Some(by) }
                     | HealthSource::Healing { by: Some(by) } => {
                         let by_me = my_uid.map_or(false, |&uid| by == uid);
                         // If the attack was by me also reset this timer

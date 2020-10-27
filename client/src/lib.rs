@@ -37,6 +37,7 @@ use common::{
     terrain::{block::Block, neighbors, TerrainChunk, TerrainChunkSize},
     vol::RectVolSize,
 };
+use comp::BuffKind;
 use futures_executor::block_on;
 use futures_timer::Delay;
 use futures_util::{select, FutureExt};
@@ -644,6 +645,12 @@ impl Client {
         self.send_msg(ClientGeneral::ControlEvent(ControlEvent::DisableLantern));
     }
 
+    pub fn remove_buff(&mut self, buff_id: BuffKind) {
+        self.send_msg(ClientGeneral::ControlEvent(ControlEvent::RemoveBuff(
+            buff_id,
+        )));
+    }
+
     pub fn max_group_size(&self) -> u32 { self.max_group_size }
 
     pub fn group_invite(&self) -> Option<(Uid, std::time::Instant, std::time::Duration)> {
@@ -977,6 +984,11 @@ impl Client {
 
         // 4) Tick the client's LocalState
         self.state.tick(dt, add_foreign_systems, true);
+        // TODO: avoid emitting these in the first place
+        self.state
+            .ecs()
+            .fetch::<EventBus<common::event::ServerEvent>>()
+            .recv_all();
 
         // 5) Terrain
         let pos = self
@@ -1728,6 +1740,11 @@ impl Client {
                             alias_of_uid(attacker_uid),
                             alias_of_uid(victim)
                         ),
+                        KillSource::Player(attacker_uid, KillType::Buff) => format!(
+                            "[{}] killed [{}]",
+                            alias_of_uid(attacker_uid),
+                            alias_of_uid(victim)
+                        ),
                         KillSource::NonPlayer(attacker_name, KillType::Melee) => {
                             format!("{} killed [{}]", attacker_name, alias_of_uid(victim))
                         },
@@ -1742,6 +1759,9 @@ impl Client {
                             attacker_name,
                             alias_of_uid(victim)
                         ),
+                        KillSource::NonPlayer(attacker_name, KillType::Buff) => {
+                            format!("{} killed [{}]", attacker_name, alias_of_uid(victim))
+                        },
                         KillSource::Environment(environment) => {
                             format!("[{}] died in {}", alias_of_uid(victim), environment)
                         },
@@ -1767,6 +1787,9 @@ impl Client {
                         KillSource::Player(attacker_uid, KillType::Energy) => message
                             .replace("{attacker}", &alias_of_uid(attacker_uid))
                             .replace("{victim}", &alias_of_uid(victim)),
+                        KillSource::Player(attacker_uid, KillType::Buff) => message
+                            .replace("{attacker}", &alias_of_uid(attacker_uid))
+                            .replace("{victim}", &alias_of_uid(victim)),
                         KillSource::NonPlayer(attacker_name, KillType::Melee) => message
                             .replace("{attacker}", attacker_name)
                             .replace("{victim}", &alias_of_uid(victim)),
@@ -1777,6 +1800,9 @@ impl Client {
                             .replace("{attacker}", attacker_name)
                             .replace("{victim}", &alias_of_uid(victim)),
                         KillSource::NonPlayer(attacker_name, KillType::Energy) => message
+                            .replace("{attacker}", attacker_name)
+                            .replace("{victim}", &alias_of_uid(victim)),
+                        KillSource::NonPlayer(attacker_name, KillType::Buff) => message
                             .replace("{attacker}", attacker_name)
                             .replace("{victim}", &alias_of_uid(victim)),
                         KillSource::Environment(environment) => message

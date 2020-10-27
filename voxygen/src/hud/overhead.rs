@@ -1,14 +1,16 @@
 use super::{
     img_ids::Imgs, DEFAULT_NPC, FACTION_COLOR, GROUP_COLOR, GROUP_MEMBER, HP_COLOR, LOW_HP_COLOR,
-    MANA_COLOR, REGION_COLOR, SAY_COLOR, TELL_COLOR, TEXT_BG, TEXT_COLOR,
+    REGION_COLOR, SAY_COLOR, STAMINA_COLOR, TELL_COLOR, TEXT_BG, TEXT_COLOR,
 };
 use crate::{
+    hud::get_buff_info,
     i18n::VoxygenLocalization,
     settings::GameplaySettings,
     ui::{fonts::ConrodVoxygenFonts, Ingameable},
 };
-use common::comp::{Energy, SpeechBubble, SpeechBubbleType, Stats};
+use common::comp::{BuffKind, Buffs, Energy, SpeechBubble, SpeechBubbleType, Stats};
 use conrod_core::{
+    color,
     position::Align,
     widget::{self, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
@@ -44,6 +46,11 @@ widget_ids! {
         health_txt,
         mana_bar,
         health_bar_fg,
+
+        // Buffs
+        buffs_align,
+        buffs[],
+        buff_timers[],
     }
 }
 
@@ -51,6 +58,7 @@ widget_ids! {
 pub struct Info<'a> {
     pub name: &'a str,
     pub stats: &'a Stats,
+    pub buffs: &'a Buffs,
     pub energy: Option<&'a Energy>,
 }
 
@@ -119,17 +127,25 @@ impl<'a> Ingameable for Overhead<'a> {
         // - 1 for HP text
         // - If there's mana
         //   - 1 Rect::new for mana
-        //
+        // If there are Buffs
+        // - 1 Alignment Rectangle
+        // - 10 + 10 Buffs and Timer Overlays (only if there is no speech bubble)
         // If there's a speech bubble
         // - 2 Text::new for speech bubble
         // - 1 Image::new for icon
         // - 10 Image::new for speech bubble (9-slice + tail)
         self.info.map_or(0, |info| {
-            2 + if show_healthbar(info.stats) {
-                5 + if info.energy.is_some() { 1 } else { 0 }
-            } else {
-                0
-            }
+            2 + 1
+                + if self.bubble.is_none() {
+                    info.buffs.kinds.len().min(10) * 2
+                } else {
+                    0
+                }
+                + if show_healthbar(info.stats) {
+                    5 + if info.energy.is_some() { 1 } else { 0 }
+                } else {
+                    0
+                }
         }) + if self.bubble.is_some() { 13 } else { 0 }
     }
 }
@@ -155,6 +171,7 @@ impl<'a> Widget for Overhead<'a> {
         if let Some(Info {
             name,
             stats,
+            buffs,
             energy,
         }) = self.info
         {
@@ -185,6 +202,84 @@ impl<'a> Widget for Overhead<'a> {
                 1000..=999999 => format!("{:.0}K", (health_max / 1000.0).max(1.0)),
                 _ => format!("{:.0}M", (health_max as f64 / 1.0e6).max(1.0)),
             };
+            // Buffs
+            // Alignment
+            let buff_count = buffs.kinds.len().min(11);
+            Rectangle::fill_with([168.0, 100.0], color::TRANSPARENT)
+                .x_y(-1.0, name_y + 60.0)
+                .parent(id)
+                .set(state.ids.buffs_align, ui);
+
+            let gen = &mut ui.widget_id_generator();
+            if state.ids.buffs.len() < buff_count {
+                state.update(|state| state.ids.buffs.resize(buff_count, gen));
+            };
+            if state.ids.buff_timers.len() < buff_count {
+                state.update(|state| state.ids.buff_timers.resize(buff_count, gen));
+            };
+
+            let buff_ani = ((self.pulse * 4.0).cos() * 0.5 + 0.8) + 0.5; //Animation timer
+            let pulsating_col = Color::Rgba(1.0, 1.0, 1.0, buff_ani);
+            let norm_col = Color::Rgba(1.0, 1.0, 1.0, 1.0);
+            // Create Buff Widgets
+            if self.bubble.is_none() {
+                state
+                    .ids
+                    .buffs
+                    .iter()
+                    .copied()
+                    .zip(state.ids.buff_timers.iter().copied())
+                    .zip(buffs.iter_active().map(get_buff_info))
+                    .enumerate()
+                    .for_each(|(i, ((id, timer_id), buff))| {
+                        // Limit displayed buffs
+                        let max_duration = buff.data.duration;
+                        let current_duration = buff.dur;
+                        let duration_percentage = current_duration.map_or(1000.0, |cur| {
+                            max_duration.map_or(1000.0, |max| {
+                                cur.as_secs_f32() / max.as_secs_f32() * 1000.0
+                            })
+                        }) as u32; // Percentage to determine which frame of the timer overlay is displayed
+                        let buff_img = match buff.kind {
+                            BuffKind::Regeneration { .. } => self.imgs.buff_plus_0,
+                            BuffKind::Bleeding { .. } => self.imgs.debuff_bleed_0,
+                            BuffKind::Cursed { .. } => self.imgs.debuff_skull_0,
+                        };
+                        let buff_widget = Image::new(buff_img).w_h(20.0, 20.0);
+                        // Sort buffs into rows of 5 slots
+                        let x = i % 5;
+                        let y = i / 5;
+                        let buff_widget = buff_widget.bottom_left_with_margins_on(
+                            state.ids.buffs_align,
+                            0.0 + y as f64 * (21.0),
+                            0.0 + x as f64 * (21.0),
+                        );
+                        buff_widget
+                            .color(
+                                if current_duration.map_or(false, |cur| cur.as_secs_f32() < 10.0) {
+                                    Some(pulsating_col)
+                                } else {
+                                    Some(norm_col)
+                                },
+                            )
+                            .set(id, ui);
+
+                        Image::new(match duration_percentage as u64 {
+                            875..=1000 => self.imgs.nothing, // 8/8
+                            750..=874 => self.imgs.buff_0,   // 7/8
+                            625..=749 => self.imgs.buff_1,   // 6/8
+                            500..=624 => self.imgs.buff_2,   // 5/8
+                            375..=499 => self.imgs.buff_3,   // 4/8
+                            250..=374 => self.imgs.buff_4,   // 3/8
+                            125..=249 => self.imgs.buff_5,   // 2/8
+                            0..=124 => self.imgs.buff_6,     // 1/8
+                            _ => self.imgs.nothing,
+                        })
+                        .w_h(20.0, 20.0)
+                        .middle_of(id)
+                        .set(timer_id, ui);
+                    });
+            }
             // Name
             Text::new(name)
                 .font_id(self.fonts.cyri.conrod_id)
@@ -254,7 +349,7 @@ impl<'a> Widget for Overhead<'a> {
 
                     Rectangle::fill_with(
                         [72.0 * energy_factor * BARSIZE, MANA_BAR_HEIGHT],
-                        MANA_COLOR,
+                        STAMINA_COLOR,
                     )
                     .x_y(
                         ((3.5 + (energy_factor * 36.5)) - 36.45) * BARSIZE,

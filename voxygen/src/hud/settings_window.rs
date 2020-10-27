@@ -1,9 +1,10 @@
 use super::{
-    img_ids::Imgs, BarNumbers, CrosshairType, PressBehavior, ShortcutNumbers, Show, XpBar,
-    CRITICAL_HP_COLOR, ERROR_COLOR, HP_COLOR, LOW_HP_COLOR, MANA_COLOR, MENU_BG,
+    img_ids::Imgs, BarNumbers, CrosshairType, PressBehavior, ShortcutNumbers, Show,
+    CRITICAL_HP_COLOR, ERROR_COLOR, HP_COLOR, LOW_HP_COLOR, MENU_BG, STAMINA_COLOR,
     TEXT_BIND_CONFLICT_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
+    hud::BuffPosition,
     i18n::{list_localizations, LanguageMetadata, VoxygenLocalization},
     render::{AaMode, CloudMode, FluidMode, LightingMode, RenderMode, ShadowMapMode, ShadowMode},
     ui::{fonts::ConrodVoxygenFonts, ImageSlider, ScaleMode, ToggleButton},
@@ -19,7 +20,6 @@ use conrod_core::{
 };
 use core::convert::TryFrom;
 
-use inline_tweak::*;
 use itertools::Itertools;
 use std::iter::once;
 use winit::monitor::VideoMode;
@@ -159,6 +159,7 @@ widget_ids! {
         sfx_volume_text,
         audio_device_list,
         audio_device_text,
+        //
         hotbar_title,
         bar_numbers_title,
         show_bar_numbers_none_button,
@@ -167,18 +168,20 @@ widget_ids! {
         show_bar_numbers_values_text,
         show_bar_numbers_percentage_button,
         show_bar_numbers_percentage_text,
+        //
         show_shortcuts_button,
         show_shortcuts_text,
-        show_xpbar_button,
-        show_xpbar_text,
-        show_bars_button,
-        show_bars_text,
-        placeholder,
+        buff_pos_bar_button,
+        buff_pos_bar_text,
+        buff_pos_map_button,
+        buff_pos_map_text,
+        //
         chat_transp_title,
         chat_transp_text,
         chat_transp_slider,
         chat_char_name_text,
         chat_char_name_button,
+        //
         sct_title,
         sct_show_text,
         sct_show_radio,
@@ -195,6 +198,7 @@ widget_ids! {
         sct_num_dur_text,
         sct_num_dur_slider,
         sct_num_dur_value,
+        //
         speech_bubble_text,
         speech_bubble_dark_mode_text,
         speech_bubble_dark_mode_button,
@@ -259,9 +263,9 @@ pub enum Event {
     ToggleHelp,
     ToggleDebug,
     ToggleTips(bool),
-    ToggleXpBar(XpBar),
     ToggleBarNumbers(BarNumbers),
     ToggleShortcutNumbers(ShortcutNumbers),
+    BuffPosition(BuffPosition),
     ChangeTab(SettingsTab),
     Close,
     AdjustMousePan(u32),
@@ -796,40 +800,6 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.hotbar_title, ui);
-            // Show xp bar
-            if Button::image(match self.global_state.settings.gameplay.xp_bar {
-                XpBar::Always => self.imgs.checkbox_checked,
-                XpBar::OnGain => self.imgs.checkbox,
-            })
-            .w_h(18.0, 18.0)
-            .hover_image(match self.global_state.settings.gameplay.xp_bar {
-                XpBar::Always => self.imgs.checkbox_checked_mo,
-                XpBar::OnGain => self.imgs.checkbox_mo,
-            })
-            .press_image(match self.global_state.settings.gameplay.xp_bar {
-                XpBar::Always => self.imgs.checkbox_checked,
-                XpBar::OnGain => self.imgs.checkbox_press,
-            })
-            .down_from(state.ids.hotbar_title, 8.0)
-            .set(state.ids.show_xpbar_button, ui)
-            .was_clicked()
-            {
-                match self.global_state.settings.gameplay.xp_bar {
-                    XpBar::Always => events.push(Event::ToggleXpBar(XpBar::OnGain)),
-                    XpBar::OnGain => events.push(Event::ToggleXpBar(XpBar::Always)),
-                }
-            }
-            Text::new(
-                &self
-                    .localized_strings
-                    .get("hud.settings.toggle_bar_experience"),
-            )
-            .right_from(state.ids.show_xpbar_button, 10.0)
-            .font_size(self.fonts.cyri.scale(14))
-            .font_id(self.fonts.cyri.conrod_id)
-            .graphics_for(state.ids.show_xpbar_button)
-            .color(TEXT_COLOR)
-            .set(state.ids.show_xpbar_text, ui);
             // Show Shortcut Numbers
             if Button::image(match self.global_state.settings.gameplay.shortcut_numbers {
                 ShortcutNumbers::On => self.imgs.checkbox_checked,
@@ -844,7 +814,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 ShortcutNumbers::On => self.imgs.checkbox_checked,
                 ShortcutNumbers::Off => self.imgs.checkbox_press,
             })
-            .down_from(state.ids.show_xpbar_button, 8.0)
+            .down_from(state.ids.hotbar_title, 8.0)
             .set(state.ids.show_shortcuts_button, ui)
             .was_clicked()
             {
@@ -864,11 +834,61 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .graphics_for(state.ids.show_shortcuts_button)
                 .color(TEXT_COLOR)
                 .set(state.ids.show_shortcuts_text, ui);
-
-            Rectangle::fill_with([60.0 * 4.0, 1.0 * 4.0], color::TRANSPARENT)
-                .down_from(state.ids.show_shortcuts_text, 30.0)
-                .set(state.ids.placeholder, ui);
-
+            // Buff Position
+            // Buffs above skills
+            if Button::image(match self.global_state.settings.gameplay.buff_position {
+                BuffPosition::Bar => self.imgs.checkbox_checked,
+                BuffPosition::Map => self.imgs.checkbox,
+            })
+            .w_h(18.0, 18.0)
+            .hover_image(match self.global_state.settings.gameplay.buff_position {
+                BuffPosition::Bar => self.imgs.checkbox_checked_mo,
+                BuffPosition::Map => self.imgs.checkbox_mo,
+            })
+            .press_image(match self.global_state.settings.gameplay.buff_position {
+                BuffPosition::Bar => self.imgs.checkbox_checked,
+                BuffPosition::Map => self.imgs.checkbox_press,
+            })
+            .down_from(state.ids.show_shortcuts_button, 8.0)
+            .set(state.ids.buff_pos_bar_button, ui)
+            .was_clicked()
+            {
+                events.push(Event::BuffPosition(BuffPosition::Bar))
+            }
+            Text::new(&self.localized_strings.get("hud.settings.buffs_skillbar"))
+                .right_from(state.ids.buff_pos_bar_button, 10.0)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
+                .graphics_for(state.ids.show_shortcuts_button)
+                .color(TEXT_COLOR)
+                .set(state.ids.buff_pos_bar_text, ui);
+            // Buffs left from minimap
+            if Button::image(match self.global_state.settings.gameplay.buff_position {
+                BuffPosition::Map => self.imgs.checkbox_checked,
+                BuffPosition::Bar => self.imgs.checkbox,
+            })
+            .w_h(18.0, 18.0)
+            .hover_image(match self.global_state.settings.gameplay.buff_position {
+                BuffPosition::Map => self.imgs.checkbox_checked_mo,
+                BuffPosition::Bar => self.imgs.checkbox_mo,
+            })
+            .press_image(match self.global_state.settings.gameplay.buff_position {
+                BuffPosition::Map => self.imgs.checkbox_checked,
+                BuffPosition::Bar => self.imgs.checkbox_press,
+            })
+            .down_from(state.ids.buff_pos_bar_button, 8.0)
+            .set(state.ids.buff_pos_map_button, ui)
+            .was_clicked()
+            {
+                events.push(Event::BuffPosition(BuffPosition::Map))
+            }
+            Text::new(&self.localized_strings.get("hud.settings.buffs_mmap"))
+                .right_from(state.ids.buff_pos_map_button, 10.0)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
+                .graphics_for(state.ids.show_shortcuts_button)
+                .color(TEXT_COLOR)
+                .set(state.ids.buff_pos_map_text, ui);
             // Content Right Side
 
             /*Scrolling Combat text
@@ -1692,7 +1712,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 0..=14 => CRITICAL_HP_COLOR,
                 15..=29 => LOW_HP_COLOR,
                 30..=50 => HP_COLOR,
-                _ => MANA_COLOR,
+                _ => STAMINA_COLOR,
             };
             Text::new(&format!("FPS: {:.0}", self.fps))
                 .color(fps_col)
@@ -2688,8 +2708,8 @@ impl<'a> Widget for SettingsWindow<'a> {
                 });
             };
             for (i, language) in language_list.iter().enumerate() {
-                let button_w = tweak!(400.0);
-                let button_h = tweak!(50.0);
+                let button_w = 400.0;
+                let button_h = 50.0;
                 let button = Button::image(if selected_language == &language.language_identifier {
                     self.imgs.selection
                 } else {
@@ -2706,7 +2726,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                     .hover_image(self.imgs.selection_hover)
                     .press_image(self.imgs.selection_press)
                     .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(22)))
+                    .label_font_size(self.fonts.cyri.scale(22))
                     .label_font_id(self.fonts.cyri.conrod_id)
                     .label_y(conrod_core::position::Relative::Scalar(2.0))
                     .set(state.ids.language_list[i], ui)

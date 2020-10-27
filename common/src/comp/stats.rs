@@ -8,6 +8,7 @@ use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::{error::Error, fmt};
 
+/// Specifies what and how much changed current health
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub struct HealthChange {
     pub amount: i32,
@@ -20,6 +21,7 @@ pub enum HealthSource {
     Projectile { owner: Option<Uid> },
     Explosion { owner: Option<Uid> },
     Energy { owner: Option<Uid> },
+    Buff { owner: Option<Uid> },
     Suicide,
     World,
     Revive,
@@ -32,6 +34,7 @@ pub enum HealthSource {
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Health {
+    base_max: u32,
     current: u32,
     maximum: u32,
     pub last_change: (f64, HealthChange),
@@ -67,11 +70,21 @@ impl Health {
         self.last_change = (0.0, change);
     }
 
-    // This is private because max hp is based on the level
-    fn set_maximum(&mut self, amount: u32) {
+    // This function changes the modified max health value, not the base health
+    // value. The modified health value takes into account buffs and other temporary
+    // changes to max health.
+    pub fn set_maximum(&mut self, amount: u32) {
         self.maximum = amount;
         self.current = self.current.min(self.maximum);
     }
+
+    // This is private because max hp is based on the level
+    fn set_base_max(&mut self, amount: u32) {
+        self.base_max = amount;
+        self.current = self.current.min(self.maximum);
+    }
+
+    pub fn reset_max(&mut self) { self.maximum = self.base_max; }
 }
 #[derive(Debug)]
 pub enum StatChangeError {
@@ -149,6 +162,8 @@ impl Stats {
     // TODO: Delete this once stat points will be a thing
     pub fn update_max_hp(&mut self, body: Body) {
         self.health
+            .set_base_max(body.base_health() + body.base_health_increase() * self.level.amount);
+        self.health
             .set_maximum(body.base_health() + body.base_health_increase() * self.level.amount);
     }
 }
@@ -179,6 +194,7 @@ impl Stats {
             health: Health {
                 current: 0,
                 maximum: 0,
+                base_max: 0,
                 last_change: (0.0, HealthChange {
                     amount: 0,
                     cause: HealthSource::Revive,
@@ -198,6 +214,7 @@ impl Stats {
         };
 
         stats.update_max_hp(body);
+
         stats
             .health
             .set_to(stats.health.maximum(), HealthSource::Revive);
@@ -213,6 +230,7 @@ impl Stats {
             health: Health {
                 current: 0,
                 maximum: 0,
+                base_max: 0,
                 last_change: (0.0, HealthChange {
                     amount: 0,
                     cause: HealthSource::Revive,
