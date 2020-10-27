@@ -584,7 +584,20 @@ impl Client {
     }
 
     pub fn pick_up(&mut self, entity: EcsEntity) {
+        // Get the stats component from the entity
+
         if let Some(uid) = self.state.read_component_copied(entity) {
+            // If we're dead, exit before sending the message
+            if self
+                .state
+                .ecs()
+                .read_storage::<comp::Stats>()
+                .get(self.entity)
+                .map_or(false, |s| s.is_dead)
+            {
+                return;
+            }
+
             self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryManip(
                 InventoryManip::Pickup(uid),
             )));
