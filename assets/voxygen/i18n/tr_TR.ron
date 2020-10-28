@@ -242,17 +242,15 @@ Bu pencereyi kapatmak için imlecini serbest bırakmak mı istiyorsun? TAB'a bas
 
 Veloren'in Dünyasında sana iyi eğlenceler!"#,
 
-"hud.temp_quest_headline": r#"Please, help us Traveller!"#,
-"hud.temp_quest_text": r#"Dungeons filled with evil cultists 
-have emerged all around our peaceful towns!
+"hud.temp_quest_headline": r#"Lütfen bize yardım et maceracı!"#,
+"hud.temp_quest_text": r#"Kasabamızın etrafında kültistlerle
+dolu zindanlar belirdi.
 
+Birkaç yoldaş bul, yiyeceğini hazırla
+ve kült lideri ile onun yardımcılarını alt et.
 
-Gather some company, stack up on food 
-and defeat their vile leaders and acolytes.
-
-
-Maybe you can even obtain one of their  
-magically infused items?"#,
+Kim bilir? Belki onların tılsımlı 
+eşyalarını bile ele geçirebilirsin!"#,
 
 
         // Inventory
