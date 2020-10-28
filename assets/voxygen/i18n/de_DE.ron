@@ -188,11 +188,13 @@ https://account.veloren.net.
         "hud.chat.pvp_ranged_kill_msg": "[{attacker}] hat [{victim}] aus der Ferne getötet",
         "hud.chat.pvp_explosion_kill_msg": "[{attacker}] hat [{victim}] hochgejagt",
         "hud.chat.pvp_energy_kill_msg": "[{attacker}] hat [{victim}] mit Magie erledigt",
+        "hud.chat.pvp_buff_kill_msg" : "[{attacker}] hat [{victim}] mit Magie erledigt",
 
 
         "hud.chat.npc_melee_kill_msg": "{attacker} tötete [{victim}]",
         "hud.chat.npc_ranged_kill_msg": "{attacker} tötete [{victim}]",
         "hud.chat.npc_explosion_kill_msg": "{attacker} hat [{victim}] hochgejagt",
+        "hud.chat.npc_buff_kill_msg": "[{attacker}] tötete [{victim}]",
 
         // SCT outputs
         "hud.sct.experience": "{amount} Erf",
@@ -306,6 +308,12 @@ magischen Gegenstände ergattern?"#,
         "hud.settings.chat": "Chat",
         "hud.settings.background_transparency": "Hintergrund-Kontrast",
         "hud.settings.chat_character_name": "Characternamen im Chat",
+        "hud.settings.buffs_mmap": "Zeige Buffs an der Mini-Map",
+        "hud.settings.buffs_skillbar": "Zeige Buffs an der Fähigkeiten Leiste",
+        "hud.settings.cloud_rendering_mode.low": "Niedrig", 
+        "hud.settings.cloud_rendering_mode.medium": "Mittel",
+        "hud.settings.cloud_rendering_mode.minimal": "Minimal", 
+        "hud.settings.cloud_rendering_mode.high": "Hoch", 
 
         "hud.settings.pan_sensitivity": "Schwenk-Sensibilität",
         "hud.settings.zoom_sensitivity": "Zoom-Sensibilität",
@@ -498,6 +506,17 @@ Willenskraft
         "esc_menu.logout": "Ausloggen",
         "esc_menu.quit_game": "Desktop",
         /// End Escape Menu Section
+
+         /// Buffs and Debuffs
+        "buff.remove": "Klicken zum Entfernen",
+        "buff.title.missing": "Fehlender Titel", 
+        "buff.desc.missing": "Fehlende Beschreibung", 
+        // Buffs
+        "buff.title.heal_test": "HoT Buff Test", 
+        "buff.desc.heal_test": "HoT Buff Test",   
+        // Debuffs   
+        "debuff.title.bleed_test": "Blutung", 
+        "debuff.desc.bleed_test": "Fügt regelmäßig Schaden zu.",
     },
 
     vector_map: {
