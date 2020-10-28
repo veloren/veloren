@@ -56,6 +56,7 @@ VoxygenLocalization(
         "common.controls": "Kontroller",
         "common.video": "Video",
         "common.sound": "Ses",
+        "common.languages": "Diller",
         "common.resume": "Devam Et",
         "common.characters": "Karakterler",
         "common.close": "Kapat",
@@ -73,6 +74,14 @@ VoxygenLocalization(
         "common.fatal_error": "Ölümcül hata",
         "common.you": "Sen",
         "common.automatic": "Otomatik",
+        "common.random": "Rastgele",
+        // Settings Window title
+        "common.interface_settings": "Arayüz Ayarları",
+        "common.gameplay_settings": "Oynanış Ayarları",
+        "common.controls_settings": "Kontrol Ayarları",
+        "common.video_settings": "Görüntü Ayarları",
+        "common.sound_settings": "Ses Ayarları",
+        "common.language_settings": "Dil Ayarları",
 
         // Message when connection to the server is lost
         "common.connection_lost": r#"Bağlantı koptu!
@@ -92,13 +101,15 @@ Sunucu yeniden mi başladı?
         "common.weapons.staff": "Asa",
         "common.weapons.bow": "Yay",
         "common.weapons.hammer": "Çekiç",
+        "common.weapons.sceptre": "Şifa Asası",
+        "common.rand_appearance": "Rastgele görünüm ve isim",
         /// End Common section
 
 
         /// Start Main screen section
         "main.connecting": "Bağlanılıyor",
         "main.creating_world": "Dünya oluşturuluyor",
-		"main.tip": "İpucu:",
+        "main.tip": "İpucu:",
 
         // Welcome notice that appears the first time Veloren is started
         "main.notice": r#"Veloren Alfa sürümüne hoşgeldin!
@@ -140,9 +151,9 @@ bir hesap oluşturabilirsin."#,
         "main.login.already_logged_in": "Zaten sunucuya giriş yapmışsın.",
         "main.login.network_error": "Ağ hatası",
         "main.login.failed_sending_request": "Kimlik doğrulama sunucusuna istek gönderilemedi",
-		"main.login.invalid_character": "Seçilen karakter geçersiz",
+        "main.login.invalid_character": "Seçilen karakter geçersiz",
         "main.login.client_crashed": "İstemci çöktü",
-		"main.login.not_on_whitelist": "Sunucuya girmek için bir Yönetici tarafından beyaz listeye eklenmen gerekiyor",
+        "main.login.not_on_whitelist": "Sunucuya girmek için bir Yönetici tarafından beyaz listeye eklenmen gerekiyor",
 
         /// End Main screen section
 
@@ -152,17 +163,35 @@ bir hesap oluşturabilirsin."#,
         "hud.show_tips": "Öneriler",
         "hud.quests": "Görevler",
         "hud.you_died": "Öldün",
-		"hud.waypoint_saved": "Yol noktası kaydedildi",
+        "hud.waypoint_saved": "Yol noktası kaydedildi",
         
         "hud.press_key_to_show_keybindings_fmt": "Kontrolleri göstermek için {key}'e bas",
+        "hud.press_key_to_toggle_lantern_fmt": "Fenerini yakıp söndürmek için [{key}]'e bas",
         "hud.press_key_to_show_debug_info_fmt": "Hata ayıklama bilgilerini göstermek için {key}'e bas",
         "hud.press_key_to_toggle_keybindings_fmt": "Kontrolleri açmak veya kapamak için {key}'e bas",
         "hud.press_key_to_toggle_debug_info_fmt": "Hata ayıklama bilgilerini açmak veya kapamak için {key}'e bas",
 
-
         // Chat outputs
         "hud.chat.online_msg": "[{name}] çevrimiçi oldu.",
         "hud.chat.offline_msg": "[{name}] çevrimdışı oldu.",
+
+        "hud.chat.default_death_msg": "[{name}] öldü.",
+        "hud.chat.environmental_kill_msg": "[{name}] {environment}'da öldü.",
+        "hud.chat.fall_kill_msg": "[{name}] yüksekten düşerek öldü.",
+        "hud.chat.suicide_msg": "[{name}] kendini yaralayarak öldü.",
+
+        "hud.chat.pvp_melee_kill_msg": "[{victim}], [{attacker}] tarafından mağlup edildi.",
+        "hud.chat.pvp_ranged_kill_msg": "[{victim}], [{attacker}] tarafından vuruldu.",
+        "hud.chat.pvp_explosion_kill_msg": "[{victim}], [{attacker}] tarafından havaya uçuruldu.",
+        "hud.chat.pvp_energy_kill_msg": "[{victim}], [{attacker}] tarafından büyü ile mağlup edildi.",
+        "hud.chat.pvp_buff_kill_msg": "[{victim}], [{attacker}] tarafından öldürüldü.",
+
+
+        "hud.chat.npc_melee_kill_msg": "[{victim}], [{attacker}] tarafından mağlup edildi.",
+        "hud.chat.npc_ranged_kill_msg": "[{victim}], [{attacker}] tarafından vuruldu.",
+        "hud.chat.npc_explosion_kill_msg": "[{victim}], [{attacker}] tarafından havaya uçuruldu.",
+        "hud.chat.npc_buff_kill_msg": "[{victim}], [{attacker}] tarafından öldürüldü.",
+
         "hud.chat.loot_msg": "[{item}] topladın.",
         "hud.chat.loot_fail": "Envanterin dolu!",
         "hud.chat.goodbye": "Hoşçakal!",
@@ -213,17 +242,15 @@ Bu pencereyi kapatmak için imlecini serbest bırakmak mı istiyorsun? TAB'a bas
 
 Veloren'in Dünyasında sana iyi eğlenceler!"#,
 
-"hud.temp_quest_headline": r#"Please, help us Traveller!"#,
-"hud.temp_quest_text": r#"Dungeons filled with evil cultists 
-have emerged all around our peaceful towns!
+"hud.temp_quest_headline": r#"Lütfen bize yardım et maceracı!"#,
+"hud.temp_quest_text": r#"Kasabamızın etrafında kültistlerle
+dolu zindanlar belirdi.
 
+Birkaç yoldaş bul, yiyeceğini hazırla
+ve kült lideri ile onun yardımcılarını alt et.
 
-Gather some company, stack up on food 
-and defeat their vile leaders and acolytes.
-
-
-Maybe you can even obtain one of their  
-magically infused items?"#,
+Kim bilir? Belki onların tılsımlı 
+eşyalarını bile ele geçirebilirsin!"#,
 
 
         // Inventory
@@ -239,6 +266,7 @@ magically infused items?"#,
         "hud.bag.chest": "Göğüs",
         "hud.bag.hands": "Eller",
         "hud.bag.lantern": "Fener",
+        "hud.bag.glider": "Planör",
         "hud.bag.belt": "Kemer",
         "hud.bag.ring": "Yüzük",
         "hud.bag.back": "Arka",
@@ -266,6 +294,8 @@ magically infused items?"#,
         "hud.settings.transparency": "Şeffaflık",
         "hud.settings.hotbar": "Aksiyon Çubuğu",
         "hud.settings.toggle_shortcuts": "Kısayolları aç/kapa",
+        "hud.settings.buffs_skillbar": "Etkiler yetenek çubuğunun üstünde",
+        "hud.settings.buffs_mmap": "Etkiler haritanın yanında",
         "hud.settings.toggle_bar_experience": "Tecrübe çubuğunu aç/kapa",
         "hud.settings.scrolling_combat_text": "Verilen/Alınan Hasar Yazısı",
         "hud.settings.single_damage_number": "Verilen Hasarı Tek Tek Göster",
@@ -273,7 +303,7 @@ magically infused items?"#,
         "hud.settings.incoming_damage": "Alınan Hasarı Tek Tek Göster",
         "hud.settings.cumulated_incoming_damage": "Toplam Alınan Hasarı Göster",
         "hud.settings.speech_bubble": "Konuşma balonu",
-		"hud.settings.speech_bubble_dark_mode": "Konuşma balonunda karanlık tema kullan",
+        "hud.settings.speech_bubble_dark_mode": "Konuşma balonunda karanlık tema kullan",
         "hud.settings.speech_bubble_icon": "Konuşma balonunda ikon göster",
         "hud.settings.energybar_numbers": "Enerji çubuğu değerleri",
         "hud.settings.values": "Sayılar",
@@ -299,18 +329,34 @@ edince kapat"#,
         "hud.settings.maximum_fps": "Maksimum FPS",
         "hud.settings.fov": "Görüş alanı (derece)",
         "hud.settings.gamma": "Gama",
+        "hud.settings.ambiance": "Ortam Parlaklığı",
         "hud.settings.antialiasing_mode": "Kenar Yumuşatma Modu",
         "hud.settings.cloud_rendering_mode": "Bulut Kalitesi",
         "hud.settings.fluid_rendering_mode": "Su Kalitesi",
         "hud.settings.fluid_rendering_mode.cheap": "Basit",
         "hud.settings.fluid_rendering_mode.shiny": "Güzel",
-        "hud.settings.cloud_rendering_mode.regular": "Normal",
+        "hud.settings.cloud_rendering_mode.minimal": "En Düşük",
+        "hud.settings.cloud_rendering_mode.low": "Düşük",
+        "hud.settings.cloud_rendering_mode.medium": "Orta",
+        "hud.settings.cloud_rendering_mode.high": "Yüksek",
+        "hud.settings.fullscreen": "Tam Ekran",
+        "hud.settings.fullscreen_mode": "Tam Ekran Modu",
+        "hud.settings.fullscreen_mode.exclusive": "Ekranı kapla",
+        "hud.settings.fullscreen_mode.borderless": "Penceresiz",
         "hud.settings.particles": "Partiküller",
         "hud.settings.resolution": "Çözünürlük",
         "hud.settings.bit_depth": "Bit Derinliği",
         "hud.settings.refresh_rate": "Yenileme Hızı",
-        "hud.settings.fullscreen": "Tam ekran",
         "hud.settings.save_window_size": "Pencere boyutunu kaydet",
+        "hud.settings.lighting_rendering_mode": "Aydınlanma Modu",
+        "hud.settings.lighting_rendering_mode.ashikhmin": "A Tipi - Yüksek",
+        "hud.settings.lighting_rendering_mode.blinnphong": "B Tipi - Orta",
+        "hud.settings.lighting_rendering_mode.lambertian": "L Tipi - Düşük",
+        "hud.settings.shadow_rendering_mode": "Gölge Modu",
+        "hud.settings.shadow_rendering_mode.none": "Kapalı",
+        "hud.settings.shadow_rendering_mode.cheap": "Basit",
+        "hud.settings.shadow_rendering_mode.map": "Ayrıntılı",
+        "hud.settings.shadow_rendering_mode.map.resolution": "Çözünürlük",
 
         "hud.settings.music_volume": "Müzik Sesi",
         "hud.settings.sound_effect_volume": "Efekt Sesi",
@@ -329,6 +375,7 @@ edince kapat"#,
         "hud.social.name": "İsim",
         "hud.social.level": "Seviye",
         "hud.social.zone": "Bölge",
+        "hud.social.account": "Hesap",
 
         "hud.crafting": "Üretim",
         "hud.crafting.recipes": "Tarifler",
@@ -389,7 +436,7 @@ edince kapat"#,
         "gameinput.climb": "Tırman",
         "gameinput.climbdown": "İn",
         "gameinput.wallleap": "Duvar Sıçrayışı",
-		"gameinput.togglelantern": "Feneri yak/söndür",
+        "gameinput.togglelantern": "Feneri yak/söndür",
         "gameinput.mount": "Bin",
         "gameinput.chat": "Sohbet",
         "gameinput.command": "Komut",
@@ -420,14 +467,14 @@ edince kapat"#,
 
         /// Start chracter selection section
         "char_selection.loading_characters": "Karakterler yükleniyor...",
-		"char_selection.delete_permanently": r#"Bu karakteri kalıcı olarak
+        "char_selection.delete_permanently": r#"Bu karakteri kalıcı olarak
 silmek istediğinden emin misin?"#,
-		"char_selection.deleting_character": "Karakter siliniyor...",
+        "char_selection.deleting_character": "Karakter siliniyor...",
         "char_selection.change_server": "Sunucu Değiştir",
         "char_selection.enter_world": "Dünyaya Gir",
         "char_selection.logout": "Çıkış yap",
         "char_selection.create_new_charater": "Yeni Karakter Oluştur",
-		"char_selection.creating_character": "Karakter oluşturuluyor...",
+        "char_selection.creating_character": "Karakter oluşturuluyor...",
         "char_selection.character_creation": "Karakter Oluşturma",
 
         "char_selection.human_default": "İnsan Varsayılanı",
@@ -438,10 +485,10 @@ silmek istediğinden emin misin?"#,
         "char_selection.hair_style": "Saç Stili",
         "char_selection.hair_color": "Saç Rengi",
         "char_selection.eye_color": "Göz Rengi",
-        "char_selection.skin": "Deri",
-		"char_selection.eyeshape": "Göz Detayları",
+        "char_selection.skin": "Ten Rengi",
+        "char_selection.eyeshape": "Göz Detayları",
         "char_selection.accessories": "Aksesuarlar",
-		"char_selection.create_info_name": "Karakterinin bir isme ihtiyacı var!",
+        "char_selection.create_info_name": "Karakterinin bir isme ihtiyacı var!",
 
         /// End chracter selection section
 
@@ -451,7 +498,7 @@ silmek istediğinden emin misin?"#,
         // Charater stats
         "character_window.character_stats": r#"Dayanıklılık
 
-Hareket gücü
+Çeviklik
 
 İrade gücü
 
@@ -466,6 +513,17 @@ Koruma
         "esc_menu.logout": "Çıkış yap",
         "esc_menu.quit_game": "Oyundan çık",
         /// End Escape Menu Section
+
+        /// Buffs and Debuffs
+        "buff.remove": "Etkiyi kadırmak için tıkla",
+        "buff.title.missing": "İsim Yok",
+        "buff.desc.missing": "Açıklama Yok",
+        // Buffs
+        "buff.title.heal_test": "İyileştirme Testi",
+        "buff.desc.heal_test": "Bu etki iyileştirmeyi test etmek için.",
+        // Debuffs
+        "debuff.title.bleed_test": "Kanama",
+        "debuff.desc.bleed_test": "Normal hasar verir.",
     },
 
     vector_map: {
