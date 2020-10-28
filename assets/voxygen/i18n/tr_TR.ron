@@ -297,7 +297,7 @@ magically infused items?"#,
         "hud.settings.hotbar": "Aksiyon Çubuğu",
         "hud.settings.toggle_shortcuts": "Kısayolları aç/kapa",
         "hud.settings.buffs_skillbar": "Etkiler yetenek çubuğunun üstünde",
-        "hud.settings.buffs_mmap": "Etkiler haritanın yanında"
+        "hud.settings.buffs_mmap": "Etkiler haritanın yanında",
         "hud.settings.toggle_bar_experience": "Tecrübe çubuğunu aç/kapa",
         "hud.settings.scrolling_combat_text": "Verilen/Alınan Hasar Yazısı",
         "hud.settings.single_damage_number": "Verilen Hasarı Tek Tek Göster",
