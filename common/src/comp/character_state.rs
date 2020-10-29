@@ -3,6 +3,7 @@ use crate::{
     event::{LocalEvent, ServerEvent},
     states::*,
     sys::character_behavior::JoinData,
+    Damages, Knockback,
 };
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage, VecStorage};
@@ -152,13 +153,12 @@ impl Component for CharacterState {
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Attacking {
-    pub base_damage: u32,
-    pub base_heal: u32,
+    pub damages: Damages,
     pub range: f32,
     pub max_angle: f32,
     pub applied: bool,
     pub hit_count: u32,
-    pub knockback: f32,
+    pub knockback: Knockback,
 }
 
 impl Component for Attacking {

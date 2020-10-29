@@ -717,7 +717,7 @@ impl Server {
             let stats_ns = res.stats_ns.load(Ordering::Relaxed);
             let phys_ns = res.phys_ns.load(Ordering::Relaxed);
             let projectile_ns = res.projectile_ns.load(Ordering::Relaxed);
-            let combat_ns = res.combat_ns.load(Ordering::Relaxed);
+            let melee_ns = res.melee_ns.load(Ordering::Relaxed);
 
             c.with_label_values(&[common::sys::AGENT_SYS])
                 .inc_by(agent_ns);
@@ -733,8 +733,8 @@ impl Server {
                 .inc_by(phys_ns);
             c.with_label_values(&[common::sys::PROJECTILE_SYS])
                 .inc_by(projectile_ns);
-            c.with_label_values(&[common::sys::COMBAT_SYS])
-                .inc_by(combat_ns);
+            c.with_label_values(&[common::sys::MELEE_SYS])
+                .inc_by(melee_ns);
 
             const NANOSEC_PER_SEC: f64 = Duration::from_secs(1).as_nanos() as f64;
             let h = &self.state_tick_metrics.state_tick_time_hist;
@@ -752,8 +752,8 @@ impl Server {
                 .observe(phys_ns as f64 / NANOSEC_PER_SEC);
             h.with_label_values(&[common::sys::PROJECTILE_SYS])
                 .observe(projectile_ns as f64 / NANOSEC_PER_SEC);
-            h.with_label_values(&[common::sys::COMBAT_SYS])
-                .observe(combat_ns as f64 / NANOSEC_PER_SEC);
+            h.with_label_values(&[common::sys::MELEE_SYS])
+                .observe(melee_ns as f64 / NANOSEC_PER_SEC);
         }
 
         // Report other info

@@ -153,7 +153,13 @@ fn does_not_map_run_with_sufficient_velocity_but_not_on_ground() {
 fn maps_roll() {
     let result = MovementEventMapper::map_movement_event(
         &CharacterState::Roll(states::roll::Data {
-            remaining_duration: Duration::from_millis(300),
+            static_data: states::roll::StaticData {
+                buildup_duration: Duration::default(),
+                movement_duration: Duration::default(),
+                recover_duration: Duration::default(),
+            },
+            timer: Duration::default(),
+            stage_section: states::utils::StageSection::Buildup,
             was_wielded: true,
         }),
         &PhysicsState {

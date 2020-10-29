@@ -594,8 +594,8 @@ impl ParticleMgr {
                         ));
                     }
                 } else {
-                    for d in 0..10 * distance as i32 {
-                        let arc_position = theta - radians / 2.0 + dtheta * d as f32 / 10.0;
+                    for d in 0..3 * distance as i32 {
+                        let arc_position = theta - radians / 2.0 + dtheta * d as f32 / 3.0;
 
                         let position = pos.0
                             + distance * Vec3::new(arc_position.cos(), arc_position.sin(), 0.0);

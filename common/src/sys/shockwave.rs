@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        group, Body, CharacterState, Damage, DamageSource, HealthChange, HealthSource, Last,
-        Loadout, Ori, PhysicsState, Pos, Scale, Shockwave, ShockwaveHitEntities, Stats,
+        group, Body, CharacterState, HealthSource, Last, Loadout, Ori, PhysicsState, Pos, Scale,
+        Shockwave, ShockwaveHitEntities, Stats,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     state::{DeltaTime, Time},
@@ -189,51 +189,32 @@ impl<'a> System<'a> for Sys {
                         })
                     }
                     && (pos_b_ground - pos.0).angle_between(pos_b.0 - pos.0) < max_angle
-                    && (!shockwave.requires_ground || physics_state_b.on_ground)
-                    && !same_group;
+                    && (!shockwave.requires_ground || physics_state_b.on_ground);
 
                 if hit {
-                    let mut damage = Damage {
-                        healthchange: -(shockwave.damage as f32),
-                        source: DamageSource::Shockwave,
+                    let damage = if let Some(damage) = shockwave.damages.get_damage(same_group) {
+                        damage
+                    } else {
+                        continue;
                     };
 
                     let block = character_b.map(|c_b| c_b.is_block()).unwrap_or(false)
                         && ori_b.0.angle_between(pos.0 - pos_b.0) < BLOCK_ANGLE.to_radians() / 2.0;
 
-                    if let Some(loadout) = loadouts.get(b) {
-                        damage.modify_damage(block, loadout);
-                    }
+                    let owner_uid = shockwave.owner.unwrap_or(*uid);
+                    let change = damage.modify_damage(block, loadouts.get(b), Some(owner_uid));
 
-                    if damage.healthchange != 0.0 {
-                        let cause = if damage.healthchange < 0.0 {
-                            HealthSource::Attack {
-                                by: shockwave.owner.unwrap_or(*uid),
-                            }
-                        } else {
-                            HealthSource::Healing {
-                                by: Some(shockwave.owner.unwrap_or(*uid)),
-                            }
-                        };
+                    if change.amount != 0 {
                         server_emitter.emit(ServerEvent::Damage {
                             uid: *uid_b,
-                            change: HealthChange {
-                                amount: damage.healthchange as i32,
-                                cause,
-                            },
+                            change,
                         });
                         shockwave_hit_list.hit_entities.push(*uid_b);
-                    }
-                    if shockwave.knockback != 0.0 && damage.healthchange != 0.0 {
                         let kb_dir = Dir::new((pos_b.0 - pos.0).try_normalized().unwrap_or(*ori.0));
-                        let impulse = if shockwave.knockback < 0.0 {
-                            shockwave.knockback
-                                * *Dir::slerp(kb_dir, Dir::new(Vec3::new(0.0, 0.0, -1.0)), 0.85)
-                        } else {
-                            shockwave.knockback
-                                * *Dir::slerp(kb_dir, Dir::new(Vec3::new(0.0, 0.0, 1.0)), 0.5)
-                        };
-                        server_emitter.emit(ServerEvent::Knockback { entity: b, impulse });
+                        let impulse = shockwave.knockback.calculate_impulse(kb_dir);
+                        if !impulse.is_approx_zero() {
+                            server_emitter.emit(ServerEvent::Knockback { entity: b, impulse });
+                        }
                     }
                 }
             }

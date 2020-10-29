@@ -2,6 +2,7 @@ use crate::{
     comp::{Attacking, CharacterState, EnergySource, StateUpdate},
     states::utils::*,
     sys::character_behavior::{CharacterBehavior, JoinData},
+    Damage, Damages, Knockback,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -99,8 +100,6 @@ impl CharacterBehavior for Data {
                     // Build up
                     update.character = CharacterState::ComboMelee(Data {
                         static_data: self.static_data.clone(),
-                        stage: self.stage,
-                        combo: self.combo,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(
@@ -110,51 +109,50 @@ impl CharacterBehavior for Data {
                                     * data.dt.0,
                             ))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
-                        next_stage: self.next_stage,
+                        ..*self
                     });
                 } else {
                     // Transitions to swing section of stage
                     update.character = CharacterState::ComboMelee(Data {
                         static_data: self.static_data.clone(),
-                        stage: self.stage,
-                        combo: self.combo,
                         timer: Duration::default(),
                         stage_section: StageSection::Swing,
-                        next_stage: self.next_stage,
+                        ..*self
                     });
 
                     // Hit attempt
+                    let damage = self.static_data.stage_data[stage_index].max_damage.min(
+                        self.static_data.stage_data[stage_index].base_damage
+                            + self.combo / self.static_data.num_stages
+                                * self.static_data.stage_data[stage_index].damage_increase,
+                    );
                     data.updater.insert(data.entity, Attacking {
-                        base_damage: self.static_data.stage_data[stage_index].max_damage.min(
-                            self.static_data.stage_data[stage_index].base_damage
-                                + self.combo / self.static_data.num_stages
-                                    * self.static_data.stage_data[stage_index].damage_increase,
-                        ),
-                        base_heal: 0,
+                        damages: Damages::new(Some(Damage::Melee(damage as f32)), None),
                         range: self.static_data.stage_data[stage_index].range,
                         max_angle: self.static_data.stage_data[stage_index].angle.to_radians(),
                         applied: false,
                         hit_count: 0,
-                        knockback: self.static_data.stage_data[stage_index].knockback,
+                        knockback: Knockback::Away(
+                            self.static_data.stage_data[stage_index].knockback,
+                        ),
                     });
                 }
             },
             StageSection::Swing => {
                 if self.timer < self.static_data.stage_data[stage_index].base_swing_duration {
                     // Forward movement
-                    forward_move(
+                    handle_forced_movement(
                         data,
                         &mut update,
+                        ForcedMovement::Forward {
+                            strength: self.static_data.stage_data[stage_index].forward_movement,
+                        },
                         0.3,
-                        self.static_data.stage_data[stage_index].forward_movement,
                     );
 
                     // Swings
                     update.character = CharacterState::ComboMelee(Data {
                         static_data: self.static_data.clone(),
-                        stage: self.stage,
-                        combo: self.combo,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(
@@ -164,18 +162,15 @@ impl CharacterBehavior for Data {
                                     * data.dt.0,
                             ))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
-                        next_stage: self.next_stage,
+                        ..*self
                     });
                 } else {
                     // Transitions to recover section of stage
                     update.character = CharacterState::ComboMelee(Data {
                         static_data: self.static_data.clone(),
-                        stage: self.stage,
-                        combo: self.combo,
                         timer: Duration::default(),
                         stage_section: StageSection::Recover,
-                        next_stage: self.next_stage,
+                        ..*self
                     });
                 }
             },
@@ -186,8 +181,6 @@ impl CharacterBehavior for Data {
                         // Checks if state will transition to next stage after recover
                         update.character = CharacterState::ComboMelee(Data {
                             static_data: self.static_data.clone(),
-                            stage: self.stage,
-                            combo: self.combo,
                             timer: self
                                 .timer
                                 .checked_add(Duration::from_secs_f32(
@@ -200,14 +193,12 @@ impl CharacterBehavior for Data {
                                         * data.dt.0,
                                 ))
                                 .unwrap_or_default(),
-                            stage_section: self.stage_section,
                             next_stage: true,
+                            ..*self
                         });
                     } else {
                         update.character = CharacterState::ComboMelee(Data {
                             static_data: self.static_data.clone(),
-                            stage: self.stage,
-                            combo: self.combo,
                             timer: self
                                 .timer
                                 .checked_add(Duration::from_secs_f32(
@@ -220,8 +211,7 @@ impl CharacterBehavior for Data {
                                         * data.dt.0,
                                 ))
                                 .unwrap_or_default(),
-                            stage_section: self.stage_section,
-                            next_stage: self.next_stage,
+                            ..*self
                         });
                     }
                 } else if self.next_stage {
@@ -229,10 +219,10 @@ impl CharacterBehavior for Data {
                     update.character = CharacterState::ComboMelee(Data {
                         static_data: self.static_data.clone(),
                         stage: (self.stage % self.static_data.num_stages) + 1,
-                        combo: self.combo,
                         timer: Duration::default(),
                         stage_section: StageSection::Buildup,
                         next_stage: false,
+                        ..*self
                     });
                 } else {
                     // Done

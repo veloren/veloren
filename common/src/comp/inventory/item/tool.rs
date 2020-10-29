@@ -4,7 +4,7 @@
 use crate::{
     comp::{body::object, projectile, Body, CharacterAbility, Gravity, LightEmitter, Projectile},
     states::combo_melee,
-    Explosion,
+    Damage, Damages, Explosion, Knockback,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -174,15 +174,15 @@ impl Tool {
                 DashMelee {
                     energy_cost: 200,
                     base_damage: (120.0 * self.base_power()) as u32,
-                    max_damage: (260.0 * self.base_power()) as u32,
-                    base_knockback: 10.0,
-                    max_knockback: 20.0,
+                    max_damage: (240.0 * self.base_power()) as u32,
+                    base_knockback: 8.0,
+                    max_knockback: 15.0,
                     range: 5.0,
                     angle: 45.0,
                     energy_drain: 500,
                     forward_speed: 4.0,
                     buildup_duration: Duration::from_millis(250),
-                    charge_duration: Duration::from_millis(400),
+                    charge_duration: Duration::from_millis(600),
                     swing_duration: Duration::from_millis(100),
                     recover_duration: Duration::from_millis(500),
                     infinite_charge: true,
@@ -206,9 +206,10 @@ impl Tool {
             Axe(_) => vec![
                 BasicMelee {
                     energy_cost: 0,
-                    buildup_duration: Duration::from_millis(700),
+                    buildup_duration: Duration::from_millis(600),
+                    swing_duration: Duration::from_millis(100),
                     recover_duration: Duration::from_millis(300),
-                    base_healthchange: (-120.0 * self.base_power()) as i32,
+                    base_damage: (120.0 * self.base_power()) as u32,
                     knockback: 0.0,
                     range: 3.5,
                     max_angle: 20.0,
@@ -244,9 +245,10 @@ impl Tool {
             Hammer(_) => vec![
                 BasicMelee {
                     energy_cost: 0,
-                    buildup_duration: Duration::from_millis(700),
+                    buildup_duration: Duration::from_millis(600),
+                    swing_duration: Duration::from_millis(100),
                     recover_duration: Duration::from_millis(300),
-                    base_healthchange: (-120.0 * self.base_power()) as i32,
+                    base_damage: (120.0 * self.base_power()) as u32,
                     knockback: 0.0,
                     range: 3.5,
                     max_angle: 20.0,
@@ -280,9 +282,10 @@ impl Tool {
             ],
             Farming(_) => vec![BasicMelee {
                 energy_cost: 1,
-                buildup_duration: Duration::from_millis(700),
+                buildup_duration: Duration::from_millis(600),
+                swing_duration: Duration::from_millis(100),
                 recover_duration: Duration::from_millis(150),
-                base_healthchange: (-50.0 * self.base_power()) as i32,
+                base_damage: (50.0 * self.base_power()) as u32,
                 knockback: 0.0,
                 range: 3.5,
                 max_angle: 20.0,
@@ -290,14 +293,16 @@ impl Tool {
             Bow(_) => vec![
                 BasicRanged {
                     energy_cost: 0,
-                    holdable: true,
-                    prepare_duration: Duration::from_millis(100),
+                    buildup_duration: Duration::from_millis(100),
                     recover_duration: Duration::from_millis(400),
                     projectile: Projectile {
                         hit_solid: vec![projectile::Effect::Stick],
                         hit_entity: vec![
-                            projectile::Effect::Damage((-40.0 * self.base_power()) as i32),
-                            projectile::Effect::Knockback(10.0),
+                            projectile::Effect::Damages(Damages::new(
+                                Some(Damage::Projectile(40.0 * self.base_power())),
+                                None,
+                            )),
+                            projectile::Effect::Knockback(Knockback::Away(10.0)),
                             projectile::Effect::RewardEnergy(50),
                             projectile::Effect::Vanish,
                         ],
@@ -317,7 +322,7 @@ impl Tool {
                     max_damage: (200.0 * self.base_power()) as u32,
                     initial_knockback: 10.0,
                     max_knockback: 20.0,
-                    prepare_duration: Duration::from_millis(100),
+                    buildup_duration: Duration::from_millis(100),
                     charge_duration: Duration::from_millis(1500),
                     recover_duration: Duration::from_millis(500),
                     projectile_body: Body::Object(object::Body::MultiArrow),
@@ -332,13 +337,15 @@ impl Tool {
                     buildup_duration: Duration::from_millis(200),
                     shoot_duration: Duration::from_millis(200),
                     recover_duration: Duration::from_millis(800),
-                    leap: Some(10.0),
+                    leap: Some(5.0),
                     projectile: Projectile {
                         hit_solid: vec![projectile::Effect::Stick],
                         hit_entity: vec![
-                            projectile::Effect::Damage((-40.0 * self.base_power()) as i32),
-                            projectile::Effect::Knockback(10.0),
-                            projectile::Effect::RewardEnergy(50),
+                            projectile::Effect::Damages(Damages::new(
+                                Some(Damage::Projectile(40.0 * self.base_power())),
+                                None,
+                            )),
+                            projectile::Effect::Knockback(Knockback::Away(10.0)),
                             projectile::Effect::Vanish,
                         ],
                         time_left: Duration::from_secs(15),
@@ -355,8 +362,9 @@ impl Tool {
             Dagger(_) => vec![BasicMelee {
                 energy_cost: 0,
                 buildup_duration: Duration::from_millis(100),
-                recover_duration: Duration::from_millis(400),
-                base_healthchange: (-50.0 * self.base_power()) as i32,
+                swing_duration: Duration::from_millis(100),
+                recover_duration: Duration::from_millis(300),
+                base_damage: (50.0 * self.base_power()) as u32,
                 knockback: 0.0,
                 range: 3.5,
                 max_angle: 20.0,
@@ -378,8 +386,7 @@ impl Tool {
                 },
                 BasicRanged {
                     energy_cost: 800,
-                    holdable: true,
-                    prepare_duration: Duration::from_millis(800),
+                    buildup_duration: Duration::from_millis(800),
                     recover_duration: Duration::from_millis(50),
                     projectile: Projectile {
                         hit_solid: vec![
@@ -422,8 +429,7 @@ impl Tool {
             Staff(_) => vec![
                 BasicRanged {
                     energy_cost: 0,
-                    holdable: false,
-                    prepare_duration: Duration::from_millis(500),
+                    buildup_duration: Duration::from_millis(500),
                     recover_duration: Duration::from_millis(350),
                     projectile: Projectile {
                         hit_solid: vec![
@@ -482,7 +488,7 @@ impl Tool {
                     swing_duration: Duration::from_millis(100),
                     recover_duration: Duration::from_millis(300),
                     damage: (200.0 * self.base_power()) as u32,
-                    knockback: 25.0,
+                    knockback: Knockback::Away(25.0),
                     shockwave_angle: 360.0,
                     shockwave_vertical_angle: 90.0,
                     shockwave_speed: 20.0,
@@ -495,8 +501,9 @@ impl Tool {
                 BasicMelee {
                     energy_cost: 0,
                     buildup_duration: Duration::from_millis(100),
-                    recover_duration: Duration::from_millis(400),
-                    base_healthchange: (-40.0 * self.base_power()) as i32,
+                    swing_duration: Duration::from_millis(100),
+                    recover_duration: Duration::from_millis(300),
+                    base_damage: (40.0 * self.base_power()) as u32,
                     knockback: 0.0,
                     range: 3.0,
                     max_angle: 120.0,
@@ -508,10 +515,11 @@ impl Tool {
                     vec![
                         BasicMelee {
                             energy_cost: 0,
-                            buildup_duration: Duration::from_millis(500),
+                            buildup_duration: Duration::from_millis(400),
+                            swing_duration: Duration::from_millis(100),
                             recover_duration: Duration::from_millis(250),
                             knockback: 25.0,
-                            base_healthchange: -200,
+                            base_damage: 200,
                             range: 5.0,
                             max_angle: 120.0,
                         },
@@ -521,7 +529,7 @@ impl Tool {
                             swing_duration: Duration::from_millis(200),
                             recover_duration: Duration::from_millis(800),
                             damage: 500,
-                            knockback: -40.0,
+                            knockback: Knockback::TowardsUp(40.0),
                             shockwave_angle: 90.0,
                             shockwave_vertical_angle: 15.0,
                             shockwave_speed: 20.0,
@@ -533,10 +541,11 @@ impl Tool {
                 } else if kind == "BeastClaws" {
                     vec![BasicMelee {
                         energy_cost: 0,
-                        buildup_duration: Duration::from_millis(500),
+                        buildup_duration: Duration::from_millis(250),
+                        swing_duration: Duration::from_millis(250),
                         recover_duration: Duration::from_millis(250),
                         knockback: 25.0,
-                        base_healthchange: -200,
+                        base_damage: 200,
                         range: 5.0,
                         max_angle: 120.0,
                     }]
@@ -544,58 +553,50 @@ impl Tool {
                     vec![BasicMelee {
                         energy_cost: 0,
                         buildup_duration: Duration::from_millis(100),
-                        recover_duration: Duration::from_millis(300),
-                        base_healthchange: -10,
+                        swing_duration: Duration::from_millis(100),
+                        recover_duration: Duration::from_millis(200),
+                        base_damage: 10,
                         knockback: 0.0,
                         range: 1.0,
                         max_angle: 30.0,
                     }]
                 }
             },
-            Debug(kind) => {
-                if kind == "Boost" {
-                    vec![
-                        CharacterAbility::Boost {
-                            duration: Duration::from_millis(50),
-                            only_up: false,
-                        },
-                        CharacterAbility::Boost {
-                            duration: Duration::from_millis(50),
-                            only_up: true,
-                        },
-                        BasicRanged {
-                            energy_cost: 0,
-                            holdable: false,
-                            prepare_duration: Duration::from_millis(0),
-                            recover_duration: Duration::from_millis(10),
-                            projectile: Projectile {
-                                hit_solid: vec![projectile::Effect::Stick],
-                                hit_entity: vec![
-                                    projectile::Effect::Stick,
-                                    projectile::Effect::Possess,
-                                ],
-                                time_left: Duration::from_secs(10),
-                                owner: None,
-                                ignore_group: false,
-                            },
-                            projectile_body: Body::Object(object::Body::ArrowSnake),
-                            projectile_light: Some(LightEmitter {
-                                col: (0.0, 1.0, 0.33).into(),
-                                ..Default::default()
-                            }),
-                            projectile_gravity: None,
-                            projectile_speed: 100.0,
-                        },
-                    ]
-                } else {
-                    vec![]
-                }
-            },
+            Debug(_) => vec![
+                CharacterAbility::Boost {
+                    movement_duration: Duration::from_millis(50),
+                    only_up: false,
+                },
+                CharacterAbility::Boost {
+                    movement_duration: Duration::from_millis(50),
+                    only_up: true,
+                },
+                BasicRanged {
+                    energy_cost: 0,
+                    buildup_duration: Duration::from_millis(0),
+                    recover_duration: Duration::from_millis(10),
+                    projectile: Projectile {
+                        hit_solid: vec![projectile::Effect::Stick],
+                        hit_entity: vec![projectile::Effect::Stick, projectile::Effect::Possess],
+                        time_left: Duration::from_secs(10),
+                        owner: None,
+                        ignore_group: false,
+                    },
+                    projectile_body: Body::Object(object::Body::ArrowSnake),
+                    projectile_light: Some(LightEmitter {
+                        col: (0.0, 1.0, 0.33).into(),
+                        ..Default::default()
+                    }),
+                    projectile_gravity: None,
+                    projectile_speed: 100.0,
+                },
+            ],
             Empty => vec![BasicMelee {
                 energy_cost: 0,
                 buildup_duration: Duration::from_millis(0),
-                recover_duration: Duration::from_millis(1000),
-                base_healthchange: -20,
+                swing_duration: Duration::from_millis(100),
+                recover_duration: Duration::from_millis(900),
+                base_damage: 20,
                 knockback: 0.0,
                 range: 3.5,
                 max_angle: 15.0,

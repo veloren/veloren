@@ -1,20 +1,18 @@
 use crate::{
     comp::{
-        projectile, Damage, DamageSource, Energy, EnergySource, Group, HealthChange, HealthSource,
-        Loadout, Ori, PhysicsState, Pos, Projectile, Vel,
+        projectile, Energy, EnergySource, Group, HealthSource, Loadout, Ori, PhysicsState, Pos,
+        Projectile, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::SysMetrics,
     span,
     state::DeltaTime,
     sync::UidAllocator,
-    util::Dir,
 };
 use specs::{
     saveload::MarkerAllocator, Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage,
 };
 use std::time::Duration;
-use vek::*;
 
 /// This system is responsible for handling projectile effect triggers
 pub struct Sys;
@@ -73,20 +71,21 @@ impl<'a> System<'a> for Sys {
         {
             // Hit entity
             for other in physics.touch_entities.iter().copied() {
+                let same_group = projectile
+                    .owner
+                    // Note: somewhat inefficient since we do the lookup for every touching
+                    // entity, but if we pull this out of the loop we would want to do it only
+                    // if there is at least one touching entity
+                    .and_then(|uid| uid_allocator.retrieve_entity_internal(uid.into()))
+                    .and_then(|e| groups.get(e))
+                    .map_or(false, |owner_group|
+                        Some(owner_group) == uid_allocator
+                        .retrieve_entity_internal(other.into())
+                        .and_then(|e| groups.get(e))
+                    );
                 if projectile.ignore_group
                     // Skip if in the same group
-                    && projectile
-                        .owner
-                        // Note: somewhat inefficient since we do the lookup for every touching
-                        // entity, but if we pull this out of the loop we would want to do it only
-                        // if there is at least one touching entity
-                        .and_then(|uid| uid_allocator.retrieve_entity_internal(uid.into()))
-                        .and_then(|e| groups.get(e))
-                        .map_or(false, |owner_group|
-                            Some(owner_group) == uid_allocator
-                            .retrieve_entity_internal(other.into())
-                            .and_then(|e| groups.get(e))
-                        )
+                    && same_group
                 {
                     continue;
                 }
@@ -97,51 +96,34 @@ impl<'a> System<'a> for Sys {
 
                 for effect in projectile.hit_entity.drain(..) {
                     match effect {
-                        projectile::Effect::Damage(healthchange) => {
-                            let owner_uid = projectile.owner.unwrap();
-                            let mut damage = Damage {
-                                healthchange: healthchange as f32,
-                                source: DamageSource::Projectile,
-                            };
-
-                            let other_entity = uid_allocator.retrieve_entity_internal(other.into());
-                            if let Some(loadout) = other_entity.and_then(|e| loadouts.get(e)) {
-                                damage.modify_damage(false, loadout);
+                        projectile::Effect::Damages(damages) => {
+                            if Some(other) == projectile.owner {
+                                continue;
                             }
+                            let damage = if let Some(damage) = damages.get_damage(same_group) {
+                                damage
+                            } else {
+                                continue;
+                            };
+                            let other_entity_loadout = uid_allocator
+                                .retrieve_entity_internal(other.into())
+                                .and_then(|e| loadouts.get(e));
+                            let change =
+                                damage.modify_damage(false, other_entity_loadout, projectile.owner);
 
-                            if other != owner_uid {
-                                if damage.healthchange < 0.0 {
-                                    server_emitter.emit(ServerEvent::Damage {
-                                        uid: other,
-                                        change: HealthChange {
-                                            amount: damage.healthchange as i32,
-                                            cause: HealthSource::Projectile {
-                                                owner: Some(owner_uid),
-                                            },
-                                        },
-                                    });
-                                } else if damage.healthchange > 0.0 {
-                                    server_emitter.emit(ServerEvent::Damage {
-                                        uid: other,
-                                        change: HealthChange {
-                                            amount: damage.healthchange as i32,
-                                            cause: HealthSource::Healing {
-                                                by: Some(owner_uid),
-                                            },
-                                        },
-                                    });
-                                }
+                            if change.amount != 0 {
+                                server_emitter.emit(ServerEvent::Damage { uid: other, change });
                             }
                         },
                         projectile::Effect::Knockback(knockback) => {
                             if let Some(entity) =
                                 uid_allocator.retrieve_entity_internal(other.into())
                             {
-                                local_emitter.emit(LocalEvent::ApplyImpulse {
-                                    entity,
-                                    impulse: knockback
-                                        * *Dir::slerp(ori.0, Dir::new(Vec3::unit_z()), 0.5),
-                                });
+                                let impulse = knockback.calculate_impulse(ori.0);
+                                if !impulse.is_approx_zero() {
+                                    local_emitter
+                                        .emit(LocalEvent::ApplyImpulse { entity, impulse });
+                                }
                             }
                         },
                         projectile::Effect::RewardEnergy(energy) => {

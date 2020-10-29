@@ -3,6 +3,7 @@ use crate::{
     event::ServerEvent,
     states::utils::*,
     sys::character_behavior::{CharacterBehavior, JoinData},
+    Damage, Damages, Knockback,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -19,7 +20,7 @@ pub struct StaticData {
     /// Base damage
     pub damage: u32,
     /// Knockback
-    pub knockback: f32,
+    pub knockback: Knockback,
     /// Angle of the shockwave
     pub shockwave_angle: f32,
     /// Vertical angle of the shockwave
@@ -56,12 +57,11 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.buildup_duration {
                     // Build up
                     update.character = CharacterState::Shockwave(Data {
-                        static_data: self.static_data,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
+                        ..*self
                     });
                 } else {
                     // Attack
@@ -70,7 +70,10 @@ impl CharacterBehavior for Data {
                         vertical_angle: self.static_data.shockwave_vertical_angle,
                         speed: self.static_data.shockwave_speed,
                         duration: self.static_data.shockwave_duration,
-                        damage: self.static_data.damage,
+                        damages: Damages::new(
+                            Some(Damage::Shockwave(self.static_data.damage as f32)),
+                            None,
+                        ),
                         knockback: self.static_data.knockback,
                         requires_ground: self.static_data.requires_ground,
                         owner: Some(*data.uid),
@@ -83,9 +86,9 @@ impl CharacterBehavior for Data {
 
                     // Transitions to swing
                     update.character = CharacterState::Shockwave(Data {
-                        static_data: self.static_data,
                         timer: Duration::default(),
                         stage_section: StageSection::Swing,
+                        ..*self
                     });
                 }
             },
@@ -93,19 +96,18 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.swing_duration {
                     // Swings
                     update.character = CharacterState::Shockwave(Data {
-                        static_data: self.static_data,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
+                        ..*self
                     });
                 } else {
                     // Transitions to recover
                     update.character = CharacterState::Shockwave(Data {
-                        static_data: self.static_data,
                         timer: Duration::default(),
                         stage_section: StageSection::Recover,
+                        ..*self
                     });
                 }
             },
@@ -113,12 +115,11 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.swing_duration {
                     // Recovers
                     update.character = CharacterState::Shockwave(Data {
-                        static_data: self.static_data,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
+                        ..*self
                     });
                 } else {
                     // Done

@@ -2,24 +2,39 @@ use crate::{
     comp::{Attacking, CharacterState, EnergySource, StateUpdate},
     states::utils::*,
     sys::character_behavior::{CharacterBehavior, JoinData},
+    Damage, Damages, Knockback,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
+/// Separated out to condense update portions of character state
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Data {
+pub struct StaticData {
     /// How long until state should deal damage
     pub buildup_duration: Duration,
+    /// How long the state is swinging for
+    pub swing_duration: Duration,
     /// How long the state has until exiting
     pub recover_duration: Duration,
-    /// Base damage (negative) or healing (positive)
-    pub base_healthchange: i32,
+    /// Base damage
+    pub base_damage: u32,
     /// Knockback
     pub knockback: f32,
     /// Max range
     pub range: f32,
     /// Max angle (45.0 will give you a 90.0 angle window)
     pub max_angle: f32,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Data {
+    /// Struct containing data that does not change over the course of the
+    /// character state
+    pub static_data: StaticData,
+    /// Timer for each stage
+    pub timer: Duration,
+    /// What section the character stage is in
+    pub stage_section: StageSection,
     /// Whether the attack can deal more damage
     pub exhausted: bool,
 }
@@ -31,65 +46,87 @@ impl CharacterBehavior for Data {
         handle_move(data, &mut update, 0.7);
         handle_jump(data, &mut update);
 
-        if self.buildup_duration != Duration::default() {
-            // Build up
-            update.character = CharacterState::BasicMelee(Data {
-                buildup_duration: self
-                    .buildup_duration
-                    .checked_sub(Duration::from_secs_f32(data.dt.0))
-                    .unwrap_or_default(),
-                recover_duration: self.recover_duration,
-                base_healthchange: self.base_healthchange,
-                knockback: self.knockback,
-                range: self.range,
-                max_angle: self.max_angle,
-                exhausted: false,
-            });
-        } else if !self.exhausted {
-            let (damage, heal) = if self.base_healthchange > 0 {
-                (0, self.base_healthchange as u32)
-            } else {
-                ((-self.base_healthchange) as u32, 0)
-            };
-            // Hit attempt
-            data.updater.insert(data.entity, Attacking {
-                base_damage: damage,
-                base_heal: heal,
-                range: self.range,
-                max_angle: self.max_angle.to_radians(),
-                applied: false,
-                hit_count: 0,
-                knockback: self.knockback,
-            });
+        match self.stage_section {
+            StageSection::Buildup => {
+                if self.timer < self.static_data.buildup_duration {
+                    // Build up
+                    update.character = CharacterState::BasicMelee(Data {
+                        timer: self
+                            .timer
+                            .checked_add(Duration::from_secs_f32(data.dt.0))
+                            .unwrap_or_default(),
+                        ..*self
+                    });
+                } else {
+                    // Transitions to swing section of stage
+                    update.character = CharacterState::BasicMelee(Data {
+                        timer: Duration::default(),
+                        stage_section: StageSection::Swing,
+                        ..*self
+                    });
+                }
+            },
+            StageSection::Swing => {
+                if !self.exhausted {
+                    update.character = CharacterState::BasicMelee(Data {
+                        timer: Duration::default(),
+                        exhausted: true,
+                        ..*self
+                    });
 
-            update.character = CharacterState::BasicMelee(Data {
-                buildup_duration: self.buildup_duration,
-                recover_duration: self.recover_duration,
-                base_healthchange: self.base_healthchange,
-                knockback: self.knockback,
-                range: self.range,
-                max_angle: self.max_angle,
-                exhausted: true,
-            });
-        } else if self.recover_duration != Duration::default() {
-            // Recovery
-            update.character = CharacterState::BasicMelee(Data {
-                buildup_duration: self.buildup_duration,
-                recover_duration: self
-                    .recover_duration
-                    .checked_sub(Duration::from_secs_f32(data.dt.0))
-                    .unwrap_or_default(),
-                base_healthchange: self.base_healthchange,
-                knockback: self.knockback,
-                range: self.range,
-                max_angle: self.max_angle,
-                exhausted: true,
-            });
-        } else {
-            // Done
-            update.character = CharacterState::Wielding;
-            // Make sure attack component is removed
-            data.updater.remove::<Attacking>(data.entity);
+                    // Hit attempt
+                    data.updater.insert(data.entity, Attacking {
+                        damages: Damages::new(
+                            Some(Damage::Melee(self.static_data.base_damage as f32)),
+                            None,
+                        ),
+                        range: self.static_data.range,
+                        max_angle: 180_f32.to_radians(),
+                        applied: false,
+                        hit_count: 0,
+                        knockback: Knockback::Away(self.static_data.knockback),
+                    });
+                } else if self.timer < self.static_data.swing_duration {
+                    // Swings
+                    update.character = CharacterState::BasicMelee(Data {
+                        timer: self
+                            .timer
+                            .checked_add(Duration::from_secs_f32(data.dt.0))
+                            .unwrap_or_default(),
+                        ..*self
+                    });
+                } else {
+                    // Transitions to recover section of stage
+                    update.character = CharacterState::BasicMelee(Data {
+                        timer: Duration::default(),
+                        stage_section: StageSection::Recover,
+                        ..*self
+                    });
+                }
+            },
+            StageSection::Recover => {
+                if self.timer < self.static_data.recover_duration {
+                    // Recovery
+                    update.character = CharacterState::BasicMelee(Data {
+                        timer: self
+                            .timer
+                            .checked_add(Duration::from_secs_f32(data.dt.0))
+                            .unwrap_or_default(),
+                        ..*self
+                    });
+                } else {
+                    // Done
+                    update.character = CharacterState::Wielding;
+                    // Make sure attack component is removed
+                    data.updater.remove::<Attacking>(data.entity);
+                }
+            },
+            _ => {
+                // If it somehow ends up in an incorrect stage section
+                update.character = CharacterState::Wielding;
+                // Make sure attack component is removed
+                data.updater.remove::<Attacking>(data.entity);
+            },
         }
 
         // Grant energy on successful hit

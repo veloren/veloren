@@ -23,7 +23,10 @@ fn maps_wield_while_equipping() {
 
     let result = CombatEventMapper::map_event(
         &CharacterState::Equipping(states::equipping::Data {
-            time_left: Duration::from_millis(10),
+            static_data: states::equipping::StaticData {
+                buildup_duration: Duration::from_millis(10),
+            },
+            timer: Duration::default(),
         }),
         &PreviousEntityState {
             event: SfxEvent::Idle,
@@ -77,12 +80,17 @@ fn maps_basic_melee() {
 
     let result = CombatEventMapper::map_event(
         &CharacterState::BasicMelee(states::basic_melee::Data {
-            buildup_duration: Duration::default(),
-            recover_duration: Duration::default(),
-            knockback: 0.0,
-            base_healthchange: 10,
-            range: 1.0,
-            max_angle: 1.0,
+            static_data: states::basic_melee::StaticData {
+                buildup_duration: Duration::default(),
+                swing_duration: Duration::default(),
+                recover_duration: Duration::default(),
+                base_damage: 10,
+                knockback: 0.0,
+                range: 1.0,
+                max_angle: 1.0,
+            },
+            timer: Duration::default(),
+            stage_section: states::utils::StageSection::Buildup,
             exhausted: false,
         }),
         &PreviousEntityState {

@@ -8,6 +8,7 @@ use crate::{
         *,
     },
     sys::character_behavior::JoinData,
+    Knockback,
 };
 use arraygen::Arraygen;
 use serde::{Deserialize, Serialize};
@@ -59,16 +60,16 @@ pub enum CharacterAbility {
     BasicMelee {
         energy_cost: u32,
         buildup_duration: Duration,
+        swing_duration: Duration,
         recover_duration: Duration,
-        base_healthchange: i32,
+        base_damage: u32,
         knockback: f32,
         range: f32,
         max_angle: f32,
     },
     BasicRanged {
         energy_cost: u32,
-        holdable: bool,
-        prepare_duration: Duration,
+        buildup_duration: Duration,
         recover_duration: Duration,
         projectile: Projectile,
         projectile_body: Body,
@@ -91,7 +92,7 @@ pub enum CharacterAbility {
         reps_remaining: u32,
     },
     Boost {
-        duration: Duration,
+        movement_duration: Duration,
         only_up: bool,
     },
     DashMelee {
@@ -169,7 +170,7 @@ pub enum CharacterAbility {
         max_damage: u32,
         initial_knockback: f32,
         max_knockback: f32,
-        prepare_duration: Duration,
+        buildup_duration: Duration,
         charge_duration: Duration,
         recover_duration: Duration,
         projectile_body: Body,
@@ -184,7 +185,7 @@ pub enum CharacterAbility {
         swing_duration: Duration,
         recover_duration: Duration,
         damage: u32,
-        knockback: f32,
+        knockback: Knockback,
         shockwave_angle: f32,
         shockwave_vertical_angle: f32,
         shockwave_speed: f32,
@@ -234,10 +235,13 @@ impl CharacterAbility {
                 .energy
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
-            CharacterAbility::LeapMelee { energy_cost, .. } => update
-                .energy
-                .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
-                .is_ok(),
+            CharacterAbility::LeapMelee { energy_cost, .. } => {
+                update.vel.0.z >= 0.0
+                    && update
+                        .energy
+                        .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
+                        .is_ok()
+            },
             CharacterAbility::SpinMelee { energy_cost, .. } => update
                 .energy
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
@@ -250,10 +254,15 @@ impl CharacterAbility {
                 .energy
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
-            CharacterAbility::RepeaterRanged { energy_cost, .. } => update
-                .energy
-                .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
-                .is_ok(),
+            CharacterAbility::RepeaterRanged {
+                energy_cost, leap, ..
+            } => {
+                (leap.is_none() || update.vel.0.z >= 0.0)
+                    && update
+                        .energy
+                        .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
+                        .is_ok()
+            },
             CharacterAbility::Shockwave { energy_cost, .. } => update
                 .energy
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
@@ -356,24 +365,29 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
         match ability {
             CharacterAbility::BasicMelee {
                 buildup_duration,
+                swing_duration,
                 recover_duration,
-                base_healthchange,
+                base_damage,
                 knockback,
                 range,
                 max_angle,
                 energy_cost: _,
             } => CharacterState::BasicMelee(basic_melee::Data {
+                static_data: basic_melee::StaticData {
+                    buildup_duration: *buildup_duration,
+                    swing_duration: *swing_duration,
+                    recover_duration: *recover_duration,
+                    base_damage: *base_damage,
+                    knockback: *knockback,
+                    range: *range,
+                    max_angle: *max_angle,
+                },
+                timer: Duration::default(),
+                stage_section: StageSection::Buildup,
                 exhausted: false,
-                buildup_duration: *buildup_duration,
-                recover_duration: *recover_duration,
-                base_healthchange: *base_healthchange,
-                knockback: *knockback,
-                range: *range,
-                max_angle: *max_angle,
             }),
             CharacterAbility::BasicRanged {
-                holdable,
-                prepare_duration,
+                buildup_duration,
                 recover_duration,
                 projectile,
                 projectile_body,
@@ -382,21 +396,29 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                 projectile_speed,
                 energy_cost: _,
             } => CharacterState::BasicRanged(basic_ranged::Data {
+                static_data: basic_ranged::StaticData {
+                    buildup_duration: *buildup_duration,
+                    recover_duration: *recover_duration,
+                    projectile: projectile.clone(),
+                    projectile_body: *projectile_body,
+                    projectile_light: *projectile_light,
+                    projectile_gravity: *projectile_gravity,
+                    projectile_speed: *projectile_speed,
+                    ability_key: key,
+                },
+                timer: Duration::default(),
+                stage_section: StageSection::Buildup,
                 exhausted: false,
-                prepare_timer: Duration::default(),
-                holdable: *holdable,
-                prepare_duration: *prepare_duration,
-                recover_duration: *recover_duration,
-                projectile: projectile.clone(),
-                projectile_body: *projectile_body,
-                projectile_light: *projectile_light,
-                projectile_gravity: *projectile_gravity,
-                projectile_speed: *projectile_speed,
-                ability_key: key,
             }),
-            CharacterAbility::Boost { duration, only_up } => CharacterState::Boost(boost::Data {
-                duration: *duration,
-                only_up: *only_up,
+            CharacterAbility::Boost {
+                movement_duration,
+                only_up,
+            } => CharacterState::Boost(boost::Data {
+                static_data: boost::StaticData {
+                    movement_duration: *movement_duration,
+                    only_up: *only_up,
+                },
+                timer: Duration::default(),
             }),
             CharacterAbility::DashMelee {
                 energy_cost: _,
@@ -431,14 +453,21 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                     recover_duration: *recover_duration,
                     is_interruptible: *is_interruptible,
                 },
-                end_charge: false,
+                auto_charge: false,
                 timer: Duration::default(),
+                refresh_timer: Duration::default(),
                 stage_section: StageSection::Buildup,
                 exhausted: false,
             }),
             CharacterAbility::BasicBlock => CharacterState::BasicBlock,
             CharacterAbility::Roll => CharacterState::Roll(roll::Data {
-                remaining_duration: Duration::from_millis(500),
+                static_data: roll::StaticData {
+                    buildup_duration: Duration::from_millis(100),
+                    movement_duration: Duration::from_millis(300),
+                    recover_duration: Duration::from_millis(100),
+                },
+                timer: Duration::default(),
+                stage_section: StageSection::Buildup,
                 was_wielded: false, // false by default. utils might set it to true
             }),
             CharacterAbility::ComboMelee {
@@ -566,7 +595,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                 max_damage,
                 initial_knockback,
                 max_knockback,
-                prepare_duration,
+                buildup_duration,
                 charge_duration,
                 recover_duration,
                 projectile_body,
@@ -575,21 +604,24 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                 initial_projectile_speed,
                 max_projectile_speed,
             } => CharacterState::ChargedRanged(charged_ranged::Data {
+                static_data: charged_ranged::StaticData {
+                    buildup_duration: *buildup_duration,
+                    charge_duration: *charge_duration,
+                    recover_duration: *recover_duration,
+                    energy_drain: *energy_drain,
+                    initial_damage: *initial_damage,
+                    max_damage: *max_damage,
+                    initial_knockback: *initial_knockback,
+                    max_knockback: *max_knockback,
+                    projectile_body: *projectile_body,
+                    projectile_light: *projectile_light,
+                    projectile_gravity: *projectile_gravity,
+                    initial_projectile_speed: *initial_projectile_speed,
+                    max_projectile_speed: *max_projectile_speed,
+                },
+                timer: Duration::default(),
+                stage_section: StageSection::Buildup,
                 exhausted: false,
-                energy_drain: *energy_drain,
-                initial_damage: *initial_damage,
-                max_damage: *max_damage,
-                initial_knockback: *initial_knockback,
-                max_knockback: *max_knockback,
-                prepare_duration: *prepare_duration,
-                charge_duration: *charge_duration,
-                charge_timer: Duration::default(),
-                recover_duration: *recover_duration,
-                projectile_body: *projectile_body,
-                projectile_light: *projectile_light,
-                projectile_gravity: *projectile_gravity,
-                initial_projectile_speed: *initial_projectile_speed,
-                max_projectile_speed: *max_projectile_speed,
             }),
             CharacterAbility::RepeaterRanged {
                 energy_cost: _,
