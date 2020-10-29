@@ -9,6 +9,14 @@
             ],
             threshold: 1.2,
         ),
+        Birdcall: (
+            files: [
+                "voxygen.audio.sfx.ambient.birdcall_1",
+                "voxygen.audio.sfx.ambient.birdcall_2",
+                "voxygen.audio.sfx.ambient.birdcall_3",
+            ],
+            threshold: 30.0,
+        ),
         //
         // Character States
         //

@@ -11,7 +11,7 @@ use common::{
     vol::RectRasterableVol,
 };
 use hashbrown::HashMap;
-use rand::{prelude::SliceRandom, thread_rng};
+use rand::{prelude::SliceRandom, thread_rng, Rng};
 use specs::WorldExt;
 use std::time::Instant;
 use vek::*;
@@ -41,7 +41,7 @@ impl Default for PreviousBlockState {
 }
 
 impl PreviousBlockState {
-    fn new(event: SfxEvent, pos: Vec3<f32>) -> Self {
+    fn new(event: SfxEvent) -> Self {
         PreviousBlockState {
             event,
             time: Instant::now(),
@@ -84,8 +84,6 @@ impl EventMapper for BlockEventMapper {
             blocks: fn(&'a BlocksOfInterest) -> &'a [Vec3<i32>],
             // The range, in chunks, that the particles should be generated in from the player
             range: usize,
-            // The spacing between sfx, per block, seconds
-            spacing: f32,
             // The sound of the generated particle
             sfx: SfxEvent,
             // The volume of the sfx
@@ -94,20 +92,18 @@ impl EventMapper for BlockEventMapper {
             cond: fn(&State) -> bool,
         }
         let sounds: &[BlockSounds] = &[
-            //BlockSounds {
-            //    blocks: |boi| &boi.leaves,
-            //    range: 4,
-            //    spacing: 1.5,
-            //    sfx: SfxEvent::LevelUp,
-            //    volume: 1.0
-            //    cond: |_| true,
-            //},
+            BlockSounds {
+                blocks: |boi| &boi.leaves,
+                range: 1,
+                sfx: SfxEvent::Birdcall,
+                volume: 1.0,
+                cond: |_| true,
+            },
             BlockSounds {
                 blocks: |boi| &boi.embers,
-                range: 3,
-                spacing: 1.2,
+                range: 1,
                 sfx: SfxEvent::Embers,
-                volume: 0.5,
+                volume: 0.05,
                 //volume: 0.05,
                 cond: |_| true,
                 //cond: |st| st.get_day_period().is_dark(),
@@ -148,13 +144,13 @@ impl EventMapper for BlockEventMapper {
             //    cond: |_| true,
             //},
         ];
-        let mut rng = thread_rng();
 
         // Iterate through each kind of block of interest
         for sounds in sounds.iter() {
             if !(sounds.cond)(state) {
                 continue;
             }
+
             // For chunks surrounding the player position
             for offset in Spiral2d::new().take((sounds.range * 2 + 1).pow(2)) {
                 let chunk_pos = player_chunk + offset;
@@ -169,6 +165,11 @@ impl EventMapper for BlockEventMapper {
 
                     // Iterate through each individual block
                     for block in blocks {
+                        // Reduce the number of bird calls from trees
+                        if sounds.sfx == SfxEvent::Birdcall && thread_rng().gen::<f32>() < 0.25 {
+                            continue;
+                        }
+
                         let block_pos: Vec3<i32> = absolute_pos + block;
                         let state = self.history.entry(block_pos).or_default();
 
@@ -180,9 +181,12 @@ impl EventMapper for BlockEventMapper {
                         );
 
                         if Self::should_emit(state, triggers.get_key_value(&sounds.sfx)) {
-                            sfx_emitter.emit(SfxEventItem::new(sounds.sfx.clone(), Some(block_pos), Some(sounds.volume)));
-                            state.time = Instant::now();
-                            state.event = sounds.sfx.clone();
+                            // If the camera is within SFX distance
+                            if (block_pos.distance_squared(cam_pos)) < SFX_DIST_LIMIT_SQR {
+                                sfx_emitter.emit(SfxEventItem::new(sounds.sfx.clone(), Some(block_pos), Some(sounds.volume)));
+                                state.time = Instant::now();
+                                state.event = sounds.sfx.clone();
+                            }
                         }
                     }
 
