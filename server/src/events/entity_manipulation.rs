@@ -435,7 +435,11 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
             let _ = state
                 .create_object(
                     comp::Pos(pos.0 + Vec3::unit_z() * 0.25),
-                    object::Body::Pouch,
+                    match old_body{
+                        Some(common::comp::Body::Humanoid(_)) => object::Body::Pouch,
+                        Some(common::comp::Body::Golem(_)) => object::Body::Chest,
+                        _ => object::Body::Pumpkin,
+                    },
                 )
                 .with(item)
                 .build();
