@@ -3,8 +3,9 @@ use common::{
     comp::{
         self, item,
         slot::{self, Slot},
-        Pos, MAX_PICKUP_RANGE_SQR,
+        Pos,
     },
+    consts::MAX_PICKUP_RANGE,
     msg::ServerGeneral,
     recipe::default_recipe_book,
     sync::{Uid, WorldSyncExt},
@@ -512,7 +513,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
 
 fn within_pickup_range(player_position: Option<&Pos>, item_position: Option<&Pos>) -> bool {
     match (player_position, item_position) {
-        (Some(ppos), Some(ipos)) => ppos.0.distance_squared(ipos.0) < MAX_PICKUP_RANGE_SQR,
+        (Some(ppos), Some(ipos)) => ppos.0.distance_squared(ipos.0) < MAX_PICKUP_RANGE.powi(2),
         _ => false,
     }
 }

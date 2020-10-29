@@ -13,6 +13,9 @@ pub struct BlocksOfInterest {
     pub beehives: Vec<Vec3<i32>>,
     pub reeds: Vec<Vec3<i32>>,
     pub flowers: Vec<Vec3<i32>>,
+    // Note: these are only needed for chunks within the iteraction range so this is a potential
+    // area for optimization
+    pub interactables: Vec<Vec3<i32>>,
 }
 
 impl BlocksOfInterest {
@@ -24,6 +27,7 @@ impl BlocksOfInterest {
         let mut beehives = Vec::new();
         let mut reeds = Vec::new();
         let mut flowers = Vec::new();
+        let mut interactables = Vec::new();
 
         chunk
             .vol_iter(
@@ -34,29 +38,34 @@ impl BlocksOfInterest {
                     chunk.get_max_z(),
                 ),
             )
-            .for_each(|(pos, block)| match block.kind() {
-                BlockKind::Leaves => {
-                    if thread_rng().gen_range(0, 16) == 0 {
-                        leaves.push(pos)
-                    }
-                },
-                BlockKind::Grass => {
-                    if thread_rng().gen_range(0, 16) == 0 {
-                        grass.push(pos)
-                    }
-                },
-                _ => match block.get_sprite() {
-                    Some(SpriteKind::Ember) => embers.push(pos),
-                    Some(SpriteKind::Beehive) => beehives.push(pos),
-                    Some(SpriteKind::Reed) => reeds.push(pos),
-                    Some(SpriteKind::PinkFlower) => flowers.push(pos),
-                    Some(SpriteKind::PurpleFlower) => flowers.push(pos),
-                    Some(SpriteKind::RedFlower) => flowers.push(pos),
-                    Some(SpriteKind::WhiteFlower) => flowers.push(pos),
-                    Some(SpriteKind::YellowFlower) => flowers.push(pos),
-                    Some(SpriteKind::Sunflower) => flowers.push(pos),
-                    _ => {},
-                },
+            .for_each(|(pos, block)| {
+                match block.kind() {
+                    BlockKind::Leaves => {
+                        if thread_rng().gen_range(0, 16) == 0 {
+                            leaves.push(pos)
+                        }
+                    },
+                    BlockKind::Grass => {
+                        if thread_rng().gen_range(0, 16) == 0 {
+                            grass.push(pos)
+                        }
+                    },
+                    _ => match block.get_sprite() {
+                        Some(SpriteKind::Ember) => embers.push(pos),
+                        Some(SpriteKind::Beehive) => beehives.push(pos),
+                        Some(SpriteKind::Reed) => reeds.push(pos),
+                        Some(SpriteKind::PinkFlower) => flowers.push(pos),
+                        Some(SpriteKind::PurpleFlower) => flowers.push(pos),
+                        Some(SpriteKind::RedFlower) => flowers.push(pos),
+                        Some(SpriteKind::WhiteFlower) => flowers.push(pos),
+                        Some(SpriteKind::YellowFlower) => flowers.push(pos),
+                        Some(SpriteKind::Sunflower) => flowers.push(pos),
+                        _ => {},
+                    },
+                }
+                if block.is_collectible() {
+                    interactables.push(pos);
+                }
             });
 
         Self {
@@ -66,6 +75,7 @@ impl BlocksOfInterest {
             beehives,
             reeds,
             flowers,
+            interactables,
         }
     }
 }

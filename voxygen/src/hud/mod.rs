@@ -1123,7 +1123,7 @@ impl Hud {
             for (pos, item, distance) in (&entities, &pos, &items)
                 .join()
                 .map(|(_, pos, item)| (pos, item, pos.0.distance_squared(player_pos)))
-                .filter(|(_, _, distance)| distance < &common::comp::MAX_PICKUP_RANGE_SQR)
+                .filter(|(_, _, distance)| distance < &common::consts::MAX_PICKUP_RANGE.powi(2))
             {
                 let overitem_id = overitem_walker.next(
                     &mut self.ids.overitems,

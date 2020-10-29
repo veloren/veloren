@@ -24,6 +24,7 @@ pub mod clock;
 pub mod cmd;
 pub mod combat;
 pub mod comp;
+pub mod consts;
 pub mod effect;
 pub mod event;
 pub mod explosion;
