@@ -9,6 +9,7 @@ use crate::{
     util::Dir,
 };
 use serde::{Deserialize, Serialize};
+use std::time::Duration;
 use vek::*;
 
 pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;
@@ -90,18 +91,54 @@ fn basic_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
     handle_orientation(data, update, data.body.base_ori_rate());
 }
 
-/// Similar to basic_move function, but with forced forward movement
-pub fn forward_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32, forward: f32) {
-    let accel = if data.physics.on_ground {
-        data.body.base_accel()
-    } else {
-        BASE_HUMANOID_AIR_ACCEL
-    };
+/// Handles forced movement
+pub fn handle_forced_movement(
+    data: &JoinData,
+    update: &mut StateUpdate,
+    movement: ForcedMovement,
+    efficiency: f32,
+) {
+    match movement {
+        ForcedMovement::Forward { strength } => {
+            let accel = if data.physics.on_ground {
+                data.body.base_accel()
+            } else {
+                BASE_HUMANOID_AIR_ACCEL
+            };
 
-    update.vel.0 += Vec2::broadcast(data.dt.0)
-        * accel
-        * (data.inputs.move_dir * efficiency + (*update.ori.0).xy() * forward);
-
+            update.vel.0 += Vec2::broadcast(data.dt.0)
+                * accel
+                * (data.inputs.move_dir * efficiency + (*update.ori.0).xy() * strength);
+        },
+        ForcedMovement::Leap {
+            vertical,
+            forward,
+            progress,
+        } => {
+            // Apply jumping force
+            update.vel.0 = Vec3::new(
+                data.inputs.look_dir.x,
+                data.inputs.look_dir.y,
+                vertical,
+            )
+                // Multiply decreasing amount linearly over time (with average of 1)
+                * 2.0 * progress
+                // Apply inputted movement directions with some efficiency
+                + (data.inputs.move_dir.try_normalized().unwrap_or_default() + update.vel.0.xy())
+                .try_normalized()
+                .unwrap_or_default()
+                // Multiply by forward leap strength
+                    * forward
+                // Control forward movement based on look direction.
+                // This allows players to stop moving forward when they
+                // look downward at target
+                    * (1.0 - data.inputs.look_dir.z.abs());
+        },
+        ForcedMovement::Hover { move_input } => {
+            update.vel.0 = Vec3::new(data.vel.0.x, data.vel.0.y, 0.0)
+                + move_input * data.inputs.move_dir.try_normalized().unwrap_or_default();
+        },
+    }
     handle_orientation(data, update, data.body.base_ori_rate() * efficiency);
 }
 
@@ -161,7 +198,10 @@ pub fn handle_wield(data: &JoinData, update: &mut StateUpdate) {
 pub fn attempt_wield(data: &JoinData, update: &mut StateUpdate) {
     if let Some(ItemKind::Tool(tool)) = data.loadout.active_item.as_ref().map(|i| i.item.kind()) {
         update.character = CharacterState::Equipping(equipping::Data {
-            time_left: tool.equip_time(),
+            static_data: equipping::StaticData {
+                buildup_duration: tool.equip_time(),
+            },
+            timer: Duration::default(),
         });
     } else {
         update.character = CharacterState::Idle;
@@ -384,4 +424,19 @@ pub enum AbilityKey {
     Mouse2,
     Skill1,
     Dodge,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub enum ForcedMovement {
+    Forward {
+        strength: f32,
+    },
+    Leap {
+        vertical: f32,
+        forward: f32,
+        progress: f32,
+    },
+    Hover {
+        move_input: f32,
+    },
 }

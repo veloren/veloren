@@ -9,5 +9,5 @@ pub struct SysMetrics {
     pub stats_ns: AtomicI64,
     pub phys_ns: AtomicI64,
     pub projectile_ns: AtomicI64,
-    pub combat_ns: AtomicI64,
+    pub melee_ns: AtomicI64,
 }

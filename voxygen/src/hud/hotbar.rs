@@ -79,7 +79,7 @@ impl State {
                     if let ItemKind::Tool(kind) = kind {
                         match &kind.kind {
                             ToolKind::Staff(_) => true,
-                            ToolKind::Debug(kind) => kind == "Boost",
+                            ToolKind::Debug(_) => true,
                             ToolKind::Sword(_) => true,
                             ToolKind::Hammer(_) => true,
                             ToolKind::Axe(_) => true,

@@ -1,7 +1,11 @@
 use crate::{
     comp::{Attacking, CharacterState, EnergySource, StateUpdate},
     states::utils::*,
-    sys::character_behavior::{CharacterBehavior, JoinData},
+    sys::{
+        character_behavior::{CharacterBehavior, JoinData},
+        phys::GRAVITY,
+    },
+    Damage, Damages, Knockback,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -56,7 +60,8 @@ impl CharacterBehavior for Data {
         let mut update = StateUpdate::from(data);
 
         if self.static_data.is_helicopter {
-            update.vel.0 = Vec3::new(data.inputs.move_dir.x, data.inputs.move_dir.y, 0.0) * 5.0;
+            update.vel.0 = Vec3::new(0.0, 0.0, update.vel.0.z + GRAVITY * data.dt.0)
+                + data.inputs.move_dir * 5.0;
         }
 
         // Allows for other states to interrupt this state
@@ -75,61 +80,60 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.buildup_duration {
                     // Build up
                     update.character = CharacterState::SpinMelee(Data {
-                        static_data: self.static_data,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        spins_remaining: self.spins_remaining,
-                        stage_section: self.stage_section,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
                 } else {
                     // Transitions to swing section of stage
                     update.character = CharacterState::SpinMelee(Data {
-                        static_data: self.static_data,
                         timer: Duration::default(),
-                        spins_remaining: self.spins_remaining,
                         stage_section: StageSection::Swing,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
                 }
             },
             StageSection::Swing => {
                 if !self.exhausted {
                     update.character = CharacterState::SpinMelee(Data {
-                        static_data: self.static_data,
                         timer: Duration::default(),
-                        spins_remaining: self.spins_remaining,
-                        stage_section: self.stage_section,
                         exhausted: true,
+                        ..*self
                     });
                     // Hit attempt
                     data.updater.insert(data.entity, Attacking {
-                        base_damage: self.static_data.base_damage,
-                        base_heal: 0,
+                        damages: Damages::new(
+                            Some(Damage::Melee(self.static_data.base_damage as f32)),
+                            None,
+                        ),
                         range: self.static_data.range,
                         max_angle: 180_f32.to_radians(),
                         applied: false,
                         hit_count: 0,
-                        knockback: self.static_data.knockback,
+                        knockback: Knockback::Away(self.static_data.knockback),
                     });
                 } else if self.timer < self.static_data.swing_duration {
                     if !self.static_data.is_helicopter {
-                        forward_move(data, &mut update, 0.1, self.static_data.forward_speed);
+                        handle_forced_movement(
+                            data,
+                            &mut update,
+                            ForcedMovement::Forward {
+                                strength: self.static_data.forward_speed,
+                            },
+                            0.1,
+                        );
                         handle_orientation(data, &mut update, 1.0);
                     }
 
                     // Swings
                     update.character = CharacterState::SpinMelee(Data {
-                        static_data: self.static_data,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        spins_remaining: self.spins_remaining,
-                        stage_section: self.stage_section,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
                 } else if update.energy.current() >= self.static_data.energy_cost
                     && (self.spins_remaining != 0
@@ -141,11 +145,10 @@ impl CharacterBehavior for Data {
                         self.spins_remaining - 1
                     };
                     update.character = CharacterState::SpinMelee(Data {
-                        static_data: self.static_data,
                         timer: Duration::default(),
                         spins_remaining: new_spins_remaining,
-                        stage_section: self.stage_section,
                         exhausted: false,
+                        ..*self
                     });
                     // Consumes energy if there's enough left and RMB is held down
                     update.energy.change_by(
@@ -155,11 +158,9 @@ impl CharacterBehavior for Data {
                 } else {
                     // Transitions to recover section of stage
                     update.character = CharacterState::SpinMelee(Data {
-                        static_data: self.static_data,
                         timer: Duration::default(),
-                        spins_remaining: self.spins_remaining,
                         stage_section: StageSection::Recover,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
                 }
             },
@@ -167,14 +168,11 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.recover_duration {
                     // Recover
                     update.character = CharacterState::SpinMelee(Data {
-                        static_data: self.static_data,
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        spins_remaining: self.spins_remaining,
-                        stage_section: self.stage_section,
-                        exhausted: self.exhausted,
+                        ..*self
                     });
                 } else {
                     // Done

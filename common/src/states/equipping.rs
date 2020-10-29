@@ -6,10 +6,20 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+/// Separated out to condense update portions of character state
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct StaticData {
+    /// Time required to draw weapon
+    pub buildup_duration: Duration,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Data {
-    /// Time left before next state
-    pub time_left: Duration,
+    /// Struct containing data that does not change over the course of the
+    /// character state
+    pub static_data: StaticData,
+    /// Timer for each stage
+    pub timer: Duration,
 }
 
 impl CharacterBehavior for Data {
@@ -19,18 +29,18 @@ impl CharacterBehavior for Data {
         handle_move(&data, &mut update, 1.0);
         handle_jump(&data, &mut update);
 
-        if self.time_left == Duration::default() {
-            // Wield delay has expired
-            update.character = CharacterState::Wielding;
-        } else {
-            // Wield delay hasn't expired yet
-            // Update wield delay
+        if self.timer < self.static_data.buildup_duration {
+            // Draw weapon
             update.character = CharacterState::Equipping(Data {
-                time_left: self
-                    .time_left
-                    .checked_sub(Duration::from_secs_f32(data.dt.0))
+                timer: self
+                    .timer
+                    .checked_add(Duration::from_secs_f32(data.dt.0))
                     .unwrap_or_default(),
+                ..*self
             });
+        } else {
+            // Done
+            update.character = CharacterState::Wielding;
         }
 
         update

@@ -54,13 +54,18 @@ impl CharacterBehavior for Data {
             StageSection::Movement => {
                 // Jumping
                 if let Some(leap_strength) = self.static_data.leap {
-                    update.vel.0 = Vec3::new(
-                        data.vel.0.x,
-                        data.vel.0.y,
-                        leap_strength
-                            * (1.0
-                                - self.timer.as_secs_f32()
-                                    / self.static_data.movement_duration.as_secs_f32()),
+                    let progress = 1.0
+                        - self.timer.as_secs_f32()
+                            / self.static_data.movement_duration.as_secs_f32();
+                    handle_forced_movement(
+                        data,
+                        &mut update,
+                        ForcedMovement::Leap {
+                            vertical: leap_strength,
+                            forward: 10.0,
+                            progress,
+                        },
+                        1.0,
                     );
                 }
                 if self.timer < self.static_data.movement_duration {
@@ -71,8 +76,7 @@ impl CharacterBehavior for Data {
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
-                        reps_remaining: self.reps_remaining,
+                        ..*self
                     });
                 } else {
                     // Transition to buildup
@@ -80,14 +84,19 @@ impl CharacterBehavior for Data {
                         static_data: self.static_data.clone(),
                         timer: Duration::default(),
                         stage_section: StageSection::Buildup,
-                        reps_remaining: self.reps_remaining,
+                        ..*self
                     });
                 }
             },
             StageSection::Buildup => {
                 // Aim gliding
                 if self.static_data.leap.is_some() {
-                    update.vel.0 = Vec3::new(data.vel.0.x, data.vel.0.y, 0.0);
+                    handle_forced_movement(
+                        data,
+                        &mut update,
+                        ForcedMovement::Hover { move_input: 0.1 },
+                        1.0,
+                    );
                 }
                 if self.timer < self.static_data.buildup_duration {
                     // Buildup to attack
@@ -97,8 +106,7 @@ impl CharacterBehavior for Data {
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
-                        reps_remaining: self.reps_remaining,
+                        ..*self
                     });
                 } else {
                     // Transition to shoot
@@ -106,7 +114,7 @@ impl CharacterBehavior for Data {
                         static_data: self.static_data.clone(),
                         timer: Duration::default(),
                         stage_section: StageSection::Shoot,
-                        reps_remaining: self.reps_remaining,
+                        ..*self
                     });
                 }
             },
@@ -152,8 +160,8 @@ impl CharacterBehavior for Data {
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
                         reps_remaining: self.reps_remaining - 1,
+                        ..*self
                     });
                 } else if self.timer < self.static_data.shoot_duration {
                     // Finish shooting
@@ -163,8 +171,7 @@ impl CharacterBehavior for Data {
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
-                        reps_remaining: self.reps_remaining,
+                        ..*self
                     });
                 } else {
                     // Transition to recover
@@ -172,7 +179,7 @@ impl CharacterBehavior for Data {
                         static_data: self.static_data.clone(),
                         timer: Duration::default(),
                         stage_section: StageSection::Recover,
-                        reps_remaining: self.reps_remaining,
+                        ..*self
                     });
                 }
             },
@@ -188,8 +195,7 @@ impl CharacterBehavior for Data {
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        stage_section: self.stage_section,
-                        reps_remaining: self.reps_remaining,
+                        ..*self
                     });
                 } else {
                     // Done
