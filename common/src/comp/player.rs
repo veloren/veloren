@@ -5,7 +5,6 @@ use specs::{Component, FlaggedStorage, NullStorage};
 use specs_idvs::IdvStorage;
 
 const MAX_ALIAS_LEN: usize = 32;
-pub const MAX_MOUNT_RANGE_SQR: i32 = 20000;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Player {
