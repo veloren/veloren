@@ -15,9 +15,7 @@ use client::{self, Client};
 use common::{
     assets::Asset,
     comp,
-    comp::{
-        ChatMsg, ChatType, InventoryUpdateEvent, Pos, Vel, 
-    },
+    comp::{ChatMsg, ChatType, InventoryUpdateEvent, Pos, Vel},
     consts::{MAX_MOUNT_RANGE, MAX_PICKUP_RANGE},
     event::EventBus,
     outcome::Outcome,
@@ -274,18 +272,24 @@ impl PlayState for SessionState {
                 .get(self.client.borrow().entity())
                 .is_some();
 
-            let interactable = select_interactable(&self.client.borrow(), self.target_entity, select_pos, &self.scene);
+            let interactable = select_interactable(
+                &self.client.borrow(),
+                self.target_entity,
+                select_pos,
+                &self.scene,
+            );
 
             // Only highlight interactables
             // unless in build mode where select_pos highlighted
-            self.scene.set_select_pos(
-                select_pos
-                    .filter(|_| can_build)
-                    .or_else(|| match interactable {
-                        Some(Interactable::Block(_, block_pos)) => Some(block_pos),
-                        _ => None,
-                    })
-            );
+            self.scene
+                .set_select_pos(
+                    select_pos
+                        .filter(|_| can_build)
+                        .or_else(|| match interactable {
+                            Some(Interactable::Block(_, block_pos)) => Some(block_pos),
+                            _ => None,
+                        }),
+                );
 
             // Handle window events.
             for event in events {
@@ -467,10 +471,13 @@ impl PlayState for SessionState {
                                     &client.state().ecs().read_storage::<comp::MountState>(),
                                 )
                                     .join()
-                                    .filter(|(entity, _, mount_state)| *entity != client.entity()
-                                        && **mount_state == comp::MountState::Unmounted
-                                    )
-                                    .map(|(entity, pos, _)| (entity, player_pos.0.distance_squared(pos.0)))
+                                    .filter(|(entity, _, mount_state)| {
+                                        *entity != client.entity()
+                                            && **mount_state == comp::MountState::Unmounted
+                                    })
+                                    .map(|(entity, pos, _)| {
+                                        (entity, player_pos.0.distance_squared(pos.0))
+                                    })
                                     .filter(|(_, dist_sqr)| *dist_sqr < MAX_MOUNT_RANGE.powi(2))
                                     .min_by_key(|(_, dist_sqr)| OrderedFloat(*dist_sqr));
                                 if let Some((mountee_entity, _)) = closest_mountable_entity {
@@ -488,17 +495,21 @@ impl PlayState for SessionState {
                             if let Some(interactable) = interactable {
                                 let mut client = self.client.borrow_mut();
                                 match interactable {
-                                    Interactable::Block(block, pos) => if block.is_collectible() {
-                                        client.collect_block(pos);
+                                    Interactable::Block(block, pos) => {
+                                        if block.is_collectible() {
+                                            client.collect_block(pos);
+                                        }
                                     },
-                                    Interactable::Entity(entity) => if client
-                                        .state()
-                                        .ecs()
-                                        .read_storage::<comp::Item>()
-                                        .get(entity)
-                                        .is_some()
-                                    {
-                                        client.pick_up(entity);
+                                    Interactable::Entity(entity) => {
+                                        if client
+                                            .state()
+                                            .ecs()
+                                            .read_storage::<comp::Item>()
+                                            .get(entity)
+                                            .is_some()
+                                        {
+                                            client.pick_up(entity);
+                                        }
                                     },
                                 }
                             }
@@ -1242,13 +1253,9 @@ fn select_interactable(
     scene: &Scene,
 ) -> Option<Interactable> {
     span!(_guard, "select_interactable");
-    use common::{
-        spiral::Spiral2d,
-        terrain::TerrainChunk,
-        vol::RectRasterableVol,
-    };
+    use common::{spiral::Spiral2d, terrain::TerrainChunk, vol::RectRasterableVol};
     target_entity.map(Interactable::Entity)
-        .or_else(|| selected_pos.and_then(|sp| 
+        .or_else(|| selected_pos.and_then(|sp|
                 client.state().terrain().get(sp).ok().copied()
                     .filter(Block::is_collectible).map(|b| Interactable::Block(b, sp))
         ))
@@ -1300,7 +1307,7 @@ fn select_interactable(
                         .take(((search_dist / TerrainChunk::RECT_SIZE.x as f32).ceil() as usize * 2 + 1).pow(2))
                         .flat_map(|offset| {
                             let chunk_pos = player_chunk + offset;
-                            let chunk_voxel_pos = 
+                            let chunk_voxel_pos =
                                     Vec3::<i32>::from(chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32));
                             terrain.get(chunk_pos).map(|data| (data, chunk_voxel_pos))
                         })
@@ -1311,7 +1318,7 @@ fn select_interactable(
                                 .blocks_of_interest
                                 .interactables
                                 .iter()
-                                .map(move |block_offset| chunk_pos + block_offset) 
+                                .map(move |block_offset| chunk_pos + block_offset)
                         })
                         // TODO: confirm that adding 0.5 here is correct
                         .map(|block_pos| (
