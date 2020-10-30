@@ -640,9 +640,10 @@ impl<'a> MainMenuUi {
             for event in TextBox::new(&self.password)
                     .w_h(290.0 * scale, 30.0* scale)
                     .mid_bottom_with_margin_on(self.ids.password_bg, 10.0* scale)
-                    // the text is smaller to allow longer passwords, conrod limits text length
-                    // this allows 35 characters but can be increased, approximate formula: 420 / scale = length
-                    .font_size(self.fonts.cyri.scale(12))
+                    // The text is smaller to allow longer passwords, conrod limits text length
+                    // Basically the lower the scale of the font, the smaller and more characters we can fit
+                    // At the time of this commit change, scale of 10 should fit 34 characters
+                    .font_size(self.fonts.cyri.scale(10))
                     .font_id(self.fonts.cyri.conrod_id)
                     .text_color(TEXT_COLOR)
                     // transparent background
