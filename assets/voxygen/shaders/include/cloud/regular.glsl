@@ -95,22 +95,27 @@ float dist_to_step(float dist) {
     return pow(dist / STEP_SCALE, 0.5);
 }
 
-vec3 get_cloud_color(vec3 surf_color, const vec3 dir, vec3 origin, const float time_of_day, float max_dist, const float quality) {
+vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of_day, float max_dist, const float quality) {
     // Limit the marching distance to reduce maximum jumps
     max_dist = min(max_dist, DIST_CAP);
 
     origin.xyz += focus_off.xyz;
 
-    float splay = 1.0;
     // This hack adds a little direction-dependent noise to clouds. It's not correct, but it very cheaply
     // improves visual quality for low cloud settings
+    float splay = 1.0;
+    vec3 dir_diff = vec3(0);
     #if (CLOUD_MODE == CLOUD_MODE_MINIMAL)
-        splay += (texture(t_noise, vec2(atan2(dir.x, dir.y) * 2 / PI, dir.z) * 1.5 - time_of_day * 0.000025).x - 0.5) * 0.4 / (1.0 + pow(dir.z, 2) * 10);
+        /* splay += (texture(t_noise, vec2(atan2(dir.x, dir.y) * 2 / PI, dir.z) * 1.5 - time_of_day * 0.000025).x - 0.5) * 0.4 / (1.0 + pow(dir.z, 2) * 10); */
+        dir_diff = vec3(
+            (texture(t_noise, vec2(atan2(dir.x, dir.y) * 2 / PI, dir.z) * 1.0 - time_of_day * 0.00005).x - 0.5) * 0.2 / (1.0 + pow(dir.z, 2) * 10),
+            (texture(t_noise, vec2(atan2(dir.x, dir.y) * 2 / PI, dir.z) * 1.0 - time_of_day * 0.00005).x - 0.5) * 0.2 / (1.0 + pow(dir.z, 2) * 10),
+            (texture(t_noise, vec2(atan2(dir.x, dir.y) * 2 / PI, dir.z) * 1.0 - time_of_day * 0.00005).x - 0.5) * 0.2 / (1.0 + pow(dir.z, 2) * 10)
+        ) * 2000;
     #endif
     #if (CLOUD_MODE == CLOUD_MODE_MINIMAL || CLOUD_MODE == CLOUD_MODE_LOW)
         splay += (texture(t_noise, vec2(atan2(dir.x, dir.y) * 2 / PI, dir.z) * 10.0 - time_of_day * 0.00005).x - 0.5) * 0.075 / (1.0 + pow(dir.z, 2) * 10);
     #endif
-    splay = clamp(splay, 0.5, 1.5);
 
     // Proportion of sunlight that get scattered back into the camera by clouds
     float sun_scatter = max(dot(-dir, sun_dir.xyz), 0.5);
@@ -123,15 +128,13 @@ vec3 get_cloud_color(vec3 surf_color, const vec3 dir, vec3 origin, const float t
         get_moon_color() * get_moon_brightness() * moon_scatter;
 
     float cdist = max_dist;
-    vec3 last_sample = cloud_at(origin + dir * cdist, cdist);
-    while (cdist > 10) {
-        float ndist = step_to_dist(trunc(dist_to_step(cdist - 10)));
-        vec3 next_sample = cloud_at(origin + dir * ndist * splay, ndist);
+    while (cdist > 1) {
+        float ndist = step_to_dist(trunc(dist_to_step(cdist - 0.25)));
+        vec3 sample = cloud_at(origin + (dir + dir_diff / ndist) * ndist * splay, ndist);
 
-        vec3 sample_avg = last_sample;//(last_sample + next_sample) / 2.0;
-        vec2 density_integrals = sample_avg.yz * (cdist - ndist);
+        vec2 density_integrals = sample.yz * (cdist - ndist);
 
-        float sun_access = sample_avg.x;
+        float sun_access = sample.x;
         float scatter_factor = 1.0 - 1.0 / (1.0 + density_integrals.x);
 
         surf_color =
@@ -145,7 +148,6 @@ vec3 get_cloud_color(vec3 surf_color, const vec3 dir, vec3 origin, const float t
             sky_color * sun_access * scatter_factor;
 
         cdist = ndist;
-        last_sample = next_sample;
     }
 
     return surf_color;
