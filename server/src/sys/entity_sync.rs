@@ -3,12 +3,13 @@ use super::{
     SysTimer,
 };
 use crate::{
-    client::{Client, RegionSubscription},
+    client::Client,
+    presence::{Presence, RegionSubscription},
     streams::{GeneralStream, GetStream, InGameStream},
     Tick,
 };
 use common::{
-    comp::{ForceUpdate, Inventory, InventoryUpdate, Last, Ori, Player, Pos, Vel},
+    comp::{ForceUpdate, Inventory, InventoryUpdate, Last, Ori, Pos, Vel},
     msg::ServerGeneral,
     outcome::Outcome,
     region::{Event as RegionEvent, RegionMap},
@@ -39,7 +40,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Ori>,
         ReadStorage<'a, Inventory>,
         ReadStorage<'a, RegionSubscription>,
-        ReadStorage<'a, Player>,
+        ReadStorage<'a, Presence>,
         WriteStorage<'a, Last<Pos>>,
         WriteStorage<'a, Last<Vel>>,
         WriteStorage<'a, Last<Ori>>,
@@ -68,7 +69,7 @@ impl<'a> System<'a> for Sys {
             orientations,
             inventories,
             subscriptions,
-            players,
+            presences,
             mut last_pos,
             mut last_vel,
             mut last_ori,
@@ -112,6 +113,7 @@ impl<'a> System<'a> for Sys {
             let mut subscribers = (
                 &mut clients,
                 &entities,
+                presences.maybe(),
                 &subscriptions,
                 &positions,
                 &mut in_game_streams,
@@ -119,8 +121,16 @@ impl<'a> System<'a> for Sys {
             )
                 .join()
                 .filter_map(
-                    |(client, entity, subscription, pos, in_game_stream, general_stream)| {
-                        if client.in_game.is_some() && subscription.regions.contains(&key) {
+                    |(
+                        client,
+                        entity,
+                        presence,
+                        subscription,
+                        pos,
+                        in_game_stream,
+                        general_stream,
+                    )| {
+                        if presence.is_some() && subscription.regions.contains(&key) {
                             Some((
                                 client,
                                 &subscription.regions,
@@ -339,10 +349,10 @@ impl<'a> System<'a> for Sys {
         // Handle entity deletion in regions that don't exist in RegionMap
         // (theoretically none)
         for (region_key, deleted) in deleted_entities.take_remaining_deleted() {
-            for general_stream in (&mut clients, &subscriptions, &mut general_streams)
+            for general_stream in (presences.maybe(), &subscriptions, &mut general_streams)
                 .join()
-                .filter_map(|(client, subscription, general_stream)| {
-                    if client.in_game.is_some() && subscription.regions.contains(&region_key) {
+                .filter_map(|(presence, subscription, general_stream)| {
+                    if presence.is_some() && subscription.regions.contains(&region_key) {
                         Some(general_stream)
                     } else {
                         None
@@ -368,13 +378,14 @@ impl<'a> System<'a> for Sys {
         }
 
         // Sync outcomes
-        for (player, pos, in_game_stream) in
-            (&players, positions.maybe(), &mut in_game_streams).join()
+        for (presence, pos, in_game_stream) in
+            (presences.maybe(), positions.maybe(), &mut in_game_streams).join()
         {
             let is_near = |o_pos: Vec3<f32>| {
-                pos.zip_with(player.view_distance, |pos, vd| {
+                pos.zip_with(presence, |pos, presence| {
                     pos.0.xy().distance_squared(o_pos.xy())
-                        < (vd as f32 * TerrainChunkSize::RECT_SIZE.x as f32).powf(2.0)
+                        < (presence.view_distance as f32 * TerrainChunkSize::RECT_SIZE.x as f32)
+                            .powf(2.0)
                 })
             };
 

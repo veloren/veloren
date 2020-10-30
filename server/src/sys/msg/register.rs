@@ -27,7 +27,7 @@ impl Sys {
         player_list: &HashMap<Uid, PlayerInfo>,
         new_players: &mut Vec<specs::Entity>,
         entity: specs::Entity,
-        client: &mut Client,
+        _client: &mut Client,
         register_stream: &mut RegisterStream,
         general_stream: &mut GeneralStream,
         player_metrics: &ReadExpect<'_, PlayerMetrics>,
@@ -50,8 +50,7 @@ impl Sys {
             Ok((username, uuid)) => (username, uuid),
         };
 
-        const INITIAL_VD: Option<u32> = Some(5); //will be changed after login
-        let player = Player::new(username, None, INITIAL_VD, uuid);
+        let player = Player::new(username, uuid);
         let is_admin = editable_settings.admins.contains(&uuid);
 
         if !player.is_valid() {
@@ -60,7 +59,7 @@ impl Sys {
             return Ok(());
         }
 
-        if !client.registered && client.in_game.is_none() {
+        if !players.contains(entity) {
             // Add Player component to this client
             let _ = players.insert(entity, player);
             player_metrics.players_connected.inc();
@@ -72,7 +71,6 @@ impl Sys {
             }
 
             // Tell the client its request was successful.
-            client.registered = true;
             register_stream.send(ServerRegisterAnswer::Ok(()))?;
 
             // Send initial player list
@@ -83,6 +81,7 @@ impl Sys {
             // Add to list to notify all clients of the new player
             new_players.push(entity);
         }
+
         Ok(())
     }
 }
@@ -182,10 +181,7 @@ impl<'a> System<'a> for Sys {
         for entity in new_players {
             if let (Some(uid), Some(player)) = (uids.get(entity), players.get(entity)) {
                 let mut lazy_msg = None;
-                for (_, general_stream) in (&mut clients, &mut general_streams)
-                    .join()
-                    .filter(|(c, _)| c.registered)
-                {
+                for (_, general_stream) in (&players, &mut general_streams).join() {
                     if lazy_msg.is_none() {
                         lazy_msg = Some(general_stream.prepare(&ServerGeneral::PlayerListUpdate(
                             PlayerListUpdate::Add(*uid, PlayerInfo {

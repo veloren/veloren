@@ -510,11 +510,11 @@ fn handle_alias(
                 *uid,
                 player.alias.clone(),
             ));
-            server.state.notify_registered_clients(msg);
+            server.state.notify_players(msg);
 
             // Announce alias change if target has a Body.
             if ecs.read_storage::<comp::Body>().get(target).is_some() {
-                server.state.notify_registered_clients(
+                server.state.notify_players(
                     ChatType::CommandInfo
                         .server_msg(format!("{} is now known as {}.", old_alias, player.alias)),
                 );
@@ -1214,7 +1214,7 @@ fn handle_adminify(
                         .expect("Player should have uid"),
                     is_admin,
                 ));
-                server.state.notify_registered_clients(msg);
+                server.state.notify_players(msg);
             },
             None => {
                 server.notify_client(
@@ -1671,11 +1671,9 @@ fn handle_set_level(
                     .read_storage::<Uid>()
                     .get(player)
                     .expect("Failed to get uid for player");
-                server
-                    .state
-                    .notify_registered_clients(ServerGeneral::PlayerListUpdate(
-                        PlayerListUpdate::LevelChange(uid, lvl),
-                    ));
+                server.state.notify_players(ServerGeneral::PlayerListUpdate(
+                    PlayerListUpdate::LevelChange(uid, lvl),
+                ));
 
                 if let Some(stats) = server
                     .state

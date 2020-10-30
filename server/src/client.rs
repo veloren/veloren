@@ -1,14 +1,16 @@
-use common::msg::{ClientInGame, ClientType};
-use hashbrown::HashSet;
+use common::msg::ClientType;
 use network::Participant;
-use specs::{Component, FlaggedStorage};
+use specs::Component;
 use specs_idvs::IdvStorage;
-use vek::*;
 
+/// Client handles ALL network related information of everything that connects
+/// to the server Client DOES NOT handle game states
+/// Client DOES NOT handle network information that is only relevant to some
+/// "things" connecting to the server (there is currently no such case). First a
+/// Client connects to the game, when it registers, it gets the `Player`
+/// component, when he enters the game he gets the `InGame` component.
 pub struct Client {
-    pub registered: bool,
     pub client_type: ClientType,
-    pub in_game: Option<ClientInGame>,
     pub participant: Option<Participant>,
     pub last_ping: f64,
     pub login_msg_sent: bool,
@@ -16,20 +18,5 @@ pub struct Client {
 }
 
 impl Component for Client {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
-}
-
-// Distance from fuzzy_chunk before snapping to current chunk
-pub const CHUNK_FUZZ: u32 = 2;
-// Distance out of the range of a region before removing it from subscriptions
-pub const REGION_FUZZ: u32 = 16;
-
-#[derive(Clone, Debug)]
-pub struct RegionSubscription {
-    pub fuzzy_chunk: Vec2<i32>,
-    pub regions: HashSet<Vec2<i32>>,
-}
-
-impl Component for RegionSubscription {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = IdvStorage<Self>;
 }

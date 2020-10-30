@@ -200,9 +200,8 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                 | HealthSource::Healing { by: _ }
                 | HealthSource::Unknown => KillSource::Other,
             };
-            state.notify_registered_clients(
-                comp::ChatType::Kill(kill_source, *uid).server_msg("".to_string()),
-            );
+            state
+                .notify_players(comp::ChatType::Kill(kill_source, *uid).server_msg("".to_string()));
         }
     }
 
@@ -668,11 +667,9 @@ pub fn handle_level_up(server: &mut Server, entity: EcsEntity, new_level: u32) {
         .get(entity)
         .expect("Failed to fetch uid component for entity.");
 
-    server
-        .state
-        .notify_registered_clients(ServerGeneral::PlayerListUpdate(
-            PlayerListUpdate::LevelChange(*uid, new_level),
-        ));
+    server.state.notify_players(ServerGeneral::PlayerListUpdate(
+        PlayerListUpdate::LevelChange(*uid, new_level),
+    ));
 }
 
 pub fn handle_buff(server: &mut Server, entity: EcsEntity, buff_change: buff::BuffChange) {

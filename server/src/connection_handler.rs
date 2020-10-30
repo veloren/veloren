@@ -137,9 +137,7 @@ impl ConnectionHandler {
         };
 
         let client = Client {
-            registered: false,
             client_type,
-            in_game: None,
             participant: Some(participant),
             last_ping: server_data.time,
             login_msg_sent: false,

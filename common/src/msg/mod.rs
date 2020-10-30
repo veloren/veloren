@@ -13,12 +13,13 @@ pub use self::{
     },
     world_msg::WorldMapMsg,
 };
+use crate::character::CharacterId;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
-pub enum ClientInGame {
+pub enum PresenceKind {
     Spectator,
-    Character,
+    Character(CharacterId),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]

@@ -4,19 +4,20 @@ use crate::{
     character_creator,
     client::Client,
     persistence::character_loader::CharacterLoader,
+    presence::Presence,
     streams::{CharacterScreenStream, GeneralStream, GetStream},
     EditableSettings,
 };
 use common::{
     comp::{ChatType, Player, UnresolvedChatMsg},
     event::{EventBus, ServerEvent},
-    msg::{ClientGeneral, ClientInGame, ServerGeneral},
+    msg::{ClientGeneral, ServerGeneral},
     span,
     state::Time,
     sync::Uid,
 };
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, Write, WriteStorage};
-use tracing::debug;
+use tracing::{debug, warn};
 
 impl Sys {
     #[allow(clippy::too_many_arguments)]
@@ -30,64 +31,65 @@ impl Sys {
         character_loader: &ReadExpect<'_, CharacterLoader>,
         uids: &ReadStorage<'_, Uid>,
         players: &ReadStorage<'_, Player>,
+        presences: &ReadStorage<'_, Presence>,
         editable_settings: &ReadExpect<'_, EditableSettings>,
         alias_validator: &ReadExpect<'_, AliasValidator>,
         msg: ClientGeneral,
     ) -> Result<(), crate::error::Error> {
         match msg {
             // Request spectator state
-            ClientGeneral::Spectate if client.registered => {
-                client.in_game = Some(ClientInGame::Spectator)
+            ClientGeneral::Spectate => {
+                if players.contains(entity) {
+                    warn!("Spectator mode not yet implemented on server");
+                } else {
+                    debug!("dropped Spectate msg from unregistered client")
+                }
             },
-            ClientGeneral::Spectate => debug!("dropped Spectate msg from unregistered client"),
-            ClientGeneral::Character(character_id)
-                if client.registered && client.in_game.is_none() =>
-            {
+            ClientGeneral::Character(character_id) => {
                 if let Some(player) = players.get(entity) {
-                    // Send a request to load the character's component data from the
-                    // DB. Once loaded, persisted components such as stats and inventory
-                    // will be inserted for the entity
-                    character_loader.load_character_data(
-                        entity,
-                        player.uuid().to_string(),
-                        character_id,
-                    );
+                    if presences.contains(entity) {
+                        debug!("player already ingame, aborting");
+                    } else {
+                        // Send a request to load the character's component data from the
+                        // DB. Once loaded, persisted components such as stats and inventory
+                        // will be inserted for the entity
+                        character_loader.load_character_data(
+                            entity,
+                            player.uuid().to_string(),
+                            character_id,
+                        );
 
-                    // Start inserting non-persisted/default components for the entity
-                    // while we load the DB data
-                    server_emitter.emit(ServerEvent::InitCharacterData {
-                        entity,
-                        character_id,
-                    });
+                        // Start inserting non-persisted/default components for the entity
+                        // while we load the DB data
+                        server_emitter.emit(ServerEvent::InitCharacterData {
+                            entity,
+                            character_id,
+                        });
 
-                    // Give the player a welcome message
-                    if !editable_settings.server_description.is_empty() {
-                        general_stream
-                            .send(ChatType::CommandInfo.server_msg(String::from(
+                        // Give the player a welcome message
+                        if !editable_settings.server_description.is_empty() {
+                            general_stream.send(ChatType::CommandInfo.server_msg(String::from(
                                 &*editable_settings.server_description,
                             )))?;
-                    }
+                        }
 
-                    if !client.login_msg_sent {
-                        if let Some(player_uid) = uids.get(entity) {
-                            new_chat_msgs.push((None, UnresolvedChatMsg {
-                                chat_type: ChatType::Online(*player_uid),
-                                message: "".to_string(),
-                            }));
+                        if !client.login_msg_sent {
+                            if let Some(player_uid) = uids.get(entity) {
+                                new_chat_msgs.push((None, UnresolvedChatMsg {
+                                    chat_type: ChatType::Online(*player_uid),
+                                    message: "".to_string(),
+                                }));
 
-                            client.login_msg_sent = true;
+                                client.login_msg_sent = true;
+                            }
                         }
                     }
                 } else {
+                    debug!("Client is not yet registered");
                     character_screen_stream.send(ServerGeneral::CharacterDataLoadError(
                         String::from("Failed to fetch player entity"),
                     ))?
                 }
-            }
-            ClientGeneral::Character(_) => {
-                let registered = client.registered;
-                let in_game = client.in_game;
-                debug!(?registered, ?in_game, "dropped Character msg from client");
             },
             ClientGeneral::RequestCharacterList => {
                 if let Some(player) = players.get(entity) {
@@ -138,6 +140,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Uid>,
         WriteStorage<'a, Client>,
         ReadStorage<'a, Player>,
+        ReadStorage<'a, Presence>,
         WriteStorage<'a, CharacterScreenStream>,
         WriteStorage<'a, GeneralStream>,
         ReadExpect<'a, EditableSettings>,
@@ -155,6 +158,7 @@ impl<'a> System<'a> for Sys {
             uids,
             mut clients,
             players,
+            presences,
             mut character_screen_streams,
             mut general_streams,
             editable_settings,
@@ -187,6 +191,7 @@ impl<'a> System<'a> for Sys {
                         &character_loader,
                         &uids,
                         &players,
+                        &presences,
                         &editable_settings,
                         &alias_validator,
                         msg,

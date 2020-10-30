@@ -1,11 +1,12 @@
 use super::SysTimer;
 use crate::{
     chunk_generator::ChunkGenerator,
+    presence::Presence,
     streams::{GetStream, InGameStream},
     Tick,
 };
 use common::{
-    comp::{self, bird_medium, Alignment, Player, Pos},
+    comp::{self, bird_medium, Alignment, Pos},
     event::{EventBus, ServerEvent},
     generation::get_npc_name,
     msg::ServerGeneral,
@@ -37,7 +38,7 @@ impl<'a> System<'a> for Sys {
         WriteExpect<'a, TerrainGrid>,
         Write<'a, TerrainChanges>,
         ReadStorage<'a, Pos>,
-        ReadStorage<'a, Player>,
+        ReadStorage<'a, Presence>,
         WriteStorage<'a, InGameStream>,
     );
 
@@ -51,7 +52,7 @@ impl<'a> System<'a> for Sys {
             mut terrain,
             mut terrain_changes,
             positions,
-            players,
+            presences,
             mut in_game_streams,
         ): Self::SystemData,
     ) {
@@ -79,11 +80,8 @@ impl<'a> System<'a> for Sys {
                 },
             };
             // Send the chunk to all nearby players.
-            for (view_distance, pos, in_game_stream) in (&players, &positions, &mut in_game_streams)
-                .join()
-                .filter_map(|(player, pos, in_game_stream)| {
-                    player.view_distance.map(|vd| (vd, pos, in_game_stream))
-                })
+            for (presence, pos, in_game_stream) in
+                (&presences, &positions, &mut in_game_streams).join()
             {
                 let chunk_pos = terrain.pos_key(pos.0.map(|e| e as i32));
                 // Subtract 2 from the offset before computing squared magnitude
@@ -93,7 +91,7 @@ impl<'a> System<'a> for Sys {
                     .map(|e: i32| (e.abs() as u32).saturating_sub(2))
                     .magnitude_squared();
 
-                if adjusted_dist_sqr <= view_distance.pow(2) {
+                if adjusted_dist_sqr <= presence.view_distance.pow(2) {
                     in_game_stream.send_fallible(ServerGeneral::TerrainChunkUpdate {
                         key,
                         chunk: Ok(Box::new(chunk.clone())),
@@ -210,12 +208,8 @@ impl<'a> System<'a> for Sys {
                 let mut should_drop = true;
 
                 // For each player with a position, calculate the distance.
-                for (player, pos) in (&players, &positions).join() {
-                    if player
-                        .view_distance
-                        .map(|vd| chunk_in_vd(pos.0, chunk_key, &terrain, vd))
-                        .unwrap_or(false)
-                    {
+                for (presence, pos) in (&presences, &positions).join() {
+                    if chunk_in_vd(pos.0, chunk_key, &terrain, presence.view_distance) {
                         should_drop = false;
                         break;
                     }

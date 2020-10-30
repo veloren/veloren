@@ -1,6 +1,6 @@
 use crate::{
-    client::Client,
     persistence::PersistedComponents,
+    presence::Presence,
     streams::{CharacterScreenStream, GeneralStream, GetStream, InGameStream},
     sys::sentinel::DeletedEntities,
     SpawnPoint,
@@ -9,7 +9,7 @@ use common::{
     character::CharacterId,
     comp,
     effect::Effect,
-    msg::{CharacterInfo, ClientInGame, PlayerListUpdate, ServerGeneral},
+    msg::{CharacterInfo, PlayerListUpdate, PresenceKind, ServerGeneral},
     state::State,
     sync::{Uid, UidAllocator, WorldSyncExt},
     util::Dir,
@@ -63,7 +63,7 @@ pub trait StateExt {
     fn update_character_data(&mut self, entity: EcsEntity, components: PersistedComponents);
     /// Iterates over registered clients and send each `ServerMsg`
     fn send_chat(&self, msg: comp::UnresolvedChatMsg);
-    fn notify_registered_clients(&self, msg: ServerGeneral);
+    fn notify_players(&self, msg: ServerGeneral);
     fn notify_in_game_clients(&self, msg: ServerGeneral);
     /// Delete an entity, recording the deletion in [`DeletedEntities`]
     fn delete_entity_recorded(
@@ -212,28 +212,19 @@ impl StateExt for State {
         // Make sure physics components are updated
         self.write_component(entity, comp::ForceUpdate);
 
-        // Set the character id for the player
-        // TODO this results in a warning in the console: "Error modifying synced
-        // component, it doesn't seem to exist"
-        // It appears to be caused by the player not yet existing on the client at this
-        // point, despite being able to write the data on the server
-        self.ecs()
-            .write_storage::<comp::Player>()
-            .get_mut(entity)
-            .map(|player| {
-                player.character_id = Some(character_id);
-            });
+        const INITIAL_VD: u32 = 5; //will be changed after login
+        self.write_component(
+            entity,
+            Presence::new(INITIAL_VD, PresenceKind::Character(character_id)),
+        );
 
         // Tell the client its request was successful.
-        if let Some(client) = self.ecs().write_storage::<Client>().get_mut(entity) {
-            if let Some(character_screen_stream) = self
-                .ecs()
-                .write_storage::<CharacterScreenStream>()
-                .get_mut(entity)
-            {
-                client.in_game = Some(ClientInGame::Character);
-                character_screen_stream.send_fallible(ServerGeneral::CharacterSuccess);
-            }
+        if let Some(character_screen_stream) = self
+            .ecs()
+            .write_storage::<CharacterScreenStream>()
+            .get_mut(entity)
+        {
+            character_screen_stream.send_fallible(ServerGeneral::CharacterSuccess);
         }
     }
 
@@ -242,7 +233,7 @@ impl StateExt for State {
 
         if let Some(player_uid) = self.read_component_copied::<Uid>(entity) {
             // Notify clients of a player list update
-            self.notify_registered_clients(ServerGeneral::PlayerListUpdate(
+            self.notify_players(ServerGeneral::PlayerListUpdate(
                 PlayerListUpdate::SelectedCharacter(player_uid, CharacterInfo {
                     name: String::from(&stats.name),
                     level: stats.level.level(),
@@ -287,9 +278,7 @@ impl StateExt for State {
             | comp::ChatType::Loot
             | comp::ChatType::Kill(_, _)
             | comp::ChatType::Meta
-            | comp::ChatType::World(_) => {
-                self.notify_registered_clients(ServerGeneral::ChatMsg(resolved_msg))
-            },
+            | comp::ChatType::World(_) => self.notify_players(ServerGeneral::ChatMsg(resolved_msg)),
             comp::ChatType::Online(u) => {
                 for (general_stream, uid) in (
                     &mut ecs.write_storage::<GeneralStream>(),
@@ -389,14 +378,13 @@ impl StateExt for State {
     }
 
     /// Sends the message to all connected clients
-    fn notify_registered_clients(&self, msg: ServerGeneral) {
+    fn notify_players(&self, msg: ServerGeneral) {
         let mut lazy_msg = None;
         for (general_stream, _) in (
             &mut self.ecs().write_storage::<GeneralStream>(),
-            &self.ecs().read_storage::<Client>(),
+            &self.ecs().read_storage::<comp::Player>(),
         )
             .join()
-            .filter(|(_, c)| c.registered)
         {
             if lazy_msg.is_none() {
                 lazy_msg = Some(general_stream.prepare(&msg));
@@ -412,10 +400,9 @@ impl StateExt for State {
         let mut lazy_msg = None;
         for (general_stream, _) in (
             &mut self.ecs().write_storage::<GeneralStream>(),
-            &self.ecs().read_storage::<Client>(),
+            &self.ecs().read_storage::<Presence>(),
         )
             .join()
-            .filter(|(_, c)| c.in_game.is_some())
         {
             if lazy_msg.is_none() {
                 lazy_msg = Some(general_stream.prepare(&msg));
