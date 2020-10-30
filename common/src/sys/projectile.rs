@@ -142,7 +142,6 @@ impl<'a> System<'a> for Sys {
                                 pos: pos.0,
                                 explosion: e,
                                 owner: projectile.owner,
-                                friendly_damage: false,
                                 reagent: None,
                             })
                         },
@@ -187,7 +186,6 @@ impl<'a> System<'a> for Sys {
                                 pos: pos.0,
                                 explosion: e,
                                 owner: projectile.owner,
-                                friendly_damage: false,
                                 reagent: None,
                             })
                         },

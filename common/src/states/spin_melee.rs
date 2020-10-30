@@ -5,7 +5,7 @@ use crate::{
         character_behavior::{CharacterBehavior, JoinData},
         phys::GRAVITY,
     },
-    Damage, Damages, Knockback,
+    Damage, DamageSource, Damages, Knockback,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -105,7 +105,10 @@ impl CharacterBehavior for Data {
                     // Hit attempt
                     data.updater.insert(data.entity, Attacking {
                         damages: Damages::new(
-                            Some(Damage::Melee(self.static_data.base_damage as f32)),
+                            Some(Damage {
+                                source: DamageSource::Melee,
+                                value: self.static_data.base_damage as f32,
+                            }),
                             None,
                         ),
                         range: self.static_data.range,

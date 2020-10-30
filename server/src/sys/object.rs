@@ -3,7 +3,7 @@ use common::{
     event::{EventBus, ServerEvent},
     span,
     state::DeltaTime,
-    Explosion,
+    Damage, DamageSource, Damages, Explosion, RadiusEffect,
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 
@@ -48,16 +48,23 @@ impl<'a> System<'a> for Sys {
                         server_emitter.emit(ServerEvent::Explosion {
                             pos: pos.0,
                             explosion: Explosion {
+                                effects: vec![
+                                    RadiusEffect::Damages(Damages::new(
+                                        Some(Damage {
+                                            source: DamageSource::Explosion,
+                                            value: 500.0,
+                                        }),
+                                        Some(Damage {
+                                            source: DamageSource::Explosion,
+                                            value: 500.0,
+                                        }),
+                                    )),
+                                    RadiusEffect::TerrainDestruction(4.0),
+                                ],
                                 radius: 12.0,
-                                max_damage: 500,
-                                min_damage: 100,
-                                max_heal: 0,
-                                min_heal: 0,
-                                terrain_destruction_power: 4.0,
                                 energy_regen: 0,
                             },
                             owner: *owner,
-                            friendly_damage: true,
                             reagent: None,
                         });
                     }
@@ -71,16 +78,23 @@ impl<'a> System<'a> for Sys {
                         server_emitter.emit(ServerEvent::Explosion {
                             pos: pos.0,
                             explosion: Explosion {
+                                effects: vec![
+                                    RadiusEffect::Damages(Damages::new(
+                                        Some(Damage {
+                                            source: DamageSource::Explosion,
+                                            value: 50.0,
+                                        }),
+                                        Some(Damage {
+                                            source: DamageSource::Explosion,
+                                            value: 50.0,
+                                        }),
+                                    )),
+                                    RadiusEffect::TerrainDestruction(4.0),
+                                ],
                                 radius: 12.0,
-                                max_damage: 50,
-                                min_damage: 10,
-                                max_heal: 0,
-                                min_heal: 0,
-                                terrain_destruction_power: 4.0,
                                 energy_regen: 0,
                             },
                             owner: *owner,
-                            friendly_damage: true,
                             reagent: Some(*reagent),
                         });
                     }

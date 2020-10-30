@@ -18,7 +18,7 @@ use common::{
     sys::melee::BLOCK_ANGLE,
     terrain::{Block, TerrainGrid},
     vol::ReadVol,
-    Damage, Explosion,
+    Damage, DamageSource, Explosion, RadiusEffect,
 };
 use comp::item::Reagent;
 use rand::prelude::*;
@@ -454,7 +454,10 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
     if vel.z <= -30.0 {
         if let Some(stats) = state.ecs().write_storage::<comp::Stats>().get_mut(entity) {
             let falldmg = (vel.z.powi(2) / 20.0 - 40.0) * 10.0;
-            let damage = Damage::Falling(falldmg);
+            let damage = Damage {
+                source: DamageSource::Falling,
+                value: falldmg,
+            };
             let loadouts = state.ecs().read_storage::<comp::Loadout>();
             let change = damage.modify_damage(false, loadouts.get(entity), None);
             stats.health.change_by(change);
@@ -506,26 +509,35 @@ pub fn handle_explosion(
     pos: Vec3<f32>,
     explosion: Explosion,
     owner: Option<Uid>,
-    friendly_damage: bool,
     reagent: Option<Reagent>,
 ) {
     // Go through all other entities
     let ecs = &server.state.ecs();
 
-    let outcome_power = if explosion.max_heal > explosion.max_damage {
-        (-explosion.terrain_destruction_power).min(explosion.max_heal as f32 / -100.0)
-    } else {
-        explosion
-            .terrain_destruction_power
-            .max(explosion.max_damage as f32 / 100.0)
-    };
     // Add an outcome
+    // Uses radius as outcome power, makes negative if explosion has healing effect
+    #[allow(clippy::blocks_in_if_conditions)]
+    let outcome_power = explosion.radius
+        * if explosion.effects.iter().any(|e| {
+            if let RadiusEffect::Damages(d) = e {
+                d.contains_damage(DamageSource::Healing)
+            } else {
+                false
+            }
+        }) {
+            -1.0
+        } else {
+            1.0
+        };
     ecs.write_resource::<Vec<Outcome>>()
         .push(Outcome::Explosion {
             pos,
             power: outcome_power,
             radius: explosion.radius,
-            is_attack: explosion.max_heal > 0 || explosion.max_damage > 0,
+            is_attack: explosion
+                .effects
+                .iter()
+                .any(|e| matches!(e, RadiusEffect::Damages(_))),
             reagent,
         });
     let owner_entity = owner.and_then(|uid| {
@@ -534,129 +546,133 @@ pub fn handle_explosion(
     });
     let groups = ecs.read_storage::<comp::Group>();
 
-    for (entity_b, pos_b, ori_b, character_b, stats_b, loadout_b) in (
-        &ecs.entities(),
-        &ecs.read_storage::<comp::Pos>(),
-        &ecs.read_storage::<comp::Ori>(),
-        ecs.read_storage::<comp::CharacterState>().maybe(),
-        &mut ecs.write_storage::<comp::Stats>(),
-        ecs.read_storage::<comp::Loadout>().maybe(),
-    )
-        .join()
-    {
-        let distance_squared = pos.distance_squared(pos_b.0);
-        // Check if it is a hit
-        if !stats_b.is_dead
-            // RADIUS
-            && distance_squared < explosion.radius.powi(2)
-        {
-            // See if entities are in the same group
-            let mut same_group = owner_entity
-                .and_then(|e| groups.get(e))
-                .map_or(false, |group_a| Some(group_a) == groups.get(entity_b));
-            if let Some(entity) = owner_entity {
-                if entity == entity_b {
-                    same_group = true;
-                }
-            }
-            // Don't heal if outside group
-            // Don't damage in the same group
-            let is_damage = (friendly_damage || !same_group) && explosion.max_damage > 0;
-            let is_heal = same_group && explosion.max_heal > 0 && !friendly_damage;
-            if !is_heal && !is_damage {
-                continue;
-            }
-
-            let strength = 1.0 - distance_squared / explosion.radius.powi(2);
-            let damage = if is_heal {
-                Damage::Healing(
-                    explosion.min_heal as f32
-                        + (explosion.max_heal - explosion.min_heal) as f32 * strength,
+    for effect in explosion.effects {
+        match effect {
+            RadiusEffect::Damages(damages) => {
+                for (entity_b, pos_b, ori_b, character_b, stats_b, loadout_b) in (
+                    &ecs.entities(),
+                    &ecs.read_storage::<comp::Pos>(),
+                    &ecs.read_storage::<comp::Ori>(),
+                    ecs.read_storage::<comp::CharacterState>().maybe(),
+                    &mut ecs.write_storage::<comp::Stats>(),
+                    ecs.read_storage::<comp::Loadout>().maybe(),
                 )
-            } else {
-                Damage::Explosion(
-                    explosion.min_damage as f32
-                        + (explosion.max_damage - explosion.min_damage) as f32 * strength,
-                )
-            };
+                    .join()
+                {
+                    let distance_squared = pos.distance_squared(pos_b.0);
+                    // Check if it is a hit
+                    if !stats_b.is_dead
+                        // RADIUS
+                        && distance_squared < explosion.radius.powi(2)
+                    {
+                        // See if entities are in the same group
+                        let mut same_group = owner_entity
+                            .and_then(|e| groups.get(e))
+                            .map_or(false, |group_a| Some(group_a) == groups.get(entity_b));
+                        if let Some(entity) = owner_entity {
+                            if entity == entity_b {
+                                same_group = true;
+                            }
+                        }
 
-            let block = character_b.map(|c_b| c_b.is_block()).unwrap_or(false)
-                && ori_b.0.angle_between(pos - pos_b.0) < BLOCK_ANGLE.to_radians() / 2.0;
+                        let mut damage = if let Some(damage) = damages.get_damage(same_group) {
+                            damage
+                        } else {
+                            continue;
+                        };
 
-            let change = damage.modify_damage(block, loadout_b, owner);
+                        let strength = 1.0 - distance_squared / explosion.radius.powi(2);
+                        damage.interpolate_damage(strength, 0.0);
 
-            if change.amount != 0 {
-                stats_b.health.change_by(change);
-                if let Some(owner) = owner_entity {
-                    if let Some(energy) = ecs.write_storage::<comp::Energy>().get_mut(owner) {
-                        energy
-                            .change_by(explosion.energy_regen as i32, comp::EnergySource::HitEnemy);
+                        let block = character_b.map(|c_b| c_b.is_block()).unwrap_or(false)
+                            && ori_b.0.angle_between(pos - pos_b.0)
+                                < BLOCK_ANGLE.to_radians() / 2.0;
+
+                        let change = damage.modify_damage(block, loadout_b, owner);
+
+                        if change.amount != 0 {
+                            stats_b.health.change_by(change);
+                            if let Some(owner) = owner_entity {
+                                if let Some(energy) =
+                                    ecs.write_storage::<comp::Energy>().get_mut(owner)
+                                {
+                                    energy.change_by(
+                                        explosion.energy_regen as i32,
+                                        comp::EnergySource::HitEnemy,
+                                    );
+                                }
+                            }
+                        }
                     }
                 }
-            }
-        }
-    }
+            },
+            RadiusEffect::TerrainDestruction(power) => {
+                const RAYS: usize = 500;
 
-    const RAYS: usize = 500;
+                // Color terrain
+                let mut touched_blocks = Vec::new();
+                let color_range = power * 2.7;
+                for _ in 0..RAYS {
+                    let dir = Vec3::new(
+                        rand::random::<f32>() - 0.5,
+                        rand::random::<f32>() - 0.5,
+                        rand::random::<f32>() - 0.5,
+                    )
+                    .normalized();
 
-    // Color terrain
-    let mut touched_blocks = Vec::new();
-    let color_range = explosion.terrain_destruction_power * 2.7;
-    for _ in 0..RAYS {
-        let dir = Vec3::new(
-            rand::random::<f32>() - 0.5,
-            rand::random::<f32>() - 0.5,
-            rand::random::<f32>() - 0.5,
-        )
-        .normalized();
-
-        let _ = ecs
-            .read_resource::<TerrainGrid>()
-            .ray(pos, pos + dir * color_range)
-            // TODO: Faster RNG
-            .until(|_| rand::random::<f32>() < 0.05)
-            .for_each(|_: &Block, pos| touched_blocks.push(pos))
-            .cast();
-    }
-
-    let terrain = ecs.read_resource::<TerrainGrid>();
-    let mut block_change = ecs.write_resource::<BlockChange>();
-    for block_pos in touched_blocks {
-        if let Ok(block) = terrain.get(block_pos) {
-            let diff2 = block_pos.map(|b| b as f32).distance_squared(pos);
-            let fade = (1.0 - diff2 / color_range.powi(2)).max(0.0);
-            if let Some(mut color) = block.get_color() {
-                let r = color[0] as f32 + (fade * (color[0] as f32 * 0.5 - color[0] as f32));
-                let g = color[1] as f32 + (fade * (color[1] as f32 * 0.3 - color[1] as f32));
-                let b = color[2] as f32 + (fade * (color[2] as f32 * 0.3 - color[2] as f32));
-                color[0] = r as u8;
-                color[1] = g as u8;
-                color[2] = b as u8;
-                block_change.set(block_pos, Block::new(block.kind(), color));
-            }
-        }
-    }
-
-    // Destroy terrain
-    for _ in 0..RAYS {
-        let dir = Vec3::new(
-            rand::random::<f32>() - 0.5,
-            rand::random::<f32>() - 0.5,
-            rand::random::<f32>() - 0.15,
-        )
-        .normalized();
-
-        let terrain = ecs.read_resource::<TerrainGrid>();
-        let _ = terrain
-            .ray(pos, pos + dir * explosion.terrain_destruction_power)
-            // TODO: Faster RNG
-            .until(|block| block.is_liquid() || rand::random::<f32>() < 0.05)
-            .for_each(|block: &Block, pos| {
-                if block.is_explodable() {
-                    block_change.set(pos, block.into_vacant());
+                    let _ = ecs
+                        .read_resource::<TerrainGrid>()
+                        .ray(pos, pos + dir * color_range)
+                        // TODO: Faster RNG
+                        .until(|_| rand::random::<f32>() < 0.05)
+                        .for_each(|_: &Block, pos| touched_blocks.push(pos))
+                        .cast();
                 }
-            })
-            .cast();
+
+                let terrain = ecs.read_resource::<TerrainGrid>();
+                let mut block_change = ecs.write_resource::<BlockChange>();
+                for block_pos in touched_blocks {
+                    if let Ok(block) = terrain.get(block_pos) {
+                        let diff2 = block_pos.map(|b| b as f32).distance_squared(pos);
+                        let fade = (1.0 - diff2 / color_range.powi(2)).max(0.0);
+                        if let Some(mut color) = block.get_color() {
+                            let r = color[0] as f32
+                                + (fade * (color[0] as f32 * 0.5 - color[0] as f32));
+                            let g = color[1] as f32
+                                + (fade * (color[1] as f32 * 0.3 - color[1] as f32));
+                            let b = color[2] as f32
+                                + (fade * (color[2] as f32 * 0.3 - color[2] as f32));
+                            color[0] = r as u8;
+                            color[1] = g as u8;
+                            color[2] = b as u8;
+                            block_change.set(block_pos, Block::new(block.kind(), color));
+                        }
+                    }
+                }
+
+                // Destroy terrain
+                for _ in 0..RAYS {
+                    let dir = Vec3::new(
+                        rand::random::<f32>() - 0.5,
+                        rand::random::<f32>() - 0.5,
+                        rand::random::<f32>() - 0.15,
+                    )
+                    .normalized();
+
+                    let terrain = ecs.read_resource::<TerrainGrid>();
+                    let _ = terrain
+                        .ray(pos, pos + dir * power)
+                        // TODO: Faster RNG
+                        .until(|block| block.is_liquid() || rand::random::<f32>() < 0.05)
+                        .for_each(|block: &Block, pos| {
+                            if block.is_explodable() {
+                                block_change.set(pos, block.into_vacant());
+                            }
+                        })
+                        .cast();
+                }
+            },
+        }
     }
 }
 

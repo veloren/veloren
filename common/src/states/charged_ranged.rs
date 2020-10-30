@@ -7,7 +7,7 @@ use crate::{
     event::ServerEvent,
     states::utils::*,
     sys::character_behavior::{CharacterBehavior, JoinData},
-    Damage, Damages, Knockback,
+    Damage, DamageSource, Damages, Knockback,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -84,10 +84,11 @@ impl CharacterBehavior for Data {
                     let charge_frac = (self.timer.as_secs_f32()
                         / self.static_data.charge_duration.as_secs_f32())
                     .min(1.0);
-                    let damage = self.static_data.initial_damage as f32
-                        + (charge_frac
-                            * (self.static_data.max_damage - self.static_data.initial_damage)
-                                as f32);
+                    let mut damage = Damage {
+                        source: DamageSource::Projectile,
+                        value: self.static_data.max_damage as f32,
+                    };
+                    damage.interpolate_damage(charge_frac, self.static_data.initial_damage as f32);
                     let knockback = self.static_data.initial_knockback as f32
                         + (charge_frac
                             * (self.static_data.max_knockback - self.static_data.initial_knockback)
@@ -96,10 +97,7 @@ impl CharacterBehavior for Data {
                     let mut projectile = Projectile {
                         hit_solid: vec![projectile::Effect::Stick],
                         hit_entity: vec![
-                            projectile::Effect::Damages(Damages::new(
-                                Some(Damage::Projectile(damage)),
-                                None,
-                            )),
+                            projectile::Effect::Damages(Damages::new(Some(damage), None)),
                             projectile::Effect::Knockback(Knockback::Away(knockback)),
                             projectile::Effect::Vanish,
                             projectile::Effect::Buff {

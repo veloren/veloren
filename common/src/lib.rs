@@ -53,6 +53,6 @@ pub mod util;
 pub mod vol;
 pub mod volumes;
 
-pub use combat::{Damage, Damages, Knockback};
-pub use explosion::Explosion;
+pub use combat::{Damage, DamageSource, Damages, Knockback};
+pub use explosion::{Explosion, RadiusEffect};
 pub use loadout_builder::LoadoutBuilder;

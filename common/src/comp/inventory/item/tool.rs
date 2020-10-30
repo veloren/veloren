@@ -8,7 +8,7 @@ use crate::{
         projectile, Body, CharacterAbility, Gravity, LightEmitter, Projectile,
     },
     states::combo_melee,
-    Damage, Damages, Explosion, Knockback,
+    Damage, DamageSource, Damages, Explosion, Knockback, RadiusEffect,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -303,7 +303,10 @@ impl Tool {
                         hit_solid: vec![projectile::Effect::Stick],
                         hit_entity: vec![
                             projectile::Effect::Damages(Damages::new(
-                                Some(Damage::Projectile(40.0 * self.base_power())),
+                                Some(Damage {
+                                    source: DamageSource::Projectile,
+                                    value: 40.0 * self.base_power(),
+                                }),
                                 None,
                             )),
                             projectile::Effect::Knockback(Knockback::Away(10.0)),
@@ -358,7 +361,10 @@ impl Tool {
                         hit_solid: vec![projectile::Effect::Stick],
                         hit_entity: vec![
                             projectile::Effect::Damages(Damages::new(
-                                Some(Damage::Projectile(40.0 * self.base_power())),
+                                Some(Damage {
+                                    source: DamageSource::Projectile,
+                                    value: 40.0 * self.base_power(),
+                                }),
                                 None,
                             )),
                             projectile::Effect::Knockback(Knockback::Away(10.0)),
@@ -419,24 +425,34 @@ impl Tool {
                     projectile: Projectile {
                         hit_solid: vec![
                             projectile::Effect::Explode(Explosion {
+                                effects: vec![RadiusEffect::Damages(Damages::new(
+                                    Some(Damage {
+                                        source: DamageSource::Explosion,
+                                        value: 50.0 * self.base_power(),
+                                    }),
+                                    Some(Damage {
+                                        source: DamageSource::Healing,
+                                        value: 140.0 * self.base_power(),
+                                    }),
+                                ))],
                                 radius: 3.0 + 2.5 * self.base_power(),
-                                max_damage: (50.0 * self.base_power()) as u32,
-                                min_damage: (20.0 * self.base_power()) as u32,
-                                max_heal: (140.0 * self.base_power()) as u32,
-                                min_heal: (50.0 * self.base_power()) as u32,
-                                terrain_destruction_power: 0.0,
                                 energy_regen: 0,
                             }),
                             projectile::Effect::Vanish,
                         ],
                         hit_entity: vec![
                             projectile::Effect::Explode(Explosion {
+                                effects: vec![RadiusEffect::Damages(Damages::new(
+                                    Some(Damage {
+                                        source: DamageSource::Explosion,
+                                        value: 50.0 * self.base_power(),
+                                    }),
+                                    Some(Damage {
+                                        source: DamageSource::Healing,
+                                        value: 140.0 * self.base_power(),
+                                    }),
+                                ))],
                                 radius: 3.0 + 2.5 * self.base_power(),
-                                max_damage: (50.0 * self.base_power()) as u32,
-                                min_damage: (20.0 * self.base_power()) as u32,
-                                max_heal: (140.0 * self.base_power()) as u32,
-                                min_heal: (50.0 * self.base_power()) as u32,
-                                terrain_destruction_power: 0.0,
                                 energy_regen: 0,
                             }),
                             projectile::Effect::Vanish,
@@ -462,24 +478,28 @@ impl Tool {
                     projectile: Projectile {
                         hit_solid: vec![
                             projectile::Effect::Explode(Explosion {
+                                effects: vec![RadiusEffect::Damages(Damages::new(
+                                    Some(Damage {
+                                        source: DamageSource::Explosion,
+                                        value: 100.0 * self.base_power(),
+                                    }),
+                                    None,
+                                ))],
                                 radius: 5.0,
-                                max_damage: (100.0 * self.base_power()) as u32,
-                                min_damage: 0,
-                                max_heal: 0,
-                                min_heal: 0,
-                                terrain_destruction_power: 0.0,
                                 energy_regen: 50,
                             }),
                             projectile::Effect::Vanish,
                         ],
                         hit_entity: vec![
                             projectile::Effect::Explode(Explosion {
+                                effects: vec![RadiusEffect::Damages(Damages::new(
+                                    Some(Damage {
+                                        source: DamageSource::Explosion,
+                                        value: 100.0 * self.base_power(),
+                                    }),
+                                    None,
+                                ))],
                                 radius: 5.0,
-                                max_damage: (100.0 * self.base_power()) as u32,
-                                min_damage: 0,
-                                max_heal: 0,
-                                min_heal: 0,
-                                terrain_destruction_power: 0.0,
                                 energy_regen: 50,
                             }),
                             projectile::Effect::Vanish,

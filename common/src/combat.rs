@@ -24,17 +24,28 @@ impl Damages {
     pub fn get_damage(self, same_group: bool) -> Option<Damage> {
         if same_group { self.group } else { self.enemy }
     }
+
+    pub fn contains_damage(self, source: DamageSource) -> bool {
+        self.enemy.map_or(false, |e| e.source == source)
+            || self.group.map_or(false, |g| g.source == source)
+    }
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum DamageSource {
+    Melee,
+    Healing,
+    Projectile,
+    Explosion,
+    Falling,
+    Shockwave,
+    Energy,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub enum Damage {
-    Melee(f32),
-    Healing(f32),
-    Projectile(f32),
-    Explosion(f32),
-    Falling(f32),
-    Shockwave(f32),
-    Energy(f32),
+pub struct Damage {
+    pub source: DamageSource,
+    pub value: f32,
 }
 
 impl Damage {
@@ -44,9 +55,9 @@ impl Damage {
         loadout: Option<&Loadout>,
         uid: Option<Uid>,
     ) -> HealthChange {
-        match self {
-            Damage::Melee(damage) => {
-                let mut damage = damage;
+        let mut damage = self.value;
+        match self.source {
+            DamageSource::Melee => {
                 // Critical hit
                 let mut critdamage = 0.0;
                 if rand::random() {
@@ -70,8 +81,7 @@ impl Damage {
                     cause: HealthSource::Attack { by: uid.unwrap() },
                 }
             },
-            Damage::Projectile(damage) => {
-                let mut damage = damage;
+            DamageSource::Projectile => {
                 // Critical hit
                 if rand::random() {
                     damage *= 1.2;
@@ -89,8 +99,7 @@ impl Damage {
                     cause: HealthSource::Projectile { owner: uid },
                 }
             },
-            Damage::Explosion(damage) => {
-                let mut damage = damage;
+            DamageSource::Explosion => {
                 // Block
                 if block {
                     damage *= 1.0 - BLOCK_EFFICIENCY
@@ -104,8 +113,7 @@ impl Damage {
                     cause: HealthSource::Explosion { owner: uid },
                 }
             },
-            Damage::Shockwave(damage) => {
-                let mut damage = damage;
+            DamageSource::Shockwave => {
                 // Armor
                 let damage_reduction = loadout.map_or(0.0, |l| l.get_damage_reduction());
                 damage *= 1.0 - damage_reduction;
@@ -115,8 +123,7 @@ impl Damage {
                     cause: HealthSource::Attack { by: uid.unwrap() },
                 }
             },
-            Damage::Energy(damage) => {
-                let mut damage = damage;
+            DamageSource::Energy => {
                 // Armor
                 let damage_reduction = loadout.map_or(0.0, |l| l.get_damage_reduction());
                 damage *= 1.0 - damage_reduction;
@@ -126,12 +133,11 @@ impl Damage {
                     cause: HealthSource::Energy { owner: uid },
                 }
             },
-            Damage::Healing(heal) => HealthChange {
-                amount: heal as i32,
+            DamageSource::Healing => HealthChange {
+                amount: damage as i32,
                 cause: HealthSource::Healing { by: uid },
             },
-            Damage::Falling(damage) => {
-                let mut damage = damage;
+            DamageSource::Falling => {
                 // Armor
                 let damage_reduction = loadout.map_or(0.0, |l| l.get_damage_reduction());
                 if (damage_reduction - 1.0).abs() < f32::EPSILON {
@@ -143,6 +149,11 @@ impl Damage {
                 }
             },
         }
+    }
+
+    pub fn interpolate_damage(&mut self, frac: f32, min: f32) {
+        let new_damage = min + frac * (self.value - min);
+        self.value = new_damage;
     }
 }
 
