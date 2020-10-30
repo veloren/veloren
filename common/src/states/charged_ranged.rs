@@ -1,8 +1,8 @@
 use crate::{
     comp::{
         buff::{Buff, BuffCategory, BuffData, BuffKind, BuffSource},
-        projectile, Body, CharacterState, EnergySource, Gravity, LightEmitter, Projectile,
-        StateUpdate,
+        projectile, Body, CharacterState, EnergyChange, EnergySource, Gravity, LightEmitter,
+        Projectile, StateUpdate,
     },
     event::ServerEvent,
     states::utils::*,
@@ -104,7 +104,7 @@ impl CharacterBehavior for Data {
                                 buff: Buff::new(
                                     BuffKind::Bleeding,
                                     BuffData {
-                                        strength: damage / 5.0,
+                                        strength: damage.value / 5.0,
                                         duration: Some(Duration::from_secs(5)),
                                     },
                                     vec![BuffCategory::Physical],
@@ -150,10 +150,10 @@ impl CharacterBehavior for Data {
                     });
 
                     // Consumes energy if there's enough left and RMB is held down
-                    update.energy.change_by(
-                        -(self.static_data.energy_drain as f32 * data.dt.0) as i32,
-                        EnergySource::Ability,
-                    );
+                    update.energy.change_by(EnergyChange {
+                        amount: -(self.static_data.energy_drain as f32 * data.dt.0) as i32,
+                        source: EnergySource::Ability,
+                    });
                 } else if data.inputs.secondary.is_pressed() {
                     // Holds charge
                     update.character = CharacterState::ChargedRanged(Data {
@@ -165,10 +165,10 @@ impl CharacterBehavior for Data {
                     });
 
                     // Consumes energy if there's enough left and RMB is held down
-                    update.energy.change_by(
-                        -(self.static_data.energy_drain as f32 * data.dt.0 / 5.0) as i32,
-                        EnergySource::Ability,
-                    );
+                    update.energy.change_by(EnergyChange {
+                        amount: -(self.static_data.energy_drain as f32 * data.dt.0 / 5.0) as i32,
+                        source: EnergySource::Ability,
+                    });
                 }
             },
             StageSection::Recover => {

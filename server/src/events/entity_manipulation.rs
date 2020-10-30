@@ -8,7 +8,8 @@ use common::{
     comp::{
         self, buff,
         chat::{KillSource, KillType},
-        object, Alignment, Body, Group, HealthChange, HealthSource, Item, Player, Pos, Stats,
+        object, Alignment, Body, Energy, EnergyChange, Group, HealthChange, HealthSource, Item,
+        Player, Pos, Stats,
     },
     lottery::Lottery,
     msg::{PlayerListUpdate, ServerGeneral},
@@ -596,10 +597,10 @@ pub fn handle_explosion(
                                 if let Some(energy) =
                                     ecs.write_storage::<comp::Energy>().get_mut(owner)
                                 {
-                                    energy.change_by(
-                                        explosion.energy_regen as i32,
-                                        comp::EnergySource::HitEnemy,
-                                    );
+                                    energy.change_by(EnergyChange {
+                                        amount: explosion.energy_regen as i32,
+                                        source: comp::EnergySource::HitEnemy,
+                                    });
                                 }
                             }
                         }
@@ -745,6 +746,15 @@ pub fn handle_buff(server: &mut Server, entity: EcsEntity, buff_change: buff::Bu
                     buffs.remove(id);
                 }
             },
+        }
+    }
+}
+
+pub fn handle_energy_change(server: &Server, uid: Uid, change: EnergyChange) {
+    let ecs = &server.state.ecs();
+    if let Some(entity) = ecs.entity_from_uid(uid.into()) {
+        if let Some(energy) = ecs.write_storage::<Energy>().get_mut(entity) {
+            energy.change_by(change);
         }
     }
 }
