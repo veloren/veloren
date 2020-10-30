@@ -97,7 +97,8 @@ impl EventMapper for BlockEventMapper {
                 range: 1,
                 sfx: SfxEvent::Birdcall,
                 volume: 1.0,
-                cond: |_| true,
+                //cond: |_| true,
+                cond: |st| st.get_day_period().is_light(),
             },
             BlockSounds {
                 blocks: |boi| &boi.embers,
@@ -108,41 +109,35 @@ impl EventMapper for BlockEventMapper {
                 cond: |_| true,
                 //cond: |st| st.get_day_period().is_dark(),
             },
-            //BlockSounds {
-            //    blocks: |boi| &boi.reeds,
-            //    range: 4,
-            //    spacing: 2.0,
-            //    sfx: SfxEvent::Run,
-            //    volume: 1.0,
-            //    //cond: |st| st.get_day_period().is_dark(),
-            //    cond: |_| true,
-            //},
+            BlockSounds {
+                blocks: |boi| &boi.reeds,
+                range: 1,
+                sfx: SfxEvent::Frog,
+                volume: 0.8,
+                cond: |st| st.get_day_period().is_dark(),
+                //cond: |_| true,
+            },
             //BlockSounds {
             //    blocks: |boi| &boi.flowers,
             //    range: 4,
-            //    spacing: 2.5,
             //    sfx: SfxEvent::LevelUp,
             //    volume: 1.0,
             //    cond: |st| st.get_day_period().is_dark(),
             //},
-            //BlockSounds {
-            //    blocks: |boi| &boi.grass,
-            //    range: 4,
-            //    spacing: 2.5,
-            //    sfx: SfxEvent::Roll,
-            //    volume: 1.0,
-            //    //cond: |st| st.get_day_period().is_light(),
-            //    cond: |_| false,
-            //},
-            //BlockSounds {
-            //    blocks: |boi| &boi.beehives,
-            //    range: 4,
-            //    spacing: 1.5,
-            //    sfx: SfxEvent::Roll,
-            //    volume: 1.0,
-            //    //cond: |st| st.get_day_period().is_light(),
-            //    cond: |_| true,
-            //},
+            BlockSounds {
+                blocks: |boi| &boi.grass,
+                range: 1,
+                sfx: SfxEvent::Cricket,
+                volume: 0.5,
+                cond: |st| st.get_day_period().is_dark(),
+            },
+            BlockSounds {
+                blocks: |boi| &boi.beehives,
+                range: 1,
+                sfx: SfxEvent::Bees,
+                volume: 1.0,
+                cond: |_| true,
+            },
         ];
 
         // Iterate through each kind of block of interest
@@ -166,7 +161,10 @@ impl EventMapper for BlockEventMapper {
                     // Iterate through each individual block
                     for block in blocks {
                         // Reduce the number of bird calls from trees
-                        if sounds.sfx == SfxEvent::Birdcall && thread_rng().gen::<f32>() < 0.25 {
+                        if sounds.sfx == SfxEvent::Birdcall && thread_rng().gen::<f32>() > 0.05 {
+                            println!("skipped a bird");
+                            continue;
+                        } else if sounds.sfx == SfxEvent::Cricket && thread_rng().gen::<f32>() > 0.5 {
                             continue;
                         }
 
@@ -252,7 +250,16 @@ impl BlockEventMapper {
     ) -> bool {
         if let Some((event, item)) = sfx_trigger_item {
             if &previous_state.event == event {
-                previous_state.time.elapsed().as_secs_f64() >= item.threshold
+                if event == &SfxEvent::Birdcall {
+                    if thread_rng().gen_bool(0.5) {
+                        previous_state.time.elapsed().as_secs_f64()
+                            >= (item.threshold + thread_rng().gen_range(-3.0, 3.0))
+                    } else {
+                        false
+                    }
+                } else {
+                    previous_state.time.elapsed().as_secs_f64() >= item.threshold
+                }
             } else {
                 true
             }

@@ -22,6 +22,7 @@ struct PreviousEntityState {
     event: SfxEvent,
     time: Instant,
     on_ground: bool,
+    in_water: bool,
 }
 
 impl Default for PreviousEntityState {
@@ -30,6 +31,7 @@ impl Default for PreviousEntityState {
             event: SfxEvent::Idle,
             time: Instant::now(),
             on_ground: true,
+            in_water: false,
         }
     }
 }
@@ -95,6 +97,11 @@ impl EventMapper for MovementEventMapper {
                 // it was dispatched
                 state.event = mapped_event;
                 state.on_ground = physics.on_ground;
+                if physics.in_fluid.is_some() {
+                    state.in_water = true;
+                } else {
+                    state.in_water = false;
+                }
             }
         }
 
@@ -156,8 +163,14 @@ impl MovementEventMapper {
         previous_state: &PreviousEntityState,
         vel: Vec3<f32>,
     ) -> SfxEvent {
-        // Match run / roll state
-        if physics_state.on_ground && vel.magnitude() > 0.1
+        // Match run / roll / swim state
+        if physics_state.in_fluid.is_some()
+            && physics_state.in_fluid.unwrap() < 2.0
+            && vel.magnitude() > 0.1
+            || !previous_state.in_water && physics_state.in_fluid.is_some()
+        {
+            return SfxEvent::Swim;
+        } else if physics_state.on_ground && vel.magnitude() > 0.1
             || !previous_state.on_ground && physics_state.on_ground
         {
             return if matches!(character_state, CharacterState::Roll(_)) {

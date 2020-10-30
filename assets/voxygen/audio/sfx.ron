@@ -17,9 +17,36 @@
             ],
             threshold: 30.0,
         ),
+        Cricket: (
+            files: [
+                "voxygen.audio.sfx.ambient.crickets_1",
+            ],
+            threshold: 3.0,
+        ),
+        Frog: (
+            files: [
+                "voxygen.audio.sfx.ambient.frog_croak_1",
+            ],
+            threshold: 4.0,
+        ),
+        Bees: (
+            files: [
+                "voxygen.audio.sfx.ambient.bees_1",
+            ],
+            threshold: 15.0,
+        ),
         //
         // Character States
         //
+        Swim: (
+            files: [
+                "voxygen.audio.sfx.footsteps.water_splash_1",
+                "voxygen.audio.sfx.footsteps.water_splash_2",
+                "voxygen.audio.sfx.footsteps.water_splash_3",
+                "voxygen.audio.sfx.footsteps.water_splash_4",
+            ],
+            threshold: 0.25,
+        ),
         Run: (
             files: [
                 "voxygen.audio.sfx.footsteps.stepgrass_1",
