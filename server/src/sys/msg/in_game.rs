@@ -2,13 +2,14 @@ use super::super::SysTimer;
 use crate::{
     client::Client,
     metrics::NetworkRequestMetrics,
+    presence::Presence,
     streams::{GetStream, InGameStream},
     Settings,
 };
 use common::{
-    comp::{CanBuild, ControlEvent, Controller, ForceUpdate, Ori, Player, Pos, Stats, Vel},
+    comp::{CanBuild, ControlEvent, Controller, ForceUpdate, Ori, Pos, Stats, Vel},
     event::{EventBus, ServerEvent},
-    msg::{ClientGeneral, ClientInGame, ServerGeneral},
+    msg::{ClientGeneral, PresenceKind, ServerGeneral},
     span,
     state::{BlockChange, Time},
     terrain::{TerrainChunkSize, TerrainGrid},
@@ -22,7 +23,8 @@ impl Sys {
     fn handle_client_in_game_msg(
         server_emitter: &mut common::event::Emitter<'_, ServerEvent>,
         entity: specs::Entity,
-        client: &mut Client,
+        _client: &Client,
+        maybe_presence: &mut Option<&mut Presence>,
         in_game_stream: &mut InGameStream,
         terrain: &ReadExpect<'_, TerrainGrid>,
         network_metrics: &ReadExpect<'_, NetworkRequestMetrics>,
@@ -33,35 +35,33 @@ impl Sys {
         positions: &mut WriteStorage<'_, Pos>,
         velocities: &mut WriteStorage<'_, Vel>,
         orientations: &mut WriteStorage<'_, Ori>,
-        players: &mut WriteStorage<'_, Player>,
         controllers: &mut WriteStorage<'_, Controller>,
         settings: &Read<'_, Settings>,
         msg: ClientGeneral,
     ) -> Result<(), crate::error::Error> {
-        if client.in_game.is_none() {
-            debug!(?entity, "client is not in_game, ignoring msg");
-            trace!(?msg, "ignored msg content");
-            if matches!(msg, ClientGeneral::TerrainChunkRequest{ .. }) {
-                network_metrics.chunks_request_dropped.inc();
-            }
-            return Ok(());
-        }
+        let presence = match maybe_presence {
+            Some(g) => g,
+            None => {
+                debug!(?entity, "client is not in_game, ignoring msg");
+                trace!(?msg, "ignored msg content");
+                if matches!(msg, ClientGeneral::TerrainChunkRequest{ .. }) {
+                    network_metrics.chunks_request_dropped.inc();
+                }
+                return Ok(());
+            },
+        };
         match msg {
             // Go back to registered state (char selection screen)
             ClientGeneral::ExitInGame => {
-                client.in_game = None;
                 server_emitter.emit(ServerEvent::ExitIngame { entity });
                 in_game_stream.send(ServerGeneral::ExitInGameSuccess)?;
+                *maybe_presence = None;
             },
             ClientGeneral::SetViewDistance(view_distance) => {
-                players.get_mut(entity).map(|player| {
-                    player.view_distance = Some(
-                        settings
-                            .max_view_distance
-                            .map(|max| view_distance.min(max))
-                            .unwrap_or(view_distance),
-                    )
-                });
+                presence.view_distance = settings
+                    .max_view_distance
+                    .map(|max| view_distance.min(max))
+                    .unwrap_or(view_distance);
 
                 //correct client if its VD is to high
                 if settings
@@ -75,14 +75,14 @@ impl Sys {
                 }
             },
             ClientGeneral::ControllerInputs(inputs) => {
-                if let Some(ClientInGame::Character) = client.in_game {
+                if matches!(presence.kind, PresenceKind::Character(_)) {
                     if let Some(controller) = controllers.get_mut(entity) {
                         controller.inputs.update_with_new(inputs);
                     }
                 }
             },
             ClientGeneral::ControlEvent(event) => {
-                if let Some(ClientInGame::Character) = client.in_game {
+                if matches!(presence.kind, PresenceKind::Character(_)) {
                     // Skip respawn if client entity is alive
                     if let ControlEvent::Respawn = event {
                         if stats.get(entity).map_or(true, |s| !s.is_dead) {
@@ -96,21 +96,20 @@ impl Sys {
                 }
             },
             ClientGeneral::ControlAction(event) => {
-                if let Some(ClientInGame::Character) = client.in_game {
+                if matches!(presence.kind, PresenceKind::Character(_)) {
                     if let Some(controller) = controllers.get_mut(entity) {
                         controller.actions.push(event);
                     }
                 }
             },
             ClientGeneral::PlayerPhysics { pos, vel, ori } => {
-                if let Some(ClientInGame::Character) = client.in_game {
-                    if force_updates.get(entity).is_none()
-                        && stats.get(entity).map_or(true, |s| !s.is_dead)
-                    {
-                        let _ = positions.insert(entity, pos);
-                        let _ = velocities.insert(entity, vel);
-                        let _ = orientations.insert(entity, ori);
-                    }
+                if matches!(presence.kind, PresenceKind::Character(_))
+                    && force_updates.get(entity).is_none()
+                    && stats.get(entity).map_or(true, |s| !s.is_dead)
+                {
+                    let _ = positions.insert(entity, pos);
+                    let _ = velocities.insert(entity, vel);
+                    let _ = orientations.insert(entity, ori);
                 }
             },
             ClientGeneral::BreakBlock(pos) => {
@@ -124,13 +123,10 @@ impl Sys {
                 }
             },
             ClientGeneral::TerrainChunkRequest { key } => {
-                let in_vd = if let (Some(view_distance), Some(pos)) = (
-                    players.get(entity).and_then(|p| p.view_distance),
-                    positions.get(entity),
-                ) {
+                let in_vd = if let Some(pos) = positions.get(entity) {
                     pos.0.xy().map(|e| e as f64).distance(
                         key.map(|e| e as f64 + 0.5) * TerrainChunkSize::RECT_SIZE.map(|e| e as f64),
-                    ) < (view_distance as f64 - 1.0 + 2.5 * 2.0_f64.sqrt())
+                    ) < (presence.view_distance as f64 - 1.0 + 2.5 * 2.0_f64.sqrt())
                         * TerrainChunkSize::RECT_SIZE.x as f64
                 } else {
                     true
@@ -192,7 +188,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
-        WriteStorage<'a, Player>,
+        WriteStorage<'a, Presence>,
         WriteStorage<'a, Client>,
         WriteStorage<'a, InGameStream>,
         WriteStorage<'a, Controller>,
@@ -215,7 +211,7 @@ impl<'a> System<'a> for Sys {
             mut positions,
             mut velocities,
             mut orientations,
-            mut players,
+            mut presences,
             mut clients,
             mut in_game_streams,
             mut controllers,
@@ -227,14 +223,20 @@ impl<'a> System<'a> for Sys {
 
         let mut server_emitter = server_event_bus.emitter();
 
-        for (entity, client, in_game_stream) in
-            (&entities, &mut clients, &mut in_game_streams).join()
+        for (entity, client, mut presence, in_game_stream) in (
+            &entities,
+            &mut clients,
+            (&mut presences).maybe(),
+            &mut in_game_streams,
+        )
+            .join()
         {
             let res = super::try_recv_all(in_game_stream, |in_game_stream, msg| {
                 Self::handle_client_in_game_msg(
                     &mut server_emitter,
                     entity,
                     client,
+                    &mut presence,
                     in_game_stream,
                     &terrain,
                     &network_metrics,
@@ -245,7 +247,6 @@ impl<'a> System<'a> for Sys {
                     &mut positions,
                     &mut velocities,
                     &mut orientations,
-                    &mut players,
                     &mut controllers,
                     &settings,
                     msg,

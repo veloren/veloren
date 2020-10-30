@@ -1,4 +1,3 @@
-use crate::character::CharacterId;
 use authc::Uuid;
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage, NullStorage};
@@ -9,25 +8,11 @@ const MAX_ALIAS_LEN: usize = 32;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Player {
     pub alias: String,
-    pub character_id: Option<CharacterId>,
-    pub view_distance: Option<u32>,
     uuid: Uuid,
 }
 
 impl Player {
-    pub fn new(
-        alias: String,
-        character_id: Option<CharacterId>,
-        view_distance: Option<u32>,
-        uuid: Uuid,
-    ) -> Self {
-        Self {
-            alias,
-            character_id,
-            view_distance,
-            uuid,
-        }
-    }
+    pub fn new(alias: String, uuid: Uuid) -> Self { Self { alias, uuid } }
 
     pub fn is_valid(&self) -> bool { Self::alias_is_valid(&self.alias) }
 

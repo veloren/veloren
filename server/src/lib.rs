@@ -17,6 +17,7 @@ pub mod input;
 pub mod login_provider;
 pub mod metrics;
 pub mod persistence;
+pub mod presence;
 pub mod settings;
 pub mod state_ext;
 pub mod streams;
@@ -35,11 +36,12 @@ pub use crate::{
 use crate::{
     alias_validator::AliasValidator,
     chunk_generator::ChunkGenerator,
-    client::{Client, RegionSubscription},
+    client::Client,
     cmd::ChatCommandExt,
     connection_handler::ConnectionHandler,
     data_dir::DataDir,
     login_provider::LoginProvider,
+    presence::{Presence, RegionSubscription},
     state_ext::StateExt,
     streams::{
         CharacterScreenStream, GeneralStream, GetStream, InGameStream, PingStream, RegisterStream,
@@ -190,6 +192,7 @@ impl Server {
         // Server-only components
         state.ecs_mut().register::<RegionSubscription>();
         state.ecs_mut().register::<Client>();
+        state.ecs_mut().register::<Presence>();
         state.ecs_mut().register::<GeneralStream>();
         state.ecs_mut().register::<PingStream>();
         state.ecs_mut().register::<RegisterStream>();
@@ -971,9 +974,7 @@ impl Server {
         }
     }
 
-    pub fn notify_registered_clients(&mut self, msg: ServerGeneral) {
-        self.state.notify_registered_clients(msg);
-    }
+    pub fn notify_players(&mut self, msg: ServerGeneral) { self.state.notify_players(msg); }
 
     pub fn generate_chunk(&mut self, entity: EcsEntity, key: Vec2<i32>) {
         self.state
@@ -1051,7 +1052,7 @@ impl Server {
 impl Drop for Server {
     fn drop(&mut self) {
         self.state
-            .notify_registered_clients(ServerGeneral::Disconnect(DisconnectReason::Shutdown));
+            .notify_players(ServerGeneral::Disconnect(DisconnectReason::Shutdown));
     }
 }
 

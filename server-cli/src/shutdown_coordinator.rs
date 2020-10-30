@@ -155,7 +155,7 @@ impl ShutdownCoordinator {
     /// Logs and sends a message to all connected clients
     fn send_msg(server: &mut Server, msg: String) {
         info!("{}", &msg);
-        server.notify_registered_clients(ChatType::CommandError.server_msg(msg));
+        server.notify_players(ChatType::CommandError.server_msg(msg));
     }
 
     /// Converts a `Duration` into text in the format XsXm for example 1 minute

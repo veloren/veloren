@@ -18,6 +18,7 @@ use common::{
     comp::{ChatMsg, ChatType, InventoryUpdateEvent, Pos, Vel},
     consts::{MAX_MOUNT_RANGE, MAX_PICKUP_RANGE},
     event::EventBus,
+    msg::PresenceKind,
     outcome::Outcome,
     span,
     terrain::{Block, BlockKind},
@@ -211,11 +212,11 @@ impl PlayState for SessionState {
         ));
 
         // TODO: can this be a method on the session or are there borrowcheck issues?
-        let (client_in_game, client_registered) = {
+        let (client_presence, client_registered) = {
             let client = self.client.borrow();
-            (client.in_game(), client.registered())
+            (client.presence(), client.registered())
         };
-        if client_in_game.is_some() {
+        if client_presence.is_some() {
             // Update MyEntity
             // Note: Alternatively, the client could emit an event when the entity changes
             // which may or may not be more elegant
@@ -927,7 +928,12 @@ impl PlayState for SessionState {
 
                         let server = &client.server_info.name;
                         // If we are changing the hotbar state this CANNOT be None.
-                        let character_id = client.active_character_id.unwrap();
+                        let character_id = match client.presence().unwrap() {
+                            PresenceKind::Character(id) => id,
+                            PresenceKind::Spectator => {
+                                unreachable!("HUD adaption in Spectator mode!")
+                            },
+                        };
 
                         // Get or update the ServerProfile.
                         global_state
@@ -1080,7 +1086,7 @@ impl PlayState for SessionState {
             self.cleanup();
 
             PlayStateResult::Continue
-        } else if client_registered && client_in_game.is_none() {
+        } else if client_registered && client_presence.is_none() {
             PlayStateResult::Switch(Box::new(CharSelectionState::new(
                 global_state,
                 Rc::clone(&self.client),

@@ -64,6 +64,7 @@ use common::{
         item::{ItemDesc, Quality},
         BuffKind,
     },
+    msg::PresenceKind,
     span,
     sync::Uid,
     terrain::TerrainChunk,
@@ -658,7 +659,12 @@ impl Hud {
         let server = &client.server_info.name;
         // Get the id, unwrap is safe because this CANNOT be None at this
         // point.
-        let character_id = client.active_character_id.unwrap();
+
+        let character_id = match client.presence().unwrap() {
+            PresenceKind::Character(id) => id,
+            PresenceKind::Spectator => unreachable!("HUD creation in Spectator mode!"),
+        };
+
         // Create a new HotbarState from the persisted slots.
         let hotbar_state =
             HotbarState::new(global_state.profile.get_hotbar_slots(server, character_id));

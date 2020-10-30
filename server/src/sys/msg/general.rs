@@ -1,7 +1,7 @@
 use super::super::SysTimer;
 use crate::{client::Client, metrics::PlayerMetrics, streams::GeneralStream};
 use common::{
-    comp::{ChatMode, UnresolvedChatMsg},
+    comp::{ChatMode, Player, UnresolvedChatMsg},
     event::{EventBus, ServerEvent},
     msg::{validate_chat_msg, ChatMsgValidationError, ClientGeneral, MAX_BYTES_CHAT_MSG},
     span,
@@ -18,6 +18,7 @@ impl Sys {
         new_chat_msgs: &mut Vec<(Option<specs::Entity>, UnresolvedChatMsg)>,
         entity: specs::Entity,
         client: &mut Client,
+        player: Option<&Player>,
         player_metrics: &ReadExpect<'_, PlayerMetrics>,
         uids: &ReadStorage<'_, Uid>,
         chat_modes: &ReadStorage<'_, ChatMode>,
@@ -25,7 +26,7 @@ impl Sys {
     ) -> Result<(), crate::error::Error> {
         match msg {
             ClientGeneral::ChatMsg(message) => {
-                if client.registered {
+                if player.is_some() {
                     match validate_chat_msg(&message) {
                         Ok(()) => {
                             if let Some(from) = uids.get(entity) {
@@ -71,6 +72,7 @@ impl<'a> System<'a> for Sys {
         Write<'a, SysTimer<Self>>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, ChatMode>,
+        ReadStorage<'a, Player>,
         WriteStorage<'a, Client>,
         WriteStorage<'a, GeneralStream>,
     );
@@ -85,6 +87,7 @@ impl<'a> System<'a> for Sys {
             mut timer,
             uids,
             chat_modes,
+            players,
             mut clients,
             mut general_streams,
         ): Self::SystemData,
@@ -95,8 +98,13 @@ impl<'a> System<'a> for Sys {
         let mut server_emitter = server_event_bus.emitter();
         let mut new_chat_msgs = Vec::new();
 
-        for (entity, client, general_stream) in
-            (&entities, &mut clients, &mut general_streams).join()
+        for (entity, client, player, general_stream) in (
+            &entities,
+            &mut clients,
+            (&players).maybe(),
+            &mut general_streams,
+        )
+            .join()
         {
             let res = super::try_recv_all(general_stream, |_, msg| {
                 Self::handle_general_msg(
@@ -104,6 +112,7 @@ impl<'a> System<'a> for Sys {
                     &mut new_chat_msgs,
                     entity,
                     client,
+                    player,
                     &player_metrics,
                     &uids,
                     &chat_modes,

@@ -3,6 +3,7 @@ use crate::{
     client::Client,
     login_provider::LoginProvider,
     persistence,
+    presence::Presence,
     state_ext::StateExt,
     streams::{
         CharacterScreenStream, GeneralStream, GetStream, InGameStream, PingStream, RegisterStream,
@@ -12,7 +13,7 @@ use crate::{
 use common::{
     comp,
     comp::{group, Player},
-    msg::{PlayerListUpdate, ServerGeneral},
+    msg::{PlayerListUpdate, PresenceKind, ServerGeneral},
     span,
     sync::{Uid, UidAllocator},
 };
@@ -37,7 +38,7 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
         .cloned();
 
     if let Some((
-        mut client,
+        client,
         uid,
         player,
         general_stream,
@@ -60,7 +61,6 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
         ))
     })() {
         // Tell client its request was successful
-        client.in_game = None;
         in_game_stream.send_fallible(ServerGeneral::ExitInGameSuccess);
 
         let entity_builder = state
@@ -163,9 +163,9 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
         state.read_storage::<Uid>().get(entity),
         state.read_storage::<comp::Player>().get(entity),
     ) {
-        state.notify_registered_clients(comp::ChatType::Offline(*uid).server_msg(""));
+        state.notify_players(comp::ChatType::Offline(*uid).server_msg(""));
 
-        state.notify_registered_clients(ServerGeneral::PlayerListUpdate(PlayerListUpdate::Remove(
+        state.notify_players(ServerGeneral::PlayerListUpdate(PlayerListUpdate::Remove(
             *uid,
         )));
     }
@@ -177,8 +177,8 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
     }
 
     // Sync the player's character data to the database
-    if let (Some(player), Some(stats), Some(inventory), Some(loadout), updater) = (
-        state.read_storage::<Player>().get(entity),
+    if let (Some(presences), Some(stats), Some(inventory), Some(loadout), updater) = (
+        state.read_storage::<Presence>().get(entity),
         state.read_storage::<comp::Stats>().get(entity),
         state.read_storage::<comp::Inventory>().get(entity),
         state.read_storage::<comp::Loadout>().get(entity),
@@ -186,7 +186,7 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
             .ecs()
             .read_resource::<persistence::character_updater::CharacterUpdater>(),
     ) {
-        if let Some(character_id) = player.character_id {
+        if let PresenceKind::Character(character_id) = presences.kind {
             updater.update(character_id, stats, inventory, loadout);
         }
     }

@@ -1,5 +1,6 @@
 use crate::{
-    client::{Client, RegionSubscription},
+    client::Client,
+    presence::RegionSubscription,
     streams::{
         CharacterScreenStream, GeneralStream, GetStream, InGameStream, PingStream, RegisterStream,
     },
