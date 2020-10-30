@@ -1123,7 +1123,7 @@ impl Hud {
             for (pos, item, distance) in (&entities, &pos, &items)
                 .join()
                 .map(|(_, pos, item)| (pos, item, pos.0.distance_squared(player_pos)))
-                .filter(|(_, _, distance)| distance < &common::comp::MAX_PICKUP_RANGE_SQR)
+                .filter(|(_, _, distance)| distance < &common::consts::MAX_PICKUP_RANGE.powi(2))
             {
                 let overitem_id = overitem_walker.next(
                     &mut self.ids.overitems,
@@ -2455,6 +2455,28 @@ impl Hud {
                 self.force_ungrab = !self.force_ungrab;
                 true
             },
+
+            // If not showing the ui don't allow keys that change the ui state but do listen for
+            // hotbar keys
+            event if !self.show.ui => {
+                if let WinEvent::InputUpdate(key, state) = event {
+                    if let Some(slot) = try_hotbar_slot_from_input(key) {
+                        handle_slot(
+                            slot,
+                            state,
+                            &mut self.events,
+                            &mut self.slot_manager,
+                            &mut self.hotbar,
+                        );
+                        true
+                    } else {
+                        false
+                    }
+                } else {
+                    false
+                }
+            },
+
             WinEvent::Zoom(_) => !cursor_grabbed && !self.ui.no_widget_capturing_mouse(),
 
             WinEvent::InputUpdate(GameInput::Chat, true) => {
@@ -2521,107 +2543,20 @@ impl Hud {
                     true
                 },
                 // Skillbar
-                GameInput::Slot1 => {
-                    handle_slot(
-                        hotbar::Slot::One,
-                        state,
-                        &mut self.events,
-                        &mut self.slot_manager,
-                        &mut self.hotbar,
-                    );
-                    true
+                input => {
+                    if let Some(slot) = try_hotbar_slot_from_input(input) {
+                        handle_slot(
+                            slot,
+                            state,
+                            &mut self.events,
+                            &mut self.slot_manager,
+                            &mut self.hotbar,
+                        );
+                        true
+                    } else {
+                        false
+                    }
                 },
-                GameInput::Slot2 => {
-                    handle_slot(
-                        hotbar::Slot::Two,
-                        state,
-                        &mut self.events,
-                        &mut self.slot_manager,
-                        &mut self.hotbar,
-                    );
-                    true
-                },
-                GameInput::Slot3 => {
-                    handle_slot(
-                        hotbar::Slot::Three,
-                        state,
-                        &mut self.events,
-                        &mut self.slot_manager,
-                        &mut self.hotbar,
-                    );
-                    true
-                },
-                GameInput::Slot4 => {
-                    handle_slot(
-                        hotbar::Slot::Four,
-                        state,
-                        &mut self.events,
-                        &mut self.slot_manager,
-                        &mut self.hotbar,
-                    );
-                    true
-                },
-                GameInput::Slot5 => {
-                    handle_slot(
-                        hotbar::Slot::Five,
-                        state,
-                        &mut self.events,
-                        &mut self.slot_manager,
-                        &mut self.hotbar,
-                    );
-                    true
-                },
-                GameInput::Slot6 => {
-                    handle_slot(
-                        hotbar::Slot::Six,
-                        state,
-                        &mut self.events,
-                        &mut self.slot_manager,
-                        &mut self.hotbar,
-                    );
-                    true
-                },
-                GameInput::Slot7 => {
-                    handle_slot(
-                        hotbar::Slot::Seven,
-                        state,
-                        &mut self.events,
-                        &mut self.slot_manager,
-                        &mut self.hotbar,
-                    );
-                    true
-                },
-                GameInput::Slot8 => {
-                    handle_slot(
-                        hotbar::Slot::Eight,
-                        state,
-                        &mut self.events,
-                        &mut self.slot_manager,
-                        &mut self.hotbar,
-                    );
-                    true
-                },
-                GameInput::Slot9 => {
-                    handle_slot(
-                        hotbar::Slot::Nine,
-                        state,
-                        &mut self.events,
-                        &mut self.slot_manager,
-                        &mut self.hotbar,
-                    );
-                    true
-                },
-                GameInput::Slot10 => {
-                    handle_slot(
-                        hotbar::Slot::Ten,
-                        state,
-                        &mut self.events,
-                        &mut self.slot_manager,
-                        &mut self.hotbar,
-                    );
-                    true
-                },
-                _ => false,
             },
             // Else the player is typing in chat
             WinEvent::InputUpdate(_key, _) => self.typing(),
@@ -2676,8 +2611,8 @@ impl Hud {
                 .handle_event(conrod_core::event::Input::Text("\t".to_string()));
         }
 
+        // Optimization: skip maintaining UI when it's off.
         if !self.show.ui {
-            // Optimization: skip maintaining UI when it's off.
             return std::mem::take(&mut self.events);
         }
 
@@ -2734,4 +2669,20 @@ fn get_buff_info(buff: &comp::Buff) -> BuffInfo {
         is_buff: buff.kind.is_buff(),
         dur: buff.time,
     }
+}
+
+fn try_hotbar_slot_from_input(input: GameInput) -> Option<hotbar::Slot> {
+    Some(match input {
+        GameInput::Slot1 => hotbar::Slot::One,
+        GameInput::Slot2 => hotbar::Slot::Two,
+        GameInput::Slot3 => hotbar::Slot::Three,
+        GameInput::Slot4 => hotbar::Slot::Four,
+        GameInput::Slot5 => hotbar::Slot::Five,
+        GameInput::Slot6 => hotbar::Slot::Six,
+        GameInput::Slot7 => hotbar::Slot::Seven,
+        GameInput::Slot8 => hotbar::Slot::Eight,
+        GameInput::Slot9 => hotbar::Slot::Nine,
+        GameInput::Slot10 => hotbar::Slot::Ten,
+        _ => return None,
+    })
 }

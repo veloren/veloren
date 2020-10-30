@@ -15,10 +15,8 @@ use client::{self, Client};
 use common::{
     assets::Asset,
     comp,
-    comp::{
-        ChatMsg, ChatType, InventoryUpdateEvent, Pos, Vel, MAX_MOUNT_RANGE_SQR,
-        MAX_PICKUP_RANGE_SQR,
-    },
+    comp::{ChatMsg, ChatType, InventoryUpdateEvent, Pos, Vel},
+    consts::{MAX_MOUNT_RANGE, MAX_PICKUP_RANGE},
     event::EventBus,
     outcome::Outcome,
     span,
@@ -26,6 +24,7 @@ use common::{
     util::Dir,
     vol::ReadVol,
 };
+use ordered_float::OrderedFloat;
 use specs::{Join, WorldExt};
 use std::{cell::RefCell, rc::Rc, sync::Arc, time::Duration};
 use tracing::{error, info};
@@ -205,6 +204,7 @@ impl PlayState for SessionState {
 
     fn tick(&mut self, global_state: &mut GlobalState, events: Vec<Event>) -> PlayStateResult {
         span!(_guard, "tick", "<Session as PlayState>::tick");
+        // TODO: let mut client = self.client.borrow_mut();
         // NOTE: Not strictly necessary, but useful for hotloading translation changes.
         self.voxygen_i18n = VoxygenLocalization::load_expect(&i18n_asset_key(
             &global_state.settings.language.selected_language,
@@ -272,16 +272,24 @@ impl PlayState for SessionState {
                 .get(self.client.borrow().entity())
                 .is_some();
 
-            // Only highlight collectables
-            self.scene.set_select_pos(select_pos.filter(|sp| {
-                self.client
-                    .borrow()
-                    .state()
-                    .terrain()
-                    .get(*sp)
-                    .map(|b| b.is_collectible() || can_build)
-                    .unwrap_or(false)
-            }));
+            let interactable = select_interactable(
+                &self.client.borrow(),
+                self.target_entity,
+                select_pos,
+                &self.scene,
+            );
+
+            // Only highlight interactables
+            // unless in build mode where select_pos highlighted
+            self.scene
+                .set_select_pos(
+                    select_pos
+                        .filter(|_| can_build)
+                        .or_else(|| match interactable {
+                            Some(Interactable::Block(_, block_pos)) => Some(block_pos),
+                            _ => None,
+                        }),
+                );
 
             // Handle window events.
             for event in events {
@@ -457,36 +465,22 @@ impl PlayState for SessionState {
                                 .copied();
                             if let Some(player_pos) = player_pos {
                                 // Find closest mountable entity
-                                let mut closest_mountable: Option<(specs::Entity, i32)> = None;
-
-                                for (entity, pos, ms) in (
+                                let closest_mountable_entity = (
                                     &client.state().ecs().entities(),
                                     &client.state().ecs().read_storage::<comp::Pos>(),
                                     &client.state().ecs().read_storage::<comp::MountState>(),
                                 )
                                     .join()
-                                    .filter(|(entity, _, _)| *entity != client.entity())
-                                {
-                                    if comp::MountState::Unmounted != *ms {
-                                        continue;
-                                    }
-
-                                    let dist =
-                                        (player_pos.0.distance_squared(pos.0) * 1000.0) as i32;
-                                    if dist > MAX_MOUNT_RANGE_SQR {
-                                        continue;
-                                    }
-
-                                    if let Some(previous) = closest_mountable.as_mut() {
-                                        if dist < previous.1 {
-                                            *previous = (entity, dist);
-                                        }
-                                    } else {
-                                        closest_mountable = Some((entity, dist));
-                                    }
-                                }
-
-                                if let Some((mountee_entity, _)) = closest_mountable {
+                                    .filter(|(entity, _, mount_state)| {
+                                        *entity != client.entity()
+                                            && **mount_state == comp::MountState::Unmounted
+                                    })
+                                    .map(|(entity, pos, _)| {
+                                        (entity, player_pos.0.distance_squared(pos.0))
+                                    })
+                                    .filter(|(_, dist_sqr)| *dist_sqr < MAX_MOUNT_RANGE.powi(2))
+                                    .min_by_key(|(_, dist_sqr)| OrderedFloat(*dist_sqr));
+                                if let Some((mountee_entity, _)) = closest_mountable_entity {
                                     client.mount(mountee_entity);
                                 }
                             }
@@ -498,40 +492,25 @@ impl PlayState for SessionState {
                         self.key_state.collect = state;
 
                         if state {
-                            let mut client = self.client.borrow_mut();
-
-                            // Collect terrain sprites
-                            if let Some(select_pos) = self.scene.select_pos() {
-                                client.collect_block(select_pos);
-                            }
-
-                            // Collect lootable entities
-                            let player_pos = client
-                                .state()
-                                .read_storage::<comp::Pos>()
-                                .get(client.entity())
-                                .copied();
-
-                            if let Some(player_pos) = player_pos {
-                                let entity = self.target_entity.or_else(|| {
-                                    (
-                                        &client.state().ecs().entities(),
-                                        &client.state().ecs().read_storage::<comp::Pos>(),
-                                        &client.state().ecs().read_storage::<comp::Item>(),
-                                    )
-                                        .join()
-                                        .filter(|(_, pos, _)| {
-                                            pos.0.distance_squared(player_pos.0)
-                                                < MAX_PICKUP_RANGE_SQR
-                                        })
-                                        .min_by_key(|(_, pos, _)| {
-                                            (pos.0.distance_squared(player_pos.0) * 1000.0) as i32
-                                        })
-                                        .map(|(entity, _, _)| entity)
-                                });
-
-                                if let Some(entity) = entity {
-                                    client.pick_up(entity);
+                            if let Some(interactable) = interactable {
+                                let mut client = self.client.borrow_mut();
+                                match interactable {
+                                    Interactable::Block(block, pos) => {
+                                        if block.is_collectible() {
+                                            client.collect_block(pos);
+                                        }
+                                    },
+                                    Interactable::Entity(entity) => {
+                                        if client
+                                            .state()
+                                            .ecs()
+                                            .read_storage::<comp::Item>()
+                                            .get(entity)
+                                            .is_some()
+                                        {
+                                            client.pick_up(entity);
+                                        }
+                                    },
                                 }
                             }
                         }
@@ -1162,6 +1141,7 @@ fn under_cursor(
     Option<Vec3<i32>>,
     Option<(specs::Entity, f32)>,
 ) {
+    span!(_guard, "under_cursor");
     // Choose a spot above the player's head for item distance checks
     let player_entity = client.entity();
     let player_pos = match client
@@ -1184,7 +1164,7 @@ fn under_cursor(
     // The ray hit something, is it within range?
     let (build_pos, select_pos) = if matches!(cam_ray.1, Ok(Some(_)) if
         player_pos.distance_squared(cam_pos + cam_dir * cam_dist)
-        <= MAX_PICKUP_RANGE_SQR)
+        <= MAX_PICKUP_RANGE.powi(2))
     {
         (
             Some((cam_pos + cam_dir * (cam_dist - 0.01)).map(|e| e.floor() as i32)),
@@ -1252,4 +1232,110 @@ fn under_cursor(
 
     // TODO: consider setting build/select to None when targeting an entity
     (build_pos, select_pos, target_entity)
+}
+
+#[derive(Clone, Copy)]
+enum Interactable {
+    Block(Block, Vec3<i32>),
+    Entity(specs::Entity),
+}
+
+/// Select interactable to hightlight, display interaction text for, and to
+/// interact with if the interact key is pressed
+/// Selected in the following order
+/// 1) Targeted entity (if interactable) (entities can't be target through
+/// blocks) 2) Selected block  (if interactabl)
+/// 3) Closest of nearest interactable entity/block
+fn select_interactable(
+    client: &Client,
+    target_entity: Option<specs::Entity>,
+    selected_pos: Option<Vec3<i32>>,
+    scene: &Scene,
+) -> Option<Interactable> {
+    span!(_guard, "select_interactable");
+    use common::{spiral::Spiral2d, terrain::TerrainChunk, vol::RectRasterableVol};
+    target_entity.map(Interactable::Entity)
+        .or_else(|| selected_pos.and_then(|sp|
+                client.state().terrain().get(sp).ok().copied()
+                    .filter(Block::is_collectible).map(|b| Interactable::Block(b, sp))
+        ))
+        .or_else(|| {
+            let ecs = client.state().ecs();
+            let player_entity = client.entity();
+            ecs
+                .read_storage::<comp::Pos>()
+                .get(player_entity).and_then(|player_pos| {
+                    let closest_interactable_entity = (
+                        &ecs.entities(),
+                        &ecs.read_storage::<comp::Pos>(),
+                        ecs.read_storage::<comp::Scale>().maybe(),
+                        &ecs.read_storage::<comp::Body>(),
+                        // Must have this comp to be interactable (for now)
+                        &ecs.read_storage::<comp::Item>(),
+                    )
+                        .join()
+                        .filter(|(e, _, _, _, _)| *e != player_entity)
+                        .map(|(e, p, s, b, _)| {
+                            let radius = s.map_or(1.0, |s| s.0) * b.radius();
+                            // Distance squared from player to the entity
+                            // Note: the position of entities is currently at their feet so this
+                            // distance is between their feet positions
+                            let dist_sqr = p.0.distance_squared(player_pos.0);
+                            (e, radius, dist_sqr)
+                        })
+                        // Roughly filter out entities farther than interaction distance
+                        .filter(|(_, r, d_sqr)| *d_sqr <= MAX_PICKUP_RANGE.powi(2) + 2.0 * MAX_PICKUP_RANGE * r + r.powi(2))
+                        // Note: entities are approximated as spheres here
+                        // to determine which is closer
+                        // Substract sphere radius from distance to the player
+                        .map(|(e, r, d_sqr)| (e, d_sqr.sqrt() - r))
+                        .min_by_key(|(_, dist)| OrderedFloat(*dist));
+
+                    // Only search as far as closest interactable entity
+                    let search_dist = closest_interactable_entity
+                        .map_or(MAX_PICKUP_RANGE, |(_, dist)| dist);
+                    let player_chunk = player_pos.0.xy().map2(TerrainChunk::RECT_SIZE, |e, sz| {
+                        (e.floor() as i32).div_euclid(sz as i32)
+                    });
+                    let terrain = scene.terrain();
+
+                    // Find closest interactable block
+                    // TODO: consider doing this one first?
+                    let closest_interactable_block_pos = Spiral2d::new()
+                        // TODO: this formula for the number to take was guessed
+                        // Note: assume RECT_SIZE.x == RECT_SIZE.y
+                        .take(((search_dist / TerrainChunk::RECT_SIZE.x as f32).ceil() as usize * 2 + 1).pow(2))
+                        .flat_map(|offset| {
+                            let chunk_pos = player_chunk + offset;
+                            let chunk_voxel_pos =
+                                    Vec3::<i32>::from(chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32));
+                            terrain.get(chunk_pos).map(|data| (data, chunk_voxel_pos))
+                        })
+                        // TODO: maybe we could make this more efficient by putting the
+                        // interactables is some sort of spatial structure
+                        .flat_map(|(chunk_data, chunk_pos)| {
+                            chunk_data
+                                .blocks_of_interest
+                                .interactables
+                                .iter()
+                                .map(move |block_offset| chunk_pos + block_offset)
+                        })
+                        // TODO: confirm that adding 0.5 here is correct
+                        .map(|block_pos| (
+                                block_pos,
+                                block_pos.map(|e| e as f32 + 0.5)
+                                    .distance_squared(player_pos.0)
+                        ))
+                        .min_by_key(|(_, dist_sqr)| OrderedFloat(*dist_sqr));
+
+                    // Pick closer one if they exist
+                    closest_interactable_block_pos
+                        .filter(|(_, dist_sqr)| search_dist.powi(2) > *dist_sqr)
+                        .and_then(|(block_pos, _)|
+                            client.state().terrain().get(block_pos).ok().copied()
+                                .map(|b| Interactable::Block(b, block_pos))
+                        )
+                        .or_else(|| closest_interactable_entity.map(|(e, _)| Interactable::Entity(e)))
+                })
+        })
 }

@@ -51,7 +51,7 @@ impl PlayState for MainMenuState {
             &crate::i18n::i18n_asset_key(&global_state.settings.language.selected_language),
         );
 
-        //Poll server creation
+        // Poll server creation
         #[cfg(feature = "singleplayer")]
         {
             if let Some(singleplayer) = &global_state.singleplayer {
@@ -62,6 +62,18 @@ impl PlayState for MainMenuState {
                         self.client_init = None;
                         self.main_menu_ui.cancel_connection();
                         self.main_menu_ui.show_info(format!("Error: {:?}", error));
+                    } else {
+                        let server_settings = singleplayer.settings();
+                        // Attempt login after the server is finished initializing
+                        attempt_login(
+                            &mut global_state.settings,
+                            &mut global_state.info_message,
+                            "singleplayer".to_owned(),
+                            "".to_owned(),
+                            server_settings.gameserver_address.ip().to_string(),
+                            server_settings.gameserver_address.port(),
+                            &mut self.client_init,
+                        );
                     }
                 }
             }
@@ -208,7 +220,8 @@ impl PlayState for MainMenuState {
                     server_address,
                 } => {
                     attempt_login(
-                        global_state,
+                        &mut global_state.settings,
+                        &mut global_state.info_message,
                         username,
                         password,
                         server_address,
@@ -229,18 +242,9 @@ impl PlayState for MainMenuState {
                 },
                 #[cfg(feature = "singleplayer")]
                 MainMenuEvent::StartSingleplayer => {
-                    let (singleplayer, server_settings) = Singleplayer::new(None); // TODO: Make client and server use the same thread pool
+                    let singleplayer = Singleplayer::new(None); // TODO: Make client and server use the same thread pool
 
                     global_state.singleplayer = Some(singleplayer);
-
-                    attempt_login(
-                        global_state,
-                        "singleplayer".to_owned(),
-                        "".to_owned(),
-                        server_settings.gameserver_address.ip().to_string(),
-                        server_settings.gameserver_address.port(),
-                        &mut self.client_init,
-                    );
                 },
                 MainMenuEvent::Settings => {}, // TODO
                 MainMenuEvent::Quit => return PlayStateResult::Shutdown,
@@ -279,19 +283,20 @@ impl PlayState for MainMenuState {
 }
 
 fn attempt_login(
-    global_state: &mut GlobalState,
+    settings: &mut Settings,
+    info_message: &mut Option<String>,
     username: String,
     password: String,
     server_address: String,
     server_port: u16,
     client_init: &mut Option<ClientInit>,
 ) {
-    let mut net_settings = &mut global_state.settings.networking;
+    let mut net_settings = &mut settings.networking;
     net_settings.username = username.clone();
     if !net_settings.servers.contains(&server_address) {
         net_settings.servers.push(server_address.clone());
     }
-    if let Err(e) = global_state.settings.save_to_file() {
+    if let Err(e) = settings.save_to_file() {
         warn!(?e, "Failed to save settings");
     }
 
@@ -301,11 +306,11 @@ fn attempt_login(
             *client_init = Some(ClientInit::new(
                 (server_address, server_port, false),
                 username,
-                Some(global_state.settings.graphics.view_distance),
+                Some(settings.graphics.view_distance),
                 password,
             ));
         }
     } else {
-        global_state.info_message = Some("Invalid username".to_string());
+        *info_message = Some("Invalid username".to_string());
     }
 }
