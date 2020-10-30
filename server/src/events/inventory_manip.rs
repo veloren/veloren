@@ -110,6 +110,16 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
 
             if let Some(block) = block {
                 if block.is_collectible() && state.can_set_block(pos) {
+                    // Check if the block is within pickup range
+                    if !within_pickup_range(
+                        state.ecs().read_storage::<comp::Pos>().get(entity),
+                        // We convert the Vec<i32> pos into a Vec<f32>, adding 0.5 to get the
+                        // center of the block
+                        Some(&Pos(pos.map(|e| e as f32 + 0.5))),
+                    ) {
+                        return;
+                    };
+
                     if let Some(item) = comp::Item::try_reclaim_from_block(block) {
                         let (event, item_was_added) = if let Some(inv) = state
                             .ecs()
