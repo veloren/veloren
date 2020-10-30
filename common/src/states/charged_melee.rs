@@ -1,5 +1,5 @@
 use crate::{
-    comp::{Attacking, CharacterState, EnergySource, StateUpdate},
+    comp::{Attacking, CharacterState, EnergyChange, EnergySource, StateUpdate},
     states::utils::{StageSection, *},
     sys::character_behavior::*,
     Damage, DamageSource, Damages, Knockback,
@@ -77,10 +77,10 @@ impl CharacterBehavior for Data {
                     });
 
                     // Consumes energy if there's enough left and RMB is held down
-                    update.energy.change_by(
-                        -(self.static_data.energy_drain as f32 * data.dt.0) as i32,
-                        EnergySource::Ability,
-                    );
+                    update.energy.change_by(EnergyChange {
+                        amount: -(self.static_data.energy_drain as f32 * data.dt.0) as i32,
+                        source: EnergySource::Ability,
+                    });
                 } else if data.inputs.secondary.is_pressed()
                     && update.energy.current() >= self.static_data.energy_cost
                 {
@@ -94,10 +94,10 @@ impl CharacterBehavior for Data {
                     });
 
                     // Consumes energy if there's enough left and RMB is held down
-                    update.energy.change_by(
-                        -(self.static_data.energy_drain as f32 * data.dt.0 / 5.0) as i32,
-                        EnergySource::Ability,
-                    );
+                    update.energy.change_by(EnergyChange {
+                        amount: -(self.static_data.energy_drain as f32 * data.dt.0 / 5.0) as i32,
+                        source: EnergySource::Ability,
+                    });
                 } else {
                     // Transitions to swing
                     update.character = CharacterState::ChargedMelee(Data {

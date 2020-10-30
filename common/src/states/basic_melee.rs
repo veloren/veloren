@@ -1,5 +1,5 @@
 use crate::{
-    comp::{Attacking, CharacterState, EnergySource, StateUpdate},
+    comp::{Attacking, CharacterState, EnergyChange, EnergySource, StateUpdate},
     states::utils::*,
     sys::character_behavior::{CharacterBehavior, JoinData},
     Damage, DamageSource, Damages, Knockback,
@@ -136,7 +136,10 @@ impl CharacterBehavior for Data {
         if let Some(attack) = data.attacking {
             if attack.applied && attack.hit_count > 0 {
                 data.updater.remove::<Attacking>(data.entity);
-                update.energy.change_by(50, EnergySource::HitEnemy);
+                update.energy.change_by(EnergyChange {
+                    amount: 50,
+                    source: EnergySource::HitEnemy,
+                });
             }
         }
 

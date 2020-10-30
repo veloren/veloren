@@ -1,5 +1,5 @@
 use crate::{
-    comp::{Attacking, CharacterState, EnergySource, StateUpdate},
+    comp::{Attacking, CharacterState, EnergyChange, EnergySource, StateUpdate},
     states::utils::*,
     sys::{
         character_behavior::{CharacterBehavior, JoinData},
@@ -154,10 +154,10 @@ impl CharacterBehavior for Data {
                         ..*self
                     });
                     // Consumes energy if there's enough left and RMB is held down
-                    update.energy.change_by(
-                        -(self.static_data.energy_cost as i32),
-                        EnergySource::Ability,
-                    );
+                    update.energy.change_by(EnergyChange {
+                        amount: -(self.static_data.energy_cost as i32),
+                        source: EnergySource::Ability,
+                    });
                 } else {
                     // Transitions to recover section of stage
                     update.character = CharacterState::SpinMelee(Data {

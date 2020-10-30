@@ -1,5 +1,5 @@
 use crate::{
-    comp::{CharacterState, Energy, EnergySource, HealthSource, Stats},
+    comp::{CharacterState, Energy, EnergyChange, EnergySource, HealthSource, Stats},
     event::{EventBus, ServerEvent},
     metrics::SysMetrics,
     span,
@@ -96,11 +96,12 @@ impl<'a> System<'a> for Sys {
                     if res {
                         let mut energy = energy.get_mut_unchecked();
                         // Have to account for Calc I differential equations due to acceleration
-                        energy.change_by(
-                            (energy.regen_rate * dt.0 + ENERGY_REGEN_ACCEL * dt.0.powf(2.0) / 2.0)
+                        energy.change_by(EnergyChange {
+                            amount: (energy.regen_rate * dt.0
+                                + ENERGY_REGEN_ACCEL * dt.0.powf(2.0) / 2.0)
                                 as i32,
-                            EnergySource::Regen,
-                        );
+                            source: EnergySource::Regen,
+                        });
                         energy.regen_rate =
                             (energy.regen_rate + ENERGY_REGEN_ACCEL * dt.0).min(100.0);
                     }
@@ -130,9 +131,10 @@ impl<'a> System<'a> for Sys {
                     };
 
                     if res {
-                        energy
-                            .get_mut_unchecked()
-                            .change_by(-3, EnergySource::Regen);
+                        energy.get_mut_unchecked().change_by(EnergyChange {
+                            amount: -3,
+                            source: EnergySource::Regen,
+                        });
                     }
                 },
                 // Non-combat abilities that consume energy;

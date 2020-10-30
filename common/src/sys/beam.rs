@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        group, Beam, BeamSegment, Body, CharacterState, Energy, EnergySource, HealthChange,
-        HealthSource, Last, Loadout, Ori, Pos, Scale, Stats,
+        group, Beam, BeamSegment, Body, CharacterState, Energy, EnergyChange, EnergySource,
+        HealthChange, HealthSource, Last, Loadout, Ori, Pos, Scale, Stats,
     },
     event::{EventBus, ServerEvent},
     state::{DeltaTime, Time},
@@ -34,7 +34,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Loadout>,
         ReadStorage<'a, group::Group>,
         ReadStorage<'a, CharacterState>,
-        WriteStorage<'a, Energy>,
+        ReadStorage<'a, Energy>,
         WriteStorage<'a, BeamSegment>,
         WriteStorage<'a, Beam>,
     );
@@ -57,7 +57,7 @@ impl<'a> System<'a> for Sys {
             loadouts,
             groups,
             character_states,
-            mut energies,
+            energies,
             mut beam_segments,
             mut beams,
         ): Self::SystemData,
@@ -197,20 +197,26 @@ impl<'a> System<'a> for Sys {
                                 },
                             });
                         }
-                        if let Some(energy_mut) = beam_owner.and_then(|o| energies.get_mut(o)) {
-                            energy_mut.change_by(
-                                beam_segment.energy_regen as i32,
-                                EnergySource::HitEnemy,
-                            );
+                        if let Some(uid) = beam_segment.owner {
+                            server_emitter.emit(ServerEvent::EnergyChange {
+                                uid,
+                                change: EnergyChange {
+                                    amount: beam_segment.energy_regen as i32,
+                                    source: EnergySource::HitEnemy,
+                                },
+                            });
                         }
-                    } else if let Some(energy_mut) = beam_owner.and_then(|o| energies.get_mut(o)) {
-                        if energy_mut
-                            .try_change_by(
-                                -(beam_segment.energy_cost as i32), // Stamina use
-                                EnergySource::Ability,
-                            )
-                            .is_ok()
-                        {
+                    } else if let Some(energy) = beam_owner.and_then(|o| energies.get(o)) {
+                        if energy.current() > beam_segment.energy_cost {
+                            if let Some(uid) = beam_segment.owner {
+                                server_emitter.emit(ServerEvent::EnergyChange {
+                                    uid,
+                                    change: EnergyChange {
+                                        amount: -(beam_segment.energy_cost as i32), // Stamina use
+                                        source: EnergySource::Ability,
+                                    },
+                                })
+                            }
                             server_emitter.emit(ServerEvent::Damage {
                                 uid: *uid_b,
                                 change,

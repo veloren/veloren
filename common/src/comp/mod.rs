@@ -43,7 +43,7 @@ pub use controller::{
     Climb, ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip, Input,
     InventoryManip, MountState, Mounting,
 };
-pub use energy::{Energy, EnergySource};
+pub use energy::{Energy, EnergyChange, EnergySource};
 pub use group::Group;
 pub use inputs::CanBuild;
 pub use inventory::{

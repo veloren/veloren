@@ -109,6 +109,10 @@ pub enum ServerEvent {
         entity: EcsEntity,
         buff_change: comp::BuffChange,
     },
+    EnergyChange {
+        uid: Uid,
+        change: comp::EnergyChange,
+    },
 }
 
 pub struct EventBus<E> {

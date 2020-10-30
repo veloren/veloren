@@ -1,5 +1,7 @@
 use crate::{
-    comp::{beam, humanoid, Body, CharacterState, EnergySource, Ori, Pos, StateUpdate},
+    comp::{
+        beam, humanoid, Body, CharacterState, EnergyChange, EnergySource, Ori, Pos, StateUpdate,
+    },
     event::ServerEvent,
     states::utils::*,
     sync::Uid,
@@ -148,10 +150,10 @@ impl CharacterBehavior for Data {
                     });
 
                     // Consumes energy if there's enough left and ability key is held down
-                    update.energy.change_by(
-                        -(self.static_data.energy_drain as f32 * data.dt.0) as i32,
-                        EnergySource::Ability,
-                    );
+                    update.energy.change_by(EnergyChange {
+                        amount: -(self.static_data.energy_drain as f32 * data.dt.0) as i32,
+                        source: EnergySource::Ability,
+                    });
                 } else {
                     update.character = CharacterState::BasicBeam(Data {
                         timer: Duration::default(),

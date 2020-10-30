@@ -1,8 +1,8 @@
 use crate::{
     comp::{
         buff::{BuffChange, BuffSource},
-        projectile, Energy, EnergySource, Group, HealthSource, Loadout, Ori, PhysicsState, Pos,
-        Projectile, Vel,
+        projectile, EnergyChange, EnergySource, Group, HealthSource, Loadout, Ori, PhysicsState,
+        Pos, Projectile, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::SysMetrics,
@@ -32,7 +32,6 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
         WriteStorage<'a, Projectile>,
-        WriteStorage<'a, Energy>,
         ReadStorage<'a, Loadout>,
         ReadStorage<'a, Group>,
     );
@@ -51,7 +50,6 @@ impl<'a> System<'a> for Sys {
             velocities,
             mut orientations,
             mut projectiles,
-            mut energies,
             loadouts,
             groups,
         ): Self::SystemData,
@@ -129,12 +127,14 @@ impl<'a> System<'a> for Sys {
                             }
                         },
                         projectile::Effect::RewardEnergy(energy) => {
-                            if let Some(energy_mut) = projectile
-                                .owner
-                                .and_then(|o| uid_allocator.retrieve_entity_internal(o.into()))
-                                .and_then(|o| energies.get_mut(o))
-                            {
-                                energy_mut.change_by(energy as i32, EnergySource::HitEnemy);
+                            if let Some(uid) = projectile.owner {
+                                server_emitter.emit(ServerEvent::EnergyChange {
+                                    uid,
+                                    change: EnergyChange {
+                                        amount: energy as i32,
+                                        source: EnergySource::HitEnemy,
+                                    },
+                                });
                             }
                         },
                         projectile::Effect::Explode(e) => {

@@ -1,5 +1,5 @@
 use crate::{
-    comp::{Attacking, CharacterState, EnergySource, StateUpdate},
+    comp::{Attacking, CharacterState, EnergyChange, EnergySource, StateUpdate},
     states::utils::*,
     sys::character_behavior::{CharacterBehavior, JoinData},
     Damage, DamageSource, Damages, Knockback,
@@ -261,7 +261,10 @@ impl CharacterBehavior for Data {
                     next_stage: self.next_stage,
                 });
                 data.updater.remove::<Attacking>(data.entity);
-                update.energy.change_by(energy, EnergySource::HitEnemy);
+                update.energy.change_by(EnergyChange {
+                    amount: energy,
+                    source: EnergySource::HitEnemy,
+                });
             }
         }
 
