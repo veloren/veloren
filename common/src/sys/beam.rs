@@ -6,7 +6,7 @@ use crate::{
     event::{EventBus, ServerEvent},
     state::{DeltaTime, Time},
     sync::{Uid, UidAllocator},
-    Damage,
+    DamageSource,
 };
 use specs::{saveload::MarkerAllocator, Entities, Join, Read, ReadStorage, System, WriteStorage};
 use std::time::Duration;
@@ -180,7 +180,7 @@ impl<'a> System<'a> for Sys {
 
                     let change = damage.modify_damage(block, loadouts.get(b), beam_segment.owner);
 
-                    if !matches!(damage, Damage::Healing(_)) {
+                    if !matches!(damage.source, DamageSource::Healing) {
                         server_emitter.emit(ServerEvent::Damage {
                             uid: *uid_b,
                             change,

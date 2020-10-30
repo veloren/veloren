@@ -58,9 +58,8 @@ impl Server {
                     pos,
                     explosion,
                     owner,
-                    friendly_damage,
                     reagent,
-                } => handle_explosion(&self, pos, explosion, owner, friendly_damage, reagent),
+                } => handle_explosion(&self, pos, explosion, owner, reagent),
                 ServerEvent::Shoot {
                     entity,
                     dir,

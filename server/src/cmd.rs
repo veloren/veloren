@@ -18,7 +18,7 @@ use common::{
     terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
     util::Dir,
     vol::RectVolSize,
-    Explosion, LoadoutBuilder,
+    Damage, DamageSource, Damages, Explosion, LoadoutBuilder, RadiusEffect,
 };
 use rand::Rng;
 use specs::{Builder, Entity as EcsEntity, Join, WorldExt};
@@ -1153,16 +1153,23 @@ fn handle_explosion(
                 .emit_now(ServerEvent::Explosion {
                     pos: pos.0,
                     explosion: Explosion {
+                        effects: vec![
+                            RadiusEffect::Damages(Damages::new(
+                                Some(Damage {
+                                    source: DamageSource::Explosion,
+                                    value: 100.0 * power,
+                                }),
+                                Some(Damage {
+                                    source: DamageSource::Explosion,
+                                    value: 100.0 * power,
+                                }),
+                            )),
+                            RadiusEffect::TerrainDestruction(power),
+                        ],
                         radius: 3.0 * power,
-                        max_damage: (100.0 * power) as u32,
-                        min_damage: 0,
-                        max_heal: 0,
-                        min_heal: 0,
-                        terrain_destruction_power: power,
                         energy_regen: 0,
                     },
                     owner: ecs.read_storage::<Uid>().get(target).copied(),
-                    friendly_damage: true,
                     reagent: None,
                 })
         },
