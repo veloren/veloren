@@ -19,7 +19,7 @@ use common::{
     clock::Clock,
 };
 use std::panic;
-use tracing::{error, warn};
+use tracing::{error, info, warn};
 
 fn main() {
     // Load the settings
@@ -34,6 +34,12 @@ fn main() {
 
     // Init logging and hold the guards.
     let _guards = logging::init(&settings);
+
+    if let Some(path) = veloren_voxygen::settings::voxygen_data_dir().parent() {
+        info!("Using userdata dir at: {}", path.display());
+    } else {
+        error!("Can't log userdata dir, voxygen data dir has no parent!");
+    }
 
     // Set up panic handler to relay swish panic messages to the user
     let default_hook = panic::take_hook();

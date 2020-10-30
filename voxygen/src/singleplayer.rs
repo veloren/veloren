@@ -26,10 +26,12 @@ pub struct Singleplayer {
     pub receiver: Receiver<Result<(), ServerError>>,
     // Wether the server is stopped or not
     paused: Arc<AtomicBool>,
+    // Settings that the server was started with
+    settings: server::Settings,
 }
 
 impl Singleplayer {
-    pub fn new(client: Option<&Client>) -> (Self, server::Settings) {
+    pub fn new(client: Option<&Client>) -> Self {
         let (sender, receiver) = unbounded();
 
         // Determine folder to save server data in
@@ -119,16 +121,17 @@ impl Singleplayer {
             run_server(server, receiver, paused1);
         });
 
-        (
-            Singleplayer {
-                _server_thread: thread,
-                sender,
-                receiver: result_receiver,
-                paused,
-            },
+        Singleplayer {
+            _server_thread: thread,
+            sender,
+            receiver: result_receiver,
+            paused,
             settings,
-        )
+        }
     }
+
+    /// Returns reference to the settings the server was started with
+    pub fn settings(&self) -> &server::Settings { &self.settings }
 
     /// Returns wether or not the server is paused
     pub fn is_paused(&self) -> bool { self.paused.load(Ordering::SeqCst) }

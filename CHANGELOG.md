@@ -54,6 +54,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Moved hammer leap attack to skillbar
 - Reworked fire staff
 - Overhauled cloud shaders to add mist, light attenuation, an approximation of rayleigh scattering, etc.
+- Fixed a bug where a nearby item would also be collected when collecting collectible blocks
+- Allowed collecting nearby blocks without aiming at them
+- Made voxygen wait until singleplayer server is initialized before attempting to connect, removing the chance for it to give up on connecting if the server takes a while to start
+- Log where userdata folder is located
 
 ### Removed
 

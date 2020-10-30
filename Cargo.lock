@@ -2964,6 +2964,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "ordered-float"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9fe9037165d7023b1228bc4ae9a2fa1a2b0095eca6c2998c624723dfd01314a5"
+dependencies = [
+ "num-traits 0.2.12",
+]
+
+[[package]]
 name = "osascript"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3691,7 +3700,7 @@ dependencies = [
  "crossbeam-utils 0.7.2",
  "linked-hash-map",
  "num_cpus",
- "ordered-float",
+ "ordered-float 1.1.0",
  "rustc-hash",
  "stb_truetype",
 ]
@@ -4962,6 +4971,7 @@ dependencies = [
  "native-dialog",
  "num 0.2.1",
  "old_school_gfx_glutin_ext",
+ "ordered-float 2.0.0",
  "rand 0.7.3",
  "rodio",
  "ron",
@@ -5014,7 +5024,7 @@ dependencies = [
  "minifb",
  "noise",
  "num 0.2.1",
- "ordered-float",
+ "ordered-float 1.1.0",
  "packed_simd_2",
  "rand 0.7.3",
  "rand_chacha 0.2.2",

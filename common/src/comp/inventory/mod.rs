@@ -8,9 +8,6 @@ use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage, HashMapStorage};
 use specs_idvs::IdvStorage;
 
-// The limit on distance between the entity and a collectible (squared)
-pub const MAX_PICKUP_RANGE_SQR: f32 = 64.0;
-
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Inventory {
     slots: Vec<Option<Item>>,
