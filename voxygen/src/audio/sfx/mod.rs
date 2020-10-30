@@ -137,7 +137,11 @@ impl SfxEventItem {
 pub enum SfxEvent {
     Embers,
     Birdcall,
+    Cricket,
+    Frog,
+    Bees,
     Idle,
+    Swim,
     Run,
     Roll,
     Sneak,
