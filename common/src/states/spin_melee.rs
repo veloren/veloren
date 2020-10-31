@@ -38,6 +38,8 @@ pub struct StaticData {
     pub forward_speed: f32,
     /// Number of spins
     pub num_spins: u32,
+    /// What key is used to press ability
+    pub ability_key: AbilityKey,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -65,7 +67,9 @@ impl CharacterBehavior for Data {
         }
 
         // Allows for other states to interrupt this state
-        if self.static_data.is_interruptible && !data.inputs.ability3.is_pressed() {
+        if self.static_data.is_interruptible
+            && !ability_key_is_pressed(data, self.static_data.ability_key)
+        {
             handle_interrupt(data, &mut update);
             match update.character {
                 CharacterState::SpinMelee(_) => {},
@@ -140,7 +144,8 @@ impl CharacterBehavior for Data {
                     });
                 } else if update.energy.current() >= self.static_data.energy_cost
                     && (self.spins_remaining != 0
-                        || (self.static_data.is_infinite && data.inputs.secondary.is_pressed()))
+                        || (self.static_data.is_infinite
+                            && ability_key_is_pressed(data, self.static_data.ability_key)))
                 {
                     let new_spins_remaining = if self.static_data.is_infinite {
                         self.spins_remaining

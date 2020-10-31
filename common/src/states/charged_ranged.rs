@@ -37,6 +37,8 @@ pub struct StaticData {
     pub projectile_gravity: Option<Gravity>,
     pub initial_projectile_speed: f32,
     pub max_projectile_speed: f32,
+    /// What key is used to press ability
+    pub ability_key: AbilityKey,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -80,7 +82,7 @@ impl CharacterBehavior for Data {
                 }
             },
             StageSection::Charge => {
-                if !data.inputs.secondary.is_pressed() && !self.exhausted {
+                if !ability_key_is_pressed(data, self.static_data.ability_key) && !self.exhausted {
                     let charge_frac = (self.timer.as_secs_f32()
                         / self.static_data.charge_duration.as_secs_f32())
                     .min(1.0);
@@ -138,7 +140,7 @@ impl CharacterBehavior for Data {
                         ..*self
                     });
                 } else if self.timer < self.static_data.charge_duration
-                    && data.inputs.secondary.is_pressed()
+                    && ability_key_is_pressed(data, self.static_data.ability_key)
                 {
                     // Charges
                     update.character = CharacterState::ChargedRanged(Data {
@@ -154,7 +156,7 @@ impl CharacterBehavior for Data {
                         amount: -(self.static_data.energy_drain as f32 * data.dt.0) as i32,
                         source: EnergySource::Ability,
                     });
-                } else if data.inputs.secondary.is_pressed() {
+                } else if ability_key_is_pressed(data, self.static_data.ability_key) {
                     // Holds charge
                     update.character = CharacterState::ChargedRanged(Data {
                         timer: self

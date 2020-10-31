@@ -32,6 +32,8 @@ pub struct StaticData {
     pub swing_duration: Duration,
     /// How long the state has until exiting
     pub recover_duration: Duration,
+    /// What key is used to press ability
+    pub ability_key: AbilityKey,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -58,7 +60,7 @@ impl CharacterBehavior for Data {
 
         match self.stage_section {
             StageSection::Charge => {
-                if data.inputs.secondary.is_pressed()
+                if ability_key_is_pressed(data, self.static_data.ability_key)
                     && update.energy.current() >= self.static_data.energy_cost
                     && self.timer < self.static_data.charge_duration
                 {
@@ -81,7 +83,7 @@ impl CharacterBehavior for Data {
                         amount: -(self.static_data.energy_drain as f32 * data.dt.0) as i32,
                         source: EnergySource::Ability,
                     });
-                } else if data.inputs.secondary.is_pressed()
+                } else if ability_key_is_pressed(data, self.static_data.ability_key)
                     && update.energy.current() >= self.static_data.energy_cost
                 {
                     // Maintains charge

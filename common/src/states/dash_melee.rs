@@ -39,6 +39,8 @@ pub struct StaticData {
     pub recover_duration: Duration,
     /// Whether the state can be interrupted by other abilities
     pub is_interruptible: bool,
+    /// What key is used to press ability
+    pub ability_key: AbilityKey,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -66,7 +68,9 @@ impl CharacterBehavior for Data {
         handle_move(data, &mut update, 0.1);
 
         // Allows for other states to interrupt this state
-        if self.static_data.is_interruptible && !data.inputs.secondary.is_pressed() {
+        if self.static_data.is_interruptible
+            && !ability_key_is_pressed(data, self.static_data.ability_key)
+        {
             handle_interrupt(data, &mut update);
             match update.character {
                 CharacterState::DashMelee(_) => {},
@@ -90,7 +94,7 @@ impl CharacterBehavior for Data {
                 } else {
                     // Transitions to charge section of stage
                     update.character = CharacterState::DashMelee(Data {
-                        auto_charge: !data.inputs.secondary.is_pressed(),
+                        auto_charge: !ability_key_is_pressed(data, self.static_data.ability_key),
                         timer: Duration::default(),
                         stage_section: StageSection::Charge,
                         ..*self
@@ -100,7 +104,7 @@ impl CharacterBehavior for Data {
             StageSection::Charge => {
                 if (self.static_data.infinite_charge
                     || self.timer < self.static_data.charge_duration)
-                    && (data.inputs.secondary.is_pressed()
+                    && (ability_key_is_pressed(data, self.static_data.ability_key)
                         || (self.auto_charge && self.timer < self.static_data.charge_duration))
                     && update.energy.current() > 0
                 {
