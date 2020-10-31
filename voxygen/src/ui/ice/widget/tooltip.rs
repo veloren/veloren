@@ -212,6 +212,9 @@ where
     ) -> R::Output {
         let bounds = layout.bounds();
         if bounds.contains(cursor_position) {
+            // TODO: these bounds aren't actually global (for example see how the Scrollable
+            // widget handles its content) so it's not actually a good key to
+            // use here
             let aabr = aabr_from_bounds(bounds);
             let m_pos = Vec2::new(
                 cursor_position.x.trunc() as i32,
@@ -228,10 +231,15 @@ where
         let bounds = layout.bounds();
         let aabr = aabr_from_bounds(bounds);
 
-        self.manager.showing(aabr).map(|(pos, alpha)| {
+        self.manager.showing(aabr).map(|(cursor_pos, alpha)| {
             iced::overlay::Element::new(
-                pos,
-                Box::new(Overlay::new((self.hover_content)(), bounds, alpha)),
+                Point::ORIGIN,
+                Box::new(Overlay::new(
+                    (self.hover_content)(),
+                    cursor_pos,
+                    bounds,
+                    alpha,
+                )),
             )
         })
     }
@@ -259,6 +267,8 @@ fn aabr_from_bounds(bounds: iced::Rectangle) -> Aabr<i32> {
 
 struct Overlay<'a, M, R: self::Renderer> {
     content: Element<'a, M, R>,
+    /// Cursor position
+    cursor_position: Point,
     /// Area to avoid overlapping with
     avoid: Rectangle,
     /// Alpha for fading out
@@ -266,9 +276,15 @@ struct Overlay<'a, M, R: self::Renderer> {
 }
 
 impl<'a, M, R: self::Renderer> Overlay<'a, M, R> {
-    pub fn new(content: Element<'a, M, R>, avoid: Rectangle, alpha: f32) -> Self {
+    pub fn new(
+        content: Element<'a, M, R>,
+        cursor_position: Point,
+        avoid: Rectangle,
+        alpha: f32,
+    ) -> Self {
         Self {
             content,
+            cursor_position,
             avoid,
             alpha,
         }
@@ -280,7 +296,16 @@ where
     R: self::Renderer,
 {
     fn layout(&self, renderer: &R, bounds: Size, position: Point) -> layout::Node {
-        let avoid = self.avoid;
+        let avoid = Rectangle {
+            x: self.avoid.x + position.x,
+            y: self.avoid.y + position.y,
+            ..self.avoid
+        };
+        let cursor_position = Point {
+            x: self.cursor_position.x + position.x,
+            y: self.cursor_position.y + position.y,
+        };
+
         const PAD: f32 = 8.0; // TODO: allow configuration
         let space_above = (avoid.y - PAD).max(0.0);
         let space_below = (bounds.height - avoid.y - avoid.height - PAD).max(0.0);
@@ -298,7 +323,7 @@ where
         let size = node.size();
 
         node.move_to(Point {
-            x: (bounds.width - size.width).min(position.x),
+            x: (bounds.width - size.width).min(cursor_position.x),
             y: if space_above >= space_below {
                 avoid.y - size.height - PAD
             } else {
@@ -315,6 +340,11 @@ where
 
         (position.x as u32).hash(state);
         (position.y as u32).hash(state);
+        (self.cursor_position.x as u32).hash(state);
+        (self.avoid.x as u32).hash(state);
+        (self.avoid.y as u32).hash(state);
+        (self.avoid.height as u32).hash(state);
+        (self.avoid.width as u32).hash(state);
         self.content.hash_layout(state);
     }
 
