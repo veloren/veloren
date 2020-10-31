@@ -3,11 +3,17 @@
         // 
         // Ambient
         //
+        Campfire: (
+            files: [
+                "voxygen.audio.sfx.ambient.fire",
+            ],
+            threshold: 0.5,
+        ),
         Embers: (
             files: [
                 "voxygen.audio.sfx.ambient.embers",
             ],
-            threshold: 1.2,
+            threshold: 0.5,
         ),
         Birdcall: (
             files: [
@@ -15,7 +21,13 @@
                 "voxygen.audio.sfx.ambient.birdcall_2",
                 "voxygen.audio.sfx.ambient.birdcall_3",
             ],
-            threshold: 30.0,
+            threshold: 10.0,
+        ),
+        Owl: (
+            files: [
+                "voxygen.audio.sfx.ambient.owl_1",
+            ],
+            threshold: 14.0,
         ),
         Cricket: (
             files: [

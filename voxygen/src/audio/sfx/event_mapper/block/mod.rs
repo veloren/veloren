@@ -11,19 +11,13 @@ use common::{
     vol::RectRasterableVol,
 };
 use hashbrown::HashMap;
-use rand::{prelude::SliceRandom, thread_rng, Rng};
+use rand::{
+    prelude::{IteratorRandom, SliceRandom},
+    thread_rng, Rng,
+};
 use specs::WorldExt;
 use std::time::Instant;
 use vek::*;
-
-//enum BlockEmitter {
-//    Leaves,
-//    Grass,
-//    Embers,
-//    Beehives,
-//    Reeds,
-//    Flowers,
-//}
 
 #[derive(Clone, PartialEq)]
 struct PreviousBlockState {
@@ -50,8 +44,6 @@ impl PreviousBlockState {
 }
 
 pub struct BlockEventMapper {
-    timer: Instant,
-    counter: usize,
     history: HashMap<Vec3<i32>, PreviousBlockState>,
 }
 
@@ -88,7 +80,7 @@ impl EventMapper for BlockEventMapper {
             sfx: SfxEvent,
             // The volume of the sfx
             volume: f32,
-            // Condition that must be true
+            // Condition that must be true to play
             cond: fn(&State) -> bool,
         }
         let sounds: &[BlockSounds] = &[
@@ -97,14 +89,20 @@ impl EventMapper for BlockEventMapper {
                 range: 1,
                 sfx: SfxEvent::Birdcall,
                 volume: 1.0,
-                //cond: |_| true,
                 cond: |st| st.get_day_period().is_light(),
+            },
+            BlockSounds {
+                blocks: |boi| &boi.leaves,
+                range: 1,
+                sfx: SfxEvent::Owl,
+                volume: 1.0,
+                cond: |st| st.get_day_period().is_dark(),
             },
             BlockSounds {
                 blocks: |boi| &boi.embers,
                 range: 1,
                 sfx: SfxEvent::Embers,
-                volume: 0.05,
+                volume: 0.15,
                 //volume: 0.05,
                 cond: |_| true,
                 //cond: |st| st.get_day_period().is_dark(),
@@ -136,13 +134,16 @@ impl EventMapper for BlockEventMapper {
                 range: 1,
                 sfx: SfxEvent::Bees,
                 volume: 1.0,
-                cond: |_| true,
+                //cond: |_| true,
+                cond: |st| st.get_day_period().is_light(),
             },
         ];
 
         // Iterate through each kind of block of interest
         for sounds in sounds.iter() {
             if !(sounds.cond)(state) {
+                continue;
+            } else if sounds.sfx == SfxEvent::Birdcall && thread_rng().gen_bool(0.99) {
                 continue;
             }
 
@@ -152,31 +153,37 @@ impl EventMapper for BlockEventMapper {
 
                 // Get all the blocks of interest in this chunk
                 terrain.get(chunk_pos).map(|chunk_data| {
-                    // Get all the blocks of type sounds
+                    // Get the positions of the blocks of type sounds
                     let blocks = (sounds.blocks)(&chunk_data.blocks_of_interest);
+
+                    //let mut my_blocks = blocks.to_vec();
+                    //// Reduce the number of bird calls from trees
+                    //if sounds.sfx == SfxEvent::Birdcall {
+                    //    my_blocks = my_blocks.choose_multiple(&mut thread_rng(), 6).cloned().collect();
+                    //    //blocks = blocks.to_vec().choose_multiple(&mut thread_rng(), 6).cloned().collect::<Vec<vek::Vec3<i32>>>().as_slice();
+                    //} else if sounds.sfx == SfxEvent::Cricket {
+                    //    my_blocks = my_blocks.choose_multiple(&mut thread_rng(), 6).cloned().collect();
+                    //}
 
                     let absolute_pos: Vec3<i32> =
                         Vec3::from(chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32));
 
                     // Iterate through each individual block
                     for block in blocks {
-                        // Reduce the number of bird calls from trees
-                        if sounds.sfx == SfxEvent::Birdcall && thread_rng().gen::<f32>() > 0.05 {
-                            println!("skipped a bird");
-                            continue;
-                        } else if sounds.sfx == SfxEvent::Cricket && thread_rng().gen::<f32>() > 0.5 {
-                            continue;
-                        }
 
+                    if sounds.sfx == SfxEvent::Birdcall && thread_rng().gen_bool(0.999) {
+                        continue;
+                    }
                         let block_pos: Vec3<i32> = absolute_pos + block;
                         let state = self.history.entry(block_pos).or_default();
 
                         // Convert to f32 for sfx emitter
-                        let block_pos = Vec3::new(
-                            block_pos[0] as f32,
-                            block_pos[1] as f32,
-                            block_pos[2] as f32,
-                        );
+                        //let block_pos = Vec3::new(
+                        //    block_pos[0] as f32,
+                        //    block_pos[1] as f32,
+                        //    block_pos[2] as f32,
+                        //);
+                        let block_pos = block_pos.map(|x| x as f32);
 
                         if Self::should_emit(state, triggers.get_key_value(&sounds.sfx)) {
                             // If the camera is within SFX distance
@@ -238,8 +245,6 @@ impl EventMapper for BlockEventMapper {
 impl BlockEventMapper {
     pub fn new() -> Self {
         Self {
-            timer: Instant::now(),
-            counter: 0,
             history: HashMap::new(),
         }
     }
@@ -250,16 +255,7 @@ impl BlockEventMapper {
     ) -> bool {
         if let Some((event, item)) = sfx_trigger_item {
             if &previous_state.event == event {
-                if event == &SfxEvent::Birdcall {
-                    if thread_rng().gen_bool(0.5) {
-                        previous_state.time.elapsed().as_secs_f64()
-                            >= (item.threshold + thread_rng().gen_range(-3.0, 3.0))
-                    } else {
-                        false
-                    }
-                } else {
-                    previous_state.time.elapsed().as_secs_f64() >= item.threshold
-                }
+                previous_state.time.elapsed().as_secs_f64() >= item.threshold
             } else {
                 true
             }
