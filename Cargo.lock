@@ -614,21 +614,6 @@ dependencies = [
 
 [[package]]
 name = "cocoa"
-version = "0.20.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c49e86fc36d5704151f5996b7b3795385f50ce09e3be0f47a0cfde869681cf8"
-dependencies = [
- "bitflags",
- "block",
- "core-foundation 0.7.0",
- "core-graphics 0.19.2",
- "foreign-types",
- "libc",
- "objc",
-]
-
-[[package]]
-name = "cocoa"
 version = "0.23.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c54201c07dcf3a5ca33fececb8042aed767ee4bfd5a0235a8ceabcda956044b2"
@@ -1869,14 +1854,14 @@ dependencies = [
 
 [[package]]
 name = "glutin"
-version = "0.24.1"
-source = "git+https://github.com/rust-windowing/glutin.git?rev=63a1ea7d6e64c5112418cab9f21cd409f0afd7c2#63a1ea7d6e64c5112418cab9f21cd409f0afd7c2"
+version = "0.25.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d8bae26a39a728b003e9fad473ea89527de0de050143b4df866f18bb154bc86e"
 dependencies = [
  "android_glue",
  "cgl",
- "cocoa 0.20.2",
- "core-foundation 0.7.0",
- "core-graphics 0.19.2",
+ "cocoa",
+ "core-foundation 0.9.1",
  "glutin_egl_sys",
  "glutin_emscripten_sys",
  "glutin_gles2_sys",
@@ -1887,8 +1872,8 @@ dependencies = [
  "log",
  "objc",
  "osmesa-sys",
- "parking_lot 0.10.2",
- "wayland-client 0.27.0",
+ "parking_lot 0.11.0",
+ "wayland-client 0.28.1",
  "wayland-egl",
  "winapi 0.3.9",
  "winit",
@@ -1897,7 +1882,8 @@ dependencies = [
 [[package]]
 name = "glutin_egl_sys"
 version = "0.1.5"
-source = "git+https://github.com/rust-windowing/glutin.git?rev=63a1ea7d6e64c5112418cab9f21cd409f0afd7c2#63a1ea7d6e64c5112418cab9f21cd409f0afd7c2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2abb6aa55523480c4adc5a56bbaa249992e2dddb2fc63dc96e04a3355364c211"
 dependencies = [
  "gl_generator",
  "winapi 0.3.9",
@@ -1906,12 +1892,14 @@ dependencies = [
 [[package]]
 name = "glutin_emscripten_sys"
 version = "0.1.1"
-source = "git+https://github.com/rust-windowing/glutin.git?rev=63a1ea7d6e64c5112418cab9f21cd409f0afd7c2#63a1ea7d6e64c5112418cab9f21cd409f0afd7c2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "80de4146df76e8a6c32b03007bc764ff3249dcaeb4f675d68a06caf1bac363f1"
 
 [[package]]
 name = "glutin_gles2_sys"
 version = "0.1.5"
-source = "git+https://github.com/rust-windowing/glutin.git?rev=63a1ea7d6e64c5112418cab9f21cd409f0afd7c2#63a1ea7d6e64c5112418cab9f21cd409f0afd7c2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e8094e708b730a7c8a1954f4f8a31880af00eb8a1c5b5bf85d28a0a3c6d69103"
 dependencies = [
  "gl_generator",
  "objc",
@@ -1920,7 +1908,8 @@ dependencies = [
 [[package]]
 name = "glutin_glx_sys"
 version = "0.1.7"
-source = "git+https://github.com/rust-windowing/glutin.git?rev=63a1ea7d6e64c5112418cab9f21cd409f0afd7c2#63a1ea7d6e64c5112418cab9f21cd409f0afd7c2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7e393c8fc02b807459410429150e9c4faffdb312d59b8c038566173c81991351"
 dependencies = [
  "gl_generator",
  "x11-dl",
@@ -1929,7 +1918,8 @@ dependencies = [
 [[package]]
 name = "glutin_wgl_sys"
 version = "0.1.5"
-source = "git+https://github.com/rust-windowing/glutin.git?rev=63a1ea7d6e64c5112418cab9f21cd409f0afd7c2#63a1ea7d6e64c5112418cab9f21cd409f0afd7c2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3da5951a1569dbab865c6f2a863efafff193a93caf05538d193e9e3816d21696"
 dependencies = [
  "gl_generator",
 ]
@@ -2158,12 +2148,12 @@ dependencies = [
 [[package]]
 name = "iced_core"
 version = "0.2.1"
-source = "git+https://github.com/hecrj/iced?rev=4f2962d#4f2962d73f3bdeeca8a11817e404c45e91e2c2cc"
+source = "git+https://github.com/hecrj/iced?rev=f464316#f46431600cb61d4e83e0ded1ca79525478436be3"
 
 [[package]]
 name = "iced_futures"
 version = "0.1.2"
-source = "git+https://github.com/hecrj/iced?rev=4f2962d#4f2962d73f3bdeeca8a11817e404c45e91e2c2cc"
+source = "git+https://github.com/hecrj/iced?rev=f464316#f46431600cb61d4e83e0ded1ca79525478436be3"
 dependencies = [
  "futures 0.3.5",
  "log",
@@ -2173,7 +2163,7 @@ dependencies = [
 [[package]]
 name = "iced_graphics"
 version = "0.1.0"
-source = "git+https://github.com/hecrj/iced?rev=4f2962d#4f2962d73f3bdeeca8a11817e404c45e91e2c2cc"
+source = "git+https://github.com/hecrj/iced?rev=f464316#f46431600cb61d4e83e0ded1ca79525478436be3"
 dependencies = [
  "bytemuck",
  "glam",
@@ -2186,7 +2176,7 @@ dependencies = [
 [[package]]
 name = "iced_native"
 version = "0.2.2"
-source = "git+https://github.com/hecrj/iced?rev=4f2962d#4f2962d73f3bdeeca8a11817e404c45e91e2c2cc"
+source = "git+https://github.com/hecrj/iced?rev=f464316#f46431600cb61d4e83e0ded1ca79525478436be3"
 dependencies = [
  "iced_core",
  "iced_futures",
@@ -2198,7 +2188,7 @@ dependencies = [
 [[package]]
 name = "iced_style"
 version = "0.1.0"
-source = "git+https://github.com/hecrj/iced?rev=4f2962d#4f2962d73f3bdeeca8a11817e404c45e91e2c2cc"
+source = "git+https://github.com/hecrj/iced?rev=f464316#f46431600cb61d4e83e0ded1ca79525478436be3"
 dependencies = [
  "iced_core",
 ]
@@ -2206,7 +2196,7 @@ dependencies = [
 [[package]]
 name = "iced_winit"
 version = "0.1.1"
-source = "git+https://github.com/hecrj/iced?rev=4f2962d#4f2962d73f3bdeeca8a11817e404c45e91e2c2cc"
+source = "git+https://github.com/hecrj/iced?rev=f464316#f46431600cb61d4e83e0ded1ca79525478436be3"
 dependencies = [
  "iced_futures",
  "iced_graphics",
@@ -3146,9 +3136,9 @@ dependencies = [
 
 [[package]]
 name = "old_school_gfx_glutin_ext"
-version = "0.24.0"
+version = "0.25.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a0557cea37cc48d238c938ded2873a6cc772704ee1eb01e832b43c2dd99624bc"
+checksum = "97d3bf7a77b32b947b6eaa3bc3671d50a74cd9aafdbbd4f9a4feb03ed3a0ee94"
 dependencies = [
  "gfx_core",
  "gfx_device_gl",
@@ -4246,10 +4236,8 @@ version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "562da6f2f0836e144f2e92118b35add58368280556af94f399666ebfd7d1e731"
 dependencies = [
- "andrew",
  "bitflags",
  "byteorder",
- "calloop",
  "dlib",
  "lazy_static",
  "log",
@@ -4266,8 +4254,10 @@ version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2ec5c077def8af49f9b5aeeb5fcf8079c638c6615c3a8f9305e2dea601de57f7"
 dependencies = [
+ "andrew",
  "bitflags",
  "byteorder",
+ "calloop",
  "dlib",
  "lazy_static",
  "log",
@@ -5560,12 +5550,12 @@ dependencies = [
 
 [[package]]
 name = "wayland-egl"
-version = "0.27.0"
+version = "0.28.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "123b47be6f258fffd854f016e8e7397adb8c04d984fcf308dce13714ae2231ae"
+checksum = "e7ca6190c84bcdc58beccc619bf4866709db32d653255e89da38867f97f90d61"
 dependencies = [
- "wayland-client 0.27.0",
- "wayland-sys 0.27.0",
+ "wayland-client 0.28.1",
+ "wayland-sys 0.28.1",
 ]
 
 [[package]]
@@ -5743,11 +5733,11 @@ dependencies = [
 
 [[package]]
 name = "winit"
-version = "0.22.2"
-source = "git+https://gitlab.com/veloren/winit.git?branch=macos-test-rebased#5efbaa7e4644c627201a9c4d24217f448795ce0f"
+version = "0.23.0"
+source = "git+https://gitlab.com/veloren/winit.git?branch=macos-test-spiffed#7c8c5f21384c898f50d37298d229093549b08803"
 dependencies = [
  "bitflags",
- "cocoa 0.23.0",
+ "cocoa",
  "core-foundation 0.9.1",
  "core-graphics 0.22.1",
  "core-video-sys",
@@ -5766,8 +5756,8 @@ dependencies = [
  "percent-encoding 2.1.0",
  "raw-window-handle",
  "serde",
- "smithay-client-toolkit 0.11.0",
- "wayland-client 0.27.0",
+ "smithay-client-toolkit 0.12.0",
+ "wayland-client 0.28.1",
  "winapi 0.3.9",
  "x11-dl",
 ]
@@ -5848,3 +5838,8 @@ name = "xml-rs"
 version = "0.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b07db065a5cf61a7e4ba64f29e67db906fb1787316516c4e6e5ff0fea1efcd8a"
+
+[[patch.unused]]
+name = "glutin"
+version = "0.24.1"
+source = "git+https://github.com/rust-windowing/glutin.git?rev=63a1ea7d6e64c5112418cab9f21cd409f0afd7c2#63a1ea7d6e64c5112418cab9f21cd409f0afd7c2"

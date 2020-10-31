@@ -3,9 +3,7 @@ use common::util::srgba_to_linear;
 use iced::{mouse, scrollable, Rectangle};
 use style::scrollable::{Scroller, Track};
 
-const SCROLLBAR_WIDTH: u16 = 6;
 const SCROLLBAR_MIN_HEIGHT: u16 = 6;
-const SCROLLBAR_MARGIN: u16 = 1;
 
 impl scrollable::Renderer for IcedRenderer {
     type Style = style::scrollable::Style;
@@ -18,32 +16,42 @@ impl scrollable::Renderer for IcedRenderer {
         bounds: Rectangle,
         content_bounds: Rectangle,
         offset: u32,
+        scrollbar_width: u16,
+        scrollbar_margin: u16,
+        scroller_width: u16,
     ) -> Option<scrollable::Scrollbar> {
-        // TODO: might actually want to divide by p_scale here (same in text&ext_input)
-        // (or just not use it) (or at least only account for dpi but not any
-        // additional scaling)
-        let width = (SCROLLBAR_WIDTH + 2 * SCROLLBAR_MARGIN) as f32 * self.p_scale;
         if content_bounds.height > bounds.height {
-            let scrollbar_bounds = Rectangle {
-                x: bounds.x + bounds.width - width,
-                width,
+            // Area containing both scrollbar and scroller
+            let outer_width = (scrollbar_width.max(scroller_width) + 2 * scrollbar_margin) as f32 /* * self.p_scale */;
+            let outer_bounds = Rectangle {
+                x: bounds.x + bounds.width - outer_width,
+                width: outer_width,
                 ..bounds
             };
 
+            // Background scrollbar (i.e. the track)
+            let scrollbar_bounds = Rectangle {
+                x: bounds.x + bounds.width - outer_width / 2.0 - (scrollbar_width / 2) as f32,
+                width: scrollbar_width as f32,
+                ..bounds
+            };
+
+            // Interactive scroller
             let visible_fraction = bounds.height / content_bounds.height;
-            let scrollbar_height = (bounds.height * visible_fraction)
-                .max((2 * SCROLLBAR_MIN_HEIGHT) as f32 * self.p_scale);
+            let scroller_height = (bounds.height * visible_fraction)
+                .max((2 * SCROLLBAR_MIN_HEIGHT) as f32/* * self.p_scale*/);
             let y_offset = offset as f32 * visible_fraction;
 
             let scroller_bounds = Rectangle {
-                x: scrollbar_bounds.x + SCROLLBAR_MARGIN as f32 * self.p_scale,
-                // TODO: check this behavior
+                x: bounds.x + bounds.width - outer_width / 2.0 - (scrollbar_width / 2) as f32, /* * self.p_scale*/
                 y: scrollbar_bounds.y + y_offset,
-                width: scrollbar_bounds.width - (2 * SCROLLBAR_MARGIN) as f32 * self.p_scale,
-                height: scrollbar_height,
+                width: scroller_width as f32, /* * self.p_scale*/
+                height: scroller_height,
             };
             Some(scrollable::Scrollbar {
+                outer_bounds,
                 bounds: scrollbar_bounds,
+                margin: scrollbar_margin,
                 scroller: scrollable::Scroller {
                     bounds: scroller_bounds,
                 },
@@ -145,20 +153,14 @@ impl scrollable::Renderer for IcedRenderer {
                 }
 
                 if let Some(track) = style.track {
-                    let bounds = Rectangle {
-                        x: scrollbar.bounds.x + SCROLLBAR_MARGIN as f32 * self.p_scale,
-                        width: scrollbar.bounds.width
-                            - (2 * SCROLLBAR_MARGIN) as f32 * self.p_scale,
-                        ..scrollbar.bounds
-                    };
                     primitives.push(match track {
                         Track::Color(color) => Primitive::Rectangle {
-                            bounds,
+                            bounds: scrollbar.bounds,
                             linear_color: srgba_to_linear(color.map(|e| e as f32 / 255.0)),
                         },
                         Track::Image(handle, color) => Primitive::Image {
                             handle: (handle, Rotation::None),
-                            bounds,
+                            bounds: scrollbar.bounds,
                             color,
                         },
                     });

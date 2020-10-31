@@ -7,16 +7,17 @@ impl overlay::Renderer for IcedRenderer {
         defaults: &Self::Defaults,
         _bounds: Rectangle,
         cursor_position: Point,
+        viewport: &Rectangle,
         over: &Element<'_, M, Self>,
         over_layout: Layout<'_>,
         under: &Element<'_, M, Self>,
         under_layout: Layout<'_>,
     ) -> Self::Output {
         let (under, under_mouse_interaction) =
-            under.draw(self, defaults, under_layout, cursor_position);
+            under.draw(self, defaults, under_layout, cursor_position, viewport);
 
         let (over, over_mouse_interaction) =
-            over.draw(self, defaults, over_layout, cursor_position);
+            over.draw(self, defaults, over_layout, cursor_position, viewport);
 
         // TODO: this isn't perfect but should be obselete when iced gets layer support
         let mouse_interaction = if over_mouse_interaction == Interaction::Idle {

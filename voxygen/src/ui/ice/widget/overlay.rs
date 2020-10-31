@@ -169,12 +169,14 @@ where
         defaults: &R::Defaults,
         layout: Layout<'_>,
         cursor_position: Point,
+        viewport: &Rectangle,
     ) -> R::Output {
         let mut children = layout.children();
         renderer.draw(
             defaults,
             layout.bounds(),
             cursor_position,
+            viewport,
             &self.over,
             children.next().unwrap(),
             &self.under,
@@ -210,6 +212,7 @@ pub trait Renderer: iced::Renderer {
         defaults: &Self::Defaults,
         bounds: Rectangle,
         cursor_position: Point,
+        viewport: &Rectangle,
         //style: &self::Style,
         over: &Element<'_, M, Self>,
         over_layout: Layout<'_>,

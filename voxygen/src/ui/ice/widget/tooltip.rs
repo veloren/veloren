@@ -209,6 +209,7 @@ where
         defaults: &R::Defaults,
         layout: Layout<'_>,
         cursor_position: Point,
+        viewport: &Rectangle,
     ) -> R::Output {
         let bounds = layout.bounds();
         if bounds.contains(cursor_position) {
@@ -224,7 +225,7 @@ where
         }
 
         self.content
-            .draw(renderer, defaults, layout, cursor_position)
+            .draw(renderer, defaults, layout, cursor_position, viewport)
     }
 
     fn overlay(&mut self, layout: Layout<'_>) -> Option<iced::overlay::Element<'_, M, R>> {
@@ -355,7 +356,15 @@ where
         layout: Layout<'_>,
         cursor_position: Point,
     ) -> R::Output {
-        renderer.draw(self.alpha, defaults, cursor_position, &self.content, layout)
+        renderer.draw(
+            self.alpha,
+            defaults,
+            cursor_position,
+            // TODO: hopefully this works
+            &layout.bounds(),
+            &self.content,
+            layout,
+        )
     }
 }
 
@@ -365,6 +374,7 @@ pub trait Renderer: iced::Renderer {
         alpha: f32,
         defaults: &Self::Defaults,
         cursor_position: Point,
+        viewport: &Rectangle,
         content: &Element<'_, M, Self>,
         content_layout: Layout<'_>,
     ) -> Self::Output;

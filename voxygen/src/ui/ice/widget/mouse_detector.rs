@@ -86,6 +86,7 @@ where
         _defaults: &R::Defaults,
         layout: Layout<'_>,
         _cursor_position: Point,
+        _viewport: &Rectangle,
     ) -> R::Output {
         renderer.draw(layout.bounds())
     }

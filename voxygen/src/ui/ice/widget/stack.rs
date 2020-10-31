@@ -1,4 +1,5 @@
-use iced::{layout, Element, Hasher, Layout, Length, Point, Size, Widget};
+// TODO: unused (I think?) consider slating for removal
+use iced::{layout, Element, Hasher, Layout, Length, Point, Rectangle, Size, Widget};
 use std::hash::Hash;
 
 /// Stack up some widgets
@@ -60,8 +61,9 @@ where
         defaults: &R::Defaults,
         layout: Layout<'_>,
         cursor_position: Point,
+        viewport: &Rectangle,
     ) -> R::Output {
-        renderer.draw(defaults, &self.children, layout, cursor_position)
+        renderer.draw(defaults, &self.children, layout, cursor_position, viewport)
     }
 
     fn hash_layout(&self, state: &mut Hasher) {
@@ -89,6 +91,7 @@ pub trait Renderer: iced::Renderer {
         children: &[Element<'_, M, Self>],
         layout: Layout<'_>,
         cursor_position: Point,
+        viewport: &Rectangle,
     ) -> Self::Output;
 }
 
