@@ -180,7 +180,7 @@ impl<'a> System<'a> for Sys {
 
                     let change = damage.modify_damage(block, loadouts.get(b), beam_segment.owner);
 
-                    if matches!(damage, Damage::Healing(_)) {
+                    if !matches!(damage, Damage::Healing(_)) {
                         server_emitter.emit(ServerEvent::Damage {
                             uid: *uid_b,
                             change,
