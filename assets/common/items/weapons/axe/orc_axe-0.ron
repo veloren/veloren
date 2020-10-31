@@ -1,6 +1,6 @@
 ItemDef(
     name: "Beast Cleaver",
-    description: "Created by orcs to cleave beasts in 2.",
+    description: "A rough cut axe created by orcs to cleave beasts in two.",
     kind: Tool(
         (
             kind: Axe("OrcAxe0"),    

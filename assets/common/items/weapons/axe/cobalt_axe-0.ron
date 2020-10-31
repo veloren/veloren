@@ -1,6 +1,6 @@
 ItemDef(
     name: "Cobalt Axe",
-    description: "Forged from cobalt.",
+    description: "The lustrous bluish gray axe provides a certain stylish class to the weapon.",
     kind: Tool(
         (
             kind: Axe("CobaltAxe0"),    

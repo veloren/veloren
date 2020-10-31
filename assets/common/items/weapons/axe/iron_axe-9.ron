@@ -1,6 +1,6 @@
 ItemDef(
     name: "Wolfen Axe",
-    description: "Forged from iron.",
+    description: "An axe forged and used by those intending to make their kills seem to have come from ravenous wolves rather than humanoids.",
     kind: Tool(
         (
             kind: Axe("IronAxe9"),    

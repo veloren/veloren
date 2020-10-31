@@ -1,6 +1,6 @@
 ItemDef(
     name: "Tribal Axe",
-    description: "An axe forged from steel that thirsts for blood.",
+    description: "Some tribes call for metal alloys to be formed in the blood of an animal carcass to ensure the resultant axe is honed for striking their enemy's veins.",
     kind: Tool(
         (
             kind: Axe("BloodsteelAxe2"),    

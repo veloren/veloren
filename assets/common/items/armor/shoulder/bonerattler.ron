@@ -1,6 +1,6 @@
 ItemDef(
     name: "Bonerattler Shoulder Pad",
-    description: "Made from the strongest bones.",
+    description: "Knee caps of an unknown creature provide the proper shoulder protection.",
     kind: Armor(
         (
             kind: Shoulder("Bonerattler"),

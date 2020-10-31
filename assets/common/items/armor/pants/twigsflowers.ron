@@ -1,6 +1,6 @@
 ItemDef(
     name: "Flowery Pants",
-    description: "Pants woven from twigs and flowers. Fragrant!",
+    description: "Chainmail woven twigs enhanced with flower stems to provide protection and peace.",
     kind: Armor(
         (
             kind: Pants("Twigsflowers"),

@@ -1,6 +1,6 @@
 ItemDef(
     name: "Bronze Axe",
-    description: "Forged from bronze.",
+    description: "A fine quality metal alloy axe.",
     kind: Tool(
         (
             kind: Axe("BronzeAxe0"),    

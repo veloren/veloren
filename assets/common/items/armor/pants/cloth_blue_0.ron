@@ -1,6 +1,6 @@
 ItemDef(
     name: "Blue Linen Skirt",
-    description: "A skirt made from linen.",
+    description: "Rough fabric skirt, faded runes line the inside to protect the wearer from harm, dyed blue.",
     kind: Armor(
         (
             kind: Pants("ClothBlue0"),

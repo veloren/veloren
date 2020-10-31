@@ -1,6 +1,6 @@
 ItemDef(
     name: "Cobalt Mace",
-    description: "Forged with cobalt.",
+    description: "The spiked ball is formed from a bluish gray metal.",
     kind: Tool(
         (
             kind: Hammer("CobaltHammer1"),    

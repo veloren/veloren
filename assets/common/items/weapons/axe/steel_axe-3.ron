@@ -1,6 +1,6 @@
 ItemDef(
     name: "Crescent Axe",
-    description: "Forged from steel.",
+    description: "The blade of this steel axe is forged in a manner to resemble a crescent moon.",
     kind: Tool(
         (
             kind: Axe("SteelAxe3"),    

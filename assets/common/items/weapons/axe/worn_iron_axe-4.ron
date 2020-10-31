@@ -1,6 +1,6 @@
 ItemDef(
     name: "Beetle Axe",
-    description: "The blade is in the shape of a beetle.",
+    description: "An axe formed with the intent of making the blade seem like a beetle shell. With how brittle it has gotten over the years, one would be mistaken in thinking it was made from beetle shell.",
     kind: Tool(
         (
             kind: Axe("WornIronAxe4"),

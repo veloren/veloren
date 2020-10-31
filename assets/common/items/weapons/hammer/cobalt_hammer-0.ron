@@ -1,6 +1,6 @@
 ItemDef(
     name: "Cobalt Hammer",
-    description: "Forged with cobalt.",
+    description: "The bluish gray tinge to the metal of this hammer head provides a slight classiness to the weapon.",
     kind: Tool(
         (
             kind: Hammer("CobaltHammer0"),    

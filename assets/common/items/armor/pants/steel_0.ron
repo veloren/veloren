@@ -1,6 +1,6 @@
 ItemDef(
     name: "Steel Chausses",
-    description: "Greaves forged from steel.",
+    description: "The metal alloy provides improvements to fit, durability, and lightness.",
     kind: Armor(
         (
             kind: Pants("Steel0"),

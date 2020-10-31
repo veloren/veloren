@@ -1,6 +1,6 @@
 ItemDef(
     name: "Twig Boots",
-    description: "Boots woven from twigs.",
+    description: "Small twigs intertwined and embued with magic to provide a quality similar to chainmail.",
     kind: Armor(
         (
             kind: Foot("Twig"),

@@ -1,6 +1,6 @@
 ItemDef(
     name: "Ceremonial Axe",
-    description: "Forged from iron.",
+    description: "Heavy iron axe, likely created for conducting executions.",
     kind: Tool(
         (
             kind: Axe("IronAxe1"),    

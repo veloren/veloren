@@ -1,6 +1,6 @@
 ItemDef(
     name: "Steel Greathammer",
-    description: "Forged with steel.",
+    description: "The lighter attributes of the metal alloy are barely noticed when forged into such a wide hammer head.",
     kind: Tool(
         (
             kind: Hammer("SteelHammer1"),    

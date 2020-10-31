@@ -1,6 +1,6 @@
 ItemDef(
     name: "Druid's Vest",
-    description: "Druidic chest wrappings.",
+    description: "Fur pelts and vines formed into a tunic, as a druid is never one to let anything go to waste.",
     kind: Armor(
         (
             kind: Chest("Druid"),

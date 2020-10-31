@@ -1,6 +1,6 @@
 ItemDef(
     name: "Apple Stick",
-    description: "Restores 25 Health",
+    description: "Restores 25 Health\n\nThe stick makes it easier to carry!",
     kind: Consumable(
         kind: "AppleStick",
         effect: Health((

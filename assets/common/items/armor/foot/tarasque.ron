@@ -1,6 +1,6 @@
 ItemDef(
     name: "Tarasque Boots",
-    description: "As strong as a tarasque shell.",
+    description: "Shattered and reformed pieces of a tarasque shell, shaped into boots to protect the feet of the wearer.",
     kind: Armor(
         (
             kind: Foot("Tarasque"),

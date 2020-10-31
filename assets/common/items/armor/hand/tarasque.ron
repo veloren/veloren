@@ -1,6 +1,6 @@
 ItemDef(
     name: "Tarasque Gauntlets",
-    description: "As strong as a tarasque shell.",
+    description: "Shattered hexagonal fragments from a tarasque shell that shape into a protective gauntlet.",
     kind: Armor(
         (
             kind: Hand("Tarasque"),

@@ -1,6 +1,6 @@
 ItemDef(
     name: "Steel Battleaxe",
-    description: "Forged from steel.",
+    description: "Well crafted metal alloy axe that slices more cleanly than its iron counterparts.",
     kind: Tool(
         (
             kind: Axe("SteelAxe0"),    
