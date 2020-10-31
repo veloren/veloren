@@ -15,11 +15,12 @@ impl aspect_ratio_container::Renderer for IcedRenderer {
         defaults: &Self::Defaults,
         _bounds: Rectangle,
         cursor_position: Point,
+        viewport: &Rectangle,
         //style: &Self::Style,
         content: &Element<'_, M, Self>,
         content_layout: Layout<'_>,
     ) -> Self::Output {
         // TODO: stlying to add a background image and such
-        content.draw(self, defaults, content_layout, cursor_position)
+        content.draw(self, defaults, content_layout, cursor_position, viewport)
     }
 }

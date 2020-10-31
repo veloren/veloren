@@ -15,12 +15,13 @@ impl container::Renderer for IcedRenderer {
         defaults: &Self::Defaults,
         bounds: Rectangle,
         cursor_position: Point,
+        viewport: &Rectangle,
         style_sheet: &Self::Style,
         content: &Element<'_, M, Self>,
         content_layout: Layout<'_>,
     ) -> Self::Output {
         let (content, mouse_interaction) =
-            content.draw(self, defaults, content_layout, cursor_position);
+            content.draw(self, defaults, content_layout, cursor_position, viewport);
 
         let prim = match style_sheet {
             Self::Style::Image(handle, color) => {

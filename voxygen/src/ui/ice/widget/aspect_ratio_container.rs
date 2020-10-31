@@ -139,11 +139,13 @@ where
         defaults: &R::Defaults,
         layout: Layout<'_>,
         cursor_position: Point,
+        viewport: &Rectangle,
     ) -> R::Output {
         renderer.draw(
             defaults,
             layout.bounds(),
             cursor_position,
+            viewport,
             &self.content,
             layout.children().next().unwrap(),
         )
@@ -179,6 +181,7 @@ pub trait Renderer: iced::Renderer {
         defaults: &Self::Defaults,
         bounds: Rectangle,
         cursor_position: Point,
+        viewport: &Rectangle,
         //style: &Self::Style,
         content: &Element<'_, M, Self>,
         content_layout: Layout<'_>,

@@ -37,6 +37,7 @@ impl button::Renderer for IcedRenderer {
             &Defaults { text_color },
             content_layout,
             cursor_position,
+            &bounds,
         );
 
         let primitive = if let Some((handle, color)) = maybe_image {

@@ -1,4 +1,4 @@
-use iced::{layout, Element, Hasher, Layout, Length, Point, Size, Widget};
+use iced::{layout, Element, Hasher, Layout, Length, Point, Rectangle, Size, Widget};
 use std::hash::Hash;
 
 const DEFAULT_FILL_FRACTION: f32 = 1.0;
@@ -94,6 +94,7 @@ where
         defaults: &R::Defaults,
         layout: Layout<'_>,
         cursor_position: Point,
+        viewport: &Rectangle,
     ) -> R::Output {
         // Note: this breaks if the parent widget adjusts the bounds height
         let font_size = (layout.bounds().height * self.fill_fraction) as u16;
@@ -103,6 +104,7 @@ where
             defaults,
             layout.children().next().unwrap(),
             cursor_position,
+            viewport,
         )
     }
 

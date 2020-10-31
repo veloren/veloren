@@ -134,6 +134,8 @@ impl CompoundGraphic {
         _defaults: &R::Defaults,
         layout: Layout<'_>,
         _cursor_position: Point,
+        // Note: could use to skip elements outside the viewport
+        _viewport: &Rectangle,
     ) -> R::Output {
         let [pixel_w, pixel_h] = self.graphics_size;
         let bounds = layout.bounds();
@@ -195,8 +197,9 @@ where
         defaults: &R::Defaults,
         layout: Layout<'_>,
         cursor_position: Point,
+        viewport: &Rectangle,
     ) -> R::Output {
-        Self::draw(self, renderer, defaults, layout, cursor_position)
+        Self::draw(self, renderer, defaults, layout, cursor_position, viewport)
     }
 
     fn hash_layout(&self, state: &mut Hasher) {
@@ -251,7 +254,8 @@ where
         defaults: &R::Defaults,
         layout: Layout<'_>,
         cursor_position: Point,
+        viewport: &Rectangle,
     ) -> R::Output {
-        Self::draw(self, renderer, defaults, layout, cursor_position)
+        Self::draw(self, renderer, defaults, layout, cursor_position, viewport)
     }
 }

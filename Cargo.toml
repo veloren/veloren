@@ -79,6 +79,6 @@ debug = 1
 
 [patch.crates-io]
 # cpal conflict fix isn't released yet
-winit = { git = "https://gitlab.com/veloren/winit.git", branch = "macos-test-rebased" }
+winit = { git = "https://gitlab.com/veloren/winit.git", branch = "macos-test-spiffed" }
 glutin = {git = "https://github.com/rust-windowing/glutin.git", rev="63a1ea7d6e64c5112418cab9f21cd409f0afd7c2"}
 vek = { git = "https://gitlab.com/veloren/vek.git", branch = "fix_intrinsics" }

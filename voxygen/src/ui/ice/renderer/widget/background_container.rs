@@ -1,5 +1,5 @@
 use super::super::{super::widget::background_container, IcedRenderer, Primitive};
-use iced::{Element, Layout, Point};
+use iced::{Element, Layout, Point, Rectangle};
 
 impl background_container::Renderer for IcedRenderer {
     fn draw<M, B>(
@@ -7,6 +7,7 @@ impl background_container::Renderer for IcedRenderer {
         defaults: &Self::Defaults,
         background: &B,
         background_layout: Layout<'_>,
+        viewport: &Rectangle,
         content: &Element<'_, M, Self>,
         content_layout: Layout<'_>,
         cursor_position: Point,
@@ -15,10 +16,10 @@ impl background_container::Renderer for IcedRenderer {
         B: background_container::Background<Self>,
     {
         let back_primitive = background
-            .draw(self, defaults, background_layout, cursor_position)
+            .draw(self, defaults, background_layout, cursor_position, viewport)
             .0;
         let (content_primitive, mouse_interaction) =
-            content.draw(self, defaults, content_layout, cursor_position);
+            content.draw(self, defaults, content_layout, cursor_position, viewport);
         (
             Primitive::Group {
                 primitives: vec![back_primitive, content_primitive],

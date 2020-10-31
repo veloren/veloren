@@ -1,4 +1,6 @@
-use iced::{layout, Clipboard, Element, Event, Hasher, Layout, Length, Point, Size, Widget};
+use iced::{
+    layout, Clipboard, Element, Event, Hasher, Layout, Length, Point, Rectangle, Size, Widget,
+};
 use std::{hash::Hash, u32};
 
 // TODO: decouple from image/compound graphic widgets (they could still use
@@ -74,6 +76,7 @@ pub trait Background<R: iced::Renderer>: Sized {
         defaults: &R::Defaults,
         layout: Layout<'_>,
         cursor_position: Point,
+        viewport: &Rectangle,
     ) -> R::Output;
 }
 
@@ -294,11 +297,13 @@ where
         defaults: &R::Defaults,
         layout: Layout<'_>,
         cursor_position: Point,
+        viewport: &Rectangle,
     ) -> R::Output {
         renderer.draw(
             defaults,
             &self.background,
             layout,
+            viewport,
             &self.content,
             layout.children().next().unwrap(),
             cursor_position,
@@ -331,6 +336,7 @@ pub trait Renderer: iced::Renderer {
         defaults: &Self::Defaults,
         background: &B,
         background_layout: Layout<'_>,
+        viewport: &Rectangle,
         content: &Element<'_, M, Self>,
         content_layout: Layout<'_>,
         cursor_position: Point,

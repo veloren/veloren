@@ -1,5 +1,5 @@
 use super::super::graphic;
-use iced::{layout, Element, Hasher, Layout, Length, Point, Widget};
+use iced::{layout, Element, Hasher, Layout, Length, Point, Rectangle, Widget};
 use std::hash::Hash;
 use vek::Rgba;
 
@@ -86,6 +86,7 @@ where
         _defaults: &R::Defaults,
         layout: Layout<'_>,
         _cursor_position: Point,
+        _viewport: &Rectangle,
     ) -> R::Output {
         renderer.draw(self.handle, self.color, layout)
     }
@@ -134,6 +135,7 @@ where
         _defaults: &R::Defaults,
         layout: Layout<'_>,
         _cursor_position: Point,
+        _viewport: &Rectangle,
     ) -> R::Output {
         renderer.draw(self.handle, self.color, layout)
     }
