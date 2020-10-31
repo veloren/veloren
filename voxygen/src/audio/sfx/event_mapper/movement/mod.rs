@@ -165,7 +165,7 @@ impl MovementEventMapper {
     ) -> SfxEvent {
         // Match run / roll / swim state
         if physics_state.in_fluid.is_some()
-            && physics_state.in_fluid.unwrap() < 2.0
+            //&& physics_state.in_fluid.unwrap() < 2.0 // To control different sound based on depth
             && vel.magnitude() > 0.1
             || !previous_state.in_water && physics_state.in_fluid.is_some()
         {

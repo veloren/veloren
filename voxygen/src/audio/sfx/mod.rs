@@ -135,8 +135,10 @@ impl SfxEventItem {
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
 pub enum SfxEvent {
+    Campfire,
     Embers,
     Birdcall,
+    Owl,
     Cricket,
     Frog,
     Bees,

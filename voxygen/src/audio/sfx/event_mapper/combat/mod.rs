@@ -45,7 +45,7 @@ impl EventMapper for CombatEventMapper {
         player_entity: specs::Entity,
         camera: &Camera,
         triggers: &SfxTriggers,
-        terrain: &Terrain<TerrainChunk>,
+        _terrain: &Terrain<TerrainChunk>,
     ) {
         let ecs = state.ecs();
 

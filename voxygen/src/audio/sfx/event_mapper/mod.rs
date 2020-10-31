@@ -1,5 +1,5 @@
 mod block;
-//mod campfire;
+mod campfire;
 mod combat;
 mod movement;
 mod progression;
@@ -7,7 +7,7 @@ mod progression;
 use common::{state::State, terrain::TerrainChunk};
 
 use block::BlockEventMapper;
-//use campfire::CampfireEventMapper;
+use campfire::CampfireEventMapper;
 use combat::CombatEventMapper;
 use movement::MovementEventMapper;
 use progression::ProgressionEventMapper;
@@ -38,7 +38,7 @@ impl SfxEventMapper {
                 Box::new(MovementEventMapper::new()),
                 Box::new(ProgressionEventMapper::new()),
                 Box::new(BlockEventMapper::new()),
-                //Box::new(CampfireEventMapper::new()),
+                Box::new(CampfireEventMapper::new()),
             ],
         }
     }
