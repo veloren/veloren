@@ -3,7 +3,8 @@ use crate::{
     Server,
 };
 use common::{
-    comp::{self, item},
+    comp::{self, item, Pos},
+    consts::MAX_MOUNT_RANGE,
     msg::ServerGeneral,
     sync::{Uid, WorldSyncExt},
 };
@@ -65,7 +66,12 @@ pub fn handle_mount(server: &mut Server, mounter: EcsEntity, mountee: EcsEntity)
             Some(comp::MountState::Unmounted)
         );
 
-        if not_mounting_yet {
+        let within_range = within_mounting_range(
+            state.ecs().read_storage::<comp::Pos>().get(mounter),
+            state.ecs().read_storage::<comp::Pos>().get(mountee),
+        );
+
+        if not_mounting_yet && within_range {
             if let (Some(mounter_uid), Some(mountee_uid)) = (
                 state.ecs().uid_from_entity(mounter),
                 state.ecs().uid_from_entity(mountee),
@@ -191,5 +197,12 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
                 }
             }
         }
+    }
+}
+
+fn within_mounting_range(player_position: Option<&Pos>, mount_position: Option<&Pos>) -> bool {
+    match (player_position, mount_position) {
+        (Some(ppos), Some(ipos)) => ppos.0.distance_squared(ipos.0) < MAX_MOUNT_RANGE.powi(2),
+        _ => false,
     }
 }
