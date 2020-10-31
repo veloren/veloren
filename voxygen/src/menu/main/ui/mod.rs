@@ -505,7 +505,12 @@ impl<'a> MainMenuUi {
             Font::try_from_vec(buf).unwrap()
         };
 
-        let mut ui = Ui::new(&mut global_state.window, font).unwrap();
+        let mut ui = Ui::new(
+            &mut global_state.window,
+            font,
+            global_state.settings.gameplay.ui_scale,
+        )
+        .unwrap();
 
         let fonts = Fonts::load(&i18n.fonts, &mut ui).expect("Impossible to load fonts");
 

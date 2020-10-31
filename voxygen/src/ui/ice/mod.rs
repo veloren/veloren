@@ -30,10 +30,15 @@ pub struct IcedUi {
     // Scaling of the ui
     scale: Scale,
     window_resized: Option<Vec2<u32>>,
+    scale_mode_changed: bool,
 }
 impl IcedUi {
-    pub fn new(window: &mut Window, default_font: Font) -> Result<Self, Error> {
-        let scale = Scale::new(window, ScaleMode::Absolute(1.0));
+    pub fn new(
+        window: &mut Window,
+        default_font: Font,
+        scale_mode: ScaleMode,
+    ) -> Result<Self, Error> {
+        let scale = Scale::new(window, scale_mode, 1.2);
         let renderer = window.renderer_mut();
 
         let scaled_dims = scale.scaled_window_size().map(|e| e as f32);
@@ -48,6 +53,7 @@ impl IcedUi {
             cursor_position: Vec2::zero(),
             scale,
             window_resized: None,
+            scale_mode_changed: false,
         })
     }
 
@@ -59,6 +65,14 @@ impl IcedUi {
         self.renderer.add_graphic(graphic)
     }
 
+    pub fn scale(&self) -> Scale { self.scale }
+
+    pub fn set_scaling_mode(&mut self, mode: ScaleMode) {
+        self.scale.set_scaling_mode(mode);
+        // Signal that change needs to be handled
+        self.scale_mode_changed = true;
+    }
+
     pub fn handle_event(&mut self, event: Event) {
         use iced::window;
         match event {
@@ -66,7 +80,9 @@ impl IcedUi {
             // TODO: examine if we are handling dpi properly here
             // ideally these values should be the logical ones
             Event::Window(window::Event::Resized { width, height }) => {
-                self.window_resized = Some(Vec2::new(width, height));
+                if width != 0 && height != 0 {
+                    self.window_resized = Some(Vec2::new(width, height));
+                }
             },
             // Scale cursor movement events
             // Note: in some cases the scaling could be off if a resized event occured in the same
@@ -78,12 +94,12 @@ impl IcedUi {
                 // may need to handle this in a different way to address
                 // whatever issue iced was trying to address
                 self.cursor_position = Vec2 {
-                    x: x * scale,
-                    y: y * scale,
+                    x: x / scale,
+                    y: y / scale,
                 };
                 self.events.push(Event::Mouse(mouse::Event::CursorMoved {
-                    x: x * scale,
-                    y: y * scale,
+                    x: x / scale,
+                    y: y / scale,
                 }));
             },
             // Scale pixel scrolling events
@@ -94,8 +110,8 @@ impl IcedUi {
                 let scale = self.scale.scale_factor_logical() as f32;
                 self.events.push(Event::Mouse(mouse::Event::WheelScrolled {
                     delta: mouse::ScrollDelta::Pixels {
-                        x: x * scale,
-                        y: y * scale,
+                        x: x / scale,
+                        y: y / scale,
                     },
                 }));
             },
@@ -111,26 +127,33 @@ impl IcedUi {
         root: E,
         renderer: &mut Renderer,
     ) -> (Vec<M>, mouse::Interaction) {
-        // Handle window resizing
-        if let Some(new_dims) = self.window_resized.take() {
+        // Handle window resizing and scale mode changing
+        let scaled_dims = if let Some(new_dims) = self.window_resized.take() {
             let old_scaled_dims = self.scale.scaled_window_size();
             // TODO maybe use u32 in Scale to be consistent with iced
             self.scale
                 .window_resized(new_dims.map(|e| e as f64), renderer);
             let scaled_dims = self.scale.scaled_window_size();
 
+            // Avoid resetting cache if window size didn't change
+            (scaled_dims != old_scaled_dims).then_some(scaled_dims)
+        } else if self.scale_mode_changed {
+            Some(self.scale.scaled_window_size())
+        } else {
+            None
+        };
+        if let Some(scaled_dims) = scaled_dims {
+            self.scale_mode_changed = false;
             self.events
                 .push(Event::Window(iced::window::Event::Resized {
                     width: scaled_dims.x as u32,
                     height: scaled_dims.y as u32,
                 }));
-
             // Avoid panic in graphic cache when minimizing.
-            // Avoid resetting cache if window size didn't change
             // Somewhat inefficient for elements that won't change size after a window
             // resize
             let res = renderer.get_resolution();
-            if res.x > 0 && res.y > 0 && scaled_dims != old_scaled_dims {
+            if res.x > 0 && res.y > 0 {
                 self.renderer
                     .resize(scaled_dims.map(|e| e as f32), renderer);
             }
