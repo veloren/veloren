@@ -843,6 +843,8 @@ impl Controls {
                 const SLIDER_CURSOR_SIZE: (u16, u16) = (9, 21);
                 const SLIDER_BAR_HEIGHT: u16 = 9;
                 const SLIDER_BAR_PAD: u16 = 5;
+                // Height of interactable area
+                const SLIDER_HEIGHT: u16 = 30;
 
                 fn char_slider<'a>(
                     text: &str,
@@ -857,6 +859,7 @@ impl Controls {
                             .size(fonts.cyri.scale(SLIDER_TEXT_SIZE))
                             .into(),
                         Slider::new(state, 0..=max, selected_val, on_change)
+                            .height(SLIDER_HEIGHT)
                             .style(style::slider::Style::images(
                                 imgs.slider_indicator,
                                 imgs.slider_range,
@@ -889,6 +892,7 @@ impl Controls {
                             // "Disabled" slider
                             // TODO: add iced support for disabled sliders (like buttons)
                             Slider::new(state, 0..=max, selected_val, |_| Message::DoNothing)
+                                .height(SLIDER_HEIGHT)
                                 .style(style::slider::Style {
                                     cursor: style::slider::Cursor::Color(Rgba::zero()),
                                     bar: style::slider::Bar::Image(
@@ -967,7 +971,6 @@ impl Controls {
                     ),
                 ])
                 .max_width(200)
-                .spacing(3)
                 .padding(5);
 
                 let column_content = vec![
