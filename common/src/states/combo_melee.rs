@@ -54,6 +54,8 @@ pub struct StaticData {
     pub max_speed_increase: f32,
     /// Whether the state can be interrupted by other abilities
     pub is_interruptible: bool,
+    /// What key is used to press ability
+    pub ability_key: AbilityKey,
 }
 /// A sequence of attacks that can incrementally become faster and more
 /// damaging.
@@ -84,7 +86,9 @@ impl CharacterBehavior for Data {
         let stage_index = (self.stage - 1) as usize;
 
         // Allows for other states to interrupt this state
-        if self.static_data.is_interruptible && !data.inputs.primary.is_pressed() {
+        if self.static_data.is_interruptible
+            && !ability_key_is_pressed(data, self.static_data.ability_key)
+        {
             handle_interrupt(data, &mut update);
             match update.character {
                 CharacterState::ComboMelee(_) => {},
@@ -183,7 +187,7 @@ impl CharacterBehavior for Data {
             StageSection::Recover => {
                 if self.timer < self.static_data.stage_data[stage_index].base_recover_duration {
                     // Recovers
-                    if data.inputs.primary.is_pressed() {
+                    if ability_key_is_pressed(data, self.static_data.ability_key) {
                         // Checks if state will transition to next stage after recover
                         update.character = CharacterState::ComboMelee(Data {
                             static_data: self.static_data.clone(),
