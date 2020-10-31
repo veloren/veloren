@@ -753,6 +753,7 @@ impl Hud {
             let ecs = client.state().ecs();
             let pos = ecs.read_storage::<comp::Pos>();
             let stats = ecs.read_storage::<comp::Stats>();
+            let healths = ecs.read_storage::<comp::Health>();
             let buffs = ecs.read_storage::<comp::Buffs>();
             let energy = ecs.read_storage::<comp::Energy>();
             let hp_floater_lists = ecs.read_storage::<vcomp::HpFloaterList>();
@@ -767,11 +768,10 @@ impl Hud {
                 .get(client.entity())
                 .map_or(0, |stats| stats.level.level());
             //self.input = client.read_storage::<comp::ControllerInputs>();
-            if let Some(stats) = stats.get(me) {
+            if let Some(health) = healths.get(me) {
                 // Hurt Frame
-                let hp_percentage =
-                    stats.health.current() as f32 / stats.health.maximum() as f32 * 100.0;
-                if hp_percentage < 10.0 && !stats.is_dead {
+                let hp_percentage = health.current() as f32 / health.maximum() as f32 * 100.0;
+                if hp_percentage < 10.0 && !health.is_dead {
                     let hurt_fade =
                         (self.pulse * (10.0 - hp_percentage as f32) * 0.1/* speed factor */).sin()
                             * 0.5
@@ -792,7 +792,7 @@ impl Hud {
                     .set(self.ids.alpha_text, ui_widgets);
 
                 // Death Frame
-                if stats.is_dead {
+                if health.is_dead {
                     Image::new(self.imgs.death_bg)
                         .wh_of(ui_widgets.window)
                         .middle_of(ui_widgets.window)
@@ -801,7 +801,7 @@ impl Hud {
                         .set(self.ids.death_bg, ui_widgets);
                 }
                 // Crosshair
-                let show_crosshair = (info.is_aiming || info.is_first_person) && !stats.is_dead;
+                let show_crosshair = (info.is_aiming || info.is_first_person) && !health.is_dead;
                 self.crosshair_opacity = Lerp::lerp(
                     self.crosshair_opacity,
                     if show_crosshair { 1.0 } else { 0.0 },
@@ -850,11 +850,11 @@ impl Hud {
                 // Render Player SCT numbers
                 let mut player_sct_bg_id_walker = self.ids.player_sct_bgs.walk();
                 let mut player_sct_id_walker = self.ids.player_scts.walk();
-                if let (Some(HpFloaterList { floaters, .. }), Some(stats)) = (
+                if let (Some(HpFloaterList { floaters, .. }), Some(health)) = (
                     hp_floater_lists
                         .get(me)
                         .filter(|fl| !fl.floaters.is_empty()),
-                    stats.get(me),
+                    healths.get(me),
                 ) {
                     if global_state.settings.gameplay.sct_player_batch {
                         let number_speed = 100.0; // Player Batched Numbers Speed
@@ -871,7 +871,7 @@ impl Hud {
                         let hp_damage = floaters.iter().fold(0, |acc, f| f.hp_change.min(0) + acc);
                         // Divide by 10 to stay in the same dimension as the HP display
                         let hp_dmg_rounded_abs = ((hp_damage + 5) / 10).abs();
-                        let max_hp_frac = hp_damage.abs() as f32 / stats.health.maximum() as f32;
+                        let max_hp_frac = hp_damage.abs() as f32 / health.maximum() as f32;
                         let timer = floaters
                             .last()
                             .expect("There must be at least one floater")
@@ -927,8 +927,7 @@ impl Hud {
                             &mut self.ids.player_scts,
                             &mut ui_widgets.widget_id_generator(),
                         );
-                        let max_hp_frac =
-                            floater.hp_change.abs() as f32 / stats.health.maximum() as f32;
+                        let max_hp_frac = floater.hp_change.abs() as f32 / health.maximum() as f32;
                         // Increase font size based on fraction of maximum health
                         // "flashes" by having a larger size in the first 100ms
                         let font_size = 30
@@ -1152,11 +1151,12 @@ impl Hud {
             let speech_bubbles = &self.speech_bubbles;
 
             // Render overhead name tags and health bars
-            for (pos, info, bubble, stats, _, height_offset, hpfl, in_group) in (
+            for (pos, info, bubble, _, health, _, height_offset, hpfl, in_group) in (
                 &entities,
                 &pos,
                 interpolated.maybe(),
                 &stats,
+                &healths,
                 &buffs,
                 energy.maybe(),
                 scales.maybe(),
@@ -1166,12 +1166,24 @@ impl Hud {
             )
                 .join()
                 .filter(|t| {
-                    let stats = t.3;
+                    let health = t.4;
                     let entity = t.0;
-                    entity != me && !stats.is_dead
+                    entity != me && !health.is_dead
                 })
                 .filter_map(
-                    |(entity, pos, interpolated, stats, buffs, energy, scale, body, hpfl, uid)| {
+                    |(
+                        entity,
+                        pos,
+                        interpolated,
+                        stats,
+                        health,
+                        buffs,
+                        energy,
+                        scale,
+                        body,
+                        hpfl,
+                        uid,
+                    )| {
                         // Use interpolated position if available
                         let pos = interpolated.map_or(pos.0, |i| i.pos);
                         let in_group = client.group_members().contains_key(uid);
@@ -1183,7 +1195,7 @@ impl Hud {
                         let display_overhead_info =
                             (info.target_entity.map_or(false, |e| e == entity)
                                 || info.selected_entity.map_or(false, |s| s.0 == entity)
-                                || overhead::show_healthbar(stats)
+                                || overhead::show_healthbar(health)
                                 || in_group)
                                 && dist_sqr
                                     < (if in_group {
@@ -1201,6 +1213,7 @@ impl Hud {
                         let info = display_overhead_info.then(|| overhead::Info {
                             name: &stats.name,
                             stats,
+                            health,
                             buffs,
                             energy,
                         });
@@ -1216,6 +1229,7 @@ impl Hud {
                                 info,
                                 bubble,
                                 stats,
+                                health,
                                 buffs,
                                 body.height() * scale.map_or(1.0, |s| s.0) + 0.5,
                                 hpfl,
@@ -1292,7 +1306,7 @@ impl Hud {
                         });
                         // Divide by 10 to stay in the same dimension as the HP display
                         let hp_dmg_rounded_abs = ((hp_damage + 5) / 10).abs();
-                        let max_hp_frac = hp_damage.abs() as f32 / stats.health.maximum() as f32;
+                        let max_hp_frac = hp_damage.abs() as f32 / health.maximum() as f32;
                         let timer = floaters
                             .last()
                             .expect("There must be at least one floater")
@@ -1364,7 +1378,7 @@ impl Hud {
                                 .next(&mut self.ids.sct_bgs, &mut ui_widgets.widget_id_generator());
                             // Calculate total change
                             let max_hp_frac =
-                                floater.hp_change.abs() as f32 / stats.health.maximum() as f32;
+                                floater.hp_change.abs() as f32 / health.maximum() as f32;
                             // Increase font size based on fraction of maximum health
                             // "flashes" by having a larger size in the first 100ms
                             let font_size = 30
@@ -1897,6 +1911,7 @@ impl Hud {
         let ecs = client.state().ecs();
         let entity = client.entity();
         let stats = ecs.read_storage::<comp::Stats>();
+        let healths = ecs.read_storage::<comp::Health>();
         let loadouts = ecs.read_storage::<comp::Loadout>();
         let energies = ecs.read_storage::<comp::Energy>();
         let character_states = ecs.read_storage::<comp::CharacterState>();
@@ -1904,6 +1919,7 @@ impl Hud {
         let inventories = ecs.read_storage::<comp::Inventory>();
         if let (
             Some(stats),
+            Some(health),
             Some(loadout),
             Some(energy),
             Some(_character_state),
@@ -1911,6 +1927,7 @@ impl Hud {
             Some(inventory),
         ) = (
             stats.get(entity),
+            healths.get(entity),
             loadouts.get(entity),
             energies.get(entity),
             character_states.get(entity),
@@ -1924,6 +1941,7 @@ impl Hud {
                 &self.fonts,
                 &self.rot_imgs,
                 &stats,
+                &health,
                 &loadout,
                 &energy,
                 //&character_state,

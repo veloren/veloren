@@ -20,7 +20,7 @@ use common::comp::{
         tool::{Tool, ToolKind},
         Hands, ItemKind,
     },
-    Energy, Inventory, Loadout, Stats,
+    Energy, Health, Inventory, Loadout, Stats,
 };
 use conrod_core::{
     color,
@@ -124,6 +124,7 @@ pub struct Skillbar<'a> {
     fonts: &'a ConrodVoxygenFonts,
     rot_imgs: &'a ImgsRot,
     stats: &'a Stats,
+    health: &'a Health,
     loadout: &'a Loadout,
     energy: &'a Energy,
     // character_state: &'a CharacterState,
@@ -148,6 +149,7 @@ impl<'a> Skillbar<'a> {
         fonts: &'a ConrodVoxygenFonts,
         rot_imgs: &'a ImgsRot,
         stats: &'a Stats,
+        health: &'a Health,
         loadout: &'a Loadout,
         energy: &'a Energy,
         // character_state: &'a CharacterState,
@@ -167,6 +169,7 @@ impl<'a> Skillbar<'a> {
             fonts,
             rot_imgs,
             stats,
+            health,
             loadout,
             energy,
             common: widget::CommonBuilder::default(),
@@ -216,11 +219,10 @@ impl<'a> Widget for Skillbar<'a> {
 
         let exp_percentage = (self.stats.exp.current() as f64) / (self.stats.exp.maximum() as f64);
 
-        let mut hp_percentage =
-            self.stats.health.current() as f64 / self.stats.health.maximum() as f64 * 100.0;
+        let mut hp_percentage = self.health.current() as f64 / self.health.maximum() as f64 * 100.0;
         let mut energy_percentage =
             self.energy.current() as f64 / self.energy.maximum() as f64 * 100.0;
-        if self.stats.is_dead {
+        if self.health.is_dead {
             hp_percentage = 0.0;
             energy_percentage = 0.0;
         };
@@ -293,7 +295,7 @@ impl<'a> Widget for Skillbar<'a> {
                 .set(state.ids.level_down, ui);
         }
         // Death message
-        if self.stats.is_dead {
+        if self.health.is_dead {
             if let Some(key) = self
                 .global_state
                 .settings
@@ -400,12 +402,12 @@ impl<'a> Widget for Skillbar<'a> {
         if let BarNumbers::Values = bar_values {
             let mut hp_txt = format!(
                 "{}/{}",
-                (self.stats.health.current() / 10).max(1) as u32, /* Don't show 0 health for
-                                                                   * living players */
-                (self.stats.health.maximum() / 10) as u32
+                (self.health.current() / 10).max(1) as u32, /* Don't show 0 health for
+                                                             * living players */
+                (self.health.maximum() / 10) as u32
             );
             let mut energy_txt = format!("{}", energy_percentage as u32);
-            if self.stats.is_dead {
+            if self.health.is_dead {
                 hp_txt = self.localized_strings.get("hud.group.dead").to_string();
                 energy_txt = self.localized_strings.get("hud.group.dead").to_string();
             };
@@ -438,7 +440,7 @@ impl<'a> Widget for Skillbar<'a> {
         if let BarNumbers::Percent = bar_values {
             let mut hp_txt = format!("{}%", hp_percentage as u32);
             let mut energy_txt = format!("{}", energy_percentage as u32);
-            if self.stats.is_dead {
+            if self.health.is_dead {
                 hp_txt = self.localized_strings.get("hud.group.dead").to_string();
                 energy_txt = self.localized_strings.get("hud.group.dead").to_string();
             };

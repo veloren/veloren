@@ -318,11 +318,11 @@ pub fn convert_stats_from_database(stats: &Stats, alias: String) -> common::comp
     new_stats.level.set_level(stats.level as u32);
     new_stats.exp.update_maximum(stats.level as u32);
     new_stats.exp.set_current(stats.exp as u32);
-    new_stats.update_max_hp(new_stats.body_type);
+    /*new_stats.update_max_hp(new_stats.body_type);
     new_stats.health.set_to(
         new_stats.health.maximum(),
         common::comp::HealthSource::Revive,
-    );
+    );*/
     new_stats.endurance = stats.endurance as u32;
     new_stats.fitness = stats.fitness as u32;
     new_stats.willpower = stats.willpower as u32;

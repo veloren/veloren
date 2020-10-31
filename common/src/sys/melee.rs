@@ -1,5 +1,5 @@
 use crate::{
-    comp::{buff, group, Attacking, Body, CharacterState, Loadout, Ori, Pos, Scale, Stats},
+    comp::{buff, group, Attacking, Body, CharacterState, Health, Loadout, Ori, Pos, Scale},
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::SysMetrics,
     span,
@@ -28,7 +28,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Ori>,
         ReadStorage<'a, Scale>,
         ReadStorage<'a, Body>,
-        ReadStorage<'a, Stats>,
+        ReadStorage<'a, Health>,
         ReadStorage<'a, Loadout>,
         ReadStorage<'a, group::Group>,
         ReadStorage<'a, CharacterState>,
@@ -47,7 +47,7 @@ impl<'a> System<'a> for Sys {
             orientations,
             scales,
             bodies,
-            stats,
+            healths,
             loadouts,
             groups,
             character_states,
@@ -75,14 +75,14 @@ impl<'a> System<'a> for Sys {
             attack.applied = true;
 
             // Go through all other entities
-            for (b, uid_b, pos_b, ori_b, scale_b_maybe, character_b, stats_b, body_b) in (
+            for (b, uid_b, pos_b, ori_b, scale_b_maybe, character_b, health_b, body_b) in (
                 &entities,
                 &uids,
                 &positions,
                 &orientations,
                 scales.maybe(),
                 character_states.maybe(),
-                &stats,
+                &healths,
                 &bodies,
             )
                 .join()
@@ -99,7 +99,7 @@ impl<'a> System<'a> for Sys {
 
                 // Check if it is a hit
                 if entity != b
-                    && !stats_b.is_dead
+                    && !health_b.is_dead
                     // Spherical wedge shaped attack field
                     && pos.0.distance_squared(pos_b.0) < (rad_b + scale * attack.range).powi(2)
                     && ori2.angle_between(pos_b2 - pos2) < attack.max_angle + (rad_b / pos2.distance(pos_b2)).atan()

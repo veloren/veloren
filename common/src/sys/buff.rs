@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        BuffCategory, BuffChange, BuffEffect, BuffId, BuffSource, Buffs, HealthChange,
-        HealthSource, Loadout, ModifierKind, Stats,
+        BuffCategory, BuffChange, BuffEffect, BuffId, BuffSource, Buffs, Health, HealthChange,
+        HealthSource, Loadout, ModifierKind,
     },
     event::{EventBus, ServerEvent},
     state::DeltaTime,
@@ -19,19 +19,20 @@ impl<'a> System<'a> for Sys {
         Read<'a, EventBus<ServerEvent>>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Loadout>,
-        WriteStorage<'a, Stats>,
+        WriteStorage<'a, Health>,
         WriteStorage<'a, Buffs>,
     );
 
     fn run(
         &mut self,
-        (entities, dt, server_bus, uids, loadouts, mut stats, mut buffs): Self::SystemData,
+        (entities, dt, server_bus, uids, loadouts, mut healths, mut buffs): Self::SystemData,
     ) {
         let mut server_emitter = server_bus.emitter();
         // Set to false to avoid spamming server
         buffs.set_event_emission(false);
-        stats.set_event_emission(false);
-        for (entity, buff_comp, uid, stat) in (&entities, &mut buffs, &uids, &mut stats).join() {
+        healths.set_event_emission(false);
+        for (entity, buff_comp, uid, health) in (&entities, &mut buffs, &uids, &mut healths).join()
+        {
             let mut expired_buffs = Vec::<BuffId>::new();
             for (id, buff) in buff_comp.buffs.iter_mut() {
                 // Tick the buff and subtract delta from it
@@ -63,8 +64,8 @@ impl<'a> System<'a> for Sys {
                 }
             }
 
-            // Call to reset stats to base values
-            stat.health.reset_max();
+            // Call to reset health to base values
+            health.reset_max();
 
             // Iterator over the lists of buffs by kind
             for buff_ids in buff_comp.kinds.values() {
@@ -104,14 +105,10 @@ impl<'a> System<'a> for Sys {
                             },
                             BuffEffect::MaxHealthModifier { value, kind } => match kind {
                                 ModifierKind::Multiplicative => {
-                                    stat.health.set_maximum(
-                                        (stat.health.maximum() as f32 * *value) as u32,
-                                    );
+                                    health.set_maximum((health.maximum() as f32 * *value) as u32);
                                 },
                                 ModifierKind::Additive => {
-                                    stat.health.set_maximum(
-                                        (stat.health.maximum() as f32 + *value) as u32,
-                                    );
+                                    health.set_maximum((health.maximum() as f32 + *value) as u32);
                                 },
                             },
                         };
@@ -127,8 +124,8 @@ impl<'a> System<'a> for Sys {
                 });
             }
 
-            // Remove stats that don't persist on death
-            if stat.is_dead {
+            // Remove buffs that don't persist on death
+            if health.is_dead {
                 server_emitter.emit(ServerEvent::Buff {
                     entity,
                     buff_change: BuffChange::RemoveByCategory {
@@ -141,6 +138,6 @@ impl<'a> System<'a> for Sys {
         }
         // Turned back to true
         buffs.set_event_emission(true);
-        stats.set_event_emission(true);
+        healths.set_event_emission(true);
     }
 }

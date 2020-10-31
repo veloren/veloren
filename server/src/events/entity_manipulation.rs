@@ -8,8 +8,8 @@ use common::{
     comp::{
         self, buff,
         chat::{KillSource, KillType},
-        object, Alignment, Body, Energy, EnergyChange, Group, HealthChange, HealthSource, Item,
-        Player, Pos, Stats,
+        object, Alignment, Body, Energy, EnergyChange, Group, Health, HealthChange, HealthSource,
+        Item, Player, Pos, Stats,
     },
     lottery::Lottery,
     msg::{PlayerListUpdate, ServerGeneral},
@@ -28,11 +28,10 @@ use tracing::error;
 use vek::Vec3;
 
 pub fn handle_damage(server: &Server, uid: Uid, change: HealthChange) {
-    let state = &server.state;
-    let ecs = state.ecs();
+    let ecs = &server.state.ecs();
     if let Some(entity) = ecs.entity_from_uid(uid.into()) {
-        if let Some(stats) = ecs.write_storage::<Stats>().get_mut(entity) {
-            stats.health.change_by(change);
+        if let Some(health) = ecs.write_storage::<Health>().get_mut(entity) {
+            health.change_by(change);
         }
     }
 }
@@ -453,7 +452,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
 pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>) {
     let state = &server.state;
     if vel.z <= -30.0 {
-        if let Some(stats) = state.ecs().write_storage::<comp::Stats>().get_mut(entity) {
+        if let Some(health) = state.ecs().write_storage::<comp::Health>().get_mut(entity) {
             let falldmg = (vel.z.powi(2) / 20.0 - 40.0) * 10.0;
             let damage = Damage {
                 source: DamageSource::Falling,
@@ -461,7 +460,7 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
             };
             let loadouts = state.ecs().read_storage::<comp::Loadout>();
             let change = damage.modify_damage(false, loadouts.get(entity), None);
-            stats.health.change_by(change);
+            health.change_by(change);
         }
     }
 }
@@ -483,9 +482,9 @@ pub fn handle_respawn(server: &Server, entity: EcsEntity) {
 
         state
             .ecs()
-            .write_storage::<comp::Stats>()
+            .write_storage::<comp::Health>()
             .get_mut(entity)
-            .map(|stats| stats.revive());
+            .map(|health| health.revive());
         state
             .ecs()
             .write_storage::<comp::Pos>()
@@ -550,19 +549,19 @@ pub fn handle_explosion(
     for effect in explosion.effects {
         match effect {
             RadiusEffect::Damages(damages) => {
-                for (entity_b, pos_b, ori_b, character_b, stats_b, loadout_b) in (
+                for (entity_b, pos_b, ori_b, character_b, health_b, loadout_b) in (
                     &ecs.entities(),
                     &ecs.read_storage::<comp::Pos>(),
                     &ecs.read_storage::<comp::Ori>(),
                     ecs.read_storage::<comp::CharacterState>().maybe(),
-                    &mut ecs.write_storage::<comp::Stats>(),
+                    &mut ecs.write_storage::<comp::Health>(),
                     ecs.read_storage::<comp::Loadout>().maybe(),
                 )
                     .join()
                 {
                     let distance_squared = pos.distance_squared(pos_b.0);
                     // Check if it is a hit
-                    if !stats_b.is_dead
+                    if !health_b.is_dead
                         // RADIUS
                         && distance_squared < explosion.radius.powi(2)
                     {
@@ -592,7 +591,7 @@ pub fn handle_explosion(
                         let change = damage.modify_damage(block, loadout_b, owner);
 
                         if change.amount != 0 {
-                            stats_b.health.change_by(change);
+                            health_b.change_by(change);
                             if let Some(owner) = owner_entity {
                                 if let Some(energy) =
                                     ecs.write_storage::<comp::Energy>().get_mut(owner)

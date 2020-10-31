@@ -1,44 +1,11 @@
 use crate::{
     comp,
     comp::{body::humanoid::Species, skills::SkillSet, Body},
-    sync::Uid,
 };
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::{error::Error, fmt};
-
-/// Specifies what and how much changed current health
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
-pub struct HealthChange {
-    pub amount: i32,
-    pub cause: HealthSource,
-}
-
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
-pub enum HealthSource {
-    Attack { by: Uid }, // TODO: Implement weapon
-    Projectile { owner: Option<Uid> },
-    Explosion { owner: Option<Uid> },
-    Energy { owner: Option<Uid> },
-    Buff { owner: Option<Uid> },
-    Suicide,
-    World,
-    Revive,
-    Command,
-    LevelUp,
-    Item,
-    Healing { by: Option<Uid> },
-    Unknown,
-}
-
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-pub struct Health {
-    base_max: u32,
-    current: u32,
-    maximum: u32,
-    pub last_change: (f64, HealthChange),
-}
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Exp {
@@ -51,41 +18,6 @@ pub struct Level {
     amount: u32,
 }
 
-impl Health {
-    pub fn current(&self) -> u32 { self.current }
-
-    pub fn maximum(&self) -> u32 { self.maximum }
-
-    pub fn set_to(&mut self, amount: u32, cause: HealthSource) {
-        let amount = amount.min(self.maximum);
-        self.last_change = (0.0, HealthChange {
-            amount: amount as i32 - self.current as i32,
-            cause,
-        });
-        self.current = amount;
-    }
-
-    pub fn change_by(&mut self, change: HealthChange) {
-        self.current = ((self.current as i32 + change.amount).max(0) as u32).min(self.maximum);
-        self.last_change = (0.0, change);
-    }
-
-    // This function changes the modified max health value, not the base health
-    // value. The modified health value takes into account buffs and other temporary
-    // changes to max health.
-    pub fn set_maximum(&mut self, amount: u32) {
-        self.maximum = amount;
-        self.current = self.current.min(self.maximum);
-    }
-
-    // This is private because max hp is based on the level
-    fn set_base_max(&mut self, amount: u32) {
-        self.base_max = amount;
-        self.current = self.current.min(self.maximum);
-    }
-
-    pub fn reset_max(&mut self) { self.maximum = self.base_max; }
-}
 #[derive(Debug)]
 pub enum StatChangeError {
     Underflow,
@@ -139,33 +71,13 @@ impl Level {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Stats {
     pub name: String,
-    pub health: Health,
     pub level: Level,
     pub exp: Exp,
     pub skill_set: SkillSet,
     pub endurance: u32,
     pub fitness: u32,
     pub willpower: u32,
-    pub is_dead: bool,
     pub body_type: Body,
-}
-
-impl Stats {
-    pub fn should_die(&self) -> bool { self.health.current == 0 }
-
-    pub fn revive(&mut self) {
-        self.health
-            .set_to(self.health.maximum(), HealthSource::Revive);
-        self.is_dead = false;
-    }
-
-    // TODO: Delete this once stat points will be a thing
-    pub fn update_max_hp(&mut self, body: Body) {
-        self.health
-            .set_base_max(body.base_health() + body.base_health_increase() * self.level.amount);
-        self.health
-            .set_maximum(body.base_health() + body.base_health_increase() * self.level.amount);
-    }
 }
 
 impl Stats {
@@ -189,17 +101,8 @@ impl Stats {
             None => (0, 0, 0),
         };
 
-        let mut stats = Self {
+        Self {
             name,
-            health: Health {
-                current: 0,
-                maximum: 0,
-                base_max: 0,
-                last_change: (0.0, HealthChange {
-                    amount: 0,
-                    cause: HealthSource::Revive,
-                }),
-            },
             level: Level { amount: 1 },
             exp: Exp {
                 current: 0,
@@ -209,17 +112,8 @@ impl Stats {
             endurance,
             fitness,
             willpower,
-            is_dead: false,
             body_type: body,
-        };
-
-        stats.update_max_hp(body);
-
-        stats
-            .health
-            .set_to(stats.health.maximum(), HealthSource::Revive);
-
-        stats
+        }
     }
 
     /// Creates an empty `Stats` instance - used during character loading from
@@ -227,15 +121,6 @@ impl Stats {
     pub fn empty() -> Self {
         Self {
             name: "".to_owned(),
-            health: Health {
-                current: 0,
-                maximum: 0,
-                base_max: 0,
-                last_change: (0.0, HealthChange {
-                    amount: 0,
-                    cause: HealthSource::Revive,
-                }),
-            },
             level: Level { amount: 1 },
             exp: Exp {
                 current: 0,
@@ -245,27 +130,11 @@ impl Stats {
             endurance: 0,
             fitness: 0,
             willpower: 0,
-            is_dead: false,
             body_type: comp::Body::Humanoid(comp::body::humanoid::Body::random()),
         }
-    }
-
-    pub fn with_max_health(mut self, amount: u32) -> Self {
-        self.health.maximum = amount;
-        self.health.current = amount;
-        self
     }
 }
 
 impl Component for Stats {
     type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
-}
-
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
-pub struct Dying {
-    pub cause: HealthSource,
-}
-
-impl Component for Dying {
-    type Storage = IdvStorage<Self>;
 }
