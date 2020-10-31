@@ -26,6 +26,7 @@ pub trait StateExt {
         &mut self,
         pos: comp::Pos,
         stats: comp::Stats,
+        health: comp::Health,
         loadout: comp::Loadout,
         body: comp::Body,
     ) -> EcsEntityBuilder;
@@ -74,9 +75,9 @@ impl StateExt for State {
         match effect {
             Effect::Health(change) => {
                 self.ecs()
-                    .write_storage::<comp::Stats>()
+                    .write_storage::<comp::Health>()
                     .get_mut(entity)
-                    .map(|stats| stats.health.change_by(change));
+                    .map(|health| health.change_by(change));
             },
             Effect::Xp(xp) => {
                 self.ecs()
@@ -91,6 +92,7 @@ impl StateExt for State {
         &mut self,
         pos: comp::Pos,
         stats: comp::Stats,
+        health: comp::Health,
         loadout: comp::Loadout,
         body: comp::Body,
     ) -> EcsEntityBuilder {
@@ -107,6 +109,7 @@ impl StateExt for State {
             .with(comp::Controller::default())
             .with(body)
             .with(stats)
+            .with(health)
             .with(comp::Alignment::Npc)
             .with(comp::Energy::new(body.base_energy()))
             .with(comp::Gravity(1.0))

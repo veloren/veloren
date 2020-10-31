@@ -583,16 +583,16 @@ impl Client {
     }
 
     pub fn pick_up(&mut self, entity: EcsEntity) {
-        // Get the stats component from the entity
+        // Get the health component from the entity
 
         if let Some(uid) = self.state.read_component_copied(entity) {
             // If we're dead, exit before sending the message
             if self
                 .state
                 .ecs()
-                .read_storage::<comp::Stats>()
+                .read_storage::<comp::Health>()
                 .get(self.entity)
-                .map_or(false, |s| s.is_dead)
+                .map_or(false, |h| h.is_dead)
             {
                 return;
             }
@@ -731,9 +731,9 @@ impl Client {
         if self
             .state
             .ecs()
-            .read_storage::<comp::Stats>()
+            .read_storage::<comp::Health>()
             .get(self.entity)
-            .map_or(false, |s| s.is_dead)
+            .map_or(false, |h| h.is_dead)
         {
             self.send_msg(ClientGeneral::ControlEvent(ControlEvent::Respawn));
         }

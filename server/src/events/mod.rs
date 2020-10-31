@@ -109,6 +109,7 @@ impl Server {
                 ServerEvent::CreateNpc {
                     pos,
                     stats,
+                    health,
                     loadout,
                     body,
                     agent,
@@ -116,7 +117,7 @@ impl Server {
                     scale,
                     drop_item,
                 } => handle_create_npc(
-                    self, pos, stats, loadout, body, agent, alignment, scale, drop_item,
+                    self, pos, stats, health, loadout, body, agent, alignment, scale, drop_item,
                 ),
                 ServerEvent::CreateWaypoint(pos) => handle_create_waypoint(self, pos),
                 ServerEvent::ClientDisconnect(entity) => {

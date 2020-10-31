@@ -9,6 +9,7 @@ pub mod chat;
 mod controller;
 mod energy;
 pub mod group;
+mod health;
 mod inputs;
 mod inventory;
 mod last;
@@ -45,6 +46,7 @@ pub use controller::{
 };
 pub use energy::{Energy, EnergyChange, EnergySource};
 pub use group::Group;
+pub use health::{Health, HealthChange, HealthSource};
 pub use inputs::CanBuild;
 pub use inventory::{
     item,
@@ -59,5 +61,5 @@ pub use player::Player;
 pub use projectile::Projectile;
 pub use shockwave::{Shockwave, ShockwaveHitEntities};
 pub use skills::{Skill, SkillGroup, SkillGroupType, SkillSet};
-pub use stats::{Exp, HealthChange, HealthSource, Level, Stats};
+pub use stats::{Exp, Level, Stats};
 pub use visual::{LightAnimation, LightEmitter};

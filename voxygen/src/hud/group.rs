@@ -322,6 +322,7 @@ impl<'a> Widget for Group<'a> {
 
             let client_state = self.client.state();
             let stats = client_state.ecs().read_storage::<common::comp::Stats>();
+            let healths = client_state.ecs().read_storage::<common::comp::Health>();
             let energy = client_state.ecs().read_storage::<common::comp::Energy>();
             let buffs = client_state.ecs().read_storage::<common::comp::Buffs>();
             let uid_allocator = client_state
@@ -338,80 +339,84 @@ impl<'a> Widget for Group<'a> {
                 self.show.group = true;
                 let entity = uid_allocator.retrieve_entity_internal(uid.into());
                 let stats = entity.and_then(|entity| stats.get(entity));
+                let health = entity.and_then(|entity| healths.get(entity));
                 let energy = entity.and_then(|entity| energy.get(entity));
                 let buffs = entity.and_then(|entity| buffs.get(entity));
 
+                let is_leader = uid == leader;
+
                 if let Some(stats) = stats {
                     let char_name = stats.name.to_string();
-                    let health_perc = stats.health.current() as f64 / stats.health.maximum() as f64;
-
-                    // change panel positions when debug info is shown
-                    let back = if i == 0 {
-                        Image::new(self.imgs.member_bg)
-                            .top_left_with_margins_on(ui.window, offset, 20.0)
-                    } else {
-                        Image::new(self.imgs.member_bg)
-                            .down_from(state.ids.member_panels_bg[i - 1], 45.0)
-                    };
-                    let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8; //Animation timer
-                    let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
-                    let health_col = match (health_perc * 100.0) as u8 {
-                        0..=20 => crit_hp_color,
-                        21..=40 => LOW_HP_COLOR,
-                        _ => HP_COLOR,
-                    };
-                    let is_leader = uid == leader;
-                    // Don't show panel for the player!
-                    // Panel BG
-                    back.w_h(152.0, 36.0)
-                        .color(if is_leader {
-                            Some(ERROR_COLOR)
+                    if let Some(health) = health {
+                        let health_perc = health.current() as f64 / health.maximum() as f64;
+                        // change panel positions when debug info is shown
+                        let back = if i == 0 {
+                            Image::new(self.imgs.member_bg)
+                                .top_left_with_margins_on(ui.window, offset, 20.0)
                         } else {
-                            Some(TEXT_COLOR)
-                        })
-                        .set(state.ids.member_panels_bg[i], ui);
-                    // Health
-                    Image::new(self.imgs.bar_content)
-                        .w_h(148.0 * health_perc, 22.0)
-                        .color(Some(health_col))
-                        .top_left_with_margins_on(state.ids.member_panels_bg[i], 2.0, 2.0)
-                        .set(state.ids.member_health[i], ui);
-                    if stats.is_dead {
-                        // Death Text
-                        Text::new(&self.localized_strings.get("hud.group.dead"))
-                            .mid_top_with_margin_on(state.ids.member_panels_bg[i], 1.0)
-                            .font_size(20)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(KILL_COLOR)
-                            .set(state.ids.dead_txt[i], ui);
-                    } else {
-                        // Health Text
-                        let txt = format!(
-                            "{}/{}",
-                            stats.health.current() / 10 as u32,
-                            stats.health.maximum() / 10 as u32,
-                        );
-                        // Change font size depending on health amount
-                        let font_size = match stats.health.maximum() {
-                            0..=999 => 14,
-                            1000..=9999 => 13,
-                            10000..=99999 => 12,
-                            _ => 11,
+                            Image::new(self.imgs.member_bg)
+                                .down_from(state.ids.member_panels_bg[i - 1], 45.0)
                         };
-                        // Change text offset depending on health amount
-                        let txt_offset = match stats.health.maximum() {
-                            0..=999 => 4.0,
-                            1000..=9999 => 4.5,
-                            10000..=99999 => 5.0,
-                            _ => 5.5,
+                        let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8; //Animation timer
+                        let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
+                        let health_col = match (health_perc * 100.0) as u8 {
+                            0..=20 => crit_hp_color,
+                            21..=40 => LOW_HP_COLOR,
+                            _ => HP_COLOR,
                         };
-                        Text::new(&txt)
-                            .mid_top_with_margin_on(state.ids.member_panels_bg[i], txt_offset)
-                            .font_size(font_size)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(Color::Rgba(1.0, 1.0, 1.0, 0.5))
-                            .set(state.ids.health_txt[i], ui);
-                    };
+                        // Don't show panel for the player!
+                        // Panel BG
+                        back.w_h(152.0, 36.0)
+                            .color(if is_leader {
+                                Some(ERROR_COLOR)
+                            } else {
+                                Some(TEXT_COLOR)
+                            })
+                            .set(state.ids.member_panels_bg[i], ui);
+                        // Health
+                        Image::new(self.imgs.bar_content)
+                            .w_h(148.0 * health_perc, 22.0)
+                            .color(Some(health_col))
+                            .top_left_with_margins_on(state.ids.member_panels_bg[i], 2.0, 2.0)
+                            .set(state.ids.member_health[i], ui);
+                        if health.is_dead {
+                            // Death Text
+                            Text::new(&self.localized_strings.get("hud.group.dead"))
+                                .mid_top_with_margin_on(state.ids.member_panels_bg[i], 1.0)
+                                .font_size(20)
+                                .font_id(self.fonts.cyri.conrod_id)
+                                .color(KILL_COLOR)
+                                .set(state.ids.dead_txt[i], ui);
+                        } else {
+                            // Health Text
+                            let txt = format!(
+                                "{}/{}",
+                                health.current() / 10 as u32,
+                                health.maximum() / 10 as u32,
+                            );
+                            // Change font size depending on health amount
+                            let font_size = match health.maximum() {
+                                0..=999 => 14,
+                                1000..=9999 => 13,
+                                10000..=99999 => 12,
+                                _ => 11,
+                            };
+                            // Change text offset depending on health amount
+                            let txt_offset = match health.maximum() {
+                                0..=999 => 4.0,
+                                1000..=9999 => 4.5,
+                                10000..=99999 => 5.0,
+                                _ => 5.5,
+                            };
+                            Text::new(&txt)
+                                .mid_top_with_margin_on(state.ids.member_panels_bg[i], txt_offset)
+                                .font_size(font_size)
+                                .font_id(self.fonts.cyri.conrod_id)
+                                .color(Color::Rgba(1.0, 1.0, 1.0, 0.5))
+                                .set(state.ids.health_txt[i], ui);
+                        };
+                    }
+
                     // Panel Frame
                     Image::new(self.imgs.member_frame)
                         .w_h(152.0, 36.0)

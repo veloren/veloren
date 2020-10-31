@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        group, Beam, BeamSegment, Body, CharacterState, Energy, EnergyChange, EnergySource,
-        HealthChange, HealthSource, Last, Loadout, Ori, Pos, Scale, Stats,
+        group, Beam, BeamSegment, Body, CharacterState, Energy, EnergyChange, EnergySource, Health,
+        HealthChange, HealthSource, Last, Loadout, Ori, Pos, Scale,
     },
     event::{EventBus, ServerEvent},
     state::{DeltaTime, Time},
@@ -30,7 +30,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Ori>,
         ReadStorage<'a, Scale>,
         ReadStorage<'a, Body>,
-        ReadStorage<'a, Stats>,
+        ReadStorage<'a, Health>,
         ReadStorage<'a, Loadout>,
         ReadStorage<'a, group::Group>,
         ReadStorage<'a, CharacterState>,
@@ -53,7 +53,7 @@ impl<'a> System<'a> for Sys {
             orientations,
             scales,
             bodies,
-            stats,
+            healths,
             loadouts,
             groups,
             character_states,
@@ -124,7 +124,7 @@ impl<'a> System<'a> for Sys {
                 ori_b,
                 scale_b_maybe,
                 character_b,
-                stats_b,
+                health_b,
                 body_b,
             ) in (
                 &entities,
@@ -135,7 +135,7 @@ impl<'a> System<'a> for Sys {
                 &orientations,
                 scales.maybe(),
                 character_states.maybe(),
-                &stats,
+                &healths,
                 &bodies,
             )
                 .join()
@@ -152,7 +152,7 @@ impl<'a> System<'a> for Sys {
 
                 // Check if it is a hit
                 let hit = entity != b
-                    && !stats_b.is_dead
+                    && !health_b.is_dead
                     // Collision shapes
                     && (sphere_wedge_cylinder_collision(pos.0, frame_start_dist, frame_end_dist, *ori.0, beam_segment.angle, pos_b.0, rad_b, height_b)
                     || last_pos_b_maybe.map_or(false, |pos_maybe| {sphere_wedge_cylinder_collision(pos.0, frame_start_dist, frame_end_dist, *ori.0, beam_segment.angle, (pos_maybe.0).0, rad_b, height_b)}));

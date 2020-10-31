@@ -8,7 +8,7 @@ use crate::{
     settings::GameplaySettings,
     ui::{fonts::ConrodVoxygenFonts, Ingameable},
 };
-use common::comp::{BuffKind, Buffs, Energy, SpeechBubble, SpeechBubbleType, Stats};
+use common::comp::{BuffKind, Buffs, Energy, Health, SpeechBubble, SpeechBubbleType, Stats};
 use conrod_core::{
     color,
     position::Align,
@@ -58,12 +58,13 @@ widget_ids! {
 pub struct Info<'a> {
     pub name: &'a str,
     pub stats: &'a Stats,
+    pub health: &'a Health,
     pub buffs: &'a Buffs,
     pub energy: Option<&'a Energy>,
 }
 
 /// Determines whether to show the healthbar
-pub fn show_healthbar(stats: &Stats) -> bool { stats.health.current() != stats.health.maximum() }
+pub fn show_healthbar(health: &Health) -> bool { health.current() != health.maximum() }
 
 /// ui widget containing everything that goes over a character's head
 /// (Speech bubble, Name, Level, HP/energy bars, etc.)
@@ -141,7 +142,7 @@ impl<'a> Ingameable for Overhead<'a> {
                 } else {
                     0
                 }
-                + if show_healthbar(info.stats) {
+                + if show_healthbar(info.health) {
                     5 + if info.energy.is_some() { 1 } else { 0 }
                 } else {
                     0
@@ -171,17 +172,17 @@ impl<'a> Widget for Overhead<'a> {
         if let Some(Info {
             name,
             stats,
+            health,
             buffs,
             energy,
         }) = self.info
         {
             // Used to set healthbar colours based on hp_percentage
-            let hp_percentage =
-                stats.health.current() as f64 / stats.health.maximum() as f64 * 100.0;
+            let hp_percentage = health.current() as f64 / health.maximum() as f64 * 100.0;
             // Compare levels to decide if a skull is shown
             let level_comp = stats.level.level() as i64 - self.own_level as i64;
-            let health_current = (stats.health.current() / 10) as f64;
-            let health_max = (stats.health.maximum() / 10) as f64;
+            let health_current = (health.current() / 10) as f64;
+            let health_max = (health.maximum() / 10) as f64;
             let name_y = if (health_current - health_max).abs() < 1e-6 {
                 MANA_BAR_Y + 20.0
             } else if level_comp > 9 && !self.in_group {
@@ -302,7 +303,7 @@ impl<'a> Widget for Overhead<'a> {
                 .parent(id)
                 .set(state.ids.name, ui);
 
-            if show_healthbar(stats) {
+            if show_healthbar(health) {
                 // Show HP Bar
                 let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 1.0; //Animation timer
                 let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
@@ -332,7 +333,7 @@ impl<'a> Widget for Overhead<'a> {
                     .parent(id)
                     .set(state.ids.health_bar, ui);
                 let mut txt = format!("{}/{}", health_cur_txt, health_max_txt);
-                if stats.is_dead {
+                if health.is_dead {
                     txt = self.voxygen_i18n.get("hud.group.dead").to_string()
                 };
                 Text::new(&txt)
