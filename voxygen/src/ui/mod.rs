@@ -125,7 +125,7 @@ pub struct Ui {
 
 impl Ui {
     pub fn new(window: &mut Window) -> Result<Self, Error> {
-        let scale = Scale::new(window, ScaleMode::Absolute(1.0));
+        let scale = Scale::new(window, ScaleMode::Absolute(1.0), 1.0);
         let win_dims = scale.scaled_window_size().into_array();
 
         let renderer = window.renderer_mut();

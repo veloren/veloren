@@ -466,6 +466,17 @@ impl IcedRenderer {
                     ..bounds
                 });
 
+                let resolution = Vec2::new(
+                    (gl_aabr.size().w * self.half_res.x).round() as u16,
+                    (gl_aabr.size().h * self.half_res.y).round() as u16,
+                );
+
+                // Don't do anything if resolution is zero
+                if resolution.map(|e| e == 0).reduce_or() {
+                    return;
+                    // TODO: consider logging uneeded elements
+                }
+
                 let graphic_cache = self.cache.graphic_cache_mut();
 
                 match graphic_cache.get_graphic(graphic_id) {
@@ -473,10 +484,6 @@ impl IcedRenderer {
                     _ => {},
                 }
 
-                let resolution = Vec2::new(
-                    (gl_aabr.size().w * self.half_res.x).round() as u16,
-                    (gl_aabr.size().h * self.half_res.y).round() as u16,
-                );
                 // Transform the source rectangle into uv coordinate.
                 // TODO: Make sure this is right.
                 let source_aabr = {
