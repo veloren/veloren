@@ -20,7 +20,7 @@ use crate::{
     },
     Error,
 };
-use common::util::srgba_to_linear;
+use common::{span, util::srgba_to_linear};
 use std::{convert::TryInto, ops::Range};
 use vek::*;
 
@@ -171,6 +171,7 @@ impl IcedRenderer {
     }
 
     pub fn draw(&mut self, primitive: Primitive, renderer: &mut Renderer) {
+        span!(_guard, "draw", "IcedRenderer::draw");
         // Re-use memory
         self.draw_commands.clear();
         self.mesh.clear();
@@ -739,6 +740,7 @@ impl IcedRenderer {
     }
 
     pub fn render(&self, renderer: &mut Renderer, maybe_globals: Option<&Consts<Globals>>) {
+        span!(_guard, "render", "IcedRenderer::render");
         let mut scissor = default_scissor(renderer);
         let globals = maybe_globals.unwrap_or(&self.default_globals);
         let mut locals = &self.interface_locals;
@@ -796,6 +798,7 @@ impl iced::Renderer for IcedRenderer {
         element: &iced::Element<'a, M, Self>,
         limits: &iced::layout::Limits,
     ) -> iced::layout::Node {
+        span!(_guard, "layout", "IcedRenderer::layout");
         let node = element.layout(self, limits);
 
         // Trim text measurements cache?
@@ -809,6 +812,7 @@ impl iced::Renderer for IcedRenderer {
         (overlay_primitive, overlay_interaction): Self::Output,
         overlay_bounds: iced::Rectangle,
     ) -> Self::Output {
+        span!(_guard, "overlay", "IcedRenderer::overlay");
         (
             Primitive::Group {
                 primitives: vec![base_primitive, Primitive::Clip {

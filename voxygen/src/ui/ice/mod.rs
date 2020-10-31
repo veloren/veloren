@@ -15,6 +15,7 @@ use super::{
     scale::{Scale, ScaleMode},
 };
 use crate::{render::Renderer, window::Window, Error};
+use common::span;
 use iced::{mouse, Cache, Size, UserInterface};
 use iced_winit::Clipboard;
 use vek::*;
@@ -127,6 +128,7 @@ impl IcedUi {
         root: E,
         renderer: &mut Renderer,
     ) -> (Vec<M>, mouse::Interaction) {
+        span!(_guard, "maintain", "IcedUi::maintain");
         // Handle window resizing and scale mode changing
         let scaled_dims = if let Some(new_dims) = self.window_resized.take() {
             let old_scaled_dims = self.scale.scaled_window_size();
@@ -167,24 +169,30 @@ impl IcedUi {
         // TODO: convert to f32 at source
         let window_size = self.scale.scaled_window_size().map(|e| e as f32);
 
+        span!(guard, "build user_interface");
         let mut user_interface = UserInterface::build(
             root,
             Size::new(window_size.x, window_size.y),
             self.cache.take().unwrap(),
             &mut self.renderer,
         );
+        drop(guard);
 
+        span!(guard, "update user_interface");
         let messages = user_interface.update(
             &self.events,
             cursor_position,
             Some(&self.clipboard),
             &mut self.renderer,
         );
+        drop(guard);
         // Clear events
         self.events.clear();
 
+        span!(guard, "draw user_interface");
         let (primitive, mouse_interaction) =
             user_interface.draw(&mut self.renderer, cursor_position);
+        drop(guard);
 
         self.cache = Some(user_interface.into_cache());
 
