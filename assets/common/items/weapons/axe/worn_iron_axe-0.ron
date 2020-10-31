@@ -1,6 +1,6 @@
 ItemDef(
     name: "Worn Dwarven Axe",
-    description: "Hopefully it's previous owner won't miss it.",
+    description: "Rough cut axe of dwarven origin, it's got quite a few notches and missing chunks, but still usable.",
     kind: Tool(
         (
             kind: Axe("WornIronAxe0"),    

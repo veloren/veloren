@@ -1,6 +1,6 @@
 ItemDef(
     name: "Worn Human Axe",
-    description: "Hopefully it's previous owner won't miss it.",
+    description: "There's nothing too remarkable about this notched and beaten axe.",
     kind: Tool(
         (
             kind: Axe("WornIronAxe2"),    

@@ -1,6 +1,6 @@
 ItemDef(
     name: "Cyclone Axe",
-    description: "Forged from iron.",
+    description: "The iron axe head has a slight curve on the blades to provide lower air velocity, allowing the wielder to spin it with greater ease.",
     kind: Tool(
         (
             kind: Axe("IronAxe2"),    

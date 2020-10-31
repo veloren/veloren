@@ -1,6 +1,6 @@
 ItemDef(
     name: "Owl Axe",
-    description: "Forged from steel.",
+    description: "Druidic rituals formed this axe in the dark of night, with each blade being chiseled to resemble an owl's eye to aid the hunter who fights in darkness.",
     kind: Tool(
         (
             kind: Axe("SteelAxe5"),    

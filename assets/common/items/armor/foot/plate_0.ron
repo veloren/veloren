@@ -1,6 +1,6 @@
 ItemDef(
     name: "Iron Feet",
-    description: "Boots forged from iron.",
+    description: "Quickly shaped iron plates, forming boots that are heavy but durable.",
     kind: Armor(
         (
             kind: Foot("Plate0"),

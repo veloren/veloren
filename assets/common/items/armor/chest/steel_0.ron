@@ -1,6 +1,6 @@
 ItemDef(
     name: "Steel Cuirass",
-    description: "A cuirass of steel plate.",
+    description: "The metal alloy provides a somewhat lighter and stronger cuirass than its iron counterparts.",
     kind: Armor(
         (
             kind: Chest("Steel0"),

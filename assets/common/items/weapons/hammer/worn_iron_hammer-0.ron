@@ -1,6 +1,6 @@
 ItemDef(
     name: "Worn Dwarven Hammer",
-    description: "The previous owner won't miss it much.",
+    description: "While the dwarves excel at rough hewn weapons, this one has seen its fair share of battles, might still serve well enough for a few more.",
     kind: Tool(
         (
             kind: Hammer("WornIronHammer0"),    

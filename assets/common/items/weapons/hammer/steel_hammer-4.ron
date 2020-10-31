@@ -1,6 +1,6 @@
 ItemDef(
     name: "Brute's Hammer",
-    description: "Forged with steel.",
+    description: "It's not clear what metal this is made from but it has seen its fair share of battles and is quite stained with dried blood of the previous owner's enemies.",
     kind: Tool(
         (
             kind: Hammer("SteelHammer4"),    

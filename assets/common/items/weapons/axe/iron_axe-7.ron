@@ -1,6 +1,6 @@
 ItemDef(
     name: "Iron Labrys",
-    description: "Forged from iron.",
+    description: "Double bitted axe head, heavy forged iron construction.",
     kind: Tool(
         (
             kind: Axe("IronAxe7"),    

@@ -1,6 +1,6 @@
 ItemDef(
     name: "Leafy Boots",
-    description: "Boots woven from twigs and leaves.",
+    description: "Leaves cover the magically entwined twigs to provide better protection from the elements.",
     kind: Armor(
         (
             kind: Foot("Twigsleaves"),

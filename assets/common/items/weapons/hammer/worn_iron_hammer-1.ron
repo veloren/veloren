@@ -1,6 +1,6 @@
 ItemDef(
     name: "Worn Elven Hammer",
-    description: "The previous owner won't miss it much.",
+    description: "Elven hammers are light but not very durable, and this one has seen its fair share of wear and tear.",
     kind: Tool(
         (
             kind: Hammer("WornIronHammer1"),    

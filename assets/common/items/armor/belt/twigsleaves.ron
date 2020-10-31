@@ -1,6 +1,6 @@
 ItemDef(
     name: "Leafy Belt",
-    description: "A belt woven from twigs and leaves.",
+    description: "Leaves marked with runes adorn this twig belt providing natural protection.",
     kind: Armor(
         (
             kind: Belt("Twigsleaves"),

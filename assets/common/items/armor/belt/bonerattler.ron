@@ -1,6 +1,6 @@
 ItemDef(
     name: "Bonerattler Belt",
-    description: "Made from the strongest bones.",
+    description: "Sections of vertebrae fastened together with a small animal skull for the buckle.",
     kind: Armor(
         (
             kind: Belt("Bonerattler"),

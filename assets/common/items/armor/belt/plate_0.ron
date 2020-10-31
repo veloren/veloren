@@ -1,6 +1,6 @@
 ItemDef(
     name: "Iron Belt",
-    description: "A belt with a buckle forged from iron.",
+    description: "Interlocking metal plates forged to fit together tightly.",
     kind: Armor(
         (
             kind: Belt("Plate0"),

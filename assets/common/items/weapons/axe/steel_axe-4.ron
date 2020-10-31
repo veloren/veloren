@@ -1,6 +1,6 @@
 ItemDef(
     name: "Moon Axe",
-    description: "Forged from steel.",
+    description: "A ritual was performed to embue this steel axe with the light of the full moon at midnight. It has a brighter sheen than most steel axes.",
     kind: Tool(
         (
             kind: Axe("SteelAxe4"),    

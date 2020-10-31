@@ -1,6 +1,6 @@
 ItemDef(
     name: "Tarasque Shoulder Pad",
-    description: "As strong as a tarasque shell.",
+    description: "Hexagonal chunks of tarasque shell that resemble shoulder guards.",
     kind: Armor(
         (
             kind: Shoulder("Tarasque"),

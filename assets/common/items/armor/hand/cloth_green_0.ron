@@ -1,6 +1,6 @@
 ItemDef(
     name: "Green Linen Wrists",
-    description: "A strip of cloth.",
+    description: "Cloth braclets embued with faded runes no longer granting protection, dyed green.",
     kind: Armor(
         (
             kind: Hand("ClothGreen0"),

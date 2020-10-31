@@ -1,6 +1,6 @@
 ItemDef(
     name: "Iron Battleaxe",
-    description: "Forged from iron.",
+    description: "Tried and true iron armaments, mass produced for killing.",
     kind: Tool(
         (
             kind: Axe("IronAxe3"),    

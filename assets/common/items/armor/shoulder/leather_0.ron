@@ -1,6 +1,6 @@
 ItemDef(
     name: "Leather Pauldrons",
-    description: "Shoulder pads made of leather.",
+    description: "Animal hide tanned and formed into shoulder pads.",
     kind: Armor(
         (
             kind: Shoulder("Leather0"),

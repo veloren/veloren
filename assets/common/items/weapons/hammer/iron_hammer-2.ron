@@ -1,6 +1,6 @@
 ItemDef(
     name: "Iron Mace",
-    description: "Forged with iron.",
+    description: "A simple iron ball on a stick makes for a swift smashing weapon.",
     kind: Tool(
         (
             kind: Hammer("IronHammer2"),    

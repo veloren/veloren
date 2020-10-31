@@ -1,6 +1,6 @@
 ItemDef(
     name: "Leather Strips",
-    description: "Shoulder wraps made from leather strips.",
+    description: "Tanned animal hide strips leftover from other armor pieces have not gone to waste in making these shoulder pads.",
     kind: Armor(
         (
             kind: Shoulder("LeatherStrips"),

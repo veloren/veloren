@@ -1,6 +1,6 @@
 ItemDef(
     name: "Spade Axe",
-    description: "Forged from steel.",
+    description: "This axe, while made of steel, seems better suited for digging.",
     kind: Tool(
         (
             kind: Axe("SteelAxe6"),    

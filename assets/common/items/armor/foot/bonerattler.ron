@@ -1,6 +1,6 @@
 ItemDef(
     name: "Bonerattler Boots",
-    description: "Made from the strongest bones.",
+    description: "Sandals made from the feet bones of some unknown creature, fairly uncomfortable but protective.",
     kind: Armor(
         (
             kind: Foot("Bonerattler"),

@@ -1,6 +1,6 @@
 ItemDef(
     name: "Giant's Fist",
-    description: "Forged with iron.",
+    description: "This iron forged hammer is roughly shaped into the shape of a fist.",
     kind: Tool(
         (
             kind: Hammer("IronHammer7"),    
