@@ -10,8 +10,10 @@ use vek::*;
 // Multiplied by current window size
 const GLYPH_CACHE_SIZE: u16 = 1;
 // Glyph cache tolerances
-const SCALE_TOLERANCE: f32 = 0.5; // Note: Changed from 0.1 change back if not decent
-const POSITION_TOLERANCE: f32 = 0.1;
+// TODO: consider scaling based on dpi as well as providing as an option to the
+// user
+const SCALE_TOLERANCE: f32 = 0.5;
+const POSITION_TOLERANCE: f32 = 0.5;
 
 type GlyphBrush = glyph_brush::GlyphBrush<(Aabr<f32>, Aabr<f32>), ()>;
 
