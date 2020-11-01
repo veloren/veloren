@@ -55,8 +55,8 @@ const STARTER_SCEPTRE: &str = "common.items.weapons.sceptre.starter_sceptre";
 // TODO: what does this comment mean?
 // // Use in future MR to make this a starter weapon
 
-// TODO: use for info popup frame/background and for char list scrollbar
-const UI_MAIN: iced::Color = iced::Color::from_rgba(0.61, 0.70, 0.70, 1.0); // Greenish Blue
+// TODO: use for info popup frame/background
+const UI_MAIN: Rgba<u8> = Rgba::new(156, 179, 179, 255); // Greenish Blue
 
 image_ids_ice! {
     struct Imgs {
@@ -65,9 +65,6 @@ image_ids_ice! {
 
         slider_range: "voxygen.element.slider.track",
         slider_indicator: "voxygen.element.slider.indicator",
-
-        gray_corner: "voxygen.element.frames.gray.corner",
-        gray_edge: "voxygen.element.frames.gray.edge",
 
         selection: "voxygen.element.frames.selection",
         selection_hover: "voxygen.element.frames.selection_hover",
@@ -130,6 +127,7 @@ pub enum Event {
         body: comp::Body,
     },
     DeleteCharacter(CharacterId),
+    ClearCharacterListError,
 }
 
 enum Mode {
@@ -165,9 +163,9 @@ enum Mode {
 }
 
 impl Mode {
-    pub fn select() -> Self {
+    pub fn select(info_content: Option<InfoContent>) -> Self {
         Self::Select {
-            info_content: None,
+            info_content,
             selected: None,
             characters_scroll: Default::default(),
             character_buttons: Vec::new(),
@@ -212,22 +210,8 @@ enum InfoContent {
     LoadingCharacters,
     CreatingCharacter,
     DeletingCharacter,
-    CharacterError,
+    CharacterError(String),
 }
-
-/*
-impl InfoContent {
-    pub fn has_content(&self, character_list_loading: &bool) -> bool {
-        match self {
-            Self::None => false,
-            Self::CreatingCharacter | Self::DeletingCharacter | Self::LoadingCharacters => {
-                *character_list_loading
-            },
-            _ => true,
-        }
-    }
-}
-*/
 
 struct Controls {
     fonts: Fonts,
@@ -261,6 +245,7 @@ enum Message {
     RandomizeCharacter,
     CancelDeletion,
     ConfirmDeletion,
+    ClearCharacterListError,
     HairStyle(u8),
     HairColor(u8),
     Skin(u8),
@@ -287,14 +272,13 @@ impl Controls {
 
             tooltip_manager: TooltipManager::new(TOOLTIP_HOVER_DUR, TOOLTIP_FADE_DUR),
             mouse_detector: Default::default(),
-            mode: Mode::select(),
+            mode: Mode::select(Some(InfoContent::LoadingCharacters)),
         }
     }
 
-    fn view(&mut self, settings: &Settings, client: &Client) -> Element<Message> {
+    fn view(&mut self, _settings: &Settings, client: &Client) -> Element<Message> {
         // TODO: use font scale thing for text size (use on button size for buttons with
         // text)
-        // TODO: if enter key pressed and character is selected then enter the world
 
         // Maintain tooltip manager
         self.tooltip_manager.maintain();
@@ -340,7 +324,7 @@ impl Controls {
 
         let content = match &mut self.mode {
             Mode::Select {
-                info_content,
+                ref mut info_content,
                 selected,
                 ref mut characters_scroll,
                 ref mut character_buttons,
@@ -350,6 +334,26 @@ impl Controls {
                 ref mut yes_button,
                 ref mut no_button,
             } => {
+                if let Some(error) = &client.character_list.error {
+                    // TODO: use more user friendly errors with suggestions on potential solutions
+                    // instead of directly showing error message here
+                    *info_content = Some(InfoContent::CharacterError(format!(
+                        "{}: {}",
+                        i18n.get("common.error"),
+                        error
+                    )))
+                } else if let Some(InfoContent::CharacterError(_)) = info_content {
+                    *info_content = None;
+                } else if matches!(
+                    info_content,
+                    Some(InfoContent::LoadingCharacters)
+                        | Some(InfoContent::CreatingCharacter)
+                        | Some(InfoContent::DeletingCharacter)
+                ) && !client.character_list.loading
+                {
+                    *info_content = None;
+                }
+
                 let server = Container::new(
                     Column::with_children(vec![
                         Text::new(&client.server_info.name)
@@ -493,9 +497,15 @@ impl Controls {
                     Container::new(
                         Scrollable::new(characters_scroll)
                             .push(Column::with_children(characters).spacing(4))
-                            .width(Length::Fill),
+                            .padding(5)
+                            .scrollbar_width(5)
+                            .scroller_width(5)
+                            .width(Length::Fill)
+                            .style(style::scrollable::Style {
+                                track: None,
+                                scroller: style::scrollable::Scroller::Color(UI_MAIN),
+                            }),
                     )
-                    .padding(5)
                     .style(style::container::Style::color(Rgba::from_translucent(
                         0,
                         BANNER_ALPHA,
@@ -538,7 +548,7 @@ impl Controls {
                 let enter_world = neat_button(
                     enter_world_button,
                     i18n.get("char_selection.enter_world"),
-                    FILL_FRAC_ONE,
+                    FILL_FRAC_TWO,
                     button_style,
                     selected.map(|_| Message::EnterWorld),
                 );
@@ -563,35 +573,67 @@ impl Controls {
 
                 // Overlay delete prompt
                 if let Some(info_content) = info_content {
-                    let over: Element<_> = match info_content {
-                        InfoContent::Deletion(_) => Container::new(
-                            Column::with_children(vec![
-                                Text::new(i18n.get("char_selection.delete_permanently"))
-                                    .size(fonts.cyri.scale(24))
-                                    .into(),
-                                Row::with_children(vec![
-                                    neat_button(
-                                        no_button,
-                                        i18n.get("common.no"),
-                                        FILL_FRAC_ONE,
-                                        button_style,
-                                        Some(Message::CancelDeletion),
-                                    ),
-                                    neat_button(
-                                        yes_button,
-                                        i18n.get("common.yes"),
-                                        FILL_FRAC_ONE,
-                                        button_style,
-                                        Some(Message::ConfirmDeletion),
-                                    ),
-                                ])
-                                .height(Length::Units(28))
-                                .spacing(30)
+                    let over_content: Element<_> = match &info_content {
+                        InfoContent::Deletion(_) => Column::with_children(vec![
+                            Text::new(i18n.get("char_selection.delete_permanently"))
+                                .size(fonts.cyri.scale(24))
                                 .into(),
+                            Row::with_children(vec![
+                                neat_button(
+                                    no_button,
+                                    i18n.get("common.no"),
+                                    FILL_FRAC_ONE,
+                                    button_style,
+                                    Some(Message::CancelDeletion),
+                                ),
+                                neat_button(
+                                    yes_button,
+                                    i18n.get("common.yes"),
+                                    FILL_FRAC_ONE,
+                                    button_style,
+                                    Some(Message::ConfirmDeletion),
+                                ),
                             ])
-                            .align_items(Align::Center)
-                            .spacing(10),
-                        )
+                            .height(Length::Units(28))
+                            .spacing(30)
+                            .into(),
+                        ])
+                        .align_items(Align::Center)
+                        .spacing(10)
+                        .into(),
+                        InfoContent::LoadingCharacters => {
+                            Text::new(i18n.get("char_selection.loading_characters"))
+                                .size(fonts.cyri.scale(24))
+                                .into()
+                        },
+                        InfoContent::CreatingCharacter => {
+                            Text::new(i18n.get("char_selection.creating_character"))
+                                .size(fonts.cyri.scale(24))
+                                .into()
+                        },
+                        InfoContent::DeletingCharacter => {
+                            Text::new(i18n.get("char_selection.deleting_character"))
+                                .size(fonts.cyri.scale(24))
+                                .into()
+                        },
+                        InfoContent::CharacterError(error) => Column::with_children(vec![
+                            Text::new(error).size(fonts.cyri.scale(24)).into(),
+                            Container::new(neat_button(
+                                no_button,
+                                i18n.get("common.close"),
+                                FILL_FRAC_ONE,
+                                button_style,
+                                Some(Message::ClearCharacterListError),
+                            ))
+                            .height(Length::Units(28))
+                            .into(),
+                        ])
+                        .align_items(Align::Center)
+                        .spacing(10)
+                        .into(),
+                    };
+
+                    let over = Container::new(over_content)
                         .style(
                             style::container::Style::color_with_double_cornerless_border(
                                 (0, 0, 0, 200).into(),
@@ -605,11 +647,7 @@ impl Controls {
                         .max_height(130)
                         .padding(16)
                         .center_x()
-                        .center_y()
-                        .into(),
-                        // TODO
-                        _ => Space::new(Length::Shrink, Length::Shrink).into(),
-                    };
+                        .center_y();
 
                     Overlay::new(over, content)
                         .width(Length::Fill)
@@ -624,7 +662,7 @@ impl Controls {
             Mode::Create {
                 name,
                 body,
-                loadout,
+                loadout: _,
                 tool,
                 ref mut scroll,
                 ref mut body_type_buttons,
@@ -990,7 +1028,11 @@ impl Controls {
                         )
                         .padding(5)
                         .width(Length::Fill)
-                        .align_items(Align::Center),
+                        .align_items(Align::Center)
+                        .style(style::scrollable::Style {
+                            track: None,
+                            scroller: style::scrollable::Scroller::Color(UI_MAIN),
+                        }),
                 )
                 .width(Length::Units(320)) // TODO: see if we can get iced to work with settings below
                 //.max_width(360)
@@ -1126,7 +1168,7 @@ impl Controls {
         match message {
             Message::Back => {
                 if matches!(&self.mode, Mode::Create { .. }) {
-                    self.mode = Mode::select();
+                    self.mode = Mode::select(None);
                 }
             },
             Message::Logout => {
@@ -1169,7 +1211,7 @@ impl Controls {
                         tool: String::from(*tool),
                         body: comp::Body::Humanoid(*body),
                     });
-                    self.mode = Mode::select();
+                    self.mode = Mode::select(Some(InfoContent::CreatingCharacter));
                 }
             },
             Message::Name(value) => {
@@ -1208,16 +1250,19 @@ impl Controls {
                         if let Some(id) = characters.get(*idx).and_then(|i| i.character.id) {
                             events.push(Event::DeleteCharacter(id));
                         }
-                        *info_content = None;
+                        *info_content = Some(InfoContent::DeletingCharacter);
                     }
                 }
             },
             Message::CancelDeletion => {
                 if let Mode::Select { info_content, .. } = &mut self.mode {
-                    if let Some(InfoContent::Deletion(idx)) = info_content {
+                    if let Some(InfoContent::Deletion(_)) = info_content {
                         *info_content = None;
                     }
                 }
+            },
+            Message::ClearCharacterListError => {
+                events.push(Event::ClearCharacterListError);
             },
             Message::HairStyle(value) => {
                 if let Mode::Create { body, .. } = &mut self.mode {

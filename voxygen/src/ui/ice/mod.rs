@@ -66,6 +66,10 @@ impl IcedUi {
         self.renderer.add_graphic(graphic)
     }
 
+    pub fn replace_graphic(&mut self, id: graphic::Id, graphic: Graphic) {
+        self.renderer.replace_graphic(id, graphic);
+    }
+
     pub fn scale(&self) -> Scale { self.scale }
 
     pub fn set_scaling_mode(&mut self, mode: ScaleMode) {

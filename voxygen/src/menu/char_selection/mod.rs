@@ -111,6 +111,9 @@ impl PlayState for CharSelectionState {
                             Rc::clone(&self.client),
                         )));
                     },
+                    ui::Event::ClearCharacterListError => {
+                        self.client.borrow_mut().character_list.error = None;
+                    },
                 }
             }
 
