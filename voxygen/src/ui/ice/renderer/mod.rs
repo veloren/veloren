@@ -29,6 +29,8 @@ enum DrawKind {
     // Text and non-textured geometry
     Plain,
 }
+
+#[allow(dead_code)] // TODO: remove once WorldPos is used
 enum DrawCommand {
     Draw { kind: DrawKind, verts: Range<u32> },
     Scissor(Aabr<u16>),
@@ -147,6 +149,10 @@ impl IcedRenderer {
 
     pub fn add_graphic(&mut self, graphic: Graphic) -> graphic::Id {
         self.cache.add_graphic(graphic)
+    }
+
+    pub fn replace_graphic(&mut self, id: graphic::Id, graphic: Graphic) {
+        self.cache.replace_graphic(id, graphic);
     }
 
     fn image_dims(&self, handle: image::Handle) -> (u32, u32) {
