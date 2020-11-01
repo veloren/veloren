@@ -160,7 +160,7 @@ https://veloren.net/account/."#,
         "main.login.kicked": "You have been kicked with the following reason",
         "main.login.select_language": "Select a language",
 
-		"main.servers.select_server": "Select a server",
+        "main.servers.select_server": "Select a server",
 
         /// End Main screen section
 

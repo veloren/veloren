@@ -12,7 +12,7 @@
 ///
 /// Localization for Spanish (Spain)
 
-Localization(
+(
     metadata: (
         language_name: "Español de España",
         language_identifier: "es_ES",
