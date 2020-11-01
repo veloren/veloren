@@ -182,7 +182,7 @@ impl<'a> Widget for BuffsBar<'a> {
                     }) as u32; // Percentage to determine which frame of the timer overlay is displayed
                     let buff_img = match buff.kind {
                         BuffKind::Regeneration { .. } => self.imgs.buff_plus_0,
-                        BuffKind::Saturation { .. } => self.imgs.buff_plus_0,
+                        BuffKind::Saturation { .. } => self.imgs.buff_saturation_0,
                         _ => self.imgs.missing_icon,
                     };
                     let buff_widget = Image::new(buff_img).w_h(20.0, 20.0);
@@ -205,11 +205,9 @@ impl<'a> Widget for BuffsBar<'a> {
                         .set(id, ui);
                     // Create Buff tooltip
                     let title = match buff.kind {
-                        BuffKind::Regeneration { .. } => {
-                            localized_strings.get("buff.title.heal_test")
-                        },
+                        BuffKind::Regeneration { .. } => localized_strings.get("buff.title.heal"),
                         BuffKind::Saturation { .. } => {
-                            localized_strings.get("buff.title.saturation_test")
+                            localized_strings.get("buff.title.saturation")
                         },
                         _ => localized_strings.get("buff.title.missing"),
                     };
@@ -220,11 +218,9 @@ impl<'a> Widget for BuffsBar<'a> {
                     };
                     let click_to_remove = format!("<{}>", &localized_strings.get("buff.remove"));
                     let desc_txt = match buff.kind {
-                        BuffKind::Regeneration { .. } => {
-                            localized_strings.get("buff.desc.heal_test")
-                        },
+                        BuffKind::Regeneration { .. } => localized_strings.get("buff.desc.heal"),
                         BuffKind::Saturation { .. } => {
-                            localized_strings.get("buff.desc.saturation_test")
+                            localized_strings.get("buff.desc.saturation")
                         },
                         _ => localized_strings.get("buff.desc.missing"),
                     };
@@ -303,9 +299,7 @@ impl<'a> Widget for BuffsBar<'a> {
                         .set(id, ui);
                     // Create Debuff tooltip
                     let title = match debuff.kind {
-                        BuffKind::Bleeding { .. } => {
-                            localized_strings.get("debuff.title.bleed_test")
-                        },
+                        BuffKind::Bleeding { .. } => localized_strings.get("debuff.title.bleed"),
                         _ => localized_strings.get("buff.title.missing"),
                     };
                     let remaining_time = if current_duration.is_none() {
@@ -314,9 +308,7 @@ impl<'a> Widget for BuffsBar<'a> {
                         format!("Remaining: {:.0}s", current_duration.unwrap().as_secs_f32())
                     };
                     let desc_txt = match debuff.kind {
-                        BuffKind::Bleeding { .. } => {
-                            localized_strings.get("debuff.desc.bleed_test")
-                        },
+                        BuffKind::Bleeding { .. } => localized_strings.get("debuff.desc.bleed"),
                         _ => localized_strings.get("debuff.desc.missing"),
                     };
                     let desc = format!("{}\n\n{}", desc_txt, remaining_time);
@@ -386,7 +378,7 @@ impl<'a> Widget for BuffsBar<'a> {
                     }) as u32;
                     let buff_img = match buff.kind {
                         BuffKind::Regeneration { .. } => self.imgs.buff_plus_0,
-                        BuffKind::Saturation { .. } => self.imgs.buff_plus_0,
+                        BuffKind::Saturation { .. } => self.imgs.buff_saturation_0,
                         BuffKind::Bleeding { .. } => self.imgs.debuff_bleed_0,
                         BuffKind::Cursed { .. } => self.imgs.debuff_skull_0,
                     };
@@ -410,15 +402,11 @@ impl<'a> Widget for BuffsBar<'a> {
                         .set(id, ui);
                     // Create Buff tooltip
                     let title = match buff.kind {
-                        BuffKind::Regeneration { .. } => {
-                            localized_strings.get("buff.title.heal_test")
-                        },
+                        BuffKind::Regeneration { .. } => localized_strings.get("buff.title.heal"),
                         BuffKind::Saturation { .. } => {
-                            localized_strings.get("buff.title.saturation_test")
+                            localized_strings.get("buff.title.saturation")
                         },
-                        BuffKind::Bleeding { .. } => {
-                            localized_strings.get("debuff.title.bleed_test")
-                        },
+                        BuffKind::Bleeding { .. } => localized_strings.get("debuff.title.bleed"),
                         _ => localized_strings.get("buff.title.missing"),
                     };
                     let remaining_time = if current_duration.is_none() {
@@ -428,15 +416,11 @@ impl<'a> Widget for BuffsBar<'a> {
                     };
                     let click_to_remove = format!("<{}>", &localized_strings.get("buff.remove"));
                     let desc_txt = match buff.kind {
-                        BuffKind::Regeneration { .. } => {
-                            localized_strings.get("buff.desc.heal_test")
-                        },
+                        BuffKind::Regeneration { .. } => localized_strings.get("buff.desc.heal"),
                         BuffKind::Saturation { .. } => {
-                            localized_strings.get("buff.desc.saturation_test")
+                            localized_strings.get("buff.desc.saturation")
                         },
-                        BuffKind::Bleeding { .. } => {
-                            localized_strings.get("debuff.desc.bleed_test")
-                        },
+                        BuffKind::Bleeding { .. } => localized_strings.get("debuff.desc.bleed"),
                         _ => localized_strings.get("buff.desc.missing"),
                     };
                     let desc = if buff.is_buff {

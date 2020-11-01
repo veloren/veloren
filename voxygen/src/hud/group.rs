@@ -482,7 +482,7 @@ impl<'a> Widget for Group<'a> {
                                 }) as u32; // Percentage to determine which frame of the timer overlay is displayed
                                 let buff_img = match buff.kind {
                                     BuffKind::Regeneration { .. } => self.imgs.buff_plus_0,
-                                    BuffKind::Saturation { .. } => self.imgs.buff_plus_0,
+                                    BuffKind::Saturation { .. } => self.imgs.buff_saturation_0,
                                     BuffKind::Bleeding { .. } => self.imgs.debuff_bleed_0,
                                     BuffKind::Cursed { .. } => self.imgs.debuff_skull_0,
                                 };
@@ -511,13 +511,13 @@ impl<'a> Widget for Group<'a> {
                                 // Create Buff tooltip
                                 let title = match buff.kind {
                                     BuffKind::Regeneration { .. } => {
-                                        localized_strings.get("buff.title.heal_test")
+                                        localized_strings.get("buff.title.heal")
                                     },
                                     BuffKind::Saturation { .. } => {
-                                        localized_strings.get("buff.title.saturation_test")
+                                        localized_strings.get("buff.title.saturation")
                                     },
                                     BuffKind::Bleeding { .. } => {
-                                        localized_strings.get("debuff.title.bleed_test")
+                                        localized_strings.get("debuff.title.bleed")
                                     },
                                     _ => localized_strings.get("buff.title.missing"),
                                 };
@@ -531,13 +531,13 @@ impl<'a> Widget for Group<'a> {
                                 };
                                 let desc_txt = match buff.kind {
                                     BuffKind::Regeneration { .. } => {
-                                        localized_strings.get("buff.desc.heal_test")
+                                        localized_strings.get("buff.desc.heal")
                                     },
                                     BuffKind::Saturation { .. } => {
-                                        localized_strings.get("buff.desc.saturation_test")
+                                        localized_strings.get("buff.desc.saturation")
                                     },
                                     BuffKind::Bleeding { .. } => {
-                                        localized_strings.get("debuff.desc.bleed_test")
+                                        localized_strings.get("debuff.desc.bleed")
                                     },
                                     _ => localized_strings.get("buff.desc.missing"),
                                 };

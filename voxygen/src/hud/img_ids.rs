@@ -352,6 +352,7 @@ image_ids! {
 
         // Buffs
         buff_plus_0: "voxygen.element.icons.de_buffs.buff_plus_0",
+        buff_saturation_0: "voxygen.element.icons.de_buffs.buff_saturation_0",
 
         // Debuffs
         debuff_skull_0: "voxygen.element.icons.de_buffs.debuff_skull_0",

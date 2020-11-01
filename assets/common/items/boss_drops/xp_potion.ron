@@ -3,11 +3,9 @@ ItemDef(
     description: "Provides 250 XP to the drinker\n\n<Right-Click to use>",
     kind: Consumable(
         kind: "Potion",
-        effect: Some(
-            [
-                Xp(250),
-            ]
-        ),
+        effect: [
+            Xp(250),
+        ]
     ),
     quality: High,
 )
