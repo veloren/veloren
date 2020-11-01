@@ -1,4 +1,4 @@
-use crate::{sync::Uid, Damages, Explosion, Knockback};
+use crate::{comp::Buff, sync::Uid, Damages, Explosion, Knockback};
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
@@ -13,6 +13,7 @@ pub enum Effect {
     Vanish,
     Stick,
     Possess,
+    Buff { buff: Buff, chance: Option<f32> },
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

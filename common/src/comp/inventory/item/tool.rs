@@ -2,7 +2,11 @@
 // version in voxygen\src\meta.rs in order to reset save files to being empty
 
 use crate::{
-    comp::{body::object, projectile, Body, CharacterAbility, Gravity, LightEmitter, Projectile},
+    comp::{
+        body::object,
+        buff::{Buff, BuffCategory, BuffData, BuffKind, BuffSource},
+        projectile, Body, CharacterAbility, Gravity, LightEmitter, Projectile,
+    },
     states::combo_melee,
     Damage, Damages, Explosion, Knockback,
 };
@@ -305,6 +309,18 @@ impl Tool {
                             projectile::Effect::Knockback(Knockback::Away(10.0)),
                             projectile::Effect::RewardEnergy(50),
                             projectile::Effect::Vanish,
+                            projectile::Effect::Buff {
+                                buff: Buff::new(
+                                    BuffKind::Bleeding,
+                                    BuffData {
+                                        strength: 20.0 * self.base_power(),
+                                        duration: Some(Duration::from_secs(5)),
+                                    },
+                                    vec![BuffCategory::Physical],
+                                    BuffSource::Unknown,
+                                ),
+                                chance: Some(0.10),
+                            },
                         ],
                         time_left: Duration::from_secs(15),
                         owner: None,
@@ -347,6 +363,18 @@ impl Tool {
                             )),
                             projectile::Effect::Knockback(Knockback::Away(10.0)),
                             projectile::Effect::Vanish,
+                            projectile::Effect::Buff {
+                                buff: Buff::new(
+                                    BuffKind::Bleeding,
+                                    BuffData {
+                                        strength: 20.0 * self.base_power(),
+                                        duration: Some(Duration::from_secs(5)),
+                                    },
+                                    vec![BuffCategory::Physical],
+                                    BuffSource::Unknown,
+                                ),
+                                chance: Some(0.10),
+                            },
                         ],
                         time_left: Duration::from_secs(15),
                         owner: None,
