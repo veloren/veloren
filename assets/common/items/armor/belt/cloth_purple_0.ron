@@ -1,6 +1,6 @@
 ItemDef(
     name: "Purple Linen Belt",
-    description: "Rough fabric belt that provides little protection to the wearer, dyed purple.",
+    description: "A stylish rough fabric belt, dyed purple.",
     kind: Armor(
         (
             kind: Belt("ClothPurple0"),

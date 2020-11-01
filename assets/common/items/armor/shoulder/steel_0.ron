@@ -1,6 +1,6 @@
 ItemDef(
     name: "Steel Shoulder Pad",
-    description: "The metal alloy plate provides better protection and is much more comfortable than its iron counterparts.",
+    description: "The metal alloy plates provide better protection and comfort.",
     kind: Armor(
         (
             kind: Shoulder("Steel0"),

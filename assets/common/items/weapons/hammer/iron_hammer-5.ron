@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Pike Hammer",
+    name: "Lucerne Hammer",
     description: "A hybrid fusion of a warhammer and a polearm.",
     kind: Tool(
         (

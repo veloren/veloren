@@ -1,6 +1,6 @@
 ItemDef(
     name: "Leafy Pants",
-    description: "Leaves cover the magically imbued chainmail twigs, providing protection from the elements. Slightly less chafey than the twig pants!",
+    description: "Leaves cover the magically imbued chainmail twigs, providing protection from the elements.",
     kind: Armor(
         (
             kind: Pants("Twigsleaves"),

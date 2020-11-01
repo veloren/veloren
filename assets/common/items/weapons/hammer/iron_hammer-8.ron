@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Lucerne Hammer",
+    name: "Pike Hammer",
     description: "This hammer has a spike on the opposite end, making it dangerous when swung either direction.",
     kind: Tool(
         (
