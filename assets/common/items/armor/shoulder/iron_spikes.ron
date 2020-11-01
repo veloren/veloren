@@ -1,6 +1,6 @@
 ItemDef(
     name: "Iron Spiked Pauldrons",
-    description: "The heavy, rough iron plate has an interlocking spike shoved through a slot in the center to dissuade attackers.",
+    description: "The heavy, rough iron plate has an interlocking spikes shoved through several slots in the center to dissuade attackers.",
     kind: Armor(
         (
             kind: Shoulder("IronSpikes"),

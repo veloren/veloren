@@ -1,6 +1,6 @@
 ItemDef(
     name: "Bonerattler Gauntlets",
-    description: "Hand bones along with extra finger bones that continue up the wrist from unknown creatures to create a protective gauntlet.",
+    description: "The hide and bone from a bonerattler provide strong protection for the wearer.",
     kind: Armor(
         (
             kind: Hand("Bonerattler"),

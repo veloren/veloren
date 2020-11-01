@@ -1,6 +1,6 @@
 ItemDef(
     name: "Blue Linen Coat",
-    description: "A coat lined with faded runes to protect the wearer from harm, dyed blue.",
+    description: "A rough fabric that does not provide much protection, dyed blue.",
     kind: Armor(
         (
             kind: Shoulder("ClothBlue0"),

@@ -1,6 +1,6 @@
 ItemDef(
     name: "Morning Star",
-    description: "A spiked ball designed to resemble the stars in the night sky.",
+    description: "A spiked ball designed to resemble the stars lining the night sky.",
     kind: Tool(
         (
             kind: Hammer("SteelHammer5"),    

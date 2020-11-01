@@ -1,6 +1,6 @@
 ItemDef(
     name: "Crowned Mace",
-    description: "The iron ball has a formed crown on top for decorative purposes on this mace.",
+    description: "The decorative iron mace has a crowning tip on top.",
     kind: Tool(
         (
             kind: Hammer("IronHammer3"),    

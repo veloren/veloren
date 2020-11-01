@@ -1,6 +1,6 @@
 ItemDef(
     name: "Bonerattler Chausses",
-    description: "Leg bones from several unknown creatures provide protection around the wearer's legs.",
+    description: "Assorted bones and hide from a bonerattler provide protection around the wearer's legs.",
     kind: Armor(
         (
             kind: Pants("Bonerattler"),

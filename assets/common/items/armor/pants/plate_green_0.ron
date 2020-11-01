@@ -1,6 +1,6 @@
 ItemDef(
     name: "Iron Legguards",
-    description: "Heavy iron plate formed into greaves provide protection though the wearer may find it hard to move with ease.",
+    description: "Heavy iron plate formed into greaves provide protection though the wearer may find them quite uncomfortable.",
     kind: Armor(
         (
             kind: Pants("PlateGreen0"),

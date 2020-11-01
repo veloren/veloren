@@ -1,6 +1,6 @@
 ItemDef(
     name: "Tarasque Cuirass",
-    description: "Shattered pieces of tarasque shell formed into a chestplate for protection.",
+    description: "The rough protective underbelly and back of a tarasque's shell, formed to fit humanoid proportions.",
     kind: Armor(
         (
             kind: Chest("Tarasque"),

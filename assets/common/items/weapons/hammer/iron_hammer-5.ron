@@ -1,6 +1,6 @@
 ItemDef(
     name: "Pike Hammer",
-    description: "This iron forged hammer has a spike on the back, making both sides dangerous and lethal.",
+    description: "A hybrid fusion of a warhammer and a polearm.",
     kind: Tool(
         (
             kind: Hammer("IronHammer5"),    

@@ -1,6 +1,6 @@
 ItemDef(
     name: "Hardwood Mallet",
-    description: "Hardened wood, subjected to many different elements to provide a striking surface. Not very durable.",
+    description: "Hardened wood, subjected to many different elements to provide a enough strength to be a weapon.",
     kind: Tool(
         (
             kind: Hammer("WoodHammer0"),    

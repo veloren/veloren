@@ -1,6 +1,6 @@
 ItemDef(
     name: "Blue Linen Boots",
-    description: "Cobbled fabric embued with runes on the inner lining to protect the wearer from harm, dyed blue.",
+    description: "Cobbled rough fabric that does not provide much protection, dyed blue.",
     kind: Armor(
         (
             kind: Foot("ClothBlue0"),

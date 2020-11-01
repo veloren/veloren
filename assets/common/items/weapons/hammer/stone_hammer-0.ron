@@ -1,6 +1,6 @@
 ItemDef(
     name: "Basalt Sledgehammer",
-    description: "Heavy stone tied to a branch, simple but functional as a weapon.",
+    description: "Bloodied stone tied to a branch, simple but functional as a weapon.",
     kind: Tool(
         (
             kind: Hammer("StoneHammer0"),    

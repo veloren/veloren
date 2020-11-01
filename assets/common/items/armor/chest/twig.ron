@@ -1,6 +1,6 @@
 ItemDef(
     name: "Twig Shirt",
-    description: "Small sticks magically embued to hold together in a manner not unlike chainmail.",
+    description: "Small sticks magically imbued to hold together to form a shirt.",
     kind: Armor(
         (
             kind: Chest("Twig"),

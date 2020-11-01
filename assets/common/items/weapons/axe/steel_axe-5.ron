@@ -1,6 +1,6 @@
 ItemDef(
     name: "Owl Axe",
-    description: "Druidic rituals formed this axe in the dark of night, with each blade being chiseled to resemble an owl's eye to aid the hunter who fights in darkness.",
+    description: "Druidic rituals formed this axe in the dark of night. Made to look like the wings of an owl swooping in on a kill.",
     kind: Tool(
         (
             kind: Axe("SteelAxe5"),    

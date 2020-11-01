@@ -1,6 +1,6 @@
 ItemDef(
     name: "Iron and Leather Spaulders",
-    description: "Leather inset to the heavy iron provides mild comfort to the wearer from the metal.",
+    description: "Leather shoulders decorated with heavy iron hooks provides protection to the wearer.",
     kind: Armor(
         (
             kind: Shoulder("IronLeather0"),

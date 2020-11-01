@@ -1,6 +1,6 @@
 ItemDef(
     name: "Worn Orcish Axe",
-    description: "Rough cut iron makes it hard to tell that this axe is even used, other than the ages of dried blood upon its surface.",
+    description: "Rough cut iron makes it hard to tell that this axe is even used, other than how old it feels.",
     kind: Tool(
         (
             kind: Axe("WornIronAxe3"),

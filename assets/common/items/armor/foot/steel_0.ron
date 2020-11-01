@@ -1,6 +1,6 @@
 ItemDef(
     name: "Steel Boots",
-    description: "Metal alloy boots providing a lighter and more durable protection than their iron counterparts.",
+    description: "Metal alloy boots providing a more comfortable and more durable protection than their iron counterparts.",
     kind: Armor(
         (
             kind: Foot("Steel0"),

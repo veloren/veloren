@@ -1,6 +1,6 @@
 ItemDef(
     name: "Steel Gauntlets",
-    description: "The metal alloy provides better protection and lighter weight, creating a much easier to move in gauntlet.",
+    description: "The metal alloy provides better protection and lighter weight, creating a much more comfortable gauntlet.",
     kind: Armor(
         (
             kind: Hand("Steel0"),

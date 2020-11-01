@@ -1,6 +1,6 @@
 ItemDef(
     name: "Worn Orcish Hammer",
-    description: "A heavy orc crafted hammer, very bloodstained.",
+    description: "A heavy orc crafted hammer, missing chunks from heavy use.",
     kind: Tool(
         (
             kind: Hammer("WornIronHammer3"),    
