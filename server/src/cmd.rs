@@ -10,6 +10,7 @@ use chrono::{NaiveTime, Timelike};
 use common::{
     cmd::{ChatCommand, CHAT_COMMANDS, CHAT_SHORTCUTS},
     comp::{self, ChatType, Item, LightEmitter, WaypointArea},
+    effect::Effect,
     event::{EventBus, ServerEvent},
     msg::{DisconnectReason, Notification, PlayerListUpdate, ServerGeneral},
     npc::{self, get_npc_name},
@@ -18,7 +19,7 @@ use common::{
     terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
     util::Dir,
     vol::RectVolSize,
-    Damage, DamageSource, Damages, Explosion, LoadoutBuilder, RadiusEffect,
+    Explosion, LoadoutBuilder, RadiusEffect,
 };
 use rand::Rng;
 use specs::{Builder, Entity as EcsEntity, Join, WorldExt};
@@ -1157,16 +1158,10 @@ fn handle_explosion(
                     pos: pos.0,
                     explosion: Explosion {
                         effects: vec![
-                            RadiusEffect::Damages(Damages::new(
-                                Some(Damage {
-                                    source: DamageSource::Explosion,
-                                    value: 100.0 * power,
-                                }),
-                                Some(Damage {
-                                    source: DamageSource::Explosion,
-                                    value: 100.0 * power,
-                                }),
-                            )),
+                            RadiusEffect::EntityEffect(Effect::Health(comp::HealthChange {
+                                amount: (-100.0 * power) as i32,
+                                cause: comp::HealthSource::Explosion { owner: None },
+                            })),
                             RadiusEffect::TerrainDestruction(power),
                         ],
                         radius: 3.0 * power,
