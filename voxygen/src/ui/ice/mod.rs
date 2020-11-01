@@ -187,7 +187,7 @@ impl IcedUi {
             &self.events,
             cursor_position,
             Some(&self.clipboard),
-            &mut self.renderer,
+            &self.renderer,
         );
         drop(guard);
         // Clear events

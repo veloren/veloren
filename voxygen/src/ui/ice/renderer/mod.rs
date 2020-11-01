@@ -799,6 +799,7 @@ impl iced::Renderer for IcedRenderer {
     // TODO: use graph of primitives to enable diffing???
     type Output = (Primitive, iced::mouse::Interaction);
 
+    #[allow(clippy::let_and_return)]
     fn layout<'a, M>(
         &mut self,
         element: &iced::Element<'a, M, Self>,
