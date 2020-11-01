@@ -1,5 +1,6 @@
 use crate::{
     comp::{
+        buff::{BuffChange, BuffSource},
         projectile, Energy, EnergySource, Group, HealthSource, Loadout, Ori, PhysicsState, Pos,
         Projectile, Vel,
     },
@@ -9,6 +10,7 @@ use crate::{
     state::DeltaTime,
     sync::UidAllocator,
 };
+use rand::{thread_rng, Rng};
 use specs::{
     saveload::MarkerAllocator, Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage,
 };
@@ -152,6 +154,22 @@ impl<'a> System<'a> for Sys {
                             if other != projectile.owner.unwrap() {
                                 if let Some(owner) = projectile.owner {
                                     server_emitter.emit(ServerEvent::Possess(owner, other));
+                                }
+                            }
+                        },
+                        projectile::Effect::Buff { buff, chance } => {
+                            if let Some(entity) =
+                                uid_allocator.retrieve_entity_internal(other.into())
+                            {
+                                if chance.map_or(true, |c| thread_rng().gen::<f32>() < c) {
+                                    let mut buff = buff.clone();
+                                    if let Some(uid) = projectile.owner {
+                                        buff.source = BuffSource::Character { by: uid };
+                                    }
+                                    server_emitter.emit(ServerEvent::Buff {
+                                        entity,
+                                        buff_change: BuffChange::Add(buff),
+                                    });
                                 }
                             }
                         },

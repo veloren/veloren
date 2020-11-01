@@ -1,5 +1,6 @@
 use crate::{
     comp::{
+        buff::{Buff, BuffCategory, BuffData, BuffKind, BuffSource},
         projectile, Body, CharacterState, EnergySource, Gravity, LightEmitter, Projectile,
         StateUpdate,
     },
@@ -101,6 +102,18 @@ impl CharacterBehavior for Data {
                             )),
                             projectile::Effect::Knockback(Knockback::Away(knockback)),
                             projectile::Effect::Vanish,
+                            projectile::Effect::Buff {
+                                buff: Buff::new(
+                                    BuffKind::Bleeding,
+                                    BuffData {
+                                        strength: damage / 5.0,
+                                        duration: Some(Duration::from_secs(5)),
+                                    },
+                                    vec![BuffCategory::Physical],
+                                    BuffSource::Unknown,
+                                ),
+                                chance: Some(0.10),
+                            },
                         ],
                         time_left: Duration::from_secs(15),
                         owner: None,
