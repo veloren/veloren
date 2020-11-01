@@ -1,9 +1,10 @@
 use common::{
-    comp::{HealthSource, Object, PhysicsState, Pos, Vel},
+    comp::{HealthChange, HealthSource, Object, PhysicsState, Pos, Vel},
+    effect::Effect,
     event::{EventBus, ServerEvent},
     span,
     state::DeltaTime,
-    Damage, DamageSource, Damages, Explosion, RadiusEffect,
+    Explosion, RadiusEffect,
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 
@@ -49,16 +50,10 @@ impl<'a> System<'a> for Sys {
                             pos: pos.0,
                             explosion: Explosion {
                                 effects: vec![
-                                    RadiusEffect::Damages(Damages::new(
-                                        Some(Damage {
-                                            source: DamageSource::Explosion,
-                                            value: 500.0,
-                                        }),
-                                        Some(Damage {
-                                            source: DamageSource::Explosion,
-                                            value: 500.0,
-                                        }),
-                                    )),
+                                    RadiusEffect::EntityEffect(Effect::Health(HealthChange {
+                                        amount: -500,
+                                        cause: HealthSource::Explosion { owner: *owner },
+                                    })),
                                     RadiusEffect::TerrainDestruction(4.0),
                                 ],
                                 radius: 12.0,
@@ -79,16 +74,10 @@ impl<'a> System<'a> for Sys {
                             pos: pos.0,
                             explosion: Explosion {
                                 effects: vec![
-                                    RadiusEffect::Damages(Damages::new(
-                                        Some(Damage {
-                                            source: DamageSource::Explosion,
-                                            value: 50.0,
-                                        }),
-                                        Some(Damage {
-                                            source: DamageSource::Explosion,
-                                            value: 50.0,
-                                        }),
-                                    )),
+                                    RadiusEffect::EntityEffect(Effect::Health(HealthChange {
+                                        amount: -50,
+                                        cause: HealthSource::Explosion { owner: *owner },
+                                    })),
                                     RadiusEffect::TerrainDestruction(4.0),
                                 ],
                                 radius: 12.0,

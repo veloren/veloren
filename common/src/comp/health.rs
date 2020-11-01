@@ -120,10 +120,10 @@ impl Component for Health {
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
-pub struct Dying {
+pub struct Dead {
     pub cause: HealthSource,
 }
 
-impl Component for Dying {
+impl Component for Dead {
     type Storage = IdvStorage<Self>;
 }

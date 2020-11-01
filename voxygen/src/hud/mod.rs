@@ -1195,7 +1195,7 @@ impl Hud {
                         let display_overhead_info =
                             (info.target_entity.map_or(false, |e| e == entity)
                                 || info.selected_entity.map_or(false, |s| s.0 == entity)
-                                || overhead::show_healthbar(health)
+                                || overhead::should_show_healthbar(health)
                                 || in_group)
                                 && dist_sqr
                                     < (if in_group {

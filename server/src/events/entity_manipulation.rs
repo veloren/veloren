@@ -516,15 +516,10 @@ pub fn handle_explosion(
 
     // Add an outcome
     // Uses radius as outcome power, makes negative if explosion has healing effect
-    #[allow(clippy::blocks_in_if_conditions)]
     let outcome_power = explosion.radius
-        * if explosion.effects.iter().any(|e| {
-            if let RadiusEffect::Damages(d) = e {
-                d.contains_damage(DamageSource::Healing)
-            } else {
-                false
-            }
-        }) {
+        * if explosion.effects.iter().any(
+            |e| matches!(e, RadiusEffect::Damages(d) if d.contains_damage(DamageSource::Healing)),
+        ) {
             -1.0
         } else {
             1.0
@@ -670,6 +665,16 @@ pub fn handle_explosion(
                             }
                         })
                         .cast();
+                }
+            },
+            RadiusEffect::EntityEffect(effect) => {
+                for (entity, pos_entity) in
+                    (&ecs.entities(), &ecs.read_storage::<comp::Pos>()).join()
+                {
+                    let distance_squared = pos.distance_squared(pos_entity.0);
+                    if distance_squared < explosion.radius.powi(2) {
+                        server.state().apply_effect(entity, effect);
+                    }
                 }
             },
         }

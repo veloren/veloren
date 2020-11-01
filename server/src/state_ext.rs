@@ -20,7 +20,7 @@ use vek::*;
 
 pub trait StateExt {
     /// Updates a component associated with the entity based on the `Effect`
-    fn apply_effect(&mut self, entity: EcsEntity, effect: Effect);
+    fn apply_effect(&self, entity: EcsEntity, effect: Effect);
     /// Build a non-player character
     fn create_npc(
         &mut self,
@@ -71,7 +71,7 @@ pub trait StateExt {
 }
 
 impl StateExt for State {
-    fn apply_effect(&mut self, entity: EcsEntity, effect: Effect) {
+    fn apply_effect(&self, entity: EcsEntity, effect: Effect) {
         match effect {
             Effect::Health(change) => {
                 self.ecs()

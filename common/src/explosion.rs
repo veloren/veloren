@@ -1,4 +1,4 @@
-use crate::combat::Damages;
+use crate::{combat::Damages, effect::Effect};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -12,4 +12,5 @@ pub struct Explosion {
 pub enum RadiusEffect {
     Damages(Damages),
     TerrainDestruction(f32),
+    EntityEffect(Effect),
 }
