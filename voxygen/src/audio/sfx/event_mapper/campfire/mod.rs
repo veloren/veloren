@@ -32,7 +32,6 @@ impl Default for PreviousEntityState {
 }
 
 pub struct CampfireEventMapper {
-    timer: Instant,
     event_history: HashMap<EcsEntity, PreviousEntityState>,
 }
 
@@ -91,7 +90,6 @@ impl EventMapper for CampfireEventMapper {
 impl CampfireEventMapper {
     pub fn new() -> Self {
         Self {
-            timer: Instant::now(),
             event_history: HashMap::new(),
         }
     }
