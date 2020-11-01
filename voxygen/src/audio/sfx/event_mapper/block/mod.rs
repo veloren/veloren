@@ -11,10 +11,7 @@ use common::{
     vol::RectRasterableVol,
 };
 use hashbrown::HashMap;
-use rand::{
-    prelude::{IteratorRandom, SliceRandom},
-    thread_rng, Rng,
-};
+use rand::{thread_rng, Rng};
 use specs::WorldExt;
 use std::time::Instant;
 use vek::*;
@@ -29,15 +26,6 @@ impl Default for PreviousBlockState {
     fn default() -> Self {
         Self {
             event: SfxEvent::Idle,
-            time: Instant::now(),
-        }
-    }
-}
-
-impl PreviousBlockState {
-    fn new(event: SfxEvent) -> Self {
-        PreviousBlockState {
-            event,
             time: Instant::now(),
         }
     }

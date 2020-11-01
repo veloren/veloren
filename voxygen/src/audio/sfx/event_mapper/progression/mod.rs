@@ -32,7 +32,7 @@ impl EventMapper for ProgressionEventMapper {
         player_entity: specs::Entity,
         _camera: &Camera,
         triggers: &SfxTriggers,
-        terrain: &Terrain<TerrainChunk>,
+        _terrain: &Terrain<TerrainChunk>,
     ) {
         let ecs = state.ecs();
 
