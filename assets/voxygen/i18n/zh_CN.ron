@@ -13,7 +13,7 @@
 /// 注意: 本地化文件应以 UTF-8无BOM 格式保存
 
 /// "全局"本地化  Simplified Chinese-简体中文
-Localization(
+(
     metadata: (
         language_name: "Simplified Chinese",
         language_identifier: "zh_CN",
