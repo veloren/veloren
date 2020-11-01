@@ -1,6 +1,6 @@
 ItemDef(
     name: "Bonerattler Boots",
-    description: "Sandals made from the feet bones of some unknown creature, fairly uncomfortable but protective.",
+    description: "Boots made from the claws and hide of a bonerattler.",
     kind: Armor(
         (
             kind: Foot("Bonerattler"),

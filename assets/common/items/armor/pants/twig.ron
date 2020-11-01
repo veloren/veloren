@@ -1,6 +1,6 @@
 ItemDef(
     name: "Twig Pants",
-    description: "Magically embued twigs formed into links similar to chainmail. They are known to chafe.",
+    description: "Magically imbued twigs formed into links similar to chainmail. They are known to chafe.",
     kind: Armor(
         (
             kind: Pants("Twig"),

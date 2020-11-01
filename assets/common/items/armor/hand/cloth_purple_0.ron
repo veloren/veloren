@@ -1,6 +1,6 @@
 ItemDef(
     name: "Purple Silk Wrists",
-    description: "Cloth braclets embued with faded runes no longer granting protection, dyed purple.",
+    description: "Rough cloth bracelets provides style with little protection, dyed purple.",
     kind: Armor(
         (
             kind: Hand("ClothPurple0"),

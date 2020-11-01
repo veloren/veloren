@@ -1,6 +1,6 @@
 ItemDef(
     name: "Stone Sledgehammer",
-    description: "A heavy rock tied to a stick. Brutal in its simple design, but still functional as a basic weapon.",
+    description: "A heavy rock with a slot worn through to fasten it in place. Brutal in its simple design, but still functional.",
     kind: Tool(
         (
             kind: Hammer("StoneHammer3"),    

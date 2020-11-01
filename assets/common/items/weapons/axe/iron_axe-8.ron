@@ -1,6 +1,6 @@
 ItemDef(
     name: "Fanged Axe",
-    description: "Rough iron axe head forged with extra sharp points to mimic animal fangs.",
+    description: "Several sharp axe heads forged with points to mimic animal fangs.",
     kind: Tool(
         (
             kind: Axe("IronAxe8"),    

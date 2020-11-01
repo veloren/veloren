@@ -1,6 +1,6 @@
 ItemDef(
     name: "Tarasque Belt",
-    description: "It is unknown how the tarasque shell was shattered into hexagonal plates to make this belt.",
+    description: "Shattered band of a tarasque shell, making for a strong belt.",
     kind: Armor(
         (
             kind: Belt("Tarasque"),

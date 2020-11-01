@@ -1,6 +1,6 @@
 ItemDef(
     name: "Blue Linen Chest",
-    description: "A fabric surcoat, the inner lining contains faded runes etched in to protect the wearer, dyed blue.",
+    description: "A rough fabric surcoat, dyed blue. It does not offer much protection.",
     kind: Armor(
         (
             kind: Chest("ClothBlue0"),

@@ -1,6 +1,6 @@
 ItemDef(
     name: "Flowery Wraps",
-    description: "Chainmail like twigs held together with magic and flowers with their stems, providing peace and protection for the wearer.",
+    description: "Wrapped and intertwined twigs held together with magic and flowers with their stems, providing peace and protection for the wearer.",
     kind: Armor(
         (
             kind: Hand("Twigsflowers"),

@@ -1,6 +1,6 @@
 ItemDef(
     name: "Steel Labrys",
-    description: "Double bitted, well polished, and clean axe head.",
+    description: "Double bitted, well polished, and spiked axe head.",
     kind: Tool(
         (
             kind: Axe("SteelAxe1"),    

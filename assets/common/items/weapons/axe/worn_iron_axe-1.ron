@@ -1,6 +1,6 @@
 ItemDef(
     name: "Worn Elven Axe",
-    description: "Light elven axe, scratched and dented from eons of use. Still usable in some manner.",
+    description: "Light elven axe, scratched from eons of use. Still usable in some manner.",
     kind: Tool(
         (
             kind: Axe("WornIronAxe1"),    

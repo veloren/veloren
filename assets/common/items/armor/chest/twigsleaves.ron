@@ -1,6 +1,6 @@
 ItemDef(
     name: "Leafy Shirt",
-    description: "Leaves cover the magically embued twig chainmail to hide the appearance.",
+    description: "Leaves cover the magically imbued twig shirt, providing a more natural appearance.",
     kind: Armor(
         (
             kind: Chest("Twigsleaves"),

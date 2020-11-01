@@ -1,6 +1,6 @@
 ItemDef(
     name: "Purple Linen Boots",
-    description: "Cobbled fabric embued with runes on the inner lining to protect the wearer from harm, dyed purple.",
+    description: "Cobbled rough fabric that does not provide much protection, dyed purple.",
     kind: Armor(
         (
             kind: Foot("ClothPurple0"),

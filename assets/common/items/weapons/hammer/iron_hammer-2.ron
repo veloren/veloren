@@ -1,6 +1,6 @@
 ItemDef(
     name: "Iron Mace",
-    description: "A simple iron ball on a stick makes for a swift smashing weapon.",
+    description: "A decorative iron mace, great for smashing.",
     kind: Tool(
         (
             kind: Hammer("IronHammer2"),    

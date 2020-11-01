@@ -1,6 +1,6 @@
 ItemDef(
     name: "Bonerattler Belt",
-    description: "Sections of vertebrae fastened together with a small animal skull for the buckle.",
+    description: "Sections of vertebrae fastened together with hide and a bonerattler eye for the buckle.",
     kind: Armor(
         (
             kind: Belt("Bonerattler"),

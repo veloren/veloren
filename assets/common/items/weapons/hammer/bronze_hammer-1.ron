@@ -1,6 +1,6 @@
 ItemDef(
     name: "Bronze Club",
-    description: "The entire head of this club is forged from a solid chunk of bronze alloy.",
+    description: "The entire head of this club is forged from bronze alloy.",
     kind: Tool(
         (
             kind: Hammer("BronzeHammer1"),    
