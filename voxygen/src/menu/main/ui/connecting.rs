@@ -139,7 +139,7 @@ impl Screen {
                 let content = Column::with_children(vec![
                     text.into(),
                     Container::new(
-                        Row::with_children(vec![cancel.into(), add.into()])
+                        Row::with_children(vec![cancel, add])
                             .spacing(20)
                             .height(Length::Units(25)),
                     )

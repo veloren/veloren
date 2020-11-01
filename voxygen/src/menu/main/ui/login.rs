@@ -51,6 +51,7 @@ impl Screen {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub(super) fn view(
         &mut self,
         fonts: &Fonts,
@@ -155,20 +156,18 @@ impl Screen {
             .height(Length::Units(180))
             .padding(20)
             .into()
+        } else if is_selecting_language {
+            self.language_selection.view(
+                fonts,
+                imgs,
+                i18n,
+                language_metadatas,
+                selected_language_index,
+                button_style,
+            )
         } else {
-            if is_selecting_language {
-                self.language_selection.view(
-                    fonts,
-                    imgs,
-                    i18n,
-                    language_metadatas,
-                    selected_language_index,
-                    button_style,
-                )
-            } else {
-                self.banner
-                    .view(fonts, imgs, login_info, i18n, button_style)
-            }
+            self.banner
+                .view(fonts, imgs, login_info, i18n, button_style)
         };
 
         let central_column = Container::new(central_content)

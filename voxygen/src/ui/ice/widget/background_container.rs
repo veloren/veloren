@@ -63,6 +63,10 @@ impl Padding {
     }
 }
 
+impl Default for Padding {
+    fn default() -> Self { Self::new() }
+}
+
 pub trait Background<R: iced::Renderer>: Sized {
     // The intended implementors already store the state accessed in the three
     // functions below

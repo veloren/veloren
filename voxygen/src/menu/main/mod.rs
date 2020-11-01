@@ -258,7 +258,8 @@ impl PlayState for MainMenuState {
                         &global_state.settings.language.selected_language,
                     ));
                     localized_strings.log_missing_entries();
-                    self.main_menu_ui.update_language(localized_strings.clone());
+                    self.main_menu_ui
+                        .update_language(std::sync::Arc::clone(&localized_strings));
                 },
                 #[cfg(feature = "singleplayer")]
                 MainMenuEvent::StartSingleplayer => {

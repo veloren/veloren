@@ -77,6 +77,7 @@ impl slider::Renderer for IcedRenderer {
             mouse::Interaction::Idle
         };
 
+        #[allow(clippy::if_same_then_else)] // TODO: remove
         let primitives = if style.labels {
             // TODO text label on left and right ends
             vec![bar, cursor]

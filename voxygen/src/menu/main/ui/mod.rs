@@ -232,7 +232,7 @@ impl Controls {
     }
 
     fn view(&mut self, settings: &Settings, dt: f32) -> Element<Message> {
-        self.time = self.time + dt as f64;
+        self.time += dt as f64;
 
         // TODO: consider setting this as the default in the renderer
         let button_style = style::button::Style::new(self.imgs.button)

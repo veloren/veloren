@@ -147,7 +147,7 @@ enum Mode {
     Create {
         name: String, // TODO: default to username
         body: humanoid::Body,
-        loadout: comp::Loadout,
+        loadout: Box<comp::Loadout>,
         tool: &'static str,
 
         body_type_buttons: [button::State; 2],
@@ -184,6 +184,8 @@ impl Mode {
             .defaults()
             .active_item(Some(LoadoutBuilder::default_item_config_from_str(tool)))
             .build();
+
+        let loadout = Box::new(loadout);
 
         Self::Create {
             name,
@@ -1127,7 +1129,7 @@ impl Controls {
                         })
                         .into()
                 } else {
-                    create.into()
+                    create
                 };
 
                 let bottom = Row::with_children(vec![

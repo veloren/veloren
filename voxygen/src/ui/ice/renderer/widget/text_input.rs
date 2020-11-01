@@ -31,9 +31,10 @@ impl text_input::Renderer for IcedRenderer {
         };
 
         let mut glyph_calculator = self.cache.glyph_calculator();
-        let width = glyph_calculator
+        /* let width = */
+        glyph_calculator
             .glyph_bounds(section)
-            .map_or(0.0, |rect| rect.width() / p_scale);
+            .map_or(0.0, |rect| rect.width() / p_scale)
 
         // glyph_brush ignores the exterior spaces
         // or does it!!!
@@ -75,7 +76,7 @@ impl text_input::Renderer for IcedRenderer {
             width += exterior_spaces as f32 * space_width;
         }*/
 
-        width
+        //width
     }
 
     fn offset(
