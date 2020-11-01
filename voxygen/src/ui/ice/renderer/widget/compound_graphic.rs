@@ -7,12 +7,7 @@ use compound_graphic::GraphicKind;
 use iced::{mouse, Rectangle};
 
 impl compound_graphic::Renderer for IcedRenderer {
-    fn draw<I>(
-        &mut self,
-        graphics: I,
-        //color: Rgba<u8>,
-        _layout: iced::Layout<'_>,
-    ) -> Self::Output
+    fn draw<I>(&mut self, graphics: I) -> Self::Output
     where
         I: Iterator<Item = (Rectangle, GraphicKind)>,
     {
@@ -24,6 +19,7 @@ impl compound_graphic::Renderer for IcedRenderer {
                             handle: (handle, Rotation::None),
                             bounds,
                             color,
+                            source_rect: None,
                         },
                         GraphicKind::Color(color) => Primitive::Rectangle {
                             bounds,

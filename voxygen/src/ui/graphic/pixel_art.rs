@@ -1,4 +1,7 @@
-use common::util::{linear_to_srgba, srgba_to_linear};
+use common::{
+    span,
+    util::{linear_to_srgba, srgba_to_linear},
+};
 /// Pixel art scaling
 /// Note: The current ui is locked to the pixel grid with little animation, if
 /// we want smoothly moving pixel art this should be done in the shaders
@@ -35,6 +38,7 @@ const EPSILON: f32 = 0.0001;
 //     E9: c3 = (A1 * c1 * a1 + A2 * c2 * a2) / a3
 #[allow(clippy::manual_saturating_arithmetic)] // TODO: Pending review in #587
 pub fn resize_pixel_art(image: &RgbaImage, new_width: u32, new_height: u32) -> RgbaImage {
+    span!(_guard, "resize_pixel_art");
     let (width, height) = image.dimensions();
     let mut new_image = RgbaImage::new(new_width, new_height);
 

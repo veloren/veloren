@@ -45,6 +45,7 @@ impl button::Renderer for IcedRenderer {
                 handle: (handle, Rotation::None),
                 bounds,
                 color,
+                source_rect: None,
             };
 
             Primitive::Group {

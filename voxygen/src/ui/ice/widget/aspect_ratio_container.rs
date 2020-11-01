@@ -169,8 +169,6 @@ where
 }
 
 pub trait Renderer: iced::Renderer {
-    /// The style supported by this renderer.
-    //type Style: Default;
     /// The handle used by this renderer for images.
     type ImageHandle: Hash;
 
@@ -182,7 +180,6 @@ pub trait Renderer: iced::Renderer {
         bounds: Rectangle,
         cursor_position: Point,
         viewport: &Rectangle,
-        //style: &Self::Style,
         content: &Element<'_, M, Self>,
         content_layout: Layout<'_>,
     ) -> Self::Output;

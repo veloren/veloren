@@ -398,7 +398,6 @@ impl LoginBanner {
                 .into(),
             ])
             .spacing(5)
-            //.height(Length::Units(200))
             .into(),
             Space::new(Length::Fill, Length::Units(8)).into(),
             Column::with_children(vec![
@@ -430,7 +429,5 @@ impl LoginBanner {
             .height(Length::Fill)
             .center_y()
             .into()
-        //.padding(Padding::new().horizontal(8).vertical(15))
-        //.max_width(350);
     }
 }

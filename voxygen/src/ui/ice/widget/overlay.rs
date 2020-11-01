@@ -213,7 +213,6 @@ pub trait Renderer: iced::Renderer {
         bounds: Rectangle,
         cursor_position: Point,
         viewport: &Rectangle,
-        //style: &self::Style,
         over: &Element<'_, M, Self>,
         over_layout: Layout<'_>,
         under: &Element<'_, M, Self>,

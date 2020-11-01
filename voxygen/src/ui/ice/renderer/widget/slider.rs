@@ -40,6 +40,7 @@ impl slider::Renderer for IcedRenderer {
                     ..bar_bounds
                 },
                 color,
+                source_rect: None,
             },
         };
 
@@ -64,6 +65,7 @@ impl slider::Renderer for IcedRenderer {
                 handle: (handle, Rotation::None),
                 bounds: cursor_bounds,
                 color,
+                source_rect: None,
             },
         };
 

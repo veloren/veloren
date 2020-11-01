@@ -54,12 +54,8 @@ impl text::Renderer for IcedRenderer {
         (
             Primitive::Text {
                 glyphs,
-                //size: size as f32,
                 bounds,
                 linear_color: color.unwrap_or(defaults.text_color).into_linear().into(),
-                /*font,
-                 *horizontal_alignment,
-                 *vertical_alignment, */
             },
             mouse::Interaction::default(),
         )

@@ -29,6 +29,7 @@ impl container::Renderer for IcedRenderer {
                     handle: (*handle, Rotation::None),
                     bounds,
                     color: *color,
+                    source_rect: None,
                 };
 
                 Primitive::Group {
@@ -177,6 +178,7 @@ impl container::Renderer for IcedRenderer {
                                 height: border_size,
                             },
                             color,
+                            source_rect: None,
                         };
 
                         let tr_corner = Primitive::Image {
@@ -188,6 +190,7 @@ impl container::Renderer for IcedRenderer {
                                 height: border_size,
                             },
                             color,
+                            source_rect: None,
                         };
 
                         let bl_corner = Primitive::Image {
@@ -199,6 +202,7 @@ impl container::Renderer for IcedRenderer {
                                 height: border_size,
                             },
                             color,
+                            source_rect: None,
                         };
 
                         let br_corner = Primitive::Image {
@@ -210,6 +214,7 @@ impl container::Renderer for IcedRenderer {
                                 height: border_size,
                             },
                             color,
+                            source_rect: None,
                         };
 
                         let top_edge = Primitive::Image {
@@ -221,6 +226,7 @@ impl container::Renderer for IcedRenderer {
                                 height: border_size,
                             },
                             color,
+                            source_rect: None,
                         };
 
                         let bottom_edge = Primitive::Image {
@@ -232,6 +238,7 @@ impl container::Renderer for IcedRenderer {
                                 height: border_size,
                             },
                             color,
+                            source_rect: None,
                         };
 
                         let left_edge = Primitive::Image {
@@ -243,6 +250,7 @@ impl container::Renderer for IcedRenderer {
                                 height: bounds.height - 2.0 * border_size,
                             },
                             color,
+                            source_rect: None,
                         };
 
                         let right_edge = Primitive::Image {
@@ -254,6 +262,7 @@ impl container::Renderer for IcedRenderer {
                                 height: bounds.height - 2.0 * border_size,
                             },
                             color,
+                            source_rect: None,
                         };
 
                         // Is this worth it as opposed to using a giant image? (Probably)
