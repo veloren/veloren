@@ -1,6 +1,6 @@
 ItemDef(
     name: "Blue Linen Chest",
-    description: "A rough fabric surcoat, dyed blue. It does not offer much protection.",
+    description: "A stylish rough fabric surcoat, dyed blue.",
     kind: Armor(
         (
             kind: Chest("ClothBlue0"),
