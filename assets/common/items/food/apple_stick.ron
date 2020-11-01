@@ -3,21 +3,19 @@ ItemDef(
     description: "Restores 25 Health over 5 seconds\n\nThe stick makes it easier to carry!",
     kind: Consumable(
         kind: "AppleStick",
-        effect: Some(
-            [
-                Buff((
-                    kind: Saturation,
-                    data: (
-                        strength: 25.0,
-                        duration: Some((
-                                secs: 5,
-                                nanos: 0,
-                            )),
-                        ),
-                    cat_ids: [Natural],
-                )),
-            ]
-        ),
+        effect: [
+            Buff((
+                kind: Saturation,
+                data: (
+                    strength: 50.0,
+                    duration: Some((
+                            secs: 5,
+                            nanos: 0,
+                        )),
+                    ),
+                cat_ids: [Natural],
+            )),
+        ]
     ),
     quality: Common,
 )

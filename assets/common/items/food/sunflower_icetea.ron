@@ -3,21 +3,19 @@ ItemDef(
     description: "Restores 50 Health over 5 seconds\n\nBrewed from freshly shelled sunflower seeds.",
     kind: Consumable(
         kind: "SunflowerTea",
-        effect: Some(
-            [
-                Buff((
-                    kind: Saturation,
-                    data: (
-                        strength: 50.0,
-                        duration: Some((
-                                secs: 5,
-                                nanos: 0,
-                            )),
-                        ),
-                    cat_ids: [Natural],
-                )),
-            ]
-        ),
+        effect: [
+            Buff((
+                kind: Saturation,
+                data: (
+                    strength: 100.0,
+                    duration: Some((
+                            secs: 5,
+                            nanos: 0,
+                        )),
+                    ),
+                cat_ids: [Natural],
+            )),
+        ]
     ),
     quality: Moderate,
 )

@@ -520,13 +520,13 @@ Protection
         "buff.title.missing": "Missing Title",
         "buff.desc.missing": "Missing Description",
         // Buffs
-        "buff.title.heal_test": "Heal Test",
-        "buff.desc.heal_test": "This is a test buff to test healing.",
-        "buff.title.saturation_test": "Saturation",
-        "buff.desc.saturation_test": "This is a test buff to test saturation.",
+        "buff.title.heal": "Heal",
+        "buff.desc.heal": "Gain health over time.",
+        "buff.title.saturation": "Saturation",
+        "buff.desc.saturation": "Gain health over time from consumables.",
         // Debuffs
-        "debuff.title.bleed_test": "Bleeding",
-        "debuff.desc.bleed_test": "Inflicts regular damage.",
+        "debuff.title.bleed": "Bleeding",
+        "debuff.desc.bleed": "Inflicts regular damage.",
     },
 
 

@@ -3,21 +3,19 @@ ItemDef(
     description: "Restores 10 Health over 10 seconds\n\nRed and juicy",
     kind: Consumable(
         kind: "Apple",
-        effect: Some(
-            [
-                Buff((
-                    kind: Saturation,
-                    data: (
-                        strength: 10.0,
-                        duration: Some((
-                                secs: 10,
-                                nanos: 0,
-                            )),
-                        ),
-                    cat_ids: [Natural],
-                )),
-            ]
-        ),
+        effect: [
+            Buff((
+                kind: Saturation,
+                data: (
+                    strength: 10.0,
+                    duration: Some((
+                            secs: 10,
+                            nanos: 0,
+                        )),
+                    ),
+                cat_ids: [Natural],
+            )),
+        ]
     ),
     quality: Common,
 )

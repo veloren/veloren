@@ -3,21 +3,19 @@ ItemDef(
     description: "Restores 5 Health over 10 seconds\n\nHopefully this one is not poisonous",
     kind: Consumable(
         kind: "Mushroom",
-        effect: Some(
-            [
-                Buff((
-                    kind: Saturation,
-                    data: (
-                        strength: 5.0,
-                        duration: Some((
-                                secs: 10,
-                                nanos: 0,
-                            )),
-                        ),
-                    cat_ids: [Natural],
-                )),
-            ]
-        ),
+        effect: [
+            Buff((
+                kind: Saturation,
+                data: (
+                    strength: 5.0,
+                    duration: Some((
+                            secs: 10,
+                            nanos: 0,
+                        )),
+                    ),
+                cat_ids: [Natural],
+            )),
+        ]
     ),
     quality: Common,
 )
