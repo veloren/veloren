@@ -27,8 +27,6 @@ pub struct Style {
     background: Option<Background>,
     enabled_text: Color,
     disabled_text: Color,
-    /* greying out / changing text color
-     *disabled: , */
 }
 
 impl Style {

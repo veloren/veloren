@@ -113,7 +113,6 @@ pub struct IcedRenderer {
     start: usize,
     // Draw commands for the next render
     draw_commands: Vec<DrawCommand>,
-    //current_scissor: Aabr<u16>,
 }
 impl IcedRenderer {
     pub fn new(
@@ -141,7 +140,6 @@ impl IcedRenderer {
             win_dims: scaled_dims,
             window_scissor: default_scissor(renderer),
             start: 0,
-            //current_scissor: default_scissor(renderer),
         })
     }
 
@@ -185,8 +183,6 @@ impl IcedRenderer {
 
         self.current_state = State::Plain;
         self.start = 0;
-
-        //self.current_scissor = default_scissor(renderer);
 
         self.draw_primitive(primitive, Vec2::zero(), 1.0, renderer);
 
@@ -309,20 +305,6 @@ impl IcedRenderer {
         }
         // Update model with new mesh.
         renderer.update_model(&self.model, &self.mesh, 0).unwrap();
-
-        // Handle window resizing.
-        /*if let Some(new_dims) = self.window_resized.take() {
-            let (old_w, old_h) = self.scale.scaled_window_size().into_tuple();
-            self.scale.window_resized(new_dims, renderer);
-            let (w, h) = self.scale.scaled_window_size().into_tuple();
-            self.ui.handle_event(Input::Resize(w, h));
-
-            // Avoid panic in graphic cache when minimizing.
-            // Avoid resetting cache if window size didn't change
-            // Somewhat inefficient for elements that won't change size after a window resize
-            let res = renderer.get_resolution();
-            self.need_cache_resize = res.x > 0 && res.y > 0 && !(old_w == w && old_h == h);
-        }*/
     }
 
     // Returns (half_res, align)
@@ -346,19 +328,6 @@ impl IcedRenderer {
     }
 
     fn gl_aabr(&self, bounds: iced::Rectangle) -> Aabr<f32> {
-        /*let (ui_win_w, ui_win_h) = self.win_dims.into_tuple();
-        let (l, b) = aabr.min.into_tuple();
-        let (r, t) = aabr.max.into_tuple();
-        let vx = |x: f64| (x / ui_win_w * 2.0) as f32;
-        let vy = |y: f64| (y / ui_win_h * 2.0) as f32;
-        let min = Vec2::new(
-            ((vx(l) * half_res.x + x_align).round() - x_align) / half_res.x,
-            ((vy(b) * half_res.y + y_align).round() - y_align) / half_res.y,
-        );
-        let max = Vec2::new(
-            ((vx(r) * half_res.x + x_align).round() - x_align) / half_res.x,
-            ((vy(t) * half_res.y + y_align).round() - y_align) / half_res.y,
-        );*/
         let flipped_y = self.win_dims.y - bounds.y;
         let half_win_dims = self.win_dims.map(|e| e / 2.0);
         let half_res = self.half_res;
@@ -458,6 +427,7 @@ impl IcedRenderer {
                 handle,
                 bounds,
                 color,
+                source_rect,
             } => {
                 let color = srgba_to_linear(color.map(|e| e as f32 / 255.0));
                 let color = apply_alpha(color, alpha);
@@ -473,9 +443,78 @@ impl IcedRenderer {
                     ..bounds
                 });
 
+                let graphic_cache = self.cache.graphic_cache_mut();
+                let half_res = self.half_res; // Make borrow checker happy by avoiding self in closure
+                let (source_aabr, gl_size) = {
+                    // Transform the source rectangle into uv coordinate.
+                    // TODO: Make sure this is right.  Especially the conversions.
+                    let ((uv_l, uv_r, uv_b, uv_t), gl_size) = match graphic_cache
+                        .get_graphic(graphic_id)
+                    {
+                        Some(Graphic::Blank) | None => return,
+                        Some(Graphic::Image(image, ..)) => {
+                            source_rect.and_then(|src_rect| {
+                                #[rustfmt::skip] use ::image::GenericImageView;
+                                let (image_w, image_h) = image.dimensions();
+                                let (source_w, source_h) = src_rect.size().into_tuple();
+                                let gl_size = gl_aabr.size();
+                                if image_w == 0
+                                    || image_h == 0
+                                    || source_w < 1.0
+                                    || source_h < 1.0
+                                    || gl_size.reduce_partial_min() < f32::EPSILON
+                                {
+                                    None
+                                } else {
+                                    // TODO: do this earlier
+                                    // Multiply drawn image size by ratio of original image
+                                    // size to
+                                    // source rectangle size (since as the proportion of the
+                                    // image gets
+                                    // smaller, the drawn size should get bigger), up to the
+                                    // actual
+                                    // size of the original image.
+                                    let ratio_x = (image_w as f32 / source_w)
+                                        .min((image_w as f32 / (gl_size.w * half_res.x)).max(1.0));
+                                    let ratio_y = (image_h as f32 / source_h)
+                                        .min((image_h as f32 / (gl_size.h * half_res.y)).max(1.0));
+                                    let (l, b) = src_rect.min.into_tuple();
+                                    let (r, t) = src_rect.max.into_tuple();
+                                    Some((
+                                        (
+                                                l / image_w as f32, /* * ratio_x*/
+                                                r / image_w as f32, /* * ratio_x*/
+                                                b / image_h as f32, /* * ratio_y*/
+                                                t / image_h as f32, /* * ratio_y*/
+                                            ),
+                                        Extent2::new(
+                                            gl_size.w as f32 * ratio_x,
+                                            gl_size.h as f32 * ratio_y,
+                                        ),
+                                    ))
+                                    /* ((l / image_w as f32),
+                                    (r / image_w as f32),
+                                    (b / image_h as f32),
+                                    (t / image_h as f32)) */
+                                }
+                            })
+                        },
+                        // No easy way to interpret source_rect for voxels...
+                        Some(Graphic::Voxel(..)) => None,
+                    }
+                    .unwrap_or_else(|| ((0.0, 1.0, 0.0, 1.0), gl_aabr.size()));
+                    (
+                        Aabr {
+                            min: Vec2::new(uv_l, uv_b),
+                            max: Vec2::new(uv_r, uv_t),
+                        },
+                        gl_size,
+                    )
+                };
+
                 let resolution = Vec2::new(
-                    (gl_aabr.size().w * self.half_res.x).round() as u16,
-                    (gl_aabr.size().h * self.half_res.y).round() as u16,
+                    (gl_size.w * self.half_res.x).round() as u16,
+                    (gl_size.h * self.half_res.y).round() as u16,
                 );
 
                 // Don't do anything if resolution is zero
@@ -484,39 +523,13 @@ impl IcedRenderer {
                     // TODO: consider logging uneeded elements
                 }
 
-                let graphic_cache = self.cache.graphic_cache_mut();
-
-                match graphic_cache.get_graphic(graphic_id) {
-                    Some(Graphic::Blank) | None => return,
-                    _ => {},
-                }
-
-                // Transform the source rectangle into uv coordinate.
-                // TODO: Make sure this is right.
-                let source_aabr = {
-                    let (uv_l, uv_r, uv_b, uv_t) = (0.0, 1.0, 0.0, 1.0);
-                    /*match source_rect {
-                        Some(src_rect) => {
-                            let (l, r, b, t) = src_rect.l_r_b_t();
-                            ((l / image_w) as f32,
-                            (r / image_w) as f32,
-                            (b / image_h) as f32,
-                            (t / image_h) as f32)
-                        }
-                        None => (0.0, 1.0, 0.0, 1.0),
-                    };*/
-                    Aabr {
-                        min: Vec2::new(uv_l, uv_b),
-                        max: Vec2::new(uv_r, uv_t),
-                    }
-                };
-
                 // Cache graphic at particular resolution.
                 let (uv_aabr, tex_id) = match graphic_cache.cache_res(
                     renderer,
                     graphic_id,
                     resolution,
-                    source_aabr,
+                    // TODO: take f32 here
+                    source_aabr.map(|e| e as f64),
                     rotation,
                 ) {
                     // TODO: get dims from graphic_cache (or have it return floats directly)
@@ -601,11 +614,8 @@ impl IcedRenderer {
             },
             Primitive::Text {
                 glyphs,
-                bounds: _bounds, // iced::Rectangle
+                bounds: _, // iced::Rectangle
                 linear_color,
-                /*font,
-                 *horizontal_alignment,
-                 *vertical_alignment, */
             } => {
                 let linear_color = apply_alpha(linear_color, alpha);
                 self.switch_state(State::Plain);
@@ -627,6 +637,7 @@ impl IcedRenderer {
                     // Note: we can't actually use this because dropping glyphs messeses up the
                     // counting and there is not a method provided to drop out of bounds
                     // glyphs while positioning them
+                    // Note: keeping commented code in case how we handle text changes
                     glyph_brush::ab_glyph::Rect {
                         min: glyph_brush::ab_glyph::point(
                             -10000.0, //bounds.x * self.p_scale,
@@ -688,11 +699,11 @@ impl IcedRenderer {
                         Aabr::new_empty(Vec2::zero())
                     }
                 };
-                // Not expecting this case: new_cursor == current_scissor
+                // Not expecting this case: new_scissor == current_scissor
+                // So not optimizing for it
 
                 // Finish the current command.
-                // TODO: ensure we never push empty commands (make fields private & debug assert
-                // in constructors?)
+                // TODO: ensure we never push empty commands
                 self.draw_commands.push(match self.current_state {
                     State::Plain => DrawCommand::plain(self.start..self.mesh.vertices().len()),
                     State::Image(id) => {

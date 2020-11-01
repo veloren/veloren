@@ -4,17 +4,6 @@ use std::hash::Hash;
 
 /// Stack up some widgets
 pub struct Stack<'a, M, R> {
-    // Add these if it is useful
-    /*
-    padding: u16,
-    width: Length,
-    height: Length,
-    max_width: u32,
-    max_height: u32,
-    horizontal_alignment: Align,
-    vertical_alignment: Align
-    align_items: Align,
-    */
     children: Vec<Element<'a, M, R>>,
 }
 

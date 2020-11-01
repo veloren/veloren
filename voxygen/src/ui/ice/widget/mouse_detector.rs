@@ -16,23 +16,13 @@ impl State {
 pub struct MouseDetector<'a> {
     width: Length,
     height: Length,
-    //on_enter: M,
-    //on_exit: M,
     state: &'a mut State,
 }
 
 impl<'a> MouseDetector<'a> {
-    pub fn new(
-        state: &'a mut State,
-        //on_enter: M,
-        //on_exit: M,
-        width: Length,
-        height: Length,
-    ) -> Self {
+    pub fn new(state: &'a mut State, width: Length, height: Length) -> Self {
         Self {
             state,
-            //on_enter,
-            //on_exit,
             width,
             height,
         }
@@ -70,12 +60,6 @@ where
                 && y < bounds.y + bounds.height;
             if mouse_over != self.state.mouse_over {
                 self.state.mouse_over = mouse_over;
-
-                /*messages.push(if mouse_over {
-                    self.on_enter.clone()
-                } else {
-                    self.on_exit.clone()
-                });*/
             }
         }
     }

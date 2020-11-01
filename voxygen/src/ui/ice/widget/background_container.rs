@@ -86,8 +86,6 @@ pub trait Background<R: iced::Renderer>: Sized {
 
 /// This widget is displays a background image behind it's content
 pub struct BackgroundContainer<'a, M, R: self::Renderer, B: Background<R>> {
-    //width: Length,
-    //height: Length,
     max_width: u32,
     max_height: u32,
     background: B,
@@ -104,8 +102,6 @@ where
 {
     pub fn new(background: B, content: impl Into<Element<'a, M, R>>) -> Self {
         Self {
-            //width: Length::Shrink,
-            //height: Length::Shrink,
             max_width: u32::MAX,
             max_height: u32::MAX,
             background,
@@ -119,16 +115,6 @@ where
         self
     }
 
-    /*pub fn width(mut self, width: Length) -> Self {
-        self.width = width;
-        self
-    }
-
-    pub fn height(mut self, height: Length) -> Self {
-        self.height = height;
-        self
-    }*/
-
     pub fn max_width(mut self, max_width: u32) -> Self {
         self.max_width = max_width;
         self
@@ -138,17 +124,6 @@ where
         self.max_height = max_height;
         self
     }
-
-    // Consider having these wire into underlying background
-    /*pub fn fix_aspect_ratio(mut self) -> Self {
-        self.fix_aspect_ratio = true;
-        self
-    }
-
-    pub fn color(mut self, color: Rgba<u8>) -> Self {
-        self.color = color;
-        self
-    }*/
 }
 
 impl<'a, M, R, B> Widget<M, R> for BackgroundContainer<'a, M, R, B>
@@ -221,7 +196,6 @@ where
 
             // TODO: handle cases where self and/or children are not Length::Fill
             // If fill use max_size
-            //if match self.width(), self.height()
 
             // This time we need to adjust up to meet the aspect ratio
             // so that the container is larger than the contents

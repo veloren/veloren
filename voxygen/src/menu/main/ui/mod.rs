@@ -1,4 +1,5 @@
 mod connecting;
+// Note: Keeping in case we re-add the disclaimer
 //mod disclaimer;
 mod login;
 mod servers;
@@ -25,10 +26,6 @@ use std::time::Duration;
 
 // TODO: what is this? (showed up in rebase)
 //const COL1: Color = Color::Rgba(0.07, 0.1, 0.1, 0.9);
-
-// UI Color-Theme
-/*const UI_MAIN: Color = Color::Rgba(0.61, 0.70, 0.70, 1.0); // Greenish Blue
-const UI_HIGHLIGHT_0: Color = Color::Rgba(0.79, 1.09, 1.09, 1.0);*/
 
 pub const TEXT_COLOR: iced::Color = iced::Color::from_rgb(1.0, 1.0, 1.0);
 pub const DISABLED_TEXT_COLOR: iced::Color = iced::Color::from_rgba(1.0, 1.0, 1.0, 0.2);
@@ -95,7 +92,7 @@ pub enum Event {
     #[cfg(feature = "singleplayer")]
     StartSingleplayer,
     Quit,
-    //DisclaimerClosed, TODO: remove all traces?
+    // Note: Keeping in case we re-add the disclaimer
     //DisclaimerAccepted,
     AuthServerTrust(String, bool),
 }
@@ -112,6 +109,7 @@ enum ConnectionState {
 }
 
 enum Screen {
+    // Note: Keeping in case we re-add the disclaimer
     /*Disclaimer {
         screen: disclaimer::Screen,
     },*/
@@ -169,7 +167,7 @@ enum Message {
     TrustPromptAdd,
     TrustPromptCancel,
     CloseError,
-    /*CloseDisclaimer,
+    /* Note: Keeping in case we re-add the disclaimer
      *AcceptDisclaimer, */
 }
 
@@ -184,6 +182,7 @@ impl Controls {
         let version = common::util::DISPLAY_VERSION_LONG.clone();
         let alpha = format!("Veloren {}", common::util::DISPLAY_VERSION.as_str());
 
+        // Note: Keeping in case we re-add the disclaimer
         let screen = /* if settings.show_disclaimer {
             Screen::Disclaimer {
                 screen: disclaimer::Screen::new(),
@@ -274,6 +273,7 @@ impl Controls {
         // TODO: make any large text blocks scrollable so that if the area is to
         // small they can still be read
         let content = match &mut self.screen {
+            // Note: Keeping in case we re-add the disclaimer
             //Screen::Disclaimer { screen } => screen.view(&self.fonts, &self.i18n, button_style),
             Screen::Login { screen, error } => screen.view(
                 &self.fonts,
@@ -389,11 +389,7 @@ impl Controls {
                     connection_state, ..
                 } = &mut self.screen
                 {
-                    if let ConnectionState::AuthTrustPrompt {
-                        auth_server,
-                        ..
-                    } = connection_state
-                    {
+                    if let ConnectionState::AuthTrustPrompt { auth_server, .. } = connection_state {
                         let auth_server = std::mem::take(auth_server);
                         let added = matches!(msg, Message::TrustPromptAdd);
 
@@ -407,9 +403,7 @@ impl Controls {
                     *error = None;
                 }
             },
-            //Message::CloseDisclaimer => {
-            //   events.push(Event::DisclaimerClosed);
-            //},
+            /* Note: Keeping in case we re-add the disclaimer */
             /*Message::AcceptDisclaimer => {
                 if let Screen::Disclaimer { .. } = &self.screen {
                     events.push(Event::DisclaimerAccepted);

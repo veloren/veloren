@@ -128,15 +128,7 @@ impl CompoundGraphic {
     //    self
     //}
 
-    fn draw<R: self::Renderer>(
-        &self,
-        renderer: &mut R,
-        _defaults: &R::Defaults,
-        layout: Layout<'_>,
-        _cursor_position: Point,
-        // Note: could use to skip elements outside the viewport
-        _viewport: &Rectangle,
-    ) -> R::Output {
+    fn draw<R: self::Renderer>(&self, renderer: &mut R, layout: Layout<'_>) -> R::Output {
         let [pixel_w, pixel_h] = self.graphics_size;
         let bounds = layout.bounds();
         let scale = Vec2::new(
@@ -158,7 +150,7 @@ impl CompoundGraphic {
             (bounds, graphic.kind)
         });
 
-        renderer.draw(graphics, /* self.color, */ layout)
+        renderer.draw(graphics)
     }
 }
 
@@ -194,12 +186,13 @@ where
     fn draw(
         &self,
         renderer: &mut R,
-        defaults: &R::Defaults,
+        _defaults: &R::Defaults,
         layout: Layout<'_>,
-        cursor_position: Point,
-        viewport: &Rectangle,
+        _cursor_position: Point,
+        // Note: could use to skip elements outside the viewport
+        _viewport: &Rectangle,
     ) -> R::Output {
-        Self::draw(self, renderer, defaults, layout, cursor_position, viewport)
+        Self::draw(self, renderer, layout)
     }
 
     fn hash_layout(&self, state: &mut Hasher) {
@@ -215,12 +208,7 @@ where
 }
 
 pub trait Renderer: iced::Renderer {
-    fn draw<I>(
-        &mut self,
-        graphics: I,
-        //color: Rgba<u8>,
-        layout: Layout<'_>,
-    ) -> Self::Output
+    fn draw<I>(&mut self, graphics: I) -> Self::Output
     where
         I: Iterator<Item = (Rectangle, GraphicKind)>;
 }
@@ -251,11 +239,11 @@ where
     fn draw(
         &self,
         renderer: &mut R,
-        defaults: &R::Defaults,
+        _defaults: &R::Defaults,
         layout: Layout<'_>,
-        cursor_position: Point,
-        viewport: &Rectangle,
+        _cursor_position: Point,
+        _viewport: &Rectangle,
     ) -> R::Output {
-        Self::draw(self, renderer, defaults, layout, cursor_position, viewport)
+        Self::draw(self, renderer, layout)
     }
 }

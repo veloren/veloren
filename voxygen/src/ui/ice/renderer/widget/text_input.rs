@@ -31,6 +31,7 @@ impl text_input::Renderer for IcedRenderer {
         };
 
         let mut glyph_calculator = self.cache.glyph_calculator();
+        // Note: keeping comments below for now in case this needs to be debugged again
         /* let width = */
         glyph_calculator
             .glyph_bounds(section)
@@ -126,6 +127,8 @@ impl text_input::Renderer for IcedRenderer {
     ) -> Self::Output {
         let is_mouse_over = bounds.contains(cursor_position);
 
+        // Note: will be useful in the future if we vary the style with the state of the
+        // text input
         /*
         let style = if state.is_focused() {
             style.focused()
@@ -224,34 +227,11 @@ impl text_input::Renderer for IcedRenderer {
             size,
             font,
         );
-        // TODO: delete if new arrangment behaves nicely
-        /*let section = glyph_brush::Section {
-            screen_position: (text_bounds.x * p_scale, text_bounds.center_y() * p_scale),
-            bounds: (
-                10000.0, /* text_bounds.width * p_scale */
-                text_bounds.height * p_scale,
-            ),
-            layout: glyph_brush::Layout::SingleLine {
-                line_breaker: Default::default(),
-                h_align: glyph_brush::HorizontalAlign::Left,
-                v_align: glyph_brush::VerticalAlign::Center,
-            },
-            text: vec![glyph_brush::Text {
-                text: display_text,
-                scale: (size as f32 * p_scale).into(),
-                font_id: font.0,
-                extra: (),
-            }],
-        };*/
 
         let text_primitive = Primitive::Text {
             glyphs,
-            //size: size as f32,
             bounds,
             linear_color,
-            /*font,
-             *horizontal_alignment,
-             *vertical_alignment, */
         };
 
         let primitive = match cursor_primitive {

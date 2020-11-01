@@ -19,6 +19,7 @@ impl image::Renderer for IcedRenderer {
                 handle: (handle, Rotation::None),
                 bounds: layout.bounds(),
                 color,
+                source_rect: None,
             },
             mouse::Interaction::default(),
         )

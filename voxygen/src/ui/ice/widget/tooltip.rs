@@ -310,14 +310,11 @@ where
         const PAD: f32 = 8.0; // TODO: allow configuration
         let space_above = (avoid.y - PAD).max(0.0);
         let space_below = (bounds.height - avoid.y - avoid.height - PAD).max(0.0);
-        //let space_left = avoid.x.min(0.0)
-        //let space_right = (bounds.width - avoid.x - avoid.width).min(0.0);
 
         let limits = layout::Limits::new(
             Size::ZERO,
             Size::new(bounds.width, space_above.max(space_below)),
         );
-        //.width(self.content.width());
 
         let mut node = self.content.layout(renderer, &limits);
 
@@ -360,7 +357,6 @@ where
             self.alpha,
             defaults,
             cursor_position,
-            // TODO: hopefully this works
             &layout.bounds(),
             &self.content,
             layout,

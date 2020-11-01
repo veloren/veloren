@@ -22,7 +22,7 @@ impl scrollable::Renderer for IcedRenderer {
     ) -> Option<scrollable::Scrollbar> {
         if content_bounds.height > bounds.height {
             // Area containing both scrollbar and scroller
-            let outer_width = (scrollbar_width.max(scroller_width) + 2 * scrollbar_margin) as f32 /* * self.p_scale */;
+            let outer_width = (scrollbar_width.max(scroller_width) + 2 * scrollbar_margin) as f32;
             let outer_bounds = Rectangle {
                 x: bounds.x + bounds.width - outer_width,
                 width: outer_width,
@@ -38,14 +38,14 @@ impl scrollable::Renderer for IcedRenderer {
 
             // Interactive scroller
             let visible_fraction = bounds.height / content_bounds.height;
-            let scroller_height = (bounds.height * visible_fraction)
-                .max((2 * SCROLLBAR_MIN_HEIGHT) as f32/* * self.p_scale*/);
+            let scroller_height =
+                (bounds.height * visible_fraction).max((2 * SCROLLBAR_MIN_HEIGHT) as f32);
             let y_offset = offset as f32 * visible_fraction;
 
             let scroller_bounds = Rectangle {
-                x: bounds.x + bounds.width - outer_width / 2.0 - (scrollbar_width / 2) as f32, /* * self.p_scale*/
+                x: bounds.x + bounds.width - outer_width / 2.0 - (scrollbar_width / 2) as f32,
                 y: scrollbar_bounds.y + y_offset,
-                width: scroller_width as f32, /* * self.p_scale*/
+                width: scroller_width as f32,
                 height: scroller_height,
             };
             Some(scrollable::Scrollbar {
@@ -85,6 +85,7 @@ impl scrollable::Renderer for IcedRenderer {
                 });
 
                 let style = style_sheet;
+                // Note: for future use if we vary style with the state of the scrollable
                 //let style = if state.is_scroller_grabbed() {
                 //    style_sheet.dragging()
                 //} else if is_mouse_over_scrollbar {
@@ -127,6 +128,7 @@ impl scrollable::Renderer for IcedRenderer {
                                     ..bounds
                                 },
                                 color,
+                                source_rect: None,
                             });
                             // Middle
                             primitives.push(Primitive::Image {
@@ -137,6 +139,7 @@ impl scrollable::Renderer for IcedRenderer {
                                     ..bounds
                                 },
                                 color,
+                                source_rect: None,
                             });
                             // Bottom
                             primitives.push(Primitive::Image {
@@ -147,6 +150,7 @@ impl scrollable::Renderer for IcedRenderer {
                                     ..bounds
                                 },
                                 color,
+                                source_rect: None,
                             });
                         },
                     }
@@ -162,6 +166,7 @@ impl scrollable::Renderer for IcedRenderer {
                             handle: (handle, Rotation::None),
                             bounds: scrollbar.bounds,
                             color,
+                            source_rect: None,
                         },
                     });
                 }

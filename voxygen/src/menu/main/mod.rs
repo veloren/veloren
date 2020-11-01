@@ -268,6 +268,7 @@ impl PlayState for MainMenuState {
                     global_state.singleplayer = Some(singleplayer);
                 },
                 MainMenuEvent::Quit => return PlayStateResult::Shutdown,
+                // Note: Keeping in case we re-add the disclaimer
                 /*MainMenuEvent::DisclaimerAccepted => {
                     global_state.settings.show_disclaimer = false
                 },*/
