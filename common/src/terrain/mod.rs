@@ -2,6 +2,7 @@ pub mod biome;
 pub mod block;
 pub mod chonk;
 pub mod map;
+pub mod site;
 pub mod sprite;
 pub mod structure;
 
@@ -10,6 +11,7 @@ pub use self::{
     biome::BiomeKind,
     block::{Block, BlockKind},
     map::MapSizeLg,
+    site::SitesKind,
     sprite::SpriteKind,
     structure::Structure,
 };
@@ -50,21 +52,92 @@ impl RectVolSize for TerrainChunkSize {
 pub struct TerrainChunkMeta {
     name: Option<String>,
     biome: BiomeKind,
+
+    chaos: f32,
+    alt: f32,
+    //basement: f32,
+    //water_alt: f32,
+    //downhill: Option<Vec2<i32>>,
+    //flux: f32,
+    temp: f32,
+    humidity: f32,
+    rockiness: f32,
+    //is_cliffs: bool,
+    //near_cliffs: bool,
+    tree_density: f32,
+    //forest_kind: ForestKind,
+    //spawn_rate: f32,
+    //river: RiverData,
+    //warp_factor: f32,
+    surface_veg: f32,
+    cave_alt: f32,
+    /*place: Option<Id<Place>>, */
+
+    /*path: (Way, Path),*/
+    /* contains_waypoint: bool, */
 }
 
 impl TerrainChunkMeta {
-    pub fn new(name: Option<String>, biome: BiomeKind) -> Self { Self { name, biome } }
+    pub fn new(
+        name: Option<String>,
+        biome: BiomeKind,
+        chaos: f32,
+        alt: f32,
+        temp: f32,
+        humidity: f32,
+        rockiness: f32,
+        tree_density: f32,
+        surface_veg: f32,
+        cave_alt: f32,
+    ) -> Self {
+        Self {
+            name,
+            biome,
+            chaos,
+            alt,
+            temp,
+            humidity,
+            rockiness,
+            tree_density,
+            surface_veg,
+            cave_alt,
+        }
+    }
 
     pub fn void() -> Self {
         Self {
             name: None,
             biome: BiomeKind::Void,
+            chaos: 0.0,
+            alt: 0.0,
+            temp: 0.0,
+            humidity: 0.0,
+            rockiness: 0.0,
+            tree_density: 0.0,
+            surface_veg: 0.0,
+            cave_alt: 0.0,
         }
     }
 
     pub fn name(&self) -> &str { self.name.as_deref().unwrap_or("Wilderness") }
 
     pub fn biome(&self) -> BiomeKind { self.biome }
+
+    pub fn chaos(&self) -> f32 { self.chaos }
+
+    pub fn alt(&self) -> f32 { self.alt }
+
+    pub fn temp(&self) -> f32 { self.temp }
+
+    pub fn humidity(&self) -> f32 { self.humidity }
+
+    pub fn rockiness(&self) -> f32 { self.rockiness }
+
+    pub fn tree_density(&self) -> f32 { self.tree_density }
+
+    pub fn surface_veg(&self) -> f32 { self.surface_veg }
+
+    pub fn cave_alt(&self) -> f32 { self.cave_alt }
 }
 
 // Terrain type aliases
