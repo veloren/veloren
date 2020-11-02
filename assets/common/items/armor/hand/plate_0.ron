@@ -1,6 +1,6 @@
 ItemDef(
     name: "Iron Handguards",
-    description: "Gauntlets forged from iron.",
+    description: "Heavy chunks of metal plate, not the most comfortable but keeps the wearer safe.",
     kind: Armor(
         (
             kind: Hand("Plate0"),

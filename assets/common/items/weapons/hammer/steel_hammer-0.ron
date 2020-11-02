@@ -1,6 +1,6 @@
 ItemDef(
     name: "Steel Hammer",
-    description: "Forged with steel.",
+    description: "While lighter and more durable than its iron counterparts, it is nonetheless just as deadly.",
     kind: Tool(
         (
             kind: Hammer("SteelHammer0"),    

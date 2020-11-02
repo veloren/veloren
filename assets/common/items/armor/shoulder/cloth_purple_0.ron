@@ -1,6 +1,6 @@
 ItemDef(
     name: "Purple Linen Coat",
-    description: "A warm coat.",
+    description: "A rough fabric coat, dyed purple.",
     kind: Armor(
         (
             kind: Shoulder("ClothPurple0"),

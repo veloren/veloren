@@ -1,6 +1,6 @@
 ItemDef(
     name: "Iron Shoulderguards",
-    description: "Shoulderguards forged from iron.",
+    description: "Heavy iron shoulder protection.",
     kind: Armor(
         (
             kind: Shoulder("Plate0"),

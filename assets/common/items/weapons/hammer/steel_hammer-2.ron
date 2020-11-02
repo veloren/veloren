@@ -1,6 +1,6 @@
 ItemDef(
     name: "Steel Club",
-    description: "Forged with steel.",
+    description: "A heavy and wide baton made of a durable metal alloy, decorated with spikes.",
     kind: Tool(
         (
             kind: Hammer("SteelHammer2"),    

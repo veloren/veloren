@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Pike Hammer",
-    description: "Forged with iron.",
+    name: "Lucerne Hammer",
+    description: "A hybrid fusion of a warhammer and a polearm.",
     kind: Tool(
         (
             kind: Hammer("IronHammer5"),    

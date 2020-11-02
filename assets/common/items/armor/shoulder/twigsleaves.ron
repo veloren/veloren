@@ -1,6 +1,6 @@
 ItemDef(
     name: "Leafy Shoulders",
-    description: "Spaulders made from tied twigs and leaves.",
+    description: "Leaves cover over the twigs to provide better protection from the elements.",
     kind: Armor(
         (
             kind: Shoulder("LeafyShoulder"),

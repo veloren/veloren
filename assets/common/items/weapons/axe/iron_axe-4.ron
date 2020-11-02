@@ -1,6 +1,6 @@
 ItemDef(
     name: "Butcher's Axe",
-    description: "Forged from iron.",
+    description: "This axe has a heavy iron head used to cleave nearly anything.",
     kind: Tool(
         (
             kind: Axe("IronAxe4"),    

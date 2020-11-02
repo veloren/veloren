@@ -1,6 +1,6 @@
 ItemDef(
     name: "Bronze Hammer",
-    description: "Forged with bronze.",
+    description: "A heavy hammer forged from a simple metal alloy.",
     kind: Tool(
         (
             kind: Hammer("BronzeHammer0"),    

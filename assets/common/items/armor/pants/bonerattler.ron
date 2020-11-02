@@ -1,6 +1,6 @@
 ItemDef(
     name: "Bonerattler Chausses",
-    description: "Made from the strongest bones.",
+    description: "Assorted bones and hide from a bonerattler provide protection around the wearer's legs.",
     kind: Armor(
         (
             kind: Pants("Bonerattler"),

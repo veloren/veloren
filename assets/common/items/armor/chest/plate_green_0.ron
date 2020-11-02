@@ -1,6 +1,6 @@
 ItemDef(
     name: "Iron Chestplate",
-    description: "A chestplate forged from iron.",
+    description: "Formed iron plate resulting in very heavy but solid protection, worn over a simple rough linen shirt, dyed green.",
     kind: Armor(
         (
             kind: Chest("PlateGreen0"),

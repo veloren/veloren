@@ -1,6 +1,6 @@
 ItemDef(
     name: "Steel Shoulder Pad",
-    description: "A simple shoulder pad made of steel.",
+    description: "The metal alloy plates provide better protection and comfort.",
     kind: Armor(
         (
             kind: Shoulder("Steel0"),

@@ -1,6 +1,6 @@
 ItemDef(
     name: "Leafy Shirt",
-    description: "A shirt woven from twigs and leaves.",
+    description: "Leaves cover the magically imbued twig shirt, providing a more natural appearance.",
     kind: Armor(
         (
             kind: Chest("Twigsleaves"),

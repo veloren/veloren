@@ -1,6 +1,6 @@
 ItemDef(
     name: "Flowery Shirt",
-    description: "A shirt woven from twigs and flowers.",
+    description: "Magically imbued twigs decorated with flowers and their stems, letting others know your intentions of peace and love.",
     kind: Armor(
         (
             kind: Chest("Twigsflowers"),

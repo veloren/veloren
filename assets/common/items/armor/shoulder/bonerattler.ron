@@ -1,6 +1,6 @@
 ItemDef(
     name: "Bonerattler Shoulder Pad",
-    description: "Made from the strongest bones.",
+    description: "Roughly formed bonerattler hide provide some strong protection.",
     kind: Armor(
         (
             kind: Shoulder("Bonerattler"),

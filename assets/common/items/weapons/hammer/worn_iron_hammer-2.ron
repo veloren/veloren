@@ -1,6 +1,6 @@
 ItemDef(
     name: "Worn Human Mace",
-    description: "The previous owner won't miss it much.",
+    description: "An unremarkable mace, that has seen a lot of use.",
     kind: Tool(
         (
             kind: Hammer("WornIronHammer2"),    

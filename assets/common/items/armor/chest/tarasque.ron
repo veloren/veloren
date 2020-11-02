@@ -1,6 +1,6 @@
 ItemDef(
     name: "Tarasque Cuirass",
-    description: "As strong as a tarasque shell.",
+    description: "The rough protective underbelly and back of a tarasque's shell, formed to fit humanoid proportions.",
     kind: Armor(
         (
             kind: Chest("Tarasque"),

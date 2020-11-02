@@ -1,6 +1,6 @@
 ItemDef(
     name: "Brute's Hammer",
-    description: "Forged with steel.",
+    description: "This destructive hammer was likely wielded by a vicious killer.",
     kind: Tool(
         (
             kind: Hammer("SteelHammer4"),    

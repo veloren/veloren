@@ -1,6 +1,6 @@
 ItemDef(
     name: "Steel Boots",
-    description: "Boots forged from steel.",
+    description: "Metal alloy boots providing a more comfortable and durable protection.",
     kind: Armor(
         (
             kind: Foot("Steel0"),

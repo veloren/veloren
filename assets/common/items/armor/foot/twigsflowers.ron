@@ -1,6 +1,6 @@
 ItemDef(
     name: "Flowery Boots",
-    description: "Boots woven from twigs and flowers.",
+    description: "Woven and magically imbued, these boots of twigs and flowers provide simple protection and peace to the wearer.",
     kind: Armor(
         (
             kind: Foot("Twigsflowers"),

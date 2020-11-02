@@ -1,6 +1,6 @@
 ItemDef(
     name: "Spade Axe",
-    description: "Forged from steel.",
+    description: "This axe is designed to mimic the playing card suit, swiftly slicing through the air.",
     kind: Tool(
         (
             kind: Axe("SteelAxe6"),    
