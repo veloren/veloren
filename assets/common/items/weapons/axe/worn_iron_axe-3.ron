@@ -1,6 +1,6 @@
 ItemDef(
     name: "Worn Orcish Axe",
-    description: "Hopefully it's previous owner won't miss it.",
+    description: "Rough cut iron makes it hard to tell that this axe is even used, other than how old it feels.",
     kind: Tool(
         (
             kind: Axe("WornIronAxe3"),

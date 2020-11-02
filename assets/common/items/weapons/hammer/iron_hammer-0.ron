@@ -1,6 +1,6 @@
 ItemDef(
     name: "Iron Hammer",
-    description: "Forged with iron.",
+    description: "This heavy, solid chunk iron hammer head is simple and brutal in its design.",
     kind: Tool(
         (
             kind: Hammer("IronHammer0"),    

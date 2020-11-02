@@ -1,6 +1,6 @@
 ItemDef(
     name: "Iron and Leather Spaulders",
-    description: "Robust spaulders made from iron and leather.",
+    description: "Leather shoulders decorated with heavy iron hooks provide protection to the wearer.",
     kind: Armor(
         (
             kind: Shoulder("IronLeather0"),

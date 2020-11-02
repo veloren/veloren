@@ -1,6 +1,6 @@
 ItemDef(
     name: "Battle Mace",
-    description: "Forged with steel.",
+    description: "A heavy, spiked steel ball tip provides a great smashing weapon.",
     kind: Tool(
         (
             kind: Hammer("SteelHammer3"),    

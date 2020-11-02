@@ -1,6 +1,6 @@
 ItemDef(
     name: "Druid's Vest",
-    description: "Druidic chest wrappings.",
+    description: "Vines and leaves formed into a tunic.",
     kind: Armor(
         (
             kind: Chest("Druid"),

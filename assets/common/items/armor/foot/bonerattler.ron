@@ -1,6 +1,6 @@
 ItemDef(
     name: "Bonerattler Boots",
-    description: "Made from the strongest bones.",
+    description: "Boots made from the claws and hide of a bonerattler.",
     kind: Armor(
         (
             kind: Foot("Bonerattler"),

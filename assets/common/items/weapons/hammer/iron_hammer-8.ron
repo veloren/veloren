@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Lucerne Hammer",
-    description: "Forged with iron.",
+    name: "Pike Hammer",
+    description: "This hammer has a spike on the opposite end, making it dangerous when swung either direction.",
     kind: Tool(
         (
             kind: Hammer("IronHammer8"),    

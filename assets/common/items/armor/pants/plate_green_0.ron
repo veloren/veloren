@@ -1,6 +1,6 @@
 ItemDef(
     name: "Iron Legguards",
-    description: "Greaves forged from iron.",
+    description: "Heavy iron plate formed into protective greaves, decorated with rough green fabric.",
     kind: Armor(
         (
             kind: Pants("PlateGreen0"),

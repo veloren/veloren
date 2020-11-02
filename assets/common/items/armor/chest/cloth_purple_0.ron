@@ -1,6 +1,6 @@
 ItemDef(
     name: "Purple Linen Chest",
-    description: "Soft and warm.",
+    description: "A stylish rough fabric surcoat, dyed purple.",
     kind: Armor(
         (
             kind: Chest("ClothPurple0"),

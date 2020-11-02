@@ -1,6 +1,6 @@
 ItemDef(
     name: "Tarasque Chausses",
-    description: "As strong as a tarasque shell.",
+    description: "Fragmented tarasque shell tied together to form protective leg armor.",
     kind: Armor(
         (
             kind: Pants("Tarasque"),

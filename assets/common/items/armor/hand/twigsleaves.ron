@@ -1,6 +1,6 @@
 ItemDef(
     name: "Leafy Wraps",
-    description: "Handwraps woven from twigs and leaves.",
+    description: "Leaves help hide the magic-interlocking twigs, and provide mild protection from the elements.",
     kind: Armor(
         (
             kind: Hand("Twigsleaves"),

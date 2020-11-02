@@ -1,6 +1,6 @@
 ItemDef(
     name: "Twig Shirt",
-    description: "A shirt woven from twigs.",
+    description: "Small sticks magically imbued to hold together to form a shirt.",
     kind: Armor(
         (
             kind: Chest("Twig"),

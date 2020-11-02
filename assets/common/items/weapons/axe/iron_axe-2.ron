@@ -1,6 +1,6 @@
 ItemDef(
     name: "Cyclone Axe",
-    description: "Forged from iron.",
+    description: "The iron axe head is split into two distinct curves, giving it a unique appearance.",
     kind: Tool(
         (
             kind: Axe("IronAxe2"),    

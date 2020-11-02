@@ -1,6 +1,6 @@
 ItemDef(
     name: "Wolfen Axe",
-    description: "Forged from iron.",
+    description: "Strikes from this axe look like wolf bites in flesh.",
     kind: Tool(
         (
             kind: Axe("IronAxe9"),    

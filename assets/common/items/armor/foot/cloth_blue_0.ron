@@ -1,6 +1,6 @@
 ItemDef(
     name: "Blue Linen Boots",
-    description: "Soft and warm.",
+    description: "Cobbled rough fabric boots, dyed blue.",
     kind: Armor(
         (
             kind: Foot("ClothBlue0"),

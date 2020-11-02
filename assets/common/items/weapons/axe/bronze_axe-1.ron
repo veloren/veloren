@@ -1,6 +1,6 @@
 ItemDef(
     name: "Discus Axe",
-    description: "Forged from bronze.",
+    description: "While the metal alloy is relatively simple, this unique circular axe has a unique appearance.",
     kind: Tool(
         (
             kind: Axe("BronzeAxe1"),    
