@@ -155,7 +155,18 @@ impl World {
             },
         };
 
-        let meta = TerrainChunkMeta::new(sim_chunk.get_name(&self.sim), sim_chunk.get_biome());
+        let meta = TerrainChunkMeta::new(
+            sim_chunk.get_name(&self.sim),
+            sim_chunk.get_biome(),
+            sim_chunk.chaos,
+            sim_chunk.alt,
+            sim_chunk.temp,
+            sim_chunk.humidity,
+            sim_chunk.rockiness,
+            sim_chunk.tree_density,
+            sim_chunk.surface_veg,
+            sim_chunk.cave.1.alt,
+        );
 
         let mut chunk = TerrainChunk::new(base_z, stone, air, meta);
 

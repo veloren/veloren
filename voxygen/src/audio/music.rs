@@ -40,7 +40,11 @@
 //!   permits usage of the track for non-commercial use
 use crate::audio::AudioFrontend;
 use client::Client;
-use common::{assets, state::State, terrain::BiomeKind};
+use common::{
+    assets,
+    state::State,
+    terrain::{BiomeKind, SitesKind},
+};
 use rand::{seq::IteratorRandom, thread_rng};
 use serde::Deserialize;
 use std::time::Instant;
@@ -64,6 +68,7 @@ pub struct SoundtrackItem {
     /// Whether this track should play during day or night
     timing: Option<DayPeriod>,
     biome: Option<BiomeKind>,
+    site: Option<SitesKind>,
 }
 
 /// Allows control over when a track should play based on in-game time of day
@@ -120,25 +125,38 @@ impl MusicMgr {
             _ => self.last_biome,
         };
 
+        if let Some(current_chunk) = client.current_chunk() {
+            println!("biome: {:?}", current_chunk.meta().biome());
+            println!("chaos: {}", current_chunk.meta().chaos());
+            println!("alt: {}", current_chunk.meta().alt());
+            println!("temp: {}", current_chunk.meta().temp());
+            println!("tree_density: {}", current_chunk.meta().tree_density());
+            println!("humidity: {}", current_chunk.meta().humidity());
+            println!("cave_alt: {}", current_chunk.meta().cave_alt());
+            if let Some(position) = client.current_position() {
+                println!("player_alt: {}", position[2]);
+            }
+        }
+
         if audio.music_enabled()
             && !self.soundtrack.tracks.is_empty()
-            && (self.began_playing.elapsed().as_secs_f64() > self.next_track_change
-                || self.playing == PlayState::Stopped)
-            && self.playing != PlayState::FadingOut
+            && self.began_playing.elapsed().as_secs_f64() > self.next_track_change
+        //        || self.playing == PlayState::Stopped)
+        //    && self.playing != PlayState::FadingOut
         {
             self.play_random_track(audio, state, client);
-            self.playing = PlayState::Playing;
-        } else if current_biome != self.last_biome && self.playing == PlayState::Playing {
-            audio.fade_out_exploration_music();
-            self.began_fading = Instant::now();
-            self.playing = PlayState::FadingOut;
-        } else if self.began_fading.elapsed().as_secs_f64() > 5.0
-            && self.playing == PlayState::FadingOut
-        {
-            audio.stop_exploration_music();
-            self.playing = PlayState::Stopped;
+        //    self.playing = PlayState::Playing;
+        //} else if current_biome != self.last_biome && self.playing == PlayState::Playing {
+        //    audio.fade_out_exploration_music();
+        //    self.began_fading = Instant::now();
+        //    self.playing = PlayState::FadingOut;
+        //} else if self.began_fading.elapsed().as_secs_f64() > 5.0
+        //    && self.playing == PlayState::FadingOut
+        //{
+        //    audio.stop_exploration_music();
+        //    self.playing = PlayState::Stopped;
         }
-        self.last_biome = current_biome;
+        //self.last_biome = current_biome;
     }
 
     fn play_random_track(&mut self, audio: &mut AudioFrontend, state: &State, client: &Client) {
@@ -148,6 +166,7 @@ impl MusicMgr {
         let game_time = (state.get_time_of_day() as u64 % 86400) as u32;
         let current_period_of_day = Self::get_current_day_period(game_time);
         let current_biome = Self::get_current_biome(client);
+        let current_site = Self::get_current_site(client);
         let mut rng = thread_rng();
 
         let maybe_track = self
@@ -163,6 +182,10 @@ impl MusicMgr {
             })
             .filter(|track| match &track.biome {
                 Some(biome) => biome == &current_biome,
+                None => true,
+            })
+            .filter(|track| match &track.site {
+                Some(site) => site == &current_site,
                 None => true,
             })
             .choose(&mut rng);
@@ -188,6 +211,26 @@ impl MusicMgr {
         match client.current_chunk() {
             Some(chunk) => chunk.meta().biome(),
             _ => BiomeKind::Void,
+        }
+    }
+
+    fn get_current_site(client: &Client) -> SitesKind {
+        let mut player_alt = 0.0;
+        if let Some(position) = client.current_position() {
+            player_alt = position[2];
+        }
+        let mut cave_alt = 0.0;
+        let mut alt = 0.0;
+        if let Some(chunk) = client.current_chunk() {
+            alt = chunk.meta().alt();
+            cave_alt = chunk.meta().cave_alt();
+        }
+        if player_alt < cave_alt && cave_alt != 0.0 {
+            SitesKind::Cave
+        } else if player_alt < (alt - 30.0) {
+            SitesKind::Dungeon
+        } else {
+            SitesKind::None
         }
     }
 
