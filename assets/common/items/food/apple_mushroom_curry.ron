@@ -1,15 +1,15 @@
 ItemDef(
     name: "Mushroom Curry",
-    description: "Restores 120 Health over 5 seconds\n\nWho could say no to that?",
+    description: "Restores 120 Health over 20 seconds\n\nWho could say no to that?",
     kind: Consumable(
         kind: "AppleShroomCurry",
         effect: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 240.0,
+                    strength: 60.0,
                     duration: Some((
-                            secs: 5,
+                            secs: 20,
                             nanos: 0,
                         )),
                     ),

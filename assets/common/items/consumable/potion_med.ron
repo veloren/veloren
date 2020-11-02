@@ -4,9 +4,16 @@ ItemDef(
     kind: Consumable(
         kind: "PotionMed",
         effect: [
-            Health((
-                amount: 700,
-                cause: Item,
+            Buff((
+                kind: Saturation,
+                data: (
+                    strength: 700.0,
+                    duration: Some((
+                            secs: 1,
+                            nanos: 0,
+                        )),
+                    ),
+                cat_ids: [Natural],
             )),
         ]
     ),
