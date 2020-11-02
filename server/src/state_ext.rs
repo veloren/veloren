@@ -242,6 +242,10 @@ impl StateExt for State {
                 z_max: body.height(),
             });
             self.write_component(entity, body);
+            self.write_component(
+                entity,
+                comp::Health::new(stats.body_type, stats.level.level()),
+            );
             self.write_component(entity, stats);
             self.write_component(entity, inventory);
             self.write_component(entity, loadout);

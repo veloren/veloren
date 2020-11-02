@@ -1158,10 +1158,13 @@ fn handle_explosion(
                     pos: pos.0,
                     explosion: Explosion {
                         effects: vec![
-                            RadiusEffect::EntityEffect(Effect::Health(comp::HealthChange {
-                                amount: (-100.0 * power) as i32,
-                                cause: comp::HealthSource::Explosion { owner: None },
-                            })),
+                            RadiusEffect::Entity(
+                                None,
+                                Effect::Health(comp::HealthChange {
+                                    amount: (-100.0 * power) as i32,
+                                    cause: comp::HealthSource::Explosion { owner: None },
+                                }),
+                            ),
                             RadiusEffect::TerrainDestruction(power),
                         ],
                         radius: 3.0 * power,

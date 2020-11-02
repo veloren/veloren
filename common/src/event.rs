@@ -34,7 +34,7 @@ pub enum ServerEvent {
         reagent: Option<Reagent>,
     },
     Damage {
-        uid: Uid,
+        entity: EcsEntity,
         change: comp::HealthChange,
     },
     Destroy {
@@ -111,7 +111,7 @@ pub enum ServerEvent {
         buff_change: comp::BuffChange,
     },
     EnergyChange {
-        uid: Uid,
+        entity: EcsEntity,
         change: comp::EnergyChange,
     },
 }

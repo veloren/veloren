@@ -82,7 +82,7 @@ impl Server {
                 ServerEvent::Knockback { entity, impulse } => {
                     handle_knockback(&self, entity, impulse)
                 },
-                ServerEvent::Damage { uid, change } => handle_damage(&self, uid, change),
+                ServerEvent::Damage { entity, change } => handle_damage(&self, entity, change),
                 ServerEvent::Destroy { entity, cause } => handle_destroy(self, entity, cause),
                 ServerEvent::InventoryManip(entity, manip) => handle_inventory(self, entity, manip),
                 ServerEvent::GroupManip(entity, manip) => handle_group(self, entity, manip),
@@ -137,8 +137,8 @@ impl Server {
                     entity,
                     buff_change,
                 } => handle_buff(self, entity, buff_change),
-                ServerEvent::EnergyChange { uid, change } => {
-                    handle_energy_change(&self, uid, change)
+                ServerEvent::EnergyChange { entity, change } => {
+                    handle_energy_change(&self, entity, change)
                 },
             }
         }

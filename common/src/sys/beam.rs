@@ -6,7 +6,7 @@ use crate::{
     event::{EventBus, ServerEvent},
     state::{DeltaTime, Time},
     sync::{Uid, UidAllocator},
-    DamageSource,
+    DamageSource, GroupTarget,
 };
 use specs::{saveload::MarkerAllocator, Entities, Join, Read, ReadStorage, System, WriteStorage};
 use std::time::Duration;
@@ -68,8 +68,8 @@ impl<'a> System<'a> for Sys {
         let dt = dt.0;
 
         // Beams
-        for (entity, uid, pos, ori, beam_segment) in
-            (&entities, &uids, &positions, &orientations, &beam_segments).join()
+        for (entity, pos, ori, beam_segment) in
+            (&entities, &positions, &orientations, &beam_segments).join()
         {
             let creation_time = match beam_segment.creation {
                 Some(time) => time,
@@ -163,12 +163,19 @@ impl<'a> System<'a> for Sys {
                         .map(|group_a| Some(group_a) == groups.get(b))
                         .unwrap_or(Some(*uid_b) == beam_segment.owner);
 
+                    let target_group = if same_group {
+                        GroupTarget::InGroup
+                    } else {
+                        GroupTarget::OutOfGroup
+                    };
+
                     // If owner, shouldn't heal or damage
                     if Some(*uid_b) == beam_segment.owner {
                         continue;
                     }
 
-                    let damage = if let Some(damage) = beam_segment.damages.get_damage(same_group) {
+                    let damage = if let Some(damage) = beam_segment.damages.get_damage(target_group)
+                    {
                         damage
                     } else {
                         continue;
@@ -181,25 +188,22 @@ impl<'a> System<'a> for Sys {
                     let change = damage.modify_damage(block, loadouts.get(b), beam_segment.owner);
 
                     if !matches!(damage.source, DamageSource::Healing) {
-                        server_emitter.emit(ServerEvent::Damage {
-                            uid: *uid_b,
-                            change,
-                        });
-                        if beam_segment.lifesteal_eff > 0.0 {
-                            server_emitter.emit(ServerEvent::Damage {
-                                uid: beam_segment.owner.unwrap_or(*uid),
-                                change: HealthChange {
-                                    amount: (-change.amount as f32 * beam_segment.lifesteal_eff)
-                                        as i32,
-                                    cause: HealthSource::Healing {
-                                        by: beam_segment.owner,
+                        server_emitter.emit(ServerEvent::Damage { entity: b, change });
+                        if let Some(entity) = beam_owner {
+                            if beam_segment.lifesteal_eff > 0.0 {
+                                server_emitter.emit(ServerEvent::Damage {
+                                    entity,
+                                    change: HealthChange {
+                                        amount: (-change.amount as f32 * beam_segment.lifesteal_eff)
+                                            as i32,
+                                        cause: HealthSource::Healing {
+                                            by: beam_segment.owner,
+                                        },
                                     },
-                                },
-                            });
-                        }
-                        if let Some(uid) = beam_segment.owner {
+                                });
+                            }
                             server_emitter.emit(ServerEvent::EnergyChange {
-                                uid,
+                                entity,
                                 change: EnergyChange {
                                     amount: beam_segment.energy_regen as i32,
                                     source: EnergySource::HitEnemy,
@@ -208,19 +212,15 @@ impl<'a> System<'a> for Sys {
                         }
                     } else if let Some(energy) = beam_owner.and_then(|o| energies.get(o)) {
                         if energy.current() > beam_segment.energy_cost {
-                            if let Some(uid) = beam_segment.owner {
-                                server_emitter.emit(ServerEvent::EnergyChange {
-                                    uid,
-                                    change: EnergyChange {
-                                        amount: -(beam_segment.energy_cost as i32), // Stamina use
-                                        source: EnergySource::Ability,
-                                    },
-                                })
-                            }
-                            server_emitter.emit(ServerEvent::Damage {
-                                uid: *uid_b,
-                                change,
+                            server_emitter.emit(ServerEvent::EnergyChange {
+                                entity: beam_owner.unwrap(), /* If it's able to get an energy
+                                                              * component, the entity exists */
+                                change: EnergyChange {
+                                    amount: -(beam_segment.energy_cost as i32), // Stamina use
+                                    source: EnergySource::Ability,
+                                },
                             });
+                            server_emitter.emit(ServerEvent::Damage { entity: b, change });
                         }
                     }
                     // Adds entities that were hit to the hit_entities list on the beam, sees if it

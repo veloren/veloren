@@ -21,14 +21,23 @@ pub struct Damages {
 impl Damages {
     pub fn new(enemy: Option<Damage>, group: Option<Damage>) -> Self { Damages { enemy, group } }
 
-    pub fn get_damage(self, same_group: bool) -> Option<Damage> {
-        if same_group { self.group } else { self.enemy }
+    pub fn get_damage(self, group_target: GroupTarget) -> Option<Damage> {
+        match group_target {
+            GroupTarget::InGroup => self.group,
+            GroupTarget::OutOfGroup => self.enemy,
+        }
     }
 
     pub fn contains_damage(self, source: DamageSource) -> bool {
         self.enemy.map_or(false, |e| e.source == source)
             || self.group.map_or(false, |g| g.source == source)
     }
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum GroupTarget {
+    InGroup,
+    OutOfGroup,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]

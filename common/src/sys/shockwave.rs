@@ -7,6 +7,7 @@ use crate::{
     state::{DeltaTime, Time},
     sync::{Uid, UidAllocator},
     util::Dir,
+    GroupTarget,
 };
 use specs::{saveload::MarkerAllocator, Entities, Join, Read, ReadStorage, System, WriteStorage};
 use vek::*;
@@ -177,6 +178,12 @@ impl<'a> System<'a> for Sys {
                     .map(|group_a| Some(group_a) == groups.get(b))
                     .unwrap_or(Some(*uid_b) == shockwave.owner);
 
+                let target_group = if same_group {
+                    GroupTarget::InGroup
+                } else {
+                    GroupTarget::OutOfGroup
+                };
+
                 // Check if it is a hit
                 let hit = entity != b
                     && !health_b.is_dead
@@ -192,7 +199,7 @@ impl<'a> System<'a> for Sys {
                     && (!shockwave.requires_ground || physics_state_b.on_ground);
 
                 if hit {
-                    let damage = if let Some(damage) = shockwave.damages.get_damage(same_group) {
+                    let damage = if let Some(damage) = shockwave.damages.get_damage(target_group) {
                         damage
                     } else {
                         continue;
@@ -205,10 +212,7 @@ impl<'a> System<'a> for Sys {
                     let change = damage.modify_damage(block, loadouts.get(b), Some(owner_uid));
 
                     if change.amount != 0 {
-                        server_emitter.emit(ServerEvent::Damage {
-                            uid: *uid_b,
-                            change,
-                        });
+                        server_emitter.emit(ServerEvent::Damage { entity: b, change });
                         shockwave_hit_list.hit_entities.push(*uid_b);
                         let kb_dir = Dir::new((pos_b.0 - pos.0).try_normalized().unwrap_or(*ori.0));
                         let impulse = shockwave.knockback.calculate_impulse(kb_dir);

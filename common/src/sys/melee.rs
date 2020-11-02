@@ -5,6 +5,7 @@ use crate::{
     span,
     sync::Uid,
     util::Dir,
+    GroupTarget,
 };
 use rand::{thread_rng, Rng};
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
@@ -75,9 +76,8 @@ impl<'a> System<'a> for Sys {
             attack.applied = true;
 
             // Go through all other entities
-            for (b, uid_b, pos_b, ori_b, scale_b_maybe, character_b, health_b, body_b) in (
+            for (b, pos_b, ori_b, scale_b_maybe, character_b, health_b, body_b) in (
                 &entities,
-                &uids,
                 &positions,
                 &orientations,
                 scales.maybe(),
@@ -110,7 +110,13 @@ impl<'a> System<'a> for Sys {
                         .map(|group_a| Some(group_a) == groups.get(b))
                         .unwrap_or(false);
 
-                    let damage = if let Some(damage) = attack.damages.get_damage(same_group) {
+                    let target_group = if same_group {
+                        GroupTarget::InGroup
+                    } else {
+                        GroupTarget::OutOfGroup
+                    };
+
+                    let damage = if let Some(damage) = attack.damages.get_damage(target_group) {
                         damage
                     } else {
                         continue;
@@ -122,10 +128,7 @@ impl<'a> System<'a> for Sys {
                     let change = damage.modify_damage(block, loadouts.get(b), Some(*uid));
 
                     if change.amount != 0 {
-                        server_emitter.emit(ServerEvent::Damage {
-                            uid: *uid_b,
-                            change,
-                        });
+                        server_emitter.emit(ServerEvent::Damage { entity: b, change });
 
                         // Apply bleeding buff on melee hits with 10% chance
                         // TODO: Don't have buff uniformly applied on all melee attacks
