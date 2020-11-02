@@ -20,7 +20,6 @@ pub mod persistence;
 pub mod presence;
 pub mod settings;
 pub mod state_ext;
-pub mod streams;
 pub mod sys;
 #[cfg(not(feature = "worldgen"))] mod test_world;
 
@@ -43,9 +42,6 @@ use crate::{
     login_provider::LoginProvider,
     presence::{Presence, RegionSubscription},
     state_ext::StateExt,
-    streams::{
-        CharacterScreenStream, GeneralStream, GetStream, InGameStream, PingStream, RegisterStream,
-    },
     sys::sentinel::{DeletedEntities, TrackedComps},
 };
 use common::{
@@ -193,11 +189,6 @@ impl Server {
         state.ecs_mut().register::<RegionSubscription>();
         state.ecs_mut().register::<Client>();
         state.ecs_mut().register::<Presence>();
-        state.ecs_mut().register::<GeneralStream>();
-        state.ecs_mut().register::<PingStream>();
-        state.ecs_mut().register::<RegisterStream>();
-        state.ecs_mut().register::<CharacterScreenStream>();
-        state.ecs_mut().register::<InGameStream>();
 
         //Alias validator
         let banned_words_paths = &settings.banned_words_files;
@@ -825,16 +816,14 @@ impl Server {
 
     fn initialize_client(
         &mut self,
-        mut incoming: crate::connection_handler::IncomingClient,
+        client: crate::connection_handler::IncomingClient,
     ) -> Result<Option<specs::Entity>, Error> {
-        let client = incoming.client;
-
         if self.settings().max_players <= self.state.ecs().read_storage::<Client>().join().count() {
             trace!(
                 ?client.participant,
                 "to many players, wont allow participant to connect"
             );
-            incoming.register.0.send(ServerInit::TooManyPlayers)?;
+            client.send(ServerInit::TooManyPlayers)?;
             return Ok(None);
         }
 
@@ -843,11 +832,6 @@ impl Server {
             .ecs_mut()
             .create_entity_synced()
             .with(client)
-            .with(incoming.general)
-            .with(incoming.ping)
-            .with(incoming.register)
-            .with(incoming.character)
-            .with(incoming.in_game)
             .build();
         self.state
             .ecs()
@@ -859,10 +843,9 @@ impl Server {
         debug!("Starting initial sync with client.");
         self.state
             .ecs()
-            .write_storage::<RegisterStream>()
-            .get_mut(entity)
+            .read_storage::<Client>()
+            .get(entity)
             .unwrap()
-            .0
             .send(ServerInit::GameSync {
                 // Send client their entity
                 entity_package: TrackedComps::fetch(&self.state.ecs())
@@ -905,73 +888,11 @@ impl Server {
     where
         S: Into<ServerMsg>,
     {
-        const ERR: &str =
-            "Don't do that. Sending these messages is only done ONCE at connect and not by this fn";
-        match msg.into() {
-            ServerMsg::Info(_) => panic!(ERR),
-            ServerMsg::Init(_) => panic!(ERR),
-            ServerMsg::RegisterAnswer(msg) => {
-                self.state
-                    .ecs()
-                    .write_storage::<RegisterStream>()
-                    .get_mut(entity)
-                    .map(|s| s.send(msg));
-            },
-            ServerMsg::General(msg) => {
-                match &msg {
-                    //Character Screen related
-                    ServerGeneral::CharacterDataLoadError(_)
-                    | ServerGeneral::CharacterListUpdate(_)
-                    | ServerGeneral::CharacterActionError(_)
-                    | ServerGeneral::CharacterSuccess => self
-                        .state
-                        .ecs()
-                        .write_storage::<CharacterScreenStream>()
-                        .get_mut(entity)
-                        .map(|s| s.send(msg)),
-                    //Ingame related
-                    ServerGeneral::GroupUpdate(_)
-                    | ServerGeneral::GroupInvite { .. }
-                    | ServerGeneral::InvitePending(_)
-                    | ServerGeneral::InviteComplete { .. }
-                    | ServerGeneral::ExitInGameSuccess
-                    | ServerGeneral::InventoryUpdate(_, _)
-                    | ServerGeneral::TerrainChunkUpdate { .. }
-                    | ServerGeneral::TerrainBlockUpdates(_)
-                    | ServerGeneral::SetViewDistance(_)
-                    | ServerGeneral::Outcomes(_)
-                    | ServerGeneral::Knockback(_) => self
-                        .state
-                        .ecs()
-                        .write_storage::<InGameStream>()
-                        .get_mut(entity)
-                        .map(|s| s.send(msg)),
-                    // Always possible
-                    ServerGeneral::PlayerListUpdate(_)
-                    | ServerGeneral::ChatMsg(_)
-                    | ServerGeneral::SetPlayerEntity(_)
-                    | ServerGeneral::TimeOfDay(_)
-                    | ServerGeneral::EntitySync(_)
-                    | ServerGeneral::CompSync(_)
-                    | ServerGeneral::CreateEntity(_)
-                    | ServerGeneral::DeleteEntity(_)
-                    | ServerGeneral::Disconnect(_)
-                    | ServerGeneral::Notification(_) => self
-                        .state
-                        .ecs()
-                        .write_storage::<GeneralStream>()
-                        .get_mut(entity)
-                        .map(|s| s.send(msg)),
-                };
-            },
-            ServerMsg::Ping(msg) => {
-                self.state
-                    .ecs()
-                    .write_storage::<PingStream>()
-                    .get_mut(entity)
-                    .map(|s| s.send(msg));
-            },
-        }
+        self.state
+            .ecs()
+            .read_storage::<Client>()
+            .get(entity)
+            .map(|c| c.send(msg));
     }
 
     pub fn notify_players(&mut self, msg: ServerGeneral) { self.state.notify_players(msg); }

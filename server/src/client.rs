@@ -1,7 +1,9 @@
-use common::msg::ClientType;
-use network::Participant;
+use common::msg::{ClientType, ServerGeneral, ServerMsg};
+use network::{Message, Participant, Stream, StreamError};
+use serde::{de::DeserializeOwned, Serialize};
 use specs::Component;
 use specs_idvs::IdvStorage;
+use std::sync::{atomic::AtomicBool, Mutex};
 
 /// Client handles ALL network related information of everything that connects
 /// to the server Client DOES NOT handle game states
@@ -12,11 +14,195 @@ use specs_idvs::IdvStorage;
 pub struct Client {
     pub client_type: ClientType,
     pub participant: Option<Participant>,
-    pub last_ping: f64,
-    pub login_msg_sent: bool,
-    pub terminate_msg_recv: bool,
+    pub last_ping: Mutex<f64>,
+    pub login_msg_sent: AtomicBool,
+    pub terminate_msg_recv: AtomicBool,
+
+    //TODO: improve network crate so that `send` is no longer `&mut self` and we can get rid of
+    // this Mutex. This Mutex is just to please the compiler as we do not get into contention
+    general_stream: Mutex<Stream>,
+    ping_stream: Mutex<Stream>,
+    register_stream: Mutex<Stream>,
+    character_screen_stream: Mutex<Stream>,
+    in_game_stream: Mutex<Stream>,
+}
+
+pub struct PreparedMsg {
+    stream_id: u8,
+    message: Message,
 }
 
 impl Component for Client {
     type Storage = IdvStorage<Self>;
+}
+
+impl Client {
+    #[allow(clippy::too_many_arguments)]
+    pub(crate) fn new(
+        client_type: ClientType,
+        participant: Participant,
+        last_ping: f64,
+        general_stream: Stream,
+        ping_stream: Stream,
+        register_stream: Stream,
+        character_screen_stream: Stream,
+        in_game_stream: Stream,
+    ) -> Self {
+        Client {
+            client_type,
+            participant: Some(participant),
+            last_ping: Mutex::new(last_ping),
+            login_msg_sent: AtomicBool::new(false),
+            terminate_msg_recv: AtomicBool::new(false),
+            general_stream: Mutex::new(general_stream),
+            ping_stream: Mutex::new(ping_stream),
+            register_stream: Mutex::new(register_stream),
+            character_screen_stream: Mutex::new(character_screen_stream),
+            in_game_stream: Mutex::new(in_game_stream),
+        }
+    }
+
+    pub(crate) fn send<M: Into<ServerMsg>>(&self, msg: M) -> Result<(), StreamError> {
+        match msg.into() {
+            ServerMsg::Info(m) => self.register_stream.try_lock().unwrap().send(m),
+            ServerMsg::Init(m) => self.register_stream.try_lock().unwrap().send(m),
+            ServerMsg::RegisterAnswer(m) => self.register_stream.try_lock().unwrap().send(m),
+            ServerMsg::General(g) => {
+                match g {
+                    //Character Screen related
+                    ServerGeneral::CharacterDataLoadError(_)
+                    | ServerGeneral::CharacterListUpdate(_)
+                    | ServerGeneral::CharacterActionError(_)
+                    | ServerGeneral::CharacterSuccess => {
+                        self.character_screen_stream.try_lock().unwrap().send(g)
+                    },
+                    //Ingame related
+                    ServerGeneral::GroupUpdate(_)
+                    | ServerGeneral::GroupInvite { .. }
+                    | ServerGeneral::InvitePending(_)
+                    | ServerGeneral::InviteComplete { .. }
+                    | ServerGeneral::ExitInGameSuccess
+                    | ServerGeneral::InventoryUpdate(_, _)
+                    | ServerGeneral::TerrainChunkUpdate { .. }
+                    | ServerGeneral::TerrainBlockUpdates(_)
+                    | ServerGeneral::SetViewDistance(_)
+                    | ServerGeneral::Outcomes(_)
+                    | ServerGeneral::Knockback(_) => {
+                        self.in_game_stream.try_lock().unwrap().send(g)
+                    },
+                    // Always possible
+                    ServerGeneral::PlayerListUpdate(_)
+                    | ServerGeneral::ChatMsg(_)
+                    | ServerGeneral::SetPlayerEntity(_)
+                    | ServerGeneral::TimeOfDay(_)
+                    | ServerGeneral::EntitySync(_)
+                    | ServerGeneral::CompSync(_)
+                    | ServerGeneral::CreateEntity(_)
+                    | ServerGeneral::DeleteEntity(_)
+                    | ServerGeneral::Disconnect(_)
+                    | ServerGeneral::Notification(_) => {
+                        self.general_stream.try_lock().unwrap().send(g)
+                    },
+                }
+            },
+            ServerMsg::Ping(m) => self.ping_stream.try_lock().unwrap().send(m),
+        }
+    }
+
+    pub(crate) fn send_fallible<M: Into<ServerMsg>>(&self, msg: M) { let _ = self.send(msg); }
+
+    pub(crate) fn send_prepared(&self, msg: &PreparedMsg) -> Result<(), StreamError> {
+        match msg.stream_id {
+            0 => self
+                .register_stream
+                .try_lock()
+                .unwrap()
+                .send_raw(&msg.message),
+            1 => self
+                .character_screen_stream
+                .try_lock()
+                .unwrap()
+                .send_raw(&msg.message),
+            2 => self
+                .in_game_stream
+                .try_lock()
+                .unwrap()
+                .send_raw(&msg.message),
+            3 => self
+                .general_stream
+                .try_lock()
+                .unwrap()
+                .send_raw(&msg.message),
+            4 => self.ping_stream.try_lock().unwrap().send_raw(&msg.message),
+            _ => unreachable!("invalid stream id"),
+        }
+    }
+
+    pub(crate) fn prepare<M: Into<ServerMsg>>(&self, msg: M) -> PreparedMsg {
+        match msg.into() {
+            ServerMsg::Info(m) => PreparedMsg::new(0, &m, &self.register_stream),
+            ServerMsg::Init(m) => PreparedMsg::new(0, &m, &self.register_stream),
+            ServerMsg::RegisterAnswer(m) => PreparedMsg::new(0, &m, &self.register_stream),
+            ServerMsg::General(g) => {
+                match g {
+                    //Character Screen related
+                    ServerGeneral::CharacterDataLoadError(_)
+                    | ServerGeneral::CharacterListUpdate(_)
+                    | ServerGeneral::CharacterActionError(_)
+                    | ServerGeneral::CharacterSuccess => {
+                        PreparedMsg::new(1, &g, &self.character_screen_stream)
+                    },
+                    //Ingame related
+                    ServerGeneral::GroupUpdate(_)
+                    | ServerGeneral::GroupInvite { .. }
+                    | ServerGeneral::InvitePending(_)
+                    | ServerGeneral::InviteComplete { .. }
+                    | ServerGeneral::ExitInGameSuccess
+                    | ServerGeneral::InventoryUpdate(_, _)
+                    | ServerGeneral::TerrainChunkUpdate { .. }
+                    | ServerGeneral::TerrainBlockUpdates(_)
+                    | ServerGeneral::SetViewDistance(_)
+                    | ServerGeneral::Outcomes(_)
+                    | ServerGeneral::Knockback(_) => PreparedMsg::new(2, &g, &self.in_game_stream),
+                    // Always possible
+                    ServerGeneral::PlayerListUpdate(_)
+                    | ServerGeneral::ChatMsg(_)
+                    | ServerGeneral::SetPlayerEntity(_)
+                    | ServerGeneral::TimeOfDay(_)
+                    | ServerGeneral::EntitySync(_)
+                    | ServerGeneral::CompSync(_)
+                    | ServerGeneral::CreateEntity(_)
+                    | ServerGeneral::DeleteEntity(_)
+                    | ServerGeneral::Disconnect(_)
+                    | ServerGeneral::Notification(_) => {
+                        PreparedMsg::new(3, &g, &self.general_stream)
+                    },
+                }
+            },
+            ServerMsg::Ping(m) => PreparedMsg::new(4, &m, &self.ping_stream),
+        }
+    }
+
+    pub(crate) fn recv<M: DeserializeOwned>(
+        &self,
+        stream_id: u8,
+    ) -> Result<Option<M>, StreamError> {
+        match stream_id {
+            0 => self.register_stream.try_lock().unwrap().try_recv(),
+            1 => self.character_screen_stream.try_lock().unwrap().try_recv(),
+            2 => self.in_game_stream.try_lock().unwrap().try_recv(),
+            3 => self.general_stream.try_lock().unwrap().try_recv(),
+            4 => self.ping_stream.try_lock().unwrap().try_recv(),
+            _ => unreachable!("invalid stream id"),
+        }
+    }
+}
+
+impl PreparedMsg {
+    fn new<M: Serialize + ?Sized>(id: u8, msg: &M, stream: &Mutex<Stream>) -> PreparedMsg {
+        Self {
+            stream_id: id,
+            message: Message::serialize(&msg, &stream.try_lock().unwrap()),
+        }
+    }
 }

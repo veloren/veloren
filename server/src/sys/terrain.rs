@@ -1,10 +1,5 @@
 use super::SysTimer;
-use crate::{
-    chunk_generator::ChunkGenerator,
-    presence::Presence,
-    streams::{GetStream, InGameStream},
-    Tick,
-};
+use crate::{chunk_generator::ChunkGenerator, client::Client, presence::Presence, Tick};
 use common::{
     comp::{self, bird_medium, Alignment, Pos},
     event::{EventBus, ServerEvent},
@@ -17,7 +12,7 @@ use common::{
     LoadoutBuilder,
 };
 use rand::Rng;
-use specs::{Join, Read, ReadStorage, System, Write, WriteExpect, WriteStorage};
+use specs::{Join, Read, ReadStorage, System, Write, WriteExpect};
 use std::sync::Arc;
 use vek::*;
 
@@ -39,7 +34,7 @@ impl<'a> System<'a> for Sys {
         Write<'a, TerrainChanges>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Presence>,
-        WriteStorage<'a, InGameStream>,
+        ReadStorage<'a, Client>,
     );
 
     fn run(
@@ -53,7 +48,7 @@ impl<'a> System<'a> for Sys {
             mut terrain_changes,
             positions,
             presences,
-            mut in_game_streams,
+            clients,
         ): Self::SystemData,
     ) {
         span!(_guard, "run", "terrain::Sys::run");
@@ -67,8 +62,8 @@ impl<'a> System<'a> for Sys {
             let (chunk, supplement) = match res {
                 Ok((chunk, supplement)) => (chunk, supplement),
                 Err(Some(entity)) => {
-                    if let Some(in_game_stream) = in_game_streams.get_mut(entity) {
-                        in_game_stream.send_fallible(ServerGeneral::TerrainChunkUpdate {
+                    if let Some(client) = clients.get(entity) {
+                        client.send_fallible(ServerGeneral::TerrainChunkUpdate {
                             key,
                             chunk: Err(()),
                         });
@@ -80,9 +75,7 @@ impl<'a> System<'a> for Sys {
                 },
             };
             // Send the chunk to all nearby players.
-            for (presence, pos, in_game_stream) in
-                (&presences, &positions, &mut in_game_streams).join()
-            {
+            for (presence, pos, client) in (&presences, &positions, &clients).join() {
                 let chunk_pos = terrain.pos_key(pos.0.map(|e| e as i32));
                 // Subtract 2 from the offset before computing squared magnitude
                 // 1 since chunks need neighbors to be meshed
@@ -92,7 +85,7 @@ impl<'a> System<'a> for Sys {
                     .magnitude_squared();
 
                 if adjusted_dist_sqr <= presence.view_distance.pow(2) {
-                    in_game_stream.send_fallible(ServerGeneral::TerrainChunkUpdate {
+                    client.send_fallible(ServerGeneral::TerrainChunkUpdate {
                         key,
                         chunk: Ok(Box::new(chunk.clone())),
                     });

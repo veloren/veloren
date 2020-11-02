@@ -1,14 +1,7 @@
 use super::Event;
 use crate::{
-    client::Client,
-    login_provider::LoginProvider,
-    persistence,
-    presence::Presence,
-    state_ext::StateExt,
-    streams::{
-        CharacterScreenStream, GeneralStream, GetStream, InGameStream, PingStream, RegisterStream,
-    },
-    Server,
+    client::Client, login_provider::LoginProvider, persistence, presence::Presence,
+    state_ext::StateExt, Server,
 };
 use common::{
     comp,
@@ -37,42 +30,18 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
         .get(entity)
         .cloned();
 
-    if let Some((
-        client,
-        uid,
-        player,
-        general_stream,
-        ping_stream,
-        register_stream,
-        character_screen_stream,
-        mut in_game_stream,
-    )) = (|| {
+    if let Some((client, uid, player)) = (|| {
         let ecs = state.ecs();
         Some((
             ecs.write_storage::<Client>().remove(entity)?,
             ecs.write_storage::<Uid>().remove(entity)?,
             ecs.write_storage::<comp::Player>().remove(entity)?,
-            ecs.write_storage::<GeneralStream>().remove(entity)?,
-            ecs.write_storage::<PingStream>().remove(entity)?,
-            ecs.write_storage::<RegisterStream>().remove(entity)?,
-            ecs.write_storage::<CharacterScreenStream>()
-                .remove(entity)?,
-            ecs.write_storage::<InGameStream>().remove(entity)?,
         ))
     })() {
         // Tell client its request was successful
-        in_game_stream.send_fallible(ServerGeneral::ExitInGameSuccess);
+        client.send_fallible(ServerGeneral::ExitInGameSuccess);
 
-        let entity_builder = state
-            .ecs_mut()
-            .create_entity()
-            .with(client)
-            .with(player)
-            .with(general_stream)
-            .with(ping_stream)
-            .with(register_stream)
-            .with(character_screen_stream)
-            .with(in_game_stream);
+        let entity_builder = state.ecs_mut().create_entity().with(client).with(player);
 
         // Preserve group component if present
         let entity_builder = match maybe_group {

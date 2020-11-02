@@ -1,26 +1,19 @@
 use super::super::SysTimer;
-use crate::{
-    client::Client,
-    metrics::PlayerMetrics,
-    streams::{GetStream, PingStream},
-    Settings,
-};
+use crate::{client::Client, metrics::PlayerMetrics, Settings};
 use common::{
     event::{EventBus, ServerEvent},
     msg::PingMsg,
     span,
     state::Time,
 };
-use specs::{Entities, Join, Read, ReadExpect, System, Write, WriteStorage};
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, Write};
+use std::sync::atomic::Ordering;
 use tracing::{debug, info};
 
 impl Sys {
-    fn handle_ping_msg(
-        ping_stream: &mut PingStream,
-        msg: PingMsg,
-    ) -> Result<(), crate::error::Error> {
+    fn handle_ping_msg(client: &Client, msg: PingMsg) -> Result<(), crate::error::Error> {
         match msg {
-            PingMsg::Ping => ping_stream.send(PingMsg::Pong)?,
+            PingMsg::Ping => client.send(PingMsg::Pong)?,
             PingMsg::Pong => {},
         }
         Ok(())
@@ -37,8 +30,7 @@ impl<'a> System<'a> for Sys {
         Read<'a, Time>,
         ReadExpect<'a, PlayerMetrics>,
         Write<'a, SysTimer<Self>>,
-        WriteStorage<'a, Client>,
-        WriteStorage<'a, PingStream>,
+        ReadStorage<'a, Client>,
         Read<'a, Settings>,
     );
 
@@ -50,8 +42,7 @@ impl<'a> System<'a> for Sys {
             time,
             player_metrics,
             mut timer,
-            mut clients,
-            mut ping_streams,
+            clients,
             settings,
         ): Self::SystemData,
     ) {
@@ -60,14 +51,12 @@ impl<'a> System<'a> for Sys {
 
         let mut server_emitter = server_event_bus.emitter();
 
-        for (entity, client, ping_stream) in (&entities, &mut clients, &mut ping_streams).join() {
-            let res = super::try_recv_all(ping_stream, |ping_stream, msg| {
-                Self::handle_ping_msg(ping_stream, msg)
-            });
+        for (entity, client) in (&entities, &clients).join() {
+            let res = super::try_recv_all(client, 4, Self::handle_ping_msg);
 
             match res {
                 Err(e) => {
-                    if !client.terminate_msg_recv {
+                    if !client.terminate_msg_recv.load(Ordering::Relaxed) {
                         debug!(?entity, ?e, "network error with client, disconnecting");
                         player_metrics
                             .clients_disconnected
@@ -78,13 +67,14 @@ impl<'a> System<'a> for Sys {
                 },
                 Ok(1_u64..=u64::MAX) => {
                     // Update client ping.
-                    client.last_ping = time.0
+                    *client.last_ping.lock().unwrap() = time.0
                 },
                 Ok(0) => {
-                    if time.0 - client.last_ping > settings.client_timeout.as_secs() as f64
+                    let last_ping: f64 = *client.last_ping.lock().unwrap();
+                    if time.0 - last_ping > settings.client_timeout.as_secs() as f64
                     // Timeout
                     {
-                        if !client.terminate_msg_recv {
+                        if !client.terminate_msg_recv.load(Ordering::Relaxed) {
                             info!(?entity, "timeout error with client, disconnecting");
                             player_metrics
                                 .clients_disconnected
@@ -92,11 +82,9 @@ impl<'a> System<'a> for Sys {
                                 .inc();
                             server_emitter.emit(ServerEvent::ClientDisconnect(entity));
                         }
-                    } else if time.0 - client.last_ping
-                        > settings.client_timeout.as_secs() as f64 * 0.5
-                    {
+                    } else if time.0 - last_ping > settings.client_timeout.as_secs() as f64 * 0.5 {
                         // Try pinging the client if the timeout is nearing.
-                        ping_stream.send_fallible(PingMsg::Ping);
+                        client.send_fallible(PingMsg::Ping);
                     }
                 },
             }

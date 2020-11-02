@@ -1,11 +1,4 @@
-use crate::{
-    client::Client,
-    presence::RegionSubscription,
-    streams::{
-        CharacterScreenStream, GeneralStream, GetStream, InGameStream, PingStream, RegisterStream,
-    },
-    Server,
-};
+use crate::{client::Client, presence::RegionSubscription, Server};
 use common::{
     comp::{self, item, Pos},
     consts::MAX_MOUNT_RANGE,
@@ -123,7 +116,6 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
         }
 
         let mut clients = ecs.write_storage::<Client>();
-        let mut general_streams = ecs.write_storage::<GeneralStream>();
 
         if clients.get_mut(possesse).is_some() {
             error!("can't possess other players");
@@ -131,23 +123,8 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
         }
 
         match (|| -> Option<Result<(), specs::error::Error>> {
-            let mut ping_streams = ecs.write_storage::<PingStream>();
-            let mut register_streams = ecs.write_storage::<RegisterStream>();
-            let mut character_screen_streams = ecs.write_storage::<CharacterScreenStream>();
-            let mut in_game_streams = ecs.write_storage::<InGameStream>();
-
             let c = clients.remove(possessor)?;
             clients.insert(possesse, c).ok()?;
-            let s = general_streams.remove(possessor)?;
-            general_streams.insert(possesse, s).ok()?;
-            let s = ping_streams.remove(possessor)?;
-            ping_streams.insert(possesse, s).ok()?;
-            let s = register_streams.remove(possessor)?;
-            register_streams.insert(possesse, s).ok()?;
-            let s = character_screen_streams.remove(possessor)?;
-            character_screen_streams.insert(possesse, s).ok()?;
-            let s = in_game_streams.remove(possessor)?;
-            in_game_streams.insert(possesse, s).ok()?;
             //optional entities
             let mut players = ecs.write_storage::<comp::Player>();
             let mut subscriptions = ecs.write_storage::<RegionSubscription>();
@@ -179,9 +156,9 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
             },
         }
 
-        general_streams
+        clients
             .get_mut(possesse)
-            .map(|s| s.send_fallible(ServerGeneral::SetPlayerEntity(possesse_uid)));
+            .map(|c| c.send_fallible(ServerGeneral::SetPlayerEntity(possesse_uid)));
 
         // Put possess item into loadout
         let mut loadouts = ecs.write_storage::<comp::Loadout>();

@@ -1,10 +1,6 @@
 use super::super::SysTimer;
 use crate::{
-    client::Client,
-    login_provider::LoginProvider,
-    metrics::PlayerMetrics,
-    streams::{GeneralStream, GetStream, RegisterStream},
-    EditableSettings,
+    client::Client, login_provider::LoginProvider, metrics::PlayerMetrics, EditableSettings,
 };
 use common::{
     comp::{Admin, Player, Stats},
@@ -13,13 +9,10 @@ use common::{
         ServerRegisterAnswer,
     },
     span,
-    state::Time,
     sync::Uid,
 };
 use hashbrown::HashMap;
-use specs::{
-    Entities, Join, Read, ReadExpect, ReadStorage, System, Write, WriteExpect, WriteStorage,
-};
+use specs::{Entities, Join, ReadExpect, ReadStorage, System, Write, WriteExpect, WriteStorage};
 
 impl Sys {
     #[allow(clippy::too_many_arguments)]
@@ -27,9 +20,7 @@ impl Sys {
         player_list: &HashMap<Uid, PlayerInfo>,
         new_players: &mut Vec<specs::Entity>,
         entity: specs::Entity,
-        _client: &mut Client,
-        register_stream: &mut RegisterStream,
-        general_stream: &mut GeneralStream,
+        client: &Client,
         player_metrics: &ReadExpect<'_, PlayerMetrics>,
         login_provider: &mut WriteExpect<'_, LoginProvider>,
         admins: &mut WriteStorage<'_, Admin>,
@@ -44,7 +35,7 @@ impl Sys {
             &*editable_settings.banlist,
         ) {
             Err(err) => {
-                register_stream.send(ServerRegisterAnswer::Err(err))?;
+                client.send(ServerRegisterAnswer::Err(err))?;
                 return Ok(());
             },
             Ok((username, uuid)) => (username, uuid),
@@ -55,7 +46,7 @@ impl Sys {
 
         if !player.is_valid() {
             // Invalid player
-            register_stream.send(ServerRegisterAnswer::Err(RegisterError::InvalidCharacter))?;
+            client.send(ServerRegisterAnswer::Err(RegisterError::InvalidCharacter))?;
             return Ok(());
         }
 
@@ -71,10 +62,10 @@ impl Sys {
             }
 
             // Tell the client its request was successful.
-            register_stream.send(ServerRegisterAnswer::Ok(()))?;
+            client.send(ServerRegisterAnswer::Ok(()))?;
 
             // Send initial player list
-            general_stream.send(ServerGeneral::PlayerListUpdate(PlayerListUpdate::Init(
+            client.send(ServerGeneral::PlayerListUpdate(PlayerListUpdate::Init(
                 player_list.clone(),
             )))?;
 
@@ -92,17 +83,14 @@ impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
-        Read<'a, Time>,
         ReadExpect<'a, PlayerMetrics>,
         Write<'a, SysTimer<Self>>,
         ReadStorage<'a, Uid>,
-        WriteStorage<'a, Client>,
+        ReadStorage<'a, Client>,
         WriteStorage<'a, Player>,
         ReadStorage<'a, Stats>,
         WriteExpect<'a, LoginProvider>,
         WriteStorage<'a, Admin>,
-        WriteStorage<'a, RegisterStream>,
-        WriteStorage<'a, GeneralStream>,
         ReadExpect<'a, EditableSettings>,
     );
 
@@ -110,17 +98,14 @@ impl<'a> System<'a> for Sys {
         &mut self,
         (
             entities,
-            time,
             player_metrics,
             mut timer,
             uids,
-            mut clients,
+            clients,
             mut players,
             stats,
             mut login_provider,
             mut admins,
-            mut register_streams,
-            mut general_streams,
             editable_settings,
         ): Self::SystemData,
     ) {
@@ -145,22 +130,13 @@ impl<'a> System<'a> for Sys {
         // List of new players to update player lists of all clients.
         let mut new_players = Vec::new();
 
-        for (entity, client, register_stream, general_stream) in (
-            &entities,
-            &mut clients,
-            &mut register_streams,
-            &mut general_streams,
-        )
-            .join()
-        {
-            let res = super::try_recv_all(register_stream, |register_stream, msg| {
+        for (entity, client) in (&entities, &clients).join() {
+            let _ = super::try_recv_all(client, 0, |client, msg| {
                 Self::handle_register_msg(
                     &player_list,
                     &mut new_players,
                     entity,
                     client,
-                    register_stream,
-                    general_stream,
                     &player_metrics,
                     &mut login_provider,
                     &mut admins,
@@ -169,11 +145,6 @@ impl<'a> System<'a> for Sys {
                     msg,
                 )
             });
-
-            if let Ok(1_u64..=u64::MAX) = res {
-                // Update client ping.
-                client.last_ping = time.0
-            }
         }
 
         // Handle new players.
@@ -181,9 +152,9 @@ impl<'a> System<'a> for Sys {
         for entity in new_players {
             if let (Some(uid), Some(player)) = (uids.get(entity), players.get(entity)) {
                 let mut lazy_msg = None;
-                for (_, general_stream) in (&players, &mut general_streams).join() {
+                for (_, client) in (&players, &clients).join() {
                     if lazy_msg.is_none() {
-                        lazy_msg = Some(general_stream.prepare(&ServerGeneral::PlayerListUpdate(
+                        lazy_msg = Some(client.prepare(ServerGeneral::PlayerListUpdate(
                             PlayerListUpdate::Add(*uid, PlayerInfo {
                                 player_alias: player.alias.clone(),
                                 is_online: true,
@@ -192,9 +163,7 @@ impl<'a> System<'a> for Sys {
                             }),
                         )));
                     }
-                    lazy_msg
-                        .as_ref()
-                        .map(|ref msg| general_stream.0.send_raw(&msg));
+                    lazy_msg.as_ref().map(|ref msg| client.send_prepared(&msg));
                 }
             }
         }

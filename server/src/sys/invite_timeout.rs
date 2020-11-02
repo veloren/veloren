@@ -1,5 +1,5 @@
 use super::SysTimer;
-use crate::streams::{GetStream, InGameStream};
+use crate::client::Client;
 use common::{
     comp::group::{Invite, PendingInvites},
     msg::{InviteAnswer, ServerGeneral},
@@ -16,14 +16,14 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         WriteStorage<'a, Invite>,
         WriteStorage<'a, PendingInvites>,
-        WriteStorage<'a, InGameStream>,
+        ReadStorage<'a, Client>,
         ReadStorage<'a, Uid>,
         Write<'a, SysTimer<Self>>,
     );
 
     fn run(
         &mut self,
-        (entities, mut invites, mut pending_invites, mut in_game_streams, uids, mut timer): Self::SystemData,
+        (entities, mut invites, mut pending_invites, clients, uids, mut timer): Self::SystemData,
     ) {
         span!(_guard, "run", "invite_timeout::Sys::run");
         timer.start();
@@ -51,11 +51,10 @@ impl<'a> System<'a> for Sys {
                 }
 
                 // Inform inviter of timeout
-                if let (Some(in_game_stream), Some(target)) = (
-                    in_game_streams.get_mut(*inviter),
-                    uids.get(invitee).copied(),
-                ) {
-                    in_game_stream.send_fallible(ServerGeneral::InviteComplete {
+                if let (Some(client), Some(target)) =
+                    (clients.get(*inviter), uids.get(invitee).copied())
+                {
+                    client.send_fallible(ServerGeneral::InviteComplete {
                         target,
                         answer: InviteAnswer::TimedOut,
                     });
