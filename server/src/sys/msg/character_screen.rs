@@ -1,22 +1,17 @@
 use super::super::SysTimer;
 use crate::{
-    alias_validator::AliasValidator,
-    character_creator,
-    client::Client,
-    persistence::character_loader::CharacterLoader,
-    presence::Presence,
-    streams::{CharacterScreenStream, GeneralStream, GetStream},
-    EditableSettings,
+    alias_validator::AliasValidator, character_creator, client::Client,
+    persistence::character_loader::CharacterLoader, presence::Presence, EditableSettings,
 };
 use common::{
     comp::{ChatType, Player, UnresolvedChatMsg},
     event::{EventBus, ServerEvent},
     msg::{ClientGeneral, ServerGeneral},
     span,
-    state::Time,
     sync::Uid,
 };
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, Write, WriteStorage};
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, Write};
+use std::sync::atomic::Ordering;
 use tracing::{debug, warn};
 
 impl Sys {
@@ -25,9 +20,7 @@ impl Sys {
         server_emitter: &mut common::event::Emitter<'_, ServerEvent>,
         new_chat_msgs: &mut Vec<(Option<specs::Entity>, UnresolvedChatMsg)>,
         entity: specs::Entity,
-        client: &mut Client,
-        character_screen_stream: &mut CharacterScreenStream,
-        general_stream: &mut GeneralStream,
+        client: &Client,
         character_loader: &ReadExpect<'_, CharacterLoader>,
         uids: &ReadStorage<'_, Uid>,
         players: &ReadStorage<'_, Player>,
@@ -68,27 +61,27 @@ impl Sys {
 
                         // Give the player a welcome message
                         if !editable_settings.server_description.is_empty() {
-                            general_stream.send(ChatType::CommandInfo.server_msg(String::from(
+                            client.send(ChatType::CommandInfo.server_msg(String::from(
                                 &*editable_settings.server_description,
                             )))?;
                         }
 
-                        if !client.login_msg_sent {
+                        if !client.login_msg_sent.load(Ordering::Relaxed) {
                             if let Some(player_uid) = uids.get(entity) {
                                 new_chat_msgs.push((None, UnresolvedChatMsg {
                                     chat_type: ChatType::Online(*player_uid),
                                     message: "".to_string(),
                                 }));
 
-                                client.login_msg_sent = true;
+                                client.login_msg_sent.store(true, Ordering::Relaxed);
                             }
                         }
                     }
                 } else {
                     debug!("Client is not yet registered");
-                    character_screen_stream.send(ServerGeneral::CharacterDataLoadError(
-                        String::from("Failed to fetch player entity"),
-                    ))?
+                    client.send(ServerGeneral::CharacterDataLoadError(String::from(
+                        "Failed to fetch player entity",
+                    )))?
                 }
             },
             ClientGeneral::RequestCharacterList => {
@@ -99,8 +92,7 @@ impl Sys {
             ClientGeneral::CreateCharacter { alias, tool, body } => {
                 if let Err(error) = alias_validator.validate(&alias) {
                     debug!(?error, ?alias, "denied alias as it contained a banned word");
-                    character_screen_stream
-                        .send(ServerGeneral::CharacterActionError(error.to_string()))?;
+                    client.send(ServerGeneral::CharacterActionError(error.to_string()))?;
                 } else if let Some(player) = players.get(entity) {
                     character_creator::create_character(
                         entity,
@@ -134,15 +126,12 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         Read<'a, EventBus<ServerEvent>>,
-        Read<'a, Time>,
         ReadExpect<'a, CharacterLoader>,
         Write<'a, SysTimer<Self>>,
         ReadStorage<'a, Uid>,
-        WriteStorage<'a, Client>,
+        ReadStorage<'a, Client>,
         ReadStorage<'a, Player>,
         ReadStorage<'a, Presence>,
-        WriteStorage<'a, CharacterScreenStream>,
-        WriteStorage<'a, GeneralStream>,
         ReadExpect<'a, EditableSettings>,
         ReadExpect<'a, AliasValidator>,
     );
@@ -152,15 +141,12 @@ impl<'a> System<'a> for Sys {
         (
             entities,
             server_event_bus,
-            time,
             character_loader,
             mut timer,
             uids,
-            mut clients,
+            clients,
             players,
             presences,
-            mut character_screen_streams,
-            mut general_streams,
             editable_settings,
             alias_validator,
         ): Self::SystemData,
@@ -171,37 +157,22 @@ impl<'a> System<'a> for Sys {
         let mut server_emitter = server_event_bus.emitter();
         let mut new_chat_msgs = Vec::new();
 
-        for (entity, client, character_screen_stream, general_stream) in (
-            &entities,
-            &mut clients,
-            &mut character_screen_streams,
-            &mut general_streams,
-        )
-            .join()
-        {
-            let res =
-                super::try_recv_all(character_screen_stream, |character_screen_stream, msg| {
-                    Self::handle_client_character_screen_msg(
-                        &mut server_emitter,
-                        &mut new_chat_msgs,
-                        entity,
-                        client,
-                        character_screen_stream,
-                        general_stream,
-                        &character_loader,
-                        &uids,
-                        &players,
-                        &presences,
-                        &editable_settings,
-                        &alias_validator,
-                        msg,
-                    )
-                });
-
-            if let Ok(1_u64..=u64::MAX) = res {
-                // Update client ping.
-                client.last_ping = time.0
-            }
+        for (entity, client) in (&entities, &clients).join() {
+            let _ = super::try_recv_all(client, 1, |client, msg| {
+                Self::handle_client_character_screen_msg(
+                    &mut server_emitter,
+                    &mut new_chat_msgs,
+                    entity,
+                    client,
+                    &character_loader,
+                    &uids,
+                    &players,
+                    &presences,
+                    &editable_settings,
+                    &alias_validator,
+                    msg,
+                )
+            });
         }
 
         // Handle new chat messages.

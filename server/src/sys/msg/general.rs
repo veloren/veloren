@@ -1,5 +1,5 @@
 use super::super::SysTimer;
-use crate::{client::Client, metrics::PlayerMetrics, streams::GeneralStream};
+use crate::{client::Client, metrics::PlayerMetrics};
 use common::{
     comp::{ChatMode, Player, UnresolvedChatMsg},
     event::{EventBus, ServerEvent},
@@ -8,7 +8,8 @@ use common::{
     state::Time,
     sync::Uid,
 };
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, Write, WriteStorage};
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, Write};
+use std::sync::atomic::Ordering;
 use tracing::{debug, error, warn};
 
 impl Sys {
@@ -17,7 +18,7 @@ impl Sys {
         server_emitter: &mut common::event::Emitter<'_, ServerEvent>,
         new_chat_msgs: &mut Vec<(Option<specs::Entity>, UnresolvedChatMsg)>,
         entity: specs::Entity,
-        client: &mut Client,
+        client: &Client,
         player: Option<&Player>,
         player_metrics: &ReadExpect<'_, PlayerMetrics>,
         uids: &ReadStorage<'_, Uid>,
@@ -51,7 +52,7 @@ impl Sys {
                     .clients_disconnected
                     .with_label_values(&["gracefully"])
                     .inc();
-                client.terminate_msg_recv = true;
+                client.terminate_msg_recv.store(true, Ordering::Relaxed);
                 server_emitter.emit(ServerEvent::ClientDisconnect(entity));
             },
             _ => unreachable!("not a client_general msg"),
@@ -73,8 +74,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Uid>,
         ReadStorage<'a, ChatMode>,
         ReadStorage<'a, Player>,
-        WriteStorage<'a, Client>,
-        WriteStorage<'a, GeneralStream>,
+        ReadStorage<'a, Client>,
     );
 
     fn run(
@@ -88,8 +88,7 @@ impl<'a> System<'a> for Sys {
             uids,
             chat_modes,
             players,
-            mut clients,
-            mut general_streams,
+            clients,
         ): Self::SystemData,
     ) {
         span!(_guard, "run", "msg::general::Sys::run");
@@ -98,15 +97,8 @@ impl<'a> System<'a> for Sys {
         let mut server_emitter = server_event_bus.emitter();
         let mut new_chat_msgs = Vec::new();
 
-        for (entity, client, player, general_stream) in (
-            &entities,
-            &mut clients,
-            (&players).maybe(),
-            &mut general_streams,
-        )
-            .join()
-        {
-            let res = super::try_recv_all(general_stream, |_, msg| {
+        for (entity, client, player) in (&entities, &clients, (&players).maybe()).join() {
+            let res = super::try_recv_all(client, 3, |client, msg| {
                 Self::handle_general_msg(
                     &mut server_emitter,
                     &mut new_chat_msgs,
@@ -122,7 +114,7 @@ impl<'a> System<'a> for Sys {
 
             if let Ok(1_u64..=u64::MAX) = res {
                 // Update client ping.
-                client.last_ping = time.0
+                *client.last_ping.lock().unwrap() = time.0
             }
         }
 

@@ -1,7 +1,4 @@
-use crate::{
-    streams::{CharacterScreenStream, GeneralStream, InGameStream, PingStream, RegisterStream},
-    Client, ClientType, ServerInfo,
-};
+use crate::{Client, ClientType, ServerInfo};
 use crossbeam::{bounded, unbounded, Receiver, Sender};
 use futures_channel::oneshot;
 use futures_executor::block_on;
@@ -16,14 +13,7 @@ pub(crate) struct ServerInfoPacket {
     pub time: f64,
 }
 
-pub(crate) struct IncomingClient {
-    pub client: Client,
-    pub general: GeneralStream,
-    pub ping: PingStream,
-    pub register: RegisterStream,
-    pub character: CharacterScreenStream,
-    pub in_game: InGameStream,
-}
+pub(crate) type IncomingClient = Client;
 
 pub(crate) struct ConnectionHandler {
     _network: Arc<Network>,
@@ -136,24 +126,18 @@ impl ConnectionHandler {
             Some(client_type) => client_type?,
         };
 
-        let client = Client {
+        let client = Client::new(
             client_type,
-            participant: Some(participant),
-            last_ping: server_data.time,
-            login_msg_sent: false,
-            terminate_msg_recv: false,
-        };
+            participant,
+            server_data.time,
+            general_stream,
+            ping_stream,
+            register_stream,
+            character_screen_stream,
+            in_game_stream,
+        );
 
-        let package = IncomingClient {
-            client,
-            general: GeneralStream(general_stream),
-            ping: PingStream(ping_stream),
-            register: RegisterStream(register_stream),
-            character: CharacterScreenStream(character_screen_stream),
-            in_game: InGameStream(in_game_stream),
-        };
-
-        client_sender.send(package)?;
+        client_sender.send(client)?;
         Ok(())
     }
 }

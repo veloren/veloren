@@ -1,17 +1,11 @@
 use super::super::SysTimer;
-use crate::{
-    client::Client,
-    metrics::NetworkRequestMetrics,
-    presence::Presence,
-    streams::{GetStream, InGameStream},
-    Settings,
-};
+use crate::{client::Client, metrics::NetworkRequestMetrics, presence::Presence, Settings};
 use common::{
     comp::{CanBuild, ControlEvent, Controller, ForceUpdate, Ori, Pos, Stats, Vel},
     event::{EventBus, ServerEvent},
     msg::{ClientGeneral, PresenceKind, ServerGeneral},
     span,
-    state::{BlockChange, Time},
+    state::BlockChange,
     terrain::{TerrainChunkSize, TerrainGrid},
     vol::{ReadVol, RectVolSize},
 };
@@ -23,9 +17,8 @@ impl Sys {
     fn handle_client_in_game_msg(
         server_emitter: &mut common::event::Emitter<'_, ServerEvent>,
         entity: specs::Entity,
-        _client: &Client,
+        client: &Client,
         maybe_presence: &mut Option<&mut Presence>,
-        in_game_stream: &mut InGameStream,
         terrain: &ReadExpect<'_, TerrainGrid>,
         network_metrics: &ReadExpect<'_, NetworkRequestMetrics>,
         can_build: &ReadStorage<'_, CanBuild>,
@@ -54,7 +47,7 @@ impl Sys {
             // Go back to registered state (char selection screen)
             ClientGeneral::ExitInGame => {
                 server_emitter.emit(ServerEvent::ExitIngame { entity });
-                in_game_stream.send(ServerGeneral::ExitInGameSuccess)?;
+                client.send(ServerGeneral::ExitInGameSuccess)?;
                 *maybe_presence = None;
             },
             ClientGeneral::SetViewDistance(view_distance) => {
@@ -69,7 +62,7 @@ impl Sys {
                     .map(|max| view_distance > max)
                     .unwrap_or(false)
                 {
-                    in_game_stream.send(ServerGeneral::SetViewDistance(
+                    client.send(ServerGeneral::SetViewDistance(
                         settings.max_view_distance.unwrap_or(0),
                     ))?;
                 }
@@ -135,7 +128,7 @@ impl Sys {
                     match terrain.get_key(key) {
                         Some(chunk) => {
                             network_metrics.chunks_served_from_memory.inc();
-                            in_game_stream.send(ServerGeneral::TerrainChunkUpdate {
+                            client.send(ServerGeneral::TerrainChunkUpdate {
                                 key,
                                 chunk: Ok(Box::new(chunk.clone())),
                             })?
@@ -177,7 +170,6 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         Read<'a, EventBus<ServerEvent>>,
-        Read<'a, Time>,
         ReadExpect<'a, TerrainGrid>,
         ReadExpect<'a, NetworkRequestMetrics>,
         Write<'a, SysTimer<Self>>,
@@ -190,7 +182,6 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Ori>,
         WriteStorage<'a, Presence>,
         WriteStorage<'a, Client>,
-        WriteStorage<'a, InGameStream>,
         WriteStorage<'a, Controller>,
         Read<'a, Settings>,
     );
@@ -200,7 +191,6 @@ impl<'a> System<'a> for Sys {
         (
             entities,
             server_event_bus,
-            time,
             terrain,
             network_metrics,
             mut timer,
@@ -213,7 +203,6 @@ impl<'a> System<'a> for Sys {
             mut orientations,
             mut presences,
             mut clients,
-            mut in_game_streams,
             mut controllers,
             settings,
         ): Self::SystemData,
@@ -223,21 +212,15 @@ impl<'a> System<'a> for Sys {
 
         let mut server_emitter = server_event_bus.emitter();
 
-        for (entity, client, mut presence, in_game_stream) in (
-            &entities,
-            &mut clients,
-            (&mut presences).maybe(),
-            &mut in_game_streams,
-        )
-            .join()
+        for (entity, client, mut maybe_presence) in
+            (&entities, &mut clients, (&mut presences).maybe()).join()
         {
-            let res = super::try_recv_all(in_game_stream, |in_game_stream, msg| {
+            let _ = super::try_recv_all(client, 2, |client, msg| {
                 Self::handle_client_in_game_msg(
                     &mut server_emitter,
                     entity,
                     client,
-                    &mut presence,
-                    in_game_stream,
+                    &mut maybe_presence,
                     &terrain,
                     &network_metrics,
                     &can_build,
@@ -252,11 +235,6 @@ impl<'a> System<'a> for Sys {
                     msg,
                 )
             });
-
-            if let Ok(1_u64..=u64::MAX) = res {
-                // Update client ping.
-                client.last_ping = time.0
-            }
         }
 
         timer.end()

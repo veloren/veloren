@@ -5,7 +5,6 @@ use super::{
 use crate::{
     client::Client,
     presence::{Presence, RegionSubscription},
-    streams::{GeneralStream, GetStream, InGameStream},
     Tick,
 };
 use common::{
@@ -44,9 +43,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Last<Pos>>,
         WriteStorage<'a, Last<Vel>>,
         WriteStorage<'a, Last<Ori>>,
-        WriteStorage<'a, Client>,
-        WriteStorage<'a, InGameStream>,
-        WriteStorage<'a, GeneralStream>,
+        ReadStorage<'a, Client>,
         WriteStorage<'a, ForceUpdate>,
         WriteStorage<'a, InventoryUpdate>,
         Write<'a, DeletedEntities>,
@@ -73,9 +70,7 @@ impl<'a> System<'a> for Sys {
             mut last_pos,
             mut last_vel,
             mut last_ori,
-            mut clients,
-            mut in_game_streams,
-            mut general_streams,
+            clients,
             mut force_updates,
             mut inventory_updates,
             mut deleted_entities,
@@ -111,39 +106,20 @@ impl<'a> System<'a> for Sys {
             // Assemble subscriber list for this region by iterating through clients and
             // checking if they are subscribed to this region
             let mut subscribers = (
-                &mut clients,
+                &clients,
                 &entities,
                 presences.maybe(),
                 &subscriptions,
                 &positions,
-                &mut in_game_streams,
-                &mut general_streams,
             )
                 .join()
-                .filter_map(
-                    |(
-                        client,
-                        entity,
-                        presence,
-                        subscription,
-                        pos,
-                        in_game_stream,
-                        general_stream,
-                    )| {
-                        if presence.is_some() && subscription.regions.contains(&key) {
-                            Some((
-                                client,
-                                &subscription.regions,
-                                entity,
-                                *pos,
-                                in_game_stream,
-                                general_stream,
-                            ))
-                        } else {
-                            None
-                        }
-                    },
-                )
+                .filter_map(|(client, entity, presence, subscription, pos)| {
+                    if presence.is_some() && subscription.regions.contains(&key) {
+                        Some((client, &subscription.regions, entity, *pos))
+                    } else {
+                        None
+                    }
+                })
                 .collect::<Vec<_>>();
 
             for event in region.events() {
@@ -166,9 +142,7 @@ impl<'a> System<'a> for Sys {
                                     vel.copied(),
                                     ori.copied(),
                                 ));
-                            for (_, regions, client_entity, _, _, general_stream) in
-                                &mut subscribers
-                            {
+                            for (client, regions, client_entity, _) in &mut subscribers {
                                 if maybe_key
                                     .as_ref()
                                     .map(|key| !regions.contains(key))
@@ -176,7 +150,7 @@ impl<'a> System<'a> for Sys {
                                     // Client doesn't need to know about itself
                                     && *client_entity != entity
                                 {
-                                    general_stream.send_fallible(create_msg.clone());
+                                    client.send_fallible(create_msg.clone());
                                 }
                             }
                         }
@@ -184,13 +158,13 @@ impl<'a> System<'a> for Sys {
                     RegionEvent::Left(id, maybe_key) => {
                         // Lookup UID for entity
                         if let Some(&uid) = uids.get(entities.entity(*id)) {
-                            for (_, regions, _, _, _, general_stream) in &mut subscribers {
+                            for (client, regions, _, _) in &mut subscribers {
                                 if maybe_key
                                     .as_ref()
                                     .map(|key| !regions.contains(key))
                                     .unwrap_or(true)
                                 {
-                                    general_stream.send_fallible(ServerGeneral::DeleteEntity(uid));
+                                    client.send_fallible(ServerGeneral::DeleteEntity(uid));
                                 }
                             }
                         }
@@ -211,32 +185,29 @@ impl<'a> System<'a> for Sys {
             let mut comp_sync_package = Some(comp_sync_package);
             let mut entity_sync_lazymsg = None;
             let mut comp_sync_lazymsg = None;
-            subscribers
-                .iter_mut()
-                .for_each(move |(_, _, _, _, _, general_stream)| {
-                    if entity_sync_lazymsg.is_none() {
-                        entity_sync_lazymsg = Some(general_stream.prepare(
-                            &ServerGeneral::EntitySync(entity_sync_package.take().unwrap()),
-                        ));
-                        comp_sync_lazymsg =
-                            Some(general_stream.prepare(&ServerGeneral::CompSync(
-                                comp_sync_package.take().unwrap(),
-                            )));
-                    }
-                    entity_sync_lazymsg
-                        .as_ref()
-                        .map(|msg| general_stream.0.send_raw(&msg));
-                    comp_sync_lazymsg
-                        .as_ref()
-                        .map(|msg| general_stream.0.send_raw(&msg));
-                });
+            subscribers.iter_mut().for_each(move |(client, _, _, _)| {
+                if entity_sync_lazymsg.is_none() {
+                    entity_sync_lazymsg = Some(client.prepare(ServerGeneral::EntitySync(
+                        entity_sync_package.take().unwrap(),
+                    )));
+                    comp_sync_lazymsg = Some(
+                        client.prepare(ServerGeneral::CompSync(comp_sync_package.take().unwrap())),
+                    );
+                }
+                entity_sync_lazymsg
+                    .as_ref()
+                    .map(|msg| client.send_prepared(&msg));
+                comp_sync_lazymsg
+                    .as_ref()
+                    .map(|msg| client.send_prepared(&msg));
+            });
 
             let mut send_general = |msg: ServerGeneral,
                                     entity: EcsEntity,
                                     pos: Pos,
                                     force_update: Option<&ForceUpdate>,
                                     throttle: bool| {
-                for (_, _, client_entity, client_pos, _, general_stream) in &mut subscribers {
+                for (client, _, client_entity, client_pos) in &mut subscribers {
                     if if client_entity == &entity {
                         // Don't send client physics updates about itself unless force update is set
                         force_update.is_some()
@@ -262,7 +233,7 @@ impl<'a> System<'a> for Sys {
                             true // Closer than 100 blocks
                         }
                     } {
-                        general_stream.send_fallible(msg.clone());
+                        client.send_fallible(msg.clone());
                     }
                 }
             };
@@ -349,18 +320,18 @@ impl<'a> System<'a> for Sys {
         // Handle entity deletion in regions that don't exist in RegionMap
         // (theoretically none)
         for (region_key, deleted) in deleted_entities.take_remaining_deleted() {
-            for general_stream in (presences.maybe(), &subscriptions, &mut general_streams)
+            for client in (presences.maybe(), &subscriptions, &clients)
                 .join()
-                .filter_map(|(presence, subscription, general_stream)| {
+                .filter_map(|(presence, subscription, client)| {
                     if presence.is_some() && subscription.regions.contains(&region_key) {
-                        Some(general_stream)
+                        Some(client)
                     } else {
                         None
                     }
                 })
             {
                 for uid in &deleted {
-                    general_stream.send_fallible(ServerGeneral::DeleteEntity(Uid(*uid)));
+                    client.send_fallible(ServerGeneral::DeleteEntity(Uid(*uid)));
                 }
             }
         }
@@ -368,19 +339,15 @@ impl<'a> System<'a> for Sys {
         // TODO: Sync clients that don't have a position?
 
         // Sync inventories
-        for (inventory, update, in_game_stream) in
-            (&inventories, &inventory_updates, &mut in_game_streams).join()
-        {
-            in_game_stream.send_fallible(ServerGeneral::InventoryUpdate(
+        for (inventory, update, client) in (&inventories, &inventory_updates, &clients).join() {
+            client.send_fallible(ServerGeneral::InventoryUpdate(
                 inventory.clone(),
                 update.event(),
             ));
         }
 
         // Sync outcomes
-        for (presence, pos, in_game_stream) in
-            (presences.maybe(), positions.maybe(), &mut in_game_streams).join()
-        {
+        for (presence, pos, client) in (presences.maybe(), positions.maybe(), &clients).join() {
             let is_near = |o_pos: Vec3<f32>| {
                 pos.zip_with(presence, |pos, presence| {
                     pos.0.xy().distance_squared(o_pos.xy())
@@ -395,7 +362,7 @@ impl<'a> System<'a> for Sys {
                 .cloned()
                 .collect::<Vec<_>>();
             if !outcomes.is_empty() {
-                in_game_stream.send_fallible(ServerGeneral::Outcomes(outcomes));
+                client.send_fallible(ServerGeneral::Outcomes(outcomes));
             }
         }
         outcomes.clear();
@@ -408,13 +375,11 @@ impl<'a> System<'a> for Sys {
         // TODO: doesn't really belong in this system (rename system or create another
         // system?)
         let mut tof_lazymsg = None;
-        for general_stream in (&mut general_streams).join() {
+        for client in (&clients).join() {
             if tof_lazymsg.is_none() {
-                tof_lazymsg = Some(general_stream.prepare(&ServerGeneral::TimeOfDay(*time_of_day)));
+                tof_lazymsg = Some(client.prepare(ServerGeneral::TimeOfDay(*time_of_day)));
             }
-            tof_lazymsg
-                .as_ref()
-                .map(|msg| general_stream.0.send_raw(&msg));
+            tof_lazymsg.as_ref().map(|msg| client.send_prepared(&msg));
         }
 
         timer.end();

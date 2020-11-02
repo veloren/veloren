@@ -5,7 +5,6 @@ use super::{
 use crate::{
     client::Client,
     presence::{self, Presence, RegionSubscription},
-    streams::{GeneralStream, GetStream},
 };
 use common::{
     comp::{Ori, Pos, Vel},
@@ -37,7 +36,6 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Ori>,
         ReadStorage<'a, Presence>,
         ReadStorage<'a, Client>,
-        WriteStorage<'a, GeneralStream>,
         WriteStorage<'a, RegionSubscription>,
         Write<'a, DeletedEntities>,
         TrackedComps<'a>,
@@ -55,8 +53,7 @@ impl<'a> System<'a> for Sys {
             velocities,
             orientations,
             presences,
-            _clients,
-            mut general_streams,
+            clients,
             mut subscriptions,
             mut deleted_entities,
             tracked_comps,
@@ -77,12 +74,12 @@ impl<'a> System<'a> for Sys {
         // 7. Determine list of regions that are in range and iterate through it
         //    - check if in hashset (hash calc) if not add it
         let mut regions_to_remove = Vec::new();
-        for (subscription, pos, presence, client_entity, general_stream) in (
+        for (subscription, pos, presence, client_entity, client) in (
             &mut subscriptions,
             &positions,
             &presences,
             &entities,
-            &mut general_streams,
+            &clients,
         )
             .join()
         {
@@ -155,8 +152,7 @@ impl<'a> System<'a> for Sys {
                                             .map(|key| subscription.regions.contains(key))
                                             .unwrap_or(false)
                                         {
-                                            general_stream
-                                                .send_fallible(ServerGeneral::DeleteEntity(uid));
+                                            client.send_fallible(ServerGeneral::DeleteEntity(uid));
                                         }
                                     }
                                 },
@@ -164,7 +160,7 @@ impl<'a> System<'a> for Sys {
                         }
                         // Tell client to delete entities in the region
                         for (&uid, _) in (&uids, region.entities()).join() {
-                            let _ = general_stream.send(ServerGeneral::DeleteEntity(uid));
+                            client.send_fallible(ServerGeneral::DeleteEntity(uid));
                         }
                     }
                     // Send deleted entities since they won't be processed for this client in entity
@@ -174,7 +170,7 @@ impl<'a> System<'a> for Sys {
                         .iter()
                         .flat_map(|v| v.iter())
                     {
-                        general_stream.send_fallible(ServerGeneral::DeleteEntity(Uid(*uid)));
+                        client.send_fallible(ServerGeneral::DeleteEntity(Uid(*uid)));
                     }
                 }
 
@@ -199,7 +195,7 @@ impl<'a> System<'a> for Sys {
                             {
                                 // Send message to create entity and tracked components and physics
                                 // components
-                                general_stream.send_fallible(ServerGeneral::CreateEntity(
+                                client.send_fallible(ServerGeneral::CreateEntity(
                                     tracked_comps.create_entity_package(
                                         entity,
                                         Some(*pos),
@@ -220,10 +216,10 @@ impl<'a> System<'a> for Sys {
 
 /// Initialize region subscription
 pub fn initialize_region_subscription(world: &World, entity: specs::Entity) {
-    if let (Some(client_pos), Some(presence), Some(general_stream)) = (
+    if let (Some(client_pos), Some(presence), Some(client)) = (
         world.read_storage::<Pos>().get(entity),
         world.read_storage::<Presence>().get(entity),
-        world.write_storage::<GeneralStream>().get_mut(entity),
+        world.write_storage::<Client>().get(entity),
     ) {
         let fuzzy_chunk = (Vec2::<f32>::from(client_pos.0))
             .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e as i32 / sz as i32);
@@ -248,7 +244,7 @@ pub fn initialize_region_subscription(world: &World, entity: specs::Entity) {
                     .join()
                 {
                     // Send message to create entity and tracked components and physics components
-                    general_stream.send_fallible(ServerGeneral::CreateEntity(
+                    client.send_fallible(ServerGeneral::CreateEntity(
                         tracked_comps.create_entity_package(
                             entity,
                             Some(*pos),

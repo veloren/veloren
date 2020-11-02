@@ -1,5 +1,5 @@
 use super::SysTimer;
-use crate::streams::{GeneralStream, GetStream};
+use crate::client::Client;
 use common::{
     comp::{Player, Pos, Waypoint, WaypointArea},
     msg::{Notification, ServerGeneral},
@@ -22,7 +22,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Player>,
         ReadStorage<'a, WaypointArea>,
         WriteStorage<'a, Waypoint>,
-        WriteStorage<'a, GeneralStream>,
+        ReadStorage<'a, Client>,
         Read<'a, Time>,
         Write<'a, SysTimer<Self>>,
     );
@@ -35,7 +35,7 @@ impl<'a> System<'a> for Sys {
             players,
             waypoint_areas,
             mut waypoints,
-            mut general_streams,
+            clients,
             time,
             mut timer,
         ): Self::SystemData,
@@ -43,15 +43,13 @@ impl<'a> System<'a> for Sys {
         span!(_guard, "run", "waypoint::Sys::run");
         timer.start();
 
-        for (entity, player_pos, _, general_stream) in
-            (&entities, &positions, &players, &mut general_streams).join()
-        {
+        for (entity, player_pos, _, client) in (&entities, &positions, &players, &clients).join() {
             for (waypoint_pos, waypoint_area) in (&positions, &waypoint_areas).join() {
                 if player_pos.0.distance_squared(waypoint_pos.0) < waypoint_area.radius().powi(2) {
                     if let Ok(wp_old) = waypoints.insert(entity, Waypoint::new(player_pos.0, *time))
                     {
                         if wp_old.map_or(true, |w| w.elapsed(*time) > NOTIFY_TIME) {
-                            general_stream.send_fallible(ServerGeneral::Notification(
+                            client.send_fallible(ServerGeneral::Notification(
                                 Notification::WaypointSaved,
                             ));
                         }
