@@ -50,10 +50,13 @@ impl<'a> System<'a> for Sys {
                             pos: pos.0,
                             explosion: Explosion {
                                 effects: vec![
-                                    RadiusEffect::EntityEffect(Effect::Health(HealthChange {
-                                        amount: -500,
-                                        cause: HealthSource::Explosion { owner: *owner },
-                                    })),
+                                    RadiusEffect::Entity(
+                                        None,
+                                        Effect::Health(HealthChange {
+                                            amount: -500,
+                                            cause: HealthSource::Explosion { owner: *owner },
+                                        }),
+                                    ),
                                     RadiusEffect::TerrainDestruction(4.0),
                                 ],
                                 radius: 12.0,
@@ -74,10 +77,13 @@ impl<'a> System<'a> for Sys {
                             pos: pos.0,
                             explosion: Explosion {
                                 effects: vec![
-                                    RadiusEffect::EntityEffect(Effect::Health(HealthChange {
-                                        amount: -50,
-                                        cause: HealthSource::Explosion { owner: *owner },
-                                    })),
+                                    RadiusEffect::Entity(
+                                        None,
+                                        Effect::Health(HealthChange {
+                                            amount: -50,
+                                            cause: HealthSource::Explosion { owner: *owner },
+                                        }),
+                                    ),
                                     RadiusEffect::TerrainDestruction(4.0),
                                 ],
                                 radius: 12.0,

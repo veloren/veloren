@@ -5,7 +5,6 @@ use crate::{
     },
     event::{EventBus, ServerEvent},
     state::DeltaTime,
-    sync::Uid,
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 use std::time::Duration;
@@ -17,7 +16,6 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         Read<'a, DeltaTime>,
         Read<'a, EventBus<ServerEvent>>,
-        ReadStorage<'a, Uid>,
         ReadStorage<'a, Loadout>,
         WriteStorage<'a, Health>,
         WriteStorage<'a, Buffs>,
@@ -25,14 +23,13 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         &mut self,
-        (entities, dt, server_bus, uids, loadouts, mut healths, mut buffs): Self::SystemData,
+        (entities, dt, server_bus, loadouts, mut healths, mut buffs): Self::SystemData,
     ) {
         let mut server_emitter = server_bus.emitter();
         // Set to false to avoid spamming server
         buffs.set_event_emission(false);
         healths.set_event_emission(false);
-        for (entity, buff_comp, uid, health) in (&entities, &mut buffs, &uids, &mut healths).join()
-        {
+        for (entity, buff_comp, health) in (&entities, &mut buffs, &mut healths).join() {
             let mut expired_buffs = Vec::<BuffId>::new();
             for (id, buff) in buff_comp.buffs.iter_mut() {
                 // Tick the buff and subtract delta from it
@@ -94,7 +91,7 @@ impl<'a> System<'a> for Sys {
                                         HealthSource::Buff { owner: buff_owner }
                                     };
                                     server_emitter.emit(ServerEvent::Damage {
-                                        uid: *uid,
+                                        entity,
                                         change: HealthChange {
                                             amount: *accumulated as i32,
                                             cause,

@@ -19,7 +19,7 @@ use common::{
     sys::melee::BLOCK_ANGLE,
     terrain::{Block, TerrainGrid},
     vol::ReadVol,
-    Damage, DamageSource, Explosion, RadiusEffect,
+    Damage, DamageSource, Explosion, GroupTarget, RadiusEffect,
 };
 use comp::item::Reagent;
 use rand::prelude::*;
@@ -27,12 +27,10 @@ use specs::{join::Join, saveload::MarkerAllocator, Entity as EcsEntity, WorldExt
 use tracing::error;
 use vek::Vec3;
 
-pub fn handle_damage(server: &Server, uid: Uid, change: HealthChange) {
+pub fn handle_damage(server: &Server, entity: EcsEntity, change: HealthChange) {
     let ecs = &server.state.ecs();
-    if let Some(entity) = ecs.entity_from_uid(uid.into()) {
-        if let Some(health) = ecs.write_storage::<Health>().get_mut(entity) {
-            health.change_by(change);
-        }
+    if let Some(health) = ecs.write_storage::<Health>().get_mut(entity) {
+        health.change_by(change);
     }
 }
 
@@ -570,7 +568,13 @@ pub fn handle_explosion(
                             }
                         }
 
-                        let mut damage = if let Some(damage) = damages.get_damage(same_group) {
+                        let target_group = if same_group {
+                            GroupTarget::InGroup
+                        } else {
+                            GroupTarget::OutOfGroup
+                        };
+
+                        let mut damage = if let Some(damage) = damages.get_damage(target_group) {
                             damage
                         } else {
                             continue;
@@ -667,13 +671,29 @@ pub fn handle_explosion(
                         .cast();
                 }
             },
-            RadiusEffect::EntityEffect(effect) => {
-                for (entity, pos_entity) in
-                    (&ecs.entities(), &ecs.read_storage::<comp::Pos>()).join()
+            RadiusEffect::Entity(target_group, effect) => {
+                for (entity_b, pos_b) in (&ecs.entities(), &ecs.read_storage::<comp::Pos>()).join()
                 {
-                    let distance_squared = pos.distance_squared(pos_entity.0);
-                    if distance_squared < explosion.radius.powi(2) {
-                        server.state().apply_effect(entity, effect);
+                    let distance_squared = pos.distance_squared(pos_b.0);
+                    // See if entities are in the same group
+                    let mut same_group = owner_entity
+                        .and_then(|e| groups.get(e))
+                        .map_or(false, |group_a| Some(group_a) == groups.get(entity_b));
+                    if let Some(entity) = owner_entity {
+                        if entity == entity_b {
+                            same_group = true;
+                        }
+                    }
+                    let hit_group = if same_group {
+                        GroupTarget::InGroup
+                    } else {
+                        GroupTarget::OutOfGroup
+                    };
+
+                    if distance_squared < explosion.radius.powi(2)
+                        && target_group.map_or(true, |g| g == hit_group)
+                    {
+                        server.state().apply_effect(entity_b, effect);
                     }
                 }
             },
@@ -754,11 +774,9 @@ pub fn handle_buff(server: &mut Server, entity: EcsEntity, buff_change: buff::Bu
     }
 }
 
-pub fn handle_energy_change(server: &Server, uid: Uid, change: EnergyChange) {
+pub fn handle_energy_change(server: &Server, entity: EcsEntity, change: EnergyChange) {
     let ecs = &server.state.ecs();
-    if let Some(entity) = ecs.entity_from_uid(uid.into()) {
-        if let Some(energy) = ecs.write_storage::<Energy>().get_mut(entity) {
-            energy.change_by(change);
-        }
+    if let Some(energy) = ecs.write_storage::<Energy>().get_mut(entity) {
+        energy.change_by(change);
     }
 }

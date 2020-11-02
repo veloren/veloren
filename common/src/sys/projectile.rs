@@ -9,6 +9,7 @@ use crate::{
     span,
     state::DeltaTime,
     sync::UidAllocator,
+    GroupTarget,
 };
 use rand::{thread_rng, Rng};
 use specs::{
@@ -83,6 +84,13 @@ impl<'a> System<'a> for Sys {
                         .retrieve_entity_internal(other.into())
                         .and_then(|e| groups.get(e))
                     );
+
+                let target_group = if same_group {
+                    GroupTarget::InGroup
+                } else {
+                    GroupTarget::OutOfGroup
+                };
+
                 if projectile.ignore_group
                     // Skip if in the same group
                     && same_group
@@ -100,36 +108,49 @@ impl<'a> System<'a> for Sys {
                             if Some(other) == projectile.owner {
                                 continue;
                             }
-                            let damage = if let Some(damage) = damages.get_damage(same_group) {
+                            let damage = if let Some(damage) = damages.get_damage(target_group) {
                                 damage
                             } else {
                                 continue;
                             };
-                            let other_entity_loadout = uid_allocator
-                                .retrieve_entity_internal(other.into())
-                                .and_then(|e| loadouts.get(e));
-                            let change =
-                                damage.modify_damage(false, other_entity_loadout, projectile.owner);
+                            if let Some(other_entity) =
+                                uid_allocator.retrieve_entity_internal(other.into())
+                            {
+                                let other_entity_loadout = loadouts.get(other_entity);
+                                let change = damage.modify_damage(
+                                    false,
+                                    other_entity_loadout,
+                                    projectile.owner,
+                                );
 
-                            if change.amount != 0 {
-                                server_emitter.emit(ServerEvent::Damage { uid: other, change });
+                                if change.amount != 0 {
+                                    server_emitter.emit(ServerEvent::Damage {
+                                        entity: other_entity,
+                                        change,
+                                    });
+                                }
                             }
                         },
                         projectile::Effect::Knockback(knockback) => {
-                            if let Some(entity) =
+                            if let Some(other_entity) =
                                 uid_allocator.retrieve_entity_internal(other.into())
                             {
                                 let impulse = knockback.calculate_impulse(ori.0);
                                 if !impulse.is_approx_zero() {
-                                    local_emitter
-                                        .emit(LocalEvent::ApplyImpulse { entity, impulse });
+                                    local_emitter.emit(LocalEvent::ApplyImpulse {
+                                        entity: other_entity,
+                                        impulse,
+                                    });
                                 }
                             }
                         },
                         projectile::Effect::RewardEnergy(energy) => {
-                            if let Some(uid) = projectile.owner {
+                            if let Some(entity_owner) = projectile
+                                .owner
+                                .and_then(|u| uid_allocator.retrieve_entity_internal(u.into()))
+                            {
                                 server_emitter.emit(ServerEvent::EnergyChange {
-                                    uid,
+                                    entity: entity_owner,
                                     change: EnergyChange {
                                         amount: energy as i32,
                                         source: EnergySource::HitEnemy,
