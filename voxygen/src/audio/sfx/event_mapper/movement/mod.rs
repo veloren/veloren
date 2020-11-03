@@ -158,8 +158,10 @@ impl MovementEventMapper {
         if physics_state.on_ground && vel.magnitude() > 0.1
             || !previous_state.on_ground && physics_state.on_ground
         {
-            return if character_state.is_dodge() {
+            return if matches!(character_state, CharacterState::Roll(_)) {
                 SfxEvent::Roll
+            } else if matches!(character_state, CharacterState::Sneak) {
+                SfxEvent::Sneak
             } else {
                 SfxEvent::Run
             };

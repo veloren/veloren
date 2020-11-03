@@ -100,6 +100,10 @@ impl CharacterState {
         )
     }
 
+    pub fn is_stealthy(&self) -> bool {
+        matches!(self, CharacterState::Sneak | CharacterState::Roll(_))
+    }
+
     pub fn is_attack(&self) -> bool {
         matches!(self,
             CharacterState::BasicMelee(_)

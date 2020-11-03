@@ -53,4 +53,10 @@ impl CharacterBehavior for Data {
         attempt_swap_loadout(data, &mut update);
         update
     }
+
+    fn stand(&self, data: &JoinData) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        update.character = CharacterState::Idle;
+        update
+    }
 }
