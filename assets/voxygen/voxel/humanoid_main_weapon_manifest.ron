@@ -189,7 +189,7 @@
         color: None
     ),
     Axe("WornIronAxe3"): (
-        vox_spec: ("weapon.axe.2haxe_worn_iron-3", (-1.5, -4.5, -4.0)),
+        vox_spec: ("weapon.axe.2haxe_worn_iron-3", (-1.5, -8.0, -4.0)),//offcenterY
         color: None
     ),
     Axe("WornIronAxe4"): (
