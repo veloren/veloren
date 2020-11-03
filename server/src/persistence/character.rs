@@ -15,13 +15,18 @@ use crate::{
             convert_character_from_database, convert_inventory_from_database_items,
             convert_items_to_database_items, convert_loadout_from_database_items,
             convert_stats_from_database, convert_stats_to_database,
+            convert_waypoint_to_database_json,
         },
         character_loader::{CharacterDataResult, CharacterListResult},
         error::Error::DatabaseError,
+        json_models::CharacterPosition,
         PersistedComponents,
     },
 };
-use common::character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER};
+use common::{
+    character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER},
+    state::Time,
+};
 use core::ops::Range;
 use diesel::{prelude::*, sql_query, sql_types::BigInt};
 use std::sync::Arc;
@@ -83,11 +88,22 @@ pub fn load_character_data(
         .filter(schema::body::dsl::body_id.eq(char_id))
         .first::<Body>(&*connection)?;
 
+    let waypoint = item
+        .filter(item_id.eq(char_id))
+        .first::<Item>(&*connection)
+        .ok()
+        .and_then(|it: Item| {
+            (serde_json::de::from_str::<CharacterPosition>(it.position.as_str()))
+                .ok()
+                .map(|charpos| comp::Waypoint::new(charpos.waypoint, Time(0.0)))
+        });
+
     Ok((
         convert_body_from_database(&char_body)?,
         convert_stats_from_database(&stats_data, character_data.alias),
         convert_inventory_from_database_items(&inventory_items)?,
         convert_loadout_from_database_items(&loadout_items)?,
+        waypoint,
     ))
 }
 
@@ -157,7 +173,7 @@ pub fn create_character(
 
     use schema::{body, character, stats};
 
-    let (body, stats, inventory, loadout) = persisted_components;
+    let (body, stats, inventory, loadout, waypoint) = persisted_components;
 
     // Fetch new entity IDs for character, inventory and loadout
     let mut new_entity_ids = get_new_entity_ids(connection, |next_id| next_id + 3)?;
@@ -166,13 +182,17 @@ pub fn create_character(
     let character_id = new_entity_ids.next().unwrap();
     let inventory_container_id = new_entity_ids.next().unwrap();
     let loadout_container_id = new_entity_ids.next().unwrap();
+    // by default the character's position is the id in textual form
+    let character_position = waypoint
+        .and_then(|waypoint| serde_json::to_string(&waypoint.get_pos()).ok())
+        .unwrap_or_else(|| character_id.to_string());
     let pseudo_containers = vec![
         Item {
             stack_size: 1,
             item_id: character_id,
             parent_container_item_id: WORLD_PSEUDO_CONTAINER_ID,
             item_definition_id: CHARACTER_PSEUDO_CONTAINER_DEF_ID.to_owned(),
-            position: character_id.to_string(),
+            position: character_position,
         },
         Item {
             stack_size: 1,
@@ -510,6 +530,7 @@ pub fn update(
     char_stats: comp::Stats,
     inventory: comp::Inventory,
     loadout: comp::Loadout,
+    waypoint: Option<comp::Waypoint>,
     connection: VelorenTransaction,
 ) -> Result<Vec<Arc<common::comp::item::ItemId>>, Error> {
     use super::schema::{item::dsl::*, stats::dsl::*};
@@ -531,6 +552,22 @@ pub fn update(
         upserts = upserts_;
         next_id
     })?;
+
+    if let Some(waypoint) = waypoint {
+        match convert_waypoint_to_database_json(&waypoint) {
+            Ok(character_position) => {
+                diesel::update(item.filter(item_id.eq(char_id)))
+                    .set(position.eq(character_position))
+                    .execute(&*connection)?;
+            },
+            Err(err) => {
+                return Err(Error::ConversionError(format!(
+                    "Error encoding waypoint: {:?}",
+                    err
+                )));
+            },
+        }
+    }
 
     // Next, delete any slots we aren't upserting.
     trace!("Deleting items for character_id {}", char_id);

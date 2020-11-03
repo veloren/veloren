@@ -24,7 +24,13 @@ pub fn handle_initialize_character(
 pub fn handle_loaded_character_data(
     server: &mut Server,
     entity: EcsEntity,
-    loaded_components: (comp::Body, comp::Stats, comp::Inventory, comp::Loadout),
+    loaded_components: (
+        comp::Body,
+        comp::Stats,
+        comp::Inventory,
+        comp::Loadout,
+        Option<comp::Waypoint>,
+    ),
 ) {
     server
         .state

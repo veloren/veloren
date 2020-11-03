@@ -3,7 +3,10 @@ use crate::persistence::{
     models::{Body, Character, Item, Stats},
 };
 
-use crate::persistence::{error::Error, json_models::HumanoidBody};
+use crate::persistence::{
+    error::Error,
+    json_models::{CharacterPosition, HumanoidBody},
+};
 use common::{
     character::CharacterId,
     comp::{Body as CompBody, *},
@@ -163,6 +166,13 @@ pub fn convert_body_to_database_json(body: &CompBody) -> Result<String, Error> {
     };
 
     serde_json::to_string(&json_model).map_err(Error::SerializationError)
+}
+
+pub fn convert_waypoint_to_database_json(waypoint: &Waypoint) -> Result<String, Error> {
+    let charpos = CharacterPosition {
+        waypoint: waypoint.get_pos(),
+    };
+    serde_json::to_string(&charpos).map_err(Error::SerializationError)
 }
 
 pub fn convert_stats_to_database(character_id: CharacterId, stats: &common::comp::Stats) -> Stats {

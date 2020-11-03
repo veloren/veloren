@@ -21,7 +21,13 @@ use std::{fs, path::Path};
 use tracing::info;
 
 /// A tuple of the components that are persisted to the DB for each character
-pub type PersistedComponents = (comp::Body, comp::Stats, comp::Inventory, comp::Loadout);
+pub type PersistedComponents = (
+    comp::Body,
+    comp::Stats,
+    comp::Inventory,
+    comp::Loadout,
+    Option<comp::Waypoint>,
+);
 
 // See: https://docs.rs/diesel_migrations/1.4.0/diesel_migrations/macro.embed_migrations.html
 // This macro is called at build-time, and produces the necessary migration info
