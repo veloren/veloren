@@ -4,7 +4,7 @@
 
 use crate::{
     settings::{BanRecord, EditableSetting},
-    Server, StateExt,
+    Server, SpawnPoint, StateExt,
 };
 use chrono::{NaiveTime, Timelike};
 use common::{
@@ -82,6 +82,7 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::Group => handle_group,
         ChatCommand::Health => handle_health,
         ChatCommand::Help => handle_help,
+        ChatCommand::Home => handle_home,
         ChatCommand::JoinFaction => handle_join_faction,
         ChatCommand::Jump => handle_jump,
         ChatCommand::Kick => handle_kick,
@@ -355,6 +356,29 @@ fn handle_goto(
         server.notify_client(
             client,
             ChatType::CommandError.server_msg(action.help_string()),
+        );
+    }
+}
+
+fn handle_home(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    _args: String,
+    _action: &ChatCommand,
+) {
+    if server
+        .state
+        .read_component_copied::<comp::Pos>(target)
+        .is_some()
+    {
+        let home_pos = server.state.ecs().read_resource::<SpawnPoint>().0;
+        server.state.write_component(target, comp::Pos(home_pos));
+        server.state.write_component(target, comp::ForceUpdate);
+    } else {
+        server.notify_client(
+            client,
+            ChatType::CommandError.server_msg("You have no position."),
         );
     }
 }
