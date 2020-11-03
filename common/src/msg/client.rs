@@ -78,7 +78,6 @@ pub enum ClientGeneral {
     UnlockSkillGroup(SkillGroupType),
     //Always possible
     ChatMsg(String),
-    Disconnect,
     Terminate,
 }
 
@@ -87,21 +86,21 @@ impl ClientMsg {
         &self,
         c_type: ClientType,
         registered: bool,
-        in_game: Option<super::ClientInGame>,
+        presence: Option<super::PresenceKind>,
     ) -> bool {
         match self {
             ClientMsg::Type(t) => c_type == *t,
-            ClientMsg::Register(_) => !registered && in_game.is_none(),
+            ClientMsg::Register(_) => !registered && presence.is_none(),
             ClientMsg::General(g) => {
                 registered
                     && match g {
                         ClientGeneral::RequestCharacterList
                         | ClientGeneral::CreateCharacter { .. }
                         | ClientGeneral::DeleteCharacter(_) => {
-                            c_type != ClientType::ChatOnly && in_game.is_none()
+                            c_type != ClientType::ChatOnly && presence.is_none()
                         },
                         ClientGeneral::Character(_) | ClientGeneral::Spectate => {
-                            c_type == ClientType::Game && in_game.is_none()
+                            c_type == ClientType::Game && presence.is_none()
                         },
                         //Only in game
                         ClientGeneral::ControllerInputs(_)
@@ -116,12 +115,10 @@ impl ClientMsg {
                         | ClientGeneral::UnlockSkill(_)
                         | ClientGeneral::RefundSkill(_)
                         | ClientGeneral::UnlockSkillGroup(_) => {
-                            c_type == ClientType::Game && in_game.is_some()
+                            c_type == ClientType::Game && presence.is_some()
                         },
                         //Always possible
-                        ClientGeneral::ChatMsg(_)
-                        | ClientGeneral::Disconnect
-                        | ClientGeneral::Terminate => true,
+                        ClientGeneral::ChatMsg(_) | ClientGeneral::Terminate => true,
                     }
             },
             ClientMsg::Ping(_) => true,

@@ -279,7 +279,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                             .insert(tameable_entity, comp::Alignment::Owned(uid));
 
                                         // Add to group system
-                                        let mut clients = state.ecs().write_storage::<Client>();
+                                        let clients = state.ecs().read_storage::<Client>();
                                         let uids = state.ecs().read_storage::<Uid>();
                                         let mut group_manager = state
                                             .ecs()
@@ -294,14 +294,14 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                             &uids,
                                             &mut |entity, group_change| {
                                                 clients
-                                                    .get_mut(entity)
+                                                    .get(entity)
                                                     .and_then(|c| {
                                                         group_change
                                                             .try_map(|e| uids.get(e).copied())
                                                             .map(|g| (g, c))
                                                     })
                                                     .map(|(g, c)| {
-                                                        c.send_msg(ServerGeneral::GroupUpdate(g))
+                                                        c.send(ServerGeneral::GroupUpdate(g))
                                                     });
                                             },
                                         );

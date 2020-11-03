@@ -13,10 +13,12 @@ pub(crate) struct ServerInfoPacket {
     pub time: f64,
 }
 
+pub(crate) type IncomingClient = Client;
+
 pub(crate) struct ConnectionHandler {
     _network: Arc<Network>,
     thread_handle: Option<thread::JoinHandle<()>>,
-    pub client_receiver: Receiver<Client>,
+    pub client_receiver: Receiver<IncomingClient>,
     pub info_requester_receiver: Receiver<Sender<ServerInfoPacket>>,
     stop_sender: Option<oneshot::Sender<()>>,
 }
@@ -31,7 +33,7 @@ impl ConnectionHandler {
         let network_clone = Arc::clone(&network);
         let (stop_sender, stop_receiver) = oneshot::channel();
 
-        let (client_sender, client_receiver) = unbounded::<Client>();
+        let (client_sender, client_receiver) = unbounded::<IncomingClient>();
         let (info_requester_sender, info_requester_receiver) =
             bounded::<Sender<ServerInfoPacket>>(1);
 
@@ -55,7 +57,7 @@ impl ConnectionHandler {
 
     async fn work(
         network: Arc<Network>,
-        client_sender: Sender<Client>,
+        client_sender: Sender<IncomingClient>,
         info_requester_sender: Sender<Sender<ServerInfoPacket>>,
         stop_receiver: oneshot::Receiver<()>,
     ) {
@@ -92,7 +94,7 @@ impl ConnectionHandler {
 
     async fn init_participant(
         participant: Participant,
-        client_sender: Sender<Client>,
+        client_sender: Sender<IncomingClient>,
         info_requester_sender: Sender<Sender<ServerInfoPacket>>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         debug!("New Participant connected to the server");
@@ -118,26 +120,22 @@ impl ConnectionHandler {
             t = register_stream.recv::<ClientType>().fuse() => Some(t),
         ) {
             None => {
-                debug!("slow client connection detected, dropping it");
+                debug!("Timeout for incoming client elapsed, aborting connection");
                 return Ok(());
             },
             Some(client_type) => client_type?,
         };
 
-        let client = Client {
-            registered: false,
+        let client = Client::new(
             client_type,
-            in_game: None,
-            participant: Some(participant),
+            participant,
+            server_data.time,
             general_stream,
             ping_stream,
             register_stream,
-            in_game_stream,
             character_screen_stream,
-            network_error: false,
-            last_ping: server_data.time,
-            login_msg_sent: false,
-        };
+            in_game_stream,
+        );
 
         client_sender.send(client)?;
         Ok(())

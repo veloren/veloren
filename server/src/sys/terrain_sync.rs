@@ -1,13 +1,7 @@
 use super::SysTimer;
-use crate::client::Client;
-use common::{
-    comp::{Player, Pos},
-    msg::ServerGeneral,
-    span,
-    state::TerrainChanges,
-    terrain::TerrainGrid,
-};
-use specs::{Join, Read, ReadExpect, ReadStorage, System, Write, WriteStorage};
+use crate::{client::Client, presence::Presence};
+use common::{comp::Pos, msg::ServerGeneral, span, state::TerrainChanges, terrain::TerrainGrid};
+use specs::{Join, Read, ReadExpect, ReadStorage, System, Write};
 
 /// This systems sends new chunks to clients as well as changes to existing
 /// chunks
@@ -19,43 +13,48 @@ impl<'a> System<'a> for Sys {
         Read<'a, TerrainChanges>,
         Write<'a, SysTimer<Self>>,
         ReadStorage<'a, Pos>,
-        ReadStorage<'a, Player>,
-        WriteStorage<'a, Client>,
+        ReadStorage<'a, Presence>,
+        ReadStorage<'a, Client>,
     );
 
     fn run(
         &mut self,
-        (terrain, terrain_changes, mut timer, positions, players, mut clients): Self::SystemData,
+        (terrain, terrain_changes, mut timer, positions, presences, clients): Self::SystemData,
     ) {
         span!(_guard, "run", "terrain_sync::Sys::run");
         timer.start();
 
         // Sync changed chunks
         'chunk: for chunk_key in &terrain_changes.modified_chunks {
-            for (player, pos, client) in (&players, &positions, &mut clients).join() {
-                if player
-                    .view_distance
-                    .map(|vd| super::terrain::chunk_in_vd(pos.0, *chunk_key, &terrain, vd))
-                    .unwrap_or(false)
+            let mut lazy_msg = None;
+
+            for (presence, pos, client) in (&presences, &positions, &clients).join() {
+                if super::terrain::chunk_in_vd(pos.0, *chunk_key, &terrain, presence.view_distance)
                 {
-                    client.send_msg(ServerGeneral::TerrainChunkUpdate {
-                        key: *chunk_key,
-                        chunk: Ok(Box::new(match terrain.get_key(*chunk_key) {
-                            Some(chunk) => chunk.clone(),
-                            None => break 'chunk,
-                        })),
-                    });
+                    if lazy_msg.is_none() {
+                        lazy_msg = Some(client.prepare(ServerGeneral::TerrainChunkUpdate {
+                            key: *chunk_key,
+                            chunk: Ok(Box::new(match terrain.get_key(*chunk_key) {
+                                Some(chunk) => chunk.clone(),
+                                None => break 'chunk,
+                            })),
+                        }));
+                    }
+                    lazy_msg.as_ref().map(|ref msg| client.send_prepared(&msg));
                 }
             }
         }
 
         // TODO: Don't send all changed blocks to all clients
         // Sync changed blocks
-        let msg = ServerGeneral::TerrainBlockUpdates(terrain_changes.modified_blocks.clone());
-        for (player, client) in (&players, &mut clients).join() {
-            if player.view_distance.is_some() {
-                client.send_msg(msg.clone());
+        let mut lazy_msg = None;
+        for (_, client) in (&presences, &clients).join() {
+            if lazy_msg.is_none() {
+                lazy_msg = Some(client.prepare(ServerGeneral::TerrainBlockUpdates(
+                    terrain_changes.modified_blocks.clone(),
+                )));
             }
+            lazy_msg.as_ref().map(|ref msg| client.send_prepared(&msg));
         }
 
         timer.end();

@@ -3,11 +3,12 @@ use super::{
     SysTimer,
 };
 use crate::{
-    client::{Client, RegionSubscription},
+    client::Client,
+    presence::{Presence, RegionSubscription},
     Tick,
 };
 use common::{
-    comp::{ForceUpdate, Inventory, InventoryUpdate, Last, Ori, Player, Pos, Vel},
+    comp::{ForceUpdate, Inventory, InventoryUpdate, Last, Ori, Pos, Vel},
     msg::ServerGeneral,
     outcome::Outcome,
     region::{Event as RegionEvent, RegionMap},
@@ -38,11 +39,11 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Ori>,
         ReadStorage<'a, Inventory>,
         ReadStorage<'a, RegionSubscription>,
-        ReadStorage<'a, Player>,
+        ReadStorage<'a, Presence>,
         WriteStorage<'a, Last<Pos>>,
         WriteStorage<'a, Last<Vel>>,
         WriteStorage<'a, Last<Ori>>,
-        WriteStorage<'a, Client>,
+        ReadStorage<'a, Client>,
         WriteStorage<'a, ForceUpdate>,
         WriteStorage<'a, InventoryUpdate>,
         Write<'a, DeletedEntities>,
@@ -65,11 +66,11 @@ impl<'a> System<'a> for Sys {
             orientations,
             inventories,
             subscriptions,
-            players,
+            presences,
             mut last_pos,
             mut last_vel,
             mut last_ori,
-            mut clients,
+            clients,
             mut force_updates,
             mut inventory_updates,
             mut deleted_entities,
@@ -104,10 +105,16 @@ impl<'a> System<'a> for Sys {
         for (key, region) in region_map.iter() {
             // Assemble subscriber list for this region by iterating through clients and
             // checking if they are subscribed to this region
-            let mut subscribers = (&mut clients, &entities, &subscriptions, &positions)
+            let mut subscribers = (
+                &clients,
+                &entities,
+                presences.maybe(),
+                &subscriptions,
+                &positions,
+            )
                 .join()
-                .filter_map(|(client, entity, subscription, pos)| {
-                    if client.in_game.is_some() && subscription.regions.contains(&key) {
+                .filter_map(|(client, entity, presence, subscription, pos)| {
+                    if presence.is_some() && subscription.regions.contains(&key) {
                         Some((client, &subscription.regions, entity, *pos))
                     } else {
                         None
@@ -143,7 +150,7 @@ impl<'a> System<'a> for Sys {
                                     // Client doesn't need to know about itself
                                     && *client_entity != entity
                                 {
-                                    client.send_msg(create_msg.clone());
+                                    client.send_fallible(create_msg.clone());
                                 }
                             }
                         }
@@ -157,7 +164,7 @@ impl<'a> System<'a> for Sys {
                                     .map(|key| !regions.contains(key))
                                     .unwrap_or(true)
                                 {
-                                    client.send_msg(ServerGeneral::DeleteEntity(uid));
+                                    client.send_fallible(ServerGeneral::DeleteEntity(uid));
                                 }
                             }
                         }
@@ -174,18 +181,32 @@ impl<'a> System<'a> for Sys {
                     .take_deleted_in_region(key)
                     .unwrap_or_default(),
             );
-            let entity_sync_msg = ServerGeneral::EntitySync(entity_sync_package);
-            let comp_sync_msg = ServerGeneral::CompSync(comp_sync_package);
+            let mut entity_sync_package = Some(entity_sync_package);
+            let mut comp_sync_package = Some(comp_sync_package);
+            let mut entity_sync_lazymsg = None;
+            let mut comp_sync_lazymsg = None;
             subscribers.iter_mut().for_each(move |(client, _, _, _)| {
-                client.send_msg(entity_sync_msg.clone());
-                client.send_msg(comp_sync_msg.clone());
+                if entity_sync_lazymsg.is_none() {
+                    entity_sync_lazymsg = Some(client.prepare(ServerGeneral::EntitySync(
+                        entity_sync_package.take().unwrap(),
+                    )));
+                    comp_sync_lazymsg = Some(
+                        client.prepare(ServerGeneral::CompSync(comp_sync_package.take().unwrap())),
+                    );
+                }
+                entity_sync_lazymsg
+                    .as_ref()
+                    .map(|msg| client.send_prepared(&msg));
+                comp_sync_lazymsg
+                    .as_ref()
+                    .map(|msg| client.send_prepared(&msg));
             });
 
-            let mut send_msg = |msg: ServerGeneral,
-                                entity: EcsEntity,
-                                pos: Pos,
-                                force_update: Option<&ForceUpdate>,
-                                throttle: bool| {
+            let mut send_general = |msg: ServerGeneral,
+                                    entity: EcsEntity,
+                                    pos: Pos,
+                                    force_update: Option<&ForceUpdate>,
+                                    throttle: bool| {
                 for (client, _, client_entity, client_pos) in &mut subscribers {
                     if if client_entity == &entity {
                         // Don't send client physics updates about itself unless force update is set
@@ -212,7 +233,7 @@ impl<'a> System<'a> for Sys {
                             true // Closer than 100 blocks
                         }
                     } {
-                        client.send_msg(msg.clone());
+                        client.send_fallible(msg.clone());
                     }
                 }
             };
@@ -286,7 +307,7 @@ impl<'a> System<'a> for Sys {
                     comp_sync_package.comp_removed::<Ori>(uid);
                 }
 
-                send_msg(
+                send_general(
                     ServerGeneral::CompSync(comp_sync_package),
                     entity,
                     pos,
@@ -299,19 +320,18 @@ impl<'a> System<'a> for Sys {
         // Handle entity deletion in regions that don't exist in RegionMap
         // (theoretically none)
         for (region_key, deleted) in deleted_entities.take_remaining_deleted() {
-            for client in
-                (&mut clients, &subscriptions)
-                    .join()
-                    .filter_map(|(client, subscription)| {
-                        if client.in_game.is_some() && subscription.regions.contains(&region_key) {
-                            Some(client)
-                        } else {
-                            None
-                        }
-                    })
+            for client in (presences.maybe(), &subscriptions, &clients)
+                .join()
+                .filter_map(|(presence, subscription, client)| {
+                    if presence.is_some() && subscription.regions.contains(&region_key) {
+                        Some(client)
+                    } else {
+                        None
+                    }
+                })
             {
                 for uid in &deleted {
-                    client.send_msg(ServerGeneral::DeleteEntity(Uid(*uid)));
+                    client.send_fallible(ServerGeneral::DeleteEntity(Uid(*uid)));
                 }
             }
         }
@@ -319,19 +339,20 @@ impl<'a> System<'a> for Sys {
         // TODO: Sync clients that don't have a position?
 
         // Sync inventories
-        for (client, inventory, update) in (&mut clients, &inventories, &inventory_updates).join() {
-            client.send_msg(ServerGeneral::InventoryUpdate(
+        for (inventory, update, client) in (&inventories, &inventory_updates, &clients).join() {
+            client.send_fallible(ServerGeneral::InventoryUpdate(
                 inventory.clone(),
                 update.event(),
             ));
         }
 
         // Sync outcomes
-        for (client, player, pos) in (&mut clients, &players, positions.maybe()).join() {
+        for (presence, pos, client) in (presences.maybe(), positions.maybe(), &clients).join() {
             let is_near = |o_pos: Vec3<f32>| {
-                pos.zip_with(player.view_distance, |pos, vd| {
+                pos.zip_with(presence, |pos, presence| {
                     pos.0.xy().distance_squared(o_pos.xy())
-                        < (vd as f32 * TerrainChunkSize::RECT_SIZE.x as f32).powf(2.0)
+                        < (presence.view_distance as f32 * TerrainChunkSize::RECT_SIZE.x as f32)
+                            .powf(2.0)
                 })
             };
 
@@ -341,7 +362,7 @@ impl<'a> System<'a> for Sys {
                 .cloned()
                 .collect::<Vec<_>>();
             if !outcomes.is_empty() {
-                client.send_msg(ServerGeneral::Outcomes(outcomes));
+                client.send_fallible(ServerGeneral::Outcomes(outcomes));
             }
         }
         outcomes.clear();
@@ -353,9 +374,12 @@ impl<'a> System<'a> for Sys {
         // Sync resources
         // TODO: doesn't really belong in this system (rename system or create another
         // system?)
-        let tof_msg = ServerGeneral::TimeOfDay(*time_of_day);
-        for client in (&mut clients).join() {
-            client.send_msg(tof_msg.clone());
+        let mut tof_lazymsg = None;
+        for client in (&clients).join() {
+            if tof_lazymsg.is_none() {
+                tof_lazymsg = Some(client.prepare(ServerGeneral::TimeOfDay(*time_of_day)));
+            }
+            tof_lazymsg.as_ref().map(|msg| client.send_prepared(&msg));
         }
 
         timer.end();

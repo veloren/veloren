@@ -3,7 +3,6 @@
 //! `CHAT_COMMANDS` and provide a handler function.
 
 use crate::{
-    client::Client,
     settings::{BanRecord, EditableSetting},
     Server, StateExt,
 };
@@ -27,7 +26,7 @@ use std::convert::TryFrom;
 use vek::*;
 use world::util::Sampler;
 
-use crate::login_provider::LoginProvider;
+use crate::{client::Client, login_provider::LoginProvider};
 use scan_fmt::{scan_fmt, scan_fmt_some};
 use tracing::error;
 
@@ -508,11 +507,11 @@ fn handle_alias(
                 *uid,
                 player.alias.clone(),
             ));
-            server.state.notify_registered_clients(msg);
+            server.state.notify_players(msg);
 
             // Announce alias change if target has a Body.
             if ecs.read_storage::<comp::Body>().get(target).is_some() {
-                server.state.notify_registered_clients(
+                server.state.notify_players(
                     ChatType::CommandInfo
                         .server_msg(format!("{} is now known as {}.", old_alias, player.alias)),
                 );
@@ -650,7 +649,7 @@ fn handle_spawn(
                             // Add to group system if a pet
                             if matches!(alignment, comp::Alignment::Owned { .. }) {
                                 let state = server.state();
-                                let mut clients = state.ecs().write_storage::<Client>();
+                                let clients = state.ecs().read_storage::<Client>();
                                 let uids = state.ecs().read_storage::<Uid>();
                                 let mut group_manager =
                                     state.ecs().write_resource::<comp::group::GroupManager>();
@@ -663,14 +662,14 @@ fn handle_spawn(
                                     &uids,
                                     &mut |entity, group_change| {
                                         clients
-                                            .get_mut(entity)
+                                            .get(entity)
                                             .and_then(|c| {
                                                 group_change
                                                     .try_map(|e| uids.get(e).copied())
                                                     .map(|g| (g, c))
                                             })
                                             .map(|(g, c)| {
-                                                c.send_msg(ServerGeneral::GroupUpdate(g))
+                                                c.send_fallible(ServerGeneral::GroupUpdate(g));
                                             });
                                     },
                                 );
@@ -1211,7 +1210,7 @@ fn handle_adminify(
                         .expect("Player should have uid"),
                     is_admin,
                 ));
-                server.state.notify_registered_clients(msg);
+                server.state.notify_players(msg);
             },
             None => {
                 server.notify_client(
@@ -1668,11 +1667,9 @@ fn handle_set_level(
                     .read_storage::<Uid>()
                     .get(player)
                     .expect("Failed to get uid for player");
-                server
-                    .state
-                    .notify_registered_clients(ServerGeneral::PlayerListUpdate(
-                        PlayerListUpdate::LevelChange(uid, lvl),
-                    ));
+                server.state.notify_players(ServerGeneral::PlayerListUpdate(
+                    PlayerListUpdate::LevelChange(uid, lvl),
+                ));
 
                 if let Some(stats) = server
                     .state
