@@ -5,9 +5,6 @@ use super::{
 use common::{comp::item::ToolKind, states::utils::StageSection};
 use std::f32::consts::PI;
 
-pub struct Input {
-    pub attack: bool,
-}
 pub struct DashAnimation;
 
 impl Animation for DashAnimation {
@@ -26,7 +23,7 @@ impl Animation for DashAnimation {
     #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, second_tool_kind, _global_time, stage_section): Self::Dependency,
+        (active_tool_kind, _second_tool_kind, _global_time, stage_section): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -34,11 +31,11 @@ impl Animation for DashAnimation {
         *rate = 1.0;
         let mut next = (*skeleton).clone();
 
-        let (movement1, movement2, movement3, _movement4) = match stage_section {
-            Some(StageSection::Buildup) => (anim_time as f32, 0.0, 0.0, 0.0),
+        let (movement1, movement2, movement3, movement4) = match stage_section {
+            Some(StageSection::Buildup) => ((anim_time as f32).powf(0.25), 0.0, 0.0, 0.0),
             Some(StageSection::Charge) => (1.0, anim_time as f32, 0.0, 0.0),
             Some(StageSection::Swing) => (1.0, 1.0, anim_time as f32, 0.0),
-            Some(StageSection::Recover) => (1.1, 1.0, 1.0, anim_time as f32),
+            Some(StageSection::Recover) => (1.1, 1.0, 1.0, (anim_time as f32).powf(4.0)),
             _ => (0.0, 0.0, 0.0, 0.0),
         };
 
@@ -83,33 +80,42 @@ impl Animation for DashAnimation {
                     Quaternion::rotation_x(s_a.shr.3) * Quaternion::rotation_y(s_a.shr.4);
 
                 next.control.position = Vec3::new(
-                    s_a.sc.0 + movement1 * -5.0 + movement3 * -2.0,
-                    s_a.sc.1 + movement2.min(1.0) * -2.0,
-                    s_a.sc.2 + movement2.min(1.0) * 2.0,
+                    s_a.sc.0 + (movement1 * -5.0 + movement3 * -2.0) * (1.0 - movement4),
+                    s_a.sc.1 + (movement2.min(1.0) * -2.0) * (1.0 - movement4),
+                    s_a.sc.2 + (movement2.min(1.0) * 2.0) * (1.0 - movement4),
                 );
-                next.control.orientation =
-                    Quaternion::rotation_x(s_a.sc.3 + movement1 * -1.0 + movement3 * -0.5)
-                        * Quaternion::rotation_y(s_a.sc.4 + movement1 * 1.5 + movement3 * -2.5);
+                next.control.orientation = Quaternion::rotation_x(
+                    s_a.sc.3 + (movement1 * -1.0 + movement3 * -0.5) * (1.0 - movement4),
+                ) * Quaternion::rotation_y(
+                    s_a.sc.4 + (movement1 * 1.5 + movement3 * -2.5) * (1.0 - movement4),
+                );
 
                 next.head.position =
                     Vec3::new(0.0, 0.0 + s_a.head.0, s_a.head.1 + movement2.min(1.0) * 1.0);
-                next.head.orientation = Quaternion::rotation_x(0.0)
-                    * Quaternion::rotation_y(movement2.min(1.0) * -0.3 + movement3 * 0.3)
-                    * Quaternion::rotation_z(movement1 * -0.9 + movement3 * 1.6);
+                next.head.orientation =
+                    Quaternion::rotation_y(movement2.min(1.0) * -0.3 + movement3 * 0.3)
+                        * (1.0 - movement4)
+                        * Quaternion::rotation_z(movement1 * -0.9 + movement3 * 1.6)
+                        * (1.0 - movement4);
 
                 next.chest.position = Vec3::new(
                     0.0,
                     s_a.chest.0,
-                    s_a.chest.1 + 2.0 + shortalt(movement2) * -2.5,
+                    s_a.chest.1 + (2.0 + shortalt(movement2) * -2.5) * (1.0 - movement4),
                 );
-                next.chest.orientation =
-                    Quaternion::rotation_x(movement2.min(1.0) * -0.4 + movement3 * 0.4)
-                        * Quaternion::rotation_y(movement2.min(1.0) * -0.2 + movement3 * 0.3)
-                        * Quaternion::rotation_z(movement1 * 1.1 + movement3 * -2.2);
+                next.chest.orientation = Quaternion::rotation_x(
+                    (movement2.min(1.0) * -0.4 + movement3 * 0.4) * (1.0 - movement4),
+                ) * Quaternion::rotation_y(
+                    (movement2.min(1.0) * -0.2 + movement3 * 0.3) * (1.0 - movement4),
+                ) * Quaternion::rotation_z(
+                    (movement1 * 1.1 + movement3 * -2.2) * (1.0 - movement4),
+                );
 
-                next.shorts.orientation = Quaternion::rotation_z(short(movement2).min(1.0) * 0.25);
+                next.shorts.orientation =
+                    Quaternion::rotation_z((short(movement2).min(1.0) * 0.25) * (1.0 - movement4));
 
-                next.belt.orientation = Quaternion::rotation_z(short(movement2).min(1.0) * 0.1);
+                next.belt.orientation =
+                    Quaternion::rotation_z((short(movement2).min(1.0) * 0.1) * (1.0 - movement4));
 
                 next.foot_l.position = Vec3::new(
                     -s_a.foot.0,
@@ -127,9 +133,6 @@ impl Animation for DashAnimation {
                 next.foot_r.orientation = Quaternion::rotation_x(-0.6 + footrotr(movement2) * -0.6)
                     * Quaternion::rotation_z(-0.2);
             },
-            _ => {},
-        }
-        match second_tool_kind {
             _ => {},
         }
 

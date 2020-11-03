@@ -36,10 +36,10 @@ impl Animation for GlideWieldAnimation {
         *rate = 1.0;
 
         next.hand_l.position = Vec3::new(-2.0 - s_a.hand.0, s_a.hand.1, s_a.hand.2 + 15.0);
-        next.hand_l.orientation = Quaternion::rotation_x(3.35);
+        next.hand_l.orientation = Quaternion::rotation_x(3.35) * Quaternion::rotation_y(0.2);
 
         next.hand_r.position = Vec3::new(2.0 + s_a.hand.0, s_a.hand.1, s_a.hand.2 + 15.0);
-        next.hand_r.orientation = Quaternion::rotation_x(3.35);
+        next.hand_r.orientation = Quaternion::rotation_x(3.35) * Quaternion::rotation_y(-0.2);
         next.glider.scale = Vec3::one() * 1.0;
 
         if speed > 0.5 {

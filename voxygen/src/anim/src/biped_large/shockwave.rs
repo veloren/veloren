@@ -3,7 +3,6 @@ use super::{
     BipedLargeSkeleton, SkeletonAttr,
 };
 use common::{comp::item::ToolKind, states::utils::StageSection};
-use std::f32::consts::PI;
 
 pub struct ShockwaveAnimation;
 

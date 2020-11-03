@@ -3,7 +3,6 @@ use super::{
     BipedLargeSkeleton, SkeletonAttr,
 };
 use common::comp::item::ToolKind;
-use std::{f32::consts::PI, ops::Mul};
 
 pub struct ShootAnimation;
 

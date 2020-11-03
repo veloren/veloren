@@ -155,9 +155,11 @@ impl Animation for WieldAnimation {
                 } else {
                 }
                 next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
-                next.hand_l.orientation = Quaternion::rotation_x(s_a.ahl.3);
+                next.hand_l.orientation =
+                    Quaternion::rotation_x(s_a.ahl.3) * Quaternion::rotation_y(s_a.ahl.4);
                 next.hand_r.position = Vec3::new(s_a.ahr.0, s_a.ahr.1, s_a.ahr.2);
-                next.hand_r.orientation = Quaternion::rotation_x(s_a.ac.3);
+                next.hand_r.orientation =
+                    Quaternion::rotation_x(s_a.ahr.3) * Quaternion::rotation_z(s_a.ahr.5);
 
                 next.control.position = Vec3::new(s_a.ac.0, s_a.ac.1, s_a.ac.2);
                 next.control.orientation = Quaternion::rotation_x(s_a.ac.3)

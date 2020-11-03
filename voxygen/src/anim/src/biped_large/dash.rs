@@ -23,7 +23,7 @@ impl Animation for DashAnimation {
     #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, second_tool_kind, _global_time, stage_section): Self::Dependency,
+        (active_tool_kind, _second_tool_kind, _global_time, stage_section): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -115,11 +115,6 @@ impl Animation for DashAnimation {
                 next.foot_r.orientation = Quaternion::rotation_x(-0.6 + footrotr(movement2) * -0.6)
                     * Quaternion::rotation_z(-0.2);
             },
-            Some(ToolKind::Dagger(_)) => {},
-            _ => {},
-        }
-        match second_tool_kind {
-            Some(ToolKind::Dagger(_)) => {},
             _ => {},
         }
 

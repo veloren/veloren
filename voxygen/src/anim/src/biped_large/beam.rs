@@ -43,8 +43,8 @@ impl Animation for BeamAnimation {
         next.hand_l.orientation = Quaternion::rotation_x(1.27) * Quaternion::rotation_y(0.0);
         next.hand_r.position = Vec3::new(0.0, 0.0, 2.0);
         next.hand_r.orientation = Quaternion::rotation_x(1.57) * Quaternion::rotation_y(0.2);
-        next.main.position = Vec3::new(0.0, 0.0, 13.2);
-        next.main.orientation = Quaternion::rotation_y(PI);
+        next.main.position = Vec3::new(0.0, 0.0, 0.0);
+        next.main.orientation = Quaternion::rotation_y(0.0);
 
         next.control.position = Vec3::new(-4.0, 7.0, 4.0);
         next.control.orientation = Quaternion::rotation_x(-0.3)
@@ -54,41 +54,39 @@ impl Animation for BeamAnimation {
         match active_tool_kind {
             Some(ToolKind::Staff(_)) | Some(ToolKind::Sceptre(_)) => {
                 next.control.position = Vec3::new(
-                    -4.0 + movement1 * 16.0 + movement3 * -16.0,
-                    7.0 + movement1 + (movement2 * 8.0).sin() * 2.0 + movement3 * -1.0,
-                    4.0 + movement1 * 4.0 + movement3 * -4.0,
+                    s_a.stc.0 + (movement1 * 16.0) * (1.0 - movement3),
+                    s_a.stc.1 + (movement1 + (movement2 * 8.0).sin() * 2.0) * (1.0 - movement3),
+                    s_a.stc.2 + (movement1 * 10.0) * (1.0 - movement3),
                 );
                 next.control.orientation =
-                    Quaternion::rotation_x(-0.3 + movement1 * -1.2 + movement3 * 1.2)
+                    Quaternion::rotation_x(s_a.stc.3 + (movement1 * -1.2) * (1.0 - movement3))
                         * Quaternion::rotation_y(
-                            0.15 + movement1 * -1.4
-                                + (movement2 * 16.0).sin() * 0.07
-                                + movement3 * 1.4,
+                            s_a.stc.4
+                                + (movement1 * -1.4 + (movement2 * 16.0).sin() * 0.07)
+                                    * (1.0 - movement3),
                         )
                         * Quaternion::rotation_z(
-                            movement1 * -1.7
-                                + (movement2 * 8.0 + PI / 4.0).sin() * 0.3
-                                + movement3 * 1.7,
+                            (movement1 * -1.7 + (movement2 * 8.0 + PI / 4.0).sin() * 0.3)
+                                * (1.0 - movement3),
                         );
-                next.head.orientation = Quaternion::rotation_x(0.0) * Quaternion::rotation_z(0.0);
+                next.head.orientation = Quaternion::rotation_x(0.0);
 
                 next.hand_l.position = Vec3::new(
-                    0.0 + movement1 * -1.0 + (movement2 * 8.0).sin() * 3.5 + movement3,
-                    0.0 + movement1 * -5.0
+                    0.0 + (movement1 * -1.0 + (movement2 * 8.0).sin() * 3.5) * (1.0 - movement3),
+                    0.0 + (movement1 * -5.0
                         + (movement2 * 8.0).sin() * -2.0
-                        + (movement2 * 16.0).sin() * -1.5
-                        + movement3 * 5.0,
-                    -4.0 + movement1 * 19.0
-                        + (movement2 * 8.0 + PI / 2.0).sin() * 3.5
-                        + movement3 * -19.0,
+                        + (movement2 * 16.0).sin() * -1.5)
+                        * (1.0 - movement3),
+                    -4.0 + (movement1 * 19.0 + (movement2 * 8.0 + PI / 2.0).sin() * 3.5)
+                        * (1.0 - movement3),
                 );
-                next.hand_l.orientation = Quaternion::rotation_x(1.57 + movement3 * -0.3)
-                    * Quaternion::rotation_y(
-                        movement1 * -1.1
-                            + (movement2 * 8.0 + PI / 2.0).sin() * -0.3
-                            + movement3 * 1.1,
-                    )
-                    * Quaternion::rotation_z(movement1 * -2.8 + movement3 * 2.8);
+                next.hand_l.orientation =
+                    Quaternion::rotation_x(s_a.sthr.3 + (movement1 * -0.3) * (1.0 - movement3))
+                        * Quaternion::rotation_y(
+                            (movement1 * -1.1 + (movement2 * 8.0 + PI / 2.0).sin() * -0.3)
+                                * (1.0 - movement3),
+                        )
+                        * Quaternion::rotation_z((movement1 * -2.8) * (1.0 - movement3));
 
                 if velocity < 0.5 {
                     next.head.orientation =
