@@ -5,9 +5,9 @@ use crate::{
         group,
         group::Invite,
         item::{tool::ToolKind, ItemKind},
-        Agent, Alignment, Body, ControlAction, ControlEvent, Controller, Energy, GroupManip,
-        LightEmitter, Loadout, MountState, Ori, PhysicsState, Pos, Scale, Stats, UnresolvedChatMsg,
-        Vel,
+        Agent, Alignment, Body, CharacterState, ControlAction, ControlEvent, Controller, Energy,
+        GroupManip, LightEmitter, Loadout, MountState, Ori, PhysicsState, Pos, Scale, Stats,
+        UnresolvedChatMsg, Vel,
     },
     event::{EventBus, ServerEvent},
     metrics::SysMetrics,
@@ -60,6 +60,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Invite>,
         Read<'a, TimeOfDay>,
         ReadStorage<'a, LightEmitter>,
+        ReadStorage<'a, CharacterState>,
     );
 
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
@@ -89,6 +90,7 @@ impl<'a> System<'a> for Sys {
             invites,
             time_of_day,
             light_emitter,
+            char_states,
         ): Self::SystemData,
     ) {
         let start_time = std::time::Instant::now();
@@ -191,6 +193,7 @@ impl<'a> System<'a> for Sys {
             const SIGHT_DIST: f32 = 80.0;
             const MIN_ATTACK_DIST: f32 = 2.0;
             const MAX_FLEE_DIST: f32 = 20.0;
+            const SNEAK_COEFFICIENT: f32 = 0.25;
 
             let scale = scales.get(entity).map(|s| s.0).unwrap_or(1.0);
 
@@ -557,14 +560,21 @@ impl<'a> System<'a> for Sys {
             if choose_target {
                 // Search for new targets (this looks expensive, but it's only run occasionally)
                 // TODO: Replace this with a better system that doesn't consider *all* entities
-                let closest_entity = (&entities, &positions, &stats, alignments.maybe())
+                let closest_entity = (&entities, &positions, &stats, alignments.maybe(), char_states.maybe())
                     .join()
-                    .filter(|(e, e_pos, e_stats, e_alignment)| {
-                        ((e_pos.0.distance_squared(pos.0) < SEARCH_DIST.powf(2.0) &&
+                    .filter(|(e, e_pos, e_stats, e_alignment, char_state)| {
+                        let mut search_dist = SEARCH_DIST;
+                        let mut listen_dist = LISTEN_DIST;
+                        if char_state.map_or(false, |c_s| c_s.is_stealthy()) {
+                            // TODO: make sneak more effective based on a stat like e_stats.fitness
+                            search_dist *= SNEAK_COEFFICIENT;
+                            listen_dist *= SNEAK_COEFFICIENT;
+                        }
+                        ((e_pos.0.distance_squared(pos.0) < search_dist.powf(2.0) &&
                             // Within our view
                             (e_pos.0 - pos.0).try_normalized().map(|v| v.dot(*inputs.look_dir) > 0.15).unwrap_or(true))
                                 // Within listen distance
-                                || e_pos.0.distance_squared(pos.0) < LISTEN_DIST.powf(2.0))
+                                || e_pos.0.distance_squared(pos.0) < listen_dist.powf(2.0))
                             && *e != entity
                             && !e_stats.is_dead
                             && alignment
@@ -572,13 +582,13 @@ impl<'a> System<'a> for Sys {
                                 .unwrap_or(false)
                     })
                     // Can we even see them?
-                    .filter(|(_, e_pos, _, _)| terrain
+                    .filter(|(_, e_pos, _, _, _)| terrain
                         .ray(pos.0 + Vec3::unit_z(), e_pos.0 + Vec3::unit_z())
                         .until(Block::is_opaque)
                         .cast()
                         .0 >= e_pos.0.distance(pos.0))
-                    .min_by_key(|(_, e_pos, _, _)| (e_pos.0.distance_squared(pos.0) * 100.0) as i32)
-                    .map(|(e, _, _, _)| e);
+                    .min_by_key(|(_, e_pos, _, _, _)| (e_pos.0.distance_squared(pos.0) * 100.0) as i32)
+                    .map(|(e, _, _, _, _)| e);
 
                 if let Some(target) = closest_entity {
                     agent.activity = Activity::Attack {

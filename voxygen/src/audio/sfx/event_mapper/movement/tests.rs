@@ -161,6 +161,7 @@ fn maps_roll() {
             timer: Duration::default(),
             stage_section: states::utils::StageSection::Buildup,
             was_wielded: true,
+            was_sneak: false,
         }),
         &PhysicsState {
             on_ground: true,
