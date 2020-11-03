@@ -32,6 +32,8 @@ pub struct Data {
     pub stage_section: StageSection,
     /// Had weapon
     pub was_wielded: bool,
+    /// Was sneaking
+    pub was_sneak: bool,
 }
 
 impl CharacterBehavior for Data {
@@ -102,6 +104,8 @@ impl CharacterBehavior for Data {
                     // Done
                     if self.was_wielded {
                         update.character = CharacterState::Wielding;
+                    } else if self.was_sneak {
+                        update.character = CharacterState::Sneak;
                     } else {
                         update.character = CharacterState::Idle;
                     }

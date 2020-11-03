@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A new secondary charged melee attack for the hammer
 - Added Dutch translations
 - Buff system
+- Sneaking lets you be closer to enemies without being detected
 
 ### Changed
 
