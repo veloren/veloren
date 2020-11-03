@@ -13,6 +13,7 @@ use specs::{
     saveload::{Marker, MarkerAllocator},
     Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage,
 };
+use vek::*;
 
 // const CHARGE_COST: i32 = 200;
 // const ROLL_COST: i32 = 30;
@@ -72,6 +73,7 @@ impl<'a> System<'a> for Sys {
             } else {
                 inputs.move_dir
             };
+            inputs.move_z = inputs.move_z.clamped(-1.0, 1.0);
 
             // Process other controller events
             for event in controller.events.drain(..) {

@@ -356,10 +356,10 @@ impl PlayState for SessionState {
                         self.inputs.jump.set_state(state);
                     },
                     Event::InputUpdate(GameInput::SwimUp, state) => {
-                        self.inputs.swimup.set_state(state);
+                        self.key_state.swim_up = state;
                     },
                     Event::InputUpdate(GameInput::SwimDown, state) => {
-                        self.inputs.swimdown.set_state(state);
+                        self.key_state.swim_down = state;
                     },
                     Event::InputUpdate(GameInput::Sit, state)
                         if state != self.key_state.toggle_sit =>
@@ -421,6 +421,9 @@ impl PlayState for SessionState {
                             self.client.borrow_mut().toggle_glide();
                         }
                     }
+                    Event::InputUpdate(GameInput::Fly, state) => {
+                        self.key_state.fly ^= state;
+                    },
                     Event::InputUpdate(GameInput::Climb, state) => {
                         self.key_state.climb_up = state;
                     },
@@ -656,6 +659,9 @@ impl PlayState for SessionState {
             };
 
             self.inputs.climb = self.key_state.climb();
+            self.inputs.fly.set_state(self.key_state.fly);
+            self.inputs.move_z =
+                self.key_state.swim_up as i32 as f32 - self.key_state.swim_down as i32 as f32;
 
             let mut outcomes = Vec::new();
 

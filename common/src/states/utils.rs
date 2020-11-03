@@ -14,6 +14,7 @@ use vek::*;
 
 pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;
 const BASE_HUMANOID_AIR_ACCEL: f32 = 8.0;
+const BASE_FLIGHT_ACCEL: f32 = 16.0;
 const BASE_HUMANOID_WATER_ACCEL: f32 = 150.0;
 const BASE_HUMANOID_WATER_SPEED: f32 = 180.0;
 // const BASE_HUMANOID_CLIMB_ACCEL: f32 = 10.0;
@@ -65,12 +66,23 @@ impl Body {
             Body::QuadrupedLow(_) => 12.0,
         }
     }
+
+    pub fn can_fly(&self) -> bool {
+        match self {
+            Body::BirdMedium(_) => true,
+            Body::Dragon(_) => true,
+            Body::BirdSmall(_) => true,
+            _ => false,
+        }
+    }
 }
 
 /// Handles updating `Components` to move player based on state of `JoinData`
 pub fn handle_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
     if let Some(depth) = data.physics.in_fluid {
         swim_move(data, update, efficiency, depth);
+    } else if data.inputs.fly.is_pressed() && !data.physics.on_ground && data.body.can_fly() {
+        fly_move(data, update, efficiency);
     } else {
         basic_move(data, update, efficiency);
     }
@@ -171,16 +183,31 @@ fn swim_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32, depth: 
     handle_orientation(data, update, if data.physics.on_ground { 9.0 } else { 2.0 });
 
     // Swim
-    if data.inputs.swimup.is_pressed() {
-        update.vel.0.z = (update.vel.0.z
-            + data.dt.0 * GRAVITY * 4.0 * depth.clamped(0.0, 1.0).powf(3.0))
-        .min(BASE_HUMANOID_WATER_SPEED);
-    }
-    // Swim
-    if data.inputs.swimdown.is_pressed() {
-        update.vel.0.z =
-            (update.vel.0.z + data.dt.0 * GRAVITY * -3.5).min(BASE_HUMANOID_WATER_SPEED);
-    }
+    update.vel.0.z = (update.vel.0.z
+        + data.dt.0
+            * GRAVITY
+            * 4.0
+            * data
+                .inputs
+                .move_z
+                .clamped(-1.0, depth.clamped(0.0, 1.0).powf(3.0)))
+    .min(BASE_HUMANOID_WATER_SPEED);
+}
+
+/// Updates components to move entity as if it's flying
+fn fly_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
+    // Update velocity (counteract gravity with lift)
+    // TODO: Do this better
+    update.vel.0 += Vec3::unit_z() * data.dt.0 * GRAVITY
+        + Vec3::new(
+            data.inputs.move_dir.x,
+            data.inputs.move_dir.y,
+            data.inputs.move_z,
+        ) * data.dt.0
+            * BASE_FLIGHT_ACCEL
+            * efficiency;
+
+    handle_orientation(data, update, 1.0);
 }
 
 /// First checks whether `primary`, `secondary` or `ability3` input is pressed,
