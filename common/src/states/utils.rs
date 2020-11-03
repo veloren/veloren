@@ -373,6 +373,11 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
                 if let CharacterState::Roll(roll) = &mut update.character {
                     roll.was_wielded = true;
                 }
+            } else if data.character.is_stealthy() {
+                update.character = (ability, AbilityKey::Dodge).into();
+                if let CharacterState::Roll(roll) = &mut update.character {
+                    roll.was_sneak = true;
+                }
             } else {
                 update.character = (ability, AbilityKey::Dodge).into();
             }
