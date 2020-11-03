@@ -6,7 +6,12 @@ use crossbeam::channel;
 use std::{path::Path, sync::Arc};
 use tracing::{error, trace};
 
-pub type CharacterUpdateData = (comp::Stats, comp::Inventory, comp::Loadout);
+pub type CharacterUpdateData = (
+    comp::Stats,
+    comp::Inventory,
+    comp::Loadout,
+    Option<comp::Waypoint>,
+);
 
 /// A unidirectional messaging resource for saving characters in a
 /// background thread.
@@ -48,17 +53,23 @@ impl CharacterUpdater {
                 &'a comp::Stats,
                 &'a comp::Inventory,
                 &'a comp::Loadout,
+                Option<&'a comp::Waypoint>,
             ),
         >,
     ) {
         let updates = updates
-            .map(|(character_id, stats, inventory, loadout)| {
+            .map(|(character_id, stats, inventory, loadout, waypoint)| {
                 (
                     character_id,
-                    (stats.clone(), inventory.clone(), loadout.clone()),
+                    (
+                        stats.clone(),
+                        inventory.clone(),
+                        loadout.clone(),
+                        waypoint.cloned(),
+                    ),
                 )
             })
-            .collect::<Vec<(CharacterId, (comp::Stats, comp::Inventory, comp::Loadout))>>();
+            .collect::<Vec<_>>();
 
         if let Err(e) = self.update_tx.as_ref().unwrap().send(updates) {
             error!(?e, "Could not send stats updates");
@@ -72,8 +83,15 @@ impl CharacterUpdater {
         stats: &comp::Stats,
         inventory: &comp::Inventory,
         loadout: &comp::Loadout,
+        waypoint: Option<&comp::Waypoint>,
     ) {
-        self.batch_update(std::iter::once((character_id, stats, inventory, loadout)));
+        self.batch_update(std::iter::once((
+            character_id,
+            stats,
+            inventory,
+            loadout,
+            waypoint,
+        )));
     }
 }
 
@@ -84,12 +102,13 @@ fn execute_batch_update(
     let mut inserted_items = Vec::<Arc<ItemId>>::new();
 
     if let Err(e) = connection.transaction::<_, super::error::Error, _>(|txn| {
-        for (character_id, (stats, inventory, loadout)) in updates {
+        for (character_id, (stats, inventory, loadout, waypoint)) in updates {
             inserted_items.append(&mut super::character::update(
                 character_id,
                 stats,
                 inventory,
                 loadout,
+                waypoint,
                 txn,
             )?);
         }

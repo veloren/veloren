@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sneaking lets you be closer to enemies without being detected
 - Flight
 - Roll dodges melee attacks, and reduces the height of your hitbox
+- Persistent waypoints (start from the last camp fire you visited)
 
 ### Changed
 
