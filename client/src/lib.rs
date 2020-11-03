@@ -25,9 +25,9 @@ use common::{
     },
     event::{EventBus, LocalEvent},
     msg::{
-        validate_chat_msg, ChatMsgValidationError, ClientGeneral, ClientInGame, ClientMsg,
-        ClientRegister, ClientType, DisconnectReason, InviteAnswer, Notification, PingMsg,
-        PlayerInfo, PlayerListUpdate, RegisterError, ServerGeneral, ServerInfo, ServerInit,
+        validate_chat_msg, ChatMsgValidationError, ClientGeneral, ClientMsg, ClientRegister,
+        ClientType, DisconnectReason, InviteAnswer, Notification, PingMsg, PlayerInfo,
+        PlayerListUpdate, PresenceKind, RegisterError, ServerGeneral, ServerInfo, ServerInit,
         ServerRegisterAnswer, MAX_BYTES_CHAT_MSG,
     },
     outcome::Outcome,
@@ -71,7 +71,7 @@ pub enum Event {
 
 pub struct Client {
     registered: bool,
-    in_game: Option<ClientInGame>,
+    presence: Option<PresenceKind>,
     thread_pool: ThreadPool,
     pub server_info: ServerInfo,
     /// Just the "base" layer for LOD; currently includes colors and nothing
@@ -98,7 +98,6 @@ pub struct Client {
     pub world_map: (Arc<DynamicImage>, Vec2<u16>, Vec2<f32>),
     pub player_list: HashMap<Uid, PlayerInfo>,
     pub character_list: CharacterList,
-    pub active_character_id: Option<CharacterId>,
     recipe_book: RecipeBook,
     available_recipes: HashSet<String>,
 
@@ -376,7 +375,7 @@ impl Client {
 
         Ok(Self {
             registered: false,
-            in_game: None,
+            presence: None,
             thread_pool,
             server_info,
             world_map,
@@ -385,7 +384,6 @@ impl Client {
             lod_horizon,
             player_list: HashMap::new(),
             character_list: CharacterList::default(),
-            active_character_id: None,
             recipe_book,
             available_recipes: HashSet::default(),
 
@@ -467,12 +465,12 @@ impl Client {
         #[cfg(debug_assertions)]
         {
             const C_TYPE: ClientType = ClientType::Game;
-            let verified = msg.verify(C_TYPE, self.registered, self.in_game);
+            let verified = msg.verify(C_TYPE, self.registered, self.presence);
             assert!(
                 verified,
                 format!(
-                    "c_type: {:?}, registered: {}, in_game: {:?}, msg: {:?}",
-                    C_TYPE, self.registered, self.in_game, msg
+                    "c_type: {:?}, registered: {}, presence: {:?}, msg: {:?}",
+                    C_TYPE, self.registered, self.presence, msg
                 )
             );
         }
@@ -500,9 +498,9 @@ impl Client {
                     | ClientGeneral::RefundSkill(_)
                     | ClientGeneral::UnlockSkillGroup(_) => &mut self.in_game_stream,
                     //Always possible
-                    ClientGeneral::ChatMsg(_)
-                    | ClientGeneral::Disconnect
-                    | ClientGeneral::Terminate => &mut self.general_stream,
+                    ClientGeneral::ChatMsg(_) | ClientGeneral::Terminate => {
+                        &mut self.general_stream
+                    },
                 };
                 stream.send(msg)
             },
@@ -528,9 +526,7 @@ impl Client {
         self.send_msg(ClientGeneral::Character(character_id));
 
         //Assume we are in_game unless server tells us otherwise
-        self.in_game = Some(ClientInGame::Character);
-
-        self.active_character_id = Some(character_id);
+        self.presence = Some(PresenceKind::Character(character_id));
     }
 
     /// Load the current players character list
@@ -552,9 +548,11 @@ impl Client {
     }
 
     /// Send disconnect message to the server
-    pub fn request_logout(&mut self) {
-        debug!("Requesting logout from server");
-        self.send_msg(ClientGeneral::Disconnect);
+    pub fn logout(&mut self) {
+        debug!("Sending logout from server");
+        self.send_msg(ClientGeneral::Terminate);
+        self.registered = false;
+        self.presence = None;
     }
 
     /// Request a state transition to `ClientState::Registered` from an ingame
@@ -920,7 +918,7 @@ impl Client {
 
         // 1) Handle input from frontend.
         // Pass character actions from frontend input to the player's entity.
-        if self.in_game.is_some() {
+        if self.presence.is_some() {
             if let Err(e) = self
                 .state
                 .ecs()
@@ -1091,7 +1089,7 @@ impl Client {
         }
 
         // 6) Update the server about the player's physics attributes.
-        if self.in_game.is_some() {
+        if self.presence.is_some() {
             if let (Some(pos), Some(vel), Some(ori)) = (
                 self.state.read_storage().get(self.entity).cloned(),
                 self.state.read_storage().get(self.entity).cloned(),
@@ -1133,11 +1131,6 @@ impl Client {
         match msg {
             ServerGeneral::Disconnect(reason) => match reason {
                 DisconnectReason::Shutdown => return Err(Error::ServerShutdown),
-                DisconnectReason::Requested => {
-                    debug!("finally sending ClientMsg::Terminate");
-                    frontend_events.push(Event::Disconnect);
-                    self.send_msg_err(ClientGeneral::Terminate)?;
-                },
                 DisconnectReason::Kicked(reason) => {
                     debug!("sending ClientMsg::Terminate because we got kicked");
                     frontend_events.push(Event::Kicked(reason));
@@ -1378,9 +1371,9 @@ impl Client {
                 };
                 frontend_events.push(Event::Chat(comp::ChatType::Meta.chat_msg(msg)));
             },
-            // Cleanup for when the client goes back to the `in_game = None`
+            // Cleanup for when the client goes back to the `presence = None`
             ServerGeneral::ExitInGameSuccess => {
-                self.in_game = None;
+                self.presence = None;
                 self.clean_state();
             },
             ServerGeneral::InventoryUpdate(mut inventory, event) => {
@@ -1441,7 +1434,7 @@ impl Client {
             },
             ServerGeneral::CharacterDataLoadError(error) => {
                 trace!("Handling join error by server");
-                self.in_game = None;
+                self.presence = None;
                 self.clean_state();
                 self.character_list.error = Some(error);
             },
@@ -1551,7 +1544,7 @@ impl Client {
 
     pub fn uid(&self) -> Option<Uid> { self.state.read_component_copied(self.entity) }
 
-    pub fn in_game(&self) -> Option<ClientInGame> { self.in_game }
+    pub fn presence(&self) -> Option<PresenceKind> { self.presence }
 
     pub fn registered(&self) -> bool { self.registered }
 
@@ -1840,7 +1833,7 @@ impl Drop for Client {
     fn drop(&mut self) {
         trace!("Dropping client");
         if self.registered {
-            if let Err(e) = self.send_msg_err(ClientGeneral::Disconnect) {
+            if let Err(e) = self.send_msg_err(ClientGeneral::Terminate) {
                 warn!(
                     ?e,
                     "Error during drop of client, couldn't send disconnect package, is the \

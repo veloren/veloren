@@ -2,9 +2,12 @@ use super::{
     sentinel::{DeletedEntities, TrackedComps},
     SysTimer,
 };
-use crate::client::{self, Client, RegionSubscription};
+use crate::{
+    client::Client,
+    presence::{self, Presence, RegionSubscription},
+};
 use common::{
-    comp::{Ori, Player, Pos, Vel},
+    comp::{Ori, Pos, Vel},
     msg::ServerGeneral,
     region::{region_in_vd, regions_in_vd, Event as RegionEvent, RegionMap},
     span,
@@ -31,8 +34,8 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Vel>,
         ReadStorage<'a, Ori>,
-        ReadStorage<'a, Player>,
-        WriteStorage<'a, Client>,
+        ReadStorage<'a, Presence>,
+        ReadStorage<'a, Client>,
         WriteStorage<'a, RegionSubscription>,
         Write<'a, DeletedEntities>,
         TrackedComps<'a>,
@@ -49,8 +52,8 @@ impl<'a> System<'a> for Sys {
             positions,
             velocities,
             orientations,
-            players,
-            mut clients,
+            presences,
+            clients,
             mut subscriptions,
             mut deleted_entities,
             tracked_comps,
@@ -71,22 +74,16 @@ impl<'a> System<'a> for Sys {
         // 7. Determine list of regions that are in range and iterate through it
         //    - check if in hashset (hash calc) if not add it
         let mut regions_to_remove = Vec::new();
-        for (client, subscription, pos, vd, client_entity) in (
-            &mut clients,
+        for (subscription, pos, presence, client_entity, client) in (
             &mut subscriptions,
             &positions,
-            &players,
+            &presences,
             &entities,
+            &clients,
         )
             .join()
-            .filter_map(|(client, s, pos, player, e)| {
-                if client.in_game.is_some() {
-                    player.view_distance.map(|v| (client, s, pos, v, e))
-                } else {
-                    None
-                }
-            })
         {
+            let vd = presence.view_distance;
             // Calculate current chunk
             let chunk = (Vec2::<f32>::from(pos.0))
                 .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e as i32 / sz as i32);
@@ -101,7 +98,7 @@ impl<'a> System<'a> for Sys {
                     })
                     - Vec2::from(pos.0))
                 .map2(TerrainChunkSize::RECT_SIZE, |e, sz| {
-                    e.abs() > (sz / 2 + client::CHUNK_FUZZ) as f32
+                    e.abs() > (sz / 2 + presence::CHUNK_FUZZ) as f32
                 })
                 .reduce_or()
             {
@@ -117,7 +114,9 @@ impl<'a> System<'a> for Sys {
                         *key,
                         pos.0,
                         (vd as f32 * chunk_size)
-                            + (client::CHUNK_FUZZ as f32 + client::REGION_FUZZ as f32 + chunk_size)
+                            + (presence::CHUNK_FUZZ as f32
+                                + presence::REGION_FUZZ as f32
+                                + chunk_size)
                                 * 2.0f32.sqrt(),
                     ) {
                         // Add to the list of regions to remove
@@ -153,7 +152,7 @@ impl<'a> System<'a> for Sys {
                                             .map(|key| subscription.regions.contains(key))
                                             .unwrap_or(false)
                                         {
-                                            client.send_msg(ServerGeneral::DeleteEntity(uid));
+                                            client.send_fallible(ServerGeneral::DeleteEntity(uid));
                                         }
                                     }
                                 },
@@ -161,7 +160,7 @@ impl<'a> System<'a> for Sys {
                         }
                         // Tell client to delete entities in the region
                         for (&uid, _) in (&uids, region.entities()).join() {
-                            client.send_msg(ServerGeneral::DeleteEntity(uid));
+                            client.send_fallible(ServerGeneral::DeleteEntity(uid));
                         }
                     }
                     // Send deleted entities since they won't be processed for this client in entity
@@ -171,14 +170,14 @@ impl<'a> System<'a> for Sys {
                         .iter()
                         .flat_map(|v| v.iter())
                     {
-                        client.send_msg(ServerGeneral::DeleteEntity(Uid(*uid)));
+                        client.send_fallible(ServerGeneral::DeleteEntity(Uid(*uid)));
                     }
                 }
 
                 for key in regions_in_vd(
                     pos.0,
                     (vd as f32 * chunk_size)
-                        + (client::CHUNK_FUZZ as f32 + chunk_size) * 2.0f32.sqrt(),
+                        + (presence::CHUNK_FUZZ as f32 + chunk_size) * 2.0f32.sqrt(),
                 ) {
                     // Send client initial info about the entities in this region if it was not
                     // already within the set of subscribed regions
@@ -196,7 +195,7 @@ impl<'a> System<'a> for Sys {
                             {
                                 // Send message to create entity and tracked components and physics
                                 // components
-                                client.send_msg(ServerGeneral::CreateEntity(
+                                client.send_fallible(ServerGeneral::CreateEntity(
                                     tracked_comps.create_entity_package(
                                         entity,
                                         Some(*pos),
@@ -217,22 +216,18 @@ impl<'a> System<'a> for Sys {
 
 /// Initialize region subscription
 pub fn initialize_region_subscription(world: &World, entity: specs::Entity) {
-    if let (Some(client_pos), Some(client_vd), Some(client)) = (
+    if let (Some(client_pos), Some(presence), Some(client)) = (
         world.read_storage::<Pos>().get(entity),
-        world
-            .read_storage::<Player>()
-            .get(entity)
-            .map(|pl| pl.view_distance)
-            .and_then(|v| v),
-        world.write_storage::<Client>().get_mut(entity),
+        world.read_storage::<Presence>().get(entity),
+        world.write_storage::<Client>().get(entity),
     ) {
         let fuzzy_chunk = (Vec2::<f32>::from(client_pos.0))
             .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e as i32 / sz as i32);
         let chunk_size = TerrainChunkSize::RECT_SIZE.reduce_max() as f32;
         let regions = common::region::regions_in_vd(
             client_pos.0,
-            (client_vd as f32 * chunk_size) as f32
-                + (client::CHUNK_FUZZ as f32 + chunk_size) * 2.0f32.sqrt(),
+            (presence.view_distance as f32 * chunk_size) as f32
+                + (presence::CHUNK_FUZZ as f32 + chunk_size) * 2.0f32.sqrt(),
         );
 
         let region_map = world.read_resource::<RegionMap>();
@@ -249,7 +244,7 @@ pub fn initialize_region_subscription(world: &World, entity: specs::Entity) {
                     .join()
                 {
                     // Send message to create entity and tracked components and physics components
-                    client.send_msg(ServerGeneral::CreateEntity(
+                    client.send_fallible(ServerGeneral::CreateEntity(
                         tracked_comps.create_entity_package(
                             entity,
                             Some(*pos),

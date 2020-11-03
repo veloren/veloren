@@ -17,6 +17,7 @@ pub mod input;
 pub mod login_provider;
 pub mod metrics;
 pub mod persistence;
+pub mod presence;
 pub mod settings;
 pub mod state_ext;
 pub mod sys;
@@ -34,11 +35,12 @@ pub use crate::{
 use crate::{
     alias_validator::AliasValidator,
     chunk_generator::ChunkGenerator,
-    client::{Client, RegionSubscription},
+    client::Client,
     cmd::ChatCommandExt,
     connection_handler::ConnectionHandler,
     data_dir::DataDir,
     login_provider::LoginProvider,
+    presence::{Presence, RegionSubscription},
     state_ext::StateExt,
     sys::sentinel::{DeletedEntities, TrackedComps},
 };
@@ -163,7 +165,13 @@ impl Server {
 
         // System timers for performance monitoring
         state.ecs_mut().insert(sys::EntitySyncTimer::default());
-        state.ecs_mut().insert(sys::MessageTimer::default());
+        state.ecs_mut().insert(sys::GeneralMsgTimer::default());
+        state.ecs_mut().insert(sys::PingMsgTimer::default());
+        state.ecs_mut().insert(sys::RegisterMsgTimer::default());
+        state
+            .ecs_mut()
+            .insert(sys::CharacterScreenMsgTimer::default());
+        state.ecs_mut().insert(sys::InGameMsgTimer::default());
         state.ecs_mut().insert(sys::SentinelTimer::default());
         state.ecs_mut().insert(sys::SubscriptionTimer::default());
         state.ecs_mut().insert(sys::TerrainSyncTimer::default());
@@ -180,6 +188,7 @@ impl Server {
         // Server-only components
         state.ecs_mut().register::<RegionSubscription>();
         state.ecs_mut().register::<Client>();
+        state.ecs_mut().register::<Presence>();
 
         //Alias validator
         let banned_words_paths = &settings.banned_words_files;
@@ -452,13 +461,18 @@ impl Server {
         let before_new_connections = Instant::now();
 
         // 3) Handle inputs from clients
-        self.handle_new_connections(&mut frontend_events)?;
+        self.handle_new_connections(&mut frontend_events);
 
         let before_message_system = Instant::now();
 
         // Run message receiving sys before the systems in common for decreased latency
         // (e.g. run before controller system)
-        sys::message::Sys.run_now(&self.state.ecs());
+        //TODO: run in parallel
+        sys::msg::general::Sys.run_now(&self.state.ecs());
+        sys::msg::register::Sys.run_now(&self.state.ecs());
+        sys::msg::character_screen::Sys.run_now(&self.state.ecs());
+        sys::msg::in_game::Sys.run_now(&self.state.ecs());
+        sys::msg::ping::Sys.run_now(&self.state.ecs());
 
         let before_state_tick = Instant::now();
 
@@ -607,7 +621,14 @@ impl Server {
             .ecs()
             .read_resource::<sys::EntitySyncTimer>()
             .nanos as i64;
-        let message_nanos = self.state.ecs().read_resource::<sys::MessageTimer>().nanos as i64;
+        let message_nanos = {
+            let state = self.state.ecs();
+            (state.read_resource::<sys::GeneralMsgTimer>().nanos
+                + state.read_resource::<sys::PingMsgTimer>().nanos
+                + state.read_resource::<sys::RegisterMsgTimer>().nanos
+                + state.read_resource::<sys::CharacterScreenMsgTimer>().nanos
+                + state.read_resource::<sys::InGameMsgTimer>().nanos) as i64
+        };
         let sentinel_nanos = self.state.ecs().read_resource::<sys::SentinelTimer>().nanos as i64;
         let subscription_nanos = self
             .state
@@ -793,8 +814,53 @@ impl Server {
         self.state.cleanup();
     }
 
+    fn initialize_client(
+        &mut self,
+        client: crate::connection_handler::IncomingClient,
+    ) -> Result<Option<specs::Entity>, Error> {
+        if self.settings().max_players <= self.state.ecs().read_storage::<Client>().join().count() {
+            trace!(
+                ?client.participant,
+                "to many players, wont allow participant to connect"
+            );
+            client.send(ServerInit::TooManyPlayers)?;
+            return Ok(None);
+        }
+
+        let entity = self
+            .state
+            .ecs_mut()
+            .create_entity_synced()
+            .with(client)
+            .build();
+        self.state
+            .ecs()
+            .read_resource::<metrics::PlayerMetrics>()
+            .clients_connected
+            .inc();
+        // Send client all the tracked components currently attached to its entity as
+        // well as synced resources (currently only `TimeOfDay`)
+        debug!("Starting initial sync with client.");
+        self.state
+            .ecs()
+            .read_storage::<Client>()
+            .get(entity)
+            .unwrap()
+            .send(ServerInit::GameSync {
+                // Send client their entity
+                entity_package: TrackedComps::fetch(&self.state.ecs())
+                    .create_entity_package(entity, None, None, None),
+                time_of_day: *self.state.ecs().read_resource(),
+                max_group_size: self.settings().max_player_group_size,
+                client_timeout: self.settings().client_timeout,
+                world_map: self.map.clone(),
+                recipe_book: (&*default_recipe_book()).clone(),
+            })?;
+        Ok(Some(entity))
+    }
+
     /// Handle new client connections.
-    fn handle_new_connections(&mut self, frontend_events: &mut Vec<Event>) -> Result<(), Error> {
+    fn handle_new_connections(&mut self, frontend_events: &mut Vec<Event>) {
         while let Ok(sender) = self.connection_handler.info_requester_receiver.try_recv() {
             // can fail, e.g. due to timeout or network prob.
             trace!("sending info to connection_handler");
@@ -804,69 +870,32 @@ impl Server {
             });
         }
 
-        while let Ok(data) = self.connection_handler.client_receiver.try_recv() {
-            let mut client = data;
-
-            if self.settings().max_players
-                <= self.state.ecs().read_storage::<Client>().join().count()
-            {
-                trace!(
-                    ?client.participant,
-                    "to many players, wont allow participant to connect"
-                );
-                client.register_stream.send(ServerInit::TooManyPlayers)?;
-                continue;
+        while let Ok(incoming) = self.connection_handler.client_receiver.try_recv() {
+            match self.initialize_client(incoming) {
+                Ok(None) => (),
+                Ok(Some(entity)) => {
+                    frontend_events.push(Event::ClientConnected { entity });
+                    debug!("Done initial sync with client.");
+                },
+                Err(e) => {
+                    debug!(?e, "failed initializing a new client");
+                },
             }
-
-            let entity = self
-                .state
-                .ecs_mut()
-                .create_entity_synced()
-                .with(client)
-                .build();
-            self.state
-                .ecs()
-                .read_resource::<metrics::PlayerMetrics>()
-                .clients_connected
-                .inc();
-            // Send client all the tracked components currently attached to its entity as
-            // well as synced resources (currently only `TimeOfDay`)
-            debug!("Starting initial sync with client.");
-            self.state
-                .ecs()
-                .write_storage::<Client>()
-                .get_mut(entity)
-                .unwrap()
-                .register_stream
-                .send(ServerInit::GameSync {
-                    // Send client their entity
-                    entity_package: TrackedComps::fetch(&self.state.ecs())
-                        .create_entity_package(entity, None, None, None),
-                    time_of_day: *self.state.ecs().read_resource(),
-                    max_group_size: self.settings().max_player_group_size,
-                    client_timeout: self.settings().client_timeout,
-                    world_map: self.map.clone(),
-                    recipe_book: (&*default_recipe_book()).clone(),
-                })?;
-
-            frontend_events.push(Event::ClientConnected { entity });
-            debug!("Done initial sync with client.");
         }
-        Ok(())
     }
 
     pub fn notify_client<S>(&self, entity: EcsEntity, msg: S)
     where
         S: Into<ServerMsg>,
     {
-        if let Some(client) = self.state.ecs().write_storage::<Client>().get_mut(entity) {
-            client.send_msg(msg.into())
-        }
+        self.state
+            .ecs()
+            .read_storage::<Client>()
+            .get(entity)
+            .map(|c| c.send(msg));
     }
 
-    pub fn notify_registered_clients(&mut self, msg: ServerGeneral) {
-        self.state.notify_registered_clients(msg);
-    }
+    pub fn notify_players(&mut self, msg: ServerGeneral) { self.state.notify_players(msg); }
 
     pub fn generate_chunk(&mut self, entity: EcsEntity, key: Vec2<i32>) {
         self.state
@@ -944,7 +973,7 @@ impl Server {
 impl Drop for Server {
     fn drop(&mut self) {
         self.state
-            .notify_registered_clients(ServerGeneral::Disconnect(DisconnectReason::Shutdown));
+            .notify_players(ServerGeneral::Disconnect(DisconnectReason::Shutdown));
     }
 }
 

@@ -16,14 +16,14 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         WriteStorage<'a, Invite>,
         WriteStorage<'a, PendingInvites>,
-        WriteStorage<'a, Client>,
+        ReadStorage<'a, Client>,
         ReadStorage<'a, Uid>,
         Write<'a, SysTimer<Self>>,
     );
 
     fn run(
         &mut self,
-        (entities, mut invites, mut pending_invites, mut clients, uids, mut timer): Self::SystemData,
+        (entities, mut invites, mut pending_invites, clients, uids, mut timer): Self::SystemData,
     ) {
         span!(_guard, "run", "invite_timeout::Sys::run");
         timer.start();
@@ -52,12 +52,12 @@ impl<'a> System<'a> for Sys {
 
                 // Inform inviter of timeout
                 if let (Some(client), Some(target)) =
-                    (clients.get_mut(*inviter), uids.get(invitee).copied())
+                    (clients.get(*inviter), uids.get(invitee).copied())
                 {
-                    client.send_msg(ServerGeneral::InviteComplete {
+                    client.send_fallible(ServerGeneral::InviteComplete {
                         target,
                         answer: InviteAnswer::TimedOut,
-                    })
+                    });
                 }
 
                 Some(invitee)

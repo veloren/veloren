@@ -1,11 +1,12 @@
 use super::Event;
 use crate::{
-    client::Client, login_provider::LoginProvider, persistence, state_ext::StateExt, Server,
+    client::Client, login_provider::LoginProvider, persistence, presence::Presence,
+    state_ext::StateExt, Server,
 };
 use common::{
     comp,
     comp::{group, Player},
-    msg::{PlayerListUpdate, ServerGeneral},
+    msg::{PlayerListUpdate, PresenceKind, ServerGeneral},
     span,
     sync::{Uid, UidAllocator},
 };
@@ -17,24 +18,28 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
     span!(_guard, "handle_exit_ingame");
     let state = server.state_mut();
 
-    // Create new entity with just `Client`, `Uid`, and `Player` components
-    // Easier than checking and removing all other known components
+    // Create new entity with just `Client`, `Uid`, `Player`, and `...Stream`
+    // components Easier than checking and removing all other known components
     // Note: If other `ServerEvent`s are referring to this entity they will be
     // disrupted
-    let maybe_client = state.ecs().write_storage::<Client>().remove(entity);
-    let maybe_uid = state.read_component_copied::<Uid>(entity);
-    let maybe_player = state.ecs().write_storage::<comp::Player>().remove(entity);
-    let maybe_admin = state.ecs().write_storage::<comp::Admin>().remove(entity);
 
+    let maybe_admin = state.ecs().write_storage::<comp::Admin>().remove(entity);
     let maybe_group = state
         .ecs()
         .write_storage::<group::Group>()
         .get(entity)
         .cloned();
-    if let (Some(mut client), Some(uid), Some(player)) = (maybe_client, maybe_uid, maybe_player) {
+
+    if let Some((client, uid, player)) = (|| {
+        let ecs = state.ecs();
+        Some((
+            ecs.write_storage::<Client>().remove(entity)?,
+            ecs.write_storage::<Uid>().remove(entity)?,
+            ecs.write_storage::<comp::Player>().remove(entity)?,
+        ))
+    })() {
         // Tell client its request was successful
-        client.in_game = None;
-        client.send_msg(ServerGeneral::ExitInGameSuccess);
+        client.send_fallible(ServerGeneral::ExitInGameSuccess);
 
         let entity_builder = state.ecs_mut().create_entity().with(client).with(player);
 
@@ -127,9 +132,9 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
         state.read_storage::<Uid>().get(entity),
         state.read_storage::<comp::Player>().get(entity),
     ) {
-        state.notify_registered_clients(comp::ChatType::Offline(*uid).server_msg(""));
+        state.notify_players(comp::ChatType::Offline(*uid).server_msg(""));
 
-        state.notify_registered_clients(ServerGeneral::PlayerListUpdate(PlayerListUpdate::Remove(
+        state.notify_players(ServerGeneral::PlayerListUpdate(PlayerListUpdate::Remove(
             *uid,
         )));
     }
@@ -141,8 +146,8 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
     }
 
     // Sync the player's character data to the database
-    if let (Some(player), Some(stats), Some(inventory), Some(loadout), updater) = (
-        state.read_storage::<Player>().get(entity),
+    if let (Some(presences), Some(stats), Some(inventory), Some(loadout), updater) = (
+        state.read_storage::<Presence>().get(entity),
         state.read_storage::<comp::Stats>().get(entity),
         state.read_storage::<comp::Inventory>().get(entity),
         state.read_storage::<comp::Loadout>().get(entity),
@@ -150,7 +155,7 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
             .ecs()
             .read_resource::<persistence::character_updater::CharacterUpdater>(),
     ) {
-        if let Some(character_id) = player.character_id {
+        if let PresenceKind::Character(character_id) = presences.kind {
             updater.update(character_id, stats, inventory, loadout);
         }
     }

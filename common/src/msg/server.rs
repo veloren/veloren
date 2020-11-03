@@ -163,8 +163,6 @@ pub enum Notification {
 pub enum DisconnectReason {
     /// Server shut down
     Shutdown,
-    /// Client sent disconnect message
-    Requested,
     /// Client was kicked
     Kicked(String),
 }
@@ -184,11 +182,11 @@ impl ServerMsg {
         &self,
         c_type: ClientType,
         registered: bool,
-        in_game: Option<super::ClientInGame>,
+        presence: Option<super::PresenceKind>,
     ) -> bool {
         match self {
             ServerMsg::Info(_) | ServerMsg::Init(_) | ServerMsg::RegisterAnswer(_) => {
-                !registered && in_game.is_none()
+                !registered && presence.is_none()
             },
             ServerMsg::General(g) => {
                 registered
@@ -197,10 +195,10 @@ impl ServerMsg {
                         ServerGeneral::CharacterDataLoadError(_)
                         | ServerGeneral::CharacterListUpdate(_)
                         | ServerGeneral::CharacterActionError(_) => {
-                            c_type != ClientType::ChatOnly && in_game.is_none()
+                            c_type != ClientType::ChatOnly && presence.is_none()
                         },
                         ServerGeneral::CharacterSuccess => {
-                            c_type == ClientType::Game && in_game.is_none()
+                            c_type == ClientType::Game && presence.is_none()
                         },
                         //Ingame related
                         ServerGeneral::GroupUpdate(_)
@@ -214,7 +212,7 @@ impl ServerMsg {
                         | ServerGeneral::SetViewDistance(_)
                         | ServerGeneral::Outcomes(_)
                         | ServerGeneral::Knockback(_) => {
-                            c_type == ClientType::Game && in_game.is_some()
+                            c_type == ClientType::Game && presence.is_some()
                         },
                         // Always possible
                         ServerGeneral::PlayerListUpdate(_)
