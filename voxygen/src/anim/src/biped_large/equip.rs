@@ -42,8 +42,8 @@ impl Animation for EquipAnimation {
                 next.hand_r.position = Vec3::new(-5.0, -4.5, 14.0);
             },
             Some(ToolKind::Hammer(_)) => {
-                next.hand_l.position = Vec3::new(-5.0 - 10.0, -5.0, 13.0 - 10.0);
-                next.hand_r.position = Vec3::new(-3.0 - 10.0, -4.5, 10.0 - 10.0);
+                next.hand_l.position = Vec3::new(-5.0 - 10.0, -5.0, 3.0);
+                next.hand_r.position = Vec3::new(-3.0 - 10.0, -4.5, 0.0);
             },
             Some(ToolKind::Staff(_)) | Some(ToolKind::Sceptre(_)) => {
                 next.hand_l.position = Vec3::new(-3.0, -5.0, 8.0);

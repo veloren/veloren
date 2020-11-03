@@ -3,7 +3,6 @@ use super::{
     BipedLargeSkeleton, SkeletonAttr,
 };
 use common::comp::item::ToolKind;
-use std::{f32::consts::PI, ops::Mul};
 
 pub struct ChargeAnimation;
 
@@ -24,7 +23,7 @@ impl Animation for ChargeAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_charge")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, _second_tool_kind, velocity, orientation, last_ori, global_time): Self::Dependency,
+        (active_tool_kind, _second_tool_kind, velocity, orientation, last_ori, _global_time): Self::Dependency,
         anim_time: f64,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

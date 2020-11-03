@@ -42,6 +42,7 @@ pub use self::{
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};
 use common::comp;
 use core::convert::TryFrom;
+use std::f32::consts::PI;
 
 pub type Body = comp::humanoid::Body;
 
@@ -277,13 +278,13 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (_, _) => (-5.0, 5.0, -1.0, -0.3, 0.15, 0.0),
             },
             ahl: match (body.species, body.body_type) {
-                (_, _) => (-0.5, -1.0, 7.0, 1.87, 0.0, 0.0),
+                (_, _) => (-0.5, -1.0, 7.0, 1.17, PI, 0.0),
             },
             ahr: match (body.species, body.body_type) {
-                (_, _) => (0.0, -1.0, 1.0, 4.34, 0.2, 0.0),
+                (_, _) => (0.0, -1.0, 1.0, -2.0, 0.0, PI),
             },
             ac: match (body.species, body.body_type) {
-                (_, _) => (-8.0, 11.0, 3.0, 2.0, 0.0, 3.14),
+                (_, _) => (-8.0, 11.0, 3.0, 2.0, 0.0, 0.0),
             },
             bhl: match (body.species, body.body_type) {
                 (_, _) => (0.0, -4.0, 1.0, 1.57, 0.0, 0.0),

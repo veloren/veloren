@@ -3,7 +3,6 @@ use super::{
     CharacterSkeleton, SkeletonAttr,
 };
 use common::{comp::item::ToolKind, states::utils::StageSection};
-use std::f32::consts::PI;
 pub struct ChargeswingAnimation;
 
 impl Animation for ChargeswingAnimation {
@@ -23,14 +22,13 @@ impl Animation for ChargeswingAnimation {
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, _second_tool_kind, velocity, _global_time, stage_section): Self::Dependency,
+        (active_tool_kind, _second_tool_kind, _velocity, _global_time, stage_section): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         *rate = 1.0;
         let mut next = (*skeleton).clone();
-        let speed = Vec2::<f32>::from(velocity).magnitude();
 
         let lab = 1.0;
 
@@ -39,27 +37,6 @@ impl Animation for ChargeswingAnimation {
         .sqrt())
             * ((anim_time as f32 * lab as f32 * 8.0).sin());
         // end spin stuff
-
-        let movement = anim_time as f32 * 1.0;
-
-        let foothoril = (anim_time as f32 * 8.0 * lab as f32 + PI * 1.45).sin();
-        let foothorir = (anim_time as f32 * 8.0 * lab as f32 + PI * (0.45)).sin();
-
-        let footvertl = (anim_time as f32 * 8.0 * lab as f32).sin();
-        let footvertr = (anim_time as f32 * 8.0 * lab as f32 + PI).sin();
-        let footrotl = (((1.0)
-            / (0.5
-                + (0.5)
-                    * ((anim_time as f32 * 8.0 * lab as f32 + PI * 1.4).sin()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * 8.0 * lab as f32 + PI * 1.4).sin());
-
-        let footrotr = (((1.0)
-            / (0.5
-                + (0.5)
-                    * ((anim_time as f32 * 8.0 * lab as f32 + PI * 0.4).sin()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * 8.0 * lab as f32 + PI * 0.4).sin());
 
         let (movement1, movement2, movement3, tension) = match stage_section {
             Some(StageSection::Charge) => (
@@ -109,48 +86,6 @@ impl Animation for ChargeswingAnimation {
             next.head.orientation =
                 Quaternion::rotation_z((movement1 * -1.5 + movement2 * 2.2) * (1.0 - movement3));
             next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1);
-            if let Some(stage_section) = stage_section {
-                match stage_section {
-                    StageSection::Charge => {
-
-                        /*if speed > 0.5 {
-                            next.foot_l.position = Vec3::new(
-                                -s_a.foot.0,
-                                s_a.foot.1 + foothoril * -2.5 - 3.5,
-                                s_a.foot.2 + ((footvertl * -1.2).max(-1.0)),
-                            );
-
-                            next.foot_r.position = Vec3::new(
-                                s_a.foot.0,
-                                s_a.foot.1 + foothorir * -2.5 + 6.0,
-                                s_a.foot.2 + ((footvertr * -1.2).max(-1.0)),
-                            );
-
-                            next.foot_l.orientation =
-                                Quaternion::rotation_x(-0.4 + footrotl * -0.2)
-                                    * Quaternion::rotation_z((movement * 0.5).min(0.5));
-
-                            next.foot_r.orientation =
-                                Quaternion::rotation_x(-0.4 + footrotr * -0.2)
-                                    * Quaternion::rotation_z((movement * 0.5).min(0.5));
-                        } else {
-                            next.foot_l.position =
-                                Vec3::new(-s_a.foot.0, s_a.foot.1 - 5.0, s_a.foot.2);
-
-                            next.foot_r.position =
-                                Vec3::new(s_a.foot.0, s_a.foot.1 + 7.0, s_a.foot.2);
-
-                            next.foot_l.orientation =
-                                Quaternion::rotation_x(-0.2) * Quaternion::rotation_z(0.5);
-
-                            next.foot_r.orientation =
-                                Quaternion::rotation_x(0.2) * Quaternion::rotation_z(0.5);
-                        };
-                        */
-                    },
-                    _ => {},
-                }
-            }
         }
         next
     }

@@ -86,10 +86,12 @@ impl Animation for GlidingAnimation {
         next.shorts.orientation = Quaternion::rotation_z(slowa * 0.12 + tilt * tiltcancel * 16.0);
 
         next.hand_l.position = Vec3::new(-9.5, -3.0, 10.0);
-        next.hand_l.orientation = Quaternion::rotation_x(-2.7 + slowa * -0.1);
+        next.hand_l.orientation =
+            Quaternion::rotation_x(-2.7 + slowa * -0.1) * Quaternion::rotation_y(0.2);
 
         next.hand_r.position = Vec3::new(9.5, -3.0, 10.0);
-        next.hand_r.orientation = Quaternion::rotation_x(-2.7 + slowa * -0.10);
+        next.hand_r.orientation =
+            Quaternion::rotation_x(-2.7 + slowa * -0.10) * Quaternion::rotation_y(-0.2);
 
         next.foot_l.position = Vec3::new(
             -s_a.foot.0,

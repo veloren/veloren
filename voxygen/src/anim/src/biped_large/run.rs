@@ -7,16 +7,17 @@ use std::{f32::consts::PI, ops::Mul};
 
 pub struct RunAnimation;
 
+type RunAnimationDependency = (
+    Option<ToolKind>,
+    Option<ToolKind>,
+    f32,
+    Vec3<f32>,
+    Vec3<f32>,
+    f64,
+    Vec3<f32>,
+);
 impl Animation for RunAnimation {
-    type Dependency = (
-        Option<ToolKind>,
-        Option<ToolKind>,
-        f32,
-        Vec3<f32>,
-        Vec3<f32>,
-        f64,
-        Vec3<f32>,
-    );
+    type Dependency = RunAnimationDependency;
     type Skeleton = BipedLargeSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
