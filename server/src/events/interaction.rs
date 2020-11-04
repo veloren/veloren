@@ -1,4 +1,8 @@
-use crate::{client::Client, presence::RegionSubscription, Server};
+use crate::{
+    client::Client,
+    presence::{Presence, RegionSubscription},
+    Server,
+};
 use common::{
     comp::{self, item, Pos},
     consts::MAX_MOUNT_RANGE,
@@ -127,12 +131,16 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
             clients.insert(possesse, c).ok()?;
             //optional entities
             let mut players = ecs.write_storage::<comp::Player>();
+            let mut presence = ecs.write_storage::<Presence>();
             let mut subscriptions = ecs.write_storage::<RegionSubscription>();
             let mut admins = ecs.write_storage::<comp::Admin>();
             let mut waypoints = ecs.write_storage::<comp::Waypoint>();
             players
                 .remove(possessor)
                 .map(|p| players.insert(possesse, p).ok()?);
+            presence
+                .remove(possessor)
+                .map(|p| presence.insert(possesse, p).ok()?);
             subscriptions
                 .remove(possessor)
                 .map(|s| subscriptions.insert(possesse, s).ok()?);
