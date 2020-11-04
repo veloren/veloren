@@ -86,15 +86,15 @@ impl EventMapper for BlockEventMapper {
                 volume: 1.0,
                 cond: |st| st.get_day_period().is_dark(),
             },
-            BlockSounds {
-                blocks: |boi| &boi.embers,
-                range: 1,
-                sfx: SfxEvent::Embers,
-                volume: 0.15,
-                //volume: 0.05,
-                cond: |_| true,
-                //cond: |st| st.get_day_period().is_dark(),
-            },
+            //BlockSounds {
+            //    blocks: |boi| &boi.embers,
+            //    range: 1,
+            //    sfx: SfxEvent::Embers,
+            //    volume: 0.15,
+            //    //volume: 0.05,
+            //    cond: |_| true,
+            //    //cond: |st| st.get_day_period().is_dark(),
+            //},
             BlockSounds {
                 blocks: |boi| &boi.reeds,
                 range: 1,
@@ -131,7 +131,7 @@ impl EventMapper for BlockEventMapper {
         for sounds in sounds.iter() {
             if !(sounds.cond)(state) {
                 continue;
-            } else if sounds.sfx == SfxEvent::Birdcall && thread_rng().gen_bool(0.99) {
+            } else if sounds.sfx == SfxEvent::Birdcall && thread_rng().gen_bool(0.995) {
                 continue;
             }
 

@@ -67,22 +67,8 @@ pub struct SoundtrackItem {
     length: f64,
     /// Whether this track should play during day or night
     timing: Option<DayPeriod>,
-    biomes: BiomeProbability,
+    biomes: Vec<(BiomeKind, u8)>,
     site: Option<SitesKind>,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct BiomeProbability {
-    void: u8,
-    lake: u8,
-    grassland: u8,
-    ocean: u8,
-    mountain: u8,
-    snowland: u8,
-    desert: u8,
-    swamp: u8,
-    jungle: u8,
-    forest: u8,
 }
 
 /// Allows control over when a track should play based on in-game time of day
@@ -107,13 +93,13 @@ enum PlayState {
 pub struct MusicMgr {
     soundtrack: SoundtrackCollection,
     began_playing: Instant,
-    began_fading: Instant,
+    //began_fading: Instant,
     next_track_change: f64,
     /// The title of the last track played. Used to prevent a track
     /// being played twice in a row
     last_track: String,
-    last_biome: BiomeKind,
-    playing: PlayState,
+    /*last_biome: BiomeKind,
+     *playing: PlayState, */
 }
 
 impl MusicMgr {
@@ -122,11 +108,11 @@ impl MusicMgr {
         Self {
             soundtrack: Self::load_soundtrack_items(),
             began_playing: Instant::now(),
-            began_fading: Instant::now(),
+            //began_fading: Instant::now(),
             next_track_change: 0.0,
             last_track: String::from("None"),
-            last_biome: BiomeKind::Void,
-            playing: PlayState::Stopped,
+            /*last_biome: BiomeKind::Void,
+             *playing: PlayState::Stopped, */
         }
     }
 
@@ -139,18 +125,19 @@ impl MusicMgr {
         //    _ => self.last_biome,
         //};
 
-        if let Some(current_chunk) = client.current_chunk() {
-            println!("biome: {:?}", current_chunk.meta().biome());
-            println!("chaos: {}", current_chunk.meta().chaos());
-            println!("alt: {}", current_chunk.meta().alt());
-            println!("temp: {}", current_chunk.meta().temp());
-            println!("tree_density: {}", current_chunk.meta().tree_density());
-            println!("humidity: {}", current_chunk.meta().humidity());
-            println!("cave_alt: {}", current_chunk.meta().cave_alt());
-            if let Some(position) = client.current_position() {
-                println!("player_alt: {}", position[2]);
-            }
-        }
+        //if let Some(current_chunk) = client.current_chunk() {
+        //    println!("biome: {:?}", current_chunk.meta().biome());
+        //    println!("chaos: {}", current_chunk.meta().chaos());
+        //    println!("alt: {}", current_chunk.meta().alt());
+        //    println!("temp: {}", current_chunk.meta().temp());
+        //    println!("tree_density: {}",
+        //     current_chunk.meta().tree_density());
+        //     println!("humidity: {}", current_chunk.meta().humidity());
+        //    println!("cave_alt: {}", current_chunk.meta().cave_alt());
+        //    if let Some(position) = client.current_position() {
+        //        println!("player_alt: {}", position[2]);
+        //    }
+        //}
 
         if audio.music_enabled()
             && !self.soundtrack.tracks.is_empty()
@@ -198,35 +185,33 @@ impl MusicMgr {
                 Some(site) => site == &current_site,
                 None => true,
             })
-            .filter(|track| match current_biome {
-                BiomeKind::Void => false,
-                BiomeKind::Lake => track.biomes.lake > 0,
-                BiomeKind::Grassland => track.biomes.grassland > 0,
-                BiomeKind::Ocean => track.biomes.ocean > 0,
-                BiomeKind::Mountain => track.biomes.mountain > 0,
-                BiomeKind::Snowland => track.biomes.snowland > 0,
-                BiomeKind::Desert => track.biomes.desert > 0,
-                BiomeKind::Swamp => track.biomes.swamp > 0,
-                BiomeKind::Jungle => track.biomes.jungle > 0,
-                BiomeKind::Forest => track.biomes.forest > 0,
+            .filter(|track| {
+                let mut result = false;
+                if track.biomes.len() > 0 {
+                    for biome in track.biomes.iter() {
+                        if biome.0 == current_biome {
+                            result = true;
+                        }
+                    }
+                } else {
+                    result = true;
+                }
+                result
             })
             .collect::<Vec<&SoundtrackItem>>();
 
-        //let new_maybe_track = maybe_track
-        //    .choose_weighted(&mut rng, |track|
-        // track.biomes.unwrap().entry(current_biome));
-
-        let new_maybe_track = maybe_track.choose_weighted(&mut rng, |track| match current_biome {
-            BiomeKind::Void => track.biomes.void,
-            BiomeKind::Lake => track.biomes.lake,
-            BiomeKind::Grassland => track.biomes.grassland,
-            BiomeKind::Ocean => track.biomes.ocean,
-            BiomeKind::Mountain => track.biomes.mountain,
-            BiomeKind::Snowland => track.biomes.snowland,
-            BiomeKind::Desert => track.biomes.desert,
-            BiomeKind::Swamp => track.biomes.swamp,
-            BiomeKind::Jungle => track.biomes.jungle,
-            BiomeKind::Forest => track.biomes.forest,
+        let new_maybe_track = maybe_track.choose_weighted(&mut rng, |track| {
+            let mut chance = 0;
+            if track.biomes.len() > 0 {
+                for biome in track.biomes.iter() {
+                    if biome.0 == current_biome {
+                        chance = biome.1;
+                    }
+                }
+            } else {
+                chance = 1;
+            }
+            chance
         });
 
         if let Ok(track) = new_maybe_track {
@@ -264,9 +249,9 @@ impl MusicMgr {
             alt = chunk.meta().alt();
             cave_alt = chunk.meta().cave_alt();
         }
-        if player_alt < cave_alt && cave_alt != 0.0 {
+        if player_alt < (alt - 20.0) && cave_alt != 0.0 {
             SitesKind::Cave
-        } else if player_alt < (alt - 30.0) {
+        } else if player_alt < (alt - 20.0) {
             SitesKind::Dungeon
         } else {
             SitesKind::None
