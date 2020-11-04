@@ -45,7 +45,7 @@ use common::{
     state::State,
     terrain::{BiomeKind, SitesKind},
 };
-use rand::{seq::IteratorRandom, thread_rng};
+use rand::{prelude::SliceRandom, thread_rng};
 use serde::Deserialize;
 use std::time::Instant;
 use tracing::warn;
@@ -67,8 +67,22 @@ pub struct SoundtrackItem {
     length: f64,
     /// Whether this track should play during day or night
     timing: Option<DayPeriod>,
-    biome: Option<BiomeKind>,
+    biomes: BiomeProbability,
     site: Option<SitesKind>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct BiomeProbability {
+    void: u8,
+    lake: u8,
+    grassland: u8,
+    ocean: u8,
+    mountain: u8,
+    snowland: u8,
+    desert: u8,
+    swamp: u8,
+    jungle: u8,
+    forest: u8,
 }
 
 /// Allows control over when a track should play based on in-game time of day
@@ -120,10 +134,10 @@ impl MusicMgr {
     /// request to play the next (random) track
     pub fn maintain(&mut self, audio: &mut AudioFrontend, state: &State, client: &Client) {
         // Gets the current player biome
-        let current_biome: BiomeKind = match client.current_chunk() {
-            Some(chunk) => chunk.meta().biome(),
-            _ => self.last_biome,
-        };
+        //let current_biome: BiomeKind = match client.current_chunk() {
+        //    Some(chunk) => chunk.meta().biome(),
+        //    _ => self.last_biome,
+        //};
 
         if let Some(current_chunk) = client.current_chunk() {
             println!("biome: {:?}", current_chunk.meta().biome());
@@ -160,8 +174,8 @@ impl MusicMgr {
     }
 
     fn play_random_track(&mut self, audio: &mut AudioFrontend, state: &State, client: &Client) {
-        const SILENCE_BETWEEN_TRACKS_SECONDS: f64 = 45.0;
-        //const SILENCE_BETWEEN_TRACKS_SECONDS: f64 = 5.0;
+        //const SILENCE_BETWEEN_TRACKS_SECONDS: f64 = 45.0;
+        const SILENCE_BETWEEN_TRACKS_SECONDS: f64 = 5.0;
 
         let game_time = (state.get_time_of_day() as u64 % 86400) as u32;
         let current_period_of_day = Self::get_current_day_period(game_time);
@@ -180,17 +194,42 @@ impl MusicMgr {
                         None => true,
                     }
             })
-            .filter(|track| match &track.biome {
-                Some(biome) => biome == &current_biome,
-                None => true,
-            })
             .filter(|track| match &track.site {
                 Some(site) => site == &current_site,
                 None => true,
             })
-            .choose(&mut rng);
+            .filter(|track| match current_biome {
+                BiomeKind::Void => false,
+                BiomeKind::Lake => track.biomes.lake > 0,
+                BiomeKind::Grassland => track.biomes.grassland > 0,
+                BiomeKind::Ocean => track.biomes.ocean > 0,
+                BiomeKind::Mountain => track.biomes.mountain > 0,
+                BiomeKind::Snowland => track.biomes.snowland > 0,
+                BiomeKind::Desert => track.biomes.desert > 0,
+                BiomeKind::Swamp => track.biomes.swamp > 0,
+                BiomeKind::Jungle => track.biomes.jungle > 0,
+                BiomeKind::Forest => track.biomes.forest > 0,
+            })
+            .collect::<Vec<&SoundtrackItem>>();
 
-        if let Some(track) = maybe_track {
+        //let new_maybe_track = maybe_track
+        //    .choose_weighted(&mut rng, |track|
+        // track.biomes.unwrap().entry(current_biome));
+
+        let new_maybe_track = maybe_track.choose_weighted(&mut rng, |track| match current_biome {
+            BiomeKind::Void => track.biomes.void,
+            BiomeKind::Lake => track.biomes.lake,
+            BiomeKind::Grassland => track.biomes.grassland,
+            BiomeKind::Ocean => track.biomes.ocean,
+            BiomeKind::Mountain => track.biomes.mountain,
+            BiomeKind::Snowland => track.biomes.snowland,
+            BiomeKind::Desert => track.biomes.desert,
+            BiomeKind::Swamp => track.biomes.swamp,
+            BiomeKind::Jungle => track.biomes.jungle,
+            BiomeKind::Forest => track.biomes.forest,
+        });
+
+        if let Ok(track) = new_maybe_track {
             self.last_track = String::from(&track.title);
             self.began_playing = Instant::now();
             self.next_track_change = track.length + SILENCE_BETWEEN_TRACKS_SECONDS;
