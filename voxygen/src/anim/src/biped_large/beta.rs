@@ -50,7 +50,7 @@ impl Animation for BetaAnimation {
         next.control.position = Vec3::new(
             s_a.sc.0 + (-1.4 + movement1 * -3.0 + movement2 * -2.0) * (1.0 - movement3),
             s_a.sc.1 + (-1.4 + movement1 * 3.0 + movement2 * 3.0) * (1.0 - movement3),
-            s_a.sc.2 + (-1.9 + movement1 * 2.5 * (1.0 - movement3)),
+            s_a.sc.2 + (10.9 + movement1 * 2.5 * (1.0 - movement3)),
         );
         next.control.orientation = Quaternion::rotation_x(s_a.sc.3 + (-1.7) * (1.0 - movement3))
             * Quaternion::rotation_y(

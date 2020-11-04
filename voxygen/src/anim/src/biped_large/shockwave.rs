@@ -57,7 +57,7 @@ impl Animation for ShockwaveAnimation {
 
         next.control.position = Vec3::new(
             s_a.stc.0 + movement1 * 5.0 + movement3 * -5.0,
-            s_a.stc.1 + movement1 * 3.0 + movement3 * -3.0,
+            s_a.stc.1 + movement1 * 13.0 + movement3 * -3.0,
             s_a.stc.2 + movement1 * 10.0 + movement2 * -2.0 + movement3 * -8.0,
         );
         next.control.orientation = Quaternion::rotation_x(
