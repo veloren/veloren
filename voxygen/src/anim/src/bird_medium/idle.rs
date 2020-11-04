@@ -20,7 +20,7 @@ impl Animation for IdleAnimation {
         global_time: Self::Dependency,
         anim_time: f64,
         _rate: &mut f32,
-        skeleton_attr: &SkeletonAttr,
+        s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
@@ -40,54 +40,29 @@ impl Animation for IdleAnimation {
                 * 0.25,
         );
 
-        next.head.position = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1);
+        next.torso.scale = Vec3::one() / 11.0;
+        next.wing_l.scale = Vec3::one() * 1.05;
+        next.wing_r.scale = Vec3::one() * 1.05;
+        next.leg_l.scale = Vec3::one() / 11.0;
+        next.leg_r.scale = Vec3::one() / 11.0;
+
+        next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
         next.head.orientation = Quaternion::rotation_z(duck_head_look.x)
             * Quaternion::rotation_x(-duck_head_look.y.abs() + wave_slow_cos * 0.03);
-        next.head.scale = Vec3::one();
 
-        next.torso.position = Vec3::new(
-            0.0,
-            skeleton_attr.chest.0,
-            wave_slow * 0.3 + skeleton_attr.chest.1,
-        ) / 11.0;
+        next.torso.position = Vec3::new(0.0, s_a.chest.0, wave_slow * 0.3 + s_a.chest.1) / 11.0;
         next.torso.orientation = Quaternion::rotation_y(wave_slow * 0.03);
-        next.torso.scale = Vec3::one() / 11.0;
 
-        next.tail.position = Vec3::new(0.0, skeleton_attr.tail.0, skeleton_attr.tail.1);
+        next.tail.position = Vec3::new(0.0, s_a.tail.0, s_a.tail.1);
         next.tail.orientation = Quaternion::rotation_x(wave_slow_cos * 0.03);
-        next.tail.scale = Vec3::one();
 
-        next.wing_l.position = Vec3::new(
-            -skeleton_attr.wing.0,
-            skeleton_attr.wing.1,
-            skeleton_attr.wing.2,
-        );
-        next.wing_l.orientation = Quaternion::rotation_z(0.0);
-        next.wing_l.scale = Vec3::one() * 1.05;
+        next.wing_l.position = Vec3::new(-s_a.wing.0, s_a.wing.1, s_a.wing.2);
 
-        next.wing_r.position = Vec3::new(
-            skeleton_attr.wing.0,
-            skeleton_attr.wing.1,
-            skeleton_attr.wing.2,
-        );
-        next.wing_r.orientation = Quaternion::rotation_y(0.0);
-        next.wing_r.scale = Vec3::one() * 1.05;
+        next.wing_r.position = Vec3::new(s_a.wing.0, s_a.wing.1, s_a.wing.2);
 
-        next.leg_l.position = Vec3::new(
-            -skeleton_attr.foot.0,
-            skeleton_attr.foot.1,
-            skeleton_attr.foot.2,
-        ) / 11.0;
-        next.leg_l.orientation = Quaternion::rotation_y(0.0);
-        next.leg_l.scale = Vec3::one() / 11.0;
+        next.leg_l.position = Vec3::new(-s_a.foot.0, s_a.foot.1, s_a.foot.2) / 11.0;
 
-        next.leg_r.position = Vec3::new(
-            skeleton_attr.foot.0,
-            skeleton_attr.foot.1,
-            skeleton_attr.foot.2,
-        ) / 11.0;
-        next.leg_r.orientation = Quaternion::rotation_x(0.0);
-        next.leg_r.scale = Vec3::one() / 11.0;
+        next.leg_r.position = Vec3::new(s_a.foot.0, s_a.foot.1, s_a.foot.2) / 11.0;
         next
     }
 }

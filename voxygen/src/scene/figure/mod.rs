@@ -942,7 +942,7 @@ impl FigureMgr {
                         },
                         CharacterState::Sneak { .. } => {
                             anim::character::SneakAnimation::update_skeleton(
-                                &CharacterSkeleton::default(),
+                                &target_base,
                                 (active_tool_kind, vel.0, ori, state.last_ori, time),
                                 state.state_time,
                                 &mut state_animation_rate,
@@ -1190,7 +1190,7 @@ impl FigureMgr {
                             }
                         },
                         CharacterState::BasicBlock { .. } => {
-                            anim::character::BlockIdleAnimation::update_skeleton(
+                            anim::character::BlockAnimation::update_skeleton(
                                 &CharacterSkeleton::default(),
                                 (active_tool_kind, second_tool_kind, time),
                                 state.state_time,
@@ -1254,7 +1254,7 @@ impl FigureMgr {
                         },
                         CharacterState::Climb { .. } => {
                             anim::character::ClimbAnimation::update_skeleton(
-                                &CharacterSkeleton::default(),
+                                &target_base,
                                 (active_tool_kind, second_tool_kind, vel.0, ori, time),
                                 state.state_time,
                                 &mut state_animation_rate,
@@ -1263,7 +1263,7 @@ impl FigureMgr {
                         },
                         CharacterState::Sit { .. } => {
                             anim::character::SitAnimation::update_skeleton(
-                                &CharacterSkeleton::default(),
+                                &target_base,
                                 (active_tool_kind, second_tool_kind, time),
                                 state.state_time,
                                 &mut state_animation_rate,
@@ -1272,7 +1272,7 @@ impl FigureMgr {
                         },
                         CharacterState::GlideWield { .. } => {
                             anim::character::GlideWieldAnimation::update_skeleton(
-                                &CharacterSkeleton::default(),
+                                &target_base,
                                 (
                                     active_tool_kind,
                                     second_tool_kind,
@@ -1288,7 +1288,7 @@ impl FigureMgr {
                         },
                         CharacterState::Dance { .. } => {
                             anim::character::DanceAnimation::update_skeleton(
-                                &CharacterSkeleton::default(),
+                                &target_base,
                                 (active_tool_kind, second_tool_kind, time),
                                 state.state_time,
                                 &mut state_animation_rate,
@@ -2214,21 +2214,21 @@ impl FigureMgr {
 
                     let target_base = match (
                         physics.on_ground,
-                        vel.0.magnitude_squared() > 0.15, // Moving
-                        physics.in_fluid.is_some(),       // In water
+                        vel.0.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
+                        physics.in_fluid.is_some(),                       // In water
                     ) {
-                        // Standing
-                        (true, false, false) => anim::biped_large::IdleAnimation::update_skeleton(
-                            &BipedLargeSkeleton::default(),
-                            time,
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
                         // Running
                         (true, true, false) => anim::biped_large::RunAnimation::update_skeleton(
                             &BipedLargeSkeleton::default(),
-                            (vel.0.magnitude(), ori, state.last_ori, time, state.avg_vel),
+                            (
+                                active_tool_kind.clone(),
+                                second_tool_kind.clone(),
+                                vel.0.magnitude(),
+                                ori,
+                                state.last_ori,
+                                time,
+                                state.avg_vel,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -2236,20 +2236,29 @@ impl FigureMgr {
                         // In air
                         (false, _, false) => anim::biped_large::JumpAnimation::update_skeleton(
                             &BipedLargeSkeleton::default(),
-                            time,
+                            (active_tool_kind.clone(), second_tool_kind.clone(), time),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
                         _ => anim::biped_large::IdleAnimation::update_skeleton(
                             &BipedLargeSkeleton::default(),
-                            time,
+                            (active_tool_kind.clone(), second_tool_kind.clone(), time),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
                     };
                     let target_bones = match &character {
+                        CharacterState::Equipping { .. } => {
+                            anim::biped_large::EquipAnimation::update_skeleton(
+                                &target_base,
+                                (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         CharacterState::Wielding { .. } => {
                             anim::biped_large::WieldAnimation::update_skeleton(
                                 &target_base,
