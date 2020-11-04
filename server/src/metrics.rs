@@ -18,7 +18,6 @@ use tracing::{debug, error};
 type RegistryFn = Box<dyn FnOnce(&Registry) -> Result<(), prometheus::Error>>;
 
 pub struct PhysicsMetrics {
-    pub velocities_cache_len: IntGauge,
     pub entity_entity_collision_checks_count: IntCounter,
     pub entity_entity_collisions_count: IntCounter,
 }
@@ -70,10 +69,6 @@ pub struct ServerMetrics {
 
 impl PhysicsMetrics {
     pub fn new() -> Result<(Self, RegistryFn), prometheus::Error> {
-        let velocities_cache_len = IntGauge::with_opts(Opts::new(
-            "velocities_cache_len",
-            "shows the size of the velocities_cache in entries",
-        ))?;
         let entity_entity_collision_checks_count = IntCounter::with_opts(Opts::new(
             "entity_entity_collision_checks_count",
             "shows the number of collision checks",
@@ -83,13 +78,11 @@ impl PhysicsMetrics {
             "shows the number of actual collisions detected",
         ))?;
 
-        let velocities_cache_len_clone = velocities_cache_len.clone();
         let entity_entity_collision_checks_count_clone =
             entity_entity_collision_checks_count.clone();
         let entity_entity_collisions_count_clone = entity_entity_collisions_count.clone();
 
         let f = |registry: &Registry| {
-            registry.register(Box::new(velocities_cache_len_clone))?;
             registry.register(Box::new(entity_entity_collision_checks_count_clone))?;
             registry.register(Box::new(entity_entity_collisions_count_clone))?;
             Ok(())
@@ -97,7 +90,6 @@ impl PhysicsMetrics {
 
         Ok((
             Self {
-                velocities_cache_len,
                 entity_entity_collision_checks_count,
                 entity_entity_collisions_count,
             },

@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        BeamSegment, Collider, Gravity, Mass, Mounting, Ori, PhysicsState, Pos, Projectile, Scale,
-        Shockwave, Sticky, Vel,
+        BeamSegment, Collider, Gravity, Mass, Mounting, Ori, PhysicsState, Pos, PreviousVelDtCache,
+        Projectile, Scale, Shockwave, Sticky, Vel,
     },
     event::{EventBus, ServerEvent},
     metrics::{PhysicsMetrics, SysMetrics},
@@ -66,6 +66,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
+        WriteStorage<'a, PreviousVelDtCache>,
         ReadStorage<'a, Mounting>,
         ReadStorage<'a, Projectile>,
         ReadStorage<'a, BeamSegment>,
@@ -93,6 +94,7 @@ impl<'a> System<'a> for Sys {
             mut positions,
             mut velocities,
             mut orientations,
+            mut previous_velocities_times_dt,
             mountings,
             projectiles,
             beams,
@@ -133,25 +135,37 @@ impl<'a> System<'a> for Sys {
         // terrain collision code below, although that's not trivial to do since
         // it means the step needs to take into account the speeds of both
         // entities.
-        span!(guard, "Clone pushback velocities");
-        //just prereserve for 1000 entities
-        let mut old_velocities_times_dt = Vec::with_capacity(1000);
-        for (entity, vel, _, _, _, _) in (
+        span!(guard, "Maintain pushback cache");
+        //Add PreviousVelDtCache for all relevant entities
+        for entity in (
             &entities,
             &velocities,
             &positions,
+            !&previous_velocities_times_dt,
+            !&mountings,
+            !&beams,
+            !&shockwaves,
+        )
+            .join()
+            .map(|(e, _, _, _, _, _, _)| e)
+            .collect::<Vec<_>>()
+        {
+            let _ = previous_velocities_times_dt.insert(entity, PreviousVelDtCache(Vec3::zero()));
+        }
+
+        //Update PreviousVelDtCache
+        for (_, vel, _, mut vel_dt, _, _, _) in (
+            &entities,
+            &velocities,
+            &positions,
+            &mut previous_velocities_times_dt,
             !&mountings,
             !&beams,
             !&shockwaves,
         )
             .join()
         {
-            let id = entity.id() as usize;
-            let vel_dt = vel.0 * dt.0;
-            if id >= old_velocities_times_dt.len() {
-                old_velocities_times_dt.resize(id + 1, Vec3::zero());
-            }
-            old_velocities_times_dt[id] = vel_dt;
+            vel_dt.0 = vel.0 * dt.0;
         }
         drop(guard);
         span!(guard, "Apply pushback");
@@ -159,6 +173,7 @@ impl<'a> System<'a> for Sys {
             &entities,
             &positions,
             &mut velocities,
+            &previous_velocities_times_dt,
             scales.maybe(),
             masses.maybe(),
             colliders.maybe(),
@@ -170,16 +185,16 @@ impl<'a> System<'a> for Sys {
             projectiles.maybe(),
         )
             .par_join()
-            .filter(|(_, _, _, _, _, _, _, sticky, physics, _)| {
+            .filter(|(_, _, _, _, _, _, _, _, sticky, physics, _)| {
                 sticky.is_none() || (physics.on_wall.is_none() && !physics.on_ground)
             })
+            .map(|(e, p, v, vd, s, m, c, _, _, ph, pr)| (e, p, v, vd, s, m, c, ph, pr))
             .fold(PhysicsMetrics::default,
-                |mut metrics,(entity, pos, vel, scale, mass, collider, _, _, physics, projectile)| {
+                |mut metrics,(entity, pos, vel, vel_dt, scale, mass, collider, physics, projectile)| {
                     let scale = scale.map(|s| s.0).unwrap_or(1.0);
                     let radius = collider.map(|c| c.get_radius()).unwrap_or(0.5);
                     let z_limits = collider.map(|c| c.get_z_limits()).unwrap_or((-0.5, 0.5));
                     let mass = mass.map(|m| m.0).unwrap_or(scale);
-                    let vel_dt = old_velocities_times_dt[entity.id() as usize];
 
                     // Resets touch_entities in physics
                     physics.touch_entities.clear();
@@ -192,6 +207,7 @@ impl<'a> System<'a> for Sys {
                         entity_other,
                         other,
                         pos_other,
+                        vel_dt_other,
                         scale_other,
                         mass_other,
                         collider_other,
@@ -203,6 +219,7 @@ impl<'a> System<'a> for Sys {
                         &entities,
                         &uids,
                         &positions,
+                        &previous_velocities_times_dt,
                         scales.maybe(),
                         masses.maybe(),
                         colliders.maybe(),
@@ -222,10 +239,9 @@ impl<'a> System<'a> for Sys {
 
                         let collision_dist = scale * radius + scale_other * radius_other;
                         let collision_dist_sqr = collision_dist * collision_dist;
-                        let vel_dt_other = old_velocities_times_dt[entity_other.id() as usize];
 
                         let pos_diff_squared = (pos.0 - pos_other.0).magnitude_squared();
-                        let vel_diff_squared = (vel_dt - vel_dt_other).magnitude_squared();
+                        let vel_diff_squared = (vel_dt.0 - vel_dt_other.0).magnitude_squared();
 
                         // Sanity check: don't try colliding entities that are too far from each
                         // other Note: I think this catches all cases. If
@@ -256,8 +272,8 @@ impl<'a> System<'a> for Sys {
 
                         for i in 0..increments {
                             let factor = i as f32 * step_delta;
-                            let pos = pos.0 + vel_dt * factor;
-                            let pos_other = pos_other.0 + vel_dt_other * factor;
+                            let pos = pos.0 + vel_dt.0 * factor;
+                            let pos_other = pos_other.0 + vel_dt_other.0 * factor;
 
                             let diff = pos.xy() - pos_other.xy();
 
@@ -293,12 +309,10 @@ impl<'a> System<'a> for Sys {
             )
             .reduce(PhysicsMetrics::default, |old, new| {
                 PhysicsMetrics {
-                    velocities_cache_len: 0,
                     entity_entity_collision_checks: old.entity_entity_collision_checks + new.entity_entity_collision_checks,
                     entity_entity_collisions: old.entity_entity_collisions + new.entity_entity_collisions,
                 }
             });
-        physics_metrics.velocities_cache_len = old_velocities_times_dt.len() as i64;
         physics_metrics.entity_entity_collision_checks = metrics.entity_entity_collision_checks;
         physics_metrics.entity_entity_collisions = metrics.entity_entity_collisions;
         drop(guard);
