@@ -39,12 +39,14 @@ impl Animation for BeamAnimation {
             _ => (0.0, 0.0, 0.0),
         };
 
-        next.hand_l.position = Vec3::new(0.0, 0.0, -4.0);
-        next.hand_l.orientation = Quaternion::rotation_x(1.27) * Quaternion::rotation_y(0.0);
-        next.hand_r.position = Vec3::new(0.0, 0.0, 2.0);
-        next.hand_r.orientation = Quaternion::rotation_x(1.57) * Quaternion::rotation_y(0.2);
+        next.hand_l.position = Vec3::new(s_a.sthl.0, s_a.sthl.1, s_a.sthl.2);
+        next.hand_l.orientation =
+            Quaternion::rotation_x(s_a.sthl.3) * Quaternion::rotation_y(s_a.sthl.4);
+        next.hand_r.position = Vec3::new(s_a.sthr.0, s_a.sthr.1, s_a.sthl.2);
+        next.hand_r.orientation =
+            Quaternion::rotation_x(s_a.sthr.3) * Quaternion::rotation_y(s_a.sthr.4);
         next.main.position = Vec3::new(0.0, 0.0, 0.0);
-        next.main.orientation = Quaternion::rotation_y(0.0);
+        next.main.orientation = Quaternion::rotation_x(0.0);
 
         next.control.position = Vec3::new(-4.0, 7.0, 4.0);
         next.control.orientation = Quaternion::rotation_x(-0.3)
@@ -54,9 +56,9 @@ impl Animation for BeamAnimation {
         match active_tool_kind {
             Some(ToolKind::Staff(_)) | Some(ToolKind::Sceptre(_)) => {
                 next.control.position = Vec3::new(
-                    s_a.stc.0 + (movement1 * 16.0) * (1.0 - movement3),
+                    s_a.stc.0 + (movement1 * 26.0) * (1.0 - movement3),
                     s_a.stc.1 + (movement1 + (movement2 * 8.0).sin() * 2.0) * (1.0 - movement3),
-                    s_a.stc.2 + (movement1 * 10.0) * (1.0 - movement3),
+                    s_a.stc.2 + (movement1 * 16.0) * (1.0 - movement3),
                 );
                 next.control.orientation =
                     Quaternion::rotation_x(s_a.stc.3 + (movement1 * -1.2) * (1.0 - movement3))
@@ -77,7 +79,7 @@ impl Animation for BeamAnimation {
                         + (movement2 * 8.0).sin() * -2.0
                         + (movement2 * 16.0).sin() * -1.5)
                         * (1.0 - movement3),
-                    -4.0 + (movement1 * 19.0 + (movement2 * 8.0 + PI / 2.0).sin() * 3.5)
+                    0.0 + (movement1 * 19.0 + (movement2 * 8.0 + PI / 2.0).sin() * 3.5)
                         * (1.0 - movement3),
                 );
                 next.hand_l.orientation =
@@ -101,9 +103,9 @@ impl Animation for BeamAnimation {
                         Vec3::new(s_a.foot.0, s_a.foot.1 + movement1 * 4.0, s_a.foot.2);
                     next.foot_r.orientation = Quaternion::rotation_z(movement1 * 0.5);
                     next.upper_torso.orientation =
-                        Quaternion::rotation_x(movement1 * -0.2 + (movement2 * 8.0).sin() * 0.05)
-                            * Quaternion::rotation_z(movement1 * 0.5);
-                    next.lower_torso.orientation = Quaternion::rotation_x(movement1 * 0.2)
+                        Quaternion::rotation_x(movement1 * -0.2 + (movement2 * 8.0).sin() * 0.01)
+                            * Quaternion::rotation_z(movement1 * 0.1);
+                    next.lower_torso.orientation = Quaternion::rotation_x(movement1 * 0.05)
                         * Quaternion::rotation_z(movement1 * -0.2);
                 } else {
                 };

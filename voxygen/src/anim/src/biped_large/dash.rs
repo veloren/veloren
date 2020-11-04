@@ -82,9 +82,9 @@ impl Animation for DashAnimation {
                     s_a.upper_torso.1 + 2.0 + shortalt(movement2) * -2.5,
                 );
                 next.upper_torso.orientation =
-                    Quaternion::rotation_x(movement2.min(1.0) * -0.4 + movement3 * 0.4)
-                        * Quaternion::rotation_y(movement2.min(1.0) * -0.2 + movement3 * 0.3)
-                        * Quaternion::rotation_z(movement1 * 1.1 + movement3 * -2.2);
+                    //Quaternion::rotation_x(movement2.min(1.0) * -0.4 + movement3 * 0.4)
+                        //* Quaternion::rotation_y(movement2.min(1.0) * -0.2 + movement3 * 0.3)
+                        Quaternion::rotation_z(movement1 * 1.1 + movement3 * -2.2);
 
                 next.control.position = Vec3::new(
                     -7.0 + movement1 * -5.0 + movement3 * -2.0,

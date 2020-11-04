@@ -64,8 +64,8 @@ impl Animation for SpinAnimation {
 
             next.control.position = Vec3::new(
                 s_a.sc.0 + movement1 * 2.0 + movement2 * -4.0 + movement3 * -7.0,
-                s_a.sc.1 + 8.0 + movement1 * 0.6 + movement3 * -10.0,
-                s_a.sc.2 + 1.0 + movement1 * 0.6 + movement2 * 1.5 + movement3 * -4.0,
+                s_a.sc.1 + 0.0 + movement1 * 0.6 + movement3 * -10.0,
+                s_a.sc.2 + 5.0 + movement1 * 0.6 + movement2 * 1.5 + movement3 * -4.0,
             );
             next.control.orientation = Quaternion::rotation_x(-0.5 + s_a.sc.3 + movement1 * -1.2)
                 * Quaternion::rotation_y(s_a.sc.4 - 0.6 + movement1 * 1.0)

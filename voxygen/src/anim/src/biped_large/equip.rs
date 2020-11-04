@@ -34,20 +34,24 @@ impl Animation for EquipAnimation {
 
         match active_tool_kind {
             Some(ToolKind::Sword(_)) => {
-                next.hand_l.position = Vec3::new(-8.0, -5.0, 17.0);
-                next.hand_r.position = Vec3::new(-6.0, -4.5, 14.0);
+                next.hand_l.position = Vec3::new(-18.0, -8.0, -1.0);
+                next.hand_r.position = Vec3::new(-16.0, -7.5, -4.0);
             },
             Some(ToolKind::Axe(_)) => {
                 next.hand_l.position = Vec3::new(-7.0, -5.0, 17.0);
                 next.hand_r.position = Vec3::new(-5.0, -4.5, 14.0);
             },
             Some(ToolKind::Hammer(_)) => {
-                next.hand_l.position = Vec3::new(-5.0 - 10.0, -5.0, 3.0);
-                next.hand_r.position = Vec3::new(-3.0 - 10.0, -4.5, 0.0);
+                next.hand_l.position = Vec3::new(-15.0, -7.0, 3.0);
+                next.hand_r.position = Vec3::new(-13.0, -6.5, 0.0);
             },
             Some(ToolKind::Staff(_)) | Some(ToolKind::Sceptre(_)) => {
-                next.hand_l.position = Vec3::new(-3.0, -5.0, 8.0);
-                next.hand_r.position = Vec3::new(-1.75, -4.5, 5.0);
+                next.hand_l.position = Vec3::new(4.0, -6.0, 0.0);
+                next.hand_r.position = Vec3::new(6.0, -6.0, 6.0);
+                next.hand_l.orientation =
+                    Quaternion::rotation_y(2.2) * Quaternion::rotation_z(1.57);
+                next.hand_r.orientation =
+                    Quaternion::rotation_y(2.2) * Quaternion::rotation_z(-1.57);
             },
             Some(ToolKind::Bow(_)) => {
                 next.hand_l.position = Vec3::new(-3.0, -5.0, 9.0);

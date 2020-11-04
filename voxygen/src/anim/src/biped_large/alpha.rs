@@ -88,14 +88,15 @@ impl Animation for AlphaAnimation {
                 );
             },
             Some(ToolKind::Hammer(_)) => {
-                next.hand_l.position = Vec3::new(-12.0, 0.0, 0.0);
+                next.hand_l.position = Vec3::new(-12.0, 0.0, 10.0);
                 next.hand_l.orientation =
-                    Quaternion::rotation_x(-0.0) * Quaternion::rotation_y(0.0);
-                next.hand_r.position = Vec3::new(3.0, 0.0, 0.0);
-                next.hand_r.orientation = Quaternion::rotation_x(0.0) * Quaternion::rotation_y(0.0);
+                    Quaternion::rotation_x(0.0) * Quaternion::rotation_z(-2.0);
+                next.hand_r.position = Vec3::new(3.0, 0.0, 10.0);
+                next.hand_r.orientation =
+                    Quaternion::rotation_x(0.0) * Quaternion::rotation_z(-2.0);
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation =
-                    Quaternion::rotation_y(-1.57) * Quaternion::rotation_z(1.57);
+                    Quaternion::rotation_y(-1.57) * Quaternion::rotation_z(-1.87);
 
                 next.head.orientation = Quaternion::rotation_z(slower * 0.03)
                     * Quaternion::rotation_x(slowersmooth * 0.1)
