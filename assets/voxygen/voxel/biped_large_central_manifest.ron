@@ -25,14 +25,14 @@
             central: ("armor.empty"),
         ),
         main: (
-            offset: (-5.0, -5.5, -5.0),
+            offset: (-5.0, -5.5, -4.0),
             central: ("weapon.hammer.2hhammer_ogre"),
         )
     ),
     (Ogre, Female): (
         head: (
             offset: (-9.0, -5.5, -6.0),
-            central: ("npc.ogre.female..head"),
+            central: ("npc.ogre.female.head"),
         ),
         torso_upper: (
             offset: (-6.0, -5.0, -6.0),
@@ -55,7 +55,7 @@
             central: ("armor.empty"),
         ),
         main: (
-            offset: (-2.5, -5.5, -5.0),
+            offset: (-2.5, -5.5, -4.0),
             central: ("weapon.staff.firestaff_ogre"),
         )
     ),
@@ -205,7 +205,7 @@
             central: ("armor.empty"),
         ),
         main: (
-            offset: (-5.0, -6.5, -4.0),
+            offset: (-4.0, -6.0, -4.0),
             central: ("weapon.hammer.2hhammer_troll"),
         )
     ),
@@ -235,7 +235,7 @@
             central: ("armor.empty"),
         ),
         main: (
-            offset: (-5.0, -6.5, -4.0),
+            offset: (-4.0, -6.0, -4.0),
             central: ("weapon.hammer.2hhammer_troll"),
         )
     ),
@@ -265,7 +265,7 @@
             central: ("armor.empty"),
         ),
         main: (
-            offset: (-5.0, -6.5, -4.0),
+            offset: (-1.5, -9.0, -4.0),
             central: ("weapon.sword.greatsword_2h_dullahan"),
         )
     ),
@@ -295,7 +295,7 @@
             central: ("armor.empty"),
         ),
         main: (
-            offset: (-5.0, -6.5, -4.0),
+            offset: (-1.5, -9.0, -4.0),
             central: ("weapon.sword.greatsword_2h_dullahan"),
         )
     ),
@@ -325,7 +325,7 @@
             central: ("armor.empty"),
         ),
         main: (
-            offset: (-1.5, -9.0, -10.0),
+            offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
         )
     ),
@@ -355,7 +355,7 @@
             central: ("armor.empty"),
         ),
         main: (
-            offset: (-1.5, -9.0, -10.0),
+            offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
         )
     ),
@@ -385,7 +385,7 @@
             central: ("armor.empty"),
         ),
         main: (
-            offset: (-3.5, -3.0, -5.0),
+            offset: (-3.0, -3.0, -4.0),
             central: ("weapon.staff.firestaff_saurok"),
         )
     ),
@@ -415,7 +415,7 @@
             central: ("armor.empty"),
         ),
         main: (
-            offset: (-3.5, -3.0, -5.0),
+            offset: (-3.0, -3.0, -4.0),
             central: ("weapon.staff.firestaff_saurok"),
         )
     ),
@@ -445,7 +445,7 @@
             central: ("armor.empty"),
         ),
         main: (
-            offset: (-1.5, -3.0, -5.0),
+            offset: (-1.5, -4.0, -4.0),
             central: ("weapon.sword.long_2h_saurok"),
         )
     ),
@@ -475,7 +475,7 @@
             central: ("armor.empty"),
         ),
         main: (
-            offset: (-1.5, -3.0, -5.0),
+            offset: (-1.5, -4.0, -4.0),
             central: ("weapon.sword.long_2h_saurok"),
         )
     ),
@@ -505,7 +505,7 @@
             central: ("armor.empty"),
         ),
         main: (
-            offset: (-2.5, -4.0, -7.0),
+            offset: (-1.5, -4.0, -16.5),
             central: ("weapon.bow.longbow_saurok"),
         )
     ),
@@ -535,7 +535,7 @@
             central: ("armor.empty"),
         ),
         main: (
-            offset: (-2.5, -4.0, -7.0),
+            offset: (-1.5, -4.0, -16.5),
             central: ("weapon.bow.longbow_saurok"),
         )
     ),

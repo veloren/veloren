@@ -491,32 +491,32 @@
     // Staffs
     Tool(Staff("BasicStaff")): VoxTrans(
         "voxel.weapon.staff.firestaff_starter",
-        (1.0, 0.0, 0.0), (-310., 90.0, 0.0), 1.2,
+        (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.2,
     ),
     Tool(Staff("BoneStaff")): VoxTrans(
         "voxel.weapon.staff.firestaff_bone",
-        (1.0, 0.0, 0.0), (-310., 90.0, 0.0), 1.2,
+        (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.2,
     ),
     Tool(Staff("AmethystStaff")): VoxTrans(
         "voxel.weapon.staff.firestaff_amethyst",
-        (1.0, 0.0, 0.0), (-310., 90.0, 0.0), 1.2,
+        (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.2,
     ),
     Tool(Staff("CultistStaff")): VoxTrans(
         "voxel.weapon.staff.firestaff_cultist",
-        (1.0, 0.0, 0.0), (-310., 90.0, 0.0), 1.2,
+        (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.2,
     ),
     // Healing staff
     Tool(Sceptre("Sceptre")): VoxTrans(
         "voxel.weapon.sceptre.wood-nature",
-        (1.0, -1.0, 0.0), (-310., 90.0, 0.0), 1.2,
+        (1.0, -1.0, 0.0), (-130., 90.0, 0.0), 1.2,
     ),
     Tool(Sceptre("StarterSceptre")): VoxTrans(
         "voxel.weapon.sceptre.wood-simple",
-        (0.0, -0.0, 0.0), (-310., 90.0, 0.0), 1.25,
+        (0.0, -0.0, 0.0), (-130., 90.0, 0.0), 1.25,
     ),
      Tool(Sceptre("SceptreVelorite")): VoxTrans(
         "voxel.weapon.sceptre.ore-nature",
-        (1.0, -1.0, 0.0), (-310., 90.0, 0.0), 1.15,
+        (1.0, -1.0, 0.0), (-130., 90.0, 0.0), 1.15,
     ),
     // Shields
     Tool(Shield("BasicShield")): VoxTrans(
