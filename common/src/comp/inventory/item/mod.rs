@@ -337,6 +337,8 @@ impl Item {
             SpriteKind::Stones => "common.items.crafting_ing.stones",
             SpriteKind::Twigs => "common.items.crafting_ing.twigs",
             SpriteKind::ShinyGem => "common.items.crafting_ing.shiny_gem",
+            SpriteKind::VialEmpty => "common.items.crafting_ing.empty_vial",
+            SpriteKind::PotionMinor => "common.items.consumable.potion_minor",
             _ => return None,
         }))
     }

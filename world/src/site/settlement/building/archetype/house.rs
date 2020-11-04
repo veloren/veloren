@@ -537,7 +537,7 @@ impl Archetype for House {
                             center_offset.x,
                             center_offset.y,
                             z + 100,
-                        )) % 11
+                        )) % 12
                         {
                             0 => SpriteKind::Planter,
                             1 => SpriteKind::ChairSingle,
@@ -554,6 +554,13 @@ impl Archetype for House {
                             7 => SpriteKind::DrawerSmall,
                             8 => SpriteKind::TableSide,
                             9 => SpriteKind::WardrobeSingle,
+                            10 => {
+                                if dynamic_rng.gen_range(0, 10) == 0 {
+                                    SpriteKind::PotionMinor
+                                } else {
+                                    SpriteKind::VialEmpty
+                                }
+                            },
                             _ => SpriteKind::Pot,
                         };
 
