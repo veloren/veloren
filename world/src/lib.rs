@@ -13,6 +13,7 @@
 
 mod all;
 mod block;
+pub mod canvas;
 pub mod civ;
 mod column;
 pub mod config;
@@ -25,7 +26,10 @@ pub mod site;
 pub mod util;
 
 // Reexports
-pub use crate::config::CONFIG;
+pub use crate::{
+    config::CONFIG,
+    canvas::{Canvas, CanvasInfo},
+};
 pub use block::BlockGen;
 pub use column::ColumnSample;
 pub use index::{IndexOwned, IndexRef};
@@ -126,7 +130,6 @@ impl World {
         );
         let water = Block::new(BlockKind::Water, Rgb::zero());
 
-        let _chunk_size2d = TerrainChunkSize::RECT_SIZE;
         let (base_z, sim_chunk) = match self
             .sim
             /*.get_interpolated(
@@ -203,7 +206,19 @@ impl World {
         // Apply layers (paths, caves, etc.)
         layer::apply_caves_to(chunk_wpos2d, sample_get, &mut chunk, index);
         layer::apply_scatter_to(chunk_wpos2d, sample_get, &mut chunk, index, sim_chunk);
-        layer::apply_paths_to(chunk_wpos2d, sample_get, &mut chunk, index);
+
+        let canvas_info = CanvasInfo {
+            wpos: chunk_pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
+            column_grid: &zcache_grid,
+            column_grid_border: grid_border,
+            index,
+        };
+        let mut canvas = Canvas {
+            wpos: chunk_pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
+            chunk: &mut chunk,
+        };
+
+        layer::apply_paths_to(&mut canvas, &canvas_info);
 
         // Apply site generation
         sim_chunk.sites.iter().for_each(|site| {
