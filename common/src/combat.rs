@@ -6,34 +6,6 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use vek::*;
 
-pub const BLOCK_EFFICIENCY: f32 = 0.9;
-
-/// Each section of this struct determines what damage is applied to a
-/// particular target, using some identifier
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Damages {
-    /// Targets enemies, and all other creatures not in your group
-    pub enemy: Option<Damage>,
-    /// Targets people in the same group as you, and any pets you have
-    pub group: Option<Damage>,
-}
-
-impl Damages {
-    pub fn new(enemy: Option<Damage>, group: Option<Damage>) -> Self { Damages { enemy, group } }
-
-    pub fn get_damage(self, group_target: GroupTarget) -> Option<Damage> {
-        match group_target {
-            GroupTarget::InGroup => self.group,
-            GroupTarget::OutOfGroup => self.enemy,
-        }
-    }
-
-    pub fn contains_damage(self, source: DamageSource) -> bool {
-        self.enemy.map_or(false, |e| e.source == source)
-            || self.group.map_or(false, |g| g.source == source)
-    }
-}
-
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum GroupTarget {
     InGroup,
@@ -58,12 +30,7 @@ pub struct Damage {
 }
 
 impl Damage {
-    pub fn modify_damage(
-        self,
-        block: bool,
-        loadout: Option<&Loadout>,
-        uid: Option<Uid>,
-    ) -> HealthChange {
+    pub fn modify_damage(self, loadout: Option<&Loadout>, uid: Option<Uid>) -> HealthChange {
         let mut damage = self.value;
         match self.source {
             DamageSource::Melee => {
@@ -71,10 +38,6 @@ impl Damage {
                 let mut critdamage = 0.0;
                 if rand::random() {
                     critdamage = damage * 0.3;
-                }
-                // Block
-                if block {
-                    damage *= 1.0 - BLOCK_EFFICIENCY
                 }
                 // Armor
                 let damage_reduction = loadout.map_or(0.0, |l| l.get_damage_reduction());
@@ -95,10 +58,6 @@ impl Damage {
                 if rand::random() {
                     damage *= 1.2;
                 }
-                // Block
-                if block {
-                    damage *= 1.0 - BLOCK_EFFICIENCY
-                }
                 // Armor
                 let damage_reduction = loadout.map_or(0.0, |l| l.get_damage_reduction());
                 damage *= 1.0 - damage_reduction;
@@ -109,10 +68,6 @@ impl Damage {
                 }
             },
             DamageSource::Explosion => {
-                // Block
-                if block {
-                    damage *= 1.0 - BLOCK_EFFICIENCY
-                }
                 // Armor
                 let damage_reduction = loadout.map_or(0.0, |l| l.get_damage_reduction());
                 damage *= 1.0 - damage_reduction;

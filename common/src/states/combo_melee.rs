@@ -2,7 +2,7 @@ use crate::{
     comp::{Attacking, CharacterState, EnergyChange, EnergySource, StateUpdate},
     states::utils::*,
     sys::character_behavior::{CharacterBehavior, JoinData},
-    Damage, DamageSource, Damages, Knockback,
+    Damage, DamageSource, GroupTarget, Knockback,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -131,13 +131,10 @@ impl CharacterBehavior for Data {
                                 * self.static_data.stage_data[stage_index].damage_increase,
                     );
                     data.updater.insert(data.entity, Attacking {
-                        damages: Damages::new(
-                            Some(Damage {
-                                source: DamageSource::Melee,
-                                value: damage as f32,
-                            }),
-                            None,
-                        ),
+                        damages: vec![(Some(GroupTarget::OutOfGroup), Damage {
+                            source: DamageSource::Melee,
+                            value: damage as f32,
+                        })],
                         range: self.static_data.stage_data[stage_index].range,
                         max_angle: self.static_data.stage_data[stage_index].angle.to_radians(),
                         applied: false,

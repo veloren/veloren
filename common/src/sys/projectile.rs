@@ -104,31 +104,27 @@ impl<'a> System<'a> for Sys {
 
                 for effect in projectile.hit_entity.drain(..) {
                     match effect {
-                        projectile::Effect::Damages(damages) => {
+                        projectile::Effect::Damage(target, damage) => {
                             if Some(other) == projectile.owner {
                                 continue;
                             }
-                            let damage = if let Some(damage) = damages.get_damage(target_group) {
-                                damage
-                            } else {
-                                continue;
-                            };
+
+                            if let Some(target) = target {
+                                if target != target_group {
+                                    continue;
+                                }
+                            }
+
                             if let Some(other_entity) =
                                 uid_allocator.retrieve_entity_internal(other.into())
                             {
                                 let other_entity_loadout = loadouts.get(other_entity);
-                                let change = damage.modify_damage(
-                                    false,
-                                    other_entity_loadout,
-                                    projectile.owner,
-                                );
-
-                                if change.amount != 0 {
-                                    server_emitter.emit(ServerEvent::Damage {
-                                        entity: other_entity,
-                                        change,
-                                    });
-                                }
+                                let change =
+                                    damage.modify_damage(other_entity_loadout, projectile.owner);
+                                server_emitter.emit(ServerEvent::Damage {
+                                    entity: other_entity,
+                                    change,
+                                });
                             }
                         },
                         projectile::Effect::Knockback(knockback) => {
@@ -177,6 +173,7 @@ impl<'a> System<'a> for Sys {
                                 }
                             }
                         },
+                        // TODO: Change to effect after !1472 merges
                         projectile::Effect::Buff { buff, chance } => {
                             if let Some(entity) =
                                 uid_allocator.retrieve_entity_internal(other.into())

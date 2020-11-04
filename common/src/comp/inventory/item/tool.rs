@@ -7,8 +7,9 @@ use crate::{
         buff::{Buff, BuffCategory, BuffData, BuffKind, BuffSource},
         projectile, Body, CharacterAbility, Gravity, LightEmitter, Projectile,
     },
+    effect::Effect,
     states::combo_melee,
-    Damage, DamageSource, Damages, Explosion, Knockback, RadiusEffect,
+    Damage, DamageSource, Explosion, GroupTarget, Knockback, RadiusEffect,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -302,13 +303,10 @@ impl Tool {
                     projectile: Projectile {
                         hit_solid: vec![projectile::Effect::Stick],
                         hit_entity: vec![
-                            projectile::Effect::Damages(Damages::new(
-                                Some(Damage {
-                                    source: DamageSource::Projectile,
-                                    value: 40.0 * self.base_power(),
-                                }),
-                                None,
-                            )),
+                            projectile::Effect::Damage(Some(GroupTarget::OutOfGroup), Damage {
+                                source: DamageSource::Projectile,
+                                value: 40.0 * self.base_power(),
+                            }),
                             projectile::Effect::Knockback(Knockback::Away(10.0)),
                             projectile::Effect::RewardEnergy(50),
                             projectile::Effect::Vanish,
@@ -360,13 +358,10 @@ impl Tool {
                     projectile: Projectile {
                         hit_solid: vec![projectile::Effect::Stick],
                         hit_entity: vec![
-                            projectile::Effect::Damages(Damages::new(
-                                Some(Damage {
-                                    source: DamageSource::Projectile,
-                                    value: 40.0 * self.base_power(),
-                                }),
-                                None,
-                            )),
+                            projectile::Effect::Damage(Some(GroupTarget::OutOfGroup), Damage {
+                                source: DamageSource::Projectile,
+                                value: 40.0 * self.base_power(),
+                            }),
                             projectile::Effect::Knockback(Knockback::Away(10.0)),
                             projectile::Effect::Vanish,
                             projectile::Effect::Buff {
@@ -425,16 +420,22 @@ impl Tool {
                     projectile: Projectile {
                         hit_solid: vec![
                             projectile::Effect::Explode(Explosion {
-                                effects: vec![RadiusEffect::Damages(Damages::new(
-                                    Some(Damage {
-                                        source: DamageSource::Explosion,
-                                        value: 50.0 * self.base_power(),
-                                    }),
-                                    Some(Damage {
-                                        source: DamageSource::Healing,
-                                        value: 140.0 * self.base_power(),
-                                    }),
-                                ))],
+                                effects: vec![
+                                    RadiusEffect::Entity(
+                                        Some(GroupTarget::OutOfGroup),
+                                        Effect::Damage(Damage {
+                                            source: DamageSource::Explosion,
+                                            value: 50.0 * self.base_power(),
+                                        }),
+                                    ),
+                                    RadiusEffect::Entity(
+                                        Some(GroupTarget::InGroup),
+                                        Effect::Damage(Damage {
+                                            source: DamageSource::Healing,
+                                            value: 140.0 * self.base_power(),
+                                        }),
+                                    ),
+                                ],
                                 radius: 3.0 + 2.5 * self.base_power(),
                                 energy_regen: 0,
                             }),
@@ -442,16 +443,22 @@ impl Tool {
                         ],
                         hit_entity: vec![
                             projectile::Effect::Explode(Explosion {
-                                effects: vec![RadiusEffect::Damages(Damages::new(
-                                    Some(Damage {
-                                        source: DamageSource::Explosion,
-                                        value: 50.0 * self.base_power(),
-                                    }),
-                                    Some(Damage {
-                                        source: DamageSource::Healing,
-                                        value: 140.0 * self.base_power(),
-                                    }),
-                                ))],
+                                effects: vec![
+                                    RadiusEffect::Entity(
+                                        Some(GroupTarget::OutOfGroup),
+                                        Effect::Damage(Damage {
+                                            source: DamageSource::Explosion,
+                                            value: 50.0 * self.base_power(),
+                                        }),
+                                    ),
+                                    RadiusEffect::Entity(
+                                        Some(GroupTarget::InGroup),
+                                        Effect::Damage(Damage {
+                                            source: DamageSource::Healing,
+                                            value: 140.0 * self.base_power(),
+                                        }),
+                                    ),
+                                ],
                                 radius: 3.0 + 2.5 * self.base_power(),
                                 energy_regen: 0,
                             }),
@@ -478,13 +485,13 @@ impl Tool {
                     projectile: Projectile {
                         hit_solid: vec![
                             projectile::Effect::Explode(Explosion {
-                                effects: vec![RadiusEffect::Damages(Damages::new(
-                                    Some(Damage {
+                                effects: vec![RadiusEffect::Entity(
+                                    Some(GroupTarget::OutOfGroup),
+                                    Effect::Damage(Damage {
                                         source: DamageSource::Explosion,
                                         value: 100.0 * self.base_power(),
                                     }),
-                                    None,
-                                ))],
+                                )],
                                 radius: 5.0,
                                 energy_regen: 50,
                             }),
@@ -492,13 +499,13 @@ impl Tool {
                         ],
                         hit_entity: vec![
                             projectile::Effect::Explode(Explosion {
-                                effects: vec![RadiusEffect::Damages(Damages::new(
-                                    Some(Damage {
+                                effects: vec![RadiusEffect::Entity(
+                                    Some(GroupTarget::OutOfGroup),
+                                    Effect::Damage(Damage {
                                         source: DamageSource::Explosion,
                                         value: 100.0 * self.base_power(),
                                     }),
-                                    None,
-                                ))],
+                                )],
                                 radius: 5.0,
                                 energy_regen: 50,
                             }),

@@ -1,18 +1,16 @@
 use crate::{
     comp::{
-        group, Beam, BeamSegment, Body, CharacterState, Energy, EnergyChange, EnergySource, Health,
-        HealthChange, HealthSource, Last, Loadout, Ori, Pos, Scale,
+        group, Beam, BeamSegment, Body, Energy, EnergyChange, EnergySource, Health, HealthChange,
+        HealthSource, Last, Loadout, Ori, Pos, Scale,
     },
     event::{EventBus, ServerEvent},
     state::{DeltaTime, Time},
     sync::{Uid, UidAllocator},
-    DamageSource, GroupTarget,
+    GroupTarget,
 };
 use specs::{saveload::MarkerAllocator, Entities, Join, Read, ReadStorage, System, WriteStorage};
 use std::time::Duration;
 use vek::*;
-
-pub const BLOCK_ANGLE: f32 = 180.0;
 
 /// This system is responsible for handling beams that heal or do damage
 pub struct Sys;
@@ -33,7 +31,6 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Health>,
         ReadStorage<'a, Loadout>,
         ReadStorage<'a, group::Group>,
-        ReadStorage<'a, CharacterState>,
         ReadStorage<'a, Energy>,
         WriteStorage<'a, BeamSegment>,
         WriteStorage<'a, Beam>,
@@ -56,7 +53,6 @@ impl<'a> System<'a> for Sys {
             healths,
             loadouts,
             groups,
-            character_states,
             energies,
             mut beam_segments,
             mut beams,
@@ -116,25 +112,13 @@ impl<'a> System<'a> for Sys {
             };
 
             // Go through all other effectable entities
-            for (
-                b,
-                uid_b,
-                pos_b,
-                last_pos_b_maybe,
-                ori_b,
-                scale_b_maybe,
-                character_b,
-                health_b,
-                body_b,
-            ) in (
+            for (b, uid_b, pos_b, last_pos_b_maybe, scale_b_maybe, health_b, body_b) in (
                 &entities,
                 &uids,
                 &positions,
                 // TODO: make sure that these are maintained on the client and remove `.maybe()`
                 last_positions.maybe(),
-                &orientations,
                 scales.maybe(),
-                character_states.maybe(),
                 &healths,
                 &bodies,
             )
@@ -174,58 +158,63 @@ impl<'a> System<'a> for Sys {
                         continue;
                     }
 
-                    let damage = if let Some(damage) = beam_segment.damages.get_damage(target_group)
-                    {
-                        damage
-                    } else {
-                        continue;
-                    };
-
-                    let block = character_b.map(|c_b| c_b.is_block()).unwrap_or(false)
-                        // TODO: investigate whether this calculation is proper for beams
-                        && ori_b.0.angle_between(pos.0 - pos_b.0) < BLOCK_ANGLE.to_radians() / 2.0;
-
-                    let change = damage.modify_damage(block, loadouts.get(b), beam_segment.owner);
-
-                    if !matches!(damage.source, DamageSource::Healing) {
-                        server_emitter.emit(ServerEvent::Damage { entity: b, change });
-                        if let Some(entity) = beam_owner {
-                            if beam_segment.lifesteal_eff > 0.0 {
-                                server_emitter.emit(ServerEvent::Damage {
-                                    entity,
-                                    change: HealthChange {
-                                        amount: (-change.amount as f32 * beam_segment.lifesteal_eff)
-                                            as i32,
-                                        cause: HealthSource::Healing {
-                                            by: beam_segment.owner,
-                                        },
-                                    },
-                                });
+                    for (target, damage) in beam_segment.damages.iter() {
+                        if let Some(target) = target {
+                            if *target != target_group {
+                                continue;
                             }
-                            server_emitter.emit(ServerEvent::EnergyChange {
-                                entity,
-                                change: EnergyChange {
-                                    amount: beam_segment.energy_regen as i32,
-                                    source: EnergySource::HitEnemy,
-                                },
-                            });
                         }
-                    } else if let Some(energy) = beam_owner.and_then(|o| energies.get(o)) {
-                        if energy.current() > beam_segment.energy_cost {
-                            server_emitter.emit(ServerEvent::EnergyChange {
-                                entity: beam_owner.unwrap(), /* If it's able to get an energy
-                                                              * component, the entity exists */
-                                change: EnergyChange {
-                                    amount: -(beam_segment.energy_cost as i32), // Stamina use
-                                    source: EnergySource::Ability,
-                                },
-                            });
-                            server_emitter.emit(ServerEvent::Damage { entity: b, change });
+
+                        //  Modify damage
+                        let change = damage.modify_damage(loadouts.get(b), beam_segment.owner);
+
+                        match target {
+                            Some(GroupTarget::OutOfGroup) => {
+                                server_emitter.emit(ServerEvent::Damage { entity: b, change });
+                                if let Some(entity) = beam_owner {
+                                    server_emitter.emit(ServerEvent::Damage {
+                                        entity,
+                                        change: HealthChange {
+                                            amount: (-change.amount as f32
+                                                * beam_segment.lifesteal_eff)
+                                                as i32,
+                                            cause: HealthSource::Healing {
+                                                by: beam_segment.owner,
+                                            },
+                                        },
+                                    });
+                                    server_emitter.emit(ServerEvent::EnergyChange {
+                                        entity,
+                                        change: EnergyChange {
+                                            amount: beam_segment.energy_regen as i32,
+                                            source: EnergySource::HitEnemy,
+                                        },
+                                    });
+                                }
+                            },
+                            Some(GroupTarget::InGroup) => {
+                                if let Some(energy) = beam_owner.and_then(|o| energies.get(o)) {
+                                    if energy.current() > beam_segment.energy_cost {
+                                        server_emitter.emit(ServerEvent::EnergyChange {
+                                            entity: beam_owner.unwrap(), /* If it's able to get an energy
+                                                                          * component, the entity exists */
+                                            change: EnergyChange {
+                                                amount: -(beam_segment.energy_cost as i32), // Stamina use
+                                                source: EnergySource::Ability,
+                                            },
+                                        });
+                                        server_emitter
+                                            .emit(ServerEvent::Damage { entity: b, change });
+                                    }
+                                }
+                            },
+                            None => {},
                         }
+
+                        // Adds entities that were hit to the hit_entities list on the beam, sees if
+                        // it needs to purge the hit_entities list
+                        hit_entities.push(*uid_b);
                     }
-                    // Adds entities that were hit to the hit_entities list on the beam, sees if it
-                    // needs to purge the hit_entities list
-                    hit_entities.push(*uid_b);
                 }
             }
         }

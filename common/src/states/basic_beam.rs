@@ -6,7 +6,7 @@ use crate::{
     states::utils::*,
     sync::Uid,
     sys::character_behavior::{CharacterBehavior, JoinData},
-    Damage, DamageSource, Damages,
+    Damage, DamageSource, GroupTarget,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -126,7 +126,10 @@ impl CharacterBehavior for Data {
                     let properties = beam::Properties {
                         angle: self.static_data.max_angle.to_radians(),
                         speed,
-                        damages: Damages::new(Some(damage), Some(heal)),
+                        damages: vec![
+                            (Some(GroupTarget::OutOfGroup), damage),
+                            (Some(GroupTarget::InGroup), heal),
+                        ],
                         lifesteal_eff: self.static_data.lifesteal_eff,
                         energy_regen,
                         energy_cost,
