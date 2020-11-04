@@ -7,7 +7,7 @@ use crate::{
     event::ServerEvent,
     states::utils::*,
     sys::character_behavior::{CharacterBehavior, JoinData},
-    Damage, DamageSource, Damages, Knockback,
+    Damage, DamageSource, GroupTarget, Knockback,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -99,7 +99,7 @@ impl CharacterBehavior for Data {
                     let mut projectile = Projectile {
                         hit_solid: vec![projectile::Effect::Stick],
                         hit_entity: vec![
-                            projectile::Effect::Damages(Damages::new(Some(damage), None)),
+                            projectile::Effect::Damage(Some(GroupTarget::OutOfGroup), damage),
                             projectile::Effect::Knockback(Knockback::Away(knockback)),
                             projectile::Effect::Vanish,
                             projectile::Effect::Buff {

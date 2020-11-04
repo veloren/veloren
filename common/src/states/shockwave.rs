@@ -3,7 +3,7 @@ use crate::{
     event::ServerEvent,
     states::utils::*,
     sys::character_behavior::{CharacterBehavior, JoinData},
-    Damage, DamageSource, Damages, Knockback,
+    Damage, DamageSource, GroupTarget, Knockback,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -70,13 +70,10 @@ impl CharacterBehavior for Data {
                         vertical_angle: self.static_data.shockwave_vertical_angle,
                         speed: self.static_data.shockwave_speed,
                         duration: self.static_data.shockwave_duration,
-                        damages: Damages::new(
-                            Some(Damage {
-                                source: DamageSource::Shockwave,
-                                value: self.static_data.damage as f32,
-                            }),
-                            None,
-                        ),
+                        damages: vec![(Some(GroupTarget::OutOfGroup), Damage {
+                            source: DamageSource::Shockwave,
+                            value: self.static_data.damage as f32,
+                        })],
                         knockback: self.static_data.knockback,
                         requires_ground: self.static_data.requires_ground,
                         owner: Some(*data.uid),

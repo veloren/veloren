@@ -1,11 +1,12 @@
-use crate::comp;
+use crate::{combat, comp};
 use serde::{Deserialize, Serialize};
 
 /// An effect that may be applied to an entity
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Effect {
     Health(comp::HealthChange),
     Xp(i64),
+    Damage(combat::Damage),
 }
 
 impl Effect {
@@ -13,6 +14,21 @@ impl Effect {
         match self {
             Effect::Health(c) => format!("{:+} health", c.amount),
             Effect::Xp(n) => format!("{:+} exp", n),
+            Effect::Damage(d) => format!("{:+}", d.value),
+        }
+    }
+
+    pub fn modify_strength(&mut self, modifier: f32) {
+        match self {
+            Effect::Health(change) => {
+                change.amount = (change.amount as f32 * modifier) as i32;
+            },
+            Effect::Xp(amount) => {
+                *amount = (*amount as f32 * modifier) as i64;
+            },
+            Effect::Damage(damage) => {
+                damage.interpolate_damage(modifier, 0.0);
+            },
         }
     }
 }
