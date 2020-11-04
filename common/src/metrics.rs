@@ -14,7 +14,6 @@ pub struct SysMetrics {
 
 #[derive(Default)]
 pub struct PhysicsMetrics {
-    pub velocities_cache_len: i64,
     pub entity_entity_collision_checks: i64,
     pub entity_entity_collisions: i64,
 }

@@ -789,9 +789,6 @@ impl Server {
                 .read_resource::<common::metrics::PhysicsMetrics>();
 
             self.physics_metrics
-                .velocities_cache_len
-                .set(res.velocities_cache_len);
-            self.physics_metrics
                 .entity_entity_collision_checks_count
                 .inc_by(res.entity_entity_collision_checks);
             self.physics_metrics

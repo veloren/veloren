@@ -32,6 +32,16 @@ impl Component for Ori {
     type Storage = IdvStorage<Self>;
 }
 
+/// Cache of Velocity (of last tick) * dt (of curent tick)
+/// It's updated and read in physics sys to speed up entity<->entity collisions
+/// no need to send it via network
+#[derive(Copy, Clone, Default, Debug, PartialEq)]
+pub struct PreviousVelDtCache(pub Vec3<f32>);
+
+impl Component for PreviousVelDtCache {
+    type Storage = IdvStorage<Self>;
+}
+
 // Scale
 #[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Scale(pub f32);
