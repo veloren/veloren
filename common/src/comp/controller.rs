@@ -175,12 +175,13 @@ pub struct ControllerInputs {
     pub jump: Input,
     pub roll: Input,
     pub glide: Input,
+    pub fly: Input, // Flying entities only
     pub wall_leap: Input,
     pub charge: Input,
     pub climb: Option<Climb>,
-    pub swimup: Input,
-    pub swimdown: Input,
     pub move_dir: Vec2<f32>,
+    pub move_z: f32, /* z axis (not combined with move_dir because they may have independent
+                      * limits) */
     pub look_dir: Dir,
 }
 
@@ -201,10 +202,9 @@ impl ControllerInputs {
         self.jump.tick(dt);
         self.roll.tick(dt);
         self.glide.tick(dt);
+        self.fly.tick(dt);
         self.wall_leap.tick(dt);
         self.charge.tick(dt);
-        self.swimup.tick(dt);
-        self.swimdown.tick(dt);
     }
 
     pub fn tick_freshness(&mut self) {
@@ -214,10 +214,9 @@ impl ControllerInputs {
         self.jump.tick_freshness();
         self.roll.tick_freshness();
         self.glide.tick_freshness();
+        self.fly.tick_freshness();
         self.wall_leap.tick_freshness();
         self.charge.tick_freshness();
-        self.swimup.tick_freshness();
-        self.swimdown.tick_freshness();
     }
 
     /// Updates Controller inputs with new version received from the client
@@ -228,12 +227,12 @@ impl ControllerInputs {
         self.jump.update_with_new(new.jump);
         self.roll.update_with_new(new.roll);
         self.glide.update_with_new(new.glide);
+        self.fly.update_with_new(new.fly);
         self.wall_leap.update_with_new(new.wall_leap);
         self.charge.update_with_new(new.charge);
         self.climb = new.climb;
-        self.swimup.update_with_new(new.swimup);
-        self.swimdown.update_with_new(new.swimdown);
         self.move_dir = new.move_dir;
+        self.move_z = new.move_z;
         self.look_dir = new.look_dir;
     }
 

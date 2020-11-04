@@ -94,7 +94,7 @@ impl Route {
         vol: &V,
         pos: Vec3<f32>,
         vel: Vec3<f32>,
-        traversal_cfg: TraversalConfig,
+        traversal_cfg: &TraversalConfig,
     ) -> Option<(Vec3<f32>, f32)>
     where
         V: BaseVol<Vox = Block> + ReadVol,
@@ -364,7 +364,7 @@ impl Chaser {
             } else {
                 self.route
                     .as_mut()
-                    .and_then(|(r, _)| r.traverse(vol, pos, vel, traversal_cfg))
+                    .and_then(|(r, _)| r.traverse(vol, pos, vel, &traversal_cfg))
             }
         } else {
             None

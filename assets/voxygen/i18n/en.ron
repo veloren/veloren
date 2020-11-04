@@ -185,7 +185,7 @@ https://account.veloren.net."#,
         "hud.chat.pvp_explosion_kill_msg": "[{attacker}] blew up [{victim}]",
         "hud.chat.pvp_energy_kill_msg": "[{attacker}] killed [{victim}] with magic",
         "hud.chat.pvp_buff_kill_msg": "[{attacker}] killed [{victim}]",
-        
+
 
         "hud.chat.npc_melee_kill_msg": "{attacker} killed [{victim}]",
         "hud.chat.npc_ranged_kill_msg": "{attacker} shot [{victim}]",
@@ -460,6 +460,7 @@ magically infused items?"#,
         "gameinput.acceptgroupinvite": "Accept Group Invite",
         "gameinput.declinegroupinvite": "Decline Group Invite",
         "gameinput.crafting": "Crafting",
+        "gameinput.fly": "Fly",
         "gameinput.sneak": "Sneak",
         "gameinput.swimdown": "Swim downwards",
         "gameinput.swimup": "Swim upwards",
@@ -515,13 +516,13 @@ Protection
 
         /// Buffs and Debuffs
         "buff.remove": "Click to remove",
-        "buff.title.missing": "Missing Title", 
-        "buff.desc.missing": "Missing Description", 
+        "buff.title.missing": "Missing Title",
+        "buff.desc.missing": "Missing Description",
         // Buffs
-        "buff.title.heal_test": "Heal Test", 
-        "buff.desc.heal_test": "This is a test buff to test healing.",   
-        // Debuffs   
-        "debuff.title.bleed_test": "Bleeding", 
+        "buff.title.heal_test": "Heal Test",
+        "buff.desc.heal_test": "This is a test buff to test healing.",
+        // Debuffs
+        "debuff.title.bleed_test": "Bleeding",
         "debuff.desc.bleed_test": "Inflicts regular damage.",
     },
 

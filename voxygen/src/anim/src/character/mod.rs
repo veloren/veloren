@@ -2,7 +2,6 @@ pub mod alpha;
 pub mod beam;
 pub mod beta;
 pub mod block;
-pub mod blockidle;
 pub mod charge;
 pub mod chargeswing;
 pub mod climb;
@@ -31,8 +30,8 @@ pub mod wield;
 // Reexports
 pub use self::{
     alpha::AlphaAnimation, beam::BeamAnimation, beta::BetaAnimation, block::BlockAnimation,
-    blockidle::BlockIdleAnimation, charge::ChargeAnimation, chargeswing::ChargeswingAnimation,
-    climb::ClimbAnimation, dance::DanceAnimation, dash::DashAnimation, equip::EquipAnimation,
+    charge::ChargeAnimation, chargeswing::ChargeswingAnimation, climb::ClimbAnimation,
+    dance::DanceAnimation, dash::DashAnimation, equip::EquipAnimation,
     glidewield::GlideWieldAnimation, gliding::GlidingAnimation, idle::IdleAnimation,
     jump::JumpAnimation, leapmelee::LeapAnimation, repeater::RepeaterAnimation,
     roll::RollAnimation, run::RunAnimation, shockwave::ShockwaveAnimation, shoot::ShootAnimation,
@@ -40,10 +39,10 @@ pub use self::{
     stand::StandAnimation, swim::SwimAnimation, swimwield::SwimWieldAnimation,
     wield::WieldAnimation,
 };
-
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};
 use common::comp;
 use core::convert::TryFrom;
+use std::f32::consts::PI;
 
 pub type Body = comp::humanoid::Body;
 
@@ -132,6 +131,21 @@ pub struct SkeletonAttr {
     foot: (f32, f32, f32),
     shoulder: (f32, f32, f32),
     lantern: (f32, f32, f32),
+    shl: (f32, f32, f32, f32, f32, f32),
+    shr: (f32, f32, f32, f32, f32, f32),
+    sc: (f32, f32, f32, f32, f32, f32),
+    hhl: (f32, f32, f32, f32, f32, f32),
+    hhr: (f32, f32, f32, f32, f32, f32),
+    hc: (f32, f32, f32, f32, f32, f32),
+    sthl: (f32, f32, f32, f32, f32, f32),
+    sthr: (f32, f32, f32, f32, f32, f32),
+    stc: (f32, f32, f32, f32, f32, f32),
+    ahl: (f32, f32, f32, f32, f32, f32),
+    ahr: (f32, f32, f32, f32, f32, f32),
+    ac: (f32, f32, f32, f32, f32, f32),
+    bhl: (f32, f32, f32, f32, f32, f32),
+    bhr: (f32, f32, f32, f32, f32, f32),
+    bc: (f32, f32, f32, f32, f32, f32),
 }
 
 impl Default for SkeletonAttr {
@@ -148,6 +162,21 @@ impl Default for SkeletonAttr {
             foot: (0.0, 0.0, 0.0),
             shoulder: (0.0, 0.0, 0.0),
             lantern: (0.0, 0.0, 0.0),
+            shl: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            shr: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            sc: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            hhl: (0.0, 0.0, 10.0, 0.0, 0.0, 0.0),
+            hhr: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            hc: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            sthl: (0.0, 0.0, 10.0, 0.0, 0.0, 0.0),
+            sthr: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            stc: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            ahl: (0.0, 0.0, 10.0, 0.0, 0.0, 0.0),
+            ahr: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            ac: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            bhl: (0.0, 0.0, 10.0, 0.0, 0.0, 0.0),
+            bhr: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            bc: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
         }
     }
 }
@@ -184,18 +213,18 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Danari, Female) => 1.15,
             },
             head: match (body.species, body.body_type) {
-                (Orc, Male) => (0.0, 13.5),
-                (Orc, Female) => (0.0, 13.0),
-                (Human, Male) => (0.3, 13.0),
-                (Human, Female) => (0.0, 13.0),
-                (Elf, Male) => (0.5, 13.0),
-                (Elf, Female) => (1.0, 13.0),
-                (Dwarf, Male) => (0.0, 14.0),
-                (Dwarf, Female) => (0.0, 13.5),
-                (Undead, Male) => (0.5, 13.0),
-                (Undead, Female) => (0.5, 14.0),
-                (Danari, Male) => (0.5, 12.5),
-                (Danari, Female) => (0.5, 13.5),
+                (Orc, Male) => (-2.0, 13.5),
+                (Orc, Female) => (-2.0, 13.0),
+                (Human, Male) => (-2.3, 13.0),
+                (Human, Female) => (-2.0, 13.0),
+                (Elf, Male) => (-2.5, 13.0),
+                (Elf, Female) => (-1.0, 13.0),
+                (Dwarf, Male) => (-2.0, 14.0),
+                (Dwarf, Female) => (-2.0, 13.5),
+                (Undead, Male) => (-1.5, 13.0),
+                (Undead, Female) => (-1.5, 14.0),
+                (Danari, Male) => (-1.5, 12.5),
+                (Danari, Female) => (-1.5, 13.5),
             },
             chest: match (body.species, body.body_type) {
                 (_, _) => (0.0, 8.0),
@@ -220,6 +249,51 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             },
             lantern: match (body.species, body.body_type) {
                 (_, _) => (5.0, 2.5, 5.5),
+            },
+            shl: match (body.species, body.body_type) {
+                (_, _) => (-0.75, -1.0, 0.5, 1.47, -0.2, 0.0),
+            },
+            shr: match (body.species, body.body_type) {
+                (_, _) => (0.75, -1.5, -2.5, 1.47, 0.3, 0.0),
+            },
+            sc: match (body.species, body.body_type) {
+                (_, _) => (-7.0, 7.0, 2.0, -0.1, 0.0, 0.0),
+            },
+            hhl: match (body.species, body.body_type) {
+                (_, _) => (-0.5, -1.0, 10.0, 1.57, 0.0, 0.0),
+            },
+            hhr: match (body.species, body.body_type) {
+                (_, _) => (0.0, 0.0, 0.0, 1.57, 0.0, 0.0),
+            },
+            hc: match (body.species, body.body_type) {
+                (_, _) => (6.0, 7.0, 1.0, -0.3, -1.57, 0.5),
+            },
+            sthl: match (body.species, body.body_type) {
+                (_, _) => (0.0, 0.0, 1.0, 1.27, 0.0, 0.0),
+            },
+            sthr: match (body.species, body.body_type) {
+                (_, _) => (0.0, 0.0, 7.0, 1.57, 0.2, 0.0),
+            },
+            stc: match (body.species, body.body_type) {
+                (_, _) => (-5.0, 5.0, -1.0, -0.3, 0.15, 0.0),
+            },
+            ahl: match (body.species, body.body_type) {
+                (_, _) => (-0.5, -1.0, 7.0, 1.17, PI, 0.0),
+            },
+            ahr: match (body.species, body.body_type) {
+                (_, _) => (0.0, -1.0, 1.0, -2.0, 0.0, PI),
+            },
+            ac: match (body.species, body.body_type) {
+                (_, _) => (-8.0, 11.0, 3.0, 2.0, 0.0, 0.0),
+            },
+            bhl: match (body.species, body.body_type) {
+                (_, _) => (0.0, -4.0, 1.0, 1.57, 0.0, 0.0),
+            },
+            bhr: match (body.species, body.body_type) {
+                (_, _) => (1.0, 2.0, -2.0, 1.57, 0.0, 0.0),
+            },
+            bc: match (body.species, body.body_type) {
+                (_, _) => (-5.0, 9.0, 1.0, 0.0, 1.2, -0.6),
             },
         }
     }
