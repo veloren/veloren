@@ -6,6 +6,8 @@ use crate::{
     column::ColumnSample,
     util::{RandomField, Sampler},
     IndexRef,
+    Canvas,
+    CanvasInfo,
 };
 use common::{
     assets::Asset,
@@ -33,19 +35,17 @@ pub struct Colors {
 const EMPTY_AIR: Block = Block::air(SpriteKind::Empty);
 
 pub fn apply_paths_to<'a>(
-    wpos2d: Vec2<i32>,
-    mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
-    vol: &mut (impl BaseVol<Vox = Block> + RectSizedVol + ReadVol + WriteVol),
-    index: IndexRef,
+    canvas: &mut Canvas,
+    info: &CanvasInfo,
 ) {
-    for y in 0..vol.size_xy().y as i32 {
-        for x in 0..vol.size_xy().x as i32 {
+    for y in 0..canvas.area().size().h as i32 {
+        for x in 0..canvas.area().size().w as i32 {
             let offs = Vec2::new(x, y);
 
-            let wpos2d = wpos2d + offs;
+            let wpos2d = canvas.wpos() + offs;
 
             // Sample terrain
-            let col_sample = if let Some(col_sample) = get_column(offs) {
+            let col_sample = if let Some(col_sample) = info.col(wpos2d) {
                 col_sample
             } else {
                 continue;
@@ -70,10 +70,10 @@ pub fn apply_paths_to<'a>(
                 // Try to use the column at the centre of the path for sampling to make them
                 // flatter
                 let col_pos = (offs - wpos2d).map(|e| e as f32) + path_nearest;
-                let col00 = get_column(col_pos.map(|e| e.floor() as i32) + Vec2::new(0, 0));
-                let col10 = get_column(col_pos.map(|e| e.floor() as i32) + Vec2::new(1, 0));
-                let col01 = get_column(col_pos.map(|e| e.floor() as i32) + Vec2::new(0, 1));
-                let col11 = get_column(col_pos.map(|e| e.floor() as i32) + Vec2::new(1, 1));
+                let col00 = info.col(info.wpos() + col_pos.map(|e| e.floor() as i32) + Vec2::new(0, 0));
+                let col10 = info.col(info.wpos() + col_pos.map(|e| e.floor() as i32) + Vec2::new(1, 0));
+                let col01 = info.col(info.wpos() + col_pos.map(|e| e.floor() as i32) + Vec2::new(0, 1));
+                let col11 = info.col(info.wpos() + col_pos.map(|e| e.floor() as i32) + Vec2::new(1, 1));
                 let col_attr = |col: &ColumnSample| {
                     Vec3::new(col.riverless_alt, col.alt, col.water_dist.unwrap_or(1000.0))
                 };
@@ -96,12 +96,12 @@ pub fn apply_paths_to<'a>(
                 let surface_z = (riverless_alt + bridge_offset).floor() as i32;
 
                 for z in inset - depth..inset {
-                    let _ = vol.set(
-                        Vec3::new(offs.x, offs.y, surface_z + z),
+                    let _ = canvas.set(
+                        Vec3::new(wpos2d.x, wpos2d.y, surface_z + z),
                         if bridge_offset >= 2.0 && path_dist >= 3.0 || z < inset - 1 {
                             Block::new(
                                 BlockKind::Rock,
-                                noisy_color(index.colors.layer.bridge.into(), 8),
+                                noisy_color(info.index().colors.layer.bridge.into(), 8),
                             )
                         } else {
                             let path_color = path.surface_color(
@@ -113,9 +113,9 @@ pub fn apply_paths_to<'a>(
                 }
                 let head_space = path.head_space(path_dist);
                 for z in inset..inset + head_space {
-                    let pos = Vec3::new(offs.x, offs.y, surface_z + z);
-                    if vol.get(pos).unwrap().kind() != BlockKind::Water {
-                        let _ = vol.set(pos, EMPTY_AIR);
+                    let pos = Vec3::new(wpos2d.x, wpos2d.y, surface_z + z);
+                    if canvas.get(pos).unwrap().kind() != BlockKind::Water {
+                        let _ = canvas.set(pos, EMPTY_AIR);
                     }
                 }
             }
