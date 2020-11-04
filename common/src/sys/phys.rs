@@ -238,16 +238,9 @@ impl<'a> System<'a> for Sys {
                         let radius_other = collider_other.map(|c| c.get_radius()).unwrap_or(0.5);
 
                         let collision_dist = scale * radius + scale_other * radius_other;
-                        let collision_dist_sqr = collision_dist * collision_dist;
 
-                        let pos_diff_squared = (pos.0 - pos_other.0).magnitude_squared();
-                        let vel_diff_squared = (vel_dt.0 - vel_dt_other.0).magnitude_squared();
-
-                        // Sanity check: don't try colliding entities that are too far from each
-                        // other Note: I think this catches all cases. If
-                        // you get entity collision problems, try removing
-                        // this!
-                        if pos_diff_squared > vel_diff_squared + collision_dist_sqr {
+                        // Sanity check: skip colliding entities that are too far from each other
+                        if (pos.0 - pos_other.0).xy().magnitude() > (vel_dt.0 - vel_dt_other.0).xy().magnitude() + collision_dist {
                             continue;
                         }
 
@@ -264,7 +257,7 @@ impl<'a> System<'a> for Sys {
                         metrics.entity_entity_collision_checks += 1;
 
                         const MIN_COLLISION_DIST: f32 = 0.3;
-                        let increments = (vel_diff_squared.sqrt() / MIN_COLLISION_DIST)
+                        let increments = ((vel_dt.0 - vel_dt_other.0).magnitude() / MIN_COLLISION_DIST)
                             .max(1.0)
                             .ceil() as usize;
                         let step_delta = 1.0 / increments as f32;
@@ -277,7 +270,7 @@ impl<'a> System<'a> for Sys {
 
                             let diff = pos.xy() - pos_other.xy();
 
-                            if diff.magnitude_squared() <= collision_dist_sqr
+                            if diff.magnitude_squared() <= collision_dist.powi(2)
                                 && pos.z + z_limits.1 * scale
                                     >= pos_other.z + z_limits_other.0 * scale_other
                                 && pos.z + z_limits.0 * scale
