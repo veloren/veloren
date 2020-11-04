@@ -19,7 +19,6 @@
             files: [
                 "voxygen.audio.sfx.ambient.birdcall_1",
                 "voxygen.audio.sfx.ambient.birdcall_2",
-                "voxygen.audio.sfx.ambient.birdcall_3",
             ],
             threshold: 10.0,
         ),
