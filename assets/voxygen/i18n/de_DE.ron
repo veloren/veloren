@@ -188,13 +188,14 @@ https://account.veloren.net.
         "hud.chat.pvp_ranged_kill_msg": "[{attacker}] hat [{victim}] aus der Ferne getötet",
         "hud.chat.pvp_explosion_kill_msg": "[{attacker}] hat [{victim}] hochgejagt",
         "hud.chat.pvp_energy_kill_msg": "[{attacker}] hat [{victim}] mit Magie erledigt",
-        "hud.chat.pvp_buff_kill_msg" : "[{attacker}] hat [{victim}] mit Magie erledigt",
+        "hud.chat.pvp_other_kill_msg" : "[{attacker}] hat [{victim}] mit Magie erledigt",
 
 
         "hud.chat.npc_melee_kill_msg": "{attacker} tötete [{victim}]",
         "hud.chat.npc_ranged_kill_msg": "{attacker} tötete [{victim}]",
         "hud.chat.npc_explosion_kill_msg": "{attacker} hat [{victim}] hochgejagt",
-        "hud.chat.npc_buff_kill_msg": "[{attacker}] tötete [{victim}]",
+        "hud.chat.npc_energy_kill_msg": "[{attacker}] hat [{victim}] mit Magie erledigt",
+        "hud.chat.npc_other_kill_msg": "[{attacker}] tötete [{victim}]",
 
         // SCT outputs
         "hud.sct.experience": "{amount} Erf",

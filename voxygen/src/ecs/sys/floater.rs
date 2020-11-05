@@ -81,12 +81,8 @@ impl<'a> System<'a> for Sys {
                 // (maybe health changes could be sent to the client as a list
                 // of events)
                 if match health.last_change.1.cause {
-                    HealthSource::Attack { by }
-                    | HealthSource::Projectile { owner: Some(by) }
-                    | HealthSource::Energy { owner: Some(by) }
-                    | HealthSource::Explosion { owner: Some(by) }
-                    | HealthSource::Buff { owner: Some(by) }
-                    | HealthSource::Healing { by: Some(by) } => {
+                    HealthSource::Damage { by: Some(by), .. }
+                    | HealthSource::Heal { by: Some(by) } => {
                         let by_me = my_uid.map_or(false, |&uid| by == uid);
                         // If the attack was by me also reset this timer
                         if by_me {

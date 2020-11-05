@@ -5,6 +5,7 @@ use crate::{
     },
     event::{EventBus, ServerEvent},
     state::DeltaTime,
+    DamageSource,
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 use std::time::Duration;
@@ -86,9 +87,12 @@ impl<'a> System<'a> for Sys {
                                     || buff.time.map_or(false, |dur| dur == Duration::default())
                                 {
                                     let cause = if *accumulated > 0.0 {
-                                        HealthSource::Healing { by: buff_owner }
+                                        HealthSource::Heal { by: buff_owner }
                                     } else {
-                                        HealthSource::Buff { owner: buff_owner }
+                                        HealthSource::Damage {
+                                            kind: DamageSource::Other,
+                                            by: buff_owner,
+                                        }
                                     };
                                     server_emitter.emit(ServerEvent::Damage {
                                         entity,
