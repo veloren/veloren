@@ -223,7 +223,7 @@ impl CharacterAbility {
     /// applicable.
     pub fn requirements_paid(&self, data: &JoinData, update: &mut StateUpdate) -> bool {
         match self {
-            CharacterAbility::Roll {energy_cost, .. } => {
+            CharacterAbility::Roll { energy_cost, .. } => {
                 data.physics.on_ground
                     && data.vel.0.xy().magnitude_squared() > 0.5
                     && update
@@ -316,7 +316,7 @@ fn get_roll() -> CharacterAbility {
         buildup_duration: Duration::from_millis(100),
         movement_duration: Duration::from_millis(250),
         recover_duration: Duration::from_millis(150),
-        roll_strength: 1.0,
+        roll_strength: 2.5,
         buildup_iframes: true,
         movement_iframes: true,
         recover_iframes: false,
