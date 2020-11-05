@@ -291,7 +291,7 @@ pub enum Event {
     ChangeRenderMode(Box<RenderMode>),
     AdjustMusicVolume(f32),
     AdjustSfxVolume(f32),
-    //ChangeAudioDevice(String),
+    ChangeAudioDevice(String),
     MaximumFPS(u32),
     CrosshairTransp(f32),
     CrosshairType(CrosshairType),
@@ -2693,32 +2693,30 @@ impl<'a> Widget for SettingsWindow<'a> {
                 events.push(Event::AdjustSfxVolume(new_val));
             }
 
-            // Audio Device Selector
-            // --------------------------------------------
-            // let device = &self.global_state.audio.device;
-            //let device_list = &self.global_state.audio.device_list;
-            //Text::new(&self.localized_strings.get("hud.settings.audio_device"
-            // ))    .down_from(state.ids.sfx_volume_slider, 10.0)
-            //    .font_size(self.fonts.cyri.scale(14))
-            //    .font_id(self.fonts.cyri.conrod_id)
-            //    .color(TEXT_COLOR)
-            //    .set(state.ids.audio_device_text, ui);
+            // Audio Device Selector --------------------------------------------
+            let device = &self.global_state.audio.device;
+            let device_list = &self.global_state.audio.device_list;
+            Text::new(&self.localized_strings.get("hud.settings.audio_device"))
+                .down_from(state.ids.sfx_volume_slider, 10.0)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(TEXT_COLOR)
+                .set(state.ids.audio_device_text, ui);
 
-            //// Get which device is currently selected
-            //let selected = device_list.iter().position(|x|
-            // x.contains(device));
+            // Get which device is currently selected
+            let selected = device_list.iter().position(|x| x.contains(device));
 
-            //if let Some(clicked) = DropDownList::new(&device_list, selected)
-            //    .w_h(400.0, 22.0)
-            //    .color(MENU_BG)
-            //    .label_color(TEXT_COLOR)
-            //    .label_font_id(self.fonts.opensans.conrod_id)
-            //    .down_from(state.ids.audio_device_text, 10.0)
-            //    .set(state.ids.audio_device_list, ui)
-            //{
-            //    let new_val = device_list[clicked].clone();
-            //    events.push(Event::ChangeAudioDevice(new_val));
-            //}
+            if let Some(clicked) = DropDownList::new(&device_list, selected)
+                .w_h(400.0, 22.0)
+                .color(MENU_BG)
+                .label_color(TEXT_COLOR)
+                .label_font_id(self.fonts.opensans.conrod_id)
+                .down_from(state.ids.audio_device_text, 10.0)
+                .set(state.ids.audio_device_list, ui)
+            {
+                let new_val = device_list[clicked].clone();
+                events.push(Event::ChangeAudioDevice(new_val));
+            }
         }
 
         // 5) Languages Tab -----------------------------------

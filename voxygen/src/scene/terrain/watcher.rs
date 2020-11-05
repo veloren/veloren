@@ -9,6 +9,7 @@ use vek::*;
 pub struct BlocksOfInterest {
     pub leaves: Vec<Vec3<i32>>,
     pub grass: Vec<Vec3<i32>>,
+    pub water: Vec<Vec3<i32>>,
     pub embers: Vec<Vec3<i32>>,
     pub beehives: Vec<Vec3<i32>>,
     pub reeds: Vec<Vec3<i32>>,
@@ -23,6 +24,7 @@ impl BlocksOfInterest {
         span!(_guard, "from_chunk", "BlocksOfInterest::from_chunk");
         let mut leaves = Vec::new();
         let mut grass = Vec::new();
+        let mut water = Vec::new();
         let mut embers = Vec::new();
         let mut beehives = Vec::new();
         let mut reeds = Vec::new();
@@ -50,6 +52,11 @@ impl BlocksOfInterest {
                             grass.push(pos)
                         }
                     },
+                    BlockKind::Water => {
+                        if thread_rng().gen_range(0, 16) == 0 {
+                            water.push(pos)
+                        }
+                    },
                     _ => match block.get_sprite() {
                         Some(SpriteKind::Ember) => embers.push(pos),
                         Some(SpriteKind::Beehive) => beehives.push(pos),
@@ -71,6 +78,7 @@ impl BlocksOfInterest {
         Self {
             leaves,
             grass,
+            water,
             embers,
             beehives,
             reeds,
