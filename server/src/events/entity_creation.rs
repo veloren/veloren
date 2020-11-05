@@ -3,8 +3,8 @@ use common::{
     character::CharacterId,
     comp::{
         self, beam, humanoid::DEFAULT_HUMANOID_EYE_HEIGHT, shockwave, Agent, Alignment, Body,
-        Gravity, Item, ItemDrop, LightEmitter, Loadout, Ori, Pos, Projectile, Scale, Stats, Vel,
-        WaypointArea,
+        Gravity, Health, Item, ItemDrop, LightEmitter, Loadout, Ori, Pos, Projectile, Scale, Stats,
+        Vel, WaypointArea,
     },
     outcome::Outcome,
     util::Dir,
@@ -37,6 +37,7 @@ pub fn handle_create_npc(
     server: &mut Server,
     pos: Pos,
     stats: Stats,
+    health: Health,
     loadout: Loadout,
     body: Body,
     agent: impl Into<Option<Agent>>,
@@ -55,7 +56,7 @@ pub fn handle_create_npc(
 
     let entity = server
         .state
-        .create_npc(pos, stats, loadout, body)
+        .create_npc(pos, stats, health, loadout, body)
         .with(scale)
         .with(alignment);
 

@@ -1,13 +1,13 @@
 use crate::{
     comp::{
         buff::{Buff, BuffCategory, BuffData, BuffKind, BuffSource},
-        projectile, Body, CharacterState, EnergySource, Gravity, LightEmitter, Projectile,
-        StateUpdate,
+        projectile, Body, CharacterState, EnergyChange, EnergySource, Gravity, LightEmitter,
+        Projectile, StateUpdate,
     },
     event::ServerEvent,
     states::utils::*,
     sys::character_behavior::{CharacterBehavior, JoinData},
-    Damage, Damages, Knockback,
+    Damage, DamageSource, GroupTarget, Knockback,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -37,6 +37,8 @@ pub struct StaticData {
     pub projectile_gravity: Option<Gravity>,
     pub initial_projectile_speed: f32,
     pub max_projectile_speed: f32,
+    /// What key is used to press ability
+    pub ability_key: AbilityKey,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -80,14 +82,15 @@ impl CharacterBehavior for Data {
                 }
             },
             StageSection::Charge => {
-                if !data.inputs.secondary.is_pressed() && !self.exhausted {
+                if !ability_key_is_pressed(data, self.static_data.ability_key) && !self.exhausted {
                     let charge_frac = (self.timer.as_secs_f32()
                         / self.static_data.charge_duration.as_secs_f32())
                     .min(1.0);
-                    let damage = self.static_data.initial_damage as f32
-                        + (charge_frac
-                            * (self.static_data.max_damage - self.static_data.initial_damage)
-                                as f32);
+                    let mut damage = Damage {
+                        source: DamageSource::Projectile,
+                        value: self.static_data.max_damage as f32,
+                    };
+                    damage.interpolate_damage(charge_frac, self.static_data.initial_damage as f32);
                     let knockback = self.static_data.initial_knockback as f32
                         + (charge_frac
                             * (self.static_data.max_knockback - self.static_data.initial_knockback)
@@ -96,17 +99,14 @@ impl CharacterBehavior for Data {
                     let mut projectile = Projectile {
                         hit_solid: vec![projectile::Effect::Stick],
                         hit_entity: vec![
-                            projectile::Effect::Damages(Damages::new(
-                                Some(Damage::Projectile(damage)),
-                                None,
-                            )),
+                            projectile::Effect::Damage(Some(GroupTarget::OutOfGroup), damage),
                             projectile::Effect::Knockback(Knockback::Away(knockback)),
                             projectile::Effect::Vanish,
                             projectile::Effect::Buff {
                                 buff: Buff::new(
                                     BuffKind::Bleeding,
                                     BuffData {
-                                        strength: damage / 5.0,
+                                        strength: damage.value / 5.0,
                                         duration: Some(Duration::from_secs(5)),
                                     },
                                     vec![BuffCategory::Physical],
@@ -140,7 +140,7 @@ impl CharacterBehavior for Data {
                         ..*self
                     });
                 } else if self.timer < self.static_data.charge_duration
-                    && data.inputs.secondary.is_pressed()
+                    && ability_key_is_pressed(data, self.static_data.ability_key)
                 {
                     // Charges
                     update.character = CharacterState::ChargedRanged(Data {
@@ -152,11 +152,11 @@ impl CharacterBehavior for Data {
                     });
 
                     // Consumes energy if there's enough left and RMB is held down
-                    update.energy.change_by(
-                        -(self.static_data.energy_drain as f32 * data.dt.0) as i32,
-                        EnergySource::Ability,
-                    );
-                } else if data.inputs.secondary.is_pressed() {
+                    update.energy.change_by(EnergyChange {
+                        amount: -(self.static_data.energy_drain as f32 * data.dt.0) as i32,
+                        source: EnergySource::Ability,
+                    });
+                } else if ability_key_is_pressed(data, self.static_data.ability_key) {
                     // Holds charge
                     update.character = CharacterState::ChargedRanged(Data {
                         timer: self
@@ -167,10 +167,10 @@ impl CharacterBehavior for Data {
                     });
 
                     // Consumes energy if there's enough left and RMB is held down
-                    update.energy.change_by(
-                        -(self.static_data.energy_drain as f32 * data.dt.0 / 5.0) as i32,
-                        EnergySource::Ability,
-                    );
+                    update.energy.change_by(EnergyChange {
+                        amount: -(self.static_data.energy_drain as f32 * data.dt.0 / 5.0) as i32,
+                        source: EnergySource::Ability,
+                    });
                 }
             },
             StageSection::Recover => {

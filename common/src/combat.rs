@@ -6,55 +6,39 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use vek::*;
 
-pub const BLOCK_EFFICIENCY: f32 = 0.9;
-
-/// Each section of this struct determines what damage is applied to a
-/// particular target, using some identifier
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Damages {
-    /// Targets enemies, and all other creatures not in your group
-    pub enemy: Option<Damage>,
-    /// Targets people in the same group as you, and any pets you have
-    pub group: Option<Damage>,
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum GroupTarget {
+    InGroup,
+    OutOfGroup,
 }
 
-impl Damages {
-    pub fn new(enemy: Option<Damage>, group: Option<Damage>) -> Self { Damages { enemy, group } }
-
-    pub fn get_damage(self, same_group: bool) -> Option<Damage> {
-        if same_group { self.group } else { self.enemy }
-    }
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+pub enum DamageSource {
+    Melee,
+    Healing,
+    Projectile,
+    Explosion,
+    Falling,
+    Shockwave,
+    Energy,
+    Other,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub enum Damage {
-    Melee(f32),
-    Healing(f32),
-    Projectile(f32),
-    Explosion(f32),
-    Falling(f32),
-    Shockwave(f32),
-    Energy(f32),
+pub struct Damage {
+    pub source: DamageSource,
+    pub value: f32,
 }
 
 impl Damage {
-    pub fn modify_damage(
-        self,
-        block: bool,
-        loadout: Option<&Loadout>,
-        uid: Option<Uid>,
-    ) -> HealthChange {
-        match self {
-            Damage::Melee(damage) => {
-                let mut damage = damage;
+    pub fn modify_damage(self, loadout: Option<&Loadout>, uid: Option<Uid>) -> HealthChange {
+        let mut damage = self.value;
+        match self.source {
+            DamageSource::Melee => {
                 // Critical hit
                 let mut critdamage = 0.0;
                 if rand::random() {
                     critdamage = damage * 0.3;
-                }
-                // Block
-                if block {
-                    damage *= 1.0 - BLOCK_EFFICIENCY
                 }
                 // Armor
                 let damage_reduction = loadout.map_or(0.0, |l| l.get_damage_reduction());
@@ -67,71 +51,73 @@ impl Damage {
 
                 HealthChange {
                     amount: -damage as i32,
-                    cause: HealthSource::Attack { by: uid.unwrap() },
+                    cause: HealthSource::Damage {
+                        kind: self.source,
+                        by: uid,
+                    },
                 }
             },
-            Damage::Projectile(damage) => {
-                let mut damage = damage;
+            DamageSource::Projectile => {
                 // Critical hit
                 if rand::random() {
                     damage *= 1.2;
                 }
-                // Block
-                if block {
-                    damage *= 1.0 - BLOCK_EFFICIENCY
-                }
                 // Armor
                 let damage_reduction = loadout.map_or(0.0, |l| l.get_damage_reduction());
                 damage *= 1.0 - damage_reduction;
 
                 HealthChange {
                     amount: -damage as i32,
-                    cause: HealthSource::Projectile { owner: uid },
+                    cause: HealthSource::Damage {
+                        kind: self.source,
+                        by: uid,
+                    },
                 }
             },
-            Damage::Explosion(damage) => {
-                let mut damage = damage;
-                // Block
-                if block {
-                    damage *= 1.0 - BLOCK_EFFICIENCY
-                }
+            DamageSource::Explosion => {
                 // Armor
                 let damage_reduction = loadout.map_or(0.0, |l| l.get_damage_reduction());
                 damage *= 1.0 - damage_reduction;
 
                 HealthChange {
                     amount: -damage as i32,
-                    cause: HealthSource::Explosion { owner: uid },
+                    cause: HealthSource::Damage {
+                        kind: self.source,
+                        by: uid,
+                    },
                 }
             },
-            Damage::Shockwave(damage) => {
-                let mut damage = damage;
+            DamageSource::Shockwave => {
                 // Armor
                 let damage_reduction = loadout.map_or(0.0, |l| l.get_damage_reduction());
                 damage *= 1.0 - damage_reduction;
 
                 HealthChange {
                     amount: -damage as i32,
-                    cause: HealthSource::Attack { by: uid.unwrap() },
+                    cause: HealthSource::Damage {
+                        kind: self.source,
+                        by: uid,
+                    },
                 }
             },
-            Damage::Energy(damage) => {
-                let mut damage = damage;
+            DamageSource::Energy => {
                 // Armor
                 let damage_reduction = loadout.map_or(0.0, |l| l.get_damage_reduction());
                 damage *= 1.0 - damage_reduction;
 
                 HealthChange {
                     amount: -damage as i32,
-                    cause: HealthSource::Energy { owner: uid },
+                    cause: HealthSource::Damage {
+                        kind: self.source,
+                        by: uid,
+                    },
                 }
             },
-            Damage::Healing(heal) => HealthChange {
-                amount: heal as i32,
-                cause: HealthSource::Healing { by: uid },
+            DamageSource::Healing => HealthChange {
+                amount: damage as i32,
+                cause: HealthSource::Heal { by: uid },
             },
-            Damage::Falling(damage) => {
-                let mut damage = damage;
+            DamageSource::Falling => {
                 // Armor
                 let damage_reduction = loadout.map_or(0.0, |l| l.get_damage_reduction());
                 if (damage_reduction - 1.0).abs() < f32::EPSILON {
@@ -142,7 +128,19 @@ impl Damage {
                     cause: HealthSource::World,
                 }
             },
+            DamageSource::Other => HealthChange {
+                amount: -damage as i32,
+                cause: HealthSource::Damage {
+                    kind: self.source,
+                    by: uid,
+                },
+            },
         }
+    }
+
+    pub fn interpolate_damage(&mut self, frac: f32, min: f32) {
+        let new_damage = min + frac * (self.value - min);
+        self.value = new_damage;
     }
 }
 

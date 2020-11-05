@@ -1,17 +1,16 @@
 use crate::{
     comp::{
-        group, Body, CharacterState, HealthSource, Last, Loadout, Ori, PhysicsState, Pos, Scale,
-        Shockwave, ShockwaveHitEntities, Stats,
+        group, Body, Health, HealthSource, Last, Loadout, Ori, PhysicsState, Pos, Scale, Shockwave,
+        ShockwaveHitEntities,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     state::{DeltaTime, Time},
     sync::{Uid, UidAllocator},
     util::Dir,
+    GroupTarget,
 };
 use specs::{saveload::MarkerAllocator, Entities, Join, Read, ReadStorage, System, WriteStorage};
 use vek::*;
-
-pub const BLOCK_ANGLE: f32 = 180.0;
 
 /// This system is responsible for handling accepted inputs like moving or
 /// attacking
@@ -31,10 +30,9 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Ori>,
         ReadStorage<'a, Scale>,
         ReadStorage<'a, Body>,
-        ReadStorage<'a, Stats>,
+        ReadStorage<'a, Health>,
         ReadStorage<'a, Loadout>,
         ReadStorage<'a, group::Group>,
-        ReadStorage<'a, CharacterState>,
         ReadStorage<'a, PhysicsState>,
         WriteStorage<'a, Shockwave>,
         WriteStorage<'a, ShockwaveHitEntities>,
@@ -55,10 +53,9 @@ impl<'a> System<'a> for Sys {
             orientations,
             scales,
             bodies,
-            stats,
+            healths,
             loadouts,
             groups,
-            character_states,
             physics_states,
             mut shockwaves,
             mut shockwave_hit_lists,
@@ -130,10 +127,8 @@ impl<'a> System<'a> for Sys {
                 uid_b,
                 pos_b,
                 last_pos_b_maybe,
-                ori_b,
                 scale_b_maybe,
-                character_b,
-                stats_b,
+                health_b,
                 body_b,
                 physics_state_b,
             ) in (
@@ -142,10 +137,8 @@ impl<'a> System<'a> for Sys {
                 &positions,
                 // TODO: make sure that these are maintained on the client and remove `.maybe()`
                 last_positions.maybe(),
-                &orientations,
                 scales.maybe(),
-                character_states.maybe(),
-                &stats,
+                &healths,
                 &bodies,
                 &physics_states,
             )
@@ -177,9 +170,15 @@ impl<'a> System<'a> for Sys {
                     .map(|group_a| Some(group_a) == groups.get(b))
                     .unwrap_or(Some(*uid_b) == shockwave.owner);
 
+                let target_group = if same_group {
+                    GroupTarget::InGroup
+                } else {
+                    GroupTarget::OutOfGroup
+                };
+
                 // Check if it is a hit
                 let hit = entity != b
-                    && !stats_b.is_dead
+                    && !health_b.is_dead
                     // Collision shapes
                     && {
                         // TODO: write code to collide rect with the arc strip so that we can do
@@ -192,24 +191,19 @@ impl<'a> System<'a> for Sys {
                     && (!shockwave.requires_ground || physics_state_b.on_ground);
 
                 if hit {
-                    let damage = if let Some(damage) = shockwave.damages.get_damage(same_group) {
-                        damage
-                    } else {
-                        continue;
-                    };
+                    for (target, damage) in shockwave.damages.iter() {
+                        if let Some(target) = target {
+                            if *target != target_group {
+                                continue;
+                            }
+                        }
 
-                    let block = character_b.map(|c_b| c_b.is_block()).unwrap_or(false)
-                        && ori_b.0.angle_between(pos.0 - pos_b.0) < BLOCK_ANGLE.to_radians() / 2.0;
+                        let owner_uid = shockwave.owner.unwrap_or(*uid);
+                        let change = damage.modify_damage(loadouts.get(b), Some(owner_uid));
 
-                    let owner_uid = shockwave.owner.unwrap_or(*uid);
-                    let change = damage.modify_damage(block, loadouts.get(b), Some(owner_uid));
-
-                    if change.amount != 0 {
-                        server_emitter.emit(ServerEvent::Damage {
-                            uid: *uid_b,
-                            change,
-                        });
+                        server_emitter.emit(ServerEvent::Damage { entity: b, change });
                         shockwave_hit_list.hit_entities.push(*uid_b);
+
                         let kb_dir = Dir::new((pos_b.0 - pos.0).try_normalized().unwrap_or(*ori.0));
                         let impulse = shockwave.knockback.calculate_impulse(kb_dir);
                         if !impulse.is_approx_zero() {

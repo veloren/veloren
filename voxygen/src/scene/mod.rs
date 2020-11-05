@@ -604,10 +604,10 @@ impl Scene {
                 .maybe(),
             scene_data.state.ecs().read_storage::<comp::Scale>().maybe(),
             &scene_data.state.ecs().read_storage::<comp::Body>(),
-            &scene_data.state.ecs().read_storage::<comp::Stats>(),
+            &scene_data.state.ecs().read_storage::<comp::Health>(),
         )
             .join()
-            .filter(|(_, _, _, _, stats)| !stats.is_dead)
+            .filter(|(_, _, _, _, health)| !health.is_dead)
             .filter(|(pos, _, _, _, _)| {
                 (pos.0.distance_squared(player_pos) as f32)
                     < (loaded_distance.min(SHADOW_MAX_DIST) + SHADOW_DIST_RADIUS).powf(2.0)

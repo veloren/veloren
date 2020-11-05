@@ -1,8 +1,8 @@
 use crate::{
-    comp::{Attacking, CharacterState, EnergySource, StateUpdate},
+    comp::{Attacking, CharacterState, EnergyChange, EnergySource, StateUpdate},
     states::utils::*,
     sys::character_behavior::{CharacterBehavior, JoinData},
-    Damage, Damages, Knockback,
+    Damage, DamageSource, GroupTarget, Knockback,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -39,6 +39,8 @@ pub struct StaticData {
     pub recover_duration: Duration,
     /// Whether the state can be interrupted by other abilities
     pub is_interruptible: bool,
+    /// What key is used to press ability
+    pub ability_key: AbilityKey,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -66,7 +68,9 @@ impl CharacterBehavior for Data {
         handle_move(data, &mut update, 0.1);
 
         // Allows for other states to interrupt this state
-        if self.static_data.is_interruptible && !data.inputs.secondary.is_pressed() {
+        if self.static_data.is_interruptible
+            && !ability_key_is_pressed(data, self.static_data.ability_key)
+        {
             handle_interrupt(data, &mut update);
             match update.character {
                 CharacterState::DashMelee(_) => {},
@@ -90,7 +94,7 @@ impl CharacterBehavior for Data {
                 } else {
                     // Transitions to charge section of stage
                     update.character = CharacterState::DashMelee(Data {
-                        auto_charge: !data.inputs.secondary.is_pressed(),
+                        auto_charge: !ability_key_is_pressed(data, self.static_data.ability_key),
                         timer: Duration::default(),
                         stage_section: StageSection::Charge,
                         ..*self
@@ -100,7 +104,7 @@ impl CharacterBehavior for Data {
             StageSection::Charge => {
                 if (self.static_data.infinite_charge
                     || self.timer < self.static_data.charge_duration)
-                    && (data.inputs.secondary.is_pressed()
+                    && (ability_key_is_pressed(data, self.static_data.ability_key)
                         || (self.auto_charge && self.timer < self.static_data.charge_duration))
                     && update.energy.current() > 0
                 {
@@ -122,16 +126,20 @@ impl CharacterBehavior for Data {
                             let charge_frac = (self.timer.as_secs_f32()
                                 / self.static_data.charge_duration.as_secs_f32())
                             .min(1.0);
-                            let damage = (self.static_data.max_damage as f32
-                                - self.static_data.base_damage as f32)
-                                * charge_frac
-                                + self.static_data.base_damage as f32;
+                            let mut damage = Damage {
+                                source: DamageSource::Melee,
+                                value: self.static_data.max_damage as f32,
+                            };
+                            damage.interpolate_damage(
+                                charge_frac,
+                                self.static_data.base_damage as f32,
+                            );
                             let knockback = (self.static_data.max_knockback
                                 - self.static_data.base_knockback)
                                 * charge_frac
                                 + self.static_data.base_knockback;
                             data.updater.insert(data.entity, Attacking {
-                                damages: Damages::new(Some(Damage::Melee(damage)), None),
+                                damages: vec![(Some(GroupTarget::OutOfGroup), damage)],
                                 range: self.static_data.range,
                                 max_angle: self.static_data.angle.to_radians(),
                                 applied: false,
@@ -172,10 +180,10 @@ impl CharacterBehavior for Data {
                     }
 
                     // Consumes energy if there's enough left and charge has not stopped
-                    update.energy.change_by(
-                        -(self.static_data.energy_drain as f32 * data.dt.0) as i32,
-                        EnergySource::Ability,
-                    );
+                    update.energy.change_by(EnergyChange {
+                        amount: -(self.static_data.energy_drain as f32 * data.dt.0) as i32,
+                        source: EnergySource::Ability,
+                    });
                 } else {
                     // Transitions to swing section of stage
                     update.character = CharacterState::DashMelee(Data {

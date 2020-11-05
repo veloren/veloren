@@ -26,8 +26,8 @@ use anim::{
 use common::{
     comp::{
         item::{ItemKind, ToolKind},
-        Body, CharacterState, Item, Last, LightAnimation, LightEmitter, Loadout, Ori, PhysicsState,
-        Pos, Scale, Stats, Vel,
+        Body, CharacterState, Health, Item, Last, LightAnimation, LightEmitter, Loadout, Ori,
+        PhysicsState, Pos, Scale, Vel,
     },
     span,
     state::{DeltaTime, State},
@@ -545,7 +545,7 @@ impl FigureMgr {
                 character,
                 last_character,
                 physics,
-                stats,
+                health,
                 loadout,
                 item,
             ),
@@ -559,7 +559,7 @@ impl FigureMgr {
             ecs.read_storage::<CharacterState>().maybe(),
             ecs.read_storage::<Last<CharacterState>>().maybe(),
             &ecs.read_storage::<PhysicsState>(),
-            ecs.read_storage::<Stats>().maybe(),
+            ecs.read_storage::<Health>().maybe(),
             ecs.read_storage::<Loadout>().maybe(),
             ecs.read_storage::<Item>().maybe(),
         )
@@ -662,11 +662,11 @@ impl FigureMgr {
             };
 
             // Change in health as color!
-            let col = stats
-                .map(|s| {
+            let col = health
+                .map(|h| {
                     vek::Rgba::broadcast(1.0)
                         + vek::Rgba::new(2.0, 2.0, 2., 0.00).map(|c| {
-                            (c / (1.0 + DAMAGE_FADE_COEFFICIENT * s.health.last_change.0)) as f32
+                            (c / (1.0 + DAMAGE_FADE_COEFFICIENT * h.last_change.0)) as f32
                         })
                 })
                 .unwrap_or(vek::Rgba::broadcast(1.0))
@@ -2749,13 +2749,13 @@ impl FigureMgr {
                 &ecs.read_storage::<Pos>(),
                 ecs.read_storage::<Ori>().maybe(),
                 &ecs.read_storage::<Body>(),
-                ecs.read_storage::<Stats>().maybe(),
+                ecs.read_storage::<Health>().maybe(),
                 ecs.read_storage::<Loadout>().maybe(),
                 ecs.read_storage::<Scale>().maybe(),
             )
             .join()
             // Don't render dead entities
-            .filter(|(_, _, _, _, stats, _, _)| stats.map_or(true, |s| !s.is_dead))
+            .filter(|(_, _, _, _, health, _, _)| health.map_or(true, |h| !h.is_dead))
             .for_each(|(entity, pos, _, body, _, loadout, _)| {
                 if let Some((locals, bone_consts, model, _)) = self.get_model_for_render(
                     tick,
@@ -2803,13 +2803,13 @@ impl FigureMgr {
             &ecs.read_storage::<Pos>(),
             ecs.read_storage::<Ori>().maybe(),
             &ecs.read_storage::<Body>(),
-            ecs.read_storage::<Stats>().maybe(),
+            ecs.read_storage::<Health>().maybe(),
             ecs.read_storage::<Loadout>().maybe(),
             ecs.read_storage::<Scale>().maybe(),
         )
             .join()
         // Don't render dead entities
-        .filter(|(_, _, _, _, stats, _, _)| stats.map_or(true, |s| !s.is_dead))
+        .filter(|(_, _, _, _, health, _, _)| health.map_or(true, |h| !h.is_dead))
         {
             let is_player = entity == player_entity;
 
@@ -2853,10 +2853,9 @@ impl FigureMgr {
             ecs.read_storage::<Pos>().get(player_entity),
             ecs.read_storage::<Body>().get(player_entity),
         ) {
-            let stats_storage = state.read_storage::<Stats>();
-            let stats = stats_storage.get(player_entity);
-
-            if stats.map_or(false, |s| s.is_dead) {
+            let healths = state.read_storage::<Health>();
+            let health = healths.get(player_entity);
+            if health.map_or(false, |h| h.is_dead) {
                 return;
             }
 

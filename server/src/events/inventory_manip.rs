@@ -67,10 +67,10 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     return;
                 };
 
-                // Grab the stats from the player and check if the player is dead.
-                let stats = state.ecs().read_storage::<comp::Stats>();
-                if let Some(entity_stats) = stats.get(entity) {
-                    if entity_stats.is_dead {
+                // Grab the health from the player and check if the player is dead.
+                let healths = state.ecs().read_storage::<comp::Health>();
+                if let Some(entity_health) = healths.get(entity) {
+                    if entity_health.is_dead {
                         debug!("Failed to pick up item as the player is dead");
                         return; // If dead, don't continue
                     }
@@ -349,7 +349,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
 
             drop(inventories);
             if let Some(effect) = maybe_effect {
-                state.apply_effect(entity, effect);
+                state.apply_effect(entity, effect, None);
             }
             if let Some(event) = event {
                 state.write_component(entity, comp::InventoryUpdate::new(event));

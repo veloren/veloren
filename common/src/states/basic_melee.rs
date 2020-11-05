@@ -1,8 +1,8 @@
 use crate::{
-    comp::{Attacking, CharacterState, EnergySource, StateUpdate},
+    comp::{Attacking, CharacterState, EnergyChange, EnergySource, StateUpdate},
     states::utils::*,
     sys::character_behavior::{CharacterBehavior, JoinData},
-    Damage, Damages, Knockback,
+    Damage, DamageSource, GroupTarget, Knockback,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -76,10 +76,10 @@ impl CharacterBehavior for Data {
 
                     // Hit attempt
                     data.updater.insert(data.entity, Attacking {
-                        damages: Damages::new(
-                            Some(Damage::Melee(self.static_data.base_damage as f32)),
-                            None,
-                        ),
+                        damages: vec![(Some(GroupTarget::OutOfGroup), Damage {
+                            source: DamageSource::Melee,
+                            value: self.static_data.base_damage as f32,
+                        })],
                         range: self.static_data.range,
                         max_angle: 180_f32.to_radians(),
                         applied: false,
@@ -133,7 +133,10 @@ impl CharacterBehavior for Data {
         if let Some(attack) = data.attacking {
             if attack.applied && attack.hit_count > 0 {
                 data.updater.remove::<Attacking>(data.entity);
-                update.energy.change_by(50, EnergySource::HitEnemy);
+                update.energy.change_by(EnergyChange {
+                    amount: 50,
+                    source: EnergySource::HitEnemy,
+                });
             }
         }
 

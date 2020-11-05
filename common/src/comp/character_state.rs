@@ -3,7 +3,7 @@ use crate::{
     event::{LocalEvent, ServerEvent},
     states::*,
     sys::character_behavior::JoinData,
-    Damages, Knockback,
+    Damage, GroupTarget, Knockback,
 };
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage, VecStorage};
@@ -155,9 +155,9 @@ impl Component for CharacterState {
     type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Attacking {
-    pub damages: Damages,
+    pub damages: Vec<(Option<GroupTarget>, Damage)>,
     pub range: f32,
     pub max_angle: f32,
     pub applied: bool,
