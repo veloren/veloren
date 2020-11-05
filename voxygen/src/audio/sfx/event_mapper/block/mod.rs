@@ -86,6 +86,13 @@ impl EventMapper for BlockEventMapper {
                 volume: 1.0,
                 cond: |st| st.get_day_period().is_dark(),
             },
+            BlockSounds {
+                blocks: |boi| &boi.river,
+                range: 1,
+                sfx: SfxEvent::RunningWater,
+                volume: 1.0,
+                cond: |_| true,
+            },
             //BlockSounds {
             //    blocks: |boi| &boi.embers,
             //    range: 1,

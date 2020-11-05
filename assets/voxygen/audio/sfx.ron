@@ -46,6 +46,12 @@
             ],
             threshold: 15.0,
         ),
+        RunningWater: (
+            files: [
+                "voxygen.audio.sfx.ambient.running_water_1",
+            ],
+            threshold: 7.0,
+        ),
         //
         // Character States
         //

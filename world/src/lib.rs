@@ -166,6 +166,7 @@ impl World {
             sim_chunk.tree_density,
             sim_chunk.surface_veg,
             sim_chunk.cave.1.alt,
+            sim_chunk.river.is_river(),
         );
 
         let mut chunk = TerrainChunk::new(base_z, stone, air, meta);

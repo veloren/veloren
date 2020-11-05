@@ -142,6 +142,7 @@ pub enum SfxEvent {
     Cricket,
     Frog,
     Bees,
+    RunningWater,
     Idle,
     Swim,
     Run,
