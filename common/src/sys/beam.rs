@@ -178,7 +178,7 @@ impl<'a> System<'a> for Sys {
                                             amount: (-change.amount as f32
                                                 * beam_segment.lifesteal_eff)
                                                 as i32,
-                                            cause: HealthSource::Healing {
+                                            cause: HealthSource::Heal {
                                                 by: beam_segment.owner,
                                             },
                                         },

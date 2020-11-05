@@ -184,13 +184,14 @@ https://account.veloren.net."#,
         "hud.chat.pvp_ranged_kill_msg": "[{attacker}] shot [{victim}]",
         "hud.chat.pvp_explosion_kill_msg": "[{attacker}] blew up [{victim}]",
         "hud.chat.pvp_energy_kill_msg": "[{attacker}] killed [{victim}] with magic",
-        "hud.chat.pvp_buff_kill_msg": "[{attacker}] killed [{victim}]",
+        "hud.chat.pvp_other_kill_msg": "[{attacker}] killed [{victim}]",
 
 
         "hud.chat.npc_melee_kill_msg": "{attacker} killed [{victim}]",
         "hud.chat.npc_ranged_kill_msg": "{attacker} shot [{victim}]",
         "hud.chat.npc_explosion_kill_msg": "{attacker} blew up [{victim}]",
-        "hud.chat.npc_buff_kill_msg": "[{attacker}] killed [{victim}]",
+        "hud.chat.npc_energy_kill_msg": "[{attacker}] killed [{victim}] with magic",
+        "hud.chat.npc_other_kill_msg": "[{attacker}] killed [{victim}]",
 
         "hud.chat.loot_msg": "You picked up [{item}]",
         "hud.chat.loot_fail": "Your Inventory is full!",

@@ -373,9 +373,9 @@ impl<'a> Widget for Chat<'a> {
                             .localized_strings
                             .get("hud.chat.pvp_energy_kill_msg")
                             .to_string(),
-                        KillSource::Player(_, KillType::Buff) => self
+                        KillSource::Player(_, KillType::Other) => self
                             .localized_strings
-                            .get("hud.chat.pvp_buff_kill_msg")
+                            .get("hud.chat.pvp_other_kill_msg")
                             .to_string(),
                         KillSource::NonPlayer(_, KillType::Melee) => self
                             .localized_strings
@@ -393,9 +393,9 @@ impl<'a> Widget for Chat<'a> {
                             .localized_strings
                             .get("hud.chat.npc_energy_kill_msg")
                             .to_string(),
-                        KillSource::NonPlayer(_, KillType::Buff) => self
+                        KillSource::NonPlayer(_, KillType::Other) => self
                             .localized_strings
-                            .get("hud.chat.npc_buff_kill_msg")
+                            .get("hud.chat.npc_other_kill_msg")
                             .to_string(),
                         KillSource::Environment(_) => self
                             .localized_strings

@@ -86,14 +86,12 @@ impl StateExt for State {
                     .map(|stats| stats.exp.change_by(xp));
             },
             Effect::Damage(damage) => {
-                #[allow(irrefutable_let_patterns)]
-                if let loadout = self.ecs().read_storage::<comp::Loadout>().get(entity) {
-                    let change = damage.modify_damage(loadout, source);
-                    self.ecs()
-                        .write_storage::<comp::Health>()
-                        .get_mut(entity)
-                        .map(|health| health.change_by(change));
-                }
+                let loadouts = self.ecs().read_storage::<comp::Loadout>();
+                let change = damage.modify_damage(loadouts.get(entity), source);
+                self.ecs()
+                    .write_storage::<comp::Health>()
+                    .get_mut(entity)
+                    .map(|health| health.change_by(change));
             },
         }
     }

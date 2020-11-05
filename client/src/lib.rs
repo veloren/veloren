@@ -1733,7 +1733,7 @@ impl Client {
                             alias_of_uid(attacker_uid),
                             alias_of_uid(victim)
                         ),
-                        KillSource::Player(attacker_uid, KillType::Buff) => format!(
+                        KillSource::Player(attacker_uid, KillType::Other) => format!(
                             "[{}] killed [{}]",
                             alias_of_uid(attacker_uid),
                             alias_of_uid(victim)
@@ -1752,7 +1752,7 @@ impl Client {
                             attacker_name,
                             alias_of_uid(victim)
                         ),
-                        KillSource::NonPlayer(attacker_name, KillType::Buff) => {
+                        KillSource::NonPlayer(attacker_name, KillType::Other) => {
                             format!("{} killed [{}]", attacker_name, alias_of_uid(victim))
                         },
                         KillSource::Environment(environment) => {
@@ -1780,7 +1780,7 @@ impl Client {
                         KillSource::Player(attacker_uid, KillType::Energy) => message
                             .replace("{attacker}", &alias_of_uid(attacker_uid))
                             .replace("{victim}", &alias_of_uid(victim)),
-                        KillSource::Player(attacker_uid, KillType::Buff) => message
+                        KillSource::Player(attacker_uid, KillType::Other) => message
                             .replace("{attacker}", &alias_of_uid(attacker_uid))
                             .replace("{victim}", &alias_of_uid(victim)),
                         KillSource::NonPlayer(attacker_name, KillType::Melee) => message
@@ -1795,7 +1795,7 @@ impl Client {
                         KillSource::NonPlayer(attacker_name, KillType::Energy) => message
                             .replace("{attacker}", attacker_name)
                             .replace("{victim}", &alias_of_uid(victim)),
-                        KillSource::NonPlayer(attacker_name, KillType::Buff) => message
+                        KillSource::NonPlayer(attacker_name, KillType::Other) => message
                             .replace("{attacker}", attacker_name)
                             .replace("{victim}", &alias_of_uid(victim)),
                         KillSource::Environment(environment) => message

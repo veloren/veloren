@@ -1,10 +1,10 @@
 use common::{
-    comp::{HealthChange, HealthSource, Object, PhysicsState, Pos, Vel},
+    comp::{HealthSource, Object, PhysicsState, Pos, Vel},
     effect::Effect,
     event::{EventBus, ServerEvent},
     span,
     state::DeltaTime,
-    Explosion, RadiusEffect,
+    Damage, DamageSource, Explosion, RadiusEffect,
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 
@@ -52,9 +52,9 @@ impl<'a> System<'a> for Sys {
                                 effects: vec![
                                     RadiusEffect::Entity(
                                         None,
-                                        Effect::Health(HealthChange {
-                                            amount: -500,
-                                            cause: HealthSource::Explosion { owner: *owner },
+                                        Effect::Damage(Damage {
+                                            source: DamageSource::Explosion,
+                                            value: 500.0,
                                         }),
                                     ),
                                     RadiusEffect::TerrainDestruction(4.0),
@@ -79,9 +79,9 @@ impl<'a> System<'a> for Sys {
                                 effects: vec![
                                     RadiusEffect::Entity(
                                         None,
-                                        Effect::Health(HealthChange {
-                                            amount: -50,
-                                            cause: HealthSource::Explosion { owner: *owner },
+                                        Effect::Damage(Damage {
+                                            source: DamageSource::Explosion,
+                                            value: 50.0,
                                         }),
                                     ),
                                     RadiusEffect::TerrainDestruction(4.0),

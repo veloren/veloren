@@ -605,11 +605,7 @@ impl<'a> System<'a> for Sys {
             if let Some(my_health) = healths.get(entity) {
                 // Only if the attack was recent
                 if my_health.last_change.0 < 3.0 {
-                    if let comp::HealthSource::Attack { by }
-                    | comp::HealthSource::Projectile { owner: Some(by) }
-                    | comp::HealthSource::Energy { owner: Some(by) }
-                    | comp::HealthSource::Buff { owner: Some(by) }
-                    | comp::HealthSource::Explosion { owner: Some(by) } =
+                    if let comp::HealthSource::Damage { by: Some(by), .. } =
                         my_health.last_change.1.cause
                     {
                         if !agent.activity.is_attack() {
@@ -660,7 +656,8 @@ impl<'a> System<'a> for Sys {
                     // Attack owner's attacker
                     let owner_health = healths.get(owner)?;
                     if owner_health.last_change.0 < 5.0 && owner_health.last_change.1.amount < 0 {
-                        if let comp::HealthSource::Attack { by } = owner_health.last_change.1.cause
+                        if let comp::HealthSource::Damage { by: Some(by), .. } =
+                            owner_health.last_change.1.cause
                         {
                             if !agent.activity.is_attack() {
                                 let attacker = uid_allocator.retrieve_entity_internal(by.id())?;

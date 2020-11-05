@@ -19,7 +19,7 @@ use common::{
     terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
     util::Dir,
     vol::RectVolSize,
-    Explosion, LoadoutBuilder, RadiusEffect,
+    Damage, DamageSource, Explosion, LoadoutBuilder, RadiusEffect,
 };
 use rand::Rng;
 use specs::{Builder, Entity as EcsEntity, Join, WorldExt};
@@ -394,7 +394,10 @@ fn handle_kill(
     let reason = if client == target {
         comp::HealthSource::Suicide
     } else if let Some(uid) = server.state.read_storage::<Uid>().get(client) {
-        comp::HealthSource::Attack { by: *uid }
+        comp::HealthSource::Damage {
+            kind: DamageSource::Other,
+            by: Some(*uid),
+        }
     } else {
         comp::HealthSource::Command
     };
@@ -1160,9 +1163,9 @@ fn handle_explosion(
                         effects: vec![
                             RadiusEffect::Entity(
                                 None,
-                                Effect::Health(comp::HealthChange {
-                                    amount: (-100.0 * power) as i32,
-                                    cause: comp::HealthSource::Explosion { owner: None },
+                                Effect::Damage(Damage {
+                                    source: DamageSource::Explosion,
+                                    value: 100.0 * power,
                                 }),
                             ),
                             RadiusEffect::TerrainDestruction(power),

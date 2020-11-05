@@ -73,7 +73,10 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
     if let Some(_player) = state.ecs().read_storage::<Player>().get(entity) {
         if let Some(uid) = state.ecs().read_storage::<Uid>().get(entity) {
             let kill_source = match cause {
-                HealthSource::Attack { by } => {
+                HealthSource::Damage {
+                    kind: DamageSource::Melee,
+                    by: Some(by),
+                } => {
                     // Get attacker entity
                     if let Some(char_entity) = state.ecs().entity_from_uid(by.into()) {
                         // Check if attacker is another player or entity with stats (npc)
@@ -95,7 +98,10 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                         KillSource::NonPlayer("<?>".to_string(), KillType::Melee)
                     }
                 },
-                HealthSource::Projectile { owner: Some(by) } => {
+                HealthSource::Damage {
+                    kind: DamageSource::Projectile,
+                    by: Some(by),
+                } => {
                     // Get projectile owner entity TODO: add names to projectiles and send in
                     // message
                     if let Some(char_entity) = state.ecs().entity_from_uid(by.into()) {
@@ -118,7 +124,10 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                         KillSource::NonPlayer("<?>".to_string(), KillType::Projectile)
                     }
                 },
-                HealthSource::Explosion { owner: Some(by) } => {
+                HealthSource::Damage {
+                    kind: DamageSource::Explosion,
+                    by: Some(by),
+                } => {
                     // Get explosion owner entity
                     if let Some(char_entity) = state.ecs().entity_from_uid(by.into()) {
                         // Check if attacker is another player or entity with stats (npc)
@@ -140,7 +149,10 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                         KillSource::NonPlayer("<?>".to_string(), KillType::Explosion)
                     }
                 },
-                HealthSource::Energy { owner: Some(by) } => {
+                HealthSource::Damage {
+                    kind: DamageSource::Energy,
+                    by: Some(by),
+                } => {
                     // Get energy owner entity
                     if let Some(char_entity) = state.ecs().entity_from_uid(by.into()) {
                         // Check if attacker is another player or entity with stats (npc)
@@ -162,7 +174,10 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                         KillSource::NonPlayer("<?>".to_string(), KillType::Energy)
                     }
                 },
-                HealthSource::Buff { owner: Some(by) } => {
+                HealthSource::Damage {
+                    kind: DamageSource::Other,
+                    by: Some(by),
+                } => {
                     // Get energy owner entity
                     if let Some(char_entity) = state.ecs().entity_from_uid(by.into()) {
                         // Check if attacker is another player or entity with stats (npc)
@@ -172,29 +187,26 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                             .get(char_entity)
                             .is_some()
                         {
-                            KillSource::Player(by, KillType::Buff)
+                            KillSource::Player(by, KillType::Other)
                         } else if let Some(stats) =
                             state.ecs().read_storage::<Stats>().get(char_entity)
                         {
-                            KillSource::NonPlayer(stats.name.clone(), KillType::Buff)
+                            KillSource::NonPlayer(stats.name.clone(), KillType::Other)
                         } else {
-                            KillSource::NonPlayer("<?>".to_string(), KillType::Buff)
+                            KillSource::NonPlayer("<?>".to_string(), KillType::Other)
                         }
                     } else {
-                        KillSource::NonPlayer("<?>".to_string(), KillType::Buff)
+                        KillSource::NonPlayer("<?>".to_string(), KillType::Other)
                     }
                 },
                 HealthSource::World => KillSource::FallDamage,
                 HealthSource::Suicide => KillSource::Suicide,
-                HealthSource::Projectile { owner: None }
-                | HealthSource::Explosion { owner: None }
-                | HealthSource::Energy { owner: None }
-                | HealthSource::Buff { owner: None }
+                HealthSource::Damage { .. }
                 | HealthSource::Revive
                 | HealthSource::Command
                 | HealthSource::LevelUp
                 | HealthSource::Item
-                | HealthSource::Healing { by: _ }
+                | HealthSource::Heal { by: _ }
                 | HealthSource::Unknown => KillSource::Other,
             };
             state
@@ -205,12 +217,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
     // Give EXP to the killer if entity had stats
     (|| {
         let mut stats = state.ecs().write_storage::<Stats>();
-        let by = if let HealthSource::Attack { by }
-        | HealthSource::Projectile { owner: Some(by) }
-        | HealthSource::Energy { owner: Some(by) }
-        | HealthSource::Buff { owner: Some(by) }
-        | HealthSource::Explosion { owner: Some(by) } = cause
-        {
+        let by = if let HealthSource::Damage { by: Some(by), .. } = cause {
             by
         } else {
             return;
@@ -516,7 +523,7 @@ pub fn handle_explosion(
     // Uses radius as outcome power, makes negative if explosion has healing effect
     let outcome_power = explosion.radius
         * if explosion.effects.iter().any(
-            |e| matches!(e, RadiusEffect::Entity(_, e) if matches!(e, Effect::Damage(d) if matches!(d.source, DamageSource::Healing))),
+            |e| matches!(e, RadiusEffect::Entity(_, Effect::Damage(Damage { source: DamageSource::Healing, .. })))
         ) {
             -1.0
         } else {
@@ -530,7 +537,7 @@ pub fn handle_explosion(
             is_attack: explosion
                 .effects
                 .iter()
-                .any(|e| matches!(e, RadiusEffect::Entity(_, e) if matches!(e, Effect::Damage(_)))),
+                .any(|e| matches!(e, RadiusEffect::Entity(_, Effect::Damage(_)))),
             reagent,
         });
     let owner_entity = owner.and_then(|uid| {

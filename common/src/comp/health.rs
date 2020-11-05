@@ -1,4 +1,4 @@
-use crate::{comp::Body, sync::Uid};
+use crate::{comp::Body, sync::Uid, DamageSource};
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
@@ -12,18 +12,20 @@ pub struct HealthChange {
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum HealthSource {
-    Attack { by: Uid }, // TODO: Implement weapon
-    Projectile { owner: Option<Uid> },
-    Explosion { owner: Option<Uid> },
-    Energy { owner: Option<Uid> },
-    Buff { owner: Option<Uid> },
+    Damage { kind: DamageSource, by: Option<Uid> },
+    Heal { by: Option<Uid> },
+    //Attack { by: Uid }, // TODO: Implement weapon
+    //Projectile { owner: Option<Uid> },
+    //Explosion { owner: Option<Uid> },
+    //Energy { owner: Option<Uid> },
+    //Buff { owner: Option<Uid> },
     Suicide,
     World,
     Revive,
     Command,
     LevelUp,
     Item,
-    Healing { by: Option<Uid> },
+    //Healing { by: Option<Uid> },
     Unknown,
 }
 

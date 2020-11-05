@@ -12,7 +12,7 @@ pub enum GroupTarget {
     OutOfGroup,
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum DamageSource {
     Melee,
     Healing,
@@ -21,6 +21,7 @@ pub enum DamageSource {
     Falling,
     Shockwave,
     Energy,
+    Other,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -50,7 +51,10 @@ impl Damage {
 
                 HealthChange {
                     amount: -damage as i32,
-                    cause: HealthSource::Attack { by: uid.unwrap() },
+                    cause: HealthSource::Damage {
+                        kind: self.source,
+                        by: uid,
+                    },
                 }
             },
             DamageSource::Projectile => {
@@ -64,7 +68,10 @@ impl Damage {
 
                 HealthChange {
                     amount: -damage as i32,
-                    cause: HealthSource::Projectile { owner: uid },
+                    cause: HealthSource::Damage {
+                        kind: self.source,
+                        by: uid,
+                    },
                 }
             },
             DamageSource::Explosion => {
@@ -74,7 +81,10 @@ impl Damage {
 
                 HealthChange {
                     amount: -damage as i32,
-                    cause: HealthSource::Explosion { owner: uid },
+                    cause: HealthSource::Damage {
+                        kind: self.source,
+                        by: uid,
+                    },
                 }
             },
             DamageSource::Shockwave => {
@@ -84,7 +94,10 @@ impl Damage {
 
                 HealthChange {
                     amount: -damage as i32,
-                    cause: HealthSource::Attack { by: uid.unwrap() },
+                    cause: HealthSource::Damage {
+                        kind: self.source,
+                        by: uid,
+                    },
                 }
             },
             DamageSource::Energy => {
@@ -94,12 +107,15 @@ impl Damage {
 
                 HealthChange {
                     amount: -damage as i32,
-                    cause: HealthSource::Energy { owner: uid },
+                    cause: HealthSource::Damage {
+                        kind: self.source,
+                        by: uid,
+                    },
                 }
             },
             DamageSource::Healing => HealthChange {
                 amount: damage as i32,
-                cause: HealthSource::Healing { by: uid },
+                cause: HealthSource::Heal { by: uid },
             },
             DamageSource::Falling => {
                 // Armor
@@ -111,6 +127,13 @@ impl Damage {
                     amount: -damage as i32,
                     cause: HealthSource::World,
                 }
+            },
+            DamageSource::Other => HealthChange {
+                amount: -damage as i32,
+                cause: HealthSource::Damage {
+                    kind: self.source,
+                    by: uid,
+                },
             },
         }
     }
