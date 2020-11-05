@@ -145,7 +145,7 @@ impl LoadoutBuilder {
         };
 
         let active_item = if let Some(ItemKind::Tool(_)) = main_tool.as_ref().map(|i| i.kind()) {
-            main_tool.map(|item| ItemConfig::from(item))
+            main_tool.map(ItemConfig::from)
         } else {
             Some(ItemConfig {
                 // We need the empty item so npcs can attack
