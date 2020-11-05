@@ -1,10 +1,12 @@
 use crate::{
-    comp::{beam, humanoid, Body, CharacterState, EnergySource, Ori, Pos, StateUpdate},
+    comp::{
+        beam, humanoid, Body, CharacterState, EnergyChange, EnergySource, Ori, Pos, StateUpdate,
+    },
     event::ServerEvent,
     states::utils::*,
     sync::Uid,
     sys::character_behavior::{CharacterBehavior, JoinData},
-    Damage, Damages,
+    Damage, DamageSource, GroupTarget,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -107,12 +109,14 @@ impl CharacterBehavior for Data {
                 if ability_key_is_pressed(data, self.static_data.ability_key)
                     && (self.static_data.energy_drain == 0 || update.energy.current() > 0)
                 {
-                    let damage = Damage::Energy(
-                        self.static_data.base_dps as f32 / self.static_data.tick_rate,
-                    );
-                    let heal = Damage::Healing(
-                        self.static_data.base_hps as f32 / self.static_data.tick_rate,
-                    );
+                    let damage = Damage {
+                        source: DamageSource::Energy,
+                        value: self.static_data.base_dps as f32 / self.static_data.tick_rate,
+                    };
+                    let heal = Damage {
+                        source: DamageSource::Healing,
+                        value: self.static_data.base_hps as f32 / self.static_data.tick_rate,
+                    };
                     let energy_regen =
                         (self.static_data.energy_regen as f32 / self.static_data.tick_rate) as u32;
                     let energy_cost =
@@ -122,7 +126,10 @@ impl CharacterBehavior for Data {
                     let properties = beam::Properties {
                         angle: self.static_data.max_angle.to_radians(),
                         speed,
-                        damages: Damages::new(Some(damage), Some(heal)),
+                        damages: vec![
+                            (Some(GroupTarget::OutOfGroup), damage),
+                            (Some(GroupTarget::InGroup), heal),
+                        ],
                         lifesteal_eff: self.static_data.lifesteal_eff,
                         energy_regen,
                         energy_cost,
@@ -146,10 +153,10 @@ impl CharacterBehavior for Data {
                     });
 
                     // Consumes energy if there's enough left and ability key is held down
-                    update.energy.change_by(
-                        -(self.static_data.energy_drain as f32 * data.dt.0) as i32,
-                        EnergySource::Ability,
-                    );
+                    update.energy.change_by(EnergyChange {
+                        amount: -(self.static_data.energy_drain as f32 * data.dt.0) as i32,
+                        source: EnergySource::Ability,
+                    });
                 } else {
                     update.character = CharacterState::BasicBeam(Data {
                         timer: Duration::default(),

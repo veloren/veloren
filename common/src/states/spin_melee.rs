@@ -1,11 +1,11 @@
 use crate::{
-    comp::{Attacking, CharacterState, EnergySource, StateUpdate},
+    comp::{Attacking, CharacterState, EnergyChange, EnergySource, StateUpdate},
     states::utils::*,
     sys::{
         character_behavior::{CharacterBehavior, JoinData},
         phys::GRAVITY,
     },
-    Damage, Damages, Knockback,
+    Damage, DamageSource, GroupTarget, Knockback,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -38,6 +38,8 @@ pub struct StaticData {
     pub forward_speed: f32,
     /// Number of spins
     pub num_spins: u32,
+    /// What key is used to press ability
+    pub ability_key: AbilityKey,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -65,7 +67,9 @@ impl CharacterBehavior for Data {
         }
 
         // Allows for other states to interrupt this state
-        if self.static_data.is_interruptible && !data.inputs.ability3.is_pressed() {
+        if self.static_data.is_interruptible
+            && !ability_key_is_pressed(data, self.static_data.ability_key)
+        {
             handle_interrupt(data, &mut update);
             match update.character {
                 CharacterState::SpinMelee(_) => {},
@@ -104,10 +108,10 @@ impl CharacterBehavior for Data {
                     });
                     // Hit attempt
                     data.updater.insert(data.entity, Attacking {
-                        damages: Damages::new(
-                            Some(Damage::Melee(self.static_data.base_damage as f32)),
-                            None,
-                        ),
+                        damages: vec![(Some(GroupTarget::OutOfGroup), Damage {
+                            source: DamageSource::Melee,
+                            value: self.static_data.base_damage as f32,
+                        })],
                         range: self.static_data.range,
                         max_angle: 180_f32.to_radians(),
                         applied: false,
@@ -137,7 +141,8 @@ impl CharacterBehavior for Data {
                     });
                 } else if update.energy.current() >= self.static_data.energy_cost
                     && (self.spins_remaining != 0
-                        || (self.static_data.is_infinite && data.inputs.secondary.is_pressed()))
+                        || (self.static_data.is_infinite
+                            && ability_key_is_pressed(data, self.static_data.ability_key)))
                 {
                     let new_spins_remaining = if self.static_data.is_infinite {
                         self.spins_remaining
@@ -151,10 +156,10 @@ impl CharacterBehavior for Data {
                         ..*self
                     });
                     // Consumes energy if there's enough left and RMB is held down
-                    update.energy.change_by(
-                        -(self.static_data.energy_cost as i32),
-                        EnergySource::Ability,
-                    );
+                    update.energy.change_by(EnergyChange {
+                        amount: -(self.static_data.energy_cost as i32),
+                        source: EnergySource::Ability,
+                    });
                 } else {
                     // Transitions to recover section of stage
                     update.character = CharacterState::SpinMelee(Data {

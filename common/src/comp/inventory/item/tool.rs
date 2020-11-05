@@ -7,8 +7,9 @@ use crate::{
         buff::{Buff, BuffCategory, BuffData, BuffKind, BuffSource},
         projectile, Body, CharacterAbility, Gravity, LightEmitter, Projectile,
     },
+    effect::Effect,
     states::combo_melee,
-    Damage, Damages, Explosion, Knockback,
+    Damage, DamageSource, Explosion, GroupTarget, Knockback, RadiusEffect,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -302,10 +303,10 @@ impl Tool {
                     projectile: Projectile {
                         hit_solid: vec![projectile::Effect::Stick],
                         hit_entity: vec![
-                            projectile::Effect::Damages(Damages::new(
-                                Some(Damage::Projectile(40.0 * self.base_power())),
-                                None,
-                            )),
+                            projectile::Effect::Damage(Some(GroupTarget::OutOfGroup), Damage {
+                                source: DamageSource::Projectile,
+                                value: 40.0 * self.base_power(),
+                            }),
                             projectile::Effect::Knockback(Knockback::Away(10.0)),
                             projectile::Effect::RewardEnergy(50),
                             projectile::Effect::Vanish,
@@ -357,10 +358,10 @@ impl Tool {
                     projectile: Projectile {
                         hit_solid: vec![projectile::Effect::Stick],
                         hit_entity: vec![
-                            projectile::Effect::Damages(Damages::new(
-                                Some(Damage::Projectile(40.0 * self.base_power())),
-                                None,
-                            )),
+                            projectile::Effect::Damage(Some(GroupTarget::OutOfGroup), Damage {
+                                source: DamageSource::Projectile,
+                                value: 40.0 * self.base_power(),
+                            }),
                             projectile::Effect::Knockback(Knockback::Away(10.0)),
                             projectile::Effect::Vanish,
                             projectile::Effect::Buff {
@@ -419,24 +420,46 @@ impl Tool {
                     projectile: Projectile {
                         hit_solid: vec![
                             projectile::Effect::Explode(Explosion {
+                                effects: vec![
+                                    RadiusEffect::Entity(
+                                        Some(GroupTarget::OutOfGroup),
+                                        Effect::Damage(Damage {
+                                            source: DamageSource::Explosion,
+                                            value: 50.0 * self.base_power(),
+                                        }),
+                                    ),
+                                    RadiusEffect::Entity(
+                                        Some(GroupTarget::InGroup),
+                                        Effect::Damage(Damage {
+                                            source: DamageSource::Healing,
+                                            value: 140.0 * self.base_power(),
+                                        }),
+                                    ),
+                                ],
                                 radius: 3.0 + 2.5 * self.base_power(),
-                                max_damage: (50.0 * self.base_power()) as u32,
-                                min_damage: (20.0 * self.base_power()) as u32,
-                                max_heal: (140.0 * self.base_power()) as u32,
-                                min_heal: (50.0 * self.base_power()) as u32,
-                                terrain_destruction_power: 0.0,
                                 energy_regen: 0,
                             }),
                             projectile::Effect::Vanish,
                         ],
                         hit_entity: vec![
                             projectile::Effect::Explode(Explosion {
+                                effects: vec![
+                                    RadiusEffect::Entity(
+                                        Some(GroupTarget::OutOfGroup),
+                                        Effect::Damage(Damage {
+                                            source: DamageSource::Explosion,
+                                            value: 50.0 * self.base_power(),
+                                        }),
+                                    ),
+                                    RadiusEffect::Entity(
+                                        Some(GroupTarget::InGroup),
+                                        Effect::Damage(Damage {
+                                            source: DamageSource::Healing,
+                                            value: 140.0 * self.base_power(),
+                                        }),
+                                    ),
+                                ],
                                 radius: 3.0 + 2.5 * self.base_power(),
-                                max_damage: (50.0 * self.base_power()) as u32,
-                                min_damage: (20.0 * self.base_power()) as u32,
-                                max_heal: (140.0 * self.base_power()) as u32,
-                                min_heal: (50.0 * self.base_power()) as u32,
-                                terrain_destruction_power: 0.0,
                                 energy_regen: 0,
                             }),
                             projectile::Effect::Vanish,
@@ -462,24 +485,28 @@ impl Tool {
                     projectile: Projectile {
                         hit_solid: vec![
                             projectile::Effect::Explode(Explosion {
+                                effects: vec![RadiusEffect::Entity(
+                                    Some(GroupTarget::OutOfGroup),
+                                    Effect::Damage(Damage {
+                                        source: DamageSource::Explosion,
+                                        value: 100.0 * self.base_power(),
+                                    }),
+                                )],
                                 radius: 5.0,
-                                max_damage: (100.0 * self.base_power()) as u32,
-                                min_damage: 0,
-                                max_heal: 0,
-                                min_heal: 0,
-                                terrain_destruction_power: 0.0,
                                 energy_regen: 50,
                             }),
                             projectile::Effect::Vanish,
                         ],
                         hit_entity: vec![
                             projectile::Effect::Explode(Explosion {
+                                effects: vec![RadiusEffect::Entity(
+                                    Some(GroupTarget::OutOfGroup),
+                                    Effect::Damage(Damage {
+                                        source: DamageSource::Explosion,
+                                        value: 100.0 * self.base_power(),
+                                    }),
+                                )],
                                 radius: 5.0,
-                                max_damage: (100.0 * self.base_power()) as u32,
-                                min_damage: 0,
-                                max_heal: 0,
-                                min_heal: 0,
-                                terrain_destruction_power: 0.0,
                                 energy_regen: 50,
                             }),
                             projectile::Effect::Vanish,

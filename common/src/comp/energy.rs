@@ -47,9 +47,9 @@ impl Energy {
         self.current = amount;
     }
 
-    pub fn change_by(&mut self, amount: i32, cause: EnergySource) {
-        self.current = ((self.current as i32 + amount).max(0) as u32).min(self.maximum);
-        self.last_change = Some((amount, 0.0, cause));
+    pub fn change_by(&mut self, change: EnergyChange) {
+        self.current = ((self.current as i32 + change.amount).max(0) as u32).min(self.maximum);
+        self.last_change = Some((change.amount, 0.0, change.source));
     }
 
     pub fn try_change_by(
@@ -62,7 +62,10 @@ impl Energy {
         } else if self.current as i32 + amount > self.maximum as i32 {
             Err(StatChangeError::Overflow)
         } else {
-            self.change_by(amount, cause);
+            self.change_by(EnergyChange {
+                amount,
+                source: cause,
+            });
             Ok(())
         }
     }
@@ -71,6 +74,11 @@ impl Energy {
         self.maximum = amount;
         self.current = self.current.min(self.maximum);
     }
+}
+
+pub struct EnergyChange {
+    pub amount: i32,
+    pub source: EnergySource,
 }
 
 impl Component for Energy {
