@@ -29,7 +29,7 @@ impl BuffKind {
             BuffKind::Saturation { .. } => true,
             BuffKind::Bleeding { .. } => false,
             BuffKind::Cursed { .. } => false,
-            BuffKind::Potion {..} => true,
+            BuffKind::Potion { .. } => true,
         }
     }
 }
@@ -133,7 +133,7 @@ impl Buff {
                     accumulated: 0.0,
                 }],
                 data.duration,
-            ),            
+            ),
             BuffKind::Cursed => (
                 vec![BuffEffect::MaxHealthModifier {
                     value: -100. * data.strength,
