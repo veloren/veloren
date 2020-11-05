@@ -615,12 +615,7 @@ pub fn handle_explosion(
                 }
             },
             RadiusEffect::Entity(target, mut effect) => {
-                for (entity_b, pos_b, health_b) in (
-                    &ecs.entities(),
-                    &ecs.read_storage::<comp::Pos>(),
-                    &ecs.read_storage::<comp::Health>(),
-                )
-                    .join()
+                for (entity_b, pos_b) in (&ecs.entities(), &ecs.read_storage::<comp::Pos>()).join()
                 {
                     // See if entities are in the same group
                     let mut same_group = owner_entity
@@ -646,17 +641,25 @@ pub fn handle_explosion(
                     let distance_squared = pos.distance_squared(pos_b.0);
                     let strength = 1.0 - distance_squared / explosion.radius.powi(2);
 
-                    if strength > 0.0 && !health_b.is_dead {
-                        effect.modify_strength(strength);
-                        server.state().apply_effect(entity_b, effect, owner);
-                        // Apply energy change
-                        if let Some(owner) = owner_entity {
-                            if let Some(energy) = ecs.write_storage::<comp::Energy>().get_mut(owner)
-                            {
-                                energy.change_by(EnergyChange {
-                                    amount: explosion.energy_regen as i32,
-                                    source: comp::EnergySource::HitEnemy,
-                                });
+                    if strength > 0.0 {
+                        let is_alive = ecs
+                            .read_storage::<comp::Health>()
+                            .get(entity_b)
+                            .map_or(false, |h| !h.is_dead);
+
+                        if is_alive {
+                            effect.modify_strength(strength);
+                            server.state().apply_effect(entity_b, effect, owner);
+                            // Apply energy change
+                            if let Some(owner) = owner_entity {
+                                if let Some(energy) =
+                                    ecs.write_storage::<comp::Energy>().get_mut(owner)
+                                {
+                                    energy.change_by(EnergyChange {
+                                        amount: explosion.energy_regen as i32,
+                                        source: comp::EnergySource::HitEnemy,
+                                    });
+                                }
                             }
                         }
                     }
