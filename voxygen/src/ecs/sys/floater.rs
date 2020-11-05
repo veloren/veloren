@@ -3,7 +3,7 @@ use crate::ecs::{
     ExpFloater, MyEntity, MyExpFloaterList,
 };
 use common::{
-    comp::{HealthSource, Pos, Stats},
+    comp::{Health, HealthSource, Pos, Stats},
     state::DeltaTime,
     sync::Uid,
 };
@@ -25,19 +25,30 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Stats>,
+        ReadStorage<'a, Health>,
         WriteStorage<'a, HpFloaterList>,
     );
 
     #[allow(clippy::blocks_in_if_conditions)] // TODO: Pending review in #587
     fn run(
         &mut self,
-        (entities, my_entity, dt, mut my_exp_floater_list, uids, pos, stats, mut hp_floater_lists): Self::SystemData,
+        (
+            entities,
+            my_entity,
+            dt,
+            mut my_exp_floater_list,
+            uids,
+            pos,
+            stats,
+            healths,
+            mut hp_floater_lists,
+        ): Self::SystemData,
     ) {
-        // Add hp floater lists to all entities with stats and a position
+        // Add hp floater lists to all entities with health and a position
         // Note: necessary in order to know last_hp
-        for (entity, last_hp) in (&entities, &stats, &pos, !&hp_floater_lists)
+        for (entity, last_hp) in (&entities, &healths, &pos, !&hp_floater_lists)
             .join()
-            .map(|(e, s, _, _)| (e, s.health.current()))
+            .map(|(e, h, _, _)| (e, h.current()))
             .collect::<Vec<_>>()
         {
             let _ = hp_floater_lists.insert(entity, HpFloaterList {
@@ -49,9 +60,7 @@ impl<'a> System<'a> for Sys {
 
         // Add hp floaters to all entities that have been damaged
         let my_uid = uids.get(my_entity.0);
-        for (entity, health, hp_floater_list) in (&entities, &stats, &mut hp_floater_lists)
-            .join()
-            .map(|(e, s, fl)| (e, s.health, fl))
+        for (entity, health, hp_floater_list) in (&entities, &healths, &mut hp_floater_lists).join()
         {
             // Increment timer for time since last damaged by me
             hp_floater_list
@@ -64,20 +73,16 @@ impl<'a> System<'a> for Sys {
             if hp_floater_list.last_hp != health.current() {
                 hp_floater_list.last_hp = health.current();
                 // TODO: What if multiple health changes occurred since last check here
-                // Also, If we make stats store a vec of the last_changes (from say the last
-                // frame), what if the client receives the stats component from
+                // Also, If we make health store a vec of the last_changes (from say the last
+                // frame), what if the client receives the health component from
                 // two different server ticks at once, then one will be lost
                 // (tbf this is probably a rare occurance and the results
                 // would just be a transient glitch in the display of these damage numbers)
                 // (maybe health changes could be sent to the client as a list
                 // of events)
                 if match health.last_change.1.cause {
-                    HealthSource::Attack { by }
-                    | HealthSource::Projectile { owner: Some(by) }
-                    | HealthSource::Energy { owner: Some(by) }
-                    | HealthSource::Explosion { owner: Some(by) }
-                    | HealthSource::Buff { owner: Some(by) }
-                    | HealthSource::Healing { by: Some(by) } => {
+                    HealthSource::Damage { by: Some(by), .. }
+                    | HealthSource::Heal { by: Some(by) } => {
                         let by_me = my_uid.map_or(false, |&uid| by == uid);
                         // If the attack was by me also reset this timer
                         if by_me {
@@ -101,8 +106,8 @@ impl<'a> System<'a> for Sys {
             }
         }
 
-        // Remove floater lists on entities without stats or without position
-        for entity in (&entities, !&stats, &hp_floater_lists)
+        // Remove floater lists on entities without health or without position
+        for entity in (&entities, !&healths, &hp_floater_lists)
             .join()
             .map(|(e, _, _)| e)
             .collect::<Vec<_>>()

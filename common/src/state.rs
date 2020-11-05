@@ -114,6 +114,7 @@ impl State {
         ecs.register::<comp::Stats>();
         ecs.register::<comp::Buffs>();
         ecs.register::<comp::Energy>();
+        ecs.register::<comp::Health>();
         ecs.register::<comp::CanBuild>();
         ecs.register::<comp::LightEmitter>();
         ecs.register::<comp::Item>();

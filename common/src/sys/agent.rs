@@ -6,7 +6,7 @@ use crate::{
         group::Invite,
         item::{tool::ToolKind, ItemKind},
         Agent, Alignment, Body, CharacterState, ControlAction, ControlEvent, Controller, Energy,
-        GroupManip, LightEmitter, Loadout, MountState, Ori, PhysicsState, Pos, Scale, Stats,
+        GroupManip, Health, LightEmitter, Loadout, MountState, Ori, PhysicsState, Pos, Scale,
         UnresolvedChatMsg, Vel,
     },
     event::{EventBus, ServerEvent},
@@ -46,7 +46,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Vel>,
         ReadStorage<'a, Ori>,
         ReadStorage<'a, Scale>,
-        ReadStorage<'a, Stats>,
+        ReadStorage<'a, Health>,
         ReadStorage<'a, Loadout>,
         ReadStorage<'a, PhysicsState>,
         ReadStorage<'a, Uid>,
@@ -76,7 +76,7 @@ impl<'a> System<'a> for Sys {
             velocities,
             orientations,
             scales,
-            stats,
+            healths,
             loadouts,
             physics_states,
             uids,
@@ -261,8 +261,8 @@ impl<'a> System<'a> for Sys {
                         }
                     },
                     Activity::Follow { target, chaser } => {
-                        if let (Some(tgt_pos), _tgt_stats) =
-                            (positions.get(*target), stats.get(*target))
+                        if let (Some(tgt_pos), _tgt_health) =
+                            (positions.get(*target), healths.get(*target))
                         {
                             let dist = pos.0.distance(tgt_pos.0);
                             // Follow, or return to idle
@@ -329,9 +329,9 @@ impl<'a> System<'a> for Sys {
                             _ => Tactic::Melee,
                         };
 
-                        if let (Some(tgt_pos), Some(tgt_stats), tgt_alignment) = (
+                        if let (Some(tgt_pos), Some(tgt_health), tgt_alignment) = (
                             positions.get(*target),
-                            stats.get(*target),
+                            healths.get(*target),
                             alignments.get(*target).copied().unwrap_or(
                                 uids.get(*target)
                                     .copied()
@@ -346,7 +346,7 @@ impl<'a> System<'a> for Sys {
                             // Don't attack entities we are passive towards
                             // TODO: This is here, it's a bit of a hack
                             if let Some(alignment) = alignment {
-                                if alignment.passive_towards(tgt_alignment) || tgt_stats.is_dead {
+                                if alignment.passive_towards(tgt_alignment) || tgt_health.is_dead {
                                     do_idle = true;
                                     break 'activity;
                                 }
@@ -354,9 +354,9 @@ impl<'a> System<'a> for Sys {
 
                             let dist_sqrd = pos.0.distance_squared(tgt_pos.0);
 
-                            let damage = stats
+                            let damage = healths
                                 .get(entity)
-                                .map(|s| s.health.current() as f32 / s.health.maximum() as f32)
+                                .map(|h| h.current() as f32 / h.maximum() as f32)
                                 .unwrap_or(0.5);
 
                             // Flee
@@ -557,9 +557,9 @@ impl<'a> System<'a> for Sys {
             if choose_target {
                 // Search for new targets (this looks expensive, but it's only run occasionally)
                 // TODO: Replace this with a better system that doesn't consider *all* entities
-                let closest_entity = (&entities, &positions, &stats, alignments.maybe(), char_states.maybe())
+                let closest_entity = (&entities, &positions, &healths, alignments.maybe(), char_states.maybe())
                     .join()
-                    .filter(|(e, e_pos, e_stats, e_alignment, char_state)| {
+                    .filter(|(e, e_pos, e_health, e_alignment, char_state)| {
                         let mut search_dist = SEARCH_DIST;
                         let mut listen_dist = LISTEN_DIST;
                         if char_state.map_or(false, |c_s| c_s.is_stealthy()) {
@@ -573,7 +573,7 @@ impl<'a> System<'a> for Sys {
                                 // Within listen distance
                                 || e_pos.0.distance_squared(pos.0) < listen_dist.powf(2.0))
                             && *e != entity
-                            && !e_stats.is_dead
+                            && !e_health.is_dead
                             && alignment
                                 .and_then(|a| e_alignment.map(|b| a.hostile_towards(*b)))
                                 .unwrap_or(false)
@@ -602,20 +602,16 @@ impl<'a> System<'a> for Sys {
             // last!) ---
 
             // Attack a target that's attacking us
-            if let Some(my_stats) = stats.get(entity) {
+            if let Some(my_health) = healths.get(entity) {
                 // Only if the attack was recent
-                if my_stats.health.last_change.0 < 3.0 {
-                    if let comp::HealthSource::Attack { by }
-                    | comp::HealthSource::Projectile { owner: Some(by) }
-                    | comp::HealthSource::Energy { owner: Some(by) }
-                    | comp::HealthSource::Buff { owner: Some(by) }
-                    | comp::HealthSource::Explosion { owner: Some(by) } =
-                        my_stats.health.last_change.1.cause
+                if my_health.last_change.0 < 3.0 {
+                    if let comp::HealthSource::Damage { by: Some(by), .. } =
+                        my_health.last_change.1.cause
                     {
                         if !agent.activity.is_attack() {
                             if let Some(attacker) = uid_allocator.retrieve_entity_internal(by.id())
                             {
-                                if stats.get(attacker).map_or(false, |a| !a.is_dead) {
+                                if healths.get(attacker).map_or(false, |a| !a.is_dead) {
                                     match agent.activity {
                                         Activity::Attack { target, .. } if target == attacker => {},
                                         _ => {
@@ -658,12 +654,10 @@ impl<'a> System<'a> for Sys {
                     }
 
                     // Attack owner's attacker
-                    let owner_stats = stats.get(owner)?;
-                    if owner_stats.health.last_change.0 < 5.0
-                        && owner_stats.health.last_change.1.amount < 0
-                    {
-                        if let comp::HealthSource::Attack { by } =
-                            owner_stats.health.last_change.1.cause
+                    let owner_health = healths.get(owner)?;
+                    if owner_health.last_change.0 < 5.0 && owner_health.last_change.1.amount < 0 {
+                        if let comp::HealthSource::Damage { by: Some(by), .. } =
+                            owner_health.last_change.1.cause
                         {
                             if !agent.activity.is_attack() {
                                 let attacker = uid_allocator.retrieve_entity_internal(by.id())?;

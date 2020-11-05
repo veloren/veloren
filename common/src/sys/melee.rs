@@ -1,17 +1,16 @@
 use crate::{
-    comp::{buff, group, Attacking, Body, CharacterState, Loadout, Ori, Pos, Scale, Stats},
+    comp::{buff, group, Attacking, Body, Health, Loadout, Ori, Pos, Scale},
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::SysMetrics,
     span,
     sync::Uid,
     util::Dir,
+    GroupTarget,
 };
 use rand::{thread_rng, Rng};
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
 use std::time::Duration;
 use vek::*;
-
-pub const BLOCK_ANGLE: f32 = 180.0;
 
 /// This system is responsible for handling accepted inputs like moving or
 /// attacking
@@ -28,10 +27,9 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Ori>,
         ReadStorage<'a, Scale>,
         ReadStorage<'a, Body>,
-        ReadStorage<'a, Stats>,
+        ReadStorage<'a, Health>,
         ReadStorage<'a, Loadout>,
         ReadStorage<'a, group::Group>,
-        ReadStorage<'a, CharacterState>,
         WriteStorage<'a, Attacking>,
     );
 
@@ -47,10 +45,9 @@ impl<'a> System<'a> for Sys {
             orientations,
             scales,
             bodies,
-            stats,
+            healths,
             loadouts,
             groups,
-            character_states,
             mut attacking_storage,
         ): Self::SystemData,
     ) {
@@ -75,17 +72,8 @@ impl<'a> System<'a> for Sys {
             attack.applied = true;
 
             // Go through all other entities
-            for (b, uid_b, pos_b, ori_b, scale_b_maybe, character_b, stats_b, body_b) in (
-                &entities,
-                &uids,
-                &positions,
-                &orientations,
-                scales.maybe(),
-                character_states.maybe(),
-                &stats,
-                &bodies,
-            )
-                .join()
+            for (b, pos_b, scale_b_maybe, health_b, body_b) in
+                (&entities, &positions, scales.maybe(), &healths, &bodies).join()
             {
                 // 2D versions
                 let pos2 = Vec2::from(pos.0);
@@ -99,7 +87,7 @@ impl<'a> System<'a> for Sys {
 
                 // Check if it is a hit
                 if entity != b
-                    && !stats_b.is_dead
+                    && !health_b.is_dead
                     // Spherical wedge shaped attack field
                     && pos.0.distance_squared(pos_b.0) < (rad_b + scale * attack.range).powi(2)
                     && ori2.angle_between(pos_b2 - pos2) < attack.max_angle + (rad_b / pos2.distance(pos_b2)).atan()
@@ -110,23 +98,22 @@ impl<'a> System<'a> for Sys {
                         .map(|group_a| Some(group_a) == groups.get(b))
                         .unwrap_or(false);
 
-                    let damage = if let Some(damage) = attack.damages.get_damage(same_group) {
-                        damage
+                    let target_group = if same_group {
+                        GroupTarget::InGroup
                     } else {
-                        continue;
+                        GroupTarget::OutOfGroup
                     };
 
-                    let block = character_b.map(|c_b| c_b.is_block()).unwrap_or(false)
-                        && ori_b.0.angle_between(pos.0 - pos_b.0) < BLOCK_ANGLE.to_radians() / 2.0;
+                    for (target, damage) in attack.damages.iter() {
+                        if let Some(target) = target {
+                            if *target != target_group {
+                                continue;
+                            }
+                        }
 
-                    let change = damage.modify_damage(block, loadouts.get(b), Some(*uid));
+                        let change = damage.modify_damage(loadouts.get(b), Some(*uid));
 
-                    if change.amount != 0 {
-                        server_emitter.emit(ServerEvent::Damage {
-                            uid: *uid_b,
-                            change,
-                        });
-
+                        server_emitter.emit(ServerEvent::Damage { entity: b, change });
                         // Apply bleeding buff on melee hits with 10% chance
                         // TODO: Don't have buff uniformly applied on all melee attacks
                         if change.amount < 0 && thread_rng().gen::<f32>() < 0.1 {
@@ -144,15 +131,13 @@ impl<'a> System<'a> for Sys {
                                 )),
                             });
                         }
-                        attack.hit_count += 1;
-                    }
-
-                    if change.amount != 0 {
                         let kb_dir = Dir::new((pos_b.0 - pos.0).try_normalized().unwrap_or(*ori.0));
                         let impulse = attack.knockback.calculate_impulse(kb_dir);
                         if !impulse.is_approx_zero() {
                             server_emitter.emit(ServerEvent::Knockback { entity: b, impulse });
                         }
+
+                        attack.hit_count += 1;
                     }
                 }
             }

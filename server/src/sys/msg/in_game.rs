@@ -1,7 +1,7 @@
 use super::super::SysTimer;
 use crate::{client::Client, metrics::NetworkRequestMetrics, presence::Presence, Settings};
 use common::{
-    comp::{CanBuild, ControlEvent, Controller, ForceUpdate, Ori, Pos, Stats, Vel},
+    comp::{CanBuild, ControlEvent, Controller, ForceUpdate, Health, Ori, Pos, Stats, Vel},
     event::{EventBus, ServerEvent},
     msg::{ClientGeneral, PresenceKind, ServerGeneral},
     span,
@@ -24,6 +24,7 @@ impl Sys {
         can_build: &ReadStorage<'_, CanBuild>,
         force_updates: &ReadStorage<'_, ForceUpdate>,
         stats: &mut WriteStorage<'_, Stats>,
+        healths: &ReadStorage<'_, Health>,
         block_changes: &mut Write<'_, BlockChange>,
         positions: &mut WriteStorage<'_, Pos>,
         velocities: &mut WriteStorage<'_, Vel>,
@@ -78,7 +79,7 @@ impl Sys {
                 if matches!(presence.kind, PresenceKind::Character(_)) {
                     // Skip respawn if client entity is alive
                     if let ControlEvent::Respawn = event {
-                        if stats.get(entity).map_or(true, |s| !s.is_dead) {
+                        if healths.get(entity).map_or(true, |h| !h.is_dead) {
                             //Todo: comment why return!
                             return Ok(());
                         }
@@ -98,7 +99,7 @@ impl Sys {
             ClientGeneral::PlayerPhysics { pos, vel, ori } => {
                 if matches!(presence.kind, PresenceKind::Character(_))
                     && force_updates.get(entity).is_none()
-                    && stats.get(entity).map_or(true, |s| !s.is_dead)
+                    && healths.get(entity).map_or(true, |h| !h.is_dead)
                 {
                     let _ = positions.insert(entity, pos);
                     let _ = velocities.insert(entity, vel);
@@ -176,6 +177,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, CanBuild>,
         ReadStorage<'a, ForceUpdate>,
         WriteStorage<'a, Stats>,
+        ReadStorage<'a, Health>,
         Write<'a, BlockChange>,
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
@@ -197,6 +199,7 @@ impl<'a> System<'a> for Sys {
             can_build,
             force_updates,
             mut stats,
+            healths,
             mut block_changes,
             mut positions,
             mut velocities,
@@ -226,6 +229,7 @@ impl<'a> System<'a> for Sys {
                     &can_build,
                     &force_updates,
                     &mut stats,
+                    &healths,
                     &mut block_changes,
                     &mut positions,
                     &mut velocities,

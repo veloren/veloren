@@ -31,11 +31,10 @@ pub enum ServerEvent {
         pos: Vec3<f32>,
         explosion: Explosion,
         owner: Option<Uid>,
-        friendly_damage: bool,
         reagent: Option<Reagent>,
     },
     Damage {
-        uid: Uid,
+        entity: EcsEntity,
         change: comp::HealthChange,
     },
     Destroy {
@@ -93,6 +92,7 @@ pub enum ServerEvent {
     CreateNpc {
         pos: comp::Pos,
         stats: comp::Stats,
+        health: comp::Health,
         loadout: comp::Loadout,
         body: comp::Body,
         agent: Option<comp::Agent>,
@@ -109,6 +109,10 @@ pub enum ServerEvent {
     Buff {
         entity: EcsEntity,
         buff_change: comp::BuffChange,
+    },
+    EnergyChange {
+        entity: EcsEntity,
+        change: comp::EnergyChange,
     },
 }
 

@@ -8,8 +8,8 @@ use entity_creation::{
     handle_loaded_character_data, handle_shockwave, handle_shoot,
 };
 use entity_manipulation::{
-    handle_buff, handle_damage, handle_destroy, handle_explosion, handle_knockback,
-    handle_land_on_ground, handle_level_up, handle_respawn,
+    handle_buff, handle_damage, handle_destroy, handle_energy_change, handle_explosion,
+    handle_knockback, handle_land_on_ground, handle_level_up, handle_respawn,
 };
 use group_manip::handle_group;
 use interaction::{handle_lantern, handle_mount, handle_possess, handle_unmount};
@@ -58,9 +58,8 @@ impl Server {
                     pos,
                     explosion,
                     owner,
-                    friendly_damage,
                     reagent,
-                } => handle_explosion(&self, pos, explosion, owner, friendly_damage, reagent),
+                } => handle_explosion(&self, pos, explosion, owner, reagent),
                 ServerEvent::Shoot {
                     entity,
                     dir,
@@ -83,7 +82,7 @@ impl Server {
                 ServerEvent::Knockback { entity, impulse } => {
                     handle_knockback(&self, entity, impulse)
                 },
-                ServerEvent::Damage { uid, change } => handle_damage(&self, uid, change),
+                ServerEvent::Damage { entity, change } => handle_damage(&self, entity, change),
                 ServerEvent::Destroy { entity, cause } => handle_destroy(self, entity, cause),
                 ServerEvent::InventoryManip(entity, manip) => handle_inventory(self, entity, manip),
                 ServerEvent::GroupManip(entity, manip) => handle_group(self, entity, manip),
@@ -110,6 +109,7 @@ impl Server {
                 ServerEvent::CreateNpc {
                     pos,
                     stats,
+                    health,
                     loadout,
                     body,
                     agent,
@@ -117,7 +117,7 @@ impl Server {
                     scale,
                     drop_item,
                 } => handle_create_npc(
-                    self, pos, stats, loadout, body, agent, alignment, scale, drop_item,
+                    self, pos, stats, health, loadout, body, agent, alignment, scale, drop_item,
                 ),
                 ServerEvent::CreateWaypoint(pos) => handle_create_waypoint(self, pos),
                 ServerEvent::ClientDisconnect(entity) => {
@@ -137,6 +137,9 @@ impl Server {
                     entity,
                     buff_change,
                 } => handle_buff(self, entity, buff_change),
+                ServerEvent::EnergyChange { entity, change } => {
+                    handle_energy_change(&self, entity, change)
+                },
             }
         }
 

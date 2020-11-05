@@ -1,14 +1,15 @@
 use crate::{
     comp::{
         buff::{BuffChange, BuffSource},
-        projectile, Energy, EnergySource, Group, HealthSource, Loadout, Ori, PhysicsState, Pos,
-        Projectile, Vel,
+        projectile, EnergyChange, EnergySource, Group, HealthSource, Loadout, Ori, PhysicsState,
+        Pos, Projectile, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::SysMetrics,
     span,
     state::DeltaTime,
     sync::UidAllocator,
+    GroupTarget,
 };
 use rand::{thread_rng, Rng};
 use specs::{
@@ -32,7 +33,6 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
         WriteStorage<'a, Projectile>,
-        WriteStorage<'a, Energy>,
         ReadStorage<'a, Loadout>,
         ReadStorage<'a, Group>,
     );
@@ -51,7 +51,6 @@ impl<'a> System<'a> for Sys {
             velocities,
             mut orientations,
             mut projectiles,
-            mut energies,
             loadouts,
             groups,
         ): Self::SystemData,
@@ -85,6 +84,13 @@ impl<'a> System<'a> for Sys {
                         .retrieve_entity_internal(other.into())
                         .and_then(|e| groups.get(e))
                     );
+
+                let target_group = if same_group {
+                    GroupTarget::InGroup
+                } else {
+                    GroupTarget::OutOfGroup
+                };
+
                 if projectile.ignore_group
                     // Skip if in the same group
                     && same_group
@@ -98,43 +104,54 @@ impl<'a> System<'a> for Sys {
 
                 for effect in projectile.hit_entity.drain(..) {
                     match effect {
-                        projectile::Effect::Damages(damages) => {
+                        projectile::Effect::Damage(target, damage) => {
                             if Some(other) == projectile.owner {
                                 continue;
                             }
-                            let damage = if let Some(damage) = damages.get_damage(same_group) {
-                                damage
-                            } else {
-                                continue;
-                            };
-                            let other_entity_loadout = uid_allocator
-                                .retrieve_entity_internal(other.into())
-                                .and_then(|e| loadouts.get(e));
-                            let change =
-                                damage.modify_damage(false, other_entity_loadout, projectile.owner);
 
-                            if change.amount != 0 {
-                                server_emitter.emit(ServerEvent::Damage { uid: other, change });
+                            if let Some(target) = target {
+                                if target != target_group {
+                                    continue;
+                                }
+                            }
+
+                            if let Some(other_entity) =
+                                uid_allocator.retrieve_entity_internal(other.into())
+                            {
+                                let other_entity_loadout = loadouts.get(other_entity);
+                                let change =
+                                    damage.modify_damage(other_entity_loadout, projectile.owner);
+                                server_emitter.emit(ServerEvent::Damage {
+                                    entity: other_entity,
+                                    change,
+                                });
                             }
                         },
                         projectile::Effect::Knockback(knockback) => {
-                            if let Some(entity) =
+                            if let Some(other_entity) =
                                 uid_allocator.retrieve_entity_internal(other.into())
                             {
                                 let impulse = knockback.calculate_impulse(ori.0);
                                 if !impulse.is_approx_zero() {
-                                    local_emitter
-                                        .emit(LocalEvent::ApplyImpulse { entity, impulse });
+                                    local_emitter.emit(LocalEvent::ApplyImpulse {
+                                        entity: other_entity,
+                                        impulse,
+                                    });
                                 }
                             }
                         },
                         projectile::Effect::RewardEnergy(energy) => {
-                            if let Some(energy_mut) = projectile
+                            if let Some(entity_owner) = projectile
                                 .owner
-                                .and_then(|o| uid_allocator.retrieve_entity_internal(o.into()))
-                                .and_then(|o| energies.get_mut(o))
+                                .and_then(|u| uid_allocator.retrieve_entity_internal(u.into()))
                             {
-                                energy_mut.change_by(energy as i32, EnergySource::HitEnemy);
+                                server_emitter.emit(ServerEvent::EnergyChange {
+                                    entity: entity_owner,
+                                    change: EnergyChange {
+                                        amount: energy as i32,
+                                        source: EnergySource::HitEnemy,
+                                    },
+                                });
                             }
                         },
                         projectile::Effect::Explode(e) => {
@@ -142,7 +159,6 @@ impl<'a> System<'a> for Sys {
                                 pos: pos.0,
                                 explosion: e,
                                 owner: projectile.owner,
-                                friendly_damage: false,
                                 reagent: None,
                             })
                         },
@@ -157,6 +173,7 @@ impl<'a> System<'a> for Sys {
                                 }
                             }
                         },
+                        // TODO: Change to effect after !1472 merges
                         projectile::Effect::Buff { buff, chance } => {
                             if let Some(entity) =
                                 uid_allocator.retrieve_entity_internal(other.into())
@@ -187,7 +204,6 @@ impl<'a> System<'a> for Sys {
                                 pos: pos.0,
                                 explosion: e,
                                 owner: projectile.owner,
-                                friendly_damage: false,
                                 reagent: None,
                             })
                         },

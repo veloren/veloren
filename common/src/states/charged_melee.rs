@@ -1,8 +1,8 @@
 use crate::{
-    comp::{Attacking, CharacterState, EnergySource, StateUpdate},
+    comp::{Attacking, CharacterState, EnergyChange, EnergySource, StateUpdate},
     states::utils::{StageSection, *},
     sys::character_behavior::*,
-    Damage, Damages, Knockback,
+    Damage, DamageSource, GroupTarget, Knockback,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -32,6 +32,8 @@ pub struct StaticData {
     pub swing_duration: Duration,
     /// How long the state has until exiting
     pub recover_duration: Duration,
+    /// What key is used to press ability
+    pub ability_key: AbilityKey,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -58,7 +60,7 @@ impl CharacterBehavior for Data {
 
         match self.stage_section {
             StageSection::Charge => {
-                if data.inputs.secondary.is_pressed()
+                if ability_key_is_pressed(data, self.static_data.ability_key)
                     && update.energy.current() >= self.static_data.energy_cost
                     && self.timer < self.static_data.charge_duration
                 {
@@ -77,11 +79,11 @@ impl CharacterBehavior for Data {
                     });
 
                     // Consumes energy if there's enough left and RMB is held down
-                    update.energy.change_by(
-                        -(self.static_data.energy_drain as f32 * data.dt.0) as i32,
-                        EnergySource::Ability,
-                    );
-                } else if data.inputs.secondary.is_pressed()
+                    update.energy.change_by(EnergyChange {
+                        amount: -(self.static_data.energy_drain as f32 * data.dt.0) as i32,
+                        source: EnergySource::Ability,
+                    });
+                } else if ability_key_is_pressed(data, self.static_data.ability_key)
                     && update.energy.current() >= self.static_data.energy_cost
                 {
                     // Maintains charge
@@ -94,10 +96,10 @@ impl CharacterBehavior for Data {
                     });
 
                     // Consumes energy if there's enough left and RMB is held down
-                    update.energy.change_by(
-                        -(self.static_data.energy_drain as f32 * data.dt.0 / 5.0) as i32,
-                        EnergySource::Ability,
-                    );
+                    update.energy.change_by(EnergyChange {
+                        amount: -(self.static_data.energy_drain as f32 * data.dt.0 / 5.0) as i32,
+                        source: EnergySource::Ability,
+                    });
                 } else {
                     // Transitions to swing
                     update.character = CharacterState::ChargedMelee(Data {
@@ -109,16 +111,21 @@ impl CharacterBehavior for Data {
             },
             StageSection::Swing => {
                 if !self.exhausted {
-                    let damage = self.static_data.initial_damage as f32
-                        + (self.static_data.max_damage - self.static_data.initial_damage) as f32
-                            * self.charge_amount;
+                    let mut damage = Damage {
+                        source: DamageSource::Melee,
+                        value: self.static_data.max_damage as f32,
+                    };
+                    damage.interpolate_damage(
+                        self.charge_amount,
+                        self.static_data.initial_damage as f32,
+                    );
                     let knockback = self.static_data.initial_knockback
                         + (self.static_data.max_knockback - self.static_data.initial_knockback)
                             * self.charge_amount;
 
                     // Hit attempt
                     data.updater.insert(data.entity, Attacking {
-                        damages: Damages::new(Some(Damage::Melee(damage)), None),
+                        damages: vec![(Some(GroupTarget::OutOfGroup), damage)],
                         range: self.static_data.range,
                         max_angle: self.static_data.max_angle.to_radians(),
                         applied: false,

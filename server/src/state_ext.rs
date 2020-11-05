@@ -20,12 +20,13 @@ use vek::*;
 
 pub trait StateExt {
     /// Updates a component associated with the entity based on the `Effect`
-    fn apply_effect(&mut self, entity: EcsEntity, effect: Effect);
+    fn apply_effect(&self, entity: EcsEntity, effect: Effect, source: Option<Uid>);
     /// Build a non-player character
     fn create_npc(
         &mut self,
         pos: comp::Pos,
         stats: comp::Stats,
+        health: comp::Health,
         loadout: comp::Loadout,
         body: comp::Body,
     ) -> EcsEntityBuilder;
@@ -70,19 +71,27 @@ pub trait StateExt {
 }
 
 impl StateExt for State {
-    fn apply_effect(&mut self, entity: EcsEntity, effect: Effect) {
+    fn apply_effect(&self, entity: EcsEntity, effect: Effect, source: Option<Uid>) {
         match effect {
             Effect::Health(change) => {
                 self.ecs()
-                    .write_storage::<comp::Stats>()
+                    .write_storage::<comp::Health>()
                     .get_mut(entity)
-                    .map(|stats| stats.health.change_by(change));
+                    .map(|health| health.change_by(change));
             },
             Effect::Xp(xp) => {
                 self.ecs()
                     .write_storage::<comp::Stats>()
                     .get_mut(entity)
                     .map(|stats| stats.exp.change_by(xp));
+            },
+            Effect::Damage(damage) => {
+                let loadouts = self.ecs().read_storage::<comp::Loadout>();
+                let change = damage.modify_damage(loadouts.get(entity), source);
+                self.ecs()
+                    .write_storage::<comp::Health>()
+                    .get_mut(entity)
+                    .map(|health| health.change_by(change));
             },
         }
     }
@@ -91,6 +100,7 @@ impl StateExt for State {
         &mut self,
         pos: comp::Pos,
         stats: comp::Stats,
+        health: comp::Health,
         loadout: comp::Loadout,
         body: comp::Body,
     ) -> EcsEntityBuilder {
@@ -107,6 +117,7 @@ impl StateExt for State {
             .with(comp::Controller::default())
             .with(body)
             .with(stats)
+            .with(health)
             .with(comp::Alignment::Npc)
             .with(comp::Energy::new(body.base_energy()))
             .with(comp::Gravity(1.0))
@@ -239,6 +250,10 @@ impl StateExt for State {
                 z_max: body.height(),
             });
             self.write_component(entity, body);
+            self.write_component(
+                entity,
+                comp::Health::new(stats.body_type, stats.level.level()),
+            );
             self.write_component(entity, stats);
             self.write_component(entity, inventory);
             self.write_component(entity, loadout);
