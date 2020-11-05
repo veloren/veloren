@@ -319,7 +319,7 @@ pub enum Event {
     AdjustFigureLoDRenderDistance(u32),
     AdjustMusicVolume(f32),
     AdjustSfxVolume(f32),
-    ChangeAudioDevice(String),
+    //ChangeAudioDevice(String),
     ChangeMaxFPS(u32),
     ChangeFOV(u16),
     ChangeGamma(f32),
@@ -2131,9 +2131,9 @@ impl Hud {
                     settings_window::Event::MaximumFPS(max_fps) => {
                         events.push(Event::ChangeMaxFPS(max_fps));
                     },
-                    settings_window::Event::ChangeAudioDevice(name) => {
-                        events.push(Event::ChangeAudioDevice(name));
-                    },
+                    //settings_window::Event::ChangeAudioDevice(name) => {
+                    //    events.push(Event::ChangeAudioDevice(name));
+                    //},
                     settings_window::Event::CrosshairType(crosshair_type) => {
                         events.push(Event::CrosshairType(crosshair_type));
                     },

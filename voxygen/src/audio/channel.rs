@@ -20,7 +20,7 @@ use crate::audio::{
     fader::{FadeDirection, Fader},
     Listener,
 };
-use rodio::{Device, Sample, Sink, Source, SpatialSink};
+use rodio::{Device, OutputStream, OutputStreamHandle, Sample, Sink, Source, SpatialSink};
 use vek::*;
 
 #[derive(PartialEq, Clone, Copy)]
@@ -53,9 +53,9 @@ pub struct MusicChannel {
 }
 
 impl MusicChannel {
-    pub fn new(device: &Device) -> Self {
+    pub fn new(stream: &OutputStreamHandle) -> Self {
         Self {
-            sink: Sink::new(device),
+            sink: Sink::try_new(stream).unwrap(),
             tag: MusicChannelTag::TitleMusic,
             state: ChannelState::Stopped,
             fader: Fader::default(),
@@ -151,9 +151,10 @@ pub struct SfxChannel {
 }
 
 impl SfxChannel {
-    pub fn new(device: &Device) -> Self {
+    pub fn new(stream: &OutputStreamHandle) -> Self {
         Self {
-            sink: SpatialSink::new(device, [0.0; 3], [1.0, 0.0, 0.0], [-1.0, 0.0, 0.0]),
+            sink: SpatialSink::try_new(stream, [0.0; 3], [1.0, 0.0, 0.0], [-1.0, 0.0, 0.0])
+                .unwrap(),
             pos: Vec3::zero(),
         }
     }

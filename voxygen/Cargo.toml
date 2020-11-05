@@ -58,7 +58,7 @@ server = {package = "veloren-server", path = "../server", optional = true}
 backtrace = "0.3.40"
 bincode = "1.2"
 chrono = "0.4.9"
-cpal = "0.11"
+cpal = "0.13"
 copy_dir = "0.1.2"
 crossbeam = "=0.7.2"
 deunicode = "1.0"
@@ -75,7 +75,7 @@ native-dialog = { version = "0.4.2", default-features = false, optional = true }
 num = "0.2"
 ordered-float = { version = "2.0.0", default-features = false }
 rand = "0.7"
-rodio = {version = "0.11", default-features = false, features = ["wav", "vorbis"]}
+rodio = {version = "0.13", default-features = false, features = ["wav", "vorbis"]}
 ron = {version = "0.6", default-features = false}
 serde = {version = "1.0", features = [ "rc", "derive" ]}
 treeculler = "0.1.0"

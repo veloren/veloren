@@ -14,7 +14,7 @@ use tracing::warn;
 
 use common::assets;
 use cpal::traits::DeviceTrait;
-use rodio::{source::Source, Decoder, Device};
+use rodio::{source::Source, Decoder, Device, OutputStream, OutputStreamHandle, StreamError};
 use vek::*;
 
 #[derive(Default, Clone)]
@@ -31,9 +31,10 @@ pub struct Listener {
 /// Voxygen's [`GlobalState`](../struct.GlobalState.html#structfield.audio) to
 /// provide access to devices and playback control in-game
 pub struct AudioFrontend {
-    pub device: String,
-    pub device_list: Vec<String>,
-    audio_device: Option<Device>,
+    //pub device: String,
+    pub stream: Option<rodio::OutputStream>,
+    //pub device_list: Vec<String>,
+    audio_stream: Option<rodio::OutputStreamHandle>,
     sound_cache: SoundCache,
 
     music_channels: Vec<MusicChannel>,
@@ -45,18 +46,23 @@ pub struct AudioFrontend {
 
 impl AudioFrontend {
     /// Construct with given device
-    pub fn new(device: String, max_sfx_channels: usize) -> Self {
-        let audio_device = get_device_raw(&device);
+    pub fn new(max_sfx_channels: usize) -> Self {
+        //let audio_device = get_device_raw(&device);
+        let (stream, audio_stream) = match get_default_stream() {
+            Ok(s) => (Some(s.0), Some(s.1)),
+            Err(_) => (None, None),
+        };
 
         let mut sfx_channels = Vec::with_capacity(max_sfx_channels);
-        if let Some(audio_device) = &audio_device {
-            sfx_channels.resize_with(max_sfx_channels, || SfxChannel::new(&audio_device));
-        }
+        if let Some(audio_stream) = &audio_stream {
+            sfx_channels.resize_with(max_sfx_channels, || SfxChannel::new(audio_stream));
+        };
 
         Self {
-            device,
-            device_list: list_devices(),
-            audio_device,
+            //device,
+            //device_list: list_devices(),
+            stream,
+            audio_stream,
             sound_cache: SoundCache::default(),
             music_channels: Vec::new(),
             sfx_channels,
@@ -69,9 +75,11 @@ impl AudioFrontend {
     /// Construct in `no-audio` mode for debugging
     pub fn no_audio() -> Self {
         Self {
-            device: "none".to_string(),
-            device_list: Vec::new(),
-            audio_device: None,
+            //device: "none".to_string(),
+            //device_list: Vec::new(),
+            //audio_device: None,
+            stream: None,
+            audio_stream: None,
             sound_cache: SoundCache::default(),
             music_channels: Vec::new(),
             sfx_channels: Vec::new(),
@@ -91,7 +99,7 @@ impl AudioFrontend {
     }
 
     fn get_sfx_channel(&mut self) -> Option<&mut SfxChannel> {
-        if self.audio_device.is_some() {
+        if self.audio_stream.is_some() {
             if let Some(channel) = self.sfx_channels.iter_mut().find(|c| c.is_done()) {
                 channel.set_volume(self.sfx_volume);
 
@@ -111,9 +119,9 @@ impl AudioFrontend {
         &mut self,
         next_channel_tag: MusicChannelTag,
     ) -> Option<&mut MusicChannel> {
-        if let Some(audio_device) = &self.audio_device {
+        if let Some(audio_stream) = &self.audio_stream {
             if self.music_channels.is_empty() {
-                let mut next_music_channel = MusicChannel::new(&audio_device);
+                let mut next_music_channel = MusicChannel::new(audio_stream);
                 next_music_channel.set_volume(self.music_volume);
 
                 self.music_channels.push(next_music_channel);
@@ -125,7 +133,7 @@ impl AudioFrontend {
                     existing_channel
                         .set_fader(Fader::fade_out(Duration::from_secs(2), self.music_volume));
 
-                    let mut next_music_channel = MusicChannel::new(&audio_device);
+                    let mut next_music_channel = MusicChannel::new(&audio_stream);
 
                     next_music_channel
                         .set_fader(Fader::fade_in(Duration::from_secs(12), self.music_volume));
@@ -140,7 +148,7 @@ impl AudioFrontend {
 
     /// Play (once) an sfx file by file path at the give position and volume
     pub fn play_sfx(&mut self, sound: &str, pos: Vec3<f32>, vol: Option<f32>) {
-        if self.audio_device.is_some() {
+        if self.audio_stream.is_some() {
             let sound = self
                 .sound_cache
                 .load_sound(sound)
@@ -258,47 +266,52 @@ impl AudioFrontend {
         }
     }
 
-    // TODO: figure out how badly this will break things when it is called
-    pub fn set_device(&mut self, name: String) {
-        self.device = name.clone();
-        self.audio_device = get_device_raw(&name);
-    }
+    //// TODO: figure out how badly this will break things when it is called
+    //pub fn set_device(&mut self, name: String) {
+    //    self.device = name.clone();
+    //    self.audio_device = get_device_raw(&name);
+    //}
 }
 
-/// Returns the default audio device.
-/// Does not return rodio Device struct in case our audio backend changes.
-pub fn get_default_device() -> Option<String> {
-    match rodio::default_output_device() {
-        Some(x) => Some(x.name().ok()?),
-        None => None,
-    }
+///// Returns the default audio device.
+///// Does not return rodio Device struct in case our audio backend changes.
+//pub fn get_default_device() -> Option<String> {
+//    match rodio::default_output_device() {
+//        Some(x) => Some(x.name().ok()?),
+//        None => None,
+//    }
+//}
+
+/// Returns the default stream
+pub fn get_default_stream() -> Result<(OutputStream, OutputStreamHandle), StreamError> {
+    rodio::OutputStream::try_default()
 }
 
-/// Returns a vec of the audio devices available.
-/// Does not return rodio Device struct in case our audio backend changes.
-pub fn list_devices() -> Vec<String> {
-    list_devices_raw()
-        .iter()
-        .map(|x| x.name().unwrap())
-        .collect()
-}
+///// Returns a vec of the audio devices available.
+///// Does not return rodio Device struct in case our audio backend changes.
+//pub fn list_devices() -> Vec<String> {
+//    list_devices_raw()
+//        .iter()
+//        .map(|x| x.name().unwrap())
+//        .collect()
+//}
 
-/// Returns vec of devices
-fn list_devices_raw() -> Vec<Device> {
-    match rodio::output_devices() {
-        Ok(devices) => {
-            // Filter out any devices that the name isn't available for
-            devices.filter(|d| d.name().is_ok()).collect()
-        },
-        Err(_) => {
-            warn!("Failed to enumerate audio output devices, audio will not be available");
-            Vec::new()
-        },
-    }
-}
-
-fn get_device_raw(device: &str) -> Option<Device> {
-    list_devices_raw()
-        .into_iter()
-        .find(|d| d.name().unwrap() == device)
-}
+///// Returns vec of devices
+//fn list_devices_raw() -> Vec<Device> {
+//    match rodio::output_devices() {
+//        Ok(devices) => {
+//            // Filter out any devices that the name isn't available for
+//            devices.filter(|d| d.name().is_ok()).collect()
+//        },
+//        Err(_) => {
+//            warn!("Failed to enumerate audio output devices, audio will not be
+// available");            Vec::new()
+//        },
+//    }
+//}
+//
+//fn get_device_raw(device: &str) -> Option<Device> {
+//    list_devices_raw()
+//        .into_iter()
+//        .find(|d| d.name().unwrap() == device)
+//}
