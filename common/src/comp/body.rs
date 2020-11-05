@@ -276,7 +276,7 @@ impl Body {
                 _ => 1000,
             },
             Body::Object(_) => 10000,
-            Body::Golem(_) => 2560,
+            Body::Golem(_) => 2740,
             Body::Theropod(_) => 50,
             Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
                 quadruped_low::Species::Crocodile => 600,

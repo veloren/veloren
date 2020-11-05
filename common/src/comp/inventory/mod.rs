@@ -260,8 +260,10 @@ impl Default for Inventory {
             slots: vec![None; 36],
             amount: 0,
         };
+        inventory.push(Item::new_from_asset_expect(
+            "common.items.consumable.potion_minor",
+        ));
         inventory.push(Item::new_from_asset_expect("common.items.food.cheese"));
-        inventory.push(Item::new_from_asset_expect("common.items.food.apple"));
         inventory
     }
 }
