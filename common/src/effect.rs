@@ -39,7 +39,9 @@ impl Effect {
             Effect::Damage(damage) => {
                 damage.interpolate_damage(modifier, 0.0);
             },
-            _ => {},
+            Effect::Buff(effect) => {
+                effect.data.strength *= modifier;
+            },
         }
     }
 }
