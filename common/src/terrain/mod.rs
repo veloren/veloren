@@ -71,6 +71,7 @@ pub struct TerrainChunkMeta {
     //warp_factor: f32,
     surface_veg: f32,
     cave_alt: f32,
+    contains_river: bool,
     /*place: Option<Id<Place>>, */
 
     /*path: (Way, Path),*/
@@ -89,6 +90,7 @@ impl TerrainChunkMeta {
         tree_density: f32,
         surface_veg: f32,
         cave_alt: f32,
+        contains_river: bool,
     ) -> Self {
         Self {
             name,
@@ -101,6 +103,7 @@ impl TerrainChunkMeta {
             tree_density,
             surface_veg,
             cave_alt,
+            contains_river,
         }
     }
 
@@ -116,6 +119,7 @@ impl TerrainChunkMeta {
             tree_density: 0.0,
             surface_veg: 0.0,
             cave_alt: 0.0,
+            contains_river: false,
         }
     }
 
@@ -138,6 +142,8 @@ impl TerrainChunkMeta {
     pub fn surface_veg(&self) -> f32 { self.surface_veg }
 
     pub fn cave_alt(&self) -> f32 { self.cave_alt }
+
+    pub fn contains_river(&self) -> bool { self.contains_river }
 }
 
 // Terrain type aliases
