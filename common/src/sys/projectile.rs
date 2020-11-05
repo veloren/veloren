@@ -1,8 +1,8 @@
 use crate::{
     comp::{
         buff::{BuffChange, BuffSource},
-        projectile, EnergyChange, EnergySource, Group, HealthSource, Loadout, Ori, PhysicsState,
-        Pos, Projectile, Vel,
+        projectile, CharacterState, EnergyChange, EnergySource, Group, HealthSource, Loadout, Ori,
+        PhysicsState, Pos, Projectile, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::SysMetrics,
@@ -35,6 +35,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Projectile>,
         ReadStorage<'a, Loadout>,
         ReadStorage<'a, Group>,
+        ReadStorage<'a, CharacterState>,
     );
 
     fn run(
@@ -53,6 +54,7 @@ impl<'a> System<'a> for Sys {
             mut projectiles,
             loadouts,
             groups,
+            char_states,
         ): Self::SystemData,
     ) {
         let start_time = std::time::Instant::now();
@@ -99,6 +101,18 @@ impl<'a> System<'a> for Sys {
                 }
 
                 if projectile.owner == Some(other) {
+                    continue;
+                }
+
+                // Checks if entity is immune to damage
+                // TODO: When projectiles are reduced down to a collection of (target, effect)s,
+                // move this check there so that future projectiles intended for allies cannot
+                // be dodged by those allies
+                let entity_invincible = uid_allocator
+                    .retrieve_entity_internal(other.into())
+                    .and_then(|e| char_states.get(e))
+                    .map_or(false, |c_s| c_s.is_invincible());
+                if entity_invincible {
                     continue;
                 }
 

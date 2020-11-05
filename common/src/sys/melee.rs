@@ -1,5 +1,5 @@
 use crate::{
-    comp::{buff, group, Attacking, Body, Health, Loadout, Ori, Pos, Scale},
+    comp::{buff, group, Attacking, Body, CharacterState, Health, Loadout, Ori, Pos, Scale},
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::SysMetrics,
     span,
@@ -31,6 +31,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Loadout>,
         ReadStorage<'a, group::Group>,
         WriteStorage<'a, Attacking>,
+        ReadStorage<'a, CharacterState>,
     );
 
     fn run(
@@ -49,6 +50,7 @@ impl<'a> System<'a> for Sys {
             loadouts,
             groups,
             mut attacking_storage,
+            char_states,
         ): Self::SystemData,
     ) {
         let start_time = std::time::Instant::now();
@@ -72,8 +74,15 @@ impl<'a> System<'a> for Sys {
             attack.applied = true;
 
             // Go through all other entities
-            for (b, pos_b, scale_b_maybe, health_b, body_b) in
-                (&entities, &positions, scales.maybe(), &healths, &bodies).join()
+            for (b, pos_b, scale_b_maybe, health_b, body_b, char_state_b_maybe) in (
+                &entities,
+                &positions,
+                scales.maybe(),
+                &healths,
+                &bodies,
+                char_states.maybe(),
+            )
+                .join()
             {
                 // 2D versions
                 let pos2 = Vec2::from(pos.0);
@@ -84,6 +93,9 @@ impl<'a> System<'a> for Sys {
                 let scale = scale_maybe.map_or(1.0, |s| s.0);
                 let scale_b = scale_b_maybe.map_or(1.0, |s| s.0);
                 let rad_b = body_b.radius() * scale_b;
+
+                // Check if entity is invincible
+                let is_invincible = char_state_b_maybe.map_or(false, |c_s| c_s.is_invincible());
 
                 // Check if it is a hit
                 if entity != b
@@ -106,7 +118,9 @@ impl<'a> System<'a> for Sys {
 
                     for (target, damage) in attack.damages.iter() {
                         if let Some(target) = target {
-                            if *target != target_group {
+                            if *target != target_group
+                                || (!matches!(target, GroupTarget::InGroup) && is_invincible)
+                            {
                                 continue;
                             }
                         }
