@@ -522,6 +522,8 @@ Protection
         // Buffs
         "buff.title.heal": "Heal",
         "buff.desc.heal": "Gain health over time.",
+        "buff.title.potion": "Potion",
+        "buff.desc.potion": "Drinking...",
         "buff.title.saturation": "Saturation",
         "buff.desc.saturation": "Gain health over time from consumables.",
         // Debuffs

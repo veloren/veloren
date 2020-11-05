@@ -17,6 +17,8 @@ pub enum BuffKind {
     /// Lower a creature's max health
     /// Currently placeholder buff to show other stuff is possible
     Cursed,
+    // Applied when drinking a potion
+    Potion,
 }
 
 impl BuffKind {
@@ -27,6 +29,7 @@ impl BuffKind {
             BuffKind::Saturation { .. } => true,
             BuffKind::Bleeding { .. } => false,
             BuffKind::Cursed { .. } => false,
+            BuffKind::Potion {..} => true,
         }
     }
 }
@@ -124,13 +127,13 @@ impl Buff {
                 }],
                 data.duration,
             ),
-            BuffKind::Regeneration | BuffKind::Saturation => (
+            BuffKind::Regeneration | BuffKind::Saturation | BuffKind::Potion => (
                 vec![BuffEffect::HealthChangeOverTime {
                     rate: data.strength,
                     accumulated: 0.0,
                 }],
                 data.duration,
-            ),
+            ),            
             BuffKind::Cursed => (
                 vec![BuffEffect::MaxHealthModifier {
                     value: -100. * data.strength,
