@@ -146,11 +146,7 @@ impl<'a> System<'a> for Sys {
                     LoadoutBuilder::build_loadout(body, alignment, main_tool, entity.is_giant)
                         .build();
 
-                stats.update_max_hp(stats.body_type);
-
-                stats
-                    .health
-                    .set_to(stats.health.maximum(), comp::HealthSource::Revive);
+                let health = comp::Health::new(stats.body_type, stats.level.level());
 
                 let can_speak = match body {
                     comp::Body::Humanoid(_) => alignment == comp::Alignment::Npc,
@@ -174,6 +170,7 @@ impl<'a> System<'a> for Sys {
                 server_emitter.emit(ServerEvent::CreateNpc {
                     pos: Pos(entity.pos),
                     stats,
+                    health,
                     loadout,
                     agent: if entity.has_agency {
                         Some(comp::Agent::new(entity.pos, can_speak, &body))

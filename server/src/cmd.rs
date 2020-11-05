@@ -4,12 +4,13 @@
 
 use crate::{
     settings::{BanRecord, EditableSetting},
-    Server, StateExt,
+    Server, SpawnPoint, StateExt,
 };
 use chrono::{NaiveTime, Timelike};
 use common::{
     cmd::{ChatCommand, CHAT_COMMANDS, CHAT_SHORTCUTS},
     comp::{self, ChatType, Item, LightEmitter, WaypointArea},
+    effect::Effect,
     event::{EventBus, ServerEvent},
     msg::{DisconnectReason, Notification, PlayerListUpdate, ServerGeneral},
     npc::{self, get_npc_name},
@@ -18,7 +19,7 @@ use common::{
     terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
     util::Dir,
     vol::RectVolSize,
-    Explosion, LoadoutBuilder,
+    Damage, DamageSource, Explosion, LoadoutBuilder, RadiusEffect,
 };
 use rand::Rng;
 use specs::{Builder, Entity as EcsEntity, Join, WorldExt};
@@ -82,6 +83,7 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::Group => handle_group,
         ChatCommand::Health => handle_health,
         ChatCommand::Help => handle_help,
+        ChatCommand::Home => handle_home,
         ChatCommand::JoinFaction => handle_join_faction,
         ChatCommand::Jump => handle_jump,
         ChatCommand::Kick => handle_kick,
@@ -359,6 +361,29 @@ fn handle_goto(
     }
 }
 
+fn handle_home(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    _args: String,
+    _action: &ChatCommand,
+) {
+    if server
+        .state
+        .read_component_copied::<comp::Pos>(target)
+        .is_some()
+    {
+        let home_pos = server.state.ecs().read_resource::<SpawnPoint>().0;
+        server.state.write_component(target, comp::Pos(home_pos));
+        server.state.write_component(target, comp::ForceUpdate);
+    } else {
+        server.notify_client(
+            client,
+            ChatType::CommandError.server_msg("You have no position."),
+        );
+    }
+}
+
 fn handle_kill(
     server: &mut Server,
     client: EcsEntity,
@@ -369,16 +394,19 @@ fn handle_kill(
     let reason = if client == target {
         comp::HealthSource::Suicide
     } else if let Some(uid) = server.state.read_storage::<Uid>().get(client) {
-        comp::HealthSource::Attack { by: *uid }
+        comp::HealthSource::Damage {
+            kind: DamageSource::Other,
+            by: Some(*uid),
+        }
     } else {
         comp::HealthSource::Command
     };
     server
         .state
         .ecs_mut()
-        .write_storage::<comp::Stats>()
+        .write_storage::<comp::Health>()
         .get_mut(target)
-        .map(|s| s.health.set_to(0, reason));
+        .map(|h| h.set_to(0, reason));
 }
 
 fn handle_time(
@@ -447,13 +475,13 @@ fn handle_health(
     action: &ChatCommand,
 ) {
     if let Ok(hp) = scan_fmt!(&args, &action.arg_fmt(), u32) {
-        if let Some(stats) = server
+        if let Some(health) = server
             .state
             .ecs()
-            .write_storage::<comp::Stats>()
+            .write_storage::<comp::Health>()
             .get_mut(target)
         {
-            stats.health.set_to(hp * 10, comp::HealthSource::Command);
+            health.set_to(hp * 10, comp::HealthSource::Command);
         } else {
             server.notify_client(
                 client,
@@ -632,6 +660,7 @@ fn handle_spawn(
                                 .create_npc(
                                     pos,
                                     comp::Stats::new(get_npc_name(id).into(), body),
+                                    comp::Health::new(body, 1),
                                     LoadoutBuilder::build_loadout(body, alignment, None, false)
                                         .build(),
                                     body,
@@ -738,9 +767,11 @@ fn handle_spawn_training_dummy(
             // Level 0 will prevent exp gain from kill
             stats.level.set_level(0);
 
+            let health = comp::Health::new(body, 0);
+
             server
                 .state
-                .create_npc(pos, stats, comp::Loadout::default(), body)
+                .create_npc(pos, stats, health, comp::Loadout::default(), body)
                 .with(comp::Vel(vel))
                 .with(comp::MountState::Unmounted)
                 .build();
@@ -900,12 +931,12 @@ fn handle_kill_npcs(
     _action: &ChatCommand,
 ) {
     let ecs = server.state.ecs();
-    let mut stats = ecs.write_storage::<comp::Stats>();
+    let mut healths = ecs.write_storage::<comp::Health>();
     let players = ecs.read_storage::<comp::Player>();
     let mut count = 0;
-    for (stats, ()) in (&mut stats, !&players).join() {
+    for (health, ()) in (&mut healths, !&players).join() {
         count += 1;
-        stats.health.set_to(0, comp::HealthSource::Command);
+        health.set_to(0, comp::HealthSource::Command);
     }
     let text = if count > 0 {
         format!("Destroyed {} NPCs.", count)
@@ -1129,16 +1160,20 @@ fn handle_explosion(
                 .emit_now(ServerEvent::Explosion {
                     pos: pos.0,
                     explosion: Explosion {
+                        effects: vec![
+                            RadiusEffect::Entity(
+                                None,
+                                Effect::Damage(Damage {
+                                    source: DamageSource::Explosion,
+                                    value: 100.0 * power,
+                                }),
+                            ),
+                            RadiusEffect::TerrainDestruction(power),
+                        ],
                         radius: 3.0 * power,
-                        max_damage: (100.0 * power) as u32,
-                        min_damage: 0,
-                        max_heal: 0,
-                        min_heal: 0,
-                        terrain_destruction_power: power,
                         energy_regen: 0,
                     },
                     owner: ecs.read_storage::<Uid>().get(target).copied(),
-                    friendly_damage: true,
                     reagent: None,
                 })
         },
@@ -1671,6 +1706,8 @@ fn handle_set_level(
                     PlayerListUpdate::LevelChange(uid, lvl),
                 ));
 
+                let body_type: Option<comp::Body>;
+
                 if let Some(stats) = server
                     .state
                     .ecs_mut()
@@ -1678,13 +1715,20 @@ fn handle_set_level(
                     .get_mut(player)
                 {
                     stats.level.set_level(lvl);
-
-                    stats.update_max_hp(stats.body_type);
-                    stats
-                        .health
-                        .set_to(stats.health.maximum(), comp::HealthSource::LevelUp);
+                    body_type = Some(stats.body_type);
                 } else {
                     error_msg = Some(ChatType::CommandError.server_msg("Player has no stats!"));
+                    body_type = None;
+                }
+
+                if let Some(health) = server
+                    .state
+                    .ecs_mut()
+                    .write_storage::<comp::Health>()
+                    .get_mut(player)
+                {
+                    health.update_max_hp(body_type, lvl);
+                    health.set_to(health.maximum(), comp::HealthSource::LevelUp);
                 }
             },
             Err(e) => {

@@ -1,5 +1,5 @@
 use crate::{
-    comp::{CharacterState, Energy, EnergySource, HealthSource, Stats},
+    comp::{CharacterState, Energy, EnergyChange, EnergySource, Health, HealthSource, Stats},
     event::{EventBus, ServerEvent},
     metrics::SysMetrics,
     span,
@@ -20,42 +20,59 @@ impl<'a> System<'a> for Sys {
         ReadExpect<'a, SysMetrics>,
         ReadStorage<'a, CharacterState>,
         WriteStorage<'a, Stats>,
+        WriteStorage<'a, Health>,
         WriteStorage<'a, Energy>,
     );
 
     fn run(
         &mut self,
-        (entities, dt, server_event_bus, sys_metrics, character_states, mut stats, mut energies): Self::SystemData,
+        (
+            entities,
+            dt,
+            server_event_bus,
+            sys_metrics,
+            character_states,
+            mut stats,
+            mut healths,
+            mut energies,
+        ): Self::SystemData,
     ) {
         let start_time = std::time::Instant::now();
         span!(_guard, "run", "stats::Sys::run");
         let mut server_event_emitter = server_event_bus.emitter();
 
         // Increment last change timer
-        stats.set_event_emission(false); // avoid unnecessary syncing
-        for stat in (&mut stats).join() {
-            stat.health.last_change.0 += f64::from(dt.0);
+        healths.set_event_emission(false); // avoid unnecessary syncing
+        for health in (&mut healths).join() {
+            health.last_change.0 += f64::from(dt.0);
         }
-        stats.set_event_emission(true);
+        healths.set_event_emission(true);
 
         // Update stats
-        for (entity, mut stats) in (&entities, &mut stats.restrict_mut()).join() {
+        for (entity, mut stats, mut health) in (
+            &entities,
+            &mut stats.restrict_mut(),
+            &mut healths.restrict_mut(),
+        )
+            .join()
+        {
             let (set_dead, level_up) = {
                 let stat = stats.get_unchecked();
+                let health = health.get_unchecked();
                 (
-                    stat.should_die() && !stat.is_dead,
+                    health.should_die() && !health.is_dead,
                     stat.exp.current() >= stat.exp.maximum(),
                 )
             };
 
             if set_dead {
-                let stat = stats.get_mut_unchecked();
+                let health = health.get_mut_unchecked();
                 server_event_emitter.emit(ServerEvent::Destroy {
                     entity,
-                    cause: stat.health.last_change.1.cause,
+                    cause: health.last_change.1.cause,
                 });
 
-                stat.is_dead = true;
+                health.is_dead = true;
             }
 
             if level_up {
@@ -67,9 +84,9 @@ impl<'a> System<'a> for Sys {
                     server_event_emitter.emit(ServerEvent::LevelUp(entity, stat.level.level()));
                 }
 
-                stat.update_max_hp(stat.body_type);
-                stat.health
-                    .set_to(stat.health.maximum(), HealthSource::LevelUp);
+                let health = health.get_mut_unchecked();
+                health.update_max_hp(Some(stat.body_type), stat.level.level());
+                health.set_to(health.maximum(), HealthSource::LevelUp);
             }
         }
 
@@ -96,11 +113,12 @@ impl<'a> System<'a> for Sys {
                     if res {
                         let mut energy = energy.get_mut_unchecked();
                         // Have to account for Calc I differential equations due to acceleration
-                        energy.change_by(
-                            (energy.regen_rate * dt.0 + ENERGY_REGEN_ACCEL * dt.0.powf(2.0) / 2.0)
+                        energy.change_by(EnergyChange {
+                            amount: (energy.regen_rate * dt.0
+                                + ENERGY_REGEN_ACCEL * dt.0.powf(2.0) / 2.0)
                                 as i32,
-                            EnergySource::Regen,
-                        );
+                            source: EnergySource::Regen,
+                        });
                         energy.regen_rate =
                             (energy.regen_rate + ENERGY_REGEN_ACCEL * dt.0).min(100.0);
                     }
@@ -130,9 +148,10 @@ impl<'a> System<'a> for Sys {
                     };
 
                     if res {
-                        energy
-                            .get_mut_unchecked()
-                            .change_by(-3, EnergySource::Regen);
+                        energy.get_mut_unchecked().change_by(EnergyChange {
+                            amount: -3,
+                            source: EnergySource::Regen,
+                        });
                     }
                 },
                 // Non-combat abilities that consume energy;
