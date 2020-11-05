@@ -31,7 +31,8 @@ impl Animation for RollAnimation {
         *rate = 1.0;
         let mut next = (*skeleton).clone();
 
-        let spin = anim_time as f32;
+        let spin = anim_time as f32 * 1.1;
+
         let ori: Vec2<f32> = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);
         let tilt = if ::vek::Vec2::new(ori, last_ori)
