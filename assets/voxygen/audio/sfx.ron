@@ -65,7 +65,7 @@
             ],
             threshold: 0.5,
         ),
-        Glide: ( 
+        Glide: (
             files: [
                 // Event Missing or not implemented?
             ],
@@ -383,6 +383,30 @@
             ],
             threshold: 0.3,
         ),
+        Inventory(Consumed("PotionMed")): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.liquid",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(Consumed("PotionLarge")): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.liquid",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(Consumed("PotionExp")): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.liquid",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(Consumed("SunflowerTea")): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.liquid",
+            ],
+            threshold: 0.3,
+        ),
         Inventory(Consumed("Apple")): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.apple",
@@ -396,6 +420,42 @@
             threshold: 0.3,
         ),
         Inventory(Consumed("Cheese")): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(Consumed("AppleShroomCurry")): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(Consumed("AppleStick")): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(Consumed("Coconut")): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(Consumed("MushroomStick")): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(Consumed("Velorite")): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(Consumed("VeloriteFrag")): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.food",
             ],
