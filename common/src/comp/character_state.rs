@@ -145,6 +145,20 @@ impl CharacterState {
         // Check if state is the same without looking at the inner data
         std::mem::discriminant(self) == std::mem::discriminant(other)
     }
+
+    pub fn is_invincible(&self) -> bool {
+        if let CharacterState::Roll(data) = self {
+            use utils::StageSection;
+            match data.stage_section {
+                StageSection::Buildup => data.static_data.buildup_iframes,
+                StageSection::Movement => data.static_data.movement_iframes,
+                StageSection::Recover => data.static_data.recover_iframes,
+                _ => false,
+            }
+        } else {
+            false
+        }
+    }
 }
 
 impl Default for CharacterState {

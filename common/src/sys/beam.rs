@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        group, Beam, BeamSegment, Body, Energy, EnergyChange, EnergySource, Health, HealthChange,
-        HealthSource, Last, Loadout, Ori, Pos, Scale,
+        group, Beam, BeamSegment, Body, CharacterState, Energy, EnergyChange, EnergySource, Health,
+        HealthChange, HealthSource, Last, Loadout, Ori, Pos, Scale,
     },
     event::{EventBus, ServerEvent},
     state::{DeltaTime, Time},
@@ -34,6 +34,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Energy>,
         WriteStorage<'a, BeamSegment>,
         WriteStorage<'a, Beam>,
+        ReadStorage<'a, CharacterState>,
     );
 
     fn run(
@@ -56,6 +57,7 @@ impl<'a> System<'a> for Sys {
             energies,
             mut beam_segments,
             mut beams,
+            char_states,
         ): Self::SystemData,
     ) {
         let mut server_emitter = server_bus.emitter();
@@ -112,7 +114,16 @@ impl<'a> System<'a> for Sys {
             };
 
             // Go through all other effectable entities
-            for (b, uid_b, pos_b, last_pos_b_maybe, scale_b_maybe, health_b, body_b) in (
+            for (
+                b,
+                uid_b,
+                pos_b,
+                last_pos_b_maybe,
+                scale_b_maybe,
+                health_b,
+                body_b,
+                char_state_b_maybe,
+            ) in (
                 &entities,
                 &uids,
                 &positions,
@@ -121,6 +132,7 @@ impl<'a> System<'a> for Sys {
                 scales.maybe(),
                 &healths,
                 &bodies,
+                char_states.maybe(),
             )
                 .join()
             {
@@ -133,6 +145,9 @@ impl<'a> System<'a> for Sys {
                 let scale_b = scale_b_maybe.map_or(1.0, |s| s.0);
                 let rad_b = body_b.radius() * scale_b;
                 let height_b = body_b.height() * scale_b;
+
+                // Check if entity is immune to damage
+                let is_invincible = char_state_b_maybe.map_or(false, |c_s| c_s.is_invincible());
 
                 // Check if it is a hit
                 let hit = entity != b
@@ -160,7 +175,9 @@ impl<'a> System<'a> for Sys {
 
                     for (target, damage) in beam_segment.damages.iter() {
                         if let Some(target) = target {
-                            if *target != target_group {
+                            if *target != target_group
+                                || (!matches!(target, GroupTarget::InGroup) && is_invincible)
+                            {
                                 continue;
                             }
                         }
