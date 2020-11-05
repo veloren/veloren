@@ -144,18 +144,8 @@ impl LoadoutBuilder {
             _ => {},
         };
 
-        let active_item = if let Some(ItemKind::Tool(tool)) = main_tool.as_ref().map(|i| i.kind()) {
-            let mut abilities = tool.get_abilities();
-            let mut ability_drain = abilities.drain(..);
-
-            main_tool.map(|item| ItemConfig {
-                item,
-                ability1: ability_drain.next(),
-                ability2: ability_drain.next(),
-                ability3: ability_drain.next(),
-                block_ability: None,
-                dodge_ability: Some(CharacterAbility::Roll),
-            })
+        let active_item = if let Some(ItemKind::Tool(_)) = main_tool.as_ref().map(|i| i.kind()) {
+            main_tool.map(|item| ItemConfig::from(item))
         } else {
             Some(ItemConfig {
                 // We need the empty item so npcs can attack
