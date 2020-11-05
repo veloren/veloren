@@ -131,7 +131,9 @@ impl EventMapper for BlockEventMapper {
         for sounds in sounds.iter() {
             if !(sounds.cond)(state) {
                 continue;
-            } else if sounds.sfx == SfxEvent::Birdcall && thread_rng().gen_bool(0.995) {
+            } else if (sounds.sfx == SfxEvent::Birdcall || sounds.sfx == SfxEvent::Owl)
+                && thread_rng().gen_bool(0.995)
+            {
                 continue;
             }
 
@@ -159,7 +161,7 @@ impl EventMapper for BlockEventMapper {
                     // Iterate through each individual block
                     for block in blocks {
 
-                    if sounds.sfx == SfxEvent::Birdcall && thread_rng().gen_bool(0.999) {
+                    if (sounds.sfx == SfxEvent::Birdcall || sounds.sfx == SfxEvent::Owl) && thread_rng().gen_bool(0.999) {
                         continue;
                     }
                         let block_pos: Vec3<i32> = absolute_pos + block;

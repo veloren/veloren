@@ -20,7 +20,7 @@ use crate::audio::{
     fader::{FadeDirection, Fader},
     Listener,
 };
-use rodio::{Device, OutputStream, OutputStreamHandle, Sample, Sink, Source, SpatialSink};
+use rodio::{OutputStreamHandle, Sample, Sink, Source, SpatialSink};
 use vek::*;
 
 #[derive(PartialEq, Clone, Copy)]

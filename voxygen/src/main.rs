@@ -144,10 +144,10 @@ fn main() {
     // Setup audio
     let mut audio = match settings.audio.output {
         AudioOutput::Off => None,
-        AudioOutput::Automatic => audio::get_default_stream().ok(),
-        //AudioOutput::Device(ref dev) => Some(dev.clone()),
+        AudioOutput::Automatic => audio::get_default_device(),
+        AudioOutput::Device(ref dev) => Some(dev.clone()),
     }
-    .map(|dev| AudioFrontend::new(/* dev, */ settings.audio.max_sfx_channels))
+    .map(|dev| AudioFrontend::new(dev, settings.audio.max_sfx_channels))
     .unwrap_or_else(AudioFrontend::no_audio);
 
     audio.set_music_volume(settings.audio.music_volume);
