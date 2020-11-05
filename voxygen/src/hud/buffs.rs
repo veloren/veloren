@@ -210,9 +210,7 @@ impl<'a> Widget for BuffsBar<'a> {
                         BuffKind::Saturation { .. } => {
                             localized_strings.get("buff.title.saturation")
                         },
-                        BuffKind::Potion { .. } => {
-                            localized_strings.get("buff.title.potion")
-                        },
+                        BuffKind::Potion { .. } => localized_strings.get("buff.title.potion"),
                         _ => localized_strings.get("buff.title.missing"),
                     };
                     let remaining_time = if current_duration.is_none() {
@@ -226,9 +224,7 @@ impl<'a> Widget for BuffsBar<'a> {
                         BuffKind::Saturation { .. } => {
                             localized_strings.get("buff.desc.saturation")
                         },
-                        BuffKind::Potion { .. } => {
-                            localized_strings.get("buff.desc.potion")
-                        },
+                        BuffKind::Potion { .. } => localized_strings.get("buff.desc.potion"),
                         _ => localized_strings.get("buff.desc.missing"),
                     };
                     let desc = format!("{}\n\n{}\n\n{}", desc_txt, remaining_time, click_to_remove);
@@ -414,9 +410,7 @@ impl<'a> Widget for BuffsBar<'a> {
                         BuffKind::Saturation { .. } => {
                             localized_strings.get("buff.title.saturation")
                         },
-                        BuffKind::Potion { .. } => {
-                            localized_strings.get("buff.title.potion")
-                        },
+                        BuffKind::Potion { .. } => localized_strings.get("buff.title.potion"),
                         BuffKind::Bleeding { .. } => localized_strings.get("debuff.title.bleed"),
                         _ => localized_strings.get("buff.title.missing"),
                     };
@@ -431,9 +425,7 @@ impl<'a> Widget for BuffsBar<'a> {
                         BuffKind::Saturation { .. } => {
                             localized_strings.get("buff.desc.saturation")
                         },
-                        BuffKind::Potion { .. } => {
-                            localized_strings.get("buff.desc.potion")
-                        },
+                        BuffKind::Potion { .. } => localized_strings.get("buff.desc.potion"),
                         BuffKind::Bleeding { .. } => localized_strings.get("debuff.desc.bleed"),
                         _ => localized_strings.get("buff.desc.missing"),
                     };
