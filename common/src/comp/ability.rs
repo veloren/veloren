@@ -113,7 +113,16 @@ pub enum CharacterAbility {
         is_interruptible: bool,
     },
     BasicBlock,
-    Roll,
+    Roll {
+        energy_cost: u32,
+        buildup_duration: Duration,
+        movement_duration: Duration,
+        recover_duration: Duration,
+        roll_strength: f32,
+        buildup_iframes: bool,
+        movement_iframes: bool,
+        recover_iframes: bool,
+    },
     ComboMelee {
         stage_data: Vec<combo_melee::Stage>,
         initial_energy_gain: u32,
@@ -214,13 +223,12 @@ impl CharacterAbility {
     /// applicable.
     pub fn requirements_paid(&self, data: &JoinData, update: &mut StateUpdate) -> bool {
         match self {
-            CharacterAbility::Roll => {
+            CharacterAbility::Roll {energy_cost, .. } => {
                 data.physics.on_ground
-                    && data.body.is_humanoid()
                     && data.vel.0.xy().magnitude_squared() > 0.5
                     && update
                         .energy
-                        .try_change_by(-220, EnergySource::Ability)
+                        .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                         .is_ok()
             },
             CharacterAbility::DashMelee { energy_cost, .. } => update
@@ -293,12 +301,25 @@ impl From<Item> for ItemConfig {
                 ability1: ability_drain.next(),
                 ability2: ability_drain.next(),
                 ability3: ability_drain.next(),
-                block_ability: Some(CharacterAbility::BasicBlock),
-                dodge_ability: Some(CharacterAbility::Roll),
+                block_ability: None,
+                dodge_ability: Some(get_roll()),
             };
         }
 
         unimplemented!("ItemConfig is currently only supported for Tools")
+    }
+}
+
+fn get_roll() -> CharacterAbility {
+    CharacterAbility::Roll {
+        energy_cost: 100,
+        buildup_duration: Duration::from_millis(100),
+        movement_duration: Duration::from_millis(250),
+        recover_duration: Duration::from_millis(150),
+        roll_strength: 1.0,
+        buildup_iframes: true,
+        movement_iframes: true,
+        recover_iframes: false,
     }
 }
 
@@ -461,11 +482,24 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                 exhausted: false,
             }),
             CharacterAbility::BasicBlock => CharacterState::BasicBlock,
-            CharacterAbility::Roll => CharacterState::Roll(roll::Data {
+            CharacterAbility::Roll {
+                energy_cost: _,
+                buildup_duration,
+                movement_duration,
+                recover_duration,
+                roll_strength,
+                buildup_iframes,
+                movement_iframes,
+                recover_iframes,
+            } => CharacterState::Roll(roll::Data {
                 static_data: roll::StaticData {
-                    buildup_duration: Duration::from_millis(100),
-                    movement_duration: Duration::from_millis(300),
-                    recover_duration: Duration::from_millis(100),
+                    buildup_duration: *buildup_duration,
+                    movement_duration: *movement_duration,
+                    recover_duration: *recover_duration,
+                    roll_strength: *roll_strength,
+                    buildup_iframes: *buildup_iframes,
+                    movement_iframes: *movement_iframes,
+                    recover_iframes: *recover_iframes,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,

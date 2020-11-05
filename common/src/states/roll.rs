@@ -19,6 +19,14 @@ pub struct StaticData {
     pub movement_duration: Duration,
     /// How long it takes to recover from roll
     pub recover_duration: Duration,
+    /// How strong the roll is
+    pub roll_strength: f32,
+    /// Whether you are immune to damage in buildup
+    pub buildup_iframes: bool,
+    /// Whether you are immune to damage in movement
+    pub movement_iframes: bool,
+    /// Whether you are immune to damage in recover
+    pub recover_iframes: bool,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]

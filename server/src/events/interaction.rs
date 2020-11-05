@@ -176,17 +176,8 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
             .or_insert(comp::Loadout::default());
 
         let item = comp::Item::new_from_asset_expect("common.items.debug.possess");
-        if let item::ItemKind::Tool(tool) = item.kind() {
-            let mut abilities = tool.get_abilities();
-            let mut ability_drain = abilities.drain(..);
-            let debug_item = comp::ItemConfig {
-                item,
-                ability1: ability_drain.next(),
-                ability2: ability_drain.next(),
-                ability3: ability_drain.next(),
-                block_ability: None,
-                dodge_ability: None,
-            };
+        if let item::ItemKind::Tool(_) = item.kind() {
+            let debug_item = comp::ItemConfig::from(item);
             std::mem::swap(&mut loadout.active_item, &mut loadout.second_item);
             loadout.active_item = Some(debug_item);
         }
