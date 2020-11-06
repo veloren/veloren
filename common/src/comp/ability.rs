@@ -119,9 +119,6 @@ pub enum CharacterAbility {
         movement_duration: Duration,
         recover_duration: Duration,
         roll_strength: f32,
-        buildup_iframes: bool,
-        movement_iframes: bool,
-        recover_iframes: bool,
     },
     ComboMelee {
         stage_data: Vec<combo_melee::Stage>,
@@ -278,6 +275,16 @@ impl CharacterAbility {
             _ => true,
         }
     }
+
+    fn default_roll() -> CharacterAbility {
+        CharacterAbility::Roll {
+            energy_cost: 100,
+            buildup_duration: Duration::from_millis(100),
+            movement_duration: Duration::from_millis(250),
+            recover_duration: Duration::from_millis(150),
+            roll_strength: 2.5,
+        }
+    }
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
@@ -302,24 +309,11 @@ impl From<Item> for ItemConfig {
                 ability2: ability_drain.next(),
                 ability3: ability_drain.next(),
                 block_ability: None,
-                dodge_ability: Some(get_roll()),
+                dodge_ability: Some(CharacterAbility::default_roll()),
             };
         }
 
         unimplemented!("ItemConfig is currently only supported for Tools")
-    }
-}
-
-fn get_roll() -> CharacterAbility {
-    CharacterAbility::Roll {
-        energy_cost: 100,
-        buildup_duration: Duration::from_millis(100),
-        movement_duration: Duration::from_millis(250),
-        recover_duration: Duration::from_millis(150),
-        roll_strength: 2.5,
-        buildup_iframes: true,
-        movement_iframes: true,
-        recover_iframes: false,
     }
 }
 
@@ -488,18 +482,12 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                 movement_duration,
                 recover_duration,
                 roll_strength,
-                buildup_iframes,
-                movement_iframes,
-                recover_iframes,
             } => CharacterState::Roll(roll::Data {
                 static_data: roll::StaticData {
                     buildup_duration: *buildup_duration,
                     movement_duration: *movement_duration,
                     recover_duration: *recover_duration,
                     roll_strength: *roll_strength,
-                    buildup_iframes: *buildup_iframes,
-                    movement_iframes: *movement_iframes,
-                    recover_iframes: *recover_iframes,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,

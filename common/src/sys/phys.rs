@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        BeamSegment, Collider, Gravity, Mass, Mounting, Ori, PhysicsState, Pos, PreviousVelDtCache,
-        Projectile, Scale, Shockwave, Sticky, Vel,
+        BeamSegment, CharacterState, Collider, Gravity, Mass, Mounting, Ori, PhysicsState, Pos,
+        PreviousVelDtCache, Projectile, Scale, Shockwave, Sticky, Vel,
     },
     event::{EventBus, ServerEvent},
     metrics::{PhysicsMetrics, SysMetrics},
@@ -71,6 +71,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Projectile>,
         ReadStorage<'a, BeamSegment>,
         ReadStorage<'a, Shockwave>,
+        ReadStorage<'a, CharacterState>,
     );
 
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
@@ -99,6 +100,7 @@ impl<'a> System<'a> for Sys {
             projectiles,
             beams,
             shockwaves,
+            char_states,
         ): Self::SystemData,
     ) {
         let start_time = std::time::Instant::now();
@@ -183,17 +185,38 @@ impl<'a> System<'a> for Sys {
             // TODO: if we need to avoid collisions for other things consider moving whether it
             // should interact into the collider component or into a separate component
             projectiles.maybe(),
+            char_states.maybe(),
         )
             .par_join()
-            .filter(|(_, _, _, _, _, _, _, _, sticky, physics, _)| {
+            .filter(|(_, _, _, _, _, _, _, _, sticky, physics, _, _)| {
                 sticky.is_none() || (physics.on_wall.is_none() && !physics.on_ground)
             })
-            .map(|(e, p, v, vd, s, m, c, _, _, ph, pr)| (e, p, v, vd, s, m, c, ph, pr))
-            .fold(PhysicsMetrics::default,
-                |mut metrics,(entity, pos, vel, vel_dt, scale, mass, collider, physics, projectile)| {
+            .map(|(e, p, v, vd, s, m, c, _, _, ph, pr, c_s)| (e, p, v, vd, s, m, c, ph, pr, c_s))
+            .fold(
+                PhysicsMetrics::default,
+                |mut metrics,
+                 (
+                    entity,
+                    pos,
+                    vel,
+                    vel_dt,
+                    scale,
+                    mass,
+                    collider,
+                    physics,
+                    projectile,
+                    char_state_maybe,
+                )| {
                     let scale = scale.map(|s| s.0).unwrap_or(1.0);
                     let radius = collider.map(|c| c.get_radius()).unwrap_or(0.5);
-                    let z_limits = collider.map(|c| c.get_z_limits()).unwrap_or((-0.5, 0.5));
+                    let modifier = if char_state_maybe.map_or(false, |c_s| c_s.is_dodge()) {
+                        0.5
+                    } else {
+                        1.0
+                    };
+                    let z_limits = collider
+                        .map(|c| c.get_z_limits(modifier))
+                        .unwrap_or((-0.5 * modifier, 0.5 * modifier));
                     let mass = mass.map(|m| m.0).unwrap_or(scale);
 
                     // Resets touch_entities in physics
@@ -215,6 +238,7 @@ impl<'a> System<'a> for Sys {
                         _,
                         _,
                         _,
+                        char_state_other_maybe,
                     ) in (
                         &entities,
                         &uids,
@@ -227,6 +251,7 @@ impl<'a> System<'a> for Sys {
                         !&mountings,
                         !&beams,
                         !&shockwaves,
+                        char_states.maybe(),
                     )
                         .join()
                     {
@@ -240,13 +265,22 @@ impl<'a> System<'a> for Sys {
                         let collision_dist = scale * radius + scale_other * radius_other;
 
                         // Sanity check: skip colliding entities that are too far from each other
-                        if (pos.0 - pos_other.0).xy().magnitude() > (vel_dt.0 - vel_dt_other.0).xy().magnitude() + collision_dist {
+                        if (pos.0 - pos_other.0).xy().magnitude()
+                            > (vel_dt.0 - vel_dt_other.0).xy().magnitude() + collision_dist
+                        {
                             continue;
                         }
 
+                        let modifier_other =
+                            if char_state_other_maybe.map_or(false, |c_s| c_s.is_dodge()) {
+                                0.5
+                            } else {
+                                1.0
+                            };
+
                         let z_limits_other = collider_other
-                            .map(|c| c.get_z_limits())
-                            .unwrap_or((-0.5, 0.5));
+                            .map(|c| c.get_z_limits(modifier_other))
+                            .unwrap_or((-0.5 * modifier_other, 0.5 * modifier_other));
                         let mass_other = mass_other.map(|m| m.0).unwrap_or(scale_other);
                         //This check after the pos check, as we currently don't have that many
                         // massless entites [citation needed]
@@ -257,7 +291,8 @@ impl<'a> System<'a> for Sys {
                         metrics.entity_entity_collision_checks += 1;
 
                         const MIN_COLLISION_DIST: f32 = 0.3;
-                        let increments = ((vel_dt.0 - vel_dt_other.0).magnitude() / MIN_COLLISION_DIST)
+                        let increments = ((vel_dt.0 - vel_dt_other.0).magnitude()
+                            / MIN_COLLISION_DIST)
                             .max(1.0)
                             .ceil() as usize;
                         let step_delta = 1.0 / increments as f32;
@@ -300,11 +335,11 @@ impl<'a> System<'a> for Sys {
                     metrics
                 },
             )
-            .reduce(PhysicsMetrics::default, |old, new| {
-                PhysicsMetrics {
-                    entity_entity_collision_checks: old.entity_entity_collision_checks + new.entity_entity_collision_checks,
-                    entity_entity_collisions: old.entity_entity_collisions + new.entity_entity_collisions,
-                }
+            .reduce(PhysicsMetrics::default, |old, new| PhysicsMetrics {
+                entity_entity_collision_checks: old.entity_entity_collision_checks
+                    + new.entity_entity_collision_checks,
+                entity_entity_collisions: old.entity_entity_collisions
+                    + new.entity_entity_collisions,
             });
         physics_metrics.entity_entity_collision_checks = metrics.entity_entity_collision_checks;
         physics_metrics.entity_entity_collisions = metrics.entity_entity_collisions;

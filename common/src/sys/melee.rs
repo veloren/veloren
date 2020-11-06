@@ -94,8 +94,8 @@ impl<'a> System<'a> for Sys {
                 let scale_b = scale_b_maybe.map_or(1.0, |s| s.0);
                 let rad_b = body_b.radius() * scale_b;
 
-                // Check if entity is invincible
-                let is_invincible = char_state_b_maybe.map_or(false, |c_s| c_s.is_invincible());
+                // Check if entity is dodging
+                let is_dodge = char_state_b_maybe.map_or(false, |c_s| c_s.is_dodge());
 
                 // Check if it is a hit
                 if entity != b
@@ -119,7 +119,7 @@ impl<'a> System<'a> for Sys {
                     for (target, damage) in attack.damages.iter() {
                         if let Some(target) = target {
                             if *target != target_group
-                                || (!matches!(target, GroupTarget::InGroup) && is_invincible)
+                                || (!matches!(target, GroupTarget::InGroup) && is_dodge)
                             {
                                 continue;
                             }

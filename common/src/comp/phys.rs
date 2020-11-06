@@ -73,9 +73,9 @@ impl Collider {
         }
     }
 
-    pub fn get_z_limits(&self) -> (f32, f32) {
+    pub fn get_z_limits(&self, modifier: f32) -> (f32, f32) {
         match self {
-            Collider::Box { z_min, z_max, .. } => (*z_min, *z_max),
+            Collider::Box { z_min, z_max, .. } => (*z_min * modifier, *z_max * modifier),
             Collider::Point => (0.0, 0.0),
         }
     }

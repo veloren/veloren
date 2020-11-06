@@ -647,14 +647,7 @@ pub fn handle_explosion(
                             .get(entity_b)
                             .map_or(false, |h| !h.is_dead);
 
-                        let is_invincible = ecs
-                            .read_storage::<comp::CharacterState>()
-                            .get(entity_b)
-                            .map_or(false, |c_s| c_s.is_invincible());
-
-                        if is_alive
-                            && (matches!(target, Some(GroupTarget::InGroup)) || !is_invincible)
-                        {
+                        if is_alive {
                             effect.modify_strength(strength);
                             server.state().apply_effect(entity_b, effect, owner);
                             // Apply energy change
