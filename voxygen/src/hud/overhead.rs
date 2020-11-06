@@ -243,8 +243,10 @@ impl<'a> Widget for Overhead<'a> {
                         }) as u32; // Percentage to determine which frame of the timer overlay is displayed
                         let buff_img = match buff.kind {
                             BuffKind::Regeneration { .. } => self.imgs.buff_plus_0,
+                            BuffKind::Saturation { .. } => self.imgs.buff_saturation_0,
                             BuffKind::Bleeding { .. } => self.imgs.debuff_bleed_0,
                             BuffKind::Cursed { .. } => self.imgs.debuff_skull_0,
+                            BuffKind::Potion { .. } => self.imgs.buff_potion_0,
                         };
                         let buff_widget = Image::new(buff_img).w_h(20.0, 20.0);
                         // Sort buffs into rows of 5 slots

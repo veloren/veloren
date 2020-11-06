@@ -3,7 +3,9 @@ ItemDef(
     description: "Increases Exp by 20\n\nJust a slight touch makes you feel the knowledge of ancient times",
     kind: Consumable(
         kind: "Velorite",
-        effect: Xp(20),
-    ),  
-    quality: High,  
+        effect: [
+            Xp(20),
+        ]
+    ),
+    quality: High,
 )

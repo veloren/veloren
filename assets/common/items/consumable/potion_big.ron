@@ -3,10 +3,19 @@ ItemDef(
     description: "Restores 100 Health",
     kind: Consumable(
         kind: "PotionLarge",
-        effect: Health((
-            amount: 1000,
-            cause: Item,
-        )),
+        effect: [
+            Buff((
+                kind: Potion,
+                data: (
+                    strength: 1000.0,
+                    duration: Some((
+                            secs: 1,
+                            nanos: 0,
+                        )),
+                    ),
+                cat_ids: [Natural],
+            )),
+        ]
     ),
     quality: Common,
 )

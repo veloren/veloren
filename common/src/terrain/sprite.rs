@@ -102,6 +102,8 @@ make_case_elim!(
         Reed = 0x4C,
         Beehive = 0x4D,
         LargeCactus = 0x4E,
+        VialEmpty = 0x4F,
+        PotionMinor = 0x50,
     }
 );
 
@@ -184,6 +186,8 @@ impl SpriteKind {
             SpriteKind::ShinyGem => true,
             SpriteKind::Crate => true,
             SpriteKind::Beehive => true,
+            SpriteKind::VialEmpty => true,
+            SpriteKind::PotionMinor => true,
             _ => false,
         }
     }
@@ -221,6 +225,8 @@ impl SpriteKind {
                 | SpriteKind::DropGateBottom
                 | SpriteKind::Door
                 | SpriteKind::Beehive
+                | SpriteKind::PotionMinor
+                | SpriteKind::VialEmpty
         )
     }
 }

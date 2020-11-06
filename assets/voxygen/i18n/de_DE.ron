@@ -1,5 +1,5 @@
 /// Translation document instructions
-/// 
+///
 /// In order to keep localization documents readible please follow the following
 /// rules:
 /// - separate the string map sections using a commentary describing the purpose
@@ -120,7 +120,7 @@ Dies ist eine frühe Alpha. Ihr werdet auf Bugs, unfertiges Gameplay und Mechani
 
 Für konstruktives Feedback und Bug-Reports könnt Ihr uns via Reddit, Gitlab oder unseren Discord Server kontaktieren.
 
-Veloren hat die GPL 3 Open-Source Lizenz. Das heißt Ihr könnt es kostenlos spielen, 
+Veloren hat die GPL 3 Open-Source Lizenz. Das heißt Ihr könnt es kostenlos spielen,
 aber auch modifizieren (solange die Mods auch die selbe Lizenz tragen) und das Spiel an andere weiterschicken.
 
 Veloren ist ein Non-Profit Community Projekt und jeder Mitarbeiter entwickelt es als Hobby in seiner Freizeit.
@@ -164,7 +164,7 @@ https://account.veloren.net.
         "hud.quests": "Quests",
         "hud.you_died": "Ihr seid gestorben.",
         "hud.waypoint_saved": "Wegpunkt gesichert",
-        
+
         "hud.press_key_to_show_keybindings_fmt": "[{key}] Tastenbelegung",
         "hud.press_key_to_toggle_lantern_fmt": "[{key}] Laterne",
         "hud.press_key_to_show_debug_info_fmt": "Drückt {key} um die Debug-Info zu zeigen",
@@ -172,13 +172,13 @@ https://account.veloren.net.
         "hud.press_key_to_toggle_debug_info_fmt": "Drückt {key} um die Debug-Info zu zeigen",
 
         // Chat outputs
-        "hud.chat.online_msg": "[{name}] ist jetzt online.", 
-        "hud.chat.offline_msg": "{name} ist jetzt offline.", 
-        "hud.chat.loot_msg": "Ihr erhaltet [{item}]",        
+        "hud.chat.online_msg": "[{name}] ist jetzt online.",
+        "hud.chat.offline_msg": "{name} ist jetzt offline.",
+        "hud.chat.loot_msg": "Ihr erhaltet [{item}]",
         "hud.chat.loot_fail": "Euer Inventar ist voll!",
         "hud.chat.goodbye": "Verbindung getrennt.",
         "hud.chat.connection_lost": "Verbindung unterbrochen. Trenne Verbindung in {time} Sekunden.",
-        
+
         "hud.chat.default_death_msg": "[{name}] ist gestorben",
         "hud.chat.environmental_kill_msg": "[{name}] starb durch {environment}",
         "hud.chat.fall_kill_msg": "[{name}] starb durch Fallschaden",
@@ -224,7 +224,7 @@ Um diese zu nutzen öffnet Euer Inventar mit 'B'.
 
 Doppelklickt den Gegenstand in Eurer Tasche, um diesen zu nutzen.
 
-Um Items wegzuwerfen klickt sie einmal im Inventar an 
+Um Items wegzuwerfen klickt sie einmal im Inventar an
 
 und klickt dann außerhalb der Tasche.
 
@@ -246,11 +246,11 @@ Viel Spaß in der Welt von Veloren, Abenteurer!"#,
 um unsere Dörfer herum aufgetaucht!
 
 
-Versammelt einige Kämpfer, sucht etwas 
-Nahrung und besiegt ihre abscheulichen 
+Versammelt einige Kämpfer, sucht etwas
+Nahrung und besiegt ihre abscheulichen
 Anführer und Akolyten.
 
-Vielleicht könnt Ihr sogar einen ihrer 
+Vielleicht könnt Ihr sogar einen ihrer
 magischen Gegenstände ergattern?"#,
 
         // Inventory
@@ -273,7 +273,7 @@ magischen Gegenstände ergattern?"#,
         "hud.bag.legs": "Beine",
         "hud.bag.feet": "Füße",
         "hud.bag.mainhand": "Haupthand",
-        "hud.bag.offhand": "Nebenhand",  
+        "hud.bag.offhand": "Nebenhand",
 
         // Map and Questlog
         "hud.map.map_title": "Karte",
@@ -292,7 +292,7 @@ magischen Gegenstände ergattern?"#,
         "hud.settings.custom_scaling": "Freie Skalierung",
         "hud.settings.crosshair": "Fadenkreuz",
         "hud.settings.transparency": "Transparenz",
-        "hud.settings.hotbar": "Hotbar",        
+        "hud.settings.hotbar": "Hotbar",
         "hud.settings.toggle_shortcuts": "Tastenbelegung",
         "hud.settings.toggle_bar_experience": "Erfahrungsleiste",
         "hud.settings.scrolling_combat_text": "Aufsteigende Kampfwerte",
@@ -300,7 +300,7 @@ magischen Gegenstände ergattern?"#,
         "hud.settings.cumulated_damage": "Addierter Schaden",
         "hud.settings.incoming_damage": "Erlittener Schaden",
         "hud.settings.cumulated_incoming_damage": "Addierter erlittener Schaden",
-        "hud.settings.speech_bubble": "Sprechblase",        
+        "hud.settings.speech_bubble": "Sprechblase",
         "hud.settings.speech_bubble_dark_mode": "Dunkle Sprechblasen",
         "hud.settings.speech_bubble_icon": "Sprechblasen-Symbole",
         "hud.settings.energybar_numbers": "Zahlen auf Ressourcenanzeige",
@@ -311,10 +311,10 @@ magischen Gegenstände ergattern?"#,
         "hud.settings.chat_character_name": "Characternamen im Chat",
         "hud.settings.buffs_mmap": "Zeige Buffs an der Mini-Map",
         "hud.settings.buffs_skillbar": "Zeige Buffs an der Fähigkeiten Leiste",
-        "hud.settings.cloud_rendering_mode.low": "Niedrig", 
+        "hud.settings.cloud_rendering_mode.low": "Niedrig",
         "hud.settings.cloud_rendering_mode.medium": "Mittel",
-        "hud.settings.cloud_rendering_mode.minimal": "Minimal", 
-        "hud.settings.cloud_rendering_mode.high": "Hoch", 
+        "hud.settings.cloud_rendering_mode.minimal": "Minimal",
+        "hud.settings.cloud_rendering_mode.high": "Hoch",
 
         "hud.settings.pan_sensitivity": "Schwenk-Sensibilität",
         "hud.settings.zoom_sensitivity": "Zoom-Sensibilität",
@@ -341,7 +341,7 @@ magischen Gegenstände ergattern?"#,
         "hud.settings.resolution": "Auflösung",
         "hud.settings.bit_depth": "Bittiefe",
         "hud.settings.refresh_rate": "Bildwiederholrate",
-        "hud.settings.fullscreen": "Vollbild",        
+        "hud.settings.fullscreen": "Vollbild",
         "hud.settings.fullscreen_mode": "Vollbild-Modus",
         "hud.settings.fullscreen_mode.exclusive": "Exklusiv",
         "hud.settings.fullscreen_mode.borderless": "Rahmenlos",
@@ -374,7 +374,7 @@ magischen Gegenstände ergattern?"#,
         "hud.social.account": "Account",
 
         "hud.spell": "Zauber",
-        
+
         "hud.social.name" : "Name",
         "hud.social.level" : "Lvl",
         "hud.social.zone" : "Gebiet",
@@ -401,13 +401,13 @@ magischen Gegenstände ergattern?"#,
         "hud.free_look_indicator": "Freie Sicht aktiv",
         "hud.auto_walk_indicator": "Automatisches Laufen aktiv",
 
-       
+
         /// End HUD section
         /// Start GameInput section
 
         "gameinput.primary": "Linker mittlerer Slot",
         "gameinput.secondary": "Rechter mittlerer Slot",
-        "gameinput.slot1": "Hotbar Slot 1",        
+        "gameinput.slot1": "Hotbar Slot 1",
         "gameinput.slot2": "Hotbar Slot 2",
         "gameinput.slot3": "Hotbar Slot 3",
         "gameinput.slot4": "Hotbar Slot 4",
@@ -450,7 +450,7 @@ magischen Gegenstände ergattern?"#,
         "gameinput.charge": "Anstürmen",
         "gameinput.togglewield": "Waffe ziehen/wegstecken",
         "gameinput.interact": "Interagieren",
-        "gameinput.freelook": "Freie Sicht",        
+        "gameinput.freelook": "Freie Sicht",
         "gameinput.autowalk": "Automatisch Laufen",
         "gameinput.dance": "Tanzen",
         "gameinput.declinegroupinvite": "Ablehnen",
@@ -501,7 +501,7 @@ Willenskraft
 
 
         /// Start character window section
-        
+
 
         /// Start Escape Menu Section
         "esc_menu.logout": "Ausloggen",
@@ -510,14 +510,14 @@ Willenskraft
 
          /// Buffs and Debuffs
         "buff.remove": "Klicken zum Entfernen",
-        "buff.title.missing": "Fehlender Titel", 
-        "buff.desc.missing": "Fehlende Beschreibung", 
+        "buff.title.missing": "Fehlender Titel",
+        "buff.desc.missing": "Fehlende Beschreibung",
         // Buffs
-        "buff.title.heal_test": "HoT Buff Test", 
-        "buff.desc.heal_test": "HoT Buff Test",   
-        // Debuffs   
-        "debuff.title.bleed_test": "Blutung", 
-        "debuff.desc.bleed_test": "Fügt regelmäßig Schaden zu.",
+        "buff.title.heal": "HoT Buff Test",
+        "buff.desc.heal": "HoT Buff Test",
+        // Debuffs
+        "debuff.title.bleed": "Blutung",
+        "debuff.desc.bleed": "Fügt regelmäßig Schaden zu.",
     },
 
     vector_map: {
@@ -530,17 +530,17 @@ Willenskraft
             "NPCs mit demselben Level können unterschiedlich schwierig zu besiegen sein.",
             "Behaltet den Boden um euch im Blick! Dort gibt es Nahrung, Kisten und Anderes zu finden.",
             "Ist Euer Inventar voll mit Nahrung? Wertet es einfach durch Crafting auf!",
-            "Ihr sucht nach einem Abenteuer? Dungeons sind mit braunen Markierungen auf der Karte vermerkt!",    
+            "Ihr sucht nach einem Abenteuer? Dungeons sind mit braunen Markierungen auf der Karte vermerkt!",
             "Vergesst nicht Eure Grafikeinstellungen anzupassen! Mit 'N' kommt ihr in die Einstellungen.",
-            "Zusammen kämpfen macht mehr Spaß! Drückt 'O' um Eure Mitspieler anzuzeigen.", 
+            "Zusammen kämpfen macht mehr Spaß! Drückt 'O' um Eure Mitspieler anzuzeigen.",
             "Ein NPC mit einem Schädel unter seiner Lebensanzeige ist deutlich stärker als Ihr.",
             "Drückt 'J' um zu tanzen. Yeah!",
             "Verwendet 'L-Shift' um mit Eurem Gleiter den Himmel zu erobern!",
             "Veloren befindet sich noch in der Pre-Alpha Phase. Wir tun unser Bestes, um das Spielgefühl jeden Tag zu verbessern!",
-            "Ihr wünscht, Euch mit uns auszutauschen oder wollt unserem Entwickler-Team beitreten? Kommt doch einfach auf unseren Discord-Server!",            
-        ],         
+            "Ihr wünscht, Euch mit uns auszutauschen oder wollt unserem Entwickler-Team beitreten? Kommt doch einfach auf unseren Discord-Server!",
+        ],
         "npc.speech.villager_under_attack": [
-            "Hilfe, ich werde angegriffen!",            
+            "Hilfe, ich werde angegriffen!",
         ],
     }
 )

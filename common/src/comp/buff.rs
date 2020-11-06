@@ -10,11 +10,15 @@ use std::{cmp::Ordering, collections::HashMap, time::Duration};
 pub enum BuffKind {
     /// Restores health/time for some period
     Regeneration,
+    /// Restores health/time for some period for consumables
+    Saturation,
     /// Lowers health over time for some duration
     Bleeding,
     /// Lower a creature's max health
     /// Currently placeholder buff to show other stuff is possible
     Cursed,
+    // Applied when drinking a potion
+    Potion,
 }
 
 impl BuffKind {
@@ -22,14 +26,16 @@ impl BuffKind {
     pub fn is_buff(self) -> bool {
         match self {
             BuffKind::Regeneration { .. } => true,
+            BuffKind::Saturation { .. } => true,
             BuffKind::Bleeding { .. } => false,
             BuffKind::Cursed { .. } => false,
+            BuffKind::Potion { .. } => true,
         }
     }
 }
 
 // Struct used to store data relevant to a buff
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct BuffData {
     pub strength: f32,
     pub duration: Option<Duration>,
@@ -97,7 +103,7 @@ pub enum BuffChange {
     RemoveById(Vec<BuffId>),
     /// Removes buffs of these categories (first vec is of categories of which
     /// all are required, second vec is of categories of which at least one is
-    /// required, third vec is of categories that will not be removed)  
+    /// required, third vec is of categories that will not be removed)
     RemoveByCategory {
         all_required: Vec<BuffCategory>,
         any_required: Vec<BuffCategory>,
@@ -121,7 +127,7 @@ impl Buff {
                 }],
                 data.duration,
             ),
-            BuffKind::Regeneration => (
+            BuffKind::Regeneration | BuffKind::Saturation | BuffKind::Potion => (
                 vec![BuffEffect::HealthChangeOverTime {
                     rate: data.strength,
                     accumulated: 0.0,

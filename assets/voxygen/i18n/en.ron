@@ -184,7 +184,7 @@ https://account.veloren.net."#,
         "hud.chat.pvp_ranged_kill_msg": "[{attacker}] shot [{victim}]",
         "hud.chat.pvp_explosion_kill_msg": "[{attacker}] blew up [{victim}]",
         "hud.chat.pvp_energy_kill_msg": "[{attacker}] killed [{victim}] with magic",
-        "hud.chat.pvp_other_kill_msg": "[{attacker}] killed [{victim}]",
+        "hud.chat.pvp_buff_kill_msg": "[{attacker}] killed [{victim}]",
 
 
         "hud.chat.npc_melee_kill_msg": "{attacker} killed [{victim}]",
@@ -520,11 +520,15 @@ Protection
         "buff.title.missing": "Missing Title",
         "buff.desc.missing": "Missing Description",
         // Buffs
-        "buff.title.heal_test": "Heal Test",
-        "buff.desc.heal_test": "This is a test buff to test healing.",
+        "buff.title.heal": "Heal",
+        "buff.desc.heal": "Gain health over time.",
+        "buff.title.potion": "Potion",
+        "buff.desc.potion": "Drinking...",
+        "buff.title.saturation": "Saturation",
+        "buff.desc.saturation": "Gain health over time from consumables.",
         // Debuffs
-        "debuff.title.bleed_test": "Bleeding",
-        "debuff.desc.bleed_test": "Inflicts regular damage.",
+        "debuff.title.bleed": "Bleeding",
+        "debuff.desc.bleed": "Inflicts regular damage.",
     },
 
 
