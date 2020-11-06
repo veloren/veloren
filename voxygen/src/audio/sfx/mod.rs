@@ -146,6 +146,7 @@ pub enum SfxEvent {
     Idle,
     Swim,
     Run,
+    SnowRun,
     Roll,
     Sneak,
     Climb,

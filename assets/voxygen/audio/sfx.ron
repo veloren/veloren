@@ -75,6 +75,14 @@
             ],
             threshold: 0.25,
         ),
+        SnowRun: (
+            files: [
+                "voxygen.audio.sfx.footsteps.snow_step_1",
+                "voxygen.audio.sfx.footsteps.snow_step_2",
+                "voxygen.audio.sfx.footsteps.snow_step_3",
+            ],
+            threshold: 0.25,
+        ),
         ExperienceGained: (
             files: [
                 // "voxygen.audio.sfx.character.experience_gained_1",

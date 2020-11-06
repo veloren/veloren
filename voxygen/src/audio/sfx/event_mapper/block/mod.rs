@@ -71,6 +71,7 @@ impl EventMapper for BlockEventMapper {
             // Condition that must be true to play
             cond: fn(&State) -> bool,
         }
+
         let sounds: &[BlockSounds] = &[
             BlockSounds {
                 blocks: |boi| &boi.leaves,
@@ -108,7 +109,6 @@ impl EventMapper for BlockEventMapper {
                 sfx: SfxEvent::Frog,
                 volume: 0.8,
                 cond: |st| st.get_day_period().is_dark(),
-                //cond: |_| true,
             },
             //BlockSounds {
             //    blocks: |boi| &boi.flowers,
@@ -153,86 +153,34 @@ impl EventMapper for BlockEventMapper {
                     // Get the positions of the blocks of type sounds
                     let blocks = (sounds.blocks)(&chunk_data.blocks_of_interest);
 
-                    //let mut my_blocks = blocks.to_vec();
-                    //// Reduce the number of bird calls from trees
-                    //if sounds.sfx == SfxEvent::Birdcall {
-                    //    my_blocks = my_blocks.choose_multiple(&mut thread_rng(), 6).cloned().collect();
-                    //    //blocks = blocks.to_vec().choose_multiple(&mut thread_rng(), 6).cloned().collect::<Vec<vek::Vec3<i32>>>().as_slice();
-                    //} else if sounds.sfx == SfxEvent::Cricket {
-                    //    my_blocks = my_blocks.choose_multiple(&mut thread_rng(), 6).cloned().collect();
-                    //}
-
                     let absolute_pos: Vec3<i32> =
                         Vec3::from(chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32));
 
                     // Iterate through each individual block
                     for block in blocks {
-
-                    if (sounds.sfx == SfxEvent::Birdcall || sounds.sfx == SfxEvent::Owl) && thread_rng().gen_bool(0.999) {
-                        continue;
-                    }
+                        if (sounds.sfx == SfxEvent::Birdcall || sounds.sfx == SfxEvent::Owl)
+                            && thread_rng().gen_bool(0.999)
+                        {
+                            continue;
+                        }
                         let block_pos: Vec3<i32> = absolute_pos + block;
                         let state = self.history.entry(block_pos).or_default();
 
-                        // Convert to f32 for sfx emitter
-                        //let block_pos = Vec3::new(
-                        //    block_pos[0] as f32,
-                        //    block_pos[1] as f32,
-                        //    block_pos[2] as f32,
-                        //);
                         let block_pos = block_pos.map(|x| x as f32);
 
                         if Self::should_emit(state, triggers.get_key_value(&sounds.sfx)) {
                             // If the camera is within SFX distance
                             if (block_pos.distance_squared(cam_pos)) < SFX_DIST_LIMIT_SQR {
-                                sfx_emitter.emit(SfxEventItem::new(sounds.sfx.clone(), Some(block_pos), Some(sounds.volume)));
+                                sfx_emitter.emit(SfxEventItem::new(
+                                    sounds.sfx.clone(),
+                                    Some(block_pos),
+                                    Some(sounds.volume),
+                                ));
                                 state.time = Instant::now();
                                 state.event = sounds.sfx.clone();
                             }
                         }
                     }
-
-                        //// If the timer for this block is over the spacing
-                        //// and the block is in the history
-                        //if self.history.contains_key(&block_pos) {
-                        //    if self
-                        //        .history
-                        //        .get(&block_pos)
-                        //        .unwrap() // can't fail as the key is in the hashmap
-                        //        .elapsed()
-                        //        .as_secs_f32()
-                        //        > sounds.spacing
-                        //    {
-                        //        // Reset timer for this block
-                        //        self.history.insert(block_pos, Instant::now());
-
-                        //        // Convert to f32 for distance_squared function
-                        //        let block_pos = Vec3::new(
-                        //            block_pos[0] as f32,
-                        //            block_pos[1] as f32,
-                        //            block_pos[2] as f32,
-                        //        );
-
-                        //        // If the camera is within SFX distance
-                        //        if (block_pos.distance_squared(cam_pos)) < SFX_DIST_LIMIT_SQR {
-                        //            // Emit the sound
-                        //            let sfx_trigger_item = triggers.get_trigger(&sounds.sfx);
-                        //            if sfx_trigger_item.is_some() {
-                        //                ecs.read_resource::<EventBus<SfxEventItem>>().emit_now(
-                        //                    SfxEventItem::new(
-                        //                        sounds.sfx.clone(),
-                        //                        Some(block_pos),
-                        //                        Some(sounds.volume),
-                        //                    ),
-                        //                );
-                        //            }
-                        //        }
-                        //    }
-                        //} else {
-                        //    // Start the timer for this block
-                        //    self.history.insert(block_pos, Instant::now());
-                        //}
-                    //}
                 });
             }
         }
@@ -260,21 +208,4 @@ impl BlockEventMapper {
             false
         }
     }
-    //fn map_event(&mut self, blocktype: BlockEmitter) -> Option<SfxEvent> {
-    //    if self.timer.elapsed().as_secs_f32() > 1.0 {
-    //        self.timer = Instant::now();
-    //        let sfx_event = match blocktype {
-    //            BlockEmitter::Leaves => Some(SfxEvent::LevelUp),
-    //            BlockEmitter::Grass => Some(SfxEvent::Roll),
-    //            BlockEmitter::Embers => Some(SfxEvent::Roll),
-    //            BlockEmitter::Beehives => Some(SfxEvent::Roll),
-    //            BlockEmitter::Reeds => Some(SfxEvent::Roll),
-    //            BlockEmitter::Flowers => Some(SfxEvent::Roll),
-    //        };
-
-    //        sfx_event
-    //    } else {
-    //        None
-    //    }
-    //}
 }
