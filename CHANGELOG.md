@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Buff system
 - Sneaking lets you be closer to enemies without being detected
 - Flight
+- Roll has i-frames
 
 ### Changed
 
