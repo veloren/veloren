@@ -56,7 +56,7 @@ impl Animation for AlphaAnimation {
         next.torso.position = Vec3::new(0.0, 0.0, 0.1);
         next.torso.orientation = Quaternion::rotation_z(0.0);
         match active_tool_kind {
-            Some(ToolKind::Sword(_)) => {
+            Some(ToolKind::Sword) => {
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation = Quaternion::rotation_x(0.0);
 
@@ -87,7 +87,7 @@ impl Animation for AlphaAnimation {
                     movement1 * -0.9 + (movement2 * 1.75).sin() * 2.5 + movement3 * -0.5,
                 );
             },
-            Some(ToolKind::Hammer(_)) => {
+            Some(ToolKind::Hammer) => {
                 next.hand_l.position = Vec3::new(-12.0, 0.0, 10.0);
                 next.hand_l.orientation =
                     Quaternion::rotation_x(0.0) * Quaternion::rotation_z(-2.0);
@@ -138,7 +138,7 @@ impl Animation for AlphaAnimation {
                     * Quaternion::rotation_y(slowersmooth * 0.35 - 0.3)
                     * Quaternion::rotation_z(1.4 + slowersmooth * 0.2);
             },
-            Some(ToolKind::Debug(_)) => {
+            Some(ToolKind::Debug) => {
                 next.hand_l.position = Vec3::new(-7.0, 4.0, 3.0);
                 next.hand_l.orientation = Quaternion::rotation_x(1.27);
                 next.main.position = Vec3::new(-5.0, 5.0, 23.0);

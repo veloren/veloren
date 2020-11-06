@@ -2,7 +2,7 @@ use super::{
     super::{vek::*, Animation},
     BipedLargeSkeleton, SkeletonAttr,
 };
-use common::comp::item::ToolKind;
+use common::comp::item::{ToolKind, UniqueKind};
 use std::{f32::consts::PI, ops::Mul};
 
 pub struct WieldAnimation;
@@ -208,7 +208,7 @@ impl Animation for WieldAnimation {
                     * Quaternion::rotation_z(test * 0.02);
             }
             match active_tool_kind {
-                Some(ToolKind::Sword(_)) => {
+                Some(ToolKind::Sword) => {
                     next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
                     next.hand_l.orientation =
                         Quaternion::rotation_x(s_a.shl.3) * Quaternion::rotation_y(s_a.shl.4);
@@ -222,7 +222,7 @@ impl Animation for WieldAnimation {
                     next.control.orientation = Quaternion::rotation_x(u_slow * 0.15)
                         * Quaternion::rotation_z(u_slowalt * 0.08);
                 },
-                Some(ToolKind::Bow(_)) => {
+                Some(ToolKind::Bow) => {
                     next.hand_l.position = Vec3::new(s_a.bhl.0, s_a.bhl.1, s_a.bhl.2);
                     next.hand_l.orientation = Quaternion::rotation_x(s_a.bhl.3)
                         * Quaternion::rotation_y(s_a.bhl.4)
@@ -243,7 +243,7 @@ impl Animation for WieldAnimation {
                         * Quaternion::rotation_y(s_a.bc.4)
                         * Quaternion::rotation_z(s_a.bc.5 + u_slowalt * 0.1);
                 },
-                Some(ToolKind::Hammer(_)) => {
+                Some(ToolKind::Hammer) => {
                     next.hand_l.position = Vec3::new(s_a.hhl.0, s_a.hhl.1, s_a.hhl.2);
                     next.hand_l.orientation = Quaternion::rotation_x(s_a.hhl.3)
                         * Quaternion::rotation_y(s_a.hhl.4)
@@ -262,7 +262,7 @@ impl Animation for WieldAnimation {
                     next.main.position = Vec3::new(0.0, 0.0, 0.0);
                     next.main.orientation = Quaternion::rotation_y(0.0);
                 },
-                Some(ToolKind::Staff(_)) => {
+                Some(ToolKind::Staff) => {
                     next.hand_l.position = Vec3::new(s_a.sthl.0, s_a.sthl.1, s_a.sthl.2);
                     next.hand_l.orientation =
                         Quaternion::rotation_x(s_a.sthl.3) * Quaternion::rotation_y(s_a.sthl.4);
@@ -283,7 +283,7 @@ impl Animation for WieldAnimation {
                         * Quaternion::rotation_y(0.15)
                         * Quaternion::rotation_z(u_slowalt * 0.08);
                 },
-                Some(ToolKind::NpcWeapon(_)) => {
+                Some(ToolKind::Unique(UniqueKind::BeastClaws)) => {
                     next.shoulder_l.position =
                         Vec3::new(-s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
 

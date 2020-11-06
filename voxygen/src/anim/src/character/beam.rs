@@ -54,7 +54,7 @@ impl Animation for BeamAnimation {
             * Quaternion::rotation_z(0.0);
 
         match active_tool_kind {
-            Some(ToolKind::Staff(_)) | Some(ToolKind::Sceptre(_)) => {
+            Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
                 next.control.position = Vec3::new(
                     s_a.stc.0 + (movement1 * 16.0) * (1.0 - movement3),
                     s_a.stc.1 + (movement1 + (movement2 * 8.0).sin() * 2.0) * (1.0 - movement3),

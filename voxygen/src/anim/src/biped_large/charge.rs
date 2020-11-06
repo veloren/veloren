@@ -78,7 +78,7 @@ impl Animation for ChargeAnimation {
         next.lower_torso.orientation = Quaternion::rotation_z(stop * -0.7 + tilt * 4.0);
 
         match active_tool_kind {
-            Some(ToolKind::Staff(_)) | Some(ToolKind::Sceptre(_)) => {
+            Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
                 next.hand_l.position = Vec3::new(s_a.sthl.0, s_a.sthl.1, s_a.sthl.2);
                 next.hand_l.orientation = Quaternion::rotation_x(s_a.sthl.3);
 
@@ -98,7 +98,7 @@ impl Animation for ChargeAnimation {
                     * Quaternion::rotation_y(s_a.stc.4)
                     * Quaternion::rotation_z(s_a.stc.5 + stop * 0.2);
             },
-            Some(ToolKind::Bow(_)) => {
+            Some(ToolKind::Bow) => {
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation = Quaternion::rotation_x(0.0);
                 next.hand_l.position = Vec3::new(s_a.bhl.0, s_a.bhl.1, s_a.bhl.2);

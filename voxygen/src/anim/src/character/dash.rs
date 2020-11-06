@@ -68,7 +68,7 @@ impl Animation for DashAnimation {
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
 
         match active_tool_kind {
-            Some(ToolKind::Sword(_)) => {
+            Some(ToolKind::Sword) => {
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation = Quaternion::rotation_x(0.0);
 

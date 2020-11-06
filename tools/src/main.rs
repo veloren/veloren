@@ -72,22 +72,22 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
 
 fn get_tool_kind(kind: &ToolKind) -> String {
     match kind {
-        ToolKind::Sword(_) => "Sword".to_string(),
-        ToolKind::Axe(_) => "Axe".to_string(),
-        ToolKind::Hammer(_) => "Hammer".to_string(),
-        ToolKind::Bow(_) => "Bow".to_string(),
-        ToolKind::Dagger(_) => "Dagger".to_string(),
-        ToolKind::Staff(_) => "Staff".to_string(),
-        ToolKind::Sceptre(_) => "Sceptre".to_string(),
-        ToolKind::Shield(_) => "Shield".to_string(),
-        ToolKind::Debug(_) => "Debug".to_string(),
-        ToolKind::Farming(_) => "Farming".to_string(),
-        ToolKind::NpcWeapon(_) => "NpcWeapon".to_string(),
+        ToolKind::Sword => "Sword".to_string(),
+        ToolKind::Axe => "Axe".to_string(),
+        ToolKind::Hammer => "Hammer".to_string(),
+        ToolKind::Bow => "Bow".to_string(),
+        ToolKind::Dagger => "Dagger".to_string(),
+        ToolKind::Staff => "Staff".to_string(),
+        ToolKind::Sceptre => "Sceptre".to_string(),
+        ToolKind::Shield => "Shield".to_string(),
+        ToolKind::Debug => "Debug".to_string(),
+        ToolKind::Farming => "Farming".to_string(),
+        ToolKind::Unique(_) => "Unique".to_string(),
         ToolKind::Empty => "Empty".to_string(),
     }
 }
 
-fn get_tool_kind_kind(kind: &ToolKind) -> String {
+/*fn get_tool_kind_kind(kind: &ToolKind) -> String {
     match kind {
         ToolKind::Sword(x) => x.clone(),
         ToolKind::Axe(x) => x.clone(),
@@ -102,7 +102,7 @@ fn get_tool_kind_kind(kind: &ToolKind) -> String {
         ToolKind::NpcWeapon(x) => x.clone(),
         ToolKind::Empty => "".to_string(),
     }
-}
+}*/
 
 fn get_armor_kind(kind: &ArmorKind) -> String {
     match kind {
@@ -146,7 +146,7 @@ fn all_items() -> Result<(), Box<dyn Error>> {
         let kind = match item.kind() {
             ItemKind::Armor(armor) => get_armor_kind_kind(&armor.kind),
             ItemKind::Lantern(lantern) => lantern.kind.clone(),
-            ItemKind::Tool(tool) => get_tool_kind_kind(&tool.kind),
+            //ItemKind::Tool(tool) => get_tool_kind_kind(&tool.kind),
             _ => "".to_owned(),
         };
 

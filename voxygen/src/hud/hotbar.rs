@@ -78,12 +78,12 @@ impl State {
                     use common::comp::item::{tool::ToolKind, ItemKind};
                     if let ItemKind::Tool(kind) = kind {
                         match &kind.kind {
-                            ToolKind::Staff(_) => true,
-                            ToolKind::Debug(_) => true,
-                            ToolKind::Sword(_) => true,
-                            ToolKind::Hammer(_) => true,
-                            ToolKind::Axe(_) => true,
-                            ToolKind::Bow(_) => true,
+                            ToolKind::Staff => true,
+                            ToolKind::Debug => true,
+                            ToolKind::Sword => true,
+                            ToolKind::Hammer => true,
+                            ToolKind::Axe => true,
+                            ToolKind::Bow => true,
                             _ => false,
                         }
                     } else {

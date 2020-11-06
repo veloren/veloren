@@ -317,7 +317,7 @@ impl Animation for ShootAnimation {
         next.lower_torso.orientation = next.upper_torso.orientation * -0.08;
 
         match active_tool_kind {
-            Some(ToolKind::Staff(_)) | Some(ToolKind::Sceptre(_)) => {
+            Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
                 next.hand_l.position = Vec3::new(s_a.sthl.0, s_a.sthl.1, s_a.sthl.2);
                 next.hand_l.orientation = Quaternion::rotation_x(s_a.sthl.3);
 
@@ -337,7 +337,7 @@ impl Animation for ShootAnimation {
                     * Quaternion::rotation_y(s_a.stc.4)
                     * Quaternion::rotation_z(s_a.stc.5 + exp * 1.5);
             },
-            Some(ToolKind::Bow(_)) => {
+            Some(ToolKind::Bow) => {
                 next.hand_l.position = Vec3::new(
                     s_a.bhl.0 - exp * 2.0,
                     s_a.bhl.1 - exp * 4.0,

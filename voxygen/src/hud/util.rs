@@ -84,17 +84,17 @@ fn armor_desc(armor: &Armor, desc: &str) -> String {
 fn tool_desc(tool: &Tool, desc: &str) -> String {
     // TODO: localization
     let kind = match tool.kind {
-        ToolKind::Sword(_) => "Sword",
-        ToolKind::Axe(_) => "Axe",
-        ToolKind::Hammer(_) => "Hammer",
-        ToolKind::Bow(_) => "Bow",
-        ToolKind::Dagger(_) => "Dagger",
-        ToolKind::Staff(_) => "Staff",
-        ToolKind::Sceptre(_) => "Sceptre",
-        ToolKind::Shield(_) => "Shield",
-        ToolKind::NpcWeapon(_) => "Npc Weapon",
-        ToolKind::Debug(_) => "Debug",
-        ToolKind::Farming(_) => "Farming Tool",
+        ToolKind::Sword => "Sword",
+        ToolKind::Axe => "Axe",
+        ToolKind::Hammer => "Hammer",
+        ToolKind::Bow => "Bow",
+        ToolKind::Dagger => "Dagger",
+        ToolKind::Staff => "Staff",
+        ToolKind::Sceptre => "Sceptre",
+        ToolKind::Shield => "Shield",
+        ToolKind::Unique(_) => "Unique",
+        ToolKind::Debug => "Debug",
+        ToolKind::Farming => "Farming Tool",
         ToolKind::Empty => "Empty",
     };
     let power = tool.base_power();
