@@ -1,7 +1,7 @@
 use crate::{
     column::{ColumnGen, ColumnSample},
     util::{RandomField, Sampler, SmallCache},
-    IndexRef,
+    IndexRef, CONFIG,
 };
 use common::terrain::{
     structure::{self, StructureBlock},
@@ -67,6 +67,7 @@ impl<'a> BlockGen<'a> {
             // marble_small,
             rock,
             // temp,
+            temp,
             // humidity,
             stone_col,
             ..
@@ -128,7 +129,9 @@ impl<'a> BlockGen<'a> {
             let col = Lerp::lerp(sub_surface_color, surface_color, grass_factor);
             // Surface
             Some(Block::new(
-                if grass_factor > 0.7 {
+                if temp < CONFIG.snow_temp + 0.031 {
+                    BlockKind::Snow
+                } else if grass_factor > 0.7 {
                     BlockKind::Grass
                 } else {
                     BlockKind::Earth

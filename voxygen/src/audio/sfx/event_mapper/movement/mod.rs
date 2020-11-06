@@ -10,7 +10,7 @@ use common::{
     comp::{Body, CharacterState, PhysicsState, Pos, Vel},
     event::EventBus,
     state::State,
-    terrain::TerrainChunk,
+    terrain::{BlockKind, TerrainChunk},
 };
 use hashbrown::HashMap;
 use specs::{Entity as EcsEntity, Join, WorldExt};
@@ -69,38 +69,53 @@ impl EventMapper for MovementEventMapper {
             .filter(|(_, e_pos, ..)| (e_pos.0.distance_squared(cam_pos)) < SFX_DIST_LIMIT_SQR)
         {
             if let Some(character) = character {
-                let state = self.event_history.entry(entity).or_default();
+                let internal_state = self.event_history.entry(entity).or_default();
+
+                // Get the underfoot block
+                let block_position = Vec3::new(pos.0.x, pos.0.y, pos.0.z - 1.0).map(|x| x as i32);
+                let underfoot_block_kind = match state.get_block(block_position) {
+                    Some(block) => block.kind(),
+                    None => BlockKind::Air,
+                };
 
                 let mapped_event = match body {
-                    Body::Humanoid(_) => Self::map_movement_event(character, physics, state, vel.0),
+                    Body::Humanoid(_) => Self::map_movement_event(
+                        character,
+                        physics,
+                        internal_state,
+                        vel.0,
+                        underfoot_block_kind,
+                    ),
                     Body::QuadrupedMedium(_)
                     | Body::QuadrupedSmall(_)
                     | Body::QuadrupedLow(_)
                     | Body::BirdMedium(_)
                     | Body::BirdSmall(_)
-                    | Body::BipedLarge(_) => Self::map_non_humanoid_movement_event(physics, vel.0),
+                    | Body::BipedLarge(_) => {
+                        Self::map_non_humanoid_movement_event(physics, vel.0, underfoot_block_kind)
+                    },
                     _ => SfxEvent::Idle, // Ignore fish, etc...
                 };
 
                 // Check for SFX config entry for this movement
-                if Self::should_emit(state, triggers.get_key_value(&mapped_event)) {
+                if Self::should_emit(internal_state, triggers.get_key_value(&mapped_event)) {
                     sfx_emitter.emit(SfxEventItem::new(
                         mapped_event.clone(),
                         Some(pos.0),
                         Some(Self::get_volume_for_body_type(body)),
                     ));
 
-                    state.time = Instant::now();
+                    internal_state.time = Instant::now();
                 }
 
                 // update state to determine the next event. We only record the time (above) if
                 // it was dispatched
-                state.event = mapped_event;
-                state.on_ground = physics.on_ground;
+                internal_state.event = mapped_event;
+                internal_state.on_ground = physics.on_ground;
                 if physics.in_fluid.is_some() {
-                    state.in_water = true;
+                    internal_state.in_water = true;
                 } else {
-                    state.in_water = false;
+                    internal_state.in_water = false;
                 }
             }
         }
@@ -162,11 +177,10 @@ impl MovementEventMapper {
         physics_state: &PhysicsState,
         previous_state: &PreviousEntityState,
         vel: Vec3<f32>,
+        underfoot_block_kind: BlockKind,
     ) -> SfxEvent {
         // Match run / roll / swim state
-        if physics_state.in_fluid.is_some()
-            //&& physics_state.in_fluid.unwrap() < 2.0 // To control different sound based on depth
-            && vel.magnitude() > 0.1
+        if physics_state.in_fluid.is_some() && vel.magnitude() > 0.1
             || !previous_state.in_water && physics_state.in_fluid.is_some()
         {
             return SfxEvent::Swim;
@@ -178,7 +192,10 @@ impl MovementEventMapper {
             } else if matches!(character_state, CharacterState::Sneak) {
                 SfxEvent::Sneak
             } else {
-                SfxEvent::Run
+                match underfoot_block_kind {
+                    BlockKind::Snow => SfxEvent::SnowRun,
+                    _ => SfxEvent::Run,
+                }
             };
         }
 
@@ -198,9 +215,18 @@ impl MovementEventMapper {
     }
 
     /// Maps a limited set of movements for other non-humanoid entities
-    fn map_non_humanoid_movement_event(physics_state: &PhysicsState, vel: Vec3<f32>) -> SfxEvent {
-        if physics_state.on_ground && vel.magnitude() > 0.1 {
-            SfxEvent::Run
+    fn map_non_humanoid_movement_event(
+        physics_state: &PhysicsState,
+        vel: Vec3<f32>,
+        underfoot_block_kind: BlockKind,
+    ) -> SfxEvent {
+        if physics_state.in_fluid.is_some() && vel.magnitude() > 0.1 {
+            return SfxEvent::Swim;
+        } else if physics_state.on_ground && vel.magnitude() > 0.1 {
+            match underfoot_block_kind {
+                BlockKind::Snow => SfxEvent::SnowRun,
+                _ => SfxEvent::Run,
+            }
         } else {
             SfxEvent::Idle
         }

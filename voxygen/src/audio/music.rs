@@ -45,7 +45,7 @@ use common::{
     state::State,
     terrain::{BiomeKind, SitesKind},
 };
-use rand::{prelude::SliceRandom, thread_rng};
+use rand::{prelude::SliceRandom, thread_rng, Rng};
 use serde::Deserialize;
 use std::time::Instant;
 use tracing::warn;
@@ -64,7 +64,7 @@ pub struct SoundtrackItem {
     title: String,
     path: String,
     /// Length of the track in seconds
-    length: f64,
+    length: f32,
     /// Whether this track should play during day or night
     timing: Option<DayPeriod>,
     biomes: Vec<(BiomeKind, u8)>,
@@ -93,13 +93,10 @@ enum PlayState {
 pub struct MusicMgr {
     soundtrack: SoundtrackCollection,
     began_playing: Instant,
-    //began_fading: Instant,
-    next_track_change: f64,
+    next_track_change: f32,
     /// The title of the last track played. Used to prevent a track
     /// being played twice in a row
     last_track: String,
-    /*last_biome: BiomeKind,
-     *playing: PlayState, */
 }
 
 impl MusicMgr {
@@ -108,61 +105,51 @@ impl MusicMgr {
         Self {
             soundtrack: Self::load_soundtrack_items(),
             began_playing: Instant::now(),
-            //began_fading: Instant::now(),
             next_track_change: 0.0,
             last_track: String::from("None"),
-            /*last_biome: BiomeKind::Void,
-             *playing: PlayState::Stopped, */
         }
     }
 
     /// Checks whether the previous track has completed. If so, sends a
     /// request to play the next (random) track
     pub fn maintain(&mut self, audio: &mut AudioFrontend, state: &State, client: &Client) {
-        // Gets the current player biome
-        //let current_biome: BiomeKind = match client.current_chunk() {
-        //    Some(chunk) => chunk.meta().biome(),
-        //    _ => self.last_biome,
+        if let Some(current_chunk) = client.current_chunk() {
+            println!("biome: {:?}", current_chunk.meta().biome());
+            println!("chaos: {}", current_chunk.meta().chaos());
+            println!("alt: {}", current_chunk.meta().alt());
+            println!("temp: {}", current_chunk.meta().temp());
+            println!("tree_density: {}", current_chunk.meta().tree_density());
+            println!("humidity: {}", current_chunk.meta().humidity());
+            println!("cave_alt: {}", current_chunk.meta().cave_alt());
+            //if let Some(position) = client.current_position() {
+            //    println!("player_pos: {:?}", position);
+        }
+        //let player_position = match client.current_position() {
+        //    Some(pos) => pos,
+        //    None => Vec3::default(),
         //};
-
-        //if let Some(current_chunk) = client.current_chunk() {
-        //    println!("biome: {:?}", current_chunk.meta().biome());
-        //    println!("chaos: {}", current_chunk.meta().chaos());
-        //    println!("alt: {}", current_chunk.meta().alt());
-        //    println!("temp: {}", current_chunk.meta().temp());
-        //    println!("tree_density: {}",
-        //     current_chunk.meta().tree_density());
-        //     println!("humidity: {}", current_chunk.meta().humidity());
-        //    println!("cave_alt: {}", current_chunk.meta().cave_alt());
-        //    if let Some(position) = client.current_position() {
-        //        println!("player_alt: {}", position[2]);
-        //    }
-        //}
+        //let block_position = Vec3::new(
+        //    player_position[0],
+        //    player_position[1],
+        //    player_position[2] - 1.0,
+        //)
+        //.map(|x| x as i32);
+        //let block_kind = match state.get_block(block_position) {
+        //    Some(block) => block.kind(),
+        //    None => BlockKind::Air,
+        //};
+        //println!("BlockKind: {:?}", block_kind);
 
         if audio.music_enabled()
             && !self.soundtrack.tracks.is_empty()
-            && self.began_playing.elapsed().as_secs_f64() > self.next_track_change
-        //        || self.playing == PlayState::Stopped)
-        //    && self.playing != PlayState::FadingOut
+            && self.began_playing.elapsed().as_secs_f32() > self.next_track_change
         {
             self.play_random_track(audio, state, client);
-        //    self.playing = PlayState::Playing;
-        //} else if current_biome != self.last_biome && self.playing == PlayState::Playing {
-        //    audio.fade_out_exploration_music();
-        //    self.began_fading = Instant::now();
-        //    self.playing = PlayState::FadingOut;
-        //} else if self.began_fading.elapsed().as_secs_f64() > 5.0
-        //    && self.playing == PlayState::FadingOut
-        //{
-        //    audio.stop_exploration_music();
-        //    self.playing = PlayState::Stopped;
         }
-        //self.last_biome = current_biome;
     }
 
     fn play_random_track(&mut self, audio: &mut AudioFrontend, state: &State, client: &Client) {
-        //const SILENCE_BETWEEN_TRACKS_SECONDS: f64 = 45.0;
-        const SILENCE_BETWEEN_TRACKS_SECONDS: f64 = 5.0;
+        let silence_between_tracks_seconds: f32 = thread_rng().gen_range(30.0, 60.0);
 
         let game_time = (state.get_time_of_day() as u64 % 86400) as u32;
         let current_period_of_day = Self::get_current_day_period(game_time);
@@ -217,7 +204,7 @@ impl MusicMgr {
         if let Ok(track) = new_maybe_track {
             self.last_track = String::from(&track.title);
             self.began_playing = Instant::now();
-            self.next_track_change = track.length + SILENCE_BETWEEN_TRACKS_SECONDS;
+            self.next_track_change = track.length + silence_between_tracks_seconds;
 
             audio.play_exploration_music(&track.path);
         }
