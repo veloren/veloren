@@ -1,12 +1,21 @@
 ItemDef(
     name: "Sunflower Ice Tea",
-    description: "Restores 50 Health\n\nBrewed from freshly shelled sunflower seeds.",
+    description: "Restores 50 Health over 20 seconds\n\nBrewed from freshly shelled sunflower seeds",
     kind: Consumable(
         kind: "SunflowerTea",
-        effect: Health((
-            amount: 500,
-            cause: Item,
-        )),        
+        effect: [
+            Buff((
+                kind: Saturation,
+                data: (
+                    strength: 25.0,
+                    duration: Some((
+                            secs: 20,
+                            nanos: 0,
+                        )),
+                    ),
+                cat_ids: [Natural],
+            )),
+        ]
     ),
     quality: Moderate,
 )

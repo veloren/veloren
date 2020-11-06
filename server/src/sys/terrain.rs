@@ -138,7 +138,7 @@ impl<'a> System<'a> for Sys {
                             body,
                         );
                     }
-                    stats.level.set_level(rand::thread_rng().gen_range(30, 35));
+                    stats.level.set_level(rand::thread_rng().gen_range(25, 30));
                     scale = 2.0 + rand::random::<f32>();
                 }
 

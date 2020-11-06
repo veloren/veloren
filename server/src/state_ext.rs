@@ -71,8 +71,8 @@ pub trait StateExt {
 }
 
 impl StateExt for State {
-    fn apply_effect(&self, entity: EcsEntity, effect: Effect, source: Option<Uid>) {
-        match effect {
+    fn apply_effect(&self, entity: EcsEntity, effects: Effect, source: Option<Uid>) {
+        match effects {
             Effect::Health(change) => {
                 self.ecs()
                     .write_storage::<comp::Health>()
@@ -92,6 +92,19 @@ impl StateExt for State {
                     .write_storage::<comp::Health>()
                     .get_mut(entity)
                     .map(|health| health.change_by(change));
+            },
+            Effect::Buff(buff) => {
+                self.ecs()
+                    .write_storage::<comp::Buffs>()
+                    .get_mut(entity)
+                    .map(|buffs| {
+                        buffs.insert(comp::Buff::new(
+                            buff.kind,
+                            buff.data,
+                            buff.cat_ids,
+                            comp::BuffSource::Item,
+                        ))
+                    });
             },
         }
     }

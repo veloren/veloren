@@ -1,12 +1,21 @@
 ItemDef(
     name: "Potent Potion",
-    description: "A potent healing potion.\n\nRestores 100 health on use.\n\n<Right-Click to use>",
+    description: "A potent healing potion.\n\nRestores 100 health on use",
     kind: Consumable(
         kind: "Potion",
-        effect: Health((
-            amount: 1000,
-            cause: Item,
-        )),
+        effect: [
+            Buff((
+                kind: Saturation,
+                data: (
+                    strength: 1000.0,
+                    duration: Some((
+                            secs: 1,
+                            nanos: 0,
+                        )),
+                    ),
+                cat_ids: [Natural],
+            )),
+        ]
     ),
     quality: High,
 )

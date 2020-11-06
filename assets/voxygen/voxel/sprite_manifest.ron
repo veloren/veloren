@@ -1983,4 +1983,26 @@ Beehive: Some((
     ],
     wind_sway: 0.1,
 )),
+// Empty Flask
+VialEmpty: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.object.potion_empty",
+            offset: (-5.0, -5.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+// Minor Potion
+PotionMinor: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.object.potion_red",
+            offset: (-5.0, -5.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
 )

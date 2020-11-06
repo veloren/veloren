@@ -211,7 +211,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     } else if let Some(item) = inventory.take(slot) {
                         match item.kind() {
                             ItemKind::Consumable { kind, effect, .. } => {
-                                maybe_effect = Some(*effect);
+                                maybe_effect = Some(effect.clone());
                                 Some(comp::InventoryUpdateEvent::Consumed(kind.clone()))
                             },
                             ItemKind::Throwable { kind, .. } => {
@@ -348,8 +348,10 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             };
 
             drop(inventories);
-            if let Some(effect) = maybe_effect {
-                state.apply_effect(entity, effect, None);
+            if let Some(effects) = maybe_effect {
+                for effect in effects {
+                    state.apply_effect(entity, effect, None);
+                }
             }
             if let Some(event) = event {
                 state.write_component(entity, comp::InventoryUpdate::new(event));
