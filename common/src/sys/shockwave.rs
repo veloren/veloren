@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        group, Body, CharacterState, Health, HealthSource, Last, Loadout, Ori, PhysicsState, Pos,
-        Scale, Shockwave, ShockwaveHitEntities,
+        group, Body, Health, HealthSource, Last, Loadout, Ori, PhysicsState, Pos, Scale, Shockwave,
+        ShockwaveHitEntities,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     state::{DeltaTime, Time},
@@ -36,7 +36,6 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, PhysicsState>,
         WriteStorage<'a, Shockwave>,
         WriteStorage<'a, ShockwaveHitEntities>,
-        ReadStorage<'a, CharacterState>,
     );
 
     fn run(
@@ -60,7 +59,6 @@ impl<'a> System<'a> for Sys {
             physics_states,
             mut shockwaves,
             mut shockwave_hit_lists,
-            char_states,
         ): Self::SystemData,
     ) {
         let mut server_emitter = server_bus.emitter();
@@ -133,7 +131,6 @@ impl<'a> System<'a> for Sys {
                 health_b,
                 body_b,
                 physics_state_b,
-                char_state_b_maybe,
             ) in (
                 &entities,
                 &uids,
@@ -144,7 +141,6 @@ impl<'a> System<'a> for Sys {
                 &healths,
                 &bodies,
                 &physics_states,
-                char_states.maybe(),
             )
                 .join()
             {
@@ -180,9 +176,6 @@ impl<'a> System<'a> for Sys {
                     GroupTarget::OutOfGroup
                 };
 
-                // Check if entity is immune to damage
-                let is_invincible = char_state_b_maybe.map_or(false, |c_s| c_s.is_invincible());
-
                 // Check if it is a hit
                 let hit = entity != b
                     && !health_b.is_dead
@@ -200,9 +193,7 @@ impl<'a> System<'a> for Sys {
                 if hit {
                     for (target, damage) in shockwave.damages.iter() {
                         if let Some(target) = target {
-                            if *target != target_group
-                                || (!matches!(target, GroupTarget::InGroup) && is_invincible)
-                            {
+                            if *target != target_group {
                                 continue;
                             }
                         }
