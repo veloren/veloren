@@ -23,7 +23,7 @@ vek = { version = "0.12.0", features = ["serde"] }
 uvth = "3.1.1"
 futures-util = "0.3"
 futures-executor = "0.3"
-futures-timer = "2.0"
+futures-timer = "3.0"
 futures-channel = "0.3"
 itertools = "0.9"
 lazy_static = "1.4.0"
@@ -35,7 +35,7 @@ rand = { version = "0.7", features = ["small_rng"] }
 chrono = "0.4.9"
 hashbrown = { version = "0.7.2", features = ["rayon", "serde", "nightly"] }
 crossbeam = "0.7.2"
-prometheus = { version = "0.9", default-features = false}
+prometheus = { version = "0.10", default-features = false}
 tiny_http = "0.7.0"
 portpicker = { git = "https://github.com/xMAC94x/portpicker-rs" }
 authc = { git = "https://gitlab.com/veloren/auth.git", rev = "b943c85e4a38f5ec60cd18c34c73097640162bfe" }

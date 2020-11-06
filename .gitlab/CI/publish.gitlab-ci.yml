@@ -30,11 +30,5 @@ pages:
   script:
     - rm -rf public
     - mkdir -p public
-    - cargo doc --no-deps --document-private-items --exclude veloren-voxygen --workspace
-    - mv target/doc/* public
-
-pages-broken-fix-me-in-future:
-  extends: .publish
-  allow_failure: true
-  script:
     - cargo doc --no-deps --document-private-items
+    - mv target/doc/* public
