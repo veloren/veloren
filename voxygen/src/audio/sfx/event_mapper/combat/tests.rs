@@ -1,9 +1,7 @@
 use super::*;
 use crate::audio::sfx::SfxEvent;
 use common::{
-    comp::{
-        item::tool::ToolCategory, CharacterAbilityType, CharacterState, Item, ItemConfig, Loadout,
-    },
+    comp::{item::tool::ToolKind, CharacterAbilityType, CharacterState, Item, ItemConfig, Loadout},
     states,
 };
 use std::time::{Duration, Instant};
@@ -36,7 +34,10 @@ fn maps_wield_while_equipping() {
         Some(&loadout),
     );
 
-    assert_eq!(result, SfxEvent::Wield(ToolCategory::Axe));
+    assert_eq!(
+        result,
+        SfxEvent::Wield(ToolKind::Axe("BasicAxe".to_string()))
+    );
 }
 
 #[test]
@@ -62,7 +63,10 @@ fn maps_unwield() {
         Some(&loadout),
     );
 
-    assert_eq!(result, SfxEvent::Unwield(ToolCategory::Bow));
+    assert_eq!(
+        result,
+        SfxEvent::Unwield(ToolKind::Bow("ShortBow0".to_string()))
+    );
 }
 
 #[test]
@@ -103,7 +107,10 @@ fn maps_basic_melee() {
 
     assert_eq!(
         result,
-        SfxEvent::Attack(CharacterAbilityType::BasicMelee, ToolCategory::Axe)
+        SfxEvent::Attack(
+            CharacterAbilityType::BasicMelee,
+            ToolKind::Axe("BasicAxe".to_string())
+        )
     );
 }
 
@@ -163,7 +170,7 @@ fn matches_ability_stage() {
         result,
         SfxEvent::Attack(
             CharacterAbilityType::ComboMelee(states::utils::StageSection::Swing, 1),
-            ToolCategory::Sword
+            ToolKind::Sword("BasicSword".to_string())
         )
     );
 }
@@ -224,7 +231,7 @@ fn ignores_different_ability_stage() {
         result,
         SfxEvent::Attack(
             CharacterAbilityType::ComboMelee(states::utils::StageSection::Swing, 2),
-            ToolCategory::Sword
+            ToolKind::Sword("BasicSword".to_string())
         )
     );
 }
