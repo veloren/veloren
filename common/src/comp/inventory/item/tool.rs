@@ -55,41 +55,6 @@ pub enum Hands {
     TwoHand,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum ToolCategory {
-    Sword,
-    Axe,
-    Hammer,
-    Bow,
-    Dagger,
-    Staff,
-    Sceptre,
-    Shield,
-    NpcWeapon,
-    Debug,
-    Farming,
-    Empty,
-}
-
-impl From<&ToolKind> for ToolCategory {
-    fn from(kind: &ToolKind) -> ToolCategory {
-        match kind {
-            ToolKind::Sword(_) => ToolCategory::Sword,
-            ToolKind::Axe(_) => ToolCategory::Axe,
-            ToolKind::Hammer(_) => ToolCategory::Hammer,
-            ToolKind::Bow(_) => ToolCategory::Bow,
-            ToolKind::Dagger(_) => ToolCategory::Dagger,
-            ToolKind::Staff(_) => ToolCategory::Staff,
-            ToolKind::Sceptre(_) => ToolCategory::Sceptre,
-            ToolKind::Shield(_) => ToolCategory::Shield,
-            ToolKind::NpcWeapon(_) => ToolCategory::NpcWeapon,
-            ToolKind::Debug(_) => ToolCategory::Debug,
-            ToolKind::Farming(_) => ToolCategory::Farming,
-            ToolKind::Empty => ToolCategory::Empty,
-        }
-    }
-}
-
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Stats {
     equip_time_millis: u32,
@@ -657,12 +622,5 @@ impl Tool {
                 max_angle: 15.0,
             }],
         }
-    }
-
-    /// Determines whether two tools are superficially equivalent to one another
-    /// (i.e: one may be substituted for the other in crafting recipes or
-    /// item possession checks).
-    pub fn superficially_eq(&self, other: &Self) -> bool {
-        ToolCategory::from(&self.kind) == ToolCategory::from(&other.kind)
     }
 }

@@ -380,7 +380,7 @@ impl<'a> System<'a> for Sys {
                 } else {
                     0.0
                 })
-                .max(if physics_state.in_fluid.is_some() {
+                .max(if physics_state.in_liquid.is_some() {
                     FRIC_FLUID
                 } else {
                     0.0
@@ -391,7 +391,7 @@ impl<'a> System<'a> for Sys {
             let downward_force = if !in_loaded_chunk {
                 0.0 // No gravity in unloaded chunks
             } else if physics_state
-                .in_fluid
+                .in_liquid
                 .map(|depth| depth > 0.75)
                 .unwrap_or(false)
             {
@@ -694,7 +694,7 @@ impl<'a> System<'a> for Sys {
                     }
 
                     // Figure out if we're in water
-                    physics_state.in_fluid = collision_iter(
+                    physics_state.in_liquid = collision_iter(
                         pos.0,
                         &terrain,
                         &|block| block.is_liquid(),
@@ -743,7 +743,7 @@ impl<'a> System<'a> for Sys {
                         }
                     }
 
-                    physics_state.in_fluid = terrain.get(pos.0.map(|e| e.floor() as i32))
+                    physics_state.in_liquid = terrain.get(pos.0.map(|e| e.floor() as i32))
                         .ok()
                         .and_then(|vox| vox.is_liquid().then_some(1.0));
                 },

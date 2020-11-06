@@ -106,7 +106,7 @@ pub struct PhysicsState {
     pub on_ceiling: bool,
     pub on_wall: Option<Vec3<f32>>,
     pub touch_entities: Vec<Uid>,
-    pub in_fluid: Option<f32>, // Depth
+    pub in_liquid: Option<f32>, // Depth
 }
 
 impl PhysicsState {

@@ -8,10 +8,7 @@ use crate::{
 use super::EventMapper;
 
 use common::{
-    comp::{
-        item::{ItemKind, ToolCategory},
-        CharacterAbilityType, CharacterState, Loadout, Pos,
-    },
+    comp::{item::ItemKind, CharacterAbilityType, CharacterState, Loadout, Pos},
     event::EventBus,
     state::State,
 };
@@ -140,19 +137,15 @@ impl CombatEventMapper {
                     if character_state.is_attack() {
                         return SfxEvent::Attack(
                             CharacterAbilityType::from(character_state),
-                            ToolCategory::from(&data.kind),
+                            data.kind.clone(),
                         );
                     } else if let Some(wield_event) = match (
                         previous_state.weapon_drawn,
                         character_state.is_dodge(),
                         Self::weapon_drawn(character_state),
                     ) {
-                        (false, false, true) => {
-                            Some(SfxEvent::Wield(ToolCategory::from(&data.kind)))
-                        },
-                        (true, false, false) => {
-                            Some(SfxEvent::Unwield(ToolCategory::from(&data.kind)))
-                        },
+                        (false, false, true) => Some(SfxEvent::Wield(data.kind.clone())),
+                        (true, false, false) => Some(SfxEvent::Unwield(data.kind.clone())),
                         _ => None,
                     } {
                         return wield_event;
