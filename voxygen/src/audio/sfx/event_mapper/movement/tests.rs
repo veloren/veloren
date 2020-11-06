@@ -157,6 +157,7 @@ fn maps_roll() {
                 buildup_duration: Duration::default(),
                 movement_duration: Duration::default(),
                 recover_duration: Duration::default(),
+                roll_strength: 0.0,
             },
             timer: Duration::default(),
             stage_section: states::utils::StageSection::Buildup,

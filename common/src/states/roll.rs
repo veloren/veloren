@@ -2,13 +2,9 @@ use crate::{
     comp::{CharacterState, StateUpdate},
     states::utils::*,
     sys::character_behavior::{CharacterBehavior, JoinData},
-    util::Dir,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
-use vek::Vec3;
-
-const ROLL_SPEED: f32 = 25.0;
 
 /// Separated out to condense update portions of character state
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -19,6 +15,8 @@ pub struct StaticData {
     pub movement_duration: Duration,
     /// How long it takes to recover from roll
     pub recover_duration: Duration,
+    /// Affects the speed and distance of the roll
+    pub roll_strength: f32,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -40,19 +38,12 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        // Update velocity
-        update.vel.0 = Vec3::new(0.0, 0.0, update.vel.0.z)
-            + (update.vel.0 * Vec3::new(1.0, 1.0, 0.0)
-                + 0.25 * data.inputs.move_dir.try_normalized().unwrap_or_default())
-            .try_normalized()
-            .unwrap_or_default()
-                * ROLL_SPEED;
-
         // Smooth orientation
-        update.ori.0 = Dir::slerp_to_vec3(update.ori.0, update.vel.0.xy().into(), 9.0 * data.dt.0);
+        handle_orientation(data, &mut update, 1.0);
 
         match self.stage_section {
             StageSection::Buildup => {
+                handle_move(data, &mut update, 1.0);
                 if self.timer < self.static_data.buildup_duration {
                     // Build up
                     update.character = CharacterState::Roll(Data {
@@ -72,6 +63,16 @@ impl CharacterBehavior for Data {
                 }
             },
             StageSection::Movement => {
+                // Update velocity
+                handle_forced_movement(
+                    data,
+                    &mut update,
+                    ForcedMovement::Forward {
+                        strength: self.static_data.roll_strength,
+                    },
+                    0.0,
+                );
+
                 if self.timer < self.static_data.movement_duration {
                     // Movement
                     update.character = CharacterState::Roll(Data {
@@ -115,6 +116,8 @@ impl CharacterBehavior for Data {
                 // If it somehow ends up in an incorrect stage section
                 if self.was_wielded {
                     update.character = CharacterState::Wielding;
+                } else if self.was_sneak {
+                    update.character = CharacterState::Sneak;
                 } else {
                     update.character = CharacterState::Idle;
                 }
