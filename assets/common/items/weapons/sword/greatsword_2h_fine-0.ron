@@ -6,7 +6,8 @@ ItemDef(
             kind: Sword,    
             stats: (
                 equip_time_millis: 500,
-                power: 1.40
+                power: 1.40,
+                speed: 1.0
                 ),            
         )
     ),

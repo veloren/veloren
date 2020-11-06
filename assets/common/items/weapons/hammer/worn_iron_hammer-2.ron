@@ -6,7 +6,9 @@ ItemDef(
             kind: Hammer,    
             stats: (
                 equip_time_millis: 500,
-                power: 0.85),            
+                power: 0.85,
+                speed: 1.0
+            ),            
         )
     ),
     quality: Common,

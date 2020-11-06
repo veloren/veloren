@@ -6,7 +6,9 @@ ItemDef(
             kind: Empty,
             stats: (
                 equip_time_millis: 200,
-                power: 1.00),            
+                power: 1.00,
+                speed: 1.0
+            ),            
         )
     ),
     quality: Low,

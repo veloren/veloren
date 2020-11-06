@@ -6,7 +6,9 @@ ItemDef(
             kind: Sword,    
             stats: (
                 equip_time_millis: 500,
-                power: 0.80),            
+                power: 0.80,
+                speed: 1.0
+            ),            
         )
     ),
     quality: Common,

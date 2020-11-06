@@ -6,7 +6,9 @@ ItemDef(
             kind: Farming,
             stats: (
                 equip_time_millis: 400,
-                power: 1.00),            
+                power: 1.00,
+                speed: 1.0
+            ),            
         )
     ),
     quality: Common,
