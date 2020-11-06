@@ -24,7 +24,7 @@ async-std = { version = "~1.5", default-features = false, features = ["std", "as
 #tracing and metrics
 tracing = { version = "0.1", default-features = false }
 tracing-futures = "0.2"
-prometheus = { version = "0.9", default-features = false, optional = true }
+prometheus = { version = "0.10", default-features = false, optional = true }
 #async
 futures = { version = "0.3", features = ["thread-pool"] }
 #mpsc channel registry
