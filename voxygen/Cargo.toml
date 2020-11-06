@@ -56,7 +56,7 @@ copy_dir = "0.1.2"
 crossbeam = "=0.7.2"
 deunicode = "1.0"
 # TODO: remove
-directories-next = "1.0.1"
+directories-next = "2.0"
 dot_vox = "4.0"
 enum-iterator = "0.6"
 failure = "0.1.6"
