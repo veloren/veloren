@@ -65,7 +65,7 @@ impl Animation for AlphaAnimation {
         next.torso.position = Vec3::new(0.0, 0.0, 0.1) * s_a.scaler;
         next.torso.orientation = Quaternion::rotation_z(0.0);
         match active_tool_kind {
-            Some(ToolKind::Sword(_)) => {
+            Some(ToolKind::Sword) => {
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation = Quaternion::rotation_x(0.0);
 
@@ -96,13 +96,13 @@ impl Animation for AlphaAnimation {
                     movement1 * -0.9 + (movement2 * 1.75).sin() * 2.5 + movement3 * -0.5,
                 );
             },
-            Some(ToolKind::Dagger(_)) => {
+            Some(ToolKind::Dagger) => {
                 next.control_l.position = Vec3::new(-10.0 + push * 5.0, 6.0 + push * 5.0, 2.0);
                 next.control_l.orientation = Quaternion::rotation_x(-1.4 + slow * 0.4)
                     * Quaternion::rotation_y(slow * -1.3)
                     * Quaternion::rotation_z(1.4 + slow * -0.5);
             },
-            Some(ToolKind::Axe(_)) => {
+            Some(ToolKind::Axe) => {
                 next.head.position = Vec3::new(0.0, 0.0 + s_a.head.0, s_a.head.1);
                 next.head.orientation = Quaternion::rotation_z(0.1 + axe * 0.2)
                     * Quaternion::rotation_x(0.0)
@@ -129,7 +129,7 @@ impl Animation for AlphaAnimation {
                     * Quaternion::rotation_z(PI * 0.4);
                 next.lantern.orientation = Quaternion::rotation_x(0.4);
             },
-            Some(ToolKind::Hammer(_)) => {
+            Some(ToolKind::Hammer) => {
                 next.hand_l.position = Vec3::new(-12.0, 0.0, 0.0);
                 next.hand_l.orientation =
                     Quaternion::rotation_x(-0.0) * Quaternion::rotation_y(0.0);
@@ -187,7 +187,7 @@ impl Animation for AlphaAnimation {
                     * Quaternion::rotation_y(slowersmooth * 0.35 - 0.3)
                     * Quaternion::rotation_z(1.4 + slowersmooth * 0.2);
             },
-            Some(ToolKind::Debug(_)) => {
+            Some(ToolKind::Debug) => {
                 next.hand_l.position = Vec3::new(-7.0, 4.0, 3.0);
                 next.hand_l.orientation = Quaternion::rotation_x(1.27);
                 next.main.position = Vec3::new(-5.0, 5.0, 23.0);

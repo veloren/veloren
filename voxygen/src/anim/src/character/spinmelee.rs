@@ -62,7 +62,7 @@ impl Animation for SpinMeleeAnimation {
         let quick = (anim_time as f32 * lab as f32 * 8.0).sin();
 
         match active_tool_kind {
-            Some(ToolKind::Sword(_)) => {
+            Some(ToolKind::Sword) => {
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation = Quaternion::rotation_x(0.0);
 
@@ -90,7 +90,7 @@ impl Animation for SpinMeleeAnimation {
                 next.belt.orientation = Quaternion::rotation_x(0.1);
                 next.shorts.orientation = Quaternion::rotation_x(0.2);
             },
-            Some(ToolKind::Axe(_)) => {
+            Some(ToolKind::Axe) => {
                 next.hand_l.position = Vec3::new(-0.5, 0.0, 4.0);
                 next.hand_l.orientation =
                     Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_y(PI);

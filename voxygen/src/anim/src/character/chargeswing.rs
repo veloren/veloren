@@ -49,7 +49,7 @@ impl Animation for ChargeswingAnimation {
             Some(StageSection::Recover) => (1.0, 1.0, (anim_time as f32).powf(4.0), 0.0),
             _ => (0.0, 0.0, 0.0, 0.0),
         };
-        if let Some(ToolKind::Hammer(_)) = active_tool_kind {
+        if let Some(ToolKind::Hammer) = active_tool_kind {
             next.main.position = Vec3::new(0.0, 0.0, 0.0);
             next.main.orientation = Quaternion::rotation_x(0.0);
             next.hand_l.position = Vec3::new(

@@ -112,12 +112,12 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                 .and_then(|kind| {
                     match kind {
                         ItemKind::Tool(Tool { kind, .. }) => match kind {
-                            ToolKind::Staff(_) => Some(HotbarImage::FireAoe),
-                            ToolKind::Hammer(_) => Some(HotbarImage::HammerLeap),
-                            ToolKind::Axe(_) => Some(HotbarImage::AxeLeapSlash),
-                            ToolKind::Bow(_) => Some(HotbarImage::BowJumpBurst),
-                            ToolKind::Debug(_) => Some(HotbarImage::SnakeArrow),
-                            ToolKind::Sword(_) => Some(HotbarImage::SwordWhirlwind),
+                            ToolKind::Staff => Some(HotbarImage::FireAoe),
+                            ToolKind::Hammer => Some(HotbarImage::HammerLeap),
+                            ToolKind::Axe => Some(HotbarImage::AxeLeapSlash),
+                            ToolKind::Bow => Some(HotbarImage::BowJumpBurst),
+                            ToolKind::Debug => Some(HotbarImage::SnakeArrow),
+                            ToolKind::Sword => Some(HotbarImage::SwordWhirlwind),
                             _ => None,
                         },
                         _ => None,

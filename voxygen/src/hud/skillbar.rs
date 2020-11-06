@@ -526,28 +526,28 @@ impl<'a> Widget for Skillbar<'a> {
                         .map(|i| i.item.kind())
                         .and_then(|kind| match kind {
                             ItemKind::Tool(Tool { kind, .. }) => match kind {
-                                ToolKind::Hammer(_) => Some((
+                                ToolKind::Hammer => Some((
                                     "Smash of Doom",
                                     "\nAn AOE attack with knockback. \nLeaps to position of \
                                      cursor.",
                                 )),
-                                ToolKind::Axe(_) => {
+                                ToolKind::Axe => {
                                     Some(("Spin Leap", "\nA slashing running spin leap."))
                                 },
-                                ToolKind::Staff(_) => Some((
+                                ToolKind::Staff => Some((
                                     "Firebomb",
                                     "\nWhirls a big fireball into the air. \nExplodes the ground \
                                      and does\na big amount of damage",
                                 )),
-                                ToolKind::Sword(_) => Some((
+                                ToolKind::Sword => Some((
                                     "Whirlwind",
                                     "\nMove forward while spinning with \n your sword.",
                                 )),
-                                ToolKind::Bow(_) => Some((
+                                ToolKind::Bow => Some((
                                     "Burst",
                                     "\nLaunches a burst of arrows at the top \nof a running leap.",
                                 )),
-                                ToolKind::Debug(_) => Some((
+                                ToolKind::Debug => Some((
                                     "Possessing Arrow",
                                     "\nShoots a poisonous arrow.\nLets you control your target.",
                                 )),
@@ -623,15 +623,15 @@ impl<'a> Widget for Skillbar<'a> {
         Button::image(
             match self.loadout.active_item.as_ref().map(|i| i.item.kind()) {
                 Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
-                    ToolKind::Sword(_) => self.imgs.twohsword_m1,
-                    ToolKind::Dagger(_) => self.imgs.onehdagger_m1,
-                    ToolKind::Shield(_) => self.imgs.onehshield_m1,
-                    ToolKind::Hammer(_) => self.imgs.twohhammer_m1,
-                    ToolKind::Axe(_) => self.imgs.twohaxe_m1,
-                    ToolKind::Bow(_) => self.imgs.bow_m1,
-                    ToolKind::Sceptre(_) => self.imgs.heal_0,
-                    ToolKind::Staff(_) => self.imgs.fireball,
-                    ToolKind::Debug(_) => self.imgs.flyingrod_m1,
+                    ToolKind::Sword => self.imgs.twohsword_m1,
+                    ToolKind::Dagger => self.imgs.onehdagger_m1,
+                    ToolKind::Shield => self.imgs.onehshield_m1,
+                    ToolKind::Hammer => self.imgs.twohhammer_m1,
+                    ToolKind::Axe => self.imgs.twohaxe_m1,
+                    ToolKind::Bow => self.imgs.bow_m1,
+                    ToolKind::Sceptre => self.imgs.heal_0,
+                    ToolKind::Staff => self.imgs.fireball,
+                    ToolKind::Debug => self.imgs.flyingrod_m1,
                     _ => self.imgs.nothing,
                 },
                 _ => self.imgs.nothing,
@@ -670,36 +670,36 @@ impl<'a> Widget for Skillbar<'a> {
             .middle_of(state.ids.m2_slot)
             .set(state.ids.m2_slot_bg, ui);
         Button::image(match tool_kind {
-            Some(ToolKind::Sword(_)) => self.imgs.twohsword_m2,
-            Some(ToolKind::Dagger(_)) => self.imgs.onehdagger_m2,
-            Some(ToolKind::Shield(_)) => self.imgs.onehshield_m2,
-            Some(ToolKind::Hammer(_)) => self.imgs.hammergolf,
-            Some(ToolKind::Axe(_)) => self.imgs.axespin,
-            Some(ToolKind::Bow(_)) => self.imgs.bow_m2,
-            Some(ToolKind::Sceptre(_)) => self.imgs.heal_bomb,
-            Some(ToolKind::Staff(_)) => self.imgs.flamethrower,
-            Some(ToolKind::Debug(_)) => self.imgs.flyingrod_m2,
+            Some(ToolKind::Sword) => self.imgs.twohsword_m2,
+            Some(ToolKind::Dagger) => self.imgs.onehdagger_m2,
+            Some(ToolKind::Shield) => self.imgs.onehshield_m2,
+            Some(ToolKind::Hammer) => self.imgs.hammergolf,
+            Some(ToolKind::Axe) => self.imgs.axespin,
+            Some(ToolKind::Bow) => self.imgs.bow_m2,
+            Some(ToolKind::Sceptre) => self.imgs.heal_bomb,
+            Some(ToolKind::Staff) => self.imgs.flamethrower,
+            Some(ToolKind::Debug) => self.imgs.flyingrod_m2,
             _ => self.imgs.nothing,
         })
         .w_h(36.0, 36.0)
         .middle_of(state.ids.m2_slot_bg)
         .image_color(match tool_kind {
             // TODO Automate this to grey out unavailable M2 skills
-            Some(ToolKind::Sword(_)) => {
+            Some(ToolKind::Sword) => {
                 if self.energy.current() as f64 >= 200.0 {
                     Color::Rgba(1.0, 1.0, 1.0, 1.0)
                 } else {
                     Color::Rgba(0.3, 0.3, 0.3, 0.8)
                 }
             },
-            Some(ToolKind::Sceptre(_)) => {
+            Some(ToolKind::Sceptre) => {
                 if self.energy.current() as f64 >= 400.0 {
                     Color::Rgba(1.0, 1.0, 1.0, 1.0)
                 } else {
                     Color::Rgba(0.3, 0.3, 0.3, 0.8)
                 }
             },
-            Some(ToolKind::Axe(_)) => {
+            Some(ToolKind::Axe) => {
                 if self.energy.current() as f64 >= 100.0 {
                     Color::Rgba(1.0, 1.0, 1.0, 1.0)
                 } else {
