@@ -98,19 +98,22 @@ fn tool_desc(tool: &Tool, desc: &str) -> String {
         ToolKind::Empty => "Empty",
     };
     let power = tool.base_power();
+    let speed = tool.base_speed();
 
     if !desc.is_empty() {
         format!(
-            "{}\n\nPower: {:0.1}\n\n{}\n\n<Right-Click to use>",
+            "{}\n\nPower: {:0.1}\n\nSpeed: {:0.1}\n\n{}\n\n<Right-Click to use>",
             kind,
             power * 10.0,
+            speed * 10.0,
             desc
         )
     } else {
         format!(
-            "{}\n\nPower: {:0.1}\n\n<Right-Click to use>",
+            "{}\n\nPower: {:0.1}\n\nSpeed: {:0.1}\n\n<Right-Click to use>",
             kind,
-            power * 10.0
+            power * 10.0,
+            speed * 10.0
         )
     }
 }
