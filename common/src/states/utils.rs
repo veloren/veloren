@@ -79,7 +79,7 @@ impl Body {
 
 /// Handles updating `Components` to move player based on state of `JoinData`
 pub fn handle_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
-    if let Some(depth) = data.physics.in_fluid {
+    if let Some(depth) = data.physics.in_liquid {
         swim_move(data, update, efficiency, depth);
     } else if data.inputs.fly.is_pressed() && !data.physics.on_ground && data.body.can_fly() {
         fly_move(data, update, efficiency);
@@ -261,7 +261,7 @@ pub fn handle_climb(data: &JoinData, update: &mut StateUpdate) {
         && !data.physics.on_ground
         && !data
             .physics
-            .in_fluid
+            .in_liquid
             .map(|depth| depth > 1.0)
             .unwrap_or(false)
         //&& update.vel.0.z < 0.0
@@ -285,7 +285,7 @@ pub fn attempt_glide_wield(data: &JoinData, update: &mut StateUpdate) {
         && data.loadout.glider.is_some()
         && !data
             .physics
-            .in_fluid
+            .in_liquid
             .map(|depth| depth > 1.0)
             .unwrap_or(false)
         && data.body.is_humanoid()
@@ -300,7 +300,7 @@ pub fn handle_jump(data: &JoinData, update: &mut StateUpdate) {
         && data.physics.on_ground
         && !data
             .physics
-            .in_fluid
+            .in_liquid
             .map(|depth| depth > 1.0)
             .unwrap_or(false)
     {

@@ -87,7 +87,7 @@ use crate::{audio::AudioFrontend, scene::Camera};
 use common::{
     assets,
     comp::{
-        item::{ItemKind, ToolCategory},
+        item::{ItemKind, ToolKind},
         object, Body, CharacterAbilityType, InventoryUpdateEvent,
     },
     event::EventBus,
@@ -99,7 +99,6 @@ use hashbrown::HashMap;
 use rand::prelude::*;
 use serde::Deserialize;
 use specs::WorldExt;
-use std::convert::TryFrom;
 use tracing::{debug, warn};
 use vek::*;
 
@@ -144,9 +143,9 @@ pub enum SfxEvent {
     Fall,
     ExperienceGained,
     LevelUp,
-    Attack(CharacterAbilityType, ToolCategory),
-    Wield(ToolCategory),
-    Unwield(ToolCategory),
+    Attack(CharacterAbilityType, ToolKind),
+    Wield(ToolKind),
+    Unwield(ToolKind),
     Inventory(SfxInventoryEvent),
     Explosion,
     ProjectileShot,
@@ -155,7 +154,7 @@ pub enum SfxEvent {
 #[derive(Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
 pub enum SfxInventoryEvent {
     Collected,
-    CollectedTool(ToolCategory),
+    CollectedTool(ToolKind),
     CollectFailed,
     Consumed(String),
     Debug,
@@ -171,9 +170,9 @@ impl From<&InventoryUpdateEvent> for SfxEvent {
                 // Handle sound effects for types of collected items, falling back to the
                 // default Collected event
                 match &item.kind() {
-                    ItemKind::Tool(tool) => SfxEvent::Inventory(SfxInventoryEvent::CollectedTool(
-                        ToolCategory::try_from(&tool.kind).unwrap(),
-                    )),
+                    ItemKind::Tool(tool) => {
+                        SfxEvent::Inventory(SfxInventoryEvent::CollectedTool(tool.kind.clone()))
+                    },
                     _ => SfxEvent::Inventory(SfxInventoryEvent::Collected),
                 }
             },
