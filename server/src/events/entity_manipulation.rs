@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    comp::{biped_large, quadruped_medium, quadruped_small},
+    comp::{biped_large, quadruped_medium, quadruped_small, PhysicsState},
     Server, SpawnPoint, StateExt,
 };
 use common::{
@@ -35,14 +35,24 @@ pub fn handle_damage(server: &Server, entity: EcsEntity, change: HealthChange) {
 }
 
 pub fn handle_knockback(server: &Server, entity: EcsEntity, impulse: Vec3<f32>) {
-    let state = &server.state;
-    let mut velocities = state.ecs().write_storage::<comp::Vel>();
-    if let Some(vel) = velocities.get_mut(entity) {
-        vel.0 = impulse;
-    }
-    let clients = state.ecs().read_storage::<Client>();
-    if let Some(client) = clients.get(entity) {
-        client.send_fallible(ServerGeneral::Knockback(impulse));
+    let ecs = &server.state.ecs();
+    let clients = ecs.read_storage::<Client>();
+
+    if let Some(physics) = ecs.read_storage::<PhysicsState>().get(entity) {
+        //Check if the entity is on a surface. If it is not, reduce knockback.
+        let impulse = impulse
+            * if physics.on_surface().is_some() {
+                1.0
+            } else {
+                0.4
+            };
+        let mut velocities = ecs.write_storage::<comp::Vel>();
+        if let Some(vel) = velocities.get_mut(entity) {
+            vel.0 = impulse;
+        }
+        if let Some(client) = clients.get(entity) {
+            client.send_fallible(ServerGeneral::Knockback(impulse));
+        }
     }
 }
 
