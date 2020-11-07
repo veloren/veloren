@@ -14,7 +14,7 @@ pub use self::{
     terrain::Terrain,
 };
 use crate::{
-    audio::{music::MusicMgr, sfx::SfxMgr, AudioFrontend},
+    audio::{music::MusicMgr, sfx::SfxMgr, wind::WindMgr, AudioFrontend},
     render::{
         create_clouds_mesh, create_pp_mesh, create_skybox_mesh, CloudsLocals, CloudsPipeline,
         Consts, GlobalModel, Globals, Light, LodData, Model, PostProcessLocals,
@@ -103,7 +103,7 @@ pub struct Scene {
     figure_mgr: FigureMgr,
     sfx_mgr: SfxMgr,
     music_mgr: MusicMgr,
-    //ambient_mgr: AmbientMgr,
+    ambient_mgr: WindMgr,
 }
 
 pub struct SceneData<'a> {
@@ -309,7 +309,7 @@ impl Scene {
             figure_mgr: FigureMgr::new(renderer),
             sfx_mgr: SfxMgr::new(),
             music_mgr: MusicMgr::new(),
-            //ambient_mgr: AmbientMgr::new(),
+            ambient_mgr: WindMgr::new(),
         }
     }
 
@@ -999,7 +999,7 @@ impl Scene {
             &self.terrain,
         );
         self.music_mgr.maintain(audio, scene_data.state, client);
-        //self.ambient_mgr.maintain(audio, scene_data.state, client);
+        self.ambient_mgr.maintain(audio, scene_data.state, client);
     }
 
     /// Render the scene using the provided `Renderer`.
