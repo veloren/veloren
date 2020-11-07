@@ -3,7 +3,7 @@ ItemDef(
     description: "An axe infused with malachite.",
     kind: Tool(
         (
-            kind: Axe("MalachiteAxe0"),    
+            kind: Axe,    
             stats: (
                 equip_time_millis: 400,
                 power: 0.50),            

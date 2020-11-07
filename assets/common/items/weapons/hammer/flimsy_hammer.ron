@@ -3,7 +3,7 @@ ItemDef(
     description: "The head is barely secured.",
     kind: Tool(
         (
-            kind: Hammer("FlimsyHammer"),    
+            kind: Hammer,    
             stats: (
                 equip_time_millis: 500,
                 power: 0.50),            

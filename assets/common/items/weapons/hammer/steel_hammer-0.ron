@@ -3,7 +3,7 @@ ItemDef(
     description: "While lighter and more durable than its iron counterparts, it is nonetheless just as deadly.",
     kind: Tool(
         (
-            kind: Hammer("SteelHammer0"),    
+            kind: Hammer,    
             stats: (
                 equip_time_millis: 500,
                 power: 1.40

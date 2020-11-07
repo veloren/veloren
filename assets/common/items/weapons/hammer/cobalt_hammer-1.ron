@@ -3,7 +3,7 @@ ItemDef(
     description: "The decorative hooked head of this mace is formed from a bluish gray metal.",
     kind: Tool(
         (
-            kind: Hammer("CobaltHammer1"),    
+            kind: Hammer,    
             stats: (
                 equip_time_millis: 500,
                 power: 1.60
