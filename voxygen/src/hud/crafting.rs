@@ -272,7 +272,7 @@ impl<'a> Widget for Crafting<'a> {
                     let quality_col = get_quality_col(&*recipe.output.0);
                     Button::image(
                         self.item_imgs
-                            .img_id_or_not_found_img((&*recipe.output.0.kind()).into()),
+                            .img_id_or_not_found_img((&*recipe.output.0).into()),
                     )
                     .w_h(55.0, 55.0)
                     .label(&output_text)
@@ -433,20 +433,17 @@ impl<'a> Widget for Crafting<'a> {
                 frame.set(state.ids.ingredient_frame[i], ui);
                 //Item Image
                 let (title, desc) = super::util::item_text(&**item_def);
-                Button::image(
-                    self.item_imgs
-                        .img_id_or_not_found_img((&*item_def.kind()).into()),
-                )
-                .w_h(22.0, 22.0)
-                .middle_of(state.ids.ingredient_frame[i])
-                .with_tooltip(
-                    self.tooltip_manager,
-                    title,
-                    &*desc,
-                    &item_tooltip,
-                    quality_col,
-                )
-                .set(state.ids.ingredient_img[i], ui);
+                Button::image(self.item_imgs.img_id_or_not_found_img((&**item_def).into()))
+                    .w_h(22.0, 22.0)
+                    .middle_of(state.ids.ingredient_frame[i])
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        title,
+                        &*desc,
+                        &item_tooltip,
+                        quality_col,
+                    )
+                    .set(state.ids.ingredient_img[i], ui);
                 // Ingredients text and amount
                 // Don't show inventory amounts above 999 to avoid the widget clipping
                 let over9k = "99+";

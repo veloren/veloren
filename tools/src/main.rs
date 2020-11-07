@@ -87,23 +87,6 @@ fn get_tool_kind(kind: &ToolKind) -> String {
     }
 }
 
-/*fn get_tool_kind_kind(kind: &ToolKind) -> String {
-    match kind {
-        ToolKind::Sword(x) => x.clone(),
-        ToolKind::Axe(x) => x.clone(),
-        ToolKind::Hammer(x) => x.clone(),
-        ToolKind::Bow(x) => x.clone(),
-        ToolKind::Dagger(x) => x.clone(),
-        ToolKind::Staff(x) => x.clone(),
-        ToolKind::Sceptre(x) => x.clone(),
-        ToolKind::Shield(x) => x.clone(),
-        ToolKind::Debug(x) => x.clone(),
-        ToolKind::Farming(x) => x.clone(),
-        ToolKind::NpcWeapon(x) => x.clone(),
-        ToolKind::Empty => "".to_string(),
-    }
-}*/
-
 fn get_armor_kind(kind: &ArmorKind) -> String {
     match kind {
         ArmorKind::Shoulder(_) => "Shoulder".to_string(),
@@ -146,7 +129,6 @@ fn all_items() -> Result<(), Box<dyn Error>> {
         let kind = match item.kind() {
             ItemKind::Armor(armor) => get_armor_kind_kind(&armor.kind),
             ItemKind::Lantern(lantern) => lantern.kind.clone(),
-            //ItemKind::Tool(tool) => get_tool_kind_kind(&tool.kind),
             _ => "".to_owned(),
         };
 
