@@ -109,7 +109,6 @@ impl Animation for RunAnimation {
         next.foot_fr.scale = Vec3::one() * 0.96;
         next.foot_bl.scale = Vec3::one() * 0.96;
         next.foot_br.scale = Vec3::one() * 0.96;
-
         next.ears.scale = Vec3::one() * 1.02;
 
         //Gallop
