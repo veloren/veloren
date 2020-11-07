@@ -4,7 +4,7 @@ use crate::{
         projectile, EnergyChange, EnergySource, Group, HealthSource, Loadout, Ori, PhysicsState,
         Pos, Projectile, Vel,
     },
-    event::{EventBus, LocalEvent, ServerEvent},
+    event::{EventBus, ServerEvent},
     metrics::SysMetrics,
     span,
     state::DeltaTime,
@@ -25,7 +25,6 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         Read<'a, DeltaTime>,
         Read<'a, UidAllocator>,
-        Read<'a, EventBus<LocalEvent>>,
         Read<'a, EventBus<ServerEvent>>,
         ReadExpect<'a, SysMetrics>,
         ReadStorage<'a, Pos>,
@@ -43,7 +42,6 @@ impl<'a> System<'a> for Sys {
             entities,
             dt,
             uid_allocator,
-            local_bus,
             server_bus,
             sys_metrics,
             positions,
@@ -57,7 +55,6 @@ impl<'a> System<'a> for Sys {
     ) {
         let start_time = std::time::Instant::now();
         span!(_guard, "run", "projectile::Sys::run");
-        let mut local_emitter = local_bus.emitter();
         let mut server_emitter = server_bus.emitter();
 
         // Attacks
@@ -133,7 +130,7 @@ impl<'a> System<'a> for Sys {
                             {
                                 let impulse = knockback.calculate_impulse(ori.0);
                                 if !impulse.is_approx_zero() {
-                                    local_emitter.emit(LocalEvent::ApplyImpulse {
+                                    server_emitter.emit(ServerEvent::Knockback {
                                         entity: other_entity,
                                         impulse,
                                     });
