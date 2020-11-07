@@ -7,7 +7,7 @@ use crate::{
 };
 use common::{
     terrain::{
-        structure::{Structure, StructureBlock},
+        structure::Structure,
         Block,
     },
     vol::ReadVol,
@@ -109,11 +109,16 @@ pub fn apply_trees_to<'a>(canvas: &mut Canvas) {
                 ) + Vec3::unit_z() * (wpos.z - tree.pos.z);
                 block_from_structure(
                     info.index(),
-                    tree.model
+                    if let Some(block) = tree.model
                         .get(model_pos)
                         .ok()
                         .copied()
-                        .unwrap_or(StructureBlock::None),
+                    {
+                        block
+                    } else {
+                        // If we hit an inaccessible block, we're probably outside the model bounds. Skip this column.
+                        break;
+                    },
                     wpos,
                     tree.pos.xy(),
                     tree.seed,
