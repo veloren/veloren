@@ -7,6 +7,7 @@ use crate::{
 
 use super::EventMapper;
 
+use client::Client;
 use common::{
     comp::{item::ItemKind, CharacterAbilityType, CharacterState, Loadout, Pos},
     event::EventBus,
@@ -46,6 +47,7 @@ impl EventMapper for CombatEventMapper {
         camera: &Camera,
         triggers: &SfxTriggers,
         _terrain: &Terrain<TerrainChunk>,
+        _client: &Client,
     ) {
         let ecs = state.ecs();
 

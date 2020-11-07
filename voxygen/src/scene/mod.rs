@@ -997,9 +997,11 @@ impl Scene {
             scene_data.player_entity,
             &self.camera,
             &self.terrain,
+            client,
         );
         self.music_mgr.maintain(audio, scene_data.state, client);
-        self.ambient_mgr.maintain(audio, scene_data.state, client);
+        self.ambient_mgr
+            .maintain(audio, scene_data.state, client, &self.camera);
     }
 
     /// Render the scene using the provided `Renderer`.

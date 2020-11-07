@@ -7,6 +7,7 @@ use crate::{
     scene::{Camera, Terrain},
 };
 
+use client::Client;
 use common::{comp::Stats, event::EventBus, state::State, terrain::TerrainChunk};
 use specs::WorldExt;
 
@@ -33,6 +34,7 @@ impl EventMapper for ProgressionEventMapper {
         _camera: &Camera,
         triggers: &SfxTriggers,
         _terrain: &Terrain<TerrainChunk>,
+        _client: &Client,
     ) {
         let ecs = state.ecs();
 

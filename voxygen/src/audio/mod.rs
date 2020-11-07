@@ -192,6 +192,44 @@ impl AudioFrontend {
         }
     }
 
+    /// Play (once) an sfx file by file path at the give position and volume
+    /// but with the sound passed through a low pass filter to simulate
+    /// underwater
+    pub fn play_underwater_sfx(&mut self, sound: &str, pos: Vec3<f32>, vol: Option<f32>) {
+        if self.audio_stream.is_some() {
+            let sound = self
+                .sound_cache
+                .load_sound(sound)
+                .amplify(vol.unwrap_or(1.0));
+
+            let listener = self.listener.clone();
+            if let Some(channel) = self.get_sfx_channel() {
+                channel.set_pos(pos);
+                channel.update(&listener);
+                let sound = sound.convert_samples();
+                channel.play_with_low_pass_filter(sound);
+            }
+        }
+    }
+
+    /// Play (once) an sfx file by file path at the give position and volume
+    /// but with reverb
+    pub fn play_reverb_sfx(&mut self, sound: &str, pos: Vec3<f32>, vol: Option<f32>) {
+        if self.audio_stream.is_some() {
+            let sound = self
+                .sound_cache
+                .load_sound(sound)
+                .amplify(vol.unwrap_or(1.0));
+
+            let listener = self.listener.clone();
+            if let Some(channel) = self.get_sfx_channel() {
+                channel.set_pos(pos);
+                channel.update(&listener);
+                channel.play_with_reverb(sound);
+            }
+        }
+    }
+
     fn play_wind(&mut self, sound: &str, volume_multiplier: f32) {
         if self.audio_stream.is_some() {
             if let Some(channel) = self.get_wind_channel(volume_multiplier) {

@@ -4,6 +4,7 @@ mod combat;
 mod movement;
 mod progression;
 
+use client::Client;
 use common::{state::State, terrain::TerrainChunk};
 
 use block::BlockEventMapper;
@@ -23,6 +24,7 @@ trait EventMapper {
         camera: &Camera,
         triggers: &SfxTriggers,
         terrain: &Terrain<TerrainChunk>,
+        client: &Client,
     );
 }
 
@@ -50,9 +52,10 @@ impl SfxEventMapper {
         camera: &Camera,
         triggers: &SfxTriggers,
         terrain: &Terrain<TerrainChunk>,
+        client: &Client,
     ) {
         for mapper in &mut self.mappers {
-            mapper.maintain(state, player_entity, camera, triggers, terrain);
+            mapper.maintain(state, player_entity, camera, triggers, terrain, client);
         }
     }
 }

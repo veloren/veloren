@@ -6,6 +6,7 @@ use crate::{
 };
 
 use super::EventMapper;
+use client::Client;
 use common::{
     comp::Pos, event::EventBus, spiral::Spiral2d, state::State, terrain::TerrainChunk,
     vol::RectRasterableVol,
@@ -43,6 +44,7 @@ impl EventMapper for BlockEventMapper {
         camera: &Camera,
         triggers: &SfxTriggers,
         terrain: &Terrain<TerrainChunk>,
+        client: &Client,
     ) {
         let ecs = state.ecs();
 
@@ -58,6 +60,12 @@ impl EventMapper for BlockEventMapper {
         let player_chunk = player_pos.0.xy().map2(TerrainChunk::RECT_SIZE, |e, sz| {
             (e.floor() as i32).div_euclid(sz as i32)
         });
+
+        // For determining if underground
+        let terrain_alt = match client.current_chunk() {
+            Some(chunk) => chunk.meta().alt(),
+            None => 0.0,
+        };
 
         struct BlockSounds<'a> {
             // The function to select the blocks of interest that we should emit from
@@ -136,8 +144,13 @@ impl EventMapper for BlockEventMapper {
 
         // Iterate through each kind of block of interest
         for sounds in sounds.iter() {
+            // If the timing condition is false, continue
             if !(sounds.cond)(state) {
                 continue;
+            // If the player is underground, continue
+            } else if player_pos.0.z < (terrain_alt - 20.0) {
+                continue;
+            // Hack to reduce the number of birdcalls (too many leaf blocks)
             } else if (sounds.sfx == SfxEvent::Birdcall || sounds.sfx == SfxEvent::Owl)
                 && thread_rng().gen_bool(0.995)
             {
