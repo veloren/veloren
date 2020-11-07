@@ -87,6 +87,7 @@ use crate::{
     scene::{Camera, Terrain},
 };
 
+use client::Client;
 use common::{
     assets,
     comp::{
@@ -96,7 +97,8 @@ use common::{
     event::EventBus,
     outcome::Outcome,
     state::State,
-    terrain::TerrainChunk,
+    terrain::{BlockKind, TerrainChunk},
+    vol::ReadVol,
 };
 use event_mapper::SfxEventMapper;
 use hashbrown::HashMap;
@@ -243,6 +245,7 @@ impl SfxMgr {
         player_entity: specs::Entity,
         camera: &Camera,
         terrain: &Terrain<TerrainChunk>,
+        client: &Client,
     ) {
         if !audio.sfx_enabled() {
             return;
@@ -250,13 +253,30 @@ impl SfxMgr {
 
         let ecs = state.ecs();
         let focus_off = camera.get_focus_pos().map(f32::trunc);
+
+        let cave = match client.current_chunk() {
+            Some(chunk) => chunk.meta().cave_alt() != 0.0,
+            None => false,
+        };
+        let underwater = state
+            .terrain()
+            .get((camera.dependents().cam_pos + focus_off).map(|e| e.floor() as i32))
+            .map(|b| b.kind())
+            .unwrap_or(BlockKind::Air)
+            == BlockKind::Water;
         let cam_pos = camera.dependents().cam_pos + focus_off;
 
         audio.set_listener_pos(cam_pos, camera.dependents().cam_dir);
 
         // TODO: replace; deprecated in favor of outcomes
-        self.event_mapper
-            .maintain(state, player_entity, camera, &self.triggers, terrain);
+        self.event_mapper.maintain(
+            state,
+            player_entity,
+            camera,
+            &self.triggers,
+            terrain,
+            client,
+        );
 
         // TODO: replace; deprecated in favor of outcomes
         let events = ecs.read_resource::<EventBus<SfxEventItem>>().recv_all();
@@ -283,7 +303,14 @@ impl SfxMgr {
                     },
                 };
 
-                audio.play_sfx(sfx_file, position, event.vol);
+                if underwater {
+                    audio.play_underwater_sfx(sfx_file, position, event.vol);
+                } else if cave {
+                    println!("Reverbbbbbbbbbb");
+                    audio.play_reverb_sfx(sfx_file, position, event.vol);
+                } else {
+                    audio.play_sfx(sfx_file, position, event.vol);
+                }
             } else {
                 debug!("Missing sfx trigger config for sfx event. {:?}", event.sfx);
             }

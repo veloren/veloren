@@ -6,6 +6,7 @@ use crate::{
     audio::sfx::{SfxEvent, SfxEventItem, SfxTriggerItem, SfxTriggers, SFX_DIST_LIMIT_SQR},
     scene::{Camera, Terrain},
 };
+use client::Client;
 use common::{
     comp::{Body, CharacterState, PhysicsState, Pos, Vel},
     event::EventBus,
@@ -48,6 +49,7 @@ impl EventMapper for MovementEventMapper {
         camera: &Camera,
         triggers: &SfxTriggers,
         _terrain: &Terrain<TerrainChunk>,
+        _client: &Client,
     ) {
         let ecs = state.ecs();
 

@@ -21,6 +21,7 @@ use crate::audio::{
     Listener,
 };
 use rodio::{OutputStreamHandle, Sample, Sink, Source, SpatialSink};
+use std::time::Duration;
 use vek::*;
 
 #[derive(PartialEq, Clone, Copy)]
@@ -190,6 +191,27 @@ impl SfxChannel {
         S::Item: Send,
         <S as std::iter::Iterator>::Item: std::fmt::Debug,
     {
+        self.sink.append(source);
+    }
+
+    pub fn play_with_low_pass_filter<S>(&mut self, source: S)
+    where
+        S: Sized + Send + 'static,
+        S: Source<Item = f32>,
+    {
+        let source = source.low_pass(300);
+        self.sink.append(source);
+    }
+
+    pub fn play_with_reverb<S: rodio::Source>(&mut self, source: S)
+    where
+        S: Sized + Send + 'static,
+        <S as Iterator>::Item: Sample,
+        <S as Iterator>::Item: Sync,
+        <S as Iterator>::Item: Send,
+        <S as std::iter::Iterator>::Item: std::fmt::Debug,
+    {
+        let source = source.buffered().reverb(Duration::from_millis(200), 0.2);
         self.sink.append(source);
     }
 

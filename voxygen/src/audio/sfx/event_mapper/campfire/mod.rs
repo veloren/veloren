@@ -6,6 +6,7 @@ use crate::{
 
 use super::EventMapper;
 
+use client::Client;
 use common::{
     comp::{object, Body, Pos},
     event::EventBus,
@@ -43,6 +44,7 @@ impl EventMapper for CampfireEventMapper {
         camera: &Camera,
         triggers: &SfxTriggers,
         _terrain: &Terrain<TerrainChunk>,
+        _client: &Client,
     ) {
         let ecs = state.ecs();
 

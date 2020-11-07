@@ -1,11 +1,7 @@
 //! Handles ambient wind sounds
-use crate::audio::AudioFrontend;
+use crate::{audio::AudioFrontend, scene::Camera};
 use client::Client;
-use common::{
-    assets,
-    state::State,
-    terrain::{BiomeKind, SitesKind},
-};
+use common::{assets, state::State, terrain::BlockKind, vol::ReadVol};
 use rand::{prelude::SliceRandom, thread_rng, Rng};
 use serde::Deserialize;
 use std::time::Instant;
@@ -65,32 +61,44 @@ impl WindMgr {
 
     /// Checks whether the previous track has completed. If so, sends a
     /// request to play the next (random) track
-    pub fn maintain(&mut self, audio: &mut AudioFrontend, _state: &State, client: &Client) {
+    pub fn maintain(
+        &mut self,
+        audio: &mut AudioFrontend,
+        state: &State,
+        client: &Client,
+        camera: &Camera,
+    ) {
         if audio.sfx_enabled() && !self.soundtrack.tracks.is_empty() {
-            let alt_multiplier = ((Self::get_current_alt(client) - 250.0) / 1500.0).min(0.0);
-
+            let alt_multiplier = ((Self::get_current_alt(client) - 250.0) / 1200.0).abs();
             let tree_multiplier = 1.0 - Self::get_current_tree_density(client);
+            let mut volume_multiplier = alt_multiplier * tree_multiplier;
 
-            let volume_multiplier = alt_multiplier * tree_multiplier;
+            let focus_off = camera.get_focus_pos().map(f32::trunc);
+            let cam_pos = camera.dependents().cam_pos + focus_off;
+
+            // Checks if the camera is underwater to stop wind sounds
+            if state
+                .terrain()
+                .get((cam_pos).map(|e| e.floor() as i32))
+                .map(|b| b.kind())
+                .unwrap_or(BlockKind::Air)
+                == BlockKind::Water
+            {
+                volume_multiplier = volume_multiplier * 0.1;
+            }
+            if cam_pos.z < Self::get_current_terrain_alt(client) {
+                volume_multiplier = 0.0;
+            }
 
             audio.set_wind_volume(volume_multiplier);
 
             if self.began_playing.elapsed().as_secs_f32() > self.next_track_change {
-                println!("Got to wind maintain");
                 //let game_time = (state.get_time_of_day() as u64 % 86400) as u32;
                 //let current_period_of_day = Self::get_current_day_period(game_time);
                 let track = &self.soundtrack.tracks[0];
 
                 self.began_playing = Instant::now();
                 self.next_track_change = track.length;
-
-                //let alt_multiplier = (Self::get_current_alt(client)
-                //    - Self::get_current_terrain_alt(client))
-                //    / 1500.0;
-
-                //let tree_multiplier = 1.0 - Self::get_current_tree_density(client);
-
-                //let volume_multiplier = alt_multiplier * tree_multiplier;
 
                 audio.play_wind(&track.path, volume_multiplier);
             }
