@@ -140,6 +140,30 @@ impl MusicChannel {
     }
 }
 
+pub struct WindChannel {
+    sink: Sink,
+}
+
+impl WindChannel {
+    pub fn set_volume(&mut self, volume: f32) { self.sink.set_volume(volume); }
+
+    pub fn new(stream: &OutputStreamHandle) -> Self {
+        Self {
+            sink: Sink::try_new(stream).unwrap(),
+        }
+    }
+
+    pub fn play<S>(&mut self, source: S)
+    where
+        S: Source + Send + 'static,
+        S::Item: Sample,
+        S::Item: Send,
+        <S as std::iter::Iterator>::Item: std::fmt::Debug,
+    {
+        self.sink.append(source);
+    }
+}
+
 /// An SfxChannel uses a positional audio sink, and is designed for short-lived
 /// audio which can be spatially controlled, but does not need control over
 /// playback or fading/transitions

@@ -5,8 +5,9 @@ pub mod fader;
 pub mod music;
 pub mod sfx;
 pub mod soundcache;
+pub mod wind;
 
-use channel::{MusicChannel, MusicChannelTag, SfxChannel};
+use channel::{MusicChannel, MusicChannelTag, SfxChannel, WindChannel};
 use fader::Fader;
 use soundcache::SoundCache;
 use std::time::Duration;
@@ -39,6 +40,7 @@ pub struct AudioFrontend {
     sound_cache: SoundCache,
 
     music_channels: Vec<MusicChannel>,
+    wind_channels: Vec<WindChannel>,
     sfx_channels: Vec<SfxChannel>,
     sfx_volume: f32,
     music_volume: f32,
@@ -76,8 +78,10 @@ impl AudioFrontend {
         //};
 
         let mut sfx_channels = Vec::with_capacity(max_sfx_channels);
+        let mut wind_channels = Vec::new();
         if let Some(audio_stream) = &audio_stream {
             sfx_channels.resize_with(max_sfx_channels, || SfxChannel::new(audio_stream));
+            wind_channels.push(WindChannel::new(audio_stream));
         };
 
         Self {
@@ -89,6 +93,7 @@ impl AudioFrontend {
             sound_cache: SoundCache::default(),
             music_channels: Vec::new(),
             sfx_channels,
+            wind_channels,
             sfx_volume: 1.0,
             music_volume: 1.0,
             listener: Listener::default(),
@@ -106,6 +111,7 @@ impl AudioFrontend {
             sound_cache: SoundCache::default(),
             music_channels: Vec::new(),
             sfx_channels: Vec::new(),
+            wind_channels: Vec::new(),
             sfx_volume: 1.0,
             music_volume: 1.0,
             listener: Listener::default(),
@@ -182,6 +188,37 @@ impl AudioFrontend {
                 channel.set_pos(pos);
                 channel.update(&listener);
                 channel.play(sound);
+            }
+        }
+    }
+
+    fn play_wind(&mut self, sound: &str, volume_multiplier: f32) {
+        if self.audio_stream.is_some() {
+            if let Some(channel) = self.get_wind_channel(volume_multiplier) {
+                let file = assets::load_file(&sound, &["ogg"]).expect("Failed to load sound");
+                let sound = Decoder::new(file).expect("Failed to decode sound");
+
+                channel.play(sound);
+            }
+        }
+    }
+
+    fn get_wind_channel(&mut self, volume_multiplier: f32) -> Option<&mut WindChannel> {
+        if self.audio_stream.is_some() {
+            if let Some(channel) = self.wind_channels.iter_mut().find(|_c| true) {
+                channel.set_volume(self.sfx_volume * volume_multiplier);
+
+                return Some(channel);
+            }
+        }
+
+        None
+    }
+
+    fn set_wind_volume(&mut self, volume_multiplier: f32) {
+        if self.audio_stream.is_some() {
+            if let Some(channel) = self.wind_channels.iter_mut().find(|_c| true) {
+                channel.set_volume(self.sfx_volume * volume_multiplier);
             }
         }
     }

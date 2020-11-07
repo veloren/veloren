@@ -113,17 +113,17 @@ impl MusicMgr {
     /// Checks whether the previous track has completed. If so, sends a
     /// request to play the next (random) track
     pub fn maintain(&mut self, audio: &mut AudioFrontend, state: &State, client: &Client) {
-        if let Some(current_chunk) = client.current_chunk() {
-            println!("biome: {:?}", current_chunk.meta().biome());
-            println!("chaos: {}", current_chunk.meta().chaos());
-            println!("alt: {}", current_chunk.meta().alt());
-            println!("temp: {}", current_chunk.meta().temp());
-            println!("tree_density: {}", current_chunk.meta().tree_density());
-            println!("humidity: {}", current_chunk.meta().humidity());
-            println!("cave_alt: {}", current_chunk.meta().cave_alt());
-            //if let Some(position) = client.current_position() {
-            //    println!("player_pos: {:?}", position);
-        }
+        //if let Some(current_chunk) = client.current_chunk() {
+        //println!("biome: {:?}", current_chunk.meta().biome());
+        //println!("chaos: {}", current_chunk.meta().chaos());
+        //println!("alt: {}", current_chunk.meta().alt());
+        //println!("temp: {}", current_chunk.meta().temp());
+        //println!("tree_density: {}", current_chunk.meta().tree_density());
+        //println!("humidity: {}", current_chunk.meta().humidity());
+        //println!("cave_alt: {}", current_chunk.meta().cave_alt());
+        //if let Some(position) = client.current_position() {
+        //    println!("player_pos: {:?}", position);
+        //}
         //let player_position = match client.current_position() {
         //    Some(pos) => pos,
         //    None => Vec3::default(),
