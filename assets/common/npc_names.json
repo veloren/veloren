@@ -298,6 +298,30 @@
             "roshwalr": {
                 "keyword": "roshwalr",
                 "generic": "Roshwalr"
+            },
+            "donkey": {
+                "keyword": "donkey",
+                "generic": "Donkey"
+            },
+            "camel": {
+                "keyword": "camel",
+                "generic": "Camel"
+            },
+            "zebra": {
+                "keyword": "zebra",
+                "generic": "Zebra"
+            },
+            "antelope": {
+                "keyword": "antelope",
+                "generic": "Antelope"
+            },
+            "kelpie": {
+                "keyword": "kelpie",
+                "generic": "Kelpie"
+            },
+            "horse": {
+                "keyword": "horse",
+                "generic": "Horse"
             }
         }
     },
