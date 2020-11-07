@@ -1431,25 +1431,11 @@ impl WorldSim {
                 .into_par_iter()
                 .map_init(
                     || Box::new(BlockGen::new(ColumnGen::new(self))),
-                    |block_gen, posi| {
-                        let wpos = uniform_idx_as_vec2(self.map_size_lg(), posi);
-                        let mut sample = column_sample.get(
+                    |_block_gen, posi| {
+                        let sample = column_sample.get(
                             (uniform_idx_as_vec2(self.map_size_lg(), posi) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
                              index)
                         )?;
-                        let alt = sample.alt;
-                        /* let z_cache = block_gen.get_z_cache(wpos);
-                        sample.alt = alt.max(z_cache.get_z_limits(&mut block_gen).2); */
-                        sample.alt = alt.max(BlockGen::get_cliff_height(
-                            &block_gen.column_gen,
-                            &mut block_gen.column_cache,
-                            wpos.map(|e| e as f32),
-                            &sample.close_cliffs,
-                            sample.cliff_hill,
-                            32.0,
-                            index,
-                        ));
-                        sample.basement += sample.alt - alt;
                         // sample.water_level = CONFIG.sea_level.max(sample.water_level);
 
                         Some(sample)
@@ -1996,6 +1982,14 @@ impl WorldSim {
 
     pub fn get_nearest_cave(&self, wpos: Vec2<i32>) -> Option<(f32, Vec2<f32>, Cave, Vec2<f32>)> {
         self.get_nearest_way(wpos, |chunk| Some(chunk.cave))
+    }
+
+    /// Return an iterator over candidate tree positions (note that only some of
+    /// these will become trees since environmental parameters may forbid
+    /// them spawning).
+    pub fn get_near_trees(&self, wpos: Vec2<i32>) -> impl Iterator<Item = (Vec2<i32>, u32)> + '_ {
+        // Deterministic based on wpos
+        std::array::IntoIter::new(self.gen_ctx.structure_gen.get(wpos))
     }
 }
 

@@ -281,7 +281,7 @@ impl Server {
                 .expect(&format!("no z_cache found for chunk: {}", spawn_chunk));
 
             // get the minimum and maximum z values at which there could be solid blocks
-            let (min_z, _, max_z) = z_cache.get_z_limits(&mut block_sampler, index);
+            let (min_z, max_z) = z_cache.get_z_limits();
             // round range outwards, so no potential air block is missed
             let min_z = min_z.floor() as i32;
             let max_z = max_z.ceil() as i32;
@@ -296,8 +296,6 @@ impl Server {
                         .get_with_z_cache(
                             Vec3::new(spawn_location.x, spawn_location.y, *z),
                             Some(&z_cache),
-                            false,
-                            index,
                         )
                         .map(|b| b.is_air())
                         .unwrap_or(false)

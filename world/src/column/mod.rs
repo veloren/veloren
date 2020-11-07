@@ -1,6 +1,5 @@
 use crate::{
     all::ForestKind,
-    block::StructureMeta,
     sim::{local_cells, Cave, Path, RiverKind, SimChunk, WorldSim},
     util::Sampler,
     IndexRef, CONFIG,
@@ -54,56 +53,6 @@ pub struct Colors {
 
 impl<'a> ColumnGen<'a> {
     pub fn new(sim: &'a WorldSim) -> Self { Self { sim } }
-
-    #[allow(clippy::if_same_then_else)] // TODO: Pending review in #587
-    fn get_local_structure(&self, wpos: Vec2<i32>) -> Option<StructureData> {
-        let (pos, seed) = self
-            .sim
-            .gen_ctx
-            .region_gen
-            .get(wpos)
-            .iter()
-            .copied()
-            .min_by_key(|(pos, _)| pos.distance_squared(wpos))
-            .unwrap();
-
-        let chunk_pos = pos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / sz as i32);
-        let chunk = self.sim.get(chunk_pos)?;
-
-        if seed % 5 == 2
-            && chunk.temp > CONFIG.desert_temp
-            && chunk.alt > chunk.water_alt + 5.0
-            && chunk.chaos <= 0.35
-        {
-            /*Some(StructureData {
-                pos,
-                seed,
-                meta: Some(StructureMeta::Pyramid { height: 140 }),
-            })*/
-            None
-        } else {
-            None
-        }
-    }
-
-    fn gen_close_structures(&self, wpos: Vec2<i32>) -> [Option<StructureData>; 9] {
-        let mut metas = [None; 9];
-        self.sim
-            .gen_ctx
-            .structure_gen
-            .get(wpos)
-            .iter()
-            .copied()
-            .enumerate()
-            .for_each(|(i, (pos, seed))| {
-                metas[i] = self.get_local_structure(pos).or(Some(StructureData {
-                    pos,
-                    seed,
-                    meta: None,
-                }));
-            });
-        metas
-    }
 }
 
 impl<'a> Sampler<'a> for ColumnGen<'a> {
@@ -1053,7 +1002,6 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 0.0
             },
             forest_kind: sim_chunk.forest_kind,
-            close_structures: self.gen_close_structures(wpos),
             marble,
             marble_small,
             rock,
@@ -1086,7 +1034,6 @@ pub struct ColumnSample<'a> {
     pub sub_surface_color: Rgb<f32>,
     pub tree_density: f32,
     pub forest_kind: ForestKind,
-    pub close_structures: [Option<StructureData>; 9],
     pub marble: f32,
     pub marble_small: f32,
     pub rock: f32,
@@ -1103,11 +1050,4 @@ pub struct ColumnSample<'a> {
     pub cave: Option<(f32, Vec2<f32>, Cave, Vec2<f32>)>,
 
     pub chunk: &'a SimChunk,
-}
-
-#[derive(Copy, Clone)]
-pub struct StructureData {
-    pub pos: Vec2<i32>,
-    pub seed: u32,
-    pub meta: Option<StructureMeta>,
 }

@@ -132,7 +132,7 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
         float ndist = step_to_dist(trunc(dist_to_step(cdist - 0.25)));
         vec3 sample = cloud_at(origin + (dir + dir_diff / ndist) * ndist * splay, ndist);
 
-        vec2 density_integrals = sample.yz * (cdist - ndist);
+        vec2 density_integrals = max(sample.yz, vec2(0)) * (cdist - ndist);
 
         float sun_access = sample.x;
         float scatter_factor = 1.0 - 1.0 / (1.0 + density_integrals.x);

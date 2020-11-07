@@ -8,7 +8,8 @@
     const_generics,
     const_panic,
     label_break_value,
-    or_patterns
+    or_patterns,
+    array_value_iter
 )]
 
 mod all;
@@ -27,8 +28,8 @@ pub mod util;
 
 // Reexports
 pub use crate::{
-    config::CONFIG,
     canvas::{Canvas, CanvasInfo},
+    config::CONFIG,
 };
 pub use block::BlockGen;
 pub use column::ColumnSample;
@@ -171,8 +172,7 @@ impl World {
                     _ => continue,
                 };
 
-                let (min_z, only_structures_min_z, max_z) =
-                    z_cache.get_z_limits(&mut sampler, index);
+                let (min_z, max_z) = z_cache.get_z_limits();
 
                 (base_z..min_z as i32).for_each(|z| {
                     let _ = chunk.set(Vec3::new(x, y, z), stone);
@@ -181,11 +181,8 @@ impl World {
                 (min_z as i32..max_z as i32).for_each(|z| {
                     let lpos = Vec3::new(x, y, z);
                     let wpos = Vec3::from(chunk_wpos2d) + lpos;
-                    let only_structures = lpos.z >= only_structures_min_z as i32;
 
-                    if let Some(block) =
-                        sampler.get_with_z_cache(wpos, Some(&z_cache), only_structures, index)
-                    {
+                    if let Some(block) = sampler.get_with_z_cache(wpos, Some(&z_cache)) {
                         let _ = chunk.set(lpos, block);
                     }
                 });
@@ -204,21 +201,22 @@ impl World {
         let mut dynamic_rng = rand::thread_rng();
 
         // Apply layers (paths, caves, etc.)
-        layer::apply_caves_to(chunk_wpos2d, sample_get, &mut chunk, index);
-        layer::apply_scatter_to(chunk_wpos2d, sample_get, &mut chunk, index, sim_chunk);
-
-        let canvas_info = CanvasInfo {
-            wpos: chunk_pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
-            column_grid: &zcache_grid,
-            column_grid_border: grid_border,
-            index,
-        };
         let mut canvas = Canvas {
-            wpos: chunk_pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
+            info: CanvasInfo {
+                wpos: chunk_pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
+                column_grid: &zcache_grid,
+                column_grid_border: grid_border,
+                land: &self.sim,
+                index,
+                chunk: sim_chunk,
+            },
             chunk: &mut chunk,
         };
 
-        layer::apply_paths_to(&mut canvas, &canvas_info);
+        layer::apply_trees_to(&mut canvas);
+        layer::apply_scatter_to(&mut canvas);
+        layer::apply_caves_to(&mut canvas);
+        layer::apply_paths_to(&mut canvas);
 
         // Apply site generation
         sim_chunk.sites.iter().for_each(|site| {
