@@ -3,7 +3,7 @@ ItemDef(
     description: "A rough stone, crumbling on the striking surfaces. Still usable as a weapon.",
     kind: Tool(
         (
-            kind: Hammer("StoneHammer1"),    
+            kind: Hammer,    
             stats: (
                 equip_time_millis: 500,
                 power: 0.70),            

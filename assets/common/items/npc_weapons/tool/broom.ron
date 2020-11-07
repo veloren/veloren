@@ -3,7 +3,7 @@ ItemDef(
     description: "It's beginning to fall apart.",
     kind: Tool (
         (
-            kind: Farming("Broom"),
+            kind: Farming,
             stats: (
                 equip_time_millis: 400,
                 power: 1.5),            

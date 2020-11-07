@@ -3,7 +3,7 @@ ItemDef(
     description: "A rough cut axe created by orcs to cleave beasts in two.",
     kind: Tool(
         (
-            kind: Axe("OrcAxe0"),    
+            kind: Axe,    
             stats: (
                 equip_time_millis: 400,
                 power: 0.60),            

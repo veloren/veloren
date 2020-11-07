@@ -3,7 +3,7 @@ ItemDef(
     description: "Placeholder",
     kind: Tool(
         (
-            kind: Bow("SaurokBow"),
+            kind: Bow,
             stats: (
                 equip_time_millis: 500,
                 power: 1.00,

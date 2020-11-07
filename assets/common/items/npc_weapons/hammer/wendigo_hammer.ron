@@ -3,7 +3,7 @@ ItemDef(
     description: "Placeholder",
     kind: Tool(
         (
-            kind: Hammer("WendigoHammer"),    
+            kind: Hammer,    
             stats: (
                 equip_time_millis: 500,
                 power: 1.00,

@@ -3,7 +3,7 @@ ItemDef(
     description: "It shines when you hold it up to the light.",
     kind: Tool(
        (
-            kind: Sword("LongFine2"),    
+            kind: Sword,    
             stats: (
                 equip_time_millis: 500,
                 power: 1.20

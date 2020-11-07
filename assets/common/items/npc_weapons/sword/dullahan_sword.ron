@@ -3,7 +3,7 @@ ItemDef(
     description: "Placehoder",
     kind: Tool(
         (
-            kind: Sword("DullahanSword"),    
+            kind: Sword,    
             stats: (
                 equip_time_millis: 500,
                 power: 1.00,

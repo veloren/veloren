@@ -3,7 +3,7 @@ ItemDef(
     description: "Heavy iron axe, likely created for ritual execution.",
     kind: Tool(
         (
-            kind: Axe("IronAxe1"),    
+            kind: Axe,    
             stats: (
                 equip_time_millis: 400,
                 power: 1.20

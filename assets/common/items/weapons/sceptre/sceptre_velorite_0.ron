@@ -3,7 +3,7 @@ ItemDef(
     description: "Heals your allies with the mystical Velorite aura.",      
     kind: Tool(
         (
-            kind: Sceptre("SceptreVelorite"),    
+            kind: Sceptre,    
             stats: (
                 equip_time_millis: 400,
                 power: 2.0),            
