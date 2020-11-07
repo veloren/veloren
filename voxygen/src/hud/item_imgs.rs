@@ -3,8 +3,7 @@ use common::{
     assets::{self, watch::ReloadIndicator, Asset},
     comp::item::{
         armor::{Armor, ArmorKind},
-        tool::{Tool, ToolKind},
-        Glider, ItemKind, Lantern, Throwable, Utility,
+        Glider, ItemDesc, ItemKind, Lantern, Throwable, Utility,
     },
     figure::Segment,
 };
@@ -19,7 +18,7 @@ use vek::*;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ItemKey {
-    Tool(ToolKind),
+    Tool(String),
     Lantern(String),
     Glider(String),
     Armor(ArmorKind),
@@ -30,10 +29,13 @@ pub enum ItemKey {
     Empty,
 }
 
-impl From<&ItemKind> for ItemKey {
-    fn from(item_kind: &ItemKind) -> Self {
+impl<T: ItemDesc> From<&T> for ItemKey {
+    fn from(item_desc: &T) -> Self {
+        let item_kind = item_desc.kind();
+        let item_definition_id = item_desc.item_definition_id();
+
         match item_kind {
-            ItemKind::Tool(Tool { kind, .. }) => ItemKey::Tool(kind.clone()),
+            ItemKind::Tool(_) => ItemKey::Tool(item_definition_id.to_owned()),
             ItemKind::Lantern(Lantern { kind, .. }) => ItemKey::Lantern(kind.clone()),
             ItemKind::Glider(Glider { kind, .. }) => ItemKey::Glider(kind.clone()),
             ItemKind::Armor(Armor { kind, .. }) => ItemKey::Armor(kind.clone()),
@@ -140,13 +142,13 @@ impl ItemImgs {
         }
     }
 
-    pub fn img_id(&self, item_kind: ItemKey) -> Option<Id> {
-        match self.map.get(&item_kind) {
+    pub fn img_id(&self, item_key: ItemKey) -> Option<Id> {
+        match self.map.get(&item_key) {
             Some(id) => Some(*id),
             // There was no specification in the ron
             None => {
                 warn!(
-                    ?item_kind,
+                    ?item_key,
                     "missing specified image file (note: hot-reloading won't work here)",
                 );
                 None
@@ -154,8 +156,8 @@ impl ItemImgs {
         }
     }
 
-    pub fn img_id_or_not_found_img(&self, item_kind: ItemKey) -> Id {
-        self.img_id(item_kind).unwrap_or(self.not_found)
+    pub fn img_id_or_not_found_img(&self, item_key: ItemKey) -> Id {
+        self.img_id(item_key).unwrap_or(self.not_found)
     }
 }
 

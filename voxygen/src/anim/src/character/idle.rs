@@ -93,7 +93,7 @@ impl Animation for IdleAnimation {
                 next.main.position = Vec3::new(0.0, -5.0, 6.0);
                 next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
             },
-            Some(ToolKind::Staff(_)) | Some(ToolKind::Sceptre(_)) => {
+            Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
                 next.main.position = Vec3::new(2.0, -5.0, -1.0);
                 next.main.orientation = Quaternion::rotation_y(-0.5) * Quaternion::rotation_z(1.57);
             },

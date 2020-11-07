@@ -8,7 +8,7 @@
         "voxel.weapon.bow.shortbow_starter",
         (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
     ),
-    Tool(Tool("common.items.weapons.bow.wood_shortbow-0")): VoxTrans(
+    Tool("common.items.weapons.bow.wood_shortbow-0"): VoxTrans(
         "voxel.weapon.bow.shortbow_wood-0",
         (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
     ),
