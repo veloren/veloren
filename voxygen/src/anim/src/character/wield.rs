@@ -7,8 +7,16 @@ use std::{f32::consts::PI, ops::Mul};
 
 pub struct WieldAnimation;
 
+type WieldAnimationDependency = (
+    Option<ToolKind>,
+    Option<ToolKind>,
+    Vec3<f32>,
+    Vec3<f32>,
+    Vec3<f32>,
+    f64,
+);
 impl Animation for WieldAnimation {
-    type Dependency = (Option<ToolKind>, Option<ToolKind>, Vec3<f32>, f64);
+    type Dependency = WieldAnimationDependency;
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -18,7 +26,7 @@ impl Animation for WieldAnimation {
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, _second_tool_kind, velocity, global_time): Self::Dependency,
+        (active_tool_kind, _second_tool_kind, orientation, last_ori, velocity, global_time): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -41,13 +49,26 @@ impl Animation for WieldAnimation {
                 * 0.1,
         );
 
+        let foothoril = (anim_time as f32 * 16.0 * lab as f32 + PI * 1.45).sin();
+        let foothorir = (anim_time as f32 * 16.0 * lab as f32 + PI * (0.45)).sin();
+        let footstrafel = (anim_time as f32 * 16.0 * lab as f32 + PI * 1.45).sin();
+        let footstrafer = (anim_time as f32 * 16.0 * lab as f32 + PI * (0.95)).sin();
+
+        let footvertl = (anim_time as f32 * 16.0 * lab as f32).sin();
+        let footvertr = (anim_time as f32 * 16.0 * lab as f32 + PI).sin();
+        let footvertsl = (anim_time as f32 * 16.0 * lab as f32).sin();
+        let footvertsr = (anim_time as f32 * 16.0 * lab as f32 + PI * 0.5).sin();
+        let beltstatic = (anim_time as f32 * 10.0 * lab as f32 + PI / 2.0).sin();
+        let footvertlstatic = (anim_time as f32 * 10.0 * lab as f32).sin();
+        let footvertrstatic = (anim_time as f32 * 10.0 * lab as f32 + PI).sin();
         let footrotl = (((1.0)
             / (0.5
                 + (0.5)
                     * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.4).sin()).powf(2.0 as f32)))
         .sqrt())
             * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.4).sin());
-        let foothoril = (anim_time as f32 * 16.0 * lab as f32 + PI * 1.45).sin();
+
+        let shortalt = (anim_time as f32 * lab as f32 * 16.0 + PI / 2.0).sin();
 
         let slowalt = (anim_time as f32 * 6.0 + PI).cos();
         let u_slow = (anim_time as f32 * 2.5 + PI).sin();
@@ -58,15 +79,68 @@ impl Animation for WieldAnimation {
             / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 16.0).sin()).powf(2.0 as f32)))
         .sqrt())
             * ((anim_time as f32 * lab as f32 * 16.0).sin());
-        let noisea = (anim_time as f32 * 11.0 + PI / 6.0).sin();
-        let noiseb = (anim_time as f32 * 19.0 + PI / 4.0).sin();
+        let direction = velocity.y * -0.098 * orientation.y + velocity.x * -0.098 * orientation.x;
+        let side = velocity.x * -0.098 * orientation.y + velocity.y * 0.098 * orientation.x;
+        let strafeabs = (1.0 / (direction).abs() - 1.0).min(1.0);
+        let strafe = -((1.0 / (direction).abs() - 1.0).min(1.0)).copysign(side);
 
-        if speed > 0.5 {
-            next.torso.orientation = Quaternion::rotation_x(-0.2);
+        let ori: Vec2<f32> = Vec2::from(orientation);
+        let last_ori = Vec2::from(last_ori);
+        let tilt = (if ::vek::Vec2::new(ori, last_ori)
+            .map(|o| o.magnitude_squared())
+            .map(|m| m > 0.001 && m.is_finite())
+            .reduce_and()
+            && ori.angle_between(last_ori).is_finite()
+        {
+            ori.angle_between(last_ori).min(0.2)
+                * last_ori.determine_side(Vec2::zero(), ori).signum()
+        } else {
+            0.0
+        } * 1.25)
+            * 4.0;
+        let jump = if velocity.z == 0.0 { 0.0 } else { 1.0 };
+        if speed > 0.2 && velocity.z == 0.0 {
+            next.chest.orientation = Quaternion::rotation_z(short * 0.1 + strafe * 0.7)
+                * Quaternion::rotation_y(strafe * 0.2)
+                * Quaternion::rotation_x(((direction * 0.8).min(0.3)) * (1.0 - tilt.abs()));
+            next.head.orientation =
+                Quaternion::rotation_z(tilt * -0.5 + strafe * 0.4 * direction + strafe * -0.7)
+                    * Quaternion::rotation_x((0.3 - direction * 0.4) * (1.0 - tilt.abs()));
 
-            next.back.orientation = Quaternion::rotation_x(
-                (-0.5 + short * 0.3 + noisea * 0.3 + noiseb * 0.3).min(-0.1),
+            next.chest.position = Vec3::new(
+                0.0 + short * strafe,
+                s_a.chest.0,
+                s_a.chest.1 + shortalt * -1.5,
             );
+            next.foot_l.position = Vec3::new(
+                -s_a.foot.0 + footstrafel * strafeabs * 3.0,
+                s_a.foot.1
+                    + (1.0 - strafeabs) * (-1.5 + foothoril * -7.5)
+                    + (direction * 5.0).max(0.0),
+                s_a.foot.2
+                    + (1.0 - strafeabs) * (2.0 + ((footvertl * -2.1).max(-1.0)))
+                    + strafe * ((footvertsl * 1.5).max(-1.0)),
+            );
+            next.foot_l.orientation = Quaternion::rotation_x(
+                (1.0 - strafeabs) * (-0.2 + foothoril * -2.0) + strafeabs * -0.5,
+            ) * Quaternion::rotation_y(
+                strafe * 0.3 + strafe * (foothoril * 0.3),
+            ) * Quaternion::rotation_z(strafe * 0.2);
+
+            next.foot_r.position = Vec3::new(
+                s_a.foot.0 + footstrafer * strafeabs * 3.0,
+                s_a.foot.1
+                    + (1.0 - strafeabs) * (-1.5 + foothorir * -7.5)
+                    + (direction * 5.0).max(0.0),
+                s_a.foot.2
+                    + (1.0 - strafeabs) * (2.0 + ((footvertr * -2.1).max(-1.0)))
+                    + strafe * ((footvertsr * -1.5).max(-1.0)),
+            );
+            next.foot_r.orientation = Quaternion::rotation_x(
+                (1.0 - strafeabs) * (-0.2 + foothorir * -2.0) + strafeabs * -0.5,
+            ) * Quaternion::rotation_y(
+                strafe * 0.3 + strafe * (foothorir * 0.3),
+            ) * Quaternion::rotation_z(strafe * 0.2);
         } else {
             next.head.position = Vec3::new(0.0, 0.0 + s_a.head.0, s_a.head.1 + u_slow * 0.1);
             next.head.orientation =
@@ -74,21 +148,39 @@ impl Animation for WieldAnimation {
 
             next.chest.position =
                 Vec3::new(0.0 + slowalt * 0.5, s_a.chest.0, s_a.chest.1 + u_slow * 0.5);
+            next.belt.orientation = Quaternion::rotation_z(0.15 + beltstatic * tilt * 0.1);
 
-            next.foot_l.position = Vec3::new(-s_a.foot.0, -2.0 + s_a.foot.1, s_a.foot.2);
-            next.foot_l.orientation = Quaternion::rotation_x(u_slowalt * 0.035 - 0.2);
+            next.head.orientation = Quaternion::rotation_z(tilt * -0.75);
 
-            next.foot_r.position = Vec3::new(s_a.foot.0, 2.0 + s_a.foot.1, s_a.foot.2);
-            next.foot_r.orientation = Quaternion::rotation_x(u_slow * 0.035);
+            next.shorts.orientation = Quaternion::rotation_z(0.3 + beltstatic * tilt * 0.2);
+            next.torso.orientation = Quaternion::rotation_z(tilt * 0.4);
 
-            next.chest.orientation =
-                Quaternion::rotation_y(u_slowalt * 0.04) * Quaternion::rotation_z(0.15);
+            next.foot_l.position = Vec3::new(
+                -s_a.foot.0,
+                -2.0 + s_a.foot.1 + jump * -4.0,
+                s_a.foot.2 + (tilt * footvertlstatic * 1.0).max(0.0),
+            );
+            next.foot_l.orientation = Quaternion::rotation_x(
+                jump * -0.7 + u_slowalt * 0.035 - 0.2 + tilt * footvertlstatic * 0.1
+                    - tilt.abs() * 0.3,
+            ) * Quaternion::rotation_z(-tilt * 0.3);
+
+            next.foot_r.position = Vec3::new(
+                s_a.foot.0,
+                2.0 + s_a.foot.1 + jump * 4.0,
+                s_a.foot.2 + (tilt * footvertrstatic * 1.0).max(0.0),
+            );
+            next.foot_r.orientation = Quaternion::rotation_x(
+                jump * 0.7 + u_slow * 0.035 + tilt * footvertrstatic * 0.1 - tilt.abs() * 0.3,
+            ) * Quaternion::rotation_z(-tilt * 0.3);
+
+            next.chest.orientation = Quaternion::rotation_y(u_slowalt * 0.04)
+                * Quaternion::rotation_z(0.15 + tilt * -0.4);
 
             next.belt.position = Vec3::new(0.0, s_a.belt.0, s_a.belt.1);
 
             next.back.orientation = Quaternion::rotation_x(-0.2);
             next.shorts.position = Vec3::new(0.0, s_a.shorts.0, s_a.shorts.1);
-            next.shorts.orientation = Quaternion::rotation_z(0.3);
         }
         match active_tool_kind {
             Some(ToolKind::Sword(_)) => {
@@ -102,7 +194,7 @@ impl Animation for WieldAnimation {
                 next.hand_r.orientation =
                     Quaternion::rotation_x(s_a.shr.3) * Quaternion::rotation_y(s_a.shr.4);
 
-                next.control.position = Vec3::new(s_a.sc.0, s_a.sc.1, s_a.sc.2);
+                next.control.position = Vec3::new(s_a.sc.0, s_a.sc.1, s_a.sc.2 + direction * -5.0);
                 next.control.orientation = Quaternion::rotation_x(s_a.sc.3 + u_slow * 0.15)
                     * Quaternion::rotation_z(u_slowalt * 0.08);
             },
@@ -161,7 +253,7 @@ impl Animation for WieldAnimation {
                 next.hand_r.orientation =
                     Quaternion::rotation_x(s_a.ahr.3) * Quaternion::rotation_z(s_a.ahr.5);
 
-                next.control.position = Vec3::new(s_a.ac.0, s_a.ac.1, s_a.ac.2);
+                next.control.position = Vec3::new(s_a.ac.0, s_a.ac.1, s_a.ac.2 + direction * -5.0);
                 next.control.orientation = Quaternion::rotation_x(s_a.ac.3)
                     * Quaternion::rotation_y(s_a.ac.4)
                     * Quaternion::rotation_z(s_a.ac.5);
@@ -176,8 +268,11 @@ impl Animation for WieldAnimation {
                 next.hand_r.orientation =
                     Quaternion::rotation_x(s_a.hhr.3) * Quaternion::rotation_y(s_a.hhr.4);
 
-                next.control.position =
-                    Vec3::new(s_a.hc.0, s_a.hc.1 + speed * 0.2, s_a.hc.2 + speed * 0.8);
+                next.control.position = Vec3::new(
+                    s_a.hc.0,
+                    s_a.hc.1 + speed * 0.2,
+                    s_a.hc.2 + speed * 0.8 + direction * -5.0,
+                );
                 next.control.orientation = Quaternion::rotation_x(s_a.hc.3 + u_slow * 0.15)
                     * Quaternion::rotation_y(s_a.hc.4 + speed * -0.04)
                     * Quaternion::rotation_z(s_a.hc.5 + u_slowalt * 0.07);
@@ -199,7 +294,8 @@ impl Animation for WieldAnimation {
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation = Quaternion::rotation_y(0.0);
 
-                next.control.position = Vec3::new(s_a.stc.0, s_a.stc.1, s_a.stc.2);
+                next.control.position =
+                    Vec3::new(s_a.stc.0, s_a.stc.1, s_a.stc.2 + direction * -5.0);
 
                 next.hand_l.position = Vec3::new(s_a.sthl.0, s_a.sthl.1, s_a.sthl.2);
                 next.hand_l.orientation = Quaternion::rotation_x(s_a.sthl.3);
@@ -239,7 +335,7 @@ impl Animation for WieldAnimation {
                 next.hold.orientation = Quaternion::rotation_x(-1.57);
                 next.hold.scale = Vec3::one() * 1.0;
 
-                next.control.position = Vec3::new(s_a.bc.0, s_a.bc.1, s_a.bc.2);
+                next.control.position = Vec3::new(s_a.bc.0, s_a.bc.1, s_a.bc.2 + direction * -5.0);
                 next.control.orientation = Quaternion::rotation_x(u_slow * 0.06)
                     * Quaternion::rotation_y(s_a.bc.4)
                     * Quaternion::rotation_z(s_a.bc.5 + u_slowalt * 0.1);

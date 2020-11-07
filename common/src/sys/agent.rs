@@ -364,6 +364,7 @@ impl<'a> System<'a> for Sys {
                                 .map(|a| !matches!(a, Alignment::Enemy | Alignment::Owned(_)))
                                 .unwrap_or(true);
                             if 1.0 - agent.psyche.aggro > damage && flees {
+                                controller.actions.push(ControlAction::Unwield);
                                 if dist_sqrd < MAX_FLEE_DIST.powf(2.0) {
                                     if let Some((bearing, speed)) = chaser.chase(
                                         &*terrain,

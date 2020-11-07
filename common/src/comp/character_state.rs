@@ -133,6 +133,7 @@ impl CharacterState {
             | CharacterState::RepeaterRanged(_)
             | CharacterState::Shockwave(_)
             | CharacterState::BasicBeam(_)
+            | CharacterState::Wielding
         )
     }
 
