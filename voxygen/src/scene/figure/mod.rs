@@ -1229,7 +1229,14 @@ impl FigureMgr {
                             } else {
                                 anim::character::WieldAnimation::update_skeleton(
                                     &target_base,
-                                    (active_tool_kind, second_tool_kind, vel.0, time),
+                                    (
+                                        active_tool_kind,
+                                        second_tool_kind,
+                                        ori,
+                                        state.last_ori,
+                                        vel.0,
+                                        time,
+                                    ),
                                     state.state_time,
                                     &mut state_animation_rate,
                                     skeleton_attr,
