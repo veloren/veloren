@@ -7,7 +7,7 @@ rustflags = [
 generate = "run --package tools --"
 test-server = "-Zpackage-features run --bin veloren-server-cli --no-default-features" 
 tracy-server = "-Zunstable-options -Zpackage-features run --bin veloren-server-cli --no-default-features --features tracy --profile dev"
-test-voxygen = "-Zpackage-features run --bin veloren-voxygen --no-default-features --features gl"
-tracy-voxygen = "-Zunstable-options -Zpackage-features run --bin veloren-voxygen --no-default-features --features tracy,gl --profile dev"
+test-voxygen = "-Zpackage-features run --bin veloren-voxygen --no-default-features --features gl,simd"
+tracy-voxygen = "-Zunstable-options -Zpackage-features run --bin veloren-voxygen --no-default-features --features tracy,gl,simd --profile dev"
 server = "run --bin veloren-server-cli"
 
