@@ -21,7 +21,6 @@ use crate::audio::{
     Listener,
 };
 use rodio::{OutputStreamHandle, Sample, Sink, Source, SpatialSink};
-use std::time::Duration;
 use vek::*;
 
 #[derive(PartialEq, Clone, Copy)]
@@ -148,6 +147,8 @@ pub struct WindChannel {
 impl WindChannel {
     pub fn set_volume(&mut self, volume: f32) { self.sink.set_volume(volume); }
 
+    pub fn volume(&mut self) -> f32 { self.sink.volume() }
+
     pub fn new(stream: &OutputStreamHandle) -> Self {
         Self {
             sink: Sink::try_new(stream).unwrap(),
@@ -200,18 +201,6 @@ impl SfxChannel {
         S: Source<Item = f32>,
     {
         let source = source.low_pass(300);
-        self.sink.append(source);
-    }
-
-    pub fn play_with_reverb<S: rodio::Source>(&mut self, source: S)
-    where
-        S: Sized + Send + 'static,
-        <S as Iterator>::Item: Sample,
-        <S as Iterator>::Item: Sync,
-        <S as Iterator>::Item: Send,
-        <S as std::iter::Iterator>::Item: std::fmt::Debug,
-    {
-        let source = source.buffered().reverb(Duration::from_millis(200), 0.2);
         self.sink.append(source);
     }
 

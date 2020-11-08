@@ -114,7 +114,7 @@ impl EventMapper for MovementEventMapper {
                 // it was dispatched
                 internal_state.event = mapped_event;
                 internal_state.on_ground = physics.on_ground;
-                if physics.in_fluid.is_some() {
+                if physics.in_liquid.is_some() {
                     internal_state.in_water = true;
                 } else {
                     internal_state.in_water = false;
@@ -182,8 +182,8 @@ impl MovementEventMapper {
         underfoot_block_kind: BlockKind,
     ) -> SfxEvent {
         // Match run / roll / swim state
-        if physics_state.in_fluid.is_some() && vel.magnitude() > 0.1
-            || !previous_state.in_water && physics_state.in_fluid.is_some()
+        if physics_state.in_liquid.is_some() && vel.magnitude() > 0.1
+            || !previous_state.in_water && physics_state.in_liquid.is_some()
         {
             return SfxEvent::Swim;
         } else if physics_state.on_ground && vel.magnitude() > 0.1
@@ -222,7 +222,7 @@ impl MovementEventMapper {
         vel: Vec3<f32>,
         underfoot_block_kind: BlockKind,
     ) -> SfxEvent {
-        if physics_state.in_fluid.is_some() && vel.magnitude() > 0.1 {
+        if physics_state.in_liquid.is_some() && vel.magnitude() > 0.1 {
             return SfxEvent::Swim;
         } else if physics_state.on_ground && vel.magnitude() > 0.1 {
             match underfoot_block_kind {

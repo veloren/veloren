@@ -212,24 +212,6 @@ impl AudioFrontend {
         }
     }
 
-    /// Play (once) an sfx file by file path at the give position and volume
-    /// but with reverb
-    pub fn play_reverb_sfx(&mut self, sound: &str, pos: Vec3<f32>, vol: Option<f32>) {
-        if self.audio_stream.is_some() {
-            let sound = self
-                .sound_cache
-                .load_sound(sound)
-                .amplify(vol.unwrap_or(1.0));
-
-            let listener = self.listener.clone();
-            if let Some(channel) = self.get_sfx_channel() {
-                channel.set_pos(pos);
-                channel.update(&listener);
-                channel.play_with_reverb(sound);
-            }
-        }
-    }
-
     fn play_wind(&mut self, sound: &str, volume_multiplier: f32) {
         if self.audio_stream.is_some() {
             if let Some(channel) = self.get_wind_channel(volume_multiplier) {
@@ -258,6 +240,18 @@ impl AudioFrontend {
             if let Some(channel) = self.wind_channels.iter_mut().find(|_c| true) {
                 channel.set_volume(self.sfx_volume * volume_multiplier);
             }
+        }
+    }
+
+    fn get_wind_volume(&mut self) -> f32 {
+        if self.audio_stream.is_some() {
+            if let Some(channel) = self.wind_channels.iter_mut().find(|_c| true) {
+                channel.volume() / self.sfx_volume
+            } else {
+                0.0
+            }
+        } else {
+            0.0
         }
     }
 
