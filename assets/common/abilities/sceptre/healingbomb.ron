@@ -1,0 +1,63 @@
+BasicRanged(
+    energy_cost: 800,
+    buildup_duration: 800,
+    recover_duration: 50,
+    projectile: (
+        hit_solid: [
+            Explode((
+                effects: [
+                    Entity(
+                        Some(OutOfGroup),
+                        Damage((
+                            source: Explosion,
+                            value: 50.0,
+                        )),
+                    ),
+                    Entity(
+                        Some(InGroup),
+                        Damage((
+                            source: Healing,
+                            value: 140.0,
+                        )),
+                    ),
+                ],
+                radius: 6.0,
+                energy_regen: 0,
+            )),
+            Vanish,
+        ],
+        hit_entity: [
+            Explode((
+                effects: [
+                    Entity(
+                        Some(OutOfGroup),
+                        Damage((
+                            source: Explosion,
+                            value: 50.0,
+                        )),
+                    ),
+                    Entity(
+                        Some(InGroup),
+                        Damage((
+                            source: Healing,
+                            value: 140.0,
+                        )),
+                    ),
+                ],
+                radius: 6.0,
+                energy_regen: 0,
+            )),
+            Vanish,
+        ],
+        time_left: 20, // seconds
+        owner: None,
+        ignore_group: true,
+    ),
+    projectile_body: Object(BoltNature),
+    /*projectile_light: Some(LightEmitter {
+        col: (0.0, 1.0, 0.0).into(),
+        ..Default::default()
+    }),*/
+    projectile_gravity: Some(Gravity(0.5)),
+    projectile_speed: 40.0,
+),
