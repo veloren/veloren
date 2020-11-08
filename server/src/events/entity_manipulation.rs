@@ -436,7 +436,9 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                 .create_object(comp::Pos(pos.0 + Vec3::unit_z() * 0.25), match old_body {
                     Some(common::comp::Body::Humanoid(_)) => object::Body::Pouch,
                     Some(common::comp::Body::Golem(_)) => object::Body::Chest,
-                    _ => object::Body::Pumpkin,
+                    Some(common::comp::Body::BipedLarge(_)) => object::Body::MeatDrop,
+                    Some(common::comp::Body::QuadrupedLow(_)) => object::Body::MeatDrop,
+                    _ => object::Body::Steak,
                 })
                 .with(item)
                 .build();
