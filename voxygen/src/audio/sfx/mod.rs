@@ -254,10 +254,6 @@ impl SfxMgr {
         let ecs = state.ecs();
         let focus_off = camera.get_focus_pos().map(f32::trunc);
 
-        let cave = match client.current_chunk() {
-            Some(chunk) => chunk.meta().cave_alt() != 0.0,
-            None => false,
-        };
         let underwater = state
             .terrain()
             .get((camera.dependents().cam_pos + focus_off).map(|e| e.floor() as i32))
@@ -305,9 +301,6 @@ impl SfxMgr {
 
                 if underwater {
                     audio.play_underwater_sfx(sfx_file, position, event.vol);
-                } else if cave {
-                    println!("Reverbbbbbbbbbb");
-                    audio.play_reverb_sfx(sfx_file, position, event.vol);
                 } else {
                     audio.play_sfx(sfx_file, position, event.vol);
                 }
