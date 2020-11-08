@@ -3,7 +3,7 @@ ItemDef(
     description: "Was attached to a mighty stone golem.",
     kind: Tool(
         (
-            kind: NpcWeapon(StoneGolemFist),    
+            kind: Unique(StoneGolemFist),    
             stats: (
                 equip_time_millis: 500,
                 power: 1.00),            
