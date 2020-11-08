@@ -23,11 +23,12 @@ pub fn create_character(
         .build();
 
     let inventory = Inventory::default();
+    let waypoint = None;
 
     character_loader.create_character(
         entity,
         player_uuid,
         character_alias,
-        (body, stats, inventory, loadout),
+        (body, stats, inventory, loadout, waypoint),
     );
 }

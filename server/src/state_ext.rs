@@ -246,7 +246,7 @@ impl StateExt for State {
     }
 
     fn update_character_data(&mut self, entity: EcsEntity, components: PersistedComponents) {
-        let (body, stats, inventory, loadout) = components;
+        let (body, stats, inventory, loadout, waypoint) = components;
 
         if let Some(player_uid) = self.read_component_copied::<Uid>(entity) {
             // Notify clients of a player list update
@@ -270,11 +270,17 @@ impl StateExt for State {
             self.write_component(entity, stats);
             self.write_component(entity, inventory);
             self.write_component(entity, loadout);
-
             self.write_component(
                 entity,
                 comp::InventoryUpdate::new(comp::InventoryUpdateEvent::default()),
             );
+
+            if let Some(waypoint) = waypoint {
+                self.write_component(entity, waypoint);
+                self.write_component(entity, comp::Pos(waypoint.get_pos()));
+                self.write_component(entity, comp::Vel(Vec3::zero()));
+                self.write_component(entity, comp::ForceUpdate);
+            }
         }
     }
 

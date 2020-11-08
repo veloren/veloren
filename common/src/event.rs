@@ -84,7 +84,13 @@ pub enum ServerEvent {
     },
     UpdateCharacterData {
         entity: EcsEntity,
-        components: (comp::Body, comp::Stats, comp::Inventory, comp::Loadout),
+        components: (
+            comp::Body,
+            comp::Stats,
+            comp::Inventory,
+            comp::Loadout,
+            Option<comp::Waypoint>,
+        ),
     },
     ExitIngame {
         entity: EcsEntity,
