@@ -77,7 +77,7 @@ impl LoadoutBuilder {
             Body::Golem(golem) => match golem.species {
                 golem::Species::StoneGolem => {
                     main_tool = Some(Item::new_from_asset_expect(
-                        "common.items.npc_weapons.npcweapon.stone_golems_fist",
+                        "common.items.npc_weapons.unique.stone_golems_fist",
                     ));
                 },
                 _ => {},
@@ -115,12 +115,12 @@ impl LoadoutBuilder {
                 },
                 (biped_large::Species::Wendigo, _) => {
                     main_tool = Some(Item::new_from_asset_expect(
-                        "common.items.npc_weapons.npcweapon.beast_claws",
+                        "common.items.npc_weapons.unique.beast_claws",
                     ));
                 },
                 (biped_large::Species::Werewolf, _) => {
                     main_tool = Some(Item::new_from_asset_expect(
-                        "common.items.npc_weapons.npcweapon.beast_claws",
+                        "common.items.npc_weapons.unique.beast_claws",
                     ));
                 },
                 (biped_large::Species::Cyclops, _) => {
