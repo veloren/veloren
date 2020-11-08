@@ -9,7 +9,6 @@ use common::{
         fish_medium, fish_small,
         golem::{self, BodyType as GBodyType, Species as GSpecies},
         humanoid::{self, Body, BodyType, EyeColor, Skin, Species},
-        item::tool::ToolKind,
         object,
         quadruped_low::{self, BodyType as QLBodyType, Species as QLSpecies},
         quadruped_medium::{self, BodyType as QMBodyType, Species as QMSpecies},
@@ -327,7 +326,7 @@ struct HumArmorPantsSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
 #[derive(Deserialize)]
 struct HumArmorFootSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
 #[derive(Deserialize)]
-struct HumMainWeaponSpec(HashMap<ToolKind, ArmorVoxSpec>);
+struct HumMainWeaponSpec(HashMap<String, ArmorVoxSpec>);
 #[derive(Deserialize)]
 struct HumArmorLanternSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
 #[derive(Deserialize)]
@@ -826,11 +825,11 @@ impl HumArmorFootSpec {
 }
 
 impl HumMainWeaponSpec {
-    fn mesh_main_weapon(&self, tool_kind: &ToolKind, flipped: bool) -> BoneMeshes {
-        let spec = match self.0.get(tool_kind) {
+    fn mesh_main_weapon(&self, item_definition_id: &str, flipped: bool) -> BoneMeshes {
+        let spec = match self.0.get(item_definition_id) {
             Some(spec) => spec,
             None => {
-                error!(?tool_kind, "No tool/weapon specification exists");
+                error!(?item_definition_id, "No tool/weapon specification exists");
                 return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
             },
         };

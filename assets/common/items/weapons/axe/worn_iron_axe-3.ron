@@ -3,7 +3,7 @@ ItemDef(
     description: "Rough cut iron makes it hard to tell that this axe is even used, other than how old it feels.",
     kind: Tool(
         (
-            kind: Axe("WornIronAxe3"),
+            kind: Axe,
             stats: (
                 equip_time_millis: 400,
                 power: 0.80),            

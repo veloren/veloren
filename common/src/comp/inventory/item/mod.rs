@@ -2,7 +2,7 @@ pub mod armor;
 pub mod tool;
 
 // Reexports
-pub use tool::{Hands, Tool, ToolKind};
+pub use tool::{Hands, Tool, ToolKind, UniqueKind};
 
 use crate::{
     assets::{self, Asset, Error},
@@ -351,6 +351,7 @@ pub trait ItemDesc {
     fn name(&self) -> &str;
     fn kind(&self) -> &ItemKind;
     fn quality(&self) -> &Quality;
+    fn item_definition_id(&self) -> &str;
 }
 
 impl ItemDesc for Item {
@@ -361,6 +362,8 @@ impl ItemDesc for Item {
     fn kind(&self) -> &ItemKind { &self.item_def.kind }
 
     fn quality(&self) -> &Quality { &self.item_def.quality }
+
+    fn item_definition_id(&self) -> &str { &self.item_def.item_definition_id }
 }
 
 impl ItemDesc for ItemDef {
@@ -371,6 +374,8 @@ impl ItemDesc for ItemDef {
     fn kind(&self) -> &ItemKind { &self.kind }
 
     fn quality(&self) -> &Quality { &self.quality }
+
+    fn item_definition_id(&self) -> &str { &self.item_definition_id }
 }
 
 impl Component for Item {

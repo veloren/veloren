@@ -3,7 +3,7 @@ ItemDef(
     description: "It's a big sword, and sharp too.",
     kind: Tool(
        (
-            kind: Sword("Zweihander0"),    
+            kind: Sword,    
             stats: (
                 equip_time_millis: 500,
                 power: 1.50

@@ -4,7 +4,10 @@ use crate::{
         agent::Activity,
         group,
         group::Invite,
-        item::{tool::ToolKind, ItemKind},
+        item::{
+            tool::{ToolKind, UniqueKind},
+            ItemKind,
+        },
         Agent, Alignment, Body, CharacterState, ControlAction, ControlEvent, Controller, Energy,
         GroupManip, Health, LightEmitter, Loadout, MountState, Ori, PhysicsState, Pos, Scale,
         UnresolvedChatMsg, Vel,
@@ -317,14 +320,13 @@ impl<'a> System<'a> for Sys {
                                 None
                             }
                         }) {
-                            Some(ToolKind::Bow(_)) => Tactic::RangedPowerup,
-                            Some(ToolKind::Staff(_)) => Tactic::Staff,
-                            Some(ToolKind::Hammer(_)) => Tactic::Hammer,
-                            Some(ToolKind::Sword(_)) => Tactic::Sword,
-                            Some(ToolKind::Axe(_)) => Tactic::Axe,
-                            Some(ToolKind::NpcWeapon(kind)) => match kind.as_str() {
-                                "StoneGolemsFist" => Tactic::StoneGolemBoss,
-                                _ => Tactic::Melee,
+                            Some(ToolKind::Bow) => Tactic::RangedPowerup,
+                            Some(ToolKind::Staff) => Tactic::Staff,
+                            Some(ToolKind::Hammer) => Tactic::Hammer,
+                            Some(ToolKind::Sword) => Tactic::Sword,
+                            Some(ToolKind::Axe) => Tactic::Axe,
+                            Some(ToolKind::Unique(UniqueKind::StoneGolemFist)) => {
+                                Tactic::StoneGolemBoss
                             },
                             _ => Tactic::Melee,
                         };

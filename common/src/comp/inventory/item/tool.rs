@@ -16,17 +16,17 @@ use std::time::Duration;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ToolKind {
-    Sword(String),
-    Axe(String),
-    Hammer(String),
-    Bow(String),
-    Dagger(String),
-    Staff(String),
-    Sceptre(String),
-    Shield(String),
-    NpcWeapon(String),
-    Debug(String),
-    Farming(String),
+    Sword,
+    Axe,
+    Hammer,
+    Bow,
+    Dagger,
+    Staff,
+    Sceptre,
+    Shield,
+    Unique(UniqueKind),
+    Debug,
+    Farming,
     /// This is an placeholder item, it is used by non-humanoid npcs to attack
     Empty,
 }
@@ -34,17 +34,17 @@ pub enum ToolKind {
 impl ToolKind {
     pub fn hands(&self) -> Hands {
         match self {
-            ToolKind::Sword(_) => Hands::TwoHand,
-            ToolKind::Axe(_) => Hands::TwoHand,
-            ToolKind::Hammer(_) => Hands::TwoHand,
-            ToolKind::Bow(_) => Hands::TwoHand,
-            ToolKind::Dagger(_) => Hands::OneHand,
-            ToolKind::Staff(_) => Hands::TwoHand,
-            ToolKind::Sceptre(_) => Hands::TwoHand,
-            ToolKind::Shield(_) => Hands::OneHand,
-            ToolKind::NpcWeapon(_) => Hands::TwoHand,
-            ToolKind::Debug(_) => Hands::TwoHand,
-            ToolKind::Farming(_) => Hands::TwoHand,
+            ToolKind::Sword => Hands::TwoHand,
+            ToolKind::Axe => Hands::TwoHand,
+            ToolKind::Hammer => Hands::TwoHand,
+            ToolKind::Bow => Hands::TwoHand,
+            ToolKind::Dagger => Hands::OneHand,
+            ToolKind::Staff => Hands::TwoHand,
+            ToolKind::Sceptre => Hands::TwoHand,
+            ToolKind::Shield => Hands::OneHand,
+            ToolKind::Unique(_) => Hands::TwoHand,
+            ToolKind::Debug => Hands::TwoHand,
+            ToolKind::Farming => Hands::TwoHand,
             ToolKind::Empty => Hands::OneHand,
         }
     }
@@ -90,8 +90,9 @@ impl Tool {
         use CharacterAbility::*;
         use ToolKind::*;
 
+        use UniqueKind::*;
         match &self.kind {
-            Sword(_) => vec![
+            Sword => vec![
                 ComboMelee {
                     stage_data: vec![
                         combo_melee::Stage {
@@ -173,7 +174,7 @@ impl Tool {
                     num_spins: 3,
                 },
             ],
-            Axe(_) => vec![
+            Axe => vec![
                 BasicMelee {
                     energy_cost: 0,
                     buildup_duration: Duration::from_millis(600),
@@ -212,7 +213,7 @@ impl Tool {
                     vertical_leap_strength: 8.0,
                 },
             ],
-            Hammer(_) => vec![
+            Hammer => vec![
                 BasicMelee {
                     energy_cost: 0,
                     buildup_duration: Duration::from_millis(600),
@@ -250,7 +251,7 @@ impl Tool {
                     vertical_leap_strength: 8.0,
                 },
             ],
-            Farming(_) => vec![BasicMelee {
+            Farming => vec![BasicMelee {
                 energy_cost: 1,
                 buildup_duration: Duration::from_millis(600),
                 swing_duration: Duration::from_millis(100),
@@ -260,7 +261,7 @@ impl Tool {
                 range: 3.5,
                 max_angle: 20.0,
             }],
-            Bow(_) => vec![
+            Bow => vec![
                 BasicRanged {
                     energy_cost: 0,
                     buildup_duration: Duration::from_millis(100),
@@ -353,7 +354,7 @@ impl Tool {
                     reps_remaining: 5,
                 },
             ],
-            Dagger(_) => vec![BasicMelee {
+            Dagger => vec![BasicMelee {
                 energy_cost: 0,
                 buildup_duration: Duration::from_millis(100),
                 swing_duration: Duration::from_millis(100),
@@ -363,7 +364,7 @@ impl Tool {
                 range: 3.5,
                 max_angle: 20.0,
             }],
-            Sceptre(_) => vec![
+            Sceptre => vec![
                 BasicBeam {
                     buildup_duration: Duration::from_millis(250),
                     recover_duration: Duration::from_millis(250),
@@ -442,7 +443,7 @@ impl Tool {
                     projectile_speed: 40.0,
                 },
             ],
-            Staff(_) => vec![
+            Staff => vec![
                 BasicRanged {
                     energy_cost: 0,
                     buildup_duration: Duration::from_millis(500),
@@ -517,7 +518,7 @@ impl Tool {
                     move_efficiency: 0.1,
                 },
             ],
-            Shield(_) => vec![
+            Shield => vec![
                 BasicMelee {
                     energy_cost: 0,
                     buildup_duration: Duration::from_millis(100),
@@ -530,59 +531,43 @@ impl Tool {
                 },
                 BasicBlock,
             ],
-            NpcWeapon(kind) => {
-                if kind == "StoneGolemsFist" {
-                    vec![
-                        BasicMelee {
-                            energy_cost: 0,
-                            buildup_duration: Duration::from_millis(400),
-                            swing_duration: Duration::from_millis(100),
-                            recover_duration: Duration::from_millis(250),
-                            knockback: 25.0,
-                            base_damage: 200,
-                            range: 5.0,
-                            max_angle: 120.0,
-                        },
-                        Shockwave {
-                            energy_cost: 0,
-                            buildup_duration: Duration::from_millis(500),
-                            swing_duration: Duration::from_millis(200),
-                            recover_duration: Duration::from_millis(800),
-                            damage: 500,
-                            knockback: Knockback::TowardsUp(40.0),
-                            shockwave_angle: 90.0,
-                            shockwave_vertical_angle: 15.0,
-                            shockwave_speed: 20.0,
-                            shockwave_duration: Duration::from_millis(2000),
-                            requires_ground: true,
-                            move_efficiency: 0.05,
-                        },
-                    ]
-                } else if kind == "BeastClaws" {
-                    vec![BasicMelee {
-                        energy_cost: 0,
-                        buildup_duration: Duration::from_millis(250),
-                        swing_duration: Duration::from_millis(250),
-                        recover_duration: Duration::from_millis(250),
-                        knockback: 25.0,
-                        base_damage: 200,
-                        range: 5.0,
-                        max_angle: 120.0,
-                    }]
-                } else {
-                    vec![BasicMelee {
-                        energy_cost: 0,
-                        buildup_duration: Duration::from_millis(100),
-                        swing_duration: Duration::from_millis(100),
-                        recover_duration: Duration::from_millis(200),
-                        base_damage: 10,
-                        knockback: 0.0,
-                        range: 1.0,
-                        max_angle: 30.0,
-                    }]
-                }
-            },
-            Debug(_) => vec![
+            Unique(StoneGolemFist) => vec![
+                BasicMelee {
+                    energy_cost: 0,
+                    buildup_duration: Duration::from_millis(400),
+                    swing_duration: Duration::from_millis(100),
+                    recover_duration: Duration::from_millis(250),
+                    knockback: 25.0,
+                    base_damage: 200,
+                    range: 5.0,
+                    max_angle: 120.0,
+                },
+                Shockwave {
+                    energy_cost: 0,
+                    buildup_duration: Duration::from_millis(500),
+                    swing_duration: Duration::from_millis(200),
+                    recover_duration: Duration::from_millis(800),
+                    damage: 500,
+                    knockback: Knockback::TowardsUp(40.0),
+                    shockwave_angle: 90.0,
+                    shockwave_vertical_angle: 15.0,
+                    shockwave_speed: 20.0,
+                    shockwave_duration: Duration::from_millis(2000),
+                    requires_ground: true,
+                    move_efficiency: 0.05,
+                },
+            ],
+            Unique(BeastClaws) => vec![BasicMelee {
+                energy_cost: 0,
+                buildup_duration: Duration::from_millis(250),
+                swing_duration: Duration::from_millis(250),
+                recover_duration: Duration::from_millis(250),
+                knockback: 25.0,
+                base_damage: 200,
+                range: 5.0,
+                max_angle: 120.0,
+            }],
+            Debug => vec![
                 CharacterAbility::Boost {
                     movement_duration: Duration::from_millis(50),
                     only_up: false,
@@ -623,4 +608,10 @@ impl Tool {
             }],
         }
     }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum UniqueKind {
+    StoneGolemFist,
+    BeastClaws,
 }

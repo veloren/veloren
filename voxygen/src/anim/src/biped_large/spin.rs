@@ -51,7 +51,7 @@ impl Animation for SpinAnimation {
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
 
-        if let Some(ToolKind::Sword(_)) = active_tool_kind {
+        if let Some(ToolKind::Sword) = active_tool_kind {
             next.main.position = Vec3::new(0.0, 0.0, 0.0);
             next.main.orientation = Quaternion::rotation_x(0.0);
 
@@ -92,8 +92,7 @@ impl Animation for SpinAnimation {
             next.torso.orientation = Quaternion::rotation_z(movement2 * 6.28);
         }
 
-        if let Some(ToolKind::Axe(_) | ToolKind::Hammer(_) | ToolKind::Dagger(_)) = active_tool_kind
-        {
+        if let Some(ToolKind::Axe | ToolKind::Hammer | ToolKind::Dagger) = active_tool_kind {
             next.hand_l.position = Vec3::new(-0.75, -1.0, -2.5);
             next.hand_l.orientation = Quaternion::rotation_x(1.27);
             next.hand_r.position = Vec3::new(0.75, -1.5, -5.5);

@@ -3,7 +3,7 @@ ItemDef(
     description: "A decorative iron mace, great for smashing.",
     kind: Tool(
         (
-            kind: Hammer("IronHammer2"),    
+            kind: Hammer,    
             stats: (
                 equip_time_millis: 500,
                 power: 1.20),            

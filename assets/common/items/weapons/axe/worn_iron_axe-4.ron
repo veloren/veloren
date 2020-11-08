@@ -3,7 +3,7 @@ ItemDef(
     description: "An axe formed with the intent of making the blade seem like a beetle. With how brittle it has gotten over the years, one would be mistaken in thinking it was made from beetle shell.",
     kind: Tool(
         (
-            kind: Axe("WornIronAxe4"),
+            kind: Axe,
             stats: (
                 equip_time_millis: 400,
                 power: 0.80),            

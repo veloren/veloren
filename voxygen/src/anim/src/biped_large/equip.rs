@@ -33,19 +33,19 @@ impl Animation for EquipAnimation {
         next.control.position = Vec3::new(equip_slowa * -1.5, 0.0, equip_slow * 1.5);
 
         match active_tool_kind {
-            Some(ToolKind::Sword(_)) => {
+            Some(ToolKind::Sword) => {
                 next.hand_l.position = Vec3::new(-18.0, -8.0, -1.0);
                 next.hand_r.position = Vec3::new(-16.0, -7.5, -4.0);
             },
-            Some(ToolKind::Axe(_)) => {
+            Some(ToolKind::Axe) => {
                 next.hand_l.position = Vec3::new(-7.0, -5.0, 17.0);
                 next.hand_r.position = Vec3::new(-5.0, -4.5, 14.0);
             },
-            Some(ToolKind::Hammer(_)) => {
+            Some(ToolKind::Hammer) => {
                 next.hand_l.position = Vec3::new(-15.0, -7.0, 3.0);
                 next.hand_r.position = Vec3::new(-13.0, -6.5, 0.0);
             },
-            Some(ToolKind::Staff(_)) | Some(ToolKind::Sceptre(_)) => {
+            Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
                 next.hand_l.position = Vec3::new(4.0, -6.0, 0.0);
                 next.hand_r.position = Vec3::new(6.0, -6.0, 6.0);
                 next.hand_l.orientation =
@@ -53,7 +53,7 @@ impl Animation for EquipAnimation {
                 next.hand_r.orientation =
                     Quaternion::rotation_y(2.2) * Quaternion::rotation_z(-1.57);
             },
-            Some(ToolKind::Bow(_)) => {
+            Some(ToolKind::Bow) => {
                 next.hand_l.position = Vec3::new(-3.0, -5.0, 9.0);
                 next.hand_r.position = Vec3::new(-1.75, -4.5, 7.0);
             },

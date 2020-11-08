@@ -69,7 +69,7 @@ impl Animation for DashAnimation {
 
         match active_tool_kind {
             //TODO: Inventory
-            Some(ToolKind::Sword(_)) => {
+            Some(ToolKind::Sword) => {
                 next.head.position =
                     Vec3::new(0.0, 0.0 + s_a.head.0, s_a.head.1 + movement2.min(1.0) * 1.0);
                 next.head.orientation = Quaternion::rotation_x(0.0)

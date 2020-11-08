@@ -12,7 +12,6 @@ use common::{
     comp::{
         item::{
             armor::{Armor, ArmorKind},
-            tool::ToolKind,
             ItemKind,
         },
         CharacterState, Loadout,
@@ -69,8 +68,8 @@ pub struct FigureKey<Body> {
 /// person or when the character is in a tool-using state).
 #[derive(Eq, Hash, PartialEq)]
 pub(super) struct CharacterToolKey {
-    pub active: Option<ToolKind>,
-    pub second: Option<ToolKind>,
+    pub active: Option<String>,
+    pub second: Option<String>,
 }
 
 /// Character data that exists in third person only.
@@ -180,20 +179,14 @@ impl CharacterCacheKey {
             },
             tool: if are_tools_visible {
                 Some(CharacterToolKey {
-                    active: if let Some(ItemKind::Tool(tool)) =
-                        loadout.active_item.as_ref().map(|i| i.item.kind())
-                    {
-                        Some(tool.kind.clone())
-                    } else {
-                        None
-                    },
-                    second: if let Some(ItemKind::Tool(tool)) =
-                        loadout.second_item.as_ref().map(|i| i.item.kind())
-                    {
-                        Some(tool.kind.clone())
-                    } else {
-                        None
-                    },
+                    active: loadout
+                        .active_item
+                        .as_ref()
+                        .map(|i| i.item.item_definition_id().to_owned()),
+                    second: loadout
+                        .second_item
+                        .as_ref()
+                        .map(|i| i.item.item_definition_id().to_owned()),
                 })
             } else {
                 None

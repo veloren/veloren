@@ -3,7 +3,7 @@ ItemDef(
     description: "Worn head shows that this hammer had been used for many years to make other weapons, now relegated to being a weapon in its own right.",
     kind: Tool(
         (
-            kind: Hammer("IronHammer4"),    
+            kind: Hammer,    
             stats: (
                 equip_time_millis: 500,
                 power: 1.20),            

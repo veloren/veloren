@@ -3,7 +3,7 @@ ItemDef(
     description: "It's probably the weapon of some noble.",
     kind: Tool(
        (
-            kind: Sword("LongOrn3"),    
+            kind: Sword,    
             stats: (
                 equip_time_millis: 500,
                 power: 1.50

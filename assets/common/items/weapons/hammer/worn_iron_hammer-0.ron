@@ -3,7 +3,7 @@ ItemDef(
     description: "While the dwarves excel at rough hewn weapons, this one has seen its fair share of battles, might still serve well enough for a few more.",
     kind: Tool(
         (
-            kind: Hammer("WornIronHammer0"),    
+            kind: Hammer,    
             stats: (
                 equip_time_millis: 500,
                 power: 0.85),            
