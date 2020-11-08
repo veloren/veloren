@@ -175,6 +175,10 @@
         vox_spec: ("weapon.sword.cultist_purp_2h-0", (-2.0, -4.5, -7.5)),
         color: None
     ),
+    "common.items.debug.cultist_purp_2h_boss-0": (
+        vox_spec: ("weapon.sword.cultist_purp_2h-0", (-2.0, -4.5, -7.5)),
+        color: None
+    ),
     "common.items.npc_weapons.sword.cultist_purp_2h_boss-0": (
         vox_spec: ("weapon.sword.cultist_purp_2h-0", (-2.0, -4.5, -7.5)),
         color: None
