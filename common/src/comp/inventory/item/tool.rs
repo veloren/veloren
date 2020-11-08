@@ -580,7 +580,6 @@ impl Tool {
                     range: 3.0,
                     max_angle: 120.0,
                 },
-                BasicBlock,
             ],
             Unique(StoneGolemFist) => vec![
                 BasicMelee {
