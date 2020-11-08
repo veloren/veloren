@@ -156,7 +156,9 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
             .read_resource::<persistence::character_updater::CharacterUpdater>(),
     ) {
         if let PresenceKind::Character(character_id) = presences.kind {
-            updater.update(character_id, stats, inventory, loadout);
+            let waypoint_read = state.read_storage::<comp::Waypoint>();
+            let waypoint = waypoint_read.get(entity);
+            updater.update(character_id, stats, inventory, loadout, waypoint);
         }
     }
 

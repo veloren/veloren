@@ -242,6 +242,8 @@ pub fn initialize_region_subscription(world: &World, entity: specs::Entity) {
                     &world.entities(),
                 )
                     .join()
+                    // Don't send client its own components because we do that below
+                    .filter(|t| t.4 != entity)
                 {
                     // Send message to create entity and tracked components and physics components
                     client.send_fallible(ServerGeneral::CreateEntity(
@@ -255,6 +257,16 @@ pub fn initialize_region_subscription(world: &World, entity: specs::Entity) {
                 }
             }
         }
+        // If client position was modified it might not be updated in the region system
+        // so we send its components here
+        client.send_fallible(ServerGeneral::CreateEntity(
+            tracked_comps.create_entity_package(
+                entity,
+                Some(*client_pos),
+                world.read_storage().get(entity).copied(),
+                world.read_storage().get(entity).copied(),
+            ),
+        ));
 
         if let Err(e) = world.write_storage().insert(entity, RegionSubscription {
             fuzzy_chunk,

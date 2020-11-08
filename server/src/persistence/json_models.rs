@@ -1,5 +1,6 @@
 use common::comp;
 use serde::{Deserialize, Serialize};
+use vek::Vec3;
 
 #[derive(Serialize, Deserialize)]
 pub struct HumanoidBody {
@@ -28,4 +29,9 @@ impl From<&comp::humanoid::Body> for HumanoidBody {
             eye_color: body.eye_color,
         }
     }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct CharacterPosition {
+    pub waypoint: Vec3<f32>,
 }
