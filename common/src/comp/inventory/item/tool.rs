@@ -323,6 +323,7 @@ impl Tool {
                     projectile_light: None,
                     projectile_gravity: Some(Gravity(0.2)),
                     projectile_speed: 100.0,
+                    can_continue: true,
                 },
                 ChargedRanged {
                     energy_cost: 0,
@@ -467,6 +468,7 @@ impl Tool {
                     }),
                     projectile_gravity: Some(Gravity(0.5)),
                     projectile_speed: 40.0,
+                    can_continue: false,
                 },
             ],
             Staff => vec![
@@ -514,6 +516,7 @@ impl Tool {
                     }),
                     projectile_gravity: Some(Gravity(0.3)),
                     projectile_speed: 60.0,
+                    can_continue: false,
                 },
                 BasicBeam {
                     buildup_duration: Duration::from_millis(250),
@@ -620,6 +623,7 @@ impl Tool {
                     }),
                     projectile_gravity: None,
                     projectile_speed: 100.0,
+                    can_continue: false,
                 },
             ],
             Empty => vec![BasicMelee {
