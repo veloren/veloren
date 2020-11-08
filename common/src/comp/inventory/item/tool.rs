@@ -90,6 +90,11 @@ impl Tool {
         Duration::from_millis(self.stats.equip_time_millis as u64)
     }
 
+    /// Converts milliseconds to a `Duration` adjusted by `base_speed()`
+    pub fn adjusted_duration(&self, millis: u64) -> Duration {
+        Duration::from_millis(millis).div_f32(self.base_speed())
+    }
+
     pub fn get_abilities(&self) -> Vec<CharacterAbility> {
         use CharacterAbility::*;
         use ToolKind::*;
@@ -107,12 +112,9 @@ impl Tool {
                             knockback: 10.0,
                             range: 4.0,
                             angle: 30.0,
-                            base_buildup_duration: Duration::from_millis(350)
-                                .div_f32(self.base_speed()),
-                            base_swing_duration: Duration::from_millis(100)
-                                .div_f32(self.base_speed()),
-                            base_recover_duration: Duration::from_millis(400)
-                                .div_f32(self.base_speed()),
+                            base_buildup_duration: self.adjusted_duration(350),
+                            base_swing_duration: self.adjusted_duration(100),
+                            base_recover_duration: self.adjusted_duration(400),
                             forward_movement: 0.5,
                         },
                         combo_melee::Stage {
@@ -123,12 +125,9 @@ impl Tool {
                             knockback: 12.0,
                             range: 3.5,
                             angle: 180.0,
-                            base_buildup_duration: Duration::from_millis(400)
-                                .div_f32(self.base_speed()),
-                            base_swing_duration: Duration::from_millis(600)
-                                .div_f32(self.base_speed()),
-                            base_recover_duration: Duration::from_millis(400)
-                                .div_f32(self.base_speed()),
+                            base_buildup_duration: self.adjusted_duration(400),
+                            base_swing_duration: self.adjusted_duration(600),
+                            base_recover_duration: self.adjusted_duration(400),
                             forward_movement: 0.0,
                         },
                         combo_melee::Stage {
@@ -139,12 +138,9 @@ impl Tool {
                             knockback: 14.0,
                             range: 6.0,
                             angle: 10.0,
-                            base_buildup_duration: Duration::from_millis(500)
-                                .div_f32(self.base_speed()),
-                            base_swing_duration: Duration::from_millis(200)
-                                .div_f32(self.base_speed()),
-                            base_recover_duration: Duration::from_millis(300)
-                                .div_f32(self.base_speed()),
+                            base_buildup_duration: self.adjusted_duration(500),
+                            base_swing_duration: self.adjusted_duration(200),
+                            base_recover_duration: self.adjusted_duration(300),
                             forward_movement: 1.2,
                         },
                     ],
@@ -165,17 +161,17 @@ impl Tool {
                     angle: 45.0,
                     energy_drain: 500,
                     forward_speed: 4.0,
-                    buildup_duration: Duration::from_millis(250).div_f32(self.base_speed()),
-                    charge_duration: Duration::from_millis(600).div_f32(self.base_speed()),
-                    swing_duration: Duration::from_millis(100).div_f32(self.base_speed()),
-                    recover_duration: Duration::from_millis(500).div_f32(self.base_speed()),
+                    buildup_duration: self.adjusted_duration(250),
+                    charge_duration: self.adjusted_duration(600),
+                    swing_duration: self.adjusted_duration(100),
+                    recover_duration: self.adjusted_duration(500),
                     infinite_charge: true,
                     is_interruptible: true,
                 },
                 SpinMelee {
-                    buildup_duration: Duration::from_millis(750).div_f32(self.base_speed()),
-                    swing_duration: Duration::from_millis(500).div_f32(self.base_speed()),
-                    recover_duration: Duration::from_millis(500).div_f32(self.base_speed()),
+                    buildup_duration: self.adjusted_duration(750),
+                    swing_duration: self.adjusted_duration(500),
+                    recover_duration: self.adjusted_duration(500),
                     base_damage: (140.0 * self.base_power()) as u32,
                     knockback: 10.0,
                     range: 3.5,
@@ -198,9 +194,9 @@ impl Tool {
                             knockback: 8.0,
                             range: 3.5,
                             angle: 50.0,
-                            base_buildup_duration: Duration::from_millis(350).div_f32(self.base_speed()),
-                            base_swing_duration: Duration::from_millis(75).div_f32(self.base_speed()),
-                            base_recover_duration: Duration::from_millis(400).div_f32(self.base_speed()),
+                            base_buildup_duration: self.adjusted_duration(350),
+                            base_swing_duration: self.adjusted_duration(75),
+                            base_recover_duration: self.adjusted_duration(400),
                             forward_movement: 0.5,
                         },
                         combo_melee::Stage {
@@ -211,9 +207,9 @@ impl Tool {
                             knockback: 12.0,
                             range: 3.5,
                             angle: 30.0,
-                            base_buildup_duration: Duration::from_millis(500).div_f32(self.base_speed()),
-                            base_swing_duration: Duration::from_millis(100).div_f32(self.base_speed()),
-                            base_recover_duration: Duration::from_millis(500).div_f32(self.base_speed()),
+                            base_buildup_duration: self.adjusted_duration(500),
+                            base_swing_duration: self.adjusted_duration(100),
+                            base_recover_duration: self.adjusted_duration(500),
                             forward_movement: 0.25,
                         },
                     ],
@@ -225,9 +221,9 @@ impl Tool {
                     is_interruptible: false,
                 },
                 SpinMelee {
-                    buildup_duration: Duration::from_millis(100).div_f32(self.base_speed()),
-                    swing_duration: Duration::from_millis(250).div_f32(self.base_speed()),
-                    recover_duration: Duration::from_millis(100).div_f32(self.base_speed()),
+                    buildup_duration: self.adjusted_duration(100),
+                    swing_duration: self.adjusted_duration(250),
+                    recover_duration: self.adjusted_duration(100),
                     base_damage: (60.0 * self.base_power()) as u32,
                     knockback: 0.0,
                     range: 3.5,
@@ -240,10 +236,10 @@ impl Tool {
                 },
                 LeapMelee {
                     energy_cost: 450,
-                    buildup_duration: Duration::from_millis(200).div_f32(self.base_speed()),
-                    movement_duration: Duration::from_millis(200).div_f32(self.base_speed()),
-                    swing_duration: Duration::from_millis(200).div_f32(self.base_speed()),
-                    recover_duration: Duration::from_millis(200).div_f32(self.base_speed()),
+                    buildup_duration: self.adjusted_duration(200),
+                    movement_duration: Duration::from_millis(200),
+                    swing_duration: self.adjusted_duration(200),
+                    recover_duration: self.adjusted_duration(200),
                     base_damage: (240.0 * self.base_power()) as u32,
                     knockback: 12.0,
                     range: 4.5,
@@ -262,9 +258,9 @@ impl Tool {
                         knockback: 0.0,
                         range: 3.5,
                         angle: 20.0,
-                        base_buildup_duration: Duration::from_millis(600).div_f32(self.base_speed()),
-                        base_swing_duration: Duration::from_millis(60).div_f32(self.base_speed()),
-                        base_recover_duration: Duration::from_millis(300).div_f32(self.base_speed()),
+                        base_buildup_duration: self.adjusted_duration(600),
+                        base_swing_duration: self.adjusted_duration(60),
+                        base_recover_duration: self.adjusted_duration(300),
                         forward_movement: 0.0,
                     }],
                     initial_energy_gain: 0,
@@ -283,16 +279,16 @@ impl Tool {
                     max_knockback: 60.0,
                     range: 3.5,
                     max_angle: 30.0,
-                    charge_duration: Duration::from_millis(1200).div_f32(self.base_speed()),
-                    swing_duration: Duration::from_millis(200).div_f32(self.base_speed()),
-                    recover_duration: Duration::from_millis(300).div_f32(self.base_speed()),
+                    charge_duration: self.adjusted_duration(1200),
+                    swing_duration: self.adjusted_duration(200),
+                    recover_duration: self.adjusted_duration(300),
                 },
                 LeapMelee {
                     energy_cost: 700,
-                    buildup_duration: Duration::from_millis(100).div_f32(self.base_speed()),
-                    movement_duration: Duration::from_millis(800).div_f32(self.base_speed()),
-                    swing_duration: Duration::from_millis(150).div_f32(self.base_speed()),
-                    recover_duration: Duration::from_millis(200).div_f32(self.base_speed()),
+                    buildup_duration: self.adjusted_duration(100),
+                    movement_duration: Duration::from_millis(800),
+                    swing_duration: self.adjusted_duration(150),
+                    recover_duration: self.adjusted_duration(200),
                     base_damage: (240.0 * self.base_power()) as u32,
                     knockback: 25.0,
                     range: 4.5,
@@ -303,9 +299,9 @@ impl Tool {
             ],
             Farming => vec![BasicMelee {
                 energy_cost: 1,
-                buildup_duration: Duration::from_millis(600).div_f32(self.base_speed()),
-                swing_duration: Duration::from_millis(100).div_f32(self.base_speed()),
-                recover_duration: Duration::from_millis(150).div_f32(self.base_speed()),
+                buildup_duration: self.adjusted_duration(600),
+                swing_duration: self.adjusted_duration(100),
+                recover_duration: self.adjusted_duration(150),
                 base_damage: (50.0 * self.base_power()) as u32,
                 knockback: 0.0,
                 range: 3.5,
@@ -314,8 +310,8 @@ impl Tool {
             Bow => vec![
                 BasicRanged {
                     energy_cost: 0,
-                    buildup_duration: Duration::from_millis(200).div_f32(self.base_speed()),
-                    recover_duration: Duration::from_millis(300).div_f32(self.base_speed()),
+                    buildup_duration: self.adjusted_duration(200),
+                    recover_duration: self.adjusted_duration(300),
                     projectile: Projectile {
                         hit_solid: vec![projectile::Effect::Stick],
                         hit_entity: vec![
@@ -356,9 +352,9 @@ impl Tool {
                     max_damage: (200.0 * self.base_power()) as u32,
                     initial_knockback: 10.0,
                     max_knockback: 20.0,
-                    buildup_duration: Duration::from_millis(100).div_f32(self.base_speed()),
-                    charge_duration: Duration::from_millis(1500).div_f32(self.base_speed()),
-                    recover_duration: Duration::from_millis(500).div_f32(self.base_speed()),
+                    buildup_duration: self.adjusted_duration(100),
+                    charge_duration: self.adjusted_duration(1500),
+                    recover_duration: self.adjusted_duration(500),
                     projectile_body: Body::Object(object::Body::MultiArrow),
                     projectile_light: None,
                     projectile_gravity: Some(Gravity(0.2)),
@@ -367,10 +363,10 @@ impl Tool {
                 },
                 RepeaterRanged {
                     energy_cost: 450,
-                    movement_duration: Duration::from_millis(300).div_f32(self.base_speed()),
-                    buildup_duration: Duration::from_millis(200).div_f32(self.base_speed()),
-                    shoot_duration: Duration::from_millis(200).div_f32(self.base_speed()),
-                    recover_duration: Duration::from_millis(800).div_f32(self.base_speed()),
+                    movement_duration: Duration::from_millis(300),
+                    buildup_duration: self.adjusted_duration(200),
+                    shoot_duration: self.adjusted_duration(200),
+                    recover_duration: self.adjusted_duration(800),
                     leap: Some(5.0),
                     projectile: Projectile {
                         hit_solid: vec![projectile::Effect::Stick],
@@ -407,9 +403,9 @@ impl Tool {
             ],
             Dagger => vec![BasicMelee {
                 energy_cost: 0,
-                buildup_duration: Duration::from_millis(100).div_f32(self.base_speed()),
-                swing_duration: Duration::from_millis(100).div_f32(self.base_speed()),
-                recover_duration: Duration::from_millis(300).div_f32(self.base_speed()),
+                buildup_duration: self.adjusted_duration(100),
+                swing_duration: self.adjusted_duration(100),
+                recover_duration: self.adjusted_duration(300),
                 base_damage: (50.0 * self.base_power()) as u32,
                 knockback: 0.0,
                 range: 3.5,
@@ -417,12 +413,12 @@ impl Tool {
             }],
             Sceptre => vec![
                 BasicBeam {
-                    buildup_duration: Duration::from_millis(250).div_f32(self.base_speed()),
-                    recover_duration: Duration::from_millis(250).div_f32(self.base_speed()),
+                    buildup_duration: self.adjusted_duration(250),
+                    recover_duration: self.adjusted_duration(250),
                     beam_duration: Duration::from_secs(1),
                     base_hps: (60.0 * self.base_power()) as u32,
                     base_dps: (60.0 * self.base_power()) as u32,
-                    tick_rate: 2.0,
+                    tick_rate: 2.0 * self.base_speed(),
                     range: 25.0,
                     max_angle: 1.0,
                     lifesteal_eff: 0.20,
@@ -432,8 +428,8 @@ impl Tool {
                 },
                 BasicRanged {
                     energy_cost: 800,
-                    buildup_duration: Duration::from_millis(800).div_f32(self.base_speed()),
-                    recover_duration: Duration::from_millis(50).div_f32(self.base_speed()),
+                    buildup_duration: self.adjusted_duration(800),
+                    recover_duration: self.adjusted_duration(50),
                     projectile: Projectile {
                         hit_solid: vec![
                             projectile::Effect::Explode(Explosion {
@@ -498,8 +494,8 @@ impl Tool {
             Staff => vec![
                 BasicRanged {
                     energy_cost: 0,
-                    buildup_duration: Duration::from_millis(500).div_f32(self.base_speed()),
-                    recover_duration: Duration::from_millis(350).div_f32(self.base_speed()),
+                    buildup_duration: self.adjusted_duration(500),
+                    recover_duration: self.adjusted_duration(350),
                     projectile: Projectile {
                         hit_solid: vec![
                             projectile::Effect::Explode(Explosion {
@@ -543,12 +539,12 @@ impl Tool {
                     can_continue: true,
                 },
                 BasicBeam {
-                    buildup_duration: Duration::from_millis(250).div_f32(self.base_speed()),
-                    recover_duration: Duration::from_millis(250).div_f32(self.base_speed()),
-                    beam_duration: Duration::from_millis(500).div_f32(self.base_speed()),
+                    buildup_duration: self.adjusted_duration(250),
+                    recover_duration: self.adjusted_duration(250),
+                    beam_duration: self.adjusted_duration(500),
                     base_hps: 0,
                     base_dps: (150.0 * self.base_power()) as u32,
-                    tick_rate: 3.0,
+                    tick_rate: 3.0 * self.base_speed(),
                     range: 15.0,
                     max_angle: 22.5,
                     lifesteal_eff: 0.0,
@@ -558,9 +554,9 @@ impl Tool {
                 },
                 Shockwave {
                     energy_cost: 600,
-                    buildup_duration: Duration::from_millis(700).div_f32(self.base_speed()),
-                    swing_duration: Duration::from_millis(100).div_f32(self.base_speed()),
-                    recover_duration: Duration::from_millis(300).div_f32(self.base_speed()),
+                    buildup_duration: self.adjusted_duration(700),
+                    swing_duration: self.adjusted_duration(100),
+                    recover_duration: self.adjusted_duration(300),
                     damage: (200.0 * self.base_power()) as u32,
                     knockback: Knockback::Away(25.0),
                     shockwave_angle: 360.0,
@@ -574,9 +570,9 @@ impl Tool {
             Shield => vec![
                 BasicMelee {
                     energy_cost: 0,
-                    buildup_duration: Duration::from_millis(100).div_f32(self.base_speed()),
-                    swing_duration: Duration::from_millis(100).div_f32(self.base_speed()),
-                    recover_duration: Duration::from_millis(300).div_f32(self.base_speed()),
+                    buildup_duration: self.adjusted_duration(100),
+                    swing_duration: self.adjusted_duration(100),
+                    recover_duration: self.adjusted_duration(300),
                     base_damage: (40.0 * self.base_power()) as u32,
                     knockback: 0.0,
                     range: 3.0,
@@ -587,9 +583,9 @@ impl Tool {
             Unique(StoneGolemFist) => vec![
                 BasicMelee {
                     energy_cost: 0,
-                    buildup_duration: Duration::from_millis(400).div_f32(self.base_speed()),
-                    swing_duration: Duration::from_millis(100).div_f32(self.base_speed()),
-                    recover_duration: Duration::from_millis(250).div_f32(self.base_speed()),
+                    buildup_duration: self.adjusted_duration(400),
+                    swing_duration: self.adjusted_duration(100),
+                    recover_duration: self.adjusted_duration(250),
                     knockback: 25.0,
                     base_damage: 200,
                     range: 5.0,
@@ -597,9 +593,9 @@ impl Tool {
                 },
                 Shockwave {
                     energy_cost: 0,
-                    buildup_duration: Duration::from_millis(500).div_f32(self.base_speed()),
-                    swing_duration: Duration::from_millis(200).div_f32(self.base_speed()),
-                    recover_duration: Duration::from_millis(800).div_f32(self.base_speed()),
+                    buildup_duration: self.adjusted_duration(500),
+                    swing_duration: self.adjusted_duration(200),
+                    recover_duration: self.adjusted_duration(800),
                     damage: 500,
                     knockback: Knockback::TowardsUp(40.0),
                     shockwave_angle: 90.0,
@@ -612,9 +608,9 @@ impl Tool {
             ],
             Unique(BeastClaws) => vec![BasicMelee {
                 energy_cost: 0,
-                buildup_duration: Duration::from_millis(250).div_f32(self.base_speed(),
-                swing_duration: Duration::from_millis(250).div_f32(self.base_speed(),
-                recover_duration: Duration::from_millis(250).div_f32(self.base_speed(),
+                buildup_duration: self.adjusted_duration(250),
+                swing_duration: self.adjusted_duration(250),
+                recover_duration: self.adjusted_duration(250),
                 knockback: 25.0,
                 base_damage: 200,
                 range: 5.0,
@@ -622,17 +618,17 @@ impl Tool {
             }],
             Debug => vec![
                 CharacterAbility::Boost {
-                    movement_duration: Duration::from_millis(50).div_f32(self.base_speed()),
+                    movement_duration: Duration::from_millis(50),
                     only_up: false,
                 },
                 CharacterAbility::Boost {
-                    movement_duration: Duration::from_millis(50).div_f32(self.base_speed()),
+                    movement_duration: Duration::from_millis(50),
                     only_up: true,
                 },
                 BasicRanged {
                     energy_cost: 0,
                     buildup_duration: Duration::from_millis(0),
-                    recover_duration: Duration::from_millis(10).div_f32(self.base_speed()),
+                    recover_duration: self.adjusted_duration(10),
                     projectile: Projectile {
                         hit_solid: vec![projectile::Effect::Stick],
                         hit_entity: vec![projectile::Effect::Stick, projectile::Effect::Possess],
@@ -653,8 +649,8 @@ impl Tool {
             Empty => vec![BasicMelee {
                 energy_cost: 0,
                 buildup_duration: Duration::from_millis(0),
-                swing_duration: Duration::from_millis(100).div_f32(self.base_speed()),
-                recover_duration: Duration::from_millis(900).div_f32(self.base_speed()),
+                swing_duration: self.adjusted_duration(100),
+                recover_duration: self.adjusted_duration(900),
                 base_damage: 20,
                 knockback: 0.0,
                 range: 3.5,

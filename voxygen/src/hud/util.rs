@@ -105,7 +105,7 @@ fn tool_desc(tool: &Tool, desc: &str) -> String {
             "{}\n\nPower: {:0.1}\n\nSpeed: {:0.1}\n\n{}\n\n<Right-Click to use>",
             kind,
             power * 10.0,
-            speed * 10.0,
+            speed,
             desc
         )
     } else {
@@ -113,7 +113,7 @@ fn tool_desc(tool: &Tool, desc: &str) -> String {
             "{}\n\nPower: {:0.1}\n\nSpeed: {:0.1}\n\n<Right-Click to use>",
             kind,
             power * 10.0,
-            speed * 10.0
+            speed
         )
     }
 }
