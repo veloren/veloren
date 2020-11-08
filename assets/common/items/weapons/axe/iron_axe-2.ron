@@ -3,7 +3,7 @@ ItemDef(
     description: "The iron axe head is split into two distinct curves, giving it a unique appearance.",
     kind: Tool(
         (
-            kind: Axe("IronAxe2"),    
+            kind: Axe,    
             stats: (
                 equip_time_millis: 400,
                 power: 1.20

@@ -3,7 +3,7 @@ ItemDef(
     description: "A rock tied to a stick, still good for smashing, but not very strong.",
     kind: Tool(
         (
-            kind: Hammer("StoneHammer2"),    
+            kind: Hammer,    
             stats: (
                 equip_time_millis: 500,
                 power: 0.70),            

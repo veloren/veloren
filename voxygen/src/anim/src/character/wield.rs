@@ -183,7 +183,7 @@ impl Animation for WieldAnimation {
             next.shorts.position = Vec3::new(0.0, s_a.shorts.0, s_a.shorts.1);
         }
         match active_tool_kind {
-            Some(ToolKind::Sword(_)) => {
+            Some(ToolKind::Sword) => {
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation = Quaternion::rotation_x(0.0);
 
@@ -198,7 +198,7 @@ impl Animation for WieldAnimation {
                 next.control.orientation = Quaternion::rotation_x(s_a.sc.3 + u_slow * 0.15)
                     * Quaternion::rotation_z(u_slowalt * 0.08);
             },
-            Some(ToolKind::Dagger(_)) => {
+            Some(ToolKind::Dagger) => {
                 next.control.position = Vec3::new(0.0, 0.0, 0.0);
 
                 next.hand_l.position = Vec3::new(0.0, 0.0, 0.0);
@@ -225,7 +225,7 @@ impl Animation for WieldAnimation {
 
                 next.control_r.position = Vec3::new(7.0, 0.0, 0.0);
             },
-            Some(ToolKind::Axe(_)) => {
+            Some(ToolKind::Axe) => {
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation = Quaternion::rotation_x(0.0);
 
@@ -258,7 +258,7 @@ impl Animation for WieldAnimation {
                     * Quaternion::rotation_y(s_a.ac.4)
                     * Quaternion::rotation_z(s_a.ac.5);
             },
-            Some(ToolKind::Hammer(_)) => {
+            Some(ToolKind::Hammer) => {
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation = Quaternion::rotation_x(0.0);
                 next.hand_l.position = Vec3::new(s_a.hhl.0, s_a.hhl.1, s_a.hhl.2);
@@ -277,7 +277,7 @@ impl Animation for WieldAnimation {
                     * Quaternion::rotation_y(s_a.hc.4 + speed * -0.04)
                     * Quaternion::rotation_z(s_a.hc.5 + u_slowalt * 0.07);
             },
-            Some(ToolKind::Staff(_)) | Some(ToolKind::Sceptre(_)) => {
+            Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
                 if speed > 0.5 && velocity.z == 0.0 {
                     next.hand_r.position = Vec3::new(
                         4.0 + s_a.hand.0 + foothoril * 1.3,
@@ -304,7 +304,7 @@ impl Animation for WieldAnimation {
                     * Quaternion::rotation_y(s_a.stc.4)
                     * Quaternion::rotation_z(s_a.stc.5 + u_slowalt * 0.1);
             },
-            Some(ToolKind::Shield(_)) => {
+            Some(ToolKind::Shield) => {
                 next.control.position = Vec3::new(0.0, 0.0, 0.0);
 
                 next.hand_l.position = Vec3::new(0.0, 0.0, 0.0);
@@ -323,7 +323,7 @@ impl Animation for WieldAnimation {
 
                 next.control_r.position = Vec3::new(7.0, 0.0, 0.0);
             },
-            Some(ToolKind::Bow(_)) => {
+            Some(ToolKind::Bow) => {
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation = Quaternion::rotation_x(0.0);
                 next.hand_l.position = Vec3::new(s_a.bhl.0, s_a.bhl.1, s_a.bhl.2);
@@ -340,13 +340,13 @@ impl Animation for WieldAnimation {
                     * Quaternion::rotation_y(s_a.bc.4)
                     * Quaternion::rotation_z(s_a.bc.5 + u_slowalt * 0.1);
             },
-            Some(ToolKind::Debug(_)) => {
+            Some(ToolKind::Debug) => {
                 next.hand_l.position = Vec3::new(-7.0, 4.0, 3.0);
                 next.hand_l.orientation = Quaternion::rotation_x(1.27);
                 next.main.position = Vec3::new(-5.0, 5.0, 23.0);
                 next.main.orientation = Quaternion::rotation_x(PI);
             },
-            Some(ToolKind::Farming(_)) => {
+            Some(ToolKind::Farming) => {
                 if speed < 0.5 {
                     next.head.orientation = Quaternion::rotation_z(head_look.x)
                         * Quaternion::rotation_x(-0.2 + head_look.y.abs());

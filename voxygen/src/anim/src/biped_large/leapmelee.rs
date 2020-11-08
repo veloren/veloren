@@ -38,7 +38,7 @@ impl Animation for LeapAnimation {
             _ => (0.0, 0.0, 0.0, 0.0),
         };
 
-        if let Some(ToolKind::Hammer(_)) = active_tool_kind {
+        if let Some(ToolKind::Hammer) = active_tool_kind {
             next.hand_l.position = Vec3::new(s_a.hhl.0, s_a.hhl.1, s_a.hhl.2);
             next.hand_l.orientation = Quaternion::rotation_x(s_a.hhl.3);
             next.hand_r.position = Vec3::new(s_a.hhr.0, s_a.hhr.1, s_a.hhr.2);

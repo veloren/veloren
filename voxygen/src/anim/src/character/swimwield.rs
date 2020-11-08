@@ -124,7 +124,7 @@ impl Animation for SwimWieldAnimation {
             next.shorts.orientation = Quaternion::rotation_z(0.3);
         }
         match active_tool_kind {
-            Some(ToolKind::Sword(_)) => {
+            Some(ToolKind::Sword) => {
                 next.hand_l.position = Vec3::new(-0.75, -1.0, -2.5);
                 next.hand_l.orientation =
                     Quaternion::rotation_x(1.47) * Quaternion::rotation_y(-0.2);
@@ -143,7 +143,7 @@ impl Animation for SwimWieldAnimation {
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(u_slowalt * 0.08);
             },
-            Some(ToolKind::Dagger(_)) => {
+            Some(ToolKind::Dagger) => {
                 let hand_scale = 1.12;
 
                 next.control.position = Vec3::new(0.0, 0.0, 0.0);
@@ -174,7 +174,7 @@ impl Animation for SwimWieldAnimation {
 
                 next.control_r.position = Vec3::new(7.0, 0.0, 0.0);
             },
-            Some(ToolKind::Axe(_)) => {
+            Some(ToolKind::Axe) => {
                 if velocity < 0.5 {
                     next.head.position =
                         Vec3::new(0.0, -3.5 + s_a.head.0, s_a.head.1 + u_slow * 0.1);
@@ -216,7 +216,7 @@ impl Animation for SwimWieldAnimation {
 
                 next.control.position = Vec3::new(-3.0, 11.0, 3.0);
             },
-            Some(ToolKind::Hammer(_)) => {
+            Some(ToolKind::Hammer) => {
                 next.hand_l.position = Vec3::new(-12.0, 0.0, 0.0);
                 next.hand_l.orientation =
                     Quaternion::rotation_x(-0.0) * Quaternion::rotation_y(0.0);
@@ -234,7 +234,7 @@ impl Animation for SwimWieldAnimation {
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(u_slowalt * 0.08);
             },
-            Some(ToolKind::Staff(_)) | Some(ToolKind::Sceptre(_)) => {
+            Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
                 next.hand_l.position = Vec3::new(1.5, 0.5, -4.0);
                 next.hand_l.orientation =
                     Quaternion::rotation_x(1.47) * Quaternion::rotation_y(-0.3);
@@ -254,7 +254,7 @@ impl Animation for SwimWieldAnimation {
                     * Quaternion::rotation_y(-0.2)
                     * Quaternion::rotation_z(u_slowalt * 0.1);
             },
-            Some(ToolKind::Shield(_)) => {
+            Some(ToolKind::Shield) => {
                 let hand_scale = 1.12;
 
                 next.control.position = Vec3::new(0.0, 0.0, 0.0);
@@ -285,7 +285,7 @@ impl Animation for SwimWieldAnimation {
 
                 next.control_r.position = Vec3::new(7.0, 0.0, 0.0);
             },
-            Some(ToolKind::Bow(_)) => {
+            Some(ToolKind::Bow) => {
                 next.hand_l.position = Vec3::new(2.0, 1.5, 0.0);
                 next.hand_l.orientation = Quaternion::rotation_x(1.20)
                     * Quaternion::rotation_y(-0.6)
@@ -311,7 +311,7 @@ impl Animation for SwimWieldAnimation {
                 next.control.orientation =
                     Quaternion::rotation_x(u_slow * 0.2) * Quaternion::rotation_z(u_slowalt * 0.1);
             },
-            Some(ToolKind::Debug(_)) => {
+            Some(ToolKind::Debug) => {
                 next.hand_l.position = Vec3::new(-7.0, 4.0, 3.0);
                 next.hand_l.orientation = Quaternion::rotation_x(1.27)
                     * Quaternion::rotation_y(0.0)

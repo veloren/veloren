@@ -3,7 +3,7 @@ ItemDef(
     description: "Hardened wood, subjected to many different elements to provide a enough strength to be a weapon.",
     kind: Tool(
         (
-            kind: Hammer("WoodHammer0"),    
+            kind: Hammer,    
             stats: (
                 equip_time_millis: 500,
                 power: 0.60),            

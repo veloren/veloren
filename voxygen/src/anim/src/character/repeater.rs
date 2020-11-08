@@ -42,7 +42,7 @@ impl Animation for RepeaterAnimation {
 
         fn fire(x: f32) -> f32 { (x * 18.0).sin() }
 
-        if let Some(ToolKind::Bow(_)) = active_tool_kind {
+        if let Some(ToolKind::Bow) = active_tool_kind {
             next.hand_l.position = Vec3::new(s_a.bhl.0, s_a.bhl.1, s_a.bhl.2);
             next.hand_l.orientation = Quaternion::rotation_x(s_a.bhl.3);
             next.hand_r.position = Vec3::new(s_a.bhr.0, s_a.bhr.1, s_a.bhr.2);

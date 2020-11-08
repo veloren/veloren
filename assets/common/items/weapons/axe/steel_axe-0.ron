@@ -3,7 +3,7 @@ ItemDef(
     description: "Well crafted metal alloy axe that slices more cleanly than its iron counterparts.",
     kind: Tool(
         (
-            kind: Axe("SteelAxe0"),    
+            kind: Axe,    
             stats: (
                 equip_time_millis: 400,
                 power: 1.40

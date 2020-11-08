@@ -32,7 +32,7 @@ impl SlotKey<Inventory, ItemImgs> for InventorySlot {
     type ImageKey = ItemKey;
 
     fn image_key(&self, source: &Inventory) -> Option<(Self::ImageKey, Option<Color>)> {
-        source.get(self.0).map(|i| (i.kind().into(), None))
+        source.get(self.0).map(|i| (i.into(), None))
     }
 
     fn amount(&self, source: &Inventory) -> Option<u32> {
@@ -69,7 +69,7 @@ impl SlotKey<Loadout, ItemImgs> for EquipSlot {
             EquipSlot::Glider => source.glider.as_ref(),
         };
 
-        item.map(|i| (i.kind().into(), None))
+        item.map(|i| (i.into(), None))
     }
 
     fn amount(&self, _: &Loadout) -> Option<u32> { None }
@@ -103,7 +103,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
         hotbar.get(*self).and_then(|contents| match contents {
             hotbar::SlotContents::Inventory(idx) => inventory
                 .get(idx)
-                .map(|item| HotbarImage::Item(item.kind().into()))
+                .map(|item| HotbarImage::Item(item.into()))
                 .map(|i| (i, None)),
             hotbar::SlotContents::Ability3 => loadout
                 .active_item
@@ -112,12 +112,12 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                 .and_then(|kind| {
                     match kind {
                         ItemKind::Tool(Tool { kind, .. }) => match kind {
-                            ToolKind::Staff(_) => Some(HotbarImage::FireAoe),
-                            ToolKind::Hammer(_) => Some(HotbarImage::HammerLeap),
-                            ToolKind::Axe(_) => Some(HotbarImage::AxeLeapSlash),
-                            ToolKind::Bow(_) => Some(HotbarImage::BowJumpBurst),
-                            ToolKind::Debug(_) => Some(HotbarImage::SnakeArrow),
-                            ToolKind::Sword(_) => Some(HotbarImage::SwordWhirlwind),
+                            ToolKind::Staff => Some(HotbarImage::FireAoe),
+                            ToolKind::Hammer => Some(HotbarImage::HammerLeap),
+                            ToolKind::Axe => Some(HotbarImage::AxeLeapSlash),
+                            ToolKind::Bow => Some(HotbarImage::BowJumpBurst),
+                            ToolKind::Debug => Some(HotbarImage::SnakeArrow),
+                            ToolKind::Sword => Some(HotbarImage::SwordWhirlwind),
                             _ => None,
                         },
                         _ => None,

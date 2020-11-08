@@ -34,10 +34,7 @@ fn maps_wield_while_equipping() {
         Some(&loadout),
     );
 
-    assert_eq!(
-        result,
-        SfxEvent::Wield(ToolKind::Axe("BasicAxe".to_string()))
-    );
+    assert_eq!(result, SfxEvent::Wield(ToolKind::Axe));
 }
 
 #[test]
@@ -63,10 +60,7 @@ fn maps_unwield() {
         Some(&loadout),
     );
 
-    assert_eq!(
-        result,
-        SfxEvent::Unwield(ToolKind::Bow("ShortBow0".to_string()))
-    );
+    assert_eq!(result, SfxEvent::Unwield(ToolKind::Bow));
 }
 
 #[test]
@@ -107,10 +101,7 @@ fn maps_basic_melee() {
 
     assert_eq!(
         result,
-        SfxEvent::Attack(
-            CharacterAbilityType::BasicMelee,
-            ToolKind::Axe("BasicAxe".to_string())
-        )
+        SfxEvent::Attack(CharacterAbilityType::BasicMelee, ToolKind::Axe)
     );
 }
 
@@ -170,7 +161,7 @@ fn matches_ability_stage() {
         result,
         SfxEvent::Attack(
             CharacterAbilityType::ComboMelee(states::utils::StageSection::Swing, 1),
-            ToolKind::Sword("BasicSword".to_string())
+            ToolKind::Sword
         )
     );
 }
@@ -231,7 +222,7 @@ fn ignores_different_ability_stage() {
         result,
         SfxEvent::Attack(
             CharacterAbilityType::ComboMelee(states::utils::StageSection::Swing, 2),
-            ToolKind::Sword("BasicSword".to_string())
+            ToolKind::Sword
         )
     );
 }
