@@ -825,31 +825,35 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        CharacterState::BasicRanged(data) => {
-                            if data.exhausted {
-                                anim::character::ShootAnimation::update_skeleton(
-                                    &target_base,
-                                    (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
-                                    state.state_time,
-                                    &mut state_animation_rate,
-                                    skeleton_attr,
-                                )
-                            } else {
-                                anim::character::ChargeAnimation::update_skeleton(
-                                    &target_base,
-                                    (
-                                        active_tool_kind,
-                                        second_tool_kind,
-                                        vel.0.magnitude(),
-                                        ori,
-                                        state.last_ori,
-                                        time,
-                                    ),
-                                    state.state_time,
-                                    &mut state_animation_rate,
-                                    skeleton_attr,
-                                )
-                            }
+                        CharacterState::BasicRanged(s) => {
+                            let stage_time = s.timer.as_secs_f64();
+
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                },
+
+                                _ => 0.0,
+                            };
+
+                            anim::character::ShootAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    active_tool_kind,
+                                    second_tool_kind,
+                                    vel.0.magnitude(),
+                                    ori,
+                                    state.last_ori,
+                                    time,
+                                    Some(s.stage_section),
+                                ),
+                                stage_progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
                         },
                         CharacterState::ChargedMelee(s) => {
                             let stage_time = s.timer.as_secs_f64();
@@ -880,32 +884,6 @@ impl FigureMgr {
                                 &mut state_animation_rate,
                                 skeleton_attr,
                             )
-                        },
-                        CharacterState::ChargedRanged(data) => {
-                            if data.exhausted {
-                                anim::character::ShootAnimation::update_skeleton(
-                                    &target_base,
-                                    (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
-                                    state.state_time,
-                                    &mut state_animation_rate,
-                                    skeleton_attr,
-                                )
-                            } else {
-                                anim::character::ChargeAnimation::update_skeleton(
-                                    &target_base,
-                                    (
-                                        active_tool_kind,
-                                        second_tool_kind,
-                                        vel.0.magnitude(),
-                                        ori,
-                                        state.last_ori,
-                                        time,
-                                    ),
-                                    state.state_time,
-                                    &mut state_animation_rate,
-                                    skeleton_attr,
-                                )
-                            }
                         },
                         CharacterState::RepeaterRanged(s) => {
                             let stage_time = s.timer.as_secs_f64();
@@ -1199,6 +1177,7 @@ impl FigureMgr {
                                     (
                                         active_tool_kind,
                                         second_tool_kind,
+                                        vel.0,
                                         time,
                                         Some(s.stage_section),
                                     ),
