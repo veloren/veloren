@@ -71,7 +71,7 @@ impl Screen {
                     Some(Message::CancelConnect),
                 ))
                 .width(Length::Fill)
-                .height(Length::Units(fonts.cyri.scale(40)))
+                .height(Length::Units(fonts.cyri.scale(30)))
                 .center_x()
                 .padding(3);
 
@@ -110,7 +110,7 @@ impl Screen {
                     bottom_content.into(),
                     right_art.into(),
                 ]))
-                .height(Length::Units(100))
+                .height(Length::Units(85))
                 .style(style::container::Style::image(imgs.loading_art));
 
                 vec![

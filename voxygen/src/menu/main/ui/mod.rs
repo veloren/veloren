@@ -41,6 +41,7 @@ image_ids_ice! {
         <ImageGraphic>
         bg: "voxygen.background.bg_main",
         banner_top: "voxygen.element.frames.banner_top",
+        banner_gradient_bottom: "voxygen.element.frames.banner_gradient_bottom",
         button: "voxygen.element.buttons.button",
         button_hover: "voxygen.element.buttons.button_hover",
         button_press: "voxygen.element.buttons.button_press",
