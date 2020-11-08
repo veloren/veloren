@@ -1,0 +1,36 @@
+BasicRanged(
+    energy_cost: 0,
+    buildup_duration: 100,
+    recover_duration: 400,
+    projectile: (
+        hit_solid: [Stick],
+        hit_entity: [
+            Damage(Some(OutOfGroup), (
+                source: Projectile,
+                value: 40.0,
+            )),
+            Knockback(Away(10.0)),
+            RewardEnergy(50),
+            Vanish,
+            /*projectile::Effect::Buff {
+                buff: Buff::new(
+                    BuffKind::Bleeding,
+                    BuffData {
+                        strength: 20.0 * self.base_power(),
+                        duration: Some(Duration::from_secs(5)),
+                    },
+                    vec![BuffCategory::Physical],
+                    BuffSource::Unknown,
+                ),
+                chance: Some(0.10),
+            },*/
+        ],
+        time_left: 15, // seconds
+        owner: None,
+        ignore_group: true,
+    ),
+    projectile_body: Object(Arrow),
+    projectile_light: None,
+    projectile_gravity: Some(Gravity(0.2)),
+    projectile_speed: 100.0,
+),
