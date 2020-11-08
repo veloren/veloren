@@ -103,7 +103,6 @@ pub(crate) struct GenCtx {
     // Small amounts of noise for simulating rough terrain.
     pub small_nz: BasicMulti,
     pub rock_nz: HybridMulti,
-    pub cliff_nz: HybridMulti,
     pub warp_nz: FastNoise,
     pub tree_nz: BasicMulti,
 
@@ -112,7 +111,6 @@ pub(crate) struct GenCtx {
 
     pub structure_gen: StructureGen2d,
     pub region_gen: StructureGen2d,
-    pub cliff_gen: StructureGen2d,
 
     pub fast_turb_x_nz: FastNoise,
     pub fast_turb_y_nz: FastNoise,
@@ -503,7 +501,6 @@ impl WorldSim {
 
             small_nz: BasicMulti::new().set_octaves(2).set_seed(rng.gen()),
             rock_nz: HybridMulti::new().set_persistence(0.3).set_seed(rng.gen()),
-            cliff_nz: HybridMulti::new().set_persistence(0.3).set_seed(rng.gen()),
             warp_nz: FastNoise::new(rng.gen()),
             tree_nz: BasicMulti::new()
                 .set_octaves(12)
@@ -514,7 +511,6 @@ impl WorldSim {
 
             structure_gen: StructureGen2d::new(rng.gen(), 32, 16),
             region_gen: StructureGen2d::new(rng.gen(), 400, 96),
-            cliff_gen: StructureGen2d::new(rng.gen(), 80, 56),
             humid_nz: Billow::new()
                 .set_octaves(9)
                 .set_persistence(0.4)
@@ -2004,8 +2000,6 @@ pub struct SimChunk {
     pub temp: f32,
     pub humidity: f32,
     pub rockiness: f32,
-    pub is_cliffs: bool,
-    pub near_cliffs: bool,
     pub tree_density: f32,
     pub forest_kind: ForestKind,
     pub spawn_rate: f32,
@@ -2095,10 +2089,6 @@ impl SimChunk {
             )
         };
 
-        //let cliff = gen_ctx.cliff_nz.get((wposf.div(2048.0)).into_array()) as f32 +
-        // chaos * 0.2;
-        let cliff = 0.0; // Disable cliffs
-
         // Logistic regression.  Make sure x ∈ (0, 1).
         let logit = |x: f64| x.ln() - x.neg().ln_1p();
         // 0.5 + 0.5 * tanh(ln(1 / (1 - 0.1) - 1) / (2 * (sqrt(3)/pi)))
@@ -2165,7 +2155,22 @@ impl SimChunk {
             .sub(0.5)
             .mul(0.95)
             .add(0.5)
+                * (1.0 - temp as f64)
         } as f32;
+
+        // Sand dunes (formed over a short period of time)
+        let alt = alt
+            + if river.near_water() {
+                0.0
+            } else {
+                let warp = Vec2::new(
+                    gen_ctx.turb_x_nz.get(wposf.div(256.0).into_array()) as f32,
+                    gen_ctx.turb_y_nz.get(wposf.div(256.0).into_array()) as f32,
+                ) * 192.0;
+                let dune_nz = (wposf.map(|e| e as f32) + warp).sum().div(100.0).sin() * 0.5 + 0.5;
+                let dune_scale = 16.0;
+                dune_nz * dune_scale * (temp - 0.75).clamped(0.0, 0.25) * 4.0
+            };
 
         Self {
             chaos,
@@ -2185,8 +2190,6 @@ impl SimChunk {
             } else {
                 0.0
             },
-            is_cliffs: cliff > 0.5 && !is_underwater,
-            near_cliffs: cliff > 0.2,
             tree_density,
             forest_kind: if temp > CONFIG.temperate_temp {
                 if temp > CONFIG.desert_temp {

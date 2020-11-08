@@ -6,10 +6,7 @@ use crate::{
     Canvas, CONFIG,
 };
 use common::{
-    terrain::{
-        structure::Structure,
-        Block,
-    },
+    terrain::{structure::Structure, Block},
     vol::ReadVol,
 };
 use lazy_static::lazy_static;
@@ -34,7 +31,7 @@ static MODEL_RAND: RandomPerm = RandomPerm::new(0xDB21C052);
 static UNIT_CHOOSER: UnitChooser = UnitChooser::new(0x700F4EC7);
 static QUIRKY_RAND: RandomPerm = RandomPerm::new(0xA634460F);
 
-pub fn apply_trees_to<'a>(canvas: &mut Canvas) {
+pub fn apply_trees_to(canvas: &mut Canvas) {
     struct Tree {
         pos: Vec3<i32>,
         model: Arc<Structure>,
@@ -84,8 +81,10 @@ pub fn apply_trees_to<'a>(canvas: &mut Canvas) {
                                 ForestKind::Mangrove => &MANGROVE_TREES,
                             }
                         };
-                        models[(MODEL_RAND.get(seed.wrapping_mul(17)) / 13) as usize % models.len()]
-                            .clone()
+                        Arc::clone(
+                            &models[(MODEL_RAND.get(seed.wrapping_mul(17)) / 13) as usize
+                                % models.len()],
+                        )
                     },
                     seed,
                     units: UNIT_CHOOSER.get(seed),
@@ -109,14 +108,11 @@ pub fn apply_trees_to<'a>(canvas: &mut Canvas) {
                 ) + Vec3::unit_z() * (wpos.z - tree.pos.z);
                 block_from_structure(
                     info.index(),
-                    if let Some(block) = tree.model
-                        .get(model_pos)
-                        .ok()
-                        .copied()
-                    {
+                    if let Some(block) = tree.model.get(model_pos).ok().copied() {
                         block
                     } else {
-                        // If we hit an inaccessible block, we're probably outside the model bounds. Skip this column.
+                        // If we hit an inaccessible block, we're probably outside the model bounds.
+                        // Skip this column.
                         break;
                     },
                     wpos,

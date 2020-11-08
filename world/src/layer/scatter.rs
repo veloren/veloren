@@ -8,7 +8,7 @@ fn close(x: f32, tgt: f32, falloff: f32) -> f32 {
     (1.0 - (x - tgt).abs() / falloff).max(0.0).powf(0.125)
 }
 const MUSH_FACT: f32 = 1.0e-4; // To balance everything around the mushroom spawning rate
-pub fn apply_scatter_to<'a>(canvas: &mut Canvas) {
+pub fn apply_scatter_to(canvas: &mut Canvas) {
     use SpriteKind::*;
     #[allow(clippy::type_complexity)]
     // TODO: Add back all sprites we had before
