@@ -3649,6 +3649,8 @@ fn mesh_object(obj: &object::Body) -> BoneMeshes {
         Body::TrainingDummy => ("object.training_dummy", Vec3::new(-7.0, -5.0, 0.0)),
         Body::MultiArrow => ("weapon.projectile.multi-arrow", Vec3::new(-4.0, -9.5, -5.0)),
         Body::BoltNature => ("weapon.projectile.nature-bolt", Vec3::new(-6.0, -6.0, -6.0)),
+        Body::MeatDrop => ("object.meat_drop", Vec3::new(-3.5, -8.0, 0.0)),
+        Body::Steak => ("object.steak", Vec3::new(-3.5, -6.0, 0.0)),
     };
     load_mesh(name, offset)
 }
