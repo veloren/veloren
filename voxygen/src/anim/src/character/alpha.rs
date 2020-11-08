@@ -150,37 +150,34 @@ impl Animation for AlphaAnimation {
                 );
             },
             Some(ToolKind::Hammer(_)) => {
-                next.hand_l.position = Vec3::new(-12.0, 0.0, 0.0);
-                next.hand_l.orientation =
-                    Quaternion::rotation_x(-0.0) * Quaternion::rotation_y(0.0);
-                next.hand_r.position = Vec3::new(3.0, 0.0, 0.0);
-                next.hand_r.orientation = Quaternion::rotation_x(0.0) * Quaternion::rotation_y(0.0);
+                let (movement1, movement2, movement3) = match stage_section {
+                    Some(StageSection::Buildup) => ((anim_time as f32).powf(0.25), 0.0, 0.0),
+                    Some(StageSection::Swing) => (1.0, anim_time as f32, 0.0),
+                    Some(StageSection::Recover) => (1.0, 1.0, (anim_time as f32).powf(4.0)),
+                    _ => (0.0, 0.0, 0.0),
+                };
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
-                next.main.orientation =
-                    Quaternion::rotation_y(-1.57) * Quaternion::rotation_z(1.57);
+                next.main.orientation = Quaternion::rotation_x(0.0);
+                next.hand_l.position = Vec3::new(s_a.hhl.0, s_a.hhl.1, s_a.hhl.2);
+                next.hand_l.orientation =
+                    Quaternion::rotation_x(s_a.hhl.3) * Quaternion::rotation_y(s_a.hhl.4);
+                next.hand_r.position = Vec3::new(s_a.hhr.0, s_a.hhr.1, s_a.hhr.2);
+                next.hand_r.orientation =
+                    Quaternion::rotation_x(s_a.hhr.3) * Quaternion::rotation_y(s_a.hhr.4);
 
-                next.head.orientation = Quaternion::rotation_z(slower * 0.03)
-                    * Quaternion::rotation_x(slowersmooth * 0.1)
-                    * Quaternion::rotation_y(slower * 0.05 + slowersmooth * 0.06)
-                    * Quaternion::rotation_z((slowersmooth * -0.4).max(0.0));
+                next.control.position = Vec3::new(s_a.hc.0 + movement1 * -13.0, s_a.hc.1, s_a.hc.2);
+                next.control.orientation =
+                    Quaternion::rotation_x(s_a.hc.3 + movement1 * 1.5 + movement2 * -2.8)
+                        * Quaternion::rotation_y(s_a.hc.4 + movement1 * 1.57)
+                        * Quaternion::rotation_z(s_a.hc.5 + movement1 * -0.5);
+                next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
+                next.head.orientation = Quaternion::rotation_x(0.0)
+                    * Quaternion::rotation_y(0.0)
+                    * Quaternion::rotation_z(0.0);
                 next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1);
-                next.chest.orientation =
-                    Quaternion::rotation_z(slower * 0.18 + slowersmooth * 0.15)
-                        * Quaternion::rotation_x(0.0 + slower * 0.18 + slowersmooth * 0.15)
-                        * Quaternion::rotation_y(slower * 0.18 + slowersmooth * 0.15);
-
-                next.belt.orientation =
-                    Quaternion::rotation_z(slower * -0.1 + slowersmooth * -0.075)
-                        * Quaternion::rotation_x(0.0 + slower * -0.1)
-                        * Quaternion::rotation_y(slower * -0.1);
-
-                next.shorts.orientation =
-                    Quaternion::rotation_z(slower * -0.1 + slowersmooth * -0.075)
-                        * Quaternion::rotation_x(0.0 + slower * -0.1)
-                        * Quaternion::rotation_y(slower * -0.1);
-
-                next.lantern.orientation = Quaternion::rotation_x(slower * -0.7 + 0.4)
-                    * Quaternion::rotation_y(slower * 0.4);
+                next.chest.orientation = Quaternion::rotation_x(movement1 * 0.8 + movement2 * -1.0)
+                    * Quaternion::rotation_y(0.0)
+                    * Quaternion::rotation_z(0.0);
 
                 if velocity > 0.5 {
                     next.foot_l.position = Vec3::new(-s_a.foot.0, foot * -6.0, s_a.foot.2);
@@ -201,11 +198,6 @@ impl Animation for AlphaAnimation {
                     next.foot_r.orientation = Quaternion::rotation_x(slower * 0.1)
                         * Quaternion::rotation_z((slower * 0.5).max(0.0));
                 }
-
-                next.control.position = Vec3::new(-8.0, 7.0, 1.0);
-                next.control.orientation = Quaternion::rotation_x(-1.5 + slower * 1.5)
-                    * Quaternion::rotation_y(slowersmooth * 0.35 - 0.3)
-                    * Quaternion::rotation_z(1.4 + slowersmooth * 0.2);
             },
             Some(ToolKind::Debug) => {
                 next.hand_l.position = Vec3::new(-7.0, 4.0, 3.0);

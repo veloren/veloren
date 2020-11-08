@@ -239,16 +239,27 @@ impl Tool {
                     vertical_leap_strength: 8.0,
                 },
             ],
-            Hammer => vec![
-                BasicMelee {
-                    energy_cost: 0,
-                    buildup_duration: Duration::from_millis(600),
-                    swing_duration: Duration::from_millis(100),
-                    recover_duration: Duration::from_millis(300),
-                    base_damage: (120.0 * self.base_power()) as u32,
-                    knockback: 0.0,
-                    range: 3.5,
-                    max_angle: 20.0,
+            Hammer(_) => vec![
+                ComboMelee {
+                    stage_data: vec![combo_melee::Stage {
+                        stage: 1,
+                        base_damage: (80.0 * self.base_power()) as u32,
+                        max_damage: (120.0 * self.base_power()) as u32,
+                        damage_increase: (10.0 * self.base_power()) as u32,
+                        knockback: 8.0,
+                        range: 3.5,
+                        angle: 50.0,
+                        base_buildup_duration: Duration::from_millis(400),
+                        base_swing_duration: Duration::from_millis(100),
+                        base_recover_duration: Duration::from_millis(200),
+                        forward_movement: 0.5,
+                    }],
+                    initial_energy_gain: 0,
+                    max_energy_gain: 100,
+                    energy_increase: 20,
+                    speed_increase: 0.05,
+                    max_speed_increase: 1.8,
+                    is_interruptible: true,
                 },
                 ChargedMelee {
                     energy_cost: 1,
@@ -468,7 +479,7 @@ impl Tool {
                     }),
                     projectile_gravity: Some(Gravity(0.5)),
                     projectile_speed: 40.0,
-                    can_continue: false,
+                    can_continue: true,
                 },
             ],
             Staff => vec![
@@ -516,7 +527,7 @@ impl Tool {
                     }),
                     projectile_gravity: Some(Gravity(0.3)),
                     projectile_speed: 60.0,
-                    can_continue: false,
+                    can_continue: true,
                 },
                 BasicBeam {
                     buildup_duration: Duration::from_millis(250),

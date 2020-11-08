@@ -37,7 +37,8 @@ pub struct Data {
     pub stage_section: StageSection,
     /// Whether the attack fired already
     pub exhausted: bool,
-    /// If in buildup, whether the attack has continued form previous attack; if in recover, whether the attack will continue to a new attack
+    /// If in buildup, whether the attack has continued form previous attack; if
+    /// in recover, whether the attack will continue to a new attack
     pub continue_next: bool,
 }
 
