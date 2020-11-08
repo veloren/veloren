@@ -33,7 +33,7 @@ pub struct Colors {
 
 const EMPTY_AIR: Block = Block::air(SpriteKind::Empty);
 
-pub fn apply_paths_to<'a>(canvas: &mut Canvas) {
+pub fn apply_paths_to(canvas: &mut Canvas) {
     let info = canvas.info();
     canvas.foreach_col(|canvas, wpos2d, col| {
         let surface_z = col.riverless_alt.floor() as i32;
@@ -106,7 +106,7 @@ pub fn apply_paths_to<'a>(canvas: &mut Canvas) {
     });
 }
 
-pub fn apply_caves_to<'a>(canvas: &mut Canvas) {
+pub fn apply_caves_to(canvas: &mut Canvas) {
     let info = canvas.info();
     canvas.foreach_col(|canvas, wpos2d, col| {
         let surface_z = col.riverless_alt.floor() as i32;

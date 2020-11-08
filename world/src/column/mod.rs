@@ -405,12 +405,6 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 river_overlap_distance_product / overlap_count
             } as f32;
 
-        let cliff_hill = (sim
-            .gen_ctx
-            .small_nz
-            .get((wposf_turb.div(128.0)).into_array()) as f32)
-            .mul(4.0);
-
         let riverless_alt_delta = (sim.gen_ctx.small_nz.get(
             (wposf_turb.div(200.0 * (32.0 / TerrainChunkSize::RECT_SIZE.x as f64))).into_array(),
         ) as f32)
@@ -440,9 +434,6 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             })
             .unwrap_or(CONFIG.sea_level);
 
-        let is_cliffs = sim_chunk.is_cliffs;
-        let near_cliffs = sim_chunk.near_cliffs;
-
         let river_gouge = 0.5;
         let (_in_water, water_dist, alt_, water_level, riverless_alt, warp_factor) = if let Some(
             (max_border_river_pos, river_chunk, max_border_river, max_border_river_dist),
@@ -457,43 +448,44 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 max_border_river
                     .river_kind
                     .and_then(|river_kind| {
-                        if let RiverKind::River { cross_section } = river_kind {
-                            if max_border_river_dist.map(|(_, dist, _, _)| dist)
-                                != Some(Vec2::zero())
-                            {
-                                return None;
-                            }
-                            let (
-                                _,
-                                _,
-                                river_width,
-                                (river_t, (river_pos, _), downhill_river_chunk),
-                            ) = max_border_river_dist.unwrap();
-                            let river_alt = Lerp::lerp(
-                                river_chunk.alt.max(river_chunk.water_alt),
-                                downhill_river_chunk.alt.max(downhill_river_chunk.water_alt),
-                                river_t as f32,
-                            );
-                            let new_alt = river_alt - river_gouge;
-                            let river_dist = wposf.distance(river_pos);
-                            let river_height_factor = river_dist / (river_width * 0.5);
+                        match river_kind {
+                            RiverKind::River { cross_section } => {
+                                if max_border_river_dist.map(|(_, dist, _, _)| dist)
+                                    != Some(Vec2::zero())
+                                {
+                                    return None;
+                                }
+                                let (
+                                    _,
+                                    _,
+                                    river_width,
+                                    (river_t, (river_pos, _), downhill_river_chunk),
+                                ) = max_border_river_dist.unwrap();
+                                let river_alt = Lerp::lerp(
+                                    river_chunk.alt.max(river_chunk.water_alt),
+                                    downhill_river_chunk.alt.max(downhill_river_chunk.water_alt),
+                                    river_t as f32,
+                                );
+                                let new_alt = river_alt - river_gouge;
+                                let river_dist = wposf.distance(river_pos);
+                                let river_height_factor = river_dist / (river_width * 0.5);
 
-                            let valley_alt = Lerp::lerp(
-                                new_alt - cross_section.y.max(1.0),
-                                new_alt - 1.0,
-                                (river_height_factor * river_height_factor) as f32,
-                            );
+                                let valley_alt = Lerp::lerp(
+                                    new_alt - cross_section.y.max(1.0),
+                                    new_alt - 1.0,
+                                    (river_height_factor * river_height_factor) as f32,
+                                );
 
-                            Some((
-                                true,
-                                Some((river_dist - river_width * 0.5) as f32),
-                                valley_alt,
-                                new_alt,
-                                river_alt,
-                                0.0,
-                            ))
-                        } else {
-                            None
+                                Some((
+                                    true,
+                                    Some((river_dist - river_width * 0.5) as f32),
+                                    valley_alt,
+                                    new_alt,
+                                    alt, //river_alt + cross_section.y.max(1.0),
+                                    0.0,
+                                ))
+                            },
+                            _ => None,
                         }
                     })
                     .unwrap_or_else(|| {
@@ -642,7 +634,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                             } else {
                                                 return (
                                                     true,
-                                                    None,
+                                                    Some(lake_dist as f32),
                                                     alt_for_river,
                                                     if in_bounds_ {
                                                         downhill_water_alt.max(lake_water_alt)
@@ -675,7 +667,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                             Some((river_dist - river_width * 0.5) as f32),
                                             alt_for_river,
                                             downhill_water_alt,
-                                            alt_for_river,
+                                            alt, //alt_for_river,
                                             river_scale_factor as f32,
                                         )
                                     },
@@ -686,7 +678,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                 None,
                                 alt_for_river,
                                 downhill_water_alt,
-                                alt_for_river,
+                                alt, //alt_for_river,
                                 river_scale_factor as f32,
                             ))
                     });
@@ -704,7 +696,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 None,
                 alt_for_river,
                 downhill_water_alt,
-                alt_for_river,
+                alt, //alt_for_river,
                 1.0,
             )
         };
@@ -728,6 +720,26 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             .sub(0.4)
             .max(0.0)
             .mul(8.0);
+
+        // Columns near water have a more stable temperature and so get pushed towards
+        // the average (0)
+        let temp = Lerp::lerp(
+            Lerp::lerp(temp, 0.0, 0.1),
+            temp,
+            water_dist
+                .map(|water_dist| water_dist / 20.0)
+                .unwrap_or(1.0)
+                .clamped(0.0, 1.0),
+        );
+        // Columns near water get a humidity boost
+        let humidity = Lerp::lerp(
+            Lerp::lerp(humidity, 1.0, 0.1),
+            humidity,
+            water_dist
+                .map(|water_dist| water_dist / 20.0)
+                .unwrap_or(1.0)
+                .clamped(0.0, 1.0),
+        );
 
         let wposf3d = Vec3::new(wposf.x, wposf.y, alt as f64);
 
@@ -953,7 +965,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
 
         let near_ocean = max_river.and_then(|(_, _, river_data, _)| {
             if (river_data.is_lake() || river_data.river_kind == Some(RiverKind::Ocean))
-                && ((alt <= water_level.max(CONFIG.sea_level + 5.0) && !is_cliffs) || !near_cliffs)
+                && alt <= water_level.max(CONFIG.sea_level + 5.0)
             {
                 Some(water_level)
             } else {
@@ -1005,10 +1017,6 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             marble,
             marble_small,
             rock,
-            is_cliffs,
-            near_cliffs,
-            cliff_hill,
-            close_cliffs: sim.gen_ctx.cliff_gen.get(wpos),
             temp,
             humidity,
             spawn_rate,
@@ -1037,10 +1045,6 @@ pub struct ColumnSample<'a> {
     pub marble: f32,
     pub marble_small: f32,
     pub rock: f32,
-    pub is_cliffs: bool,
-    pub near_cliffs: bool,
-    pub cliff_hill: f32,
-    pub close_cliffs: [(Vec2<i32>, u32); 9],
     pub temp: f32,
     pub humidity: f32,
     pub spawn_rate: f32,

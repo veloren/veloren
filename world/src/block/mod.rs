@@ -107,7 +107,7 @@ impl<'a> BlockGen<'a> {
         let water = Block::new(BlockKind::Water, Rgb::zero());
 
         let grass_depth = (1.5 + 2.0 * chaos).min(height - basement_height);
-        let block = if (wposf.z as f32) < height - grass_depth {
+        if (wposf.z as f32) < height - grass_depth {
             let stone_factor = (height - grass_depth - wposf.z as f32) * 0.15;
             let col = Lerp::lerp(
                 sub_surface_color,
@@ -169,9 +169,7 @@ impl<'a> BlockGen<'a> {
             } else {
                 None
             }
-        });
-
-        block
+        })
     }
 }
 
