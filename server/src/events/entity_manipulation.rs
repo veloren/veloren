@@ -433,10 +433,13 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         let pos = state.ecs().read_storage::<comp::Pos>().get(entity).cloned();
         if let Some(pos) = pos {
             let _ = state
-                .create_object(
-                    comp::Pos(pos.0 + Vec3::unit_z() * 0.25),
-                    object::Body::Pouch,
-                )
+                .create_object(comp::Pos(pos.0 + Vec3::unit_z() * 0.25), match old_body {
+                    Some(common::comp::Body::Humanoid(_)) => object::Body::Pouch,
+                    Some(common::comp::Body::Golem(_)) => object::Body::Chest,
+                    Some(common::comp::Body::BipedLarge(_))
+                    | Some(common::comp::Body::QuadrupedLow(_)) => object::Body::MeatDrop,
+                    _ => object::Body::Steak,
+                })
                 .with(item)
                 .build();
         } else {
