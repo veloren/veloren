@@ -186,7 +186,7 @@ impl Tool {
                             range: 3.5,
                             angle: 50.0,
                             base_buildup_duration: Duration::from_millis(350),
-                            base_swing_duration: Duration::from_millis(75),
+                            base_swing_duration: Duration::from_millis(75), //75
                             base_recover_duration: Duration::from_millis(400),
                             forward_movement: 0.5,
                         },
@@ -199,8 +199,8 @@ impl Tool {
                             range: 3.5,
                             angle: 30.0,
                             base_buildup_duration: Duration::from_millis(500),
-                            base_swing_duration: Duration::from_millis(75),
-                            base_recover_duration: Duration::from_millis(1000),
+                            base_swing_duration: Duration::from_millis(100), //75
+                            base_recover_duration: Duration::from_millis(500),
                             forward_movement: 0.25,
                         },
                     ],
@@ -290,8 +290,8 @@ impl Tool {
             Bow => vec![
                 BasicRanged {
                     energy_cost: 0,
-                    buildup_duration: Duration::from_millis(100),
-                    recover_duration: Duration::from_millis(400),
+                    buildup_duration: Duration::from_millis(200),
+                    recover_duration: Duration::from_millis(300),
                     projectile: Projectile {
                         hit_solid: vec![projectile::Effect::Stick],
                         hit_entity: vec![
