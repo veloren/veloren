@@ -20,8 +20,8 @@ use iced::{
 };
 use vek::*;
 
-const INPUT_WIDTH: u16 = 280;
-const INPUT_TEXT_SIZE: u16 = 24;
+const INPUT_WIDTH: u16 = 230;
+const INPUT_TEXT_SIZE: u16 = 20;
 
 /// Login screen for the main menu
 pub struct Screen {
@@ -81,22 +81,22 @@ impl Screen {
                 None,
             ),
             neat_button(
-                &mut self.quit_button,
-                i18n.get("common.quit"),
-                FILL_FRAC_ONE,
-                button_style,
-                Some(Message::Quit),
-            ),
-            neat_button(
                 &mut self.language_select_button,
                 i18n.get("common.languages"),
                 FILL_FRAC_ONE,
                 button_style,
                 Some(Message::OpenLanguageMenu),
             ),
+            neat_button(
+                &mut self.quit_button,
+                i18n.get("common.quit"),
+                FILL_FRAC_ONE,
+                button_style,
+                Some(Message::Quit),
+            ),
         ])
         .width(Length::Fill)
-        .max_width(160)
+        .max_width(100)
         .spacing(5);
 
         let buttons = Container::new(buttons)
@@ -112,12 +112,13 @@ impl Screen {
                 // Note: a way to tell it to keep the height of this one piece constant and
                 // unstreched would be nice, I suppose we could just break this out into a
                 // column and use Length::Units
-                Graphic::gradient(Rgba::new(0, 0, 0, 240), Rgba::zero(), [500, 50], [0, 300]),
+                Graphic::image(imgs.banner_gradient_bottom, [500, 50], [0, 300])
+                    .color(Rgba::new(0, 0, 0, 240)),
             ])
             .height(Length::Shrink),
-            Text::new(intro_text).size(fonts.cyri.scale(21)),
+            Text::new(intro_text).size(fonts.cyri.scale(18)),
         )
-        .max_width(450)
+        .max_width(360)
         .padding(Padding::new().horizontal(20).top(10).bottom(60));
 
         let left_column = Column::with_children(vec![info_window.into(), buttons.into()])
@@ -417,7 +418,7 @@ impl LoginBanner {
                     Some(Message::Singleplayer),
                 ),
             ])
-            .max_width(200)
+            .max_width(170)
             .height(Length::Units(200))
             .spacing(8)
             .into(),

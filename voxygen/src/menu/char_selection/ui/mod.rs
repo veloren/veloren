@@ -45,6 +45,8 @@ const FILL_FRAC_TWO: f32 = 0.60;
 const TOOLTIP_HOVER_DUR: std::time::Duration = std::time::Duration::from_millis(150);
 const TOOLTIP_FADE_DUR: std::time::Duration = std::time::Duration::from_millis(350);
 const BANNER_ALPHA: u8 = 210;
+// Buttons in the bottom corners
+const SMALL_BUTTON_HEIGHT: u16 = 31;
 
 const STARTER_HAMMER: &str = "common.items.weapons.hammer.starter_hammer";
 const STARTER_BOW: &str = "common.items.weapons.bow.starter_bow";
@@ -361,6 +363,8 @@ impl Controls {
                         Text::new(&client.server_info.name)
                             .size(fonts.cyri.scale(25))
                             .into(),
+                        // TODO: show additional server info here
+                        Space::new(Length::Fill, Length::Units(25)).into(),
                     ])
                     .spacing(5)
                     .align_items(Align::Center),
@@ -499,7 +503,7 @@ impl Controls {
                     Container::new(
                         Scrollable::new(characters_scroll)
                             .push(Column::with_children(characters).spacing(4))
-                            .padding(5)
+                            .padding(6)
                             .scrollbar_width(5)
                             .scroller_width(5)
                             .width(Length::Fill)
@@ -512,13 +516,13 @@ impl Controls {
                         0,
                         BANNER_ALPHA,
                     )))
-                    .width(Length::Units(320))
+                    .width(Length::Units(322))
                     .height(Length::Fill)
                     .center_x()
                     .into(),
                     Image::new(imgs.frame_bottom)
                         .height(Length::Units(40))
-                        .width(Length::Units(320))
+                        .width(Length::Units(322))
                         .color(Rgba::from_translucent(0, BANNER_ALPHA))
                         .into(),
                 ])
@@ -526,7 +530,7 @@ impl Controls {
 
                 let right_column = Column::with_children(vec![server.into(), characters.into()])
                     .spacing(10)
-                    .width(Length::Units(320)) // TODO: see if we can get iced to work with settings below
+                    .width(Length::Units(322)) // TODO: see if we can get iced to work with settings below
                     //.max_width(360)
                     //.width(Length::Fill)
                     .height(Length::Fill);
@@ -558,11 +562,11 @@ impl Controls {
                 let bottom = Row::with_children(vec![
                     Container::new(logout)
                         .width(Length::Fill)
-                        .height(Length::Units(40))
+                        .height(Length::Units(SMALL_BUTTON_HEIGHT))
                         .into(),
                     Container::new(enter_world)
                         .width(Length::Fill)
-                        .height(Length::Units(60))
+                        .height(Length::Units(52))
                         .center_x()
                         .into(),
                     Space::new(Length::Fill, Length::Shrink).into(),
@@ -571,6 +575,7 @@ impl Controls {
 
                 let content = Column::with_children(vec![top.into(), bottom.into()])
                     .width(Length::Fill)
+                    .padding(5)
                     .height(Length::Fill);
 
                 // Overlay delete prompt
@@ -1135,7 +1140,7 @@ impl Controls {
                 let bottom = Row::with_children(vec![
                     Container::new(back)
                         .width(Length::Fill)
-                        .height(Length::Units(40))
+                        .height(Length::Units(SMALL_BUTTON_HEIGHT))
                         .into(),
                     Container::new(bottom_center)
                         .width(Length::Fill)
@@ -1143,7 +1148,7 @@ impl Controls {
                         .into(),
                     Container::new(create)
                         .width(Length::Fill)
-                        .height(Length::Units(40))
+                        .height(Length::Units(SMALL_BUTTON_HEIGHT))
                         .align_x(Align::End)
                         .into(),
                 ])
@@ -1152,6 +1157,7 @@ impl Controls {
                 Column::with_children(vec![top.into(), bottom.into()])
                     .width(Length::Fill)
                     .height(Length::Fill)
+                    .padding(5)
                     .into()
             },
         };
