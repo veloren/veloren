@@ -51,31 +51,24 @@ impl AudioFrontend {
     /// Construct with given device
     pub fn new(dev: String, max_sfx_channels: usize) -> Self {
         let audio_device = get_device_raw(&dev);
+
         let device = match get_default_device() {
             Some(d) => d,
             None => "".to_string(),
         };
-        //if let Some(this_device) = device {
-        //let (stream, audio_stream) = match get_stream(&device.clone().unwrap()) {
-        //    Ok(s) => (Some(s.0), Some(s.1)),
-        //    Err(_) => (None, None),
-        //};
-        //} else {
-        let (stream, audio_stream) = match get_default_stream() {
-            Ok(s) => (Some(s.0), Some(s.1)),
-            Err(_) => (None, None),
+
+        //let (stream, audio_stream) = match get_default_stream() {
+        let (stream, audio_stream) = if get_device_raw(&dev).is_some() {
+            match get_stream(&get_device_raw(&dev).unwrap()) {
+                Ok(s) => (Some(s.0), Some(s.1)),
+                Err(_) => (None, None),
+            }
+        } else {
+            match get_default_stream() {
+                Ok(s) => (Some(s.0), Some(s.1)),
+                Err(_) => (None, None),
+            }
         };
-        //}
-        //let (stream, audio_stream) = match &device {
-        //    Some(dev) => match get_stream(&dev) {
-        //        Ok(s) => (Some(s.0), Some(s.1)),
-        //        Err(_) => (None, None),
-        //    },
-        //    None => match get_default_stream() {
-        //        Ok(s) => (Some(s.0), Some(s.1)),
-        //        Err(_) => (None, None),
-        //    },
-        //};
 
         let mut sfx_channels = Vec::with_capacity(max_sfx_channels);
         let mut wind_channels = Vec::new();
@@ -127,6 +120,7 @@ impl AudioFrontend {
         }
     }
 
+    /// Retrive an empty sfx channel from the list
     fn get_sfx_channel(&mut self) -> Option<&mut SfxChannel> {
         if self.audio_stream.is_some() {
             if let Some(channel) = self.sfx_channels.iter_mut().find(|c| c.is_done()) {
@@ -246,7 +240,7 @@ impl AudioFrontend {
     fn get_wind_volume(&mut self) -> f32 {
         if self.audio_stream.is_some() {
             if let Some(channel) = self.wind_channels.iter_mut().find(|_c| true) {
-                channel.volume() / self.sfx_volume
+                channel.get_volume() / self.sfx_volume
             } else {
                 0.0
             }

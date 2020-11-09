@@ -112,7 +112,7 @@
             title: "Limits",
             path: "voxygen.audio.soundtrack.limits",
             length: 203.0,
-            timing: Some(Night),
+            timing: None,
             biomes: [],
             site: Some(Dungeon),
             artist: "badbbad",

@@ -21,6 +21,7 @@ use crate::audio::{
     Listener,
 };
 use rodio::{OutputStreamHandle, Sample, Sink, Source, SpatialSink};
+use tracing::warn;
 use vek::*;
 
 #[derive(PartialEq, Clone, Copy)]
@@ -54,11 +55,23 @@ pub struct MusicChannel {
 
 impl MusicChannel {
     pub fn new(stream: &OutputStreamHandle) -> Self {
-        Self {
-            sink: Sink::try_new(stream).unwrap(),
-            tag: MusicChannelTag::TitleMusic,
-            state: ChannelState::Stopped,
-            fader: Fader::default(),
+        let new_sink = Sink::try_new(stream);
+        match new_sink {
+            Ok(sink) => Self {
+                sink,
+                tag: MusicChannelTag::TitleMusic,
+                state: ChannelState::Stopped,
+                fader: Fader::default(),
+            },
+            Err(_) => {
+                warn!("Failed to create a rodio sink. May not play sounds.");
+                Self {
+                    sink: Sink::new_idle().0,
+                    tag: MusicChannelTag::TitleMusic,
+                    state: ChannelState::Stopped,
+                    fader: Fader::default(),
+                }
+            },
         }
     }
 
@@ -140,6 +153,8 @@ impl MusicChannel {
     }
 }
 
+/// A WindChannel uses a non-positional audio sink designed to play music which
+/// is always heard at the player's position.
 pub struct WindChannel {
     sink: Sink,
 }
@@ -147,11 +162,18 @@ pub struct WindChannel {
 impl WindChannel {
     pub fn set_volume(&mut self, volume: f32) { self.sink.set_volume(volume); }
 
-    pub fn volume(&mut self) -> f32 { self.sink.volume() }
+    pub fn get_volume(&mut self) -> f32 { self.sink.volume() }
 
     pub fn new(stream: &OutputStreamHandle) -> Self {
-        Self {
-            sink: Sink::try_new(stream).unwrap(),
+        let new_sink = Sink::try_new(stream);
+        match new_sink {
+            Ok(sink) => Self { sink },
+            Err(_) => {
+                warn!("Failed to create rodio sink. May not play wind sounds.");
+                Self {
+                    sink: Sink::new_idle().0,
+                }
+            },
         }
     }
 
@@ -195,6 +217,8 @@ impl SfxChannel {
         self.sink.append(source);
     }
 
+    /// Same as SfxChannel::play but with the source passed through
+    /// a low pass filter at 300 Hz
     pub fn play_with_low_pass_filter<S>(&mut self, source: S)
     where
         S: Sized + Send + 'static,
