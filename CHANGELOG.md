@@ -62,6 +62,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allowed collecting nearby blocks without aiming at them
 - Made voxygen wait until singleplayer server is initialized before attempting to connect, removing the chance for it to give up on connecting if the server takes a while to start
 - Log where userdata folder is located
+- Switched to a Whittaker map for better tree spawning patterns
+- Switched to procedural snow cover on trees
+- Significantly improved terrain generation performance
 
 ### Removed
 
