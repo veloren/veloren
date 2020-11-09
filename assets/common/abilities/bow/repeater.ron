@@ -14,18 +14,17 @@ RepeaterRanged(
             )),
             Knockback(Away(10.0)),
             Vanish,
-            /*projectile::Effect::Buff {
-                buff: Buff::new(
-                    BuffKind::Bleeding,
-                    BuffData {
-                        strength: 20.0 * self.base_power(),
-                        duration: Some(Duration::from_secs(5)),
-                    },
-                    vec![BuffCategory::Physical],
-                    BuffSource::Unknown,
+            Buff(
+                buff: (
+                    kind: Bleeding,
+                    data: (
+                        strength: 20.0,
+                        duration: Some(5), // secs
+                    ),
+                    cat_ids: [Physical],
                 ),
                 chance: Some(0.10),
-            },*/
+            ),
         ],
         time_left: 15, // seconds
         owner: None,
