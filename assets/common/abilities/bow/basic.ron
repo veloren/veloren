@@ -2,31 +2,10 @@ BasicRanged(
     energy_cost: 0,
     buildup_duration: 100,
     recover_duration: 400,
-    projectile: (
-        hit_solid: [Stick],
-        hit_entity: [
-            Damage(Some(OutOfGroup), (
-                source: Projectile,
-                value: 40.0,
-            )),
-            Knockback(Away(10.0)),
-            RewardEnergy(50),
-            Vanish,
-            Buff(
-                buff: (
-                    kind: Bleeding,
-                    data: (
-                        strength: 20.0,
-                        duration: Some(5), // secs
-                    ),
-                    cat_ids: [Physical],
-                ),
-                chance: Some(0.10),
-            ),
-        ],
-        time_left: 15, // seconds
-        owner: None,
-        ignore_group: true,
+    projectile: Arrow(
+        damage: 40.0,
+        knockback: 10.0,
+        energy_regen: 50,
     ),
     projectile_body: Object(Arrow),
     projectile_light: None,

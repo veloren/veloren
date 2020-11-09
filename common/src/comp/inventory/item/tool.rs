@@ -3,13 +3,11 @@
 
 use crate::{
     comp::{
-        body::object,
-        buff::{BuffCategory, BuffData, BuffKind},
-        projectile, Body, CharacterAbility, Gravity, LightEmitter, Projectile,
+        body::object, projectile::ProjectileConstructor, Body, CharacterAbility, Gravity,
+        LightEmitter,
     },
-    effect::{BuffEffect, Effect},
     states::combo_melee,
-    Damage, DamageSource, Explosion, GroupTarget, Knockback, RadiusEffect,
+    Knockback,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -95,6 +93,7 @@ impl Tool {
         Duration::from_millis(millis).div_f32(self.base_speed())
     }
 
+    // TODO: Before merging ron file branch, ensure these are double checked against ron files.
     pub fn get_abilities(&self) -> Vec<CharacterAbility> {
         use CharacterAbility::*;
         use ToolKind::*;
@@ -313,31 +312,10 @@ impl Tool {
                     energy_cost: 0,
                     buildup_duration: self.adjusted_duration(200),
                     recover_duration: self.adjusted_duration(300),
-                    projectile: Projectile {
-                        hit_solid: vec![projectile::Effect::Stick],
-                        hit_entity: vec![
-                            projectile::Effect::Damage(Some(GroupTarget::OutOfGroup), Damage {
-                                source: DamageSource::Projectile,
-                                value: 40.0 * self.base_power(),
-                            }),
-                            projectile::Effect::Knockback(Knockback::Away(10.0)),
-                            projectile::Effect::RewardEnergy(50),
-                            projectile::Effect::Vanish,
-                            projectile::Effect::Buff {
-                                buff: BuffEffect {
-                                    kind: BuffKind::Bleeding,
-                                    data: BuffData {
-                                        strength: 20.0 * self.base_power(),
-                                        duration: Some(Duration::from_secs(5)),
-                                    },
-                                    cat_ids: vec![BuffCategory::Physical],
-                                },
-                                chance: Some(0.10),
-                            },
-                        ],
-                        time_left: Duration::from_secs(15),
-                        owner: None,
-                        ignore_group: true,
+                    projectile: ProjectileConstructor::Arrow {
+                        damage: 40.0 * self.base_power(),
+                        knockback: 10.0,
+                        energy_regen: 50,
                     },
                     projectile_body: Body::Object(object::Body::Arrow),
                     projectile_light: None,
@@ -369,30 +347,10 @@ impl Tool {
                     shoot_duration: self.adjusted_duration(200),
                     recover_duration: self.adjusted_duration(800),
                     leap: Some(5.0),
-                    projectile: Projectile {
-                        hit_solid: vec![projectile::Effect::Stick],
-                        hit_entity: vec![
-                            projectile::Effect::Damage(Some(GroupTarget::OutOfGroup), Damage {
-                                source: DamageSource::Projectile,
-                                value: 40.0 * self.base_power(),
-                            }),
-                            projectile::Effect::Knockback(Knockback::Away(10.0)),
-                            projectile::Effect::Vanish,
-                            projectile::Effect::Buff {
-                                buff: BuffEffect {
-                                    kind: BuffKind::Bleeding,
-                                    data: BuffData {
-                                        strength: 20.0 * self.base_power(),
-                                        duration: Some(Duration::from_secs(5)),
-                                    },
-                                    cat_ids: vec![BuffCategory::Physical],
-                                },
-                                chance: Some(0.10),
-                            },
-                        ],
-                        time_left: Duration::from_secs(15),
-                        owner: None,
-                        ignore_group: true,
+                    projectile: ProjectileConstructor::Arrow {
+                        damage: 40.0 * self.base_power(),
+                        knockback: 10.0,
+                        energy_regen: 0,
                     },
                     projectile_body: Body::Object(object::Body::Arrow),
                     projectile_light: None,
@@ -430,56 +388,10 @@ impl Tool {
                     energy_cost: 800,
                     buildup_duration: self.adjusted_duration(800),
                     recover_duration: self.adjusted_duration(50),
-                    projectile: Projectile {
-                        hit_solid: vec![
-                            projectile::Effect::Explode(Explosion {
-                                effects: vec![
-                                    RadiusEffect::Entity(
-                                        Some(GroupTarget::OutOfGroup),
-                                        Effect::Damage(Damage {
-                                            source: DamageSource::Explosion,
-                                            value: 50.0 * self.base_power(),
-                                        }),
-                                    ),
-                                    RadiusEffect::Entity(
-                                        Some(GroupTarget::InGroup),
-                                        Effect::Damage(Damage {
-                                            source: DamageSource::Healing,
-                                            value: 140.0 * self.base_power(),
-                                        }),
-                                    ),
-                                ],
-                                radius: 3.0 + 2.5 * self.base_power(),
-                                energy_regen: 0,
-                            }),
-                            projectile::Effect::Vanish,
-                        ],
-                        hit_entity: vec![
-                            projectile::Effect::Explode(Explosion {
-                                effects: vec![
-                                    RadiusEffect::Entity(
-                                        Some(GroupTarget::OutOfGroup),
-                                        Effect::Damage(Damage {
-                                            source: DamageSource::Explosion,
-                                            value: 50.0 * self.base_power(),
-                                        }),
-                                    ),
-                                    RadiusEffect::Entity(
-                                        Some(GroupTarget::InGroup),
-                                        Effect::Damage(Damage {
-                                            source: DamageSource::Healing,
-                                            value: 140.0 * self.base_power(),
-                                        }),
-                                    ),
-                                ],
-                                radius: 3.0 + 2.5 * self.base_power(),
-                                energy_regen: 0,
-                            }),
-                            projectile::Effect::Vanish,
-                        ],
-                        time_left: Duration::from_secs(20),
-                        owner: None,
-                        ignore_group: true,
+                    projectile: ProjectileConstructor::Heal {
+                        heal: 140.0 * self.base_power(),
+                        damage: 50.0 * self.base_power(),
+                        radius: 3.0 + 2.5 * self.base_power(),
                     },
                     projectile_body: Body::Object(object::Body::BoltNature),
                     projectile_light: Some(LightEmitter {
@@ -496,38 +408,10 @@ impl Tool {
                     energy_cost: 0,
                     buildup_duration: self.adjusted_duration(500),
                     recover_duration: self.adjusted_duration(350),
-                    projectile: Projectile {
-                        hit_solid: vec![
-                            projectile::Effect::Explode(Explosion {
-                                effects: vec![RadiusEffect::Entity(
-                                    Some(GroupTarget::OutOfGroup),
-                                    Effect::Damage(Damage {
-                                        source: DamageSource::Explosion,
-                                        value: 100.0 * self.base_power(),
-                                    }),
-                                )],
-                                radius: 5.0,
-                                energy_regen: 50,
-                            }),
-                            projectile::Effect::Vanish,
-                        ],
-                        hit_entity: vec![
-                            projectile::Effect::Explode(Explosion {
-                                effects: vec![RadiusEffect::Entity(
-                                    Some(GroupTarget::OutOfGroup),
-                                    Effect::Damage(Damage {
-                                        source: DamageSource::Explosion,
-                                        value: 100.0 * self.base_power(),
-                                    }),
-                                )],
-                                radius: 5.0,
-                                energy_regen: 50,
-                            }),
-                            projectile::Effect::Vanish,
-                        ],
-                        time_left: Duration::from_secs(20),
-                        owner: None,
-                        ignore_group: true,
+                    projectile: ProjectileConstructor::Fireball {
+                        damage: 100.0 * self.base_power(),
+                        radius: 5.0,
+                        energy_regen: 50,
                     },
                     projectile_body: Body::Object(object::Body::BoltFire),
                     projectile_light: Some(LightEmitter {
@@ -628,13 +512,7 @@ impl Tool {
                     energy_cost: 0,
                     buildup_duration: Duration::from_millis(0),
                     recover_duration: self.adjusted_duration(10),
-                    projectile: Projectile {
-                        hit_solid: vec![projectile::Effect::Stick],
-                        hit_entity: vec![projectile::Effect::Stick, projectile::Effect::Possess],
-                        time_left: Duration::from_secs(10),
-                        owner: None,
-                        ignore_group: false,
-                    },
+                    projectile: ProjectileConstructor::Possess,
                     projectile_body: Body::Object(object::Body::ArrowSnake),
                     projectile_light: Some(LightEmitter {
                         col: (0.0, 1.0, 0.33).into(),
