@@ -2218,8 +2218,8 @@ impl SimChunk {
                     ),
                     (
                         ForestKind::Savannah,
-                        (CONFIG.desert_hum, 1.5),
-                        (CONFIG.tropical_temp, 1.0),
+                        (CONFIG.desert_hum, 2.0),
+                        (CONFIG.tropical_temp, 1.5),
                         (0.0, 1.0),
                     ),
                     (
