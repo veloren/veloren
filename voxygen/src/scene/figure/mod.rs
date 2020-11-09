@@ -1136,7 +1136,7 @@ impl FigureMgr {
                             let stage_index = (s.stage - 1) as usize;
 
                             let stage_progress = match active_tool_kind {
-                                Some(ToolKind::Sword) => {
+                                Some(_) => {
                                     let stage_time = s.timer.as_secs_f64();
                                     //let stage_progress = match s.stage_section {
                                     match s.stage_section {
@@ -1161,32 +1161,7 @@ impl FigureMgr {
                                         _ => 0.0,
                                     }
                                 },
-                                Some(ToolKind::Axe) => {
-                                    let stage_time = s.timer.as_secs_f64();
-                                    //let stage_progress = match s.stage_section {
-                                    match s.stage_section {
-                                        StageSection::Buildup => {
-                                            stage_time
-                                                / s.static_data.stage_data[stage_index]
-                                                    .base_buildup_duration
-                                                    .as_secs_f64()
-                                        },
-                                        StageSection::Swing => {
-                                            stage_time
-                                                / s.static_data.stage_data[stage_index]
-                                                    .base_swing_duration
-                                                    .as_secs_f64()
-                                        },
-                                        StageSection::Recover => {
-                                            stage_time
-                                                / s.static_data.stage_data[stage_index]
-                                                    .base_recover_duration
-                                                    .as_secs_f64()
-                                        },
-                                        _ => 0.0,
-                                    }
-                                },
-                                _ => state.state_time,
+                                None => state.state_time,
                             };
                             match s.stage {
                                 1 => anim::character::AlphaAnimation::update_skeleton(
