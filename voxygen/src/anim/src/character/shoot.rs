@@ -7,16 +7,17 @@ use std::f32::consts::PI;
 
 pub struct ShootAnimation;
 
+type ShootAnimationDependency = (
+    Option<ToolKind>,
+    Option<ToolKind>,
+    f32,
+    Vec3<f32>,
+    Vec3<f32>,
+    f64,
+    Option<StageSection>,
+);
 impl Animation for ShootAnimation {
-    type Dependency = (
-        Option<ToolKind>,
-        Option<ToolKind>,
-        f32,
-        Vec3<f32>,
-        Vec3<f32>,
-        f64,
-        Option<StageSection>,
-    );
+    type Dependency = ShootAnimationDependency;
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -30,8 +31,8 @@ impl Animation for ShootAnimation {
             active_tool_kind,
             _second_tool_kind,
             velocity,
-            orientation,
-            last_ori,
+            _orientation,
+            _last_ori,
             _global_time,
             stage_section,
         ): Self::Dependency,
@@ -45,16 +46,6 @@ impl Animation for ShootAnimation {
         let mut next = (*skeleton).clone();
 
         let lab = 1.0;
-        let foot = (((5.0)
-            / (0.2 + 4.8 * ((anim_time as f32 * lab as f32 * 8.0).sin()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * lab as f32 * 8.0).sin());
-        let foote = (((5.0)
-            / (0.5 + 4.5 * ((anim_time as f32 * lab as f32 * 8.0 + 1.57).sin()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * lab as f32 * 8.0).sin());
-
-        let exp = ((anim_time as f32).powf(0.3 as f32)).min(1.2);
 
         match active_tool_kind {
             Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
@@ -112,7 +103,7 @@ impl Animation for ShootAnimation {
                 };
             },
             Some(ToolKind::Bow) => {
-                let (movement1, movement2, _movement3) = match stage_section {
+                let (_movement1, movement2, _movement3) = match stage_section {
                     Some(StageSection::Buildup) => ((anim_time as f32).powf(0.25), 0.0, 0.0),
                     Some(StageSection::Swing) => (1.0, anim_time as f32, 0.0),
                     Some(StageSection::Recover) => (1.0, 1.0, (anim_time as f32).powf(4.0)),
@@ -164,13 +155,10 @@ impl Animation for ShootAnimation {
             },
             _ => {},
         }
-        if velocity > 0.5 {
-        } else {
-        }
+
         next.back.orientation = Quaternion::rotation_x(-0.3);
 
-        next.lantern.orientation =
-            Quaternion::rotation_x(exp * -0.7 + 0.4) * Quaternion::rotation_y(exp * 0.4);
+        next.lantern.orientation = Quaternion::rotation_x(0.0) * Quaternion::rotation_y(0.0);
 
         next
     }

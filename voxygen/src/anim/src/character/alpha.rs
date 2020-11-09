@@ -47,16 +47,11 @@ impl Animation for AlphaAnimation {
                     * ((anim_time as f32 * lab as f32 * 2.0 * velocity).sin()).powf(2.0 as f32)))
         .sqrt())
             * ((anim_time as f32 * lab as f32 * 2.0 * velocity).sin());
-        let slowersmooth = (anim_time as f32 * lab as f32 * 4.0).sin();
         let push = anim_time as f32 * lab as f32 * 4.0;
         let slow = (((5.0)
             / (0.4 + 4.6 * ((anim_time as f32 * lab as f32 * 9.0).sin()).powf(2.0 as f32)))
         .sqrt())
             * ((anim_time as f32 * lab as f32 * 9.0).sin());
-        let axe = (((1.0)
-            / (0.05 + 0.95 * ((anim_time as f32 * lab as f32 * 8.0).sin()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * lab as f32 * 8.0).sin());
         let slower = (((1.0)
             / (0.0001 + 0.999 * ((anim_time as f32 * lab as f32 * 4.0).sin()).powf(2.0 as f32)))
         .sqrt())
@@ -165,19 +160,32 @@ impl Animation for AlphaAnimation {
                 next.hand_r.orientation =
                     Quaternion::rotation_x(s_a.hhr.3) * Quaternion::rotation_y(s_a.hhr.4);
 
-                next.control.position = Vec3::new(s_a.hc.0 + movement1 * -13.0, s_a.hc.1, s_a.hc.2);
+                next.control.position = Vec3::new(
+                    s_a.hc.0 + (movement1 * -13.0) * (1.0 - movement3),
+                    s_a.hc.1 + (movement2 * 5.0) * (1.0 - movement3),
+                    s_a.hc.2,
+                );
                 next.control.orientation =
-                    Quaternion::rotation_x(s_a.hc.3 + movement1 * 1.5 + movement2 * -2.8)
-                        * Quaternion::rotation_y(s_a.hc.4 + movement1 * 1.57)
-                        * Quaternion::rotation_z(s_a.hc.5 + movement1 * -0.5);
+                    Quaternion::rotation_x(s_a.hc.3 + (movement1 * 1.5 + movement2 * -2.5))
+                        * (1.0 - movement3)
+                        * Quaternion::rotation_y(s_a.hc.4 + (movement1 * 1.57))
+                        * (1.0 - movement3)
+                        * Quaternion::rotation_z(s_a.hc.5 + (movement2 * -0.5) * (1.0 - movement3));
                 next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
-                next.head.orientation = Quaternion::rotation_x(0.0)
-                    * Quaternion::rotation_y(0.0)
-                    * Quaternion::rotation_z(0.0);
+                next.head.orientation = Quaternion::rotation_x(
+                    (movement1 * 0.3 + movement2 * -0.5) * (1.0 - movement3),
+                ) * Quaternion::rotation_y(0.0)
+                    * Quaternion::rotation_z(
+                        (movement1 * 0.2 + movement2 * -0.5) * (1.0 - movement3),
+                    );
                 next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1);
-                next.chest.orientation = Quaternion::rotation_x(movement1 * 0.8 + movement2 * -1.0)
-                    * Quaternion::rotation_y(0.0)
-                    * Quaternion::rotation_z(0.0);
+                next.chest.orientation = Quaternion::rotation_x(
+                    (movement1 * 0.8 + movement2 * -1.2) * (1.0 - movement3),
+                ) * Quaternion::rotation_y(
+                    (movement1 * 0.3 + movement2 * -0.4) * (1.0 - movement3),
+                ) * Quaternion::rotation_z(
+                    (movement1 * 0.5 + movement2 * -0.5) * (1.0 - movement3),
+                );
 
                 if velocity > 0.5 {
                     next.foot_l.position = Vec3::new(-s_a.foot.0, foot * -6.0, s_a.foot.2);
@@ -197,6 +205,11 @@ impl Animation for AlphaAnimation {
                     next.foot_r.position = Vec3::new(s_a.foot.0, 3.5 - slower * 2.0, s_a.foot.2);
                     next.foot_r.orientation = Quaternion::rotation_x(slower * 0.1)
                         * Quaternion::rotation_z((slower * 0.5).max(0.0));
+
+                    next.belt.orientation =
+                        Quaternion::rotation_x(movement1 * -0.2 + movement2 * 0.2);
+                    next.shorts.orientation =
+                        Quaternion::rotation_x(movement1 * -0.3 + movement2 * 0.3);
                 }
             },
             Some(ToolKind::Debug) => {

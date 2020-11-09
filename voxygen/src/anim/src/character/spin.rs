@@ -156,7 +156,7 @@ impl Animation for SpinAnimation {
                         * (1.0 - movement3),
                 );
                 next.torso.orientation = Quaternion::rotation_z(
-                    (movement1.powf(2.0) * -6.0 + movement2 * -1.7 + movement3 * 1.4),
+                    movement1.powf(2.0) * -6.0 + movement2 * -1.7 + movement3 * 1.4,
                 );
 
                 next.foot_l.position = Vec3::new(
