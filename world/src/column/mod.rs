@@ -733,7 +733,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         );
         // Columns near water get a humidity boost
         let humidity = Lerp::lerp(
-            Lerp::lerp(humidity, 1.0, 0.1),
+            Lerp::lerp(humidity, 1.0, 0.25),
             humidity,
             water_dist
                 .map(|water_dist| water_dist / 20.0)
@@ -879,7 +879,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             humidity
                 .sub(CONFIG.desert_hum)
                 .div(CONFIG.forest_hum.sub(CONFIG.desert_hum))
-                .mul(1.0),
+                .mul(1.25),
         );
         // From forest to jungle humidity, we go from snow to dark grass to grass to
         // tropics to sand depending on temperature.
@@ -947,15 +947,17 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             .max(-humidity.sub(CONFIG.desert_hum))
             .mul(16.0)
             .add((marble_small - 0.5) * 0.5);
-        let (alt, ground, sub_surface_color) = if snow_cover <= 0.5 && alt > water_level {
+        let (alt, ground, sub_surface_color, snow_cover) = if snow_cover <= 0.5 && alt > water_level
+        {
             // Allow snow cover.
             (
                 alt + 1.0 - snow_cover.max(0.0),
                 Rgb::lerp(snow, ground, snow_cover),
                 Lerp::lerp(sub_surface_color, ground, alt.sub(basement).mul(0.15)),
+                true,
             )
         } else {
-            (alt, ground, sub_surface_color)
+            (alt, ground, sub_surface_color, false)
         };
 
         // Make river banks not have grass
@@ -1024,6 +1026,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             water_dist,
             path,
             cave,
+            snow_cover,
 
             chunk: sim_chunk,
         })
@@ -1052,6 +1055,7 @@ pub struct ColumnSample<'a> {
     pub water_dist: Option<f32>,
     pub path: Option<(f32, Vec2<f32>, Path, Vec2<f32>)>,
     pub cave: Option<(f32, Vec2<f32>, Cave, Vec2<f32>)>,
+    pub snow_cover: bool,
 
     pub chunk: &'a SimChunk,
 }

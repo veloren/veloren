@@ -2056,11 +2056,6 @@ impl SimChunk {
         // Even less granular--if this matters we can make the sign affect the quantity slightly.
         let abs_lat_uniform = latitude_uniform.abs(); */
 
-        // Take the weighted average of our randomly generated base humidity, and the
-        // calculated water flux over this point in order to compute humidity.
-        const HUMID_WEIGHTS: [f32; 2] = [2.0, 1.0];
-        let humidity = cdf_irwin_hall(&HUMID_WEIGHTS, [humid_uniform, flux_uniform]);
-
         // We also correlate temperature negatively with altitude and absolute latitude,
         // using different weighting than we use for humidity.
         const TEMP_WEIGHTS: [f32; 2] = [/* 1.5, */ 1.0, 2.0];
@@ -2074,6 +2069,18 @@ impl SimChunk {
         // Convert to [-1, 1]
         .sub(0.5)
         .mul(2.0);
+
+        // Take the weighted average of our randomly generated base humidity, and the
+        // calculated water flux over this point in order to compute humidity.
+        const HUMID_WEIGHTS: [f32; 3] = [1.0, 1.0, 0.75];
+        let humidity = cdf_irwin_hall(&HUMID_WEIGHTS, [humid_uniform, flux_uniform, 1.0]);
+        // Moisture evaporates more in hot places
+        let humidity = humidity
+            * (1.0
+                - (temp - CONFIG.tropical_temp)
+                    .max(0.0)
+                    .div(1.0 - CONFIG.tropical_temp))
+            .max(0.0);
 
         let mut alt = CONFIG.sea_level.add(alt_pre);
         let basement = CONFIG.sea_level.add(basement_pre);
@@ -2138,7 +2145,6 @@ impl SimChunk {
                 .mul(1.5)
                 .add(1.0)
                 .mul(0.5)
-                .mul(1.2 - chaos as f64 * 0.95)
                 .add(0.05)
                 .max(0.0)
                 .min(1.0);
@@ -2149,14 +2155,17 @@ impl SimChunk {
                 1.0
             } else {
                 // Weighted logit sum.
-                logistic_cdf(logit(humidity as f64) + 0.5 * logit(tree_density))
+                logistic_cdf(logit(tree_density))
             }
             // rescale to (-0.95, 0.95)
             .sub(0.5)
-            .mul(0.95)
             .add(0.5)
-                * (1.0 - temp as f64)
         } as f32;
+        const MIN_TREE_HUM: f32 = 0.05;
+        // Tree density increases exponentially with humidity...
+        let tree_density = (tree_density * (humidity - MIN_TREE_HUM).max(0.0).mul(1.0 + MIN_TREE_HUM) / temp.max(0.75))
+            // ...but is ultimately limited by available sunlight (and our tree generation system)
+            .min(1.0);
 
         // Sand dunes (formed over a short period of time)
         let alt = alt
@@ -2191,23 +2200,74 @@ impl SimChunk {
                 0.0
             },
             tree_density,
-            forest_kind: if temp > CONFIG.temperate_temp {
-                if temp > CONFIG.desert_temp {
-                    if humidity > CONFIG.jungle_hum {
+            forest_kind: {
+                // Whittaker diagram
+                let candidates = [
+                    // A smaller prevalence means that the range of values this tree appears in
+                    // will shrink compared to neighbouring trees in the
+                    // topology of the Whittaker diagram.
+                    // Humidity, temperature, near_water, each with prevalence
+                    (
+                        ForestKind::Palm,
+                        (CONFIG.desert_hum, 1.5),
+                        (CONFIG.tropical_temp, 0.5),
+                        (1.0, 2.0),
+                    ),
+                    (
+                        ForestKind::Savannah,
+                        (CONFIG.desert_hum, 1.5),
+                        (CONFIG.tropical_temp, 1.0),
+                        (0.0, 1.0),
+                    ),
+                    (
+                        ForestKind::Oak,
+                        (CONFIG.forest_hum, 1.5),
+                        (CONFIG.temperate_temp, 1.5),
+                        (0.0, 1.0),
+                    ),
+                    (
+                        ForestKind::Mangrove,
+                        (CONFIG.jungle_hum, 0.5),
+                        (CONFIG.tropical_temp, 0.5),
+                        (0.0, 1.0),
+                    ),
+                    (
+                        ForestKind::Pine,
+                        (CONFIG.desert_hum, 2.0),
+                        (CONFIG.snow_temp, 2.5),
+                        (0.0, 1.0),
+                    ),
+                ];
+
+                candidates
+                    .iter()
+                    .min_by_key(|(_, (h, h_prev), (t, t_prev), (w, w_prev))| {
+                        (Vec3::new(
+                            (*h - humidity) / *h_prev,
+                            (*t - temp) / *t_prev,
+                            (*w - if river.near_water() { 1.0 } else { 0.0 }) / *w_prev,
+                        )
+                        .map(|e| e * e)
+                        .sum()
+                            * 10000.0) as i32
+                    })
+                    .map(|c| c.0)
+                    .unwrap() // Can't fail
+            },
+            /*
+            if temp > CONFIG.temperate_temp {
+                if temp > CONFIG.tropical_temp {
+                    if humidity > CONFIG.desert_hum && river.near_water() {
                         // Forests in desert temperatures with extremely high humidity
                         // should probably be different from palm trees, but we use them
                         // for now.
                         ForestKind::Palm
-                    } else if humidity > CONFIG.forest_hum {
-                        ForestKind::Palm
-                    } else if humidity > CONFIG.desert_hum {
+                    } else {
                         // Low but not desert humidity, so we should really have some other
                         // terrain...
                         ForestKind::Savannah
-                    } else {
-                        ForestKind::Savannah
                     }
-                } else if temp > CONFIG.tropical_temp {
+                } else if temp > CONFIG.forest_hum {
                     if humidity > CONFIG.jungle_hum {
                         if tree_density > 0.0 {
                             // println!("Mangrove: {:?}", wposf);
@@ -2250,6 +2310,7 @@ impl SimChunk {
                     ForestKind::Pine
                 }
             },
+            */
             spawn_rate: 1.0,
             river,
             warp_factor: 1.0,

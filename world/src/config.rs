@@ -59,7 +59,7 @@ pub const CONFIG: Config = Config {
     desert_temp: 0.8,
     desert_hum: 0.15,
     forest_hum: 0.5,
-    jungle_hum: 0.85,
+    jungle_hum: 0.75,
     rainfall_chunk_rate: 1.0 / (512.0 * 32.0 * 32.0),
     river_roughness: 0.06125,
     river_max_width: 2.0,
