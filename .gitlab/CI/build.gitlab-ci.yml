@@ -19,14 +19,13 @@ benchmarks:
     - unset DISABLE_GIT_LFS_CHECK
     - ln -s /dockercache/cache-all target
     - cargo bench
+    - TAGUUID=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1) || echo "ignore this returncode, dont ask me why, it works"
+    - echo $TAGUUID
     - echo 'SET veloren.timestamp = "'"$(git show --no-patch --no-notes --pretty='%cd' HEAD)"'";' > upload.sql
-    - echo 'SET veloren.branch = "'"${CI_COMMIT_REF_NAME}"'";' >> upload.sql
-    - echo 'SET veloren.sha = "'"${CI_COMMIT_SHA}"'";' >> upload.sql
+    - echo "SET veloren.branch = \$${TAGUUID}\$${CI_COMMIT_REF_NAME}\$${TAGUUID}\$;" >> upload.sql
+    - echo "SET veloren.sha = \$${TAGUUID}\$${CI_COMMIT_SHA}\$${TAGUUID}\$;" >> upload.sql
     - find . -wholename "*new/*.csv" -exec echo '\copy benchmarks ("group", "function", "value", throughput_num, throughput_type, sample_measured_value, unit, iteration_count) from '"'{}' csv header" >> upload.sql \;
     - cat upload.sql
-    - mkdir -p /usr/share/man/man1/ /usr/share/man/man3/ /usr/share/man/man7/
-    - apt-get update
-    - apt-get -y install postgresql-client
     - PGPASSWORD="${CIDBPASSWORD}" PGSSLROOTCERT="./.gitlab/ci-db.crt" psql "sslmode=verify-ca host=auth.veloren.net dbname=benchmarks" -U bsdrftsejrhdrjhgd -f upload.sql;
   retry:
     max: 2
