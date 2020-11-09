@@ -18,7 +18,6 @@ lazy_static! {
     pub static ref OAK_STUMPS: Vec<Arc<Structure>> = Structure::load_group("oak_stumps");
     pub static ref PINES: Vec<Arc<Structure>> = Structure::load_group("pines");
     pub static ref PALMS: Vec<Arc<Structure>> = Structure::load_group("palms");
-    // pub static ref SNOW_PINES: Vec<Arc<Structure>> = Structure::load_group("snow_pines");
     pub static ref ACACIAS: Vec<Arc<Structure>> = Structure::load_group("acacias");
     pub static ref FRUIT_TREES: Vec<Arc<Structure>> = Structure::load_group("fruit_trees");
     pub static ref BIRCHES: Vec<Arc<Structure>> = Structure::load_group("birch");
@@ -70,14 +69,17 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
                             }
                         } else {
                             match col.forest_kind {
-                                ForestKind::Palm => &PALMS,
-                                ForestKind::Savannah => &ACACIAS,
                                 ForestKind::Oak if QUIRKY_RAND.get(seed) % 16 == 7 => &OAK_STUMPS,
                                 ForestKind::Oak if QUIRKY_RAND.get(seed) % 19 == 7 => &FRUIT_TREES,
-                                ForestKind::Oak if QUIRKY_RAND.get(seed) % 14 == 7 => &BIRCHES,
+                                ForestKind::Oak | ForestKind::Pine
+                                    if QUIRKY_RAND.get(seed) % 14 == 7 =>
+                                {
+                                    &BIRCHES
+                                },
+                                ForestKind::Palm => &PALMS,
+                                ForestKind::Savannah => &ACACIAS,
                                 ForestKind::Oak => &OAKS,
                                 ForestKind::Pine => &PINES,
-                                // ForestKind::SnowPine => &SNOW_PINES,
                                 ForestKind::Mangrove => &MANGROVE_TREES,
                             }
                         };
