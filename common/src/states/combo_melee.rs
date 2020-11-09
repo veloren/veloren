@@ -98,8 +98,9 @@ impl CharacterBehavior for Data {
             }
         }
 
-        let speed_modifer = 1.0 + self.static_data.max_speed_increase
-        * (1.0 - self.static_data.speed_increase.powi(self.combo as i32));
+        let speed_modifer = 1.0
+            + self.static_data.max_speed_increase
+                * (1.0 - self.static_data.speed_increase.powi(self.combo as i32));
 
         match self.stage_section {
             StageSection::Buildup => {

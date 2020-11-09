@@ -179,27 +179,27 @@ impl Tool {
                     stage_data: vec![
                         combo_melee::Stage {
                             stage: 1,
-                            base_damage: (80.0 * self.base_power()) as u32,
-                            max_damage: (120.0 * self.base_power()) as u32,
+                            base_damage: (90.0 * self.base_power()) as u32,
+                            max_damage: (110.0 * self.base_power()) as u32,
                             damage_increase: (10.0 * self.base_power()) as u32,
                             knockback: 8.0,
                             range: 3.5,
                             angle: 50.0,
                             base_buildup_duration: Duration::from_millis(350),
-                            base_swing_duration: Duration::from_millis(75), //75
+                            base_swing_duration: Duration::from_millis(75),
                             base_recover_duration: Duration::from_millis(400),
                             forward_movement: 0.5,
                         },
                         combo_melee::Stage {
                             stage: 2,
-                            base_damage: (100.0 * self.base_power()) as u32,
-                            max_damage: (190.0 * self.base_power()) as u32,
+                            base_damage: (130.0 * self.base_power()) as u32,
+                            max_damage: (160.0 * self.base_power()) as u32,
                             damage_increase: (15.0 * self.base_power()) as u32,
                             knockback: 12.0,
                             range: 3.5,
                             angle: 30.0,
                             base_buildup_duration: Duration::from_millis(500),
-                            base_swing_duration: Duration::from_millis(100), //75
+                            base_swing_duration: Duration::from_millis(100),
                             base_recover_duration: Duration::from_millis(500),
                             forward_movement: 0.25,
                         },
@@ -209,7 +209,7 @@ impl Tool {
                     energy_increase: 20,
                     speed_increase: 0.05,
                     max_speed_increase: 1.6,
-                    is_interruptible: true,
+                    is_interruptible: false,
                 },
                 SpinMelee {
                     buildup_duration: Duration::from_millis(100),
@@ -243,8 +243,8 @@ impl Tool {
                 ComboMelee {
                     stage_data: vec![combo_melee::Stage {
                         stage: 1,
-                        base_damage: (80.0 * self.base_power()) as u32,
-                        max_damage: (120.0 * self.base_power()) as u32,
+                        base_damage: (120.0 * self.base_power()) as u32,
+                        max_damage: (150.0 * self.base_power()) as u32,
                         damage_increase: (10.0 * self.base_power()) as u32,
                         knockback: 8.0,
                         range: 3.5,
@@ -259,7 +259,7 @@ impl Tool {
                     energy_increase: 20,
                     speed_increase: 0.05,
                     max_speed_increase: 1.4,
-                    is_interruptible: true,
+                    is_interruptible: false,
                 },
                 ChargedMelee {
                     energy_cost: 1,
@@ -479,7 +479,7 @@ impl Tool {
                     }),
                     projectile_gravity: Some(Gravity(0.5)),
                     projectile_speed: 40.0,
-                    can_continue: true,
+                    can_continue: false,
                 },
             ],
             Staff => vec![
