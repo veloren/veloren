@@ -34,6 +34,7 @@ make_case_elim!(
         WeakRock = 0x11, // Explodable
         // 0x12 <= x < 0x20 is reserved for future rocks
         Grass = 0x20, // Note: *not* the same as grass sprites
+        Snow = 0x21,
         // 0x21 <= x < 0x30 is reserved for future grasses
         Earth = 0x30,
         Sand = 0x31,

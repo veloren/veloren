@@ -6,7 +6,7 @@ use crate::{
     Canvas, CONFIG,
 };
 use common::{
-    terrain::{structure::Structure, Block},
+    terrain::{structure::Structure, Block, BlockKind},
     vol::ReadVol,
 };
 use lazy_static::lazy_static;
@@ -18,7 +18,7 @@ lazy_static! {
     pub static ref OAK_STUMPS: Vec<Arc<Structure>> = Structure::load_group("oak_stumps");
     pub static ref PINES: Vec<Arc<Structure>> = Structure::load_group("pines");
     pub static ref PALMS: Vec<Arc<Structure>> = Structure::load_group("palms");
-    pub static ref SNOW_PINES: Vec<Arc<Structure>> = Structure::load_group("snow_pines");
+    // pub static ref SNOW_PINES: Vec<Arc<Structure>> = Structure::load_group("snow_pines");
     pub static ref ACACIAS: Vec<Arc<Structure>> = Structure::load_group("acacias");
     pub static ref FRUIT_TREES: Vec<Arc<Structure>> = Structure::load_group("fruit_trees");
     pub static ref BIRCHES: Vec<Arc<Structure>> = Structure::load_group("birch");
@@ -77,7 +77,7 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
                                 ForestKind::Oak if QUIRKY_RAND.get(seed) % 14 == 7 => &BIRCHES,
                                 ForestKind::Oak => &OAKS,
                                 ForestKind::Pine => &PINES,
-                                ForestKind::SnowPine => &SNOW_PINES,
+                                // ForestKind::SnowPine => &SNOW_PINES,
                                 ForestKind::Mangrove => &MANGROVE_TREES,
                             }
                         };
@@ -96,7 +96,8 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
             };
 
             let bounds = tree.model.get_bounds();
-            for z in bounds.min.z..bounds.max.z {
+            let mut is_top = true;
+            for z in (bounds.min.z..bounds.max.z).rev() {
                 let wpos = Vec3::new(wpos2d.x, wpos2d.y, tree.pos.z + z);
                 let model_pos = Vec3::from(
                     (wpos - tree.pos)
@@ -121,7 +122,19 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
                     col,
                     Block::air,
                 )
-                .map(|block| canvas.set(wpos, block));
+                .map(|block| {
+                    if is_top && col.snow_cover && block.kind() == BlockKind::Leaves {
+                        canvas.set(
+                            wpos + Vec3::unit_z(),
+                            Block::new(BlockKind::Snow, Rgb::new(210, 210, 255)),
+                        );
+                    }
+                    canvas.set(wpos, block);
+                    is_top = false;
+                })
+                .unwrap_or_else(|| {
+                    is_top = true;
+                });
             }
         }
     });
