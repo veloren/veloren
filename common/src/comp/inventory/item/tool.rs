@@ -208,7 +208,7 @@ impl Tool {
                     max_energy_gain: 100,
                     energy_increase: 20,
                     speed_increase: 0.05,
-                    max_speed_increase: 1.8,
+                    max_speed_increase: 1.6,
                     is_interruptible: true,
                 },
                 SpinMelee {
@@ -258,7 +258,7 @@ impl Tool {
                     max_energy_gain: 100,
                     energy_increase: 20,
                     speed_increase: 0.05,
-                    max_speed_increase: 1.8,
+                    max_speed_increase: 1.4,
                     is_interruptible: true,
                 },
                 ChargedMelee {
