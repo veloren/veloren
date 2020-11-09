@@ -127,7 +127,7 @@ VoxygenLocalization(
 
 你可以通过下面的网站创建用户.
 
-https://account.veloren.net."#,
+https://veloren.net/account/."#,
         "main.login.server_not_found": "找不到服务器",
         "main.login.authentication_error": "服务器验证错误",
         "main.login.server_full": "服务器已满",

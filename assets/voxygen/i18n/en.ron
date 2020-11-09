@@ -138,7 +138,7 @@ to play on auth-enabled servers.
 
 You can create an account over at
 
-https://account.veloren.net."#,
+https://veloren.net/account/."#,
         "main.login.server_not_found": "Server not found",
         "main.login.authentication_error": "Auth error on server",
         "main.login.server_full": "Server is full",

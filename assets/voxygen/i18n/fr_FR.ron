@@ -108,7 +108,7 @@ afin de jouer sur les serveurs avec authentification.
 
 Vous pouvez créer un compte à l'adresse 
 
-https://account.veloren.net."#,
+https://veloren.net/account/."#,
         "main.login.server_not_found": "Serveur introuvable",
         "main.login.authentication_error": "Erreur d'authentification sur le serveur",
         "main.login.server_full": "Serveur plein",
