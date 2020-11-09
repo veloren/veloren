@@ -112,7 +112,7 @@ VoxygenLocalization(
 
 Вы можете создать аккаунт тут:
 
-https://account.veloren.net."#,
+https://veloren.net/account/."#,
         "main.login.server_not_found": "Сервер не найден",
         "main.login.authentication_error": "Ошибка аутентификации на сервер",
         "main.login.server_full": "Сервер полон",

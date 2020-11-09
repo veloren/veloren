@@ -116,7 +116,7 @@ z włączoną weryfikacją potrzebujesz konta.
 
 Konto możesz stworzyć na stronie:
 
-https://account.veloren.net."#,
+https://veloren.net/account/."#,
         "main.login.server_not_found": "Serwer nie znaleziony",
         "main.login.authentication_error": "Błąd weryfikacji",
         "main.login.server_full": "Serwer jest pełen",
