@@ -4,10 +4,10 @@
 use crate::{
     comp::{
         body::object,
-        buff::{Buff, BuffCategory, BuffData, BuffKind, BuffSource},
+        buff::{BuffCategory, BuffData, BuffKind},
         projectile, Body, CharacterAbility, Gravity, LightEmitter, Projectile,
     },
-    effect::Effect,
+    effect::{BuffEffect, Effect},
     states::combo_melee,
     Damage, DamageSource, Explosion, GroupTarget, Knockback, RadiusEffect,
 };
@@ -324,15 +324,14 @@ impl Tool {
                             projectile::Effect::RewardEnergy(50),
                             projectile::Effect::Vanish,
                             projectile::Effect::Buff {
-                                buff: Buff::new(
-                                    BuffKind::Bleeding,
-                                    BuffData {
+                                buff: BuffEffect {
+                                    kind: BuffKind::Bleeding,
+                                    data: BuffData {
                                         strength: 20.0 * self.base_power(),
                                         duration: Some(Duration::from_secs(5)),
                                     },
-                                    vec![BuffCategory::Physical],
-                                    BuffSource::Unknown,
-                                ),
+                                    cat_ids: vec![BuffCategory::Physical],
+                                },
                                 chance: Some(0.10),
                             },
                         ],
@@ -380,15 +379,14 @@ impl Tool {
                             projectile::Effect::Knockback(Knockback::Away(10.0)),
                             projectile::Effect::Vanish,
                             projectile::Effect::Buff {
-                                buff: Buff::new(
-                                    BuffKind::Bleeding,
-                                    BuffData {
+                                buff: BuffEffect {
+                                    kind: BuffKind::Bleeding,
+                                    data: BuffData {
                                         strength: 20.0 * self.base_power(),
                                         duration: Some(Duration::from_secs(5)),
                                     },
-                                    vec![BuffCategory::Physical],
-                                    BuffSource::Unknown,
-                                ),
+                                    cat_ids: vec![BuffCategory::Physical],
+                                },
                                 chance: Some(0.10),
                             },
                         ],

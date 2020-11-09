@@ -1,9 +1,10 @@
 use crate::{
     comp::{
-        buff::{Buff, BuffCategory, BuffData, BuffKind, BuffSource},
+        buff::{BuffCategory, BuffData, BuffKind},
         projectile, Body, CharacterState, EnergyChange, EnergySource, Gravity, LightEmitter,
         Projectile, StateUpdate,
     },
+    effect::BuffEffect,
     event::ServerEvent,
     states::utils::*,
     sys::character_behavior::{CharacterBehavior, JoinData},
@@ -105,15 +106,14 @@ impl CharacterBehavior for Data {
                             projectile::Effect::Knockback(Knockback::Away(knockback)),
                             projectile::Effect::Vanish,
                             projectile::Effect::Buff {
-                                buff: Buff::new(
-                                    BuffKind::Bleeding,
-                                    BuffData {
+                                buff: BuffEffect {
+                                    kind: BuffKind::Bleeding,
+                                    data: BuffData {
                                         strength: damage.value / 5.0,
                                         duration: Some(Duration::from_secs(5)),
                                     },
-                                    vec![BuffCategory::Physical],
-                                    BuffSource::Unknown,
-                                ),
+                                    cat_ids: vec![BuffCategory::Physical],
+                                },
                                 chance: Some(0.10),
                             },
                         ],
