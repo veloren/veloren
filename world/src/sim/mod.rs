@@ -28,7 +28,10 @@ use crate::{
     civ::Place,
     column::ColumnGen,
     site::Site,
-    util::{seed_expan, FastNoise, RandomField, Sampler, StructureGen2d, LOCALITY, NEIGHBORS},
+    util::{
+        seed_expan, FastNoise, RandomField, RandomPerm, Sampler, StructureGen2d, LOCALITY,
+        NEIGHBORS,
+    },
     IndexRef, CONFIG,
 };
 use common::{
@@ -2161,7 +2164,7 @@ impl SimChunk {
             .sub(0.5)
             .add(0.5)
         } as f32;
-        const MIN_TREE_HUM: f32 = 0.05;
+        const MIN_TREE_HUM: f32 = 0.15;
         // Tree density increases exponentially with humidity...
         let tree_density = (tree_density * (humidity - MIN_TREE_HUM).max(0.0).mul(1.0 + MIN_TREE_HUM) / temp.max(0.75))
             // ...but is ultimately limited by available sunlight (and our tree generation system)
@@ -2222,7 +2225,7 @@ impl SimChunk {
                     (
                         ForestKind::Oak,
                         (CONFIG.forest_hum, 1.5),
-                        (CONFIG.temperate_temp, 1.5),
+                        (0.0, 1.5),
                         (0.0, 1.0),
                     ),
                     (
@@ -2241,76 +2244,24 @@ impl SimChunk {
 
                 candidates
                     .iter()
-                    .min_by_key(|(_, (h, h_prev), (t, t_prev), (w, w_prev))| {
+                    .enumerate()
+                    .min_by_key(|(i, (_, (h, h_prev), (t, t_prev), (w, w_prev)))| {
+                        let rand = RandomPerm::new(*i as u32 * 1000);
+                        let noise =
+                            Vec3::iota().map(|e| (rand.get(e) & 0xFF) as f32 / 255.0 - 0.5) * 2.0;
                         (Vec3::new(
                             (*h - humidity) / *h_prev,
                             (*t - temp) / *t_prev,
                             (*w - if river.near_water() { 1.0 } else { 0.0 }) / *w_prev,
                         )
+                        .add(noise * 0.1)
                         .map(|e| e * e)
                         .sum()
                             * 10000.0) as i32
                     })
-                    .map(|c| c.0)
+                    .map(|(_, c)| c.0)
                     .unwrap() // Can't fail
             },
-            /*
-            if temp > CONFIG.temperate_temp {
-                if temp > CONFIG.tropical_temp {
-                    if humidity > CONFIG.desert_hum && river.near_water() {
-                        // Forests in desert temperatures with extremely high humidity
-                        // should probably be different from palm trees, but we use them
-                        // for now.
-                        ForestKind::Palm
-                    } else {
-                        // Low but not desert humidity, so we should really have some other
-                        // terrain...
-                        ForestKind::Savannah
-                    }
-                } else if temp > CONFIG.forest_hum {
-                    if humidity > CONFIG.jungle_hum {
-                        if tree_density > 0.0 {
-                            // println!("Mangrove: {:?}", wposf);
-                        }
-                        ForestKind::Mangrove
-                    } else if humidity > CONFIG.forest_hum {
-                        // NOTE: Probably the wrong kind of tree for this climate.
-                        ForestKind::Oak
-                    } else if humidity > CONFIG.desert_hum {
-                        // Low but not desert... need something besides savannah.
-                        ForestKind::Savannah
-                    } else {
-                        ForestKind::Savannah
-                    }
-                } else if humidity > CONFIG.jungle_hum {
-                    // Temperate climate with jungle humidity...
-                    // https://en.wikipedia.org/wiki/Humid_subtropical_climates are often
-                    // densely wooded and full of water.  Semitropical rainforests, basically.
-                    // For now we just treat them like other rainforests.
-                    ForestKind::Oak
-                } else if humidity > CONFIG.forest_hum {
-                    // Moderate climate, moderate humidity.
-                    ForestKind::Oak
-                } else if humidity > CONFIG.desert_hum {
-                    // With moderate temperature and low humidity, we should probably see
-                    // something different from savannah, but oh well...
-                    ForestKind::Savannah
-                } else {
-                    ForestKind::Savannah
-                }
-            } else {
-                // For now we don't take humidity into account for cold climates (but we really
-                // should!) except that we make sure we only have snow pines when there is snow.
-                if temp <= CONFIG.snow_temp {
-                    ForestKind::SnowPine
-                } else if humidity > CONFIG.desert_hum {
-                    ForestKind::Pine
-                } else {
-                    // Should really have something like tundra.
-                    ForestKind::Pine
-                }
-            },
-            */
             spawn_rate: 1.0,
             river,
             warp_factor: 1.0,
