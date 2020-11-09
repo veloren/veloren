@@ -223,7 +223,7 @@ impl MovementEventMapper {
         underfoot_block_kind: BlockKind,
     ) -> SfxEvent {
         if physics_state.in_liquid.is_some() && vel.magnitude() > 0.1 {
-            return SfxEvent::Swim;
+            SfxEvent::Swim
         } else if physics_state.on_ground && vel.magnitude() > 0.1 {
             match underfoot_block_kind {
                 BlockKind::Snow => SfxEvent::SnowRun,

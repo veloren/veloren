@@ -99,7 +99,7 @@ impl WindMgr {
                 .unwrap_or(BlockKind::Air)
                 == BlockKind::Water
             {
-                volume_multiplier = volume_multiplier * 0.1;
+                volume_multiplier *= volume_multiplier;
             }
             if cam_pos.z < Self::get_current_terrain_alt(client) - 20.0 {
                 volume_multiplier = 0.0;
