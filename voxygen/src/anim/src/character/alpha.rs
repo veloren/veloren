@@ -102,7 +102,7 @@ impl Animation for AlphaAnimation {
                     * Quaternion::rotation_y(slow * -1.3)
                     * Quaternion::rotation_z(1.4 + slow * -0.5);
             },
-            Some(ToolKind::Axe(_)) => {
+            Some(ToolKind::Axe) => {
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation = Quaternion::rotation_x(0.0);
                 next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
@@ -149,7 +149,7 @@ impl Animation for AlphaAnimation {
                     0.0 + movement1 * -1.5 + movement2 * 2.5 + movement3 * -1.0,
                 );
             },
-            Some(ToolKind::Hammer(_)) => {
+            Some(ToolKind::Hammer) => {
                 let (movement1, movement2, movement3) = match stage_section {
                     Some(StageSection::Buildup) => ((anim_time as f32).powf(0.25), 0.0, 0.0),
                     Some(StageSection::Swing) => (1.0, anim_time as f32, 0.0),

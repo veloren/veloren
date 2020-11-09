@@ -1136,7 +1136,7 @@ impl FigureMgr {
                             let stage_index = (s.stage - 1) as usize;
 
                             let stage_progress = match active_tool_kind {
-                                Some(ToolKind::Sword(_)) => {
+                                Some(ToolKind::Sword) => {
                                     let stage_time = s.timer.as_secs_f64();
                                     //let stage_progress = match s.stage_section {
                                     match s.stage_section {
@@ -1161,7 +1161,7 @@ impl FigureMgr {
                                         _ => 0.0,
                                     }
                                 },
-                                Some(ToolKind::Axe(_)) => {
+                                Some(ToolKind::Axe) => {
                                     let stage_time = s.timer.as_secs_f64();
                                     //let stage_progress = match s.stage_section {
                                     match s.stage_section {

@@ -174,7 +174,7 @@ impl Tool {
                     num_spins: 3,
                 },
             ],
-            Axe(_) => vec![
+            Axe => vec![
                 ComboMelee {
                     stage_data: vec![
                         combo_melee::Stage {
@@ -239,7 +239,7 @@ impl Tool {
                     vertical_leap_strength: 8.0,
                 },
             ],
-            Hammer(_) => vec![
+            Hammer => vec![
                 ComboMelee {
                     stage_data: vec![combo_melee::Stage {
                         stage: 1,

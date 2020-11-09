@@ -57,7 +57,7 @@ impl Animation for ShootAnimation {
         let exp = ((anim_time as f32).powf(0.3 as f32)).min(1.2);
 
         match active_tool_kind {
-            Some(ToolKind::Staff(_)) | Some(ToolKind::Sceptre(_)) => {
+            Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
                 let (movement1, movement2, movement3) = match stage_section {
                     Some(StageSection::Buildup) => (anim_time as f32, 0.0, 0.0),
                     Some(StageSection::Swing) => (1.0, (anim_time as f32).powf(0.25), 0.0),
@@ -111,7 +111,7 @@ impl Animation for ShootAnimation {
                 } else {
                 };
             },
-            Some(ToolKind::Bow(_)) => {
+            Some(ToolKind::Bow) => {
                 let (movement1, movement2, _movement3) = match stage_section {
                     Some(StageSection::Buildup) => ((anim_time as f32).powf(0.25), 0.0, 0.0),
                     Some(StageSection::Swing) => (1.0, anim_time as f32, 0.0),
