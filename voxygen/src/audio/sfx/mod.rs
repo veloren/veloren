@@ -116,8 +116,11 @@ use vek::*;
 const SFX_DIST_LIMIT_SQR: f32 = 20000.0;
 
 pub struct SfxEventItem {
+    /// The SFX event that triggers this sound
     pub sfx: SfxEvent,
+    /// The position at which the sound should play
     pub pos: Option<Vec3<f32>>,
+    /// The volume to play the sound at
     pub vol: Option<f32>,
 }
 
@@ -179,6 +182,7 @@ pub enum SfxInventoryEvent {
     Swapped,
 }
 
+// TODO Move to a separate event mapper?
 impl From<&InventoryUpdateEvent> for SfxEvent {
     fn from(value: &InventoryUpdateEvent) -> Self {
         match value {
@@ -209,8 +213,10 @@ impl From<&InventoryUpdateEvent> for SfxEvent {
 
 #[derive(Deserialize)]
 pub struct SfxTriggerItem {
+    /// A list of SFX filepaths for this event
     pub files: Vec<String>,
-    pub threshold: f64,
+    /// The time to wait before repeating this SfxEvent
+    pub threshold: f32,
 }
 
 #[derive(Deserialize, Default)]
@@ -247,13 +253,16 @@ impl SfxMgr {
         terrain: &Terrain<TerrainChunk>,
         client: &Client,
     ) {
+        // Checks if the SFX volume is set to zero or audio is disabled
+        // This prevents us from running all the following code unnecessarily
         if !audio.sfx_enabled() {
             return;
         }
-
         let ecs = state.ecs();
-        let focus_off = camera.get_focus_pos().map(f32::trunc);
 
+        // This checks to see if the camera is underwater. If it is,
+        // we pass all sfx through a low pass filter
+        let focus_off = camera.get_focus_pos().map(f32::trunc);
         let underwater = state
             .terrain()
             .get((camera.dependents().cam_pos + focus_off).map(|e| e.floor() as i32))
@@ -262,6 +271,8 @@ impl SfxMgr {
             == BlockKind::Water;
         let cam_pos = camera.dependents().cam_pos + focus_off;
 
+        // Sets the listener position to the camera position facing the
+        // same direction as the camera
         audio.set_listener_pos(cam_pos, camera.dependents().cam_dir);
 
         // TODO: replace; deprecated in favor of outcomes
@@ -294,6 +305,7 @@ impl SfxMgr {
                         .last()
                         .expect("Failed to determine sound file for this trigger item."),
                     _ => {
+                        // If more than one file is listed, choose one at random
                         let rand_step = rand::random::<usize>() % item.files.len();
                         &item.files[rand_step]
                     },

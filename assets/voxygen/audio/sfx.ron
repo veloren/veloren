@@ -280,25 +280,25 @@
         ),
 
         //
-        // Fire Rod / Regeneration Staff
+        // Fire Staff
         //
         Wield(Staff): (
             files: [
-                "voxygen.audio.sfx.weapon.staff_out",
+                "voxygen.audio.sfx.weapon.sword_out",
             ],
             threshold: 0.5,
         ),
         Unwield(Staff): (
             files: [
-                "voxygen.audio.sfx.weapon.staff_in",
+                "voxygen.audio.sfx.weapon.sword_in",
             ],
             threshold: 0.5,
         ),
-        Attack(BasicMelee, Staff): (
+        Attack(BasicBeam, Staff): (
             files: [
-                "voxygen.audio.sfx.abilities.swing",
+                "voxygen.audio.sfx.abilities.flame_thrower",
             ],
-            threshold: 0.8,
+            threshold: 0.2,
         ),
         Attack(BasicRanged, Staff): (
             files: [

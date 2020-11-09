@@ -69,6 +69,8 @@ impl WindMgr {
 
             let alt_multiplier = (player_alt / 1200.0).abs();
 
+            // Tree density factors into wind volume. The more trees,
+            // the less wind
             let mut tree_multiplier = self.tree_multiplier;
             let new_tree_multiplier = if (player_alt - terrain_alt) < 150.0 {
                 1.0 - Self::get_current_tree_density(client)
@@ -76,6 +78,7 @@ impl WindMgr {
                 1.0
             };
 
+            // Smooths tree_multiplier transitions between chunks
             if tree_multiplier < new_tree_multiplier {
                 tree_multiplier += 0.001;
             } else if tree_multiplier > new_tree_multiplier {
@@ -83,7 +86,6 @@ impl WindMgr {
             }
             self.tree_multiplier = tree_multiplier;
 
-            println!("tree multiplier: {}", tree_multiplier);
             let mut volume_multiplier = alt_multiplier * self.tree_multiplier;
 
             let focus_off = camera.get_focus_pos().map(f32::trunc);
@@ -108,9 +110,8 @@ impl WindMgr {
             }
 
             let target_volume = volume_multiplier;
-            println!("target vol: {}", volume_multiplier);
 
-            println!("current_wind_volume: {}", self.volume);
+            // Transitions the wind smoothly
             self.volume = audio.get_wind_volume();
             if self.volume < target_volume {
                 audio.set_wind_volume(self.volume + 0.001);

@@ -121,7 +121,7 @@ impl CombatEventMapper {
     ) -> bool {
         if let Some((event, item)) = sfx_trigger_item {
             if &previous_state.event == event {
-                previous_state.time.elapsed().as_secs_f64() >= item.threshold
+                previous_state.time.elapsed().as_secs_f32() >= item.threshold
             } else {
                 true
             }

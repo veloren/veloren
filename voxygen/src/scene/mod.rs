@@ -308,7 +308,7 @@ impl Scene {
             particle_mgr: ParticleMgr::new(renderer),
             figure_mgr: FigureMgr::new(renderer),
             sfx_mgr: SfxMgr::new(),
-            music_mgr: MusicMgr::new(),
+            music_mgr: MusicMgr::default(),
             ambient_mgr: WindMgr::new(),
         }
     }

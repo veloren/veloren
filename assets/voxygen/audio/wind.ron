@@ -3,7 +3,6 @@
         (
             path: "voxygen.audio.ambient.wind",
             length: 4.5,
-            timing: Some(Day),
         ),        
     ]
 )

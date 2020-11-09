@@ -1,5 +1,5 @@
-/// EventMapper::Block watches the sound emitting blocks in the same
-/// chunk as the player and emits ambient sfx
+/// EventMapper::Block watches the sound emitting blocks within
+/// chunk range of the player and emits ambient sfx
 use crate::{
     audio::sfx::{SfxEvent, SfxEventItem, SfxTriggerItem, SfxTriggers, SFX_DIST_LIMIT_SQR},
     scene::{terrain::BlocksOfInterest, Camera, Terrain},
@@ -54,6 +54,7 @@ impl EventMapper for BlockEventMapper {
         let focus_off = camera.get_focus_pos().map(f32::trunc);
         let cam_pos = camera.dependents().cam_pos + focus_off;
 
+        // Get the player position and chunk
         let player_pos = state
             .read_component_copied::<Pos>(player_entity)
             .unwrap_or_default();
@@ -137,7 +138,6 @@ impl EventMapper for BlockEventMapper {
                 range: 1,
                 sfx: SfxEvent::Bees,
                 volume: 1.0,
-                //cond: |_| true,
                 cond: |st| st.get_day_period().is_light(),
             },
         ];
@@ -147,8 +147,8 @@ impl EventMapper for BlockEventMapper {
             // If the timing condition is false, continue
             if !(sounds.cond)(state) {
                 continue;
-            // If the player is underground, continue
-            } else if player_pos.0.z < (terrain_alt - 20.0) {
+            // If the player is far enough underground, continue
+            } else if player_pos.0.z < (terrain_alt - 30.0) {
                 continue;
             // Hack to reduce the number of birdcalls (too many leaf blocks)
             } else if (sounds.sfx == SfxEvent::Birdcall || sounds.sfx == SfxEvent::Owl)
@@ -171,6 +171,7 @@ impl EventMapper for BlockEventMapper {
 
                     // Iterate through each individual block
                     for block in blocks {
+                        // Hack to reduce the number of bird sounds (too many leaf blocks)
                         if (sounds.sfx == SfxEvent::Birdcall || sounds.sfx == SfxEvent::Owl)
                             && thread_rng().gen_bool(0.999)
                         {
@@ -189,9 +190,9 @@ impl EventMapper for BlockEventMapper {
                                     Some(block_pos),
                                     Some(sounds.volume),
                                 ));
-                                state.time = Instant::now();
-                                state.event = sounds.sfx.clone();
                             }
+                            state.time = Instant::now();
+                            state.event = sounds.sfx.clone();
                         }
                     }
                 });
@@ -213,7 +214,7 @@ impl BlockEventMapper {
     ) -> bool {
         if let Some((event, item)) = sfx_trigger_item {
             if &previous_state.event == event {
-                previous_state.time.elapsed().as_secs_f64() >= item.threshold
+                previous_state.time.elapsed().as_secs_f32() >= item.threshold
             } else {
                 true
             }
