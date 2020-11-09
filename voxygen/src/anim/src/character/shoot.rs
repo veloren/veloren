@@ -31,8 +31,8 @@ impl Animation for ShootAnimation {
             active_tool_kind,
             _second_tool_kind,
             velocity,
-            _orientation,
-            _last_ori,
+            orientation,
+            last_ori,
             _global_time,
             stage_section,
         ): Self::Dependency,
@@ -46,7 +46,19 @@ impl Animation for ShootAnimation {
         let mut next = (*skeleton).clone();
 
         let lab = 1.0;
-
+        let ori: Vec2<f32> = Vec2::from(orientation);
+        let last_ori = Vec2::from(last_ori);
+        let tilt = if ::vek::Vec2::new(ori, last_ori)
+            .map(|o| o.magnitude_squared())
+            .map(|m| m > 0.001 && m.is_finite())
+            .reduce_and()
+            && ori.angle_between(last_ori).is_finite()
+        {
+            ori.angle_between(last_ori).min(0.2)
+                * last_ori.determine_side(Vec2::zero(), ori).signum()
+        } else {
+            0.0
+        } * 1.3;
         match active_tool_kind {
             Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
                 let (movement1, movement2, movement3) = match stage_section {
@@ -83,7 +95,7 @@ impl Animation for ShootAnimation {
                     Quaternion::rotation_z((movement1 * 0.3 + movement2 * 0.2) * (1.0 - movement3));
                 next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
                 next.head.orientation = Quaternion::rotation_z(
-                    (movement1 * -0.2 + movement2 * -0.4) * (1.0 - movement3),
+                    tilt * -2.5 + (movement1 * -0.2 + movement2 * -0.4) * (1.0 - movement3),
                 );
 
                 if speed < 0.5 {
@@ -133,7 +145,7 @@ impl Animation for ShootAnimation {
                 next.head.position = Vec3::new(0.0 - 2.0, s_a.head.0, s_a.head.1);
 
                 next.head.orientation =
-                    Quaternion::rotation_z(-0.5 + (movement2 as f32 * 0.2).sin());
+                    Quaternion::rotation_z(tilt * -2.5 - 0.5 + (movement2 as f32 * 0.2).sin());
                 if speed < 0.5 {
                     next.chest.orientation =
                         Quaternion::rotation_z(0.8 + (movement2 as f32 * 0.1).sin());
