@@ -2,38 +2,10 @@ BasicRanged(
     energy_cost: 0,
     buildup_duration: 500,
     recover_duration: 350,
-    projectile: (
-        hit_solid: [
-            Explode((
-                effects: [Entity(
-                    Some(OutOfGroup),
-                    Damage((
-                        source: Explosion,
-                        value: 100.0,
-                    )),
-                )],
-                radius: 5.0,
-                energy_regen: 50,
-            )),
-            Vanish,
-        ],
-        hit_entity: vec![
-            Explode((
-                effects: [Entity(
-                    Some(OutOfGroup),
-                    Damage((
-                        source: Explosion,
-                        value: 100.0,
-                    )),
-                )],
-                radius: 5.0,
-                energy_regen: 50,
-            )),
-            Vanish,
-        ],
-        time_left: 20, // seconds
-        owner: None,
-        ignore_group: true,
+    projectile: Fireball(
+        damage: 100.0,
+        radius: 5.0,
+        energy_regen: 0,
     ),
     projectile_body: Object(BoltFire),
     /*projectile_light: Some(LightEmitter {

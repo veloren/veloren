@@ -1,7 +1,8 @@
 use crate::{
     comp::{
         item::{armor::Protection, Item, ItemKind},
-        Body, CharacterState, EnergySource, Gravity, LightEmitter, Projectile, StateUpdate,
+        projectile::ProjectileConstructor,
+        Body, CharacterState, EnergySource, Gravity, LightEmitter, StateUpdate,
     },
     states::{
         utils::{AbilityKey, StageSection},
@@ -71,7 +72,7 @@ pub enum CharacterAbility {
         energy_cost: u32,
         buildup_duration: Duration,
         recover_duration: Duration,
-        projectile: Projectile,
+        projectile: ProjectileConstructor,
         projectile_body: Body,
         projectile_light: Option<LightEmitter>,
         projectile_gravity: Option<Gravity>,
@@ -85,7 +86,7 @@ pub enum CharacterAbility {
         shoot_duration: Duration,
         recover_duration: Duration,
         leap: Option<f32>,
-        projectile: Projectile,
+        projectile: ProjectileConstructor,
         projectile_body: Body,
         projectile_light: Option<LightEmitter>,
         projectile_gravity: Option<Gravity>,
@@ -418,7 +419,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                 static_data: basic_ranged::StaticData {
                     buildup_duration: *buildup_duration,
                     recover_duration: *recover_duration,
-                    projectile: projectile.clone(),
+                    projectile: *projectile,
                     projectile_body: *projectile_body,
                     projectile_light: *projectile_light,
                     projectile_gravity: *projectile_gravity,
@@ -681,7 +682,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                     shoot_duration: *shoot_duration,
                     recover_duration: *recover_duration,
                     leap: *leap,
-                    projectile: projectile.clone(),
+                    projectile: *projectile,
                     projectile_body: *projectile_body,
                     projectile_light: *projectile_light,
                     projectile_gravity: *projectile_gravity,

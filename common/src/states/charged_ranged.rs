@@ -99,7 +99,7 @@ impl CharacterBehavior for Data {
                             * (self.static_data.max_knockback - self.static_data.initial_knockback)
                                 as f32);
                     // Fire
-                    let mut projectile = Projectile {
+                    let projectile = Projectile {
                         hit_solid: vec![projectile::Effect::Stick],
                         hit_entity: vec![
                             projectile::Effect::Damage(Some(GroupTarget::OutOfGroup), damage),
@@ -118,10 +118,9 @@ impl CharacterBehavior for Data {
                             },
                         ],
                         time_left: Duration::from_secs(15),
-                        owner: None,
+                        owner: Some(*data.uid),
                         ignore_group: true,
                     };
-                    projectile.owner = Some(*data.uid);
                     update.server_events.push_front(ServerEvent::Shoot {
                         entity: data.entity,
                         dir: data.inputs.look_dir,
