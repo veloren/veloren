@@ -109,7 +109,7 @@ to play on auth-enabled servers.
 
 You can create an account over at
 
-https://account.veloren.net."#,
+https://veloren.net/account/."#,
         "main.login.server_not_found": "找不到伺服器",
         "main.login.authentication_error": "伺服器認證錯誤",
         "main.login.server_full": "伺服器已滿",

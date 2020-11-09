@@ -123,7 +123,7 @@ para jugar en servidores con autenticación activada.
 
 Puedes crear una cuenta en
 
-https://account.veloren.net."#,
+https://veloren.net/account/."#,
         "main.login.server_not_found": "Servidor no encontrado",
         "main.login.authentication_error": "Error de autenticación al servidor",
         "main.login.server_full": "El servidor está lleno",
