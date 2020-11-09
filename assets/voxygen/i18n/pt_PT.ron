@@ -114,7 +114,7 @@ para jogar em servidores com autenticação.
 
 Para criar uma conta navegue até
 
-https://account.veloren.net."#,
+https://veloren.net/account/."#,
         "main.login.server_not_found": "Servidor não encontrado",
         "main.login.authentication_error": "Erro de autenticação",
         "main.login.server_full": "Servidor está cheio",
