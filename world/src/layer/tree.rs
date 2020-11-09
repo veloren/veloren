@@ -97,6 +97,7 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
 
             let bounds = tree.model.get_bounds();
             let mut is_top = true;
+            let mut is_leaf_top = true;
             for z in (bounds.min.z..bounds.max.z).rev() {
                 let wpos = Vec3::new(wpos2d.x, wpos2d.y, tree.pos.z + z);
                 let model_pos = Vec3::from(
@@ -123,17 +124,22 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
                     Block::air,
                 )
                 .map(|block| {
-                    if is_top && col.snow_cover && block.kind() == BlockKind::Leaves {
+                    // Add a snow covering to the block above under certain circumstances
+                    if col.snow_cover
+                        && ((block.kind() == BlockKind::Leaves && is_leaf_top)
+                            || (is_top && block.is_filled()))
+                    {
                         canvas.set(
                             wpos + Vec3::unit_z(),
                             Block::new(BlockKind::Snow, Rgb::new(210, 210, 255)),
                         );
                     }
                     canvas.set(wpos, block);
+                    is_leaf_top = false;
                     is_top = false;
                 })
                 .unwrap_or_else(|| {
-                    is_top = true;
+                    is_leaf_top = true;
                 });
             }
         }
