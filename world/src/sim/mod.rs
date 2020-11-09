@@ -2213,7 +2213,7 @@ impl SimChunk {
                     (
                         ForestKind::Palm,
                         (CONFIG.desert_hum, 1.5),
-                        (CONFIG.tropical_temp, 0.5),
+                        (CONFIG.tropical_temp, 1.5),
                         (1.0, 2.0),
                     ),
                     (
@@ -2236,8 +2236,14 @@ impl SimChunk {
                     ),
                     (
                         ForestKind::Pine,
-                        (CONFIG.desert_hum, 2.0),
+                        (CONFIG.forest_hum, 1.25),
                         (CONFIG.snow_temp, 2.5),
+                        (0.0, 1.0),
+                    ),
+                    (
+                        ForestKind::Birch,
+                        (CONFIG.desert_hum, 1.5),
+                        (CONFIG.temperate_temp, 1.5),
                         (0.0, 1.0),
                     ),
                 ];
