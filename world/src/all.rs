@@ -4,6 +4,6 @@ pub enum ForestKind {
     Savannah,
     Oak,
     Pine,
-    // SnowPine,
+    Birch,
     Mangrove,
 }

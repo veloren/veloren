@@ -71,15 +71,11 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
                             match col.forest_kind {
                                 ForestKind::Oak if QUIRKY_RAND.get(seed) % 16 == 7 => &OAK_STUMPS,
                                 ForestKind::Oak if QUIRKY_RAND.get(seed) % 19 == 7 => &FRUIT_TREES,
-                                ForestKind::Oak | ForestKind::Pine
-                                    if QUIRKY_RAND.get(seed) % 14 == 7 =>
-                                {
-                                    &BIRCHES
-                                },
                                 ForestKind::Palm => &PALMS,
                                 ForestKind::Savannah => &ACACIAS,
                                 ForestKind::Oak => &OAKS,
                                 ForestKind::Pine => &PINES,
+                                ForestKind::Birch => &BIRCHES,
                                 ForestKind::Mangrove => &MANGROVE_TREES,
                             }
                         };
