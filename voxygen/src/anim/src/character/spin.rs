@@ -52,7 +52,7 @@ impl Animation for SpinAnimation {
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
 
         match active_tool_kind {
-            Some(ToolKind::Sword(_)) => {
+            Some(ToolKind::Sword) => {
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation = Quaternion::rotation_x(0.0);
 
@@ -97,7 +97,7 @@ impl Animation for SpinAnimation {
                 next.torso.orientation = Quaternion::rotation_z(movement2 * 6.28);
             },
 
-            Some(ToolKind::Axe(_)) => {
+            Some(ToolKind::Axe) => {
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation = Quaternion::rotation_x(0.0);
                 next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
@@ -178,7 +178,7 @@ impl Animation for SpinAnimation {
                 );
             },
 
-            Some(ToolKind::Hammer(_)) => {
+            Some(ToolKind::Hammer) => {
                 next.hand_l.position = Vec3::new(-0.75, -1.0, -2.5);
                 next.hand_l.orientation = Quaternion::rotation_x(1.27);
                 next.hand_r.position = Vec3::new(0.75, -1.5, -5.5);
