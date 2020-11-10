@@ -1,7 +1,6 @@
 use crate::span;
 use std::{
     collections::VecDeque,
-    thread,
     time::{Duration, Instant},
 };
 
@@ -84,7 +83,7 @@ impl Clock {
 
         // Attempt to sleep to fill the gap.
         if let Some(sleep_dur) = self.target_dt.checked_sub(busy_delta) {
-            Clock::sleep(current_sys_time, sleep_dur)
+            spin_sleep::sleep(sleep_dur);
         }
 
         let after_sleep_sys_time = Instant::now();
@@ -96,33 +95,6 @@ impl Clock {
             .push_back((self.last_dt.as_millis() as u16).min(std::u16::MAX));
         self.total_tick_time += self.last_dt;
         self.last_sys_time = after_sleep_sys_time;
-    }
-
-    /// try to do a high precision sleep.
-    /// When this `fn` returns it SHOULD be before+dur as accurate is possible.
-    /// Returns the after sleep Instant.
-    fn sleep(before: Instant, dur: Duration) {
-        const BUSY_WAITING_TRIGGER_DUR: Duration = Duration::from_millis(2);
-        #[cfg(not(windows))]
-        const BUSY_WAITING_TIME: Duration = Duration::from_nanos(125_000);
-        #[cfg(windows)]
-        const BUSY_WAITING_TIME: Duration = Duration::from_nanos(500_000);
-
-        // If we have more than BUSY_TRIGGER_DUR on our sleep bucket, do sleep for
-        // (1-BUSY_WAITING_TIME) time and do some busy waiting. If we are on high load,
-        // don't try such fancy precision increasing
-        if dur > BUSY_WAITING_TRIGGER_DUR {
-            let first_sleep_dur = dur - BUSY_WAITING_TIME;
-            thread::sleep(first_sleep_dur);
-            let target_time = before + dur;
-            span!(_guard, "tick", "Clock::busy_wait");
-            while target_time > Instant::now() {
-                //busy waiting
-                std::sync::atomic::spin_loop_hint();
-            }
-        } else {
-            thread::sleep(dur);
-        }
     }
 }
 
