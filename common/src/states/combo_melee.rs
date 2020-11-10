@@ -98,6 +98,10 @@ impl CharacterBehavior for Data {
             }
         }
 
+        let speed_modifer = 1.0
+            + self.static_data.max_speed_increase
+                * (1.0 - self.static_data.speed_increase.powi(self.combo as i32));
+
         match self.stage_section {
             StageSection::Buildup => {
                 if self.timer < self.static_data.stage_data[stage_index].base_buildup_duration {
@@ -106,12 +110,7 @@ impl CharacterBehavior for Data {
                         static_data: self.static_data.clone(),
                         timer: self
                             .timer
-                            .checked_add(Duration::from_secs_f32(
-                                (1.0 + self.static_data.max_speed_increase
-                                    * (1.0
-                                        - self.static_data.speed_increase.powi(self.combo as i32)))
-                                    * data.dt.0,
-                            ))
+                            .checked_add(Duration::from_secs_f32(data.dt.0 * speed_modifer))
                             .unwrap_or_default(),
                         ..*self
                     });
@@ -162,12 +161,7 @@ impl CharacterBehavior for Data {
                         static_data: self.static_data.clone(),
                         timer: self
                             .timer
-                            .checked_add(Duration::from_secs_f32(
-                                (1.0 + self.static_data.max_speed_increase
-                                    * (1.0
-                                        - self.static_data.speed_increase.powi(self.combo as i32)))
-                                    * data.dt.0,
-                            ))
+                            .checked_add(Duration::from_secs_f32(data.dt.0 * speed_modifer))
                             .unwrap_or_default(),
                         ..*self
                     });
@@ -190,15 +184,7 @@ impl CharacterBehavior for Data {
                             static_data: self.static_data.clone(),
                             timer: self
                                 .timer
-                                .checked_add(Duration::from_secs_f32(
-                                    (1.0 + self.static_data.max_speed_increase
-                                        * (1.0
-                                            - self
-                                                .static_data
-                                                .speed_increase
-                                                .powi(self.combo as i32)))
-                                        * data.dt.0,
-                                ))
+                                .checked_add(Duration::from_secs_f32(data.dt.0 * speed_modifer))
                                 .unwrap_or_default(),
                             next_stage: true,
                             ..*self
@@ -208,15 +194,7 @@ impl CharacterBehavior for Data {
                             static_data: self.static_data.clone(),
                             timer: self
                                 .timer
-                                .checked_add(Duration::from_secs_f32(
-                                    (1.0 + self.static_data.max_speed_increase
-                                        * (1.0
-                                            - self
-                                                .static_data
-                                                .speed_increase
-                                                .powi(self.combo as i32)))
-                                        * data.dt.0,
-                                ))
+                                .checked_add(Duration::from_secs_f32(data.dt.0 * speed_modifer))
                                 .unwrap_or_default(),
                             ..*self
                         });

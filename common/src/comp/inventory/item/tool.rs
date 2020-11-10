@@ -175,15 +175,41 @@ impl Tool {
                 },
             ],
             Axe => vec![
-                BasicMelee {
-                    energy_cost: 0,
-                    buildup_duration: Duration::from_millis(600),
-                    swing_duration: Duration::from_millis(100),
-                    recover_duration: Duration::from_millis(300),
-                    base_damage: (120.0 * self.base_power()) as u32,
-                    knockback: 0.0,
-                    range: 3.5,
-                    max_angle: 20.0,
+                ComboMelee {
+                    stage_data: vec![
+                        combo_melee::Stage {
+                            stage: 1,
+                            base_damage: (90.0 * self.base_power()) as u32,
+                            max_damage: (110.0 * self.base_power()) as u32,
+                            damage_increase: (10.0 * self.base_power()) as u32,
+                            knockback: 8.0,
+                            range: 3.5,
+                            angle: 50.0,
+                            base_buildup_duration: Duration::from_millis(350),
+                            base_swing_duration: Duration::from_millis(75),
+                            base_recover_duration: Duration::from_millis(400),
+                            forward_movement: 0.5,
+                        },
+                        combo_melee::Stage {
+                            stage: 2,
+                            base_damage: (130.0 * self.base_power()) as u32,
+                            max_damage: (160.0 * self.base_power()) as u32,
+                            damage_increase: (15.0 * self.base_power()) as u32,
+                            knockback: 12.0,
+                            range: 3.5,
+                            angle: 30.0,
+                            base_buildup_duration: Duration::from_millis(500),
+                            base_swing_duration: Duration::from_millis(100),
+                            base_recover_duration: Duration::from_millis(500),
+                            forward_movement: 0.25,
+                        },
+                    ],
+                    initial_energy_gain: 0,
+                    max_energy_gain: 100,
+                    energy_increase: 20,
+                    speed_increase: 0.05,
+                    max_speed_increase: 1.6,
+                    is_interruptible: false,
                 },
                 SpinMelee {
                     buildup_duration: Duration::from_millis(100),
@@ -214,15 +240,26 @@ impl Tool {
                 },
             ],
             Hammer => vec![
-                BasicMelee {
-                    energy_cost: 0,
-                    buildup_duration: Duration::from_millis(600),
-                    swing_duration: Duration::from_millis(100),
-                    recover_duration: Duration::from_millis(300),
-                    base_damage: (120.0 * self.base_power()) as u32,
-                    knockback: 0.0,
-                    range: 3.5,
-                    max_angle: 20.0,
+                ComboMelee {
+                    stage_data: vec![combo_melee::Stage {
+                        stage: 1,
+                        base_damage: (120.0 * self.base_power()) as u32,
+                        max_damage: (150.0 * self.base_power()) as u32,
+                        damage_increase: (10.0 * self.base_power()) as u32,
+                        knockback: 0.0,
+                        range: 3.5,
+                        angle: 20.0,
+                        base_buildup_duration: Duration::from_millis(600),
+                        base_swing_duration: Duration::from_millis(60),
+                        base_recover_duration: Duration::from_millis(300),
+                        forward_movement: 0.0,
+                    }],
+                    initial_energy_gain: 0,
+                    max_energy_gain: 100,
+                    energy_increase: 20,
+                    speed_increase: 0.05,
+                    max_speed_increase: 1.4,
+                    is_interruptible: false,
                 },
                 ChargedMelee {
                     energy_cost: 1,
@@ -264,8 +301,8 @@ impl Tool {
             Bow => vec![
                 BasicRanged {
                     energy_cost: 0,
-                    buildup_duration: Duration::from_millis(100),
-                    recover_duration: Duration::from_millis(400),
+                    buildup_duration: Duration::from_millis(200),
+                    recover_duration: Duration::from_millis(300),
                     projectile: Projectile {
                         hit_solid: vec![projectile::Effect::Stick],
                         hit_entity: vec![
@@ -297,6 +334,7 @@ impl Tool {
                     projectile_light: None,
                     projectile_gravity: Some(Gravity(0.2)),
                     projectile_speed: 100.0,
+                    can_continue: true,
                 },
                 ChargedRanged {
                     energy_cost: 0,
@@ -441,6 +479,7 @@ impl Tool {
                     }),
                     projectile_gravity: Some(Gravity(0.5)),
                     projectile_speed: 40.0,
+                    can_continue: false,
                 },
             ],
             Staff => vec![
@@ -488,6 +527,7 @@ impl Tool {
                     }),
                     projectile_gravity: Some(Gravity(0.3)),
                     projectile_speed: 60.0,
+                    can_continue: true,
                 },
                 BasicBeam {
                     buildup_duration: Duration::from_millis(250),
@@ -594,6 +634,7 @@ impl Tool {
                     }),
                     projectile_gravity: None,
                     projectile_speed: 100.0,
+                    can_continue: false,
                 },
             ],
             Empty => vec![BasicMelee {
