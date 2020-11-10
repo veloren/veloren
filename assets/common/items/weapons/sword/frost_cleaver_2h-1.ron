@@ -3,7 +3,7 @@ ItemDef(
     description: "Forged from a single piece\nof eternal ice.",
     kind: Tool(
        (
-            kind: Sword("FrostCleaver1"),    
+            kind: Sword,
             stats: (
                 equip_time_millis: 500,
                 power: 1.95),            
