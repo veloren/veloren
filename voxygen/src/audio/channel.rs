@@ -114,7 +114,7 @@ impl MusicChannel {
 
     /// Maintain the fader attached to this channel. If the channel is not
     /// fading, no action is taken.
-    pub fn maintain(&mut self, dt: f32) {
+    pub fn maintain(&mut self, dt: std::time::Duration) {
         if self.state == ChannelState::Fading {
             self.fader.update(dt);
             self.sink.set_volume(self.fader.get_volume());

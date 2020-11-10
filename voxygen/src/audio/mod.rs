@@ -9,6 +9,7 @@ pub mod soundcache;
 use channel::{MusicChannel, MusicChannelTag, SfxChannel};
 use fader::Fader;
 use soundcache::SoundCache;
+use std::time::Duration;
 use tracing::warn;
 
 use common::assets;
@@ -84,7 +85,7 @@ impl AudioFrontend {
     }
 
     /// Drop any unused music channels, and update their faders
-    pub fn maintain(&mut self, dt: f32) {
+    pub fn maintain(&mut self, dt: Duration) {
         self.music_channels.retain(|c| !c.is_done());
 
         for channel in self.music_channels.iter_mut() {
@@ -124,11 +125,13 @@ impl AudioFrontend {
 
                 if existing_channel.get_tag() != next_channel_tag {
                     // Fade the existing channel out. It will be removed when the fade completes.
-                    existing_channel.set_fader(Fader::fade_out(2.0, self.music_volume));
+                    existing_channel
+                        .set_fader(Fader::fade_out(Duration::from_secs(2), self.music_volume));
 
                     let mut next_music_channel = MusicChannel::new(&audio_device);
 
-                    next_music_channel.set_fader(Fader::fade_in(12.0, self.music_volume));
+                    next_music_channel
+                        .set_fader(Fader::fade_in(Duration::from_secs(12), self.music_volume));
 
                     self.music_channels.push(next_music_channel);
                 }

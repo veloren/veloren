@@ -63,7 +63,7 @@ impl GlobalState {
         self.window.needs_refresh_resize();
     }
 
-    pub fn maintain(&mut self, dt: f32) { self.audio.maintain(dt); }
+    pub fn maintain(&mut self, dt: std::time::Duration) { self.audio.maintain(dt); }
 
     #[cfg(feature = "singleplayer")]
     pub fn paused(&self) -> bool {

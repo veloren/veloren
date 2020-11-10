@@ -155,7 +155,7 @@ impl PlayState for CharSelectionState {
 
             match self.client.borrow_mut().tick(
                 comp::ControllerInputs::default(),
-                global_state.clock.get_last_delta(),
+                global_state.clock.dt(),
                 |_| {},
             ) {
                 Ok(events) => {

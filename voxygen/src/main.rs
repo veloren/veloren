@@ -185,7 +185,7 @@ fn main() {
         profile,
         window,
         settings,
-        clock: Clock::start(),
+        clock: Clock::new(std::time::Duration::from_millis(30)),
         info_message: None,
         #[cfg(feature = "singleplayer")]
         singleplayer: None,
