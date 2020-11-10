@@ -93,6 +93,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 let neighbor_chunk = sim.get(neighbor_pos)?;
                 Some((neighbor_pos, neighbor_chunk, &neighbor_chunk.river))
             });
+
         let lake_width = (TerrainChunkSize::RECT_SIZE.x as f64 * (2.0f64.sqrt())) + 12.0;
         let neighbor_river_data = neighbor_river_data.map(|(posj, chunkj, river)| {
             let kind = match river.river_kind {
@@ -747,10 +748,17 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             .powf(3.0)
             .add(1.0)
             .mul(0.5);
+        let marble_mid = (sim.gen_ctx.hill_nz.get((wposf3d.div(12.0)).into_array()) as f32)
+            .mul(0.75)
+            .add(1.0)
+            .mul(0.5);
+        //.add(marble_small.sub(0.5).mul(0.25));
         let marble = (sim.gen_ctx.hill_nz.get((wposf3d.div(48.0)).into_array()) as f32)
             .mul(0.75)
             .add(1.0)
-            .mul(0.5)
+            .mul(0.5);
+        let marble_mixed = marble
+            .add(marble_mid.sub(0.5).mul(0.5))
             .add(marble_small.sub(0.5).mul(0.25));
 
         // Colours
@@ -793,20 +801,27 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let grass_high = grass_high.into();
         let tropical_high = tropical_high.into();
 
-        let dirt = Lerp::lerp(dirt_low, dirt_high, marble);
-        let tundra = Lerp::lerp(snow, snow_high, 0.4 + marble * 0.6);
-        let dead_tundra = Lerp::lerp(warm_stone, warm_stone_high, marble);
-        let cliff = Rgb::lerp(cold_stone, hot_stone, marble);
+        let dirt = Lerp::lerp(dirt_low, dirt_high, marble_mixed);
+        let tundra = Lerp::lerp(snow, snow_high, 0.4 + marble_mixed * 0.6);
+        let dead_tundra = Lerp::lerp(warm_stone, warm_stone_high, marble_mixed);
+        let cliff = Rgb::lerp(cold_stone, hot_stone, marble_mixed);
 
         let grass = Rgb::lerp(
             cold_grass,
             warm_grass,
-            marble.sub(0.5).add(1.0.sub(humidity).mul(0.5)).powf(1.5),
+            marble_mixed
+                .sub(0.5)
+                .add(1.0.sub(humidity).mul(0.5))
+                .powf(1.5),
         );
-        let snow_moss = Rgb::lerp(snow_moss.into(), cold_grass, 0.4 + marble.powf(1.5) * 0.6);
-        let moss = Rgb::lerp(dark_grass, cold_grass, marble.powf(1.5));
-        let rainforest = Rgb::lerp(wet_grass, warm_grass, marble.powf(1.5));
-        let sand = Rgb::lerp(beach_sand, desert_sand, marble);
+        let snow_moss = Rgb::lerp(
+            snow_moss.into(),
+            cold_grass,
+            0.4 + marble_mixed.powf(1.5) * 0.6,
+        );
+        let moss = Rgb::lerp(dark_grass, cold_grass, marble_mixed.powf(1.5));
+        let rainforest = Rgb::lerp(wet_grass, warm_grass, marble_mixed.powf(1.5));
+        let sand = Rgb::lerp(beach_sand, desert_sand, marble_mixed);
 
         let tropical = Rgb::lerp(
             Rgb::lerp(
@@ -819,7 +834,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                     .powf(0.667),
             ),
             tropical_high,
-            marble.powf(1.5).sub(0.5).mul(4.0),
+            marble_mixed.powf(1.5).sub(0.5).mul(4.0),
         );
 
         // For below desert humidity, we are always sand or rock, depending on altitude
@@ -945,9 +960,11 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let snow_cover = temp
             .sub(CONFIG.snow_temp)
             .max(-humidity.sub(CONFIG.desert_hum))
-            .mul(16.0)
-            .add((marble_small - 0.5) * 0.5);
-        let (alt, ground, sub_surface_color, snow_cover) = if snow_cover <= 0.5 && alt > water_level
+            .mul(4.0)
+            .add(((marble - 0.5) / 0.5) * 0.5)
+            .add(((marble_mid - 0.5) / 0.5) * 0.25)
+            .add(((marble_small - 0.5) / 0.5) * 0.175);
+        let (alt, ground, sub_surface_color, snow_cover) = if snow_cover <= 0.0 && alt > water_level
         {
             // Allow snow cover.
             (

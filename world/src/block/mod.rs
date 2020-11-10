@@ -244,7 +244,7 @@ pub fn block_from_structure(
         },
         StructureBlock::Chest => {
             if structure_seed % 10 < 7 {
-                None
+                Some(Block::empty())
             } else {
                 Some(with_sprite(SpriteKind::Chest))
             }

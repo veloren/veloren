@@ -125,6 +125,9 @@ impl Block {
         }
     }
 
+    #[inline]
+    pub const fn empty() -> Self { Self::air(SpriteKind::Empty) }
+
     /// TODO: See if we can generalize this somehow.
     #[inline]
     pub const fn water(sprite: SpriteKind) -> Self {
