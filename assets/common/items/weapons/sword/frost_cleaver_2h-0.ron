@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Frost Cleaver",
+    description: "Radiates a freezing aura.",
+    kind: Tool(
+       (
+            kind: Sword("FrostCleaver0"),    
+            stats: (
+                equip_time_millis: 500,
+                power: 1.70),            
+        )
+    ),
+    quality: High,
+)

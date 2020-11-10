@@ -1,9 +1,9 @@
 ItemDef(
-    name: "Blue Cultist Chest",
+    name: "Velorite Chest",
     description: "Ceremonial attire used by members.",
     kind: Armor(
         (
-            kind: Chest("CultistBlue"),
+            kind: Chest("VeloriteMage0"),
             stats: (
                 protection: Normal(30.0)),            
         )

@@ -1,9 +1,9 @@
 ItemDef(
-    name: "Blue Cultist Skirt",
-    description: "Ceremonial attire used by members.",
+    name: "Velorite Skirt",
+    description: "",
     kind: Armor(
         (
-            kind: Pants("CultistBlue"),
+            kind: Pants("VeloriteMage0"),
             stats: (
                 protection: Invincible),            
         )

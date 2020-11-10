@@ -1,9 +1,9 @@
 ItemDef(
-    name: "Blue Cultist Mantle",
-    description: "Ceremonial attire used by members.",
+    name: "Velorite Mantle",
+    description: "",
     kind: Armor(
         (
-            kind: Shoulder("CultistBlue"),
+            kind: Shoulder("VeloriteMage0"),
             stats: (
                 protection: Invincible),            
         )

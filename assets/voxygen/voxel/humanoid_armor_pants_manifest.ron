@@ -67,11 +67,7 @@
         "CultistPurple": (
             vox_spec: ("armor.pants.cultist", (-5.0, -3.5, 1.0)),
             color: Some((30, 0, 64))
-        ),
-        "CultistBlue" : (
-            vox_spec: ("armor.pants.cultist", (-5.0, -3.5, 1.0)),
-            color: Some((57, 81, 132))
-        ),
+        ),        
         "Steel0": (
             vox_spec: ("armor.pants.steel-0", (-6.0, -4.5, 1.0)),
             color: None
@@ -104,5 +100,9 @@
             vox_spec: ("armor.pants.bonerattler", (-5.0, -3.5, 1.0)),
             color: None
         ),
+        "VeloriteMage0": (
+          vox_spec: ("armor.pants.velorite_battlemage", (-6.0, -3.5, -2.0)),
+          color: None
+      ),
     },
 ))

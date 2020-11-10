@@ -315,7 +315,7 @@ impl Species {
         match (self, body_type) {
             (Species::Danari, BodyType::Female) => 4,
             (Species::Danari, BodyType::Male) => 4,
-            (Species::Dwarf, BodyType::Female) => 7,
+            (Species::Dwarf, BodyType::Female) => 8,
             (Species::Dwarf, BodyType::Male) => 4,
             (Species::Elf, BodyType::Female) => 21,
             (Species::Elf, BodyType::Male) => 4,
@@ -350,13 +350,13 @@ impl Species {
     pub fn num_eyes(self, body_type: BodyType) -> u8 {
         match (self, body_type) {
             (Species::Danari, BodyType::Female) => 6,
-            (Species::Danari, BodyType::Male) => 7,
+            (Species::Danari, BodyType::Male) => 8,
             (Species::Dwarf, BodyType::Female) => 6,
-            (Species::Dwarf, BodyType::Male) => 7,
+            (Species::Dwarf, BodyType::Male) => 8,
             (Species::Elf, BodyType::Female) => 6,
             (Species::Elf, BodyType::Male) => 7,
             (Species::Human, BodyType::Female) => 6,
-            (Species::Human, BodyType::Male) => 5,
+            (Species::Human, BodyType::Male) => 7,
             (Species::Orc, BodyType::Female) => 6,
             (Species::Orc, BodyType::Male) => 2,
             (Species::Undead, BodyType::Female) => 3,

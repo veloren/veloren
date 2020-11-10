@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Frost Saw",
+    description: "Forged from a single piece\nof eternal ice.",
+    kind: Tool(
+       (
+            kind: Sword("FrostCleaver1"),    
+            stats: (
+                equip_time_millis: 500,
+                power: 1.95),            
+        )
+    ),
+    quality: Epic,
+)
