@@ -13,4 +13,8 @@
         specifier: "world.structure.natural.skull-large",
         center: (15, 20, 4)
     ),
+    (
+        specifier: "world.structure.natural.airship-crashsite_0",
+        center: (28, 40, 14)
+    ),
 ]
