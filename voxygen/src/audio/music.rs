@@ -188,7 +188,7 @@ impl MusicMgr {
             })
             .filter(|track| {
                 let mut result = false;
-                if track.biomes.len() > 0 {
+                if !track.biomes.is_empty() {
                     for biome in track.biomes.iter() {
                         if biome.0 == current_biome {
                             result = true;
@@ -205,7 +205,7 @@ impl MusicMgr {
         // on the biome
         let new_maybe_track = maybe_tracks.choose_weighted(&mut rng, |track| {
             let mut chance = 0;
-            if track.biomes.len() > 0 {
+            if !track.biomes.is_empty() {
                 for biome in track.biomes.iter() {
                     if biome.0 == current_biome {
                         chance = biome.1;

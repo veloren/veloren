@@ -61,28 +61,25 @@ impl EventMapper for CampfireEventMapper {
             .join()
             .filter(|(_, _, e_pos)| (e_pos.0.distance_squared(cam_pos)) < SFX_DIST_LIMIT_SQR)
         {
-            match body {
-                Body::Object(object::Body::CampfireLit) => {
-                    let state = self.event_history.entry(entity).or_default();
+            if let Body::Object(object::Body::CampfireLit) = body {
+                let state = self.event_history.entry(entity).or_default();
 
-                    let mapped_event = SfxEvent::Campfire;
+                let mapped_event = SfxEvent::Campfire;
 
-                    // Check for SFX config entry for this movement
-                    if Self::should_emit(state, triggers.get_key_value(&mapped_event)) {
-                        sfx_emitter.emit(SfxEventItem::new(
-                            mapped_event.clone(),
-                            Some(pos.0),
-                            Some(0.25),
-                        ));
+                // Check for SFX config entry for this movement
+                if Self::should_emit(state, triggers.get_key_value(&mapped_event)) {
+                    sfx_emitter.emit(SfxEventItem::new(
+                        mapped_event.clone(),
+                        Some(pos.0),
+                        Some(0.25),
+                    ));
 
-                        state.time = Instant::now();
-                    }
+                    state.time = Instant::now();
+                }
 
-                    // update state to determine the next event. We only record the time (above) if
-                    // it was dispatched
-                    state.event = mapped_event;
-                },
-                _ => {},
+                // update state to determine the next event. We only record the time (above) if
+                // it was dispatched
+                state.event = mapped_event;
             }
         }
         self.cleanup(player_entity);
