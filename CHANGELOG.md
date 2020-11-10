@@ -65,6 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Switched to a Whittaker map for better tree spawning patterns
 - Switched to procedural snow cover on trees
 - Significantly improved terrain generation performance
+- Significantly stabilized the game clock, to produce more "constant" TPS
 
 ### Removed
 

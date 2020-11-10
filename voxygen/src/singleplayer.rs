@@ -152,7 +152,7 @@ fn run_server(mut server: Server, rec: Receiver<Msg>, paused: Arc<AtomicBool>) {
     info!("Starting server-cli...");
 
     // Set up an fps clock
-    let mut clock = Clock::start();
+    let mut clock = Clock::new(Duration::from_millis(1000 / TPS));
 
     loop {
         // Check any event such as stopping and pausing
@@ -167,7 +167,7 @@ fn run_server(mut server: Server, rec: Receiver<Msg>, paused: Arc<AtomicBool>) {
         }
 
         // Wait for the next tick.
-        clock.tick(Duration::from_millis(1000 / TPS));
+        clock.tick();
 
         // Skip updating the server if it's paused
         if paused.load(Ordering::SeqCst) && server.number_of_players() < 2 {
@@ -177,7 +177,7 @@ fn run_server(mut server: Server, rec: Receiver<Msg>, paused: Arc<AtomicBool>) {
         }
 
         let events = server
-            .tick(Input::default(), clock.get_last_delta())
+            .tick(Input::default(), clock.dt())
             .expect("Failed to tick server!");
 
         for event in events {
