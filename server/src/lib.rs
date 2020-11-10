@@ -18,6 +18,7 @@ pub mod login_provider;
 pub mod metrics;
 pub mod persistence;
 pub mod presence;
+pub mod rtsim;
 pub mod settings;
 pub mod state_ext;
 pub mod sys;
@@ -353,6 +354,9 @@ impl Server {
         block_on(network.listen(ProtocolAddr::Tcp(settings.gameserver_address)))?;
         let connection_handler = ConnectionHandler::new(network);
 
+        // Initiate real-time world simulation
+        rtsim::init(&mut state, &world);
+
         let this = Self {
             state,
             world: Arc::new(world),
@@ -513,6 +517,7 @@ impl Server {
 
         // Tick the world
         self.world.tick(dt);
+        rtsim::tick(&mut self.state);
 
         let before_entity_cleanup = Instant::now();
 

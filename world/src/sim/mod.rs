@@ -2061,12 +2061,13 @@ impl SimChunk {
 
         // We also correlate temperature negatively with altitude and absolute latitude,
         // using different weighting than we use for humidity.
-        const TEMP_WEIGHTS: [f32; 2] = [/* 1.5, */ 1.0, 2.0];
+        const TEMP_WEIGHTS: [f32; 3] = [/* 1.5, */ 1.0, 2.0, 1.0];
         let temp = cdf_irwin_hall(
             &TEMP_WEIGHTS,
             [
                 temp_uniform,
                 1.0 - alt_uniform, /* 1.0 - abs_lat_uniform*/
+                (gen_ctx.rock_nz.get((wposf.div(50000.0)).into_array()) as f32 * 2.5 + 1.0) * 0.5,
             ],
         )
         // Convert to [-1, 1]
@@ -2176,12 +2177,18 @@ impl SimChunk {
                 0.0
             } else {
                 let warp = Vec2::new(
-                    gen_ctx.turb_x_nz.get(wposf.div(256.0).into_array()) as f32,
-                    gen_ctx.turb_y_nz.get(wposf.div(256.0).into_array()) as f32,
-                ) * 192.0;
-                let dune_nz = (wposf.map(|e| e as f32) + warp).sum().div(100.0).sin() * 0.5 + 0.5;
-                let dune_scale = 16.0;
-                dune_nz * dune_scale * (temp - 0.75).clamped(0.0, 0.25) * 4.0
+                    gen_ctx.turb_x_nz.get(wposf.div(350.0).into_array()) as f32,
+                    gen_ctx.turb_y_nz.get(wposf.div(350.0).into_array()) as f32,
+                ) * 200.0;
+                const DUNE_SCALE: f32 = 24.0;
+                const DUNE_LEN: f32 = 96.0;
+                const DUNE_DIR: Vec2<f32> = Vec2::new(1.0, 1.0);
+                let dune_dist = (wposf.map(|e| e as f32) + warp)
+                    .div(DUNE_LEN)
+                    .mul(DUNE_DIR.normalized())
+                    .sum();
+                let dune_nz = 0.5 - dune_dist.sin().abs() + 0.5 * (dune_dist + 0.5).sin().abs();
+                dune_nz * DUNE_SCALE * (temp - 0.75).clamped(0.0, 0.25) * 4.0
             };
 
         Self {
@@ -2213,7 +2220,7 @@ impl SimChunk {
                     (
                         ForestKind::Palm,
                         (CONFIG.desert_hum, 1.5),
-                        (CONFIG.tropical_temp, 1.5),
+                        ((CONFIG.tropical_temp + CONFIG.desert_temp) / 2.0, 1.25),
                         (1.0, 2.0),
                     ),
                     (
