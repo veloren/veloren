@@ -211,7 +211,7 @@ impl PlayState for MainMenuState {
         // Maintain the UI.
         for event in self
             .main_menu_ui
-            .maintain(global_state, global_state.clock.get_last_delta())
+            .maintain(global_state, global_state.clock.dt())
         {
             match event {
                 MainMenuEvent::LoginAttempt {

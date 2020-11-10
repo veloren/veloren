@@ -26,7 +26,7 @@ fn main() {
     info!("Starting chat-cli...");
 
     // Set up an fps clock.
-    let mut clock = Clock::start();
+    let mut clock = Clock::new(Duration::from_millis(1000 / TPS));
 
     println!("Enter your username");
     let username = read_input();
@@ -71,11 +71,7 @@ fn main() {
             client.send_chat(msg)
         }
 
-        let events = match client.tick(
-            comp::ControllerInputs::default(),
-            clock.get_last_delta(),
-            |_| {},
-        ) {
+        let events = match client.tick(comp::ControllerInputs::default(), clock.dt(), |_| {}) {
             Ok(events) => events,
             Err(err) => {
                 error!("Error: {:?}", err);
@@ -104,6 +100,6 @@ fn main() {
         client.cleanup();
 
         // Wait for the next tick.
-        clock.tick(Duration::from_millis(1000 / TPS));
+        clock.tick();
     }
 }

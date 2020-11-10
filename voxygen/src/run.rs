@@ -168,12 +168,13 @@ fn handle_main_events_cleared(
     if !exit {
         // Wait for the next tick.
         span!(_guard, "Main thread sleep");
-        global_state.clock.tick(Duration::from_millis(
+        global_state.clock.set_target_dt(Duration::from_millis(
             1000 / global_state.settings.graphics.max_fps as u64,
         ));
+        global_state.clock.tick();
 
         span!(_guard, "Maintain global state");
         // Maintain global state.
-        global_state.maintain(global_state.clock.get_last_delta().as_secs_f32());
+        global_state.maintain(global_state.clock.dt());
     }
 }

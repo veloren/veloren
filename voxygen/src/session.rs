@@ -631,7 +631,7 @@ impl PlayState for SessionState {
                     let right = self.scene.camera().right();
                     let dir = right * axis_right + forward * axis_up;
 
-                    let dt = global_state.clock.get_last_delta().as_secs_f32();
+                    let dt = global_state.clock.dt().as_secs_f32();
                     if self.freefly_vel.magnitude_squared() > 0.01 {
                         let new_vel = self.freefly_vel
                             - self.freefly_vel.normalized() * (FREEFLY_DAMPING * dt);
@@ -668,11 +668,7 @@ impl PlayState for SessionState {
             // Runs if either in a multiplayer server or the singleplayer server is unpaused
             if !global_state.paused() {
                 // Perform an in-game tick.
-                match self.tick(
-                    global_state.clock.get_avg_delta(),
-                    global_state,
-                    &mut outcomes,
-                ) {
+                match self.tick(global_state.clock.dt(), global_state, &mut outcomes) {
                     Ok(TickAction::Continue) => {}, // Do nothing
                     Ok(TickAction::Disconnect) => return PlayStateResult::Pop, // Go to main menu
                     Err(err) => {
@@ -697,8 +693,8 @@ impl PlayState for SessionState {
                 .gameplay
                 .toggle_debug
                 .then(|| DebugInfo {
-                    tps: global_state.clock.get_tps(),
-                    frame_time: global_state.clock.get_avg_delta(),
+                    tps: global_state.clock.stats().average_tps,
+                    frame_time: global_state.clock.stats().last_busy_dt,
                     ping_ms: self.client.borrow().get_ping_ms_rolling_avg(),
                     coordinates: self
                         .client
@@ -741,7 +737,7 @@ impl PlayState for SessionState {
                 global_state,
                 &debug_info,
                 &self.scene.camera(),
-                global_state.clock.get_last_delta(),
+                global_state.clock.dt(),
                 HudInfo {
                     is_aiming,
                     is_first_person: matches!(
