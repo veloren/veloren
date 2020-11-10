@@ -52,39 +52,17 @@ impl RectVolSize for TerrainChunkSize {
 pub struct TerrainChunkMeta {
     name: Option<String>,
     biome: BiomeKind,
-    chaos: f32,
     alt: f32,
-    //basement: f32,
-    //water_alt: f32,
-    //downhill: Option<Vec2<i32>>,
-    //flux: f32,
-    temp: f32,
-    humidity: f32,
-    //rockiness: f32,
-    //is_cliffs: bool,
-    //near_cliffs: bool,
     tree_density: f32,
-    //forest_kind: ForestKind,
-    //spawn_rate: f32,
-    //river: RiverData,
-    //warp_factor: f32,
-    //surface_veg: f32,
     cave_alt: f32,
     contains_river: bool,
-    /*place: Option<Id<Place>>, */
-
-    /*path: (Way, Path),*/
-    /* contains_waypoint: bool, */
 }
 
 impl TerrainChunkMeta {
     pub fn new(
         name: Option<String>,
         biome: BiomeKind,
-        chaos: f32,
         alt: f32,
-        temp: f32,
-        humidity: f32,
         tree_density: f32,
         cave_alt: f32,
         contains_river: bool,
@@ -92,10 +70,7 @@ impl TerrainChunkMeta {
         Self {
             name,
             biome,
-            chaos,
             alt,
-            temp,
-            humidity,
             tree_density,
             cave_alt,
             contains_river,
@@ -106,10 +81,7 @@ impl TerrainChunkMeta {
         Self {
             name: None,
             biome: BiomeKind::Void,
-            chaos: 0.0,
             alt: 0.0,
-            temp: 0.0,
-            humidity: 0.0,
             tree_density: 0.0,
             cave_alt: 0.0,
             contains_river: false,
@@ -120,13 +92,7 @@ impl TerrainChunkMeta {
 
     pub fn biome(&self) -> BiomeKind { self.biome }
 
-    pub fn chaos(&self) -> f32 { self.chaos }
-
     pub fn alt(&self) -> f32 { self.alt }
-
-    pub fn temp(&self) -> f32 { self.temp }
-
-    pub fn humidity(&self) -> f32 { self.humidity }
 
     pub fn tree_density(&self) -> f32 { self.tree_density }
 
