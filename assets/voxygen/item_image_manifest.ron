@@ -1264,7 +1264,7 @@
     ),
     Consumable("SunflowerTea"): Png(
         "element.icons.item_sunflower_tea",
-    ),        
+    ),
     // Throwables
     Throwable(Bomb): VoxTrans(
         "voxel.object.bomb",
@@ -1344,7 +1344,7 @@
         "voxel.object.potion_empty",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
-    // Gliders 
+    // Gliders
     Glider("Starter"): VoxTrans(
         "voxel.glider.glider_starter",
         (-2.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.9,
