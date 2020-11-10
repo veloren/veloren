@@ -1,0 +1,14 @@
+ItemDef(
+    name: "Suspicious Paper Knife",
+    description: "Opens letters quickly.",
+    kind: Tool(
+        (
+            kind: Dagger("BasicDagger0"),    
+            stats: (
+                equip_time_millis: 0,
+                power: 1.80
+                ),            
+        )
+    ),
+    quality: High,
+)

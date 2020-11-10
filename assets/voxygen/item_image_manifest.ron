@@ -61,7 +61,23 @@
         "voxel.weapon.dagger.dagger_rusty",
         (0.0, 0.0, -4.0), (-120.0, 90.0, 0.0), 1.1,
     ),
+    Tool("common.items.weapons.dagger.basic-0"): VoxTrans(
+        "voxel.weapon.dagger.dagger_basic-0",
+        (0.0, 0.0, -4.0), (-120.0, 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.weapons.dagger.cultist_0"): VoxTrans(
+        "voxel.weapon.dagger.dagger_cult-0",
+        (0.0, 0.0, -4.0), (-120.0, 90.0, 0.0), 1.1,
+    ),
     // Swords
+    Tool("common.items.weapons.sword.frost_cleaver_2h-0"): VoxTrans(
+        "voxel.weapon.sword.frost_cleaver-0",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.40,
+    ),
+    Tool("common.items.weapons.sword.frost_cleaver_2h-1"): VoxTrans(
+        "voxel.weapon.sword.frost_cleaver-1",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.40,
+    ),
     Tool("common.items.weapons.sword.short_sword_0"): VoxTrans(
         "voxel.weapon.sword.short_2h-0",
         (-3.0, 3.0, 0.0), (-135.0, 90.0, 0.0), 1.60,
@@ -239,7 +255,7 @@
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
     ),
     Tool("common.items.debug.cultist_purp_2h_boss-0"): VoxTrans(
-        "voxel.weapon.sword.cultist_purp_2h-0",
+        "voxel.weapon.sword.frost_cleaver-1",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
     ),
     Tool("common.items.npc_weapons.sword.cultist_purp_2h_boss-0"): VoxTrans(
@@ -787,6 +803,35 @@
         "voxel.armor.chest.shirt_white-0",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
+    // Velorite Battlemage Set
+    Armor(Chest("VeloriteMage0")): VoxTrans(
+        "voxel.armor.chest.velorite_battlemage",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Pants("VeloriteMage0")): VoxTrans(
+        "voxel.armor.pants.velorite_battlemage",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Belt("VeloriteMage0")): VoxTrans(
+        "voxel.armor.belt.velorite_battlemage",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.8,
+    ),
+    Armor(Foot("VeloriteMage0")): VoxTrans(
+        "voxel.armor.foot.velorite_battlemage",
+        (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
+    ),
+    Armor(Hand("VeloriteMage0")): VoxTrans(
+        "voxel.armor.hand.velorite_battlemage_left",
+        (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
+    ),
+    Armor(Shoulder("VeloriteMage0")): VoxTrans(
+        "voxel.armor.shoulder.velorite_battlemage_left",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Back("VeloriteMage0")): VoxTrans(
+        "voxel.armor.back.velorite_battlemage",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
     // Assassin Set
     Armor(Chest("Assassin")): VoxTrans(
         "voxel.armor.chest.assa",
@@ -1188,9 +1233,19 @@
         (0.0, 0.0, 0.0), (-90.0, 0.0, 0.0), 1.0,
     ),
     // Rings
-    Armor(Ring("Ring0")): Png(
-        "element.icons.ring-0",
+    Armor(Ring("Ring0")): VoxTrans(
+        "voxel.armor.ring.simple_purp-0",
+        (0.0, 0.0, 0.0), (30.0, 0.0, 0.0), 0.9,
     ),
+    Armor(Ring("RingGold0")): VoxTrans(
+        "voxel.armor.ring.simple_gold-0",
+        (0.0, 0.0, 0.0), (30.0, 0.0, 0.0), 0.9,
+    ),
+    Armor(Ring("RingSkull0")): VoxTrans(
+        "voxel.armor.ring.high_purp-0",
+        (0.0, 0.0, 0.0), (30.0, 0.0, 0.0), 0.9,
+    ),
+
     // Necks
     Armor(Neck("Neck0")): Png(
         "element.icons.neck-0",

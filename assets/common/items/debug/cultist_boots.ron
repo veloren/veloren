@@ -1,9 +1,9 @@
 ItemDef(
-    name: "Cultist Boots",
-    description: "Ceremonial attire used by members.",
+    name: "Velorite Boots",
+    description: "",
     kind: Armor(
         (
-            kind: Foot("Cultist"),
+            kind: Foot("VeloriteMage0"),
             stats: (
                 protection: Invincible),            
         )

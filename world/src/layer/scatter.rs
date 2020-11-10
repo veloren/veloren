@@ -7,7 +7,9 @@ use vek::*;
 fn close(x: f32, tgt: f32, falloff: f32) -> f32 {
     (1.0 - (x - tgt).abs() / falloff).max(0.0).powf(0.125)
 }
+
 const MUSH_FACT: f32 = 1.0e-4; // To balance everything around the mushroom spawning rate
+const DEPTH_WATER_NORM: f32 = 15.0; // Water depth at which regular underwater sprites start spawning
 pub fn apply_scatter_to(canvas: &mut Canvas) {
     use SpriteKind::*;
     #[allow(clippy::type_complexity)]
@@ -274,7 +276,56 @@ pub fn apply_scatter_to(canvas: &mut Canvas) {
             )
         }),
         // Underwater chests
-        (Chest, true, |_, _| (MUSH_FACT * 0.1, None)),
+        (ChestBurried, true, |_, col| {
+            (
+                MUSH_FACT
+                    * 1.0e-6
+                    * if col.alt < col.water_level - DEPTH_WATER_NORM + 30.0 {
+                        1.0
+                    } else {
+                        0.0
+                    },
+                None,
+            )
+        }),
+        // Underwater mud piles
+        (Mud, true, |_, col| {
+            (
+                MUSH_FACT
+                    * 1.0e-3
+                    * if col.alt < col.water_level - DEPTH_WATER_NORM {
+                        1.0
+                    } else {
+                        0.0
+                    },
+                None,
+            )
+        }),
+        // Underwater grass
+        (GrassBlue, true, |_, col| {
+            (
+                MUSH_FACT
+                    * 250.0
+                    * if col.alt < col.water_level - DEPTH_WATER_NORM {
+                        1.0
+                    } else {
+                        0.0
+                    },
+                Some((100.0, 0.15)),
+            )
+        }),
+        (Stones, true, |c, col| {
+            (
+                (c.rockiness - 0.5).max(0.0)
+                    * 1.0e-3
+                    * if col.alt < col.water_level - DEPTH_WATER_NORM {
+                        1.0
+                    } else {
+                        0.0
+                    },
+                None,
+            )
+        }),
     ];
 
     canvas.foreach_col(|canvas, wpos2d, col| {

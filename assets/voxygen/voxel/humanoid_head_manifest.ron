@@ -9,7 +9,8 @@
             Some(("figure.eyes.general.male_as_hair-0", (3, 9, 2))),
             Some(("figure.eyes.general.male_heterochromia-0", (3, 9, 2))), 
             Some(("figure.eyes.general.male_scar-0", (3, 9, 2))), 
-            Some(("figure.eyes.general.male_blind-0", (3, 9, 2))),                      
+            Some(("figure.eyes.general.male_blind-0", (3, 9, 2))),    
+            Some(("figure.eyes.general.male_old", (3, 9, 2))),                              
             ],
         hair: [
             Some(("figure.hair.human.male-0", (1, 1, 1))),
@@ -52,7 +53,7 @@
             Some(("figure.eyes.general.female_as_hair-0", (2, 10, 2))), 
             Some(("figure.eyes.general.female_heterochromia-0", (2, 10, 2))),  
             Some(("figure.eyes.general.female_scar-0", (2, 10, 2))),  
-            Some(("figure.eyes.general.female_blind-0", (2, 10, 2))),                          
+            Some(("figure.eyes.general.female_blind-0", (2, 10, 2))),                                      
             ],
         hair: [
             Some(("figure.hair.human.female-0", (-1, -1, 0))),	
@@ -149,7 +150,7 @@
             Some(("figure.eyes.general.male_as_hair-0", (4, 9, 2))),
             Some(("figure.eyes.general.male_heterochromia-0", (4, 9, 2))), 
             Some(("figure.eyes.general.male_scar-0", (4, 9, 2))), 
-            Some(("figure.eyes.general.male_blind-0", (4, 9, 2))),                     
+            Some(("figure.eyes.general.male_blind-0", (4, 9, 2))),                                         
             ],
         hair: [
             Some(("figure.hair.elf.male-0", (2, 1, 1))),
@@ -171,7 +172,7 @@
             Some(("figure.eyes.general.female_as_hair-0", (3, 9, 2))),  
             Some(("figure.eyes.general.female_heterochromia-0", (3, 9, 2))),  
             Some(("figure.eyes.general.female_scar-0", (3, 9, 2))),  
-            Some(("figure.eyes.general.female_blind-0", (3, 9, 2))),                     
+            Some(("figure.eyes.general.female_blind-0", (3, 9, 2))),                        
             ],
         hair: [            
             Some(("figure.hair.elf.female-0", (0, -2, 0))),	
@@ -212,7 +213,8 @@
             Some(("figure.eyes.general.male_as_hair-0", (2, 10, 2))), 
             Some(("figure.eyes.general.male_heterochromia-0", (2, 10, 2))), 
             Some(("figure.eyes.general.male_scar-0", (2, 10, 2))), 
-            Some(("figure.eyes.general.male_blind-0", (2, 10, 2))),          
+            Some(("figure.eyes.general.male_blind-0", (2, 10, 2))),  
+            Some(("figure.eyes.general.male_old", (1, 10, 1))),            
             ],
         hair: [
             Some(("figure.hair.dwarf.bald", (0, 3, 1))), 
@@ -263,7 +265,7 @@
             Some(("figure.eyes.general.female_as_hair-0", (1, 10, 2))), 
             Some(("figure.eyes.general.female_heterochromia-0", (1, 10, 2))), 
             Some(("figure.eyes.general.female_scar-0", (1, 10, 2))), 
-            Some(("figure.eyes.general.female_blind-0", (1, 10, 2))),                      
+            Some(("figure.eyes.general.female_blind-0", (1, 10, 2))),                       
             ],
         hair: [
             Some(("figure.hair.dwarf.female-0", (-9, -9, -7))), 
@@ -272,7 +274,8 @@
             Some(("figure.hair.dwarf.female-3", (-9, -9, -7))),
             Some(("figure.hair.dwarf.female-4", (-3, -2, -5))),
             Some(("figure.hair.dwarf.female-5", (-3, -2, -5))),
-            Some(("figure.hair.dwarf.female-6", (-3, -2, -5))),        
+            Some(("figure.hair.dwarf.female-6", (-3, -2, -5))),
+            Some(("figure.hair.dwarf.female-7", (-9, -9, -7))),        
         ],
         beard: [None],
         accessory: [
@@ -337,7 +340,8 @@
             Some(("figure.eyes.general.male_as_hair-0", (5, 9, 4))), 
             Some(("figure.eyes.general.male_heterochromia-0", (5, 9, 4))), 
             Some(("figure.eyes.general.male_scar-0", (5, 9, 4))),
-            Some(("figure.eyes.general.male_blind-0", (5, 9, 4))),                                 
+            Some(("figure.eyes.general.male_blind-0", (5, 9, 4))),  
+            Some(("figure.eyes.general.male_old", (4, 9, 3))),                                      
             ],
         hair: [
             Some(("figure.hair.danari.male-0", (3, 1, 2))),
@@ -361,7 +365,7 @@
             Some(("figure.eyes.general.female_as_hair-0", (4, 9, 4))), 
             Some(("figure.eyes.general.female_heterochromia-0", (4, 9, 4))),  
             Some(("figure.eyes.general.female_scar-0", (4, 9, 4))),  
-            Some(("figure.eyes.general.female_blind-0", (4, 9, 4))),                      
+            Some(("figure.eyes.general.female_blind-0", (4, 9, 4))),                                   
             ],
         hair: [
             Some(("figure.hair.danari.female-0", (3, -4, 1))),
