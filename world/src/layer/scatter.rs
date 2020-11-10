@@ -1,8 +1,5 @@
-use crate::{column::ColumnSample, sim::SimChunk, util::RandomField, IndexRef, CONFIG};
-use common::{
-    terrain::{Block, SpriteKind},
-    vol::{BaseVol, ReadVol, RectSizedVol, WriteVol},
-};
+use crate::{column::ColumnSample, sim::SimChunk, util::RandomField, Canvas, CONFIG};
+use common::terrain::SpriteKind;
 use noise::NoiseFn;
 use std::f32;
 use vek::*;
@@ -11,13 +8,7 @@ fn close(x: f32, tgt: f32, falloff: f32) -> f32 {
     (1.0 - (x - tgt).abs() / falloff).max(0.0).powf(0.125)
 }
 const MUSH_FACT: f32 = 1.0e-4; // To balance everything around the mushroom spawning rate
-pub fn apply_scatter_to<'a>(
-    wpos2d: Vec2<i32>,
-    mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
-    vol: &mut (impl BaseVol<Vox = Block> + RectSizedVol + ReadVol + WriteVol),
-    index: IndexRef,
-    chunk: &SimChunk,
-) {
+pub fn apply_scatter_to(canvas: &mut Canvas) {
     use SpriteKind::*;
     #[allow(clippy::type_complexity)]
     // TODO: Add back all sprites we had before
@@ -286,76 +277,65 @@ pub fn apply_scatter_to<'a>(
         (Chest, true, |_, _| (MUSH_FACT * 0.1, None)),
     ];
 
-    for y in 0..vol.size_xy().y as i32 {
-        for x in 0..vol.size_xy().x as i32 {
-            let offs = Vec2::new(x, y);
+    canvas.foreach_col(|canvas, wpos2d, col| {
+        let underwater = col.water_level > col.alt;
 
-            let wpos2d = wpos2d + offs;
-
-            // Sample terrain
-            let col_sample = if let Some(col_sample) = get_column(offs) {
-                col_sample
-            } else {
-                continue;
-            };
-
-            let underwater = col_sample.water_level > col_sample.alt;
-
-            let kind = scatter
-                .iter()
-                .enumerate()
-                .find_map(|(i, (kind, is_underwater, f))| {
-                    let (density, patch) = f(chunk, col_sample);
-                    let is_patch = patch
-                        .map(|(wavelen, threshold)| {
-                            index
-                                .noise
-                                .scatter_nz
-                                .get(
-                                    wpos2d
-                                        .map(|e| e as f64 / wavelen as f64 + i as f64 * 43.0)
-                                        .into_array(),
-                                )
-                                .abs()
-                                > 1.0 - threshold as f64
-                        })
-                        .unwrap_or(true);
-                    if density > 0.0
-                        && is_patch
-                        && RandomField::new(i as u32)
-                            .chance(Vec3::new(wpos2d.x, wpos2d.y, 0), density)
-                        && underwater == *is_underwater
-                    {
-                        Some(*kind)
-                    } else {
-                        None
-                    }
-                });
-
-            if let Some(kind) = kind {
-                let alt = col_sample.alt as i32;
-
-                // Find the intersection between ground and air, if there is one near the
-                // surface
-                if let Some(solid_end) = (-4..8)
-                    .find(|z| {
-                        vol.get(Vec3::new(offs.x, offs.y, alt + z))
-                            .map(|b| b.is_solid())
-                            .unwrap_or(false)
+        let kind = scatter
+            .iter()
+            .enumerate()
+            .find_map(|(i, (kind, is_underwater, f))| {
+                let (density, patch) = f(canvas.chunk(), col);
+                let is_patch = patch
+                    .map(|(wavelen, threshold)| {
+                        canvas
+                            .index()
+                            .noise
+                            .scatter_nz
+                            .get(
+                                wpos2d
+                                    .map(|e| e as f64 / wavelen as f64 + i as f64 * 43.0)
+                                    .into_array(),
+                            )
+                            .abs()
+                            > 1.0 - threshold as f64
                     })
-                    .and_then(|solid_start| {
-                        (1..8).map(|z| solid_start + z).find(|z| {
-                            vol.get(Vec3::new(offs.x, offs.y, alt + z))
-                                .map(|b| !b.is_solid())
-                                .unwrap_or(true)
-                        })
-                    })
+                    .unwrap_or(true);
+                if density > 0.0
+                    && is_patch
+                    && RandomField::new(i as u32).chance(Vec3::new(wpos2d.x, wpos2d.y, 0), density)
+                    && underwater == *is_underwater
                 {
-                    let _ = vol.map(Vec3::new(offs.x, offs.y, alt + solid_end), |block| {
-                        block.with_sprite(kind)
-                    });
+                    Some(*kind)
+                } else {
+                    None
                 }
+            });
+
+        if let Some(kind) = kind {
+            let alt = col.alt as i32;
+
+            // Find the intersection between ground and air, if there is one near the
+            // surface
+            if let Some(solid_end) = (-4..8)
+                .find(|z| {
+                    canvas
+                        .get(Vec3::new(wpos2d.x, wpos2d.y, alt + z))
+                        .map(|b| b.is_solid())
+                        .unwrap_or(false)
+                })
+                .and_then(|solid_start| {
+                    (1..8).map(|z| solid_start + z).find(|z| {
+                        canvas
+                            .get(Vec3::new(wpos2d.x, wpos2d.y, alt + z))
+                            .map(|b| !b.is_solid())
+                            .unwrap_or(true)
+                    })
+                })
+            {
+                canvas.map(Vec3::new(wpos2d.x, wpos2d.y, alt + solid_end), |block| {
+                    block.with_sprite(kind)
+                });
             }
         }
-    }
+    });
 }

@@ -1,11 +1,12 @@
 pub mod scatter;
+pub mod tree;
 
-pub use self::scatter::apply_scatter_to;
+pub use self::{scatter::apply_scatter_to, tree::apply_trees_to};
 
 use crate::{
     column::ColumnSample,
     util::{RandomField, Sampler},
-    IndexRef,
+    Canvas, IndexRef,
 };
 use common::{
     assets::Asset,
@@ -32,180 +33,162 @@ pub struct Colors {
 
 const EMPTY_AIR: Block = Block::air(SpriteKind::Empty);
 
-pub fn apply_paths_to<'a>(
-    wpos2d: Vec2<i32>,
-    mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
-    vol: &mut (impl BaseVol<Vox = Block> + RectSizedVol + ReadVol + WriteVol),
-    index: IndexRef,
-) {
-    for y in 0..vol.size_xy().y as i32 {
-        for x in 0..vol.size_xy().x as i32 {
-            let offs = Vec2::new(x, y);
+pub fn apply_paths_to(canvas: &mut Canvas) {
+    let info = canvas.info();
+    canvas.foreach_col(|canvas, wpos2d, col| {
+        let surface_z = col.riverless_alt.floor() as i32;
 
-            let wpos2d = wpos2d + offs;
+        let noisy_color = |color: Rgb<u8>, factor: u32| {
+            let nz = RandomField::new(0).get(Vec3::new(wpos2d.x, wpos2d.y, surface_z));
+            color.map(|e| {
+                (e as u32 + nz % (factor * 2))
+                    .saturating_sub(factor)
+                    .min(255) as u8
+            })
+        };
 
-            // Sample terrain
-            let col_sample = if let Some(col_sample) = get_column(offs) {
-                col_sample
-            } else {
-                continue;
+        if let Some((path_dist, path_nearest, path, _)) =
+            col.path.filter(|(dist, _, path, _)| *dist < path.width)
+        {
+            let inset = 0;
+
+            // Try to use the column at the centre of the path for sampling to make them
+            // flatter
+            let col_pos = -info.wpos().map(|e| e as f32) + path_nearest;
+            let col00 = info.col(info.wpos() + col_pos.map(|e| e.floor() as i32) + Vec2::new(0, 0));
+            let col10 = info.col(info.wpos() + col_pos.map(|e| e.floor() as i32) + Vec2::new(1, 0));
+            let col01 = info.col(info.wpos() + col_pos.map(|e| e.floor() as i32) + Vec2::new(0, 1));
+            let col11 = info.col(info.wpos() + col_pos.map(|e| e.floor() as i32) + Vec2::new(1, 1));
+            let col_attr = |col: &ColumnSample| {
+                Vec3::new(col.riverless_alt, col.alt, col.water_dist.unwrap_or(1000.0))
             };
-            let surface_z = col_sample.riverless_alt.floor() as i32;
+            let [riverless_alt, alt, water_dist] = match (col00, col10, col01, col11) {
+                (Some(col00), Some(col10), Some(col01), Some(col11)) => Lerp::lerp(
+                    Lerp::lerp(col_attr(col00), col_attr(col10), path_nearest.x.fract()),
+                    Lerp::lerp(col_attr(col01), col_attr(col11), path_nearest.x.fract()),
+                    path_nearest.y.fract(),
+                ),
+                _ => col_attr(col),
+            }
+            .into_array();
+            let (bridge_offset, depth) = (
+                ((water_dist.max(0.0) * 0.2).min(f32::consts::PI).cos() + 1.0) * 5.0,
+                ((1.0 - ((water_dist + 2.0) * 0.3).min(0.0).cos().abs())
+                    * (riverless_alt + 5.0 - alt).max(0.0)
+                    * 1.75
+                    + 3.0) as i32,
+            );
+            let surface_z = (riverless_alt + bridge_offset).floor() as i32;
 
-            let noisy_color = |col: Rgb<u8>, factor: u32| {
-                let nz = RandomField::new(0).get(Vec3::new(wpos2d.x, wpos2d.y, surface_z));
-                col.map(|e| {
-                    (e as u32 + nz % (factor * 2))
-                        .saturating_sub(factor)
-                        .min(255) as u8
-                })
-            };
-
-            if let Some((path_dist, path_nearest, path, _)) = col_sample
-                .path
-                .filter(|(dist, _, path, _)| *dist < path.width)
-            {
-                let inset = 0;
-
-                // Try to use the column at the centre of the path for sampling to make them
-                // flatter
-                let col_pos = (offs - wpos2d).map(|e| e as f32) + path_nearest;
-                let col00 = get_column(col_pos.map(|e| e.floor() as i32) + Vec2::new(0, 0));
-                let col10 = get_column(col_pos.map(|e| e.floor() as i32) + Vec2::new(1, 0));
-                let col01 = get_column(col_pos.map(|e| e.floor() as i32) + Vec2::new(0, 1));
-                let col11 = get_column(col_pos.map(|e| e.floor() as i32) + Vec2::new(1, 1));
-                let col_attr = |col: &ColumnSample| {
-                    Vec3::new(col.riverless_alt, col.alt, col.water_dist.unwrap_or(1000.0))
-                };
-                let [riverless_alt, alt, water_dist] = match (col00, col10, col01, col11) {
-                    (Some(col00), Some(col10), Some(col01), Some(col11)) => Lerp::lerp(
-                        Lerp::lerp(col_attr(col00), col_attr(col10), path_nearest.x.fract()),
-                        Lerp::lerp(col_attr(col01), col_attr(col11), path_nearest.x.fract()),
-                        path_nearest.y.fract(),
-                    ),
-                    _ => col_attr(col_sample),
-                }
-                .into_array();
-                let (bridge_offset, depth) = (
-                    ((water_dist.max(0.0) * 0.2).min(f32::consts::PI).cos() + 1.0) * 5.0,
-                    ((1.0 - ((water_dist + 2.0) * 0.3).min(0.0).cos().abs())
-                        * (riverless_alt + 5.0 - alt).max(0.0)
-                        * 1.75
-                        + 3.0) as i32,
+            for z in inset - depth..inset {
+                let _ = canvas.set(
+                    Vec3::new(wpos2d.x, wpos2d.y, surface_z + z),
+                    if bridge_offset >= 2.0 && path_dist >= 3.0 || z < inset - 1 {
+                        Block::new(
+                            BlockKind::Rock,
+                            noisy_color(info.index().colors.layer.bridge.into(), 8),
+                        )
+                    } else {
+                        let path_color =
+                            path.surface_color(col.sub_surface_color.map(|e| (e * 255.0) as u8));
+                        Block::new(BlockKind::Earth, noisy_color(path_color, 8))
+                    },
                 );
-                let surface_z = (riverless_alt + bridge_offset).floor() as i32;
-
-                for z in inset - depth..inset {
-                    let _ = vol.set(
-                        Vec3::new(offs.x, offs.y, surface_z + z),
-                        if bridge_offset >= 2.0 && path_dist >= 3.0 || z < inset - 1 {
-                            Block::new(
-                                BlockKind::Rock,
-                                noisy_color(index.colors.layer.bridge.into(), 8),
-                            )
-                        } else {
-                            let path_color = path.surface_color(
-                                col_sample.sub_surface_color.map(|e| (e * 255.0) as u8),
-                            );
-                            Block::new(BlockKind::Earth, noisy_color(path_color, 8))
-                        },
-                    );
-                }
-                let head_space = path.head_space(path_dist);
-                for z in inset..inset + head_space {
-                    let pos = Vec3::new(offs.x, offs.y, surface_z + z);
-                    if vol.get(pos).unwrap().kind() != BlockKind::Water {
-                        let _ = vol.set(pos, EMPTY_AIR);
-                    }
+            }
+            let head_space = path.head_space(path_dist);
+            for z in inset..inset + head_space {
+                let pos = Vec3::new(wpos2d.x, wpos2d.y, surface_z + z);
+                if canvas.get(pos).unwrap().kind() != BlockKind::Water {
+                    let _ = canvas.set(pos, EMPTY_AIR);
                 }
             }
         }
-    }
+    });
 }
 
-pub fn apply_caves_to<'a>(
-    wpos2d: Vec2<i32>,
-    mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
-    vol: &mut (impl BaseVol<Vox = Block> + RectSizedVol + ReadVol + WriteVol),
-    index: IndexRef,
-) {
-    for y in 0..vol.size_xy().y as i32 {
-        for x in 0..vol.size_xy().x as i32 {
-            let offs = Vec2::new(x, y);
+pub fn apply_caves_to(canvas: &mut Canvas) {
+    let info = canvas.info();
+    canvas.foreach_col(|canvas, wpos2d, col| {
+        let surface_z = col.riverless_alt.floor() as i32;
 
-            let wpos2d = wpos2d + offs;
+        if let Some((cave_dist, _, cave, _)) =
+            col.cave.filter(|(dist, _, cave, _)| *dist < cave.width)
+        {
+            let cave_x = (cave_dist / cave.width).min(1.0);
 
-            // Sample terrain
-            let col_sample = if let Some(col_sample) = get_column(offs) {
-                col_sample
-            } else {
-                continue;
-            };
-            let surface_z = col_sample.riverless_alt.floor() as i32;
+            // Relative units
+            let cave_floor = 0.0 - 0.5 * (1.0 - cave_x.powf(2.0)).max(0.0).sqrt() * cave.width;
+            let cave_height = (1.0 - cave_x.powf(2.0)).max(0.0).sqrt() * cave.width;
 
-            if let Some((cave_dist, _, cave, _)) = col_sample
-                .cave
-                .filter(|(dist, _, cave, _)| *dist < cave.width)
-            {
-                let cave_x = (cave_dist / cave.width).min(1.0);
+            // Abs units
+            let cave_base = (cave.alt + cave_floor) as i32;
+            let cave_roof = (cave.alt + cave_height) as i32;
 
-                // Relative units
-                let cave_floor = 0.0 - 0.5 * (1.0 - cave_x.powf(2.0)).max(0.0).sqrt() * cave.width;
-                let cave_height = (1.0 - cave_x.powf(2.0)).max(0.0).sqrt() * cave.width;
-
-                // Abs units
-                let cave_base = (cave.alt + cave_floor) as i32;
-                let cave_roof = (cave.alt + cave_height) as i32;
-
-                for z in cave_base..cave_roof {
-                    if cave_x < 0.95
-                        || index.noise.cave_nz.get(
-                            Vec3::new(wpos2d.x, wpos2d.y, z)
-                                .map(|e| e as f64 * 0.15)
-                                .into_array(),
-                        ) < 0.0
-                    {
-                        let _ = vol.set(Vec3::new(offs.x, offs.y, z), EMPTY_AIR);
-                    }
-                }
-
-                // Stalagtites
-                let stalagtites = index
-                    .noise
-                    .cave_nz
-                    .get(wpos2d.map(|e| e as f64 * 0.125).into_array())
-                    .sub(0.5)
-                    .max(0.0)
-                    .mul(
-                        (col_sample.alt - cave_roof as f32 - 5.0)
-                            .mul(0.15)
-                            .clamped(0.0, 1.0) as f64,
-                    )
-                    .mul(45.0) as i32;
-
-                for z in cave_roof - stalagtites..cave_roof {
-                    let _ = vol.set(
-                        Vec3::new(offs.x, offs.y, z),
-                        Block::new(BlockKind::WeakRock, index.colors.layer.stalagtite.into()),
-                    );
-                }
-
-                let cave_depth = (col_sample.alt - cave.alt).max(0.0);
-                let difficulty = cave_depth / 100.0;
-
-                // Scatter things in caves
-                if RandomField::new(index.seed).chance(wpos2d.into(), 0.001 * difficulty.powf(1.5))
-                    && cave_base < surface_z as i32 - 25
+            for z in cave_base..cave_roof {
+                if cave_x < 0.95
+                    || info.index().noise.cave_nz.get(
+                        Vec3::new(wpos2d.x, wpos2d.y, z)
+                            .map(|e| e as f64 * 0.15)
+                            .into_array(),
+                    ) < 0.0
                 {
-                    let kind = *Lottery::<SpriteKind>::load_expect("common.cave_scatter")
-                        .choose_seeded(RandomField::new(index.seed + 1).get(wpos2d.into()));
-                    let _ = vol.map(Vec3::new(offs.x, offs.y, cave_base), |block| {
-                        block.with_sprite(kind)
+                    // If the block a little above is liquid, we should stop carving out the cave in
+                    // order to leave a ceiling, and not floating water
+                    if canvas
+                        .get(Vec3::new(wpos2d.x, wpos2d.y, z + 2))
+                        .map(|b| b.is_liquid())
+                        .unwrap_or(false)
+                    {
+                        break;
+                    }
+
+                    canvas.map(Vec3::new(wpos2d.x, wpos2d.y, z), |b| {
+                        if b.is_liquid() { b } else { EMPTY_AIR }
                     });
                 }
             }
+
+            // Stalagtites
+            let stalagtites = info
+                .index()
+                .noise
+                .cave_nz
+                .get(wpos2d.map(|e| e as f64 * 0.125).into_array())
+                .sub(0.5)
+                .max(0.0)
+                .mul(
+                    (col.alt - cave_roof as f32 - 5.0)
+                        .mul(0.15)
+                        .clamped(0.0, 1.0) as f64,
+                )
+                .mul(45.0) as i32;
+
+            for z in cave_roof - stalagtites..cave_roof {
+                canvas.set(
+                    Vec3::new(wpos2d.x, wpos2d.y, z),
+                    Block::new(
+                        BlockKind::WeakRock,
+                        info.index().colors.layer.stalagtite.into(),
+                    ),
+                );
+            }
+
+            let cave_depth = (col.alt - cave.alt).max(0.0);
+            let difficulty = cave_depth / 100.0;
+
+            // Scatter things in caves
+            if RandomField::new(info.index().seed)
+                .chance(wpos2d.into(), 0.001 * difficulty.powf(1.5))
+                && cave_base < surface_z as i32 - 25
+            {
+                let kind = *Lottery::<SpriteKind>::load_expect("common.cave_scatter")
+                    .choose_seeded(RandomField::new(info.index().seed + 1).get(wpos2d.into()));
+                canvas.map(Vec3::new(wpos2d.x, wpos2d.y, cave_base), |block| {
+                    block.with_sprite(kind)
+                });
+            }
         }
-    }
+    });
 }
 #[allow(clippy::eval_order_dependence)]
 pub fn apply_caves_supplement<'a>(

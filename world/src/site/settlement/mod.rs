@@ -93,7 +93,7 @@ pub fn center_of(p: [Vec2<f32>; 3]) -> Vec2<f32> {
 impl WorldSim {
     fn can_host_settlement(&self, pos: Vec2<i32>) -> bool {
         self.get(pos)
-            .map(|chunk| !chunk.near_cliffs && !chunk.river.is_river() && !chunk.river.is_lake())
+            .map(|chunk| !chunk.river.is_river() && !chunk.river.is_lake())
             .unwrap_or(false)
             && self
                 .get_gradient_approx(pos)

@@ -28,7 +28,10 @@ use crate::{
     civ::Place,
     column::ColumnGen,
     site::Site,
-    util::{seed_expan, FastNoise, RandomField, Sampler, StructureGen2d, LOCALITY, NEIGHBORS},
+    util::{
+        seed_expan, FastNoise, RandomField, RandomPerm, Sampler, StructureGen2d, LOCALITY,
+        NEIGHBORS,
+    },
     IndexRef, CONFIG,
 };
 use common::{
@@ -103,7 +106,6 @@ pub(crate) struct GenCtx {
     // Small amounts of noise for simulating rough terrain.
     pub small_nz: BasicMulti,
     pub rock_nz: HybridMulti,
-    pub cliff_nz: HybridMulti,
     pub warp_nz: FastNoise,
     pub tree_nz: BasicMulti,
 
@@ -112,7 +114,6 @@ pub(crate) struct GenCtx {
 
     pub structure_gen: StructureGen2d,
     pub region_gen: StructureGen2d,
-    pub cliff_gen: StructureGen2d,
 
     pub fast_turb_x_nz: FastNoise,
     pub fast_turb_y_nz: FastNoise,
@@ -503,7 +504,6 @@ impl WorldSim {
 
             small_nz: BasicMulti::new().set_octaves(2).set_seed(rng.gen()),
             rock_nz: HybridMulti::new().set_persistence(0.3).set_seed(rng.gen()),
-            cliff_nz: HybridMulti::new().set_persistence(0.3).set_seed(rng.gen()),
             warp_nz: FastNoise::new(rng.gen()),
             tree_nz: BasicMulti::new()
                 .set_octaves(12)
@@ -514,7 +514,6 @@ impl WorldSim {
 
             structure_gen: StructureGen2d::new(rng.gen(), 32, 16),
             region_gen: StructureGen2d::new(rng.gen(), 400, 96),
-            cliff_gen: StructureGen2d::new(rng.gen(), 80, 56),
             humid_nz: Billow::new()
                 .set_octaves(9)
                 .set_persistence(0.4)
@@ -1431,25 +1430,11 @@ impl WorldSim {
                 .into_par_iter()
                 .map_init(
                     || Box::new(BlockGen::new(ColumnGen::new(self))),
-                    |block_gen, posi| {
-                        let wpos = uniform_idx_as_vec2(self.map_size_lg(), posi);
-                        let mut sample = column_sample.get(
+                    |_block_gen, posi| {
+                        let sample = column_sample.get(
                             (uniform_idx_as_vec2(self.map_size_lg(), posi) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
                              index)
                         )?;
-                        let alt = sample.alt;
-                        /* let z_cache = block_gen.get_z_cache(wpos);
-                        sample.alt = alt.max(z_cache.get_z_limits(&mut block_gen).2); */
-                        sample.alt = alt.max(BlockGen::get_cliff_height(
-                            &block_gen.column_gen,
-                            &mut block_gen.column_cache,
-                            wpos.map(|e| e as f32),
-                            &sample.close_cliffs,
-                            sample.cliff_hill,
-                            32.0,
-                            index,
-                        ));
-                        sample.basement += sample.alt - alt;
                         // sample.water_level = CONFIG.sea_level.max(sample.water_level);
 
                         Some(sample)
@@ -1997,6 +1982,14 @@ impl WorldSim {
     pub fn get_nearest_cave(&self, wpos: Vec2<i32>) -> Option<(f32, Vec2<f32>, Cave, Vec2<f32>)> {
         self.get_nearest_way(wpos, |chunk| Some(chunk.cave))
     }
+
+    /// Return an iterator over candidate tree positions (note that only some of
+    /// these will become trees since environmental parameters may forbid
+    /// them spawning).
+    pub fn get_near_trees(&self, wpos: Vec2<i32>) -> impl Iterator<Item = (Vec2<i32>, u32)> + '_ {
+        // Deterministic based on wpos
+        std::array::IntoIter::new(self.gen_ctx.structure_gen.get(wpos))
+    }
 }
 
 #[derive(Debug)]
@@ -2010,8 +2003,6 @@ pub struct SimChunk {
     pub temp: f32,
     pub humidity: f32,
     pub rockiness: f32,
-    pub is_cliffs: bool,
-    pub near_cliffs: bool,
     pub tree_density: f32,
     pub forest_kind: ForestKind,
     pub spawn_rate: f32,
@@ -2068,11 +2059,6 @@ impl SimChunk {
         // Even less granular--if this matters we can make the sign affect the quantity slightly.
         let abs_lat_uniform = latitude_uniform.abs(); */
 
-        // Take the weighted average of our randomly generated base humidity, and the
-        // calculated water flux over this point in order to compute humidity.
-        const HUMID_WEIGHTS: [f32; 2] = [2.0, 1.0];
-        let humidity = cdf_irwin_hall(&HUMID_WEIGHTS, [humid_uniform, flux_uniform]);
-
         // We also correlate temperature negatively with altitude and absolute latitude,
         // using different weighting than we use for humidity.
         const TEMP_WEIGHTS: [f32; 2] = [/* 1.5, */ 1.0, 2.0];
@@ -2087,6 +2073,18 @@ impl SimChunk {
         .sub(0.5)
         .mul(2.0);
 
+        // Take the weighted average of our randomly generated base humidity, and the
+        // calculated water flux over this point in order to compute humidity.
+        const HUMID_WEIGHTS: [f32; 3] = [1.0, 1.0, 0.75];
+        let humidity = cdf_irwin_hall(&HUMID_WEIGHTS, [humid_uniform, flux_uniform, 1.0]);
+        // Moisture evaporates more in hot places
+        let humidity = humidity
+            * (1.0
+                - (temp - CONFIG.tropical_temp)
+                    .max(0.0)
+                    .div(1.0 - CONFIG.tropical_temp))
+            .max(0.0);
+
         let mut alt = CONFIG.sea_level.add(alt_pre);
         let basement = CONFIG.sea_level.add(basement_pre);
         let water_alt = CONFIG.sea_level.add(water_alt_pre);
@@ -2100,10 +2098,6 @@ impl SimChunk {
                     * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
             )
         };
-
-        //let cliff = gen_ctx.cliff_nz.get((wposf.div(2048.0)).into_array()) as f32 +
-        // chaos * 0.2;
-        let cliff = 0.0; // Disable cliffs
 
         // Logistic regression.  Make sure x ∈ (0, 1).
         let logit = |x: f64| x.ln() - x.neg().ln_1p();
@@ -2154,7 +2148,6 @@ impl SimChunk {
                 .mul(1.5)
                 .add(1.0)
                 .mul(0.5)
-                .mul(1.2 - chaos as f64 * 0.95)
                 .add(0.05)
                 .max(0.0)
                 .min(1.0);
@@ -2165,13 +2158,31 @@ impl SimChunk {
                 1.0
             } else {
                 // Weighted logit sum.
-                logistic_cdf(logit(humidity as f64) + 0.5 * logit(tree_density))
+                logistic_cdf(logit(tree_density))
             }
             // rescale to (-0.95, 0.95)
             .sub(0.5)
-            .mul(0.95)
             .add(0.5)
         } as f32;
+        const MIN_TREE_HUM: f32 = 0.15;
+        // Tree density increases exponentially with humidity...
+        let tree_density = (tree_density * (humidity - MIN_TREE_HUM).max(0.0).mul(1.0 + MIN_TREE_HUM) / temp.max(0.75))
+            // ...but is ultimately limited by available sunlight (and our tree generation system)
+            .min(1.0);
+
+        // Sand dunes (formed over a short period of time)
+        let alt = alt
+            + if river.near_water() {
+                0.0
+            } else {
+                let warp = Vec2::new(
+                    gen_ctx.turb_x_nz.get(wposf.div(256.0).into_array()) as f32,
+                    gen_ctx.turb_y_nz.get(wposf.div(256.0).into_array()) as f32,
+                ) * 192.0;
+                let dune_nz = (wposf.map(|e| e as f32) + warp).sum().div(100.0).sin() * 0.5 + 0.5;
+                let dune_scale = 16.0;
+                dune_nz * dune_scale * (temp - 0.75).clamped(0.0, 0.25) * 4.0
+            };
 
         Self {
             chaos,
@@ -2191,67 +2202,71 @@ impl SimChunk {
             } else {
                 0.0
             },
-            is_cliffs: cliff > 0.5 && !is_underwater,
-            near_cliffs: cliff > 0.2,
             tree_density,
-            forest_kind: if temp > CONFIG.temperate_temp {
-                if temp > CONFIG.desert_temp {
-                    if humidity > CONFIG.jungle_hum {
-                        // Forests in desert temperatures with extremely high humidity
-                        // should probably be different from palm trees, but we use them
-                        // for now.
-                        ForestKind::Palm
-                    } else if humidity > CONFIG.forest_hum {
-                        ForestKind::Palm
-                    } else if humidity > CONFIG.desert_hum {
-                        // Low but not desert humidity, so we should really have some other
-                        // terrain...
-                        ForestKind::Savannah
-                    } else {
-                        ForestKind::Savannah
-                    }
-                } else if temp > CONFIG.tropical_temp {
-                    if humidity > CONFIG.jungle_hum {
-                        if tree_density > 0.0 {
-                            // println!("Mangrove: {:?}", wposf);
-                        }
-                        ForestKind::Mangrove
-                    } else if humidity > CONFIG.forest_hum {
-                        // NOTE: Probably the wrong kind of tree for this climate.
-                        ForestKind::Oak
-                    } else if humidity > CONFIG.desert_hum {
-                        // Low but not desert... need something besides savannah.
-                        ForestKind::Savannah
-                    } else {
-                        ForestKind::Savannah
-                    }
-                } else if humidity > CONFIG.jungle_hum {
-                    // Temperate climate with jungle humidity...
-                    // https://en.wikipedia.org/wiki/Humid_subtropical_climates are often
-                    // densely wooded and full of water.  Semitropical rainforests, basically.
-                    // For now we just treat them like other rainforests.
-                    ForestKind::Oak
-                } else if humidity > CONFIG.forest_hum {
-                    // Moderate climate, moderate humidity.
-                    ForestKind::Oak
-                } else if humidity > CONFIG.desert_hum {
-                    // With moderate temperature and low humidity, we should probably see
-                    // something different from savannah, but oh well...
-                    ForestKind::Savannah
-                } else {
-                    ForestKind::Savannah
-                }
-            } else {
-                // For now we don't take humidity into account for cold climates (but we really
-                // should!) except that we make sure we only have snow pines when there is snow.
-                if temp <= CONFIG.snow_temp {
-                    ForestKind::SnowPine
-                } else if humidity > CONFIG.desert_hum {
-                    ForestKind::Pine
-                } else {
-                    // Should really have something like tundra.
-                    ForestKind::Pine
-                }
+            forest_kind: {
+                // Whittaker diagram
+                let candidates = [
+                    // A smaller prevalence means that the range of values this tree appears in
+                    // will shrink compared to neighbouring trees in the
+                    // topology of the Whittaker diagram.
+                    // Humidity, temperature, near_water, each with prevalence
+                    (
+                        ForestKind::Palm,
+                        (CONFIG.desert_hum, 1.5),
+                        (CONFIG.tropical_temp, 1.5),
+                        (1.0, 2.0),
+                    ),
+                    (
+                        ForestKind::Savannah,
+                        (CONFIG.desert_hum, 2.0),
+                        (CONFIG.tropical_temp, 1.5),
+                        (0.0, 1.0),
+                    ),
+                    (
+                        ForestKind::Oak,
+                        (CONFIG.forest_hum, 1.5),
+                        (0.0, 1.5),
+                        (0.0, 1.0),
+                    ),
+                    (
+                        ForestKind::Mangrove,
+                        (CONFIG.jungle_hum, 0.5),
+                        (CONFIG.tropical_temp, 0.5),
+                        (0.0, 1.0),
+                    ),
+                    (
+                        ForestKind::Pine,
+                        (CONFIG.forest_hum, 1.25),
+                        (CONFIG.snow_temp, 2.5),
+                        (0.0, 1.0),
+                    ),
+                    (
+                        ForestKind::Birch,
+                        (CONFIG.desert_hum, 1.5),
+                        (CONFIG.temperate_temp, 1.5),
+                        (0.0, 1.0),
+                    ),
+                ];
+
+                candidates
+                    .iter()
+                    .enumerate()
+                    .min_by_key(|(i, (_, (h, h_prev), (t, t_prev), (w, w_prev)))| {
+                        let rand = RandomPerm::new(*i as u32 * 1000);
+                        let noise =
+                            Vec3::iota().map(|e| (rand.get(e) & 0xFF) as f32 / 255.0 - 0.5) * 2.0;
+                        (Vec3::new(
+                            (*h - humidity) / *h_prev,
+                            (*t - temp) / *t_prev,
+                            (*w - if river.near_water() { 1.0 } else { 0.0 }) / *w_prev,
+                        )
+                        .add(noise * 0.1)
+                        .map(|e| e * e)
+                        .sum()
+                            * 10000.0) as i32
+                    })
+                    .map(|(_, c)| c.0)
+                    .unwrap() // Can't fail
             },
             spawn_rate: 1.0,
             river,

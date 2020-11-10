@@ -646,16 +646,16 @@ fn walk_in_dir(sim: &WorldSim, a: Vec2<i32>, dir: Vec2<i32>) -> Option<f32> {
         let a_chunk = sim.get(a)?;
         let b_chunk = sim.get(a + dir)?;
 
-        let hill_cost = ((b_chunk.alt - a_chunk.alt).abs() / 2.5).powf(2.0);
+        let hill_cost = ((b_chunk.alt - a_chunk.alt).abs() / 5.0).powf(2.0);
         let water_cost = if b_chunk.river.near_water() {
             50.0
         } else {
             0.0
-        };
+        } + (b_chunk.water_alt - b_chunk.alt + 8.0).clamped(0.0, 8.0) * 3.0; // Try not to path swamps / tidal areas
         let wild_cost = if b_chunk.path.0.is_way() {
             0.0 // Traversing existing paths has no additional cost!
         } else {
-            2.0
+            3.0 // + (1.0 - b_chunk.tree_density) * 20.0 // Prefer going through forests, for aesthetics
         };
         Some(1.0 + hill_cost + water_cost + wild_cost)
     } else {
