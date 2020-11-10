@@ -412,6 +412,12 @@
             ],
             threshold: 0.3,
         ),
+        Inventory(CollectedItem("ShinyGem")): (
+            files: [
+                "voxygen.audio.sfx.weapon.staff_out",
+            ],
+            threshold: 0.3,
+        ),
         Inventory(CollectFailed): (
             files: [
                 "voxygen.audio.sfx.inventory.add_failed",

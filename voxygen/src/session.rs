@@ -7,7 +7,7 @@ use crate::{
     menu::char_selection::CharSelectionState,
     render::Renderer,
     scene::{camera, CameraMode, Scene, SceneData},
-    settings::{AudioOutput, ControlSettings, Settings},
+    settings::{ControlSettings, Settings},
     window::{AnalogGameInput, Event, GameInput},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
@@ -901,12 +901,12 @@ impl PlayState for SessionState {
                         global_state.settings.audio.sfx_volume = sfx_volume;
                         global_state.settings.save_to_file_warn();
                     },
-                    HudEvent::ChangeAudioDevice(name) => {
-                        global_state.audio.set_device(name.clone());
+                    //HudEvent::ChangeAudioDevice(name) => {
+                    //    global_state.audio.set_device(name.clone());
 
-                        global_state.settings.audio.output = AudioOutput::Device(name);
-                        global_state.settings.save_to_file_warn();
-                    },
+                    //    global_state.settings.audio.output = AudioOutput::Device(name);
+                    //    global_state.settings.save_to_file_warn();
+                    //},
                     HudEvent::ChangeMaxFPS(fps) => {
                         global_state.settings.graphics.max_fps = fps;
                         global_state.settings.save_to_file_warn();
