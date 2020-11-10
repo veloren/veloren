@@ -146,11 +146,10 @@ impl EventMapper for BlockEventMapper {
         for sounds in sounds.iter() {
             // If the timing condition is false, continue
             // or if the player is far enough underground, continue
-            if !(sounds.cond)(state) || player_pos.0.z < (terrain_alt - 30.0) {
-                continue;
-            // Hack to reduce the number of birdcalls (too many leaf blocks)
-            } else if (sounds.sfx == SfxEvent::Birdcall || sounds.sfx == SfxEvent::Owl)
-                && thread_rng().gen_bool(0.995)
+            if !(sounds.cond)(state)
+                || player_pos.0.z < (terrain_alt - 30.0)
+                || ((sounds.sfx == SfxEvent::Birdcall || sounds.sfx == SfxEvent::Owl)
+                    && thread_rng().gen_bool(0.995))
             {
                 continue;
             }
