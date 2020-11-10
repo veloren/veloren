@@ -3,7 +3,7 @@ ItemDef(
     description: "Radiates a freezing aura.",
     kind: Tool(
        (
-            kind: Sword("FrostCleaver0"),    
+            kind: Sword,
             stats: (
                 equip_time_millis: 500,
                 power: 1.70),            
