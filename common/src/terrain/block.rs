@@ -42,8 +42,6 @@ make_case_elim!(
         Wood = 0x40,
         Leaves = 0x41,
         // 0x42 <= x < 0x50 is reserved for future tree parts
-        Snow = 0x50,
-
         // Covers all other cases (we sometimes have bizarrely coloured misc blocks, and also we
         // often want to experiment with new kinds of block without allocating them a
         // dedicated block kind.
