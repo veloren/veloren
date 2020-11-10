@@ -14,8 +14,8 @@ use std::time::Duration;
 use tracing::warn;
 
 use common::assets;
-use cpal::traits::{DeviceTrait, HostTrait};
-use rodio::{source::Source, Decoder, Device, OutputStream, OutputStreamHandle, StreamError};
+//use cpal::traits::{DeviceTrait, HostTrait};
+use rodio::{source::Source, Decoder, OutputStream, OutputStreamHandle, StreamError};
 use vek::*;
 
 #[derive(Default, Clone)]
@@ -32,9 +32,9 @@ pub struct Listener {
 /// Voxygen's [`GlobalState`](../struct.GlobalState.html#structfield.audio) to
 /// provide access to devices and playback control in-game
 pub struct AudioFrontend {
-    pub device: String,
-    pub device_list: Vec<String>,
-    pub audio_device: Option<Device>,
+    //pub device: String,
+    //pub device_list: Vec<String>,
+    //pub audio_device: Option<Device>,
     pub stream: Option<rodio::OutputStream>,
     audio_stream: Option<rodio::OutputStreamHandle>,
     sound_cache: SoundCache,
@@ -49,25 +49,17 @@ pub struct AudioFrontend {
 
 impl AudioFrontend {
     /// Construct with given device
-    pub fn new(dev: String, max_sfx_channels: usize) -> Self {
-        let audio_device = get_device_raw(&dev);
+    pub fn new(/* dev: String, */ max_sfx_channels: usize) -> Self {
+        //let audio_device = get_device_raw(&dev);
 
-        let device = match get_default_device() {
-            Some(d) => d,
-            None => "".to_string(),
-        };
+        //let device = match get_default_device() {
+        //    Some(d) => d,
+        //    None => "".to_string(),
+        //};
 
-        //let (stream, audio_stream) = match get_default_stream() {
-        let (stream, audio_stream) = if get_device_raw(&dev).is_some() {
-            match get_stream(&get_device_raw(&dev).unwrap()) {
-                Ok(s) => (Some(s.0), Some(s.1)),
-                Err(_) => (None, None),
-            }
-        } else {
-            match get_default_stream() {
-                Ok(s) => (Some(s.0), Some(s.1)),
-                Err(_) => (None, None),
-            }
+        let (stream, audio_stream) = match get_default_stream() {
+            Ok(s) => (Some(s.0), Some(s.1)),
+            Err(_) => (None, None),
         };
 
         let mut sfx_channels = Vec::with_capacity(max_sfx_channels);
@@ -78,9 +70,9 @@ impl AudioFrontend {
         };
 
         Self {
-            device,
-            device_list: list_devices(),
-            audio_device,
+            //device,
+            //device_list: list_devices(),
+            //audio_device,
             stream,
             audio_stream,
             sound_cache: SoundCache::default(),
@@ -96,9 +88,9 @@ impl AudioFrontend {
     /// Construct in `no-audio` mode for debugging
     pub fn no_audio() -> Self {
         Self {
-            device: "".to_string(),
-            device_list: Vec::new(),
-            audio_device: None,
+            //device: "".to_string(),
+            //device_list: Vec::new(),
+            //audio_device: None,
             stream: None,
             audio_stream: None,
             sound_cache: SoundCache::default(),
@@ -352,81 +344,55 @@ impl AudioFrontend {
         }
     }
 
-    // TODO: figure out how badly this will break things when it is called
-    pub fn set_device(&mut self, name: String) {
-        self.device = name.clone();
-        self.audio_device = get_device_raw(&name);
-    }
+    //// TODO: figure out how badly this will break things when it is called
+    //pub fn set_device(&mut self, name: String) {
+    //    self.device = name.clone();
+    //    self.audio_device = get_device_raw(&name);
+    //}
 }
 
 ///// Returns the default audio device.
 ///// Does not return rodio Device struct in case our audio backend changes.
 //pub fn get_default_device() -> Option<String> {
-//    match rodio::default_output_device() {
+//    match cpal::default_host().default_output_device() {
 //        Some(x) => Some(x.name().ok()?),
 //        None => None,
 //    }
 //}
-pub fn get_default_device() -> Option<String> {
-    match cpal::default_host().default_output_device() {
-        Some(x) => Some(x.name().ok()?),
-        None => None,
-    }
-}
 
 /// Returns the default stream
 pub fn get_default_stream() -> Result<(OutputStream, OutputStreamHandle), StreamError> {
     rodio::OutputStream::try_default()
 }
 
-/// Returns a stream on the specified device
-pub fn get_stream(
-    device: &rodio::Device,
-) -> Result<(OutputStream, OutputStreamHandle), StreamError> {
-    rodio::OutputStream::try_from_device(device)
-}
-
-///// Returns a vec of the audio devices available.
-///// Does not return rodio Device struct in case our audio backend changes.
-//pub fn list_devices() -> Vec<String> {
-//    list_devices_raw()
-//        .iter()
-//        .map(|x| x.name().unwrap())
-//        .collect()
+///// Returns a stream on the specified device
+//pub fn get_stream(
+//    device: &rodio::Device,
+//) -> Result<(OutputStream, OutputStreamHandle), StreamError> {
+//    rodio::OutputStream::try_from_device(device)
 //}
-
-///// Returns vec of devices
-//fn list_devices_raw() -> Vec<Device> {
-//    match rodio::output_devices() {
-//        Ok(devices) => {
-//            // Filter out any devices that the name isn't available for
-//            devices.filter(|d| d.name().is_ok()).collect()
-//        },
+//
+//fn list_devices_raw() -> Vec<cpal::Device> {
+//    match cpal::default_host().devices() {
+//        Ok(devices) => devices.filter(|d| d.name().is_ok()).collect(),
 //        Err(_) => {
 //            warn!("Failed to enumerate audio output devices, audio will not be
 // available");            Vec::new()
 //        },
 //    }
 //}
-fn list_devices_raw() -> Vec<cpal::Device> {
-    match cpal::default_host().devices() {
-        Ok(devices) => devices.filter(|d| d.name().is_ok()).collect(),
-        Err(_) => {
-            warn!("Failed to enumerate audio output devices, audio will not be available");
-            Vec::new()
-        },
-    }
-}
-
-fn list_devices() -> Vec<String> {
-    list_devices_raw()
-        .iter()
-        .map(|x| x.name().unwrap())
-        .collect()
-}
 //
-fn get_device_raw(device: &str) -> Option<Device> {
-    list_devices_raw()
-        .into_iter()
-        .find(|d| d.name().unwrap() == device)
-}
+///// Returns a vec of the audio devices available.
+///// Does not return rodio Device struct in case our audio backend changes.
+//fn list_devices() -> Vec<String> {
+//    list_devices_raw()
+//        .iter()
+//        .map(|x| x.name().unwrap())
+//        .collect()
+//}
+//
+//fn get_device_raw(device: &str) -> Option<Device> {
+//    list_devices_raw()
+//        .into_iter()
+//        .find(|d| d.name().unwrap() == device)
+//}

@@ -9,7 +9,7 @@ use veloren_voxygen::{
     logging,
     profile::Profile,
     run,
-    settings::{AudioOutput, Settings},
+    settings::Settings,
     window::Window,
     GlobalState,
 };
@@ -142,13 +142,14 @@ fn main() {
     anim::init();
 
     // Setup audio
-    let mut audio = match settings.audio.output {
-        AudioOutput::Off => None,
-        AudioOutput::Automatic => audio::get_default_device(),
-        AudioOutput::Device(ref dev) => Some(dev.clone()),
-    }
-    .map(|dev| AudioFrontend::new(dev, settings.audio.max_sfx_channels))
-    .unwrap_or_else(AudioFrontend::no_audio);
+    //let mut audio = match settings.audio.output {
+    //    AudioOutput::Off => None,
+    //    AudioOutput::Automatic => audio::get_default_device(),
+    //    AudioOutput::Device(ref dev) => Some(dev.clone()),
+    //}
+    //.map(|dev| AudioFrontend::new(dev, settings.audio.max_sfx_channels))
+    //.unwrap_or_else(AudioFrontend::no_audio);
+    let mut audio = AudioFrontend::new(settings.audio.max_sfx_channels);
 
     audio.set_music_volume(settings.audio.music_volume);
     audio.set_sfx_volume(settings.audio.sfx_volume);

@@ -174,6 +174,7 @@ pub enum SfxEvent {
 pub enum SfxInventoryEvent {
     Collected,
     CollectedTool(ToolKind),
+    CollectedItem(String),
     CollectFailed,
     Consumed(String),
     Debug,
@@ -187,11 +188,17 @@ impl From<&InventoryUpdateEvent> for SfxEvent {
     fn from(value: &InventoryUpdateEvent) -> Self {
         match value {
             InventoryUpdateEvent::Collected(item) => {
-                // Handle sound effects for types of collected items, falling back to the
-                // default Collected event
+                // Handle sound effects for types of collected items, falling
+                // back to the default Collected event
                 match &item.kind() {
                     ItemKind::Tool(tool) => {
                         SfxEvent::Inventory(SfxInventoryEvent::CollectedTool(tool.kind.clone()))
+                    },
+                    ItemKind::Ingredient { kind } => match &kind[..] {
+                        "ShinyGem" => {
+                            SfxEvent::Inventory(SfxInventoryEvent::CollectedItem(kind.clone()))
+                        },
+                        _ => SfxEvent::Inventory(SfxInventoryEvent::Collected),
                     },
                     _ => SfxEvent::Inventory(SfxInventoryEvent::Collected),
                 }
