@@ -4092,6 +4092,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
 
 [[package]]
+name = "spin_sleep"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2a98101bdc3833e192713c2af0b0dd2614f50d1cf1f7a97c5221b7aac052acc7"
+dependencies = [
+ "once_cell",
+ "winapi 0.3.9",
+]
+
+[[package]]
 name = "static_assertions"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4593,16 +4603,7 @@ checksum = "6f70411ba0d11c4aee042b1c73e68086322a293f8038c53ac95d36319c91ec19"
 dependencies = [
  "tracing-core",
  "tracing-subscriber",
- "tracy-client 0.9.0",
-]
-
-[[package]]
-name = "tracy-client"
-version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "650c280019cd1a841752d50f6a834216a2c8a810aeb18bdd48054be23cacd8a6"
-dependencies = [
- "tracy-client-sys 0.9.0",
+ "tracy-client",
 ]
 
 [[package]]
@@ -4611,16 +4612,7 @@ version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "eb214203bffe8cefe9bc0dfc12140f85e8d59b42e1f52f696071fdf8595e066a"
 dependencies = [
- "tracy-client-sys 0.10.0",
-]
-
-[[package]]
-name = "tracy-client-sys"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c07e4636dad390858d247cf2633eaea90e67d7e21151cd476bbfd070d321279f"
-dependencies = [
- "cc",
+ "tracy-client-sys",
 ]
 
 [[package]]
@@ -4905,9 +4897,10 @@ dependencies = [
  "slab",
  "specs",
  "specs-idvs",
+ "spin_sleep",
  "sum_type",
  "tracing",
- "tracy-client 0.8.0",
+ "tracy-client",
  "vek 0.12.0",
 ]
 

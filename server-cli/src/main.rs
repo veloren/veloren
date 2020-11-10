@@ -140,19 +140,22 @@ fn main() -> io::Result<()> {
     let mut shutdown_coordinator = ShutdownCoordinator::new(Arc::clone(&sigusr1_signal));
 
     // Set up an fps clock
-    let mut clock = Clock::start();
+    let mut clock = Clock::new(Duration::from_millis(1000 / TPS));
     // Wait for a tick so we don't start with a zero dt
-    // TODO: consider integrating this into Clock::start?
-    clock.tick(Duration::from_millis(1000 / TPS));
 
     loop {
+        #[cfg(feature = "tracy")]
+        common::util::tracy_client::finish_continuous_frame!();
+        #[cfg(feature = "tracy")]
+        let frame = common::util::tracy_client::start_noncontinuous_frame!("work");
+
         // Terminate the server if instructed to do so by the shutdown coordinator
         if shutdown_coordinator.check(&mut server, &settings) {
             break;
         }
 
         let events = server
-            .tick(Input::default(), clock.get_last_delta())
+            .tick(Input::default(), clock.dt())
             .expect("Failed to tick server");
 
         for event in events {
@@ -165,8 +168,6 @@ fn main() -> io::Result<()> {
 
         // Clean up the server after a tick.
         server.cleanup();
-        #[cfg(feature = "tracy")]
-        common::util::tracy_client::finish_continuous_frame!();
 
         if let Some(tui) = tui.as_ref() {
             match tui.msg_r.try_recv() {
@@ -194,8 +195,10 @@ fn main() -> io::Result<()> {
             }
         }
 
+        #[cfg(feature = "tracy")]
+        drop(frame);
         // Wait for the next tick.
-        clock.tick(Duration::from_millis(1000 / TPS));
+        clock.tick();
     }
 
     Ok(())

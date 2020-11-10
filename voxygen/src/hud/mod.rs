@@ -746,7 +746,7 @@ impl Hud {
         // pulse time for pulsating elements
         self.pulse = self.pulse + dt.as_secs_f32();
         // FPS
-        let fps = global_state.clock.get_tps();
+        let fps = global_state.clock.stats().average_tps;
         let version = common::util::DISPLAY_VERSION_LONG.clone();
 
         if self.show.ingame {

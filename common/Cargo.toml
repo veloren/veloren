@@ -38,11 +38,12 @@ sum_type = "0.2.0"
 authc = { git = "https://gitlab.com/veloren/auth.git", rev = "b943c85e4a38f5ec60cd18c34c73097640162bfe" }
 slab = "0.4.2"
 enum-iterator = "0.6"
+spin_sleep = "1.0"
 num-traits = "0.2"
 num-derive = "0.3"
 
 # Tracy
-tracy-client = { version = "0.8.0", optional = true }
+tracy-client = { version = "0.9.0", optional = true }
 
 [dev-dependencies]
 criterion = "0.3"
