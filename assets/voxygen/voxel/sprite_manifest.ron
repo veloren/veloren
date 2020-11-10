@@ -2002,6 +2002,54 @@ PotionMinor: Some((
             offset: (-5.0, -5.0, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
+],
+    wind_sway: 0.0,
+)),
+// Underwater Grass
+GrassBlue: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.underwater_grass.blue-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.underwater_grass.blue-1",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),        
+    ],
+    wind_sway: 1.0,
+)),
+// Underwater Chests
+ChestBurried: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.underwater_chests.chest_skull",
+            offset: (-10.0, -8.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+             model: "voxygen.voxel.sprite.underwater_chests.chest_vines",
+            offset: (-10.0, -8.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),        
+    ],
+    wind_sway: 0.0,
+)),
+// Underwater Mud Piles
+Mud: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.underwater_mud.mud-0",
+            offset: (-9.5, -7.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.underwater_mud.mud-1",
+            offset: (-8.5, -7.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),        
     ],
     wind_sway: 0.0,
 )),

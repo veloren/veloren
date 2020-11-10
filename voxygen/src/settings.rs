@@ -529,7 +529,7 @@ impl Default for GameplaySettings {
             smooth_pan_enable: true,
             toggle_debug: false,
             sct: true,
-            sct_player_batch: true,
+            sct_player_batch: false,
             sct_damage_batch: false,
             speech_bubble_dark_mode: false,
             speech_bubble_icon: true,

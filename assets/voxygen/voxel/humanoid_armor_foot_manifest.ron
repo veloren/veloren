@@ -80,5 +80,9 @@
             vox_spec: ("armor.foot.bonerattler", (-2.5, -3.5, -2.0)),
             color: None
         ),
+        "VeloriteMage0": (
+          vox_spec: ("armor.foot.velorite_battlemage", (-2.5, -3.5, -2.0)),
+          color: None
+      ),
     },
 ))

@@ -32,5 +32,9 @@
           vox_spec: ("armor.back.backpack-grey", (-7.0, -5.0, -10.0)),
           color: Some((76, 72, 178))
       ),   
+      "VeloriteMage0": (
+          vox_spec: ("armor.back.velorite_battlemage", (-5.0, -1.0, -14.0)),
+          color: None
+      ),   
     },
 ))

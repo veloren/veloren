@@ -104,6 +104,9 @@ make_case_elim!(
         LargeCactus = 0x4E,
         VialEmpty = 0x4F,
         PotionMinor = 0x50,
+        GrassBlue = 0x51,
+        ChestBurried = 0x52,
+        Mud = 0x53,
     }
 );
 
@@ -141,6 +144,8 @@ impl SpriteKind {
             SpriteKind::WardrobeSingle => 3.0,
             SpriteKind::WardrobeDouble => 3.0,
             SpriteKind::Pot => 0.90,
+            SpriteKind::Mud => 0.36,
+            SpriteKind::ChestBurried => 0.91,
             // TODO: Find suitable heights.
             SpriteKind::BarrelCactus
             | SpriteKind::RoundCactus
@@ -188,6 +193,8 @@ impl SpriteKind {
             SpriteKind::Beehive => true,
             SpriteKind::VialEmpty => true,
             SpriteKind::PotionMinor => true,
+            SpriteKind::ChestBurried => true,
+            SpriteKind::Mud => true,
             _ => false,
         }
     }
