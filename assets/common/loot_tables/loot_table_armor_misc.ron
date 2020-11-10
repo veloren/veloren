@@ -1,6 +1,7 @@
 [
     // rings
     (0.15, "common.items.armor.ring.ring_0"),
+    (0.05, "common.items.armor.ring.ring_gold_0"),
     // capes
     (0.25, "common.items.armor.back.short_0"),
     (0.25, "common.items.armor.back.short_1"),

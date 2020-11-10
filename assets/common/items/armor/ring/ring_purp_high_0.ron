@@ -1,0 +1,12 @@
+ItemDef(
+    name: "Cultist Signet Ring ",
+    description: "Once belonged to a cultist.",
+    kind: Armor(
+        (
+            kind: Ring("RingSkull0"),
+            stats: (
+                protection: Normal(3.0)),            
+        )
+    ),
+    quality: High,
+)

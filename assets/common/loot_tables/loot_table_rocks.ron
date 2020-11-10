@@ -1,6 +1,6 @@
 [  
     (1, "common.items.crafting_ing.stones"),
-    (0.10, "common.items.crafting_ing.shiny_gem"),
+    (0.05, "common.items.crafting_ing.shiny_gem"),
     (0.10, "common.items.ore.velorite"),
     (0.20, "common.items.ore.veloritefrag"),
 ]

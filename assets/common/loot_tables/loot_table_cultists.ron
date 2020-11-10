@@ -17,6 +17,8 @@
     (0.1, "common.items.glider.glider_blue"),
     (0.5, "common.items.utility.firework_purple"),
     (0.5, "common.items.utility.bomb"),
+    (0.5, "common.items.armor.ring.ring_gold_0"),
+    (0.25, "common.items.armor.ring.ring_purp_high_0"),
     // Heavy Armour
     // belts
     (0.5, "common.items.armor.belt.plate_0"),

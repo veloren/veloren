@@ -90,7 +90,7 @@
                 color: Some((30, 0, 64))
             )
         ),
-        "CultistBlue": (
+        "VeloriteMage0": (
             left: (
                 vox_spec: ("armor.hand.cultist_right", (-3.0, -1.5, -2.5)),
                 color: Some((57, 81, 132))
@@ -177,6 +177,16 @@
             ),
             right: (
                 vox_spec: ("armor.hand.bonerattler_right", (-1.5, -1.5, -2.5)),
+                color: None
+            )
+        ),
+        "VeloriteMage0": (
+            left: (
+                vox_spec: ("armor.hand.velorite_battlemage_left", (-2.5, -1.5, -2.5)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.hand.velorite_battlemage_left", (-2.5, -1.5, -2.5)),
                 color: None
             )
         ),

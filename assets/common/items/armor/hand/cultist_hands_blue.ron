@@ -1,9 +1,9 @@
 ItemDef(
-    name: "Blue Cultist Gloves",
+    name: "Velorite Gloves",
     description: "Ceremonial attire used by members.",
     kind: Armor(
         (
-            kind: Hand("CultistBlue"),
+            kind: Hand("VeloriteMage0"),
             stats: (
                 protection: Normal(12.0)),            
         )

@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Velorite Battlemage Gauntlets",
+    description: "",
+    kind: Armor(
+        (
+            kind: Hand("VeloriteMage0"),
+            stats: (
+                protection: Normal(11.5)
+                ),            
+        )
+    ),
+    quality: High,
+)

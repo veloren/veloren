@@ -1,9 +1,9 @@
 ItemDef(
-    name: "Purple Admin Cape",
+    name: "Velorite Admin Cape",
     description: "Where did I put my banhammer again?",
     kind: Armor(
         (
-            kind: Back("DungPurp0"),
+            kind: Back("VeloriteMage0"),
             stats: (
                 protection: Invincible),            
         )
