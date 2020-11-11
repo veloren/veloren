@@ -7,12 +7,14 @@ use vek::*;
 pub enum ScaleMode {
     // Scale against physical size.
     Absolute(f64),
-    // Use the dpi factor provided by the windowing system (i.e. use logical size).
-    DpiFactor,
     // Scale based on the window's physical size, but maintain aspect ratio of widgets.
     // Contains width and height of the "default" window size (ie where there should be no
     // scaling).
     RelativeToWindow(Vec2<f64>),
+    // Use the dpi factor provided by the windowing system (i.e. use logical size).
+    #[serde(other)]
+    // Would be `RelativeToWindow([1920.0, 1080.0].into())`, but only supported on unit variants
+    DpiFactor,
 }
 
 #[derive(Clone, Copy)]

@@ -120,7 +120,7 @@ impl ControlSettings {
         match game_input {
             GameInput::Primary => KeyMouse::Mouse(MouseButton::Left),
             GameInput::Secondary => KeyMouse::Mouse(MouseButton::Right),
-            GameInput::ToggleCursor => KeyMouse::Key(VirtualKeyCode::Tab),
+            GameInput::ToggleCursor => KeyMouse::Key(VirtualKeyCode::Caret),
             GameInput::Escape => KeyMouse::Key(VirtualKeyCode::Escape),
             GameInput::Chat => KeyMouse::Key(VirtualKeyCode::Return),
             GameInput::Command => KeyMouse::Key(VirtualKeyCode::Slash),
@@ -136,7 +136,7 @@ impl ControlSettings {
             GameInput::ClimbDown => KeyMouse::Key(VirtualKeyCode::LControl),
             GameInput::SwimUp => KeyMouse::Key(VirtualKeyCode::Space),
             GameInput::SwimDown => KeyMouse::Key(VirtualKeyCode::LShift),
-            GameInput::Fly => KeyMouse::Key(VirtualKeyCode::F),
+            GameInput::Fly => KeyMouse::Key(VirtualKeyCode::H),
             GameInput::Sneak => KeyMouse::Key(VirtualKeyCode::LControl),
             //GameInput::WallLeap => MIDDLE_CLICK_KEY,
             GameInput::ToggleLantern => KeyMouse::Key(VirtualKeyCode::G),
@@ -171,7 +171,7 @@ impl ControlSettings {
             GameInput::Slot8 => KeyMouse::Key(VirtualKeyCode::Key8),
             GameInput::Slot9 => KeyMouse::Key(VirtualKeyCode::Key9),
             GameInput::Slot10 => KeyMouse::Key(VirtualKeyCode::Q),
-            GameInput::SwapLoadout => KeyMouse::Key(VirtualKeyCode::LAlt),
+            GameInput::SwapLoadout => KeyMouse::Key(VirtualKeyCode::Tab),
             GameInput::Select => KeyMouse::Key(VirtualKeyCode::Y),
             GameInput::AcceptGroupInvite => KeyMouse::Key(VirtualKeyCode::U),
             GameInput::DeclineGroupInvite => KeyMouse::Key(VirtualKeyCode::I),
@@ -540,7 +540,7 @@ impl Default for GameplaySettings {
             intro_show: Intro::Show,
             xp_bar: XpBar::Always,
             shortcut_numbers: ShortcutNumbers::On,
-            buff_position: BuffPosition::Map,
+            buff_position: BuffPosition::Bar,
             bar_numbers: BarNumbers::Values,
             ui_scale: ScaleMode::RelativeToWindow([1920.0, 1080.0].into()),
             free_look_behavior: PressBehavior::Toggle,
@@ -654,8 +654,9 @@ pub enum AudioOutput {
     // If this option is disabled, functions in the rodio
     // library MUST NOT be called.
     Off,
-    Automatic,
     Device(String),
+    #[serde(other)]
+    Automatic,
 }
 
 impl AudioOutput {

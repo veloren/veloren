@@ -7,7 +7,8 @@ use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 
 /// Contains all controller related settings and keymaps
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
+#[serde(default)]
 pub struct ControllerSettings {
     pub game_button_map: HashMap<Button, Vec<GameInput>>,
     pub menu_button_map: HashMap<Button, Vec<MenuInput>>,
@@ -285,6 +286,10 @@ pub enum Button {
     EventCode(u32),
 }
 
+impl Default for Button {
+    fn default() -> Self { Button::Simple(GilButton::Unknown) }
+}
+
 /// AnalogButton::Simple(GilButton::Unknown) is invalid and equal to mapping an
 /// action to nothing
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Deserialize, Serialize)]
@@ -293,12 +298,20 @@ pub enum AnalogButton {
     EventCode(u32),
 }
 
+impl Default for AnalogButton {
+    fn default() -> Self { AnalogButton::Simple(GilButton::Unknown) }
+}
+
 /// Axis::Simple(GilAxis::Unknown) is invalid and equal to mapping an action to
 /// nothing
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub enum Axis {
     Simple(GilAxis),
     EventCode(u32),
+}
+
+impl Default for Axis {
+    fn default() -> Self { Axis::Simple(GilAxis::Unknown) }
 }
 
 impl From<(GilAxis, GilCode)> for Axis {
