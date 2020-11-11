@@ -291,7 +291,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                                  }| Vec3::new(x, y, z),
                             )
                             .unwrap_or(zero);
-                        let max_model_size = Vec3::new(15.0, 15.0, 63.0);
+                        let max_model_size = Vec3::new(31.0, 31.0, 63.0);
                         let model_scale = max_model_size.map2(model_size, |max_sz: f32, cur_sz| {
                             let scale = max_sz / max_sz.max(cur_sz as f32);
                             if scale < 1.0 && (cur_sz as f32 * scale).ceil() > max_sz {
