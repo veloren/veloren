@@ -381,43 +381,50 @@ pub enum Windows {
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum CrosshairType {
-    Round,
     RoundEdges,
     Edges,
+    #[serde(other)]
+    Round,
 }
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum Intro {
-    Show,
     Never,
+    #[serde(other)]
+    Show,
 }
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum XpBar {
-    Always,
     OnGain,
+    #[serde(other)]
+    Always,
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum BarNumbers {
-    Values,
     Percent,
     Off,
+    #[serde(other)]
+    Values,
 }
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum ShortcutNumbers {
-    On,
     Off,
+    #[serde(other)]
+    On,
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum BuffPosition {
-    Bar,
     Map,
+    #[serde(other)]
+    Bar,
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum PressBehavior {
-    Toggle = 0,
     Hold = 1,
+    #[serde(other)]
+    Toggle = 0,
 }
 
 pub struct Show {
