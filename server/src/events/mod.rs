@@ -118,9 +118,10 @@ impl Server {
                     scale,
                     home_chunk,
                     drop_item,
+                    rtsim_entity,
                 } => handle_create_npc(
                     self, pos, stats, health, loadout, body, agent, alignment, scale, drop_item,
-                    home_chunk,
+                    home_chunk, rtsim_entity,
                 ),
                 ServerEvent::CreateWaypoint(pos) => handle_create_waypoint(self, pos),
                 ServerEvent::ClientDisconnect(entity) => {

@@ -7,6 +7,7 @@ use common::{
     },
     outcome::Outcome,
     util::Dir,
+    rtsim::RtSimEntity,
 };
 use comp::group;
 use specs::{Builder, Entity as EcsEntity, WorldExt};
@@ -50,6 +51,7 @@ pub fn handle_create_npc(
     scale: Scale,
     drop_item: Option<Item>,
     home_chunk: Option<HomeChunk>,
+    rtsim_entity: Option<RtSimEntity>,
 ) {
     let group = match alignment {
         Alignment::Wild => None,
@@ -86,6 +88,12 @@ pub fn handle_create_npc(
 
     let entity = if let Some(home_chunk) = home_chunk {
         entity.with(home_chunk)
+    } else {
+        entity
+    };
+
+    let entity = if let Some(rtsim_entity) = rtsim_entity {
+        entity.with(rtsim_entity)
     } else {
         entity
     };

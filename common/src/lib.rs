@@ -40,6 +40,7 @@ pub mod path;
 pub mod ray;
 pub mod recipe;
 pub mod region;
+pub mod rtsim;
 pub mod spiral;
 pub mod state;
 pub mod states;

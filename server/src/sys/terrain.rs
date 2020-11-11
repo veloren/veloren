@@ -198,6 +198,7 @@ impl<'a> System<'a> for Sys {
                     scale: comp::Scale(scale),
                     home_chunk: Some(comp::HomeChunk(key)),
                     drop_item: entity.loot_drop,
+                    rtsim_entity: None,
                 })
             }
         }

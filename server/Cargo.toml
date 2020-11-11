@@ -43,3 +43,5 @@ libsqlite3-sys = { version = "0.18", features = ["bundled"] }
 diesel = { version = "1.4.3", features = ["sqlite"] }
 diesel_migrations = "1.4.0"
 dotenv = "0.15.0"
+slab  = "0.4"
+rand_chacha = "0.2"

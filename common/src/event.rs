@@ -1,4 +1,11 @@
-use crate::{character::CharacterId, comp, sync::Uid, util::Dir, Explosion};
+use crate::{
+    character::CharacterId,
+    sync::Uid,
+    util::Dir,
+    comp,
+    Explosion,
+    rtsim::RtSimEntity,
+};
 use comp::{
     item::{Item, Reagent},
     Ori, Pos,
@@ -96,6 +103,7 @@ pub enum ServerEvent {
     ExitIngame {
         entity: EcsEntity,
     },
+    // TODO: to avoid breakage when adding new fields, perhaps have an `NpcBuilder` type?
     CreateNpc {
         pos: comp::Pos,
         stats: comp::Stats,
@@ -107,6 +115,7 @@ pub enum ServerEvent {
         scale: comp::Scale,
         home_chunk: Option<comp::HomeChunk>,
         drop_item: Option<Item>,
+        rtsim_entity: Option<RtSimEntity>,
     },
     CreateWaypoint(Vec3<f32>),
     ClientDisconnect(EcsEntity),
