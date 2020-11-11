@@ -11,10 +11,9 @@ use channel::{MusicChannel, MusicChannelTag, SfxChannel, WindChannel};
 use fader::Fader;
 use soundcache::SoundCache;
 use std::time::Duration;
-use tracing::warn;
+//use tracing::warn;
 
 use common::assets;
-//use cpal::traits::{DeviceTrait, HostTrait};
 use rodio::{source::Source, Decoder, OutputStream, OutputStreamHandle, StreamError};
 use vek::*;
 
@@ -32,6 +31,7 @@ pub struct Listener {
 /// Voxygen's [`GlobalState`](../struct.GlobalState.html#structfield.audio) to
 /// provide access to devices and playback control in-game
 pub struct AudioFrontend {
+    // The following is for the disabled device switcher
     //pub device: String,
     //pub device_list: Vec<String>,
     //pub audio_device: Option<Device>,
@@ -70,6 +70,7 @@ impl AudioFrontend {
         };
 
         Self {
+            // The following is for the disabled device switcher
             //device,
             //device_list: list_devices(),
             //audio_device,
@@ -88,6 +89,7 @@ impl AudioFrontend {
     /// Construct in `no-audio` mode for debugging
     pub fn no_audio() -> Self {
         Self {
+            // The following is for the disabled device switcher
             //device: "".to_string(),
             //device_list: Vec::new(),
             //audio_device: None,
@@ -211,7 +213,7 @@ impl AudioFrontend {
 
     fn get_wind_channel(&mut self, volume_multiplier: f32) -> Option<&mut WindChannel> {
         if self.audio_stream.is_some() {
-            if let Some(channel) = self.wind_channels.iter_mut().find(|_c| true) {
+            if let Some(channel) = self.wind_channels.iter_mut().last() {
                 channel.set_volume(self.sfx_volume * volume_multiplier);
 
                 return Some(channel);
@@ -223,7 +225,7 @@ impl AudioFrontend {
 
     fn set_wind_volume(&mut self, volume_multiplier: f32) {
         if self.audio_stream.is_some() {
-            if let Some(channel) = self.wind_channels.iter_mut().find(|_c| true) {
+            if let Some(channel) = self.wind_channels.iter_mut().last() {
                 channel.set_volume(self.sfx_volume * volume_multiplier);
             }
         }
@@ -231,7 +233,7 @@ impl AudioFrontend {
 
     fn get_wind_volume(&mut self) -> f32 {
         if self.audio_stream.is_some() {
-            if let Some(channel) = self.wind_channels.iter_mut().find(|_c| true) {
+            if let Some(channel) = self.wind_channels.iter_mut().last() {
                 channel.get_volume() / self.sfx_volume
             } else {
                 0.0
@@ -344,6 +346,7 @@ impl AudioFrontend {
         }
     }
 
+    // The following is for the disabled device switcher
     //// TODO: figure out how badly this will break things when it is called
     //pub fn set_device(&mut self, name: String) {
     //    self.device = name.clone();
@@ -351,6 +354,7 @@ impl AudioFrontend {
     //}
 }
 
+// The following is for the disabled device switcher
 ///// Returns the default audio device.
 ///// Does not return rodio Device struct in case our audio backend changes.
 //pub fn get_default_device() -> Option<String> {
@@ -365,6 +369,7 @@ pub fn get_default_stream() -> Result<(OutputStream, OutputStreamHandle), Stream
     rodio::OutputStream::try_default()
 }
 
+// The following is for the disabled device switcher
 ///// Returns a stream on the specified device
 //pub fn get_stream(
 //    device: &rodio::Device,

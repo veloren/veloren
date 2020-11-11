@@ -6,5 +6,5 @@ pub enum SitesKind {
     Cave,
     Settlement,
     Castle,
-    None,
+    Void,
 }

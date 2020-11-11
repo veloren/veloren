@@ -858,7 +858,13 @@ impl Client {
     }
 
     pub fn current_position(&self) -> Option<Vec3<f32>> {
-        Some(self.state.read_storage::<comp::Pos>().get(self.entity).cloned()?.0)
+        Some(
+            self.state
+                .read_storage::<comp::Pos>()
+                .get(self.entity)
+                .cloned()?
+                .0,
+        )
     }
 
     pub fn inventories(&self) -> ReadStorage<comp::Inventory> { self.state.read_storage() }

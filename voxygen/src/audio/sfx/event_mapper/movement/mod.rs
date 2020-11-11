@@ -88,12 +88,10 @@ impl EventMapper for MovementEventMapper {
                         vel.0,
                         underfoot_block_kind,
                     ),
-                    Body::QuadrupedMedium(_)
-                    | Body::QuadrupedSmall(_)
-                    | Body::QuadrupedLow(_)
-                    | Body::BirdMedium(_)
-                    | Body::BirdSmall(_)
-                    | Body::BipedLarge(_) => {
+                    Body::QuadrupedMedium(_) | Body::QuadrupedSmall(_) | Body::QuadrupedLow(_) => {
+                        Self::map_quadruped_movement_event(physics, vel.0, underfoot_block_kind)
+                    },
+                    Body::BirdMedium(_) | Body::BirdSmall(_) | Body::BipedLarge(_) => {
                         Self::map_non_humanoid_movement_event(physics, vel.0, underfoot_block_kind)
                     },
                     _ => SfxEvent::Idle, // Ignore fish, etc...
@@ -228,6 +226,24 @@ impl MovementEventMapper {
             match underfoot_block_kind {
                 BlockKind::Snow => SfxEvent::SnowRun,
                 _ => SfxEvent::Run,
+            }
+        } else {
+            SfxEvent::Idle
+        }
+    }
+
+    /// Maps a limited set of movements for quadruped entities
+    fn map_quadruped_movement_event(
+        physics_state: &PhysicsState,
+        vel: Vec3<f32>,
+        underfoot_block_kind: BlockKind,
+    ) -> SfxEvent {
+        if physics_state.in_liquid.is_some() && vel.magnitude() > 0.1 {
+            SfxEvent::Swim
+        } else if physics_state.on_ground && vel.magnitude() > 0.1 {
+            match underfoot_block_kind {
+                BlockKind::Snow => SfxEvent::QuadSnowRun,
+                _ => SfxEvent::QuadRun,
             }
         } else {
             SfxEvent::Idle

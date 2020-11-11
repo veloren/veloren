@@ -26,7 +26,11 @@
 //!     path: "voxygen.audio.soundtrack.sleepy",
 //!     length: 400.0,
 //!     timing: Some(Night),
-//!     biome: Some(Forest),
+//!     biome: [
+//!         (Forest, 1),
+//!         (Grassland, 2),
+//!     ],
+//!     site: None,
 //!     artist: "Elvis",
 //! ),
 //! ```
@@ -129,8 +133,9 @@ impl MusicMgr {
         //println!("chaos: {}", current_chunk.meta().chaos());
         //println!("alt: {}", current_chunk.meta().alt());
         //println!("temp: {}", current_chunk.meta().temp());
-        //println!("tree_density: {}", current_chunk.meta().tree_density());
-        //println!("humidity: {}", current_chunk.meta().humidity());
+        //println!("tree_density: {}",
+        // current_chunk.meta().tree_density());
+        // println!("humidity: {}", current_chunk.meta().humidity());
         //println!("cave_alt: {}", current_chunk.meta().cave_alt());
         //if let Some(position) = client.current_position() {
         //    println!("player_pos: {:?}", position);
@@ -163,7 +168,7 @@ impl MusicMgr {
         let mut rng = thread_rng();
 
         // Adds a bit of randomness between plays
-        let silence_between_tracks_seconds: f32 = rng.gen_range(30.0, 60.0);
+        let silence_between_tracks_seconds: f32 = rng.gen_range(15.0, 60.0);
 
         let game_time = (state.get_time_of_day() as u64 % 86400) as u32;
         let current_period_of_day = Self::get_current_day_period(game_time);
@@ -221,6 +226,7 @@ impl MusicMgr {
         });
 
         if let Ok(track) = new_maybe_track {
+            println!("Now playing {:?}", track.title);
             self.last_track = String::from(&track.title);
             self.began_playing = Instant::now();
             self.next_track_change = track.length + silence_between_tracks_seconds;
@@ -260,7 +266,7 @@ impl MusicMgr {
         } else if player_alt < (terrain_alt - 20.0) {
             SitesKind::Dungeon
         } else {
-            SitesKind::None
+            SitesKind::Void
         }
     }
 
