@@ -75,6 +75,17 @@
             ],
             threshold: 0.25,
         ),
+        QuadRun: (
+            files: [
+                "voxygen.audio.sfx.footsteps.stepgrass_1",
+                "voxygen.audio.sfx.footsteps.stepgrass_2",
+                "voxygen.audio.sfx.footsteps.stepgrass_3",
+                "voxygen.audio.sfx.footsteps.stepgrass_4",
+                "voxygen.audio.sfx.footsteps.stepgrass_5",
+                "voxygen.audio.sfx.footsteps.stepgrass_6",
+            ],
+            threshold: 0.12,
+        ),
         SnowRun: (
             files: [
                 "voxygen.audio.sfx.footsteps.snow_step_1",
@@ -82,6 +93,14 @@
                 "voxygen.audio.sfx.footsteps.snow_step_3",
             ],
             threshold: 0.25,
+        ),
+        QuadSnowRun: (
+            files: [
+                "voxygen.audio.sfx.footsteps.snow_step_1",
+                "voxygen.audio.sfx.footsteps.snow_step_2",
+                "voxygen.audio.sfx.footsteps.snow_step_3",
+            ],
+            threshold: 0.12,
         ),
         ExperienceGained: (
             files: [
@@ -214,7 +233,7 @@
             ],
             threshold: 0.5,
         ),
-        Attack(BasicMelee, Hammer): (
+        Attack(ComboMelee(Swing, 1), Hammer): (
             files: [
                 "voxygen.audio.sfx.abilities.swing",
             ],
@@ -254,7 +273,13 @@
             ],
             threshold: 0.5,
         ),
-        Attack(BasicMelee, Axe): (
+        Attack(ComboMelee(Swing, 1), Axe): (
+            files: [
+                "voxygen.audio.sfx.abilities.swing",
+            ],
+            threshold: 0.7,
+        ),
+        Attack(ComboMelee(Swing, 2), Axe): (
             files: [
                 "voxygen.audio.sfx.abilities.swing",
             ],

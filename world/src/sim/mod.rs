@@ -2303,7 +2303,7 @@ impl SimChunk {
     pub fn get_biome(&self) -> BiomeKind {
         if self.alt < CONFIG.sea_level {
             BiomeKind::Ocean
-        } else if self.humidity == 0.0 {
+        } else if self.humidity == 0.5 {
             BiomeKind::Lake
         } else if self.temp < CONFIG.snow_temp {
             BiomeKind::Snowland

@@ -101,7 +101,7 @@ impl WindMgr {
             {
                 volume_multiplier *= volume_multiplier;
             }
-            if cam_pos.z < Self::get_current_terrain_alt(client) - 20.0 {
+            if cam_pos.z < Self::get_current_terrain_alt(client) - 10.0 {
                 volume_multiplier = 0.0;
             }
 
