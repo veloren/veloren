@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Flight
 - Roll dodges melee attacks, and reduces the height of your hitbox
 - Persistent waypoints (start from the last camp fire you visited)
+- NPCs use all three weapon skills in combat
 
 ### Changed
 
