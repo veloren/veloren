@@ -7,8 +7,8 @@ const float CLOUD_DENSITY = 150.0;
 
 vec2 get_cloud_heights(vec2 pos) {
     const float CLOUD_HALF_WIDTH = 300;
-    const float CLOUD_HEIGHT_VARIATION = 1000.0;
-    float cloud_alt = CLOUD_AVG_ALT + (texture(t_noise, pos.xy * 0.0001).x - 0.5) * CLOUD_HEIGHT_VARIATION;
+    const float CLOUD_HEIGHT_VARIATION = 1500.0;
+    float cloud_alt = CLOUD_AVG_ALT + (texture(t_noise, pos.xy * 0.00005).x - 0.5) * CLOUD_HEIGHT_VARIATION;
     #if (CLOUD_MODE != CLOUD_MODE_MINIMAL)
         cloud_alt += (texture(t_noise, pos.xy * 0.001).x - 0.5) * 0.1 * CLOUD_HEIGHT_VARIATION;
     #endif
