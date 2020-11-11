@@ -195,7 +195,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas) {
         // Desert Plants
         (DeadBush, false, |c, _| {
             (
-                close(c.temp, 1.0, 0.95).min(close(c.humidity, 0.0, 0.3)) * MUSH_FACT * 15.0,
+                close(c.temp, 1.0, 0.95).min(close(c.humidity, 0.0, 0.3)) * MUSH_FACT * 7.5,
                 None,
             )
         }),
@@ -206,65 +206,54 @@ pub fn apply_scatter_to(canvas: &mut Canvas) {
                     CONFIG.desert_hum,
                     0.2,
                 )) * MUSH_FACT
-                    * 0.1,
+                    * 1.0,
                 None,
             )
         }),
-        /*(BarrelCactus, false, |c, col| {
+        (RoundCactus, false, |c, _| {
             (
                 close(c.temp, CONFIG.desert_temp + 0.2, 0.3).min(close(
                     c.humidity,
                     CONFIG.desert_hum,
                     0.2,
                 )) * MUSH_FACT
-                    * 0.1,
+                    * 1.0,
                 None,
             )
         }),
-        (RoundCactus, false, |c, col| {
+        (ShortCactus, false, |c, _| {
             (
                 close(c.temp, CONFIG.desert_temp + 0.2, 0.3).min(close(
                     c.humidity,
                     CONFIG.desert_hum,
                     0.2,
                 )) * MUSH_FACT
-                * 0.1,
+                    * 1.0,
                 None,
             )
         }),
-        (ShortCactus, false, |c, col| {
+        (MedFlatCactus, false, |c, _| {
             (
                 close(c.temp, CONFIG.desert_temp + 0.2, 0.3).min(close(
                     c.humidity,
                     CONFIG.desert_hum,
                     0.2,
                 )) * MUSH_FACT
-                * 0.1,
+                    * 1.0,
                 None,
             )
         }),
-        (MedFlatCactus, false, |c, col| {
+        (ShortFlatCactus, false, |c, _| {
             (
                 close(c.temp, CONFIG.desert_temp + 0.2, 0.3).min(close(
                     c.humidity,
                     CONFIG.desert_hum,
                     0.2,
                 )) * MUSH_FACT
-                * 0.1,
+                    * 2.5,
                 None,
             )
         }),
-        (ShortFlatCactus, false, |c, col| {
-            (
-                close(c.temp, CONFIG.desert_temp + 0.2, 0.3).min(close(
-                    c.humidity,
-                    CONFIG.desert_hum,
-                    0.2,
-                )) * MUSH_FACT
-                * 0.1,
-                None,
-            )
-        }),*/
         (Reed, false, |c, col| {
             (
                 close(c.humidity, CONFIG.jungle_hum, 0.7)

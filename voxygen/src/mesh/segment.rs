@@ -159,9 +159,10 @@ where
                 && lower_bound.z <= upper_bound.z
         );
         let greedy_size = upper_bound - lower_bound + 1;
+        // TODO: Should this be 16, 16, 64?
         assert!(
-            greedy_size.x <= 16 && greedy_size.y <= 16 && greedy_size.z <= 64,
-            "Sprite size out of bounds: {:?} ≤ (15, 15, 63)",
+            greedy_size.x <= 32 && greedy_size.y <= 32 && greedy_size.z <= 64,
+            "Sprite size out of bounds: {:?} ≤ (31, 31, 63)",
             greedy_size - 1
         );
         // NOTE: Cast to usize is safe because of previous check, since all values fit
