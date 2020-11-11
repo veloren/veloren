@@ -1,0 +1,14 @@
+ItemDef(
+    name: "Mindflayer Staff",
+    description: "Placeholder",
+    kind: Tool(
+        (
+            kind: Staff,
+            stats: (
+                equip_time_millis: 500,
+                power: 1.00,
+            ),
+        )
+    ),
+    quality: Low,
+)

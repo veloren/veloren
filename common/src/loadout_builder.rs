@@ -139,6 +139,11 @@ impl LoadoutBuilder {
                         "common.items.npc_weapons.sword.dullahan_sword",
                     ));
                 },
+                (biped_large::Species::Mindflayer, _) => {
+                    main_tool = Some(Item::new_from_asset_expect(
+                        "common.items.npc_weapons.staff.mindflayer_staff",
+                    ));
+                },
             },
             Body::Humanoid(_) => {
                 if is_giant {
