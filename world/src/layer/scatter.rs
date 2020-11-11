@@ -201,56 +201,31 @@ pub fn apply_scatter_to(canvas: &mut Canvas) {
         }),
         (LargeCactus, false, |c, _| {
             (
-                close(c.temp, CONFIG.desert_temp + 0.2, 0.3).min(close(
-                    c.humidity,
-                    CONFIG.desert_hum,
-                    0.2,
-                )) * MUSH_FACT
-                    * 1.0,
+                close(c.temp, 1.0, 0.95).min(close(c.humidity, 0.0, 0.3)) * MUSH_FACT * 0.3,
                 None,
             )
         }),
         (RoundCactus, false, |c, _| {
             (
-                close(c.temp, CONFIG.desert_temp + 0.2, 0.3).min(close(
-                    c.humidity,
-                    CONFIG.desert_hum,
-                    0.2,
-                )) * MUSH_FACT
-                    * 1.0,
+                close(c.temp, 1.0, 0.95).min(close(c.humidity, 0.0, 0.3)) * MUSH_FACT * 0.3,
                 None,
             )
         }),
         (ShortCactus, false, |c, _| {
             (
-                close(c.temp, CONFIG.desert_temp + 0.2, 0.3).min(close(
-                    c.humidity,
-                    CONFIG.desert_hum,
-                    0.2,
-                )) * MUSH_FACT
-                    * 1.0,
+                close(c.temp, 1.0, 0.95).min(close(c.humidity, 0.0, 0.3)) * MUSH_FACT * 0.3,
                 None,
             )
         }),
         (MedFlatCactus, false, |c, _| {
             (
-                close(c.temp, CONFIG.desert_temp + 0.2, 0.3).min(close(
-                    c.humidity,
-                    CONFIG.desert_hum,
-                    0.2,
-                )) * MUSH_FACT
-                    * 1.0,
+                close(c.temp, 1.0, 0.95).min(close(c.humidity, 0.0, 0.3)) * MUSH_FACT * 0.3,
                 None,
             )
         }),
         (ShortFlatCactus, false, |c, _| {
             (
-                close(c.temp, CONFIG.desert_temp + 0.2, 0.3).min(close(
-                    c.humidity,
-                    CONFIG.desert_hum,
-                    0.2,
-                )) * MUSH_FACT
-                    * 2.5,
+                close(c.temp, 1.0, 0.95).min(close(c.humidity, 0.0, 0.3)) * MUSH_FACT * 0.3,
                 None,
             )
         }),
