@@ -255,14 +255,14 @@ impl AudioFrontend {
     fn fade_out_music(&mut self, channel_tag: MusicChannelTag) {
         let music_volume = self.music_volume;
         if let Some(channel) = self.get_music_channel(channel_tag) {
-            channel.set_fader(Fader::fade_out(5.0, music_volume));
+            channel.set_fader(Fader::fade_out(Duration::from_secs(5), music_volume));
         }
     }
 
     fn fade_in_music(&mut self, channel_tag: MusicChannelTag) {
         let music_volume = self.music_volume;
         if let Some(channel) = self.get_music_channel(channel_tag) {
-            channel.set_fader(Fader::fade_in(5.0, music_volume));
+            channel.set_fader(Fader::fade_in(Duration::from_secs(5), music_volume));
         }
     }
 
