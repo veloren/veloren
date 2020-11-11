@@ -28,6 +28,7 @@ use specs::{
     saveload::{Marker, MarkerAllocator},
     Entities, Join, Read, ReadExpect, ReadStorage, System, Write, WriteStorage,
 };
+use std::f32::consts::PI;
 use vek::*;
 
 /// This system will allow NPCs to modify their controller
@@ -332,6 +333,7 @@ impl<'a> System<'a> for Sys {
                             Bow,
                             Staff,
                             StoneGolemBoss,
+                            Wolf,
                         }
 
                         let tactic = match loadout.active_item.as_ref().and_then(|ic| {
@@ -349,6 +351,7 @@ impl<'a> System<'a> for Sys {
                             Some(ToolKind::Unique(UniqueKind::StoneGolemFist)) => {
                                 Tactic::StoneGolemBoss
                             },
+                            Some(ToolKind::Unique(UniqueKind::GenericQuadMed)) => Tactic::Wolf,
                             _ => Tactic::Melee,
                         };
 
@@ -439,73 +442,114 @@ impl<'a> System<'a> for Sys {
                                 }
                             } else if (tactic == Tactic::Staff
                                 && dist_sqrd < (5.0 * MIN_ATTACK_DIST * scale).powf(2.0))
+                                || (tactic == Tactic::Wolf
+                                    && dist_sqrd < (3.0 * MIN_ATTACK_DIST * scale).powf(2.0))
                                 || dist_sqrd < (MIN_ATTACK_DIST * scale).powf(2.0)
                             {
-                                // Close-range attack
-                                inputs.move_dir = (tgt_pos.0 - pos.0)
-                                    .xy()
-                                    .try_normalized()
-                                    .unwrap_or(Vec2::unit_y())
-                                    * 0.1;
-
+                                controller.actions.push(ControlAction::Wield);
                                 match tactic {
-                                    Tactic::Melee | Tactic::StoneGolemBoss => {
-                                        inputs.primary.set_state(true)
+                                    Tactic::Wolf => {
+                                        // Run away from target to get clear
+                                        controller.actions.push(ControlAction::Unwield);
+                                        inputs.move_dir = (pos.0 - tgt_pos.0)
+                                            .xy()
+                                            .try_normalized()
+                                            .unwrap_or(Vec2::unit_y());
                                     },
-                                    Tactic::Hammer => {
-                                        if *powerup > 4.0 {
-                                            inputs.secondary.set_state(false);
-                                            *powerup = 0.0;
-                                        } else if *powerup > 2.0 {
-                                            inputs.secondary.set_state(true);
-                                            *powerup += dt.0;
-                                        } else if energy.current() > 700 {
-                                            inputs.ability3.set_state(true);
-                                            *powerup += dt.0;
-                                        } else {
-                                            inputs.primary.set_state(true);
-                                            *powerup += dt.0;
+                                    _ => {
+                                        // Close-range attack
+                                        inputs.move_dir = (tgt_pos.0 - pos.0)
+                                            .xy()
+                                            .try_normalized()
+                                            .unwrap_or(Vec2::unit_y())
+                                            * 0.1;
+
+                                        match tactic {
+                                            Tactic::Hammer => {
+                                                if *powerup > 4.0 {
+                                                    inputs.secondary.set_state(false);
+                                                    *powerup = 0.0;
+                                                } else if *powerup > 2.0 {
+                                                    inputs.secondary.set_state(true);
+                                                    *powerup += dt.0;
+                                                } else if energy.current() > 700 {
+                                                    inputs.ability3.set_state(true);
+                                                    *powerup += dt.0;
+                                                } else {
+                                                    inputs.primary.set_state(true);
+                                                    *powerup += dt.0;
+                                                }
+                                            },
+                                            Tactic::Staff => {
+                                                // Kind of arbitrary values, but feel right in game
+                                                if energy.current() > 800
+                                                    && thread_rng().gen::<f32>() > 0.8
+                                                {
+                                                    inputs.ability3.set_state(true)
+                                                } else if energy.current() > 10 {
+                                                    inputs.secondary.set_state(true)
+                                                } else {
+                                                    inputs.primary.set_state(true)
+                                                }
+                                            },
+                                            Tactic::Sword => {
+                                                if *powerup < 2.0 && energy.current() > 500 {
+                                                    inputs.ability3.set_state(true);
+                                                    *powerup += dt.0;
+                                                } else if *powerup > 2.0 {
+                                                    *powerup = 0.0;
+                                                } else {
+                                                    inputs.primary.set_state(true);
+                                                    *powerup += dt.0;
+                                                }
+                                            },
+                                            Tactic::Axe => {
+                                                if *powerup > 6.0 {
+                                                    inputs.secondary.set_state(false);
+                                                    *powerup = 0.0;
+                                                } else if *powerup > 4.0 && energy.current() > 10 {
+                                                    inputs.secondary.set_state(true);
+                                                    *powerup += dt.0;
+                                                } else {
+                                                    inputs.primary.set_state(true);
+                                                    *powerup += dt.0;
+                                                }
+                                            },
+                                            Tactic::Bow => inputs.roll.set_state(true),
+                                            _ => inputs.primary.set_state(true),
                                         }
                                     },
-                                    Tactic::Staff => {
-                                        // Kind of arbitrary values, but feel right in game
-                                        if energy.current() > 800 && thread_rng().gen_bool(0.2) {
-                                            inputs.ability3.set_state(true)
-                                        } else if energy.current() > 10 {
-                                            inputs.secondary.set_state(true)
-                                        } else {
-                                            inputs.primary.set_state(true)
-                                        }
-                                    },
-                                    Tactic::Sword => {
-                                        if *powerup < 2.0 && energy.current() > 500 {
-                                            inputs.ability3.set_state(true);
-                                            *powerup += dt.0;
-                                        } else if *powerup > 2.0 {
-                                            *powerup = 0.0;
-                                        } else {
-                                            inputs.primary.set_state(true);
-                                            *powerup += dt.0;
-                                        }
-                                    },
-                                    Tactic::Axe => {
-                                        if *powerup > 6.0 {
-                                            inputs.secondary.set_state(false);
-                                            *powerup = 0.0;
-                                        } else if *powerup > 4.0 && energy.current() > 100 {
-                                            inputs.secondary.set_state(true);
-                                            *powerup += dt.0;
-                                        } else if energy.current() > 800
-                                            && thread_rng().gen_bool(0.5)
-                                        {
-                                            inputs.ability3.set_state(true);
-                                            *powerup += dt.0;
-                                        } else {
-                                            inputs.primary.set_state(true);
-                                            *powerup += dt.0;
-                                        }
-                                    },
-                                    Tactic::Bow => inputs.roll.set_state(true),
+                                }
+                            } else if matches!(tactic, Tactic::Wolf)
+                                && dist_sqrd < (4.0 * MIN_ATTACK_DIST * scale).powf(2.0)
+                                && dist_sqrd > (3.0 * MIN_ATTACK_DIST * scale).powf(2.0)
+                            {
+                                if *powerup < 2.0 {
+                                    controller.actions.push(ControlAction::Unwield);
+                                    inputs.move_dir = (tgt_pos.0 - pos.0)
+                                        .xy()
+                                        .rotated_z(0.45 * PI)
+                                        .try_normalized()
+                                        .unwrap_or(Vec2::unit_y());
+                                    *powerup += dt.0;
+                                } else if *powerup < 2.5 {
+                                    controller.actions.push(ControlAction::Wield);
+                                    inputs.primary.set_state(true);
+                                    *powerup += dt.0;
+                                } else if *powerup < 4.5 {
+                                    controller.actions.push(ControlAction::Unwield);
+                                    inputs.move_dir = (tgt_pos.0 - pos.0)
+                                        .xy()
+                                        .rotated_z(-0.45 * PI)
+                                        .try_normalized()
+                                        .unwrap_or(Vec2::unit_y());
+                                    *powerup += dt.0;
+                                } else if *powerup < 5.0 {
+                                    controller.actions.push(ControlAction::Wield);
+                                    inputs.primary.set_state(true);
+                                    *powerup += dt.0;
+                                } else {
+                                    *powerup = 0.0;
                                 }
                             } else if dist_sqrd < MAX_CHASE_DIST.powf(2.0)
                                 || (dist_sqrd < SIGHT_DIST.powf(2.0)

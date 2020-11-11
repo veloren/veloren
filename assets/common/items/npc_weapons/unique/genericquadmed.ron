@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Generic Quad Med",
+    description: "testing123",
+    kind: Tool(
+        (
+            kind: Unique(GenericQuadMed),
+            stats: (
+                equip_time_millis: 10,
+                power: 1.00),
+        )
+    ),
+    quality: Low,
+)

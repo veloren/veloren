@@ -1,7 +1,7 @@
 use crate::comp::{
     biped_large, golem,
     item::{tool::AbilityMap, Item, ItemKind},
-    Body, CharacterAbility, ItemConfig, Loadout,
+    quadruped_medium, Body, CharacterAbility, ItemConfig, Loadout,
 };
 use rand::Rng;
 
@@ -99,6 +99,14 @@ impl LoadoutBuilder {
                     golem::Species::StoneGolem => {
                         main_tool = Some(Item::new_from_asset_expect(
                             "common.items.npc_weapons.unique.stone_golems_fist",
+                        ));
+                    },
+                    _ => {},
+                },
+                Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
+                    quadruped_medium::Species::Wolf => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.genericquadmed",
                         ));
                     },
                     _ => {},
