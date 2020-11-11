@@ -28,27 +28,10 @@ impl<'a> System<'a> for Sys {
             positions,
         ): Self::SystemData,
     ) {
-        let chunks = std::mem::take(&mut rtsim.chunks_to_unload);
-
-        for (entity, rtsim_entity, pos) in (
-            &entities,
-            &rtsim_entities,
-            &positions,
-        ).join() {
-            let key = terrain_grid.pos_key(pos.0.map(|e| e.floor() as i32));
-
-            if terrain_grid.get_key(key).is_some() {
-                break;
-            } else if chunks.contains(&key) {
-                // Assimilate the entity back into the simulation
-                rtsim.assimilate_entity(rtsim_entity.0);
-            }
-
-            rtsim.update_entity(rtsim_entity.0, pos.0);
-        }
+        let chunks = std::mem::take(&mut rtsim.world.chunks_to_unload);
 
         for chunk in chunks {
-
+            // TODO
         }
     }
 }

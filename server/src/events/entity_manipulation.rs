@@ -2,6 +2,7 @@ use crate::{
     client::Client,
     comp::{biped_large, quadruped_medium, quadruped_small, PhysicsState},
     Server, SpawnPoint, StateExt,
+    rtsim::RtSim,
 };
 use common::{
     assets::Asset,
@@ -20,6 +21,7 @@ use common::{
     terrain::{Block, TerrainGrid},
     vol::ReadVol,
     Damage, DamageSource, Explosion, GroupTarget, RadiusEffect,
+    rtsim::RtSimEntity,
 };
 use comp::item::Reagent;
 use rand::prelude::*;
@@ -308,7 +310,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         }
     })();
 
-    if state
+    let should_delete = if state
         .ecs()
         .write_storage::<Client>()
         .get_mut(entity)
@@ -339,6 +341,8 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
             .ecs()
             .write_storage::<comp::CharacterState>()
             .insert(entity, comp::CharacterState::default());
+
+        false
     } else if state.ecs().read_storage::<comp::Agent>().contains(entity) {
         use specs::Builder;
 
@@ -452,10 +456,16 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
             )
         }
 
-        let _ = state
-            .delete_entity_recorded(entity)
-            .map_err(|e| error!(?e, ?entity, "Failed to delete destroyed entity"));
+        true
     } else {
+        true
+    };
+
+    if should_delete {
+        if let Some(rtsim_entity) = state.ecs().read_storage::<RtSimEntity>().get(entity).copied() {
+            state.ecs().write_resource::<RtSim>().destroy_entity(rtsim_entity.0);
+        }
+
         let _ = state
             .delete_entity_recorded(entity)
             .map_err(|e| error!(?e, ?entity, "Failed to delete destroyed entity"));

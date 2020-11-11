@@ -179,12 +179,12 @@ void main() {
     // float reflected_light_point = /*length*/(diffuse_light_point.r) + f_light * point_shadow;
     // reflected_light += k_d * (diffuse_light_point + f_light * point_shadow * shade_frac) + specular_light_point;
 
-    float passthrough = /*pow(*/dot(cam_norm, -cam_to_frag/*view_dir*/)/*, 0.5)*/;
+    float passthrough = clamp(dot(cam_norm, -cam_to_frag) * 1.0 - 0.2, 0, 1);
     float min_refl = min(emitted_light.r, min(emitted_light.g, emitted_light.b));
 
     vec3 surf_color = illuminate(max_light, view_dir, water_color * /* fog_color * */emitted_light, /*surf_color * */water_color * reflected_light);
     // vec4 color = vec4(surf_color, passthrough * 1.0 / (1.0 + min_refl));// * (1.0 - /*log(1.0 + cam_attenuation)*//*cam_attenuation*/1.0 / (2.0 - log_cam)));
-    vec4 color = mix(vec4(surf_color, 1.0), vec4(surf_color, 1.0 / (1.0 + /*diffuse_light*//*(f_light * point_shadow + point_light)*//*4.0 * reflected_light_point*/min_refl/* * 0.25*/)), passthrough);
+    vec4 color = vec4(surf_color, (1.0 - passthrough) * 1.0 / (1.0 + min_refl));
 
     tgt_color = color;
 }
