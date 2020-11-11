@@ -6,7 +6,9 @@ ItemDef(
             kind: Staff,    
             stats: (
                 equip_time_millis: 300,
-                power: 0.50),            
+                power: 0.50,
+                speed: 1.0
+            ),            
         )
     ),
     quality: Low,

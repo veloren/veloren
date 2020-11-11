@@ -6,7 +6,9 @@ ItemDef(
             kind: Unique(StoneGolemFist),    
             stats: (
                 equip_time_millis: 500,
-                power: 1.00),            
+                power: 1.00,
+                speed: 1.0
+            ),            
         )
     ),
     quality: Low,

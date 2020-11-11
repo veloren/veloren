@@ -31,10 +31,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Roll dodges melee attacks, and reduces the height of your hitbox
 - Persistent waypoints (start from the last camp fire you visited)
 - NPCs use all three weapon skills in combat
+- Speed stat to weapons which affects weapon attack speed
 
 ### Changed
 
-- Fixed a bug where leaving the Settings menu by pressing "N" in single player kept the game paused.
 - The world map has been refactored to support arbitrary sizes and compute horizon maps.
 - Veloren's lighting has been completely overhauled.
 - The graphics options were made much more flexible and configurable.
@@ -43,8 +43,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Animation and terrain math were switched to use SIMD where possible, improving performance.
 - The way we cache glyphs was refactored, fixed, and optimized.
 - Colors for models and figures were adjusted to account for the saturation hack.
-- Fixed a bug where the closest item would be picked up instead of a selected item.
-- Fixed a bug where camera zoom in and zoom out distance didn't match.
 - Overhauled world colours
 - Improved projectile physics
 - Improved overhead aiming
@@ -59,7 +57,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Moved hammer leap attack to skillbar
 - Reworked fire staff
 - Overhauled cloud shaders to add mist, light attenuation, an approximation of rayleigh scattering, etc.
-- Fixed a bug where a nearby item would also be collected when collecting collectible blocks
 - Allowed collecting nearby blocks without aiming at them
 - Made voxygen wait until singleplayer server is initialized before attempting to connect, removing the chance for it to give up on connecting if the server takes a while to start
 - Log where userdata folder is located
@@ -70,11 +67,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Transitioned main menu and character selection screen to a using iced for the ui (fixes paste keybinding on macos, removes password field limits, adds tabbing between input fields in the main menu, adds language selection in the main menu)
 - Made settings less likely to reset when the format changes
 - Adjusted some keybindings
+- Consumables can now trigger multiple effects and buffs
 
 ### Removed
 
 - MSAA has been removed due to incompatibility with greedy meshing.
 - Removed a saturation hack that led to colors being improperly displayed.
+
+### Fixed
+
+- Fixed a bug where leaving the Settings menu by pressing "N" in single player kept the game paused.
+- Fixed a bug where the closest item would be picked up instead of a selected item.
+- Fixed a bug where camera zoom in and zoom out distance didn't match.
+- Fixed a bug where a nearby item would also be collected when collecting collectible blocks
 
 ## [0.7.0] - 2020-08-15
 
