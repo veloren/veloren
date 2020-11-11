@@ -1,4 +1,4 @@
-CharacterAbility::Boost(
+Boost(
     movement_duration: 50,
     only_up: true,
-),
+)

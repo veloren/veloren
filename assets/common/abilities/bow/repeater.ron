@@ -15,4 +15,4 @@ RepeaterRanged(
     projectile_gravity: Some(Gravity(0.2)),
     projectile_speed: 100.0,
     reps_remaining: 5,
-),
+)

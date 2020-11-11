@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Stage {
+pub struct Stage<T> {
     /// Specifies which stage the combo attack is in
     pub stage: u32,
     /// Initial damage of stage
@@ -24,14 +24,32 @@ pub struct Stage {
     /// Angle of attack
     pub angle: f32,
     /// Initial buildup duration of stage (how long until state can deal damage)
-    pub base_buildup_duration: Duration,
+    pub base_buildup_duration: T,
     /// Duration of stage spent in swing (controls animation stuff, and can also
     /// be used to handle movement separately to buildup)
-    pub base_swing_duration: Duration,
+    pub base_swing_duration: T,
     /// Initial recover duration of stage (how long until character exits state)
-    pub base_recover_duration: Duration,
+    pub base_recover_duration: T,
     /// How much forward movement there is in the swing portion of the stage
     pub forward_movement: f32,
+}
+
+impl Stage<u64> {
+    pub fn to_duration(self) -> Stage<Duration> {
+        Stage::<Duration> {
+            stage: self.stage,
+            base_damage: self.base_damage,
+            max_damage: self.max_damage,
+            damage_increase: self.damage_increase,
+            knockback: self.knockback,
+            range: self.range,
+            angle: self.angle,
+            base_buildup_duration: Duration::from_millis(self.base_buildup_duration),
+            base_swing_duration: Duration::from_millis(self.base_swing_duration),
+            base_recover_duration: Duration::from_millis(self.base_recover_duration),
+            forward_movement: self.forward_movement,
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -40,7 +58,7 @@ pub struct StaticData {
     /// Indicates number of stages in combo
     pub num_stages: u32,
     /// Data for each stage
-    pub stage_data: Vec<Stage>,
+    pub stage_data: Vec<Stage<Duration>>,
     /// Initial energy gain per strike
     pub initial_energy_gain: u32,
     /// Max energy gain per strike

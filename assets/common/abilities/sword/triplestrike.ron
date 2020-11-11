@@ -1,4 +1,4 @@
-ComboMelee (
+ComboMelee(
     stage_data: [
         (
             stage: 1,
@@ -23,7 +23,7 @@ ComboMelee (
             angle: 180.0,
             base_buildup_duration: 400,
             base_swing_duration: 600,
-            base_recover_duration: 400
+            base_recover_duration: 400,
             forward_movement: 0.0,
         ),
         (
@@ -46,4 +46,4 @@ ComboMelee (
     speed_increase: 0.05,
     max_speed_increase: 1.8,
     is_interruptible: true,
-),
+)

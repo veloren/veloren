@@ -1,5 +1,5 @@
 ChargedMelee(
-    energy_cost: 1,
+    energy_cost: 0,
     energy_drain: 300,
     initial_damage: 10,
     max_damage: 170,
@@ -7,7 +7,8 @@ ChargedMelee(
     max_knockback: 60.0,
     range: 3.5,
     max_angle: 30.0,
+    speed: 1.0,
     charge_duration: 1200,
     swing_duration: 200,
     recover_duration: 300,
-),
+)

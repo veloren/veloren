@@ -11,4 +11,4 @@ BasicBeam(
     energy_regen: 50,
     energy_cost: 100,
     energy_drain: 0,
-),
+)

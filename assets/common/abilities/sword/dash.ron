@@ -14,4 +14,4 @@ DashMelee(
     recover_duration: 500,
     infinite_charge: true,
     is_interruptible: true,
-),
+)
