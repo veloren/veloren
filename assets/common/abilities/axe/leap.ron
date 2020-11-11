@@ -10,4 +10,4 @@ LeapMelee(
     max_angle: 30.0,
     forward_leap_strength: 28.0,
     vertical_leap_strength: 8.0,
-),
+)

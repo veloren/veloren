@@ -11,4 +11,4 @@ SpinMelee(
     is_interruptible: false,
     forward_speed: 0.0,
     num_spins: 1,
-),
+)

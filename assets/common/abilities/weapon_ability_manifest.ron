@@ -9,14 +9,14 @@
         ],
     ),
     Axe: (
-        primary: "common.abilities.axe.tempbasic",
+        primary: "common.abilities.axe.doublestrike",
         secondary: "common.abilities.axe.spin",
         skills: [
             "common.abilities.axe.leap",
         ],
     ),
     Hammer: (
-        primary: "common.abilities.hammer.tempbasic",
+        primary: "common.abilities.hammer.singlestrike",
         secondary: "common.abilities.hammer.charged",
         skills: [
             "common.abilities.hammer.leap",
@@ -48,7 +48,7 @@
     ),
     Shield: (
         primary: "common.abilities.shield.tempbasic",
-        secondary: "common.abilities.shield.tempbasic",
+        secondary: "common.abilities.shield.block",
         skills: [],
     ),
     Unique(StoneGolemFist): (

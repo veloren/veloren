@@ -11,4 +11,4 @@ Shockwave(
     shockwave_duration: 500,
     requires_ground: false,
     move_efficiency: 0.1,
-),
+)

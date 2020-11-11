@@ -2,6 +2,7 @@
 // version in voxygen\src\meta.rs in order to reset save files to being empty
 
 use crate::{
+    assets::{self, Asset},
     comp::{
         body::object, projectile::ProjectileConstructor, Body, CharacterAbility, Gravity,
         LightEmitter,
@@ -10,7 +11,8 @@ use crate::{
     Knockback,
 };
 use serde::{Deserialize, Serialize};
-use std::time::Duration;
+use std::{collections::HashMap, fs::File, io::BufReader, time::Duration};
+use tracing::error;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ToolKind {
@@ -93,8 +95,20 @@ impl Tool {
         Duration::from_millis(millis).div_f32(self.base_speed())
     }
 
-    // TODO: Before merging ron file branch, ensure these are double checked against ron files.
-    pub fn get_abilities(&self) -> Vec<CharacterAbility> {
+    pub fn get_abilities(&self) -> AbilitySet<CharacterAbility> {
+        let base_abilities = match AbilityMap::load("common.abilities.weapon_ability_manifest") {
+            Ok(map) => map.0.get(&self.kind).map(|a| a.clone()).unwrap_or_default(),
+            Err(err) => {
+                error!(?err, "Error unwrapping");
+                AbilitySet::default()
+            },
+        };
+        base_abilities
+    }
+
+    // TODO: Before merging ron file branch, ensure these are double checked against
+    // ron files.
+    /*pub fn get_abilities(&self) -> Vec<CharacterAbility> {
         use CharacterAbility::*;
         use ToolKind::*;
 
@@ -534,6 +548,69 @@ impl Tool {
                 max_angle: 15.0,
             }],
         }
+    }*/
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct AbilitySet<T> {
+    pub primary: T,
+    pub secondary: T,
+    pub skills: Vec<T>,
+}
+
+impl<T: Clone> AbilitySet<T> {
+    pub fn map<U, F: FnMut(T) -> U>(self, mut f: F) -> AbilitySet<U> {
+        AbilitySet {
+            primary: f(self.primary),
+            secondary: f(self.secondary),
+            skills: self.skills.iter().map(|x| f(x.clone())).collect(),
+        }
+    }
+}
+
+impl Default for AbilitySet<CharacterAbility> {
+    fn default() -> Self {
+        AbilitySet {
+            primary: CharacterAbility::default(),
+            secondary: CharacterAbility::default(),
+            skills: vec![],
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct AbilityMap<T = CharacterAbility>(HashMap<ToolKind, AbilitySet<T>>);
+impl Asset for AbilityMap {
+    const ENDINGS: &'static [&'static str] = &["ron"];
+
+    fn parse(buf_reader: BufReader<File>, specifier: &str) -> Result<Self, assets::Error> {
+        ron::de::from_reader::<BufReader<File>, AbilityMap<String>>(buf_reader)
+            .map(|map| {
+                AbilityMap(
+                    map.0
+                        .into_iter()
+                        .map(|(kind, set)| {
+                            (
+                                kind,
+                                set.map(|s| match CharacterAbility::load(&s) {
+                                    Ok(ability) => ability.as_ref().clone(),
+                                    Err(err) => {
+                                        error!(
+                                            ?err,
+                                            "Error loading CharacterAbility: {} for the ability \
+                                             map: {} replacing with default",
+                                            s,
+                                            specifier
+                                        );
+                                        CharacterAbility::default()
+                                    },
+                                }),
+                            )
+                        })
+                        .collect(),
+                )
+            })
+            .map_err(assets::Error::parse_error)
     }
 }
 

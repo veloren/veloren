@@ -7,4 +7,4 @@ BasicMelee(
     knockback: 0.0,
     range: 3.0,
     max_angle: 120.0,
-),
+)
