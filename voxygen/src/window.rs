@@ -1388,6 +1388,7 @@ impl Window {
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug, Serialize, Deserialize)]
 pub enum FullscreenMode {
     Exclusive,
+    #[serde(other)]
     Borderless,
 }
 
@@ -1395,6 +1396,7 @@ impl Default for FullscreenMode {
     fn default() -> Self { FullscreenMode::Borderless }
 }
 #[derive(PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
+#[serde(default)]
 pub struct FullScreenSettings {
     pub enabled: bool,
     pub mode: FullscreenMode,
