@@ -140,7 +140,7 @@ impl Body {
     pub fn radius(&self) -> f32 {
         // TODO: Improve these values (some might be reliant on more info in inner type)
         match self {
-            Body::Humanoid(body) => 0.35 * body.scale(),
+            Body::Humanoid(body) => 0.5 * body.scale(),
             Body::QuadrupedSmall(_) => 0.4,
             Body::QuadrupedMedium(body) => match body.species {
                 quadruped_medium::Species::Grolgar => 1.9,
@@ -172,12 +172,7 @@ impl Body {
 
     pub fn height(&self) -> f32 {
         match self {
-            Body::Humanoid(humanoid) => match humanoid.species {
-                humanoid::Species::Danari => 1.5 * humanoid.scale(),
-                humanoid::Species::Dwarf => 1.55 * humanoid.scale(),
-                humanoid::Species::Orc => 1.95 * humanoid.scale(),
-                _ => 1.8 * humanoid.scale(),
-            },
+            Body::Humanoid(body) => 1.9 * body.scale(),
             Body::QuadrupedSmall(body) => match body.species {
                 quadruped_small::Species::Dodarock => 1.5,
                 quadruped_small::Species::Holladon => 1.5,
