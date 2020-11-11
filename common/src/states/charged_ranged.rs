@@ -31,6 +31,8 @@ pub struct StaticData {
     pub initial_knockback: f32,
     /// How much knockback there is at max charge
     pub max_knockback: f32,
+    /// Speed stat of the weapon
+    pub speed: f32,
     /// Projectile information
     pub projectile_body: Body,
     pub projectile_light: Option<LightEmitter>,
@@ -146,14 +148,18 @@ impl CharacterBehavior for Data {
                     update.character = CharacterState::ChargedRanged(Data {
                         timer: self
                             .timer
-                            .checked_add(Duration::from_secs_f32(data.dt.0))
+                            .checked_add(Duration::from_secs_f32(
+                                data.dt.0 * self.static_data.speed,
+                            ))
                             .unwrap_or_default(),
                         ..*self
                     });
 
                     // Consumes energy if there's enough left and RMB is held down
                     update.energy.change_by(EnergyChange {
-                        amount: -(self.static_data.energy_drain as f32 * data.dt.0) as i32,
+                        amount: -(self.static_data.energy_drain as f32
+                            * data.dt.0
+                            * self.static_data.speed) as i32,
                         source: EnergySource::Ability,
                     });
                 } else if ability_key_is_pressed(data, self.static_data.ability_key) {
@@ -161,14 +167,19 @@ impl CharacterBehavior for Data {
                     update.character = CharacterState::ChargedRanged(Data {
                         timer: self
                             .timer
-                            .checked_add(Duration::from_secs_f32(data.dt.0))
+                            .checked_add(Duration::from_secs_f32(
+                                data.dt.0 * self.static_data.speed,
+                            ))
                             .unwrap_or_default(),
                         ..*self
                     });
 
                     // Consumes energy if there's enough left and RMB is held down
                     update.energy.change_by(EnergyChange {
-                        amount: -(self.static_data.energy_drain as f32 * data.dt.0 / 5.0) as i32,
+                        amount: -(self.static_data.energy_drain as f32
+                            * data.dt.0
+                            * self.static_data.speed
+                            / 5.0) as i32,
                         source: EnergySource::Ability,
                     });
                 }
