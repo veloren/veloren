@@ -22,7 +22,7 @@ impl Animation for RunAnimation {
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
-        let speed = Vec2::<f32>::from(velocity).magnitude();
+        let speed = (Vec2::<f32>::from(velocity).magnitude()).min(24.0);
         *rate = 1.0;
         //let increasefreqtest = (((1.0/speed)*3.0).round()).min(5.0);
         let lab = 0.72; //0.72
@@ -141,7 +141,7 @@ impl Animation for RunAnimation {
         ) * s_a.scaler
             / 11.0;
         next.torso_front.orientation = Quaternion::rotation_x(
-            (amplitude * (short * -0.13).max(-0.2)) * s_a.spring
+            ((amplitude * (short * -0.13).max(-0.2)) * s_a.spring).min(0.1)
                 + x_tilt * (canceler * 6.0).min(1.0),
         ) * Quaternion::rotation_y(tilt * 0.8)
             * Quaternion::rotation_z(tilt * -1.5);
