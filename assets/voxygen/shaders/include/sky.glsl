@@ -70,7 +70,12 @@ const float wind_speed = 0.25;
 vec2 wind_offset = vec2(time_of_day.x * wind_speed);
 
 float cloud_tendency_at(vec2 pos) {
-    return clamp(texture(t_noise, (pos + wind_offset) * 0.000075).x - 0.5, 0, 1);
+    float nz = texture(t_noise, (pos + wind_offset) * 0.000075).x - 0.5;
+    nz = clamp(nz, 0, 1);
+    #if (CLOUD_MODE == CLOUD_MODE_MEDIUM || CLOUD_MODE == CLOUD_MODE_HIGH)
+        nz += (texture(t_noise, (pos + wind_offset) * 0.00035).x - 0.5) * 0.15;
+    #endif
+    return nz;
 }
 
 float cloud_shadow(vec3 pos, vec3 light_dir) {
@@ -82,8 +87,11 @@ float cloud_shadow(vec3 pos, vec3 light_dir) {
         // Fade out shadow if the sun angle is too steep (simulates a widening penumbra with distance)
         const vec2 FADE_RANGE = vec2(1500, 10000);
         float fade = 1.0 - clamp((length(xy_offset) - FADE_RANGE.x) / (FADE_RANGE.y - FADE_RANGE.x), 0, 1);
+        float cloud = cloud_tendency_at(pos.xy + focus_off.xy - xy_offset);
 
-        return max(0, 1 - fade * cloud_tendency_at(pos.xy + focus_off.xy - xy_offset) * 3.0);
+        cloud = cloud * 2.0;
+
+        return clamp(1 - fade * cloud * 3.0, 0, 1);
     #endif
 }
 
