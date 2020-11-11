@@ -2,7 +2,7 @@ use crate::{
     audio::sfx::{SfxEvent, SfxEventItem},
     ecs::MyEntity,
     hud::{DebugInfo, Event as HudEvent, Hud, HudInfo, PressBehavior},
-    i18n::{i18n_asset_key, VoxygenLocalization},
+    i18n::{i18n_asset_key, Localization},
     key_state::KeyState,
     menu::char_selection::CharSelectionState,
     render::Renderer,
@@ -46,7 +46,7 @@ pub struct SessionState {
     key_state: KeyState,
     inputs: comp::ControllerInputs,
     selected_block: Block,
-    voxygen_i18n: std::sync::Arc<VoxygenLocalization>,
+    i18n: std::sync::Arc<Localization>,
     walk_forward_dir: Vec2<f32>,
     walk_right_dir: Vec2<f32>,
     freefly_vel: Vec3<f32>,
@@ -72,7 +72,7 @@ impl SessionState {
             .camera_mut()
             .set_fov_deg(global_state.settings.graphics.fov);
         let hud = Hud::new(global_state, &client.borrow());
-        let voxygen_i18n = VoxygenLocalization::load_expect(&i18n_asset_key(
+        let i18n = Localization::load_expect(&i18n_asset_key(
             &global_state.settings.language.selected_language,
         ));
 
@@ -86,7 +86,7 @@ impl SessionState {
             inputs: comp::ControllerInputs::default(),
             hud,
             selected_block: Block::new(BlockKind::Misc, Rgb::broadcast(255)),
-            voxygen_i18n,
+            i18n,
             walk_forward_dir,
             walk_right_dir,
             freefly_vel: Vec3::zero(),
@@ -131,14 +131,14 @@ impl SessionState {
                     match inv_event {
                         InventoryUpdateEvent::CollectFailed => {
                             self.hud.new_message(ChatMsg {
-                                message: self.voxygen_i18n.get("hud.chat.loot_fail").to_string(),
+                                message: self.i18n.get("hud.chat.loot_fail").to_string(),
                                 chat_type: ChatType::CommandError,
                             });
                         },
                         InventoryUpdateEvent::Collected(item) => {
                             self.hud.new_message(ChatMsg {
                                 message: self
-                                    .voxygen_i18n
+                                    .i18n
                                     .get("hud.chat.loot_msg")
                                     .replace("{item}", item.name()),
                                 chat_type: ChatType::Loot,
@@ -150,9 +150,9 @@ impl SessionState {
                 client::Event::Disconnect => return Ok(TickAction::Disconnect),
                 client::Event::DisconnectionNotification(time) => {
                     let message = match time {
-                        0 => String::from(self.voxygen_i18n.get("hud.chat.goodbye")),
+                        0 => String::from(self.i18n.get("hud.chat.goodbye")),
                         _ => self
-                            .voxygen_i18n
+                            .i18n
                             .get("hud.chat.connection_lost")
                             .replace("{time}", time.to_string().as_str()),
                     };
@@ -165,7 +165,7 @@ impl SessionState {
                 client::Event::Kicked(reason) => {
                     global_state.info_message = Some(format!(
                         "{}: {}",
-                        self.voxygen_i18n.get("main.login.kicked").to_string(),
+                        self.i18n.get("main.login.kicked").to_string(),
                         reason
                     ));
                     return Ok(TickAction::Disconnect);
@@ -207,7 +207,7 @@ impl PlayState for SessionState {
         span!(_guard, "tick", "<Session as PlayState>::tick");
         // TODO: let mut client = self.client.borrow_mut();
         // NOTE: Not strictly necessary, but useful for hotloading translation changes.
-        self.voxygen_i18n = VoxygenLocalization::load_expect(&i18n_asset_key(
+        self.i18n = Localization::load_expect(&i18n_asset_key(
             &global_state.settings.language.selected_language,
         ));
 
@@ -673,7 +673,7 @@ impl PlayState for SessionState {
                     Ok(TickAction::Disconnect) => return PlayStateResult::Pop, // Go to main menu
                     Err(err) => {
                         global_state.info_message =
-                            Some(self.voxygen_i18n.get("common.connection_lost").to_owned());
+                            Some(self.i18n.get("common.connection_lost").to_owned());
                         error!("[session] Failed to tick the scene: {:?}", err);
 
                         return PlayStateResult::Pop;
@@ -752,7 +752,7 @@ impl PlayState for SessionState {
             // Look for changes in the localization files
             if global_state.localization_watcher.reloaded() {
                 hud_events.push(HudEvent::ChangeLanguage(Box::new(
-                    self.voxygen_i18n.metadata.clone(),
+                    self.i18n.metadata.clone(),
                 )));
             }
 
@@ -980,13 +980,13 @@ impl PlayState for SessionState {
                     HudEvent::ChangeLanguage(new_language) => {
                         global_state.settings.language.selected_language =
                             new_language.language_identifier;
-                        self.voxygen_i18n = VoxygenLocalization::load_watched(
+                        self.i18n = Localization::load_watched(
                             &i18n_asset_key(&global_state.settings.language.selected_language),
                             &mut global_state.localization_watcher,
                         )
                         .unwrap();
-                        self.voxygen_i18n.log_missing_entries();
-                        self.hud.update_language(Arc::clone(&self.voxygen_i18n));
+                        self.i18n.log_missing_entries();
+                        self.hud.update_language(Arc::clone(&self.i18n));
                     },
                     HudEvent::ChangeFullscreenMode(new_fullscreen_settings) => {
                         global_state

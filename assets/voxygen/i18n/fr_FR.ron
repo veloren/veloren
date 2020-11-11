@@ -1,5 +1,5 @@
 /// Localization for French (France locale)
-VoxygenLocalization(
+(
     metadata: (
         language_name: "Français",
         language_identifier: "fr_FR",
@@ -372,7 +372,7 @@ objets magiques ?"#,
         "char_selection.change_server": "Changer de serveur",
         "char_selection.enter_world": "Entrer dans le monde",
         "char_selection.logout": "Se déconnecter",
-        "char_selection.create_new_charater": "Créer un nouveau personnage",
+        "char_selection.create_new_character": "Créer un nouveau personnage",
         "char_selection.creating_character": "Création du personnage...",
         "char_selection.character_creation": "Création de personnage",
 

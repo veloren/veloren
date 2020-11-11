@@ -165,6 +165,25 @@ macro_rules! image_ids {
         )*
     };
 }
+#[macro_export]
+macro_rules! image_ids_ice {
+    ($($v:vis struct $Ids:ident { $( <$T:ty> $( $name:ident: $specifier:expr ),* $(,)? )* })*) => {
+        $(
+            $v struct $Ids {
+                $($( $v $name: crate::ui::GraphicId, )*)*
+            }
+
+            impl $Ids {
+                pub fn load(ui: &mut crate::ui::ice::IcedUi) -> Result<Self, common::assets::Error> {
+                    use crate::ui::img_ids::GraphicCreator;
+                    Ok(Self {
+                        $($( $name: ui.add_graphic(<$T as GraphicCreator>::new_graphic($specifier)?), )*)*
+                    })
+                }
+            }
+        )*
+    };
+}
 
 // TODO: combine with the img_ids macro above using a marker for specific fields
 // that should be `Rotations` instead of `widget::Id`

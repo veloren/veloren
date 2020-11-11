@@ -13,7 +13,7 @@
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
 /// Localization for "latinoamericano" Latin-American
-VoxygenLocalization(
+(
     metadata: (
         language_name: "Español Latino",
         language_identifier: "es_la",

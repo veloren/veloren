@@ -5,12 +5,15 @@ use super::char_selection::CharSelectionState;
 #[cfg(feature = "singleplayer")]
 use crate::singleplayer::Singleplayer;
 use crate::{
-    render::Renderer, settings::Settings, window::Event, Direction, GlobalState, PlayState,
-    PlayStateResult,
+    i18n::{i18n_asset_key, Localization},
+    render::Renderer,
+    settings::Settings,
+    window::Event,
+    Direction, GlobalState, PlayState, PlayStateResult,
 };
 use client_init::{ClientInit, Error as InitError, Msg as InitMsg};
 use common::{assets::Asset, comp, span};
-use tracing::{error, warn};
+use tracing::error;
 use ui::{Event as MainMenuEvent, MainMenuUi};
 
 pub struct MainMenuState {
@@ -47,7 +50,7 @@ impl PlayState for MainMenuState {
 
     fn tick(&mut self, global_state: &mut GlobalState, events: Vec<Event>) -> PlayStateResult {
         span!(_guard, "tick", "<MainMenuState as PlayState>::tick");
-        let localized_strings = crate::i18n::VoxygenLocalization::load_expect(
+        let mut localized_strings = crate::i18n::Localization::load_expect(
             &crate::i18n::i18n_asset_key(&global_state.settings.language.selected_language),
         );
 
@@ -84,7 +87,7 @@ impl PlayState for MainMenuState {
             match event {
                 Event::Close => return PlayStateResult::Shutdown,
                 // Pass events to ui.
-                Event::Ui(event) => {
+                Event::IcedUi(event) => {
                     self.main_menu_ui.handle_event(event);
                 },
                 // Ignore all other events.
@@ -219,6 +222,14 @@ impl PlayState for MainMenuState {
                     password,
                     server_address,
                 } => {
+                    let mut net_settings = &mut global_state.settings.networking;
+                    net_settings.username = username.clone();
+                    net_settings.default_server = server_address.clone();
+                    if !net_settings.servers.contains(&server_address) {
+                        net_settings.servers.push(server_address.clone());
+                    }
+                    global_state.settings.save_to_file_warn();
+
                     attempt_login(
                         &mut global_state.settings,
                         &mut global_state.info_message,
@@ -240,15 +251,25 @@ impl PlayState for MainMenuState {
                     self.client_init = None;
                     self.main_menu_ui.cancel_connection();
                 },
+                MainMenuEvent::ChangeLanguage(new_language) => {
+                    global_state.settings.language.selected_language =
+                        new_language.language_identifier;
+                    localized_strings = Localization::load_expect(&i18n_asset_key(
+                        &global_state.settings.language.selected_language,
+                    ));
+                    localized_strings.log_missing_entries();
+                    self.main_menu_ui
+                        .update_language(std::sync::Arc::clone(&localized_strings));
+                },
                 #[cfg(feature = "singleplayer")]
                 MainMenuEvent::StartSingleplayer => {
                     let singleplayer = Singleplayer::new(None); // TODO: Make client and server use the same thread pool
 
                     global_state.singleplayer = Some(singleplayer);
                 },
-                MainMenuEvent::Settings => {}, // TODO
                 MainMenuEvent::Quit => return PlayStateResult::Shutdown,
-                /*MainMenuEvent::DisclaimerClosed => {
+                // Note: Keeping in case we re-add the disclaimer
+                /*MainMenuEvent::DisclaimerAccepted => {
                     global_state.settings.show_disclaimer = false
                 },*/
                 MainMenuEvent::AuthServerTrust(auth_server, trust) => {
@@ -291,15 +312,6 @@ fn attempt_login(
     server_port: u16,
     client_init: &mut Option<ClientInit>,
 ) {
-    let mut net_settings = &mut settings.networking;
-    net_settings.username = username.clone();
-    if !net_settings.servers.contains(&server_address) {
-        net_settings.servers.push(server_address.clone());
-    }
-    if let Err(e) = settings.save_to_file() {
-        warn!(?e, "Failed to save settings");
-    }
-
     if comp::Player::alias_is_valid(&username) {
         // Don't try to connect if there is already a connection in progress.
         if client_init.is_none() {
