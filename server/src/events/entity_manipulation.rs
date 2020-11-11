@@ -470,6 +470,16 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
     */
 }
 
+/// Delete an entity without any special actions (this is generally used for
+/// temporarily unloading an entity when it leaves the view distance). As much
+/// as possible, this function should simply make an entity cease to exist.
+pub fn handle_delete(server: &mut Server, entity: EcsEntity) {
+    let _ = server
+        .state_mut()
+        .delete_entity_recorded(entity)
+        .map_err(|e| error!(?e, ?entity, "Failed to delete destroyed entity"));
+}
+
 pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>) {
     let state = &server.state;
     if vel.z <= -30.0 {

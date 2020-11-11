@@ -1,5 +1,11 @@
 use super::SysTimer;
-use crate::{chunk_generator::ChunkGenerator, client::Client, presence::Presence, Tick};
+use crate::{
+    chunk_generator::ChunkGenerator,
+    client::Client,
+    presence::Presence,
+    rtsim::RtSim,
+    Tick,
+};
 use common::{
     comp::{self, bird_medium, item::tool::AbilityMap, Alignment, Pos},
     event::{EventBus, ServerEvent},
@@ -32,6 +38,7 @@ impl<'a> System<'a> for Sys {
         WriteExpect<'a, ChunkGenerator>,
         WriteExpect<'a, TerrainGrid>,
         Write<'a, TerrainChanges>,
+        WriteExpect<'a, RtSim>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Presence>,
         ReadStorage<'a, Client>,
@@ -47,6 +54,7 @@ impl<'a> System<'a> for Sys {
             mut chunk_generator,
             mut terrain,
             mut terrain_changes,
+            mut rtsim,
             positions,
             presences,
             clients,
@@ -100,6 +108,7 @@ impl<'a> System<'a> for Sys {
                 terrain_changes.modified_chunks.insert(key);
             } else {
                 terrain_changes.new_chunks.insert(key);
+                rtsim.hook_load_chunk(key);
             }
 
             // Handle chunk supplement
@@ -217,10 +226,12 @@ impl<'a> System<'a> for Sys {
                     chunks_to_remove.push(chunk_key);
                 }
             });
+
         for key in chunks_to_remove {
             // TODO: code duplication for chunk insertion between here and state.rs
             if terrain.remove(key).is_some() {
                 terrain_changes.removed_chunks.insert(key);
+                rtsim.hook_unload_chunk(key);
             }
 
             chunk_generator.cancel_if_pending(key);

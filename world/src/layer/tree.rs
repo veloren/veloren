@@ -48,20 +48,23 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
             let tree = if let Some(tree) = tree_cache.entry(tree_wpos).or_insert_with(|| {
                 let col = ColumnGen::new(info.land()).get((tree_wpos, info.index()))?;
 
+                let is_quirky = QUIRKY_RAND.chance(seed, 1.0 / 500.0);
+
                 // Ensure that it's valid to place a tree here
-                if ((seed.wrapping_mul(13)) & 0xFF) as f32 / 256.0 > col.tree_density
-                    || col.alt < col.water_level
+                if col.alt < col.water_level
                     || col.spawn_rate < 0.5
                     || col.water_dist.map(|d| d < 8.0).unwrap_or(false)
                     || col.path.map(|(d, _, _, _)| d < 12.0).unwrap_or(false)
                 {
+                    return None;
+                } else if !is_quirky && ((seed.wrapping_mul(13)) & 0xFF) as f32 / 256.0 > col.tree_density {
                     return None;
                 }
 
                 Some(Tree {
                     pos: Vec3::new(tree_wpos.x, tree_wpos.y, col.alt as i32),
                     model: {
-                        let models: &'static [_] = if QUIRKY_RAND.get(seed) % 512 == 17 {
+                        let models: &'static [_] = if is_quirky {
                             if col.temp > CONFIG.desert_temp {
                                 &QUIRKY_DRY
                             } else {
@@ -69,8 +72,8 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
                             }
                         } else {
                             match col.forest_kind {
-                                ForestKind::Oak if QUIRKY_RAND.get(seed) % 16 == 7 => &OAK_STUMPS,
-                                ForestKind::Oak if QUIRKY_RAND.get(seed) % 19 == 7 => &FRUIT_TREES,
+                                ForestKind::Oak if QUIRKY_RAND.chance(seed + 1, 1.0 / 16.0) => &OAK_STUMPS,
+                                ForestKind::Oak if QUIRKY_RAND.chance(seed + 2, 1.0 / 20.0) => &FRUIT_TREES,
                                 ForestKind::Palm => &PALMS,
                                 ForestKind::Savannah => &ACACIAS,
                                 ForestKind::Oak => &OAKS,

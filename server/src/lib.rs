@@ -492,7 +492,14 @@ impl Server {
         // 4) Tick the server's LocalState.
         // 5) Fetch any generated `TerrainChunk`s and insert them into the terrain.
         // in sys/terrain.rs
-        self.state.tick(dt, sys::add_server_systems, false);
+        self.state.tick(
+            dt,
+            |dispatcher_builder| {
+                sys::add_server_systems(dispatcher_builder);
+                rtsim::add_server_systems(dispatcher_builder);
+            },
+            false,
+        );
 
         let before_handle_events = Instant::now();
 
@@ -517,7 +524,6 @@ impl Server {
 
         // Tick the world
         self.world.tick(dt);
-        rtsim::tick(&mut self.state);
 
         let before_entity_cleanup = Instant::now();
 

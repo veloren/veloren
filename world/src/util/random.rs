@@ -45,6 +45,10 @@ pub struct RandomPerm {
 
 impl RandomPerm {
     pub const fn new(seed: u32) -> Self { Self { seed } }
+
+    pub fn chance(&self, perm: u32, chance: f32) -> bool {
+        (self.get(perm) % (1 << 16)) as f32 / ((1 << 16) as f32) < chance
+    }
 }
 
 impl Sampler<'static> for RandomPerm {
