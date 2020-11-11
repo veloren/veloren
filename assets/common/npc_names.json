@@ -617,6 +617,10 @@
             "saurok_sly": {
                 "keyword": "saurok_sly",
                 "generic": "Sly Saurok"
+            },
+            "mindflayer": {
+                "keyword": "mindflayer",
+                "generic": "Mindflayer"
             }
         }
     },

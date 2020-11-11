@@ -539,4 +539,64 @@
             central: ("weapon.bow.longbow_saurok"),
         )
     ),
+    (Mindflayer, Male): (
+        head: (
+            offset: (-8.5, -8.0, -10.5),
+            central: ("npc.mindflayer.male.head"),
+        ),
+        torso_upper: (
+            offset: (-10.5, -8.5, -11.0),
+            central: ("npc.mindflayer.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-4.5, -6.0, -7.5),
+            central: ("npc.mindflayer.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        main: (
+            offset: (-5.5, -3.5, -4.0),
+            central: ("weapon.staff.firestaff_mindflayer"),
+        )
+    ),
+    (Mindflayer, Female): (
+        head: (
+            offset: (-8.5, -8.0, -10.5),
+            central: ("npc.mindflayer.male.head"),
+        ),
+        torso_upper: (
+            offset: (-10.5, -8.5, -11.0),
+            central: ("npc.mindflayer.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-4.5, -6.0, -7.5),
+            central: ("npc.mindflayer.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        main: (
+            offset: (-5.5, -3.5, -4.0),
+            central: ("weapon.staff.firestaff_mindflayer"),
+        )
+    ),
 })
