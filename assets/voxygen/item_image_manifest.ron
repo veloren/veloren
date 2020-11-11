@@ -61,7 +61,7 @@
         "voxel.weapon.dagger.dagger_rusty",
         (0.0, 0.0, -4.0), (-120.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.dagger.basic-0"): VoxTrans(
+    Tool("common.items.weapons.dagger.basic_0"): VoxTrans(
         "voxel.weapon.dagger.dagger_basic-0",
         (0.0, 0.0, -4.0), (-120.0, 90.0, 0.0), 1.1,
     ),
@@ -255,7 +255,7 @@
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
     ),
     Tool("common.items.debug.cultist_purp_2h_boss-0"): VoxTrans(
-        "voxel.weapon.sword.frost_cleaver-1",
+        "voxel.weapon.sword.cultist_purp_2h-0",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
     ),
     Tool("common.items.npc_weapons.sword.cultist_purp_2h_boss-0"): VoxTrans(
