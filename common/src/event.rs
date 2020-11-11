@@ -37,6 +37,7 @@ pub enum ServerEvent {
         entity: EcsEntity,
         change: comp::HealthChange,
     },
+    Delete(EcsEntity),
     Destroy {
         entity: EcsEntity,
         cause: comp::HealthSource,

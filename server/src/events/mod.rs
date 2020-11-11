@@ -8,7 +8,7 @@ use entity_creation::{
     handle_loaded_character_data, handle_shockwave, handle_shoot,
 };
 use entity_manipulation::{
-    handle_buff, handle_damage, handle_destroy, handle_energy_change, handle_explosion,
+    handle_buff, handle_damage, handle_destroy, handle_delete, handle_energy_change, handle_explosion,
     handle_knockback, handle_land_on_ground, handle_level_up, handle_respawn,
 };
 use group_manip::handle_group;
@@ -83,6 +83,7 @@ impl Server {
                     handle_knockback(&self, entity, impulse)
                 },
                 ServerEvent::Damage { entity, change } => handle_damage(&self, entity, change),
+                ServerEvent::Delete(entity) => handle_delete(self, entity),
                 ServerEvent::Destroy { entity, cause } => handle_destroy(self, entity, cause),
                 ServerEvent::InventoryManip(entity, manip) => handle_inventory(self, entity, manip),
                 ServerEvent::GroupManip(entity, manip) => handle_group(self, entity, manip),
