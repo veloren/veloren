@@ -35,18 +35,20 @@ vec3 cloud_at(vec3 pos, float dist) {
 
     vec2 cloud_attr = get_cloud_heights(wind_pos.xy);
     float cloud_factor = 0.0;
+    float turb_noise = 0.0;
     // This is a silly optimisation but it actually nets us a fair few fps by skipping quite a few expensive calcs
     if (cloud_tendency > 0 || mist > 0.0) {
         // Turbulence (small variations in clouds/mist)
         const float turb_speed = -1.0; // Turbulence goes the opposite way
         vec3 turb_offset = vec3(1, 1, 0) * time_of_day.x * turb_speed;
-        #if (CLOUD_MODE == CLOUD_MODE_MINIMAL)
-            float turb_noise = 0.0;
-        #else
-            float turb_noise = noise_3d((wind_pos + turb_offset) * 0.001) - 0.5;
+        #if (CLOUD_MODE != CLOUD_MODE_MINIMAL)
+            turb_noise = noise_3d((wind_pos + turb_offset) * 0.001) - 0.5;
         #endif
         #if (CLOUD_MODE == CLOUD_MODE_MEDIUM || CLOUD_MODE == CLOUD_MODE_HIGH)
             turb_noise += (noise_3d((wind_pos + turb_offset * 0.3) * 0.004) - 0.5) * 0.25;
+        #endif
+        #if (CLOUD_MODE == CLOUD_MODE_HIGH)
+            turb_noise += (noise_3d((wind_pos + turb_offset * 0.3) * 0.01) - 0.5) * 0.125;
         #endif
         mist *= (1.0 + turb_noise);
 
@@ -57,7 +59,7 @@ vec3 cloud_at(vec3 pos, float dist) {
     }
 
     // What proportion of sunlight is *not* being blocked by nearby cloud? (approximation)
-    sun_access = clamp((pos.z - cloud_attr.x) * 0.002 + 0.35 + mist * 10000, 0.0, 1);
+    sun_access = clamp((pos.z - cloud_attr.x + turb_noise * 250.0) * 0.002 + 0.35 + mist * 10000, 0.0, 1);
 
     // Prevent clouds and mist appearing underground (but fade them out gently)
     float not_underground = clamp(1.0 - (alt_at(pos.xy - focus_off.xy) - (pos.z - focus_off.z)) / 80.0, 0, 1);
@@ -76,7 +78,7 @@ float atan2(in float y, in float x) {
 
 const float DIST_CAP = 50000;
 #if (CLOUD_MODE == CLOUD_MODE_HIGH)
-    const uint QUALITY = 100u;
+    const uint QUALITY = 200u;
 #elif (CLOUD_MODE == CLOUD_MODE_MEDIUM)
     const uint QUALITY = 40u;
 #elif (CLOUD_MODE == CLOUD_MODE_LOW)
@@ -114,7 +116,7 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
         ) * 2000;
     #endif
     #if (CLOUD_MODE == CLOUD_MODE_MINIMAL || CLOUD_MODE == CLOUD_MODE_LOW)
-        splay += (texture(t_noise, vec2(atan2(dir.x, dir.y) * 2 / PI, dir.z) * 10.0 - time_of_day * 0.00005).x - 0.5) * 0.075 / (1.0 + pow(dir.z, 2) * 10);
+        splay += (texture(t_noise, vec2(atan2(dir.x, dir.y) * 2 / PI, dir.z) * 5.0 - time_of_day * 0.00005).x - 0.5) * 0.075 / (1.0 + pow(dir.z, 2) * 10);
     #endif
 
     // Proportion of sunlight that get scattered back into the camera by clouds
