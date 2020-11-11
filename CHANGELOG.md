@@ -67,6 +67,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Switched to procedural snow cover on trees
 - Significantly improved terrain generation performance
 - Significantly stabilized the game clock, to produce more "constant" TPS
+- Transitioned main menu and character selection screen to a using iced for the ui (fixes paste keybinding on macos, removes password field limits, adds tabbing between input fields in the main menu, adds language selection in the main menu)
 
 ### Removed
 

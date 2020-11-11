@@ -2,7 +2,7 @@ use super::{
     img_ids::{Imgs, ImgsRot},
     Show, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
-use crate::ui::{fonts::ConrodVoxygenFonts, img_ids};
+use crate::ui::{fonts::Fonts, img_ids};
 use client::{self, Client};
 use common::{comp, terrain::TerrainChunkSize, vol::RectVolSize};
 use conrod_core::{
@@ -40,7 +40,7 @@ pub struct MiniMap<'a> {
     imgs: &'a Imgs,
     rot_imgs: &'a ImgsRot,
     world_map: &'a (img_ids::Rotations, Vec2<u32>),
-    fonts: &'a ConrodVoxygenFonts,
+    fonts: &'a Fonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
     ori: Vec3<f32>,
@@ -53,7 +53,7 @@ impl<'a> MiniMap<'a> {
         imgs: &'a Imgs,
         rot_imgs: &'a ImgsRot,
         world_map: &'a (img_ids::Rotations, Vec2<u32>),
-        fonts: &'a ConrodVoxygenFonts,
+        fonts: &'a Fonts,
         ori: Vec3<f32>,
     ) -> Self {
         Self {

@@ -558,16 +558,16 @@ impl Default for GameplaySettings {
 pub struct NetworkingSettings {
     pub username: String,
     pub servers: Vec<String>,
-    pub default_server: usize,
+    pub default_server: String,
     pub trusted_auth_servers: HashSet<String>,
 }
 
 impl Default for NetworkingSettings {
     fn default() -> Self {
         Self {
-            username: "Username".to_string(),
+            username: "".to_string(),
             servers: vec!["server.veloren.net".to_string()],
-            default_server: 0,
+            default_server: "server.veloren.net".to_string(),
             trusted_auth_servers: ["https://auth.veloren.net"]
                 .iter()
                 .map(|s| s.to_string())

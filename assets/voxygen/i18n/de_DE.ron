@@ -11,7 +11,7 @@
 /// `assets/voxygen/i18n` and that's it!
 
 /// Lokalisation für Deutsch/Deutschland
-VoxygenLocalization(
+(
     metadata: (
         language_name: "Deutsch",
         language_identifier: "de_DE",
@@ -470,10 +470,10 @@ magischen Gegenstände ergattern?"#,
         "char_selection.change_server": "Server wechseln.",
         "char_selection.enter_world": "Betreten",
         "char_selection.logout": "Ausloggen",
-        "char_selection.create_charater": "Charakter erstellen",
+        "char_selection.create_character": "Charakter erstellen",
+        "char_selection.create_new_character": "Neuen Charakter erstellen",
         "char_selection.creating_character": "Erstelle Charakter...",
         "char_selection.character_creation": "Charaktererstellung",
-        "char_selection.create_new_charater": "Neuen Charakter erstellen",
 
        "char_selection.human_default": "Human Default",
         "char_selection.level_fmt": "Level {level_nb}",

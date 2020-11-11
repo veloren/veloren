@@ -24,15 +24,21 @@ common = {package = "veloren-common", path = "../common"}
 anim = {package = "veloren-voxygen-anim", path = "src/anim", default-features = false}
 
 # Graphics
-conrod_core = {git = "https://gitlab.com/veloren/conrod.git", branch="copypasta_0.7"}
-conrod_winit = {git = "https://gitlab.com/veloren/conrod.git", branch="copypasta_0.7"}
-euc = {git = "https://github.com/zesterer/euc.git"}
 gfx = "0.18.2"
 gfx_device_gl = {version = "0.16.2", optional = true}
 gfx_gl = {version = "0.6.1", optional = true}
-glutin = {git = "https://github.com/rust-windowing/glutin.git", rev="63a1ea7d6e64c5112418cab9f21cd409f0afd7c2"}
-old_school_gfx_glutin_ext = "0.24"
-winit = {version = "0.22.2", features = ["serde"]}
+glutin = "0.25.1"
+old_school_gfx_glutin_ext = "0.25"
+winit = {version = "0.23.0", features = ["serde"]}
+
+# Ui
+conrod_core = {git = "https://gitlab.com/veloren/conrod.git", branch="copypasta_0.7"}
+conrod_winit = {git = "https://gitlab.com/veloren/conrod.git", branch="copypasta_0.7"}
+euc = {git = "https://github.com/zesterer/euc.git"}
+iced = {package = "iced_native", git = "https://github.com/hecrj/iced", rev = "f464316"}
+iced_winit = {git = "https://github.com/hecrj/iced", rev = "f464316"}
+window_clipboard = "0.1.1"
+glyph_brush = "0.7.0"
 
 # ECS
 specs = {git = "https://github.com/amethyst/specs.git", rev = "7a2e348ab2223818bad487695c66c43db88050a5"}

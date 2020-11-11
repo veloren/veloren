@@ -57,6 +57,21 @@ impl<P: Pipeline> Mesh<P> {
         self.verts.push(quad.a);
     }
 
+    /// Overwrite a quad
+    pub fn replace_quad(&mut self, index: usize, quad: Quad<P>) {
+        debug_assert!(index % 3 == 0);
+        assert!(index + 5 < self.verts.len());
+        // Tri 1
+        self.verts[index] = quad.a.clone();
+        self.verts[index + 1] = quad.b;
+        self.verts[index + 2] = quad.c.clone();
+
+        // Tri 2
+        self.verts[index + 3] = quad.c;
+        self.verts[index + 4] = quad.d;
+        self.verts[index + 5] = quad.a;
+    }
+
     /// Push the vertices of another mesh onto the end of this mesh.
     pub fn push_mesh(&mut self, other: &Mesh<P>) { self.verts.extend_from_slice(other.vertices()); }
 

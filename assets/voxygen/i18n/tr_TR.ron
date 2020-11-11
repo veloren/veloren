@@ -13,7 +13,7 @@
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
 /// Localization for Turkish (Turkey)
-VoxygenLocalization(
+(
     metadata: (
         language_name: "Türkçe (Türkiye)",
         language_identifier: "tr_TR",

@@ -7,9 +7,10 @@ mod widgets;
 pub mod img_ids;
 #[macro_use]
 pub mod fonts;
+pub mod ice;
 
 pub use event::Event;
-pub use graphic::{Graphic, SampleStrat, Transform};
+pub use graphic::{Graphic, Id as GraphicId, Rotation, SampleStrat, Transform};
 pub use scale::{Scale, ScaleMode};
 pub use widgets::{
     image_frame::ImageFrame,
@@ -32,11 +33,11 @@ use crate::{
 #[rustfmt::skip]
 use ::image::GenericImageView;
 use cache::Cache;
-use common::{assets, span, util::srgba_to_linear};
+use common::{span, util::srgba_to_linear};
 use conrod_core::{
     event::Input,
     graph::{self, Graph},
-    image::{self, Map},
+    image::{Id as ImageId, Map},
     input::{touch::Touch, Motion, Widget},
     render::{Primitive, PrimitiveKind},
     text::{self, font},
@@ -44,14 +45,9 @@ use conrod_core::{
     Rect, Scalar, UiBuilder, UiCell,
 };
 use core::{convert::TryInto, f32, f64, ops::Range};
-use graphic::{Rotation, TexId};
+use graphic::TexId;
 use hashbrown::hash_map::Entry;
-use std::{
-    fs::File,
-    io::{BufReader, Read},
-    sync::Arc,
-    time::Duration,
-};
+use std::{sync::Arc, time::Duration};
 use tracing::{error, warn};
 use vek::*;
 
@@ -101,17 +97,6 @@ impl DrawCommand {
     }
 }
 
-pub struct Font(text::Font);
-impl assets::Asset for Font {
-    const ENDINGS: &'static [&'static str] = &["ttf"];
-
-    fn parse(mut buf_reader: BufReader<File>, _specifier: &str) -> Result<Self, assets::Error> {
-        let mut buf = Vec::new();
-        buf_reader.read_to_end(&mut buf)?;
-        Ok(Font(text::Font::from_bytes(buf).unwrap()))
-    }
-}
-
 pub struct Ui {
     pub ui: conrod_core::Ui,
     image_map: Map<(graphic::Id, Rotation)>,
@@ -140,7 +125,7 @@ pub struct Ui {
 
 impl Ui {
     pub fn new(window: &mut Window) -> Result<Self, Error> {
-        let scale = Scale::new(window, ScaleMode::Absolute(1.0));
+        let scale = Scale::new(window, ScaleMode::Absolute(1.0), 1.0);
         let win_dims = scale.scaled_window_size().into_array();
 
         let renderer = window.renderer_mut();
@@ -187,7 +172,7 @@ impl Ui {
     // Get a copy of Scale
     pub fn scale(&self) -> Scale { self.scale }
 
-    pub fn add_graphic(&mut self, graphic: Graphic) -> image::Id {
+    pub fn add_graphic(&mut self, graphic: Graphic) -> ImageId {
         self.image_map
             .insert((self.cache.add_graphic(graphic), Rotation::None))
     }
@@ -212,7 +197,7 @@ impl Ui {
         }
     }
 
-    pub fn replace_graphic(&mut self, id: image::Id, graphic: Graphic) {
+    pub fn replace_graphic(&mut self, id: ImageId, graphic: Graphic) {
         let graphic_id = if let Some((graphic_id, _)) = self.image_map.get(&id) {
             *graphic_id
         } else {
@@ -223,8 +208,9 @@ impl Ui {
         self.image_map.replace(id, (graphic_id, Rotation::None));
     }
 
-    pub fn new_font(&mut self, font: Arc<Font>) -> font::Id {
-        self.ui.fonts.insert(font.as_ref().0.clone())
+    pub fn new_font(&mut self, font: Arc<crate::ui::ice::RawFont>) -> font::Id {
+        let font = text::Font::from_bytes(font.0.clone()).unwrap();
+        self.ui.fonts.insert(font)
     }
 
     pub fn id_generator(&mut self) -> Generator { self.ui.widget_id_generator() }

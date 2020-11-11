@@ -1,5 +1,5 @@
 /// Localization for Traditional Chinese
-VoxygenLocalization(
+(
     metadata: (
         language_name: "繁體中文",
         language_identifier: "zh_TW",
