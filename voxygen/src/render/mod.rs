@@ -67,7 +67,6 @@ use serde::{Deserialize, Serialize};
 /// Anti-aliasing modes
 #[derive(PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum AaMode {
-    None,
     /// Fast approximate antialiasing.
     ///
     /// This is a screen-space technique, and therefore works fine with greedy
@@ -99,6 +98,8 @@ pub enum AaMode {
     /// meshing that (without significantly more work) invalidate the
     /// GPU's assumptions about importance sampling.
     SsaaX4,
+    #[serde(other)]
+    None,
 }
 
 impl Default for AaMode {
@@ -140,8 +141,9 @@ pub enum CloudMode {
     ///   future that player better with the GPU.
     Minimal,
     Low,
-    Medium,
     High,
+    #[serde(other)]
+    Medium,
 }
 
 impl Default for CloudMode {
@@ -171,6 +173,7 @@ pub enum FluidMode {
     /// Another issue is that we don't always know whether light is *blocked*,
     /// which causes attenuation to be computed incorrectly; this can be
     /// addressed by using shadow maps (at least for terrain).
+    #[serde(other)]
     Shiny,
 }
 
@@ -187,15 +190,16 @@ pub enum LightingMode {
     /// This model may not work as well with purely directional lighting, and is
     /// more expensive than the other models.
     Ashikhmin,
-    /// Standard Blinn-Phong shading, combing Lambertian diffuse reflections and
-    /// specular highlights.
-    BlinnPhong,
     /// Standard Lambertian lighting model, with only diffuse reflections.  The
     /// cheapest lighting model by a decent margin, but the performance
     /// difference between it and Blinn-Phong will probably only be
     /// significant on low-end machines that are bottlenecked on fragment
     /// shading.
     Lambertian,
+    /// Standard Blinn-Phong shading, combing Lambertian diffuse reflections and
+    /// specular highlights.
+    #[serde(other)]
+    BlinnPhong,
 }
 
 impl Default for LightingMode {
@@ -220,15 +224,16 @@ impl Default for ShadowMapMode {
 pub enum ShadowMode {
     /// No shadows at all.  By far the cheapest option.
     None,
+    /// Shadow map (render the scene from each light source, and also renders
+    /// LOD shadows using horizon maps).
+    Map(ShadowMapMode),
     /// Point shadows (draw circles under figures, up to a configured maximum;
     /// also render LOD shadows using horizon maps).  Can be expensive on
     /// some machines, probably mostly due to horizon mapping; the point
     /// shadows are not rendered too efficiently, but that can probably
     /// be addressed later.
+    #[serde(other)] // Would normally be on `Map`, but only allowed on unit variants
     Cheap,
-    /// Shadow map (render the scene from each light source, and also renders
-    /// LOD shadows using horizon maps).
-    Map(ShadowMapMode),
 }
 
 impl Default for ShadowMode {
@@ -254,15 +259,11 @@ impl ShadowMode {
 
 /// Render modes
 #[derive(PartialEq, Clone, Debug, Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct RenderMode {
-    #[serde(default)]
     pub aa: AaMode,
-    #[serde(default)]
     pub cloud: CloudMode,
-    #[serde(default)]
     pub fluid: FluidMode,
-    #[serde(default)]
     pub lighting: LightingMode,
-    #[serde(default)]
     pub shadow: ShadowMode,
 }

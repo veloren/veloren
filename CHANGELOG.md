@@ -68,6 +68,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Significantly improved terrain generation performance
 - Significantly stabilized the game clock, to produce more "constant" TPS
 - Transitioned main menu and character selection screen to a using iced for the ui (fixes paste keybinding on macos, removes password field limits, adds tabbing between input fields in the main menu, adds language selection in the main menu)
+- Made settings less likely to reset when the format changes
+- Adjusted some keybindings
 
 ### Removed
 
