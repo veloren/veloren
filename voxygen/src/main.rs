@@ -192,5 +192,5 @@ fn main() {
         localization_watcher,
     };
 
-    run::run(global_state, event_loop, map);
+    run::run(global_state, event_loop);
 }

@@ -96,14 +96,15 @@ impl Tool {
     }
 
     pub fn get_abilities(&self, map: &AbilityMap) -> AbilitySet<CharacterAbility> {
-        let base_abilities = match AbilityMap::load("common.abilities.weapon_ability_manifest") {
-            Ok(map) => map.0.get(&self.kind).map(|a| a.clone()).unwrap_or_default(),
-            Err(err) => {
-                error!(?err, "Error unwrapping");
-                AbilitySet::default()
-            },
-        };
-        base_abilities
+        if let Some(set) = map.0.get(&self.kind).cloned() {
+            set
+        } else {
+            error!(
+                "ToolKind: {:?} has no AbilitySet in the ability map falling back to default",
+                &self.kind
+            );
+            Default::default()
+        }
     }
 
     // TODO: Before merging ron file branch, ensure these are double checked against
