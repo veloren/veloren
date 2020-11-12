@@ -26,7 +26,7 @@
 //!     path: "voxygen.audio.soundtrack.sleepy",
 //!     length: 400.0,
 //!     timing: Some(Night),
-//!     biome: [
+//!     biomes: [
 //!         (Forest, 1),
 //!         (Grassland, 2),
 //!     ],
@@ -132,29 +132,12 @@ impl MusicMgr {
         //println!("biome: {:?}", current_chunk.meta().biome());
         //println!("chaos: {}", current_chunk.meta().chaos());
         //println!("alt: {}", current_chunk.meta().alt());
-        //println!("temp: {}", current_chunk.meta().temp());
         //println!("tree_density: {}",
         // current_chunk.meta().tree_density());
-        // println!("humidity: {}", current_chunk.meta().humidity());
         //println!("cave_alt: {}", current_chunk.meta().cave_alt());
         //if let Some(position) = client.current_position() {
         //    println!("player_pos: {:?}", position);
         //}
-        //let player_position = match client.current_position() {
-        //    Some(pos) => pos,
-        //    None => Vec3::default(),
-        //};
-        //let block_position = Vec3::new(
-        //    player_position[0],
-        //    player_position[1],
-        //    player_position[2] - 1.0,
-        //)
-        //.map(|x| x as i32);
-        //let block_kind = match state.get_block(block_position) {
-        //    Some(block) => block.kind(),
-        //    None => BlockKind::Air,
-        //};
-        //println!("BlockKind: {:?}", block_kind);
 
         if audio.music_enabled()
             && !self.soundtrack.tracks.is_empty()
@@ -226,7 +209,7 @@ impl MusicMgr {
         });
 
         if let Ok(track) = new_maybe_track {
-            println!("Now playing {:?}", track.title);
+            //println!("Now playing {:?}", track.title);
             self.last_track = String::from(&track.title);
             self.began_playing = Instant::now();
             self.next_track_change = track.length + silence_between_tracks_seconds;

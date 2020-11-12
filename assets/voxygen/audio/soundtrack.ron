@@ -1,8 +1,10 @@
 // TODO: Re-add tunes that are not fitting general outside day/night situations
 // TODO: Add an ambient-soundtrack that runs independently from the musical soundtrack
-//Times: Some(Day), Some(Night), None
-//List of biomes currently: Grassland, Forest, Jungle, Desert, Snowland, Lake, Mountain
-//Sites: Cave, Dungeon
+// Times: Some(Day), Some(Night), None
+// List of biomes currently: Grassland, Forest, Desert, Snowland, Lake, Mountain, Ocean
+// Also Jungle and Swamp but these are not defined currently as the worldgen around
+// them is changing and not stable
+// Sites: Cave, Dungeon
 
 (
     tracks: [
@@ -12,7 +14,6 @@
             length: 206.0,
             timing: Some(Night),
             biomes: [
-                (Jungle, 1),
                 (Desert, 1),
                 (Grassland, 1),
                 (Snowland, 1),
@@ -29,7 +30,6 @@
             timing: Some(Night),
             biomes: [
                 (Forest, 1),
-                (Jungle, 1),
             ],
             site: Some(Void),
             artist: "Aeronic",
@@ -75,6 +75,15 @@
             site: Some(Cave),
             artist: "Aeronic",
         ),
+        (   //Repeat for other site
+            title: "Mineral Deposits",
+            path: "voxygen.audio.soundtrack.mineral_deposits",
+            length: 148.0,
+            timing: None,
+            biomes: [],
+            site: Some(Dungeon),
+            artist: "Aeronic",
+        ),
         (
             title: "Moonbeams",
             path: "voxygen.audio.soundtrack.moonbeams",
@@ -90,7 +99,6 @@
             length: 173.0,
             timing: Some(Night),
             biomes: [
-                (Forest, 1),
                 (Grassland, 1),
             ],
             site: Some(Void),
@@ -148,7 +156,7 @@
             site: Some(Cave),
             artist: "badbbad",
         ),
-         (  //Repeat for other site
+        (   //Repeat for other site
             title: "Down The Rabbit Hole",
             path: "voxygen.audio.soundtrack.down_the_rabbit_hole",
             length: 244.0,

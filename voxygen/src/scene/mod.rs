@@ -307,9 +307,9 @@ impl Scene {
             light_data: Vec::new(),
             particle_mgr: ParticleMgr::new(renderer),
             figure_mgr: FigureMgr::new(renderer),
-            sfx_mgr: SfxMgr::new(),
+            sfx_mgr: SfxMgr::default(),
             music_mgr: MusicMgr::default(),
-            ambient_mgr: WindMgr::new(),
+            ambient_mgr: WindMgr::default(),
         }
     }
 
