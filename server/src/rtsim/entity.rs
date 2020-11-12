@@ -45,8 +45,8 @@ impl Entity {
         ]).choose(&mut rng).unwrap());
 
         let back = match rng.gen_range(0, 3) {
-            0 => Some(comp::Item::new_from_asset_expect("common.items.armor.back.leather_adventurer")),
-            1 => Some(comp::Item::new_from_asset_expect("common.items.armor.back.backpack_0")),
+            0 => Some(comp::Item::new_from_asset_expect("common.items.npc_armor.back.leather_blue_0")),
+            1 => Some(comp::Item::new_from_asset_expect("common.items.npc_armor.back.backpack_0")),
             _ => None,
         };
 
@@ -56,9 +56,16 @@ impl Entity {
             _ => Some(comp::Item::new_from_asset_expect("common.items.lantern.red_0")),
         };
 
+        let chest = Some(comp::Item::new_from_asset_expect("common.items.npc_armor.chest.leather_blue_0"));
+        let pants = Some(comp::Item::new_from_asset_expect("common.items.npc_armor.pants.leather_blue_0"));
+        let shoulder = Some(comp::Item::new_from_asset_expect("common.items.armor.shoulder.leather_0"));
+
         LoadoutBuilder::build_loadout(self.get_body(), comp::Alignment::Npc, Some(main_tool), false)
             .back(back)
             .lantern(lantern)
+            .chest(chest)
+            .pants(pants)
+            .shoulder(shoulder)
             .build()
     }
 

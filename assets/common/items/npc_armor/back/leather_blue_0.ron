@@ -1,0 +1,12 @@
+ItemDef(
+    name: "Blue Traveler Coat",
+    description: "",
+    kind: Armor(
+        (
+            kind: Back("LeatherBlue0"),
+            stats: (
+                protection: Normal(1.0)),            
+        )
+    ),
+    quality: Moderate,
+)
