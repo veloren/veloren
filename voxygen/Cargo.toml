@@ -14,6 +14,7 @@ hot-anim = ["anim/use-dyn-lib"]
 singleplayer = ["server"]
 tweak = ["const-tweaker"]
 simd = ["vek/platform_intrinsics"]
+tracy = ["tracing-tracy", "common/tracy"]
 
 default = ["gl", "singleplayer", "native-dialog", "simd"]
 
@@ -83,6 +84,9 @@ uvth = "3.1.1"
 const-tweaker = {version = "0.3.1", optional = true}
 inline_tweak = "1.0.2"
 itertools = "0.9.0"
+
+# Tracy
+tracing-tracy = { version = "0.3.0", optional = true }
 
 # Logging
 tracing = "0.1"
