@@ -135,14 +135,11 @@ impl IcedUi {
         span!(_guard, "maintain", "IcedUi::maintain");
         // Handle window resizing and scale mode changing
         let scaled_dims = if let Some(new_dims) = self.window_resized.take() {
-            let old_scaled_dims = self.scale.scaled_window_size();
             // TODO maybe use u32 in Scale to be consistent with iced
             self.scale
-                .window_resized(new_dims.map(|e| e as f64), renderer);
-            let scaled_dims = self.scale.scaled_window_size();
-
-            // Avoid resetting cache if window size didn't change
-            (scaled_dims != old_scaled_dims).then_some(scaled_dims)
+                .window_resized(new_dims.map(|e| e as f64), renderer)
+                // Avoid resetting cache if window size didn't change
+                .then(|| self.scale.scaled_window_size())
         } else if self.scale_mode_changed {
             Some(self.scale.scaled_window_size())
         } else {
