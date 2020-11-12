@@ -19,25 +19,28 @@ use std::{
 pub struct Clock {
     /// This is the dt that the Clock tries to archive with each call of tick.
     target_dt: Duration,
-    /// last time `tick` was called
+    /// Last time `tick` was called
     last_sys_time: Instant,
-    /// will be calculated in `tick` returns the dt used by the next iteration
+    /// Will be calculated in `tick` returns the dt used by the next iteration
     /// of the main loop
     last_dt: Duration,
-    /// summed up `last_dt`
+    /// Summed up `last_dt`
     total_tick_time: Duration,
     // Stats only
     // uses f32 so we have enough precision to display fps values while saving space
     last_dts_millis: VecDeque<NotNan<f32>>,
     last_dts_millis_sorted: Vec<NotNan<f32>>,
+    // Seconds
+    last_busy_dts: VecDeque<NotNan<f32>>,
     stats: ClockStats,
 }
 
 pub struct ClockStats {
-    /// busy_dt is the part of the last tick that we didn't sleep.
+    /// Busy dt is the part of the tick that we didn't sleep.
     /// e.g. the total tick is 33ms, including 25ms sleeping. then this returns
     /// 8ms
-    pub last_busy_dt: Duration,
+    /// This is in seconds
+    pub average_busy_dt: f32,
     /// avg over the last NUMBER_OF_OLD_DELTAS_KEPT ticks
     pub average_tps: f64,
     /// = 50% percentile
@@ -61,7 +64,8 @@ impl Clock {
             total_tick_time: Duration::default(),
             last_dts_millis: VecDeque::with_capacity(NUMBER_OF_OLD_DELTAS_KEPT),
             last_dts_millis_sorted: Vec::with_capacity(NUMBER_OF_OLD_DELTAS_KEPT),
-            stats: ClockStats::new(&Vec::new(), target_dt),
+            last_busy_dts: VecDeque::with_capacity(NUMBER_OF_OLD_DELTAS_KEPT),
+            stats: ClockStats::new(&[], &VecDeque::new()),
         }
     }
 
@@ -80,7 +84,7 @@ impl Clock {
         // Maintain TPS
         self.last_dts_millis_sorted = self.last_dts_millis.iter().copied().collect();
         self.last_dts_millis_sorted.sort_unstable();
-        self.stats = ClockStats::new(&self.last_dts_millis_sorted, busy_delta);
+        self.stats = ClockStats::new(&self.last_dts_millis_sorted, &self.last_busy_dts);
         drop(guard);
         // Attempt to sleep to fill the gap.
         if let Some(sleep_dur) = self.target_dt.checked_sub(busy_delta) {
@@ -92,9 +96,15 @@ impl Clock {
         if self.last_dts_millis.len() >= NUMBER_OF_OLD_DELTAS_KEPT {
             self.last_dts_millis.pop_front();
         }
+        if self.last_busy_dts.len() >= NUMBER_OF_OLD_DELTAS_KEPT {
+            self.last_busy_dts.pop_front();
+        }
         self.last_dts_millis.push_back(
             NotNan::new(self.last_dt.as_secs_f32() * 1000.0)
                 .expect("Duration::as_secs_f32 never returns NaN"),
+        );
+        self.last_busy_dts.push_back(
+            NotNan::new(busy_delta.as_secs_f32()).expect("Duration::as_secs_f32 never returns NaN"),
         );
         self.total_tick_time += self.last_dt;
         self.last_sys_time = after_sleep_sys_time;
@@ -102,12 +112,15 @@ impl Clock {
 }
 
 impl ClockStats {
-    fn new(sorted: &[NotNan<f32>], last_busy_dt: Duration) -> Self {
+    fn new(sorted: &[NotNan<f32>], busy_dt_list: &VecDeque<NotNan<f32>>) -> Self {
         const NANOS_PER_SEC: f64 = Duration::from_secs(1).as_nanos() as f64;
         const NANOS_PER_MILLI: f64 = Duration::from_millis(1).as_nanos() as f64;
 
         let len = sorted.len();
         let average_millis = sorted.iter().sum::<NotNan<f32>>().into_inner() / len.max(1) as f32;
+
+        let average_busy_dt = busy_dt_list.iter().sum::<NotNan<f32>>().into_inner()
+            / busy_dt_list.len().max(1) as f32;
 
         let average_tps = NANOS_PER_SEC / (average_millis as f64 * NANOS_PER_MILLI);
         let (median_tps, percentile_90_tps, percentile_95_tps, percentile_99_tps) = if len
@@ -129,12 +142,12 @@ impl ClockStats {
                 percentile_99_tps,
             )
         } else {
-            let avg_tps = NANOS_PER_SEC / last_busy_dt.as_nanos() as f64;
+            let avg_tps = 1.0 / average_busy_dt as f64;
             (avg_tps, avg_tps, avg_tps, avg_tps)
         };
 
         Self {
-            last_busy_dt,
+            average_busy_dt,
             average_tps,
             median_tps,
             percentile_90_tps,
