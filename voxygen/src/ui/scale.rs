@@ -74,10 +74,15 @@ impl Scale {
     /// Multiply by scaled coordinates to get the physical coordinates
     pub fn scale_factor_physical(&self) -> f64 { self.scale_factor_logical() * self.scale_factor }
 
-    // Updates internal window size (and/or scale_factor).
-    pub fn window_resized(&mut self, new_dims: Vec2<f64>, renderer: &Renderer) {
+    /// Updates internal window size (and/or scale_factor).
+    /// Returns true if either value was changed
+    #[allow(clippy::float_cmp)]
+    pub fn window_resized(&mut self, new_dims: Vec2<f64>, renderer: &Renderer) -> bool {
+        let old_scale_factor = self.scale_factor;
+        let old_window_dims = self.window_dims;
         self.scale_factor = renderer.get_resolution().x as f64 / new_dims.x;
         self.window_dims = new_dims;
+        old_scale_factor != self.scale_factor || old_window_dims != self.window_dims
     }
 
     /// Get scaled window size.
