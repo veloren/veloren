@@ -367,6 +367,28 @@
         ),
 
         //
+        // Sceptre
+        //
+        Wield(Sceptre): (
+            files: [
+                "voxygen.audio.sfx.weapon.sword_out",
+            ],
+            threshold: 0.5,
+        ),
+        Unwield(Sceptre): (
+            files: [
+                "voxygen.audio.sfx.weapon.sword_in",
+            ],
+            threshold: 0.5,
+        ),
+        Attack(BasicBeam, Sceptre): (
+            files: [
+                "voxygen.audio.sfx.abilities.staff_channeling",
+            ],
+            threshold: 0.6,
+        ),
+
+        //
         // Dagger
         //
         Wield(Dagger): (

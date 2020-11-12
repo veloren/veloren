@@ -244,15 +244,16 @@ pub struct SfxMgr {
     event_mapper: SfxEventMapper,
 }
 
-impl SfxMgr {
-    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
-    pub fn new() -> Self {
+impl Default for SfxMgr {
+    fn default() -> Self {
         Self {
             triggers: Self::load_sfx_items(),
             event_mapper: SfxEventMapper::new(),
         }
     }
+}
 
+impl SfxMgr {
     pub fn maintain(
         &mut self,
         audio: &mut AudioFrontend,
@@ -360,7 +361,11 @@ impl SfxMgr {
 
                         audio.play_sfx(file_ref, *pos, None);
                     },
-                    Body::Object(object::Body::BoltFire | object::Body::BoltFireBig) => {
+                    Body::Object(
+                        object::Body::BoltFire
+                        | object::Body::BoltFireBig
+                        | object::Body::BoltNature,
+                    ) => {
                         let file_ref = vec![
                             "voxygen.audio.sfx.abilities.fire_shot_1",
                             "voxygen.audio.sfx.abilities.fire_shot_2",

@@ -4,7 +4,7 @@
 #![recursion_limit = "2048"]
 
 use veloren_voxygen::{
-    audio::{self, AudioFrontend},
+    audio::AudioFrontend,
     i18n::{self, i18n_asset_key, Localization},
     logging,
     profile::Profile,
