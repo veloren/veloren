@@ -152,7 +152,7 @@ fn run_server(mut server: Server, rec: Receiver<Msg>, paused: Arc<AtomicBool>) {
     info!("Starting server-cli...");
 
     // Set up an fps clock
-    let mut clock = Clock::new(Duration::from_millis(1000 / TPS));
+    let mut clock = Clock::new(Duration::from_secs_f64(1.0 / TPS as f64));
 
     loop {
         // Check any event such as stopping and pausing
