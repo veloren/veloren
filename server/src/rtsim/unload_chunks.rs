@@ -28,7 +28,7 @@ impl<'a> System<'a> for Sys {
             positions,
         ): Self::SystemData,
     ) {
-        let chunks = std::mem::take(&mut rtsim.world.chunks_to_unload);
+        let chunks = std::mem::take(&mut rtsim.chunks.chunks_to_unload);
 
         for chunk in chunks {
             // TODO

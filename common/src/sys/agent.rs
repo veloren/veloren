@@ -212,50 +212,74 @@ impl<'a> System<'a> for Sys {
 
             'activity: {
                 match &mut agent.activity {
-                    Activity::Idle(bearing) => {
-                        *bearing += Vec2::new(
-                            thread_rng().gen::<f32>() - 0.5,
-                            thread_rng().gen::<f32>() - 0.5,
-                        ) * 0.1
-                            - *bearing * 0.003
-                            - agent.patrol_origin.map_or(Vec2::zero(), |patrol_origin| {
-                                (pos.0 - patrol_origin).xy() * 0.0002
-                            });
+                    Activity::Idle { bearing, chaser } => {
+                        if let Some(travel_to) = agent.rtsim_controller.travel_to {
+                            if let Some((bearing, speed)) = chaser.chase(
+                                &*terrain,
+                                pos.0,
+                                vel.0,
+                                travel_to,
+                                TraversalConfig {
+                                    node_tolerance,
+                                    slow_factor,
+                                    on_ground: physics_state.on_ground,
+                                    min_tgt_dist: 1.25,
+                                },
+                            ) {
+                                inputs.move_dir = bearing
+                                    .xy()
+                                    .try_normalized()
+                                    .unwrap_or(Vec2::zero())
+                                    * speed.min(agent.rtsim_controller.speed_factor);
+                                inputs.jump.set_state(bearing.z > 1.5);
+                                inputs.climb = Some(comp::Climb::Up);
+                                inputs.move_z = bearing.z;
+                            }
+                        } else {
+                            *bearing += Vec2::new(
+                                thread_rng().gen::<f32>() - 0.5,
+                                thread_rng().gen::<f32>() - 0.5,
+                            ) * 0.1
+                                - *bearing * 0.003
+                                - agent.patrol_origin.map_or(Vec2::zero(), |patrol_origin| {
+                                    (pos.0 - patrol_origin).xy() * 0.0002
+                                });
 
-                        // Stop if we're too close to a wall
-                        *bearing *= 0.1
-                            + if terrain
-                                .ray(
-                                    pos.0 + Vec3::unit_z(),
-                                    pos.0
-                                        + Vec3::from(*bearing)
-                                            .try_normalized()
-                                            .unwrap_or(Vec3::unit_y())
-                                            * 5.0
-                                        + Vec3::unit_z(),
-                                )
-                                .until(Block::is_solid)
-                                .cast()
-                                .1
-                                .map_or(true, |b| b.is_none())
-                            {
-                                0.9
-                            } else {
-                                0.0
-                            };
+                            // Stop if we're too close to a wall
+                            *bearing *= 0.1
+                                + if terrain
+                                    .ray(
+                                        pos.0 + Vec3::unit_z(),
+                                        pos.0
+                                            + Vec3::from(*bearing)
+                                                .try_normalized()
+                                                .unwrap_or(Vec3::unit_y())
+                                                * 5.0
+                                            + Vec3::unit_z(),
+                                    )
+                                    .until(Block::is_solid)
+                                    .cast()
+                                    .1
+                                    .map_or(true, |b| b.is_none())
+                                {
+                                    0.9
+                                } else {
+                                    0.0
+                                };
 
-                        if bearing.magnitude_squared() > 0.5f32.powf(2.0) {
-                            inputs.move_dir = *bearing * 0.65;
+                            if bearing.magnitude_squared() > 0.5f32.powf(2.0) {
+                                inputs.move_dir = *bearing * 0.65;
+                            }
+
+                            // Sit
+                            if thread_rng().gen::<f32>() < 0.0035 {
+                                controller.actions.push(ControlAction::Sit);
+                            }
                         }
 
                         // Put away weapon
                         if thread_rng().gen::<f32>() < 0.005 {
                             controller.actions.push(ControlAction::Unwield);
-                        }
-
-                        // Sit
-                        if thread_rng().gen::<f32>() < 0.0035 {
-                            controller.actions.push(ControlAction::Sit);
                         }
 
                         // Sometimes try searching for new targets
@@ -621,7 +645,10 @@ impl<'a> System<'a> for Sys {
             }
 
             if do_idle {
-                agent.activity = Activity::Idle(Vec2::zero());
+                agent.activity = Activity::Idle {
+                    bearing: Vec2::zero(),
+                    chaser: Chaser::default(),
+                };
             }
 
             // Choose a new target to attack: only go out of our way to attack targets we

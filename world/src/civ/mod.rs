@@ -41,21 +41,21 @@ const fn initial_civ_count(map_size_lg: MapSizeLg) -> u32 {
 #[allow(clippy::type_complexity)] // TODO: Pending review in #587
 #[derive(Default)]
 pub struct Civs {
-    civs: Store<Civ>,
-    places: Store<Place>,
+    pub civs: Store<Civ>,
+    pub places: Store<Place>,
 
-    tracks: Store<Track>,
+    pub tracks: Store<Track>,
     /// We use this hasher (FxHasher64) because
     /// (1) we don't care about DDOS attacks (ruling out SipHash);
     /// (2) we care about determinism across computers (ruling out AAHash);
     /// (3) we have 8-byte keys (for which FxHash is fastest).
-    track_map: HashMap<
+    pub track_map: HashMap<
         Id<Site>,
         HashMap<Id<Site>, Id<Track>, BuildHasherDefault<FxHasher64>>,
         BuildHasherDefault<FxHasher64>,
     >,
 
-    sites: Store<Site>,
+    pub sites: Store<Site>,
 }
 
 // Change this to get rid of particularly horrid seeds

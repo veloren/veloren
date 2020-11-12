@@ -2,49 +2,79 @@ use super::*;
 use common::{
     event::{EventBus, ServerEvent},
     terrain::TerrainGrid,
-    rtsim::RtSimEntity,
+    state::DeltaTime,
     comp,
 };
-use specs::{Join, Read, ReadStorage, System, Write, WriteExpect, ReadExpect};
-use rand_chacha::ChaChaRng;
+use specs::{Join, Read, ReadStorage, WriteStorage, System, WriteExpect, ReadExpect};
 use std::sync::Arc;
+
+const ENTITY_TICK_PERIOD: u64 = 30;
 
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
+        Read<'a, DeltaTime>,
         Read<'a, EventBus<ServerEvent>>,
         WriteExpect<'a, RtSim>,
         ReadExpect<'a, TerrainGrid>,
         ReadExpect<'a, Arc<world::World>>,
+        ReadExpect<'a, world::IndexOwned>,
         ReadStorage<'a, comp::Pos>,
         ReadStorage<'a, RtSimEntity>,
+        WriteStorage<'a, comp::Agent>,
     );
 
     fn run(
         &mut self,
         (
+            dt,
             server_event_bus,
             mut rtsim,
             terrain,
             world,
+            index,
             positions,
             rtsim_entities,
+            mut agents,
         ): Self::SystemData,
     ) {
         let rtsim = &mut *rtsim;
+        rtsim.tick += 1;
+        if rtsim.tick % 300 == 0 {
+            if let Some((id, entity)) = rtsim.entities.iter().next() {
+                tracing::info!("Entity {} is at {:?}", id, entity.pos);
+            }
+        }
 
         // Update rtsim entities
         // TODO: don't update all of them each tick
         let mut to_reify = Vec::new();
         for (id, entity) in rtsim.entities.iter_mut() {
             if entity.is_loaded {
-                continue;
-            } else if rtsim.world.chunk_at(entity.pos.xy()).map(|c| c.is_loaded).unwrap_or(false) {
+                // No load-specific behaviour yet
+            } else if rtsim.chunks.chunk_at(entity.pos.xy()).map(|c| c.is_loaded).unwrap_or(false) {
                 to_reify.push(id);
+            } else {
+                // Simulate behaviour
+                if let Some(travel_to) = entity.controller.travel_to {
+                    // Move towards target at approximate character speed
+                    entity.pos += Vec3::from((travel_to.xy() - entity.pos.xy())
+                        .try_normalized()
+                        .unwrap_or_else(Vec2::zero)
+                        * entity.get_body().max_speed_approx()
+                        * entity.controller.speed_factor)
+                        * dt.0;
+                }
+
+                if let Some(alt) = world.sim().get_alt_approx(entity.pos.xy().map(|e| e.floor() as i32)) {
+                    entity.pos.z = alt;
+                }
             }
 
-            if let Some(chunk) = world.sim().get_wpos(entity.pos.xy().map(|e| e.floor() as i32)) {
-                entity.pos.z = chunk.alt;
+            // Tick entity AI
+            if entity.last_tick + ENTITY_TICK_PERIOD <= rtsim.tick {
+                entity.tick(&terrain, &world);
+                entity.last_tick = rtsim.tick;
             }
         }
 
@@ -52,25 +82,15 @@ impl<'a> System<'a> for Sys {
         for id in to_reify {
             rtsim.reify_entity(id);
             let entity = &rtsim.entities[id];
-            let mut rng = ChaChaRng::from_seed([
-                entity.seed.to_le_bytes()[0],
-                entity.seed.to_le_bytes()[1],
-                entity.seed.to_le_bytes()[2],
-                entity.seed.to_le_bytes()[3],
-                0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0,
-            ]);
-            let species = *(&comp::humanoid::ALL_SPECIES).choose(&mut rng).unwrap();
-            let body = comp::humanoid::Body::random_with(&mut rng, &species).into();
+            let spawn_pos = terrain.find_space(entity.pos.map(|e| e.floor() as i32)).map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0);
+            let body = entity.get_body();
             server_emitter.emit(ServerEvent::CreateNpc {
-                pos: comp::Pos(terrain.find_space(entity.pos.map(|e| e.floor() as i32)).map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0)),
-                stats: comp::Stats::new("Rtsim Entity".to_string(), body),
+                pos: comp::Pos(spawn_pos),
+                stats: comp::Stats::new("Traveller [rt]".to_string(), body),
                 health: comp::Health::new(body, 10),
-                loadout: comp::Loadout::default(),
+                loadout: entity.get_loadout(),
                 body,
-                agent: None,
+                agent: Some(comp::Agent::new(None, true, &body)),
                 alignment: comp::Alignment::Npc,
                 scale: comp::Scale(1.0),
                 drop_item: None,
@@ -80,8 +100,11 @@ impl<'a> System<'a> for Sys {
         }
 
         // Update rtsim with real entity data
-        for (pos, rtsim_entity) in (&positions, &rtsim_entities).join() {
-            rtsim.entities.get_mut(rtsim_entity.0).map(|entity| entity.pos = pos.0);
+        for (pos, rtsim_entity, agent) in (&positions, &rtsim_entities, &mut agents).join() {
+            rtsim.entities.get_mut(rtsim_entity.0).map(|entity| {
+                entity.pos = pos.0;
+                agent.rtsim_controller = entity.controller.clone();
+            });
         }
     }
 }

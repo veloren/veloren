@@ -189,7 +189,7 @@ impl<'a> System<'a> for Sys {
                     health,
                     loadout,
                     agent: if entity.has_agency {
-                        Some(comp::Agent::new(entity.pos, can_speak, &body))
+                        Some(comp::Agent::new(Some(entity.pos), can_speak, &body))
                     } else {
                         None
                     },
