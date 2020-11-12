@@ -95,7 +95,7 @@ impl Tool {
         Duration::from_millis(millis).div_f32(self.base_speed())
     }
 
-    pub fn get_abilities(&self) -> AbilitySet<CharacterAbility> {
+    pub fn get_abilities(&self, map: &AbilityMap) -> AbilitySet<CharacterAbility> {
         let base_abilities = match AbilityMap::load("common.abilities.weapon_ability_manifest") {
             Ok(map) => map.0.get(&self.kind).map(|a| a.clone()).unwrap_or_default(),
             Err(err) => {

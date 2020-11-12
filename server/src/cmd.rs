@@ -9,7 +9,7 @@ use crate::{
 use chrono::{NaiveTime, Timelike};
 use common::{
     cmd::{ChatCommand, CHAT_COMMANDS, CHAT_SHORTCUTS},
-    comp::{self, ChatType, Item, LightEmitter, WaypointArea},
+    comp::{self, item::tool::AbilityMap, ChatType, Item, LightEmitter, WaypointArea},
     effect::Effect,
     event::{EventBus, ServerEvent},
     msg::{DisconnectReason, Notification, PlayerListUpdate, ServerGeneral},
@@ -655,14 +655,17 @@ fn handle_spawn(
 
                             let body = body();
 
+                            let map = server.state().ecs().fetch::<AbilityMap>();
+                            let loadout = LoadoutBuilder::build_loadout(body, alignment, None, false, &map).build();
+                            drop(map);
+
                             let mut entity_base = server
                                 .state
                                 .create_npc(
                                     pos,
                                     comp::Stats::new(get_npc_name(id).into(), body),
                                     comp::Health::new(body, 1),
-                                    LoadoutBuilder::build_loadout(body, alignment, None, false)
-                                        .build(),
+                                    loadout,
                                     body,
                                 )
                                 .with(comp::Vel(vel))

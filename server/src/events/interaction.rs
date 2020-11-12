@@ -4,7 +4,7 @@ use crate::{
     Server,
 };
 use common::{
-    comp::{self, item, Pos},
+    comp::{self, item::{self, tool::AbilityMap}, Pos},
     consts::MAX_MOUNT_RANGE,
     msg::ServerGeneral,
     sync::{Uid, WorldSyncExt},
@@ -103,8 +103,8 @@ pub fn handle_unmount(server: &mut Server, mounter: EcsEntity) {
 
 #[allow(clippy::nonminimal_bool)] // TODO: Pending review in #587
 pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
-    let state = &server.state;
-    let ecs = state.ecs();
+    let ecs = &server.state.ecs();
+    let map = ecs.fetch::<AbilityMap>();
     if let (Some(possessor), Some(possesse)) = (
         ecs.entity_from_uid(possessor_uid.into()),
         ecs.entity_from_uid(possesse_uid.into()),
@@ -177,7 +177,7 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
 
         let item = comp::Item::new_from_asset_expect("common.items.debug.possess");
         if let item::ItemKind::Tool(_) = item.kind() {
-            let debug_item = comp::ItemConfig::from(item);
+            let debug_item = comp::ItemConfig::from((item, &*map));
             std::mem::swap(&mut loadout.active_item, &mut loadout.second_item);
             loadout.active_item = Some(debug_item);
         }

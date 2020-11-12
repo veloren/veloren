@@ -4,11 +4,11 @@ use crate::{
     window::{Event, EventLoop},
     Direction, GlobalState, PlayState, PlayStateResult,
 };
-use common::{no_guard_span, span, util::GuardlessSpan};
+use common::{comp::item::tool::AbilityMap, no_guard_span, span, util::GuardlessSpan};
 use std::{mem, time::Duration};
 use tracing::debug;
 
-pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
+pub fn run(mut global_state: GlobalState, event_loop: EventLoop, map: &AbilityMap) {
     // Set up the initial play state.
     let mut states: Vec<Box<dyn PlayState>> = vec![Box::new(MainMenuState::new(&mut global_state))];
     states.last_mut().map(|current_state| {
@@ -25,6 +25,8 @@ pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
 
     let mut poll_span = None;
     let mut event_span = None;
+
+    let map = map.clone();
 
     event_loop.run(move |event, _, control_flow| {
         // Continuously run loop since we handle sleeping
@@ -53,7 +55,7 @@ pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
                 event_span.take();
                 poll_span.take();
                 if polled_twice {
-                    handle_main_events_cleared(&mut states, control_flow, &mut global_state);
+                    handle_main_events_cleared(&mut states, control_flow, &mut global_state, &map);
                 }
                 poll_span = Some(no_guard_span!("Poll Winit"));
                 polled_twice = !polled_twice;
@@ -82,6 +84,7 @@ fn handle_main_events_cleared(
     states: &mut Vec<Box<dyn PlayState>>,
     control_flow: &mut winit::event_loop::ControlFlow,
     global_state: &mut GlobalState,
+    map: &AbilityMap,
 ) {
     span!(guard, "Handle MainEventsCleared");
     // Screenshot / Fullscreen toggle
@@ -102,7 +105,7 @@ fn handle_main_events_cleared(
     let mut exit = true;
     while let Some(state_result) = states.last_mut().map(|last| {
         let events = global_state.window.fetch_events();
-        last.tick(global_state, events)
+        last.tick(global_state, events, map)
     }) {
         // Implement state transfer logic.
         match state_result {
