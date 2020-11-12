@@ -1,7 +1,7 @@
 use crate::{
     assets::{self, Asset},
     comp::{
-        item::{armor::Protection, Item, ItemKind},
+        item::{armor::Protection, tool::AbilityMap, Item, ItemKind},
         projectile::ProjectileConstructor,
         Body, CharacterState, EnergySource, Gravity, LightEmitter, StateUpdate,
     },
@@ -325,10 +325,10 @@ pub struct ItemConfig {
     pub dodge_ability: Option<CharacterAbility>,
 }
 
-impl From<Item> for ItemConfig {
-    fn from(item: Item) -> Self {
+impl From<(Item, &AbilityMap)> for ItemConfig {
+    fn from((item, map): (Item, &AbilityMap)) -> Self {
         if let ItemKind::Tool(tool) = &item.kind() {
-            let abilities = tool.get_abilities().clone();
+            let abilities = tool.get_abilities(map).clone();
 
             return ItemConfig {
                 item,

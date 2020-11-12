@@ -1,6 +1,6 @@
 use crate::comp::{
     biped_large, golem,
-    item::{Item, ItemKind},
+    item::{tool::AbilityMap, Item, ItemKind},
     Alignment, Body, CharacterAbility, ItemConfig, Loadout,
 };
 use rand::Rng;
@@ -72,6 +72,7 @@ impl LoadoutBuilder {
         alignment: Alignment,
         mut main_tool: Option<Item>,
         is_giant: bool,
+        map: &AbilityMap,
     ) -> Self {
         match body {
             Body::Golem(golem) => match golem.species {
@@ -145,21 +146,12 @@ impl LoadoutBuilder {
         };
 
         let active_item = if let Some(ItemKind::Tool(_)) = main_tool.as_ref().map(|i| i.kind()) {
-            main_tool.map(ItemConfig::from)
+            main_tool.map(|item| ItemConfig::from((item, map)))
         } else {
             Some(ItemConfig {
                 // We need the empty item so npcs can attack
                 item: Item::new_from_asset_expect("common.items.weapons.empty.empty"),
-                ability1: Some(CharacterAbility::BasicMelee {
-                    energy_cost: 0,
-                    buildup_duration: 0,
-                    swing_duration: 100,
-                    recover_duration: 300,
-                    base_damage: 40,
-                    knockback: 0.0,
-                    range: 3.5,
-                    max_angle: 15.0,
-                }),
+                ability1: Some(CharacterAbility::default()),
                 ability2: None,
                 ability3: None,
                 block_ability: None,
@@ -370,7 +362,7 @@ impl LoadoutBuilder {
     /// abilities or their timings is desired, you should create and provide
     /// the item config directly to the [active_item](#method.active_item)
     /// method
-    pub fn default_item_config_from_item(item: Item) -> ItemConfig { ItemConfig::from(item) }
+    pub fn default_item_config_from_item(item: Item, map: &AbilityMap) -> ItemConfig { ItemConfig::from((item, map)) }
 
     /// Get an item's (weapon's) default
     /// [ItemConfig](../comp/struct.ItemConfig.html)
@@ -378,8 +370,8 @@ impl LoadoutBuilder {
     /// the default abilities for that item via the
     /// [default_item_config_from_item](#method.default_item_config_from_item)
     /// function
-    pub fn default_item_config_from_str(item_ref: &str) -> ItemConfig {
-        Self::default_item_config_from_item(Item::new_from_asset_expect(item_ref))
+    pub fn default_item_config_from_str(item_ref: &str, map: &AbilityMap) -> ItemConfig {
+        Self::default_item_config_from_item(Item::new_from_asset_expect(item_ref), map)
     }
 
     pub fn active_item(mut self, item: Option<ItemConfig>) -> Self {

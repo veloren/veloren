@@ -4,7 +4,7 @@ use crate::{
     persistence::character_loader::CharacterLoader, presence::Presence, EditableSettings,
 };
 use common::{
-    comp::{ChatType, Player, UnresolvedChatMsg},
+    comp::{item::tool::AbilityMap, ChatType, Player, UnresolvedChatMsg},
     event::{EventBus, ServerEvent},
     msg::{ClientGeneral, ServerGeneral},
     span,
@@ -28,6 +28,7 @@ impl Sys {
         editable_settings: &ReadExpect<'_, EditableSettings>,
         alias_validator: &ReadExpect<'_, AliasValidator>,
         msg: ClientGeneral,
+        map: &AbilityMap,
     ) -> Result<(), crate::error::Error> {
         match msg {
             // Request spectator state
@@ -101,6 +102,7 @@ impl Sys {
                         tool,
                         body,
                         character_loader,
+                        map,
                     );
                 }
             },
@@ -134,6 +136,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Presence>,
         ReadExpect<'a, EditableSettings>,
         ReadExpect<'a, AliasValidator>,
+        ReadExpect<'a, AbilityMap>,
     );
 
     fn run(
@@ -149,6 +152,7 @@ impl<'a> System<'a> for Sys {
             presences,
             editable_settings,
             alias_validator,
+            map,
         ): Self::SystemData,
     ) {
         span!(_guard, "run", "msg::character_screen::Sys::run");
@@ -171,6 +175,7 @@ impl<'a> System<'a> for Sys {
                     &editable_settings,
                     &alias_validator,
                     msg,
+                    &map,
                 )
             });
         }
