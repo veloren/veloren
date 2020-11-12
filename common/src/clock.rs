@@ -1,4 +1,5 @@
 use crate::span;
+use ordered_float::NotNan;
 use std::{
     collections::VecDeque,
     time::{Duration, Instant},
@@ -26,10 +27,9 @@ pub struct Clock {
     /// summed up `last_dt`
     total_tick_time: Duration,
     // Stats only
-    // stored as millis in u16 to save space. if it's more than u16::MAX (16s) we have other
-    // problems
-    last_dts_millis: VecDeque<u16>,
-    last_dts_millis_sorted: Vec<u16>,
+    // uses f32 so we have enough precision to display fps values while saving space
+    last_dts_millis: VecDeque<NotNan<f32>>,
+    last_dts_millis_sorted: Vec<NotNan<f32>>,
     stats: ClockStats,
 }
 
@@ -74,13 +74,14 @@ impl Clock {
     /// Do not modify without asking @xMAC94x first!
     pub fn tick(&mut self) {
         span!(_guard, "tick", "Clock::tick");
+        span!(guard, "clock work");
         let current_sys_time = Instant::now();
         let busy_delta = current_sys_time.duration_since(self.last_sys_time);
         // Maintain TPS
         self.last_dts_millis_sorted = self.last_dts_millis.iter().copied().collect();
         self.last_dts_millis_sorted.sort_unstable();
         self.stats = ClockStats::new(&self.last_dts_millis_sorted, busy_delta);
-
+        drop(guard);
         // Attempt to sleep to fill the gap.
         if let Some(sleep_dur) = self.target_dt.checked_sub(busy_delta) {
             spin_sleep::sleep(sleep_dur);
@@ -91,29 +92,31 @@ impl Clock {
         if self.last_dts_millis.len() >= NUMBER_OF_OLD_DELTAS_KEPT {
             self.last_dts_millis.pop_front();
         }
-        self.last_dts_millis
-            .push_back((self.last_dt.as_millis() as u16).min(std::u16::MAX));
+        self.last_dts_millis.push_back(
+            NotNan::new(self.last_dt.as_secs_f32() * 1000.0)
+                .expect("Duration::as_secs_f32 never returns NaN"),
+        );
         self.total_tick_time += self.last_dt;
         self.last_sys_time = after_sleep_sys_time;
     }
 }
 
 impl ClockStats {
-    fn new(sorted: &[u16], last_busy_dt: Duration) -> Self {
+    fn new(sorted: &[NotNan<f32>], last_busy_dt: Duration) -> Self {
         const NANOS_PER_SEC: f64 = Duration::from_secs(1).as_nanos() as f64;
         const NANOS_PER_MILLI: f64 = Duration::from_millis(1).as_nanos() as f64;
 
         let len = sorted.len();
-        let average_millis = sorted.iter().fold(0, |a, x| a + *x as u32) / len.max(1) as u32;
+        let average_millis = sorted.iter().sum::<NotNan<f32>>().into_inner() / len.max(1) as f32;
 
         let average_tps = NANOS_PER_SEC / (average_millis as f64 * NANOS_PER_MILLI);
         let (median_tps, percentile_90_tps, percentile_95_tps, percentile_99_tps) = if len
             >= NUMBER_OF_OLD_DELTAS_KEPT
         {
-            let median_millis = sorted[len / 2];
-            let percentile_90_millis = sorted[(NUMBER_OF_OLD_DELTAS_KEPT as f32 * 0.1) as usize];
-            let percentile_95_millis = sorted[(NUMBER_OF_OLD_DELTAS_KEPT as f32 * 0.05) as usize];
-            let percentile_99_millis = sorted[(NUMBER_OF_OLD_DELTAS_KEPT as f32 * 0.01) as usize];
+            let median_millis = *sorted[len / 2];
+            let percentile_90_millis = *sorted[(NUMBER_OF_OLD_DELTAS_KEPT as f32 * 0.1) as usize];
+            let percentile_95_millis = *sorted[(NUMBER_OF_OLD_DELTAS_KEPT as f32 * 0.05) as usize];
+            let percentile_99_millis = *sorted[(NUMBER_OF_OLD_DELTAS_KEPT as f32 * 0.01) as usize];
 
             let median_tps = NANOS_PER_SEC / (median_millis as f64 * NANOS_PER_MILLI);
             let percentile_90_tps = NANOS_PER_SEC / (percentile_90_millis as f64 * NANOS_PER_MILLI);

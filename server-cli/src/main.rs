@@ -140,7 +140,7 @@ fn main() -> io::Result<()> {
     let mut shutdown_coordinator = ShutdownCoordinator::new(Arc::clone(&sigusr1_signal));
 
     // Set up an fps clock
-    let mut clock = Clock::new(Duration::from_millis(1000 / TPS));
+    let mut clock = Clock::new(Duration::from_secs_f64(1.0 / TPS as f64));
     // Wait for a tick so we don't start with a zero dt
 
     loop {

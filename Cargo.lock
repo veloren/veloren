@@ -5140,6 +5140,7 @@ dependencies = [
  "notify",
  "num-derive",
  "num-traits 0.2.12",
+ "ordered-float 2.0.0",
  "parking_lot 0.11.0",
  "rand 0.7.3",
  "rayon",
