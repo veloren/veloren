@@ -39,7 +39,7 @@ use crate::{
     settings::Settings,
     window::{Event, Window},
 };
-use common::{assets::watch, clock::Clock, comp::item::tool::AbilityMap};
+use common::{assets::watch, clock::Clock};
 
 /// A type used to store state that is shared between all play states.
 pub struct GlobalState {
@@ -110,7 +110,7 @@ pub trait PlayState {
     fn enter(&mut self, global_state: &mut GlobalState, direction: Direction);
 
     /// Tick the play state
-    fn tick(&mut self, global_state: &mut GlobalState, events: Vec<Event>, map: &AbilityMap) -> PlayStateResult;
+    fn tick(&mut self, global_state: &mut GlobalState, events: Vec<Event>) -> PlayStateResult;
 
     /// Get a descriptive name for this state type.
     fn name(&self) -> &'static str;

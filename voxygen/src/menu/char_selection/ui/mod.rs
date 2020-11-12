@@ -184,7 +184,9 @@ impl Mode {
 
         let loadout = LoadoutBuilder::new()
             .defaults()
-            .active_item(Some(LoadoutBuilder::default_item_config_from_str(tool, map)))
+            .active_item(Some(LoadoutBuilder::default_item_config_from_str(
+                tool, map,
+            )))
             .build();
 
         let loadout = Box::new(loadout);
@@ -1172,7 +1174,13 @@ impl Controls {
         .into()
     }
 
-    fn update(&mut self, message: Message, events: &mut Vec<Event>, characters: &[CharacterItem], map: &AbilityMap) {
+    fn update(
+        &mut self,
+        message: Message,
+        events: &mut Vec<Event>,
+        characters: &[CharacterItem],
+        map: &AbilityMap,
+    ) {
         match message {
             Message::Back => {
                 if matches!(&self.mode, Mode::Create { .. }) {
@@ -1242,7 +1250,8 @@ impl Controls {
             Message::Tool(value) => {
                 if let Mode::Create { tool, loadout, .. } = &mut self.mode {
                     *tool = value;
-                    loadout.active_item = Some(LoadoutBuilder::default_item_config_from_str(*tool, map));
+                    loadout.active_item =
+                        Some(LoadoutBuilder::default_item_config_from_str(*tool, map));
                 }
             },
             Message::RandomizeCharacter => {
@@ -1411,7 +1420,7 @@ impl CharSelectionUi {
     }
 
     // TODO: do we need whole client here or just character list?
-    pub fn maintain(&mut self, global_state: &mut GlobalState, client: &mut Client, map: &AbilityMap) -> Vec<Event> {
+    pub fn maintain(&mut self, global_state: &mut GlobalState, client: &mut Client) -> Vec<Event> {
         let mut events = Vec::new();
 
         let (mut messages, _) = self.ui.maintain(
@@ -1425,8 +1434,12 @@ impl CharSelectionUi {
         }
 
         messages.into_iter().for_each(|message| {
-            self.controls
-                .update(message, &mut events, &client.character_list.characters, map)
+            self.controls.update(
+                message,
+                &mut events,
+                &client.character_list.characters,
+                &*client.state().ability_map(),
+            )
         });
 
         events

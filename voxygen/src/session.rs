@@ -15,7 +15,7 @@ use client::{self, Client};
 use common::{
     assets::Asset,
     comp,
-    comp::{item::tool::AbilityMap, ChatMsg, ChatType, InventoryUpdateEvent, Pos, Vel},
+    comp::{ChatMsg, ChatType, InventoryUpdateEvent, Pos, Vel},
     consts::{MAX_MOUNT_RANGE, MAX_PICKUP_RANGE},
     event::EventBus,
     msg::PresenceKind,
@@ -203,7 +203,7 @@ impl PlayState for SessionState {
         }
     }
 
-    fn tick(&mut self, global_state: &mut GlobalState, events: Vec<Event>, map: &AbilityMap) -> PlayStateResult {
+    fn tick(&mut self, global_state: &mut GlobalState, events: Vec<Event>) -> PlayStateResult {
         span!(_guard, "tick", "<Session as PlayState>::tick");
         // TODO: let mut client = self.client.borrow_mut();
         // NOTE: Not strictly necessary, but useful for hotloading translation changes.

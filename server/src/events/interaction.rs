@@ -4,7 +4,11 @@ use crate::{
     Server,
 };
 use common::{
-    comp::{self, item::{self, tool::AbilityMap}, Pos},
+    comp::{
+        self,
+        item::{self, tool::AbilityMap},
+        Pos,
+    },
     consts::MAX_MOUNT_RANGE,
     msg::ServerGeneral,
     sync::{Uid, WorldSyncExt},

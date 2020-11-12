@@ -46,7 +46,7 @@ use crate::{
 };
 use common::{
     cmd::ChatCommand,
-    comp::{self, item::tool::AbilityMap, ChatType},
+    comp::{self, ChatType},
     event::{EventBus, ServerEvent},
     msg::{
         ClientType, DisconnectReason, ServerGeneral, ServerInfo, ServerInit, ServerMsg, WorldMapMsg,
@@ -159,8 +159,8 @@ impl Server {
         state
             .ecs_mut()
             .insert(CharacterUpdater::new(&persistence_db_dir)?);
-            
-        let character_loader = CharacterLoader::new(&persistence_db_dir, &*state.ecs().fetch::<AbilityMap>());
+
+        let character_loader = CharacterLoader::new(&persistence_db_dir, &*state.ability_map());
         state.ecs_mut().insert(character_loader);
         state.ecs_mut().insert(Vec::<Outcome>::new());
 

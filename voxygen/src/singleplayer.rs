@@ -1,5 +1,5 @@
 use client::Client;
-use common::{clock::Clock, comp::item::tool::AbilityMap};
+use common::clock::Clock;
 use crossbeam::channel::{bounded, unbounded, Receiver, Sender, TryRecvError};
 use server::{Error as ServerError, Event, Input, Server};
 use std::{
@@ -31,7 +31,7 @@ pub struct Singleplayer {
 }
 
 impl Singleplayer {
-    pub fn new(client: Option<&Client>,map: &AbilityMap) -> Self {
+    pub fn new(client: Option<&Client>) -> Self {
         let (sender, receiver) = unbounded();
 
         // Determine folder to save server data in

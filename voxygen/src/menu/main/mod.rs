@@ -12,7 +12,11 @@ use crate::{
     Direction, GlobalState, PlayState, PlayStateResult,
 };
 use client_init::{ClientInit, Error as InitError, Msg as InitMsg};
-use common::{assets::Asset, comp::{self, item::tool::AbilityMap}, span};
+use common::{
+    assets::Asset,
+    comp::{self},
+    span,
+};
 use tracing::error;
 use ui::{Event as MainMenuEvent, MainMenuUi};
 
@@ -48,7 +52,7 @@ impl PlayState for MainMenuState {
         }
     }
 
-    fn tick(&mut self, global_state: &mut GlobalState, events: Vec<Event>, map: &AbilityMap) -> PlayStateResult {
+    fn tick(&mut self, global_state: &mut GlobalState, events: Vec<Event>) -> PlayStateResult {
         span!(_guard, "tick", "<MainMenuState as PlayState>::tick");
         let mut localized_strings = crate::i18n::Localization::load_expect(
             &crate::i18n::i18n_asset_key(&global_state.settings.language.selected_language),
@@ -263,7 +267,7 @@ impl PlayState for MainMenuState {
                 },
                 #[cfg(feature = "singleplayer")]
                 MainMenuEvent::StartSingleplayer => {
-                    let singleplayer = Singleplayer::new(None, map); // TODO: Make client and server use the same thread pool
+                    let singleplayer = Singleplayer::new(None); // TODO: Make client and server use the same thread pool
 
                     global_state.singleplayer = Some(singleplayer);
                 },
