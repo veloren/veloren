@@ -232,7 +232,7 @@ impl<'a> System<'a> for Sys {
                                     .unwrap_or(Vec2::zero())
                                     * speed.min(agent.rtsim_controller.speed_factor);
                                 inputs.jump.set_state(bearing.z > 1.5);
-                                inputs.climb = Some(comp::Climb::Up);
+                                inputs.climb = Some(comp::Climb::Up).filter(|_| bearing.z > 1.5);
                                 inputs.move_z = bearing.z;
                             }
                         } else {
