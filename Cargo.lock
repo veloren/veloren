@@ -5402,7 +5402,6 @@ dependencies = [
  "portpicker",
  "prometheus",
  "rand 0.7.3",
- "rand_chacha 0.2.2",
  "ron",
  "scan_fmt",
  "serde",

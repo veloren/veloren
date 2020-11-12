@@ -326,6 +326,7 @@ impl Server {
         // Insert the world into the ECS (todo: Maybe not an Arc?)
         let world = Arc::new(world);
         state.ecs_mut().insert(world.clone());
+        state.ecs_mut().insert(index.clone());
 
         // Set starting time for the server.
         state.ecs_mut().write_resource::<TimeOfDay>().0 = settings.start_time;

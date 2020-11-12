@@ -5,7 +5,7 @@ use crate::{
     },
     event::LocalEvent,
     states::*,
-    sys::{character_behavior::JoinData, phys::GRAVITY},
+    sys::{character_behavior::JoinData, phys::{GRAVITY, FRIC_GROUND}},
     util::Dir,
 };
 use serde::{Deserialize, Serialize};
@@ -47,6 +47,25 @@ impl Body {
             Body::Theropod(_) => 135.0,
             Body::QuadrupedLow(_) => 120.0,
         }
+    }
+
+    /// Attempt to determine the maximum speed of the character
+    /// when moving on the ground
+    pub fn max_speed_approx(&self) -> f32 {
+        // Inverse kinematics: at what velocity will acceleration
+        // be cancelled out by friction drag?
+        // Note: we assume no air (this is fine, current physics
+        // uses max(air_drag, ground_drag)).
+        // Derived via...
+        // v = (v + dv / 30) * (1 - drag).powf(2) (accel cancels drag)
+        // => 1 = (1 + (dv / 30) / v) * (1 - drag).powf(2)
+        // => 1 / (1 - drag).powf(2) = 1 + (dv / 30) / v
+        // => 1 / (1 - drag).powf(2) - 1 = (dv / 30) / v
+        // => 1 / (1 / (1 - drag).powf(2) - 1) = v / (dv / 30)
+        // => (dv / 30) / (1 / (1 - drag).powf(2) - 1) = v
+        let v = (-self.base_accel() / 30.0) / ((1.0 - FRIC_GROUND).powf(2.0) - 1.0);
+        debug_assert!(v >= 0.0, "Speed must be positive!");
+        v
     }
 
     pub fn base_ori_rate(&self) -> f32 {
