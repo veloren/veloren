@@ -2,6 +2,7 @@ use super::*;
 use common::{
     event::{EventBus, ServerEvent},
     terrain::TerrainGrid,
+    rtsim::RtSimEntity,
     comp,
 };
 use specs::{Join, Read, ReadStorage, System, Write, WriteExpect, ReadExpect};
@@ -15,6 +16,8 @@ impl<'a> System<'a> for Sys {
         WriteExpect<'a, RtSim>,
         ReadExpect<'a, TerrainGrid>,
         ReadExpect<'a, Arc<world::World>>,
+        ReadStorage<'a, comp::Pos>,
+        ReadStorage<'a, RtSimEntity>,
     );
 
     fn run(
@@ -24,10 +27,13 @@ impl<'a> System<'a> for Sys {
             mut rtsim,
             terrain,
             world,
+            positions,
+            rtsim_entities,
         ): Self::SystemData,
     ) {
         let rtsim = &mut *rtsim;
 
+        // Update rtsim entities
         // TODO: don't update all of them each tick
         let mut to_reify = Vec::new();
         for (id, entity) in rtsim.entities.iter_mut() {
@@ -71,6 +77,11 @@ impl<'a> System<'a> for Sys {
                 home_chunk: None,
                 rtsim_entity: Some(RtSimEntity(id)),
             });
+        }
+
+        // Update rtsim with real entity data
+        for (pos, rtsim_entity) in (&positions, &rtsim_entities).join() {
+            rtsim.entities.get_mut(rtsim_entity.0).map(|entity| entity.pos = pos.0);
         }
     }
 }
