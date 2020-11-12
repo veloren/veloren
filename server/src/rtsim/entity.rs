@@ -35,15 +35,30 @@ impl Entity {
     }
 
     pub fn get_loadout(&self) -> comp::Loadout {
+        let mut rng = self.rng(PERM_LOADOUT);
         let main_tool = comp::Item::new_from_asset_expect((&[
             "common.items.weapons.sword.wood_sword",
             "common.items.weapons.sword.starter_sword",
             "common.items.weapons.sword.short_sword_0",
             "common.items.weapons.bow.starter_bow",
             "common.items.weapons.bow.leafy_longbow-0",
-        ]).choose(&mut self.rng(PERM_LOADOUT)).unwrap());
+        ]).choose(&mut rng).unwrap());
+
+        let back = match rng.gen_range(0, 3) {
+            0 => Some(comp::Item::new_from_asset_expect("common.items.armor.back.leather_adventurer")),
+            1 => Some(comp::Item::new_from_asset_expect("common.items.armor.back.backpack_0")),
+            _ => None,
+        };
+
+        let lantern = match rng.gen_range(0, 3) {
+            0 => Some(comp::Item::new_from_asset_expect("common.items.lantern.black_0")),
+            1 => Some(comp::Item::new_from_asset_expect("common.items.lantern.blue_0")),
+            _ => Some(comp::Item::new_from_asset_expect("common.items.lantern.red_0")),
+        };
+
         LoadoutBuilder::build_loadout(self.get_body(), comp::Alignment::Npc, Some(main_tool), false)
-            .back(Some(comp::Item::new_from_asset_expect("common.items.armor.back.leather_adventurer")))
+            .back(back)
+            .lantern(lantern)
             .build()
     }
 
