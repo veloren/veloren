@@ -80,6 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed a bug where the closest item would be picked up instead of a selected item.
 - Fixed a bug where camera zoom in and zoom out distance didn't match.
 - Fixed a bug where a nearby item would also be collected when collecting collectible blocks
+- Fixed a bug where firing fast projectile at a downwards angle caused them to veer off at a higher angle
 
 ## [0.7.0] - 2020-08-15
 
