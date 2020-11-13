@@ -62,8 +62,13 @@ impl CharacterBehavior for Data {
         let mut update = StateUpdate::from(data);
 
         if self.static_data.is_helicopter {
-            update.vel.0 = Vec3::new(0.0, 0.0, update.vel.0.z + GRAVITY * data.dt.0)
-                + data.inputs.move_dir * 5.0;
+            let delta_vel_z = if update.vel.0.z > 0.0 && update.vel.0.z <= 1.0 {
+                GRAVITY * data.dt.0
+            } else {
+                0.0
+            };
+            update.vel.0 =
+                Vec3::new(0.0, 0.0, update.vel.0.z + delta_vel_z) + data.inputs.move_dir * 5.0;
         }
 
         // Allows for other states to interrupt this state
