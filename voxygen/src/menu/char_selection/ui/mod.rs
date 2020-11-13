@@ -1410,6 +1410,12 @@ impl CharSelectionUi {
         }
     }
 
+    pub fn update_language(&mut self, i18n: std::sync::Arc<Localization>) {
+        self.controls.i18n = i18n;
+        self.controls.fonts = Fonts::load(&self.controls.i18n.fonts, &mut self.ui)
+            .expect("Impossible to load fonts!");
+    }
+
     // TODO: do we need whole client here or just character list?
     pub fn maintain(&mut self, global_state: &mut GlobalState, client: &mut Client) -> Vec<Event> {
         let mut events = Vec::new();

@@ -647,8 +647,15 @@ impl Window {
     pub fn fetch_events(&mut self) -> Vec<Event> {
         // Refresh ui size (used when changing playstates)
         if self.needs_refresh_resize {
+            let logical_size = self.logical_size();
             self.events
-                .push(Event::Ui(ui::Event::new_resize(self.logical_size())));
+                .push(Event::Ui(ui::Event::new_resize(logical_size)));
+            self.events.push(Event::IcedUi(iced::Event::Window(
+                iced::window::Event::Resized {
+                    width: logical_size.x as u32,
+                    height: logical_size.y as u32,
+                },
+            )));
             self.needs_refresh_resize = false;
         }
 
