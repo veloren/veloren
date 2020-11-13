@@ -142,8 +142,8 @@ impl<'a> Widget for BuffsBar<'a> {
                 },
             );
             // Limit displayed buffs
-            let buff_count = buff_count.min(22);
-            let debuff_count = debuff_count.min(22);
+            let buff_count = buff_count.min(12);
+            let debuff_count = debuff_count.min(12);
 
             let gen = &mut ui.widget_id_generator();
             if state.ids.buffs.len() < buff_count {
@@ -186,14 +186,14 @@ impl<'a> Widget for BuffsBar<'a> {
                         BuffKind::Potion { .. } => self.imgs.buff_potion_0,
                         _ => self.imgs.missing_icon,
                     };
-                    let buff_widget = Image::new(buff_img).w_h(20.0, 20.0);
+                    let buff_widget = Image::new(buff_img).w_h(40.0, 40.0);
                     // Sort buffs into rows of 11 slots
-                    let x = i % 11;
-                    let y = i / 11;
+                    let x = i % 6;
+                    let y = i / 6;
                     let buff_widget = buff_widget.bottom_left_with_margins_on(
                         state.ids.buffs_align,
-                        0.0 + y as f64 * (21.0),
-                        0.0 + x as f64 * (21.0),
+                        0.0 + y as f64 * (41.0),
+                        0.0 + x as f64 * (41.0),
                     );
                     buff_widget
                         .color(
@@ -240,7 +240,7 @@ impl<'a> Widget for BuffsBar<'a> {
                         0..=124 => self.imgs.buff_6,     // 1/8
                         _ => self.imgs.nothing,
                     })
-                    .w_h(20.0, 20.0)
+                    .w_h(40.0, 40.0)
                     .middle_of(id)
                     .with_tooltip(
                         self.tooltip_manager,
@@ -281,14 +281,14 @@ impl<'a> Widget for BuffsBar<'a> {
                         BuffKind::Cursed { .. } => self.imgs.debuff_skull_0,
                         _ => self.imgs.missing_icon,
                     };
-                    let debuff_widget = Image::new(debuff_img).w_h(20.0, 20.0);
+                    let debuff_widget = Image::new(debuff_img).w_h(40.0, 40.0);
                     // Sort buffs into rows of 11 slots
-                    let x = i % 11;
-                    let y = i / 11;
+                    let x = i % 6;
+                    let y = i / 6;
                     let debuff_widget = debuff_widget.bottom_right_with_margins_on(
                         state.ids.debuffs_align,
-                        0.0 + y as f64 * (21.0),
-                        0.0 + x as f64 * (21.0),
+                        0.0 + y as f64 * (41.0),
+                        0.0 + x as f64 * (41.0),
                     );
 
                     debuff_widget
@@ -326,7 +326,7 @@ impl<'a> Widget for BuffsBar<'a> {
                         0..=124 => self.imgs.buff_6,     // 1/8
                         _ => self.imgs.nothing,
                     })
-                    .w_h(20.0, 20.0)
+                    .w_h(40.0, 40.0)
                     .middle_of(id)
                     .with_tooltip(
                         self.tooltip_manager,
