@@ -325,6 +325,27 @@ void main() {
             hit_xz ?
                 hit_xy ? xz_dist < xy_dist ? vec3(0.0, sides.y, 0.0) : vec3(0.0, 0.0, sides.z) : vec3(0.0, sides.y, 0.0) :
                 hit_xy ? vec3(0.0, 0.0, sides.z) : vec3(0.0, 0.0, 0.0);
+
+    const float VOXELIZE_DIST = 2500;
+    float voxelize_factor = clamp(1.0 - (distance(focus_pos.xy, f_pos.xy) - view_distance.x) / VOXELIZE_DIST, 0, 1);
+    vec3 cam_dir = normalize(cam_pos.xyz - f_pos.xyz);
+    vec3 side_norm = normalize(vec3(my_norm.xy, 0));
+    vec3 top_norm = vec3(0, 0, 1);
+    float side_factor = 1.0 - my_norm.z;
+    // min(dot(vec3(0, -sign(cam_dir.y), 0), -cam_dir), dot(vec3(-sign(cam_dir.x), 0, 0), -cam_dir))
+    if (max(abs(my_norm.x), abs(my_norm.y)) < 0.01 || fract(my_alt) * clamp(dot(normalize(vec3(cam_dir.xy, 0)), side_norm), 0, 1) < cam_dir.z / my_norm.z) {
+        f_ao *= mix(1.0, clamp(fract(my_alt) / length(my_norm.xy) + clamp(dot(side_norm, -cam_dir), 0, 1), 0, 1), voxelize_factor);
+        voxel_norm = top_norm;
+    } else {
+        f_ao *= mix(1.0, clamp(fract(my_alt), 0, 1), voxelize_factor);
+
+        if (fract(f_pos.x) < cam_dir.x / my_norm.x + clamp(dot(vec3(1, 0, 0), -cam_dir), 0, 1)) {
+            voxel_norm = vec3(sign(cam_dir.x), 0, 0);
+        } else {
+            voxel_norm = vec3(0, sign(cam_dir.y), 0);
+        }
+    }
+
     // vec3 f_ao_view = max(vec3(dot(f_orig_view_dir.yz, sides.yz), dot(f_orig_view_dir.xz, sides.xz), dot(f_orig_view_dir.xy, sides.xy)), 0.0);
     // delta_sides *= sqrt(1.0 - f_ao_view * f_ao_view);
     // delta_sides *= 1.0 - mix(view_dir / f_ao_view, vec3(0.0), equal(f_ao_view, vec3(0.0)));// sqrt(1.0 - f_ao_view * f_ao_view);
@@ -446,7 +467,7 @@ void main() {
     voxel_norm = normalize(mix(voxel_norm, lerpy_norm, clamp(my_norm.z * my_norm.z - (1.0 - DIST), 0, 1) / DIST));
 
     f_pos.xyz += abs(voxel_norm) * delta_sides;
-    voxel_norm = mix(voxel_norm == vec3(0.0) ? f_norm : voxel_norm, my_norm, clamp((f_orig_len - view_distance.x) / 3500, 0, 1));
+    voxel_norm = mix(my_norm, voxel_norm == vec3(0.0) ? f_norm : voxel_norm, voxelize_factor);
 
     vec3 hash_pos = f_pos + focus_off.xyz;
     const float A = 0.055;
@@ -470,7 +491,7 @@ void main() {
     // f_ao = 1.0;
     // f_ao = dot(f_ao_vec, sqrt(1.0 - delta_sides * delta_sides));
 
-    f_ao = dot(f_ao_vec, abs(voxel_norm));
+    f_ao *= dot(f_ao_vec, abs(voxel_norm));
     // f_ao = sqrt(dot(f_ao_vec * abs(voxel_norm), sqrt(1.0 - delta_sides * delta_sides)) / 3.0);
 
     // vec3 ao_pos2 = min(fract(f_pos), 1.0 - fract(f_pos));
