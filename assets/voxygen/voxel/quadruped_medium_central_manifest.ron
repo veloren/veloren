@@ -845,7 +845,7 @@
             central: ("npc.donkey.male.head"),
         ),
         neck: (
-            offset: (-3.0, -4.0, -7.0),
+            offset: (-3.0, -4.0, -6.5),
             central: ("npc.donkey.male.neck"),
         ),
         jaw: (
@@ -965,15 +965,15 @@
             central: ("npc.zebra.male.head"),
         ),
         neck: (
-            offset: (-3.0, -4.0, -7.0),
+            offset: (-3.0, -4.5, -7.0),
             central: ("npc.zebra.male.neck"),
         ),
         jaw: (
-            offset: (-2.0, 0.0, -1.5),
+            offset: (-2.0, 0.0, -1.0),
             central: ("npc.zebra.male.jaw"),
         ),
         torso_front: (
-            offset: (-5.0, -9.0, -6.5),
+            offset: (-5.0, -10.0, -6.5),
             central: ("npc.zebra.male.torso_front"),
         ),
         torso_back: (
@@ -995,15 +995,15 @@
             central: ("npc.zebra.male.head"),
         ),
         neck: (
-            offset: (-3.0, -4.0, -7.0),
+            offset: (-3.0, -4.5, -7.0),
             central: ("npc.zebra.male.neck"),
         ),
         jaw: (
-            offset: (-2.0, 0.0, -1.5),
+            offset: (-2.0, 0.0, -1.0),
             central: ("npc.zebra.male.jaw"),
         ),
         torso_front: (
-            offset: (-5.0, -9.0, -6.5),
+            offset: (-5.0, -10.0, -6.5),
             central: ("npc.zebra.male.torso_front"),
         ),
         torso_back: (
@@ -1037,7 +1037,7 @@
             central: ("npc.antelope.male.torso_front"),
         ),
         torso_back: (
-            offset: (-4.0, -10.0, -3.5),
+            offset: (-4.0, -5.5, -3.5),
             central: ("npc.antelope.male.torso_back"),
         ),
         ears: (
@@ -1067,7 +1067,7 @@
             central: ("npc.antelope.male.torso_front"),
         ),
         torso_back: (
-            offset: (-4.0, -10.0, -3.5),
+            offset: (-4.0, -5.5, -3.5),
             central: ("npc.antelope.male.torso_back"),
         ),
         ears: (
@@ -1085,7 +1085,7 @@
             central: ("npc.kelpie.male.head"),
         ),
         neck: (
-            offset: (-4.0, -4.0, -7.5),
+            offset: (-4.0, -4.5, -7.5),
             central: ("npc.kelpie.male.neck"),
         ),
         jaw: (
@@ -1093,7 +1093,7 @@
             central: ("npc.kelpie.male.jaw"),
         ),
         torso_front: (
-            offset: (-5.0, -9.0, -6.5),
+            offset: (-5.0, -10.0, -6.5),
             central: ("npc.kelpie.male.torso_front"),
         ),
         torso_back: (
@@ -1115,15 +1115,15 @@
             central: ("npc.kelpie.male.head"),
         ),
         neck: (
-            offset: (-4.0, -4.0, -7.5),
+            offset: (-4.0, -4.5, -7.5),
             central: ("npc.kelpie.male.neck"),
         ),
         jaw: (
-            offset: (-2.0, -2.0, -1.5),
+            offset: (-2.0, 0.0, -1.5),
             central: ("npc.kelpie.male.jaw"),
         ),
         torso_front: (
-            offset: (-5.0, -9.0, -6.5),
+            offset: (-5.0, -10.0, -6.5),
             central: ("npc.kelpie.male.torso_front"),
         ),
         torso_back: (
