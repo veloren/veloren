@@ -126,7 +126,7 @@ pub struct Ui {
 impl Ui {
     pub fn new(window: &mut Window) -> Result<Self, Error> {
         let scale = Scale::new(window, ScaleMode::Absolute(1.0), 1.0);
-        let win_dims = scale.scaled_window_size().into_array();
+        let win_dims = scale.scaled_resolution().into_array();
 
         let renderer = window.renderer_mut();
 
@@ -165,7 +165,7 @@ impl Ui {
         // To clear the cache (it won't be resized in this case)
         self.need_cache_resize = true;
         // Give conrod the new size.
-        let (w, h) = self.scale.scaled_window_size().into_tuple();
+        let (w, h) = self.scale.scaled_resolution().into_tuple();
         self.ui.handle_event(Input::Resize(w, h));
     }
 
@@ -286,9 +286,9 @@ impl Ui {
 
         // Handle window resizing.
         if let Some(new_dims) = self.window_resized.take() {
-            let (old_w, old_h) = self.scale.scaled_window_size().into_tuple();
-            self.scale.window_resized(new_dims, renderer);
-            let (w, h) = self.scale.scaled_window_size().into_tuple();
+            let (old_w, old_h) = self.scale.scaled_resolution().into_tuple();
+            self.scale.window_resized(new_dims);
+            let (w, h) = self.scale.scaled_resolution().into_tuple();
             self.ui.handle_event(Input::Resize(w, h));
 
             // Avoid panic in graphic cache when minimizing.

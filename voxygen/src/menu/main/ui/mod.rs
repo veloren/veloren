@@ -14,7 +14,7 @@ use crate::{
         img_ids::{ImageGraphic, VoxelGraphic},
         Graphic,
     },
-    GlobalState,
+    window, GlobalState,
 };
 use iced::{text_input, Column, Container, HorizontalAlignment, Length, Row, Space};
 //ImageFrame, Tooltip,
@@ -541,7 +541,22 @@ impl<'a> MainMenuUi {
 
     pub fn cancel_connection(&mut self) { self.controls.exit_connect_screen(); }
 
-    pub fn handle_event(&mut self, event: ui::ice::Event) {
+    pub fn handle_event(&mut self, event: window::Event) -> bool {
+        match event {
+            // Pass events to ui.
+            window::Event::IcedUi(event) => {
+                self.handle_ui_event(event);
+                true
+            },
+            window::Event::ScaleFactorChanged(s) => {
+                self.ui.scale_factor_changed(s);
+                false
+            },
+            _ => false,
+        }
+    }
+
+    pub fn handle_ui_event(&mut self, event: ui::ice::Event) {
         // Tab for input fields
         use iced::keyboard;
         if matches!(

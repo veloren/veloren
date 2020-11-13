@@ -57,6 +57,7 @@ impl PlayState for MainMenuState {
         );
     }
 
+    #[allow(clippy::single_match)] // TODO: remove when event match has multiple arms
     fn tick(&mut self, global_state: &mut GlobalState, events: Vec<Event>) -> PlayStateResult {
         span!(_guard, "tick", "<MainMenuState as PlayState>::tick");
         let mut localized_strings = crate::i18n::Localization::load_expect(
@@ -93,12 +94,13 @@ impl PlayState for MainMenuState {
 
         // Handle window events.
         for event in events {
+            // Pass all events to the ui first.
+            if self.main_menu_ui.handle_event(event.clone()) {
+                continue;
+            }
+
             match event {
                 Event::Close => return PlayStateResult::Shutdown,
-                // Pass events to ui.
-                Event::IcedUi(event) => {
-                    self.main_menu_ui.handle_event(event);
-                },
                 // Ignore all other events.
                 _ => {},
             }

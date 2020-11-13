@@ -30,8 +30,7 @@ pub struct IcedUi {
     cursor_position: Vec2<f32>,
     // Scaling of the ui
     scale: Scale,
-    window_resized: Option<Vec2<u32>>,
-    scale_mode_changed: bool,
+    scale_changed: bool,
 }
 impl IcedUi {
     pub fn new(
@@ -42,19 +41,24 @@ impl IcedUi {
         let scale = Scale::new(window, scale_mode, 1.2);
         let renderer = window.renderer_mut();
 
-        let scaled_dims = scale.scaled_window_size().map(|e| e as f32);
+        let scaled_resolution = scale.scaled_resolution().map(|e| e as f32);
+        let physical_resolution = scale.physical_resolution();
 
         // TODO: examine how much mem fonts take up and reduce clones if significant
         Ok(Self {
-            renderer: IcedRenderer::new(renderer, scaled_dims, default_font)?,
+            renderer: IcedRenderer::new(
+                renderer,
+                scaled_resolution,
+                physical_resolution,
+                default_font,
+            )?,
             cache: Some(Cache::new()),
             events: Vec::new(),
             // TODO: handle None
             clipboard: Clipboard::new(window.window()).unwrap(),
             cursor_position: Vec2::zero(),
             scale,
-            window_resized: None,
-            scale_mode_changed: false,
+            scale_changed: false,
         })
     }
 
@@ -75,7 +79,13 @@ impl IcedUi {
     pub fn set_scaling_mode(&mut self, mode: ScaleMode) {
         self.scale.set_scaling_mode(mode);
         // Signal that change needs to be handled
-        self.scale_mode_changed = true;
+        self.scale_changed = true;
+    }
+
+    /// Dpi factor changed
+    /// Not to be confused with scaling mode
+    pub fn scale_factor_changed(&mut self, scale_factor: f64) {
+        self.scale_changed |= self.scale.scale_factor_changed(scale_factor);
     }
 
     pub fn handle_event(&mut self, event: Event) {
@@ -86,7 +96,10 @@ impl IcedUi {
             // ideally these values should be the logical ones
             Event::Window(window::Event::Resized { width, height }) => {
                 if width != 0 && height != 0 {
-                    self.window_resized = Some(Vec2::new(width, height));
+                    let new_dims = Vec2::new(width, height);
+                    // TODO maybe use u32 in Scale to be consistent with iced
+                    // Avoid resetting cache if window size didn't change
+                    self.scale_changed |= self.scale.window_resized(new_dims.map(|e| e as f64));
                 }
             },
             // Scale cursor movement events
@@ -133,32 +146,22 @@ impl IcedUi {
         renderer: &mut Renderer,
     ) -> (Vec<M>, mouse::Interaction) {
         span!(_guard, "maintain", "IcedUi::maintain");
-        // Handle window resizing and scale mode changing
-        let scaled_dims = if let Some(new_dims) = self.window_resized.take() {
-            // TODO maybe use u32 in Scale to be consistent with iced
-            self.scale
-                .window_resized(new_dims.map(|e| e as f64), renderer)
-                // Avoid resetting cache if window size didn't change
-                .then(|| self.scale.scaled_window_size())
-        } else if self.scale_mode_changed {
-            Some(self.scale.scaled_window_size())
-        } else {
-            None
-        };
-        if let Some(scaled_dims) = scaled_dims {
-            self.scale_mode_changed = false;
+        // Handle window resizing, dpi factor change, and scale mode changing
+        if self.scale_changed {
+            self.scale_changed = false;
+            let scaled_resolution = self.scale.scaled_resolution().map(|e| e as f32);
             self.events
                 .push(Event::Window(iced::window::Event::Resized {
-                    width: scaled_dims.x as u32,
-                    height: scaled_dims.y as u32,
+                    width: scaled_resolution.x as u32,
+                    height: scaled_resolution.y as u32,
                 }));
             // Avoid panic in graphic cache when minimizing.
             // Somewhat inefficient for elements that won't change size after a window
             // resize
-            let res = renderer.get_resolution();
-            if res.x > 0 && res.y > 0 {
+            let physical_resolution = self.scale.physical_resolution();
+            if physical_resolution.map(|e| e > 0).reduce_and() {
                 self.renderer
-                    .resize(scaled_dims.map(|e| e as f32), renderer);
+                    .resize(scaled_resolution, physical_resolution, renderer);
             }
         }
 
@@ -168,7 +171,7 @@ impl IcedUi {
         };
 
         // TODO: convert to f32 at source
-        let window_size = self.scale.scaled_window_size().map(|e| e as f32);
+        let window_size = self.scale.scaled_resolution().map(|e| e as f32);
 
         span!(guard, "build user_interface");
         let mut user_interface = UserInterface::build(
