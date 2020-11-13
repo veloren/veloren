@@ -363,7 +363,6 @@ impl Controls {
             },
             Message::Username(new_value) => self.login_info.username = new_value,
             Message::LanguageChanged(new_value) => {
-                self.selected_language_index = Some(new_value);
                 events.push(Event::ChangeLanguage(language_metadatas.remove(new_value)));
             },
             Message::OpenLanguageMenu => self.is_selecting_language = !self.is_selecting_language,
@@ -522,10 +521,14 @@ impl<'a> MainMenuUi {
         Self { ui, controls }
     }
 
-    pub fn update_language(&mut self, i18n: std::sync::Arc<Localization>) {
+    pub fn update_language(&mut self, i18n: std::sync::Arc<Localization>, settings: &Settings) {
         self.controls.i18n = i18n;
         self.controls.fonts = Fonts::load(&self.controls.i18n.fonts, &mut self.ui)
             .expect("Impossible to load fonts!");
+        let language_metadatas = crate::i18n::list_localizations();
+        self.controls.selected_language_index = language_metadatas
+            .iter()
+            .position(|f| f.language_identifier == settings.language.selected_language);
     }
 
     pub fn auth_trust_prompt(&mut self, auth_server: String) {

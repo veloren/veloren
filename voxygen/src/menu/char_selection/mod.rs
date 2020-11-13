@@ -57,9 +57,16 @@ impl CharSelectionState {
 }
 
 impl PlayState for CharSelectionState {
-    fn enter(&mut self, _: &mut GlobalState, _: Direction) {
+    fn enter(&mut self, global_state: &mut GlobalState, _: Direction) {
         // Load the player's character list
         self.client.borrow_mut().load_character_list();
+
+        // Updated localization in case the selected language was changed
+        let localized_strings = crate::i18n::Localization::load_expect(
+            &crate::i18n::i18n_asset_key(&global_state.settings.language.selected_language),
+        );
+        self.char_selection_ui
+            .update_language(std::sync::Arc::clone(&localized_strings));
     }
 
     fn tick(&mut self, global_state: &mut GlobalState, events: Vec<WinEvent>) -> PlayStateResult {

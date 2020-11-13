@@ -46,6 +46,15 @@ impl PlayState for MainMenuState {
         {
             global_state.singleplayer = None;
         }
+
+        // Updated localization in case the selected language was changed
+        let localized_strings = crate::i18n::Localization::load_expect(
+            &crate::i18n::i18n_asset_key(&global_state.settings.language.selected_language),
+        );
+        self.main_menu_ui.update_language(
+            std::sync::Arc::clone(&localized_strings),
+            &global_state.settings,
+        );
     }
 
     fn tick(&mut self, global_state: &mut GlobalState, events: Vec<Event>) -> PlayStateResult {
@@ -258,8 +267,10 @@ impl PlayState for MainMenuState {
                         &global_state.settings.language.selected_language,
                     ));
                     localized_strings.log_missing_entries();
-                    self.main_menu_ui
-                        .update_language(std::sync::Arc::clone(&localized_strings));
+                    self.main_menu_ui.update_language(
+                        std::sync::Arc::clone(&localized_strings),
+                        &global_state.settings,
+                    );
                 },
                 #[cfg(feature = "singleplayer")]
                 MainMenuEvent::StartSingleplayer => {
