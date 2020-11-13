@@ -1,5 +1,5 @@
 use crate::{
-    comp::{Body, CharacterState, Gravity, LightEmitter, Projectile, StateUpdate},
+    comp::{Body, CharacterState, Gravity, LightEmitter, ProjectileConstructor, StateUpdate},
     event::ServerEvent,
     states::utils::{StageSection, *},
     sys::character_behavior::*,
@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use vek::Vec3;
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 /// Separated out to condense update portions of character state
 pub struct StaticData {
     /// How long the state is in movement
@@ -23,7 +23,7 @@ pub struct StaticData {
     /// Whether there should be a jump and how strong the leap is
     pub leap: Option<f32>,
     /// Projectile options
-    pub projectile: Projectile,
+    pub projectile: ProjectileConstructor,
     pub projectile_body: Body,
     pub projectile_light: Option<LightEmitter>,
     pub projectile_gravity: Option<Gravity>,
@@ -71,7 +71,6 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.movement_duration {
                     // Do movement
                     update.character = CharacterState::RepeaterRanged(Data {
-                        static_data: self.static_data.clone(),
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
@@ -81,7 +80,6 @@ impl CharacterBehavior for Data {
                 } else {
                     // Transition to buildup
                     update.character = CharacterState::RepeaterRanged(Data {
-                        static_data: self.static_data.clone(),
                         timer: Duration::default(),
                         stage_section: StageSection::Buildup,
                         ..*self
@@ -101,7 +99,6 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.buildup_duration {
                     // Buildup to attack
                     update.character = CharacterState::RepeaterRanged(Data {
-                        static_data: self.static_data.clone(),
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
@@ -111,7 +108,6 @@ impl CharacterBehavior for Data {
                 } else {
                     // Transition to shoot
                     update.character = CharacterState::RepeaterRanged(Data {
-                        static_data: self.static_data.clone(),
                         timer: Duration::default(),
                         stage_section: StageSection::Shoot,
                         ..*self
@@ -125,8 +121,10 @@ impl CharacterBehavior for Data {
                 }
                 if self.reps_remaining > 0 {
                     // Fire
-                    let mut projectile = self.static_data.projectile.clone();
-                    projectile.owner = Some(*data.uid);
+                    let projectile = self
+                        .static_data
+                        .projectile
+                        .create_projectile(Some(*data.uid));
                     update.server_events.push_front(ServerEvent::Shoot {
                         entity: data.entity,
                         // Provides slight variation to projectile direction
@@ -155,7 +153,6 @@ impl CharacterBehavior for Data {
 
                     // Shoot projectiles
                     update.character = CharacterState::RepeaterRanged(Data {
-                        static_data: self.static_data.clone(),
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
@@ -166,7 +163,6 @@ impl CharacterBehavior for Data {
                 } else if self.timer < self.static_data.shoot_duration {
                     // Finish shooting
                     update.character = CharacterState::RepeaterRanged(Data {
-                        static_data: self.static_data.clone(),
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
@@ -176,7 +172,6 @@ impl CharacterBehavior for Data {
                 } else {
                     // Transition to recover
                     update.character = CharacterState::RepeaterRanged(Data {
-                        static_data: self.static_data.clone(),
                         timer: Duration::default(),
                         stage_section: StageSection::Recover,
                         ..*self
@@ -190,7 +185,6 @@ impl CharacterBehavior for Data {
                 } else if self.timer < self.static_data.recover_duration {
                     // Recover from attack
                     update.character = CharacterState::RepeaterRanged(Data {
-                        static_data: self.static_data.clone(),
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))

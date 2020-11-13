@@ -25,6 +25,7 @@ use crate::{
 };
 use common::{
     character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER},
+    comp::item::tool::AbilityMap,
     state::Time,
 };
 use core::ops::Range;
@@ -60,6 +61,7 @@ pub fn load_character_data(
     requesting_player_uuid: String,
     char_id: CharacterId,
     connection: VelorenTransaction,
+    map: &AbilityMap,
 ) -> CharacterDataResult {
     use schema::{body::dsl::*, character::dsl::*, item::dsl::*, stats::dsl::*};
 
@@ -102,7 +104,7 @@ pub fn load_character_data(
         convert_body_from_database(&char_body)?,
         convert_stats_from_database(&stats_data, character_data.alias),
         convert_inventory_from_database_items(&inventory_items)?,
-        convert_loadout_from_database_items(&loadout_items)?,
+        convert_loadout_from_database_items(&loadout_items, map)?,
         waypoint,
     ))
 }
@@ -117,6 +119,7 @@ pub fn load_character_data(
 pub fn load_character_list(
     player_uuid_: &str,
     connection: VelorenTransaction,
+    map: &AbilityMap,
 ) -> CharacterListResult {
     use schema::{body::dsl::*, character::dsl::*, item::dsl::*, stats::dsl::*};
 
@@ -149,7 +152,7 @@ pub fn load_character_list(
                 .filter(parent_container_item_id.eq(loadout_container_id))
                 .load::<Item>(&*connection)?;
 
-            let loadout = convert_loadout_from_database_items(&loadout_items)?;
+            let loadout = convert_loadout_from_database_items(&loadout_items, map)?;
 
             Ok(CharacterItem {
                 character: char,
@@ -166,6 +169,7 @@ pub fn create_character(
     character_alias: &str,
     persisted_components: PersistedComponents,
     connection: VelorenTransaction,
+    map: &AbilityMap,
 ) -> CharacterListResult {
     use schema::item::dsl::*;
 
@@ -299,7 +303,7 @@ pub fn create_character(
         )));
     }
 
-    load_character_list(uuid, connection)
+    load_character_list(uuid, connection, map)
 }
 
 /// Delete a character. Returns the updated character list.
@@ -307,6 +311,7 @@ pub fn delete_character(
     requesting_player_uuid: &str,
     char_id: CharacterId,
     connection: VelorenTransaction,
+    map: &AbilityMap,
 ) -> CharacterListResult {
     use schema::{body::dsl::*, character::dsl::*, stats::dsl::*};
 
@@ -387,7 +392,7 @@ pub fn delete_character(
         )));
     }
 
-    load_character_list(requesting_player_uuid, connection)
+    load_character_list(requesting_player_uuid, connection, map)
 }
 
 /// Before creating a character, we ensure that the limit on the number of

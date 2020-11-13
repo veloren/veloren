@@ -1,9 +1,10 @@
 use crate::{
     comp::{
-        buff::{Buff, BuffCategory, BuffData, BuffKind, BuffSource},
+        buff::{BuffCategory, BuffData, BuffKind},
         projectile, Body, CharacterState, EnergyChange, EnergySource, Gravity, LightEmitter,
         Projectile, StateUpdate,
     },
+    effect::BuffEffect,
     event::ServerEvent,
     states::utils::*,
     sys::character_behavior::{CharacterBehavior, JoinData},
@@ -98,30 +99,28 @@ impl CharacterBehavior for Data {
                             * (self.static_data.max_knockback - self.static_data.initial_knockback)
                                 as f32);
                     // Fire
-                    let mut projectile = Projectile {
+                    let projectile = Projectile {
                         hit_solid: vec![projectile::Effect::Stick],
                         hit_entity: vec![
                             projectile::Effect::Damage(Some(GroupTarget::OutOfGroup), damage),
                             projectile::Effect::Knockback(Knockback::Away(knockback)),
                             projectile::Effect::Vanish,
                             projectile::Effect::Buff {
-                                buff: Buff::new(
-                                    BuffKind::Bleeding,
-                                    BuffData {
+                                buff: BuffEffect {
+                                    kind: BuffKind::Bleeding,
+                                    data: BuffData {
                                         strength: damage.value / 5.0,
                                         duration: Some(Duration::from_secs(5)),
                                     },
-                                    vec![BuffCategory::Physical],
-                                    BuffSource::Unknown,
-                                ),
+                                    cat_ids: vec![BuffCategory::Physical],
+                                },
                                 chance: Some(0.10),
                             },
                         ],
                         time_left: Duration::from_secs(15),
-                        owner: None,
+                        owner: Some(*data.uid),
                         ignore_group: true,
                     };
-                    projectile.owner = Some(*data.uid);
                     update.server_events.push_front(ServerEvent::Shoot {
                         entity: data.entity,
                         dir: data.inputs.look_dir,

@@ -1,0 +1,18 @@
+RepeaterRanged(
+    energy_cost: 450,
+    movement_duration: 300,
+    buildup_duration: 200,
+    shoot_duration: 200,
+    recover_duration: 800,
+    leap: Some(5.0),
+    projectile: Arrow(
+        damage: 40.0,
+        knockback: 10.0,
+        energy_regen: 0,
+    ),
+    projectile_body: Object(Arrow),
+    projectile_light: None,
+    projectile_gravity: Some(Gravity(0.2)),
+    projectile_speed: 100.0,
+    reps_remaining: 5,
+)

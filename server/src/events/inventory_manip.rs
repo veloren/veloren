@@ -203,7 +203,8 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                             if let Some(lantern) = lantern_opt {
                                 swap_lantern(&mut state.ecs().write_storage(), entity, &lantern);
                             }
-                            slot::equip(slot, inventory, loadout);
+                            let ability_map = state.ability_map();
+                            slot::equip(slot, inventory, loadout, &ability_map);
                             Some(comp::InventoryUpdateEvent::Used)
                         } else {
                             None
@@ -338,7 +339,8 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         if slot == slot::EquipSlot::Lantern {
                             snuff_lantern(&mut state.ecs().write_storage(), entity);
                         }
-                        slot::unequip(slot, inventory, loadout);
+                        let ability_map = state.ability_map();
+                        slot::unequip(slot, inventory, loadout, &ability_map);
                         Some(comp::InventoryUpdateEvent::Used)
                     } else {
                         error!(?entity, "Entity doesn't have a loadout, can't unequip...");
@@ -364,12 +366,14 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             let mut loadouts = ecs.write_storage();
             let inventory = inventories.get_mut(entity);
             let loadout = loadouts.get_mut(entity);
+            let ability_map = state.ability_map();
 
-            slot::swap(a, b, inventory, loadout);
+            slot::swap(a, b, inventory, loadout, &ability_map);
 
             // :/
             drop(loadouts);
             drop(inventories);
+            drop(ability_map);
 
             state.write_component(
                 entity,
@@ -378,6 +382,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
         },
 
         comp::InventoryManip::Drop(slot) => {
+            let ability_map = state.ability_map();
             let item = match slot {
                 Slot::Inventory(slot) => state
                     .ecs()
@@ -388,8 +393,9 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     .ecs()
                     .write_storage()
                     .get_mut(entity)
-                    .and_then(|ldt| slot::loadout_remove(slot, ldt)),
+                    .and_then(|ldt| slot::loadout_remove(slot, ldt, &ability_map)),
             };
+            drop(ability_map);
 
             // FIXME: We should really require the drop and write to be atomic!
             if let (Some(mut item), Some(pos)) =

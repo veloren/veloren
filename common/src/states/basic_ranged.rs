@@ -1,5 +1,5 @@
 use crate::{
-    comp::{Body, CharacterState, Gravity, LightEmitter, Projectile, StateUpdate},
+    comp::{Body, CharacterState, Gravity, LightEmitter, ProjectileConstructor, StateUpdate},
     event::ServerEvent,
     states::utils::*,
     sys::character_behavior::{CharacterBehavior, JoinData},
@@ -8,14 +8,14 @@ use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
 /// Separated out to condense update portions of character state
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StaticData {
     /// How much buildup is required before the attack
     pub buildup_duration: Duration,
     /// How long the state has until exiting
     pub recover_duration: Duration,
     /// Projectile variables
-    pub projectile: Projectile,
+    pub projectile: ProjectileConstructor,
     pub projectile_body: Body,
     pub projectile_light: Option<LightEmitter>,
     pub projectile_gravity: Option<Gravity>,
@@ -54,7 +54,6 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.buildup_duration {
                     // Build up
                     update.character = CharacterState::BasicRanged(Data {
-                        static_data: self.static_data.clone(),
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
@@ -64,7 +63,6 @@ impl CharacterBehavior for Data {
                 } else {
                     // Transitions to recover section of stage
                     update.character = CharacterState::BasicRanged(Data {
-                        static_data: self.static_data.clone(),
                         timer: Duration::default(),
                         stage_section: StageSection::Recover,
                         ..*self
@@ -74,8 +72,10 @@ impl CharacterBehavior for Data {
             StageSection::Recover => {
                 if !self.exhausted {
                     // Fire
-                    let mut projectile = self.static_data.projectile.clone();
-                    projectile.owner = Some(*data.uid);
+                    let projectile = self
+                        .static_data
+                        .projectile
+                        .create_projectile(Some(*data.uid));
                     update.server_events.push_front(ServerEvent::Shoot {
                         entity: data.entity,
                         dir: data.inputs.look_dir,
@@ -87,7 +87,6 @@ impl CharacterBehavior for Data {
                     });
 
                     update.character = CharacterState::BasicRanged(Data {
-                        static_data: self.static_data.clone(),
                         exhausted: true,
                         continue_next: false,
                         ..*self
@@ -96,7 +95,6 @@ impl CharacterBehavior for Data {
                     if ability_key_is_pressed(data, self.static_data.ability_key) {
                         // Recovers
                         update.character = CharacterState::BasicRanged(Data {
-                            static_data: self.static_data.clone(),
                             timer: self
                                 .timer
                                 .checked_add(Duration::from_secs_f32(data.dt.0))
@@ -107,7 +105,6 @@ impl CharacterBehavior for Data {
                     } else {
                         // Recovers
                         update.character = CharacterState::BasicRanged(Data {
-                            static_data: self.static_data.clone(),
                             timer: self
                                 .timer
                                 .checked_add(Duration::from_secs_f32(data.dt.0))
@@ -118,7 +115,6 @@ impl CharacterBehavior for Data {
                 } else if self.continue_next {
                     // Restarts character state
                     update.character = CharacterState::BasicRanged(Data {
-                        static_data: self.static_data.clone(),
                         timer: Duration::default(),
                         stage_section: StageSection::Buildup,
                         exhausted: false,

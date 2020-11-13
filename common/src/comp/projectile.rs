@@ -1,4 +1,9 @@
-use crate::{comp::Buff, sync::Uid, Damage, Explosion, GroupTarget, Knockback};
+use crate::{
+    comp::buff::{BuffCategory, BuffData, BuffKind},
+    effect::{self, BuffEffect},
+    sync::Uid,
+    Damage, DamageSource, Explosion, GroupTarget, Knockback, RadiusEffect,
+};
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
@@ -13,7 +18,10 @@ pub enum Effect {
     Vanish,
     Stick,
     Possess,
-    Buff { buff: Buff, chance: Option<f32> },
+    Buff {
+        buff: BuffEffect,
+        chance: Option<f32>,
+    },
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -31,4 +39,186 @@ pub struct Projectile {
 
 impl Component for Projectile {
     type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub enum ProjectileConstructor {
+    Arrow {
+        damage: f32,
+        knockback: f32,
+        energy_regen: u32,
+    },
+    Fireball {
+        damage: f32,
+        radius: f32,
+        energy_regen: u32,
+    },
+    Heal {
+        heal: f32,
+        damage: f32,
+        radius: f32,
+    },
+    Possess,
+}
+
+impl ProjectileConstructor {
+    pub fn create_projectile(self, owner: Option<Uid>) -> Projectile {
+        use ProjectileConstructor::*;
+        match self {
+            Arrow {
+                damage,
+                knockback,
+                energy_regen,
+            } => {
+                let buff = BuffEffect {
+                    kind: BuffKind::Bleeding,
+                    data: BuffData {
+                        strength: damage / 2.0,
+                        duration: Some(Duration::from_secs(5)),
+                    },
+                    cat_ids: vec![BuffCategory::Physical],
+                };
+                Projectile {
+                    hit_solid: vec![Effect::Stick],
+                    hit_entity: vec![
+                        Effect::Damage(Some(GroupTarget::OutOfGroup), Damage {
+                            source: DamageSource::Projectile,
+                            value: damage,
+                        }),
+                        Effect::Knockback(Knockback::Away(knockback)),
+                        Effect::RewardEnergy(energy_regen),
+                        Effect::Vanish,
+                        Effect::Buff {
+                            buff,
+                            chance: Some(0.10),
+                        },
+                    ],
+                    time_left: Duration::from_secs(15),
+                    owner,
+                    ignore_group: true,
+                }
+            },
+            Fireball {
+                damage,
+                radius,
+                energy_regen,
+            } => Projectile {
+                hit_solid: vec![
+                    Effect::Explode(Explosion {
+                        effects: vec![RadiusEffect::Entity(
+                            Some(GroupTarget::OutOfGroup),
+                            effect::Effect::Damage(Damage {
+                                source: DamageSource::Explosion,
+                                value: damage,
+                            }),
+                        )],
+                        radius,
+                        energy_regen,
+                    }),
+                    Effect::Vanish,
+                ],
+                hit_entity: vec![
+                    Effect::Explode(Explosion {
+                        effects: vec![RadiusEffect::Entity(
+                            Some(GroupTarget::OutOfGroup),
+                            effect::Effect::Damage(Damage {
+                                source: DamageSource::Explosion,
+                                value: damage,
+                            }),
+                        )],
+                        radius,
+                        energy_regen,
+                    }),
+                    Effect::Vanish,
+                ],
+                time_left: Duration::from_secs(20),
+                owner,
+                ignore_group: true,
+            },
+            Heal {
+                heal,
+                damage,
+                radius,
+            } => Projectile {
+                hit_solid: vec![
+                    Effect::Explode(Explosion {
+                        effects: vec![
+                            RadiusEffect::Entity(
+                                Some(GroupTarget::OutOfGroup),
+                                effect::Effect::Damage(Damage {
+                                    source: DamageSource::Explosion,
+                                    value: damage,
+                                }),
+                            ),
+                            RadiusEffect::Entity(
+                                Some(GroupTarget::InGroup),
+                                effect::Effect::Damage(Damage {
+                                    source: DamageSource::Healing,
+                                    value: heal,
+                                }),
+                            ),
+                        ],
+                        radius,
+                        energy_regen: 0,
+                    }),
+                    Effect::Vanish,
+                ],
+                hit_entity: vec![
+                    Effect::Explode(Explosion {
+                        effects: vec![
+                            RadiusEffect::Entity(
+                                Some(GroupTarget::OutOfGroup),
+                                effect::Effect::Damage(Damage {
+                                    source: DamageSource::Explosion,
+                                    value: damage,
+                                }),
+                            ),
+                            RadiusEffect::Entity(
+                                Some(GroupTarget::InGroup),
+                                effect::Effect::Damage(Damage {
+                                    source: DamageSource::Healing,
+                                    value: heal,
+                                }),
+                            ),
+                        ],
+                        radius,
+                        energy_regen: 0,
+                    }),
+                    Effect::Vanish,
+                ],
+                time_left: Duration::from_secs(20),
+                owner,
+                ignore_group: true,
+            },
+            Possess => Projectile {
+                hit_solid: vec![Effect::Stick],
+                hit_entity: vec![Effect::Stick, Effect::Possess],
+                time_left: Duration::from_secs(10),
+                owner,
+                ignore_group: false,
+            },
+        }
+    }
+
+    pub fn modified_projectile(mut self, power: f32) -> Self {
+        use ProjectileConstructor::*;
+        match self {
+            Arrow { ref mut damage, .. } => {
+                *damage *= power;
+            },
+            Fireball { ref mut damage, .. } => {
+                *damage *= power;
+            },
+            Heal {
+                ref mut damage,
+                ref mut heal,
+                ..
+            } => {
+                *damage *= power;
+                *heal *= power;
+            },
+            Possess => {},
+        }
+        self
+    }
 }
