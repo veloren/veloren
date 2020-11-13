@@ -532,7 +532,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 ),
             };
             if Button::image(check_img)
-                .w_h(288.0 / 24.0, 288.0 / 24.0)
+                .w_h(12.0, 12.0)
                 .down_from(state.ids.ui_scale_label, 20.0)
                 .hover_image(check_mo_img)
                 .press_image(check_press_img)
@@ -567,7 +567,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 ),
             };
             if Button::image(check_img)
-                .w_h(288.0 / 24.0, 288.0 / 24.0)
+                .w_h(12.0, 12.0)
                 .down_from(state.ids.relative_to_win_button, 8.0)
                 .hover_image(check_mo_img)
                 .press_image(check_press_img)
@@ -837,17 +837,17 @@ impl<'a> Widget for SettingsWindow<'a> {
             // Buff Position
             // Buffs above skills
             if Button::image(match self.global_state.settings.gameplay.buff_position {
-                BuffPosition::Bar => self.imgs.checkbox_checked,
-                BuffPosition::Map => self.imgs.checkbox,
+                BuffPosition::Bar => self.imgs.check_checked,
+                BuffPosition::Map => self.imgs.check,
             })
-            .w_h(18.0, 18.0)
+            .w_h(12.0, 12.0)
             .hover_image(match self.global_state.settings.gameplay.buff_position {
-                BuffPosition::Bar => self.imgs.checkbox_checked_mo,
-                BuffPosition::Map => self.imgs.checkbox_mo,
+                BuffPosition::Bar => self.imgs.check_checked_mo,
+                BuffPosition::Map => self.imgs.check_mo,
             })
             .press_image(match self.global_state.settings.gameplay.buff_position {
-                BuffPosition::Bar => self.imgs.checkbox_checked,
-                BuffPosition::Map => self.imgs.checkbox_press,
+                BuffPosition::Bar => self.imgs.check_checked,
+                BuffPosition::Map => self.imgs.check_press,
             })
             .down_from(state.ids.show_shortcuts_button, 8.0)
             .set(state.ids.buff_pos_bar_button, ui)
@@ -864,17 +864,17 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .set(state.ids.buff_pos_bar_text, ui);
             // Buffs left from minimap
             if Button::image(match self.global_state.settings.gameplay.buff_position {
-                BuffPosition::Map => self.imgs.checkbox_checked,
-                BuffPosition::Bar => self.imgs.checkbox,
+                BuffPosition::Map => self.imgs.check_checked,
+                BuffPosition::Bar => self.imgs.check,
             })
-            .w_h(18.0, 18.0)
+            .w_h(12.0, 12.0)
             .hover_image(match self.global_state.settings.gameplay.buff_position {
-                BuffPosition::Map => self.imgs.checkbox_checked_mo,
-                BuffPosition::Bar => self.imgs.checkbox_mo,
+                BuffPosition::Map => self.imgs.check_checked_mo,
+                BuffPosition::Bar => self.imgs.check_mo,
             })
             .press_image(match self.global_state.settings.gameplay.buff_position {
-                BuffPosition::Map => self.imgs.checkbox_checked,
-                BuffPosition::Bar => self.imgs.checkbox_press,
+                BuffPosition::Map => self.imgs.check_checked,
+                BuffPosition::Bar => self.imgs.check_press,
             })
             .down_from(state.ids.buff_pos_bar_button, 8.0)
             .set(state.ids.buff_pos_map_button, ui)
@@ -1116,7 +1116,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             } else {
                 self.imgs.check
             })
-            .w_h(288.0 / 24.0, 288.0 / 24.0)
+            .w_h(12.0, 12.0)
             .hover_image(if let BarNumbers::Off = bar_values {
                 self.imgs.check_checked_mo
             } else {
@@ -1147,7 +1147,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             } else {
                 self.imgs.check
             })
-            .w_h(288.0 / 24.0, 288.0 / 24.0)
+            .w_h(12.0, 12.0)
             .hover_image(if let BarNumbers::Values = bar_values {
                 self.imgs.check_checked_mo
             } else {
@@ -1178,7 +1178,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             } else {
                 self.imgs.check
             })
-            .w_h(288.0 / 24.0, 288.0 / 24.0)
+            .w_h(12.0, 12.0)
             .hover_image(if let BarNumbers::Percent = bar_values {
                 self.imgs.check_checked_mo
             } else {
