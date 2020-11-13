@@ -601,6 +601,8 @@ impl Renderer {
     }
 
     /// Get the resolution of the render target.
+    /// Note: the change after a resize can be delayed so
+    /// don't rely on this value being constant between resize events
     pub fn get_resolution(&self) -> Vec2<u16> {
         Vec2::new(
             self.win_color_view.get_dimensions().0,

@@ -14,7 +14,7 @@ use crate::{
         img_ids::{ImageGraphic, VoxelGraphic},
         Graphic,
     },
-    GlobalState,
+    window, GlobalState,
 };
 use iced::{text_input, Column, Container, HorizontalAlignment, Length, Row, Space};
 //ImageFrame, Tooltip,
@@ -363,7 +363,6 @@ impl Controls {
             },
             Message::Username(new_value) => self.login_info.username = new_value,
             Message::LanguageChanged(new_value) => {
-                self.selected_language_index = Some(new_value);
                 events.push(Event::ChangeLanguage(language_metadatas.remove(new_value)));
             },
             Message::OpenLanguageMenu => self.is_selecting_language = !self.is_selecting_language,
@@ -522,10 +521,14 @@ impl<'a> MainMenuUi {
         Self { ui, controls }
     }
 
-    pub fn update_language(&mut self, i18n: std::sync::Arc<Localization>) {
+    pub fn update_language(&mut self, i18n: std::sync::Arc<Localization>, settings: &Settings) {
         self.controls.i18n = i18n;
         self.controls.fonts = Fonts::load(&self.controls.i18n.fonts, &mut self.ui)
             .expect("Impossible to load fonts!");
+        let language_metadatas = crate::i18n::list_localizations();
+        self.controls.selected_language_index = language_metadatas
+            .iter()
+            .position(|f| f.language_identifier == settings.language.selected_language);
     }
 
     pub fn auth_trust_prompt(&mut self, auth_server: String) {
@@ -538,7 +541,22 @@ impl<'a> MainMenuUi {
 
     pub fn cancel_connection(&mut self) { self.controls.exit_connect_screen(); }
 
-    pub fn handle_event(&mut self, event: ui::ice::Event) {
+    pub fn handle_event(&mut self, event: window::Event) -> bool {
+        match event {
+            // Pass events to ui.
+            window::Event::IcedUi(event) => {
+                self.handle_ui_event(event);
+                true
+            },
+            window::Event::ScaleFactorChanged(s) => {
+                self.ui.scale_factor_changed(s);
+                false
+            },
+            _ => false,
+        }
+    }
+
+    pub fn handle_ui_event(&mut self, event: ui::ice::Event) {
         // Tab for input fields
         use iced::keyboard;
         if matches!(
