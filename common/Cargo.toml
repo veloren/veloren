@@ -13,36 +13,44 @@ default = ["simd"]
 
 [dependencies]
 arraygen = "0.1.13"
-authc = { git = "https://gitlab.com/veloren/auth.git", rev = "b943c85e4a38f5ec60cd18c34c73097640162bfe" }
 crossbeam = "0.7"
-directories-next = "2.0"
-dot_vox = "4.0"
 enum-iterator = "0.6"
-hashbrown = { version = "0.7.2", features = ["rayon", "serde", "nightly"] }
-image = { version = "0.23.8", default-features = false, features = ["png"] }
-indexmap = "1.3.0"
 lazy_static = "1.4.0"
-notify = "5.0.0-pre.3"
 num-derive = "0.3"
 num-traits = "0.2"
 ordered-float = { version = "2.0.0", default-features = false }
 parking_lot = "0.11.0"
 rand = "0.7"
 rayon = "1.3.0"
-ron = { version = "0.6", default-features = false }
 roots = "0.0.6"
-serde = { version = "1.0.110", features = ["derive", "rc"] }
-serde_json = "1.0.50"
-serde_repr = "0.1.6"
-slab = "0.4.2"
 spin_sleep = "1.0"
 sum_type = "0.2.0"
 tracing = { version = "0.1", default-features = false }
 vek = { version = "0.12.0", features = ["serde"] }
 
+# Assets
+directories-next = "2.0"
+dot_vox = "4.0"
+image = { version = "0.23.8", default-features = false, features = ["png"] }
+notify = "5.0.0-pre.3"
+
+# Auth
+authc = { git = "https://gitlab.com/veloren/auth.git", rev = "b943c85e4a38f5ec60cd18c34c73097640162bfe" }
+
+# Data structures
+hashbrown = { version = "0.7.2", features = ["rayon", "serde", "nightly"] }
+indexmap = "1.3.0"
+slab = "0.4.2"
+
 # ECS
 specs = { git = "https://github.com/amethyst/specs.git", features = ["serde", "storage-event-control"], rev = "7a2e348ab2223818bad487695c66c43db88050a5" }
 specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", branch = "specs-git" }
+
+# Serde
+ron = { version = "0.6", default-features = false }
+serde = { version = "1.0.110", features = ["derive", "rc"] }
+serde_json = "1.0.50"
+serde_repr = "0.1.6"
 
 # Tracy
 tracy-client = { version = "0.9.0", optional = true }
