@@ -1406,8 +1406,18 @@ impl CharSelectionUi {
             window::Event::MouseButton(_, window::PressState::Pressed) => {
                 !self.controls.mouse_detector.mouse_over()
             },
+            window::Event::ScaleFactorChanged(s) => {
+                self.ui.scale_factor_changed(s);
+                false
+            },
             _ => false,
         }
+    }
+
+    pub fn update_language(&mut self, i18n: std::sync::Arc<Localization>) {
+        self.controls.i18n = i18n;
+        self.controls.fonts = Fonts::load(&self.controls.i18n.fonts, &mut self.ui)
+            .expect("Impossible to load fonts!");
     }
 
     // TODO: do we need whole client here or just character list?

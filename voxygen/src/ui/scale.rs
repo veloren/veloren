@@ -1,4 +1,4 @@
-use crate::{render::Renderer, window::Window};
+use crate::window::Window;
 use serde::{Deserialize, Serialize};
 use vek::*;
 
@@ -31,7 +31,7 @@ pub struct Scale {
 impl Scale {
     pub fn new(window: &Window, mode: ScaleMode, extra_factor: f64) -> Self {
         let window_dims = window.logical_size();
-        let scale_factor = window.renderer().get_resolution().x as f64 / window_dims.x;
+        let scale_factor = window.scale_factor();
         Scale {
             mode,
             scale_factor,
@@ -74,22 +74,34 @@ impl Scale {
     /// Multiply by scaled coordinates to get the physical coordinates
     pub fn scale_factor_physical(&self) -> f64 { self.scale_factor_logical() * self.scale_factor }
 
-    /// Updates internal window size (and/or scale_factor).
-    /// Returns true if either value was changed
+    /// Updates window size
+    /// Returns true if the value was changed
     #[allow(clippy::float_cmp)]
-    pub fn window_resized(&mut self, new_dims: Vec2<f64>, renderer: &Renderer) -> bool {
-        let old_scale_factor = self.scale_factor;
+    pub fn window_resized(&mut self, new_dims: Vec2<f64>) -> bool {
         let old_window_dims = self.window_dims;
-        self.scale_factor = renderer.get_resolution().x as f64 / new_dims.x;
         self.window_dims = new_dims;
-        old_scale_factor != self.scale_factor || old_window_dims != self.window_dims
+        old_window_dims != self.window_dims
+    }
+
+    /// Updates scale factor
+    /// Returns true if the value was changed
+    #[allow(clippy::float_cmp)]
+    pub fn scale_factor_changed(&mut self, scale_factor: f64) -> bool {
+        let old_scale_factor = self.scale_factor;
+        self.scale_factor = scale_factor;
+        old_scale_factor != self.scale_factor
     }
 
     /// Get scaled window size.
-    pub fn scaled_window_size(&self) -> Vec2<f64> { self.window_dims / self.scale_factor_logical() }
+    pub fn scaled_resolution(&self) -> Vec2<f64> { self.window_dims / self.scale_factor_logical() }
 
     /// Get logical window size
-    pub fn window_size(&self) -> Vec2<f64> { self.window_dims }
+    pub fn logical_resolution(&self) -> Vec2<f64> { self.window_dims }
+
+    /// Get physical window size
+    pub fn physical_resolution(&self) -> Vec2<u16> {
+        (self.window_dims * self.scale_factor).map(|e| e.round() as u16)
+    }
 
     // Transform point from logical to scaled coordinates.
     pub fn scale_point(&self, point: Vec2<f64>) -> Vec2<f64> { point / self.scale_factor_logical() }

@@ -117,11 +117,12 @@ pub struct IcedRenderer {
 impl IcedRenderer {
     pub fn new(
         renderer: &mut Renderer,
-        scaled_dims: Vec2<f32>,
+        scaled_resolution: Vec2<f32>,
+        physical_resolution: Vec2<u16>,
         default_font: Font,
     ) -> Result<Self, Error> {
         let (half_res, align, p_scale) =
-            Self::calculate_resolution_dependents(renderer.get_resolution(), scaled_dims);
+            Self::calculate_resolution_dependents(physical_resolution, scaled_resolution);
 
         Ok(Self {
             cache: Cache::new(renderer, default_font)?,
@@ -137,8 +138,8 @@ impl IcedRenderer {
             half_res,
             align,
             p_scale,
-            win_dims: scaled_dims,
-            window_scissor: default_scissor(renderer),
+            win_dims: scaled_resolution,
+            window_scissor: default_scissor(physical_resolution),
             start: 0,
         })
     }
@@ -162,11 +163,16 @@ impl IcedRenderer {
             .unwrap()
     }
 
-    pub fn resize(&mut self, scaled_dims: Vec2<f32>, renderer: &mut Renderer) {
-        self.win_dims = scaled_dims;
-        self.window_scissor = default_scissor(renderer);
+    pub fn resize(
+        &mut self,
+        scaled_resolution: Vec2<f32>,
+        physical_resolution: Vec2<u16>,
+        renderer: &mut Renderer,
+    ) {
+        self.win_dims = scaled_resolution;
+        self.window_scissor = default_scissor(physical_resolution);
 
-        self.update_resolution_dependents(renderer.get_resolution());
+        self.update_resolution_dependents(physical_resolution);
 
         // Resize graphic cache
         self.cache.resize_graphic_cache(renderer);
@@ -194,7 +200,7 @@ impl IcedRenderer {
 
         // Draw glyph cache (use for debugging).
         /*self.draw_commands
-            .push(DrawCommand::Scissor(default_scissor(renderer)));
+            .push(DrawCommand::Scissor(self.window_scissor));
         self.start = self.mesh.vertices().len();
         self.mesh.push_quad(create_ui_quad(
             Aabr {
@@ -758,7 +764,7 @@ impl IcedRenderer {
 
     pub fn render(&self, renderer: &mut Renderer, maybe_globals: Option<&Consts<Globals>>) {
         span!(_guard, "render", "IcedRenderer::render");
-        let mut scissor = default_scissor(renderer);
+        let mut scissor = self.window_scissor;
         let globals = maybe_globals.unwrap_or(&self.default_globals);
         let mut locals = &self.interface_locals;
         for draw_command in self.draw_commands.iter() {
@@ -793,8 +799,8 @@ fn align(res: Vec2<u16>) -> Vec2<f32> {
     res.map(|e| (e & 1) as f32 * 0.5)
 }
 
-fn default_scissor(renderer: &Renderer) -> Aabr<u16> {
-    let (screen_w, screen_h) = renderer.get_resolution().map(|e| e as u16).into_tuple();
+fn default_scissor(physical_resolution: Vec2<u16>) -> Aabr<u16> {
+    let (screen_w, screen_h) = physical_resolution.into_tuple();
     Aabr {
         min: Vec2 { x: 0, y: 0 },
         max: Vec2 {
