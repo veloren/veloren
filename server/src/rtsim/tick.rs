@@ -40,11 +40,6 @@ impl<'a> System<'a> for Sys {
     ) {
         let rtsim = &mut *rtsim;
         rtsim.tick += 1;
-        if rtsim.tick % 300 == 0 {
-            if let Some((id, entity)) = rtsim.entities.iter().next() {
-                tracing::info!("Entity {} is at {:?}", id, entity.pos);
-            }
-        }
 
         // Update rtsim entities
         // TODO: don't update all of them each tick

@@ -19,7 +19,7 @@ vec2 get_cloud_heights(vec2 pos) {
 vec3 cloud_at(vec3 pos, float dist) {
     // Natural attenuation of air (air naturally attenuates light that passes through it)
     // Simulate the atmosphere thinning above 3000 metres down to nothing at 5000 metres
-    float air = 0.00005 * clamp((3000.0 - pos.z) / 2000, 0, 1);
+    float air = 0.0001 * clamp((10000.0 - pos.z) / 7000, 0, 1);
 
     // Mist sits close to the ground in valleys (TODO: use base_alt to put it closer to water)
     float MIST_MIN = 300;
@@ -78,7 +78,7 @@ float atan2(in float y, in float x) {
 
 const float DIST_CAP = 50000;
 #if (CLOUD_MODE == CLOUD_MODE_HIGH)
-    const uint QUALITY = 200u;
+    const uint QUALITY = 150u;
 #elif (CLOUD_MODE == CLOUD_MODE_MEDIUM)
     const uint QUALITY = 40u;
 #elif (CLOUD_MODE == CLOUD_MODE_LOW)
