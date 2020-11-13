@@ -45,7 +45,7 @@ impl Animation for IdleAnimation {
         next.tail_rear.scale = Vec3::one() * 0.98;
 
         next.head_upper.position =
-            Vec3::new(0.0, s_a.head_upper.0, s_a.head_upper.1 + slower * 0.20);
+            Vec3::new(0.0, s_a.head_upper.0, s_a.head_upper.1 + slower * 0.2);
         next.head_upper.orientation = Quaternion::rotation_z(0.8 * dragon_look.x)
             * Quaternion::rotation_x(0.8 * dragon_look.y);
 

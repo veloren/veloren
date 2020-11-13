@@ -757,6 +757,14 @@
             "maneater": {
                 "keyword": "maneater",
                 "generic": "Maneater"
+            },
+            "sandshark": {
+                "keyword": "sandshark",
+                "generic": "Sand Shark"
+            },
+            "hakulaq": {
+                "keyword": "hakulaq",
+                "generic": "Hakulaq"
             }
         }
     }

@@ -326,19 +326,19 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             sthl: match (body.species, body.body_type) {
                 (Ogre, Female) => (-1.0, -5.0, 12.0, 1.27, 0.0, 0.0),
                 (Occultsaurok, _) => (-1.0, -7.0, 12.0, 1.27, 0.0, 0.0),
-                (Mindflayer, _) => (-1.0, -5.0, 12.0, 1.27, 0.0, 0.0),
+                (Mindflayer, _) => (1.0, -10.5, 7.0, 1.27, 0.0, 0.0),
                 (_, _) => (11.0, 5.0, -4.0, 1.27, 0.0, 0.0),
             },
             sthr: match (body.species, body.body_type) {
                 (Ogre, Female) => (5.0, -3.5, 18.0, 1.57, 0.8, 0.0),
                 (Occultsaurok, _) => (7.0, -3.5, 18.0, 1.57, 0.8, 0.0),
-                (Mindflayer, _) => (7.0, -3.5, 18.0, 1.57, 0.8, 0.0),
+                (Mindflayer, _) => (7.0, -9.0, 13.0, 1.57, 0.8, 0.0),
                 (_, _) => (17.0, 7.5, 2.0, 1.57, 0.8, 0.0),
             },
             stc: match (body.species, body.body_type) {
                 (Ogre, Female) => (-10.0, 7.0, -23.0, -0.3, 0.15, 0.0),
                 (Occultsaurok, _) => (-10.0, 7.0, -22.0, -0.3, 0.15, 0.0),
-                (Mindflayer, _) => (-10.0, 7.0, -22.0, -0.3, 0.15, 0.0),
+                (Mindflayer, _) => (-10.0, 12.5, -22.0, -0.3, 0.15, 0.0),
                 (_, _) => (-18.0, 1.0, -2.0, -0.3, 0.15, 0.0),
             },
             bhl: match (body.species, body.body_type) {
