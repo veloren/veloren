@@ -1406,6 +1406,10 @@ impl CharSelectionUi {
             window::Event::MouseButton(_, window::PressState::Pressed) => {
                 !self.controls.mouse_detector.mouse_over()
             },
+            window::Event::ScaleFactorChanged(s) => {
+                self.ui.scale_factor_changed(s);
+                false
+            },
             _ => false,
         }
     }

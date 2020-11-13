@@ -266,6 +266,8 @@ pub enum Event {
     Close,
     /// The window has been resized.
     Resize(Vec2<u32>),
+    /// The window scale factor has been changed
+    ScaleFactorChanged(f64),
     /// The window has been moved.
     Moved(Vec2<u32>),
     /// A key has been typed that corresponds to a specific character.
@@ -656,6 +658,8 @@ impl Window {
                     height: logical_size.y as u32,
                 },
             )));
+            self.events
+                .push(Event::ScaleFactorChanged(self.scale_factor));
             self.needs_refresh_resize = false;
         }
 
@@ -934,7 +938,8 @@ impl Window {
                     .push(Event::Resize(Vec2::new(width as u32, height as u32)));
             },
             WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
-                self.scale_factor = scale_factor
+                self.scale_factor = scale_factor;
+                self.events.push(Event::ScaleFactorChanged(scale_factor));
             },
             WindowEvent::ReceivedCharacter(c) => self.events.push(Event::Char(c)),
             WindowEvent::MouseInput { button, state, .. } => {
