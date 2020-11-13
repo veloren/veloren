@@ -12,11 +12,7 @@ use crate::{
     Direction, GlobalState, PlayState, PlayStateResult,
 };
 use client_init::{ClientInit, Error as InitError, Msg as InitMsg};
-use common::{
-    assets::Asset,
-    comp::{self},
-    span,
-};
+use common::{assets::Asset, comp, span};
 use tracing::error;
 use ui::{Event as MainMenuEvent, MainMenuUi};
 

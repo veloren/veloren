@@ -87,7 +87,7 @@ impl Tool {
 
     pub fn get_abilities(&self, map: &AbilityMap) -> AbilitySet<CharacterAbility> {
         if let Some(set) = map.0.get(&self.kind).cloned() {
-            set.modify_from_tool(&self)
+            set.modified_by_tool(&self)
         } else {
             error!(
                 "ToolKind: {:?} has no AbilitySet in the ability map falling back to default",
@@ -106,29 +106,17 @@ pub struct AbilitySet<T> {
 }
 
 impl AbilitySet<CharacterAbility> {
-    pub fn modify_from_tool(self, tool: &Tool) -> Self {
-        Self {
-            primary: self
-                .primary
-                .adjust_stats(tool.base_power(), tool.base_speed()),
-            secondary: self
-                .secondary
-                .adjust_stats(tool.base_power(), tool.base_speed()),
-            skills: self
-                .skills
-                .into_iter()
-                .map(|a| a.adjust_stats(tool.base_power(), tool.base_speed()))
-                .collect(),
-        }
+    pub fn modified_by_tool(self, tool: &Tool) -> Self {
+        self.map(|a| a.adjusted_by_stats(tool.base_power(), tool.base_speed()))
     }
 }
 
-impl<T: Clone> AbilitySet<T> {
+impl<T> AbilitySet<T> {
     pub fn map<U, F: FnMut(T) -> U>(self, mut f: F) -> AbilitySet<U> {
         AbilitySet {
             primary: f(self.primary),
             secondary: f(self.secondary),
-            skills: self.skills.iter().map(|x| f(x.clone())).collect(),
+            skills: self.skills.into_iter().map(|x| f(x)).collect(),
         }
     }
 }
@@ -145,6 +133,7 @@ impl Default for AbilitySet<CharacterAbility> {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AbilityMap<T = CharacterAbility>(HashMap<ToolKind, AbilitySet<T>>);
+
 impl Asset for AbilityMap {
     const ENDINGS: &'static [&'static str] = &["ron"];
 

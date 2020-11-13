@@ -314,7 +314,7 @@ impl CharacterAbility {
         }
     }
 
-    pub fn adjust_stats(mut self, power: f32, speed: f32) -> Self {
+    pub fn adjusted_by_stats(mut self, power: f32, speed: f32) -> Self {
         use CharacterAbility::*;
         match self {
             BasicMelee {
@@ -337,7 +337,7 @@ impl CharacterAbility {
             } => {
                 *buildup_duration = (*buildup_duration as f32 / speed) as u64;
                 *recover_duration = (*recover_duration as f32 / speed) as u64;
-                *projectile = projectile.modify_projectile(power);
+                *projectile = projectile.modified_projectile(power);
             },
             RepeaterRanged {
                 ref mut movement_duration,
@@ -351,7 +351,7 @@ impl CharacterAbility {
                 *buildup_duration = (*buildup_duration as f32 / speed) as u64;
                 *shoot_duration = (*shoot_duration as f32 / speed) as u64;
                 *recover_duration = (*recover_duration as f32 / speed) as u64;
-                *projectile = projectile.modify_projectile(power);
+                *projectile = projectile.modified_projectile(power);
             },
             Boost {
                 ref mut movement_duration,
@@ -389,7 +389,7 @@ impl CharacterAbility {
             } => {
                 *stage_data = stage_data
                     .iter_mut()
-                    .map(|s| s.adjust_stats(power, speed))
+                    .map(|s| s.adjusted_by_stats(power, speed))
                     .collect();
             },
             LeapMelee {
@@ -701,11 +701,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
             } => CharacterState::ComboMelee(combo_melee::Data {
                 static_data: combo_melee::StaticData {
                     num_stages: stage_data.len() as u32,
-                    stage_data: stage_data
-                        .clone()
-                        .into_iter()
-                        .map(|stage| stage.to_duration())
-                        .collect(),
+                    stage_data: stage_data.iter().map(|stage| stage.to_duration()).collect(),
                     initial_energy_gain: *initial_energy_gain,
                     max_energy_gain: *max_energy_gain,
                     energy_increase: *energy_increase,

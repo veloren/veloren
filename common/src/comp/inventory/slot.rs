@@ -139,7 +139,9 @@ fn loadout_insert(
 ///
 /// ```
 /// use veloren_common::{
+///     assets::Asset,
 ///     comp::{
+///         item::tool::AbilityMap,
 ///         slot::{loadout_remove, EquipSlot},
 ///         Inventory,
 ///     },
@@ -148,16 +150,19 @@ fn loadout_insert(
 ///
 /// let mut inv = Inventory::new_empty();
 ///
+/// let map = AbilityMap::load_expect_cloned("common.abilities.weapon_ability_manifest");
+///
 /// let mut loadout = LoadoutBuilder::new()
 ///     .defaults()
 ///     .active_item(Some(LoadoutBuilder::default_item_config_from_str(
 ///         "common.items.weapons.sword.zweihander_sword_0",
+///         &map,
 ///     )))
 ///     .build();
 ///
 /// let slot = EquipSlot::Mainhand;
 ///
-/// loadout_remove(slot, &mut loadout);
+/// loadout_remove(slot, &mut loadout, &map);
 /// assert_eq!(None, loadout.active_item);
 /// ```
 pub fn loadout_remove(
@@ -260,6 +265,7 @@ pub fn swap(
 /// use veloren_common::{
 ///     assets::Asset,
 ///     comp::{
+///         item::tool::AbilityMap,
 ///         slot::{equip, EquipSlot},
 ///         Inventory, Item,
 ///     },
@@ -273,7 +279,9 @@ pub fn swap(
 ///
 /// let mut loadout = LoadoutBuilder::new().defaults().build();
 ///
-/// equip(0, &mut inv, &mut loadout);
+/// let map = AbilityMap::load_expect_cloned("common.abilities.weapon_ability_manifest");
+///
+/// equip(0, &mut inv, &mut loadout, &map);
 /// assert_eq!(Some(boots), loadout.foot);
 /// ```
 pub fn equip(slot: usize, inventory: &mut Inventory, loadout: &mut Loadout, map: &AbilityMap) {
@@ -316,7 +324,9 @@ pub fn equip(slot: usize, inventory: &mut Inventory, loadout: &mut Loadout, map:
 ///
 /// ```
 /// use veloren_common::{
+///     assets::Asset,
 ///     comp::{
+///         item::tool::AbilityMap,
 ///         slot::{unequip, EquipSlot},
 ///         Inventory,
 ///     },
@@ -325,16 +335,19 @@ pub fn equip(slot: usize, inventory: &mut Inventory, loadout: &mut Loadout, map:
 ///
 /// let mut inv = Inventory::new_empty();
 ///
+/// let map = AbilityMap::load_expect_cloned("common.abilities.weapon_ability_manifest");
+///
 /// let mut loadout = LoadoutBuilder::new()
 ///     .defaults()
 ///     .active_item(Some(LoadoutBuilder::default_item_config_from_str(
 ///         "common.items.weapons.sword.zweihander_sword_0",
+///         &map,
 ///     )))
 ///     .build();
 ///
 /// let slot = EquipSlot::Mainhand;
 ///
-/// unequip(slot, &mut inv, &mut loadout);
+/// unequip(slot, &mut inv, &mut loadout, &map);
 /// assert_eq!(None, loadout.active_item);
 /// ```
 pub fn unequip(
@@ -361,8 +374,12 @@ mod tests {
             amount: 0,
         };
 
+        use crate::assets::Asset;
+        let map = AbilityMap::load_expect_cloned("common.abilities.weapon_ability_manifest");
+
         let sword = LoadoutBuilder::default_item_config_from_str(
             "common.items.weapons.sword.zweihander_sword_0",
+            &map,
         );
 
         let mut loadout = LoadoutBuilder::new()
@@ -372,11 +389,11 @@ mod tests {
             .build();
 
         assert_eq!(Some(sword.clone()), loadout.active_item);
-        unequip(EquipSlot::Mainhand, &mut inv, &mut loadout);
+        unequip(EquipSlot::Mainhand, &mut inv, &mut loadout, &map);
         // We have space in the inventory, so this should have unequipped
         assert_eq!(None, loadout.active_item);
 
-        unequip(EquipSlot::Offhand, &mut inv, &mut loadout);
+        unequip(EquipSlot::Offhand, &mut inv, &mut loadout, &map);
         // There is no more space in the inventory, so this should still be equipped
         assert_eq!(Some(sword.clone()), loadout.second_item);
 
@@ -402,9 +419,12 @@ mod tests {
 
         let mut loadout = LoadoutBuilder::new().defaults().build();
 
+        use crate::assets::Asset;
+        let map = AbilityMap::load_expect_cloned("common.abilities.weapon_ability_manifest");
+
         // We should start with the starting sandles
         assert_eq!(starting_sandles, loadout.foot);
-        equip(0, &mut inv, &mut loadout);
+        equip(0, &mut inv, &mut loadout, &map);
 
         // We should now have the testing boots equiped
         assert_eq!(boots, loadout.foot);
@@ -424,6 +444,9 @@ mod tests {
             "common.items.armor.starter.sandals_0",
         ));
 
+        use crate::assets::Asset;
+        let map = AbilityMap::load_expect_cloned("common.abilities.weapon_ability_manifest");
+
         let mut loadout = LoadoutBuilder::new().defaults().build();
 
         // We should start with the starting sandles
@@ -436,6 +459,7 @@ mod tests {
                 EquipSlot::Armor(ArmorSlot::Feet),
                 boots.clone(),
                 &mut loadout,
+                &map,
             )
         );
 
@@ -445,8 +469,12 @@ mod tests {
 
     #[test]
     fn test_loadout_remove() {
+        use crate::assets::Asset;
+        let map = AbilityMap::load_expect_cloned("common.abilities.weapon_ability_manifest");
+
         let sword = LoadoutBuilder::default_item_config_from_str(
             "common.items.weapons.sword.zweihander_sword_0",
+            &map,
         );
 
         let mut loadout = LoadoutBuilder::new()
@@ -457,7 +485,7 @@ mod tests {
         // The swap should return the sword
         assert_eq!(
             Some(sword.item),
-            loadout_remove(EquipSlot::Mainhand, &mut loadout,)
+            loadout_remove(EquipSlot::Mainhand, &mut loadout, &map)
         );
 
         // We should now have nothing equiped

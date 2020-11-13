@@ -10,13 +10,19 @@ use rand::Rng;
 /// ItemConfig
 ///
 /// ```
-/// use veloren_common::LoadoutBuilder;
+/// use veloren_common::{
+///     assets::Asset,
+///     comp::item::tool::AbilityMap,
+///     LoadoutBuilder,
+/// };
+///
+/// let map = AbilityMap::load_expect_cloned("common.abilities.weapon_ability_manifest");
 ///
 /// // Build a loadout with character starter defaults and a specific sword with default sword abilities
 /// let loadout = LoadoutBuilder::new()
 ///     .defaults()
 ///     .active_item(Some(LoadoutBuilder::default_item_config_from_str(
-///         "common.items.weapons.sword.zweihander_sword_0"
+///         "common.items.weapons.sword.zweihander_sword_0", &map
 ///     )))
 ///     .build();
 /// ```

@@ -51,7 +51,7 @@ impl Stage<u64> {
         }
     }
 
-    pub fn adjust_stats(mut self, power: f32, speed: f32) -> Self {
+    pub fn adjusted_by_stats(mut self, power: f32, speed: f32) -> Self {
         self.base_damage = (self.base_damage as f32 * power) as u32;
         self.max_damage = (self.max_damage as f32 * power) as u32;
         self.damage_increase = (self.damage_increase as f32 * power) as u32;
