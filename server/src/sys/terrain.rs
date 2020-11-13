@@ -1,7 +1,7 @@
 use super::SysTimer;
 use crate::{chunk_generator::ChunkGenerator, client::Client, presence::Presence, Tick};
 use common::{
-    comp::{self, bird_medium, Alignment, Pos},
+    comp::{self, bird_medium, item::tool::AbilityMap, Alignment, Pos},
     event::{EventBus, ServerEvent},
     generation::get_npc_name,
     msg::ServerGeneral,
@@ -12,7 +12,7 @@ use common::{
     LoadoutBuilder,
 };
 use rand::Rng;
-use specs::{Join, Read, ReadStorage, System, Write, WriteExpect};
+use specs::{Join, Read, ReadExpect, ReadStorage, System, Write, WriteExpect};
 use std::sync::Arc;
 use vek::*;
 
@@ -35,6 +35,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Presence>,
         ReadStorage<'a, Client>,
+        ReadExpect<'a, AbilityMap>,
     );
 
     fn run(
@@ -49,6 +50,7 @@ impl<'a> System<'a> for Sys {
             positions,
             presences,
             clients,
+            map,
         ): Self::SystemData,
     ) {
         span!(_guard, "run", "terrain::Sys::run");
@@ -142,9 +144,14 @@ impl<'a> System<'a> for Sys {
                     scale = 2.0 + rand::random::<f32>();
                 }
 
-                let loadout =
-                    LoadoutBuilder::build_loadout(body, alignment, main_tool, entity.is_giant)
-                        .build();
+                let loadout = LoadoutBuilder::build_loadout(
+                    body,
+                    alignment,
+                    main_tool,
+                    entity.is_giant,
+                    &map,
+                )
+                .build();
 
                 let health = comp::Health::new(stats.body_type, stats.level.level());
 

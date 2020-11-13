@@ -1,0 +1,17 @@
+DashMelee(
+    energy_cost: 200,
+    base_damage: 120,
+    max_damage: 240,
+    base_knockback: 8.0,
+    max_knockback: 15.0,
+    range: 5.0,
+    angle: 45.0,
+    energy_drain: 500,
+    forward_speed: 4.0,
+    buildup_duration: 250,
+    charge_duration: 600,
+    swing_duration: 100,
+    recover_duration: 500,
+    infinite_charge: true,
+    is_interruptible: true,
+)

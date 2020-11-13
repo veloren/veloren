@@ -655,14 +655,19 @@ fn handle_spawn(
 
                             let body = body();
 
+                            let map = server.state().ability_map();
+                            let loadout =
+                                LoadoutBuilder::build_loadout(body, alignment, None, false, &map)
+                                    .build();
+                            drop(map);
+
                             let mut entity_base = server
                                 .state
                                 .create_npc(
                                     pos,
                                     comp::Stats::new(get_npc_name(id).into(), body),
                                     comp::Health::new(body, 1),
-                                    LoadoutBuilder::build_loadout(body, alignment, None, false)
-                                        .build(),
+                                    loadout,
                                     body,
                                 )
                                 .with(comp::Vel(vel))

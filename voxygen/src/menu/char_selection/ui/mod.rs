@@ -24,7 +24,7 @@ use client::Client;
 use common::{
     assets::Asset,
     character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER},
-    comp::{self, humanoid},
+    comp::{self, humanoid, item::tool::AbilityMap},
     LoadoutBuilder,
 };
 //ImageFrame, Tooltip,
@@ -179,12 +179,14 @@ impl Mode {
         }
     }
 
-    pub fn create(name: String) -> Self {
+    pub fn create(name: String, map: &AbilityMap) -> Self {
         let tool = STARTER_SWORD;
 
         let loadout = LoadoutBuilder::new()
             .defaults()
-            .active_item(Some(LoadoutBuilder::default_item_config_from_str(tool)))
+            .active_item(Some(LoadoutBuilder::default_item_config_from_str(
+                tool, map,
+            )))
             .build();
 
         let loadout = Box::new(loadout);
@@ -1172,7 +1174,13 @@ impl Controls {
         .into()
     }
 
-    fn update(&mut self, message: Message, events: &mut Vec<Event>, characters: &[CharacterItem]) {
+    fn update(
+        &mut self,
+        message: Message,
+        events: &mut Vec<Event>,
+        characters: &[CharacterItem],
+        map: &AbilityMap,
+    ) {
         match message {
             Message::Back => {
                 if matches!(&self.mode, Mode::Create { .. }) {
@@ -1206,7 +1214,7 @@ impl Controls {
             },
             Message::NewCharacter => {
                 if matches!(&self.mode, Mode::Select { .. }) {
-                    self.mode = Mode::create(String::new());
+                    self.mode = Mode::create(String::new(), map);
                 }
             },
             Message::CreateCharacter => {
@@ -1242,7 +1250,8 @@ impl Controls {
             Message::Tool(value) => {
                 if let Mode::Create { tool, loadout, .. } = &mut self.mode {
                     *tool = value;
-                    loadout.active_item = Some(LoadoutBuilder::default_item_config_from_str(*tool));
+                    loadout.active_item =
+                        Some(LoadoutBuilder::default_item_config_from_str(*tool, map));
                 }
             },
             Message::RandomizeCharacter => {
@@ -1435,8 +1444,12 @@ impl CharSelectionUi {
         }
 
         messages.into_iter().for_each(|message| {
-            self.controls
-                .update(message, &mut events, &client.character_list.characters)
+            self.controls.update(
+                message,
+                &mut events,
+                &client.character_list.characters,
+                &*client.state().ability_map(),
+            )
         });
 
         events

@@ -1,6 +1,6 @@
 use crate::persistence::character_loader::CharacterLoader;
 use common::{
-    comp::{Body, Inventory, Stats},
+    comp::{item::tool::AbilityMap, Body, Inventory, Stats},
     loadout_builder::LoadoutBuilder,
 };
 use specs::{Entity, ReadExpect};
@@ -12,6 +12,7 @@ pub fn create_character(
     character_tool: Option<String>,
     body: Body,
     character_loader: &ReadExpect<'_, CharacterLoader>,
+    map: &AbilityMap,
 ) {
     let stats = Stats::new(character_alias.to_string(), body);
 
@@ -19,6 +20,7 @@ pub fn create_character(
         .defaults()
         .active_item(Some(LoadoutBuilder::default_item_config_from_str(
             character_tool.as_deref().unwrap(),
+            map,
         )))
         .build();
 

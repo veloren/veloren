@@ -159,9 +159,9 @@ impl Server {
         state
             .ecs_mut()
             .insert(CharacterUpdater::new(&persistence_db_dir)?);
-        state
-            .ecs_mut()
-            .insert(CharacterLoader::new(&persistence_db_dir)?);
+
+        let character_loader = CharacterLoader::new(&persistence_db_dir, &*state.ability_map());
+        state.ecs_mut().insert(character_loader?);
         state.ecs_mut().insert(Vec::<Outcome>::new());
 
         // System timers for performance monitoring

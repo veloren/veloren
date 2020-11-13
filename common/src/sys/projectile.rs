@@ -1,6 +1,6 @@
 use crate::{
     comp::{
-        buff::{BuffChange, BuffSource},
+        buff::{Buff, BuffChange, BuffSource},
         projectile, EnergyChange, EnergySource, Group, HealthSource, Loadout, Ori, PhysicsState,
         Pos, Projectile, Vel,
     },
@@ -176,10 +176,13 @@ impl<'a> System<'a> for Sys {
                                 uid_allocator.retrieve_entity_internal(other.into())
                             {
                                 if chance.map_or(true, |c| thread_rng().gen::<f32>() < c) {
-                                    let mut buff = buff.clone();
-                                    if let Some(uid) = projectile.owner {
-                                        buff.source = BuffSource::Character { by: uid };
-                                    }
+                                    let source = if let Some(owner) = projectile.owner {
+                                        BuffSource::Character { by: owner }
+                                    } else {
+                                        BuffSource::Unknown
+                                    };
+                                    let buff =
+                                        Buff::new(buff.kind, buff.data, buff.cat_ids, source);
                                     server_emitter.emit(ServerEvent::Buff {
                                         entity,
                                         buff_change: BuffChange::Add(buff),

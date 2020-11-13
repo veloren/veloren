@@ -1,0 +1,14 @@
+SpinMelee(
+    buildup_duration: 100,
+    swing_duration: 250,
+    recover_duration: 100,
+    base_damage: 60,
+    knockback: 0.0,
+    range: 3.5,
+    energy_cost: 100,
+    is_infinite: true,
+    is_helicopter: true,
+    is_interruptible: false,
+    forward_speed: 0.0,
+    num_spins: 1,
+)

@@ -9,7 +9,7 @@ use crate::persistence::{
 };
 use common::{
     character::CharacterId,
-    comp::{Body as CompBody, *},
+    comp::{item::tool::AbilityMap, Body as CompBody, *},
     loadout_builder,
 };
 use core::{convert::TryFrom, num::NonZeroU64};
@@ -240,7 +240,10 @@ pub fn convert_inventory_from_database_items(database_items: &[Item]) -> Result<
     Ok(inventory)
 }
 
-pub fn convert_loadout_from_database_items(database_items: &[Item]) -> Result<Loadout, Error> {
+pub fn convert_loadout_from_database_items(
+    database_items: &[Item],
+    map: &AbilityMap,
+) -> Result<Loadout, Error> {
     let mut loadout = loadout_builder::LoadoutBuilder::new();
     for db_item in database_items.iter() {
         let item = common::comp::Item::new_from_asset(db_item.item_definition_id.as_str())?;
@@ -251,8 +254,8 @@ pub fn convert_loadout_from_database_items(database_items: &[Item]) -> Result<Lo
         )?));
 
         match db_item.position.as_str() {
-            "active_item" => loadout = loadout.active_item(Some(ItemConfig::from(item))),
-            "second_item" => loadout = loadout.second_item(Some(ItemConfig::from(item))),
+            "active_item" => loadout = loadout.active_item(Some(ItemConfig::from((item, map)))),
+            "second_item" => loadout = loadout.second_item(Some(ItemConfig::from((item, map)))),
             "lantern" => loadout = loadout.lantern(Some(item)),
             "shoulder" => loadout = loadout.shoulder(Some(item)),
             "chest" => loadout = loadout.chest(Some(item)),
