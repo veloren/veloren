@@ -1,6 +1,6 @@
 use crate::{
     comp::buff::{BuffCategory, BuffData, BuffKind},
-    effect::{BuffEffect, Effect as EffectB},
+    effect::{self, BuffEffect},
     sync::Uid,
     Damage, DamageSource, Explosion, GroupTarget, Knockback, RadiusEffect,
 };
@@ -107,7 +107,7 @@ impl ProjectileConstructor {
                     Effect::Explode(Explosion {
                         effects: vec![RadiusEffect::Entity(
                             Some(GroupTarget::OutOfGroup),
-                            EffectB::Damage(Damage {
+                            effect::Effect::Damage(Damage {
                                 source: DamageSource::Explosion,
                                 value: damage,
                             }),
@@ -121,7 +121,7 @@ impl ProjectileConstructor {
                     Effect::Explode(Explosion {
                         effects: vec![RadiusEffect::Entity(
                             Some(GroupTarget::OutOfGroup),
-                            EffectB::Damage(Damage {
+                            effect::Effect::Damage(Damage {
                                 source: DamageSource::Explosion,
                                 value: damage,
                             }),
@@ -145,14 +145,14 @@ impl ProjectileConstructor {
                         effects: vec![
                             RadiusEffect::Entity(
                                 Some(GroupTarget::OutOfGroup),
-                                EffectB::Damage(Damage {
+                                effect::Effect::Damage(Damage {
                                     source: DamageSource::Explosion,
                                     value: damage,
                                 }),
                             ),
                             RadiusEffect::Entity(
                                 Some(GroupTarget::InGroup),
-                                EffectB::Damage(Damage {
+                                effect::Effect::Damage(Damage {
                                     source: DamageSource::Healing,
                                     value: heal,
                                 }),
@@ -168,14 +168,14 @@ impl ProjectileConstructor {
                         effects: vec![
                             RadiusEffect::Entity(
                                 Some(GroupTarget::OutOfGroup),
-                                EffectB::Damage(Damage {
+                                effect::Effect::Damage(Damage {
                                     source: DamageSource::Explosion,
                                     value: damage,
                                 }),
                             ),
                             RadiusEffect::Entity(
                                 Some(GroupTarget::InGroup),
-                                EffectB::Damage(Damage {
+                                effect::Effect::Damage(Damage {
                                     source: DamageSource::Healing,
                                     value: heal,
                                 }),
@@ -200,7 +200,7 @@ impl ProjectileConstructor {
         }
     }
 
-    pub fn modify_projectile(mut self, power: f32) -> Self {
+    pub fn modified_projectile(mut self, power: f32) -> Self {
         use ProjectileConstructor::*;
         match self {
             Arrow { ref mut damage, .. } => {

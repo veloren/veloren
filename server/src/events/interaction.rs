@@ -108,7 +108,7 @@ pub fn handle_unmount(server: &mut Server, mounter: EcsEntity) {
 #[allow(clippy::nonminimal_bool)] // TODO: Pending review in #587
 pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
     let ecs = &server.state.ecs();
-    let map = ecs.fetch::<AbilityMap>();
+    let ability_map = ecs.fetch::<AbilityMap>();
     if let (Some(possessor), Some(possesse)) = (
         ecs.entity_from_uid(possessor_uid.into()),
         ecs.entity_from_uid(possesse_uid.into()),
@@ -181,7 +181,7 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
 
         let item = comp::Item::new_from_asset_expect("common.items.debug.possess");
         if let item::ItemKind::Tool(_) = item.kind() {
-            let debug_item = comp::ItemConfig::from((item, &*map));
+            let debug_item = comp::ItemConfig::from((item, &*ability_map));
             std::mem::swap(&mut loadout.active_item, &mut loadout.second_item);
             loadout.active_item = Some(debug_item);
         }
