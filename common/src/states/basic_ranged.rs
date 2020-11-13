@@ -95,7 +95,6 @@ impl CharacterBehavior for Data {
                     if ability_key_is_pressed(data, self.static_data.ability_key) {
                         // Recovers
                         update.character = CharacterState::BasicRanged(Data {
-                            static_data: self.static_data.clone(),
                             timer: self
                                 .timer
                                 .checked_add(Duration::from_secs_f32(data.dt.0))
@@ -106,7 +105,6 @@ impl CharacterBehavior for Data {
                     } else {
                         // Recovers
                         update.character = CharacterState::BasicRanged(Data {
-                            static_data: self.static_data.clone(),
                             timer: self
                                 .timer
                                 .checked_add(Duration::from_secs_f32(data.dt.0))

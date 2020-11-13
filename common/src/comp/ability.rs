@@ -313,6 +313,172 @@ impl CharacterAbility {
             roll_strength: 2.5,
         }
     }
+
+    pub fn adjust_stats(mut self, power: f32, speed: f32) -> Self {
+        use CharacterAbility::*;
+        match self {
+            BasicMelee {
+                ref mut buildup_duration,
+                ref mut swing_duration,
+                ref mut recover_duration,
+                ref mut base_damage,
+                ..
+            } => {
+                *buildup_duration = (*buildup_duration as f32 / speed) as u64;
+                *swing_duration = (*swing_duration as f32 / speed) as u64;
+                *recover_duration = (*recover_duration as f32 / speed) as u64;
+                *base_damage = (*base_damage as f32 * power) as u32;
+            },
+            BasicRanged {
+                ref mut buildup_duration,
+                ref mut recover_duration,
+                ref mut projectile,
+                ..
+            } => {
+                *buildup_duration = (*buildup_duration as f32 / speed) as u64;
+                *recover_duration = (*recover_duration as f32 / speed) as u64;
+                *projectile = projectile.modify_projectile(power);
+            },
+            RepeaterRanged {
+                ref mut movement_duration,
+                ref mut buildup_duration,
+                ref mut shoot_duration,
+                ref mut recover_duration,
+                ref mut projectile,
+                ..
+            } => {
+                *movement_duration = (*movement_duration as f32 / speed) as u64;
+                *buildup_duration = (*buildup_duration as f32 / speed) as u64;
+                *shoot_duration = (*shoot_duration as f32 / speed) as u64;
+                *recover_duration = (*recover_duration as f32 / speed) as u64;
+                *projectile = projectile.modify_projectile(power);
+            },
+            Boost {
+                ref mut movement_duration,
+                ..
+            } => {
+                *movement_duration = (*movement_duration as f32 / speed) as u64;
+            },
+            DashMelee {
+                ref mut base_damage,
+                ref mut max_damage,
+                ref mut buildup_duration,
+                ref mut swing_duration,
+                ref mut recover_duration,
+                ..
+            } => {
+                *base_damage = (*base_damage as f32 * power) as u32;
+                *max_damage = (*max_damage as f32 * power) as u32;
+                *buildup_duration = (*buildup_duration as f32 / speed) as u64;
+                *swing_duration = (*swing_duration as f32 / speed) as u64;
+                *recover_duration = (*recover_duration as f32 / speed) as u64;
+            },
+            BasicBlock => {},
+            Roll {
+                ref mut buildup_duration,
+                ref mut movement_duration,
+                ref mut recover_duration,
+                ..
+            } => {
+                *buildup_duration = (*buildup_duration as f32 / speed) as u64;
+                *movement_duration = (*movement_duration as f32 / speed) as u64;
+                *recover_duration = (*recover_duration as f32 / speed) as u64;
+            },
+            ComboMelee {
+                ref mut stage_data, ..
+            } => {
+                *stage_data = stage_data
+                    .iter_mut()
+                    .map(|s| s.adjust_stats(power, speed))
+                    .collect();
+            },
+            LeapMelee {
+                ref mut buildup_duration,
+                ref mut movement_duration,
+                ref mut swing_duration,
+                ref mut recover_duration,
+                ref mut base_damage,
+                ..
+            } => {
+                *buildup_duration = (*buildup_duration as f32 / speed) as u64;
+                *movement_duration = (*movement_duration as f32 / speed) as u64;
+                *swing_duration = (*swing_duration as f32 / speed) as u64;
+                *recover_duration = (*recover_duration as f32 / speed) as u64;
+                *base_damage = (*base_damage as f32 * power) as u32;
+            },
+            SpinMelee {
+                ref mut buildup_duration,
+                ref mut swing_duration,
+                ref mut recover_duration,
+                ref mut base_damage,
+                ..
+            } => {
+                *buildup_duration = (*buildup_duration as f32 / speed) as u64;
+                *swing_duration = (*swing_duration as f32 / speed) as u64;
+                *recover_duration = (*recover_duration as f32 / speed) as u64;
+                *base_damage = (*base_damage as f32 * power) as u32;
+            },
+            ChargedMelee {
+                ref mut initial_damage,
+                ref mut max_damage,
+                speed: ref mut ability_speed,
+                ref mut charge_duration,
+                ref mut swing_duration,
+                ref mut recover_duration,
+                ..
+            } => {
+                *initial_damage = (*initial_damage as f32 * power) as u32;
+                *max_damage = (*max_damage as f32 * power) as u32;
+                *ability_speed *= speed;
+                *charge_duration = (*charge_duration as f32 / speed) as u64;
+                *swing_duration = (*swing_duration as f32 / speed) as u64;
+                *recover_duration = (*recover_duration as f32 / speed) as u64;
+            },
+            ChargedRanged {
+                ref mut initial_damage,
+                ref mut max_damage,
+                speed: ref mut ability_speed,
+                ref mut buildup_duration,
+                ref mut charge_duration,
+                ref mut recover_duration,
+                ..
+            } => {
+                *initial_damage = (*initial_damage as f32 * power) as u32;
+                *max_damage = (*max_damage as f32 * power) as u32;
+                *ability_speed *= speed;
+                *buildup_duration = (*buildup_duration as f32 / speed) as u64;
+                *charge_duration = (*charge_duration as f32 / speed) as u64;
+                *recover_duration = (*recover_duration as f32 / speed) as u64;
+            },
+            Shockwave {
+                ref mut buildup_duration,
+                ref mut swing_duration,
+                ref mut recover_duration,
+                ref mut damage,
+                ..
+            } => {
+                *buildup_duration = (*buildup_duration as f32 / speed) as u64;
+                *swing_duration = (*swing_duration as f32 / speed) as u64;
+                *recover_duration = (*recover_duration as f32 / speed) as u64;
+                *damage = (*damage as f32 * power) as u32;
+            },
+            BasicBeam {
+                ref mut buildup_duration,
+                ref mut recover_duration,
+                ref mut base_hps,
+                ref mut base_dps,
+                ref mut tick_rate,
+                ..
+            } => {
+                *buildup_duration = (*buildup_duration as f32 / speed) as u64;
+                *recover_duration = (*recover_duration as f32 / speed) as u64;
+                *base_hps = (*base_hps as f32 * power) as u32;
+                *base_dps = (*base_dps as f32 * power) as u32;
+                *tick_rate *= speed;
+            },
+        }
+        self
+    }
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
@@ -328,13 +494,13 @@ pub struct ItemConfig {
 impl From<(Item, &AbilityMap)> for ItemConfig {
     fn from((item, map): (Item, &AbilityMap)) -> Self {
         if let ItemKind::Tool(tool) = &item.kind() {
-            let abilities = tool.get_abilities(map).clone();
+            let abilities = tool.get_abilities(map);
 
             return ItemConfig {
                 item,
                 ability1: Some(abilities.primary),
                 ability2: Some(abilities.secondary),
-                ability3: abilities.skills.get(0).map(|x| x.clone()),
+                ability3: abilities.skills.get(0).cloned(),
                 block_ability: None,
                 dodge_ability: Some(CharacterAbility::default_roll()),
             };
