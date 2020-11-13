@@ -2,8 +2,7 @@ use super::{
     super::{vek::*, Animation},
     QuadrupedMediumSkeleton, SkeletonAttr,
 };
-use common::{comp::item::ToolKind, states::utils::StageSection};
-use std::f32::consts::PI;
+use common::states::utils::StageSection;
 
 pub struct AlphaAnimation;
 

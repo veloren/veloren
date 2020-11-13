@@ -173,4 +173,5 @@ pub enum UniqueKind {
     StoneGolemFist,
     BeastClaws,
     GenericQuadMed,
+    QuadLowRanged,
 }

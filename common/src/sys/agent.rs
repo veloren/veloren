@@ -352,6 +352,8 @@ impl<'a> System<'a> for Sys {
                                 Tactic::StoneGolemBoss
                             },
                             Some(ToolKind::Unique(UniqueKind::GenericQuadMed)) => Tactic::Wolf,
+                            Some(ToolKind::Unique(UniqueKind::QuadLowRanged)) => Tactic::Staff,
+
                             _ => Tactic::Melee,
                         };
 

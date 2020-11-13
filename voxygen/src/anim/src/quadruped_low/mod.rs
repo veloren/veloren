@@ -2,10 +2,12 @@ pub mod alpha;
 pub mod idle;
 pub mod jump;
 pub mod run;
+pub mod shoot;
 
 // Reexports
 pub use self::{
     alpha::AlphaAnimation, idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation,
+    shoot::ShootAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};

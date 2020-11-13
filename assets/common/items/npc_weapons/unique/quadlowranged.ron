@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Quad Low Ranged",
+    description: "testing123",
+    kind: Tool(
+        (
+            kind: Unique(QuadLowRanged),
+            stats: (
+                equip_time_millis: 10,
+                power: 1.00),
+        )
+    ),
+    quality: Low,
+)
