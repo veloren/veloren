@@ -19,7 +19,8 @@ pub fn create_character(
     let loadout = LoadoutBuilder::new()
         .defaults()
         .active_item(Some(LoadoutBuilder::default_item_config_from_str(
-            character_tool.as_deref().unwrap(), map
+            character_tool.as_deref().unwrap(),
+            map,
         )))
         .build();
 

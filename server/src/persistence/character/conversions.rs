@@ -240,7 +240,10 @@ pub fn convert_inventory_from_database_items(database_items: &[Item]) -> Result<
     Ok(inventory)
 }
 
-pub fn convert_loadout_from_database_items(database_items: &[Item], map: &AbilityMap) -> Result<Loadout, Error> {
+pub fn convert_loadout_from_database_items(
+    database_items: &[Item],
+    map: &AbilityMap,
+) -> Result<Loadout, Error> {
     let mut loadout = loadout_builder::LoadoutBuilder::new();
     for db_item in database_items.iter() {
         let item = common::comp::Item::new_from_asset(db_item.item_definition_id.as_str())?;

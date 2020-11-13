@@ -7,7 +7,7 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Stage<T> {
     /// Specifies which stage the combo attack is in
     pub stage: u32,
@@ -49,6 +49,16 @@ impl Stage<u64> {
             base_recover_duration: Duration::from_millis(self.base_recover_duration),
             forward_movement: self.forward_movement,
         }
+    }
+
+    pub fn adjust_stats(mut self, power: f32, speed: f32) -> Self {
+        self.base_damage = (self.base_damage as f32 * power) as u32;
+        self.max_damage = (self.max_damage as f32 * power) as u32;
+        self.damage_increase = (self.damage_increase as f32 * power) as u32;
+        self.base_buildup_duration = (self.base_buildup_duration as f32 / speed) as u64;
+        self.base_swing_duration = (self.base_swing_duration as f32 / speed) as u64;
+        self.base_recover_duration = (self.base_recover_duration as f32 / speed) as u64;
+        self
     }
 }
 

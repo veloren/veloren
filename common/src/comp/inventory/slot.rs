@@ -1,6 +1,9 @@
 use crate::{
     comp,
-    comp::{item::{self, armor, tool::AbilityMap}, ItemConfig},
+    comp::{
+        item::{self, armor, tool::AbilityMap},
+        ItemConfig,
+    },
 };
 use comp::{Inventory, Loadout};
 use serde::{Deserialize, Serialize};
@@ -107,12 +110,16 @@ fn loadout_replace(
         EquipSlot::Armor(ArmorSlot::Tabard) => replace(&mut loadout.tabard, item),
         EquipSlot::Lantern => replace(&mut loadout.lantern, item),
         EquipSlot::Glider => replace(&mut loadout.glider, item),
-        EquipSlot::Mainhand => {
-            replace(&mut loadout.active_item, item.map(|item| ItemConfig::from((item, map)))).map(|i| i.item)
-        },
-        EquipSlot::Offhand => {
-            replace(&mut loadout.second_item, item.map(|item| ItemConfig::from((item, map)))).map(|i| i.item)
-        },
+        EquipSlot::Mainhand => replace(
+            &mut loadout.active_item,
+            item.map(|item| ItemConfig::from((item, map))),
+        )
+        .map(|i| i.item),
+        EquipSlot::Offhand => replace(
+            &mut loadout.second_item,
+            item.map(|item| ItemConfig::from((item, map))),
+        )
+        .map(|i| i.item),
     }
 }
 
@@ -153,7 +160,11 @@ fn loadout_insert(
 /// loadout_remove(slot, &mut loadout);
 /// assert_eq!(None, loadout.active_item);
 /// ```
-pub fn loadout_remove(equip_slot: EquipSlot, loadout: &mut Loadout, map: &AbilityMap) -> Option<item::Item> {
+pub fn loadout_remove(
+    equip_slot: EquipSlot,
+    loadout: &mut Loadout,
+    map: &AbilityMap,
+) -> Option<item::Item> {
     loadout_replace(equip_slot, None, loadout, map)
 }
 
@@ -326,7 +337,12 @@ pub fn equip(slot: usize, inventory: &mut Inventory, loadout: &mut Loadout, map:
 /// unequip(slot, &mut inv, &mut loadout);
 /// assert_eq!(None, loadout.active_item);
 /// ```
-pub fn unequip(slot: EquipSlot, inventory: &mut Inventory, loadout: &mut Loadout, map: &AbilityMap) {
+pub fn unequip(
+    slot: EquipSlot,
+    inventory: &mut Inventory,
+    loadout: &mut Loadout,
+    map: &AbilityMap,
+) {
     loadout_remove(slot, loadout, map) // Remove item from loadout
         .and_then(|i| inventory.push(i)) // Insert into inventory
         .and_then(|i| loadout_insert(slot, i, loadout, map)) // If that fails put back in loadout

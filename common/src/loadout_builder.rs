@@ -4,7 +4,6 @@ use crate::comp::{
     Alignment, Body, CharacterAbility, ItemConfig, Loadout,
 };
 use rand::Rng;
-use std::time::Duration;
 
 /// Builder for character Loadouts, containing weapon and armour items belonging
 /// to a character, along with some helper methods for loading Items and
@@ -362,7 +361,9 @@ impl LoadoutBuilder {
     /// abilities or their timings is desired, you should create and provide
     /// the item config directly to the [active_item](#method.active_item)
     /// method
-    pub fn default_item_config_from_item(item: Item, map: &AbilityMap) -> ItemConfig { ItemConfig::from((item, map)) }
+    pub fn default_item_config_from_item(item: Item, map: &AbilityMap) -> ItemConfig {
+        ItemConfig::from((item, map))
+    }
 
     /// Get an item's (weapon's) default
     /// [ItemConfig](../comp/struct.ItemConfig.html)

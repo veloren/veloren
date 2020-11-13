@@ -199,4 +199,26 @@ impl ProjectileConstructor {
             },
         }
     }
+
+    pub fn modify_projectile(mut self, power: f32) -> Self {
+        use ProjectileConstructor::*;
+        match self {
+            Arrow { ref mut damage, .. } => {
+                *damage *= power;
+            },
+            Fireball { ref mut damage, .. } => {
+                *damage *= power;
+            },
+            Heal {
+                ref mut damage,
+                ref mut heal,
+                ..
+            } => {
+                *damage *= power;
+                *heal *= power;
+            },
+            Possess => {},
+        }
+        self
+    }
 }

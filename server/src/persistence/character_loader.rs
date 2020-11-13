@@ -99,14 +99,14 @@ impl CharacterLoader {
                         CharacterLoaderRequestKind::DeleteCharacter {
                             player_uuid,
                             character_id,
-                        } => {
-                            CharacterLoaderResponseType::CharacterList(conn.transaction(|txn| {
-                                delete_character(&player_uuid, character_id, txn, &map)
-                            }))
-                        },
+                        } => CharacterLoaderResponseType::CharacterList(conn.transaction(|txn| {
+                            delete_character(&player_uuid, character_id, txn, &map)
+                        })),
                         CharacterLoaderRequestKind::LoadCharacterList { player_uuid } => {
                             CharacterLoaderResponseType::CharacterList(
-                                conn.transaction(|txn| load_character_list(&player_uuid, txn, &map)),
+                                conn.transaction(|txn| {
+                                    load_character_list(&player_uuid, txn, &map)
+                                }),
                             )
                         },
                         CharacterLoaderRequestKind::LoadCharacterData {
