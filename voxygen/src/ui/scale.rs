@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use vek::*;
 
 /// Type of scaling to use.
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
 pub enum ScaleMode {
     // Scale against physical size.
     Absolute(f64),
@@ -41,7 +41,12 @@ impl Scale {
     }
 
     // Change the scaling mode.
-    pub fn set_scaling_mode(&mut self, mode: ScaleMode) { self.mode = mode; }
+    // Returns false if the mode matches the current mode
+    pub fn set_scaling_mode(&mut self, mode: ScaleMode) -> bool {
+        let old_mode = self.mode;
+        self.mode = mode;
+        old_mode != mode
+    }
 
     // Get scaling mode transformed into absolute scaling
     pub fn scaling_mode_as_absolute(&self) -> ScaleMode {

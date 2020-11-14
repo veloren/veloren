@@ -55,6 +55,9 @@ impl PlayState for MainMenuState {
             std::sync::Arc::clone(&localized_strings),
             &global_state.settings,
         );
+        // Set scale mode in case it was change
+        self.main_menu_ui
+            .set_scale_mode(global_state.settings.gameplay.ui_scale);
     }
 
     #[allow(clippy::single_match)] // TODO: remove when event match has multiple arms

@@ -1439,6 +1439,10 @@ impl CharSelectionUi {
             .expect("Impossible to load fonts!");
     }
 
+    pub fn set_scale_mode(&mut self, scale_mode: ui::ScaleMode) {
+        self.ui.set_scaling_mode(scale_mode);
+    }
+
     // TODO: do we need whole client here or just character list?
     pub fn maintain(&mut self, global_state: &mut GlobalState, client: &mut Client) -> Vec<Event> {
         let mut events = Vec::new();
