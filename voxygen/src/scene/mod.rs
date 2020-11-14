@@ -26,7 +26,6 @@ use crate::{
 use client::Client;
 use common::{
     comp,
-    comp::humanoid::DEFAULT_HUMANOID_EYE_HEIGHT,
     outcome::Outcome,
     span,
     state::{DeltaTime, State},
@@ -468,25 +467,21 @@ impl Scene {
             .get(scene_data.player_entity)
             .map(|p| p.on_ground);
 
-        let player_scale = match scene_data
+        let player_scale = scene_data
             .state
             .ecs()
             .read_storage::<comp::Body>()
             .get(scene_data.player_entity)
-        {
-            Some(comp::Body::Humanoid(body)) => body.scale(),
-            _ => 1_f32,
-        };
+            .map(|b| b.scale())
+            .unwrap_or(1.0);
 
-        let eye_height = match scene_data
+        let eye_height = scene_data
             .state
             .ecs()
             .read_storage::<comp::Body>()
             .get(scene_data.player_entity)
-        {
-            Some(comp::Body::Humanoid(body)) => body.eye_height(),
-            _ => DEFAULT_HUMANOID_EYE_HEIGHT,
-        };
+            .map(|b| b.eye_height())
+            .unwrap_or(1.0);
 
         // Add the analog input to camera
         self.camera

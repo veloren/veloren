@@ -197,7 +197,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
     fn from(body: &'a Body) -> Self {
         use comp::humanoid::{BodyType::*, Species::*};
         Self {
-            scaler: body.scale(),
+            scaler: comp::Body::Humanoid(*body).scale(),
             head_scale: match (body.species, body.body_type) {
                 (Orc, Male) => 0.9,
                 (Orc, Female) => 0.9,

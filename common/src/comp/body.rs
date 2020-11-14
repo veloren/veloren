@@ -133,6 +133,8 @@ impl<
 }
 
 impl Body {
+    pub const DEFAULT_EYE_HEIGHT: f32 = 1.65;
+
     pub fn is_humanoid(&self) -> bool { matches!(self, Body::Humanoid(_)) }
 
     // Note: this might need to be refined to something more complex for realistic
@@ -140,7 +142,7 @@ impl Body {
     pub fn radius(&self) -> f32 {
         // TODO: Improve these values (some might be reliant on more info in inner type)
         match self {
-            Body::Humanoid(body) => 0.5 * body.scale(),
+            Body::Humanoid(_) => 0.5 * self.scale(),
             Body::QuadrupedSmall(_) => 0.4,
             Body::QuadrupedMedium(body) => match body.species {
                 quadruped_medium::Species::Grolgar => 1.9,
@@ -172,7 +174,7 @@ impl Body {
 
     pub fn height(&self) -> f32 {
         match self {
-            Body::Humanoid(body) => 1.9 * body.scale(),
+            Body::Humanoid(_) => 1.9 * self.scale(),
             Body::QuadrupedSmall(body) => match body.species {
                 quadruped_small::Species::Dodarock => 1.5,
                 quadruped_small::Species::Holladon => 1.5,
@@ -199,7 +201,7 @@ impl Body {
                 _ => 1.1,
             },
             Body::FishMedium(_) => 1.1,
-            Body::Dragon(_) => 20.0,
+            Body::Dragon(_) => 16.0,
             Body::BirdSmall(_) => 1.1,
             Body::FishSmall(_) => 0.9,
             Body::BipedLarge(_) => 4.6,
@@ -522,6 +524,37 @@ impl Body {
             Body::Golem(_) => 7.5,
             Body::Theropod(_) => 3.0,
             Body::QuadrupedLow(_) => 4.5,
+        }
+    }
+
+    /// Returns the eye height for this humanoid.
+    pub fn eye_height(&self) -> f32 { Self::DEFAULT_EYE_HEIGHT * self.scale() }
+
+    pub fn scale(&self) -> f32 {
+        match self {
+            Body::Humanoid(humanoid) => match (humanoid.species, humanoid.body_type) {
+                (humanoid::Species::Orc, humanoid::BodyType::Male) => 1.14,
+                (humanoid::Species::Orc, humanoid::BodyType::Female) => 1.02,
+                (humanoid::Species::Human, humanoid::BodyType::Male) => 1.02,
+                (humanoid::Species::Human, humanoid::BodyType::Female) => 0.96,
+                (humanoid::Species::Elf, humanoid::BodyType::Male) => 1.02,
+                (humanoid::Species::Elf, humanoid::BodyType::Female) => 0.96,
+                (humanoid::Species::Dwarf, humanoid::BodyType::Male) => 0.84,
+                (humanoid::Species::Dwarf, humanoid::BodyType::Female) => 0.78,
+                (humanoid::Species::Undead, humanoid::BodyType::Male) => 0.96,
+                (humanoid::Species::Undead, humanoid::BodyType::Female) => 0.9,
+                (humanoid::Species::Danari, humanoid::BodyType::Male) => 0.696,
+                (humanoid::Species::Danari, humanoid::BodyType::Female) => 0.696,
+            },
+            Body::BipedLarge(_) => 2.5,
+            Body::BirdMedium(_) => 0.7,
+            Body::Dragon(_) => 16.0,
+            Body::Golem(_) => 2.0,
+            Body::QuadrupedMedium(_) => 1.0,
+            Body::QuadrupedLow(_) => 0.9,
+            Body::QuadrupedSmall(_) => 0.5,
+            Body::Theropod(_) => 2.0,
+            _ => 1.0,
         }
     }
 
