@@ -1501,6 +1501,7 @@ impl WorldSim {
             rgba: v,
             alt: alts,
             horizons,
+            sites: Vec::new(), // Will be substituted later
         }
     }
 

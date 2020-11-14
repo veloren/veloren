@@ -24,7 +24,7 @@ vec3 cloud_at(vec3 pos, float dist) {
     // Mist sits close to the ground in valleys (TODO: use base_alt to put it closer to water)
     float MIST_MIN = 300;
     const float MIST_FADE_HEIGHT = 250;
-    float mist = 0.00025 * pow(clamp(1.0 - (pos.z - MIST_MIN) / MIST_FADE_HEIGHT, 0.0, 1), 2) / (1.0 + pow(1.0 + dist / 20000.0, 2.0));
+    float mist = 0.0003 * pow(clamp(1.0 - (pos.z - MIST_MIN) / MIST_FADE_HEIGHT, 0.0, 1), 2) / (1.0 + pow(1.0 + dist / 20000.0, 2.0));
 
     vec3 wind_pos = vec3(pos.xy + wind_offset, pos.z);
 

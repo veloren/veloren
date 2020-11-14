@@ -29,6 +29,7 @@ use common::{
         ClientType, DisconnectReason, InviteAnswer, Notification, PingMsg, PlayerInfo,
         PlayerListUpdate, PresenceKind, RegisterError, ServerGeneral, ServerInfo, ServerInit,
         ServerRegisterAnswer, MAX_BYTES_CHAT_MSG,
+        world_msg::SiteInfo,
     },
     outcome::Outcome,
     recipe::RecipeBook,
@@ -101,6 +102,7 @@ pub struct Client {
     pub world_map: (Arc<DynamicImage>, Vec2<u16>, Vec2<f32>),
     pub player_list: HashMap<Uid, PlayerInfo>,
     pub character_list: CharacterList,
+    sites: Vec<SiteInfo>,
     recipe_book: RecipeBook,
     available_recipes: HashSet<String>,
 
@@ -191,6 +193,7 @@ impl Client {
             lod_alt,
             lod_horizon,
             world_map,
+            sites,
             recipe_book,
             max_group_size,
             client_timeout,
@@ -255,7 +258,7 @@ impl Client {
                 let horizons = [unzip_horizons(&west), unzip_horizons(&east)];
 
                 // Redraw map (with shadows this time).
-                let mut world_map = vec![0u32; rgba.len()];
+                let mut world_map_rgba = vec![0u32; rgba.len()];
                 let mut map_config = common::terrain::map::MapConfig::orthographic(
                     map_size_lg,
                     core::ops::RangeInclusive::new(0.0, max_height),
@@ -322,13 +325,13 @@ impl Client {
                         })
                     },
                     |pos, (r, g, b, a)| {
-                        world_map[pos.y * map_size.x as usize + pos.x] =
+                        world_map_rgba[pos.y * map_size.x as usize + pos.x] =
                             u32::from_le_bytes([r, g, b, a]);
                     },
                 );
                 ping_stream.send(PingMsg::Ping)?;
                 let make_raw = |rgba| -> Result<_, Error> {
-                    let mut raw = vec![0u8; 4 * world_map.len()];
+                    let mut raw = vec![0u8; 4 * world_map_rgba.len()];
                     LittleEndian::write_u32_into(rgba, &mut raw);
                     Ok(Arc::new(
                         image::DynamicImage::ImageRgba8({
@@ -345,7 +348,7 @@ impl Client {
                 ping_stream.send(PingMsg::Ping)?;
                 let lod_base = rgba;
                 let lod_alt = alt;
-                let world_map = make_raw(&world_map)?;
+                let world_map_img = make_raw(&world_map_rgba)?;
                 let horizons = (west.0, west.1, east.0, east.1)
                     .into_par_iter()
                     .map(|(wa, wh, ea, eh)| u32::from_le_bytes([wa, wh, ea, eh]))
@@ -360,7 +363,8 @@ impl Client {
                     lod_base,
                     lod_alt,
                     lod_horizon,
-                    (world_map, map_size, map_bounds),
+                    (world_map_img, map_size, map_bounds),
+                    world_map.sites,
                     recipe_book,
                     max_group_size,
                     client_timeout,
@@ -389,6 +393,7 @@ impl Client {
             lod_horizon,
             player_list: HashMap::new(),
             character_list: CharacterList::default(),
+            sites,
             recipe_book,
             available_recipes: HashSet::default(),
 
@@ -638,6 +643,11 @@ impl Client {
             .map(|(name, _)| name.clone())
             .filter(|name| self.can_craft_recipe(name))
             .collect();
+    }
+
+    /// Unstable, likely to be removed in a future release
+    pub fn sites(&self) -> &[SiteInfo] {
+        &self.sites
     }
 
     pub fn enable_lantern(&mut self) {

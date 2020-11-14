@@ -53,6 +53,7 @@ use common::{
     event::{EventBus, ServerEvent},
     msg::{
         ClientType, DisconnectReason, ServerGeneral, ServerInfo, ServerInit, ServerMsg, WorldMapMsg,
+        world_msg::{SiteInfo, SiteKind},
     },
     outcome::Outcome,
     recipe::default_recipe_book,
@@ -83,7 +84,6 @@ use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 #[cfg(feature = "worldgen")]
 use world::{
-    civ::SiteKind,
     sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP},
     IndexOwned, World,
 };
@@ -256,6 +256,7 @@ impl Server {
             horizons: [(vec![0], vec![0]), (vec![0], vec![0])],
             sea_level: 0.0,
             alt: vec![30],
+            sites: Vec::new(),
         };
 
         #[cfg(feature = "worldgen")]
@@ -272,7 +273,7 @@ impl Server {
             let spawn_chunk = world
                 .civs()
                 .sites()
-                .filter(|site| matches!(site.kind, SiteKind::Settlement))
+                .filter(|site| matches!(site.kind, world::civ::SiteKind::Settlement))
                 .map(|site| site.center)
                 .min_by_key(|site_pos| site_pos.distance_squared(center_chunk))
                 .unwrap_or(center_chunk);

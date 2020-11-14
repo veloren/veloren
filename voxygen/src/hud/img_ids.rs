@@ -193,6 +193,8 @@ image_ids! {
         mmap_minus: "voxygen.element.buttons.min_plus.mmap_button-min",
         mmap_minus_hover: "voxygen.element.buttons.min_plus.mmap_button-min_hover",
         mmap_minus_press: "voxygen.element.buttons.min_plus.mmap_button-min_press",
+        mmap_site_town: "voxygen.element.map.town",
+        mmap_site_dungeon: "voxygen.element.map.dungeon",
 
         // Window Parts
         window_3: "voxygen.element.frames.window_3",

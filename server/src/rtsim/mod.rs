@@ -55,12 +55,12 @@ impl RtSim {
     }
 
     pub fn assimilate_entity(&mut self, entity: RtSimId) {
-        tracing::info!("Assimilated rtsim entity {}", entity);
+        // tracing::info!("Assimilated rtsim entity {}", entity);
         self.entities.get_mut(entity).map(|e| e.is_loaded = false);
     }
 
     pub fn reify_entity(&mut self, entity: RtSimId) {
-        tracing::info!("Reified rtsim entity {}", entity);
+        // tracing::info!("Reified rtsim entity {}", entity);
         self.entities.get_mut(entity).map(|e| e.is_loaded = true);
     }
 
@@ -69,7 +69,7 @@ impl RtSim {
     }
 
     pub fn destroy_entity(&mut self, entity: RtSimId) {
-        tracing::info!("Destroyed rtsim entity {}", entity);
+        // tracing::info!("Destroyed rtsim entity {}", entity);
         self.entities.remove(entity);
     }
 }
@@ -102,7 +102,7 @@ pub fn init(state: &mut State, world: &world::World) {
             brain: Default::default(),
         });
 
-        tracing::info!("Spawned rtsim NPC {} at {:?}", id, pos);
+        // tracing::info!("Spawned rtsim NPC {} at {:?}", id, pos);
     }
 
     state.ecs_mut().insert(rtsim);
