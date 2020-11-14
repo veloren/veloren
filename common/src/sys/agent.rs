@@ -223,6 +223,7 @@ impl<'a> System<'a> for Sys {
                                     node_tolerance,
                                     slow_factor,
                                     on_ground: physics_state.on_ground,
+                                    in_liquid: physics_state.in_liquid.is_some(),
                                     min_tgt_dist: 1.25,
                                 },
                             ) {
@@ -232,7 +233,8 @@ impl<'a> System<'a> for Sys {
                                     .unwrap_or(Vec2::zero())
                                     * speed.min(agent.rtsim_controller.speed_factor);
                                 inputs.jump.set_state(bearing.z > 1.5);
-                                inputs.climb = Some(comp::Climb::Up).filter(|_| bearing.z > 1.5);
+                                inputs.climb = Some(comp::Climb::Up)
+                                    .filter(|_| bearing.z > 1.5 || physics_state.in_liquid.is_some());
                                 inputs.move_z = bearing.z;
                             }
                         } else {
@@ -303,6 +305,7 @@ impl<'a> System<'a> for Sys {
                                         node_tolerance,
                                         slow_factor,
                                         on_ground: physics_state.on_ground,
+                                        in_liquid: physics_state.in_liquid.is_some(),
                                         min_tgt_dist: AVG_FOLLOW_DIST,
                                     },
                                 ) {
@@ -429,6 +432,7 @@ impl<'a> System<'a> for Sys {
                                             node_tolerance,
                                             slow_factor,
                                             on_ground: physics_state.on_ground,
+                                            in_liquid: physics_state.in_liquid.is_some(),
                                             min_tgt_dist: 1.25,
                                         },
                                     ) {
@@ -590,6 +594,7 @@ impl<'a> System<'a> for Sys {
                                         node_tolerance,
                                         slow_factor,
                                         on_ground: physics_state.on_ground,
+                                        in_liquid: physics_state.in_liquid.is_some(),
                                         min_tgt_dist: 1.25,
                                     },
                                 ) {
