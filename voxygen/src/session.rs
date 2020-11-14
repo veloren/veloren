@@ -178,6 +178,7 @@ impl SessionState {
                     global_state.settings.save_to_file_warn();
                 },
                 client::Event::Outcome(outcome) => outcomes.push(outcome),
+                client::Event::CharacterCreated(_) => {},
             }
         }
 
@@ -928,7 +929,7 @@ impl PlayState for SessionState {
                     HudEvent::ChangeHotbarState(state) => {
                         let client = self.client.borrow();
 
-                        let server = &client.server_info.name;
+                        let server_name = &client.server_info.name;
                         // If we are changing the hotbar state this CANNOT be None.
                         let character_id = match client.presence().unwrap() {
                             PresenceKind::Character(id) => id,
@@ -938,9 +939,11 @@ impl PlayState for SessionState {
                         };
 
                         // Get or update the ServerProfile.
-                        global_state
-                            .profile
-                            .set_hotbar_slots(server, character_id, state.slots);
+                        global_state.profile.set_hotbar_slots(
+                            server_name,
+                            character_id,
+                            state.slots,
+                        );
 
                         global_state.profile.save_to_file_warn();
 

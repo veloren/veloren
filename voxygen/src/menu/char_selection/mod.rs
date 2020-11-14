@@ -30,8 +30,10 @@ impl CharSelectionState {
             Some("fixture.selection_bg"),
             &*client.borrow(),
         );
+        let char_selection_ui = CharSelectionUi::new(global_state, &*client.borrow());
+
         Self {
-            char_selection_ui: CharSelectionUi::new(global_state),
+            char_selection_ui,
             client,
             scene,
         }
@@ -98,7 +100,7 @@ impl PlayState for CharSelectionState {
             // Maintain the UI.
             let events = self
                 .char_selection_ui
-                .maintain(global_state, &mut self.client.borrow_mut());
+                .maintain(global_state, &self.client.borrow());
 
             for event in events {
                 match event {
@@ -123,6 +125,15 @@ impl PlayState for CharSelectionState {
                     },
                     ui::Event::ClearCharacterListError => {
                         self.client.borrow_mut().character_list.error = None;
+                    },
+                    ui::Event::SelectCharacter(selected) => {
+                        let client = self.client.borrow();
+                        let server_name = &client.server_info.name;
+                        // Select newly created character
+                        global_state
+                            .profile
+                            .set_selected_character(server_name, selected);
+                        global_state.profile.save_to_file_warn();
                     },
                 }
             }
@@ -178,6 +189,9 @@ impl PlayState for CharSelectionState {
                                         .to_owned(),
                                 );
                                 return PlayStateResult::Pop;
+                            },
+                            client::Event::CharacterCreated(character_id) => {
+                                self.char_selection_ui.select_character(character_id);
                             },
                             _ => {},
                         }

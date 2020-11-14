@@ -13,21 +13,23 @@ pub struct CharacterProfile {
     pub hotbar_slots: [Option<hud::HotbarSlotContents>; 10],
 }
 
+const DEFAULT_SLOTS: [Option<hud::HotbarSlotContents>; 10] = [
+    None,
+    None,
+    None,
+    None,
+    None,
+    Some(hud::HotbarSlotContents::Inventory(0)),
+    Some(hud::HotbarSlotContents::Inventory(1)),
+    None,
+    None,
+    None,
+];
+
 impl Default for CharacterProfile {
     fn default() -> Self {
         CharacterProfile {
-            hotbar_slots: [
-                None,
-                None,
-                None,
-                None,
-                None,
-                Some(hud::HotbarSlotContents::Inventory(0)),
-                Some(hud::HotbarSlotContents::Inventory(1)),
-                None,
-                None,
-                None,
-            ],
+            hotbar_slots: DEFAULT_SLOTS,
         }
     }
 }
@@ -38,12 +40,15 @@ impl Default for CharacterProfile {
 pub struct ServerProfile {
     /// A map of character's by id to their CharacterProfile.
     pub characters: HashMap<CharacterId, CharacterProfile>,
+    // Selected character in the chararacter selection screen
+    pub selected_character: Option<CharacterId>,
 }
 
 impl Default for ServerProfile {
     fn default() -> Self {
         ServerProfile {
             characters: HashMap::new(),
+            selected_character: None,
         }
     }
 }
@@ -106,26 +111,23 @@ impl Profile {
 
     /// Get the hotbar_slots for the requested character_id.
     ///
-    /// if the server or character does not exist then the appropriate fields
-    /// will be initialised and default hotbar_slots (empty) returned.
+    /// If the server or character does not exist then the default hotbar_slots
+    /// (empty) is returned.
     ///
     /// # Arguments
     ///
     /// * server - current server the character is on.
     /// * character_id - id of the character.
     pub fn get_hotbar_slots(
-        &mut self,
+        &self,
         server: &str,
         character_id: CharacterId,
     ) -> [Option<hud::HotbarSlotContents>; 10] {
         self.servers
-            .entry(server.to_string())
-            .or_insert(ServerProfile::default())
-            // Get or update the CharacterProfile.
-            .characters
-            .entry(character_id)
-            .or_insert(CharacterProfile::default())
-            .hotbar_slots
+            .get(server)
+            .and_then(|s| s.characters.get(&character_id))
+            .map(|c| c.hotbar_slots)
+            .unwrap_or(DEFAULT_SLOTS)
     }
 
     /// Set the hotbar_slots for the requested character_id.
@@ -152,6 +154,41 @@ impl Profile {
             .entry(character_id)
             .or_insert(CharacterProfile::default())
             .hotbar_slots = slots;
+    }
+
+    /// Get the selected_character for the provided server.
+    ///
+    /// if the server does not exist then the default selected_character (None)
+    /// is returned.
+    ///
+    /// # Arguments
+    ///
+    /// * server - current server the character is on.
+    pub fn get_selected_character(&self, server: &str) -> Option<CharacterId> {
+        self.servers
+            .get(server)
+            .map(|s| s.selected_character)
+            .unwrap_or_default()
+    }
+
+    /// Set the selected_character for the provided server.
+    ///
+    /// If the server does not exist then the appropriate fields
+    /// will be initialised and the selected_character added.
+    ///
+    /// # Arguments
+    ///
+    /// * server - current server the character is on.
+    /// * selected_character - option containing selected character ID
+    pub fn set_selected_character(
+        &mut self,
+        server: &str,
+        selected_character: Option<CharacterId>,
+    ) {
+        self.servers
+            .entry(server.to_string())
+            .or_insert(ServerProfile::default())
+            .selected_character = selected_character;
     }
 
     /// Save the current profile to disk.
@@ -188,7 +225,7 @@ mod tests {
 
     #[test]
     fn test_get_slots_with_empty_profile() {
-        let mut profile = Profile::default();
+        let profile = Profile::default();
         let slots = profile.get_hotbar_slots("TestServer", 12345);
         assert_eq!(slots, [
             None,

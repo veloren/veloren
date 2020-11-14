@@ -69,6 +69,8 @@ pub enum ServerGeneral {
     CharacterListUpdate(Vec<CharacterItem>),
     /// An error occurred while creating or deleting a character
     CharacterActionError(String),
+    /// A new character was created
+    CharacterCreated(crate::character::CharacterId),
     CharacterSuccess,
     //Ingame related
     GroupUpdate(comp::group::ChangeNotification<sync::Uid>),
@@ -194,7 +196,8 @@ impl ServerMsg {
                         //Character Screen related
                         ServerGeneral::CharacterDataLoadError(_)
                         | ServerGeneral::CharacterListUpdate(_)
-                        | ServerGeneral::CharacterActionError(_) => {
+                        | ServerGeneral::CharacterActionError(_)
+                        | ServerGeneral::CharacterCreated(_) => {
                             c_type != ClientType::ChatOnly && presence.is_none()
                         },
                         ServerGeneral::CharacterSuccess => {

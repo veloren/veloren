@@ -130,13 +130,12 @@ pub enum Event {
     },
     DeleteCharacter(CharacterId),
     ClearCharacterListError,
+    SelectCharacter(Option<CharacterId>),
 }
 
 enum Mode {
     Select {
         info_content: Option<InfoContent>,
-        // Index of selected character
-        selected: Option<usize>,
 
         characters_scroll: scrollable::State,
         character_buttons: Vec<button::State>,
@@ -168,7 +167,6 @@ impl Mode {
     pub fn select(info_content: Option<InfoContent>) -> Self {
         Self::Select {
             info_content,
-            selected: None,
             characters_scroll: Default::default(),
             character_buttons: Vec::new(),
             new_character_button: Default::default(),
@@ -231,8 +229,9 @@ struct Controls {
     tooltip_manager: TooltipManager,
     // Zone for rotating the character with the mouse
     mouse_detector: mouse_detector::State,
-    // enter: bool,
     mode: Mode,
+    // Id of the selected character
+    selected: Option<CharacterId>,
 }
 
 #[derive(Clone)]
@@ -240,7 +239,7 @@ enum Message {
     Back,
     Logout,
     EnterWorld,
-    Select(usize),
+    Select(CharacterId),
     Delete(usize),
     NewCharacter,
     CreateCharacter,
@@ -265,7 +264,12 @@ enum Message {
 }
 
 impl Controls {
-    fn new(fonts: Fonts, imgs: Imgs, i18n: std::sync::Arc<Localization>) -> Self {
+    fn new(
+        fonts: Fonts,
+        imgs: Imgs,
+        i18n: std::sync::Arc<Localization>,
+        selected: Option<CharacterId>,
+    ) -> Self {
         let version = common::util::DISPLAY_VERSION_LONG.clone();
         let alpha = format!("Veloren {}", common::util::DISPLAY_VERSION.as_str());
 
@@ -279,6 +283,7 @@ impl Controls {
             tooltip_manager: TooltipManager::new(TOOLTIP_HOVER_DUR, TOOLTIP_FADE_DUR),
             mouse_detector: Default::default(),
             mode: Mode::select(Some(InfoContent::LoadingCharacters)),
+            selected,
         }
     }
 
@@ -331,7 +336,6 @@ impl Controls {
         let content = match &mut self.mode {
             Mode::Select {
                 ref mut info_content,
-                selected,
                 ref mut characters_scroll,
                 ref mut character_buttons,
                 ref mut new_character_button,
@@ -340,6 +344,24 @@ impl Controls {
                 ref mut yes_button,
                 ref mut no_button,
             } => {
+                // If no character is selected then select the first one
+                // Note: we don't need to persist this because it is the default
+                if self.selected.is_none() {
+                    self.selected = client
+                        .character_list
+                        .characters
+                        .get(0)
+                        .and_then(|i| i.character.id);
+                }
+                // Get the index of the selected character
+                let selected = self.selected.and_then(|id| {
+                    client
+                        .character_list
+                        .characters
+                        .iter()
+                        .position(|i| i.character.id == Some(id))
+                });
+
                 if let Some(error) = &client.character_list.error {
                     // TODO: use more user friendly errors with suggestions on potential solutions
                     // instead of directly showing error message here
@@ -386,75 +408,84 @@ impl Controls {
                     let mut characters = characters
                         .iter()
                         .zip(character_buttons.chunks_exact_mut(2))
-                        .map(|(character, buttons)| {
+                        .filter_map(|(character, buttons)| {
                             let mut buttons = buttons.iter_mut();
-                            (
-                                character,
-                                (buttons.next().unwrap(), buttons.next().unwrap()),
-                            )
+                            // TODO: eliminate option in character id?
+                            character.character.id.map(|id| {
+                                (
+                                    id,
+                                    character,
+                                    (buttons.next().unwrap(), buttons.next().unwrap()),
+                                )
+                            })
                         })
                         .enumerate()
-                        .map(|(i, (character, (select_button, delete_button)))| {
-                            Overlay::new(
-                                // Delete button
-                                Button::new(
-                                    delete_button,
-                                    Space::new(Length::Units(16), Length::Units(16)),
-                                )
-                                .style(
-                                    style::button::Style::new(imgs.delete_button)
-                                        .hover_image(imgs.delete_button_hover)
-                                        .press_image(imgs.delete_button_press),
-                                )
-                                .on_press(Message::Delete(i))
-                                .with_tooltip(
-                                    tooltip_manager,
-                                    move || {
-                                        tooltip::text(
-                                            i18n.get("char_selection.delete_permanently"),
-                                            tooltip_style,
-                                        )
-                                    },
-                                ),
-                                // Select Button
-                                AspectRatioContainer::new(
+                        .map(
+                            |(i, (character_id, character, (select_button, delete_button)))| {
+                                Overlay::new(
+                                    // Delete button
                                     Button::new(
-                                        select_button,
-                                        Column::with_children(vec![
-                                            Text::new(&character.character.alias).into(),
-                                            // TODO: only construct string once when characters are
-                                            // loaded
-                                            Text::new(
-                                                i18n.get("char_selection.level_fmt").replace(
-                                                    "{level_nb}",
-                                                    &character.level.to_string(),
-                                                ),
-                                            )
-                                            .into(),
-                                            Text::new(i18n.get("char_selection.uncanny_valley"))
-                                                .into(),
-                                        ]),
+                                        delete_button,
+                                        Space::new(Length::Units(16), Length::Units(16)),
                                     )
-                                    .padding(10)
                                     .style(
-                                        style::button::Style::new(if Some(i) == *selected {
-                                            imgs.selection_hover
-                                        } else {
-                                            imgs.selection
-                                        })
-                                        .hover_image(imgs.selection_hover)
-                                        .press_image(imgs.selection_press),
+                                        style::button::Style::new(imgs.delete_button)
+                                            .hover_image(imgs.delete_button_hover)
+                                            .press_image(imgs.delete_button_press),
                                     )
-                                    .width(Length::Fill)
-                                    .height(Length::Fill)
-                                    .on_press(Message::Select(i)),
+                                    .on_press(Message::Delete(i))
+                                    .with_tooltip(
+                                        tooltip_manager,
+                                        move || {
+                                            tooltip::text(
+                                                i18n.get("char_selection.delete_permanently"),
+                                                tooltip_style,
+                                            )
+                                        },
+                                    ),
+                                    // Select Button
+                                    AspectRatioContainer::new(
+                                        Button::new(
+                                            select_button,
+                                            Column::with_children(vec![
+                                                Text::new(&character.character.alias).into(),
+                                                // TODO: only construct string once when characters
+                                                // are
+                                                // loaded
+                                                Text::new(
+                                                    i18n.get("char_selection.level_fmt").replace(
+                                                        "{level_nb}",
+                                                        &character.level.to_string(),
+                                                    ),
+                                                )
+                                                .into(),
+                                                Text::new(
+                                                    i18n.get("char_selection.uncanny_valley"),
+                                                )
+                                                .into(),
+                                            ]),
+                                        )
+                                        .padding(10)
+                                        .style(
+                                            style::button::Style::new(if Some(i) == selected {
+                                                imgs.selection_hover
+                                            } else {
+                                                imgs.selection
+                                            })
+                                            .hover_image(imgs.selection_hover)
+                                            .press_image(imgs.selection_press),
+                                        )
+                                        .width(Length::Fill)
+                                        .height(Length::Fill)
+                                        .on_press(Message::Select(character_id)),
+                                    )
+                                    .ratio_of_image(imgs.selection),
                                 )
-                                .ratio_of_image(imgs.selection),
-                            )
-                            .padding(12)
-                            .align_x(Align::End)
-                            .into()
-                        })
+                                .padding(12)
+                                .align_x(Align::End)
+                                .into()
+                            },
+                        )
                         .collect::<Vec<_>>();
 
                     // Add create new character button
@@ -1191,20 +1222,14 @@ impl Controls {
                 events.push(Event::Logout);
             },
             Message::EnterWorld => {
-                if let Mode::Select {
-                    selected: Some(selected),
-                    ..
-                } = &self.mode
-                {
-                    // TODO: eliminate option in character id?
-                    if let Some(id) = characters.get(*selected).and_then(|i| i.character.id) {
-                        events.push(Event::Play(id));
-                    }
+                if let (Mode::Select { .. }, Some(selected)) = (&self.mode, self.selected) {
+                    events.push(Event::Play(selected));
                 }
             },
-            Message::Select(idx) => {
-                if let Mode::Select { selected, .. } = &mut self.mode {
-                    *selected = Some(idx);
+            Message::Select(id) => {
+                if let Mode::Select { .. } = &mut self.mode {
+                    self.selected = Some(id);
+                    events.push(Event::SelectCharacter(Some(id)))
                 }
             },
             Message::Delete(idx) => {
@@ -1276,6 +1301,11 @@ impl Controls {
                     if let Some(InfoContent::Deletion(idx)) = info_content {
                         if let Some(id) = characters.get(*idx).and_then(|i| i.character.id) {
                             events.push(Event::DeleteCharacter(id));
+                            // Deselect if the selected character was deleted
+                            if Some(id) == self.selected {
+                                self.selected = None;
+                                events.push(Event::SelectCharacter(None));
+                            }
                         }
                         *info_content = Some(InfoContent::DeletingCharacter);
                     }
@@ -1343,8 +1373,9 @@ impl Controls {
         characters: &'a [CharacterItem],
     ) -> Option<(comp::Body, &'a comp::Loadout)> {
         match &self.mode {
-            Mode::Select { selected, .. } => selected
-                .and_then(|idx| characters.get(idx))
+            Mode::Select { .. } => self
+                .selected
+                .and_then(|id| characters.iter().find(|i| i.character.id == Some(id)))
                 .map(|i| (i.body, &i.loadout)),
             Mode::Create { loadout, body, .. } => Some((comp::Body::Humanoid(*body), loadout)),
         }
@@ -1355,10 +1386,15 @@ pub struct CharSelectionUi {
     ui: Ui,
     controls: Controls,
     enter_pressed: bool,
+    select_character: Option<CharacterId>,
 }
 
 impl CharSelectionUi {
-    pub fn new(global_state: &mut GlobalState) -> Self {
+    pub fn new(global_state: &mut GlobalState, client: &Client) -> Self {
+        // Load up the last selected character for this server
+        let server_name = &client.server_info.name;
+        let selected_character = global_state.profile.get_selected_character(server_name);
+
         // Load language
         let i18n = Localization::load_expect(&i18n_asset_key(
             &global_state.settings.language.selected_language,
@@ -1390,12 +1426,14 @@ impl CharSelectionUi {
             fonts,
             Imgs::load(&mut ui).expect("Failed to load images"),
             i18n,
+            selected_character,
         );
 
         Self {
             ui,
             controls,
             enter_pressed: false,
+            select_character: None,
         }
     }
 
@@ -1443,8 +1481,10 @@ impl CharSelectionUi {
         self.ui.set_scaling_mode(scale_mode);
     }
 
+    pub fn select_character(&mut self, id: CharacterId) { self.select_character = Some(id); }
+
     // TODO: do we need whole client here or just character list?
-    pub fn maintain(&mut self, global_state: &mut GlobalState, client: &mut Client) -> Vec<Event> {
+    pub fn maintain(&mut self, global_state: &mut GlobalState, client: &Client) -> Vec<Event> {
         let mut events = Vec::new();
 
         let (mut messages, _) = self.ui.maintain(
@@ -1455,6 +1495,10 @@ impl CharSelectionUi {
         if self.enter_pressed {
             self.enter_pressed = false;
             messages.push(Message::EnterWorld);
+        }
+
+        if let Some(id) = self.select_character.take() {
+            messages.push(Message::Select(id))
         }
 
         messages.into_iter().for_each(|message| {
