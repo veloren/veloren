@@ -199,6 +199,7 @@ impl Client {
                 client_timeout,
                 world_map,
                 recipe_book,
+                ability_map,
             } => {
                 // Initialize `State`
                 let mut state = State::default();
@@ -209,6 +210,7 @@ impl Client {
 
                 let entity = state.ecs_mut().apply_entity_package(entity_package);
                 *state.ecs_mut().write_resource() = time_of_day;
+                state.ecs_mut().insert(ability_map);
 
                 let map_size_lg = common::terrain::MapSizeLg::new(world_map.dimensions_lg)
                     .map_err(|_| {
