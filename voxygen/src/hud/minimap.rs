@@ -253,6 +253,7 @@ impl<'a> Widget for MiniMap<'a> {
                         position::Relative::Scalar(rpos.x as f64),
                         position::Relative::Scalar(rpos.y as f64),
                     )
+                    .w_h(16.0 / 0.73, 16.0 / 0.73)
                     .floating(true)
                     .parent(ui.window)
                     .set(state.ids.mmap_site_icons[i], ui);
