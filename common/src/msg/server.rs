@@ -21,7 +21,7 @@ pub enum ServerMsg {
     /// Basic info about server, send ONCE, clients need it to Register
     Info(ServerInfo),
     /// Initial data package, send BEFORE Register ONCE. Not Register relevant
-    Init(ServerInit),
+    Init(Box<ServerInit>),
     /// Result to `ClientMsg::Register`. send ONCE
     RegisterAnswer(ServerRegisterAnswer),
     ///Msg that can be send ALWAYS as soon as client is registered, e.g. `Chat`
@@ -54,6 +54,7 @@ pub enum ServerInit {
         client_timeout: Duration,
         world_map: crate::msg::world_msg::WorldMapMsg,
         recipe_book: RecipeBook,
+        ability_map: crate::comp::item::tool::AbilityMap,
     },
 }
 
@@ -245,7 +246,7 @@ impl Into<ServerMsg> for ServerInfo {
 }
 
 impl Into<ServerMsg> for ServerInit {
-    fn into(self) -> ServerMsg { ServerMsg::Init(self) }
+    fn into(self) -> ServerMsg { ServerMsg::Init(Box::new(self)) }
 }
 
 impl Into<ServerMsg> for ServerRegisterAnswer {
