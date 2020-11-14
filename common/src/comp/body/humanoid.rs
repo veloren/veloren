@@ -42,9 +42,9 @@ impl Body {
             hair_style: rng.gen_range(0, species.num_hair_styles(body_type)),
             beard: rng.gen_range(0, species.num_beards(body_type)),
             accessory: rng.gen_range(0, species.num_accessories(body_type)),
-            hair_color: rng.gen_range(0, species.num_hair_colors()) as u8,
-            skin: rng.gen_range(0, species.num_skin_colors()) as u8,
-            eye_color: rng.gen_range(0, species.num_eye_colors()) as u8,
+            hair_color: rng.gen_range(0, species.num_hair_colors()),
+            skin: rng.gen_range(0, species.num_skin_colors()),
+            eye_color: rng.gen_range(0, species.num_eye_colors()),
             eyes: rng.gen_range(0, 1), /* TODO Add a way to set specific head-segments for NPCs
                                         * with the default being a random one */
         }
