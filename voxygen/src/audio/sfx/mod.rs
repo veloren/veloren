@@ -378,6 +378,11 @@ impl SfxMgr {
                     },
                 }
             },
+            Outcome::LevelUp { pos } => {
+                let file_ref = "voxygen.audio.sfx.character.level_up_sound_-_shorter_wind_up";
+                audio.play_sfx(file_ref, *pos, None);
+            },
+            _ => {},
         }
     }
 

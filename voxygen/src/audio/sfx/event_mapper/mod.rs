@@ -2,7 +2,6 @@ mod block;
 mod campfire;
 mod combat;
 mod movement;
-mod progression;
 
 use client::Client;
 use common::{state::State, terrain::TerrainChunk};
@@ -11,7 +10,6 @@ use block::BlockEventMapper;
 use campfire::CampfireEventMapper;
 use combat::CombatEventMapper;
 use movement::MovementEventMapper;
-use progression::ProgressionEventMapper;
 
 use super::SfxTriggers;
 use crate::scene::{Camera, Terrain};
@@ -38,7 +36,6 @@ impl SfxEventMapper {
             mappers: vec![
                 Box::new(CombatEventMapper::new()),
                 Box::new(MovementEventMapper::new()),
-                Box::new(ProgressionEventMapper::new()),
                 Box::new(BlockEventMapper::new()),
                 Box::new(CampfireEventMapper::new()),
             ],

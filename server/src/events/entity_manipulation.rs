@@ -686,14 +686,24 @@ pub fn handle_explosion(
 }
 
 pub fn handle_level_up(server: &mut Server, entity: EcsEntity, new_level: u32) {
+    let ecs = &server.state.ecs();
     let uids = server.state.ecs().read_storage::<Uid>();
     let uid = uids
         .get(entity)
         .expect("Failed to fetch uid component for entity.");
+    let pos = server
+        .state
+        .ecs()
+        .read_storage::<Pos>()
+        .get(entity)
+        .expect("Failed to fetch position component for the entity.")
+        .0;
 
     server.state.notify_players(ServerGeneral::PlayerListUpdate(
         PlayerListUpdate::LevelChange(*uid, new_level),
     ));
+    ecs.write_resource::<Vec<Outcome>>()
+        .push(Outcome::LevelUp { pos });
 }
 
 pub fn handle_buff(server: &mut Server, entity: EcsEntity, buff_change: buff::BuffChange) {
