@@ -101,7 +101,7 @@ impl Entity {
 
             let travel_to = self.pos.xy() + Vec3::from((wpos.map(|e| e as f32 + 0.5) - self.pos.xy())
                 .try_normalized()
-                .unwrap_or_else(Vec2::zero)) * 32.0;
+                .unwrap_or_else(Vec2::zero)) * 64.0;
             let travel_to_alt = world.sim().get_alt_approx(travel_to.map(|e| e as i32)).unwrap_or(0.0) as i32;
             let travel_to = terrain.find_space(Vec3::new(travel_to.x as i32, travel_to.y as i32, travel_to_alt)).map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0);
             self.controller.travel_to = Some(travel_to);

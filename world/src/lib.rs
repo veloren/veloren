@@ -24,6 +24,7 @@ pub mod sim;
 pub mod sim2;
 pub mod site;
 pub mod util;
+pub mod pathfinding;
 
 // Reexports
 pub use crate::{

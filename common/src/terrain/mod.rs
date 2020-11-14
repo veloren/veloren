@@ -116,11 +116,15 @@ impl TerrainGrid {
         let mut z_diff = 0;
         for _ in 0..128 {
             let test_pos = pos + Vec3::unit_z() * z_diff;
-            if (0..2)
-                .all(|z| self
-                    .get(test_pos + Vec3::unit_z() * z)
-                    .map(|b| !b.is_solid())
-                    .unwrap_or(true))
+            if self
+                    .get(test_pos - Vec3::unit_z())
+                    .map(|b| b.is_filled())
+                    .unwrap_or(false)
+                && (0..2)
+                    .all(|z| self
+                        .get(test_pos + Vec3::unit_z() * z)
+                        .map(|b| !b.is_solid())
+                        .unwrap_or(true))
             {
                 return test_pos;
             }

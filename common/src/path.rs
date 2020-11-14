@@ -131,17 +131,18 @@ impl Route {
             // Determine whether we're close enough to the next to to consider it completed
             let dist_sqrd = pos.xy().distance_squared(closest_tgt.xy());
             if dist_sqrd < traversal_cfg.node_tolerance.powf(2.0) * if be_precise { 0.25 } else { 1.0 }
-                && (pos.z - closest_tgt.z > 1.2 || (pos.z - closest_tgt.z > -0.2 && (traversal_cfg.on_ground || traversal_cfg.in_liquid)))
-                && (pos.z - closest_tgt.z < 1.2 || (pos.z - closest_tgt.z < 2.9 && vel.z < -0.05))
-                && vel.z <= 0.0
-                // Only consider the node reached if there's nothing solid between us and it
-                && (vol
-                    .ray(pos + Vec3::unit_z() * 1.5, closest_tgt + Vec3::unit_z() * 1.5)
-                    .until(Block::is_solid)
-                    .cast()
-                    .0
-                    > pos.distance(closest_tgt) * 0.9 || dist_sqrd < 0.5)
-                && self.next_idx < self.path.len()
+                && (((pos.z - closest_tgt.z > 1.2 || (pos.z - closest_tgt.z > -0.2 && traversal_cfg.on_ground))
+                    && (pos.z - closest_tgt.z < 1.2 || (pos.z - closest_tgt.z < 2.9 && vel.z < -0.05))
+                    && vel.z <= 0.0
+                    // Only consider the node reached if there's nothing solid between us and it
+                    && (vol
+                        .ray(pos + Vec3::unit_z() * 1.5, closest_tgt + Vec3::unit_z() * 1.5)
+                        .until(Block::is_solid)
+                        .cast()
+                        .0
+                        > pos.distance(closest_tgt) * 0.9 || dist_sqrd < 0.5)
+                    && self.next_idx < self.path.len())
+                || (traversal_cfg.in_liquid && pos.z < closest_tgt.z + 0.8 && pos.z > closest_tgt.z))
             {
                 // Node completed, move on to the next one
                 self.next_idx += 1;
@@ -419,7 +420,7 @@ impl Chaser {
                 vol.get(
                     (pos + Vec3::<f32>::from(tgt_dir) * 2.5).map(|e| e as i32) + Vec3::unit_z() * z,
                 )
-                .map(|b| !b.is_solid())
+                .map(|b| b.is_air())
                 .unwrap_or(false)
             });
 
@@ -437,17 +438,22 @@ fn walkable<V>(vol: &V, pos: Vec3<i32>) -> bool
 where
     V: BaseVol<Vox = Block> + ReadVol,
 {
-    vol.get(pos - Vec3::new(0, 0, 1))
-        .map(|b| b.is_filled())
-        .unwrap_or(false)
-        && vol
-            .get(pos + Vec3::new(0, 0, 0))
-            .map(|b| !b.is_filled())
-            .unwrap_or(true)
-        && vol
-            .get(pos + Vec3::new(0, 0, 1))
-            .map(|b| !b.is_filled())
-            .unwrap_or(true)
+    let below = vol.get(pos - Vec3::unit_z())
+        .ok()
+        .copied()
+        .unwrap_or_else(Block::empty);
+    let a = vol.get(pos)
+        .ok()
+        .copied()
+        .unwrap_or_else(Block::empty);
+    let b = vol.get(pos + Vec3::unit_z())
+        .ok()
+        .copied()
+        .unwrap_or_else(Block::empty);
+
+    let on_ground = below.is_filled();
+    let in_liquid = a.is_liquid();
+    (on_ground || in_liquid) && !a.is_solid() && !b.is_solid()
 }
 
 /// Attempt to search for a path to a target, returning the path (if one was
@@ -546,17 +552,17 @@ where
                     && ((dir.z < 1
                         || vol
                             .get(pos + Vec3::unit_z() * 2)
-                            .map(|b| !b.is_filled())
+                            .map(|b| !b.is_solid())
                             .unwrap_or(true))
                         && (dir.z < 2
                             || vol
                                 .get(pos + Vec3::unit_z() * 3)
-                                .map(|b| !b.is_filled())
+                                .map(|b| !b.is_solid())
                                 .unwrap_or(true))
                         && (dir.z >= 0
                             || vol
                                 .get(pos + *dir + Vec3::unit_z() * 2)
-                                .map(|b| !b.is_filled())
+                                .map(|b| !b.is_solid())
                                 .unwrap_or(true)))
             })
             .map(move |(pos, dir)| pos + dir)

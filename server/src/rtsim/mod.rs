@@ -87,7 +87,7 @@ pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
 pub fn init(state: &mut State, world: &world::World) {
     let mut rtsim = RtSim::new(world.sim().get_size());
 
-    for _ in 0..10000 {
+    for _ in 0..2500 {
         let pos = rtsim.chunks.size().map2(
             TerrainChunk::RECT_SIZE,
             |sz, chunk_sz| thread_rng().gen_range(0, sz * chunk_sz) as i32,
