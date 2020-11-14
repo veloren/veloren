@@ -77,9 +77,8 @@ impl IcedUi {
     pub fn scale(&self) -> Scale { self.scale }
 
     pub fn set_scaling_mode(&mut self, mode: ScaleMode) {
-        self.scale.set_scaling_mode(mode);
         // Signal that change needs to be handled
-        self.scale_changed = true;
+        self.scale_changed |= self.scale.set_scaling_mode(mode);
     }
 
     /// Dpi factor changed
