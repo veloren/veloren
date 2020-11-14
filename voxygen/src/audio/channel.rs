@@ -32,13 +32,6 @@ enum ChannelState {
     Stopped,
 }
 
-#[derive(PartialEq)]
-pub enum ChannelKind {
-    Music(MusicChannelTag),
-    Sfx,
-    Ambient(AmbientChannelTag),
-}
-
 /// Each `MusicChannel` has a `MusicChannelTag` which help us determine when we
 /// should transition between two types of in-game music. For example, we
 /// transition between `TitleMusic` and `Exploration` when a player enters the
