@@ -54,6 +54,9 @@ pub struct Camera {
 impl Camera {
     /// Create a new `Camera` with default parameters.
     pub fn new(aspect: f32, mode: CameraMode) -> Self {
+        // Make sure aspect is valid
+        let aspect = if aspect.is_normal() { aspect } else { 1.0 };
+
         Self {
             tgt_focus: Vec3::unit_z() * 10.0,
             focus: Vec3::unit_z() * 10.0,
