@@ -1,7 +1,5 @@
 use crate::{
-    comp::{
-        beam, humanoid, Body, CharacterState, EnergyChange, EnergySource, Ori, Pos, StateUpdate,
-    },
+    comp::{beam, CharacterState, EnergyChange, EnergySource, Ori, Pos, StateUpdate},
     event::ServerEvent,
     states::utils::*,
     sync::Uid,
@@ -91,10 +89,8 @@ impl CharacterBehavior for Data {
                         timer: Duration::default(),
                     });
                     // Gets offset
-                    let eye_height = match data.body {
-                        Body::Humanoid(body) => body.eye_height(),
-                        _ => humanoid::DEFAULT_HUMANOID_EYE_HEIGHT,
-                    };
+                    let eye_height = data.body.eye_height();
+
                     // Build up
                     update.character = CharacterState::BasicBeam(Data {
                         timer: Duration::default(),

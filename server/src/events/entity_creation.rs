@@ -2,9 +2,8 @@ use crate::{sys, Server, StateExt};
 use common::{
     character::CharacterId,
     comp::{
-        self, beam, humanoid::DEFAULT_HUMANOID_EYE_HEIGHT, shockwave, Agent, Alignment, Body,
-        Gravity, Health, Item, ItemDrop, LightEmitter, Loadout, Ori, Pos, Projectile, Scale, Stats,
-        Vel, WaypointArea,
+        self, beam, shockwave, Agent, Alignment, Body, Gravity, Health, Item, ItemDrop,
+        LightEmitter, Loadout, Ori, Pos, Projectile, Scale, Stats, Vel, WaypointArea,
     },
     outcome::Outcome,
     util::Dir,
@@ -115,10 +114,12 @@ pub fn handle_shoot(
         .write_resource::<Vec<Outcome>>()
         .push(Outcome::ProjectileShot { pos, body, vel });
 
-    let eye_height = match state.ecs().read_storage::<comp::Body>().get(entity) {
-        Some(comp::Body::Humanoid(body)) => body.eye_height(),
-        _ => DEFAULT_HUMANOID_EYE_HEIGHT,
-    };
+    let eye_height = state
+        .ecs()
+        .read_storage::<comp::Body>()
+        .get(entity)
+        .map(|b| b.scale())
+        .unwrap_or(1.0);
 
     pos.z += eye_height;
 
