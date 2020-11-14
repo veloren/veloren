@@ -41,7 +41,7 @@ use crate::{
 };
 use common::{
     generation::{ChunkSupplement, EntityInfo},
-    msg::WorldMapMsg,
+    msg::{WorldMapMsg, world_msg},
     terrain::{Block, BlockKind, SpriteKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     vol::{ReadVol, RectVolSize, WriteVol},
 };
@@ -90,7 +90,26 @@ impl World {
         // TODO
     }
 
-    pub fn get_map_data(&self, index: IndexRef) -> WorldMapMsg { self.sim.get_map(index) }
+    pub fn get_map_data(&self, index: IndexRef) -> WorldMapMsg {
+        WorldMapMsg {
+            sites: self.civs().sites
+                .iter()
+                .map(|(_, site)| {
+                    world_msg::SiteInfo {
+                        // TODO: Probably unify these, at some point
+                        kind: match &site.kind {
+                            civ::SiteKind::Settlement => world_msg::SiteKind::Town,
+                            civ::SiteKind::Dungeon => world_msg::SiteKind::Dungeon,
+                            civ::SiteKind::Castle => world_msg::SiteKind::Castle,
+                        },
+                        wpos: site.center * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
+                        name: None,
+                    }
+                })
+                .collect(),
+            ..self.sim.get_map(index)
+        }
+    }
 
     pub fn sample_columns(
         &self,
