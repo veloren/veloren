@@ -239,9 +239,9 @@ impl<'a> System<'a> for Sys {
                                     .unwrap_or(Vec2::zero())
                                     * speed.min(agent.rtsim_controller.speed_factor);
                                 inputs.jump.set_state(bearing.z > 1.5);
-                                inputs.climb = Some(comp::Climb::Up)
-                                    .filter(|_| bearing.z > 1.5 || physics_state.in_liquid.is_some());
-                                inputs.move_z = bearing.z;
+                                inputs.climb = Some(comp::Climb::Up);
+                                    //.filter(|_| bearing.z > 0.1 || physics_state.in_liquid.is_some());
+                                inputs.move_z = bearing.z + 0.05;
                             }
                         } else {
                             *bearing += Vec2::new(
