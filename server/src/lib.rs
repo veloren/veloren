@@ -45,6 +45,7 @@ use crate::{
     sys::sentinel::{DeletedEntities, TrackedComps},
 };
 use common::{
+    assets::Asset,
     cmd::ChatCommand,
     comp::{self, ChatType},
     event::{EventBus, ServerEvent},
@@ -160,8 +161,13 @@ impl Server {
             .ecs_mut()
             .insert(CharacterUpdater::new(&persistence_db_dir)?);
 
-        let character_loader = CharacterLoader::new(&persistence_db_dir, &*state.ability_map());
-        state.ecs_mut().insert(character_loader?);
+        let ability_map = comp::item::tool::AbilityMap::load_expect_cloned(
+            "common.abilities.weapon_ability_manifest",
+        );
+        state
+            .ecs_mut()
+            .insert(CharacterLoader::new(&persistence_db_dir, &ability_map)?);
+        state.ecs_mut().insert(ability_map);
         state.ecs_mut().insert(Vec::<Outcome>::new());
 
         // System timers for performance monitoring
@@ -872,6 +878,11 @@ impl Server {
                 client_timeout: self.settings().client_timeout,
                 world_map: self.map.clone(),
                 recipe_book: (&*default_recipe_book()).clone(),
+                ability_map: (&*self
+                    .state
+                    .ecs()
+                    .read_resource::<comp::item::tool::AbilityMap>())
+                    .clone(),
             })?;
         Ok(Some(entity))
     }
