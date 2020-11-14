@@ -8,6 +8,7 @@ use common::{
     comp::{group, Player},
     msg::{PlayerListUpdate, PresenceKind, ServerGeneral},
     span,
+    state::State,
     sync::{Uid, UidAllocator},
 };
 use futures_executor::block_on;
@@ -82,6 +83,10 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
     }
     // Erase group component to avoid group restructure when deleting the entity
     state.ecs().write_storage::<group::Group>().remove(entity);
+
+    // Sync the player's character data to the database
+    let entity = persist_entity(state, entity);
+
     // Delete old entity
     if let Err(e) = state.delete_entity_recorded(entity) {
         error!(
@@ -146,6 +151,17 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
     }
 
     // Sync the player's character data to the database
+    let entity = persist_entity(state, entity);
+
+    // Delete client entity
+    if let Err(e) = state.delete_entity_recorded(entity) {
+        error!(?e, ?entity, "Failed to delete disconnected client");
+    }
+
+    Event::ClientDisconnected { entity }
+}
+
+fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity {
     if let (Some(presences), Some(stats), Some(inventory), Some(loadout), updater) = (
         state.read_storage::<Presence>().get(entity),
         state.read_storage::<comp::Stats>().get(entity),
@@ -162,10 +178,5 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
         }
     }
 
-    // Delete client entity
-    if let Err(e) = state.delete_entity_recorded(entity) {
-        error!(?e, ?entity, "Failed to delete disconnected client");
-    }
-
-    Event::ClientDisconnected { entity }
+    entity
 }
