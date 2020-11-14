@@ -207,6 +207,15 @@ impl<'a> System<'a> for Sys {
             let node_tolerance = scale * 1.5;
             let slow_factor = body.map(|b| b.base_accel() / 250.0).unwrap_or(0.0).min(1.0);
 
+            let traversal_config = TraversalConfig {
+                node_tolerance,
+                slow_factor,
+                on_ground: physics_state.on_ground,
+                in_liquid: physics_state.in_liquid.is_some(),
+                min_tgt_dist: 1.0,
+                can_climb: body.map(|b| b.can_climb()).unwrap_or(false),
+            };
+
             let mut do_idle = false;
             let mut choose_target = false;
 
@@ -220,11 +229,8 @@ impl<'a> System<'a> for Sys {
                                 vel.0,
                                 travel_to,
                                 TraversalConfig {
-                                    node_tolerance,
-                                    slow_factor,
-                                    on_ground: physics_state.on_ground,
-                                    in_liquid: physics_state.in_liquid.is_some(),
                                     min_tgt_dist: 1.25,
+                                    ..traversal_config
                                 },
                             ) {
                                 inputs.move_dir = bearing
@@ -279,10 +285,7 @@ impl<'a> System<'a> for Sys {
                             }
                         }
 
-                        // Put away weapon
-                        if thread_rng().gen::<f32>() < 0.005 {
-                            controller.actions.push(ControlAction::Unwield);
-                        }
+                        controller.actions.push(ControlAction::Unwield);
 
                         // Sometimes try searching for new targets
                         if thread_rng().gen::<f32>() < 0.1 {
@@ -302,11 +305,8 @@ impl<'a> System<'a> for Sys {
                                     vel.0,
                                     tgt_pos.0,
                                     TraversalConfig {
-                                        node_tolerance,
-                                        slow_factor,
-                                        on_ground: physics_state.on_ground,
-                                        in_liquid: physics_state.in_liquid.is_some(),
                                         min_tgt_dist: AVG_FOLLOW_DIST,
+                                        ..traversal_config
                                     },
                                 ) {
                                     inputs.move_dir =
@@ -429,11 +429,8 @@ impl<'a> System<'a> for Sys {
                                                 .unwrap_or_else(Vec3::unit_y)
                                                 * 8.0,
                                         TraversalConfig {
-                                            node_tolerance,
-                                            slow_factor,
-                                            on_ground: physics_state.on_ground,
-                                            in_liquid: physics_state.in_liquid.is_some(),
                                             min_tgt_dist: 1.25,
+                                            ..traversal_config
                                         },
                                     ) {
                                         inputs.move_dir =
@@ -591,11 +588,8 @@ impl<'a> System<'a> for Sys {
                                     vel.0,
                                     tgt_pos.0,
                                     TraversalConfig {
-                                        node_tolerance,
-                                        slow_factor,
-                                        on_ground: physics_state.on_ground,
-                                        in_liquid: physics_state.in_liquid.is_some(),
                                         min_tgt_dist: 1.25,
+                                        ..traversal_config
                                     },
                                 ) {
                                     if can_see_tgt {

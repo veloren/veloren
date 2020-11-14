@@ -94,6 +94,13 @@ impl Body {
             _ => false,
         }
     }
+
+    pub fn can_climb(&self) -> bool {
+        match self {
+            Body::Humanoid(_) => true,
+            _ => false,
+        }
+    }
 }
 
 /// Handles updating `Components` to move player based on state of `JoinData`
@@ -284,7 +291,7 @@ pub fn handle_climb(data: &JoinData, update: &mut StateUpdate) {
             .map(|depth| depth > 1.0)
             .unwrap_or(false)
         //&& update.vel.0.z < 0.0
-        && data.body.is_humanoid()
+        && data.body.can_climb()
         && update.energy.current() > 100
     {
         update.character = CharacterState::Climb;
