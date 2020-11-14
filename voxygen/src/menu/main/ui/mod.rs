@@ -572,6 +572,10 @@ impl<'a> MainMenuUi {
         self.ui.handle_event(event);
     }
 
+    pub fn set_scale_mode(&mut self, scale_mode: ui::ScaleMode) {
+        self.ui.set_scaling_mode(scale_mode);
+    }
+
     pub fn maintain(&mut self, global_state: &mut GlobalState, dt: Duration) -> Vec<Event> {
         let mut events = Vec::new();
 
