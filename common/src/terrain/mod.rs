@@ -54,7 +54,7 @@ pub struct TerrainChunkMeta {
     biome: BiomeKind,
     alt: f32,
     tree_density: f32,
-    cave_alt: f32,
+    contains_cave: bool,
     contains_river: bool,
 }
 
@@ -64,7 +64,7 @@ impl TerrainChunkMeta {
         biome: BiomeKind,
         alt: f32,
         tree_density: f32,
-        cave_alt: f32,
+        contains_cave: bool,
         contains_river: bool,
     ) -> Self {
         Self {
@@ -72,7 +72,7 @@ impl TerrainChunkMeta {
             biome,
             alt,
             tree_density,
-            cave_alt,
+            contains_cave,
             contains_river,
         }
     }
@@ -83,7 +83,7 @@ impl TerrainChunkMeta {
             biome: BiomeKind::Void,
             alt: 0.0,
             tree_density: 0.0,
-            cave_alt: 0.0,
+            contains_cave: false,
             contains_river: false,
         }
     }
@@ -96,7 +96,7 @@ impl TerrainChunkMeta {
 
     pub fn tree_density(&self) -> f32 { self.tree_density }
 
-    pub fn cave_alt(&self) -> f32 { self.cave_alt }
+    pub fn contains_cave(&self) -> bool { self.contains_cave }
 
     pub fn contains_river(&self) -> bool { self.contains_river }
 }

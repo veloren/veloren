@@ -42,10 +42,10 @@
 //!   tracks
 //! - If you are not the author of the track, ensure that the song's licensing
 //!   permits usage of the track for non-commercial use
-use crate::audio::AudioFrontend;
+use crate::audio::{AudioFrontend, MusicChannelTag};
 use client::Client;
 use common::{
-    assets,
+    assets, comp,
     state::State,
     terrain::{BiomeKind, SitesKind},
 };
@@ -134,9 +134,8 @@ impl MusicMgr {
         //println!("alt: {}", current_chunk.meta().alt());
         //println!("tree_density: {}",
         // current_chunk.meta().tree_density());
-        //println!("cave_alt: {}", current_chunk.meta().cave_alt());
-        //if let Some(position) = client.current_position() {
-        //    println!("player_pos: {:?}", position);
+        //if let Some(position) = client.current::<comp::Pos>() {
+        //    player_alt = position.0.z;
         //}
 
         if audio.music_enabled()
@@ -214,7 +213,7 @@ impl MusicMgr {
             self.began_playing = Instant::now();
             self.next_track_change = track.length + silence_between_tracks_seconds;
 
-            audio.play_exploration_music(&track.path);
+            audio.play_music(&track.path, MusicChannelTag::Exploration);
         }
     }
 
@@ -235,16 +234,16 @@ impl MusicMgr {
 
     fn get_current_site(client: &Client) -> SitesKind {
         let mut player_alt = 0.0;
-        if let Some(position) = client.current_position() {
-            player_alt = position.z;
+        if let Some(position) = client.current::<comp::Pos>() {
+            player_alt = position.0.z;
         }
-        let mut cave_alt = 0.0;
+        let mut contains_cave = false;
         let mut terrain_alt = 0.0;
         if let Some(chunk) = client.current_chunk() {
             terrain_alt = chunk.meta().alt();
-            cave_alt = chunk.meta().cave_alt();
+            contains_cave = chunk.meta().contains_cave();
         }
-        if player_alt < (terrain_alt - 20.0) && cave_alt != 0.0 {
+        if player_alt < (terrain_alt - 20.0) && contains_cave {
             SitesKind::Cave
         } else if player_alt < (terrain_alt - 20.0) {
             SitesKind::Dungeon
