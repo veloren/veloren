@@ -69,6 +69,8 @@ pub struct TraversalConfig {
     pub in_liquid: bool,
     /// The distance to the target below which it is considered reached.
     pub min_tgt_dist: f32,
+    /// Whether the agent can climb.
+    pub can_climb: bool,
 }
 
 const DIAGONALS: [Vec2<i32>; 8] = [
@@ -389,7 +391,7 @@ impl Chaser {
             {
                 self.last_search_tgt = Some(tgt);
 
-                let (path, complete) = find_path(&mut self.astar, vol, pos, tgt);
+                let (path, complete) = find_path(&mut self.astar, vol, pos, tgt, &traversal_cfg);
 
                 self.route = path.map(|path| {
                     let start_index = path
@@ -455,6 +457,7 @@ fn find_path<V>(
     vol: &V,
     startf: Vec3<f32>,
     endf: Vec3<f32>,
+    traversal_cfg: &TraversalConfig,
 ) -> (Option<Path<Vec3<i32>>>, bool)
 where
     V: BaseVol<Vox = Block> + ReadVol,
@@ -483,28 +486,31 @@ where
     let heuristic = |pos: &Vec3<i32>| (pos.distance_squared(end) as f32).sqrt();
     let neighbors = |pos: &Vec3<i32>| {
         let pos = *pos;
-        const DIRS: [Vec3<i32>; 21] = [
+        const DIRS: [Vec3<i32>; 17] = [
             Vec3::new(0, 1, 0),   // Forward
             Vec3::new(0, 1, 1),   // Forward upward
-            Vec3::new(0, 1, 2),   // Forward Upwardx2
             Vec3::new(0, 1, -1),  // Forward downward
             Vec3::new(0, 1, -2),  // Forward downwardx2
             Vec3::new(1, 0, 0),   // Right
             Vec3::new(1, 0, 1),   // Right upward
-            Vec3::new(1, 0, 2),   // Right Upwardx2
             Vec3::new(1, 0, -1),  // Right downward
             Vec3::new(1, 0, -2),  // Right downwardx2
             Vec3::new(0, -1, 0),  // Backwards
             Vec3::new(0, -1, 1),  // Backward Upward
-            Vec3::new(0, -1, 2),  // Backward Upwardx2
             Vec3::new(0, -1, -1), // Backward downward
             Vec3::new(0, -1, -2), // Backward downwardx2
             Vec3::new(-1, 0, 0),  // Left
             Vec3::new(-1, 0, 1),  // Left upward
-            Vec3::new(-1, 0, 2),  // Left Upwardx2
             Vec3::new(-1, 0, -1), // Left downward
             Vec3::new(-1, 0, -2), // Left downwardx2
             Vec3::new(0, 0, -1),  // Downwards
+        ];
+
+        const JUMPS: [Vec3<i32>; 4] = [
+            Vec3::new(0, 1, 2),   // Forward Upwardx2
+            Vec3::new(1, 0, 2),   // Right Upwardx2
+            Vec3::new(0, -1, 2),  // Backward Upwardx2
+            Vec3::new(-1, 0, 2),  // Left Upwardx2
         ];
 
         // let walkable = [
@@ -526,6 +532,13 @@ where
         // ];
 
         DIRS.iter()
+            .chain(Some(JUMPS.iter())
+                .filter(|_| vol
+                    .get(pos)
+                    .map(|b| !b.is_liquid())
+                    .unwrap_or(true) || traversal_cfg.can_climb)
+                .into_iter()
+                .flatten())
             .map(move |dir| (pos, dir))
             .filter(move |(pos, dir)| {
                 is_walkable(pos)
