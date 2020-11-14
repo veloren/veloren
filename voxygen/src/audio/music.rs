@@ -45,7 +45,7 @@
 use crate::audio::{AudioFrontend, MusicChannelTag};
 use client::Client;
 use common::{
-    assets, comp,
+    assets,
     state::State,
     terrain::{BiomeKind, SitesKind},
 };
@@ -154,8 +154,8 @@ impl MusicMgr {
 
         let game_time = (state.get_time_of_day() as u64 % 86400) as u32;
         let current_period_of_day = Self::get_current_day_period(game_time);
-        let current_biome = Self::get_current_biome(client);
-        let current_site = Self::get_current_site(client);
+        let current_biome = client.current_biome();
+        let current_site = client.current_site();
 
         // Filters out tracks not matching the timing, site, and biome
         let maybe_tracks = self
@@ -222,33 +222,6 @@ impl MusicMgr {
             DayPeriod::Day
         } else {
             DayPeriod::Night
-        }
-    }
-
-    fn get_current_biome(client: &Client) -> BiomeKind {
-        match client.current_chunk() {
-            Some(chunk) => chunk.meta().biome(),
-            _ => BiomeKind::Void,
-        }
-    }
-
-    fn get_current_site(client: &Client) -> SitesKind {
-        let mut player_alt = 0.0;
-        if let Some(position) = client.current::<comp::Pos>() {
-            player_alt = position.0.z;
-        }
-        let mut contains_cave = false;
-        let mut terrain_alt = 0.0;
-        if let Some(chunk) = client.current_chunk() {
-            terrain_alt = chunk.meta().alt();
-            contains_cave = chunk.meta().contains_cave();
-        }
-        if player_alt < (terrain_alt - 20.0) && contains_cave {
-            SitesKind::Cave
-        } else if player_alt < (terrain_alt - 20.0) {
-            SitesKind::Dungeon
-        } else {
-            SitesKind::Void
         }
     }
 

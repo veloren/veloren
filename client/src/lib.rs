@@ -34,7 +34,7 @@ use common::{
     recipe::RecipeBook,
     state::State,
     sync::{Uid, UidAllocator, WorldSyncExt},
-    terrain::{block::Block, neighbors, TerrainChunk, TerrainChunkSize},
+    terrain::{block::Block, neighbors, BiomeKind, SitesKind, TerrainChunk, TerrainChunkSize},
     vol::RectVolSize,
 };
 use comp::BuffKind;
@@ -867,6 +867,33 @@ impl Client {
                 .get(self.entity)
                 .cloned()?,
         )
+    }
+
+    pub fn current_biome(&self) -> BiomeKind {
+        match self.current_chunk() {
+            Some(chunk) => chunk.meta().biome(),
+            _ => BiomeKind::Void,
+        }
+    }
+
+    pub fn current_site(&self) -> SitesKind {
+        let mut player_alt = 0.0;
+        if let Some(position) = self.current::<comp::Pos>() {
+            player_alt = position.0.z;
+        }
+        let mut contains_cave = false;
+        let mut terrain_alt = 0.0;
+        if let Some(chunk) = self.current_chunk() {
+            terrain_alt = chunk.meta().alt();
+            contains_cave = chunk.meta().contains_cave();
+        }
+        if player_alt < (terrain_alt - 15.0) && contains_cave {
+            SitesKind::Cave
+        } else if player_alt < (terrain_alt - 15.0) {
+            SitesKind::Dungeon
+        } else {
+            SitesKind::Void
+        }
     }
 
     pub fn inventories(&self) -> ReadStorage<comp::Inventory> { self.state.read_storage() }
