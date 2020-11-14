@@ -46,6 +46,7 @@ use image::DynamicImage;
 use network::{Network, Participant, Pid, ProtocolAddr, Stream};
 use num::traits::FloatConst;
 use rayon::prelude::*;
+use specs::Component;
 use std::{
     collections::VecDeque,
     net::SocketAddr,
@@ -857,13 +858,14 @@ impl Client {
         self.state.terrain().get_key_arc(chunk_pos).cloned()
     }
 
-    pub fn current_position(&self) -> Option<Vec3<f32>> {
+    pub fn current<C: Component>(&self) -> Option<C> where
+            C: Clone,
+        {
         Some(
             self.state
-                .read_storage::<comp::Pos>()
+                .read_storage::<C>()
                 .get(self.entity)
-                .cloned()?
-                .0,
+                .cloned()?,
         )
     }
 

@@ -1,5 +1,8 @@
-//! Handles ambient wind sounds
-use crate::{audio::AudioFrontend, scene::Camera};
+//! Handles ambient non-positional sounds
+use crate::{
+    audio::{channel::AmbientChannelTag, AudioFrontend},
+    scene::Camera,
+};
 use client::Client;
 use common::{assets, state::State, terrain::BlockKind, vol::ReadVol};
 use serde::Deserialize;
@@ -7,27 +10,28 @@ use std::time::Instant;
 use tracing::warn;
 
 #[derive(Debug, Default, Deserialize)]
-struct WindCollection {
-    tracks: Vec<WindItem>,
+struct AmbientCollection {
+    tracks: Vec<AmbientItem>,
 }
 
 /// Configuration for a single music track in the soundtrack
 #[derive(Debug, Deserialize)]
-pub struct WindItem {
+pub struct AmbientItem {
     path: String,
     /// Length of the track in seconds
     length: f32,
+    tag: AmbientChannelTag,
 }
 
-pub struct WindMgr {
-    soundtrack: WindCollection,
+pub struct AmbientMgr {
+    soundtrack: AmbientCollection,
     began_playing: Instant,
     next_track_change: f32,
     volume: f32,
     tree_multiplier: f32,
 }
 
-impl Default for WindMgr {
+impl Default for AmbientMgr {
     fn default() -> Self {
         Self {
             soundtrack: Self::load_soundtrack_items(),
@@ -39,7 +43,7 @@ impl Default for WindMgr {
     }
 }
 
-impl WindMgr {
+impl AmbientMgr {
     /// Checks whether the previous track has completed. If so, sends a
     /// request to play the next (random) track
     pub fn maintain(
@@ -56,10 +60,14 @@ impl WindMgr {
             let cam_alt = cam_pos.z;
             let terrain_alt = Self::get_current_terrain_alt(client);
 
+            // The following code is specifically for wind, as it is the only
+            // non-positional ambient sound in the game. Others can be added
+            // as seen fit.
+
             let alt_multiplier = (cam_alt / 1200.0).abs();
 
-            // Tree density factors into wind volume. The more trees,
-            // the less wind
+            // Tree density factors into ambient volume. The more trees,
+            // the less ambient
             let mut tree_multiplier = self.tree_multiplier;
             let new_tree_multiplier = if (cam_alt - terrain_alt) < 150.0 {
                 1.0 - Self::get_current_tree_density(client)
@@ -77,7 +85,7 @@ impl WindMgr {
 
             let mut volume_multiplier = alt_multiplier * self.tree_multiplier;
 
-            // Checks if the camera is underwater to stop wind sounds
+            // Checks if the camera is underwater to stop ambient sounds
             if state
                 .terrain()
                 .get((cam_pos).map(|e| e.floor() as i32))
@@ -93,23 +101,31 @@ impl WindMgr {
 
             let target_volume = volume_multiplier.max(0.0).min(1.0);
 
-            // Transitions the wind smoothly
-            self.volume = audio.get_wind_volume();
+            // Transitions the ambient sounds (more) smoothly
+            self.volume = audio.get_ambient_volume();
             if self.volume < target_volume {
-                audio.set_wind_volume(self.volume + 0.001);
+                audio.set_ambient_volume(self.volume + 0.001);
             } else if self.volume > target_volume {
-                audio.set_wind_volume(self.volume - 0.001);
+                audio.set_ambient_volume(self.volume - 0.001);
             }
 
             if self.began_playing.elapsed().as_secs_f32() > self.next_track_change {
                 //let game_time = (state.get_time_of_day() as u64 % 86400) as u32;
                 //let current_period_of_day = Self::get_current_day_period(game_time);
-                let track = &self.soundtrack.tracks[0];
 
-                self.began_playing = Instant::now();
-                self.next_track_change = track.length;
+                let track = &self
+                    .soundtrack
+                    .tracks
+                    .iter()
+                    .filter(|track| track.tag == AmbientChannelTag::Wind)
+                    .next();
 
-                audio.play_wind(&track.path, volume_multiplier);
+                if let Some(track) = track {
+                    self.began_playing = Instant::now();
+                    self.next_track_change = track.length;
+
+                    audio.play_ambient(AmbientChannelTag::Wind, &track.path, volume_multiplier);
+                }
             }
         }
     }
@@ -129,8 +145,8 @@ impl WindMgr {
         }
     }
 
-    fn load_soundtrack_items() -> WindCollection {
-        match assets::load_file("voxygen.audio.wind", &["ron"]) {
+    fn load_soundtrack_items() -> AmbientCollection {
+        match assets::load_file("voxygen.audio.ambient", &["ron"]) {
             Ok(file) => match ron::de::from_reader(file) {
                 Ok(config) => config,
                 Err(error) => {
@@ -139,7 +155,7 @@ impl WindMgr {
                         format!("{:#?}", error)
                     );
 
-                    WindCollection::default()
+                    AmbientCollection::default()
                 },
             },
             Err(error) => {
@@ -148,7 +164,7 @@ impl WindMgr {
                     format!("{:#?}", error)
                 );
 
-                WindCollection::default()
+                AmbientCollection::default()
             },
         }
     }

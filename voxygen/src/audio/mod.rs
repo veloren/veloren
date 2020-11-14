@@ -1,13 +1,13 @@
 //! Handles audio device detection and playback of sound effects and music
 
+pub mod ambient;
 pub mod channel;
 pub mod fader;
 pub mod music;
 pub mod sfx;
 pub mod soundcache;
-pub mod wind;
 
-use channel::{MusicChannel, MusicChannelTag, SfxChannel, WindChannel};
+use channel::{AmbientChannel, AmbientChannelTag, MusicChannel, MusicChannelTag, SfxChannel};
 use fader::Fader;
 use soundcache::SoundCache;
 use std::time::Duration;
@@ -40,7 +40,7 @@ pub struct AudioFrontend {
     sound_cache: SoundCache,
 
     music_channels: Vec<MusicChannel>,
-    wind_channels: Vec<WindChannel>,
+    ambient_channels: Vec<AmbientChannel>,
     sfx_channels: Vec<SfxChannel>,
     sfx_volume: f32,
     music_volume: f32,
@@ -50,6 +50,7 @@ pub struct AudioFrontend {
 impl AudioFrontend {
     /// Construct with given device
     pub fn new(/* dev: String, */ max_sfx_channels: usize) -> Self {
+        // Commented out until audio device switcher works
         //let audio_device = get_device_raw(&dev);
 
         //let device = match get_default_device() {
@@ -63,10 +64,8 @@ impl AudioFrontend {
         };
 
         let mut sfx_channels = Vec::with_capacity(max_sfx_channels);
-        let mut wind_channels = Vec::new();
         if let Some(audio_stream) = &audio_stream {
             sfx_channels.resize_with(max_sfx_channels, || SfxChannel::new(audio_stream));
-            wind_channels.push(WindChannel::new(audio_stream));
         };
 
         Self {
@@ -79,7 +78,7 @@ impl AudioFrontend {
             sound_cache: SoundCache::default(),
             music_channels: Vec::new(),
             sfx_channels,
-            wind_channels,
+            ambient_channels: Vec::new(),
             sfx_volume: 1.0,
             music_volume: 1.0,
             listener: Listener::default(),
@@ -98,7 +97,7 @@ impl AudioFrontend {
             sound_cache: SoundCache::default(),
             music_channels: Vec::new(),
             sfx_channels: Vec::new(),
-            wind_channels: Vec::new(),
+            ambient_channels: Vec::new(),
             sfx_volume: 1.0,
             music_volume: 1.0,
             listener: Listener::default(),
@@ -182,7 +181,7 @@ impl AudioFrontend {
 
     /// Play (once) an sfx file by file path at the give position and volume
     /// but with the sound passed through a low pass filter to simulate
-    /// underwater
+    /// being underwater
     pub fn play_underwater_sfx(&mut self, sound: &str, pos: Vec3<f32>, vol: Option<f32>) {
         if self.audio_stream.is_some() {
             let sound = self
@@ -194,15 +193,19 @@ impl AudioFrontend {
             if let Some(channel) = self.get_sfx_channel() {
                 channel.set_pos(pos);
                 channel.update(&listener);
-                let sound = sound.convert_samples();
-                channel.play_with_low_pass_filter(sound);
+                channel.play_with_low_pass_filter(sound.convert_samples());
             }
         }
     }
 
-    fn play_wind(&mut self, sound: &str, volume_multiplier: f32) {
+    fn play_ambient(
+        &mut self,
+        channel_tag: AmbientChannelTag,
+        sound: &str,
+        volume_multiplier: f32,
+    ) {
         if self.audio_stream.is_some() {
-            if let Some(channel) = self.get_wind_channel(volume_multiplier) {
+            if let Some(channel) = self.get_ambient_channel(channel_tag, volume_multiplier) {
                 let file = assets::load_file(&sound, &["ogg"]).expect("Failed to load sound");
                 let sound = Decoder::new(file).expect("Failed to decode sound");
 
@@ -211,29 +214,40 @@ impl AudioFrontend {
         }
     }
 
-    fn get_wind_channel(&mut self, volume_multiplier: f32) -> Option<&mut WindChannel> {
-        if self.audio_stream.is_some() {
-            if let Some(channel) = self.wind_channels.iter_mut().last() {
-                channel.set_volume(self.sfx_volume * volume_multiplier);
-
-                return Some(channel);
+    fn get_ambient_channel(
+        &mut self,
+        channel_tag: AmbientChannelTag,
+        volume_multiplier: f32,
+    ) -> Option<&mut AmbientChannel> {
+        if let Some(audio_stream) = &self.audio_stream {
+            if self.ambient_channels.is_empty() {
+                let mut ambient_channel = AmbientChannel::new(audio_stream, channel_tag);
+                ambient_channel.set_volume(self.sfx_volume * volume_multiplier);
+                self.ambient_channels.push(ambient_channel);
+            } else {
+                for channel in self.ambient_channels.iter_mut() {
+                    if channel.get_tag() == channel_tag {
+                        channel.set_volume(self.sfx_volume * volume_multiplier);
+                        return Some(channel);
+                    }
+                }
             }
         }
 
         None
     }
 
-    fn set_wind_volume(&mut self, volume_multiplier: f32) {
+    fn set_ambient_volume(&mut self, volume_multiplier: f32) {
         if self.audio_stream.is_some() {
-            if let Some(channel) = self.wind_channels.iter_mut().last() {
+            if let Some(channel) = self.ambient_channels.iter_mut().last() {
                 channel.set_volume(self.sfx_volume * volume_multiplier);
             }
         }
     }
 
-    fn get_wind_volume(&mut self) -> f32 {
+    fn get_ambient_volume(&mut self) -> f32 {
         if self.audio_stream.is_some() {
-            if let Some(channel) = self.wind_channels.iter_mut().last() {
+            if let Some(channel) = self.ambient_channels.iter_mut().last() {
                 channel.get_volume() / self.sfx_volume
             } else {
                 0.0
@@ -244,14 +258,19 @@ impl AudioFrontend {
     }
 
     fn play_music(&mut self, sound: &str, channel_tag: MusicChannelTag) {
-        if let Some(channel) = self.get_music_channel(channel_tag) {
-            let file = assets::load_file(&sound, &["ogg"]).expect("Failed to load sound");
-            let sound = Decoder::new(file).expect("Failed to decode sound");
+        if self.music_enabled() {
+            if let Some(channel) = self.get_music_channel(channel_tag) {
+                let file = assets::load_file(&sound, &["ogg"]).expect("Failed to load sound");
+                let sound = Decoder::new(file).expect("Failed to decode sound");
 
-            channel.play(sound, channel_tag);
+                channel.play(sound, channel_tag);
+            }
         }
     }
 
+    /* These functions are saved for if we want music playback control at some
+     * point. They are not used currently but may be useful for later work.
+     *
     fn fade_out_music(&mut self, channel_tag: MusicChannelTag) {
         let music_volume = self.music_volume;
         if let Some(channel) = self.get_music_channel(channel_tag) {
@@ -271,6 +290,7 @@ impl AudioFrontend {
             channel.stop(channel_tag);
         }
     }
+    */
 
     pub fn set_listener_pos(&mut self, pos: Vec3<f32>, ori: Vec3<f32>) {
         self.listener.pos = pos;
@@ -295,30 +315,6 @@ impl AudioFrontend {
                 "voxygen.audio.soundtrack.veloren_title_tune",
                 MusicChannelTag::TitleMusic,
             )
-        }
-    }
-
-    pub fn play_exploration_music(&mut self, item: &str) {
-        if self.music_enabled() {
-            self.play_music(item, MusicChannelTag::Exploration)
-        }
-    }
-
-    pub fn fade_out_exploration_music(&mut self) {
-        if self.music_enabled() {
-            self.fade_out_music(MusicChannelTag::Exploration)
-        }
-    }
-
-    pub fn fade_in_exploration_music(&mut self) {
-        if self.music_enabled() {
-            self.fade_in_music(MusicChannelTag::Exploration)
-        }
-    }
-
-    pub fn stop_exploration_music(&mut self) {
-        if self.music_enabled() {
-            self.stop_music(MusicChannelTag::Exploration)
         }
     }
 
