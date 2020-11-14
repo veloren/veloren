@@ -184,8 +184,10 @@ fn main() {
         audio,
         profile,
         window,
+        clock: Clock::new(std::time::Duration::from_secs_f64(
+            1.0 / settings.graphics.max_fps as f64,
+        )),
         settings,
-        clock: Clock::new(std::time::Duration::from_millis(30)),
         info_message: None,
         #[cfg(feature = "singleplayer")]
         singleplayer: None,
