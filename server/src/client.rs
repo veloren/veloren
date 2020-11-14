@@ -73,6 +73,7 @@ impl Client {
                     ServerGeneral::CharacterDataLoadError(_)
                     | ServerGeneral::CharacterListUpdate(_)
                     | ServerGeneral::CharacterActionError(_)
+                    | ServerGeneral::CharacterCreated(_)
                     | ServerGeneral::CharacterSuccess => {
                         self.character_screen_stream.try_lock().unwrap().send(g)
                     },
@@ -149,6 +150,7 @@ impl Client {
                     ServerGeneral::CharacterDataLoadError(_)
                     | ServerGeneral::CharacterListUpdate(_)
                     | ServerGeneral::CharacterActionError(_)
+                    | ServerGeneral::CharacterCreated(_)
                     | ServerGeneral::CharacterSuccess => {
                         PreparedMsg::new(1, &g, &self.character_screen_stream)
                     },

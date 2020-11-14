@@ -67,6 +67,7 @@ pub enum Event {
     Notification(Notification),
     SetViewDistance(u32),
     Outcome(Outcome),
+    CharacterCreated(CharacterId),
 }
 
 pub struct Client {
@@ -1422,7 +1423,11 @@ impl Client {
         Ok(())
     }
 
-    fn handle_server_character_screen_msg(&mut self, msg: ServerGeneral) -> Result<(), Error> {
+    fn handle_server_character_screen_msg(
+        &mut self,
+        events: &mut Vec<Event>,
+        msg: ServerGeneral,
+    ) -> Result<(), Error> {
         match msg {
             ServerGeneral::CharacterListUpdate(character_list) => {
                 self.character_list.characters = character_list;
@@ -1437,6 +1442,9 @@ impl Client {
                 self.presence = None;
                 self.clean_state();
                 self.character_list.error = Some(error);
+            },
+            ServerGeneral::CharacterCreated(character_id) => {
+                events.push(Event::CharacterCreated(character_id));
             },
             ServerGeneral::CharacterSuccess => {
                 debug!("client is now in ingame state on server");
@@ -1490,7 +1498,7 @@ impl Client {
                 self.handle_ping_msg(msg?)?;
             }
             if let Some(msg) = m3 {
-                self.handle_server_character_screen_msg(msg?)?;
+                self.handle_server_character_screen_msg(frontend_events, msg?)?;
             }
             if let Some(msg) = m4 {
                 self.handle_server_in_game_msg(frontend_events, msg?)?;

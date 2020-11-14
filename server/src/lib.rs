@@ -62,7 +62,7 @@ use futures_executor::block_on;
 use metrics::{PhysicsMetrics, ServerMetrics, StateTickMetrics, TickMetrics};
 use network::{Network, Pid, ProtocolAddr};
 use persistence::{
-    character_loader::{CharacterLoader, CharacterLoaderResponseType},
+    character_loader::{CharacterLoader, CharacterLoaderResponseKind},
     character_updater::CharacterUpdater,
 };
 use specs::{join::Join, Builder, Entity as EcsEntity, RunNow, SystemData, WorldExt};
@@ -539,7 +539,7 @@ impl Server {
             .read_resource::<persistence::character_loader::CharacterLoader>()
             .messages()
             .for_each(|query_result| match query_result.result {
-                CharacterLoaderResponseType::CharacterList(result) => match result {
+                CharacterLoaderResponseKind::CharacterList(result) => match result {
                     Ok(character_list_data) => self.notify_client(
                         query_result.entity,
                         ServerGeneral::CharacterListUpdate(character_list_data),
@@ -549,7 +549,23 @@ impl Server {
                         ServerGeneral::CharacterActionError(error.to_string()),
                     ),
                 },
-                CharacterLoaderResponseType::CharacterData(result) => {
+                CharacterLoaderResponseKind::CharacterCreation(result) => match result {
+                    Ok((character_id, list)) => {
+                        self.notify_client(
+                            query_result.entity,
+                            ServerGeneral::CharacterListUpdate(list),
+                        );
+                        self.notify_client(
+                            query_result.entity,
+                            ServerGeneral::CharacterCreated(character_id),
+                        );
+                    },
+                    Err(error) => self.notify_client(
+                        query_result.entity,
+                        ServerGeneral::CharacterActionError(error.to_string()),
+                    ),
+                },
+                CharacterLoaderResponseKind::CharacterData(result) => {
                     let message = match *result {
                         Ok(character_data) => ServerEvent::UpdateCharacterData {
                             entity: query_result.entity,
