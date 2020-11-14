@@ -1,5 +1,4 @@
 use crate::{
-    assets::Asset,
     comp,
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::{PhysicsMetrics, SysMetrics},
@@ -181,9 +180,6 @@ impl State {
         ecs.insert(BlockChange::default());
         ecs.insert(TerrainChanges::default());
         ecs.insert(EventBus::<LocalEvent>::default());
-        ecs.insert(comp::item::tool::AbilityMap::load_expect_cloned(
-            "common.abilities.weapon_ability_manifest",
-        ));
         // TODO: only register on the server
         ecs.insert(EventBus::<ServerEvent>::default());
         ecs.insert(comp::group::GroupManager::default());
