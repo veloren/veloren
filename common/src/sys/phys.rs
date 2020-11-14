@@ -28,7 +28,7 @@ pub const BOUYANCY: f32 = 1.0;
 // 60.
 pub const FRIC_GROUND: f32 = 0.15;
 pub const FRIC_AIR: f32 = 0.0125;
-pub const FRIC_FLUID: f32 = 0.2;
+pub const FRIC_FLUID: f32 = 0.4;
 
 // Integrates forces, calculates the new velocity based off of the old velocity
 // dt = delta time

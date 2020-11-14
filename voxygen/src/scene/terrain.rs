@@ -36,11 +36,21 @@ use vek::*;
 
 const SPRITE_SCALE: Vec3<f32> = Vec3::new(1.0 / 11.0, 1.0 / 11.0, 1.0 / 11.0);
 
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-enum Visibility {
-    OutOfRange = 0,
-    InRange = 1,
-    Visible = 2,
+#[derive(Clone, Copy, Debug)]
+struct Visibility {
+    in_range: bool,
+    in_frustum: bool,
+}
+
+impl Visibility {
+    /// Should the chunk actually get rendered?
+    fn is_visible(&self) -> bool {
+        // Currently, we don't take into account in_range to allow all chunks to do pop-in.
+        // This isn't really a problem because we no longer have VD mist or anything like that.
+        // Also, we don't load chunks outside of the VD anyway so this literally just controls
+        // which chunks get actually rendered.
+        /*self.in_range &&*/ self.in_frustum
+    }
 }
 
 pub struct TerrainChunkData {
@@ -237,7 +247,7 @@ pub struct Terrain<V: RectRasterableVol> {
 
 impl TerrainChunkData {
     pub fn can_shadow_sun(&self) -> bool {
-        self.visible == Visibility::Visible || self.can_shadow_sun
+        self.visible.is_visible() || self.can_shadow_sun
     }
 }
 
@@ -751,7 +761,10 @@ impl<V: RectRasterableVol> Terrain<V> {
                                 load_time,
                             }])
                             .expect("Failed to upload chunk locals to the GPU!"),
-                        visible: Visibility::OutOfRange,
+                        visible: Visibility {
+                            in_range: false,
+                            in_frustum: false,
+                        },
                         can_shadow_point: false,
                         can_shadow_sun: false,
                         blocks_of_interest: response.blocks_of_interest,
@@ -793,10 +806,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             let distance_2 = Vec2::<f32>::from(focus_pos).distance_squared(nearest_in_chunk);
             let in_range = distance_2 < loaded_distance.powf(2.0);
 
-            if !in_range {
-                chunk.visible = Visibility::OutOfRange;
-                continue;
-            }
+            chunk.visible.in_range = in_range;
 
             // Ensure the chunk is within the view frustum
             let chunk_min = [chunk_pos.x, chunk_pos.y, chunk.z_bounds.0];
@@ -810,11 +820,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                 .coherent_test_against_frustum(&frustum, chunk.frustum_last_plane_index);
 
             chunk.frustum_last_plane_index = last_plane_index;
-            chunk.visible = if in_frustum {
-                Visibility::Visible
-            } else {
-                Visibility::InRange
-            };
+            chunk.visible.in_frustum = in_frustum;
             let chunk_box = Aabb {
                 min: Vec3::from(chunk_min),
                 max: Vec3::from(chunk_max),
@@ -910,7 +916,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                 // NOTE: We deliberately avoid doing this computation for chunks we already know
                 // are visible, since by definition they'll always intersect the visible view
                 // frustum.
-                .filter(|chunk| chunk.1.visible <= Visibility::InRange)
+                .filter(|chunk| !chunk.1.visible.in_frustum)
                 .for_each(|(&pos, chunk)| {
                     chunk.can_shadow_sun = can_shadow_sun(pos, chunk);
                 });
@@ -958,7 +964,7 @@ impl<V: RectRasterableVol> Terrain<V> {
     pub fn visible_chunk_count(&self) -> usize {
         self.chunks
             .iter()
-            .filter(|(_, c)| c.visible == Visibility::Visible)
+            .filter(|(_, c)| c.visible.is_visible())
             .count()
     }
 
@@ -1046,7 +1052,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             .take(self.chunks.len());
 
         for (_, chunk) in chunk_iter {
-            if chunk.visible == Visibility::Visible {
+            if chunk.visible.is_visible() {
                 renderer.render_terrain_chunk(
                     &chunk.opaque_model,
                     &self.col_lights,
@@ -1086,7 +1092,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         let chunk_size = V::RECT_SIZE.map(|e| e as f32);
         let chunk_mag = (chunk_size * (f32::consts::SQRT_2 * 0.5)).magnitude_squared();
         for (pos, chunk) in chunk_iter.clone() {
-            if chunk.visible == Visibility::Visible {
+            if chunk.visible.is_visible() {
                 let sprite_low_detail_distance = sprite_render_distance * 0.75;
                 let sprite_mid_detail_distance = sprite_render_distance * 0.5;
                 let sprite_hid_detail_distance = sprite_render_distance * 0.35;
@@ -1146,7 +1152,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         // Translucent
         chunk_iter
             .clone()
-            .filter(|(_, chunk)| chunk.visible == Visibility::Visible)
+            .filter(|(_, chunk)| chunk.visible.is_visible())
             .filter_map(|(_, chunk)| {
                 chunk
                     .fluid_model

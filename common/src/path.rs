@@ -65,6 +65,8 @@ pub struct TraversalConfig {
     pub slow_factor: f32,
     /// Whether the agent is currently on the ground.
     pub on_ground: bool,
+    /// Whether the agent is currently in water.
+    pub in_liquid: bool,
     /// The distance to the target below which it is considered reached.
     pub min_tgt_dist: f32,
 }
@@ -127,7 +129,7 @@ impl Route {
             // Determine whether we're close enough to the next to to consider it completed
             let dist_sqrd = pos.xy().distance_squared(closest_tgt.xy());
             if dist_sqrd < traversal_cfg.node_tolerance.powf(2.0) * if be_precise { 0.25 } else { 1.0 }
-                && (pos.z - closest_tgt.z > 1.2 || (pos.z - closest_tgt.z > -0.2 && traversal_cfg.on_ground))
+                && (pos.z - closest_tgt.z > 1.2 || (pos.z - closest_tgt.z > -0.2 && (traversal_cfg.on_ground || traversal_cfg.in_liquid)))
                 && (pos.z - closest_tgt.z < 1.2 || (pos.z - closest_tgt.z < 2.9 && vel.z < -0.05))
                 && vel.z <= 0.0
                 // Only consider the node reached if there's nothing solid between us and it
@@ -434,15 +436,15 @@ where
     V: BaseVol<Vox = Block> + ReadVol,
 {
     vol.get(pos - Vec3::new(0, 0, 1))
-        .map(|b| b.is_solid() && b.solid_height() == 1.0)
+        .map(|b| b.is_filled())
         .unwrap_or(false)
         && vol
             .get(pos + Vec3::new(0, 0, 0))
-            .map(|b| !b.is_solid())
+            .map(|b| !b.is_filled())
             .unwrap_or(true)
         && vol
             .get(pos + Vec3::new(0, 0, 1))
-            .map(|b| !b.is_solid())
+            .map(|b| !b.is_filled())
             .unwrap_or(true)
 }
 
@@ -531,17 +533,17 @@ where
                     && ((dir.z < 1
                         || vol
                             .get(pos + Vec3::unit_z() * 2)
-                            .map(|b| !b.is_solid())
+                            .map(|b| !b.is_filled())
                             .unwrap_or(true))
                         && (dir.z < 2
                             || vol
                                 .get(pos + Vec3::unit_z() * 3)
-                                .map(|b| !b.is_solid())
+                                .map(|b| !b.is_filled())
                                 .unwrap_or(true))
                         && (dir.z >= 0
                             || vol
                                 .get(pos + *dir + Vec3::unit_z() * 2)
-                                .map(|b| !b.is_solid())
+                                .map(|b| !b.is_filled())
                                 .unwrap_or(true)))
             })
             .map(move |(pos, dir)| pos + dir)

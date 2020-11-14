@@ -61,10 +61,12 @@ out vec4 tgt_color;
 #include <lod.glsl>
 
 void main() {
+    /*
     float nz = abs(hash(vec4(floor((f_pos + focus_off.xyz) * 5.0), 0)));
     if (nz > (tick.x - load_time) / 0.5 || distance(focus_pos.xy, f_pos.xy) / view_distance.x + nz * 0.1 > 1.0) {
         discard;
     }
+    */
 
     // discard;
     // vec4 f_col_light = textureGrad(t_col_light, f_uv_pos / texSize, 0.25, 0.25);
