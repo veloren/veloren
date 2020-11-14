@@ -8,7 +8,7 @@ use crate::{
     GlobalState,
 };
 use client::{self, Client};
-use common::{comp, terrain::TerrainChunkSize, vol::RectVolSize};
+use common::{comp, terrain::TerrainChunkSize, vol::RectVolSize, msg::world_msg::SiteKind};
 use conrod_core::{
     color, position,
     widget::{self, Button, Image, Rectangle, Text},
@@ -31,6 +31,7 @@ widget_ids! {
         map_title,
         qlog_title,
         zoom_slider,
+        mmap_site_icons[],
     }
 }
 
@@ -194,8 +195,12 @@ impl<'a> Widget for Map<'a> {
             .read_storage::<comp::Pos>()
             .get(self.client.entity())
             .map_or(Vec3::zero(), |pos| pos.0);
+
         let max_zoom = (worldsize / TerrainChunkSize::RECT_SIZE.map(|e| e as f64))
             .reduce_partial_max()/*.min(f64::MAX)*/;
+
+        let map_size = Vec2::new(760.0, 760.0);
+
         let w_src = max_zoom / zoom;
         let h_src = max_zoom / zoom;
         let rect_src = position::Rect::from_xy_dim(
@@ -207,7 +212,7 @@ impl<'a> Widget for Map<'a> {
         );
         Image::new(world_map.none)
             .mid_top_with_margin_on(state.ids.map_align, 10.0)
-            .w_h(760.0, 760.0)
+            .w_h(map_size.x, map_size.y)
             .parent(state.ids.bg)
             .source_rectangle(rect_src)
             .set(state.ids.grid, ui);
@@ -228,6 +233,43 @@ impl<'a> Widget for Map<'a> {
         {
             events.push(Event::MapZoom(new_val as f64));
         }
+
+        // Map icons
+        if state.ids.mmap_site_icons.len() < self.client.sites().len() {
+            state.update(|state| {
+                state.ids.mmap_site_icons.resize(
+                    self.client.sites().len(),
+                    &mut ui.widget_id_generator(),
+                )
+            });
+        }
+        for (i, site) in self.client.sites().iter().enumerate() {
+            let rwpos = site.wpos.map(|e| e as f32) - player_pos;
+            let rcpos = rwpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e / sz as f32) * zoom as f32 * 3.0 / 4.0;
+            let rpos = Vec2::unit_x().rotated_z(0.0) * rcpos.x
+                + Vec2::unit_y().rotated_z(0.0) * rcpos.y;
+
+            // TODO: Why does this require the magic constant 0.73? This this related to scaling issues?
+            if rpos.map2(map_size, |e, sz| e.abs() > sz as f32 / 2.0).reduce_or() {
+                continue;
+            }
+
+            Image::new(match &site.kind {
+                SiteKind::Town => self.imgs.mmap_site_town,
+                SiteKind::Dungeon => self.imgs.mmap_site_dungeon,
+                SiteKind::Castle => continue,
+            })
+                .x_y_position_relative_to(
+                    state.ids.grid,
+                    position::Relative::Scalar(rpos.x as f64),
+                    position::Relative::Scalar(rpos.y as f64),
+                )
+                .w_h(16.0 / 0.73, 16.0 / 0.73)
+                .floating(true)
+                .parent(ui.window)
+                .set(state.ids.mmap_site_icons[i], ui);
+        }
+
         // Cursor pos relative to playerpos and widget size
         // Cursor stops moving on an axis as soon as it's position exceeds the maximum
         // // size of the widget
