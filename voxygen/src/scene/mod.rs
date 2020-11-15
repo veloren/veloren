@@ -472,16 +472,14 @@ impl Scene {
             .ecs()
             .read_storage::<comp::Body>()
             .get(scene_data.player_entity)
-            .map(|b| b.scale())
-            .unwrap_or(1.0);
+            .map_or(1.0, |b| b.scale());
 
         let eye_height = scene_data
             .state
             .ecs()
             .read_storage::<comp::Body>()
             .get(scene_data.player_entity)
-            .map(|b| b.eye_height())
-            .unwrap_or(1.0);
+            .map_or(0.0, |b| b.eye_height());
 
         // Add the analog input to camera
         self.camera
