@@ -22,7 +22,7 @@
 #include <srgb.glsl>
 #include <cloud.glsl>
 
-uniform sampler2D src_depth;
+//uniform sampler2D src_depth;
 
 in vec2 f_pos;
 
@@ -145,6 +145,7 @@ vec3 _illuminate(float max_light, vec3 view_dir, /*vec3 max_light, */vec3 emitte
     // return /*srgb_to_linear*/(/*0.5*//*0.125 * */vec3(pow(color.x, gamma), pow(color.y, gamma), pow(color.z, gamma)));
 }
 
+/*
 float depth_at(vec2 uv) {
     float buf_depth = texture(src_depth, uv).x;
     vec4 clip_space = vec4(uv * 2.0 - 1.0, buf_depth, 1.0);
@@ -166,6 +167,7 @@ vec3 wpos_at(vec2 uv) {
         return view_space.xyz;
     }
 }
+*/
 
 void main() {
     vec2 uv = (f_pos + 1.0) * 0.5;
@@ -202,6 +204,7 @@ void main() {
 
     vec4 aa_color = aa_apply(src_color, uv * screen_res.xy, screen_res.xy);
 
+    /*
     // Apply clouds to `aa_color`
     #if (CLOUD_MODE != CLOUD_MODE_NONE)
         vec3 wpos = wpos_at(uv);
@@ -210,6 +213,7 @@ void main() {
 
         aa_color.rgb = get_cloud_color(aa_color.rgb, dir, cam_pos.xyz, time_of_day.x, dist, 1.0);
     #endif
+    */
 
     // aa_color.rgb = (wpos + focus_off.xyz) / vec3(32768, 32768, /*view_distance.w*/2048);
     // aa_color.rgb = mod((wpos + focus_off.xyz), vec3(32768, 32768, view_distance.w)) / vec3(32768, 32768, view_distance.w);// / vec3(32768, 32768, view_distance.w);
