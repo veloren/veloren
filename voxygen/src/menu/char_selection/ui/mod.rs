@@ -1368,12 +1368,10 @@ impl CharSelectionUi {
         let font = {
             use std::io::Read;
             let mut buf = Vec::new();
-            common::assets::load_file("voxygen.font.haxrcorp_4089_cyrillic_altgr_extended", &[
-                "ttf",
-            ])
-            .unwrap()
-            .read_to_end(&mut buf)
-            .unwrap();
+            common::assets::load_file(&i18n.fonts.get("cyri").unwrap().asset_key, &["ttf"])
+                .unwrap()
+                .read_to_end(&mut buf)
+                .unwrap();
             ui::ice::Font::try_from_vec(buf).unwrap()
         };
 
@@ -1434,7 +1432,17 @@ impl CharSelectionUi {
     }
 
     pub fn update_language(&mut self, i18n: std::sync::Arc<Localization>) {
+        let font = {
+            use std::io::Read;
+            let mut buf = Vec::new();
+            common::assets::load_file(&i18n.fonts.get("cyri").unwrap().asset_key, &["ttf"])
+                .unwrap()
+                .read_to_end(&mut buf)
+                .unwrap();
+            ui::ice::Font::try_from_vec(buf).unwrap()
+        };
         self.controls.i18n = i18n;
+        self.ui.clear_fonts(font);
         self.controls.fonts = Fonts::load(&self.controls.i18n.fonts, &mut self.ui)
             .expect("Impossible to load fonts!");
     }
