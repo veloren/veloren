@@ -1,0 +1,14 @@
+ChargedMelee(
+    energy_cost: 0,
+    energy_drain: 0,
+    initial_damage: 10,
+    max_damage: 50,
+    initial_knockback: 10.0,
+    max_knockback: 30.0,
+    range: 6.0,
+    max_angle: 30.0,
+    speed: 1.0,
+    charge_duration: 1200,
+    swing_duration: 700,
+    recover_duration: 1200,
+)

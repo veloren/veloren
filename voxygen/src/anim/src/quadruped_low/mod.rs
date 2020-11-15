@@ -1,13 +1,16 @@
 pub mod alpha;
+pub mod beta;
+pub mod dash;
 pub mod idle;
 pub mod jump;
 pub mod run;
 pub mod shoot;
+pub mod tailwhip;
 
 // Reexports
 pub use self::{
-    alpha::AlphaAnimation, idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation,
-    shoot::ShootAnimation,
+    alpha::AlphaAnimation, beta::BetaAnimation, dash::DashAnimation, idle::IdleAnimation,
+    jump::JumpAnimation, run::RunAnimation, shoot::ShootAnimation, tailwhip::TailwhipAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};
@@ -116,8 +119,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Alligator, _) => (0.5, 2.0),
                 (Salamander, Male) => (0.5, 2.5),
                 (Salamander, Female) => (0.5, 1.0),
-                (Monitor, _) => (4.5, 1.0),
-                (Asp, _) => (6.0, 5.5),
+                (Monitor, _) => (5.5, 3.0),
+                (Asp, _) => (4.5, 10.5),
                 (Tortoise, _) => (5.0, 1.0),
                 (Rocksnapper, _) => (6.0, 0.5),
                 (Pangolin, _) => (-0.5, 8.0),
@@ -130,8 +133,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Alligator, _) => (9.0, 0.25),
                 (Salamander, Male) => (9.0, 0.0),
                 (Salamander, Female) => (9.0, 0.0),
-                (Monitor, _) => (10.0, 2.0),
-                (Asp, _) => (9.0, 2.5),
+                (Monitor, _) => (7.0, 0.0),
+                (Asp, _) => (6.0, -2.5),
                 (Tortoise, _) => (12.0, -3.5),
                 (Rocksnapper, _) => (12.0, -9.0),
                 (Pangolin, _) => (8.0, -9.0),
@@ -144,8 +147,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Alligator, _) => (2.5, -2.0),
                 (Salamander, Male) => (0.0, -2.0),
                 (Salamander, Female) => (0.5, -1.0),
-                (Monitor, _) => (-2.0, -1.0),
-                (Asp, _) => (-3.0, -2.0),
+                (Monitor, _) => (3.0, -1.0),
+                (Asp, _) => (2.0, -2.0),
                 (Tortoise, _) => (-3.5, -2.0),
                 (Rocksnapper, _) => (-5.0, -1.5),
                 (Pangolin, _) => (0.0, 0.0),

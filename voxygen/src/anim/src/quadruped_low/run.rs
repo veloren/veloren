@@ -113,7 +113,7 @@ impl Animation for RunAnimation {
                 * Quaternion::rotation_y(shortalt * 0.1)
                 * Quaternion::rotation_x(0.06 - s_a.lean.0 * 1.2 + x_tilt * 0.2);
 
-        next.tail_rear.position = Vec3::new(0.0, s_a.tail_rear.0, s_a.tail_rear.1 + shortalt * 0.6);
+        next.tail_rear.position = Vec3::new(0.0, s_a.tail_rear.0, s_a.tail_rear.1);
         next.tail_rear.orientation =
             Quaternion::rotation_z(shortalt * 0.25 * s_a.lean.1 + tilt * 1.6)
                 * Quaternion::rotation_y(shortalt * 0.1)

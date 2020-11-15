@@ -352,7 +352,7 @@ impl<'a> System<'a> for Sys {
                             Some(ToolKind::Unique(UniqueKind::StoneGolemFist)) => {
                                 Tactic::StoneGolemBoss
                             },
-                            Some(ToolKind::Unique(UniqueKind::GenericQuadMed)) => Tactic::Wolf,
+                            Some(ToolKind::Unique(UniqueKind::QuadMedQuick)) => Tactic::Wolf,
                             Some(ToolKind::Unique(UniqueKind::QuadLowRanged)) => Tactic::Maneater,
 
                             _ => Tactic::Melee,
