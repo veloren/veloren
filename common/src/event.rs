@@ -9,6 +9,8 @@ use std::{collections::VecDeque, ops::DerefMut};
 use vek::*;
 
 pub enum LocalEvent {
+    /// An attack for use with particles and sfx
+    Attack(EcsEntity),
     /// Applies upward force to entity's `Vel`
     Jump(EcsEntity),
     /// Applies the `impulse` to `entity`'s `Vel`

@@ -97,6 +97,7 @@ use common::{
     event::EventBus,
     outcome::Outcome,
     state::State,
+    states::utils::StageSection,
     terrain::{BlockKind, TerrainChunk},
     vol::ReadVol,
 };
@@ -382,7 +383,63 @@ impl SfxMgr {
                 let file_ref = "voxygen.audio.sfx.character.level_up_sound_-_shorter_wind_up";
                 audio.play_sfx(file_ref, *pos, None);
             },
-            _ => {},
+            Outcome::Beam { pos, heal } => {
+                if *heal {
+                    let file_ref = "voxygen.audio.sfx.abilities.staff_channeling";
+                    audio.play_sfx(file_ref, *pos, None);
+                } else {
+                    let file_ref = "voxygen.audio.sfx.abilities.flame_thrower";
+                    audio.play_sfx(file_ref, *pos, None);
+                }
+            },
+            Outcome::Attack {
+                pos,
+                character_state,
+                loadout,
+            } => {
+                if let Some(item_config) = &loadout.active_item {
+                    if let ItemKind::Tool(data) = item_config.item.kind() {
+                        if character_state.is_attack() {
+                            match (
+                                CharacterAbilityType::from(character_state),
+                                data.kind.clone(),
+                            ) {
+                                (
+                                    CharacterAbilityType::ComboMelee(StageSection::Swing, 1),
+                                    ToolKind::Sword,
+                                ) => {
+                                    audio.play_sfx(
+                                        "voxygen.audio.sfx.abilities.swing_sword",
+                                        *pos,
+                                        None,
+                                    );
+                                },
+                                (
+                                    CharacterAbilityType::ComboMelee(StageSection::Swing, 2),
+                                    ToolKind::Sword,
+                                ) => {
+                                    audio.play_sfx(
+                                        "voxygen.audio.sfx.abilities.separated_second_swing",
+                                        *pos,
+                                        None,
+                                    );
+                                },
+                                (
+                                    CharacterAbilityType::ComboMelee(StageSection::Swing, 3),
+                                    ToolKind::Sword,
+                                ) => {
+                                    audio.play_sfx(
+                                        "voxygen.audio.sfx.abilities.separated_third_swing",
+                                        *pos,
+                                        None,
+                                    );
+                                },
+                                _ => {},
+                            }
+                        }
+                    }
+                }
+            },
         }
     }
 
