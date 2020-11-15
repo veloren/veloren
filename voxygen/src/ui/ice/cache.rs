@@ -69,6 +69,21 @@ impl Cache {
         FontId(id)
     }
 
+    /// Allows clearing out the fonts when switching languages
+    pub fn clear_fonts(&mut self, default_font: Font) {
+        self.glyph_brush = RefCell::new(
+            self.glyph_brush
+                .get_mut()
+                .to_builder()
+                .replace_fonts(|mut fonts| {
+                    fonts.clear();
+                    fonts.push(default_font);
+                    fonts
+                })
+                .build(),
+        );
+    }
+
     pub fn graphic_cache(&self) -> &GraphicCache { &self.graphic_cache }
 
     pub fn graphic_cache_mut(&mut self) -> &mut GraphicCache { &mut self.graphic_cache }
