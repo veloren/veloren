@@ -22,6 +22,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, comp::Pos>,
         ReadStorage<'a, RtSimEntity>,
         WriteStorage<'a, comp::Agent>,
+        ReadExpect<'a, comp::item::tool::AbilityMap>,
     );
 
     fn run(
@@ -36,6 +37,7 @@ impl<'a> System<'a> for Sys {
             positions,
             rtsim_entities,
             mut agents,
+            ability_map,
         ): Self::SystemData,
     ) {
         let rtsim = &mut *rtsim;
@@ -95,7 +97,7 @@ impl<'a> System<'a> for Sys {
                 pos: comp::Pos(spawn_pos),
                 stats: comp::Stats::new("Traveller [rt]".to_string(), body),
                 health: comp::Health::new(body, 10),
-                loadout: entity.get_loadout(),
+                loadout: entity.get_loadout(&ability_map),
                 body,
                 agent: Some(comp::Agent::new(None, true, &body)),
                 alignment: comp::Alignment::Npc,
