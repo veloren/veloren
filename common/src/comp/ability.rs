@@ -1,8 +1,8 @@
 use crate::{
     assets::{self, Asset},
     comp::{
-        projectile::ProjectileConstructor, Body, CharacterState, EnergySource, Gravity,
-        LightEmitter, StateUpdate,
+        projectile::ProjectileConstructor,
+        Body, CharacterState, EnergySource, Gravity, LightEmitter, StateUpdate,
     },
     states::{
         behavior::JoinData,
