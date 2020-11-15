@@ -159,6 +159,6 @@ pub fn handle_create_waypoint(server: &mut Server, pos: Vec3<f32>) {
             animated: true,
         })
         .with(WaypointArea::default())
-        .with(comp::Mass(100000.0))
+        .with(comp::Mass(10_f32.powi(10)))
         .build();
 }

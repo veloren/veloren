@@ -40,12 +40,15 @@ pub fn handle_knockback(server: &Server, entity: EcsEntity, impulse: Vec3<f32>) 
 
     if let Some(physics) = ecs.read_storage::<PhysicsState>().get(entity) {
         //Check if the entity is on a surface. If it is not, reduce knockback.
-        let impulse = impulse
+        let mut impulse = impulse
             * if physics.on_surface().is_some() {
                 1.0
             } else {
                 0.4
             };
+        if let Some(mass) = ecs.read_storage::<comp::Mass>().get(entity) {
+            impulse /= mass.0;
+        }
         let mut velocities = ecs.write_storage::<comp::Vel>();
         if let Some(vel) = velocities.get_mut(entity) {
             vel.0 = impulse;

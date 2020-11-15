@@ -16,6 +16,7 @@ pub use self::{
     mesh::{Mesh, Quad, Tri},
     model::{DynamicModel, Model},
     pipelines::{
+        clouds::{create_mesh as create_clouds_mesh, CloudsPipeline, Locals as CloudsLocals},
         figure::{
             BoneData as FigureBoneData, BoneMeshes, FigureModel, FigurePipeline,
             Locals as FigureLocals,
@@ -257,6 +258,17 @@ impl ShadowMode {
     pub fn is_map(&self) -> bool { matches!(self, Self::Map(_)) }
 }
 
+/// Upscale mode settings.
+#[derive(PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
+pub struct UpscaleMode {
+    // Determines non-UI graphics upscaling. 0.25 to 2.0.
+    pub factor: f32,
+}
+
+impl Default for UpscaleMode {
+    fn default() -> Self { Self { factor: 1.0 } }
+}
+
 /// Render modes
 #[derive(PartialEq, Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(default)]
@@ -266,4 +278,5 @@ pub struct RenderMode {
     pub fluid: FluidMode,
     pub lighting: LightingMode,
     pub shadow: ShadowMode,
+    pub upscale_mode: UpscaleMode,
 }
