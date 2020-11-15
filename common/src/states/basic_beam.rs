@@ -54,7 +54,7 @@ pub struct Data {
     /// Used for particle stuffs
     pub particle_ori: Option<Vec3<f32>>,
     /// Used to offset beam and particles
-    pub offset: f32,
+    pub offset: Vec3<f32>,
 }
 
 impl CharacterBehavior for Data {
@@ -88,15 +88,16 @@ impl CharacterBehavior for Data {
                         tick_dur: Duration::from_secs_f32(1.0 / self.static_data.tick_rate),
                         timer: Duration::default(),
                     });
-                    // Gets offset
-                    let eye_height = data.body.eye_height();
+                    // Gets offsets
+                    let body_offsets =
+                        Vec3::new(data.body.radius() * 3.0, 0.0, data.body.eye_height());
 
                     // Build up
                     update.character = CharacterState::BasicBeam(Data {
                         timer: Duration::default(),
                         stage_section: StageSection::Cast,
                         particle_ori: Some(*data.inputs.look_dir),
-                        offset: eye_height * 0.55,
+                        offset: body_offsets * 0.55,
                         ..*self
                     });
                 }
@@ -132,7 +133,10 @@ impl CharacterBehavior for Data {
                         duration: self.static_data.beam_duration,
                         owner: Some(*data.uid),
                     };
-                    let pos = Pos(data.pos.0 + Vec3::new(0.0, 0.0, self.offset));
+                    // Gets offsets
+                    let body_offsets =
+                        Vec3::new(data.body.radius() * 3.0, 0.0, data.body.eye_height());
+                    let pos = Pos(data.pos.0 + body_offsets);
                     // Create beam segment
                     update.server_events.push_front(ServerEvent::BeamSegment {
                         properties,
