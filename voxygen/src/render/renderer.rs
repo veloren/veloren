@@ -5,8 +5,8 @@ use super::{
     mesh::Mesh,
     model::{DynamicModel, Model},
     pipelines::{
-        figure, fluid, lod_terrain, particle, postprocess, shadow, skybox, sprite, terrain, ui,
-        GlobalModel, Globals,
+        clouds, figure, fluid, lod_terrain, particle, postprocess, shadow, skybox, sprite, terrain,
+        ui, GlobalModel, Globals,
     },
     texture::Texture,
     AaMode, CloudMode, FilterMethod, FluidMode, LightingMode, Pipeline, RenderError, RenderMode,
@@ -148,9 +148,11 @@ pub struct Renderer {
 
     tgt_color_view: TgtColorView,
     tgt_depth_stencil_view: TgtDepthStencilView,
+    tgt_color_view_pp: TgtColorView,
 
     tgt_color_res: TgtColorRes,
     tgt_depth_res: TgtDepthRes,
+    tgt_color_res_pp: TgtColorRes,
 
     sampler: Sampler<gfx_backend::Resources>,
 
@@ -164,6 +166,7 @@ pub struct Renderer {
     particle_pipeline: GfxPipeline<particle::pipe::Init<'static>>,
     ui_pipeline: GfxPipeline<ui::pipe::Init<'static>>,
     lod_terrain_pipeline: GfxPipeline<lod_terrain::pipe::Init<'static>>,
+    clouds_pipeline: GfxPipeline<clouds::pipe::Init<'static>>,
     postprocess_pipeline: GfxPipeline<postprocess::pipe::Init<'static>>,
     player_shadow_pipeline: GfxPipeline<figure::pipe::Init<'static>>,
 
@@ -213,6 +216,7 @@ impl Renderer {
             particle_pipeline,
             ui_pipeline,
             lod_terrain_pipeline,
+            clouds_pipeline,
             postprocess_pipeline,
             player_shadow_pipeline,
             point_shadow_pipeline,
@@ -225,8 +229,14 @@ impl Renderer {
             &mut shader_reload_indicator,
         )?;
 
-        let (tgt_color_view, tgt_depth_stencil_view, tgt_color_res, tgt_depth_res) =
-            Self::create_rt_views(&mut factory, (dims.0, dims.1), &mode)?;
+        let (
+            tgt_color_view,
+            tgt_depth_stencil_view,
+            tgt_color_view_pp,
+            tgt_color_res,
+            tgt_depth_res,
+            tgt_color_res_pp,
+        ) = Self::create_rt_views(&mut factory, (dims.0, dims.1), &mode)?;
 
         let shadow_map = if let (
             Some(point_pipeline),
@@ -266,7 +276,10 @@ impl Renderer {
             None
         };
 
-        let sampler = factory.create_sampler_linear();
+        let sampler = factory.create_sampler(gfx::texture::SamplerInfo::new(
+            gfx::texture::FilterMethod::Bilinear,
+            gfx::texture::WrapMode::Clamp,
+        ));
 
         let noise_tex = Texture::new(
             &mut factory,
@@ -286,9 +299,11 @@ impl Renderer {
 
             tgt_color_view,
             tgt_depth_stencil_view,
+            tgt_color_view_pp,
 
             tgt_color_res,
             tgt_depth_res,
+            tgt_color_res_pp,
 
             sampler,
 
@@ -302,6 +317,7 @@ impl Renderer {
             particle_pipeline,
             ui_pipeline,
             lod_terrain_pipeline,
+            clouds_pipeline,
             postprocess_pipeline,
             player_shadow_pipeline,
 
@@ -363,12 +379,20 @@ impl Renderer {
 
         // Avoid panics when creating texture with w,h of 0,0.
         if dims.0 != 0 && dims.1 != 0 {
-            let (tgt_color_view, tgt_depth_stencil_view, tgt_color_res, tgt_depth_res) =
-                Self::create_rt_views(&mut self.factory, (dims.0, dims.1), &self.mode)?;
+            let (
+                tgt_color_view,
+                tgt_depth_stencil_view,
+                tgt_color_view_pp,
+                tgt_color_res,
+                tgt_depth_res,
+                tgt_color_res_pp,
+            ) = Self::create_rt_views(&mut self.factory, (dims.0, dims.1), &self.mode)?;
             self.tgt_color_res = tgt_color_res;
             self.tgt_depth_res = tgt_depth_res;
+            self.tgt_color_res_pp = tgt_color_res_pp;
             self.tgt_color_view = tgt_color_view;
             self.tgt_depth_stencil_view = tgt_depth_stencil_view;
+            self.tgt_color_view_pp = tgt_color_view_pp;
             if let (Some(shadow_map), ShadowMode::Map(mode)) =
                 (self.shadow_map.as_mut(), self.mode.shadow)
             {
@@ -403,42 +427,66 @@ impl Renderer {
         factory: &mut gfx_device_gl::Factory,
         size: (u16, u16),
         mode: &RenderMode,
-    ) -> Result<(TgtColorView, TgtDepthStencilView, TgtColorRes, TgtDepthRes), RenderError> {
+    ) -> Result<
+        (
+            TgtColorView,
+            TgtDepthStencilView,
+            TgtColorView,
+            TgtColorRes,
+            TgtDepthRes,
+            TgtColorRes,
+        ),
+        RenderError,
+    > {
+        let upscaled = Vec2::from(size)
+            .map(|e: u16| (e as f32 * mode.upscale_mode.factor) as u16)
+            .into_tuple();
         let kind = match mode.aa {
             AaMode::None | AaMode::Fxaa => {
-                gfx::texture::Kind::D2(size.0, size.1, gfx::texture::AaMode::Single)
+                gfx::texture::Kind::D2(upscaled.0, upscaled.1, gfx::texture::AaMode::Single)
             },
             // TODO: Ensure sampling in the shader is exactly between the 4 texels
             AaMode::SsaaX4 => {
+                // TODO: Figure out how to do upscaling correctly with SSAA
                 gfx::texture::Kind::D2(size.0 * 2, size.1 * 2, gfx::texture::AaMode::Single)
             },
             AaMode::MsaaX4 => {
-                gfx::texture::Kind::D2(size.0, size.1, gfx::texture::AaMode::Multi(4))
+                gfx::texture::Kind::D2(upscaled.0, upscaled.1, gfx::texture::AaMode::Multi(4))
             },
             AaMode::MsaaX8 => {
-                gfx::texture::Kind::D2(size.0, size.1, gfx::texture::AaMode::Multi(8))
+                gfx::texture::Kind::D2(upscaled.0, upscaled.1, gfx::texture::AaMode::Multi(8))
             },
             AaMode::MsaaX16 => {
-                gfx::texture::Kind::D2(size.0, size.1, gfx::texture::AaMode::Multi(16))
+                gfx::texture::Kind::D2(upscaled.0, upscaled.1, gfx::texture::AaMode::Multi(16))
             },
         };
         let levels = 1;
 
         let color_cty = <<TgtColorFmt as gfx::format::Formatted>::Channel as gfx::format::ChannelTyped
                 >::get_channel_type();
-        let tgt_color_tex = factory.create_texture(
-            kind,
-            levels,
-            gfx::memory::Bind::SHADER_RESOURCE | gfx::memory::Bind::RENDER_TARGET,
-            gfx::memory::Usage::Data,
-            Some(color_cty),
-        )?;
-        let tgt_color_res = factory.view_texture_as_shader_resource::<TgtColorFmt>(
-            &tgt_color_tex,
-            (0, levels - 1),
-            gfx::format::Swizzle::new(),
-        )?;
+        let mut color_tex = || {
+            factory.create_texture(
+                kind,
+                levels,
+                gfx::memory::Bind::SHADER_RESOURCE | gfx::memory::Bind::RENDER_TARGET,
+                gfx::memory::Usage::Data,
+                Some(color_cty),
+            )
+        };
+        let tgt_color_tex = color_tex()?;
+        let tgt_color_tex_pp = color_tex()?;
+        let mut color_res = |tex| {
+            factory.view_texture_as_shader_resource::<TgtColorFmt>(
+                tex,
+                (0, levels - 1),
+                gfx::format::Swizzle::new(),
+            )
+        };
+        let tgt_color_res = color_res(&tgt_color_tex)?;
+        let tgt_color_res_pp = color_res(&tgt_color_tex_pp)?;
         let tgt_color_view = factory.view_texture_as_render_target(&tgt_color_tex, 0, None)?;
+        let tgt_color_view_pp =
+            factory.view_texture_as_render_target(&tgt_color_tex_pp, 0, None)?;
 
         let depth_stencil_cty = <<TgtDepthStencilFmt as gfx::format::Formatted>::Channel as gfx::format::ChannelTyped>::get_channel_type();
         let tgt_depth_stencil_tex = factory.create_texture(
@@ -459,8 +507,10 @@ impl Renderer {
         Ok((
             tgt_color_view,
             tgt_depth_stencil_view,
+            tgt_color_view_pp,
             tgt_color_res,
             tgt_depth_res,
+            tgt_color_res_pp,
         ))
     }
 
@@ -763,6 +813,7 @@ impl Renderer {
                 particle_pipeline,
                 ui_pipeline,
                 lod_terrain_pipeline,
+                clouds_pipeline,
                 postprocess_pipeline,
                 player_shadow_pipeline,
                 point_shadow_pipeline,
@@ -777,6 +828,7 @@ impl Renderer {
                 self.particle_pipeline = particle_pipeline;
                 self.ui_pipeline = ui_pipeline;
                 self.lod_terrain_pipeline = lod_terrain_pipeline;
+                self.clouds_pipeline = clouds_pipeline;
                 self.postprocess_pipeline = postprocess_pipeline;
                 self.player_shadow_pipeline = player_shadow_pipeline;
                 if let (
@@ -1645,6 +1697,37 @@ impl Renderer {
         );
     }
 
+    pub fn render_clouds(
+        &mut self,
+        model: &Model<clouds::CloudsPipeline>,
+        globals: &Consts<Globals>,
+        locals: &Consts<clouds::Locals>,
+        lod: &lod_terrain::LodData,
+    ) {
+        self.encoder.draw(
+            &gfx::Slice {
+                start: model.vertex_range().start,
+                end: model.vertex_range().end,
+                base_vertex: 0,
+                instances: None,
+                buffer: gfx::IndexBuffer::Auto,
+            },
+            &self.clouds_pipeline.pso,
+            &clouds::pipe::Data {
+                vbuf: model.vbuf.clone(),
+                locals: locals.buf.clone(),
+                globals: globals.buf.clone(),
+                map: (lod.map.srv.clone(), lod.map.sampler.clone()),
+                alt: (lod.alt.srv.clone(), lod.alt.sampler.clone()),
+                horizon: (lod.horizon.srv.clone(), lod.horizon.sampler.clone()),
+                color_sampler: (self.tgt_color_res.clone(), self.sampler.clone()),
+                depth_sampler: (self.tgt_depth_res.clone(), self.sampler.clone()),
+                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
+                tgt_color: self.tgt_color_view_pp.clone(),
+            },
+        )
+    }
+
     pub fn render_post_process(
         &mut self,
         model: &Model<postprocess::PostProcessPipeline>,
@@ -1668,7 +1751,7 @@ impl Renderer {
                 map: (lod.map.srv.clone(), lod.map.sampler.clone()),
                 alt: (lod.alt.srv.clone(), lod.alt.sampler.clone()),
                 horizon: (lod.horizon.srv.clone(), lod.horizon.sampler.clone()),
-                color_sampler: (self.tgt_color_res.clone(), self.sampler.clone()),
+                color_sampler: (self.tgt_color_res_pp.clone(), self.sampler.clone()),
                 depth_sampler: (self.tgt_depth_res.clone(), self.sampler.clone()),
                 noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
                 tgt_color: self.win_color_view.clone(),
@@ -1698,6 +1781,7 @@ fn create_pipelines(
         GfxPipeline<particle::pipe::Init<'static>>,
         GfxPipeline<ui::pipe::Init<'static>>,
         GfxPipeline<lod_terrain::pipe::Init<'static>>,
+        GfxPipeline<clouds::pipe::Init<'static>>,
         GfxPipeline<postprocess::pipe::Init<'static>>,
         GfxPipeline<figure::pipe::Init<'static>>,
         Option<GfxPipeline<shadow::pipe::Init<'static>>>,
@@ -1908,6 +1992,16 @@ fn create_pipelines(
         gfx::state::CullFace::Back,
     )?;
 
+    // Construct a pipeline for rendering our clouds (a kind of post-processing)
+    let clouds_pipeline = create_pipeline(
+        factory,
+        clouds::pipe::new(),
+        &Glsl::load_watched("voxygen.shaders.clouds-vert", shader_reload_indicator).unwrap(),
+        &Glsl::load_watched("voxygen.shaders.clouds-frag", shader_reload_indicator).unwrap(),
+        &include_ctx,
+        gfx::state::CullFace::Back,
+    )?;
+
     // Construct a pipeline for rendering our post-processing
     let postprocess_pipeline = create_pipeline(
         factory,
@@ -2019,6 +2113,7 @@ fn create_pipelines(
         particle_pipeline,
         ui_pipeline,
         lod_terrain_pipeline,
+        clouds_pipeline,
         postprocess_pipeline,
         player_shadow_pipeline,
         point_shadow_pipeline,
