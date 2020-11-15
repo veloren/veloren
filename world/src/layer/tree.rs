@@ -57,7 +57,9 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
                     || col.path.map(|(d, _, _, _)| d < 12.0).unwrap_or(false)
                 {
                     return None;
-                } else if !is_quirky && ((seed.wrapping_mul(13)) & 0xFF) as f32 / 256.0 > col.tree_density {
+                } else if !is_quirky
+                    && ((seed.wrapping_mul(13)) & 0xFF) as f32 / 256.0 > col.tree_density
+                {
                     return None;
                 }
 
@@ -72,8 +74,12 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
                             }
                         } else {
                             match col.forest_kind {
-                                ForestKind::Oak if QUIRKY_RAND.chance(seed + 1, 1.0 / 16.0) => &OAK_STUMPS,
-                                ForestKind::Oak if QUIRKY_RAND.chance(seed + 2, 1.0 / 20.0) => &FRUIT_TREES,
+                                ForestKind::Oak if QUIRKY_RAND.chance(seed + 1, 1.0 / 16.0) => {
+                                    &OAK_STUMPS
+                                },
+                                ForestKind::Oak if QUIRKY_RAND.chance(seed + 2, 1.0 / 20.0) => {
+                                    &FRUIT_TREES
+                                },
                                 ForestKind::Palm => &PALMS,
                                 ForestKind::Savannah => &ACACIAS,
                                 ForestKind::Oak => &OAKS,

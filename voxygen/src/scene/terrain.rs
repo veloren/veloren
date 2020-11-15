@@ -45,11 +45,13 @@ struct Visibility {
 impl Visibility {
     /// Should the chunk actually get rendered?
     fn is_visible(&self) -> bool {
-        // Currently, we don't take into account in_range to allow all chunks to do pop-in.
-        // This isn't really a problem because we no longer have VD mist or anything like that.
-        // Also, we don't load chunks outside of the VD anyway so this literally just controls
-        // which chunks get actually rendered.
-        /*self.in_range &&*/ self.in_frustum
+        // Currently, we don't take into account in_range to allow all chunks to do
+        // pop-in. This isn't really a problem because we no longer have VD mist
+        // or anything like that. Also, we don't load chunks outside of the VD
+        // anyway so this literally just controls which chunks get actually
+        // rendered.
+        /* self.in_range && */
+        self.in_frustum
     }
 }
 
@@ -246,9 +248,7 @@ pub struct Terrain<V: RectRasterableVol> {
 }
 
 impl TerrainChunkData {
-    pub fn can_shadow_sun(&self) -> bool {
-        self.visible.is_visible() || self.can_shadow_sun
-    }
+    pub fn can_shadow_sun(&self) -> bool { self.visible.is_visible() || self.can_shadow_sun }
 }
 
 impl<V: RectRasterableVol> Terrain<V> {

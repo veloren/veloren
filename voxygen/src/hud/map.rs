@@ -1,21 +1,22 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
-    Show, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
+    Show, TEXT_COLOR, UI_GOLD, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
     i18n::Localization,
-    ui::{fonts::Fonts, img_ids, ImageSlider},
+    ui::{fonts::Fonts, img_ids, ImageFrame, ImageSlider, Tooltip, TooltipManager, Tooltipable},
     GlobalState,
 };
 use client::{self, Client};
-use common::{comp, terrain::TerrainChunkSize, vol::RectVolSize, msg::world_msg::SiteKind};
+use common::{comp, msg::world_msg::SiteKind, terrain::TerrainChunkSize, vol::RectVolSize};
 use conrod_core::{
     color, position,
     widget::{self, Button, Image, Rectangle, Text},
-    widget_ids, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 use specs::WorldExt;
 use vek::*;
+
 widget_ids! {
     struct Ids {
         frame,
@@ -41,13 +42,14 @@ pub struct Map<'a> {
     client: &'a Client,
     world_map: &'a (img_ids::Rotations, Vec2<u32>),
     imgs: &'a Imgs,
-    rot_imgs: &'a ImgsRot,
     fonts: &'a Fonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
     _pulse: f32,
     localized_strings: &'a Localization,
     global_state: &'a GlobalState,
+    rot_imgs: &'a ImgsRot,
+    tooltip_manager: &'a mut TooltipManager,
 }
 impl<'a> Map<'a> {
     #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
@@ -61,6 +63,7 @@ impl<'a> Map<'a> {
         pulse: f32,
         localized_strings: &'a Localization,
         global_state: &'a GlobalState,
+        tooltip_manager: &'a mut TooltipManager,
     ) -> Self {
         Self {
             _show: show,
@@ -73,6 +76,7 @@ impl<'a> Map<'a> {
             _pulse: pulse,
             localized_strings,
             global_state,
+            tooltip_manager,
         }
     }
 }
@@ -105,6 +109,24 @@ impl<'a> Widget for Map<'a> {
         let widget::UpdateArgs { state, ui, .. } = args;
         let zoom = self.global_state.settings.gameplay.map_zoom * 0.8;
         let mut events = Vec::new();
+        // Tooltips
+        let site_tooltip = Tooltip::new({
+            // Edge images [t, b, r, l]
+            // Corner images [tr, tl, br, bl]
+            let edge = &self.rot_imgs.tt_side;
+            let corner = &self.rot_imgs.tt_corner;
+            ImageFrame::new(
+                [edge.cw180, edge.none, edge.cw270, edge.cw90],
+                [corner.none, corner.cw270, corner.cw90, corner.cw180],
+                Color::Rgba(0.08, 0.07, 0.04, 1.0),
+                5.0,
+            )
+        })
+        .title_font_size(self.fonts.cyri.scale(15))
+        .parent(ui.window)
+        .desc_font_size(self.fonts.cyri.scale(12))
+        .font_id(self.fonts.cyri.conrod_id)
+        .desc_text_color(TEXT_COLOR);
         // Frame
         Image::new(self.imgs.map_bg)
             .w_h(1052.0, 886.0)
@@ -237,37 +259,52 @@ impl<'a> Widget for Map<'a> {
         // Map icons
         if state.ids.mmap_site_icons.len() < self.client.sites().len() {
             state.update(|state| {
-                state.ids.mmap_site_icons.resize(
-                    self.client.sites().len(),
-                    &mut ui.widget_id_generator(),
-                )
+                state
+                    .ids
+                    .mmap_site_icons
+                    .resize(self.client.sites().len(), &mut ui.widget_id_generator())
             });
         }
         for (i, site) in self.client.sites().iter().enumerate() {
             let rwpos = site.wpos.map(|e| e as f32) - player_pos;
-            let rcpos = rwpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e / sz as f32) * zoom as f32 * 3.0 / 4.0;
-            let rpos = Vec2::unit_x().rotated_z(0.0) * rcpos.x
-                + Vec2::unit_y().rotated_z(0.0) * rcpos.y;
+            let rcpos =
+                rwpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e / sz as f32) * zoom as f32 * 3.0
+                    / 4.0;
+            let rpos =
+                Vec2::unit_x().rotated_z(0.0) * rcpos.x + Vec2::unit_y().rotated_z(0.0) * rcpos.y;
 
-            // TODO: Why does this require the magic constant 0.73? This this related to scaling issues?
-            if rpos.map2(map_size, |e, sz| e.abs() > sz as f32 / 2.0).reduce_or() {
+            if rpos
+                .map2(map_size, |e, sz| e.abs() > sz as f32 / 2.0)
+                .reduce_or()
+            {
                 continue;
             }
-
-            Image::new(match &site.kind {
+            let title = match &site.kind {
+                SiteKind::Town => "Town",
+                SiteKind::Dungeon => "Dungeon",
+                SiteKind::Castle => "Castle",
+            };
+            let desc = "";
+            Button::image(match &site.kind {
                 SiteKind::Town => self.imgs.mmap_site_town,
                 SiteKind::Dungeon => self.imgs.mmap_site_dungeon,
-                SiteKind::Castle => continue,
+                SiteKind::Castle => self.imgs.mmap_site_castle,
             })
-                .x_y_position_relative_to(
-                    state.ids.grid,
-                    position::Relative::Scalar(rpos.x as f64),
-                    position::Relative::Scalar(rpos.y as f64),
-                )
-                .w_h(16.0 / 0.73, 16.0 / 0.73)
-                .floating(true)
-                .parent(ui.window)
-                .set(state.ids.mmap_site_icons[i], ui);
+            .x_y_position_relative_to(
+                state.ids.grid,
+                position::Relative::Scalar(rpos.x as f64),
+                position::Relative::Scalar(rpos.y as f64),
+            )
+            .w_h(20.0 * 1.2, 20.0 * 1.2)
+            .hover_image(match &site.kind {
+                SiteKind::Town => self.imgs.mmap_site_town_hover,
+                SiteKind::Dungeon => self.imgs.mmap_site_dungeon_hover,
+                SiteKind::Castle => self.imgs.mmap_site_castle_hover,
+            })            
+            .image_color(UI_HIGHLIGHT_0)
+            .parent(ui.window)
+            .with_tooltip(self.tooltip_manager, title, desc, &site_tooltip, TEXT_COLOR)
+            .set(state.ids.mmap_site_icons[i], ui);
         }
 
         // Cursor pos relative to playerpos and widget size
