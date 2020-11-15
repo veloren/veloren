@@ -1,9 +1,10 @@
 use crate::{
     mesh::{greedy::GreedyMesh, Meshable},
     render::{
-        create_pp_mesh, create_skybox_mesh, BoneMeshes, Consts, FigureModel, FigurePipeline,
-        GlobalModel, Globals, Light, Mesh, Model, PostProcessLocals, PostProcessPipeline, Renderer,
-        Shadow, ShadowLocals, SkyboxLocals, SkyboxPipeline, TerrainPipeline,
+        create_clouds_mesh, create_pp_mesh, create_skybox_mesh, BoneMeshes, CloudsLocals,
+        CloudsPipeline, Consts, FigureModel, FigurePipeline, GlobalModel, Globals, Light, Mesh,
+        Model, PostProcessLocals, PostProcessPipeline, Renderer, Shadow, ShadowLocals,
+        SkyboxLocals, SkyboxPipeline, TerrainPipeline,
     },
     scene::{
         camera::{self, Camera, CameraMode},
@@ -61,11 +62,17 @@ struct PostProcess {
     locals: Consts<PostProcessLocals>,
 }
 
+struct Clouds {
+    model: Model<CloudsPipeline>,
+    locals: Consts<CloudsLocals>,
+}
+
 pub struct Scene {
     data: GlobalModel,
     camera: Camera,
 
     skybox: Skybox,
+    clouds: Clouds,
     postprocess: PostProcess,
     lod: LodData,
     map_bounds: Vec2<f32>,
@@ -122,6 +129,10 @@ impl Scene {
             skybox: Skybox {
                 model: renderer.create_model(&create_skybox_mesh()).unwrap(),
                 locals: renderer.create_consts(&[SkyboxLocals::default()]).unwrap(),
+            },
+            clouds: Clouds {
+                model: renderer.create_model(&create_clouds_mesh()).unwrap(),
+                locals: renderer.create_consts(&[CloudsLocals::default()]).unwrap(),
             },
             postprocess: PostProcess {
                 model: renderer.create_model(&create_pp_mesh()).unwrap(),
@@ -376,6 +387,13 @@ impl Scene {
                 &self.lod,
             );
         }
+
+        renderer.render_clouds(
+            &self.clouds.model,
+            &self.data.globals,
+            &self.clouds.locals,
+            &self.lod,
+        );
 
         renderer.render_post_process(
             &self.postprocess.model,

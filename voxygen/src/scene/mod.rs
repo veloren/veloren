@@ -16,9 +16,9 @@ pub use self::{
 use crate::{
     audio::{music::MusicMgr, sfx::SfxMgr, AudioFrontend},
     render::{
-        create_pp_mesh, create_skybox_mesh, Consts, GlobalModel, Globals, Light, LodData, Model,
-        PostProcessLocals, PostProcessPipeline, Renderer, Shadow, ShadowLocals, SkyboxLocals,
-        SkyboxPipeline,
+        create_clouds_mesh, create_pp_mesh, create_skybox_mesh, CloudsLocals, CloudsPipeline,
+        Consts, GlobalModel, Globals, Light, LodData, Model, PostProcessLocals,
+        PostProcessPipeline, Renderer, Shadow, ShadowLocals, SkyboxLocals, SkyboxPipeline,
     },
     settings::Settings,
     window::{AnalogGameInput, Event},
@@ -71,6 +71,11 @@ struct Skybox {
     locals: Consts<SkyboxLocals>,
 }
 
+struct Clouds {
+    model: Model<CloudsPipeline>,
+    locals: Consts<CloudsLocals>,
+}
+
 struct PostProcess {
     model: Model<PostProcessPipeline>,
     locals: Consts<PostProcessLocals>,
@@ -83,6 +88,7 @@ pub struct Scene {
     event_lights: Vec<EventLight>,
 
     skybox: Skybox,
+    clouds: Clouds,
     postprocess: PostProcess,
     terrain: Terrain<TerrainChunk>,
     pub lod: Lod,
@@ -282,6 +288,10 @@ impl Scene {
             skybox: Skybox {
                 model: renderer.create_model(&create_skybox_mesh()).unwrap(),
                 locals: renderer.create_consts(&[SkyboxLocals::default()]).unwrap(),
+            },
+            clouds: Clouds {
+                model: renderer.create_model(&create_clouds_mesh()).unwrap(),
+                locals: renderer.create_consts(&[CloudsLocals::default()]).unwrap(),
             },
             postprocess: PostProcess {
                 model: renderer.create_model(&create_pp_mesh()).unwrap(),
@@ -664,6 +674,12 @@ impl Scene {
                 scene_data.sprite_render_distance as f32 - 20.0,
             )])
             .expect("Failed to update global constants");
+        renderer
+            .update_consts(&mut self.clouds.locals, &[CloudsLocals::new(
+                proj_mat_inv,
+                view_mat_inv,
+            )])
+            .expect("Failed to update cloud locals");
         renderer
             .update_consts(&mut self.postprocess.locals, &[PostProcessLocals::new(
                 proj_mat_inv,
@@ -1074,6 +1090,14 @@ impl Scene {
 
         // Render particle effects.
         self.particle_mgr.render(renderer, scene_data, global, lod);
+
+        // Render clouds (a post-processing effect)
+        renderer.render_clouds(
+            &self.clouds.model,
+            &global.globals,
+            &self.clouds.locals,
+            self.lod.get_data(),
+        );
 
         renderer.render_post_process(
             &self.postprocess.model,
