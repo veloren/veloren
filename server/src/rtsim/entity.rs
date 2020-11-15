@@ -8,6 +8,7 @@ use common::{
     terrain::TerrainGrid,
     store::Id,
     LoadoutBuilder,
+    comp::item::tool::AbilityMap,
 };
 
 pub struct Entity {
@@ -34,7 +35,7 @@ impl Entity {
         comp::humanoid::Body::random_with(&mut self.rng(PERM_BODY), &species).into()
     }
 
-    pub fn get_loadout(&self) -> comp::Loadout {
+    pub fn get_loadout(&self, ability_map: &AbilityMap) -> comp::Loadout {
         let mut rng = self.rng(PERM_LOADOUT);
         let main_tool = comp::Item::new_from_asset_expect((&[
             "common.items.weapons.sword.wood_sword",
@@ -62,7 +63,7 @@ impl Entity {
         let pants = Some(comp::Item::new_from_asset_expect("common.items.npc_armor.pants.leather_blue_0"));
         let shoulder = Some(comp::Item::new_from_asset_expect("common.items.armor.shoulder.leather_0"));
 
-        LoadoutBuilder::build_loadout(self.get_body(), comp::Alignment::Npc, Some(main_tool), false)
+        LoadoutBuilder::build_loadout(self.get_body(), comp::Alignment::Npc, Some(main_tool), false, ability_map)
             .back(back)
             .lantern(lantern)
             .chest(chest)
