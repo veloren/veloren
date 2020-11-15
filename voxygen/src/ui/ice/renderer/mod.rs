@@ -146,6 +146,9 @@ impl IcedRenderer {
 
     pub fn add_font(&mut self, font: RawFont) -> FontId { self.cache.add_font(font) }
 
+    /// Allows clearing out the fonts when switching languages
+    pub fn clear_fonts(&mut self, default_font: Font) { self.cache.clear_fonts(default_font); }
+
     pub fn add_graphic(&mut self, graphic: Graphic) -> graphic::Id {
         self.cache.add_graphic(graphic)
     }
