@@ -17,7 +17,7 @@ use crate::{
             convert_stats_from_database, convert_stats_to_database,
             convert_waypoint_to_database_json,
         },
-        character_loader::{CharacterDataResult, CharacterListResult},
+        character_loader::{CharacterCreationResult, CharacterDataResult, CharacterListResult},
         error::Error::DatabaseError,
         json_models::CharacterPosition,
         PersistedComponents,
@@ -170,7 +170,7 @@ pub fn create_character(
     persisted_components: PersistedComponents,
     connection: VelorenTransaction,
     map: &AbilityMap,
-) -> CharacterListResult {
+) -> CharacterCreationResult {
     use schema::item::dsl::*;
 
     check_character_limit(uuid, connection)?;
@@ -303,7 +303,7 @@ pub fn create_character(
         )));
     }
 
-    load_character_list(uuid, connection, map)
+    load_character_list(uuid, connection, map).map(|list| (character_id, list))
 }
 
 /// Delete a character. Returns the updated character list.
