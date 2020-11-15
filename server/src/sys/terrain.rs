@@ -1,10 +1,6 @@
 use super::SysTimer;
 use crate::{
-    chunk_generator::ChunkGenerator,
-    client::Client,
-    presence::Presence,
-    rtsim::RtSim,
-    Tick,
+    chunk_generator::ChunkGenerator, client::Client, presence::Presence, rtsim::RtSim, Tick,
 };
 use common::{
     comp::{self, bird_medium, item::tool::AbilityMap, Alignment, Pos},

@@ -148,6 +148,7 @@ const DEFAULT_NPC: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
 const UI_MAIN: Color = Color::Rgba(0.61, 0.70, 0.70, 1.0); // Greenish Blue
 //const UI_MAIN: Color = Color::Rgba(0.1, 0.1, 0.1, 0.97); // Dark
 const UI_HIGHLIGHT_0: Color = Color::Rgba(0.79, 1.09, 1.09, 1.0);
+const UI_GOLD: Color = Color::Rgba(0.75, 0.58, 0.0, 1.0);
 // Pull-Down menu BG color
 const MENU_BG: Color = Color::Rgba(0.1, 0.12, 0.12, 1.0);
 //const UI_DARK_0: Color = Color::Rgba(0.25, 0.37, 0.37, 1.0);
@@ -2251,6 +2252,7 @@ impl Hud {
                 self.pulse,
                 &self.i18n,
                 &global_state,
+                tooltip_manager,
             )
             .set(self.ids.map, ui_widgets)
             {

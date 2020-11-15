@@ -1,11 +1,11 @@
 use super::*;
 use common::{
-    event::{EventBus, ServerEvent},
-    terrain::TerrainGrid,
-    state::DeltaTime,
     comp,
+    event::{EventBus, ServerEvent},
+    state::DeltaTime,
+    terrain::TerrainGrid,
 };
-use specs::{Join, Read, ReadStorage, WriteStorage, System, WriteExpect, ReadExpect};
+use specs::{Join, Read, ReadExpect, ReadStorage, System, WriteExpect, WriteStorage};
 use std::sync::Arc;
 
 const ENTITY_TICK_PERIOD: u64 = 30;
@@ -47,21 +47,30 @@ impl<'a> System<'a> for Sys {
         for (id, entity) in rtsim.entities.iter_mut() {
             if entity.is_loaded {
                 // No load-specific behaviour yet
-            } else if rtsim.chunks.chunk_at(entity.pos.xy()).map(|c| c.is_loaded).unwrap_or(false) {
+            } else if rtsim
+                .chunks
+                .chunk_at(entity.pos.xy())
+                .map(|c| c.is_loaded)
+                .unwrap_or(false)
+            {
                 to_reify.push(id);
             } else {
                 // Simulate behaviour
                 if let Some(travel_to) = entity.controller.travel_to {
                     // Move towards target at approximate character speed
-                    entity.pos += Vec3::from((travel_to.xy() - entity.pos.xy())
-                        .try_normalized()
-                        .unwrap_or_else(Vec2::zero)
-                        * entity.get_body().max_speed_approx()
-                        * entity.controller.speed_factor)
-                        * dt.0;
+                    entity.pos += Vec3::from(
+                        (travel_to.xy() - entity.pos.xy())
+                            .try_normalized()
+                            .unwrap_or_else(Vec2::zero)
+                            * entity.get_body().max_speed_approx()
+                            * entity.controller.speed_factor,
+                    ) * dt.0;
                 }
 
-                if let Some(alt) = world.sim().get_alt_approx(entity.pos.xy().map(|e| e.floor() as i32)) {
+                if let Some(alt) = world
+                    .sim()
+                    .get_alt_approx(entity.pos.xy().map(|e| e.floor() as i32))
+                {
                     entity.pos.z = alt;
                 }
             }
@@ -77,7 +86,10 @@ impl<'a> System<'a> for Sys {
         for id in to_reify {
             rtsim.reify_entity(id);
             let entity = &rtsim.entities[id];
-            let spawn_pos = terrain.find_space(entity.pos.map(|e| e.floor() as i32)).map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0);
+            let spawn_pos = terrain
+                .find_space(entity.pos.map(|e| e.floor() as i32))
+                .map(|e| e as f32)
+                + Vec3::new(0.5, 0.5, 0.0);
             let body = entity.get_body();
             server_emitter.emit(ServerEvent::CreateNpc {
                 pos: comp::Pos(spawn_pos),

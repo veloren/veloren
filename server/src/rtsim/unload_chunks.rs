@@ -1,10 +1,10 @@
 use super::*;
 use common::{
+    comp::Pos,
     event::{EventBus, ServerEvent},
     terrain::TerrainGrid,
-    comp::Pos,
 };
-use specs::{Join, Read, ReadStorage, System, Write, ReadExpect, WriteExpect, Entities};
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, Write, WriteExpect};
 
 pub struct Sys;
 impl<'a> System<'a> for Sys {

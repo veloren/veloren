@@ -42,7 +42,7 @@ use crate::{
 };
 use common::{
     generation::{ChunkSupplement, EntityInfo},
-    msg::{WorldMapMsg, world_msg},
+    msg::{world_msg, WorldMapMsg},
     terrain::{Block, BlockKind, SpriteKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     vol::{ReadVol, RectVolSize, WriteVol},
 };
@@ -93,7 +93,9 @@ impl World {
 
     pub fn get_map_data(&self, index: IndexRef) -> WorldMapMsg {
         WorldMapMsg {
-            sites: self.civs().sites
+            sites: self
+                .civs()
+                .sites
                 .iter()
                 .map(|(_, site)| {
                     world_msg::SiteInfo {

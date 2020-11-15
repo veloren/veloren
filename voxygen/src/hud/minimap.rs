@@ -4,12 +4,13 @@ use super::{
 };
 use crate::ui::{fonts::Fonts, img_ids};
 use client::{self, Client};
-use common::{comp, terrain::TerrainChunkSize, vol::RectVolSize, msg::world_msg::SiteKind};
+use common::{comp, msg::world_msg::SiteKind, terrain::TerrainChunkSize, vol::RectVolSize};
 use conrod_core::{
     color, position,
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
+use inline_tweak::*;
 use specs::WorldExt;
 use vek::*;
 
@@ -226,37 +227,44 @@ impl<'a> Widget for MiniMap<'a> {
             // Map icons
             if state.ids.mmap_site_icons.len() < self.client.sites().len() {
                 state.update(|state| {
-                    state.ids.mmap_site_icons.resize(
-                        self.client.sites().len(),
-                        &mut ui.widget_id_generator(),
-                    )
+                    state
+                        .ids
+                        .mmap_site_icons
+                        .resize(self.client.sites().len(), &mut ui.widget_id_generator())
                 });
             }
             for (i, site) in self.client.sites().iter().enumerate() {
                 let rwpos = site.wpos.map(|e| e as f32) - player_pos;
-                let rcpos = rwpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e / sz as f32) * state.zoom as f32 / 4.0;
+                let rcpos = rwpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e / sz as f32)
+                    * state.zoom as f32
+                    / 4.0;
                 let rpos = Vec2::unit_x().rotated_z(self.ori.x) * rcpos.x
                     + Vec2::unit_y().rotated_z(self.ori.x) * rcpos.y;
 
-                // TODO: Why does this require the magic constant 0.73? This this related to scaling issues?
-                if rpos.map2(map_size, |e, sz| e.abs() > sz as f32 / 0.73 / 2.0).reduce_or() {
+                // TODO: Why does this require the magic constant 0.73? This this related to
+                // scaling issues?
+                if rpos
+                    .map2(map_size, |e, sz| e.abs() > sz as f32 / 0.73 / 2.0)
+                    .reduce_or()
+                {
                     continue;
                 }
 
                 Image::new(match &site.kind {
                     SiteKind::Town => self.imgs.mmap_site_town,
                     SiteKind::Dungeon => self.imgs.mmap_site_dungeon,
-                    SiteKind::Castle => continue,
+                    SiteKind::Castle => self.imgs.mmap_site_castle,
                 })
-                    .x_y_position_relative_to(
-                        state.ids.grid,
-                        position::Relative::Scalar(rpos.x as f64),
-                        position::Relative::Scalar(rpos.y as f64),
-                    )
-                    .w_h(16.0 / 0.73, 16.0 / 0.73)
-                    .floating(true)
-                    .parent(ui.window)
-                    .set(state.ids.mmap_site_icons[i], ui);
+                .x_y_position_relative_to(
+                    state.ids.grid,
+                    position::Relative::Scalar(rpos.x as f64),
+                    position::Relative::Scalar(rpos.y as f64),
+                )
+                .w_h(20.0 * tweak!(1.0), 20.0 * tweak!(1.0))
+                .color(Some(UI_HIGHLIGHT_0))
+                .floating(true)
+                .parent(ui.window)
+                .set(state.ids.mmap_site_icons[i], ui);
             }
 
             // Compass directions
