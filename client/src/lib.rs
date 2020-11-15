@@ -939,16 +939,50 @@ impl Client {
             /* Ok(()) => self.send_msg(ClientGeneral::ChatMsg(message)), */
             Ok(()) => {
                 if message.starts_with('@') {
-                    if message == "@stats" {
-                        let stats = self
-                            .state
-                            .ecs()
-                            .read_storage::<comp::Stats>()
-                            .get(self.entity)
-                            .cloned()
-                            .unwrap();
+                    use comp::{item::tool::ToolKind::*, skills::*};
+                    match message.as_str() {
+                        "@stats" => {
+                            let stats = self
+                                .state
+                                .ecs()
+                                .read_storage::<comp::Stats>()
+                                .get(self.entity)
+                                .cloned()
+                                .unwrap();
 
-                        tracing::info!("{:?}", stats.skill_set);
+                            tracing::info!("{:?}", stats.skill_set);
+                        },
+                        "@unlock sword" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::UnlockGroup(
+                                SkillGroupType::Weapon(Sword),
+                            )));
+                        },
+                        "@unlock axe" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::UnlockGroup(
+                                SkillGroupType::Weapon(Axe),
+                            )));
+                        },
+                        "@unlock hammer" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::UnlockGroup(
+                                SkillGroupType::Weapon(Hammer),
+                            )));
+                        },
+                        "@unlock bow" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::UnlockGroup(
+                                SkillGroupType::Weapon(Bow),
+                            )));
+                        },
+                        "@unlock staff" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::UnlockGroup(
+                                SkillGroupType::Weapon(Staff),
+                            )));
+                        },
+                        "@unlock sceptre" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::UnlockGroup(
+                                SkillGroupType::Weapon(Sceptre),
+                            )));
+                        },
+                        _ => {},
                     }
                 } else {
                     self.send_msg(ClientGeneral::ChatMsg(message))
