@@ -374,7 +374,12 @@ fn handle_home(
         .is_some()
     {
         let home_pos = server.state.ecs().read_resource::<SpawnPoint>().0;
+        let time = *server.state.ecs().read_resource::<common::state::Time>();
+
         server.state.write_component(target, comp::Pos(home_pos));
+        server
+            .state
+            .write_component(target, comp::Waypoint::new(home_pos, time));
         server.state.write_component(target, comp::ForceUpdate);
     } else {
         server.notify_client(
