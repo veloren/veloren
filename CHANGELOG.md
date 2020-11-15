@@ -32,6 +32,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Persistent waypoints (start from the last camp fire you visited)
 - NPCs use all three weapon skills in combat
 - Speed stat to weapons which affects weapon attack speed
+- Saving of the last selected character in the character selection screen
+- Autoselecting the newly created character
+- Deselecting when the selected character is deleted
 
 ### Changed
 

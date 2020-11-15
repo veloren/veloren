@@ -12,6 +12,7 @@ use std::path::Path;
 use tracing::error;
 
 pub(crate) type CharacterListResult = Result<Vec<CharacterItem>, Error>;
+pub(crate) type CharacterCreationResult = Result<(CharacterId, Vec<CharacterItem>), Error>;
 pub(crate) type CharacterDataResult = Result<PersistedComponents, Error>;
 type CharacterLoaderRequest = (specs::Entity, CharacterLoaderRequestKind);
 
@@ -38,16 +39,17 @@ enum CharacterLoaderRequestKind {
 /// Wrapper for results for character actions. Can be a list of
 /// characters, or component data belonging to an individual character
 #[derive(Debug)]
-pub enum CharacterLoaderResponseType {
+pub enum CharacterLoaderResponseKind {
     CharacterList(CharacterListResult),
     CharacterData(Box<CharacterDataResult>),
+    CharacterCreation(CharacterCreationResult),
 }
 
 /// Common message format dispatched in response to an update request
 #[derive(Debug)]
 pub struct CharacterLoaderResponse {
     pub entity: specs::Entity,
-    pub result: CharacterLoaderResponseType,
+    pub result: CharacterLoaderResponseKind,
 }
 
 /// A bi-directional messaging resource for making requests to modify or load
@@ -80,45 +82,47 @@ impl CharacterLoader {
             for request in internal_rx {
                 let (entity, kind) = request;
 
-                if let Err(e) = internal_tx.send(CharacterLoaderResponse {
-                    entity,
-                    result: match kind {
-                        CharacterLoaderRequestKind::CreateCharacter {
-                            player_uuid,
-                            character_alias,
-                            persisted_components,
-                        } => CharacterLoaderResponseType::CharacterList(conn.transaction(|txn| {
-                            create_character(
-                                &player_uuid,
-                                &character_alias,
+                if let Err(e) =
+                    internal_tx.send(CharacterLoaderResponse {
+                        entity,
+                        result: match kind {
+                            CharacterLoaderRequestKind::CreateCharacter {
+                                player_uuid,
+                                character_alias,
                                 persisted_components,
-                                txn,
-                                &map,
-                            )
-                        })),
-                        CharacterLoaderRequestKind::DeleteCharacter {
-                            player_uuid,
-                            character_id,
-                        } => CharacterLoaderResponseType::CharacterList(conn.transaction(|txn| {
-                            delete_character(&player_uuid, character_id, txn, &map)
-                        })),
-                        CharacterLoaderRequestKind::LoadCharacterList { player_uuid } => {
-                            CharacterLoaderResponseType::CharacterList(
+                            } => CharacterLoaderResponseKind::CharacterCreation(conn.transaction(
+                                |txn| {
+                                    create_character(
+                                        &player_uuid,
+                                        &character_alias,
+                                        persisted_components,
+                                        txn,
+                                        &map,
+                                    )
+                                },
+                            )),
+                            CharacterLoaderRequestKind::DeleteCharacter {
+                                player_uuid,
+                                character_id,
+                            } => CharacterLoaderResponseKind::CharacterList(conn.transaction(
+                                |txn| delete_character(&player_uuid, character_id, txn, &map),
+                            )),
+                            CharacterLoaderRequestKind::LoadCharacterList { player_uuid } => {
+                                CharacterLoaderResponseKind::CharacterList(conn.transaction(
+                                    |txn| load_character_list(&player_uuid, txn, &map),
+                                ))
+                            },
+                            CharacterLoaderRequestKind::LoadCharacterData {
+                                player_uuid,
+                                character_id,
+                            } => CharacterLoaderResponseKind::CharacterData(Box::new(
                                 conn.transaction(|txn| {
-                                    load_character_list(&player_uuid, txn, &map)
+                                    load_character_data(player_uuid, character_id, txn, &map)
                                 }),
-                            )
+                            )),
                         },
-                        CharacterLoaderRequestKind::LoadCharacterData {
-                            player_uuid,
-                            character_id,
-                        } => {
-                            CharacterLoaderResponseType::CharacterData(Box::new(conn.transaction(
-                                |txn| load_character_data(player_uuid, character_id, txn, &map),
-                            )))
-                        },
-                    },
-                }) {
+                    })
+                {
                     error!(?e, "Could not send send persistence request");
                 }
             }
