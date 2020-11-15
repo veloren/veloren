@@ -1,3 +1,4 @@
+pub mod clouds;
 pub mod figure;
 pub mod fluid;
 pub mod lod_terrain;
