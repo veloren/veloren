@@ -89,15 +89,17 @@ impl CharacterBehavior for Data {
                         timer: Duration::default(),
                     });
                     // Gets offsets
-                    let body_offsets =
-                        Vec3::new(data.body.radius() * 3.0, 0.0, data.body.eye_height());
-
+                    let body_offsets = Vec3::new(
+                        data.body.radius() * 3.0 * data.inputs.look_dir.x,
+                        data.body.radius() * 3.0 * data.inputs.look_dir.y,
+                        data.body.eye_height(),
+                    ) * 0.55;
                     // Build up
                     update.character = CharacterState::BasicBeam(Data {
                         timer: Duration::default(),
                         stage_section: StageSection::Cast,
                         particle_ori: Some(*data.inputs.look_dir),
-                        offset: body_offsets * 0.55,
+                        offset: body_offsets,
                         ..*self
                     });
                 }
@@ -134,8 +136,11 @@ impl CharacterBehavior for Data {
                         owner: Some(*data.uid),
                     };
                     // Gets offsets
-                    let body_offsets =
-                        Vec3::new(data.body.radius() * 3.0, 0.0, data.body.eye_height());
+                    let body_offsets = Vec3::new(
+                        data.body.radius() + 2.0 * data.inputs.look_dir.x,
+                        data.body.radius() + 2.0 * data.inputs.look_dir.y,
+                        data.body.eye_height(),
+                    ) * 0.55;
                     let pos = Pos(data.pos.0 + body_offsets);
                     // Create beam segment
                     update.server_events.push_front(ServerEvent::BeamSegment {
@@ -149,6 +154,7 @@ impl CharacterBehavior for Data {
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
                         particle_ori: Some(*data.inputs.look_dir),
+                        offset: body_offsets,
                         ..*self
                     });
 

@@ -133,16 +133,29 @@ impl<
 }
 
 impl Body {
-    pub const DEFAULT_EYE_HEIGHT: f32 = 1.65;
-
     pub fn is_humanoid(&self) -> bool { matches!(self, Body::Humanoid(_)) }
 
     // Note: this might need to be refined to something more complex for realistic
     // behavior with less cylindrical bodies (e.g. wolfs)
+    #[allow(unreachable_patterns)]
     pub fn radius(&self) -> f32 {
         // TODO: Improve these values (some might be reliant on more info in inner type)
         match self {
-            Body::Humanoid(_) => 0.5 * self.scale(),
+            Body::Humanoid(humanoid) => match (humanoid.species, humanoid.body_type) {
+                (humanoid::Species::Orc, humanoid::BodyType::Male) => 0.57,
+                (humanoid::Species::Orc, humanoid::BodyType::Female) => 0.51,
+                (humanoid::Species::Human, humanoid::BodyType::Male) => 0.51,
+                (humanoid::Species::Human, humanoid::BodyType::Female) => 0.48,
+                (humanoid::Species::Elf, humanoid::BodyType::Male) => 0.51,
+                (humanoid::Species::Elf, humanoid::BodyType::Female) => 0.48,
+                (humanoid::Species::Dwarf, humanoid::BodyType::Male) => 0.42,
+                (humanoid::Species::Dwarf, humanoid::BodyType::Female) => 0.39,
+                (humanoid::Species::Undead, humanoid::BodyType::Male) => 0.48,
+                (humanoid::Species::Undead, humanoid::BodyType::Female) => 0.45,
+                (humanoid::Species::Danari, humanoid::BodyType::Male) => 0.348,
+                (humanoid::Species::Danari, humanoid::BodyType::Female) => 0.348,
+                _ => 0.5,
+            },
             Body::QuadrupedSmall(_) => 0.4,
             Body::QuadrupedMedium(body) => match body.species {
                 quadruped_medium::Species::Grolgar => 1.9,
@@ -174,7 +187,20 @@ impl Body {
 
     pub fn height(&self) -> f32 {
         match self {
-            Body::Humanoid(_) => 1.9 * self.scale(),
+            Body::Humanoid(humanoid) => match (humanoid.species, humanoid.body_type) {
+                (humanoid::Species::Orc, humanoid::BodyType::Male) => 2.17,
+                (humanoid::Species::Orc, humanoid::BodyType::Female) => 1.94,
+                (humanoid::Species::Human, humanoid::BodyType::Male) => 1.94,
+                (humanoid::Species::Human, humanoid::BodyType::Female) => 1.82,
+                (humanoid::Species::Elf, humanoid::BodyType::Male) => 1.94,
+                (humanoid::Species::Elf, humanoid::BodyType::Female) => 1.82,
+                (humanoid::Species::Dwarf, humanoid::BodyType::Male) => 1.60,
+                (humanoid::Species::Dwarf, humanoid::BodyType::Female) => 1.48,
+                (humanoid::Species::Undead, humanoid::BodyType::Male) => 1.82,
+                (humanoid::Species::Undead, humanoid::BodyType::Female) => 1.71,
+                (humanoid::Species::Danari, humanoid::BodyType::Male) => 1.32,
+                (humanoid::Species::Danari, humanoid::BodyType::Female) => 1.32,
+            },
             Body::QuadrupedSmall(body) => match body.species {
                 quadruped_small::Species::Dodarock => 1.5,
                 quadruped_small::Species::Holladon => 1.5,
@@ -528,39 +554,7 @@ impl Body {
     }
 
     /// Returns the eye height for this humanoid.
-    pub fn eye_height(&self) -> f32 { Self::DEFAULT_EYE_HEIGHT * self.scale() }
-
-    pub fn scale(&self) -> f32 {
-        match self {
-            Body::Humanoid(humanoid) => match (humanoid.species, humanoid.body_type) {
-                (humanoid::Species::Orc, humanoid::BodyType::Male) => 1.14,
-                (humanoid::Species::Orc, humanoid::BodyType::Female) => 1.02,
-                (humanoid::Species::Human, humanoid::BodyType::Male) => 1.02,
-                (humanoid::Species::Human, humanoid::BodyType::Female) => 0.96,
-                (humanoid::Species::Elf, humanoid::BodyType::Male) => 1.02,
-                (humanoid::Species::Elf, humanoid::BodyType::Female) => 0.96,
-                (humanoid::Species::Dwarf, humanoid::BodyType::Male) => 0.84,
-                (humanoid::Species::Dwarf, humanoid::BodyType::Female) => 0.78,
-                (humanoid::Species::Undead, humanoid::BodyType::Male) => 0.96,
-                (humanoid::Species::Undead, humanoid::BodyType::Female) => 0.9,
-                (humanoid::Species::Danari, humanoid::BodyType::Male) => 0.696,
-                (humanoid::Species::Danari, humanoid::BodyType::Female) => 0.696,
-            },
-            Body::BipedLarge(biped_large) => match (biped_large.species, biped_large.body_type) {
-                (biped_large::Species::Occultsaurok, _) => 2.0,
-                (biped_large::Species::Slysaurok, _) => 2.0,
-                _ => 2.2,
-            },
-            Body::BirdMedium(_) => 0.7,
-            Body::Dragon(_) => 16.0,
-            Body::Golem(_) => 2.0,
-            Body::QuadrupedMedium(_) => 1.0,
-            Body::QuadrupedLow(_) => 0.9,
-            Body::QuadrupedSmall(_) => 0.5,
-            Body::Theropod(_) => 2.0,
-            _ => 1.0,
-        }
-    }
+    pub fn eye_height(&self) -> f32 { self.height() * 0.9 }
 
     pub fn default_light_offset(&self) -> Vec3<f32> {
         // TODO: Make this a manifest
