@@ -65,6 +65,9 @@ impl IcedUi {
     /// Add a new font that is referncable via the returned Id
     pub fn add_font(&mut self, font: RawFont) -> FontId { self.renderer.add_font(font) }
 
+    /// Allows clearing out the fonts when switching languages
+    pub fn clear_fonts(&mut self, default_font: Font) { self.renderer.clear_fonts(default_font); }
+
     /// Add a new graphic that is referencable via the returned Id
     pub fn add_graphic(&mut self, graphic: Graphic) -> graphic::Id {
         self.renderer.add_graphic(graphic)
