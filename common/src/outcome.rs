@@ -1,8 +1,5 @@
 use crate::comp;
-use comp::{
-    item::{tool::ToolKind, Reagent},
-    CharacterAbilityType,
-};
+use comp::{item::Reagent, CharacterState, Loadout};
 use serde::{Deserialize, Serialize};
 use vek::*;
 
@@ -25,13 +22,17 @@ pub enum Outcome {
         body: comp::Body,
         vel: Vec3<f32>,
     },
-    Swing {
+    Attack {
         pos: Vec3<f32>,
-        ability: CharacterAbilityType,
-        tool: ToolKind,
+        character_state: CharacterState,
+        loadout: Loadout,
     },
     LevelUp {
         pos: Vec3<f32>,
+    },
+    Beam {
+        pos: Vec3<f32>,
+        heal: bool,
     },
 }
 
@@ -40,8 +41,9 @@ impl Outcome {
         match self {
             Outcome::Explosion { pos, .. } => Some(*pos),
             Outcome::ProjectileShot { pos, .. } => Some(*pos),
-            Outcome::Swing { pos, .. } => Some(*pos),
+            Outcome::Attack { pos, .. } => Some(*pos),
             Outcome::LevelUp { pos } => Some(*pos),
+            Outcome::Beam { pos, .. } => Some(*pos),
         }
     }
 }
