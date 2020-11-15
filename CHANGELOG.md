@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Saving of the last selected character in the character selection screen
 - Autoselecting the newly created character
 - Deselecting when the selected character is deleted
+- Added "Persist Combo from Combo Melee State" when rolling mid-combo
 
 ### Changed
 
