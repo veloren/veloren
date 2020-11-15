@@ -118,8 +118,7 @@ pub fn handle_shoot(
         .ecs()
         .read_storage::<comp::Body>()
         .get(entity)
-        .map(|b| b.scale())
-        .unwrap_or(1.0);
+        .map_or(0.0, |b| b.scale());
 
     pos.z += eye_height;
 
