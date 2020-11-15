@@ -1,11 +1,12 @@
 use crate::{
     client::Client,
-    comp::{biped_large, quadruped_low, quadruped_medium, quadruped_small, theropod, PhysicsState},
+    comp::{biped_large, quadruped_low, quadruped_medium, quadruped_small, skills::SkillGroupType, theropod, PhysicsState},
     rtsim::RtSim,
     Server, SpawnPoint, StateExt,
 };
 use common::{
     assets::AssetExt,
+    combat,
     comp::{
         self, aura, buff,
         chat::{KillSource, KillType},
@@ -29,6 +30,7 @@ use common_sys::state::BlockChange;
 use comp::item::Reagent;
 use rand::prelude::*;
 use specs::{join::Join, saveload::MarkerAllocator, Entity as EcsEntity, WorldExt};
+use std::collections::HashSet;
 use tracing::error;
 use vek::Vec3;
 
@@ -223,16 +225,76 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
             let exp = exp_reward / (num_not_pets_in_range as f32 + ATTACKER_EXP_WEIGHT);
             exp_reward = exp * ATTACKER_EXP_WEIGHT;
             members_in_range.into_iter().for_each(|e| {
+                let (main_tool_kind, second_tool_kind) =
+                    if let Some(inventory) = state.ecs().read_storage::<comp::Inventory>().get(e) {
+                        combat::get_weapons(inventory)
+                    } else {
+                        (None, None)
+                    };
                 if let Some(mut stats) = stats.get_mut(e) {
-                    stats.exp.change_by(exp.ceil() as i64);
+                    // stats.exp.change_by(exp.ceil() as i64);
+                    let mut xp_pools = HashSet::<SkillGroupType>::new();
+                    xp_pools.insert(SkillGroupType::General);
+                    if let Some(w) = main_tool_kind {
+                        if stats
+                            .skill_set
+                            .contains_skill_group(SkillGroupType::Weapon(w))
+                        {
+                            xp_pools.insert(SkillGroupType::Weapon(w));
+                        }
+                    }
+                    if let Some(w) = second_tool_kind {
+                        if stats
+                            .skill_set
+                            .contains_skill_group(SkillGroupType::Weapon(w))
+                        {
+                            xp_pools.insert(SkillGroupType::Weapon(w));
+                        }
+                    }
+                    let num_pools = xp_pools.len() as f32;
+                    for pool in xp_pools.drain() {
+                        stats
+                            .skill_set
+                            .add_experience(pool, (exp / num_pools).ceil() as u32);
+                    }
                 }
             });
         }
 
+        let (main_tool_kind, second_tool_kind) =
+            if let Some(inventory) = state.ecs().read_storage::<comp::Inventory>().get(attacker) {
+                combat::get_weapons(inventory)
+            } else {
+                (None, None)
+            };
         if let Some(mut attacker_stats) = stats.get_mut(attacker) {
             // TODO: Discuss whether we should give EXP by Player
             // Killing or not.
-            attacker_stats.exp.change_by(exp_reward.ceil() as i64);
+            // attacker_stats.exp.change_by(exp_reward.ceil() as i64);
+            let mut xp_pools = HashSet::<SkillGroupType>::new();
+            xp_pools.insert(SkillGroupType::General);
+            if let Some(w) = main_tool_kind {
+                if attacker_stats
+                    .skill_set
+                    .contains_skill_group(SkillGroupType::Weapon(w))
+                {
+                    xp_pools.insert(SkillGroupType::Weapon(w));
+                }
+            }
+            if let Some(w) = second_tool_kind {
+                if attacker_stats
+                    .skill_set
+                    .contains_skill_group(SkillGroupType::Weapon(w))
+                {
+                    xp_pools.insert(SkillGroupType::Weapon(w));
+                }
+            }
+            let num_pools = xp_pools.len() as f32;
+            for pool in xp_pools.drain() {
+                attacker_stats
+                    .skill_set
+                    .add_experience(pool, (exp_reward / num_pools).ceil() as u32);
+            }
         }
     })();
 

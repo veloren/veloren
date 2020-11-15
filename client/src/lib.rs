@@ -936,7 +936,24 @@ impl Client {
     /// Send a chat message to the server.
     pub fn send_chat(&mut self, message: String) {
         match validate_chat_msg(&message) {
-            Ok(()) => self.send_msg(ClientGeneral::ChatMsg(message)),
+            /* Ok(()) => self.send_msg(ClientGeneral::ChatMsg(message)), */
+            Ok(()) => {
+                if message.starts_with('@') {
+                    if message == "@stats" {
+                        let stats = self
+                            .state
+                            .ecs()
+                            .read_storage::<comp::Stats>()
+                            .get(self.entity)
+                            .cloned()
+                            .unwrap();
+
+                        tracing::info!("{:?}", stats.skill_set);
+                    }
+                } else {
+                    self.send_msg(ClientGeneral::ChatMsg(message))
+                }
+            },
             Err(ChatMsgValidationError::TooLong) => tracing::warn!(
                 "Attempted to send a message that's too long (Over {} bytes)",
                 MAX_BYTES_CHAT_MSG

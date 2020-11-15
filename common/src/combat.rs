@@ -1,6 +1,6 @@
 use crate::{
     comp::{
-        inventory::item::{armor::Protection, ItemKind},
+        inventory::{item::{armor::Protection, tool::ToolKind, ItemKind}, slot::EquipSlot},
         BuffKind, HealthChange, HealthSource, Inventory,
     },
     uid::Uid,
@@ -194,4 +194,24 @@ impl Knockback {
             },
         }
     }
+}
+
+pub fn get_weapons(inv: &Inventory) -> (Option<ToolKind>, Option<ToolKind>) {
+    (
+        inv.equipped(EquipSlot::Mainhand).and_then(|i| {
+            if let ItemKind::Tool(tool) = &i.kind() {
+                Some(tool.kind)
+            } else {
+                None
+            }
+        }),
+        inv.equipped(EquipSlot::Offhand).and_then(|i| {
+            if let ItemKind::Tool(tool) = &i.kind() {
+                Some(tool.kind)
+            } else {
+                None
+            }
+        }),
+
+    )
 }
