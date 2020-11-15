@@ -417,7 +417,7 @@ pub fn handle_ability3_input(data: &JoinData, update: &mut StateUpdate) {
 /// Checks that player can perform a dodge, then
 /// attempts to go into `loadout.active_item.dodge_ability`
 pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
-    if data.inputs.roll.is_pressed() {
+    if data.inputs.roll.is_pressed() && data.body.is_humanoid() {
         if let Some(ability) = data
             .loadout
             .active_item

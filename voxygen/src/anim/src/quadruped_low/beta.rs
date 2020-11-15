@@ -5,16 +5,16 @@ use super::{
 use common::states::utils::StageSection;
 //use std::ops::Rem;
 
-pub struct AlphaAnimation;
+pub struct BetaAnimation;
 
-impl Animation for AlphaAnimation {
+impl Animation for BetaAnimation {
     type Dependency = (f32, f64, Option<StageSection>, f64);
     type Skeleton = QuadrupedLowSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
-    const UPDATE_FN: &'static [u8] = b"quadruped_low_alpha\0";
+    const UPDATE_FN: &'static [u8] = b"quadruped_low_beta\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_low_alpha")]
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_low_beta")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_velocity, global_time, stage_section, timer): Self::Dependency,
@@ -40,21 +40,21 @@ impl Animation for AlphaAnimation {
         let movement1abs = movement1base * pullback;
         let movement2abs = movement2base * pullback;
 
-        next.head_upper.orientation = Quaternion::rotation_z(twitch3 * -0.7);
+        next.head_upper.orientation = Quaternion::rotation_z(twitch3 * 0.2);
 
         next.head_lower.orientation =
-            Quaternion::rotation_x(movement1abs * 0.35 + movement2abs * -0.9)
-                * Quaternion::rotation_y(movement1 * 0.7 + movement2 * -1.0);
+            Quaternion::rotation_x(movement1abs * 0.15 + movement2abs * -0.6)
+                * Quaternion::rotation_y(movement1 * -0.1 + movement2 * 0.15);
 
-        next.jaw.orientation = Quaternion::rotation_x(movement1abs * -0.6 + movement2abs * 0.6);
-        next.chest.orientation = Quaternion::rotation_y(movement1 * -0.08 + movement2 * 0.15)
-            * Quaternion::rotation_z(movement1 * -0.2 + movement2 * 0.6);
+        next.jaw.orientation = Quaternion::rotation_x(movement1abs * -1.0 + movement2abs * 1.0);
+        next.chest.orientation = Quaternion::rotation_y(movement1 * 0.08 + movement2 * -0.15)
+            * Quaternion::rotation_z(movement1 * 0.2 + movement2 * -0.3);
 
         next.tail_front.orientation = Quaternion::rotation_x(0.15)
-            * Quaternion::rotation_z(movement1 * -0.4 + movement2 * -0.2);
+            * Quaternion::rotation_z(movement1 * 0.4 + movement2 * 0.2);
 
         next.tail_rear.orientation = Quaternion::rotation_x(-0.12)
-            * Quaternion::rotation_z(movement1 * -0.4 + movement2 * -0.2);
+            * Quaternion::rotation_z(movement1 * 0.4 + movement2 * 0.2);
         next
     }
 }

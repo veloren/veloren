@@ -61,6 +61,36 @@
         secondary: "common.abilities.unique.beastclaws.basic",
         skills: [],
     ),
+    Unique(QuadMedQuick): (
+        primary: "common.abilities.unique.quadmedquick.dash",
+        secondary: "common.abilities.unique.quadmedquick.dash",
+        skills: [],
+    ),
+    Unique(QuadMedJump): (
+        primary: "common.abilities.unique.quadmedjump.leap",
+        secondary: "common.abilities.unique.quadmedjump.leap",
+        skills: [],
+    ),
+    Unique(QuadLowRanged): (
+        primary: "common.abilities.unique.quadlowranged.basic",
+        secondary: "common.abilities.unique.quadlowranged.firebomb",
+        skills: [],
+    ),
+    Unique(QuadLowTail): (
+        primary: "common.abilities.unique.quadlowtail.charged",
+        secondary: "common.abilities.unique.quadlowtail.triplestrike",
+        skills: [],
+    ),
+    Unique(QuadLowQuick): (
+        primary: "common.abilities.unique.quadlowquick.dash",
+        secondary: "common.abilities.unique.quadlowquick.quadstrike",
+        skills: [],
+    ),
+    Unique(QuadLowBasic): (
+        primary: "common.abilities.unique.quadlowbasic.basic",
+        secondary: "common.abilities.unique.quadlowbasic.triplestrike",
+        skills: [],
+    ),
     Debug: (
         primary: "common.abilities.debug.forwardboost",
         secondary: "common.abilities.debug.upboost",

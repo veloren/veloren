@@ -1,9 +1,9 @@
 ItemDef(
-    name: "Generic Quad Med",
+    name: "Quad Med Quick",
     description: "testing123",
     kind: Tool(
         (
-            kind: Unique(GenericQuadMed),
+            kind: Unique(QuadMedQuick),
             stats: (
                 equip_time_millis: 10,
                 power: 1.00,

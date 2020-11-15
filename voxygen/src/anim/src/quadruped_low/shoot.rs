@@ -37,7 +37,9 @@ impl Animation for ShootAnimation {
                 * Quaternion::rotation_z((twitch1 * 0.1) * (1.0 - movement3));
 
         next.head_lower.position = Vec3::new(0.0, s_a.head_lower.0, s_a.head_lower.1);
-        next.head_lower.orientation = Quaternion::rotation_x(movement2 * 0.3 * (1.0 - movement3));
+        next.head_lower.orientation = Quaternion::rotation_x(
+            (twitch1 * 0.05 + movement1 * 0.3 + movement2 * 0.6) * (1.0 - movement3),
+        );
 
         next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
         next.jaw.orientation = Quaternion::rotation_x(movement1 * -0.5);

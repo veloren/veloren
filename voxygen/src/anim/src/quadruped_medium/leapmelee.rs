@@ -4,16 +4,16 @@ use super::{
 };
 use common::states::utils::StageSection;
 
-pub struct AlphaAnimation;
+pub struct LeapMeleeAnimation;
 
-impl Animation for AlphaAnimation {
+impl Animation for LeapMeleeAnimation {
     type Dependency = (f32, f64, Option<StageSection>, f64);
     type Skeleton = QuadrupedMediumSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
-    const UPDATE_FN: &'static [u8] = b"quadruped_medium_alpha\0";
+    const UPDATE_FN: &'static [u8] = b"quadruped_medium_leapmelee\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_medium_alpha")]
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_medium_leapmelee")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_velocity, global_time, stage_section, timer): Self::Dependency,

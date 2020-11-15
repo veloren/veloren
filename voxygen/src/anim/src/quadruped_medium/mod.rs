@@ -2,12 +2,13 @@ pub mod alpha;
 pub mod feed;
 pub mod idle;
 pub mod jump;
+pub mod leapmelee;
 pub mod run;
 
 // Reexports
 pub use self::{
     alpha::AlphaAnimation, feed::FeedAnimation, idle::IdleAnimation, jump::JumpAnimation,
-    run::RunAnimation,
+    leapmelee::LeapMeleeAnimation, run::RunAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};
@@ -137,18 +138,18 @@ impl<'a> From<&'a Body> for SkeletonAttr {
         Self {
             head: match (body.species, body.body_type) {
                 (Grolgar, _) => (0.0, -1.0),
-                (Saber, _) => (0.0, -3.0),
-                (Tuskram, _) => (0.0, 1.0),
-                (Lion, _) => (2.5, 2.0),
+                (Saber, _) => (5.0, -3.0),
+                (Tuskram, _) => (2.0, 1.0),
+                (Lion, _) => (4.5, 2.0),
                 (Tarasque, _) => (-4.0, 3.5),
                 (Tiger, _) => (2.0, 1.0),
                 (Wolf, _) => (-0.5, 3.0),
                 (Frostfang, _) => (1.0, -2.0),
                 (Mouflon, _) => (0.5, 1.5),
                 (Catoblepas, _) => (-1.0, -6.5),
-                (Bonerattler, _) => (-1.0, 2.5),
-                (Deer, Male) => (0.5, 3.5),
-                (Deer, Female) => (0.5, 3.5),
+                (Bonerattler, _) => (1.0, 2.5),
+                (Deer, Male) => (1.5, 3.5),
+                (Deer, Female) => (1.5, 3.5),
                 (Hirdrasil, _) => (0.0, 5.0),
                 (Roshwalr, _) => (1.0, 0.5),
                 (Donkey, _) => (4.5, -3.0),
@@ -160,17 +161,17 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             },
             neck: match (body.species, body.body_type) {
                 (Grolgar, _) => (1.0, -1.0),
-                (Saber, _) => (1.0, 0.0),
-                (Tuskram, _) => (1.0, 1.0),
-                (Lion, _) => (0.5, 1.0),
-                (Tarasque, _) => (0.5, -4.0),
+                (Saber, _) => (-3.5, -2.0),
+                (Tuskram, _) => (-1.0, 1.0),
+                (Lion, _) => (-1.5, 1.0),
+                (Tarasque, _) => (-1.5, -4.0),
                 (Tiger, _) => (0.0, 0.0),
                 (Wolf, _) => (-4.5, 2.0),
                 (Frostfang, _) => (2.0, 1.5),
                 (Mouflon, _) => (-1.0, 1.0),
                 (Catoblepas, _) => (19.5, -2.0),
-                (Bonerattler, _) => (7.0, -1.5),
-                (Deer, _) => (-0.5, 1.0),
+                (Bonerattler, _) => (9.0, -0.5),
+                (Deer, _) => (-2.5, 1.0),
                 (Hirdrasil, _) => (-1.0, 0.5),
                 (Roshwalr, _) => (0.0, 1.0),
                 (Donkey, _) => (1.0, 3.5),

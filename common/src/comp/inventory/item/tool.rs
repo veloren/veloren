@@ -172,6 +172,10 @@ impl Asset for AbilityMap {
 pub enum UniqueKind {
     StoneGolemFist,
     BeastClaws,
-    GenericQuadMed,
+    QuadMedQuick,
+    QuadMedJump,
     QuadLowRanged,
+    QuadLowTail,
+    QuadLowQuick,
+    QuadLowBasic,
 }
