@@ -6,7 +6,10 @@ use super::{
 use crate::{
     hud::BuffPosition,
     i18n::{list_localizations, LanguageMetadata, Localization},
-    render::{AaMode, CloudMode, FluidMode, LightingMode, RenderMode, ShadowMapMode, ShadowMode},
+    render::{
+        AaMode, CloudMode, FluidMode, LightingMode, RenderMode, ShadowMapMode, ShadowMode,
+        UpscaleMode,
+    },
     ui::{fonts::Fonts, ImageSlider, ScaleMode, ToggleButton},
     window::{FullScreenSettings, FullscreenMode, GameInput},
     GlobalState,
@@ -126,6 +129,8 @@ widget_ids! {
         ambiance_value,
         aa_mode_text,
         aa_mode_list,
+        upscale_factor_text,
+        upscale_factor_list,
         cloud_mode_text,
         cloud_mode_list,
         fluid_mode_text,
@@ -2060,13 +2065,55 @@ impl<'a> Widget for SettingsWindow<'a> {
                 })));
             }
 
+            // Upscaling factor
+            Text::new(&self.localized_strings.get("hud.settings.upscale_factor"))
+                .down_from(state.ids.aa_mode_list, 8.0)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(TEXT_COLOR)
+                .set(state.ids.upscale_factor_text, ui);
+
+            let upscale_factors = [
+                // Upscaling
+                0.15, 0.2, 0.25, 0.35, 0.5, 0.65, 0.75, 0.85, 1.0,
+                // Downscaling (equivalent to SSAA)
+                1.25, 1.5, 1.75, 2.0,
+            ];
+
+            // Get which upscale factor is currently active
+            let selected = upscale_factors
+                .iter()
+                .position(|factor| (*factor - render_mode.upscale_mode.factor).abs() < 0.001);
+
+            if let Some(clicked) = DropDownList::new(
+                &upscale_factors
+                    .iter()
+                    .map(|factor| format!("{n:.*}", 2, n = factor))
+                    .collect::<Vec<String>>(),
+                selected,
+            )
+            .w_h(400.0, 22.0)
+            .color(MENU_BG)
+            .label_color(TEXT_COLOR)
+            .label_font_id(self.fonts.cyri.conrod_id)
+            .down_from(state.ids.upscale_factor_text, 8.0)
+            .set(state.ids.upscale_factor_list, ui)
+            {
+                events.push(Event::ChangeRenderMode(Box::new(RenderMode {
+                    upscale_mode: UpscaleMode {
+                        factor: upscale_factors[clicked],
+                    },
+                    ..render_mode.clone()
+                })));
+            }
+
             // CloudMode
             Text::new(
                 &self
                     .localized_strings
                     .get("hud.settings.cloud_rendering_mode"),
             )
-            .down_from(state.ids.aa_mode_list, 8.0)
+            .down_from(state.ids.upscale_factor_list, 8.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
