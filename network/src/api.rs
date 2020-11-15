@@ -288,7 +288,7 @@ impl Network {
     /// std::thread::spawn(f);
     /// block_on(async {
     ///     network
-    ///         .listen(ProtocolAddr::Tcp("0.0.0.0:2000".parse().unwrap()))
+    ///         .listen(ProtocolAddr::Tcp("127.0.0.1:2000".parse().unwrap()))
     ///         .await?;
     ///     network
     ///         .listen(ProtocolAddr::Udp("127.0.0.1:2001".parse().unwrap()))
@@ -330,8 +330,8 @@ impl Network {
     /// # let (remote, fr) = Network::new(Pid::new());
     /// # std::thread::spawn(fr);
     /// block_on(async {
-    ///     # remote.listen(ProtocolAddr::Tcp("0.0.0.0:2010".parse().unwrap())).await?;
-    ///     # remote.listen(ProtocolAddr::Udp("0.0.0.0:2011".parse().unwrap())).await?;
+    ///     # remote.listen(ProtocolAddr::Tcp("127.0.0.1:2010".parse().unwrap())).await?;
+    ///     # remote.listen(ProtocolAddr::Udp("127.0.0.1:2011".parse().unwrap())).await?;
     ///     let p1 = network
     ///         .connect(ProtocolAddr::Tcp("127.0.0.1:2010".parse().unwrap()))
     ///         .await?;
@@ -397,9 +397,9 @@ impl Network {
     /// # std::thread::spawn(fr);
     /// block_on(async {
     ///     network
-    ///         .listen(ProtocolAddr::Tcp("0.0.0.0:2020".parse().unwrap()))
+    ///         .listen(ProtocolAddr::Tcp("127.0.0.1:2020".parse().unwrap()))
     ///         .await?;
-    ///     # remote.connect(ProtocolAddr::Tcp("0.0.0.0:2020".parse().unwrap())).await?;
+    ///     # remote.connect(ProtocolAddr::Tcp("127.0.0.1:2020".parse().unwrap())).await?;
     ///     while let Ok(participant) = network.connected().await {
     ///         println!("Participant connected: {}", participant.remote_pid());
     ///         # //skip test here as it would be a endless loop
@@ -468,7 +468,7 @@ impl Participant {
     /// # let (remote, fr) = Network::new(Pid::new());
     /// # std::thread::spawn(fr);
     /// block_on(async {
-    ///     # remote.listen(ProtocolAddr::Tcp("0.0.0.0:2100".parse().unwrap())).await?;
+    ///     # remote.listen(ProtocolAddr::Tcp("127.0.0.1:2100".parse().unwrap())).await?;
     ///     let p1 = network
     ///         .connect(ProtocolAddr::Tcp("127.0.0.1:2100".parse().unwrap()))
     ///         .await?;
@@ -526,7 +526,7 @@ impl Participant {
     /// # let (remote, fr) = Network::new(Pid::new());
     /// # std::thread::spawn(fr);
     /// block_on(async {
-    ///     # remote.listen(ProtocolAddr::Tcp("0.0.0.0:2110".parse().unwrap())).await?;
+    ///     # remote.listen(ProtocolAddr::Tcp("127.0.0.1:2110".parse().unwrap())).await?;
     ///     let p1 = network.connect(ProtocolAddr::Tcp("127.0.0.1:2110".parse().unwrap())).await?;
     ///     # let p2 = remote.connected().await?;
     ///     # p2.open(16, Promises::ORDERED | Promises::CONSISTENCY).await?;
@@ -581,9 +581,9 @@ impl Participant {
     /// # std::thread::spawn(fr);
     /// block_on(async {
     ///     network
-    ///         .listen(ProtocolAddr::Tcp("0.0.0.0:2030".parse().unwrap()))
+    ///         .listen(ProtocolAddr::Tcp("127.0.0.1:2030".parse().unwrap()))
     ///         .await?;
-    ///     # let keep_alive = remote.connect(ProtocolAddr::Tcp("0.0.0.0:2030".parse().unwrap())).await?;
+    ///     # let keep_alive = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2030".parse().unwrap())).await?;
     ///     while let Ok(participant) = network.connected().await {
     ///         println!("Participant connected: {}", participant.remote_pid());
     ///         participant.disconnect().await?;
