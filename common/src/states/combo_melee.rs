@@ -118,6 +118,12 @@ impl CharacterBehavior for Data {
             && !ability_key_is_pressed(data, self.static_data.ability_key)
         {
             handle_interrupt(data, &mut update);
+            if ability_key_is_pressed(data, AbilityKey::Dodge) {
+                handle_dodge_input(data, &mut update);
+                if let CharacterState::Roll(roll) = &mut update.character {
+                    roll.was_combo = Some((self.stage, self.combo));
+                }
+            }
             match update.character {
                 CharacterState::ComboMelee(_) => {},
                 _ => {
