@@ -546,7 +546,11 @@ impl Body {
                 (humanoid::Species::Danari, humanoid::BodyType::Male) => 0.696,
                 (humanoid::Species::Danari, humanoid::BodyType::Female) => 0.696,
             },
-            Body::BipedLarge(_) => 2.5,
+            Body::BipedLarge(biped_large) => match (biped_large.species, biped_large.body_type) {
+                (biped_large::Species::Occultsaurok, _) => 2.0,
+                (biped_large::Species::Slysaurok, _) => 2.0,
+                _ => 2.2,
+            },
             Body::BirdMedium(_) => 0.7,
             Body::Dragon(_) => 16.0,
             Body::Golem(_) => 2.0,
