@@ -1,11 +1,14 @@
 use common::{
-    comp::{CharacterState, Energy, EnergyChange, EnergySource, Health, HealthSource, Stats},
+    comp::{
+        skills::SkillGroupType, CharacterState, Energy, EnergyChange, EnergySource, Health, Stats,
+    },
     event::{EventBus, ServerEvent},
     metrics::SysMetrics,
     resources::DeltaTime,
     span,
 };
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
+use std::collections::HashSet;
 
 const ENERGY_REGEN_ACCEL: f32 = 10.0;
 
@@ -56,13 +59,9 @@ impl<'a> System<'a> for Sys {
         )
             .join()
         {
-            let (set_dead, level_up) = {
-                let stat = stats.get_unchecked();
+            let set_dead = {
                 let health = health.get_unchecked();
-                (
-                    health.should_die() && !health.is_dead,
-                    stat.exp.current() >= stat.exp.maximum(),
-                )
+                health.should_die() && !health.is_dead
             };
 
             if set_dead {
@@ -75,20 +74,22 @@ impl<'a> System<'a> for Sys {
                 health.is_dead = true;
             }
 
-            if level_up {
-                let mut stat = stats.get_mut_unchecked();
-                let stat = &mut *stat;
-                while stat.exp.current() >= stat.exp.maximum() {
-                    stat.exp.change_by(-(stat.exp.maximum() as i64));
-                    stat.level.change_by(1);
-                    stat.exp.update_maximum(stat.level.level());
-                    server_event_emitter.emit(ServerEvent::LevelUp(entity, stat.level.level()));
+            let mut skills_to_level = HashSet::<SkillGroupType>::new();
+            let stat = stats.get_unchecked();
+            {
+                for skill_group in stat.skill_set.skill_groups.iter() {
+                    if skill_group.exp >= 300 {
+                        skills_to_level.insert(skill_group.skill_group_type);
+                    }
                 }
+            }
 
-                let mut health = health.get_mut_unchecked();
-                let health = &mut *health;
-                health.update_max_hp(Some(stat.body_type), stat.level.level());
-                health.set_to(health.maximum(), HealthSource::LevelUp);
+            if !skills_to_level.is_empty() {
+                let mut stat = stats.get_mut_unchecked();
+                for skill_group in skills_to_level.drain() {
+                    stat.skill_set.change_experience(skill_group, -300);
+                    stat.skill_set.add_skill_points(skill_group, 1);
+                }
             }
         }
 

@@ -255,7 +255,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                     for pool in xp_pools.drain() {
                         stats
                             .skill_set
-                            .add_experience(pool, (exp / num_pools).ceil() as u32);
+                            .change_experience(pool, (exp / num_pools).ceil() as i32);
                     }
                 }
             });
@@ -293,7 +293,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
             for pool in xp_pools.drain() {
                 attacker_stats
                     .skill_set
-                    .add_experience(pool, (exp_reward / num_pools).ceil() as u32);
+                    .change_experience(pool, (exp_reward / num_pools).ceil() as i32);
             }
         }
     })();

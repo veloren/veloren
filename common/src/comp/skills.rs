@@ -14,6 +14,13 @@ lazy_static! {
         defs.insert(
             SkillGroupType::General, [
                 Skill::General(GeneralSkill::HealthIncrease1),
+                Skill::General(GeneralSkill::HealthIncrease2),
+                Skill::UnlockGroup(SkillGroupType::Weapon(ToolKind::Sword)),
+                Skill::UnlockGroup(SkillGroupType::Weapon(ToolKind::Axe)),
+                Skill::UnlockGroup(SkillGroupType::Weapon(ToolKind::Hammer)),
+                Skill::UnlockGroup(SkillGroupType::Weapon(ToolKind::Bow)),
+                Skill::UnlockGroup(SkillGroupType::Weapon(ToolKind::Staff)),
+                Skill::UnlockGroup(SkillGroupType::Weapon(ToolKind::Sceptre)),
             ].iter().cloned().collect::<HashSet<Skill>>());
         defs.insert(
             SkillGroupType::Weapon(ToolKind::Sword), [
@@ -56,6 +63,7 @@ pub enum Skill {
     Bow(BowSkill),
     Staff(StaffSkill),
     Sceptre(SceptreSkill),
+    UnlockGroup(SkillGroupType),
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
@@ -91,12 +99,7 @@ pub enum SceptreSkill {
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum GeneralSkill {
     HealthIncrease1,
-    UnlockSwordTree,
-    UnlockAxeTree,
-    UnlockHammerTree,
-    UnlockBowTree,
-    UnlockStaffTree,
-    UnlockSceptreTree,
+    HealthIncrease2,
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
@@ -111,8 +114,8 @@ pub enum SkillGroupType {
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub struct SkillGroup {
     pub skill_group_type: SkillGroupType,
-    pub exp: u32,
-    pub available_sp: u8,
+    pub exp: u16,
+    pub available_sp: u16,
 }
 
 impl SkillGroup {
@@ -141,11 +144,7 @@ impl Default for SkillSet {
     fn default() -> Self {
         // TODO: Default skill groups for new players?
         Self {
-            skill_groups: vec![
-                SkillGroup::new(SkillGroupType::General),
-                SkillGroup::new(SkillGroupType::Weapon(ToolKind::Sword)),
-                SkillGroup::new(SkillGroupType::Weapon(ToolKind::Bow)),
-            ],
+            skill_groups: vec![SkillGroup::new(SkillGroupType::General)],
             skills: HashSet::new(),
         }
     }
@@ -200,6 +199,9 @@ impl SkillSet {
                 {
                     if skill_group.available_sp > 0 {
                         skill_group.available_sp -= 1;
+                        if let Skill::UnlockGroup(group) = skill {
+                            self.unlock_skill_group(group);
+                        }
                         self.skills.insert(skill);
                     } else {
                         warn!("Tried to unlock skill for skill group with no available SP");
@@ -284,7 +286,7 @@ impl SkillSet {
     pub fn add_skill_points(
         &mut self,
         skill_group_type: SkillGroupType,
-        number_of_skill_points: u8,
+        number_of_skill_points: u16,
     ) {
         if let Some(mut skill_group) = self
             .skill_groups
@@ -305,14 +307,15 @@ impl SkillSet {
             .any(|x| x.skill_group_type == skill_group_type)
     }
 
-    /// Adds experience to the skill group within an entity's skill set
-    pub fn add_experience(&mut self, skill_group_type: SkillGroupType, amount: u32) {
+    /// Adds/subtracts experience to the skill group within an entity's skill
+    /// set
+    pub fn change_experience(&mut self, skill_group_type: SkillGroupType, amount: i32) {
         if let Some(mut skill_group) = self
             .skill_groups
             .iter_mut()
             .find(|x| x.skill_group_type == skill_group_type)
         {
-            skill_group.exp += amount;
+            skill_group.exp = (skill_group.exp as i32 + amount) as u16;
         } else {
             warn!("Tried to add experience to a skill group that player does not have");
         }
