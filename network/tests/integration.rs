@@ -78,10 +78,10 @@ fn tcp_and_udp_2_connections() -> std::result::Result<(), Box<dyn std::error::Er
     std::thread::spawn(fr);
     block_on(async {
         remote
-            .listen(ProtocolAddr::Tcp("0.0.0.0:2000".parse().unwrap()))
+            .listen(ProtocolAddr::Tcp("127.0.0.1:2000".parse().unwrap()))
             .await?;
         remote
-            .listen(ProtocolAddr::Udp("0.0.0.0:2001".parse().unwrap()))
+            .listen(ProtocolAddr::Udp("127.0.0.1:2001".parse().unwrap()))
             .await?;
         let p1 = network
             .connect(ProtocolAddr::Tcp("127.0.0.1:2000".parse().unwrap()))
