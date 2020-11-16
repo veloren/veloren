@@ -1,5 +1,5 @@
 ChargedRanged(
-    energy_cost: 0,
+    energy_cost: 1,
     energy_drain: 300,
     initial_damage: 40,
     max_damage: 200,
