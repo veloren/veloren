@@ -25,11 +25,10 @@ use common::{
     },
     event::{EventBus, LocalEvent},
     msg::{
-        validate_chat_msg, ChatMsgValidationError, ClientGeneral, ClientMsg, ClientRegister,
-        ClientType, DisconnectReason, InviteAnswer, Notification, PingMsg, PlayerInfo,
-        PlayerListUpdate, PresenceKind, RegisterError, ServerGeneral, ServerInfo, ServerInit,
-        ServerRegisterAnswer, MAX_BYTES_CHAT_MSG,
-        world_msg::SiteInfo,
+        validate_chat_msg, world_msg::SiteInfo, ChatMsgValidationError, ClientGeneral, ClientMsg,
+        ClientRegister, ClientType, DisconnectReason, InviteAnswer, Notification, PingMsg,
+        PlayerInfo, PlayerListUpdate, PresenceKind, RegisterError, ServerGeneral, ServerInfo,
+        ServerInit, ServerRegisterAnswer, MAX_BYTES_CHAT_MSG,
     },
     outcome::Outcome,
     recipe::RecipeBook,
@@ -646,9 +645,7 @@ impl Client {
     }
 
     /// Unstable, likely to be removed in a future release
-    pub fn sites(&self) -> &[SiteInfo] {
-        &self.sites
-    }
+    pub fn sites(&self) -> &[SiteInfo] { &self.sites }
 
     pub fn enable_lantern(&mut self) {
         self.send_msg(ClientGeneral::ControlEvent(ControlEvent::EnableLantern));

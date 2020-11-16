@@ -175,6 +175,17 @@ impl Dungeon {
             max: rpos + TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
         };
 
+        // Add waypoint
+        let pos = self.origin.map2(FLOOR_SIZE, |e, sz| e + sz as i32 / 2);
+        if area.contains_point(pos - self.origin) {
+            supplement.add_entity(EntityInfo::at(Vec3::new(
+                pos.x as f32,
+                pos.y as f32,
+                self.alt as f32,
+            ) + 0.5)
+                .into_waypoint());
+        }
+
         let mut z = self.alt + ALT_OFFSET;
         for floor in &self.floors {
             z -= floor.total_depth();
@@ -452,12 +463,12 @@ impl Floor {
             .try_normalized()
             .unwrap_or_else(Vec2::unit_y)
                 * (TILE_SIZE as f32 / 2.0 - 4.0);
-            if !self.final_level {
-                supplement.add_entity(
-                    EntityInfo::at((origin + stair_rcenter).map(|e| e as f32) + Vec3::from(offs))
-                        .into_waypoint(),
-                );
-            }
+            // if !self.final_level {
+            //     supplement.add_entity(
+            //         EntityInfo::at((origin + stair_rcenter).map(|e| e as f32)
+            // + Vec3::from(offs))             .into_waypoint(),
+            //     );
+            // }
         }
 
         for x in area.min.x..area.max.x {
