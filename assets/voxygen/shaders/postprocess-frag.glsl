@@ -206,10 +206,9 @@ void main() {
 
     // Tonemapping
     float exposure = 1.0;
-    float tone_gamma = 1.0;
     aa_color.rgb = vec3(1.0) - exp(-aa_color.rgb * exposure);
     // gamma correction
-    aa_color.rgb = pow(aa_color.rgb, vec3(1.0 / tone_gamma));
+    aa_color.rgb = pow(aa_color.rgb, vec3(gamma));
 
     /*
     // Apply clouds to `aa_color`
@@ -245,7 +244,7 @@ void main() {
     //hsva_color.z = 1.0 - 1.0 / (1.0 * hsva_color.z + 1.0);
     //vec4 final_color = vec4(hsv2rgb(hsva_color.rgb), hsva_color.a);
 
-    vec4 final_color = pow(aa_color, gamma);
+    vec4 final_color = aa_color;
 
 #if (FLUID_MODE == FLUID_MODE_CHEAP)
     if (medium.x == 1u) {
