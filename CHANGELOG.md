@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Deselecting when the selected character is deleted
 - Upscaling support
 - Added "Persist Combo from Combo Melee State" when rolling mid-combo
+- You can no longer spam hammer and bow special when stamina is 0
 
 ### Changed
 
