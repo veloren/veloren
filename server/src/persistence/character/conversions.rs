@@ -9,8 +9,9 @@ use crate::persistence::{
 };
 use common::{
     character::CharacterId,
-    comp::{item::tool::AbilityMap, Body as CompBody, *},
+    comp::{item::tool::AbilityMap, Body as CompBody, Waypoint, *},
     loadout_builder,
+    state::Time,
 };
 use core::{convert::TryFrom, num::NonZeroU64};
 use itertools::{Either, Itertools};
@@ -168,22 +169,44 @@ pub fn convert_body_to_database_json(body: &CompBody) -> Result<String, Error> {
     serde_json::to_string(&json_model).map_err(Error::SerializationError)
 }
 
-pub fn convert_waypoint_to_database_json(waypoint: &Waypoint) -> Result<String, Error> {
+fn convert_waypoint_to_database_json(waypoint: &Waypoint) -> Result<String, Error> {
     let charpos = CharacterPosition {
         waypoint: waypoint.get_pos(),
     };
-    serde_json::to_string(&charpos).map_err(Error::SerializationError)
+    serde_json::to_string(&charpos)
+        .map_err(|err| Error::ConversionError(format!("Error encoding waypoint: {:?}", err)))
 }
 
-pub fn convert_stats_to_database(character_id: CharacterId, stats: &common::comp::Stats) -> Stats {
-    Stats {
+pub fn convert_waypoint_from_database_json(position: &str) -> Result<Waypoint, Error> {
+    let character_position =
+        serde_json::de::from_str::<CharacterPosition>(position).map_err(|err| {
+            Error::ConversionError(format!(
+                "Error de-serializing waypoint: {} err: {}",
+                position, err
+            ))
+        })?;
+    Ok(Waypoint::new(character_position.waypoint, Time(0.0)))
+}
+
+pub fn convert_stats_to_database(
+    character_id: CharacterId,
+    stats: &common::comp::Stats,
+    waypoint: &Option<common::comp::Waypoint>,
+) -> Result<Stats, Error> {
+    let waypoint = match waypoint {
+        Some(w) => Some(convert_waypoint_to_database_json(&w)?),
+        None => None,
+    };
+
+    Ok(Stats {
         stats_id: character_id,
         level: stats.level.level() as i32,
         exp: stats.exp.current() as i32,
         endurance: stats.endurance as i32,
         fitness: stats.fitness as i32,
         willpower: stats.willpower as i32,
-    }
+        waypoint,
+    })
 }
 
 pub fn convert_inventory_from_database_items(database_items: &[Item]) -> Result<Inventory, Error> {
