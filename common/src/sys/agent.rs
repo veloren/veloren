@@ -334,7 +334,11 @@ impl<'a> System<'a> for Sys {
                             Staff,
                             StoneGolemBoss,
                             Wolf,
-                            Maneater,
+                            QuadLowRanged,
+                            TailSlap,
+                            QuadLowQuick,
+                            QuadLowBasic,
+                            QuadMedJump,
                         }
 
                         let tactic = match loadout.active_item.as_ref().and_then(|ic| {
@@ -353,8 +357,17 @@ impl<'a> System<'a> for Sys {
                                 Tactic::StoneGolemBoss
                             },
                             Some(ToolKind::Unique(UniqueKind::QuadMedQuick)) => Tactic::Wolf,
-                            Some(ToolKind::Unique(UniqueKind::QuadLowRanged)) => Tactic::Maneater,
-
+                            Some(ToolKind::Unique(UniqueKind::QuadMedJump)) => Tactic::QuadMedJump,
+                            Some(ToolKind::Unique(UniqueKind::QuadLowRanged)) => {
+                                Tactic::QuadLowRanged
+                            },
+                            Some(ToolKind::Unique(UniqueKind::QuadLowTail)) => Tactic::TailSlap,
+                            Some(ToolKind::Unique(UniqueKind::QuadLowQuick)) => {
+                                Tactic::QuadLowQuick
+                            },
+                            Some(ToolKind::Unique(UniqueKind::QuadLowBasic)) => {
+                                Tactic::QuadLowBasic
+                            },
                             _ => Tactic::Melee,
                         };
 
@@ -368,6 +381,7 @@ impl<'a> System<'a> for Sys {
                                     .unwrap_or(Alignment::Wild),
                             ),
                         ) {
+                            // Wield the weapon as running towards the target
                             controller.actions.push(ControlAction::Wield);
 
                             let eye_offset = body.map_or(0.0, |b| b.eye_height());
@@ -378,10 +392,13 @@ impl<'a> System<'a> for Sys {
                             let distance_offset = match tactic {
                                 Tactic::Bow => 0.0004 * pos.0.distance_squared(tgt_pos.0),
                                 Tactic::Staff => 0.0015 * pos.0.distance_squared(tgt_pos.0),
-                                Tactic::Maneater => 0.05 * pos.0.distance_squared(tgt_pos.0),
+                                Tactic::QuadLowRanged => 0.05 * pos.0.distance_squared(tgt_pos.0),
                                 _ => 0.0,
                             };
 
+                            // Apply the distance and eye offsets to make the
+                            // look_dir the vector from projectile launch to
+                            // target point
                             if let Some(dir) = Dir::from_unnormalized(
                                 Vec3::new(
                                     tgt_pos.0.x,
@@ -440,12 +457,14 @@ impl<'a> System<'a> for Sys {
                                 } else {
                                     do_idle = true;
                                 }
-                            } else if (tactic == Tactic::Staff
+                            } else if ((tactic == Tactic::Staff || tactic == Tactic::QuadMedJump)
                                 && dist_sqrd < (5.0 * MIN_ATTACK_DIST * scale).powf(2.0))
-                                || (tactic == Tactic::Maneater
+                                || (tactic == Tactic::QuadLowRanged
                                     && dist_sqrd < (4.0 * MIN_ATTACK_DIST * scale).powf(2.0))
                                 || (tactic == Tactic::Wolf
                                     && dist_sqrd < (3.0 * MIN_ATTACK_DIST * scale).powf(2.0))
+                                || ((tactic == Tactic::TailSlap || tactic == Tactic::QuadLowBasic)
+                                    && dist_sqrd < (1.5 * MIN_ATTACK_DIST * scale).powf(2.0))
                                 || dist_sqrd < (MIN_ATTACK_DIST * scale).powf(2.0)
                             {
                                 controller.actions.push(ControlAction::Wield);
@@ -459,11 +478,23 @@ impl<'a> System<'a> for Sys {
                                             .try_normalized()
                                             .unwrap_or(Vec2::unit_y());
                                     },
-                                    Tactic::Maneater => {
+                                    Tactic::QuadLowRanged => {
                                         inputs.move_dir = (tgt_pos.0 - pos.0)
                                             .xy()
                                             .try_normalized()
                                             .unwrap_or(Vec2::unit_y());
+                                    },
+                                    Tactic::TailSlap => {
+                                        inputs.move_dir = Vec2::zero();
+                                    },
+                                    Tactic::QuadLowQuick => {
+                                        inputs.move_dir = Vec2::zero();
+                                    },
+                                    Tactic::QuadLowBasic => {
+                                        inputs.move_dir = Vec2::zero();
+                                    },
+                                    Tactic::QuadMedJump => {
+                                        inputs.move_dir = Vec2::zero();
                                     },
                                     _ => {
                                         inputs.move_dir = (tgt_pos.0 - pos.0)
@@ -524,12 +555,38 @@ impl<'a> System<'a> for Sys {
                                             *powerup += dt.0;
                                         }
                                     },
-                                    Tactic::Maneater => inputs.secondary.set_state(true),
                                     Tactic::Bow => inputs.roll.set_state(true),
                                     Tactic::Melee => inputs.primary.set_state(true),
+                                    // Animal attacks
+                                    Tactic::TailSlap => {
+                                        if *powerup > 4.0 {
+                                            inputs.primary.set_state(false);
+                                            *powerup = 0.0;
+                                        } else if *powerup > 2.0 {
+                                            inputs.primary.set_state(true);
+                                            *powerup += dt.0;
+                                        } else {
+                                            inputs.secondary.set_state(true);
+                                            *powerup += dt.0;
+                                        }
+                                    },
+                                    Tactic::QuadLowRanged => inputs.primary.set_state(true),
+                                    Tactic::QuadLowBasic => {
+                                        if *powerup > 5.0 {
+                                            *powerup = 0.0;
+                                        } else if *powerup > 2.0 {
+                                            inputs.secondary.set_state(true);
+                                            *powerup += dt.0;
+                                        } else {
+                                            inputs.primary.set_state(true);
+                                            *powerup += dt.0;
+                                        }
+                                    },
+                                    Tactic::QuadLowQuick => inputs.secondary.set_state(true),
+                                    Tactic::QuadMedJump => inputs.primary.set_state(true),
                                     _ => {},
                                 }
-                            } else if matches!(tactic, Tactic::Wolf)
+                            } else if tactic == Tactic::Wolf
                                 && dist_sqrd < (4.0 * MIN_ATTACK_DIST * scale).powf(2.0)
                                 && dist_sqrd > (3.0 * MIN_ATTACK_DIST * scale).powf(2.0)
                             {
@@ -560,12 +617,17 @@ impl<'a> System<'a> for Sys {
                                 } else {
                                     *powerup = 0.0;
                                 }
+                            } else if tactic == Tactic::QuadLowQuick
+                                && dist_sqrd < (3.0 * MIN_ATTACK_DIST * scale).powf(2.0)
+                                && dist_sqrd > (2.0 * MIN_ATTACK_DIST * scale).powf(2.0)
+                            {
+                                inputs.primary.set_state(true);
                             } else if dist_sqrd < MAX_CHASE_DIST.powf(2.0)
                                 || (dist_sqrd < SIGHT_DIST.powf(2.0)
                                     && (!*been_close || !matches!(tactic, Tactic::Melee)))
                             {
                                 let can_see_tgt = match tactic {
-                                    Tactic::Maneater => {
+                                    Tactic::QuadLowRanged => {
                                         terrain
                                             .ray(pos.0 + Vec3::unit_z(), tgt_pos.0 + Vec3::unit_z())
                                             .until(Block::is_opaque)
@@ -634,8 +696,8 @@ impl<'a> System<'a> for Sys {
                                                 *powerup += dt.0;
                                             }
                                         },
-                                        Tactic::Maneater => {
-                                            inputs.primary.set_state(true);
+                                        Tactic::QuadLowRanged => {
+                                            inputs.secondary.set_state(true);
                                         },
                                         _ => {},
                                     }
@@ -674,13 +736,13 @@ impl<'a> System<'a> for Sys {
                                                     .unwrap_or(Vec2::zero())
                                                     * speed;
                                             },
-                                            Tactic::Maneater => {
+                                            Tactic::QuadLowRanged => {
                                                 if *powerup > 5.0 {
                                                     *powerup = 0.0;
                                                 } else if *powerup > 2.5 {
                                                     inputs.move_dir = bearing
                                                         .xy()
-                                                        .rotated_z(-0.25 * PI)
+                                                        .rotated_z(1.75 * PI)
                                                         .try_normalized()
                                                         .unwrap_or(Vec2::zero())
                                                         * speed;
