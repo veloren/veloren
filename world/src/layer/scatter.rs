@@ -1,6 +1,7 @@
 use crate::{column::ColumnSample, sim::SimChunk, util::RandomField, Canvas, CONFIG};
 use common::terrain::SpriteKind;
 use noise::NoiseFn;
+use rand::prelude::*;
 use std::f32;
 use vek::*;
 
@@ -10,7 +11,7 @@ fn close(x: f32, tgt: f32, falloff: f32) -> f32 {
 
 const MUSH_FACT: f32 = 1.0e-4; // To balance everything around the mushroom spawning rate
 const DEPTH_WATER_NORM: f32 = 15.0; // Water depth at which regular underwater sprites start spawning
-pub fn apply_scatter_to(canvas: &mut Canvas) {
+pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
     use SpriteKind::*;
     #[allow(clippy::type_complexity)]
     // TODO: Add back all sprites we had before
@@ -317,7 +318,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas) {
                     .unwrap_or(true);
                 if density > 0.0
                     && is_patch
-                    && RandomField::new(i as u32).chance(Vec3::new(wpos2d.x, wpos2d.y, 0), density)
+                    && rng.gen::<f32>() < density //RandomField::new(i as u32).chance(Vec3::new(wpos2d.x, wpos2d.y, 0), density)
                     && underwater == *is_underwater
                 {
                     Some(*kind)

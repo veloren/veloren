@@ -342,7 +342,7 @@ void main() {
     } else {
         f_ao *= mix(1.0, clamp(pow(fract(my_alt), 0.5), 0, 1), voxelize_factor);
 
-        if (fract(f_pos.x) * abs(my_norm.x / cam_dir.x) < fract(f_pos.y) * abs(my_norm.y / cam_dir.y)) {//cam_dir.x / my_norm.x + clamp(dot(vec3(1, 0, 0), -cam_dir), 0, 1)) {
+        if (fract(f_pos.x) * abs(my_norm.y / cam_dir.x) < fract(f_pos.y) * abs(my_norm.x / cam_dir.y)) {
             voxel_norm = vec3(sign(cam_dir.x), 0, 0);
         } else {
             voxel_norm = vec3(0, sign(cam_dir.y), 0);

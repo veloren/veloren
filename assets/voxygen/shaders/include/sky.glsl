@@ -72,14 +72,14 @@ vec2 wind_offset = vec2(time_of_day.x * wind_speed);
 float cloud_tendency_at(vec2 pos) {
     float nz = texture(t_noise, (pos + wind_offset) * 0.000075).x - 0.5;
     nz = clamp(nz, 0, 1);
-    #if (CLOUD_MODE == CLOUD_MODE_MEDIUM || CLOUD_MODE == CLOUD_MODE_HIGH)
+    #if (CLOUD_MODE >= CLOUD_MODE_MEDIUM)
         nz += (texture(t_noise, (pos + wind_offset) * 0.00035).x - 0.5) * 0.15;
     #endif
     return nz;
 }
 
 float cloud_shadow(vec3 pos, vec3 light_dir) {
-    #if (CLOUD_MODE == CLOUD_MODE_NONE || CLOUD_MODE == CLOUD_MODE_MINIMAL)
+    #if (CLOUD_MODE <= CLOUD_MODE_MINIMAL)
         return 1.0;
     #else
         vec2 xy_offset = light_dir.xy * ((CLOUD_AVG_ALT - pos.z) / -light_dir.z);
