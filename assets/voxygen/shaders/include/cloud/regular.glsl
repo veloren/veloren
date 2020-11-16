@@ -167,7 +167,7 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
             // Add the directed light light scattered into the camera by the clouds
             get_sun_color() * sun_scatter * sun_access * scatter_factor * get_sun_brightness() +
             // Really we should multiple by just moon_brightness here but this just looks better given that we lack HDR
-            get_moon_color() * moon_scatter * moon_access * scatter_factor * get_moon_brightness() * 3.0 +
+            get_moon_color() * moon_scatter * moon_access * scatter_factor * get_moon_brightness() * 4.0 +
             // Global illumination (uniform scatter from the sky)
             sky_color * sun_access * scatter_factor * get_sun_brightness() +
             sky_color * moon_access * scatter_factor * get_moon_brightness();

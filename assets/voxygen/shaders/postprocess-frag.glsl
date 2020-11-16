@@ -204,6 +204,13 @@ void main() {
 
     vec4 aa_color = aa_apply(src_color, uv * screen_res.xy, screen_res.xy);
 
+    // Tonemapping
+    float exposure = 1.0;
+    float tone_gamma = 1.0;
+    aa_color.rgb = vec3(1.0) - exp(-aa_color.rgb * exposure);
+    // gamma correction
+    aa_color.rgb = pow(aa_color.rgb, vec3(1.0 / tone_gamma));
+
     /*
     // Apply clouds to `aa_color`
     #if (CLOUD_MODE != CLOUD_MODE_NONE)
