@@ -379,7 +379,7 @@ fn handle_home(
         server.state.write_component(target, comp::Pos(home_pos));
         server
             .state
-            .write_component(target, comp::Waypoint::new(home_pos, time));
+            .write_component(target, comp::Waypoint::temp_new(home_pos, time));
         server.state.write_component(target, comp::ForceUpdate);
     } else {
         server.notify_client(
@@ -1208,7 +1208,7 @@ fn handle_waypoint(
                 .state
                 .ecs()
                 .write_storage::<comp::Waypoint>()
-                .insert(target, comp::Waypoint::new(pos.0, *time));
+                .insert(target, comp::Waypoint::temp_new(pos.0, *time));
             server.notify_client(client, ChatType::CommandInfo.server_msg("Waypoint saved!"));
             server.notify_client(
                 client,
