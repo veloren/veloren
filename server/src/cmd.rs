@@ -423,23 +423,31 @@ fn handle_time(
 ) {
     let time = scan_fmt_some!(&args, &action.arg_fmt(), String);
     let new_time = match time.as_deref() {
-        Some("midnight") => NaiveTime::from_hms(0, 0, 0),
-        Some("night") => NaiveTime::from_hms(20, 0, 0),
-        Some("dawn") => NaiveTime::from_hms(5, 0, 0),
-        Some("morning") => NaiveTime::from_hms(8, 0, 0),
-        Some("day") => NaiveTime::from_hms(10, 0, 0),
-        Some("noon") => NaiveTime::from_hms(12, 0, 0),
-        Some("dusk") => NaiveTime::from_hms(17, 0, 0),
+        Some("midnight") => NaiveTime::from_hms(0, 0, 0).num_seconds_from_midnight() as f64,
+        Some("night") => NaiveTime::from_hms(20, 0, 0).num_seconds_from_midnight() as f64,
+        Some("dawn") => NaiveTime::from_hms(5, 0, 0).num_seconds_from_midnight() as f64,
+        Some("morning") => NaiveTime::from_hms(8, 0, 0).num_seconds_from_midnight() as f64,
+        Some("day") => NaiveTime::from_hms(10, 0, 0).num_seconds_from_midnight() as f64,
+        Some("noon") => NaiveTime::from_hms(12, 0, 0).num_seconds_from_midnight() as f64,
+        Some("dusk") => NaiveTime::from_hms(17, 0, 0).num_seconds_from_midnight() as f64,
         Some(n) => match n.parse() {
             Ok(n) => n,
             Err(_) => match NaiveTime::parse_from_str(n, "%H:%M") {
-                Ok(time) => time,
-                Err(_) => {
-                    server.notify_client(
-                        client,
-                        ChatType::CommandError.server_msg(format!("'{}' is not a valid time.", n)),
-                    );
-                    return;
+                Ok(time) => time.num_seconds_from_midnight() as f64,
+                // Accept `u12345`, seconds since midnight day 0`
+                Err(_) => match n
+                    .get(1..)
+                    .filter(|_| n.chars().next() == Some('u'))
+                    .and_then(|n| n.trim_left_matches('u').parse::<u64>().ok())
+                {
+                    Some(n) => n as f64,
+                    None => {
+                        server.notify_client(
+                            client,
+                            ChatType::CommandError.server_msg(format!("'{}' is not a valid time.", n)),
+                        );
+                        return;
+                    },
                 },
             },
         },
@@ -460,16 +468,19 @@ fn handle_time(
         },
     };
 
-    server.state.ecs_mut().write_resource::<TimeOfDay>().0 =
-        new_time.num_seconds_from_midnight() as f64;
+    server.state.ecs_mut().write_resource::<TimeOfDay>().0 = new_time;
 
-    server.notify_client(
-        client,
-        ChatType::CommandInfo.server_msg(format!(
-            "Time changed to: {}",
-            new_time.format("%H:%M").to_string()
-        )),
-    );
+    if let Some(new_time) = NaiveTime::from_num_seconds_from_midnight_opt(((new_time as u64) % 86400) as u32, 0) {
+        server.notify_client(
+            client,
+            ChatType::CommandInfo.server_msg(format!(
+                "Time changed to: {}",
+                new_time
+                    .format("%H:%M")
+                    .to_string(),
+            )),
+        );
+    }
 }
 
 fn handle_health(
