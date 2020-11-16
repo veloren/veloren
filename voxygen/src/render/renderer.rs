@@ -1829,6 +1829,7 @@ fn create_pipelines(
             CloudMode::Low => "CLOUD_MODE_LOW",
             CloudMode::Medium => "CLOUD_MODE_MEDIUM",
             CloudMode::High => "CLOUD_MODE_HIGH",
+            CloudMode::Ultra => "CLOUD_MODE_ULTRA",
         },
         match mode.lighting {
             LightingMode::Ashikhmin => "LIGHTING_ALGORITHM_ASHIKHMIN",

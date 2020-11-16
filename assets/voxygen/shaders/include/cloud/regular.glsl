@@ -40,13 +40,13 @@ vec4 cloud_at(vec3 pos, float dist) {
         // Turbulence (small variations in clouds/mist)
         const float turb_speed = -1.0; // Turbulence goes the opposite way
         vec3 turb_offset = vec3(1, 1, 0) * time_of_day.x * turb_speed;
-        #if (CLOUD_MODE != CLOUD_MODE_MINIMAL)
+        #if (CLOUD_MODE >= CLOUD_MODE_MINIMAL)
             turb_noise = noise_3d((wind_pos + turb_offset) * 0.001) - 0.5;
         #endif
-        #if (CLOUD_MODE == CLOUD_MODE_MEDIUM || CLOUD_MODE == CLOUD_MODE_HIGH)
+        #if (CLOUD_MODE >= CLOUD_MODE_MEDIUM)
             turb_noise += (noise_3d((wind_pos + turb_offset * 0.3) * 0.004) - 0.5) * 0.35;
         #endif
-        #if (CLOUD_MODE == CLOUD_MODE_HIGH)
+        #if (CLOUD_MODE >= CLOUD_MODE_HIGH)
             turb_noise += (noise_3d((wind_pos + turb_offset * 0.3) * 0.01) - 0.5) * 0.125;
         #endif
         mist *= (1.0 + turb_noise);
@@ -62,14 +62,14 @@ vec4 cloud_at(vec3 pos, float dist) {
     // Since we're assuming the sun/moon is always above (not always correct) it's the same for the moon
     float moon_access = sun_access;
 
-    #if (CLOUD_MODE == CLOUD_MODE_HIGH)
+    #if (CLOUD_MODE >= CLOUD_MODE_HIGH)
         // Try to calculate a reasonable approximation of the cloud normal
         float cloud_tendency_x = cloud_tendency_at(pos.xy + vec2(100, 0));
         float cloud_tendency_y = cloud_tendency_at(pos.xy + vec2(0, 100));
         vec3 cloud_norm = vec3(
-            (cloud_tendency - cloud_tendency_x) * 7.5,
-            (cloud_tendency - cloud_tendency_y) * 7.5,
-            (pos.z - cloud_attr.x) / 250 + turb_noise * 1
+            (cloud_tendency - cloud_tendency_x) * 6,
+            (cloud_tendency - cloud_tendency_y) * 6,
+            (pos.z - cloud_attr.x) / 250 + turb_noise
         );
         sun_access = mix(clamp(dot(-sun_dir.xyz, cloud_norm), 0.025, 1), sun_access, 0.25);
         moon_access = mix(clamp(dot(-moon_dir.xyz, cloud_norm), 0.025, 1), moon_access, 0.25);
@@ -96,14 +96,16 @@ float atan2(in float y, in float x) {
 }
 
 const float DIST_CAP = 50000;
-#if (CLOUD_MODE == CLOUD_MODE_HIGH)
-    const uint QUALITY = 100u;
+#if (CLOUD_MODE == CLOUD_MODE_ULTRA)
+    const uint QUALITY = 200u;
+#elif (CLOUD_MODE == CLOUD_MODE_HIGH)
+    const uint QUALITY = 50u;
 #elif (CLOUD_MODE == CLOUD_MODE_MEDIUM)
-    const uint QUALITY = 40u;
+    const uint QUALITY = 30u;
 #elif (CLOUD_MODE == CLOUD_MODE_LOW)
-    const uint QUALITY = 20u;
+    const uint QUALITY = 16u;
 #elif (CLOUD_MODE == CLOUD_MODE_MINIMAL)
-    const uint QUALITY = 7u;
+    const uint QUALITY = 5u;
 #endif
 
 const float STEP_SCALE = DIST_CAP / (10.0 * float(QUALITY));
@@ -155,11 +157,13 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
         float moon_access = sample.y;
         float scatter_factor = 1.0 - 1.0 / (1.0 + density_integrals.x);
 
+        const float RAYLEIGH = 0.5;
+
         surf_color =
-            // Attenuate light passing through the clouds, removing light due to rayleigh scattering (transmission component)
-            surf_color * (1.0 - scatter_factor) - surf_color * density_integrals.y * sky_color +
+            // Attenuate light passing through the clouds
+            surf_color * (1.0 - scatter_factor) +
             // This is not rayleigh scattering, but it's good enough for our purposes (only considers sun)
-            sky_color * net_light * density_integrals.y +
+            (1.0 - surf_color) * net_light * sky_color * density_integrals.y * RAYLEIGH +
             // Add the directed light light scattered into the camera by the clouds
             get_sun_color() * sun_scatter * sun_access * scatter_factor * get_sun_brightness() +
             // Really we should multiple by just moon_brightness here but this just looks better given that we lack HDR

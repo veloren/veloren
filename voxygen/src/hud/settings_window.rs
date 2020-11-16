@@ -2125,6 +2125,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 CloudMode::Low,
                 CloudMode::Medium,
                 CloudMode::High,
+                CloudMode::Ultra,
             ];
             let mode_label_list = [
                 &self.localized_strings.get("common.none"),
@@ -2140,6 +2141,9 @@ impl<'a> Widget for SettingsWindow<'a> {
                 &self
                     .localized_strings
                     .get("hud.settings.cloud_rendering_mode.high"),
+                &self
+                    .localized_strings
+                    .get("hud.settings.cloud_rendering_mode.ultra"),
             ];
 
             // Get which cloud rendering mode is currently active
