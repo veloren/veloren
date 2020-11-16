@@ -148,7 +148,6 @@ const DEFAULT_NPC: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
 const UI_MAIN: Color = Color::Rgba(0.61, 0.70, 0.70, 1.0); // Greenish Blue
 //const UI_MAIN: Color = Color::Rgba(0.1, 0.1, 0.1, 0.97); // Dark
 const UI_HIGHLIGHT_0: Color = Color::Rgba(0.79, 1.09, 1.09, 1.0);
-const UI_GOLD: Color = Color::Rgba(0.75, 0.58, 0.0, 1.0);
 // Pull-Down menu BG color
 const MENU_BG: Color = Color::Rgba(0.1, 0.12, 0.12, 1.0);
 //const UI_DARK_0: Color = Color::Rgba(0.25, 0.37, 0.37, 1.0);
@@ -450,6 +449,10 @@ pub struct Show {
     stats: bool,
     free_look: bool,
     auto_walk: bool,
+    map_difficulty: bool,
+    map_towns: bool,
+    map_castles: bool,
+    map_dungeons: bool,
 }
 impl Show {
     fn bag(&mut self, open: bool) {
@@ -463,7 +466,7 @@ impl Show {
     fn toggle_bag(&mut self) { self.bag(!self.bag); }
 
     fn map(&mut self, open: bool) {
-        if !self.esc_menu {
+        if !self.esc_menu {            
             self.map = open;
             self.bag = false;
             self.crafting = false;
@@ -499,7 +502,8 @@ impl Show {
         }
     }
 
-    fn toggle_map(&mut self) { self.map(!self.map) }
+    fn toggle_map(&mut self) { 
+        self.map(!self.map) }
 
     fn toggle_mini_map(&mut self) { self.mini_map = !self.mini_map; }
 
@@ -713,6 +717,10 @@ impl Hud {
                 stats: false,
                 free_look: false,
                 auto_walk: false,
+                map_difficulty: true,
+                map_towns: true,
+                map_castles: true,
+                map_dungeons: true,
             },
             to_focus: None,
             //never_show: false,
@@ -2261,6 +2269,18 @@ impl Hud {
                         self.show.map(false);
                         self.show.want_grab = true;
                         self.force_ungrab = false;
+                    },
+                    map::Event::ShowDifficulties => {
+                        self.show.map_difficulty = !self.show.map_difficulty
+                    },
+                    map::Event::ShowTowns => {
+                        self.show.map_towns = !self.show.map_towns
+                    },
+                    map::Event::ShowCastles => {
+                        self.show.map_castles = !self.show.map_castles
+                    },
+                    map::Event::ShowDungeons => {
+                        self.show.map_dungeons = !self.show.map_dungeons
                     },
                     map::Event::MapZoom(map_zoom) => {
                         events.push(Event::MapZoom(map_zoom));

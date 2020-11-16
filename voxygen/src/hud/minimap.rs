@@ -292,8 +292,7 @@ impl<'a> Widget for MiniMap<'a> {
                         Color::Rgba(0.75, 0.0, 0.0, 1.0)
                     } else {
                         TEXT_COLOR
-                    })
-                    .floating(true)
+                    })                    
                     .parent(ui.window)
                     .set(*id, ui);
             }
