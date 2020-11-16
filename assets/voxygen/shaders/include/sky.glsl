@@ -22,8 +22,8 @@ const vec3 SUN_HALO_DAY = vec3(0.35, 0.35, 0.05);
 const vec3 SKY_DUSK_TOP = vec3(0.06, 0.1, 0.20);
 const vec3 SKY_DUSK_MID = vec3(0.35, 0.1, 0.15);
 const vec3 SKY_DUSK_BOT = vec3(0.0, 0.1, 0.23);
-const vec3 DUSK_LIGHT   = vec3(9.0, 1.5, 0.15);
-const vec3 SUN_HALO_DUSK = vec3(1.2, 0.025, 0.0);
+const vec3 DUSK_LIGHT   = vec3(9.0, 1.0, 0.05);
+const vec3 SUN_HALO_DUSK = vec3(1.2, 0.05, 0.01);
 
 const vec3 SKY_NIGHT_TOP = vec3(0.001, 0.001, 0.0025);
 const vec3 SKY_NIGHT_MID = vec3(0.001, 0.005, 0.02);
@@ -393,7 +393,7 @@ float is_star_at(vec3 dir) {
 
     // Star threshold
     if (dist < 0.0015) {
-        return 1.0;
+        return 2.5;
     }
 
     return 0.0;
@@ -435,7 +435,7 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
 
     // Moon
     const vec3 MOON_SURF_COLOR = vec3(0.7, 1.0, 1.5) * 10.0;
-    const vec3 MOON_HALO_COLOR = vec3(0.015, 0.015, 0.05) * 20;
+    const vec3 MOON_HALO_COLOR = vec3(0.015, 0.015, 0.05) * 10;
 
     vec3 moon_halo_color = MOON_HALO_COLOR;
     vec3 moon_halo = moon_halo_color * pow(max(dot(dir, -moon_dir), 0), 50.0);

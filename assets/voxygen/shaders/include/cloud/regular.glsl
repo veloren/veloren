@@ -16,7 +16,7 @@ vec2 get_cloud_heights(vec2 pos) {
 }
 
 // Returns vec4(r, g, b, density)
-vec4 cloud_at(vec3 pos, float dist) {
+vec4 cloud_at(vec3 pos, float dist, out vec4 emission) {
     // Natural attenuation of air (air naturally attenuates light that passes through it)
     // Simulate the atmosphere thinning above 3000 metres down to nothing at 5000 metres
     float air = 0.0001 * clamp((10000.0 - pos.z) / 7000, 0, 1);
@@ -84,6 +84,14 @@ vec4 cloud_at(vec3 pos, float dist) {
     float not_underground = clamp(1.0 - (alt_at(pos.xy - focus_off.xy) - (pos.z - focus_off.z)) / 80.0, 0, 1);
     float vapor_density = (mist + cloud) * not_underground;
 
+    float tail = sin(wind_pos.x * 0.001) * pos.z * 0.0005;
+    vec3 emission_col = vec3(0.1 + tail, 1.0, 0.3 + tail * 0.3);
+    float emission_alt = 3000.0 + sin(wind_pos.x + time_of_day.x * 0.0002);
+    float emission_nz = max(texture(t_noise, wind_pos.xy * 0.00001).x - 0.5, 0) * 20 / (10.0 + abs(pos.z - emission_alt) / 80)
+        * (1.0 + (noise_3d(vec3(wind_pos.xy * 0.05, time_of_day.x * 0.3) * 0.004) - 0.5) * 2.0);
+    emission_nz *= max(sin(time_of_day.x / (3600 * 24)) - 0.8, 0) / 0.2;
+    emission = vec4(emission_col, emission_nz * sun_dir.z);
+
     // We track vapor density and air density separately. Why? Because photons will ionize particles in air
     // leading to rayleigh scattering, but water vapor will not. Tracking these indepedently allows us to
     // get more correct colours.
@@ -149,7 +157,8 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
     float cdist = max_dist;
     while (cdist > 1) {
         float ndist = step_to_dist(trunc(dist_to_step(cdist - 0.25)));
-        vec4 sample = cloud_at(origin + (dir + dir_diff / ndist) * ndist * splay, ndist);
+        vec4 emission;
+        vec4 sample = cloud_at(origin + (dir + dir_diff / ndist) * ndist * splay, ndist, emission);
 
         vec2 density_integrals = max(sample.zw, vec2(0)) * (cdist - ndist);
 
@@ -168,6 +177,7 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
             get_sun_color() * sun_scatter * sun_access * scatter_factor * get_sun_brightness() +
             // Really we should multiple by just moon_brightness here but this just looks better given that we lack HDR
             get_moon_color() * moon_scatter * moon_access * scatter_factor * get_moon_brightness() * 4.0 +
+            emission.rgb * emission.a * density_integrals.y +
             // Global illumination (uniform scatter from the sky)
             sky_color * sun_access * scatter_factor * get_sun_brightness() +
             sky_color * moon_access * scatter_factor * get_moon_brightness();
