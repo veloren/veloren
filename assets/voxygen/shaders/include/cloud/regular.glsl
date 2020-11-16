@@ -16,7 +16,7 @@ vec2 get_cloud_heights(vec2 pos) {
 }
 
 // Returns vec4(r, g, b, density)
-vec3 cloud_at(vec3 pos, float dist) {
+vec4 cloud_at(vec3 pos, float dist) {
     // Natural attenuation of air (air naturally attenuates light that passes through it)
     // Simulate the atmosphere thinning above 3000 metres down to nothing at 5000 metres
     float air = 0.0001 * clamp((10000.0 - pos.z) / 7000, 0, 1);
@@ -30,7 +30,6 @@ vec3 cloud_at(vec3 pos, float dist) {
 
     // Clouds
     float cloud_tendency = cloud_tendency_at(pos.xy);
-    float sun_access = 0.05;
     float cloud = 0;
 
     vec2 cloud_attr = get_cloud_heights(wind_pos.xy);
@@ -45,7 +44,7 @@ vec3 cloud_at(vec3 pos, float dist) {
             turb_noise = noise_3d((wind_pos + turb_offset) * 0.001) - 0.5;
         #endif
         #if (CLOUD_MODE == CLOUD_MODE_MEDIUM || CLOUD_MODE == CLOUD_MODE_HIGH)
-            turb_noise += (noise_3d((wind_pos + turb_offset * 0.3) * 0.004) - 0.5) * 0.25;
+            turb_noise += (noise_3d((wind_pos + turb_offset * 0.3) * 0.004) - 0.5) * 0.35;
         #endif
         #if (CLOUD_MODE == CLOUD_MODE_HIGH)
             turb_noise += (noise_3d((wind_pos + turb_offset * 0.3) * 0.01) - 0.5) * 0.125;
@@ -59,7 +58,27 @@ vec3 cloud_at(vec3 pos, float dist) {
     }
 
     // What proportion of sunlight is *not* being blocked by nearby cloud? (approximation)
-    sun_access = clamp((pos.z - cloud_attr.x + turb_noise * 250.0) * 0.002 + 0.35 + mist * 10000, 0.0, 1);
+    float sun_access = clamp((pos.z - cloud_attr.x + turb_noise * 250.0) * 0.002 + 0.35 + mist * 10000, 0.0, 1);
+    // Since we're assuming the sun/moon is always above (not always correct) it's the same for the moon
+    float moon_access = sun_access;
+
+    #if (CLOUD_MODE == CLOUD_MODE_HIGH)
+        // Try to calculate a reasonable approximation of the cloud normal
+        float cloud_tendency_x = cloud_tendency_at(pos.xy + vec2(100, 0));
+        float cloud_tendency_y = cloud_tendency_at(pos.xy + vec2(0, 100));
+        vec3 cloud_norm = vec3(
+            (cloud_tendency - cloud_tendency_x) * 7.5,
+            (cloud_tendency - cloud_tendency_y) * 7.5,
+            (pos.z - cloud_attr.x) / 250 + turb_noise * 1
+        );
+        sun_access = mix(clamp(dot(-sun_dir.xyz, cloud_norm), 0.025, 1), sun_access, 0.25);
+        moon_access = mix(clamp(dot(-moon_dir.xyz, cloud_norm), 0.025, 1), moon_access, 0.25);
+    #endif
+
+    // Prevent mist (i.e: vapour beneath clouds) being accessible to the sun to avoid visual problems
+    float suppress_mist = clamp((pos.z - cloud_attr.x + cloud_attr.y) / 300, 0, 1);
+    sun_access *= suppress_mist;
+    moon_access *= suppress_mist;
 
     // Prevent clouds and mist appearing underground (but fade them out gently)
     float not_underground = clamp(1.0 - (alt_at(pos.xy - focus_off.xy) - (pos.z - focus_off.z)) / 80.0, 0, 1);
@@ -68,7 +87,7 @@ vec3 cloud_at(vec3 pos, float dist) {
     // We track vapor density and air density separately. Why? Because photons will ionize particles in air
     // leading to rayleigh scattering, but water vapor will not. Tracking these indepedently allows us to
     // get more correct colours.
-    return vec3(sun_access, vapor_density, air);
+    return vec4(sun_access, moon_access, vapor_density, air);
 }
 
 float atan2(in float y, in float x) {
@@ -78,7 +97,7 @@ float atan2(in float y, in float x) {
 
 const float DIST_CAP = 50000;
 #if (CLOUD_MODE == CLOUD_MODE_HIGH)
-    const uint QUALITY = 150u;
+    const uint QUALITY = 100u;
 #elif (CLOUD_MODE == CLOUD_MODE_MEDIUM)
     const uint QUALITY = 40u;
 #elif (CLOUD_MODE == CLOUD_MODE_LOW)
@@ -123,31 +142,31 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
     float sun_scatter = max(dot(-dir, sun_dir.xyz), 0.5);
     float moon_scatter = max(dot(-dir, moon_dir.xyz), 0.5);
     vec3 sky_color = get_sky_color();
-    vec3 directed_scatter =
-        // Sun scatter
-        get_sun_color() * get_sun_brightness() * sun_scatter +
-        // Moon scatter
-        get_moon_color() * get_moon_brightness() * moon_scatter;
+    float net_light = get_sun_brightness() + get_moon_brightness();
 
     float cdist = max_dist;
     while (cdist > 1) {
         float ndist = step_to_dist(trunc(dist_to_step(cdist - 0.25)));
-        vec3 sample = cloud_at(origin + (dir + dir_diff / ndist) * ndist * splay, ndist);
+        vec4 sample = cloud_at(origin + (dir + dir_diff / ndist) * ndist * splay, ndist);
 
-        vec2 density_integrals = max(sample.yz, vec2(0)) * (cdist - ndist);
+        vec2 density_integrals = max(sample.zw, vec2(0)) * (cdist - ndist);
 
         float sun_access = sample.x;
+        float moon_access = sample.y;
         float scatter_factor = 1.0 - 1.0 / (1.0 + density_integrals.x);
 
         surf_color =
             // Attenuate light passing through the clouds, removing light due to rayleigh scattering (transmission component)
             surf_color * (1.0 - scatter_factor) - surf_color * density_integrals.y * sky_color +
-            // This is not rayleigh scattering, but it's good enough for our purposes
-            sky_color * density_integrals.y +
+            // This is not rayleigh scattering, but it's good enough for our purposes (only considers sun)
+            sky_color * net_light * density_integrals.y +
             // Add the directed light light scattered into the camera by the clouds
-            directed_scatter * sun_access * scatter_factor +
+            get_sun_color() * sun_scatter * sun_access * scatter_factor * get_sun_brightness() +
+            // Really we should multiple by just moon_brightness here but this just looks better given that we lack HDR
+            get_moon_color() * moon_scatter * moon_access * scatter_factor * get_moon_brightness() * 3.0 +
             // Global illumination (uniform scatter from the sky)
-            sky_color * sun_access * scatter_factor;
+            sky_color * sun_access * scatter_factor * get_sun_brightness() +
+            sky_color * moon_access * scatter_factor * get_moon_brightness();
 
         cdist = ndist;
     }
