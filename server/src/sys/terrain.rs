@@ -109,6 +109,15 @@ impl<'a> System<'a> for Sys {
 
             // Handle chunk supplement
             for entity in supplement.entities {
+                // Check this because it's a common source of weird bugs
+                assert!(
+                    terrain
+                        .pos_key(entity.pos.map(|e| e.floor() as i32))
+                        .map2(key, |e, tgt| (e - tgt).abs() <= 1)
+                        .reduce_and(),
+                    "Chunk spawned entity that wasn't nearby",
+                );
+
                 if entity.is_waypoint {
                     server_emitter.emit(ServerEvent::CreateWaypoint(entity.pos));
                     continue;

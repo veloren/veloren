@@ -42,9 +42,9 @@ use crate::{
     data_dir::DataDir,
     login_provider::LoginProvider,
     presence::{Presence, RegionSubscription},
+    rtsim::RtSim,
     state_ext::StateExt,
     sys::sentinel::{DeletedEntities, TrackedComps},
-    rtsim::RtSim,
 };
 use common::{
     assets::Asset,
@@ -52,16 +52,17 @@ use common::{
     comp::{self, ChatType},
     event::{EventBus, ServerEvent},
     msg::{
-        ClientType, DisconnectReason, ServerGeneral, ServerInfo, ServerInit, ServerMsg, WorldMapMsg,
         world_msg::{SiteInfo, SiteKind},
+        ClientType, DisconnectReason, ServerGeneral, ServerInfo, ServerInit, ServerMsg,
+        WorldMapMsg,
     },
     outcome::Outcome,
     recipe::default_recipe_book,
+    rtsim::RtSimEntity,
     state::{State, TimeOfDay},
     sync::WorldSyncExt,
     terrain::TerrainChunkSize,
     vol::{ReadVol, RectVolSize},
-    rtsim::RtSimEntity,
 };
 use futures_executor::block_on;
 use metrics::{PhysicsMetrics, ServerMetrics, StateTickMetrics, TickMetrics};
@@ -559,8 +560,17 @@ impl Server {
 
         for entity in to_delete {
             // Assimilate entities that are part of the real-time world simulation
-            if let Some(rtsim_entity) = self.state.ecs().read_storage::<RtSimEntity>().get(entity).copied() {
-                self.state.ecs().write_resource::<RtSim>().assimilate_entity(rtsim_entity.0);
+            if let Some(rtsim_entity) = self
+                .state
+                .ecs()
+                .read_storage::<RtSimEntity>()
+                .get(entity)
+                .copied()
+            {
+                self.state
+                    .ecs()
+                    .write_resource::<RtSim>()
+                    .assimilate_entity(rtsim_entity.0);
             }
 
             if let Err(e) = self.state.delete_entity_recorded(entity) {
