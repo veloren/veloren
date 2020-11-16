@@ -2,7 +2,6 @@ use crate::{
     comp,
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::{PhysicsMetrics, SysMetrics},
-    outcome::Outcome,
     region::RegionMap,
     sync::WorldSyncExt,
     sys,
@@ -187,9 +186,6 @@ impl State {
         ecs.insert(RegionMap::new());
         ecs.insert(SysMetrics::default());
         ecs.insert(PhysicsMetrics::default());
-
-        // Register outcomes
-        ecs.insert(Vec::<Outcome>::new());
 
         ecs
     }
@@ -392,28 +388,7 @@ impl State {
         for event in events {
             let mut velocities = self.ecs.write_storage::<comp::Vel>();
             let mut controllers = self.ecs.write_storage::<comp::Controller>();
-            let positions = self.ecs.read_storage::<comp::Pos>();
-            let character_states = self.ecs.read_storage::<comp::CharacterState>();
-            let loadouts = self.ecs.read_storage::<comp::Loadout>();
             match event {
-                LocalEvent::Attack(entity) => {
-                    self.ecs
-                        .write_resource::<Vec<Outcome>>()
-                        .push(Outcome::Attack {
-                            pos: positions
-                                .get(entity)
-                                .expect("Failed to fetch attacking entity")
-                                .0,
-                            character_state: character_states
-                                .get(entity)
-                                .expect("Failed to get the character state of the attacking entity")
-                                .clone(),
-                            loadout: loadouts
-                                .get(entity)
-                                .expect("Failed to get attacking entity's loadout")
-                                .clone(),
-                        });
-                },
                 LocalEvent::Jump(entity) => {
                     if let Some(vel) = velocities.get_mut(entity) {
                         vel.0.z = HUMANOID_JUMP_ACCEL;

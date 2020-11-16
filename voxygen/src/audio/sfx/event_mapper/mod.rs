@@ -12,11 +12,15 @@ use combat::CombatEventMapper;
 use movement::MovementEventMapper;
 
 use super::SfxTriggers;
-use crate::scene::{Camera, Terrain};
+use crate::{
+    scene::{Camera, Terrain},
+    AudioFrontend,
+};
 
 trait EventMapper {
     fn maintain(
         &mut self,
+        audio: &mut AudioFrontend,
         state: &State,
         player_entity: specs::Entity,
         camera: &Camera,
@@ -44,6 +48,7 @@ impl SfxEventMapper {
 
     pub fn maintain(
         &mut self,
+        audio: &mut AudioFrontend,
         state: &State,
         player_entity: specs::Entity,
         camera: &Camera,
@@ -52,7 +57,15 @@ impl SfxEventMapper {
         client: &Client,
     ) {
         for mapper in &mut self.mappers {
-            mapper.maintain(state, player_entity, camera, triggers, terrain, client);
+            mapper.maintain(
+                audio,
+                state,
+                player_entity,
+                camera,
+                triggers,
+                terrain,
+                client,
+            );
         }
     }
 }
