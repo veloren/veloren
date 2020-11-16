@@ -130,7 +130,19 @@ impl CharacterBehavior for Data {
                 }
             },
             StageSection::Swing => {
-                if !self.exhausted {
+                if self.timer.as_millis() as f32
+                    > 0.5 * self.static_data.swing_duration.as_millis() as f32
+                    && !self.exhausted
+                {
+                    // Swing
+                    update.character = CharacterState::ChargedMelee(Data {
+                        timer: self
+                            .timer
+                            .checked_add(Duration::from_secs_f32(data.dt.0))
+                            .unwrap_or_default(),
+                        exhausted: true,
+                        ..*self
+                    });
                     let mut damage = Damage {
                         source: DamageSource::Melee,
                         value: self.static_data.max_damage as f32,
@@ -151,16 +163,6 @@ impl CharacterBehavior for Data {
                         applied: false,
                         hit_count: 0,
                         knockback: Knockback::Away(knockback),
-                    });
-
-                    // Starts swinging
-                    update.character = CharacterState::ChargedMelee(Data {
-                        timer: self
-                            .timer
-                            .checked_add(Duration::from_secs_f32(data.dt.0))
-                            .unwrap_or_default(),
-                        exhausted: true,
-                        ..*self
                     });
                 } else if self.timer < self.static_data.swing_duration {
                     // Swings
