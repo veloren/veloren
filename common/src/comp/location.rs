@@ -11,6 +11,14 @@ pub struct Waypoint {
 }
 
 impl Waypoint {
+    // TODO: add actual fix and remove this method
+    pub fn temp_new(pos: Vec3<f32>, last_save: Time) -> Self {
+        Self {
+            pos: pos + Vec3::from(0.25f32).map(|e| e * rand::random::<f32>() - 0.25 / 2.0),
+            last_save,
+        }
+    }
+
     pub fn new(pos: Vec3<f32>, last_save: Time) -> Self { Self { pos, last_save } }
 
     pub fn get_pos(&self) -> Vec3<f32> { self.pos }
