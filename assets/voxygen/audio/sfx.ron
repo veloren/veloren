@@ -181,24 +181,24 @@
             ],
             threshold: 0.5,
         ),
-        //Attack(ComboMelee(Swing, 1), Sword): (
-        //    files: [
-        //        "voxygen.audio.sfx.abilities.swing_sword",
-        //    ],
-        //    threshold: 0.7,
-        //),
-        //Attack(ComboMelee(Swing, 2), Sword): (
-        //    files: [
-        //        "voxygen.audio.sfx.abilities.separated_second_swing",
-        //    ],
-        //    threshold: 0.7,
-        //),
-        //Attack(ComboMelee(Swing, 3), Sword): (
-        //    files: [
-        //        "voxygen.audio.sfx.abilities.separated_third_swing",
-        //    ],
-        //    threshold: 0.7,
-        //),
+        Attack(ComboMelee(Swing, 1), Sword): (
+            files: [
+                "voxygen.audio.sfx.abilities.swing_sword",
+            ],
+            threshold: 0.7,
+        ),
+        Attack(ComboMelee(Swing, 2), Sword): (
+            files: [
+                "voxygen.audio.sfx.abilities.separated_second_swing",
+            ],
+            threshold: 0.7,
+        ),
+        Attack(ComboMelee(Swing, 3), Sword): (
+            files: [
+                "voxygen.audio.sfx.abilities.separated_third_swing",
+            ],
+            threshold: 0.7,
+        ),
         Attack(DashMelee(Swing), Sword): (
             files: [
                 "voxygen.audio.sfx.abilities.sword_dash",
@@ -319,12 +319,12 @@
             ],
             threshold: 0.5,
         ),
-        //Attack(BasicBeam, Staff): (
-        //    files: [
-        //        "voxygen.audio.sfx.abilities.flame_thrower",
-        //    ],
-        //    threshold: 0.2,
-        //),
+        Attack(BasicBeam, Staff): (
+            files: [
+                "voxygen.audio.sfx.abilities.flame_thrower",
+            ],
+            threshold: 0.2,
+        ),
         Attack(BasicRanged, Staff): (
             files: [
                 // "voxygen.audio.sfx.abilities.staff_channeling",
@@ -353,12 +353,12 @@
             ],
             threshold: 0.5,
         ),
-        Attack(BasicRanged, Bow): (
-            files: [
-                // channeling sound.
-            ],
-            threshold: 0.8,
-        ),
+        //Attack(BasicRanged, Bow): (
+        //    files: [
+        //        // channeling sound.
+        //    ],
+        //    threshold: 0.8,
+        //),
         Inventory(CollectedTool(Bow)): (
             files: [
                 "voxygen.audio.sfx.inventory.add_item",
@@ -381,12 +381,6 @@
             ],
             threshold: 0.5,
         ),
-        //Attack(BasicBeam, Sceptre): (
-        //    files: [
-        //        "voxygen.audio.sfx.abilities.staff_channeling",
-        //    ],
-        //    threshold: 0.6,
-        //),
 
         //
         // Dagger

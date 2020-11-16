@@ -1,19 +1,22 @@
 /// EventMapper::Block watches the sound emitting blocks within
 /// chunk range of the player and emits ambient sfx
 use crate::{
-    audio::sfx::{SfxEvent, SfxEventItem, SfxTriggerItem, SfxTriggers, SFX_DIST_LIMIT_SQR},
+    audio::sfx::{SfxEvent, SfxTriggerItem, SfxTriggers, SFX_DIST_LIMIT_SQR},
     scene::{terrain::BlocksOfInterest, Camera, Terrain},
+    AudioFrontend,
 };
 
 use super::EventMapper;
 use client::Client;
 use common::{
-    comp::Pos, event::EventBus, spiral::Spiral2d, state::State, terrain::TerrainChunk,
-    vol::RectRasterableVol,
+    comp::Pos,
+    spiral::Spiral2d,
+    state::State,
+    terrain::{BlockKind, TerrainChunk},
+    vol::{ReadVol, RectRasterableVol},
 };
 use hashbrown::HashMap;
 use rand::{thread_rng, Rng};
-use specs::WorldExt;
 use std::time::Instant;
 use vek::*;
 
@@ -39,6 +42,7 @@ pub struct BlockEventMapper {
 impl EventMapper for BlockEventMapper {
     fn maintain(
         &mut self,
+        audio: &mut AudioFrontend,
         state: &State,
         player_entity: specs::Entity,
         camera: &Camera,
@@ -46,11 +50,6 @@ impl EventMapper for BlockEventMapper {
         terrain: &Terrain<TerrainChunk>,
         client: &Client,
     ) {
-        let ecs = state.ecs();
-
-        let sfx_event_bus = ecs.read_resource::<EventBus<SfxEventItem>>();
-        let mut sfx_emitter = sfx_event_bus.emitter();
-
         let focus_off = camera.get_focus_pos().map(f32::trunc);
         let cam_pos = camera.dependents().cam_pos + focus_off;
 
@@ -175,21 +174,29 @@ impl EventMapper for BlockEventMapper {
                             continue;
                         }
                         let block_pos: Vec3<i32> = absolute_pos + block;
-                        let state = self.history.entry(block_pos).or_default();
+                        let internal_state = self.history.entry(block_pos).or_default();
 
                         let block_pos = block_pos.map(|x| x as f32);
 
-                        if Self::should_emit(state, triggers.get_key_value(&sounds.sfx)) {
+                        if Self::should_emit(internal_state, triggers.get_key_value(&sounds.sfx)) {
                             // If the camera is within SFX distance
                             if (block_pos.distance_squared(cam_pos)) < SFX_DIST_LIMIT_SQR {
-                                sfx_emitter.emit(SfxEventItem::new(
-                                    sounds.sfx.clone(),
-                                    Some(block_pos),
+                                let underwater = state
+                                    .terrain()
+                                    .get(cam_pos.map(|e| e.floor() as i32))
+                                    .map(|b| b.kind() == BlockKind::Water)
+                                    .unwrap_or(false);
+
+                                let sfx_trigger_item = triggers.get_key_value(&sounds.sfx);
+                                audio.emit_sfx(
+                                    sfx_trigger_item,
+                                    block_pos,
                                     Some(sounds.volume),
-                                ));
+                                    underwater,
+                                );
                             }
-                            state.time = Instant::now();
-                            state.event = sounds.sfx.clone();
+                            internal_state.time = Instant::now();
+                            internal_state.event = sounds.sfx.clone();
                         }
                     }
                 });

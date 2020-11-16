@@ -858,15 +858,11 @@ impl Client {
         self.state.terrain().get_key_arc(chunk_pos).cloned()
     }
 
-    pub fn current<C: Component>(&self) -> Option<C> where
-            C: Clone,
-        {
-        Some(
-            self.state
-                .read_storage::<C>()
-                .get(self.entity)
-                .cloned()?,
-        )
+    pub fn current<C: Component>(&self) -> Option<C>
+    where
+        C: Clone,
+    {
+        Some(self.state.read_storage::<C>().get(self.entity).cloned()?)
     }
 
     pub fn current_biome(&self) -> BiomeKind {

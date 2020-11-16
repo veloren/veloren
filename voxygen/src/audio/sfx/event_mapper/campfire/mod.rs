@@ -1,7 +1,8 @@
 /// EventMapper::Campfire maps sfx to campfires
 use crate::{
-    audio::sfx::{SfxEvent, SfxEventItem, SfxTriggerItem, SfxTriggers, SFX_DIST_LIMIT_SQR},
+    audio::sfx::{SfxEvent, SfxTriggerItem, SfxTriggers, SFX_DIST_LIMIT_SQR},
     scene::{Camera, Terrain},
+    AudioFrontend,
 };
 
 use super::EventMapper;
@@ -9,9 +10,9 @@ use super::EventMapper;
 use client::Client;
 use common::{
     comp::{object, Body, Pos},
-    event::EventBus,
     state::State,
-    terrain::TerrainChunk,
+    terrain::{BlockKind, TerrainChunk},
+    vol::ReadVol,
 };
 use hashbrown::HashMap;
 use specs::{Entity as EcsEntity, Join, WorldExt};
@@ -39,6 +40,7 @@ pub struct CampfireEventMapper {
 impl EventMapper for CampfireEventMapper {
     fn maintain(
         &mut self,
+        audio: &mut AudioFrontend,
         state: &State,
         player_entity: specs::Entity,
         camera: &Camera,
@@ -47,10 +49,6 @@ impl EventMapper for CampfireEventMapper {
         _client: &Client,
     ) {
         let ecs = state.ecs();
-
-        let sfx_event_bus = ecs.read_resource::<EventBus<SfxEventItem>>();
-        let mut sfx_emitter = sfx_event_bus.emitter();
-
         let focus_off = camera.get_focus_pos().map(f32::trunc);
         let cam_pos = camera.dependents().cam_pos + focus_off;
         for (entity, body, pos) in (
@@ -62,24 +60,25 @@ impl EventMapper for CampfireEventMapper {
             .filter(|(_, _, e_pos)| (e_pos.0.distance_squared(cam_pos)) < SFX_DIST_LIMIT_SQR)
         {
             if let Body::Object(object::Body::CampfireLit) = body {
-                let state = self.event_history.entry(entity).or_default();
+                let internal_state = self.event_history.entry(entity).or_default();
 
                 let mapped_event = SfxEvent::Campfire;
 
                 // Check for SFX config entry for this movement
-                if Self::should_emit(state, triggers.get_key_value(&mapped_event)) {
-                    sfx_emitter.emit(SfxEventItem::new(
-                        mapped_event.clone(),
-                        Some(pos.0),
-                        Some(0.25),
-                    ));
-
-                    state.time = Instant::now();
+                if Self::should_emit(internal_state, triggers.get_key_value(&mapped_event)) {
+                    let underwater = state
+                        .terrain()
+                        .get(cam_pos.map(|e| e.floor() as i32))
+                        .map(|b| b.kind() == BlockKind::Water)
+                        .unwrap_or(false);
+                    let sfx_trigger_item = triggers.get_key_value(&mapped_event);
+                    audio.emit_sfx(sfx_trigger_item, pos.0, None, underwater);
+                    internal_state.time = Instant::now();
                 }
 
                 // update state to determine the next event. We only record the time (above) if
                 // it was dispatched
-                state.event = mapped_event;
+                internal_state.event = mapped_event;
             }
         }
         self.cleanup(player_entity);

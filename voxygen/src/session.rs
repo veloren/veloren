@@ -1,5 +1,5 @@
 use crate::{
-    audio::sfx::{SfxEvent, SfxEventItem},
+    audio::sfx::SfxEvent,
     ecs::MyEntity,
     hud::{DebugInfo, Event as HudEvent, Hud, HudInfo, PressBehavior},
     i18n::{i18n_asset_key, Localization},
@@ -17,7 +17,6 @@ use common::{
     comp,
     comp::{ChatMsg, ChatType, InventoryUpdateEvent, Pos, Vel},
     consts::{MAX_MOUNT_RANGE, MAX_PICKUP_RANGE},
-    event::EventBus,
     msg::PresenceKind,
     outcome::Outcome,
     span,
@@ -121,12 +120,12 @@ impl SessionState {
                     self.hud.new_message(m);
                 },
                 client::Event::InventoryUpdated(inv_event) => {
-                    let sfx_event = SfxEvent::from(&inv_event);
-                    client
-                        .state()
-                        .ecs()
-                        .read_resource::<EventBus<SfxEventItem>>()
-                        .emit_now(SfxEventItem::at_player_position(sfx_event));
+                    let sfx_trigger_item = self
+                        .scene
+                        .sfx_mgr
+                        .triggers
+                        .get_key_value(&SfxEvent::from(&inv_event));
+                    global_state.audio.emit_sfx_item(sfx_trigger_item);
 
                     match inv_event {
                         InventoryUpdateEvent::CollectFailed => {

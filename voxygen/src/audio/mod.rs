@@ -9,9 +9,10 @@ pub mod soundcache;
 
 use channel::{AmbientChannel, AmbientChannelTag, MusicChannel, MusicChannelTag, SfxChannel};
 use fader::Fader;
+use sfx::{SfxEvent, SfxTriggerItem};
 use soundcache::SoundCache;
 use std::time::Duration;
-//use tracing::warn;
+use tracing::debug;
 
 use common::assets;
 use rodio::{source::Source, Decoder, OutputStream, OutputStreamHandle, StreamError};
@@ -160,6 +161,71 @@ impl AudioFrontend {
         }
 
         self.music_channels.last_mut()
+    }
+
+    /// Function to play sfx from external places. Useful for UI and
+    /// inventory events
+    pub fn emit_sfx_item(&mut self, trigger_item: Option<(&SfxEvent, &SfxTriggerItem)>) {
+        if let Some((event, item)) = trigger_item {
+            let sfx_file = match item.files.len() {
+                0 => {
+                    debug!("Sfx event {:?} is missing audio file.", event);
+                    "voxygen.audio.sfx.placeholder"
+                },
+                1 => item
+                    .files
+                    .last()
+                    .expect("Failed to determine sound file for this trigger item."),
+                _ => {
+                    // If more than one file is listed, choose one at random
+                    let rand_step = rand::random::<usize>() % item.files.len();
+                    &item.files[rand_step]
+                },
+            };
+
+            self.play_sfx(sfx_file, self.listener.pos, None);
+        } else {
+            debug!("Missing sfx trigger config for external sfx event.",);
+        }
+    }
+
+    /// Play an sfx file given the position, SfxEvent, and whether it is
+    /// underwater or not
+    pub fn emit_sfx(
+        &mut self,
+        trigger_item: Option<(&SfxEvent, &SfxTriggerItem)>,
+        position: Vec3<f32>,
+        volume: Option<f32>,
+        underwater: bool,
+    ) {
+        if let Some((event, item)) = trigger_item {
+            let sfx_file = match item.files.len() {
+                0 => {
+                    debug!("Sfx event {:?} is missing audio file.", event);
+                    "voxygen.audio.sfx.placeholder"
+                },
+                1 => item
+                    .files
+                    .last()
+                    .expect("Failed to determine sound file for this trigger item."),
+                _ => {
+                    // If more than one file is listed, choose one at random
+                    let rand_step = rand::random::<usize>() % item.files.len();
+                    &item.files[rand_step]
+                },
+            };
+
+            if underwater {
+                self.play_underwater_sfx(sfx_file, position, volume);
+            } else {
+                self.play_sfx(sfx_file, position, volume);
+            }
+        } else {
+            debug!(
+                "Missing sfx trigger config for sfx event at position: {:?}",
+                position
+            );
+        }
     }
 
     /// Play (once) an sfx file by file path at the give position and volume

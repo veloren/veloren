@@ -1,5 +1,5 @@
 use crate::comp;
-use comp::{item::Reagent, CharacterState, Loadout};
+use comp::item::Reagent;
 use serde::{Deserialize, Serialize};
 use vek::*;
 
@@ -22,11 +22,6 @@ pub enum Outcome {
         body: comp::Body,
         vel: Vec3<f32>,
     },
-    Attack {
-        pos: Vec3<f32>,
-        character_state: CharacterState,
-        loadout: Loadout,
-    },
     LevelUp {
         pos: Vec3<f32>,
     },
@@ -41,7 +36,6 @@ impl Outcome {
         match self {
             Outcome::Explosion { pos, .. } => Some(*pos),
             Outcome::ProjectileShot { pos, .. } => Some(*pos),
-            Outcome::Attack { pos, .. } => Some(*pos),
             Outcome::LevelUp { pos } => Some(*pos),
             Outcome::Beam { pos, .. } => Some(*pos),
         }

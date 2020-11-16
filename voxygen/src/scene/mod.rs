@@ -101,7 +101,7 @@ pub struct Scene {
 
     particle_mgr: ParticleMgr,
     figure_mgr: FigureMgr,
-    sfx_mgr: SfxMgr,
+    pub sfx_mgr: SfxMgr,
     music_mgr: MusicMgr,
     ambient_mgr: AmbientMgr,
 }

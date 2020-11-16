@@ -56,7 +56,7 @@ impl<'a> System<'a> for Sys {
         let start_time = std::time::Instant::now();
         span!(_guard, "run", "melee::Sys::run");
         let mut server_emitter = server_bus.emitter();
-        let mut local_emitter = local_bus.emitter();
+        let _local_emitter = local_bus.emitter();
         // Attacks
         for (entity, uid, pos, ori, scale_maybe, attack) in (
             &entities,
@@ -72,7 +72,6 @@ impl<'a> System<'a> for Sys {
                 continue;
             }
             attack.applied = true;
-            local_emitter.emit(LocalEvent::Attack(entity));
 
             // Go through all other entities
             for (b, pos_b, scale_b_maybe, health_b, body_b, char_state_b_maybe) in (

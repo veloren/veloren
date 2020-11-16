@@ -94,19 +94,15 @@ use common::{
         item::{ItemKind, ToolKind},
         object, Body, CharacterAbilityType, InventoryUpdateEvent,
     },
-    event::EventBus,
     outcome::Outcome,
     state::State,
-    states::utils::StageSection,
-    terrain::{BlockKind, TerrainChunk},
-    vol::ReadVol,
+    terrain::TerrainChunk,
 };
 use event_mapper::SfxEventMapper;
 use hashbrown::HashMap;
 use rand::prelude::*;
 use serde::Deserialize;
-use specs::WorldExt;
-use tracing::{debug, warn};
+use tracing::warn;
 use vek::*;
 
 /// We watch the states of nearby entities in order to emit SFX at their
@@ -241,7 +237,7 @@ impl SfxTriggers {
 }
 
 pub struct SfxMgr {
-    triggers: SfxTriggers,
+    pub triggers: SfxTriggers,
     event_mapper: SfxEventMapper,
 }
 
@@ -269,25 +265,16 @@ impl SfxMgr {
         if !audio.sfx_enabled() {
             return;
         }
-        let ecs = state.ecs();
 
-        // This checks to see if the camera is underwater. If it is,
-        // we pass all sfx through a low pass filter
         let focus_off = camera.get_focus_pos().map(f32::trunc);
-        let underwater = state
-            .terrain()
-            .get((camera.dependents().cam_pos + focus_off).map(|e| e.floor() as i32))
-            .map(|b| b.kind())
-            .unwrap_or(BlockKind::Air)
-            == BlockKind::Water;
         let cam_pos = camera.dependents().cam_pos + focus_off;
 
         // Sets the listener position to the camera position facing the
         // same direction as the camera
         audio.set_listener_pos(cam_pos, camera.dependents().cam_dir);
 
-        // TODO: replace; deprecated in favor of outcomes
         self.event_mapper.maintain(
+            audio,
             state,
             player_entity,
             camera,
@@ -295,42 +282,6 @@ impl SfxMgr {
             terrain,
             client,
         );
-
-        // TODO: replace; deprecated in favor of outcomes
-        let events = ecs.read_resource::<EventBus<SfxEventItem>>().recv_all();
-
-        for event in events {
-            let position = match event.pos {
-                Some(pos) => pos,
-                _ => cam_pos,
-            };
-
-            if let Some(item) = self.triggers.get_trigger(&event.sfx) {
-                let sfx_file = match item.files.len() {
-                    0 => {
-                        debug!("Sfx event {:?} is missing audio file.", event.sfx);
-                        "voxygen.audio.sfx.placeholder"
-                    },
-                    1 => item
-                        .files
-                        .last()
-                        .expect("Failed to determine sound file for this trigger item."),
-                    _ => {
-                        // If more than one file is listed, choose one at random
-                        let rand_step = rand::random::<usize>() % item.files.len();
-                        &item.files[rand_step]
-                    },
-                };
-
-                if underwater {
-                    audio.play_underwater_sfx(sfx_file, position, event.vol);
-                } else {
-                    audio.play_sfx(sfx_file, position, event.vol);
-                }
-            } else {
-                debug!("Missing sfx trigger config for sfx event. {:?}", event.sfx);
-            }
-        }
     }
 
     pub fn handle_outcome(&mut self, outcome: &Outcome, audio: &mut AudioFrontend) {
@@ -390,54 +341,6 @@ impl SfxMgr {
                 } else {
                     let file_ref = "voxygen.audio.sfx.abilities.flame_thrower";
                     audio.play_sfx(file_ref, *pos, None);
-                }
-            },
-            Outcome::Attack {
-                pos,
-                character_state,
-                loadout,
-            } => {
-                if let Some(item_config) = &loadout.active_item {
-                    if let ItemKind::Tool(data) = item_config.item.kind() {
-                        if character_state.is_attack() {
-                            match (
-                                CharacterAbilityType::from(character_state),
-                                data.kind.clone(),
-                            ) {
-                                (
-                                    CharacterAbilityType::ComboMelee(StageSection::Swing, 1),
-                                    ToolKind::Sword,
-                                ) => {
-                                    audio.play_sfx(
-                                        "voxygen.audio.sfx.abilities.swing_sword",
-                                        *pos,
-                                        None,
-                                    );
-                                },
-                                (
-                                    CharacterAbilityType::ComboMelee(StageSection::Swing, 2),
-                                    ToolKind::Sword,
-                                ) => {
-                                    audio.play_sfx(
-                                        "voxygen.audio.sfx.abilities.separated_second_swing",
-                                        *pos,
-                                        None,
-                                    );
-                                },
-                                (
-                                    CharacterAbilityType::ComboMelee(StageSection::Swing, 3),
-                                    ToolKind::Sword,
-                                ) => {
-                                    audio.play_sfx(
-                                        "voxygen.audio.sfx.abilities.separated_third_swing",
-                                        *pos,
-                                        None,
-                                    );
-                                },
-                                _ => {},
-                            }
-                        }
-                    }
                 }
             },
         }
