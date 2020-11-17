@@ -2268,9 +2268,9 @@ impl SimChunk {
                     ),
                     (
                         ForestKind::Swamp,
-                        (CONFIG.desert_hum, 1.5),
-                        (CONFIG.temperate_temp, 1.5),
-                        (0.0, 1.0),
+                        ((CONFIG.forest_hum + CONFIG.jungle_hum) / 2.0, 2.0),
+                        ((CONFIG.temperate_temp + CONFIG.snow_temp) / 2.0, 2.0),
+                        (1.0, 2.5),
                     ),
                 ];
 
