@@ -46,6 +46,7 @@ pub struct Stats {
     pub endurance: i32,
     pub fitness: i32,
     pub willpower: i32,
+    pub waypoint: Option<String>,
 }
 
 #[derive(Associations, Identifiable, Insertable, Queryable, Debug)]
