@@ -293,6 +293,8 @@ impl World {
                                         quadruped_low::Species::Crocodile => is_hostile = true,
                                         quadruped_low::Species::Alligator => is_hostile = true,
                                         quadruped_low::Species::Maneater => is_hostile = true,
+                                        quadruped_low::Species::Sandshark => is_hostile = true,
+                                        quadruped_low::Species::Hakulaq => is_hostile = true,
                                         _ => is_hostile = false,
                                     }
                                 },

@@ -238,7 +238,7 @@ impl Animation for WieldAnimation {
                     next.hold.orientation = Quaternion::rotation_x(-1.57);
                     next.hold.scale = Vec3::one() * 1.0;
 
-                    next.control.position = Vec3::new(s_a.bc.0, s_a.bc.1, s_a.bc.2);
+                    next.control.position = Vec3::new(s_a.bc.0, s_a.bc.1, s_a.bc.2 - 5.0);
                     next.control.orientation = Quaternion::rotation_x(u_slow * 0.06)
                         * Quaternion::rotation_y(s_a.bc.4)
                         * Quaternion::rotation_z(s_a.bc.5 + u_slowalt * 0.1);
@@ -436,6 +436,17 @@ impl Animation for WieldAnimation {
                 _ => {},
             }
         };
+
+        if s_a.float {
+            next.upper_torso.position = Vec3::new(
+                0.0,
+                s_a.upper_torso.0,
+                s_a.upper_torso.1 + slower * 1.0 + 4.0,
+            );
+            next.foot_l.orientation = Quaternion::rotation_x(-0.5 + slow * 0.1);
+            next.foot_r.orientation = Quaternion::rotation_x(-0.5 + slow * 0.1);
+        }
+
         next
     }
 }

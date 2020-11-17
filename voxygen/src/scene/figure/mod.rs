@@ -1986,7 +1986,7 @@ impl FigureMgr {
                         // Running
                         (true, true, false) => anim::theropod::RunAnimation::update_skeleton(
                             &TheropodSkeleton::default(),
-                            (vel.0.magnitude(), time),
+                            (vel.0.magnitude(), ori, state.last_ori, time, state.avg_vel),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -1994,7 +1994,7 @@ impl FigureMgr {
                         // In air
                         (false, _, false) => anim::theropod::JumpAnimation::update_skeleton(
                             &TheropodSkeleton::default(),
-                            (vel.0.magnitude(), time),
+                            (vel.0.magnitude(), ori, state.last_ori, time, state.avg_vel),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -2299,57 +2299,65 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        CharacterState::BasicRanged(data) => {
-                            if data.exhausted {
-                                anim::biped_large::ShootAnimation::update_skeleton(
-                                    &target_base,
-                                    (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
-                                    state.state_time,
-                                    &mut state_animation_rate,
-                                    skeleton_attr,
-                                )
-                            } else {
-                                anim::biped_large::ChargeAnimation::update_skeleton(
-                                    &target_base,
-                                    (
-                                        active_tool_kind,
-                                        second_tool_kind,
-                                        vel.0.magnitude(),
-                                        ori,
-                                        state.last_ori,
-                                        time,
-                                    ),
-                                    state.state_time,
-                                    &mut state_animation_rate,
-                                    skeleton_attr,
-                                )
-                            }
+                        CharacterState::BasicRanged(s) => {
+                            let stage_time = s.timer.as_secs_f64();
+
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                },
+
+                                _ => 0.0,
+                            };
+
+                            anim::biped_large::ShootAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    active_tool_kind,
+                                    second_tool_kind,
+                                    vel.0.magnitude(),
+                                    ori,
+                                    state.last_ori,
+                                    time,
+                                    Some(s.stage_section),
+                                ),
+                                stage_progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
                         },
-                        CharacterState::ChargedRanged(data) => {
-                            if data.exhausted {
-                                anim::biped_large::ShootAnimation::update_skeleton(
-                                    &target_base,
-                                    (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
-                                    state.state_time,
-                                    &mut state_animation_rate,
-                                    skeleton_attr,
-                                )
-                            } else {
-                                anim::biped_large::ChargeAnimation::update_skeleton(
-                                    &target_base,
-                                    (
-                                        active_tool_kind,
-                                        second_tool_kind,
-                                        vel.0.magnitude(),
-                                        ori,
-                                        state.last_ori,
-                                        time,
-                                    ),
-                                    state.state_time,
-                                    &mut state_animation_rate,
-                                    skeleton_attr,
-                                )
-                            }
+                        CharacterState::ChargedRanged(s) => {
+                            let stage_time = s.timer.as_secs_f64();
+
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                },
+
+                                _ => 0.0,
+                            };
+
+                            anim::biped_large::ShootAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    active_tool_kind,
+                                    second_tool_kind,
+                                    vel.0.magnitude(),
+                                    ori,
+                                    state.last_ori,
+                                    time,
+                                    Some(s.stage_section),
+                                ),
+                                stage_progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
                         },
                         CharacterState::DashMelee(s) => {
                             let stage_time = s.timer.as_secs_f64();

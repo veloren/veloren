@@ -1037,7 +1037,7 @@
             central: ("npc.antelope.male.torso_front"),
         ),
         torso_back: (
-            offset: (-4.0, -5.5, -3.5),
+            offset: (-4.0, -11.0, -3.5),
             central: ("npc.antelope.male.torso_back"),
         ),
         ears: (
@@ -1067,7 +1067,7 @@
             central: ("npc.antelope.male.torso_front"),
         ),
         torso_back: (
-            offset: (-4.0, -5.5, -3.5),
+            offset: (-4.0, -11.0, -3.5),
             central: ("npc.antelope.male.torso_back"),
         ),
         ears: (
@@ -1097,7 +1097,7 @@
             central: ("npc.kelpie.male.torso_front"),
         ),
         torso_back: (
-            offset: (-4.0, -12.0, -4.0),
+            offset: (-4.0, -10.0, -4.0),
             central: ("npc.kelpie.male.torso_back"),
         ),
         ears: (
@@ -1127,7 +1127,7 @@
             central: ("npc.kelpie.male.torso_front"),
         ),
         torso_back: (
-            offset: (-4.0, -12.0, -4.0),
+            offset: (-4.0, -10.0, -4.0),
             central: ("npc.kelpie.male.torso_back"),
         ),
         ears: (
@@ -1157,7 +1157,7 @@
             central: ("npc.horse.male.torso_front"),
         ),
         torso_back: (
-            offset: (-4.0, -6.0, -4.5),
+            offset: (-4.0, -10.0, -4.5),
             central: ("npc.horse.male.torso_back"),
         ),
         ears: (
@@ -1187,7 +1187,7 @@
             central: ("npc.horse.male.torso_front"),
         ),
         torso_back: (
-            offset: (-4.0, -6.0, -4.5),
+            offset: (-4.0, -10.0, -4.5),
             central: ("npc.horse.male.torso_back"),
         ),
         ears: (

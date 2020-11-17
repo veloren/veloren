@@ -134,6 +134,7 @@ pub struct SkeletonAttr {
     bhr: (f32, f32, f32, f32, f32, f32),
     bc: (f32, f32, f32, f32, f32, f32),
     beast: bool,
+    float: bool,
 }
 
 impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
@@ -172,6 +173,7 @@ impl Default for SkeletonAttr {
             bhr: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
             bc: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
             beast: false,
+            float: false,
         }
     }
 }
@@ -354,6 +356,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (_, _) => (-7.0, 3.0, -8.0, 0.0, 0.0, 0.0),
             },
             beast: matches!((body.species, body.body_type), (Werewolf, _)),
+            float: matches!((body.species, body.body_type), (Mindflayer, _)),
         }
     }
 }

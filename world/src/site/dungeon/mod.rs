@@ -362,11 +362,11 @@ impl Floor {
                 0 => self.create_room(Room {
                     seed: ctx.rng.gen(),
                     loot_density: 0.000025 + level as f32 * 0.00015,
-                    enemy_density: Some(0.001 + level as f32 * 0.00002),
+                    enemy_density: None,
                     miniboss: true,
                     boss: false,
                     area,
-                    height: ctx.rng.gen_range(20, 25),
+                    height: ctx.rng.gen_range(15, 20),
                     pillars: Some(4),
                 }),
                 _ => self.create_room(Room {
@@ -553,26 +553,29 @@ impl Floor {
                         }
                     }
                     if room.miniboss {
-                        let boss_spawn_tile = room.area.center();
-                        // Don't spawn the boss in a pillar
-                        let boss_tile_is_pillar = room
+                        let miniboss_spawn_tile = room.area.center();
+                        // Don't spawn the miniboss in a pillar
+                        let miniboss_tile_is_pillar = room
                             .pillars
                             .map(|pillar_space| {
-                                boss_spawn_tile
+                                miniboss_spawn_tile
                                     .map(|e| e.rem_euclid(pillar_space) == 0)
                                     .reduce_and()
                             })
                             .unwrap_or(false);
-                        let boss_spawn_tile =
-                            boss_spawn_tile + if boss_tile_is_pillar { 1 } else { 0 };
+                        let miniboss_spawn_tile =
+                            miniboss_spawn_tile + if miniboss_tile_is_pillar { 1 } else { 0 };
 
-                        if tile_pos == boss_spawn_tile && tile_wcenter.xy() == wpos2d {
-                            let chosen = Lottery::<String>::load_expect(
-                                "common.loot_tables.loot_table_boss_cultist-leader",
-                            );
+                        if tile_pos == miniboss_spawn_tile && tile_wcenter.xy() == wpos2d {
+                            let chosen =
+                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0, 5) {
+                                    0 => "common.loot_tables.loot_table_humanoids",
+                                    1 => "common.loot_tables.loot_table_armor_misc",
+                                    _ => "common.loot_tables.loot_table_cultists",
+                                });
                             let chosen = chosen.choose();
                             let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                .with_level(dynamic_rng.gen_range(1, 5))
+                                .with_level(1)
                                 .with_alignment(comp::Alignment::Enemy)
                                 .with_body(comp::Body::BipedLarge(
                                     comp::biped_large::Body::random_with(
@@ -580,7 +583,7 @@ impl Floor {
                                         &comp::biped_large::Species::Mindflayer,
                                     ),
                                 ))
-                                .with_name("Bob".to_string())
+                                .with_name("Mindflayer")
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen));
 
                             supplement.add_entity(entity);

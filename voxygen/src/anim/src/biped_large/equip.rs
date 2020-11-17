@@ -54,8 +54,8 @@ impl Animation for EquipAnimation {
                     Quaternion::rotation_y(2.2) * Quaternion::rotation_z(-1.57);
             },
             Some(ToolKind::Bow) => {
-                next.hand_l.position = Vec3::new(-3.0, -5.0, 9.0);
-                next.hand_r.position = Vec3::new(-1.75, -4.5, 7.0);
+                next.hand_l.position = Vec3::new(-9.0, -5.0, -8.0);
+                next.hand_r.position = Vec3::new(-7.75, -4.5, -10.0);
             },
             _ => {},
         }
