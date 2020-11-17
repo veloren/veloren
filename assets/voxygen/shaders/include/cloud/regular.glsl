@@ -92,11 +92,11 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
         float z = clamp(pos.z, 0, 10000);
         float emission_alt = 4000.0;
         #if (CLOUD_MODE >= CLOUD_MODE_LOW)
-            emission_alt += (texture(t_noise, wind_pos.xy * 0.00003).x - 0.5) * 8000;
+            emission_alt += (noise_3d(vec3(wind_pos.xy * 0.00003 + cloud_tendency * 0.2, time_of_day.x * 0.0001)) - 0.5) * 8000;
         #endif
         float tail = (texture(t_noise, wind_pos.xy * 0.00005).x - 0.5) * 10 + (z - emission_alt) * 0.001;
         vec3 emission_col = vec3(0.6 + tail * 0.6, 1.0, 0.3 + tail * 0.2);
-        float emission_nz = max(texture(t_noise, wind_pos.xy * 0.00003).x - 0.6, 0) / (10.0 + abs(z - emission_alt) / 60);
+        float emission_nz = max(texture(t_noise, wind_pos.xy * 0.00003).x - 0.6, 0) / (10.0 + abs(z - emission_alt) / 40);
         #if (CLOUD_MODE >= CLOUD_MODE_MEDIUM)
             emission_nz *= (1.0 + (noise_3d(vec3(wind_pos.xy * 0.05, time_of_day.x * 0.15) * 0.004) - 0.5) * 4.0);
         #endif
@@ -153,9 +153,7 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
             (texture(t_noise, vec2(atan2(dir.x, dir.y) * 2 / PI, dir.z) * 1.0 - time_of_day * 0.00005).x - 0.5) * 0.2 / (1.0 + pow(dir.z, 2) * 10),
             (texture(t_noise, vec2(atan2(dir.x, dir.y) * 2 / PI, dir.z) * 1.0 - time_of_day * 0.00005).x - 0.5) * 0.2 / (1.0 + pow(dir.z, 2) * 10),
             (texture(t_noise, vec2(atan2(dir.x, dir.y) * 2 / PI, dir.z) * 1.0 - time_of_day * 0.00005).x - 0.5) * 0.2 / (1.0 + pow(dir.z, 2) * 10)
-        ) * 2000;
-    #endif
-    #if (CLOUD_MODE == CLOUD_MODE_MINIMAL || CLOUD_MODE == CLOUD_MODE_LOW)
+        ) * 1500;
         splay += (texture(t_noise, vec2(atan2(dir.x, dir.y) * 2 / PI, dir.z) * 5.0 - time_of_day * 0.00005).x - 0.5) * 0.075 / (1.0 + pow(dir.z, 2) * 10);
     #endif
 
