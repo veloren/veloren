@@ -92,19 +92,19 @@
     (Salamander, Female): (
         front_left: (
             offset: (-6.0, 0.0, -3.0),
-            lateral: ("npc.salamander.male.foot_fl"),
+            lateral: ("npc.salamander.female.foot_fl"),
         ),
         front_right: (
             offset: (0.0, 0.0, -3.0),
-            lateral: ("npc.salamander.male.foot_fr"),
+            lateral: ("npc.salamander.female.foot_fr"),
         ),
         back_left: (
-            offset: (-7.0, 0.0, -3.0),
-            lateral: ("npc.salamander.male.foot_bl"),
+            offset: (-8.0, 0.0, -3.0),
+            lateral: ("npc.salamander.female.foot_bl"),
         ),
         back_right: (
             offset: (0.0, 0.0, -3.0),
-            lateral: ("npc.salamander.male.foot_br"),
+            lateral: ("npc.salamander.female.foot_br"),
         ),
     ),
     (Monitor, Male): (
