@@ -1,16 +1,19 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
-    Show, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN, QUALITY_LOW, QUALITY_COMMON, QUALITY_MODERATE, QUALITY_HIGH, QUALITY_EPIC, QUALITY_DEBUG,
+    Show, QUALITY_COMMON, QUALITY_DEBUG, QUALITY_EPIC, QUALITY_HIGH, QUALITY_LOW, QUALITY_MODERATE,
+    TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
     i18n::Localization,
-    ui::{fonts::Fonts, img_ids, ImageFrame, ImageSlider, Tooltip, TooltipManager, Tooltipable},
+    ui::{fonts::Fonts, img_ids, ImageFrame, Tooltip, TooltipManager, Tooltipable},
     GlobalState,
 };
 use client::{self, Client};
 use common::{comp, msg::world_msg::SiteKind, terrain::TerrainChunkSize, vol::RectVolSize};
 use conrod_core::{
-    color, position,
+    color,
+    input::Key,
+    position,
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
@@ -49,6 +52,8 @@ widget_ids! {
         show_difficulty_img,
         show_difficulty_box,
         show_difficulty_text,
+        recenter_txt,
+        drag_txt,
     }
 }
 
@@ -82,7 +87,7 @@ impl<'a> Map<'a> {
         tooltip_manager: &'a mut TooltipManager,
     ) -> Self {
         Self {
-            show: show,
+            show,
             imgs,
             rot_imgs,
             world_map,
@@ -236,14 +241,20 @@ impl<'a> Widget for Map<'a> {
         let h_src = max_zoom / zoom;
         // Handle dragging
         let drag = self.global_state.settings.gameplay.map_drag;
-        let dragged: Vec2::<f64> = ui.widget_input(state.ids.grid).drags().left().map(|drag| Vec2::<f64>::from(drag.delta_xy)).sum();
+        let dragged: Vec2<f64> = ui
+            .widget_input(state.ids.grid)
+            .drags()
+            .left()
+            .map(|drag| Vec2::<f64>::from(drag.delta_xy))
+            .sum();
         let drag_new = drag + dragged / zoom;
         events.push(Event::MapDrag(drag_new));
 
         let rect_src = position::Rect::from_xy_dim(
             [
                 (player_pos.x as f64 / TerrainChunkSize::RECT_SIZE.x as f64) - drag.x,
-                ((worldsize.y - player_pos.y as f64) / TerrainChunkSize::RECT_SIZE.y as f64) + drag.y,
+                ((worldsize.y - player_pos.y as f64) / TerrainChunkSize::RECT_SIZE.y as f64)
+                    + drag.y,
             ],
             [w_src, h_src],
         );
@@ -266,7 +277,7 @@ impl<'a> Widget for Map<'a> {
             .source_rectangle(rect_src)
             .set(state.ids.grid, ui);
 
-        if let Some(new_val) = ImageSlider::discrete(
+        /*if let Some(new_val) = ImageSlider::discrete(
             self.global_state.settings.gameplay.map_zoom as i32,
             1,
             30,
@@ -281,13 +292,26 @@ impl<'a> Widget for Map<'a> {
         .set(state.ids.zoom_slider, ui)
         {
             events.push(Event::MapZoom(new_val as f64));
-        }
+        }*/
         // Handle zooming with the mousewheel
         let zoom_lvl = self.global_state.settings.gameplay.map_zoom;
-        let scrolled: f64 = ui.widget_input(state.ids.grid).scrolls().map(|scroll| scroll.y).sum();
-        let new_zoom_lvl = (zoom_lvl * (1.0 + scrolled * 0.1)).clamped(1.0, 20.0/*max_zoom*/);
+        let scrolled: f64 = ui
+            .widget_input(state.ids.grid)
+            .scrolls()
+            .map(|scroll| scroll.y)
+            .sum();
+        let new_zoom_lvl =
+            (zoom_lvl * (1.0 + scrolled * 0.1)).clamped(1.0, 20.0 /* max_zoom */);
         events.push(Event::MapZoom(new_zoom_lvl as f64));
-
+        // Handle recenter by pressing space
+        if ui
+            .widget_input(state.ids.grid)
+            .presses()
+            .key()
+            .any(|key_press| matches!(key_press.key, Key::Space) || matches!(key_press.key, Key::Escape)|| matches!(key_press.key, Key::M))
+        {
+            events.push(Event::MapDrag(drag_new - drag_new));
+        }
 
         // Icon settings
         // Alignment
@@ -297,17 +321,26 @@ impl<'a> Widget for Map<'a> {
         // Checkboxes
         // Show difficulties
         Image::new(self.imgs.map_dif_5)
-        .top_left_with_margins_on(state.ids.map_settings_align, 5.0, 5.0)
-        .w_h(20.0, 20.0)
-        .set(state.ids.show_difficulty_img, ui);
+            .top_left_with_margins_on(state.ids.map_settings_align, 5.0, 5.0)
+            .w_h(20.0, 20.0)
+            .set(state.ids.show_difficulty_img, ui);
         if Button::image(if self.show.map_difficulty {
-            self.imgs.checkbox_checked} else {self.imgs.checkbox})
+            self.imgs.checkbox_checked
+        } else {
+            self.imgs.checkbox
+        })
         .w_h(18.0, 18.0)
         .hover_image(if self.show.map_difficulty {
-            self.imgs.checkbox_checked_mo} else {self.imgs.checkbox_mo})
+            self.imgs.checkbox_checked_mo
+        } else {
+            self.imgs.checkbox_mo
+        })
         .press_image(if self.show.map_difficulty {
-            self.imgs.checkbox_checked} else {self.imgs.checkbox_press})
-            .right_from(state.ids.show_difficulty_img, 10.0)
+            self.imgs.checkbox_checked
+        } else {
+            self.imgs.checkbox_press
+        })
+        .right_from(state.ids.show_difficulty_img, 10.0)
         .set(state.ids.show_difficulty_box, ui)
         .was_clicked()
         {
@@ -322,17 +355,26 @@ impl<'a> Widget for Map<'a> {
             .set(state.ids.show_difficulty_text, ui);
         // Towns
         Image::new(self.imgs.mmap_site_town)
-        .down_from(state.ids.show_difficulty_img, 10.0)
-        .w_h(20.0, 20.0)
-        .set(state.ids.show_towns_img, ui);
+            .down_from(state.ids.show_difficulty_img, 10.0)
+            .w_h(20.0, 20.0)
+            .set(state.ids.show_towns_img, ui);
         if Button::image(if self.show.map_towns {
-            self.imgs.checkbox_checked} else {self.imgs.checkbox})
+            self.imgs.checkbox_checked
+        } else {
+            self.imgs.checkbox
+        })
         .w_h(18.0, 18.0)
         .hover_image(if self.show.map_towns {
-            self.imgs.checkbox_checked_mo} else {self.imgs.checkbox_mo})
+            self.imgs.checkbox_checked_mo
+        } else {
+            self.imgs.checkbox_mo
+        })
         .press_image(if self.show.map_towns {
-            self.imgs.checkbox_checked} else {self.imgs.checkbox_press})
-            .right_from(state.ids.show_towns_img, 10.0)
+            self.imgs.checkbox_checked
+        } else {
+            self.imgs.checkbox_press
+        })
+        .right_from(state.ids.show_towns_img, 10.0)
         .set(state.ids.show_towns_box, ui)
         .was_clicked()
         {
@@ -347,17 +389,26 @@ impl<'a> Widget for Map<'a> {
             .set(state.ids.show_towns_text, ui);
         // Castles
         Image::new(self.imgs.mmap_site_castle)
-        .down_from(state.ids.show_towns_img, 10.0)
-        .w_h(20.0, 20.0)
-        .set(state.ids.show_castles_img, ui);
+            .down_from(state.ids.show_towns_img, 10.0)
+            .w_h(20.0, 20.0)
+            .set(state.ids.show_castles_img, ui);
         if Button::image(if self.show.map_castles {
-            self.imgs.checkbox_checked} else {self.imgs.checkbox})
+            self.imgs.checkbox_checked
+        } else {
+            self.imgs.checkbox
+        })
         .w_h(18.0, 18.0)
         .hover_image(if self.show.map_castles {
-            self.imgs.checkbox_checked_mo} else {self.imgs.checkbox_mo})
+            self.imgs.checkbox_checked_mo
+        } else {
+            self.imgs.checkbox_mo
+        })
         .press_image(if self.show.map_castles {
-            self.imgs.checkbox_checked} else {self.imgs.checkbox_press})
-            .right_from(state.ids.show_castles_img, 10.0)
+            self.imgs.checkbox_checked
+        } else {
+            self.imgs.checkbox_press
+        })
+        .right_from(state.ids.show_castles_img, 10.0)
         .set(state.ids.show_castles_box, ui)
         .was_clicked()
         {
@@ -372,29 +423,38 @@ impl<'a> Widget for Map<'a> {
             .set(state.ids.show_castles_text, ui);
         // Dungeons
         Image::new(self.imgs.mmap_site_dungeon)
-.down_from(state.ids.show_castles_img, 10.0)
-.w_h(20.0, 20.0)
-.set(state.ids.show_dungeons_img, ui);
-if Button::image(if self.show.map_dungeons {
-    self.imgs.checkbox_checked} else {self.imgs.checkbox})
-.w_h(18.0, 18.0)
-.hover_image(if self.show.map_dungeons {
-    self.imgs.checkbox_checked_mo} else {self.imgs.checkbox_mo})
-.press_image(if self.show.map_dungeons {
-    self.imgs.checkbox_checked} else {self.imgs.checkbox_press})
-    .right_from(state.ids.show_dungeons_img, 10.0)
-.set(state.ids.show_dungeons_box, ui)
-.was_clicked()
-{
-    events.push(Event::ShowDungeons);
-}
-Text::new("Dungeons")
-    .right_from(state.ids.show_dungeons_box, 10.0)
-    .font_size(self.fonts.cyri.scale(14))
-    .font_id(self.fonts.cyri.conrod_id)
-    .graphics_for(state.ids.show_dungeons_box)
-    .color(TEXT_COLOR)
-    .set(state.ids.show_dungeons_text, ui);
+            .down_from(state.ids.show_castles_img, 10.0)
+            .w_h(20.0, 20.0)
+            .set(state.ids.show_dungeons_img, ui);
+        if Button::image(if self.show.map_dungeons {
+            self.imgs.checkbox_checked
+        } else {
+            self.imgs.checkbox
+        })
+        .w_h(18.0, 18.0)
+        .hover_image(if self.show.map_dungeons {
+            self.imgs.checkbox_checked_mo
+        } else {
+            self.imgs.checkbox_mo
+        })
+        .press_image(if self.show.map_dungeons {
+            self.imgs.checkbox_checked
+        } else {
+            self.imgs.checkbox_press
+        })
+        .right_from(state.ids.show_dungeons_img, 10.0)
+        .set(state.ids.show_dungeons_box, ui)
+        .was_clicked()
+        {
+            events.push(Event::ShowDungeons);
+        }
+        Text::new("Dungeons")
+            .right_from(state.ids.show_dungeons_box, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .graphics_for(state.ids.show_dungeons_box)
+            .color(TEXT_COLOR)
+            .set(state.ids.show_dungeons_text, ui);
         // Map icons
         if state.ids.mmap_site_icons.len() < self.client.sites().len() {
             state.update(|state| {
@@ -435,10 +495,28 @@ Text::new("Dungeons")
                 SiteKind::Castle => "Castle",
             };
             let desc = format!("Difficulty: {}", dif);
-            Button::image(match &site.kind {
-                SiteKind::Town => if self.show.map_towns {self.imgs.mmap_site_town } else {self.imgs.nothing},
-                SiteKind::Dungeon => if self.show.map_dungeons {self.imgs.mmap_site_dungeon} else {self.imgs.nothing},
-                SiteKind::Castle => if self.show.map_castles {self.imgs.mmap_site_castle} else {self.imgs.nothing},
+            let site_btn = Button::image(match &site.kind {
+                SiteKind::Town => {
+                    if self.show.map_towns {
+                        self.imgs.mmap_site_town
+                    } else {
+                        self.imgs.nothing
+                    }
+                },
+                SiteKind::Dungeon => {
+                    if self.show.map_dungeons {
+                        self.imgs.mmap_site_dungeon
+                    } else {
+                        self.imgs.nothing
+                    }
+                },
+                SiteKind::Castle => {
+                    if self.show.map_castles {
+                        self.imgs.mmap_site_castle
+                    } else {
+                        self.imgs.nothing
+                    }
+                },
             })
             .x_y_position_relative_to(
                 state.ids.grid,
@@ -453,61 +531,92 @@ Text::new("Dungeons")
             })
             .image_color(UI_HIGHLIGHT_0)
             .parent(ui.window)
-            .with_tooltip(self.tooltip_manager, title, &desc, &site_tooltip, match dif {
-                1 => QUALITY_LOW,
-                2 => QUALITY_COMMON,
-                3 => QUALITY_MODERATE,
-                4 => QUALITY_HIGH,
-                5 => QUALITY_EPIC,
-                6 => QUALITY_DEBUG,
-                _ => TEXT_COLOR,
-                    })
-            .set(state.ids.mmap_site_icons[i], ui);
+            .with_tooltip(
+                self.tooltip_manager,
+                title,
+                &desc,
+                &site_tooltip,
+                match dif {
+                    1 => QUALITY_LOW,
+                    2 => QUALITY_COMMON,
+                    3 => QUALITY_MODERATE,
+                    4 => QUALITY_HIGH,
+                    5 => QUALITY_EPIC,
+                    6 => QUALITY_DEBUG,
+                    _ => TEXT_COLOR,
+                },
+            );
+            // Only display sites that are toggled on
+            match &site.kind {
+                SiteKind::Town => {
+                    if self.show.map_towns {
+                        site_btn.set(state.ids.mmap_site_icons[i], ui);
+                    }
+                },
+                SiteKind::Dungeon => {
+                    if self.show.map_dungeons {
+                        site_btn.set(state.ids.mmap_site_icons[i], ui);
+                    }
+                },
+                SiteKind::Castle => {
+                    if self.show.map_castles {
+                        site_btn.set(state.ids.mmap_site_icons[i], ui);
+                    }
+                },
+            }
 
             // Difficulty from 0-6
             // 0 = towns and places without a difficulty level
             if self.show.map_difficulty {
-
-            let size = 1.8; // Size factor for difficulty indicators
-            let dif_img = Image::new(match dif {
-                1 => self.imgs.map_dif_0,
-                2 => self.imgs.map_dif_1,
-                3 => self.imgs.map_dif_2,
-                4 => self.imgs.map_dif_3,
-                5 => self.imgs.map_dif_4,
-                6 => self.imgs.map_dif_5,
-                _ => self.imgs.nothing,
-            })
-            .mid_top_with_margin_on(state.ids.mmap_site_icons[i], match dif {
-                6 => -12.0 * size,
-                _ => -4.0 * size,
-            })
-            .w(match dif {
-                6 => 12.0 * size,
-                _ => 4.0 * size * dif as f64,
-            })
-            .h(match dif {
-                6 => 12.0 * size,
-                _ => 4.0 * size,
-            })
-            .color(Some(match dif {
-                1 => QUALITY_LOW,
-                2 => QUALITY_COMMON,
-                3 => QUALITY_MODERATE,
-                4 => QUALITY_HIGH,
-                5 => QUALITY_EPIC,
-                6 => TEXT_COLOR,
-                _ => TEXT_COLOR,
-                    }
-                )
-            );
-            match &site.kind {
-                SiteKind::Town => if self.show.map_towns {dif_img.set(state.ids.site_difs[i], ui) },
-                SiteKind::Dungeon => if self.show.map_dungeons {dif_img.set(state.ids.site_difs[i], ui)},
-                SiteKind::Castle => if self.show.map_castles {dif_img.set(state.ids.site_difs[i], ui)},
+                let size = 1.8; // Size factor for difficulty indicators
+                let dif_img = Image::new(match dif {
+                    1 => self.imgs.map_dif_0,
+                    2 => self.imgs.map_dif_1,
+                    3 => self.imgs.map_dif_2,
+                    4 => self.imgs.map_dif_3,
+                    5 => self.imgs.map_dif_4,
+                    6 => self.imgs.map_dif_5,
+                    _ => self.imgs.nothing,
+                })
+                .mid_top_with_margin_on(state.ids.mmap_site_icons[i], match dif {
+                    6 => -12.0 * size,
+                    _ => -4.0 * size,
+                })
+                .w(match dif {
+                    6 => 12.0 * size,
+                    _ => 4.0 * size * dif as f64,
+                })
+                .h(match dif {
+                    6 => 12.0 * size,
+                    _ => 4.0 * size,
+                })
+                .color(Some(match dif {
+                    1 => QUALITY_LOW,
+                    2 => QUALITY_COMMON,
+                    3 => QUALITY_MODERATE,
+                    4 => QUALITY_HIGH,
+                    5 => QUALITY_EPIC,
+                    6 => TEXT_COLOR,
+                    _ => TEXT_COLOR,
+                }));
+                match &site.kind {
+                    SiteKind::Town => {
+                        if self.show.map_towns {
+                            dif_img.set(state.ids.site_difs[i], ui)
+                        }
+                    },
+                    SiteKind::Dungeon => {
+                        if self.show.map_dungeons {
+                            dif_img.set(state.ids.site_difs[i], ui)
+                        }
+                    },
+                    SiteKind::Castle => {
+                        if self.show.map_castles {
+                            dif_img.set(state.ids.site_difs[i], ui)
+                        }
+                    },
+                }
             }
-        }
-
         }
 
         // Cursor pos relative to playerpos and widget size
@@ -518,13 +627,14 @@ Text::new("Dungeons")
             (e as f64 / sz).clamped(0.0, 1.0)
         });*/
         //let xy = rel * 760.0;
-        let rpos = drag.map(|e| (e * zoom_lvl) as f32 / 2.0);
+        let rpos = drag.map(|e| (e * zoom_lvl) as f32 / tweak!(2.6));
         if !rpos
-            .map2(map_size, |e, sz| e.abs() > sz as f32 / 1.67)
+            .map2(map_size, |e, sz| e > sz as f32 / tweak!(1.67))
             .reduce_or()
         {
             let scale = 0.6;
             let arrow_sz = Vec2::new(32.0, 37.0) * scale;
+            if drag.x == 0.0 && drag.y == 0.0 {
             Image::new(self.rot_imgs.indicator_mmap_small.target_north)
                 //.top_left_with_margins_on(state.ids.grid, 407.0 - drag.y * zoom_lvl, 417.0 + drag.x * zoom_lvl)
                 .x_y_position_relative_to(
@@ -535,8 +645,18 @@ Text::new("Dungeons")
                 .w_h(arrow_sz.x, arrow_sz.y)
                 .color(Some(UI_HIGHLIGHT_0))
                 .floating(true)
-                .parent(ui.window)
-                .set(state.ids.indicator, ui);
+                //.parent(ui.window)
+                .set(state.ids.indicator, ui);}
+        }
+
+        if drag.x != 0.0 || drag.y != 0.0 { 
+            Text::new("Press [Space] to recenter the map to your location.")
+            .mid_bottom_with_margin_on(state.ids.grid, tweak!(-20.0))
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)            
+            .graphics_for(state.ids.grid)
+            .color(TEXT_COLOR)
+            .set(state.ids.drag_txt, ui); 
         }
 
         events

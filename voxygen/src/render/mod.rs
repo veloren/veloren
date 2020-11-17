@@ -112,13 +112,17 @@ impl Default for AaMode {
 pub enum CloudMode {
     /// No clouds. As cheap as it gets.
     None,
-    /// Clouds, but barely. Ideally, any machine should be able to handle this just fine.
+    /// Clouds, but barely. Ideally, any machine should be able to handle this
+    /// just fine.
     Minimal,
-    /// Enough visual detail to be pleasing, but generally using poor-but-cheap approximations to derive parameters
+    /// Enough visual detail to be pleasing, but generally using poor-but-cheap
+    /// approximations to derive parameters
     Low,
-    /// More detail. Enough to look good in most cases. For those that value looks but also high framerates.
+    /// More detail. Enough to look good in most cases. For those that value
+    /// looks but also high framerates.
     Medium,
-    /// High, but with extra compute power thrown at it to smooth out subtle imperfections
+    /// High, but with extra compute power thrown at it to smooth out subtle
+    /// imperfections
     Ultra,
     /// Lots of detail with good-but-costly derivation of parameters.
     #[serde(other)]
