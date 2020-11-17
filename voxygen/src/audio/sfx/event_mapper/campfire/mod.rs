@@ -11,7 +11,7 @@ use client::Client;
 use common::{
     comp::{object, Body, Pos},
     state::State,
-    terrain::{BlockKind, TerrainChunk},
+    terrain::TerrainChunk,
     vol::ReadVol,
 };
 use hashbrown::HashMap;
@@ -69,7 +69,7 @@ impl EventMapper for CampfireEventMapper {
                     let underwater = state
                         .terrain()
                         .get(cam_pos.map(|e| e.floor() as i32))
-                        .map(|b| b.kind() == BlockKind::Water)
+                        .map(|b| b.is_liquid())
                         .unwrap_or(false);
                     let sfx_trigger_item = triggers.get_key_value(&mapped_event);
                     audio.emit_sfx(sfx_trigger_item, pos.0, None, underwater);
