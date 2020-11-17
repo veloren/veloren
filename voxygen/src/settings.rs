@@ -10,8 +10,8 @@ use hashbrown::{HashMap, HashSet};
 use serde::{Deserialize, Serialize};
 use std::{fs, path::PathBuf};
 use tracing::warn;
-use winit::event::{MouseButton, VirtualKeyCode};
 use vek::*;
+use winit::event::{MouseButton, VirtualKeyCode};
 // ControlSetting-like struct used by Serde, to handle not serializing/building
 // post-deserializing the inverse_keybindings hashmap
 #[derive(Serialize, Deserialize)]
@@ -548,7 +548,7 @@ impl Default for GameplaySettings {
             auto_walk_behavior: PressBehavior::Toggle,
             stop_auto_walk_on_input: true,
             map_zoom: 4.0,
-            map_drag: Vec2 { x: 0.0, y: 0.0},
+            map_drag: Vec2 { x: 0.0, y: 0.0 },
             loading_tips: true,
         }
     }

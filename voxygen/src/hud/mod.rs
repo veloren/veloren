@@ -70,11 +70,13 @@ use common::{
     terrain::TerrainChunk,
     vol::RectRasterableVol,
 };
+use common::util::srgba_to_linear;
 use conrod_core::{
     text::cursor::Index,
     widget::{self, Button, Image, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
+use inline_tweak::*;
 use specs::{Join, WorldExt};
 use std::{
     collections::{HashMap, VecDeque},
@@ -467,7 +469,7 @@ impl Show {
     fn toggle_bag(&mut self) { self.bag(!self.bag); }
 
     fn map(&mut self, open: bool) {
-        if !self.esc_menu {            
+        if !self.esc_menu {
             self.map = open;
             self.bag = false;
             self.crafting = false;
@@ -503,8 +505,7 @@ impl Show {
         }
     }
 
-    fn toggle_map(&mut self) { 
-        self.map(!self.map) }
+    fn toggle_map(&mut self) { self.map(!self.map) }
 
     fn toggle_mini_map(&mut self) { self.mini_map = !self.mini_map; }
 
@@ -625,7 +626,7 @@ pub struct Hud {
     force_chat_input: Option<String>,
     force_chat_cursor: Option<Index>,
     tab_complete: Option<String>,
-    pulse: f32,    
+    pulse: f32,
     velocity: f32,
     i18n: std::sync::Arc<Localization>,
     slot_manager: slots::SlotManager,
@@ -645,8 +646,7 @@ impl Hud {
         let ids = Ids::new(ui.id_generator());
         // NOTE: Use a border the same color as the LOD ocean color (but with a
         // translucent alpha since UI have transparency and LOD doesn't).
-        let mut water_color = lod::water_color();
-        water_color.a = 0.5;
+        let water_color = srgba_to_linear(Rgba::new(0.0, tweak!(0.18), tweak!(0.37), tweak!(1.0)));
         // Load world map
         let world_map = (
             ui.add_graphic_with_rotations(Graphic::Image(
@@ -729,7 +729,7 @@ impl Hud {
             force_chat_input: None,
             force_chat_cursor: None,
             tab_complete: None,
-            pulse: 0.0,            
+            pulse: 0.0,
             velocity: 0.0,
             i18n,
             slot_manager,
@@ -2261,7 +2261,7 @@ impl Hud {
                 self.pulse,
                 &self.i18n,
                 &global_state,
-                tooltip_manager,                
+                tooltip_manager,
             )
             .set(self.ids.map, ui_widgets)
             {
@@ -2269,20 +2269,14 @@ impl Hud {
                     map::Event::Close => {
                         self.show.map(false);
                         self.show.want_grab = true;
-                        self.force_ungrab = false;                                              
+                        self.force_ungrab = false;
                     },
                     map::Event::ShowDifficulties => {
                         self.show.map_difficulty = !self.show.map_difficulty
                     },
-                    map::Event::ShowTowns => {
-                        self.show.map_towns = !self.show.map_towns
-                    },
-                    map::Event::ShowCastles => {
-                        self.show.map_castles = !self.show.map_castles
-                    },
-                    map::Event::ShowDungeons => {
-                        self.show.map_dungeons = !self.show.map_dungeons
-                    },
+                    map::Event::ShowTowns => self.show.map_towns = !self.show.map_towns,
+                    map::Event::ShowCastles => self.show.map_castles = !self.show.map_castles,
+                    map::Event::ShowDungeons => self.show.map_dungeons = !self.show.map_dungeons,
                     map::Event::MapZoom(map_zoom) => {
                         events.push(Event::MapZoom(map_zoom));
                     },
