@@ -1,5 +1,6 @@
 mod color;
 pub mod dir;
+pub mod find_dist;
 mod option;
 pub mod userdata_dir;
 
