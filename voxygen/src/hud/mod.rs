@@ -325,6 +325,7 @@ pub enum Event {
     ChangeGamma(f32),
     ChangeAmbiance(f32),
     MapZoom(f64),
+    MapDrag(Vec2<f64>),
     AdjustWindowSize([u16; 2]),
     ChangeFullscreenMode(FullScreenSettings),
     ToggleParticlesEnabled(bool),
@@ -624,7 +625,7 @@ pub struct Hud {
     force_chat_input: Option<String>,
     force_chat_cursor: Option<Index>,
     tab_complete: Option<String>,
-    pulse: f32,
+    pulse: f32,    
     velocity: f32,
     i18n: std::sync::Arc<Localization>,
     slot_manager: slots::SlotManager,
@@ -728,7 +729,7 @@ impl Hud {
             force_chat_input: None,
             force_chat_cursor: None,
             tab_complete: None,
-            pulse: 0.0,
+            pulse: 0.0,            
             velocity: 0.0,
             i18n,
             slot_manager,
@@ -2260,7 +2261,7 @@ impl Hud {
                 self.pulse,
                 &self.i18n,
                 &global_state,
-                tooltip_manager,
+                tooltip_manager,                
             )
             .set(self.ids.map, ui_widgets)
             {
@@ -2268,7 +2269,7 @@ impl Hud {
                     map::Event::Close => {
                         self.show.map(false);
                         self.show.want_grab = true;
-                        self.force_ungrab = false;
+                        self.force_ungrab = false;                                              
                     },
                     map::Event::ShowDifficulties => {
                         self.show.map_difficulty = !self.show.map_difficulty
@@ -2284,6 +2285,9 @@ impl Hud {
                     },
                     map::Event::MapZoom(map_zoom) => {
                         events.push(Event::MapZoom(map_zoom));
+                    },
+                    map::Event::MapDrag(map_drag) => {
+                        events.push(Event::MapDrag(map_drag));
                     },
                 }
             }

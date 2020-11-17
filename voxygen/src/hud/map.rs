@@ -65,7 +65,7 @@ pub struct Map<'a> {
     localized_strings: &'a Localization,
     global_state: &'a GlobalState,
     rot_imgs: &'a ImgsRot,
-    tooltip_manager: &'a mut TooltipManager,
+    tooltip_manager: &'a mut TooltipManager,    
 }
 impl<'a> Map<'a> {
     #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
@@ -79,7 +79,7 @@ impl<'a> Map<'a> {
         pulse: f32,
         localized_strings: &'a Localization,
         global_state: &'a GlobalState,
-        tooltip_manager: &'a mut TooltipManager,
+        tooltip_manager: &'a mut TooltipManager,        
     ) -> Self {
         Self {
             show: show,
@@ -92,7 +92,7 @@ impl<'a> Map<'a> {
             _pulse: pulse,
             localized_strings,
             global_state,
-            tooltip_manager,
+            tooltip_manager,            
         }
     }
 }
@@ -103,6 +103,7 @@ pub struct State {
 
 pub enum Event {
     MapZoom(f64),
+    MapDrag(Vec2<f64>),
     ShowDifficulties,
     ShowTowns,
     ShowCastles,
@@ -190,19 +191,7 @@ impl<'a> Widget for Map<'a> {
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(21))
             .color(TEXT_COLOR)
-            .set(state.ids.qlog_title, ui);
-
-        // X-Button
-        if Button::image(self.imgs.close_button)
-            .w_h(24.0, 25.0)
-            .hover_image(self.imgs.close_btn_hover)
-            .press_image(self.imgs.close_btn_press)
-            .top_right_with_margins_on(state.ids.frame, 0.0, 0.0)
-            .set(state.ids.close, ui)
-            .was_clicked()
-        {
-            events.push(Event::Close);
-        }
+            .set(state.ids.qlog_title, ui);        
 
         // Location Name
         /*match self.client.current_chunk() {
@@ -245,13 +234,31 @@ impl<'a> Widget for Map<'a> {
 
         let w_src = max_zoom / zoom;
         let h_src = max_zoom / zoom;
+        // Handle dragging        
+        let drag = self.global_state.settings.gameplay.map_drag; 
+        let dragged: Vec2::<f64> = ui.widget_input(state.ids.grid).drags().left().map(|drag| Vec2::<f64>::from(drag.delta_xy)).sum();
+        let drag_new = drag + dragged;
+        events.push(Event::MapDrag(drag_new)); 
+               
         let rect_src = position::Rect::from_xy_dim(
             [
-                player_pos.x as f64 / TerrainChunkSize::RECT_SIZE.x as f64,
-                (worldsize.y - player_pos.y as f64) / TerrainChunkSize::RECT_SIZE.y as f64,
+                (player_pos.x as f64 / TerrainChunkSize::RECT_SIZE.x as f64) - drag.x,
+                ((worldsize.y - player_pos.y as f64) / TerrainChunkSize::RECT_SIZE.y as f64) + drag.y,
             ],
             [w_src, h_src],
-        );
+        );        
+        // X-Button
+        if Button::image(self.imgs.close_button)
+            .w_h(24.0, 25.0)
+            .hover_image(self.imgs.close_btn_hover)
+            .press_image(self.imgs.close_btn_press)
+            .top_right_with_margins_on(state.ids.frame, 0.0, 0.0)
+            .set(state.ids.close, ui)
+            .was_clicked()
+        {
+            events.push(Event::Close);                      
+            events.push(Event::MapDrag(drag_new - drag_new)); 
+        }
         Image::new(world_map.none)
             .mid_top_with_margin_on(state.ids.map_align, 10.0)
             .w_h(map_size.x, map_size.y)
@@ -274,9 +281,15 @@ impl<'a> Widget for Map<'a> {
         .set(state.ids.zoom_slider, ui)
         {
             events.push(Event::MapZoom(new_val as f64));
-        }
-        // Icon settings
+        }   
+        // Handle zooming with the mousewheel
+        let zoom_lvl = self.global_state.settings.gameplay.map_zoom;
+        let scrolled: f64 = ui.widget_input(state.ids.grid).scrolls().map(|scroll| scroll.y).sum();
+        let new_zoom_lvl = (zoom_lvl + scrolled * 0.1).clamped(1.0, max_zoom);        
+        events.push(Event::MapZoom(new_zoom_lvl as f64));       
+       
 
+        // Icon settings
         // Alignment
         Rectangle::fill_with([tweak!(150.0), tweak!(200.0)], color::TRANSPARENT)
             .top_right_with_margins_on(state.ids.frame, tweak!(55.0), tweak!(10.0))
@@ -413,6 +426,7 @@ Text::new("Dungeons")
             {
                 continue;
             }
+            // TODO: Pass actual difficulty in here
             let dif = (i as f64 / 100.0 * 6.0) as u8;
             let title = match &site.kind {
                 SiteKind::Town => "Town",
@@ -427,8 +441,8 @@ Text::new("Dungeons")
             })
             .x_y_position_relative_to(
                 state.ids.grid,
-                position::Relative::Scalar(rpos.x as f64),
-                position::Relative::Scalar(rpos.y as f64),
+                position::Relative::Scalar(rpos.x as f64 + drag.x * zoom_lvl),
+                position::Relative::Scalar(rpos.y as f64 + drag.y * zoom_lvl),
             )
             .w_h(20.0 * 1.2, 20.0 * 1.2)
             .hover_image(match &site.kind {
@@ -450,8 +464,7 @@ Text::new("Dungeons")
             .set(state.ids.mmap_site_icons[i], ui);
 
             // Difficulty from 0-6
-            // 0 = towns and places without a difficulty level
-            // TODO: Pass actual difficulty in here
+            // 0 = towns and places without a difficulty level            
             if self.show.map_difficulty {
 
             let size = 1.8; // Size factor for difficulty indicators
@@ -507,12 +520,13 @@ Text::new("Dungeons")
         let scale = 0.6;
         let arrow_sz = Vec2::new(32.0, 37.0) * scale;
         Image::new(self.rot_imgs.indicator_mmap_small.target_north)
-            .middle_of(state.ids.grid)
+            .top_left_with_margins_on(state.ids.grid, 407.0 + drag.y * zoom_lvl, 417.0 + drag.x * zoom_lvl)
             .w_h(arrow_sz.x, arrow_sz.y)
             .color(Some(UI_HIGHLIGHT_0))
             .floating(true)
             .parent(ui.window)
-            .set(state.ids.indicator, ui);
+            .set(state.ids.indicator, ui);        
+        
 
         events
     }

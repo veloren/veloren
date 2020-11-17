@@ -964,6 +964,10 @@ impl PlayState for SessionState {
                         global_state.settings.gameplay.map_zoom = map_zoom;
                         global_state.settings.save_to_file_warn();
                     },
+                    HudEvent::MapDrag(map_drag) => {
+                        global_state.settings.gameplay.map_drag = map_drag;
+                        global_state.settings.save_to_file_warn();
+                    },
                     HudEvent::ChangeGamma(new_gamma) => {
                         global_state.settings.graphics.gamma = new_gamma;
                         global_state.settings.save_to_file_warn();

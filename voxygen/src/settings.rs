@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use std::{fs, path::PathBuf};
 use tracing::warn;
 use winit::event::{MouseButton, VirtualKeyCode};
-
+use vek::*;
 // ControlSetting-like struct used by Serde, to handle not serializing/building
 // post-deserializing the inverse_keybindings hashmap
 #[derive(Serialize, Deserialize)]
@@ -516,6 +516,7 @@ pub struct GameplaySettings {
     pub auto_walk_behavior: PressBehavior,
     pub stop_auto_walk_on_input: bool,
     pub map_zoom: f64,
+    pub map_drag: Vec2<f64>,
     pub loading_tips: bool,
 }
 
@@ -547,6 +548,7 @@ impl Default for GameplaySettings {
             auto_walk_behavior: PressBehavior::Toggle,
             stop_auto_walk_on_input: true,
             map_zoom: 4.0,
+            map_drag: Vec2 { x: 0.0, y: 0.0},
             loading_tips: true,
         }
     }

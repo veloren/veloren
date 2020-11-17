@@ -1,0 +1,20 @@
+#![enable(unwrap_newtypes)]
+
+[
+    (
+        specifier: "world.tree.willow.1",
+        center: (18, 18, 8)
+    ),
+    (
+        specifier: "world.tree.willow.2",
+        center: (17, 18, 7)
+    ),
+    (
+        specifier: "world.tree.willow.3",
+        center: (15, 17, 8)
+    ),
+    (
+        specifier: "world.tree.willow.4",
+        center: (15, 16, 8)
+    ),   
+]
