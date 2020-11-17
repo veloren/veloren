@@ -174,6 +174,7 @@ pub enum UniqueKind {
     BeastClaws,
     QuadMedQuick,
     QuadMedJump,
+    QuadMedBasic,
     QuadLowRanged,
     QuadLowTail,
     QuadLowQuick,

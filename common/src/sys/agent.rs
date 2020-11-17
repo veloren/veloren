@@ -358,6 +358,9 @@ impl<'a> System<'a> for Sys {
                             },
                             Some(ToolKind::Unique(UniqueKind::QuadMedQuick)) => Tactic::Wolf,
                             Some(ToolKind::Unique(UniqueKind::QuadMedJump)) => Tactic::QuadMedJump,
+                            Some(ToolKind::Unique(UniqueKind::QuadMedBasic)) => {
+                                Tactic::QuadLowBasic
+                            },
                             Some(ToolKind::Unique(UniqueKind::QuadLowRanged)) => {
                                 Tactic::QuadLowRanged
                             },

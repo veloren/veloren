@@ -121,7 +121,7 @@
     ),
     (Tuskram, Male): (
         head: (
-            offset: (-10.0, -6.0, -6.5),
+            offset: (-10.0, -2.0, -6.5),
             central: ("npc.tuskram.male.head"),
         ),
         neck: (
@@ -151,7 +151,7 @@
     ),
     (Tuskram, Female): (
         head: (
-            offset: (-10.0, -6.0, -6.5),
+            offset: (-10.0, -2.0, -6.5),
             central: ("npc.tuskram.male.head"),
         ),
         neck: (
