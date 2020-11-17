@@ -9,6 +9,18 @@
 (
     tracks: [
         (
+            title: "Oceania",
+            path: "voxygen.audio.soundtrack.oceania",
+            length: 135.0,
+            timing: None,
+            biomes: [
+                (Lake, 2),
+                (Ocean, 3),
+            ],
+            site: Some(Void),
+            artist: "Eden",
+        ),
+        (
             title: "A Solemn Quest",
             path: "voxygen.audio.soundtrack.a_solemn_quest",
             length: 206.0,

@@ -12,7 +12,7 @@ use common::{
     comp::Pos,
     spiral::Spiral2d,
     state::State,
-    terrain::{BlockKind, TerrainChunk},
+    terrain::TerrainChunk,
     vol::{ReadVol, RectRasterableVol},
 };
 use hashbrown::HashMap;
@@ -184,7 +184,7 @@ impl EventMapper for BlockEventMapper {
                                 let underwater = state
                                     .terrain()
                                     .get(cam_pos.map(|e| e.floor() as i32))
-                                    .map(|b| b.kind() == BlockKind::Water)
+                                    .map(|b| b.is_liquid())
                                     .unwrap_or(false);
 
                                 let sfx_trigger_item = triggers.get_key_value(&sounds.sfx);
@@ -212,6 +212,14 @@ impl BlockEventMapper {
         }
     }
 
+    /// Ensures that:
+    /// 1. An sfx.ron entry exists for an SFX event
+    /// 2. The sfx has not been played since it's timeout threshold has elapsed,
+    /// which prevents firing every tick
+    /// Note that with so many blocks to choose from and different blocks being
+    /// selected each time, this is not perfect, but does reduce the number of
+    /// plays from blocks that have already emitted sfx and are stored in the
+    /// BlockEventMapper history.
     fn should_emit(
         previous_state: &PreviousBlockState,
         sfx_trigger_item: Option<(&SfxEvent, &SfxTriggerItem)>,

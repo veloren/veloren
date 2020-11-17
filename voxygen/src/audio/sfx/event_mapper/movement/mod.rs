@@ -101,7 +101,7 @@ impl EventMapper for MovementEventMapper {
                     let underwater = state
                         .terrain()
                         .get(cam_pos.map(|e| e.floor() as i32))
-                        .map(|b| b.kind() == BlockKind::Water)
+                        .map(|b| b.is_liquid())
                         .unwrap_or(false);
 
                     let sfx_trigger_item = triggers.get_key_value(&mapped_event);

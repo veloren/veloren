@@ -102,32 +102,32 @@
             ],
             threshold: 0.12,
         ),
-        ExperienceGained: (
-            files: [
-                // "voxygen.audio.sfx.character.experience_gained_1",
-                // "voxygen.audio.sfx.character.experience_gained_2",
-                // "voxygen.audio.sfx.character.experience_gained_3",
-            ],
-            threshold: 0.5,
-        ),
+        //ExperienceGained: (
+        //    files: [
+        //        "voxygen.audio.sfx.character.experience_gained_1",
+        //        "voxygen.audio.sfx.character.experience_gained_2",
+        //        "voxygen.audio.sfx.character.experience_gained_3",
+        //    ],
+        //    threshold: 0.5,
+        //),
         LevelUp:(
             files: [
                 "voxygen.audio.sfx.character.level_up_sound_-_shorter_wind_up",
             ],
             threshold: 0.5,
         ),
-        Jump: (
-            files: [
-                // Event not implemented?
-            ],
-            threshold: 0.25,
-        ),
-        Fall: (
-            files: [
-                // Event not implemented?
-            ],
-            threshold: 0.25,
-        ),
+        //Jump: (
+        //    files: [
+        //        // Event not implemented?
+        //    ],
+        //    threshold: 0.25,
+        //),
+        //Fall: (
+        //    files: [
+        //        // Event not implemented?
+        //    ],
+        //    threshold: 0.25,
+        //),
         Roll: (
             files: [
                 "voxygen.audio.sfx.character.dive_roll_1",
@@ -135,18 +135,18 @@
             ],
             threshold: 0.25,
         ),
-        Climb: (
-            files: [
-                // TODO: sync with animation
-                //"voxygen.audio.sfx.footsteps.stepgrass_1",
-                //"voxygen.audio.sfx.footsteps.stepgrass_2",
-                //"voxygen.audio.sfx.footsteps.stepgrass_3",
-                //"voxygen.audio.sfx.footsteps.stepgrass_4",
-                //"voxygen.audio.sfx.footsteps.stepgrass_5",
-                //"voxygen.audio.sfx.footsteps.stepgrass_6",
-            ],
-            threshold: 0.25,
-        ),
+        //Climb: (
+        //    files: [
+        //         TODO: sync with animation
+        //        "voxygen.audio.sfx.footsteps.stepgrass_1",
+        //        "voxygen.audio.sfx.footsteps.stepgrass_2",
+        //        "voxygen.audio.sfx.footsteps.stepgrass_3",
+        //        "voxygen.audio.sfx.footsteps.stepgrass_4",
+        //        "voxygen.audio.sfx.footsteps.stepgrass_5",
+        //        "voxygen.audio.sfx.footsteps.stepgrass_6",
+        //    ],
+        //    threshold: 0.25,
+        //),
         GliderOpen: (
             files: [
                 "voxygen.audio.sfx.glider_open",
@@ -325,12 +325,12 @@
             ],
             threshold: 0.2,
         ),
-        Attack(BasicRanged, Staff): (
-            files: [
-                // "voxygen.audio.sfx.abilities.staff_channeling",
-            ],
-            threshold: 0.8,
-        ),
+        //Attack(BasicRanged, Staff): (
+        //    files: [
+        //        "voxygen.audio.sfx.abilities.staff_channeling",
+        //    ],
+        //    threshold: 0.8,
+        //),
         Inventory(CollectedTool(Staff)): (
             files: [
                 "voxygen.audio.sfx.inventory.pickup_staff",
@@ -577,17 +577,17 @@
             ],
             threshold: 0.3,
         ),
-        Explosion: (
-            files: [
-                // in code
-            ],
-            threshold: 0.2,
-        ),
-        ProjectileShot: (
-            files: [
-                // in code
-            ],
-            threshold: 0.5,
-        ),
+        //Explosion: (
+        //    files: [
+        //        // in code
+        //    ],
+        //    threshold: 0.2,
+        //),
+        //ProjectileShot: (
+        //    files: [
+        //        // in code
+        //    ],
+        //    threshold: 0.5,
+        //),
     }
 )

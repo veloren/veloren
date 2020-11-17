@@ -4,10 +4,11 @@ use crate::{
     scene::Camera,
 };
 use client::Client;
-use common::{assets, state::State, terrain::BlockKind, vol::ReadVol};
+use common::{assets, state::State, vol::ReadVol};
 use serde::Deserialize;
 use std::time::Instant;
 use tracing::warn;
+use vek::*;
 
 #[derive(Debug, Default, Deserialize)]
 struct AmbientCollection {
@@ -20,6 +21,7 @@ pub struct AmbientItem {
     path: String,
     /// Length of the track in seconds
     length: f32,
+    /// Specifies which ambient channel to play on
     tag: AmbientChannelTag,
 }
 
@@ -57,31 +59,24 @@ impl AmbientMgr {
             let focus_off = camera.get_focus_pos().map(f32::trunc);
             let cam_pos = camera.dependents().cam_pos + focus_off;
 
-            let cam_alt = cam_pos.z;
-            let terrain_alt = Self::get_current_terrain_alt(client);
+            let (terrain_alt, tree_density) = if let Some(chunk) = client.current_chunk() {
+                (chunk.meta().alt(), chunk.meta().tree_density())
+            } else {
+                (0.0, 0.0)
+            };
 
             // The following code is specifically for wind, as it is the only
             // non-positional ambient sound in the game. Others can be added
             // as seen fit.
 
-            let alt_multiplier = (cam_alt / 1200.0).abs();
+            // Wind volume increases with altitude
+            let alt_multiplier = (cam_pos.z / 1200.0).abs();
 
-            // Tree density factors into ambient volume. The more trees,
-            // the less ambient
-            let mut tree_multiplier = self.tree_multiplier;
-            let new_tree_multiplier = if (cam_alt - terrain_alt) < 150.0 {
-                1.0 - Self::get_current_tree_density(client)
-            } else {
-                1.0
-            };
-
-            // Smooths tree_multiplier transitions between chunks
-            if tree_multiplier < new_tree_multiplier {
-                tree_multiplier += 0.001;
-            } else if tree_multiplier > new_tree_multiplier {
-                tree_multiplier -= 0.001;
-            }
-            self.tree_multiplier = tree_multiplier;
+            // Tree density factors into wind volume. The more trees,
+            // the lower wind volume. The trees make more of an impact
+            // the closer the camera is to the ground.
+            self.tree_multiplier =
+                ((1.0 - tree_density) + ((cam_pos.z - terrain_alt) / 150.0).powf(2.0)).min(1.0);
 
             let mut volume_multiplier = alt_multiplier * self.tree_multiplier;
 
@@ -89,36 +84,30 @@ impl AmbientMgr {
             if state
                 .terrain()
                 .get((cam_pos).map(|e| e.floor() as i32))
-                .map(|b| b.kind())
-                .unwrap_or(BlockKind::Air)
-                == BlockKind::Water
+                .map(|b| b.is_liquid())
+                .unwrap_or(false)
             {
                 volume_multiplier *= 0.1;
             }
-            if cam_pos.z < Self::get_current_terrain_alt(client) - 10.0 {
+            if cam_pos.z < terrain_alt - 10.0 {
                 volume_multiplier = 0.0;
             }
 
-            let target_volume = volume_multiplier.max(0.0).min(1.0);
+            let target_volume = volume_multiplier.clamped(0.0, 1.0);
 
             // Transitions the ambient sounds (more) smoothly
             self.volume = audio.get_ambient_volume();
-            if self.volume < target_volume {
-                audio.set_ambient_volume(self.volume + 0.001);
-            } else if self.volume > target_volume {
-                audio.set_ambient_volume(self.volume - 0.001);
-            }
+            audio.set_ambient_volume(Lerp::lerp(self.volume, target_volume, 0.01));
 
             if self.began_playing.elapsed().as_secs_f32() > self.next_track_change {
-                //let game_time = (state.get_time_of_day() as u64 % 86400) as u32;
-                //let current_period_of_day = Self::get_current_day_period(game_time);
-
+                // Right now there is only wind non-positional sfx so it is always
+                // selected. Modify this variable assignment when adding other non-
+                // positional sfx
                 let track = &self
                     .soundtrack
                     .tracks
                     .iter()
-                    .filter(|track| track.tag == AmbientChannelTag::Wind)
-                    .next();
+                    .find(|track| track.tag == AmbientChannelTag::Wind);
 
                 if let Some(track) = track {
                     self.began_playing = Instant::now();
@@ -127,21 +116,6 @@ impl AmbientMgr {
                     audio.play_ambient(AmbientChannelTag::Wind, &track.path, volume_multiplier);
                 }
             }
-        }
-    }
-
-    fn get_current_terrain_alt(client: &Client) -> f32 {
-        if let Some(chunk) = client.current_chunk() {
-            chunk.meta().alt()
-        } else {
-            0.0
-        }
-    }
-
-    fn get_current_tree_density(client: &Client) -> f32 {
-        match client.current_chunk() {
-            Some(current_chunk) => current_chunk.meta().tree_density(),
-            None => 0.0,
         }
     }
 
