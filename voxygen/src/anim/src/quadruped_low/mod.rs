@@ -107,12 +107,13 @@ impl Default for SkeletonAttr {
 
 impl<'a> From<&'a Body> for SkeletonAttr {
     fn from(body: &'a Body) -> Self {
-        use comp::quadruped_low::Species::*;
+        use comp::quadruped_low::{BodyType::*, Species::*};
         Self {
             head_upper: match (body.species, body.body_type) {
                 (Crocodile, _) => (1.5, 2.0),
                 (Alligator, _) => (0.5, 2.0),
-                (Salamander, _) => (0.5, 2.5),
+                (Salamander, Male) => (0.5, 2.5),
+                (Salamander, Female) => (0.5, 1.0),
                 (Monitor, _) => (4.5, 1.0),
                 (Asp, _) => (6.0, 5.5),
                 (Tortoise, _) => (5.0, 1.0),
@@ -125,7 +126,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             head_lower: match (body.species, body.body_type) {
                 (Crocodile, _) => (8.0, 0.0),
                 (Alligator, _) => (9.0, 0.25),
-                (Salamander, _) => (9.0, 0.0),
+                (Salamander, Male) => (9.0, 0.0),
+                (Salamander, Female) => (9.0, 0.0),
                 (Monitor, _) => (10.0, 2.0),
                 (Asp, _) => (9.0, 2.5),
                 (Tortoise, _) => (12.0, -3.5),
@@ -138,7 +140,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             jaw: match (body.species, body.body_type) {
                 (Crocodile, _) => (2.5, -3.0),
                 (Alligator, _) => (2.5, -2.0),
-                (Salamander, _) => (0.0, -2.0),
+                (Salamander, Male) => (0.0, -2.0),
+                (Salamander, Female) => (0.5, -1.0),
                 (Monitor, _) => (-2.0, -1.0),
                 (Asp, _) => (-3.0, -2.0),
                 (Tortoise, _) => (-3.5, -2.0),
@@ -151,7 +154,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             chest: match (body.species, body.body_type) {
                 (Crocodile, _) => (0.0, 5.0),
                 (Alligator, _) => (0.0, 5.0),
-                (Salamander, _) => (0.0, 5.0),
+                (Salamander, Male) => (0.0, 5.0),
+                (Salamander, Female) => (0.0, 5.0),
                 (Monitor, _) => (0.0, 5.0),
                 (Asp, _) => (0.0, 8.0),
                 (Tortoise, _) => (0.0, 11.0),
@@ -164,7 +168,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             tail_rear: match (body.species, body.body_type) {
                 (Crocodile, _) => (-12.5, -1.0),
                 (Alligator, _) => (-13.0, -1.0),
-                (Salamander, _) => (-8.0, 0.0),
+                (Salamander, Male) => (-8.0, 0.0),
+                (Salamander, Female) => (-6.5, 0.0),
                 (Monitor, _) => (-12.0, 0.0),
                 (Asp, _) => (-14.0, -2.0),
                 (Tortoise, _) => (-10.0, -1.5),
@@ -177,7 +182,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             tail_front: match (body.species, body.body_type) {
                 (Crocodile, _) => (-6.0, 0.0),
                 (Alligator, _) => (-5.0, 0.0),
-                (Salamander, _) => (-7.5, 0.0),
+                (Salamander, Male) => (-7.5, 0.0),
+                (Salamander, Female) => (-7.0, 0.0),
                 (Monitor, _) => (-6.5, 0.0),
                 (Asp, _) => (-6.0, -2.0),
                 (Tortoise, _) => (-13.0, -3.5),
@@ -190,7 +196,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             feet_f: match (body.species, body.body_type) {
                 (Crocodile, _) => (3.5, 6.0, -1.0),
                 (Alligator, _) => (4.5, 4.25, -1.0),
-                (Salamander, _) => (5.0, 5.0, -2.0),
+                (Salamander, Male) => (5.0, 5.0, -2.0),
+                (Salamander, Female) => (5.0, 4.5, -2.0),
                 (Monitor, _) => (3.0, 5.0, 0.0),
                 (Asp, _) => (1.5, 4.0, -1.0),
                 (Tortoise, _) => (5.5, 6.5, -3.0),
@@ -203,7 +210,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             feet_b: match (body.species, body.body_type) {
                 (Crocodile, _) => (3.5, -6.0, -1.0),
                 (Alligator, _) => (4.5, -5.5, -1.0),
-                (Salamander, _) => (4.0, -6.0, -2.0),
+                (Salamander, Male) => (4.0, -6.0, -2.0),
+                (Salamander, Female) => (3.0, -6.0, -2.0),
                 (Monitor, _) => (2.5, -6.5, 0.0),
                 (Asp, _) => (2.5, -5.5, -1.0),
                 (Tortoise, _) => (5.5, -11.5, -3.0),

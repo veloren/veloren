@@ -55,7 +55,7 @@ impl Animation for IdleAnimation {
             * Quaternion::rotation_x(0.8 * dragon_look.y);
 
         next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
-        next.jaw.orientation = Quaternion::rotation_x(slow * 0.04);
+        next.jaw.orientation = Quaternion::rotation_x(slow * 0.05 - 0.05);
 
         next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1) * s_a.scaler / 11.0;
         next.chest.orientation = Quaternion::rotation_y(slow * 0.03);

@@ -216,7 +216,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Occultsaurok, _) => (3.0, 23.0),
                 (Mightysaurok, _) => (3.0, 23.0),
                 (Slysaurok, _) => (3.0, 23.0),
-                (Mindflayer, _) => (0.0, 31.0),
+                (Mindflayer, _) => (0.0, 30.5),
             },
             lower_torso: match (body.species, body.body_type) {
                 (Ogre, Male) => (1.0, -7.0),
@@ -229,7 +229,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Occultsaurok, _) => (0.0, -6.0),
                 (Mightysaurok, _) => (0.0, -6.0),
                 (Slysaurok, _) => (0.0, -6.0),
-                (Mindflayer, _) => (5.5, -18.0),
+                (Mindflayer, _) => (3.5, -19.5),
             },
             tail: match (body.species, body.body_type) {
                 (Werewolf, _) => (-5.5, -2.0),
@@ -288,7 +288,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Occultsaurok, _) => (3.5, 2.0, -12.0),
                 (Mightysaurok, _) => (3.5, 2.0, -12.0),
                 (Slysaurok, _) => (3.5, 2.0, -12.0),
-                (Mindflayer, _) => (4.5, -0.5, -12.5),
+                (Mindflayer, _) => (4.5, 1.5, -7.0),
             },
             shl: match (body.species, body.body_type) {
                 (Dullahan, _) => (-4.75, -11.0, 8.5, 1.47, -0.2, 0.0),

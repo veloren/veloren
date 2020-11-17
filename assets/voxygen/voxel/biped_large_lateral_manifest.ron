@@ -630,11 +630,11 @@
         ),
         leg_l: (
             offset: (-6.5, -10.0, -16.0),
-            lateral: ("npc.mindflayer.male.leg_l"),
+            lateral: ("armor.empty"),
         ),
         leg_r: (
             offset: (-6.5, -10.0, -16.0),
-            lateral: ("npc.mindflayer.male.leg_r"),
+            lateral: ("armor.empty"),
         ),
         foot_l: (
             offset: (-2.0, -4.5, -4.0),
@@ -664,11 +664,11 @@
         ),
         leg_l: (
             offset: (-6.5, -10.0, -16.0),
-            lateral: ("npc.mindflayer.male.leg_l"),
+            lateral: ("armor.empty"),
         ),
         leg_r: (
             offset: (-6.5, -10.0, -16.0),
-            lateral: ("npc.mindflayer.male.leg_r"),
+            lateral: ("armor.empty"),
         ),
         foot_l: (
             offset: (-2.0, -4.5, -4.0),

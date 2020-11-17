@@ -686,4 +686,32 @@
             central: ("npc.beaver.male.tail"),
         ),
     ),
+    (Hare, Male):(
+        head: (
+            offset: (-3.5, 0.0, -3.0),
+            central: ("npc.hare.male.head"),
+        ),
+        chest: (
+            offset: (-2.5, -5.0, -3.0),
+            central: ("npc.hare.male.chest"),
+        ),
+        tail: (
+            offset: (-1.5, -11.0, -2.0),
+            central: ("npc.hare.male.tail"),
+        ),
+    ),
+    (Hare, Female):(
+        head: (
+            offset: (-3.5, 0.0, -3.0),
+            central: ("npc.hare.female.head"),
+        ),
+        chest: (
+            offset: (-3.5, -6.5, -4.0),
+            central: ("npc.hare.female.chest"),
+        ),
+        tail: (
+            offset: (-2.5, -5.0, -3.0),
+            central: ("npc.hare.female.tail"),
+        ),
+    ),
 })

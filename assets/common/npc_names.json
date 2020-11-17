@@ -529,6 +529,10 @@
             "beaver": {
                 "keyword": "beaver",
                 "generic": "Beaver"
+            },
+            "hare": {
+                "keyword": "hare",
+                "generic": "Hare"
             }
         }
     },
