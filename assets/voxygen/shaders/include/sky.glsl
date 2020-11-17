@@ -91,7 +91,7 @@ float cloud_shadow(vec3 pos, vec3 light_dir) {
 
         cloud = cloud * 2.0;
 
-        return clamp(1 - fade * cloud * 3.0, 0, 1);
+        return clamp(1 - fade * cloud * 1.65, 0, 1);
     #endif
 }
 

@@ -53,7 +53,7 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
         #endif
         mist *= (1.0 + turb_noise);
 
-        cloud_factor = 0.25 * (1.0 - pow(min(abs(pos.z - cloud_attr.x) / (cloud_attr.y * pow(max(cloud_tendency * 20.0, 0), 0.5)), 1.0), 2.0));
+        cloud_factor = 0.5 * (1.0 - pow(min(abs(pos.z - cloud_attr.x) / (cloud_attr.y * pow(max(cloud_tendency * 20.0, 0), 0.5)), 1.0), 1.0));
         float cloud_flat = min(cloud_tendency, 0.07) * 0.05;
         cloud_flat *= (1.0 + turb_noise * 7.0 * max(0, 1.0 - cloud_factor * 5));
         cloud = cloud_flat * pow(cloud_factor, 2) * 20 / (1 + pow(1.0 + dist / 10000.0, 2.0));
@@ -71,10 +71,10 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
         vec3 cloud_norm = vec3(
             (cloud_tendency - cloud_tendency_x) * 6,
             (cloud_tendency - cloud_tendency_y) * 6,
-            (pos.z - cloud_attr.x) / 250 + turb_noise
-        );
-        sun_access = mix(clamp(dot(-sun_dir.xyz, cloud_norm), 0.025, 1), sun_access, 0.25);
-        moon_access = mix(clamp(dot(-moon_dir.xyz, cloud_norm), 0.025, 1), moon_access, 0.25);
+            (pos.z - cloud_attr.x) / 450 + turb_noise
+        ) * 0.5;
+        sun_access = mix(max(dot(-sun_dir.xyz, cloud_norm), 0.025), sun_access, 0.25);
+        moon_access = mix(max(dot(-moon_dir.xyz, cloud_norm), 0.025), moon_access, 0.25);
     #endif
 
     // Prevent mist (i.e: vapour beneath clouds) being accessible to the sun to avoid visual problems
