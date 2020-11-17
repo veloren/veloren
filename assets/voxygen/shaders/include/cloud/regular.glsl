@@ -26,7 +26,7 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
     // Mist sits close to the ground in valleys (TODO: use base_alt to put it closer to water)
     float mist_min_alt = 0.5;
     #if (CLOUD_MODE > CLOUD_MODE_LOW)
-        mist_min_alt = (texture(t_noise, pos.xy * 0.00015).x - 0.5) * 2 + 0.5;
+        mist_min_alt = (texture(t_noise, pos.xy * 0.00015).x - 0.5) * 1.25 + 0.5;
     #endif
     mist_min_alt *= 250;
     const float MIST_FADE_HEIGHT = 500;
@@ -173,6 +173,9 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
     float ldist = cdist;
     // i is an emergency brake
     for (int i = 0; cdist > 4 /* && i < 250 */; i ++) {
+        ldist = cdist;
+        cdist = step_to_dist(trunc(dist_to_step(cdist - 0.25, quality)), quality);
+
         vec3 emission;
         vec4 sample = cloud_at(origin + (dir + dir_diff / ldist) * ldist * splay, cdist, emission);
 
@@ -197,9 +200,6 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
             // Global illumination (uniform scatter from the sky)
             sky_color * sun_access * scatter_factor * get_sun_brightness() +
             sky_color * moon_access * scatter_factor * get_moon_brightness();
-
-        ldist = cdist;
-        cdist = step_to_dist(trunc(dist_to_step(cdist - 0.25, quality)), quality);
     }
 
     return surf_color;
