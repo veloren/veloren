@@ -44,6 +44,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Wind SFX system
 - Added Norwegian language
 - Roll can now interrupt attacks
+- Birch forests
+- Willow forests
+- More significant temperature variation across the world
+- Initial implementation of real-time world simulation
+- HDR rendering
+- Map site icons
+- Map panning
+- Innumerable minor improvements to world generation
 
 ### Changed
 
@@ -81,7 +89,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Adjusted some keybindings
 - Consumables can now trigger multiple effects and buffs
 - Overhauled overworld spawns depending on chunk attributes
-- Fixed a bug which caused campfires and other stuff to duplicate
+- Improved cloud and water shader quality
 
 ### Removed
 
@@ -96,6 +104,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed a bug where a nearby item would also be collected when collecting collectible blocks
 - Fixed a bug where firing fast projectile at a downwards angle caused them to veer off at a higher angle
 - Fixed a bug where ui scale in the login menu was not updated when changed in-game
+- Fixed a bug which caused campfires and other stuff to duplicate
 
 ## [0.7.0] - 2020-08-15
 
