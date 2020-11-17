@@ -15,23 +15,21 @@ use crate::{
             convert_character_from_database, convert_inventory_from_database_items,
             convert_items_to_database_items, convert_loadout_from_database_items,
             convert_stats_from_database, convert_stats_to_database,
-            convert_waypoint_to_database_json,
+            convert_waypoint_from_database_json,
         },
         character_loader::{CharacterCreationResult, CharacterDataResult, CharacterListResult},
         error::Error::DatabaseError,
-        json_models::CharacterPosition,
         PersistedComponents,
     },
 };
 use common::{
     character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER},
     comp::item::tool::AbilityMap,
-    state::Time,
 };
 use core::ops::Range;
 use diesel::{prelude::*, sql_query, sql_types::BigInt};
 use std::sync::Arc;
-use tracing::{error, trace};
+use tracing::{error, trace, warn};
 
 /// Private module for very tightly coupled database conversion methods.  In
 /// general, these have many invariants that need to be maintained when they're
@@ -90,22 +88,27 @@ pub fn load_character_data(
         .filter(schema::body::dsl::body_id.eq(char_id))
         .first::<Body>(&*connection)?;
 
-    let waypoint = item
-        .filter(item_id.eq(char_id))
-        .first::<Item>(&*connection)
-        .ok()
-        .and_then(|it: Item| {
-            (serde_json::de::from_str::<CharacterPosition>(it.position.as_str()))
-                .ok()
-                .map(|charpos| comp::Waypoint::new(charpos.waypoint, Time(0.0)))
-        });
+    let char_waypoint =
+        stats_data
+            .waypoint
+            .as_ref()
+            .and_then(|x| match convert_waypoint_from_database_json(&x) {
+                Ok(w) => Some(w),
+                Err(e) => {
+                    warn!(
+                        "Error reading waypoint from database for character ID {}, error: {}",
+                        char_id, e
+                    );
+                    None
+                },
+            });
 
     Ok((
         convert_body_from_database(&char_body)?,
         convert_stats_from_database(&stats_data, character_data.alias),
         convert_inventory_from_database_items(&inventory_items)?,
         convert_loadout_from_database_items(&loadout_items, map)?,
-        waypoint,
+        char_waypoint,
     ))
 }
 
@@ -186,17 +189,14 @@ pub fn create_character(
     let character_id = new_entity_ids.next().unwrap();
     let inventory_container_id = new_entity_ids.next().unwrap();
     let loadout_container_id = new_entity_ids.next().unwrap();
-    // by default the character's position is the id in textual form
-    let character_position = waypoint
-        .and_then(|waypoint| serde_json::to_string(&waypoint.get_pos()).ok())
-        .unwrap_or_else(|| character_id.to_string());
+
     let pseudo_containers = vec![
         Item {
             stack_size: 1,
             item_id: character_id,
             parent_container_item_id: WORLD_PSEUDO_CONTAINER_ID,
             item_definition_id: CHARACTER_PSEUDO_CONTAINER_DEF_ID.to_owned(),
-            position: character_position,
+            position: character_id.to_string(),
         },
         Item {
             stack_size: 1,
@@ -225,7 +225,7 @@ pub fn create_character(
     }
 
     // Insert stats record
-    let db_stats = convert_stats_to_database(character_id, &stats);
+    let db_stats = convert_stats_to_database(character_id, &stats, &waypoint)?;
     let stats_count = diesel::insert_into(stats::table)
         .values(&db_stats)
         .execute(&*connection)?;
@@ -535,7 +535,7 @@ pub fn update(
     char_stats: comp::Stats,
     inventory: comp::Inventory,
     loadout: comp::Loadout,
-    waypoint: Option<comp::Waypoint>,
+    char_waypoint: Option<comp::Waypoint>,
     connection: VelorenTransaction,
 ) -> Result<Vec<Arc<common::comp::item::ItemId>>, Error> {
     use super::schema::{item::dsl::*, stats::dsl::*};
@@ -557,22 +557,6 @@ pub fn update(
         upserts = upserts_;
         next_id
     })?;
-
-    if let Some(waypoint) = waypoint {
-        match convert_waypoint_to_database_json(&waypoint) {
-            Ok(character_position) => {
-                diesel::update(item.filter(item_id.eq(char_id)))
-                    .set(position.eq(character_position))
-                    .execute(&*connection)?;
-            },
-            Err(err) => {
-                return Err(Error::ConversionError(format!(
-                    "Error encoding waypoint: {:?}",
-                    err
-                )));
-            },
-        }
-    }
 
     // Next, delete any slots we aren't upserting.
     trace!("Deleting items for character_id {}", char_id);
@@ -617,7 +601,7 @@ pub fn update(
         }
     }
 
-    let db_stats = convert_stats_to_database(char_id, &char_stats);
+    let db_stats = convert_stats_to_database(char_id, &char_stats, &char_waypoint)?;
     let stats_count = diesel::update(stats.filter(stats_id.eq(char_id)))
         .set(db_stats)
         .execute(&*connection)?;

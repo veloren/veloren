@@ -38,6 +38,7 @@ table! {
         endurance -> Integer,
         fitness -> Integer,
         willpower -> Integer,
+        waypoint -> Nullable<Text>,
     }
 }
 
