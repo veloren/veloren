@@ -2172,11 +2172,13 @@ impl SimChunk {
             // ...but is ultimately limited by available sunlight (and our tree generation system)
             .min(1.0);
 
-        // Sand dunes (formed over a short period of time)
+        // Add geologically short timescale undulation to the world for various reasons
         let alt = alt
+            // Don't add undulation to rivers, mainly because this could accidentally result in rivers flowing uphill
             + if river.near_water() {
                 0.0
             } else {
+                // Sand dunes (formed over a short period of time, so we don't care about erosion sim)
                 let warp = Vec2::new(
                     gen_ctx.turb_x_nz.get(wposf.div(350.0).into_array()) as f32,
                     gen_ctx.turb_y_nz.get(wposf.div(350.0).into_array()) as f32,
@@ -2189,7 +2191,17 @@ impl SimChunk {
                     .mul(DUNE_DIR.normalized())
                     .sum();
                 let dune_nz = 0.5 - dune_dist.sin().abs() + 0.5 * (dune_dist + 0.5).sin().abs();
-                dune_nz * DUNE_SCALE * (temp - 0.75).clamped(0.0, 0.25) * 4.0
+                let dune = dune_nz * DUNE_SCALE * (temp - 0.75).clamped(0.0, 0.25) * 4.0;
+
+                // Trees bind to soil and their roots result in small accumulating undulations over geologically short
+                // periods of time. Forest floors are generally significantly bumpier than that of deforested areas.
+                // This is particularly pronounced in high-humidity areas.
+                let soil_nz = gen_ctx.hill_nz.get(wposf.div(96.0).into_array()) as f32;
+                let soil_nz = (soil_nz + 1.0) * 0.5;
+                const SOIL_SCALE: f32 = 16.0;
+                let soil = soil_nz * SOIL_SCALE * tree_density.powf(0.5) * humidity.powf(0.5);
+
+                dune + soil
             };
 
         Self {
@@ -2226,7 +2238,7 @@ impl SimChunk {
                     ),
                     (
                         ForestKind::Savannah,
-                        (CONFIG.desert_hum, 2.0),
+                        (0.0, 1.5),
                         (CONFIG.tropical_temp, 1.5),
                         (0.0, 1.0),
                     ),
