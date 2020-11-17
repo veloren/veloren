@@ -116,7 +116,7 @@ impl LoadoutBuilder {
                     },
                     _ => {
                         main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.quadmedquick",
+                            "common.items.npc_weapons.unique.quadmedbasic",
                         ));
                     },
                 },

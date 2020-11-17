@@ -1,7 +1,7 @@
 use crate::{
     comp::{
         item::{Hands, ItemKind, Tool},
-        Body, CharacterState, StateUpdate,
+        quadruped_low, quadruped_medium, Body, CharacterState, StateUpdate,
     },
     event::LocalEvent,
     states::*,
@@ -38,7 +38,28 @@ impl Body {
         match self {
             Body::Humanoid(_) => 100.0,
             Body::QuadrupedSmall(_) => 125.0,
-            Body::QuadrupedMedium(_) => 180.0,
+            Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
+                quadruped_medium::Species::Grolgar => 110.0,
+                quadruped_medium::Species::Saber => 180.0,
+                quadruped_medium::Species::Tiger => 150.0,
+                quadruped_medium::Species::Tuskram => 160.0,
+                quadruped_medium::Species::Lion => 110.0,
+                quadruped_medium::Species::Tarasque => 100.0,
+                quadruped_medium::Species::Wolf => 180.0,
+                quadruped_medium::Species::Frostfang => 180.0,
+                quadruped_medium::Species::Mouflon => 100.0,
+                quadruped_medium::Species::Catoblepas => 70.0,
+                quadruped_medium::Species::Bonerattler => 130.0,
+                quadruped_medium::Species::Deer => 150.0,
+                quadruped_medium::Species::Hirdrasil => 160.0,
+                quadruped_medium::Species::Roshwalr => 75.0,
+                quadruped_medium::Species::Donkey => 110.0,
+                quadruped_medium::Species::Camel => 100.0,
+                quadruped_medium::Species::Zebra => 140.0,
+                quadruped_medium::Species::Antelope => 170.0,
+                quadruped_medium::Species::Kelpie => 175.0,
+                quadruped_medium::Species::Horse => 190.0,
+            },
             Body::BirdMedium(_) => 80.0,
             Body::FishMedium(_) => 50.0,
             Body::Dragon(_) => 250.0,
@@ -48,7 +69,19 @@ impl Body {
             Body::Object(_) => 40.0,
             Body::Golem(_) => 60.0,
             Body::Theropod(_) => 135.0,
-            Body::QuadrupedLow(_) => 120.0,
+            Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
+                quadruped_low::Species::Crocodile => 130.0,
+                quadruped_low::Species::Alligator => 110.0,
+                quadruped_low::Species::Salamander => 85.0,
+                quadruped_low::Species::Monitor => 160.0,
+                quadruped_low::Species::Asp => 130.0,
+                quadruped_low::Species::Tortoise => 60.0,
+                quadruped_low::Species::Rocksnapper => 70.0,
+                quadruped_low::Species::Pangolin => 120.0,
+                quadruped_low::Species::Maneater => 80.0,
+                quadruped_low::Species::Sandshark => 70.0,
+                quadruped_low::Species::Hakulaq => 170.0,
+            },
         }
     }
 
@@ -186,7 +219,7 @@ pub fn handle_forced_movement(
 
 pub fn handle_orientation(data: &JoinData, update: &mut StateUpdate, rate: f32) {
     // Set direction based on move direction
-    let ori_dir = if update.character.is_aimed() {
+    let ori_dir = if update.character.is_aimed() && data.body.is_humanoid() {
         data.inputs.look_dir.xy()
     } else if !data.inputs.move_dir.is_approx_zero() {
         data.inputs.move_dir

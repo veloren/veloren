@@ -4,16 +4,16 @@ use super::{
 };
 use common::states::utils::StageSection;
 
-pub struct AlphaAnimation;
+pub struct BetaAnimation;
 
-impl Animation for AlphaAnimation {
+impl Animation for BetaAnimation {
     type Dependency = (f32, f64, Option<StageSection>, f64);
     type Skeleton = QuadrupedMediumSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
-    const UPDATE_FN: &'static [u8] = b"quadruped_medium_alpha\0";
+    const UPDATE_FN: &'static [u8] = b"quadruped_medium_beta\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_medium_alpha")]
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_medium_beta")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (velocity, global_time, stage_section, timer): Self::Dependency,
@@ -26,7 +26,7 @@ impl Animation for AlphaAnimation {
 
         let (movement1base, movement2base, movement3) = match stage_section {
             Some(StageSection::Buildup) => ((anim_time as f32).powf(0.25), 0.0, 0.0),
-            Some(StageSection::Swing) => (1.0, (anim_time as f32).powf(0.25), 0.0),
+            Some(StageSection::Swing) => (1.0, (anim_time as f32).powf(0.5), 0.0),
             Some(StageSection::Recover) => (1.0, 1.0, (anim_time as f32).powf(4.0)),
             _ => (0.0, 0.0, 0.0),
         };
@@ -39,18 +39,18 @@ impl Animation for AlphaAnimation {
         let movement2 = movement2base * mirror * pullback;
         let movement2abs = movement2base * pullback;
         let twitch1 = (movement1 * 10.0).sin() * pullback;
-        let twitch2 = (movement3 * 5.0).sin() * pullback;
+        let twitch2 = (movement2abs * -8.0).sin();
         let twitchmovement = twitch1 + twitch2;
 
-        next.head.orientation = Quaternion::rotation_x(movement1abs * -0.3 + movement2abs * 0.6)
-            * Quaternion::rotation_y(movement1 * 0.35 + movement2 * -0.15)
-            * Quaternion::rotation_z(movement1 * 0.15 + movement2 * -0.5);
+        next.head.orientation = Quaternion::rotation_x(movement1abs * -0.4 + movement2abs * 1.1)
+            * Quaternion::rotation_y(movement1 * -0.35 + movement2 * 0.25)
+            * Quaternion::rotation_z(movement1 * -0.25 + movement2 * 0.5);
 
-        next.neck.orientation = Quaternion::rotation_x(movement1abs * 0.2 + movement2abs * -0.2)
+        next.neck.orientation = Quaternion::rotation_x(movement1abs * 0.0 + movement2abs * -0.2)
             * Quaternion::rotation_y(movement1 * 0.0)
-            * Quaternion::rotation_z(movement1 * 0.10 + movement1 * -0.15);
+            * Quaternion::rotation_z(movement1 * -0.10 + movement1 * 0.15);
 
-        next.jaw.orientation = Quaternion::rotation_x(movement1abs * -0.7 + movement2abs * 0.7);
+        next.jaw.orientation = Quaternion::rotation_x(movement1abs * -0.5 + twitch2 * -0.4);
 
         next.tail.orientation = Quaternion::rotation_z(
             movement1 * 0.5 + movement2 * -0.8 + twitchmovement * 0.2 * mirror,

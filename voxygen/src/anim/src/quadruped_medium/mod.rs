@@ -1,4 +1,5 @@
 pub mod alpha;
+pub mod beta;
 pub mod feed;
 pub mod idle;
 pub mod jump;
@@ -7,8 +8,8 @@ pub mod run;
 
 // Reexports
 pub use self::{
-    alpha::AlphaAnimation, feed::FeedAnimation, idle::IdleAnimation, jump::JumpAnimation,
-    leapmelee::LeapMeleeAnimation, run::RunAnimation,
+    alpha::AlphaAnimation, beta::BetaAnimation, feed::FeedAnimation, idle::IdleAnimation,
+    jump::JumpAnimation, leapmelee::LeapMeleeAnimation, run::RunAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};
@@ -143,7 +144,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Lion, _) => (4.5, 2.0),
                 (Tarasque, _) => (-4.0, 3.5),
                 (Tiger, _) => (2.0, 1.0),
-                (Wolf, _) => (-0.5, 3.0),
+                (Wolf, _) => (1.5, 3.0),
                 (Frostfang, _) => (1.0, -2.0),
                 (Mouflon, _) => (0.5, 1.5),
                 (Catoblepas, _) => (-1.0, -6.5),
@@ -167,7 +168,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Tarasque, _) => (-1.5, -4.0),
                 (Tiger, _) => (0.0, 0.0),
                 (Wolf, _) => (-4.5, 2.0),
-                (Frostfang, _) => (2.0, 1.5),
+                (Frostfang, _) => (0.5, 1.5),
                 (Mouflon, _) => (-1.0, 1.0),
                 (Catoblepas, _) => (19.5, -2.0),
                 (Bonerattler, _) => (9.0, -0.5),
@@ -274,7 +275,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Saber, _) => (3.0, 5.5),
                 (Tuskram, _) => (5.5, 12.0),
                 (Lion, _) => (2.0, 3.5),
-                (Tarasque, _) => (11.0, -3.0),
+                (Tarasque, _) => (12.0, -3.0),
                 (Tiger, _) => (2.5, 4.0),
                 (Wolf, _) => (3.0, 2.5),
                 (Frostfang, _) => (2.0, 3.5),
@@ -425,7 +426,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Horse, _) => (0.0),
             },
             tempo: match (body.species, body.body_type) {
-                (Grolgar, _) => (0.95),
+                (Grolgar, _) => (0.85),
                 (Saber, _) => (1.1),
                 (Tuskram, _) => (0.9),
                 (Lion, _) => (0.95),
@@ -438,7 +439,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Bonerattler, _) => (1.0),
                 (Deer, _) => (0.85),
                 (Hirdrasil, _) => (0.85),
-                (Roshwalr, _) => (0.95),
+                (Roshwalr, _) => (0.75),
                 (Donkey, _) => (0.85),
                 (Camel, _) => (0.85),
                 (Zebra, _) => (0.85),
@@ -447,7 +448,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Horse, _) => (0.85),
             },
             spring: match (body.species, body.body_type) {
-                (Grolgar, _) => (1.0),
+                (Grolgar, _) => (0.9),
                 (Saber, _) => (0.9),
                 (Tuskram, _) => (0.9),
                 (Lion, _) => (1.0),
@@ -456,7 +457,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Wolf, _) => (1.2),
                 (Frostfang, _) => (1.0),
                 (Mouflon, _) => (0.9),
-                (Catoblepas, _) => (0.7),
+                (Catoblepas, _) => (0.55),
                 (Bonerattler, _) => (1.1),
                 (Deer, _) => (0.9),
                 (Hirdrasil, _) => (1.1),
