@@ -22,7 +22,7 @@ const vec3 SUN_HALO_DAY = vec3(0.35, 0.35, 0.05);
 const vec3 SKY_DUSK_TOP = vec3(0.06, 0.1, 0.20);
 const vec3 SKY_DUSK_MID = vec3(0.35, 0.1, 0.15);
 const vec3 SKY_DUSK_BOT = vec3(0.0, 0.1, 0.23);
-const vec3 DUSK_LIGHT   = vec3(5.0, 0.5, 0.15);
+const vec3 DUSK_LIGHT   = vec3(9.0, 0.5, 0.15);
 const vec3 SUN_HALO_DUSK = vec3(1.2, 0.15, 0.01);
 
 const vec3 SKY_NIGHT_TOP = vec3(0.001, 0.001, 0.0025);
@@ -380,6 +380,7 @@ float get_sun_diffuse2(DirectionalLight sun_info, DirectionalLight moon_info, ve
 
 // This has been extracted into a function to allow quick exit when detecting a star.
 float is_star_at(vec3 dir) {
+
     float star_scale = 80.0;
 
     // Star positions
@@ -392,11 +393,13 @@ float is_star_at(vec3 dir) {
     float dist = length(pos - dir);
 
     // Star threshold
-    if (dist < 0.0015) {
-        return 2.5;
-    }
+    //if (dist < 0.0015) {
+    //    return 2.5;
+    //}
 
-    return 0.0;
+    //return 0.0;
+
+    return 1.0 / (1.0 + pow(dist * 1000, 8));
 }
 
 vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float quality, bool with_features, float refractionIndex) {
