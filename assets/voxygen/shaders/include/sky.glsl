@@ -22,13 +22,13 @@ const vec3 SUN_HALO_DAY = vec3(0.35, 0.35, 0.05);
 const vec3 SKY_DUSK_TOP = vec3(0.06, 0.1, 0.20);
 const vec3 SKY_DUSK_MID = vec3(0.35, 0.1, 0.15);
 const vec3 SKY_DUSK_BOT = vec3(0.0, 0.1, 0.23);
-const vec3 DUSK_LIGHT   = vec3(9.0, 1.0, 0.05);
-const vec3 SUN_HALO_DUSK = vec3(1.2, 0.05, 0.01);
+const vec3 DUSK_LIGHT   = vec3(5.0, 0.5, 0.15);
+const vec3 SUN_HALO_DUSK = vec3(1.2, 0.15, 0.01);
 
 const vec3 SKY_NIGHT_TOP = vec3(0.001, 0.001, 0.0025);
 const vec3 SKY_NIGHT_MID = vec3(0.001, 0.005, 0.02);
 const vec3 SKY_NIGHT_BOT = vec3(0.002, 0.004, 0.004);
-const vec3 NIGHT_LIGHT   = vec3(0.002, 0.02, 0.02);
+const vec3 NIGHT_LIGHT   = vec3(5.0, 0.75, 0.2);
 // const vec3 NIGHT_LIGHT   = vec3(0.0, 0.0, 0.0);
 
 // Linear RGB, scattering coefficients for atmosphere at roughly R, G, B wavelengths.
@@ -96,7 +96,7 @@ float cloud_shadow(vec3 pos, vec3 light_dir) {
 }
 
 float get_sun_brightness(/*vec3 sun_dir*/) {
-    return max(-sun_dir.z + 0.6, 0.0) * 0.9;
+    return max(-sun_dir.z + 0.7, 0.0) * 0.9;
 }
 
 float get_moon_brightness(/*vec3 moon_dir*/) {
@@ -417,7 +417,7 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
     }
 
     // Sun
-    const vec3 SUN_SURF_COLOR = vec3(1.5, 0.9, 0.35) * 10.0;
+    const vec3 SUN_SURF_COLOR = vec3(1.5, 0.9, 0.35) * 30.0;
 
     vec3 sun_halo_color = mix(
         SUN_HALO_DUSK,
@@ -434,7 +434,7 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
     vec3 sun_light = sun_halo + sun_surf;
 
     // Moon
-    const vec3 MOON_SURF_COLOR = vec3(0.7, 1.0, 1.5) * 10.0;
+    const vec3 MOON_SURF_COLOR = vec3(0.7, 1.0, 1.5) * 30.0;
     const vec3 MOON_HALO_COLOR = vec3(0.015, 0.015, 0.05) * 10;
 
     vec3 moon_halo_color = MOON_HALO_COLOR;
