@@ -205,9 +205,9 @@ void main() {
     vec4 aa_color = aa_apply(src_color, uv * screen_res.xy, screen_res.xy);
 
     // Tonemapping
-    float exposure_offset = 1.5;
+    float exposure_offset = 1.0;
     // Adding an in-code offset to gamma and explosure let us have more precise control over the game's look
-    float gamma_offset = 0.35;
+    float gamma_offset = 0.3;
     aa_color.rgb = vec3(1.0) - exp(-aa_color.rgb * (gamma_exposure.y + exposure_offset));
     // gamma correction
     aa_color.rgb = pow(aa_color.rgb, vec3(gamma_exposure.x + gamma_offset));
