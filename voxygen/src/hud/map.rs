@@ -1,7 +1,7 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
     QUALITY_COMMON, QUALITY_DEBUG, QUALITY_EPIC, QUALITY_HIGH, QUALITY_LOW, QUALITY_MODERATE,
-    TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
+    TEXT_COLOR, TEXT_GRAY_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
     i18n::Localization,
@@ -11,11 +11,9 @@ use crate::{
 use client::{self, Client};
 use common::{comp, msg::world_msg::SiteKind, terrain::TerrainChunkSize, vol::RectVolSize};
 use conrod_core::{
-    color,
-    input::Key,
-    position,
+    color, position,
     widget::{self, Button, Image, Rectangle, Text},
-    widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 use specs::WorldExt;
 use vek::*;
@@ -52,19 +50,19 @@ widget_ids! {
         show_difficulty_img,
         show_difficulty_box,
         show_difficulty_text,
-        recenter_txt,
+        recenter_button,
         drag_txt,
         drag_ico,
         zoom_txt,
         zoom_ico,
+
     }
 }
 
 #[cfg(target_os = "windows")]
-                    const PLATFORM_FACTOR: f64 = 1.0;
-                    #[cfg(not(target_os = "windows"))]
-                    const PLATFORM_FACTOR: f64 = -1.0;
-
+const PLATFORM_FACTOR: f64 = 1.0;
+#[cfg(not(target_os = "windows"))]
+const PLATFORM_FACTOR: f64 = -1.0;
 
 #[derive(WidgetCommon)]
 pub struct Map<'a> {
@@ -309,23 +307,9 @@ impl<'a> Widget for Map<'a> {
             .scrolls()
             .map(|scroll| scroll.y)
             .sum();
-        let new_zoom_lvl =
-            (zoom_lvl * (1.0 + scrolled * 0.05) * PLATFORM_FACTOR).clamped(1.22, 20.0 /* max_zoom */);
+        let new_zoom_lvl = (zoom_lvl * (1.0 + scrolled * 0.05 * PLATFORM_FACTOR))
+            .clamped(1.22, 20.0 /* max_zoom */);
         events.push(Event::MapZoom(new_zoom_lvl as f64));
-        // Handle recenter by pressing space
-        if ui
-            .widget_input(state.ids.grid)
-            .presses()
-            .key()
-            .any(|key_press| {
-                matches!(key_press.key, Key::Space)
-                    || matches!(key_press.key, Key::Escape)
-                    || matches!(key_press.key, Key::M)
-            })
-        {
-            events.push(Event::MapDrag(drag_new - drag_new));
-        }
-
         // Icon settings
         // Alignment
         Rectangle::fill_with([150.0, 200.0], color::TRANSPARENT)
@@ -664,15 +648,45 @@ impl<'a> Widget for Map<'a> {
         }
         // Info about controls
         let icon_size = Vec2::new(tweak!(25.6), tweak!(28.8));
+        let recenter: bool;
         if drag.x != 0.0 || drag.y != 0.0 {
-            Text::new("[Space] Recenter Map")
-                .mid_bottom_with_margin_on(state.ids.grid, tweak!(-20.0))
-                .font_size(self.fonts.cyri.scale(14))
-                .font_id(self.fonts.cyri.conrod_id)
-                .graphics_for(state.ids.grid)
-                .color(TEXT_COLOR)
-                .set(state.ids.recenter_txt, ui);
-        }
+            recenter = true
+        } else {
+            recenter = false
+        };
+        if Button::image(self.imgs.button)
+            .w_h(92.0, icon_size.y)
+            .mid_bottom_with_margin_on(state.ids.grid, tweak!(-36.0))
+            .hover_image(if recenter {
+                self.imgs.button_hover
+            } else {
+                self.imgs.button
+            })
+            .press_image(if recenter {
+                self.imgs.button_press
+            } else {
+                self.imgs.button
+            })
+            .label("Recenter")
+            .label_y(conrod_core::position::Relative::Scalar(1.0))
+            .label_color(if recenter {
+                TEXT_COLOR
+            } else {
+                TEXT_GRAY_COLOR
+            })
+            .image_color(if recenter {
+                TEXT_COLOR
+            } else {
+                TEXT_GRAY_COLOR
+            })
+            .label_font_size(self.fonts.cyri.scale(12))
+            .label_font_id(self.fonts.cyri.conrod_id)
+            .set(state.ids.recenter_button, ui)
+            .was_clicked()
+        {
+            events.push(Event::MapDrag(drag_new - drag_new));
+        };
+
         Image::new(self.imgs.m_move_ico)
             .bottom_left_with_margins_on(state.ids.grid, tweak!(-36.0), 0.0)
             .w_h(icon_size.x, icon_size.y)
