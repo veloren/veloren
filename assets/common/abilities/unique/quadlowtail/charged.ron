@@ -10,5 +10,6 @@ ChargedMelee(
     speed: 1.0,
     charge_duration: 1200,
     swing_duration: 700,
+    hit_timing: 0.9,
     recover_duration: 1200,
 )

@@ -32,6 +32,8 @@ pub struct StaticData {
     pub charge_duration: Duration,
     /// How long the weapon is swinging for
     pub swing_duration: Duration,
+    /// At what fraction of the swing duration to apply the melee "hit"
+    pub hit_timing: f32,
     /// How long the state has until exiting
     pub recover_duration: Duration,
     /// What key is used to press ability
@@ -131,7 +133,8 @@ impl CharacterBehavior for Data {
             },
             StageSection::Swing => {
                 if self.timer.as_millis() as f32
-                    > 0.5 * self.static_data.swing_duration.as_millis() as f32
+                    > self.static_data.hit_timing
+                        * self.static_data.swing_duration.as_millis() as f32
                     && !self.exhausted
                 {
                     // Swing

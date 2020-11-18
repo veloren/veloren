@@ -171,6 +171,7 @@ pub enum CharacterAbility {
         speed: f32,
         charge_duration: u64,
         swing_duration: u64,
+        hit_timing: f32,
         recover_duration: u64,
     },
     ChargedRanged {
@@ -792,6 +793,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                 speed,
                 charge_duration,
                 swing_duration,
+                hit_timing,
                 recover_duration,
                 range,
                 max_angle,
@@ -808,6 +810,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                     max_angle: *max_angle,
                     charge_duration: Duration::from_millis(*charge_duration),
                     swing_duration: Duration::from_millis(*swing_duration),
+                    hit_timing: *hit_timing,
                     recover_duration: Duration::from_millis(*recover_duration),
                     ability_key: key,
                 },
