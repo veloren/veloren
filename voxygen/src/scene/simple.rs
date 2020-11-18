@@ -260,7 +260,7 @@ impl Scene {
         } = self.camera.dependents();
         const VD: f32 = 115.0; // View Distance
 
-        const TIME: f64 = 9.0 * 60.0 * 60.0;
+        const TIME: f64 = 8.6 * 60.0 * 60.0;
         const SHADOW_NEAR: f32 = 1.0;
         const SHADOW_FAR: f32 = 25.0;
 

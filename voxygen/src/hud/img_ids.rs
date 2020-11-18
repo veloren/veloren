@@ -153,6 +153,8 @@ image_ids! {
         skillbar_frame: "voxygen.element.skillbar.frame",
         m1_ico: "voxygen.element.icons.m1",
         m2_ico: "voxygen.element.icons.m2",
+        m_scroll_ico: "voxygen.element.icons.m_scroll",
+        m_move_ico: "voxygen.element.icons.m_move",
 
         // Other Icons/Art
         skull: "voxygen.element.icons.skull",
