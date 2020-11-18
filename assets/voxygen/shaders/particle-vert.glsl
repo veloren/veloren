@@ -149,7 +149,7 @@ void main() {
                 vec3(rand2 * 0.02, rand3 * 0.02, 1.0 + rand4 * 0.1)
             ),
             vec3(linear_scale(0.5)),
-            vec4(1, 1, 1, start_end(1.0, 0.0)),
+            vec4(vec3(0.8, 0.8, 1) * 0.5, start_end(1.0, 0.0)),
             spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 0.5)
         );
     } else if (inst_mode == FIRE) {
@@ -295,7 +295,7 @@ void main() {
                 vec3(rand3 * 2, rand4 * 2, rand5 * 2)
             ),
             vec3(0.8),
-            vec4(vec3(0, 2.5, 1.5 + rand7 * 0.7), 1),
+            vec4(vec3(0, 2.5, 1.5 + rand7 * 0.7), start_end(1.0, 0.0)),
             spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3)
         );
     } else if (inst_mode == FLAMETHROWER) {
@@ -303,7 +303,7 @@ void main() {
         attr = Attr(
             (inst_dir * lifetime / inst_lifespan) + vec3(rand0, rand1, rand2) * (lifetime * 5 + 0.25),
             vec3(0.6 + rand3 * 0.5 + lifetime / inst_lifespan * 5),
-            vec4(3, 1.6 + rand5 * 0.3 - 0.6 * lifetime / inst_lifespan, 0.2, start_end(1.0, 0.0) /*0.8 - 0.6 * lifetime / inst_lifespan*/),
+            vec4(3, 1.6 + rand5 * 0.3 - 0.4 * lifetime / inst_lifespan, 0.2, start_end(1.0, 0.0) /*0.8 - 0.6 * lifetime / inst_lifespan*/),
             spin_in_axis(vec3(rand6, rand7, rand8), lifetime / inst_lifespan * 10 + 3 * rand9)
         );
     } else if (inst_mode == FIRE_SHOCKWAVE) {

@@ -535,9 +535,14 @@ impl Scene {
         let loaded_distance =
             (0.98 * self.loaded_distance + 0.02 * scene_data.loaded_distance).max(0.01);
 
-        // Update light constants
+        // Reset lights ready for the next tick
         let lights = &mut self.light_data;
         lights.clear();
+
+        // Maintain the particles.
+        self.particle_mgr.maintain(renderer, &scene_data, &self.terrain, lights);
+
+        // Update light constants
         lights.extend(
             (
                 &scene_data.state.ecs().read_storage::<comp::Pos>(),
@@ -988,10 +993,6 @@ impl Scene {
 
         // Remove unused figures.
         self.figure_mgr.clean(scene_data.tick);
-
-        // Maintain the particles.
-        self.particle_mgr
-            .maintain(renderer, &scene_data, &self.terrain);
 
         // Maintain audio
         self.sfx_mgr.maintain(
