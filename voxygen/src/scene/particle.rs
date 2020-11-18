@@ -72,7 +72,8 @@ impl ParticleMgr {
                                     time,
                                     ParticleMode::EnergyNature,
                                     *pos + Vec3::<f32>::zero()
-                                        .map(|_| rng.gen_range(-radius, radius)),
+                                        .map(|_| rng.gen_range(-1.0, 1.0))
+                                        .normalized() * *radius,
                                 )
                             },
                         );
@@ -85,7 +86,8 @@ impl ParticleMgr {
                                     time,
                                     ParticleMode::CampfireFire,
                                     *pos + Vec3::<f32>::zero()
-                                        .map(|_| rng.gen_range(-radius, radius)),
+                                        .map(|_| rng.gen_range(-1.0, 1.0))
+                                        .normalized() * *radius,
                                 )
                             },
                         );
@@ -117,7 +119,9 @@ impl ParticleMgr {
                                 Duration::from_secs(4),
                                 time,
                                 ParticleMode::CampfireSmoke,
-                                *pos + Vec2::<f32>::zero().map(|_| rng.gen_range(-radius, radius)),
+                                *pos + Vec3::<f32>::zero()
+                                    .map(|_| rng.gen_range(-1.0, 1.0))
+                                    .normalized() * *radius,
                             )
                         },
                     );

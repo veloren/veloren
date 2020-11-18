@@ -31,6 +31,7 @@ flat out vec3 f_norm;
 out vec4 f_col;
 out float f_ao;
 out float f_light;
+out float f_reflect;
 
 const float SCALE = 1.0 / 11.0;
 
@@ -139,6 +140,7 @@ void main() {
     float rand9 = hash(vec4(inst_entropy + 9));
 
     Attr attr;
+    f_reflect = 1.0;
 
     if (inst_mode == SMOKE) {
         attr = Attr(
@@ -151,20 +153,21 @@ void main() {
             spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 0.5)
         );
     } else if (inst_mode == FIRE) {
+        f_reflect = 0.0; // Fire doesn't reflect light, it emits it
         attr = Attr(
             linear_motion(
-                vec3(rand0 * 0.25, rand1 * 0.25, 0.3),
+                vec3(normalize(vec2(rand0, rand1)) * 0.25, 0.3),
                 vec3(rand2 * 0.1, rand3 * 0.1, 2.0 + rand4 * 1.0)
             ),
             vec3(1.0),
-            vec4(2, 0.8 + rand5 * 0.3, 0, 1),
+            vec4(2, 1.5 + rand5 * 0.5, 0, 1),
             spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3)
         );
     } else if (inst_mode == GUN_POWDER_SPARK) {
         attr = Attr(
             linear_motion(
-                vec3(rand0, rand1, rand3) * 0.3,
-                vec3(rand4, rand5, rand6) * 2.0 + grav_vel(earth_gravity)
+                normalize(vec3(rand0, rand1, rand3)) * 0.3,
+                normalize(vec3(rand4, rand5, rand6)) * 2.0 + grav_vel(earth_gravity)
             ),
             vec3(1.0),
             vec4(3.5, 3 + rand7, 0, 1),
@@ -174,57 +177,62 @@ void main() {
         attr = Attr(
             linear_motion(
                 vec3(0),
-                vec3(rand4, rand5, rand6) * 30.0 + grav_vel(earth_gravity)
+                normalize(vec3(rand4, rand5, rand6)) * 30.0 + grav_vel(earth_gravity)
             ),
             vec3(2.0 + rand0),
             vec4(vec3(0.6 + rand7 * 0.4), 1),
             spin_in_axis(vec3(1,0,0),0)
         );
     } else if (inst_mode == FIREWORK_BLUE) {
+        f_reflect = 0.0; // Fire doesn't reflect light, it emits it
         attr = Attr(
             linear_motion(
                 vec3(0),
-                vec3(rand1, rand2, rand3) * 40.0 + grav_vel(earth_gravity)
+                normalize(vec3(rand1, rand2, rand3)) * 40.0 + grav_vel(earth_gravity)
             ),
             vec3(3.0 + rand0),
             vec4(0.15, 0.4, 1, 1),
             identity()
         );
     } else if (inst_mode == FIREWORK_GREEN) {
+        f_reflect = 0.0; // Fire doesn't reflect light, it emits it
         attr = Attr(
             linear_motion(
                 vec3(0),
-                vec3(rand1, rand2, rand3) * 40.0 + grav_vel(earth_gravity)
+                normalize(vec3(rand1, rand2, rand3)) * 40.0 + grav_vel(earth_gravity)
             ),
             vec3(3.0 + rand0),
             vec4(0, 1, 0, 1),
             identity()
         );
     } else if (inst_mode == FIREWORK_PURPLE) {
+        f_reflect = 0.0; // Fire doesn't reflect light, it emits it
         attr = Attr(
             linear_motion(
                 vec3(0),
-                vec3(rand1, rand2, rand3) * 40.0 + grav_vel(earth_gravity)
+                normalize(vec3(rand1, rand2, rand3)) * 40.0 + grav_vel(earth_gravity)
             ),
             vec3(3.0 + rand0),
             vec4(0.7, 0.0, 1.0, 1.0),
             identity()
         );
     } else if (inst_mode == FIREWORK_RED) {
+        f_reflect = 0.0; // Fire doesn't reflect light, it emits it
         attr = Attr(
             linear_motion(
                 vec3(0),
-                vec3(rand1, rand2, rand3) * 40.0 + grav_vel(earth_gravity)
+                normalize(vec3(rand1, rand2, rand3)) * 40.0 + grav_vel(earth_gravity)
             ),
             vec3(3.0 + rand0),
             vec4(1, 0, 0, 1),
             identity()
         );
     } else if (inst_mode == FIREWORK_YELLOW) {
+        f_reflect = 0.0; // Fire doesn't reflect light, it emits it
         attr = Attr(
             linear_motion(
                 vec3(0),
-                vec3(rand1, rand2, rand3) * 40.0 + grav_vel(earth_gravity)
+                normalize(vec3(rand1, rand2, rand3)) * 40.0 + grav_vel(earth_gravity)
             ),
             vec3(3.0 + rand0),
             vec4(1, 1, 0, 1),
@@ -272,34 +280,38 @@ void main() {
             spin_in_axis(vec3(1,0,0),0)
         );
     } else if (inst_mode == HEALING_BEAM) {
+        f_reflect = 0.0;
         attr = Attr(
             spiral_motion(inst_dir, 0.3 * (floor(2 * rand0 + 0.5) - 0.5) * min(linear_scale(10), 1), lifetime / inst_lifespan),
             vec3((1.7 - 0.7 * abs(floor(2 * rand0 - 0.5) + 0.5)) * (1.5 + 0.5 * sin(tick.x * 10 - lifetime * 4))),
-            vec4(vec3(0.3, 0.7 + 0.4 * sin(tick.x * 8 - lifetime * 3), 0.3 + 0.1 * sin (tick.x * 2)), 0.3),
+            vec4(vec3(0.4, 2.7 + 0.4 * sin(tick.x * 8 - lifetime * 3 + 4), 0.5 + 0.6 * sin(tick.x * 7)), 0.3),
             spin_in_axis(inst_dir, tick.z)
         );
     } else if (inst_mode == ENERGY_NATURE) {
+        f_reflect = 0.0;
         attr = Attr(
             linear_motion(
                 vec3(rand0 * 1, rand1 * 1, rand2 * 1),
                 vec3(rand3 * 2, rand4 * 2, rand5 * 2)
             ),
             vec3(0.8),
-            vec4(vec3(0, 1, 0), 1),
+            vec4(vec3(0, 2.5, 1.5 + rand7 * 0.7), 1),
             spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3)
         );
     } else if (inst_mode == FLAMETHROWER) {
+        f_reflect = 0.0; // Fire doesn't reflect light, it emits it
         attr = Attr(
             (inst_dir * lifetime / inst_lifespan) + vec3(rand0, rand1, rand2) * (lifetime * 5 + 0.25),
             vec3(0.6 + rand3 * 0.5 + lifetime / inst_lifespan * 5),
-            vec4(1, 0.6 + rand5 * 0.3 - 0.6 * lifetime / inst_lifespan, 0, 0.8 - 0.6 * lifetime / inst_lifespan),
+            vec4(3, 1.6 + rand5 * 0.3 - 0.6 * lifetime / inst_lifespan, 0.2, 0.8 - 0.6 * lifetime / inst_lifespan),
             spin_in_axis(vec3(rand6, rand7, rand8), lifetime / inst_lifespan * 10 + 3 * rand9)
         );
     } else if (inst_mode == FIRE_SHOCKWAVE) {
+        f_reflect = 0.0; // Fire doesn't reflect light, it emits it
         attr = Attr(
             vec3(rand0, rand1, lifetime * 10 + rand2),
             vec3(1.6 + rand3 * 1.5 + 10 * (lifetime + inst_lifespan)),
-            vec4(1, 0.6 + rand7 * 0.3 - 5 * inst_lifespan + 2 * lifetime, 0, 0.8 - 3.5 * inst_lifespan),
+            vec4(3, 1.6 + rand7 * 0.3 - 5 * inst_lifespan + 2 * lifetime, 0.2, 0.8 - 3.5 * inst_lifespan),
             spin_in_axis(vec3(rand3, rand4, rand5), rand6)
         );
     } else {
@@ -324,7 +336,7 @@ void main() {
         ((normals[(v_norm_ao >> 0) & 0x7u]) * attr.rot).xyz;
 
     //vec3 col = vec3((uvec3(v_col) >> uvec3(0, 8, 16)) & uvec3(0xFFu)) / 255.0;
-    f_col = vec4(srgb_to_linear(attr.col.rgb), attr.col.a);
+    f_col = vec4(attr.col.rgb, attr.col.a);
 
     gl_Position =
         all_mat *
