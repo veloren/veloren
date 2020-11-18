@@ -26,7 +26,6 @@ use crate::{
 use client::Client;
 use common::{
     comp,
-    comp::humanoid::DEFAULT_HUMANOID_EYE_HEIGHT,
     outcome::Outcome,
     span,
     state::{DeltaTime, State},
@@ -468,25 +467,12 @@ impl Scene {
             .get(scene_data.player_entity)
             .map(|p| p.on_ground);
 
-        let player_scale = match scene_data
+        let (player_height, player_eye_height) = scene_data
             .state
             .ecs()
             .read_storage::<comp::Body>()
             .get(scene_data.player_entity)
-        {
-            Some(comp::Body::Humanoid(body)) => body.scale(),
-            _ => 1_f32,
-        };
-
-        let eye_height = match scene_data
-            .state
-            .ecs()
-            .read_storage::<comp::Body>()
-            .get(scene_data.player_entity)
-        {
-            Some(comp::Body::Humanoid(body)) => body.eye_height(),
-            _ => DEFAULT_HUMANOID_EYE_HEIGHT,
-        };
+            .map_or((1.0, 0.0), |b| (b.height(), b.eye_height()));
 
         // Add the analog input to camera
         self.camera
@@ -501,15 +487,15 @@ impl Scene {
         let up = match self.camera.get_mode() {
             CameraMode::FirstPerson => {
                 if player_rolling {
-                    player_scale * 0.8
+                    player_height * 0.42
                 } else if is_running && on_ground.unwrap_or(false) {
-                    eye_height + (scene_data.state.get_time() as f32 * 17.0).sin() * 0.05
+                    player_eye_height + (scene_data.state.get_time() as f32 * 17.0).sin() * 0.05
                 } else {
-                    eye_height
+                    player_eye_height
                 }
             },
-            CameraMode::ThirdPerson if scene_data.is_aiming => player_scale * 2.2,
-            CameraMode::ThirdPerson => eye_height,
+            CameraMode::ThirdPerson if scene_data.is_aiming => player_height * 1.16,
+            CameraMode::ThirdPerson => player_eye_height,
             CameraMode::Freefly => 0.0,
         };
 

@@ -375,10 +375,8 @@ impl ParticleMgr {
                                 b.static_data.beam_duration,
                                 time + i as f64 / 1000.0,
                                 ParticleMode::HealingBeam,
-                                pos.0 + particle_ori * 0.5 + Vec3::new(0.0, 0.0, b.offset),
-                                pos.0
-                                    + particle_ori * b.static_data.range
-                                    + Vec3::new(0.0, 0.0, b.offset),
+                                pos.0 + particle_ori * 0.5 + b.offset,
+                                pos.0 + particle_ori * b.static_data.range + b.offset,
                             ));
                         }
                     } else {
@@ -404,10 +402,8 @@ impl ParticleMgr {
                                     b.static_data.beam_duration,
                                     time,
                                     ParticleMode::FlameThrower,
-                                    pos.0 + random_ori * 0.5 + Vec3::new(0.0, 0.0, b.offset),
-                                    pos.0
-                                        + random_ori * b.static_data.range
-                                        + Vec3::new(0.0, 0.0, b.offset),
+                                    pos.0 + random_ori * 0.5 + b.offset,
+                                    pos.0 + random_ori * b.static_data.range + b.offset,
                                 )
                             },
                         );

@@ -343,20 +343,11 @@ impl<'a> System<'a> for Sys {
                         ) {
                             controller.actions.push(ControlAction::Wield);
 
-                            let eye_offset = match body {
-                                Some(body) => match body {
-                                    Body::Humanoid(body) => body.eye_height(),
-                                    _ => 0.4 * body.height(),
-                                },
-                                _ => 0.0,
-                            };
-                            let tgt_eye_offset = match bodies.get(*target) {
-                                Some(body) => match body {
-                                    Body::Humanoid(body) => body.eye_height(),
-                                    _ => 0.4 * body.height(),
-                                },
-                                _ => 0.0,
-                            };
+                            let eye_offset = body.map_or(0.0, |b| b.eye_height());
+
+                            let tgt_eye_offset =
+                                bodies.get(*target).map_or(0.0, |b| b.eye_height());
+
                             let distance_offset = match tactic {
                                 Tactic::Bow => 0.0004 * pos.0.distance_squared(tgt_pos.0),
                                 Tactic::Staff => 0.0015 * pos.0.distance_squared(tgt_pos.0),
