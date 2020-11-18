@@ -47,7 +47,7 @@ use specs::{Entity as EcsEntity, Join, LazyUpdate, WorldExt};
 use treeculler::{BVol, BoundingSphere};
 use vek::*;
 
-const DAMAGE_FADE_COEFFICIENT: f64 = 5.0;
+const DAMAGE_FADE_COEFFICIENT: f64 = 15.0;
 const MOVING_THRESHOLD: f32 = 0.7;
 const MOVING_THRESHOLD_SQR: f32 = MOVING_THRESHOLD * MOVING_THRESHOLD;
 
@@ -665,7 +665,7 @@ impl FigureMgr {
             let col = health
                 .map(|h| {
                     vek::Rgba::broadcast(1.0)
-                        + vek::Rgba::new(2.0, 2.0, 2., 0.00).map(|c| {
+                        + vek::Rgba::new(10.0, 10.0, 10.0, 0.0).map(|c| {
                             (c / (1.0 + DAMAGE_FADE_COEFFICIENT * h.last_change.0)) as f32
                         })
                 })

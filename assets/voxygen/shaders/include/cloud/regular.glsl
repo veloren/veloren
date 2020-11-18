@@ -21,7 +21,7 @@ float emission_strength = clamp((sin(time_of_day.x / (3600 * 24)) - 0.8) / 0.1, 
 vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
     // Natural attenuation of air (air naturally attenuates light that passes through it)
     // Simulate the atmosphere thinning above 3000 metres down to nothing at 5000 metres
-    float air = 0.00015 * clamp((10000.0 - pos.z) / 7000, 0, 1);
+    float air = 0.00035 * clamp((10000.0 - pos.z) / 7000, 0, 1);
 
     // Mist sits close to the ground in valleys (TODO: use base_alt to put it closer to water)
     float mist_min_alt = 0.5;
@@ -106,7 +106,7 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
         #if (CLOUD_MODE >= CLOUD_MODE_MEDIUM)
             emission_nz *= (1.0 + (noise_3d(vec3(wind_pos.xy * 0.05, time_of_day.x * 0.15) * 0.004) - 0.5) * 4.0);
         #endif
-        emission = emission_col * emission_nz * emission_strength * max(sun_dir.z, 0) * 50;
+        emission = emission_col * emission_nz * emission_strength * max(sun_dir.z, 0) * 20;
     }
 
     // We track vapor density and air density separately. Why? Because photons will ionize particles in air
@@ -194,8 +194,7 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
             (1.0 - surf_color) * net_light * sky_color * density_integrals.y * RAYLEIGH +
             // Add the directed light light scattered into the camera by the clouds
             get_sun_color() * sun_scatter * sun_access * scatter_factor * get_sun_brightness() +
-            // Really we should multiple by just moon_brightness here but this just looks better given that we lack HDR
-            get_moon_color() * moon_scatter * moon_access * scatter_factor * get_moon_brightness() * 4.0 +
+            get_moon_color() * moon_scatter * moon_access * scatter_factor * get_moon_brightness() +
             emission * density_integrals.y +
             // Global illumination (uniform scatter from the sky)
             sky_color * sun_access * scatter_factor * get_sun_brightness() +
