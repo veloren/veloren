@@ -124,6 +124,7 @@ impl ParticleMgr {
                 }
             },
             Outcome::ProjectileShot { .. } => {},
+            _ => {},
         }
     }
 

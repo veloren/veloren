@@ -20,7 +20,9 @@ use crate::audio::{
     fader::{FadeDirection, Fader},
     Listener,
 };
-use rodio::{Device, Sample, Sink, Source, SpatialSink};
+use rodio::{OutputStreamHandle, Sample, Sink, Source, SpatialSink};
+use serde::Deserialize;
+use tracing::warn;
 use vek::*;
 
 #[derive(PartialEq, Clone, Copy)]
@@ -53,18 +55,30 @@ pub struct MusicChannel {
 }
 
 impl MusicChannel {
-    pub fn new(device: &Device) -> Self {
-        Self {
-            sink: Sink::new(device),
-            tag: MusicChannelTag::TitleMusic,
-            state: ChannelState::Stopped,
-            fader: Fader::default(),
+    pub fn new(stream: &OutputStreamHandle) -> Self {
+        let new_sink = Sink::try_new(stream);
+        match new_sink {
+            Ok(sink) => Self {
+                sink,
+                tag: MusicChannelTag::TitleMusic,
+                state: ChannelState::Stopped,
+                fader: Fader::default(),
+            },
+            Err(_) => {
+                warn!("Failed to create a rodio sink. May not play sounds.");
+                Self {
+                    sink: Sink::new_idle().0,
+                    tag: MusicChannelTag::TitleMusic,
+                    state: ChannelState::Stopped,
+                    fader: Fader::default(),
+                }
+            },
         }
     }
 
-    // Play a music track item on this channel. If the channel has an existing track
-    // playing, the new sounds will be appended and played once they complete.
-    // Otherwise it will begin playing immediately.
+    /// Play a music track item on this channel. If the channel has an existing
+    /// track playing, the new sounds will be appended and played once they
+    /// complete. Otherwise it will begin playing immediately.
     pub fn play<S>(&mut self, source: S, tag: MusicChannelTag)
     where
         S: Source + Send + 'static,
@@ -80,6 +94,12 @@ impl MusicChannel {
         } else {
             ChannelState::Playing
         };
+    }
+
+    /// Stop whatever is playing on a given music channel
+    pub fn stop(&mut self, tag: MusicChannelTag) {
+        self.tag = tag;
+        self.sink.stop();
     }
 
     /// Set the volume of the current channel. If the channel is currently
@@ -134,6 +154,51 @@ impl MusicChannel {
     }
 }
 
+/// AmbientChannelTags are used for non-positional sfx. Currently the only use
+/// is for wind.
+#[derive(Debug, PartialEq, Clone, Copy, Deserialize)]
+pub enum AmbientChannelTag {
+    Wind,
+}
+/// A AmbientChannel uses a non-positional audio sink designed to play sounds
+/// which are always heard at the camera's position.
+pub struct AmbientChannel {
+    tag: AmbientChannelTag,
+    sink: Sink,
+}
+
+impl AmbientChannel {
+    pub fn new(stream: &OutputStreamHandle, tag: AmbientChannelTag) -> Self {
+        let new_sink = Sink::try_new(stream);
+        match new_sink {
+            Ok(sink) => Self { sink, tag },
+            Err(_) => {
+                warn!("Failed to create rodio sink. May not play wind sounds.");
+                Self {
+                    sink: Sink::new_idle().0,
+                    tag,
+                }
+            },
+        }
+    }
+
+    pub fn play<S>(&mut self, source: S)
+    where
+        S: Source + Send + 'static,
+        S::Item: Sample,
+        S::Item: Send,
+        <S as std::iter::Iterator>::Item: std::fmt::Debug,
+    {
+        self.sink.append(source);
+    }
+
+    pub fn set_volume(&mut self, volume: f32) { self.sink.set_volume(volume); }
+
+    pub fn get_volume(&mut self) -> f32 { self.sink.volume() }
+
+    pub fn get_tag(&self) -> AmbientChannelTag { self.tag }
+}
+
 /// An SfxChannel uses a positional audio sink, and is designed for short-lived
 /// audio which can be spatially controlled, but does not need control over
 /// playback or fading/transitions
@@ -145,9 +210,10 @@ pub struct SfxChannel {
 }
 
 impl SfxChannel {
-    pub fn new(device: &Device) -> Self {
+    pub fn new(stream: &OutputStreamHandle) -> Self {
         Self {
-            sink: SpatialSink::new(device, [0.0; 3], [1.0, 0.0, 0.0], [-1.0, 0.0, 0.0]),
+            sink: SpatialSink::try_new(stream, [0.0; 3], [1.0, 0.0, 0.0], [-1.0, 0.0, 0.0])
+                .unwrap(),
             pos: Vec3::zero(),
         }
     }
@@ -159,6 +225,17 @@ impl SfxChannel {
         S::Item: Send,
         <S as std::iter::Iterator>::Item: std::fmt::Debug,
     {
+        self.sink.append(source);
+    }
+
+    /// Same as SfxChannel::play but with the source passed through
+    /// a low pass filter at 300 Hz
+    pub fn play_with_low_pass_filter<S>(&mut self, source: S)
+    where
+        S: Sized + Send + 'static,
+        S: Source<Item = f32>,
+    {
+        let source = source.low_pass(300);
         self.sink.append(source);
     }
 

@@ -38,6 +38,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Upscaling support
 - Added "Persist Combo from Combo Melee State" when rolling mid-combo
 - You can no longer spam hammer and bow special when stamina is 0
+- Biome and site specific music system
+- Ambient SFX emitted from terrain blocks
+- Campfire SFX
+- Wind SFX system
 
 ### Changed
 

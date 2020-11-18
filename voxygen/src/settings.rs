@@ -654,7 +654,6 @@ pub enum AudioOutput {
     // If this option is disabled, functions in the rodio
     // library MUST NOT be called.
     Off,
-    Device(String),
     #[serde(other)]
     Automatic,
 }

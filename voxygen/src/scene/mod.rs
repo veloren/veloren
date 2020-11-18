@@ -14,7 +14,7 @@ pub use self::{
     terrain::Terrain,
 };
 use crate::{
-    audio::{music::MusicMgr, sfx::SfxMgr, AudioFrontend},
+    audio::{ambient::AmbientMgr, music::MusicMgr, sfx::SfxMgr, AudioFrontend},
     render::{
         create_clouds_mesh, create_pp_mesh, create_skybox_mesh, CloudsLocals, CloudsPipeline,
         Consts, GlobalModel, Globals, Light, LodData, Model, PostProcessLocals,
@@ -101,8 +101,9 @@ pub struct Scene {
 
     particle_mgr: ParticleMgr,
     figure_mgr: FigureMgr,
-    sfx_mgr: SfxMgr,
+    pub sfx_mgr: SfxMgr,
     music_mgr: MusicMgr,
+    ambient_mgr: AmbientMgr,
 }
 
 pub struct SceneData<'a> {
@@ -306,8 +307,9 @@ impl Scene {
             light_data: Vec::new(),
             particle_mgr: ParticleMgr::new(renderer),
             figure_mgr: FigureMgr::new(renderer),
-            sfx_mgr: SfxMgr::new(),
-            music_mgr: MusicMgr::new(),
+            sfx_mgr: SfxMgr::default(),
+            music_mgr: MusicMgr::default(),
+            ambient_mgr: AmbientMgr::default(),
         }
     }
 
@@ -431,6 +433,7 @@ impl Scene {
                 fadeout: |timeout| timeout * 2.0,
             }),
             Outcome::ProjectileShot { .. } => {},
+            _ => {},
         }
     }
 
@@ -441,6 +444,7 @@ impl Scene {
         renderer: &mut Renderer,
         audio: &mut AudioFrontend,
         scene_data: &SceneData,
+        client: &Client,
     ) {
         span!(_guard, "maintain", "Scene::maintain");
         // Get player position.
@@ -993,8 +997,12 @@ impl Scene {
             scene_data.state,
             scene_data.player_entity,
             &self.camera,
+            &self.terrain,
+            client,
         );
-        self.music_mgr.maintain(audio, scene_data.state);
+        self.music_mgr.maintain(audio, scene_data.state, client);
+        self.ambient_mgr
+            .maintain(audio, scene_data.state, client, &self.camera);
     }
 
     /// Render the scene using the provided `Renderer`.

@@ -2303,14 +2303,20 @@ impl SimChunk {
     pub fn get_biome(&self) -> BiomeKind {
         if self.alt < CONFIG.sea_level {
             BiomeKind::Ocean
-        } else if self.chaos > 0.6 {
-            BiomeKind::Mountain
-        } else if self.temp > CONFIG.desert_temp {
-            BiomeKind::Desert
+        } else if (self.temp - 0.5) < 0.005 && self.humidity < 0.1 {
+            BiomeKind::Lake
         } else if self.temp < CONFIG.snow_temp {
-            BiomeKind::Snowlands
-        } else if self.tree_density > 0.65 {
+            BiomeKind::Snowland
+        } else if self.alt > 450.0 && self.chaos > 0.3 && self.tree_density < 0.6 {
+            BiomeKind::Mountain
+        } else if self.temp > CONFIG.desert_temp && self.humidity < 0.6 {
+            BiomeKind::Desert
+        //} else if self.tree_density > 0.65 && self.humidity > 0.7 && self.temp > 0.8 {
+        //    BiomeKind::Jungle
+        } else if self.tree_density > 0.5 {
             BiomeKind::Forest
+        //} else if self.humidity > 0.8 {
+        //    BiomeKind::Swamp
         } else {
             BiomeKind::Grassland
         }
