@@ -3,7 +3,7 @@ use crate::{
     mesh::{greedy::GreedyMesh, Meshable},
     render::{
         pipelines::particle::ParticleMode, GlobalModel, Instances, LodData, Model,
-        ParticleInstance, ParticlePipeline, Renderer,
+        ParticleInstance, ParticlePipeline, Renderer, Light,
     },
 };
 use common::{
@@ -137,6 +137,7 @@ impl ParticleMgr {
         renderer: &mut Renderer,
         scene_data: &SceneData,
         terrain: &Terrain<TerrainChunk>,
+        lights: &mut Vec<Light>,
     ) {
         span!(_guard, "maintain", "ParticleMgr::maintain");
         if scene_data.particles_enabled {
@@ -150,7 +151,7 @@ impl ParticleMgr {
             // add new Particle
             self.maintain_body_particles(scene_data);
             self.maintain_boost_particles(scene_data);
-            self.maintain_beam_particles(scene_data);
+            self.maintain_beam_particles(scene_data, lights);
             self.maintain_block_particles(scene_data, terrain);
             self.maintain_shockwave_particles(scene_data);
         } else {
@@ -359,7 +360,7 @@ impl ParticleMgr {
         }
     }
 
-    fn maintain_beam_particles(&mut self, scene_data: &SceneData) {
+    fn maintain_beam_particles(&mut self, scene_data: &SceneData, lights: &mut Vec<Light>) {
         let state = scene_data.state;
         let ecs = state.ecs();
         let time = state.get_time();
@@ -375,6 +376,12 @@ impl ParticleMgr {
                 let particle_ori = b.particle_ori.unwrap_or(*ori.vec());
                 if b.stage_section == StageSection::Cast {
                     if b.static_data.base_hps > 0 {
+                        // Emit a light when using healing
+                        lights.push(Light::new(
+                            pos.0 + b.offset,
+                            Rgb::new(0.1, 1.0, 0.15),
+                            1.0,
+                        ));
                         for i in 0..self.scheduler.heartbeats(Duration::from_millis(1)) {
                             self.particles.push(Particle::new_beam(
                                 b.static_data.beam_duration,
@@ -388,6 +395,12 @@ impl ParticleMgr {
                         let mut rng = thread_rng();
                         let (from, to) = (Vec3::<f32>::unit_z(), particle_ori);
                         let m = Mat3::<f32>::rotation_from_to_3d(from, to);
+                        // Emit a light when using flames
+                        lights.push(Light::new(
+                            pos.0 + b.offset,
+                            Rgb::new(1.0, 0.25, 0.05).map(|e| e * rng.gen_range(0.8, 1.2)),
+                            2.0,
+                        ));
                         self.particles.resize_with(
                             self.particles.len()
                                 + 2 * usize::from(
