@@ -517,6 +517,10 @@ pub struct GameplaySettings {
     pub stop_auto_walk_on_input: bool,
     pub map_zoom: f64,
     pub map_drag: Vec2<f64>,
+    pub map_show_difficulty: bool,
+    pub map_show_towns: bool,
+    pub map_show_dungeons: bool,
+    pub map_show_castles: bool,
     pub loading_tips: bool,
 }
 
@@ -547,8 +551,12 @@ impl Default for GameplaySettings {
             free_look_behavior: PressBehavior::Toggle,
             auto_walk_behavior: PressBehavior::Toggle,
             stop_auto_walk_on_input: true,
-            map_zoom: 4.0,
+            map_zoom: 10.0,
             map_drag: Vec2 { x: 0.0, y: 0.0 },
+            map_show_difficulty: true,
+            map_show_towns: true,
+            map_show_dungeons: true,
+            map_show_castles: true,
             loading_tips: true,
         }
     }

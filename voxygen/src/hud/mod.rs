@@ -48,10 +48,9 @@ use crate::{
     hud::img_ids::ImgsRot,
     i18n::{i18n_asset_key, LanguageMetadata, Localization},
     render::{Consts, Globals, RenderMode, Renderer},
-    scene::{
-        camera::{self, Camera},
-        lod,
-    },
+    scene::camera::{self, Camera},
+        
+    
     ui::{fonts::Fonts, img_ids::Rotations, slot, Graphic, Ingameable, ScaleMode, Ui},
     window::{Event as WinEvent, FullScreenSettings, GameInput},
     GlobalState,
@@ -329,6 +328,10 @@ pub enum Event {
     ChangeAmbiance(f32),
     MapZoom(f64),
     MapDrag(Vec2<f64>),
+    MapShowDifficulty(bool),
+    MapShowTowns(bool),
+    MapShowDungeons(bool),
+    MapShowCastles(bool),
     AdjustWindowSize([u16; 2]),
     ChangeFullscreenMode(FullScreenSettings),
     ToggleParticlesEnabled(bool),
@@ -452,11 +455,7 @@ pub struct Show {
     want_grab: bool,
     stats: bool,
     free_look: bool,
-    auto_walk: bool,
-    map_difficulty: bool,
-    map_towns: bool,
-    map_castles: bool,
-    map_dungeons: bool,
+    auto_walk: bool,   
 }
 impl Show {
     fn bag(&mut self, open: bool) {
@@ -718,11 +717,7 @@ impl Hud {
                 ingame: true,
                 stats: false,
                 free_look: false,
-                auto_walk: false,
-                map_difficulty: true,
-                map_towns: true,
-                map_castles: true,
-                map_dungeons: true,
+                auto_walk: false,                
             },
             to_focus: None,
             //never_show: false,
@@ -2255,8 +2250,7 @@ impl Hud {
         }
         // Map
         if self.show.map {
-            for event in Map::new(
-                &self.show,
+            for event in Map::new(                
                 client,
                 &self.imgs,
                 &self.rot_imgs,
@@ -2275,12 +2269,18 @@ impl Hud {
                         self.show.want_grab = true;
                         self.force_ungrab = false;
                     },
-                    map::Event::ShowDifficulties => {
-                        self.show.map_difficulty = !self.show.map_difficulty
+                    map::Event::ShowDifficulties(map_show_difficulties) => {
+                        events.push(Event::MapShowDifficulty(map_show_difficulties));
                     },
-                    map::Event::ShowTowns => self.show.map_towns = !self.show.map_towns,
-                    map::Event::ShowCastles => self.show.map_castles = !self.show.map_castles,
-                    map::Event::ShowDungeons => self.show.map_dungeons = !self.show.map_dungeons,
+                    map::Event::ShowTowns(map_show_towns) => {
+                        events.push(Event::MapShowTowns(map_show_towns));
+                    },
+                    map::Event::ShowCastles(map_show_castles) => {
+                        events.push(Event::MapShowCastles(map_show_castles));
+                    },
+                    map::Event::ShowDungeons(map_show_dungeons) => {
+                        events.push(Event::MapShowDungeons(map_show_dungeons));
+                    },
                     map::Event::MapZoom(map_zoom) => {
                         events.push(Event::MapZoom(map_zoom));
                     },
@@ -2289,6 +2289,13 @@ impl Hud {
                     },
                 }
             }
+        }
+        else {
+            // Reset the map position when it's not showing
+            let drag = &global_state.settings.gameplay.map_drag;            
+            if drag.x != 0.0 || drag.y != 0.0 {
+                events.push(Event::MapDrag(drag - drag))
+            } 
         }
 
         if self.show.esc_menu {

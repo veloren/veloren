@@ -968,6 +968,22 @@ impl PlayState for SessionState {
                         global_state.settings.gameplay.map_drag = map_drag;
                         global_state.settings.save_to_file_warn();
                     },
+                    HudEvent::MapShowDifficulty(map_show_difficulty) => {
+                        global_state.settings.gameplay.map_show_difficulty = map_show_difficulty;
+                        global_state.settings.save_to_file_warn();
+                    },
+                    HudEvent::MapShowTowns(map_show_towns) => {
+                        global_state.settings.gameplay.map_show_towns = map_show_towns;
+                        global_state.settings.save_to_file_warn();
+                    },
+                    HudEvent::MapShowDungeons(map_show_dungeons) => {
+                        global_state.settings.gameplay.map_show_dungeons = map_show_dungeons;
+                        global_state.settings.save_to_file_warn();
+                    },
+                    HudEvent::MapShowCastles(map_show_castles) => {
+                        global_state.settings.gameplay.map_show_castles = map_show_castles;
+                        global_state.settings.save_to_file_warn();
+                    },
                     HudEvent::ChangeGamma(new_gamma) => {
                         global_state.settings.graphics.gamma = new_gamma;
                         global_state.settings.save_to_file_warn();

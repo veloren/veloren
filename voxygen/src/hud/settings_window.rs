@@ -1929,12 +1929,15 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.exposure_text, ui);
 
-            Text::new(&format!("{:.2}", self.global_state.settings.graphics.exposure))
-                .right_from(state.ids.exposure_slider, 8.0)
-                .font_size(self.fonts.cyri.scale(14))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(state.ids.exposure_value, ui);
+            Text::new(&format!(
+                "{:.2}",
+                self.global_state.settings.graphics.exposure
+            ))
+            .right_from(state.ids.exposure_slider, 8.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.exposure_value, ui);
 
             //Ambiance Brightness
             // 320.0 = maximum brightness in shaders
