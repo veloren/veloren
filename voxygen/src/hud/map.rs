@@ -485,7 +485,7 @@ impl<'a> Widget for Map<'a> {
                 continue;
             }
             // TODO: Pass actual difficulty in here
-            let dif = (i as f64 / 100.0 * 6.0) as u8;
+            let dif = 0.0 as u8;
             let title = match &site.kind {
                 SiteKind::Town => "Town",
                 SiteKind::Dungeon => "Dungeon",
@@ -526,7 +526,7 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Dungeon => self.imgs.mmap_site_dungeon_hover,
                 SiteKind::Castle => self.imgs.mmap_site_castle_hover,
             })
-            .image_color(UI_HIGHLIGHT_0)
+            .image_color(UI_HIGHLIGHT_0)            
             .parent(ui.window)
             .with_tooltip(
                 self.tooltip_manager,
