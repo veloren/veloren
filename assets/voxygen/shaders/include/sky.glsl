@@ -16,13 +16,13 @@ const float PI = 3.141592;
 const vec3 SKY_DAY_TOP = vec3(0.1, 0.5, 0.9);
 const vec3 SKY_DAY_MID = vec3(0.02, 0.28, 0.8);
 const vec3 SKY_DAY_BOT = vec3(0.1, 0.2, 0.3);
-const vec3 DAY_LIGHT   = vec3(1.9, 1.75, 0.9);//vec3(1.5, 1.4, 1.0);
-const vec3 SUN_HALO_DAY = vec3(0.35, 0.35, 0.05);
+const vec3 DAY_LIGHT   = vec3(2.8, 3.5, 1.8);
+const vec3 SUN_HALO_DAY = vec3(0.06, 0.06, 0.005);
 
 const vec3 SKY_DUSK_TOP = vec3(0.06, 0.1, 0.20);
 const vec3 SKY_DUSK_MID = vec3(0.35, 0.1, 0.15);
 const vec3 SKY_DUSK_BOT = vec3(0.0, 0.1, 0.23);
-const vec3 DUSK_LIGHT   = vec3(5.0, 0.5, 0.15);
+const vec3 DUSK_LIGHT   = vec3(8.0, 1.5, 0.15);
 const vec3 SUN_HALO_DUSK = vec3(1.2, 0.15, 0.01);
 
 const vec3 SKY_NIGHT_TOP = vec3(0.001, 0.001, 0.0025);
@@ -96,7 +96,7 @@ float cloud_shadow(vec3 pos, vec3 light_dir) {
 }
 
 float get_sun_brightness(/*vec3 sun_dir*/) {
-    return max(-sun_dir.z + 0.7, 0.0) * 0.9;
+    return max(-sun_dir.z + 0.5, 0.0) * 0.9;
 }
 
 float get_moon_brightness(/*vec3 moon_dir*/) {
@@ -420,7 +420,7 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
     }
 
     // Sun
-    const vec3 SUN_SURF_COLOR = vec3(1.5, 0.9, 0.35) * 30.0;
+    const vec3 SUN_SURF_COLOR = vec3(1.5, 0.9, 0.35) * 3.0;
 
     vec3 sun_halo_color = mix(
         SUN_HALO_DUSK,
@@ -431,21 +431,21 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
     vec3 sun_halo = sun_halo_color * 16 * pow(max(dot(dir, -sun_dir), 0), 8.0);
     vec3 sun_surf = vec3(0);
     if (with_features) {
-        float angle = 0.0005;
-        sun_surf = clamp((dot(dir, -sun_dir) - (1.0 - angle)) / angle, 0, 1) * SUN_SURF_COLOR * SUN_COLOR_FACTOR;
+        float angle = 0.00035;
+        sun_surf = clamp((dot(dir, -sun_dir) - (1.0 - angle)) * 4 / angle, 0, 1) * SUN_SURF_COLOR * SUN_COLOR_FACTOR;
     }
     vec3 sun_light = sun_halo + sun_surf;
 
     // Moon
-    const vec3 MOON_SURF_COLOR = vec3(0.7, 1.0, 1.5) * 30.0;
-    const vec3 MOON_HALO_COLOR = vec3(0.015, 0.015, 0.05) * 10;
+    const vec3 MOON_SURF_COLOR = vec3(0.7, 1.0, 1.5) * 3.0;
+    const vec3 MOON_HALO_COLOR = vec3(0.015, 0.015, 0.05) * 25;
 
     vec3 moon_halo_color = MOON_HALO_COLOR;
-    vec3 moon_halo = moon_halo_color * pow(max(dot(dir, -moon_dir), 0), 50.0);
+    vec3 moon_halo = moon_halo_color * pow(max(dot(dir, -moon_dir), 0), 500.0);
     vec3 moon_surf = vec3(0);
     if (with_features) {
-        float angle = 0.0005;
-        moon_surf = clamp((dot(dir, -moon_dir) - (1.0 - angle)) / angle, 0, 1) * MOON_SURF_COLOR;
+        float angle = 0.00035;
+        moon_surf = clamp((dot(dir, -moon_dir) - (1.0 - angle)) * 4 / angle, 0, 1) * MOON_SURF_COLOR;
     }
     vec3 moon_light = moon_halo + moon_surf;
 

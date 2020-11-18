@@ -291,7 +291,7 @@ void main() {
     // diffuse_light += point_light;
     // reflected_light += point_light;
     // vec3 surf_color = srgb_to_linear(vec3(0.2, 0.5, 1.0)) * light * diffuse_light * ambient_light;
-    const float REFLECTANCE = 0.25;
+    const float REFLECTANCE = 0.5;
     vec3 surf_color = illuminate(max_light, view_dir, water_color * emitted_light/* * log(1.0 - MU_WATER)*/, /*cam_attenuation * *//*water_color * */reflect_color * REFLECTANCE/** reflected_light*//* * log(1.0 - MU_WATER)*/);
 
     // passthrough = pow(passthrough, 1.0 / (1.0 + water_depth_to_camera));
