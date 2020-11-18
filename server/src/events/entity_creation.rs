@@ -145,6 +145,11 @@ pub fn handle_shockwave(
 
 pub fn handle_beam(server: &mut Server, properties: beam::Properties, pos: Pos, ori: Ori) {
     let state = server.state_mut();
+    let ecs = state.ecs();
+    ecs.write_resource::<Vec<Outcome>>().push(Outcome::Beam {
+        pos: pos.0,
+        heal: properties.lifesteal_eff > 0.0,
+    });
     state.create_beam(properties, pos, ori).build();
 }
 

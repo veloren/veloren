@@ -2,6 +2,7 @@ pub mod biome;
 pub mod block;
 pub mod chonk;
 pub mod map;
+pub mod site;
 pub mod sprite;
 pub mod structure;
 
@@ -10,6 +11,7 @@ pub use self::{
     biome::BiomeKind,
     block::{Block, BlockKind},
     map::MapSizeLg,
+    site::SitesKind,
     sprite::SpriteKind,
     structure::Structure,
 };
@@ -50,21 +52,53 @@ impl RectVolSize for TerrainChunkSize {
 pub struct TerrainChunkMeta {
     name: Option<String>,
     biome: BiomeKind,
+    alt: f32,
+    tree_density: f32,
+    contains_cave: bool,
+    contains_river: bool,
 }
 
 impl TerrainChunkMeta {
-    pub fn new(name: Option<String>, biome: BiomeKind) -> Self { Self { name, biome } }
+    pub fn new(
+        name: Option<String>,
+        biome: BiomeKind,
+        alt: f32,
+        tree_density: f32,
+        contains_cave: bool,
+        contains_river: bool,
+    ) -> Self {
+        Self {
+            name,
+            biome,
+            alt,
+            tree_density,
+            contains_cave,
+            contains_river,
+        }
+    }
 
     pub fn void() -> Self {
         Self {
             name: None,
             biome: BiomeKind::Void,
+            alt: 0.0,
+            tree_density: 0.0,
+            contains_cave: false,
+            contains_river: false,
         }
     }
 
     pub fn name(&self) -> &str { self.name.as_deref().unwrap_or("Wilderness") }
 
     pub fn biome(&self) -> BiomeKind { self.biome }
+
+    pub fn alt(&self) -> f32 { self.alt }
+
+    pub fn tree_density(&self) -> f32 { self.tree_density }
+
+    pub fn contains_cave(&self) -> bool { self.contains_cave }
+
+    pub fn contains_river(&self) -> bool { self.contains_river }
 }
 
 // Terrain type aliases

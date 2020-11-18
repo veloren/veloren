@@ -1,5 +1,5 @@
 use crate::{
-    audio::sfx::{SfxEvent, SfxEventItem},
+    audio::sfx::SfxEvent,
     ecs::MyEntity,
     hud::{DebugInfo, Event as HudEvent, Hud, HudInfo, PressBehavior},
     i18n::{i18n_asset_key, Localization},
@@ -7,7 +7,7 @@ use crate::{
     menu::char_selection::CharSelectionState,
     render::Renderer,
     scene::{camera, CameraMode, Scene, SceneData},
-    settings::{AudioOutput, ControlSettings, Settings},
+    settings::{ControlSettings, Settings},
     window::{AnalogGameInput, Event, GameInput},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
@@ -17,7 +17,6 @@ use common::{
     comp,
     comp::{ChatMsg, ChatType, InventoryUpdateEvent, Pos, Vel},
     consts::{MAX_MOUNT_RANGE, MAX_PICKUP_RANGE},
-    event::EventBus,
     msg::PresenceKind,
     outcome::Outcome,
     span,
@@ -121,12 +120,12 @@ impl SessionState {
                     self.hud.new_message(m);
                 },
                 client::Event::InventoryUpdated(inv_event) => {
-                    let sfx_event = SfxEvent::from(&inv_event);
-                    client
-                        .state()
-                        .ecs()
-                        .read_resource::<EventBus<SfxEventItem>>()
-                        .emit_now(SfxEventItem::at_player_position(sfx_event));
+                    let sfx_trigger_item = self
+                        .scene
+                        .sfx_mgr
+                        .triggers
+                        .get_key_value(&SfxEvent::from(&inv_event));
+                    global_state.audio.emit_sfx_item(sfx_trigger_item);
 
                     match inv_event {
                         InventoryUpdateEvent::CollectFailed => {
@@ -901,12 +900,12 @@ impl PlayState for SessionState {
                         global_state.settings.audio.sfx_volume = sfx_volume;
                         global_state.settings.save_to_file_warn();
                     },
-                    HudEvent::ChangeAudioDevice(name) => {
-                        global_state.audio.set_device(name.clone());
+                    //HudEvent::ChangeAudioDevice(name) => {
+                    //    global_state.audio.set_device(name.clone());
 
-                        global_state.settings.audio.output = AudioOutput::Device(name);
-                        global_state.settings.save_to_file_warn();
-                    },
+                    //    global_state.settings.audio.output = AudioOutput::Device(name);
+                    //    global_state.settings.save_to_file_warn();
+                    //},
                     HudEvent::ChangeMaxFPS(fps) => {
                         global_state.settings.graphics.max_fps = fps;
                         global_state.settings.save_to_file_warn();
@@ -1077,6 +1076,7 @@ impl PlayState for SessionState {
                         global_state.window.renderer_mut(),
                         &mut global_state.audio,
                         &scene_data,
+                        &client,
                     );
 
                     // Process outcomes from client

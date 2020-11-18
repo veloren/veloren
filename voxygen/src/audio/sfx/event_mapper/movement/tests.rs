@@ -5,6 +5,7 @@ use common::{
         bird_small, humanoid, quadruped_medium, quadruped_small, Body, CharacterState, PhysicsState,
     },
     states,
+    terrain::BlockKind,
 };
 use std::time::{Duration, Instant};
 
@@ -28,6 +29,7 @@ fn config_but_played_since_threshold_no_emit() {
         event: SfxEvent::Run,
         time: Instant::now(),
         on_ground: true,
+        in_water: false,
     };
 
     let result =
@@ -47,6 +49,7 @@ fn config_and_not_played_since_threshold_emits() {
         event: SfxEvent::Idle,
         time: Instant::now().checked_add(Duration::from_secs(1)).unwrap(),
         on_ground: true,
+        in_water: false,
     };
 
     let result =
@@ -68,6 +71,7 @@ fn same_previous_event_elapsed_emits() {
             .checked_sub(Duration::from_millis(500))
             .unwrap(),
         on_ground: true,
+        in_water: false,
     };
 
     let result =
@@ -88,8 +92,10 @@ fn maps_idle() {
             event: SfxEvent::Idle,
             time: Instant::now(),
             on_ground: true,
+            in_water: false,
         },
         Vec3::zero(),
+        BlockKind::Grass,
     );
 
     assert_eq!(result, SfxEvent::Idle);
@@ -107,8 +113,10 @@ fn maps_run_with_sufficient_velocity() {
             event: SfxEvent::Idle,
             time: Instant::now(),
             on_ground: true,
+            in_water: false,
         },
         Vec3::new(0.5, 0.8, 0.0),
+        BlockKind::Grass,
     );
 
     assert_eq!(result, SfxEvent::Run);
@@ -126,8 +134,10 @@ fn does_not_map_run_with_insufficient_velocity() {
             event: SfxEvent::Idle,
             time: Instant::now(),
             on_ground: true,
+            in_water: false,
         },
         Vec3::new(0.02, 0.0001, 0.0),
+        BlockKind::Grass,
     );
 
     assert_eq!(result, SfxEvent::Idle);
@@ -142,8 +152,10 @@ fn does_not_map_run_with_sufficient_velocity_but_not_on_ground() {
             event: SfxEvent::Idle,
             time: Instant::now(),
             on_ground: false,
+            in_water: false,
         },
         Vec3::new(0.5, 0.8, 0.0),
+        BlockKind::Grass,
     );
 
     assert_eq!(result, SfxEvent::Idle);
@@ -173,8 +185,10 @@ fn maps_roll() {
             event: SfxEvent::Run,
             time: Instant::now(),
             on_ground: true,
+            in_water: false,
         },
         Vec3::new(0.5, 0.5, 0.0),
+        BlockKind::Grass,
     );
 
     assert_eq!(result, SfxEvent::Roll);
@@ -192,8 +206,10 @@ fn maps_land_on_ground_to_run() {
             event: SfxEvent::Idle,
             time: Instant::now(),
             on_ground: false,
+            in_water: false,
         },
         Vec3::zero(),
+        BlockKind::Grass,
     );
 
     assert_eq!(result, SfxEvent::Run);
@@ -208,8 +224,10 @@ fn maps_glider_open() {
             event: SfxEvent::Jump,
             time: Instant::now(),
             on_ground: false,
+            in_water: false,
         },
         Vec3::zero(),
+        BlockKind::Grass,
     );
 
     assert_eq!(result, SfxEvent::GliderOpen);
@@ -224,8 +242,10 @@ fn maps_glide() {
             event: SfxEvent::Glide,
             time: Instant::now(),
             on_ground: false,
+            in_water: false,
         },
         Vec3::zero(),
+        BlockKind::Grass,
     );
 
     assert_eq!(result, SfxEvent::Glide);
@@ -240,8 +260,10 @@ fn maps_glider_close_when_closing_mid_flight() {
             event: SfxEvent::Glide,
             time: Instant::now(),
             on_ground: false,
+            in_water: false,
         },
         Vec3::zero(),
+        BlockKind::Grass,
     );
 
     assert_eq!(result, SfxEvent::GliderClose);
@@ -260,8 +282,10 @@ fn maps_glider_close_when_landing() {
             event: SfxEvent::Glide,
             time: Instant::now(),
             on_ground: false,
+            in_water: false,
         },
         Vec3::zero(),
+        BlockKind::Grass,
     );
 
     assert_eq!(result, SfxEvent::GliderClose);
@@ -275,6 +299,7 @@ fn maps_quadrupeds_running() {
             ..Default::default()
         },
         Vec3::new(0.5, 0.8, 0.0),
+        BlockKind::Grass,
     );
 
     assert_eq!(result, SfxEvent::Run);

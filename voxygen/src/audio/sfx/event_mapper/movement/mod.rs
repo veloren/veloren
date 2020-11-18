@@ -3,13 +3,16 @@
 /// proportionate to the extity's size
 use super::EventMapper;
 use crate::{
-    audio::sfx::{SfxEvent, SfxEventItem, SfxTriggerItem, SfxTriggers, SFX_DIST_LIMIT_SQR},
-    scene::Camera,
+    audio::sfx::{SfxEvent, SfxTriggerItem, SfxTriggers, SFX_DIST_LIMIT_SQR},
+    scene::{Camera, Terrain},
+    AudioFrontend,
 };
+use client::Client;
 use common::{
     comp::{Body, CharacterState, PhysicsState, Pos, Vel},
-    event::EventBus,
     state::State,
+    terrain::{BlockKind, TerrainChunk},
+    vol::ReadVol,
 };
 use hashbrown::HashMap;
 use specs::{Entity as EcsEntity, Join, WorldExt};
@@ -21,6 +24,7 @@ struct PreviousEntityState {
     event: SfxEvent,
     time: Instant,
     on_ground: bool,
+    in_water: bool,
 }
 
 impl Default for PreviousEntityState {
@@ -29,6 +33,7 @@ impl Default for PreviousEntityState {
             event: SfxEvent::Idle,
             time: Instant::now(),
             on_ground: true,
+            in_water: false,
         }
     }
 }
@@ -40,15 +45,15 @@ pub struct MovementEventMapper {
 impl EventMapper for MovementEventMapper {
     fn maintain(
         &mut self,
+        audio: &mut AudioFrontend,
         state: &State,
         player_entity: specs::Entity,
         camera: &Camera,
         triggers: &SfxTriggers,
+        _terrain: &Terrain<TerrainChunk>,
+        _client: &Client,
     ) {
         let ecs = state.ecs();
-
-        let sfx_event_bus = ecs.read_resource::<EventBus<SfxEventItem>>();
-        let mut sfx_emitter = sfx_event_bus.emitter();
 
         let focus_off = camera.get_focus_pos().map(f32::trunc);
         let cam_pos = camera.dependents().cam_pos + focus_off;
@@ -65,34 +70,59 @@ impl EventMapper for MovementEventMapper {
             .filter(|(_, e_pos, ..)| (e_pos.0.distance_squared(cam_pos)) < SFX_DIST_LIMIT_SQR)
         {
             if let Some(character) = character {
-                let state = self.event_history.entry(entity).or_default();
+                let internal_state = self.event_history.entry(entity).or_default();
+
+                // Get the underfoot block
+                let block_position = Vec3::new(pos.0.x, pos.0.y, pos.0.z - 1.0).map(|x| x as i32);
+                let underfoot_block_kind = match state.get_block(block_position) {
+                    Some(block) => block.kind(),
+                    None => BlockKind::Air,
+                };
 
                 let mapped_event = match body {
-                    Body::Humanoid(_) => Self::map_movement_event(character, physics, state, vel.0),
-                    Body::QuadrupedMedium(_)
-                    | Body::QuadrupedSmall(_)
-                    | Body::QuadrupedLow(_)
-                    | Body::BirdMedium(_)
-                    | Body::BirdSmall(_)
-                    | Body::BipedLarge(_) => Self::map_non_humanoid_movement_event(physics, vel.0),
+                    Body::Humanoid(_) => Self::map_movement_event(
+                        character,
+                        physics,
+                        internal_state,
+                        vel.0,
+                        underfoot_block_kind,
+                    ),
+                    Body::QuadrupedMedium(_) | Body::QuadrupedSmall(_) | Body::QuadrupedLow(_) => {
+                        Self::map_quadruped_movement_event(physics, vel.0, underfoot_block_kind)
+                    },
+                    Body::BirdMedium(_) | Body::BirdSmall(_) | Body::BipedLarge(_) => {
+                        Self::map_non_humanoid_movement_event(physics, vel.0, underfoot_block_kind)
+                    },
                     _ => SfxEvent::Idle, // Ignore fish, etc...
                 };
 
                 // Check for SFX config entry for this movement
-                if Self::should_emit(state, triggers.get_key_value(&mapped_event)) {
-                    sfx_emitter.emit(SfxEventItem::new(
-                        mapped_event.clone(),
-                        Some(pos.0),
-                        Some(Self::get_volume_for_body_type(body)),
-                    ));
+                if Self::should_emit(internal_state, triggers.get_key_value(&mapped_event)) {
+                    let underwater = state
+                        .terrain()
+                        .get(cam_pos.map(|e| e.floor() as i32))
+                        .map(|b| b.is_liquid())
+                        .unwrap_or(false);
 
-                    state.time = Instant::now();
+                    let sfx_trigger_item = triggers.get_key_value(&mapped_event);
+                    audio.emit_sfx(
+                        sfx_trigger_item,
+                        pos.0,
+                        Some(Self::get_volume_for_body_type(body)),
+                        underwater,
+                    );
+                    internal_state.time = Instant::now();
                 }
 
                 // update state to determine the next event. We only record the time (above) if
                 // it was dispatched
-                state.event = mapped_event;
-                state.on_ground = physics.on_ground;
+                internal_state.event = mapped_event;
+                internal_state.on_ground = physics.on_ground;
+                if physics.in_liquid.is_some() {
+                    internal_state.in_water = true;
+                } else {
+                    internal_state.in_water = false;
+                }
             }
         }
 
@@ -133,7 +163,7 @@ impl MovementEventMapper {
     ) -> bool {
         if let Some((event, item)) = sfx_trigger_item {
             if &previous_state.event == event {
-                previous_state.time.elapsed().as_secs_f64() >= item.threshold
+                previous_state.time.elapsed().as_secs_f32() >= item.threshold
             } else {
                 true
             }
@@ -153,9 +183,14 @@ impl MovementEventMapper {
         physics_state: &PhysicsState,
         previous_state: &PreviousEntityState,
         vel: Vec3<f32>,
+        underfoot_block_kind: BlockKind,
     ) -> SfxEvent {
-        // Match run / roll state
-        if physics_state.on_ground && vel.magnitude() > 0.1
+        // Match run / roll / swim state
+        if physics_state.in_liquid.is_some() && vel.magnitude() > 0.1
+            || !previous_state.in_water && physics_state.in_liquid.is_some()
+        {
+            return SfxEvent::Swim;
+        } else if physics_state.on_ground && vel.magnitude() > 0.1
             || !previous_state.on_ground && physics_state.on_ground
         {
             return if matches!(character_state, CharacterState::Roll(_)) {
@@ -163,7 +198,10 @@ impl MovementEventMapper {
             } else if matches!(character_state, CharacterState::Sneak) {
                 SfxEvent::Sneak
             } else {
-                SfxEvent::Run
+                match underfoot_block_kind {
+                    BlockKind::Snow => SfxEvent::SnowRun,
+                    _ => SfxEvent::Run,
+                }
             };
         }
 
@@ -183,9 +221,36 @@ impl MovementEventMapper {
     }
 
     /// Maps a limited set of movements for other non-humanoid entities
-    fn map_non_humanoid_movement_event(physics_state: &PhysicsState, vel: Vec3<f32>) -> SfxEvent {
-        if physics_state.on_ground && vel.magnitude() > 0.1 {
-            SfxEvent::Run
+    fn map_non_humanoid_movement_event(
+        physics_state: &PhysicsState,
+        vel: Vec3<f32>,
+        underfoot_block_kind: BlockKind,
+    ) -> SfxEvent {
+        if physics_state.in_liquid.is_some() && vel.magnitude() > 0.1 {
+            SfxEvent::Swim
+        } else if physics_state.on_ground && vel.magnitude() > 0.1 {
+            match underfoot_block_kind {
+                BlockKind::Snow => SfxEvent::SnowRun,
+                _ => SfxEvent::Run,
+            }
+        } else {
+            SfxEvent::Idle
+        }
+    }
+
+    /// Maps a limited set of movements for quadruped entities
+    fn map_quadruped_movement_event(
+        physics_state: &PhysicsState,
+        vel: Vec3<f32>,
+        underfoot_block_kind: BlockKind,
+    ) -> SfxEvent {
+        if physics_state.in_liquid.is_some() && vel.magnitude() > 0.1 {
+            SfxEvent::Swim
+        } else if physics_state.on_ground && vel.magnitude() > 0.1 {
+            match underfoot_block_kind {
+                BlockKind::Snow => SfxEvent::QuadSnowRun,
+                _ => SfxEvent::QuadRun,
+            }
         } else {
             SfxEvent::Idle
         }

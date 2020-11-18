@@ -69,6 +69,7 @@ impl<'a> BlockGen<'a> {
             // temp,
             // humidity,
             stone_col,
+            snow_cover,
             ..
         } = sample;
 
@@ -128,7 +129,10 @@ impl<'a> BlockGen<'a> {
             let col = Lerp::lerp(sub_surface_color, surface_color, grass_factor);
             // Surface
             Some(Block::new(
-                if grass_factor > 0.7 {
+                if snow_cover {
+                    //if temp < CONFIG.snow_temp + 0.031 {
+                    BlockKind::Snow
+                } else if grass_factor > 0.7 {
                     BlockKind::Grass
                 } else {
                     BlockKind::Earth

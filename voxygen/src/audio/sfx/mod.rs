@@ -82,24 +82,27 @@
 
 mod event_mapper;
 
-use crate::{audio::AudioFrontend, scene::Camera};
+use crate::{
+    audio::AudioFrontend,
+    scene::{Camera, Terrain},
+};
 
+use client::Client;
 use common::{
     assets,
     comp::{
         item::{ItemKind, ToolKind},
         object, Body, CharacterAbilityType, InventoryUpdateEvent,
     },
-    event::EventBus,
     outcome::Outcome,
     state::State,
+    terrain::TerrainChunk,
 };
 use event_mapper::SfxEventMapper;
 use hashbrown::HashMap;
 use rand::prelude::*;
 use serde::Deserialize;
-use specs::WorldExt;
-use tracing::{debug, warn};
+use tracing::warn;
 use vek::*;
 
 /// We watch the states of nearby entities in order to emit SFX at their
@@ -110,8 +113,11 @@ use vek::*;
 const SFX_DIST_LIMIT_SQR: f32 = 20000.0;
 
 pub struct SfxEventItem {
+    /// The SFX event that triggers this sound
     pub sfx: SfxEvent,
+    /// The position at which the sound should play
     pub pos: Option<Vec3<f32>>,
+    /// The volume to play the sound at
     pub vol: Option<f32>,
 }
 
@@ -131,8 +137,20 @@ impl SfxEventItem {
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
 pub enum SfxEvent {
+    Campfire,
+    Embers,
+    Birdcall,
+    Owl,
+    Cricket,
+    Frog,
+    Bees,
+    RunningWater,
     Idle,
+    Swim,
     Run,
+    QuadRun,
+    SnowRun,
+    QuadSnowRun,
     Roll,
     Sneak,
     Climb,
@@ -155,6 +173,7 @@ pub enum SfxEvent {
 pub enum SfxInventoryEvent {
     Collected,
     CollectedTool(ToolKind),
+    CollectedItem(String),
     CollectFailed,
     Consumed(String),
     Debug,
@@ -163,15 +182,22 @@ pub enum SfxInventoryEvent {
     Swapped,
 }
 
+// TODO Move to a separate event mapper?
 impl From<&InventoryUpdateEvent> for SfxEvent {
     fn from(value: &InventoryUpdateEvent) -> Self {
         match value {
             InventoryUpdateEvent::Collected(item) => {
-                // Handle sound effects for types of collected items, falling back to the
-                // default Collected event
+                // Handle sound effects for types of collected items, falling
+                // back to the default Collected event
                 match &item.kind() {
                     ItemKind::Tool(tool) => {
                         SfxEvent::Inventory(SfxInventoryEvent::CollectedTool(tool.kind.clone()))
+                    },
+                    ItemKind::Ingredient { kind } => match &kind[..] {
+                        "ShinyGem" => {
+                            SfxEvent::Inventory(SfxInventoryEvent::CollectedItem(kind.clone()))
+                        },
+                        _ => SfxEvent::Inventory(SfxInventoryEvent::Collected),
                     },
                     _ => SfxEvent::Inventory(SfxInventoryEvent::Collected),
                 }
@@ -193,8 +219,10 @@ impl From<&InventoryUpdateEvent> for SfxEvent {
 
 #[derive(Deserialize)]
 pub struct SfxTriggerItem {
+    /// A list of SFX filepaths for this event
     pub files: Vec<String>,
-    pub threshold: f64,
+    /// The time to wait before repeating this SfxEvent
+    pub threshold: f32,
 }
 
 #[derive(Deserialize, Default)]
@@ -209,70 +237,51 @@ impl SfxTriggers {
 }
 
 pub struct SfxMgr {
-    triggers: SfxTriggers,
+    pub triggers: SfxTriggers,
     event_mapper: SfxEventMapper,
 }
 
-impl SfxMgr {
-    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
-    pub fn new() -> Self {
+impl Default for SfxMgr {
+    fn default() -> Self {
         Self {
             triggers: Self::load_sfx_items(),
             event_mapper: SfxEventMapper::new(),
         }
     }
+}
 
+impl SfxMgr {
     pub fn maintain(
         &mut self,
         audio: &mut AudioFrontend,
         state: &State,
         player_entity: specs::Entity,
         camera: &Camera,
+        terrain: &Terrain<TerrainChunk>,
+        client: &Client,
     ) {
+        // Checks if the SFX volume is set to zero or audio is disabled
+        // This prevents us from running all the following code unnecessarily
         if !audio.sfx_enabled() {
             return;
         }
 
-        let ecs = state.ecs();
         let focus_off = camera.get_focus_pos().map(f32::trunc);
         let cam_pos = camera.dependents().cam_pos + focus_off;
 
+        // Sets the listener position to the camera position facing the
+        // same direction as the camera
         audio.set_listener_pos(cam_pos, camera.dependents().cam_dir);
 
-        // TODO: replace; deprecated in favor of outcomes
-        self.event_mapper
-            .maintain(state, player_entity, camera, &self.triggers);
-
-        // TODO: replace; deprecated in favor of outcomes
-        let events = ecs.read_resource::<EventBus<SfxEventItem>>().recv_all();
-
-        for event in events {
-            let position = match event.pos {
-                Some(pos) => pos,
-                _ => cam_pos,
-            };
-
-            if let Some(item) = self.triggers.get_trigger(&event.sfx) {
-                let sfx_file = match item.files.len() {
-                    0 => {
-                        debug!("Sfx event {:?} is missing audio file.", event.sfx);
-                        "voxygen.audio.sfx.placeholder"
-                    },
-                    1 => item
-                        .files
-                        .last()
-                        .expect("Failed to determine sound file for this trigger item."),
-                    _ => {
-                        let rand_step = rand::random::<usize>() % item.files.len();
-                        &item.files[rand_step]
-                    },
-                };
-
-                audio.play_sfx(sfx_file, position, event.vol);
-            } else {
-                debug!("Missing sfx trigger config for sfx event. {:?}", event.sfx);
-            }
-        }
+        self.event_mapper.maintain(
+            audio,
+            state,
+            player_entity,
+            camera,
+            &self.triggers,
+            terrain,
+            client,
+        );
     }
 
     pub fn handle_outcome(&mut self, outcome: &Outcome, audio: &mut AudioFrontend) {
@@ -304,7 +313,11 @@ impl SfxMgr {
 
                         audio.play_sfx(file_ref, *pos, None);
                     },
-                    Body::Object(object::Body::BoltFire | object::Body::BoltFireBig) => {
+                    Body::Object(
+                        object::Body::BoltFire
+                        | object::Body::BoltFireBig
+                        | object::Body::BoltNature,
+                    ) => {
                         let file_ref = vec![
                             "voxygen.audio.sfx.abilities.fire_shot_1",
                             "voxygen.audio.sfx.abilities.fire_shot_2",
@@ -315,6 +328,19 @@ impl SfxMgr {
                     _ => {
                         // not mapped to sfx file
                     },
+                }
+            },
+            Outcome::LevelUp { pos } => {
+                let file_ref = "voxygen.audio.sfx.character.level_up_sound_-_shorter_wind_up";
+                audio.play_sfx(file_ref, *pos, None);
+            },
+            Outcome::Beam { pos, heal } => {
+                if *heal {
+                    let file_ref = "voxygen.audio.sfx.abilities.staff_channeling";
+                    audio.play_sfx(file_ref, *pos, None);
+                } else {
+                    let file_ref = "voxygen.audio.sfx.abilities.flame_thrower";
+                    audio.play_sfx(file_ref, *pos, None);
                 }
             },
         }

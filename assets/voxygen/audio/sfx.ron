@@ -1,8 +1,69 @@
 (
     {
+        // 
+        // Ambient
+        //
+        Campfire: (
+            files: [
+                "voxygen.audio.sfx.ambient.fire",
+            ],
+            threshold: 0.5,
+        ),
+        Embers: (
+            files: [
+                "voxygen.audio.sfx.ambient.embers",
+            ],
+            threshold: 0.5,
+        ),
+        Birdcall: (
+            files: [
+                "voxygen.audio.sfx.ambient.birdcall_1",
+                "voxygen.audio.sfx.ambient.birdcall_2",
+            ],
+            threshold: 10.0,
+        ),
+        Owl: (
+            files: [
+                "voxygen.audio.sfx.ambient.owl_1",
+            ],
+            threshold: 14.0,
+        ),
+        Cricket: (
+            files: [
+                "voxygen.audio.sfx.ambient.crickets_1",
+            ],
+            threshold: 3.0,
+        ),
+        Frog: (
+            files: [
+                "voxygen.audio.sfx.ambient.frog_croak_1",
+            ],
+            threshold: 4.0,
+        ),
+        Bees: (
+            files: [
+                "voxygen.audio.sfx.ambient.bees_1",
+            ],
+            threshold: 15.0,
+        ),
+        RunningWater: (
+            files: [
+                "voxygen.audio.sfx.ambient.running_water_1",
+            ],
+            threshold: 7.0,
+        ),
         //
         // Character States
         //
+        Swim: (
+            files: [
+                "voxygen.audio.sfx.footsteps.water_splash_1",
+                "voxygen.audio.sfx.footsteps.water_splash_2",
+                "voxygen.audio.sfx.footsteps.water_splash_3",
+                "voxygen.audio.sfx.footsteps.water_splash_4",
+            ],
+            threshold: 0.25,
+        ),
         Run: (
             files: [
                 "voxygen.audio.sfx.footsteps.stepgrass_1",
@@ -14,32 +75,59 @@
             ],
             threshold: 0.25,
         ),
-        ExperienceGained: (
+        QuadRun: (
             files: [
-                // "voxygen.audio.sfx.character.experience_gained_1",
-                // "voxygen.audio.sfx.character.experience_gained_2",
-                // "voxygen.audio.sfx.character.experience_gained_3",
+                "voxygen.audio.sfx.footsteps.stepgrass_1",
+                "voxygen.audio.sfx.footsteps.stepgrass_2",
+                "voxygen.audio.sfx.footsteps.stepgrass_3",
+                "voxygen.audio.sfx.footsteps.stepgrass_4",
+                "voxygen.audio.sfx.footsteps.stepgrass_5",
+                "voxygen.audio.sfx.footsteps.stepgrass_6",
             ],
-            threshold: 0.5,
+            threshold: 0.12,
         ),
+        SnowRun: (
+            files: [
+                "voxygen.audio.sfx.footsteps.snow_step_1",
+                "voxygen.audio.sfx.footsteps.snow_step_2",
+                "voxygen.audio.sfx.footsteps.snow_step_3",
+            ],
+            threshold: 0.25,
+        ),
+        QuadSnowRun: (
+            files: [
+                "voxygen.audio.sfx.footsteps.snow_step_1",
+                "voxygen.audio.sfx.footsteps.snow_step_2",
+                "voxygen.audio.sfx.footsteps.snow_step_3",
+            ],
+            threshold: 0.12,
+        ),
+        //ExperienceGained: (
+        //    files: [
+        //        "voxygen.audio.sfx.character.experience_gained_1",
+        //        "voxygen.audio.sfx.character.experience_gained_2",
+        //        "voxygen.audio.sfx.character.experience_gained_3",
+        //    ],
+        //    threshold: 0.5,
+        //),
         LevelUp:(
             files: [
                 "voxygen.audio.sfx.character.level_up_sound_-_shorter_wind_up",
             ],
             threshold: 0.5,
         ),
-        Jump: (
-            files: [
-                // Event not implemented?
-            ],
-            threshold: 0.25,
-        ),
-        Fall: (
-            files: [
-                // Event not implemented?
-            ],
-            threshold: 0.25,
-        ),
+        //Jump: (
+        //    files: [
+        //        // Event not implemented?
+        //    ],
+        //    threshold: 0.25,
+        //),
+        //Fall: (
+        //    files: [
+        //        // Event not implemented?
+        //    ],
+        //    threshold: 0.25,
+        //),
         Roll: (
             files: [
                 "voxygen.audio.sfx.character.dive_roll_1",
@@ -47,30 +135,30 @@
             ],
             threshold: 0.25,
         ),
-        Climb: (
-            files: [
-                // TODO: sync with animation
-                //"voxygen.audio.sfx.footsteps.stepgrass_1",
-                //"voxygen.audio.sfx.footsteps.stepgrass_2",
-                //"voxygen.audio.sfx.footsteps.stepgrass_3",
-                //"voxygen.audio.sfx.footsteps.stepgrass_4",
-                //"voxygen.audio.sfx.footsteps.stepgrass_5",
-                //"voxygen.audio.sfx.footsteps.stepgrass_6",
-            ],
-            threshold: 0.25,
-        ),
+        //Climb: (
+        //    files: [
+        //         TODO: sync with animation
+        //        "voxygen.audio.sfx.footsteps.stepgrass_1",
+        //        "voxygen.audio.sfx.footsteps.stepgrass_2",
+        //        "voxygen.audio.sfx.footsteps.stepgrass_3",
+        //        "voxygen.audio.sfx.footsteps.stepgrass_4",
+        //        "voxygen.audio.sfx.footsteps.stepgrass_5",
+        //        "voxygen.audio.sfx.footsteps.stepgrass_6",
+        //    ],
+        //    threshold: 0.25,
+        //),
         GliderOpen: (
             files: [
                 "voxygen.audio.sfx.glider_open",
             ],
             threshold: 0.5,
         ),
-        Glide: (
-            files: [
-                // Event Missing or not implemented?
-            ],
-            threshold: 0.5,
-        ),
+        //Glide: ( 
+        //    files: [
+        //        // Event Missing or not implemented?
+        //    ],
+        //    threshold: 0.5,
+        //),
         GliderClose: (
             files: [
                 "voxygen.audio.sfx.glider_close",
@@ -145,7 +233,7 @@
             ],
             threshold: 0.5,
         ),
-        Attack(BasicMelee, Hammer): (
+        Attack(ComboMelee(Swing, 1), Hammer): (
             files: [
                 "voxygen.audio.sfx.abilities.swing",
             ],
@@ -185,7 +273,13 @@
             ],
             threshold: 0.5,
         ),
-        Attack(BasicMelee, Axe): (
+        Attack(ComboMelee(Swing, 1), Axe): (
+            files: [
+                "voxygen.audio.sfx.abilities.swing",
+            ],
+            threshold: 0.7,
+        ),
+        Attack(ComboMelee(Swing, 2), Axe): (
             files: [
                 "voxygen.audio.sfx.abilities.swing",
             ],
@@ -211,32 +305,32 @@
         ),
 
         //
-        // Fire Rod / Regeneration Staff
+        // Fire Staff
         //
         Wield(Staff): (
             files: [
-                "voxygen.audio.sfx.weapon.staff_out",
+                "voxygen.audio.sfx.weapon.sword_out",
             ],
             threshold: 0.5,
         ),
         Unwield(Staff): (
             files: [
-                "voxygen.audio.sfx.weapon.staff_in",
+                "voxygen.audio.sfx.weapon.sword_in",
             ],
             threshold: 0.5,
         ),
-        Attack(BasicMelee, Staff): (
+        Attack(BasicBeam, Staff): (
             files: [
-                "voxygen.audio.sfx.abilities.swing",
+                "voxygen.audio.sfx.abilities.flame_thrower",
             ],
-            threshold: 0.8,
+            threshold: 0.2,
         ),
-        Attack(BasicRanged, Staff): (
-            files: [
-                // "voxygen.audio.sfx.abilities.staff_channeling",
-            ],
-            threshold: 0.8,
-        ),
+        //Attack(BasicRanged, Staff): (
+        //    files: [
+        //        "voxygen.audio.sfx.abilities.staff_channeling",
+        //    ],
+        //    threshold: 0.8,
+        //),
         Inventory(CollectedTool(Staff)): (
             files: [
                 "voxygen.audio.sfx.inventory.pickup_staff",
@@ -259,17 +353,33 @@
             ],
             threshold: 0.5,
         ),
-        Attack(BasicRanged, Bow): (
-            files: [
-                // channeling sound.
-            ],
-            threshold: 0.8,
-        ),
+        //Attack(BasicRanged, Bow): (
+        //    files: [
+        //        // channeling sound.
+        //    ],
+        //    threshold: 0.8,
+        //),
         Inventory(CollectedTool(Bow)): (
             files: [
                 "voxygen.audio.sfx.inventory.add_item",
             ],
             threshold: 0.3,
+        ),
+
+        //
+        // Sceptre
+        //
+        Wield(Sceptre): (
+            files: [
+                "voxygen.audio.sfx.weapon.sword_out",
+            ],
+            threshold: 0.5,
+        ),
+        Unwield(Sceptre): (
+            files: [
+                "voxygen.audio.sfx.weapon.sword_in",
+            ],
+            threshold: 0.5,
         ),
 
         //
@@ -340,6 +450,12 @@
         Inventory(Collected): (
             files: [
                 "voxygen.audio.sfx.inventory.add_item",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(CollectedItem("ShinyGem")): (
+            files: [
+                "voxygen.audio.sfx.weapon.staff_out",
             ],
             threshold: 0.3,
         ),
@@ -461,17 +577,17 @@
             ],
             threshold: 0.3,
         ),
-        Explosion: (
-            files: [
-                // in code
-            ],
-            threshold: 0.2,
-        ),
-        ProjectileShot: (
-            files: [
-                // in code
-            ],
-            threshold: 0.5,
-        ),
+        //Explosion: (
+        //    files: [
+        //        // in code
+        //    ],
+        //    threshold: 0.2,
+        //),
+        //ProjectileShot: (
+        //    files: [
+        //        // in code
+        //    ],
+        //    threshold: 0.5,
+        //),
     }
 )

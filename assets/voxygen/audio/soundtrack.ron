@@ -1,20 +1,38 @@
 // TODO: Re-add tunes that are not fitting general outside day/night situations
 // TODO: Add an ambient-soundtrack that runs independently from the musical soundtrack
+// Times: Some(Day), Some(Night), None
+// List of biomes currently: Grassland, Forest, Desert, Snowland, Lake, Mountain, Ocean
+// Also Jungle and Swamp but these are not defined currently as the worldgen around
+// them is changing and not stable
+// Sites: Cave, Dungeon
 
 (
     tracks: [
         (
-            title: "Forest Day", // Ambience Track
-            path: "voxygen.audio.ambient.forest_day",
-            length: 629.0,
-            timing: Some(Day),
-            artist: "https://www.youtube.com/watch?v=FwVTkB-BIvM",
-        ), 
+            title: "Oceania",
+            path: "voxygen.audio.soundtrack.oceania",
+            length: 135.0,
+            timing: None,
+            biomes: [
+                (Lake, 2),
+                (Ocean, 3),
+            ],
+            site: Some(Void),
+            artist: "Eden",
+        ),
         (
             title: "A Solemn Quest",
             path: "voxygen.audio.soundtrack.a_solemn_quest",
             length: 206.0,
             timing: Some(Night),
+            biomes: [
+                (Desert, 1),
+                (Grassland, 1),
+                (Snowland, 1),
+                (Mountain, 1),
+                (Lake, 1),
+            ],
+            site: Some(Void),
             artist: "Eden",
         ),        
         (
@@ -22,6 +40,10 @@
             path: "voxygen.audio.soundtrack.into_the_dark_forest",
             length: 184.0,
             timing: Some(Night),
+            biomes: [
+                (Forest, 1),
+            ],
+            site: Some(Void),
             artist: "Aeronic",
         ),
         (
@@ -29,6 +51,10 @@
             path: "voxygen.audio.soundtrack.field_grazing",
             length: 154.0,
             timing: Some(Day),
+            biomes: [
+                (Grassland, 1),
+            ],
+            site: Some(Void),
             artist: "Aeronic",
         ),
         (
@@ -36,20 +62,38 @@
             path: "voxygen.audio.soundtrack.wandering_voices",
             length: 137.0,
             timing: Some(Night),
+            biomes: [],
+            site: Some(Void),
             artist: "Aeronic",
         ),
-        /*(
-            title: "Snowtop Volume", //Snow Region 
+        (
+            title: "Snowtop Volume",
             path: "voxygen.audio.soundtrack.snowtop_volume",
             length: 89.0,
-            timing: Some(Day),
+            timing: None,
+            biomes: [
+                (Snowland, 1),
+                (Mountain, 1),
+            ],
+            site: Some(Void),
             artist: "Aeronic",
-        ),*/
+        ),
         (
             title: "Mineral Deposits",
             path: "voxygen.audio.soundtrack.mineral_deposits",
             length: 148.0,
-            timing: Some(Day),
+            timing: None,
+            biomes: [],
+            site: Some(Cave),
+            artist: "Aeronic",
+        ),
+        (   //Repeat for other site
+            title: "Mineral Deposits",
+            path: "voxygen.audio.soundtrack.mineral_deposits",
+            length: 148.0,
+            timing: None,
+            biomes: [],
+            site: Some(Dungeon),
             artist: "Aeronic",
         ),
         (
@@ -57,6 +101,8 @@
             path: "voxygen.audio.soundtrack.moonbeams",
             length: 158.0,
             timing: Some(Night),
+            biomes: [],
+            site: Some(Void),
             artist: "Aeronic",
         ),
         (
@@ -64,20 +110,32 @@
             path: "voxygen.audio.soundtrack.serene_meadows",
             length: 173.0,
             timing: Some(Night),
+            biomes: [
+                (Grassland, 1),
+            ],
+            site: Some(Void),
             artist: "Aeronic",
         ),
-        /*(
-            title: "Rest Assured", // Town/Shop 
-            path: "voxygen.audio.soundtrack.rest_assured",
-            length: 185.0,
-            timing: Some(Day),
-            artist: "badbbad",
-        ),*/
+        //(
+        //    title: "Rest Assured", // Town/Shop 
+        //    path: "voxygen.audio.soundtrack.rest_assured",
+        //    length: 185.0,
+        //    timing: Some(Day),
+        //    biomes: [],
+        //    site: Some(Void),
+        //    artist: "badbbad",
+        //),
         (
             title: "Just The Beginning",
             path: "voxygen.audio.soundtrack.just_the_beginning",
             length: 188.0,
             timing: Some(Day),
+            biomes: [
+                (Grassland, 1),
+                (Snowland, 1),
+                (Mountain, 1),
+            ],
+            site: Some(Void),
             artist: "badbbad",
         ),
         (
@@ -85,35 +143,52 @@
             path: "voxygen.audio.soundtrack.campfire_stories",
             length: 100.0,
             timing: Some(Night),
+            biomes: [],
+            site: Some(Void),
             artist: "badbbad",
         ),
         (
             title: "Limits",
             path: "voxygen.audio.soundtrack.limits",
             length: 203.0,
-            timing: Some(Night),
+            timing: None,
+            biomes: [
+                (Desert, 1),
+                (Lake, 1)
+            ],
+            site: Some(Void),
             artist: "badbbad",
         ),
-        /*(  // Dungeon 
+        (  
             title: "Down The Rabbit Hole",
             path: "voxygen.audio.soundtrack.down_the_rabbit_hole",
             length: 244.0,
-            timing: Some(Night),
+            timing: None,
+            biomes: [],
+            site: Some(Cave),
             artist: "badbbad",
-        ),*/
+        ),
+        (   //Repeat for other site
+            title: "Down The Rabbit Hole",
+            path: "voxygen.audio.soundtrack.down_the_rabbit_hole",
+            length: 244.0,
+            timing: None,
+            biomes: [],
+            site: Some(Dungeon),
+            artist: "badbbad",
+        ),
         (
             title: "Between The Fairies",
             path: "voxygen.audio.soundtrack.between_the_fairies",
             length: 175.0,
             timing: Some(Night),
+            biomes: [
+                (Forest, 1),
+                (Lake, 1),
+                (Snowland, 1),
+            ],
+            site: Some(Void),
             artist: "badbbad",
-        ),
-        (
-            title: "Forest Morning", // Ambience Track
-            path: "voxygen.audio.ambient.forest_morning",
-            length: 600.0,
-            timing: Some(Day),
-            artist: "https://www.youtube.com/watch?v=eq4nfIdK6C4",
-        ),
+        )
     ]
 )

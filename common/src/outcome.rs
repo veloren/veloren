@@ -22,6 +22,13 @@ pub enum Outcome {
         body: comp::Body,
         vel: Vec3<f32>,
     },
+    LevelUp {
+        pos: Vec3<f32>,
+    },
+    Beam {
+        pos: Vec3<f32>,
+        heal: bool,
+    },
 }
 
 impl Outcome {
@@ -29,6 +36,8 @@ impl Outcome {
         match self {
             Outcome::Explosion { pos, .. } => Some(*pos),
             Outcome::ProjectileShot { pos, .. } => Some(*pos),
+            Outcome::LevelUp { pos } => Some(*pos),
+            Outcome::Beam { pos, .. } => Some(*pos),
         }
     }
 }

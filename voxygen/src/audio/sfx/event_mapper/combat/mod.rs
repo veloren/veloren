@@ -1,16 +1,19 @@
 /// EventMapper::Combat watches the combat states of surrounding entities' and
 /// emits sfx related to weapons and attacks/abilities
 use crate::{
-    audio::sfx::{SfxEvent, SfxEventItem, SfxTriggerItem, SfxTriggers, SFX_DIST_LIMIT_SQR},
-    scene::Camera,
+    audio::sfx::{SfxEvent, SfxTriggerItem, SfxTriggers, SFX_DIST_LIMIT_SQR},
+    scene::{Camera, Terrain},
+    AudioFrontend,
 };
 
 use super::EventMapper;
 
+use client::Client;
 use common::{
     comp::{item::ItemKind, CharacterAbilityType, CharacterState, Loadout, Pos},
-    event::EventBus,
     state::State,
+    terrain::TerrainChunk,
+    vol::ReadVol,
 };
 use hashbrown::HashMap;
 use specs::{Entity as EcsEntity, Join, WorldExt};
@@ -40,15 +43,15 @@ pub struct CombatEventMapper {
 impl EventMapper for CombatEventMapper {
     fn maintain(
         &mut self,
+        audio: &mut AudioFrontend,
         state: &State,
         player_entity: specs::Entity,
         camera: &Camera,
         triggers: &SfxTriggers,
+        _terrain: &Terrain<TerrainChunk>,
+        _client: &Client,
     ) {
         let ecs = state.ecs();
-
-        let sfx_event_bus = ecs.read_resource::<EventBus<SfxEventItem>>();
-        let mut sfx_emitter = sfx_event_bus.emitter();
 
         let focus_off = camera.get_focus_pos().map(f32::trunc);
         let cam_pos = camera.dependents().cam_pos + focus_off;
@@ -63,21 +66,27 @@ impl EventMapper for CombatEventMapper {
             .filter(|(_, e_pos, ..)| (e_pos.0.distance_squared(cam_pos)) < SFX_DIST_LIMIT_SQR)
         {
             if let Some(character) = character {
-                let state = self.event_history.entry(entity).or_default();
+                let sfx_state = self.event_history.entry(entity).or_default();
 
-                let mapped_event = Self::map_event(character, state, loadout);
+                let mapped_event = Self::map_event(character, sfx_state, loadout);
 
                 // Check for SFX config entry for this movement
-                if Self::should_emit(state, triggers.get_key_value(&mapped_event)) {
-                    sfx_emitter.emit(SfxEventItem::new(mapped_event.clone(), Some(pos.0), None));
+                if Self::should_emit(sfx_state, triggers.get_key_value(&mapped_event)) {
+                    let underwater = state
+                        .terrain()
+                        .get(cam_pos.map(|e| e.floor() as i32))
+                        .map(|b| b.is_liquid())
+                        .unwrap_or(false);
 
-                    state.time = Instant::now();
+                    let sfx_trigger_item = triggers.get_key_value(&mapped_event);
+                    audio.emit_sfx(sfx_trigger_item, pos.0, None, underwater);
+                    sfx_state.time = Instant::now();
                 }
 
                 // update state to determine the next event. We only record the time (above) if
                 // it was dispatched
-                state.event = mapped_event;
-                state.weapon_drawn = Self::weapon_drawn(character);
+                sfx_state.event = mapped_event;
+                sfx_state.weapon_drawn = Self::weapon_drawn(character);
             }
         }
 
@@ -117,7 +126,7 @@ impl CombatEventMapper {
     ) -> bool {
         if let Some((event, item)) = sfx_trigger_item {
             if &previous_state.event == event {
-                previous_state.time.elapsed().as_secs_f64() >= item.threshold
+                previous_state.time.elapsed().as_secs_f32() >= item.threshold
             } else {
                 true
             }
