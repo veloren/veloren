@@ -1,7 +1,5 @@
 use crate::{
-    comp::{
-        beam, humanoid, Body, CharacterState, EnergyChange, EnergySource, Ori, Pos, StateUpdate,
-    },
+    comp::{beam, CharacterState, EnergyChange, EnergySource, Ori, Pos, StateUpdate},
     event::ServerEvent,
     states::utils::*,
     sync::Uid,
@@ -56,7 +54,7 @@ pub struct Data {
     /// Used for particle stuffs
     pub particle_ori: Option<Vec3<f32>>,
     /// Used to offset beam and particles
-    pub offset: f32,
+    pub offset: Vec3<f32>,
 }
 
 impl CharacterBehavior for Data {
@@ -90,17 +88,18 @@ impl CharacterBehavior for Data {
                         tick_dur: Duration::from_secs_f32(1.0 / self.static_data.tick_rate),
                         timer: Duration::default(),
                     });
-                    // Gets offset
-                    let eye_height = match data.body {
-                        Body::Humanoid(body) => body.eye_height(),
-                        _ => humanoid::DEFAULT_HUMANOID_EYE_HEIGHT,
-                    };
+                    // Gets offsets
+                    let body_offsets = Vec3::new(
+                        data.body.radius() * 3.0 * data.inputs.look_dir.x,
+                        data.body.radius() * 3.0 * data.inputs.look_dir.y,
+                        data.body.eye_height(),
+                    ) * 0.55;
                     // Build up
                     update.character = CharacterState::BasicBeam(Data {
                         timer: Duration::default(),
                         stage_section: StageSection::Cast,
                         particle_ori: Some(*data.inputs.look_dir),
-                        offset: eye_height * 0.55,
+                        offset: body_offsets,
                         ..*self
                     });
                 }
@@ -136,7 +135,13 @@ impl CharacterBehavior for Data {
                         duration: self.static_data.beam_duration,
                         owner: Some(*data.uid),
                     };
-                    let pos = Pos(data.pos.0 + Vec3::new(0.0, 0.0, self.offset));
+                    // Gets offsets
+                    let body_offsets = Vec3::new(
+                        data.body.radius() + 2.0 * data.inputs.look_dir.x,
+                        data.body.radius() + 2.0 * data.inputs.look_dir.y,
+                        data.body.eye_height(),
+                    ) * 0.55;
+                    let pos = Pos(data.pos.0 + body_offsets);
                     // Create beam segment
                     update.server_events.push_front(ServerEvent::BeamSegment {
                         properties,
@@ -149,6 +154,7 @@ impl CharacterBehavior for Data {
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
                         particle_ori: Some(*data.inputs.look_dir),
+                        offset: body_offsets,
                         ..*self
                     });
 
