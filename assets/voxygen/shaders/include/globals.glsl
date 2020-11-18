@@ -16,7 +16,7 @@ uniform u_globals {
     vec4 shadow_proj_factors;
     uvec4 medium;
     ivec4 select_pos;
-    vec4 gamma;
+    vec4 gamma_exposure;
     float ambiance;
     // 0 - FirstPerson
     // 1 - ThirdPerson

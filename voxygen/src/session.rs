@@ -972,6 +972,10 @@ impl PlayState for SessionState {
                         global_state.settings.graphics.gamma = new_gamma;
                         global_state.settings.save_to_file_warn();
                     },
+                    HudEvent::ChangeExposure(new_exposure) => {
+                        global_state.settings.graphics.exposure = new_exposure;
+                        global_state.settings.save_to_file_warn();
+                    },
                     HudEvent::ChangeAmbiance(new_ambiance) => {
                         global_state.settings.graphics.ambiance = new_ambiance;
                         global_state.settings.save_to_file_warn();
@@ -1065,6 +1069,7 @@ impl PlayState for SessionState {
                     tick: client.get_tick(),
                     thread_pool: client.thread_pool(),
                     gamma: global_state.settings.graphics.gamma,
+                    exposure: global_state.settings.graphics.exposure,
                     ambiance: global_state.settings.graphics.ambiance,
                     mouse_smoothing: global_state.settings.gameplay.smooth_pan_enable,
                     sprite_render_distance: global_state.settings.graphics.sprite_render_distance
@@ -1131,6 +1136,7 @@ impl PlayState for SessionState {
                 tick: client.get_tick(),
                 thread_pool: client.thread_pool(),
                 gamma: settings.graphics.gamma,
+                exposure: settings.graphics.exposure,
                 ambiance: settings.graphics.ambiance,
                 mouse_smoothing: settings.gameplay.smooth_pan_enable,
                 sprite_render_distance: settings.graphics.sprite_render_distance as f32,

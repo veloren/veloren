@@ -325,6 +325,7 @@ pub enum Event {
     ChangeMaxFPS(u32),
     ChangeFOV(u16),
     ChangeGamma(f32),
+    ChangeExposure(f32),
     ChangeAmbiance(f32),
     MapZoom(f64),
     MapDrag(Vec2<f64>),
@@ -2161,6 +2162,9 @@ impl Hud {
                     },
                     settings_window::Event::AdjustGamma(new_gamma) => {
                         events.push(Event::ChangeGamma(new_gamma));
+                    },
+                    settings_window::Event::AdjustExposure(new_exposure) => {
+                        events.push(Event::ChangeExposure(new_exposure));
                     },
                     settings_window::Event::AdjustAmbiance(new_ambiance) => {
                         events.push(Event::ChangeAmbiance(new_ambiance));

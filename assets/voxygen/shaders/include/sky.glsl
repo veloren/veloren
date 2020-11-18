@@ -22,7 +22,7 @@ const vec3 SUN_HALO_DAY = vec3(0.35, 0.35, 0.05);
 const vec3 SKY_DUSK_TOP = vec3(0.06, 0.1, 0.20);
 const vec3 SKY_DUSK_MID = vec3(0.35, 0.1, 0.15);
 const vec3 SKY_DUSK_BOT = vec3(0.0, 0.1, 0.23);
-const vec3 DUSK_LIGHT   = vec3(9.0, 0.5, 0.15);
+const vec3 DUSK_LIGHT   = vec3(5.0, 0.5, 0.15);
 const vec3 SUN_HALO_DUSK = vec3(1.2, 0.15, 0.01);
 
 const vec3 SKY_NIGHT_TOP = vec3(0.001, 0.001, 0.0025);
@@ -100,7 +100,7 @@ float get_sun_brightness(/*vec3 sun_dir*/) {
 }
 
 float get_moon_brightness(/*vec3 moon_dir*/) {
-    return max(-moon_dir.z + 0.6, 0.0) * 0.1;
+    return max(-moon_dir.z + 0.6, 0.0) * 0.2;
 }
 
 vec3 get_sun_color(/*vec3 sun_dir*/) {
