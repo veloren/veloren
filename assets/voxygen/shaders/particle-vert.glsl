@@ -160,7 +160,7 @@ void main() {
                 vec3(rand2 * 0.1, rand3 * 0.1, 2.0 + rand4 * 1.0)
             ),
             vec3(1.0),
-            vec4(2, 1.5 + rand5 * 0.5, 0, 1),
+            vec4(2, 1.5 + rand5 * 0.5, 0, start_end(1.0, 0.0)),
             spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3)
         );
     } else if (inst_mode == GUN_POWDER_SPARK) {
@@ -284,7 +284,7 @@ void main() {
         attr = Attr(
             spiral_motion(inst_dir, 0.3 * (floor(2 * rand0 + 0.5) - 0.5) * min(linear_scale(10), 1), lifetime / inst_lifespan),
             vec3((1.7 - 0.7 * abs(floor(2 * rand0 - 0.5) + 0.5)) * (1.5 + 0.5 * sin(tick.x * 10 - lifetime * 4))),
-            vec4(vec3(0.4, 2.7 + 0.4 * sin(tick.x * 8 - lifetime * 3 + 4), 0.5 + 0.6 * sin(tick.x * 7)), 0.3),
+            vec4(vec3(0.4, 2.7 + 0.4 * sin(tick.x * 8 - lifetime * 3 + 4), 0.5 + 0.6 * sin(tick.x * 7)), start_end(1.0, 0.0) /*0.3*/),
             spin_in_axis(inst_dir, tick.z)
         );
     } else if (inst_mode == ENERGY_NATURE) {
@@ -303,7 +303,7 @@ void main() {
         attr = Attr(
             (inst_dir * lifetime / inst_lifespan) + vec3(rand0, rand1, rand2) * (lifetime * 5 + 0.25),
             vec3(0.6 + rand3 * 0.5 + lifetime / inst_lifespan * 5),
-            vec4(3, 1.6 + rand5 * 0.3 - 0.6 * lifetime / inst_lifespan, 0.2, 0.8 - 0.6 * lifetime / inst_lifespan),
+            vec4(3, 1.6 + rand5 * 0.3 - 0.6 * lifetime / inst_lifespan, 0.2, start_end(1.0, 0.0) /*0.8 - 0.6 * lifetime / inst_lifespan*/),
             spin_in_axis(vec3(rand6, rand7, rand8), lifetime / inst_lifespan * 10 + 3 * rand9)
         );
     } else if (inst_mode == FIRE_SHOCKWAVE) {
@@ -311,7 +311,7 @@ void main() {
         attr = Attr(
             vec3(rand0, rand1, lifetime * 10 + rand2),
             vec3(1.6 + rand3 * 1.5 + 10 * (lifetime + inst_lifespan)),
-            vec4(3, 1.6 + rand7 * 0.3 - 5 * inst_lifespan + 2 * lifetime, 0.2, 0.8 - 3.5 * inst_lifespan),
+            vec4(3, 1.6 + rand7 * 0.3 - 5 * inst_lifespan + 2 * lifetime, 0.2, start_end(1.0, 0.0) /*0.8 - 3.5 * inst_lifespan*/),
             spin_in_axis(vec3(rand3, rand4, rand5), rand6)
         );
     } else {
@@ -325,6 +325,9 @@ void main() {
             spin_in_axis(vec3(1,0,0),0)
         );
     }
+
+    // Temporary: use shrinking particles as a substitute for fading ones
+    attr.scale *= pow(attr.col.a, 0.25);
 
     f_pos = (inst_pos - focus_off.xyz) + (v_pos * attr.scale * SCALE * mat3(attr.rot) + attr.offs);
 
