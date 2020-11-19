@@ -128,6 +128,8 @@ impl Animation for RunAnimation {
             (anim_time as f32 * (16.0) * lab as f32 * speedmult + 1.57 + canceler * 0.05 + shift4)
                 .sin(); //0.7
         //
+        let _slower = (anim_time as f32 * 1.0 + PI).sin();
+        let slow = (anim_time as f32 * 3.5 + PI).sin();
 
         let ori: Vec2<f32> = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);
@@ -387,6 +389,28 @@ impl Animation for RunAnimation {
             next.torso.position = Vec3::new(0.0, 0.0, 0.0) / 8.0;
             next.torso.orientation = Quaternion::rotation_x(-0.25);
         }
+
+        if s_a.float {
+            next.head.orientation = Quaternion::rotation_x(slow * 0.1);
+            next.upper_torso.position =
+                Vec3::new(0.0, s_a.upper_torso.0, s_a.upper_torso.1 + slow * 2.0 + 4.0);
+            next.upper_torso.orientation = Quaternion::rotation_x(-0.1 + slow * 0.05);
+            next.lower_torso.orientation =
+                Quaternion::rotation_z(short * 0.05) * Quaternion::rotation_x(0.14);
+            next.shoulder_l.position = Vec3::new(-s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
+            next.shoulder_l.orientation = Quaternion::rotation_x(-0.4 + slow * 0.1);
+            next.shoulder_r.position = Vec3::new(s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
+            next.shoulder_r.orientation = Quaternion::rotation_x(-0.4 + slow * 0.1);
+            next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2);
+            next.hand_l.orientation = Quaternion::rotation_x(-0.4 + slow * 0.1);
+            next.hand_r.position = Vec3::new(s_a.hand.0, s_a.hand.1, s_a.hand.2);
+            next.hand_r.orientation = Quaternion::rotation_x(-0.4 + slow * 0.1);
+            next.foot_l.position = Vec3::new(-s_a.foot.0, s_a.foot.1, s_a.foot.2);
+            next.foot_l.orientation = Quaternion::rotation_x(-0.5 + slow * 0.1);
+            next.foot_r.position = Vec3::new(s_a.foot.0, s_a.foot.1, s_a.foot.2);
+            next.foot_r.orientation = Quaternion::rotation_x(-0.5 + slow * 0.1);
+        }
+
         next
     }
 }

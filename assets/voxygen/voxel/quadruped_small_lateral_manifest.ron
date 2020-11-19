@@ -881,4 +881,40 @@
             lateral: ("npc.beaver.male.foot_br"),
         ),
     ),
+    (Hare, Male): (
+        left_front: (
+            offset: (-0.5, -0.0, -2.0),
+            lateral: ("npc.hare.male.foot_fl"),
+        ),
+        right_front: (
+            offset: (-0.5, -0.0, -2.0),
+            lateral: ("npc.hare.male.foot_fr"),
+        ),
+        left_back: (
+            offset: (-1.0, -4.0, -5.0),
+            lateral: ("npc.hare.male.foot_bl"),
+        ),
+        right_back: (
+            offset: (-1.0, -4.0, -5.0),
+            lateral: ("npc.hare.male.foot_br"),
+        ),
+    ),
+    (Hare, Female): (
+        left_front: (
+            offset: (-1.0, -0.0, -2.0),
+            lateral: ("npc.hare.female.foot_fl"),
+        ),
+        right_front: (
+            offset: (-1.0, -0.0, -2.0),
+            lateral: ("npc.hare.female.foot_fr"),
+        ),
+        left_back: (
+            offset: (-1.0, -2.5, -4.0),
+            lateral: ("npc.hare.female.foot_bl"),
+        ),
+        right_back: (
+            offset: (-1.0, -2.5, -4.0),
+            lateral: ("npc.hare.female.foot_br"),
+        ),
+    ),
 })

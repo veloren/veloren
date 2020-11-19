@@ -269,6 +269,12 @@ impl World {
                                         quadruped_medium::Species::Tuskram => is_hostile = false,
                                         quadruped_medium::Species::Deer => is_hostile = false,
                                         quadruped_medium::Species::Hirdrasil => is_hostile = false,
+                                        quadruped_medium::Species::Donkey => is_hostile = false,
+                                        quadruped_medium::Species::Camel => is_hostile = false,
+                                        quadruped_medium::Species::Zebra => is_hostile = false,
+                                        quadruped_medium::Species::Antelope => is_hostile = false,
+                                        quadruped_medium::Species::Kelpie => is_hostile = false,
+                                        quadruped_medium::Species::Horse => is_hostile = false,
                                         _ => is_hostile = true,
                                     }
                                 },
@@ -287,6 +293,8 @@ impl World {
                                         quadruped_low::Species::Crocodile => is_hostile = true,
                                         quadruped_low::Species::Alligator => is_hostile = true,
                                         quadruped_low::Species::Maneater => is_hostile = true,
+                                        quadruped_low::Species::Sandshark => is_hostile = true,
+                                        quadruped_low::Species::Hakulaq => is_hostile = true,
                                         _ => is_hostile = false,
                                     }
                                 },

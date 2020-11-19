@@ -95,7 +95,7 @@ impl Default for SkeletonAttr {
 
 impl<'a> From<&'a Body> for SkeletonAttr {
     fn from(body: &'a Body) -> Self {
-        use comp::quadruped_small::Species::*;
+        use comp::quadruped_small::{BodyType::*, Species::*};
         Self {
             head: match (body.species, body.body_type) {
                 (Pig, _) => (5.0, 2.0),
@@ -122,6 +122,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Fungome, _) => (1.5, -1.5),
                 (Porcupine, _) => (6.0, 1.0),
                 (Beaver, _) => (5.5, 0.0),
+                (Hare, Male) => (3.0, 2.0),
+                (Hare, Female) => (2.5, 3.0),
             },
             chest: match (body.species, body.body_type) {
                 (Pig, _) => (0.0, 6.0),
@@ -148,6 +150,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Fungome, _) => (4.0, 4.0),
                 (Porcupine, _) => (2.0, 11.0),
                 (Beaver, _) => (2.0, 6.0),
+                (Hare, Male) => (-2.0, 7.0),
+                (Hare, Female) => (-2.0, 6.0),
             },
             feet_f: match (body.species, body.body_type) {
                 (Pig, _) => (4.5, 3.5, -1.0),
@@ -174,6 +178,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Fungome, _) => (3.0, 2.0, -1.0),
                 (Porcupine, _) => (4.0, 6.5, -9.0),
                 (Beaver, _) => (4.5, 4.5, -4.0),
+                (Hare, Male) => (3.0, 1.0, -3.0),
+                (Hare, Female) => (3.0, 0.5, -4.0),
             },
             feet_b: match (body.species, body.body_type) {
                 (Pig, _) => (3.5, -2.0, 0.0),
@@ -200,6 +206,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Fungome, _) => (3.0, -3.5, -1.0),
                 (Porcupine, _) => (4.5, -1.0, -8.0),
                 (Beaver, _) => (4.0, -2.5, -3.0),
+                (Hare, Male) => (3.5, -1.0, -2.0),
+                (Hare, Female) => (3.5, -3.0, -2.0),
             },
             tail: match (body.species, body.body_type) {
                 (Pig, _) => (-4.5, 2.5),
@@ -226,6 +234,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Fungome, _) => (-4.0, -2.0),
                 (Porcupine, _) => (-6.0, 1.0),
                 (Beaver, _) => (-6.5, -1.0),
+                (Hare, Male) => (-4.0, -1.0),
+                (Hare, Female) => (-4.0, 2.0),
             },
             scaler: match (body.species, body.body_type) {
                 (Pig, _) => (0.9),
@@ -252,6 +262,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Fungome, _) => (0.9),
                 (Porcupine, _) => (0.8),
                 (Beaver, _) => (1.0),
+                (Hare, _) => (0.8),
             },
             tempo: match (body.species, body.body_type) {
                 (Pig, _) => (1.0),
@@ -278,6 +289,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Fungome, _) => (1.0),
                 (Porcupine, _) => (1.2),
                 (Beaver, _) => (1.2),
+                (Hare, _) => (1.15),
             },
             maximize: match (body.species, body.body_type) {
                 (Pig, _) => (1.0),
@@ -304,6 +316,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Fungome, _) => (0.7),
                 (Porcupine, _) => (1.0),
                 (Beaver, _) => (1.0),
+                (Hare, _) => (1.3),
             },
             minimize: match (body.species, body.body_type) {
                 (Pig, _) => (0.6),
@@ -330,6 +343,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Fungome, _) => (0.4),
                 (Porcupine, _) => (0.9),
                 (Beaver, _) => (0.9),
+                (Hare, _) => (0.8),
             },
             spring: match (body.species, body.body_type) {
                 (Pig, _) => (1.0),
@@ -356,6 +370,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Fungome, _) => (0.8),
                 (Porcupine, _) => (1.3),
                 (Beaver, _) => (1.3),
+                (Hare, Male) => (2.2),
+                (Hare, Female) => (2.5),
             },
             feed: match (body.species, body.body_type) {
                 (Pig, _) => (1.0),
@@ -382,6 +398,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Fungome, _) => (0.7),
                 (Porcupine, _) => (1.0),
                 (Beaver, _) => (1.0),
+                (Hare, _) => (1.2),
             },
         }
     }

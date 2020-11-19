@@ -92,19 +92,19 @@
     (Salamander, Female): (
         front_left: (
             offset: (-6.0, 0.0, -3.0),
-            lateral: ("npc.salamander.male.foot_fl"),
+            lateral: ("npc.salamander.female.foot_fl"),
         ),
         front_right: (
             offset: (0.0, 0.0, -3.0),
-            lateral: ("npc.salamander.male.foot_fr"),
+            lateral: ("npc.salamander.female.foot_fr"),
         ),
         back_left: (
-            offset: (-7.0, 0.0, -3.0),
-            lateral: ("npc.salamander.male.foot_bl"),
+            offset: (-8.0, 0.0, -3.0),
+            lateral: ("npc.salamander.female.foot_bl"),
         ),
         back_right: (
             offset: (0.0, 0.0, -3.0),
-            lateral: ("npc.salamander.male.foot_br"),
+            lateral: ("npc.salamander.female.foot_br"),
         ),
     ),
     (Monitor, Male): (
@@ -321,6 +321,78 @@
         back_right: (
             offset: (-2.0, -8.0, -9.0),
             lateral: ("npc.maneater.male.foot_br"),
+        ),
+    ),
+    (Hakulaq, Male): (
+        front_left: (
+            offset: (-10.0, 0.0, -9.0),
+            lateral: ("npc.hakulaq.male.foot_fl"),
+        ),
+        front_right: (
+            offset: (0.0, 0.0, -9.0),
+            lateral: ("npc.hakulaq.male.foot_fr"),
+        ),
+        back_left: (
+            offset: (-10.0, 0.0, -9.0),
+            lateral: ("npc.hakulaq.male.foot_bl"),
+        ),
+        back_right: (
+            offset: (0.0, 0.0, -9.0),
+            lateral: ("npc.hakulaq.male.foot_br"),
+        ),
+    ),
+    (Hakulaq, Female): (
+        front_left: (
+            offset: (-10.0, 0.0, -9.0),
+            lateral: ("npc.hakulaq.male.foot_fl"),
+        ),
+        front_right: (
+            offset: (0.0, 0.0, -9.0),
+            lateral: ("npc.hakulaq.male.foot_fr"),
+        ),
+        back_left: (
+            offset: (-10.0, 0.0, -9.0),
+            lateral: ("npc.hakulaq.male.foot_bl"),
+        ),
+        back_right: (
+            offset: (0.0, 0.0, -9.0),
+            lateral: ("npc.hakulaq.male.foot_br"),
+        ),
+    ),
+    (Sandshark, Male): (
+        front_left: (
+            offset: (-17.0, 0.0, -12.0),
+            lateral: ("npc.sandshark.male.foot_fl"),
+        ),
+        front_right: (
+            offset: (0.0, 0.0, -12.0),
+            lateral: ("npc.sandshark.male.foot_fr"),
+        ),
+        back_left: (
+            offset: (-9.0, 0.0, -6.0),
+            lateral: ("npc.sandshark.male.foot_bl"),
+        ),
+        back_right: (
+            offset: (-2.0, 0.0, -6.0),
+            lateral: ("npc.sandshark.male.foot_br"),
+        ),
+    ),
+    (Sandshark, Female): (
+        front_left: (
+            offset: (-17.0, 0.0, -12.0),
+            lateral: ("npc.sandshark.male.foot_fl"),
+        ),
+        front_right: (
+            offset: (0.0, 0.0, -12.0),
+            lateral: ("npc.sandshark.male.foot_fr"),
+        ),
+        back_left: (
+            offset: (-9.0, 0.0, -6.0),
+            lateral: ("npc.sandshark.male.foot_bl"),
+        ),
+        back_right: (
+            offset: (-2.0, 0.0, -6.0),
+            lateral: ("npc.sandshark.male.foot_br"),
         ),
     ),
 })

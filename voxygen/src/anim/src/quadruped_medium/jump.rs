@@ -33,6 +33,7 @@ impl Animation for JumpAnimation {
         next.foot_fr.scale = Vec3::one() * 0.96;
         next.foot_bl.scale = Vec3::one() * 0.96;
         next.foot_br.scale = Vec3::one() * 0.96;
+        next.ears.scale = Vec3::one() * 1.02;
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
         next.head.orientation = Quaternion::rotation_z(0.4) * Quaternion::rotation_x(0.3);
