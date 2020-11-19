@@ -99,14 +99,19 @@ impl World {
                 .iter()
                 .map(|(_, site)| {
                     world_msg::SiteInfo {
+                        name: site.site_tmp.map(|id| index.sites[id].name().to_string()),
                         // TODO: Probably unify these, at some point
                         kind: match &site.kind {
                             civ::SiteKind::Settlement => world_msg::SiteKind::Town,
-                            civ::SiteKind::Dungeon => world_msg::SiteKind::Dungeon,
+                            civ::SiteKind::Dungeon => world_msg::SiteKind::Dungeon {
+                                difficulty: match site.site_tmp.map(|id| &index.sites[id].kind) {
+                                    Some(site::SiteKind::Dungeon(d)) => d.difficulty(),
+                                    _ => 0,
+                                },
+                            },
                             civ::SiteKind::Castle => world_msg::SiteKind::Castle,
                         },
                         wpos: site.center * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
-                        name: None,
                     }
                 })
                 .collect(),
@@ -134,6 +139,7 @@ impl World {
         let mut sampler = self.sample_blocks();
 
         let chunk_wpos2d = chunk_pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
+        let chunk_center_wpos2d = chunk_wpos2d + TerrainChunkSize::RECT_SIZE.map(|e| e as i32 / 2);
         let grid_border = 4;
         let zcache_grid = Grid::populate_from(
             TerrainChunkSize::RECT_SIZE.map(|e| e as i32) + grid_border * 2,
@@ -176,7 +182,11 @@ impl World {
         };
 
         let meta = TerrainChunkMeta::new(
-            sim_chunk.get_name(&self.sim),
+            sim_chunk.sites
+                .iter()
+                .filter(|id| index.sites[**id].get_origin().distance_squared(chunk_center_wpos2d) as f32 <= index.sites[**id].radius().powf(2.0))
+                .min_by_key(|id| index.sites[**id].get_origin().distance_squared(chunk_center_wpos2d))
+                .map(|id| index.sites[*id].name().to_string()),
             sim_chunk.get_biome(),
             sim_chunk.alt,
             sim_chunk.tree_density,

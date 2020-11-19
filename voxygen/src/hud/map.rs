@@ -484,14 +484,19 @@ impl<'a> Widget for Map<'a> {
             {
                 continue;
             }
-            // TODO: Pass actual difficulty in here
-            let dif = 0.0 as u8;
-            let title = match &site.kind {
-                SiteKind::Town => "Town",
-                SiteKind::Dungeon => "Dungeon",
-                SiteKind::Castle => "Castle",
+            let title = site.name
+                .as_ref()
+                .map(|s| s.as_str())
+                .unwrap_or_else(|| match &site.kind {
+                    SiteKind::Town => "Town",
+                    SiteKind::Dungeon { .. } => "Dungeon",
+                    SiteKind::Castle => "Castle",
+                });
+            let (difficulty, desc) = match &site.kind {
+                SiteKind::Town => (0, "Town".to_string()),
+                SiteKind::Dungeon { difficulty } => (*difficulty, format!("Dungeon, difficulty {}", difficulty)),
+                SiteKind::Castle => (0, "Castle".to_string()),
             };
-            let desc = format!("Difficulty: {}", dif);
             let site_btn = Button::image(match &site.kind {
                 SiteKind::Town => {
                     if show_towns {
@@ -500,7 +505,7 @@ impl<'a> Widget for Map<'a> {
                         self.imgs.nothing
                     }
                 },
-                SiteKind::Dungeon => {
+                SiteKind::Dungeon { .. } => {
                     if show_dungeons {
                         self.imgs.mmap_site_dungeon
                     } else {
@@ -523,17 +528,17 @@ impl<'a> Widget for Map<'a> {
             .w_h(20.0 * 1.2, 20.0 * 1.2)
             .hover_image(match &site.kind {
                 SiteKind::Town => self.imgs.mmap_site_town_hover,
-                SiteKind::Dungeon => self.imgs.mmap_site_dungeon_hover,
+                SiteKind::Dungeon { .. } => self.imgs.mmap_site_dungeon_hover,
                 SiteKind::Castle => self.imgs.mmap_site_castle_hover,
             })
-            .image_color(UI_HIGHLIGHT_0)            
+            .image_color(UI_HIGHLIGHT_0)
             .parent(ui.window)
             .with_tooltip(
                 self.tooltip_manager,
                 title,
                 &desc,
                 &site_tooltip,
-                match dif {
+                match difficulty {
                     1 => QUALITY_LOW,
                     2 => QUALITY_COMMON,
                     3 => QUALITY_MODERATE,
@@ -550,7 +555,7 @@ impl<'a> Widget for Map<'a> {
                         site_btn.set(state.ids.mmap_site_icons[i], ui);
                     }
                 },
-                SiteKind::Dungeon => {
+                SiteKind::Dungeon { .. } => {
                     if show_dungeons {
                         site_btn.set(state.ids.mmap_site_icons[i], ui);
                     }
@@ -566,7 +571,7 @@ impl<'a> Widget for Map<'a> {
             // 0 = towns and places without a difficulty level
             if show_difficulty {
                 let size = 1.8; // Size factor for difficulty indicators
-                let dif_img = Image::new(match dif {
+                let dif_img = Image::new(match difficulty {
                     1 => self.imgs.map_dif_0,
                     2 => self.imgs.map_dif_1,
                     3 => self.imgs.map_dif_2,
@@ -575,19 +580,19 @@ impl<'a> Widget for Map<'a> {
                     6 => self.imgs.map_dif_5,
                     _ => self.imgs.nothing,
                 })
-                .mid_top_with_margin_on(state.ids.mmap_site_icons[i], match dif {
+                .mid_top_with_margin_on(state.ids.mmap_site_icons[i], match difficulty {
                     6 => -12.0 * size,
                     _ => -4.0 * size,
                 })
-                .w(match dif {
+                .w(match difficulty {
                     6 => 12.0 * size,
-                    _ => 4.0 * size * dif as f64,
+                    _ => 4.0 * size * difficulty as f64,
                 })
-                .h(match dif {
+                .h(match difficulty {
                     6 => 12.0 * size,
                     _ => 4.0 * size,
                 })
-                .color(Some(match dif {
+                .color(Some(match difficulty {
                     1 => QUALITY_LOW,
                     2 => QUALITY_COMMON,
                     3 => QUALITY_MODERATE,
@@ -602,7 +607,7 @@ impl<'a> Widget for Map<'a> {
                             dif_img.set(state.ids.site_difs[i], ui)
                         }
                     },
-                    SiteKind::Dungeon => {
+                    SiteKind::Dungeon { .. } => {
                         if show_dungeons {
                             dif_img.set(state.ids.site_difs[i], ui)
                         }

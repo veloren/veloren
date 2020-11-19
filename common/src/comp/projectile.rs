@@ -105,13 +105,16 @@ impl ProjectileConstructor {
             } => Projectile {
                 hit_solid: vec![
                     Effect::Explode(Explosion {
-                        effects: vec![RadiusEffect::Entity(
-                            Some(GroupTarget::OutOfGroup),
-                            effect::Effect::Damage(Damage {
-                                source: DamageSource::Explosion,
-                                value: damage,
-                            }),
-                        )],
+                        effects: vec![
+                            RadiusEffect::Entity(
+                                Some(GroupTarget::OutOfGroup),
+                                effect::Effect::Damage(Damage {
+                                    source: DamageSource::Explosion,
+                                    value: damage,
+                                }),
+                            ),
+                            RadiusEffect::TerrainDestruction(2.0),
+                        ],
                         radius,
                         energy_regen,
                     }),

@@ -3,7 +3,7 @@ use crate::{
     block::block_from_structure,
     column::ColumnSample,
     sim::WorldSim,
-    site::BlockMask,
+    site::{BlockMask, namegen::NameGen},
     util::{attempt, Grid, RandomField, Sampler, CARDINALS, DIRS},
     IndexRef,
 };
@@ -26,12 +26,14 @@ use std::sync::Arc;
 use vek::*;
 
 pub struct Dungeon {
+    name: String,
     origin: Vec2<i32>,
     alt: i32,
     seed: u32,
     #[allow(dead_code)]
     noise: RandomField,
     floors: Vec<Floor>,
+    difficulty: u32,
 }
 
 pub struct GenCtx<'a, R: Rng> {
@@ -52,7 +54,18 @@ impl Dungeon {
     #[allow(clippy::let_and_return)] // TODO: Pending review in #587
     pub fn generate(wpos: Vec2<i32>, sim: Option<&WorldSim>, rng: &mut impl Rng) -> Self {
         let mut ctx = GenCtx { sim, rng };
+        let difficulty = ctx.rng.gen_range(0, 7);
         let this = Self {
+            name: {
+                let name = NameGen::location(ctx.rng).generate();
+                match ctx.rng.gen_range(0, 5) {
+                    0 => format!("{} Dungeon", name),
+                    1 => format!("{} Lair", name),
+                    2 => format!("{} Crib", name),
+                    3 => format!("{} Catacombs", name),
+                    _ => format!("{} Pit", name),
+                }
+            },
             origin: wpos - TILE_SIZE / 2,
             alt: ctx
                 .sim
@@ -63,19 +76,24 @@ impl Dungeon {
             noise: RandomField::new(ctx.rng.gen()),
             floors: (0..LEVELS)
                 .scan(Vec2::zero(), |stair_tile, level| {
-                    let (floor, st) = Floor::generate(&mut ctx, *stair_tile, level as i32);
+                    let (floor, st) = Floor::generate(&mut ctx, *stair_tile, level as i32, difficulty);
                     *stair_tile = st;
                     Some(floor)
                 })
                 .collect(),
+            difficulty,
         };
 
         this
     }
 
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
     pub fn get_origin(&self) -> Vec2<i32> { self.origin }
 
-    pub fn radius(&self) -> f32 { 1200.0 }
+    pub fn radius(&self) -> f32 { 200.0 }
 
     #[allow(clippy::needless_update)] // TODO: Pending review in #587
     pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
@@ -83,6 +101,10 @@ impl Dungeon {
             trees: wpos.distance_squared(self.origin) > 64i32.pow(2),
             ..SpawnRules::default()
         }
+    }
+
+    pub fn difficulty(&self) -> u32 {
+        self.difficulty
     }
 
     pub fn apply_to<'a>(
@@ -227,6 +249,7 @@ pub struct Room {
     area: Rect<i32, i32>,
     height: i32,
     pillars: Option<i32>, // Pillars with the given separation
+    difficulty: u32,
 }
 
 struct Floor {
@@ -238,6 +261,7 @@ struct Floor {
     #[allow(dead_code)]
     stair_tile: Vec2<i32>,
     final_level: bool,
+    difficulty: u32,
 }
 
 const FLOOR_SIZE: Vec2<i32> = Vec2::new(18, 18);
@@ -247,6 +271,7 @@ impl Floor {
         ctx: &mut GenCtx<impl Rng>,
         stair_tile: Vec2<i32>,
         level: i32,
+        difficulty: u32,
     ) -> (Self, Vec2<i32>) {
         let final_level = level == LEVELS as i32 - 1;
 
@@ -271,6 +296,7 @@ impl Floor {
             hollow_depth: 30,
             stair_tile: new_stair_tile - tile_offset,
             final_level,
+            difficulty,
         };
 
         const STAIR_ROOM_HEIGHT: i32 = 13;
@@ -284,6 +310,7 @@ impl Floor {
             area: Rect::from((stair_tile - tile_offset - 1, Extent2::broadcast(3))),
             height: STAIR_ROOM_HEIGHT,
             pillars: None,
+            difficulty,
         });
         this.tiles
             .set(stair_tile - tile_offset, Tile::UpStair(upstair_room));
@@ -298,6 +325,7 @@ impl Floor {
                 area: Rect::from((new_stair_tile - tile_offset - 4, Extent2::broadcast(9))),
                 height: 30,
                 pillars: Some(2),
+                difficulty,
             });
         } else {
             // Create downstairs room
@@ -310,6 +338,7 @@ impl Floor {
                 area: Rect::from((new_stair_tile - tile_offset - 1, Extent2::broadcast(3))),
                 height: STAIR_ROOM_HEIGHT,
                 pillars: None,
+                difficulty,
             });
             this.tiles.set(
                 new_stair_tile - tile_offset,
@@ -393,6 +422,7 @@ impl Floor {
                     } else {
                         None
                     },
+                    difficulty: self.difficulty,
                 }),
             };
         }
@@ -507,6 +537,7 @@ impl Floor {
                                 _ => "common.loot_tables.loot_table_cultists",
                             });
                         let chosen = chosen.choose();
+                        let is_giant = RandomField::new(room.seed.wrapping_add(1)).chance(Vec3::from(tile_pos), 0.2) && !room.boss;
                         let entity = EntityInfo::at(
                             tile_wcenter.map(|e| e as f32)
                             // Randomly displace them a little
@@ -514,7 +545,7 @@ impl Floor {
                                 .map(|e| (RandomField::new(room.seed.wrapping_add(10 + e)).get(Vec3::from(tile_pos)) % 32) as i32 - 16)
                                 .map(|e| e as f32 / 16.0),
                         )
-                        .do_if(RandomField::new(room.seed.wrapping_add(1)).chance(Vec3::from(tile_pos), 0.2) && !room.boss, |e| e.into_giant())
+                        .do_if(is_giant, |e| e.into_giant())
                         .with_alignment(comp::Alignment::Enemy)
                         .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
                         .with_name("Cultist Acolyte")
@@ -526,7 +557,11 @@ impl Floor {
                             3 => "common.items.npc_weapons.hammer.cultist_purp_2h-0",
                             4 => "common.items.npc_weapons.staff.cultist_staff",
                             _ => "common.items.npc_weapons.bow.horn_longbow-0",
-                        }));
+                        }))
+                        .with_level(dynamic_rng.gen_range(
+                            (room.difficulty as f32).powf(1.25) + 3.0,
+                            (room.difficulty as f32).powf(1.5) + 4.0,
+                        ).round() as u32);
 
                         supplement.add_entity(entity);
                     }
@@ -558,7 +593,11 @@ impl Floor {
                                     &comp::golem::Species::StoneGolem,
                                 )))
                                 .with_name("Stonework Defender".to_string())
-                                .with_loot_drop(comp::Item::new_from_asset_expect(chosen));
+                                .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
+                                .with_level(dynamic_rng.gen_range(
+                                    (room.difficulty as f32).powf(1.25) + 3.0,
+                                    (room.difficulty as f32).powf(1.5) + 4.0,
+                                ).round() as u32 * 5);
 
                             supplement.add_entity(entity);
                         }

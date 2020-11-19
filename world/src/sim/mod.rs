@@ -2313,19 +2313,6 @@ impl SimChunk {
 
     pub fn get_base_z(&self) -> f32 { self.alt - self.chaos * 50.0 - 16.0 }
 
-    pub fn get_name(&self, _world: &WorldSim) -> Option<String> {
-        // TODO
-        None
-
-        /*
-        if let Some(loc) = &self.location {
-            Some(world.locations[loc.loc_idx].name().to_string())
-        } else {
-            None
-        }
-        */
-    }
-
     pub fn get_biome(&self) -> BiomeKind {
         if self.alt < CONFIG.sea_level {
             BiomeKind::Ocean
