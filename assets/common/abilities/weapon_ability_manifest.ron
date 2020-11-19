@@ -71,6 +71,11 @@
         secondary: "common.abilities.unique.quadmedjump.leap",
         skills: [],
     ),
+    Unique(QuadMedCharge): (
+        primary: "common.abilities.unique.quadmedcharge.doublestrike",
+        secondary: "common.abilities.unique.quadmedcharge.dash",
+        skills: [],
+    ),
     Unique(QuadMedBasic): (
         primary: "common.abilities.unique.quadmedbasic.triplestrike",
         secondary: "common.abilities.unique.quadmedbasic.triplestrike",

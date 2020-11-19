@@ -104,7 +104,7 @@ impl LoadoutBuilder {
                     _ => {},
                 },
                 Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
-                    quadruped_medium::Species::Wolf => {
+                    quadruped_medium::Species::Wolf | quadruped_medium::Species::Grolgar => {
                         main_tool = Some(Item::new_from_asset_expect(
                             "common.items.npc_weapons.unique.quadmedquick",
                         ));
@@ -114,6 +114,11 @@ impl LoadoutBuilder {
                             "common.items.npc_weapons.unique.quadmedjump",
                         ));
                     },
+                    quadruped_medium::Species::Tuskram => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.quadmedcharge",
+                        ));
+                    },
                     _ => {
                         main_tool = Some(Item::new_from_asset_expect(
                             "common.items.npc_weapons.unique.quadmedbasic",
@@ -121,37 +126,19 @@ impl LoadoutBuilder {
                     },
                 },
                 Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
-                    quadruped_low::Species::Maneater => {
+                    quadruped_low::Species::Maneater | quadruped_low::Species::Asp => {
                         main_tool = Some(Item::new_from_asset_expect(
                             "common.items.npc_weapons.unique.quadlowranged",
                         ));
                     },
-                    quadruped_low::Species::Asp => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.quadlowranged",
-                        ));
-                    },
-                    quadruped_low::Species::Crocodile => {
+                    quadruped_low::Species::Crocodile
+                    | quadruped_low::Species::Alligator
+                    | quadruped_low::Species::Salamander => {
                         main_tool = Some(Item::new_from_asset_expect(
                             "common.items.npc_weapons.unique.quadlowtail",
                         ));
                     },
-                    quadruped_low::Species::Alligator => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.quadlowtail",
-                        ));
-                    },
-                    quadruped_low::Species::Salamander => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.quadlowtail",
-                        ));
-                    },
-                    quadruped_low::Species::Monitor => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.quadlowquick",
-                        ));
-                    },
-                    quadruped_low::Species::Pangolin => {
+                    quadruped_low::Species::Monitor | quadruped_low::Species::Pangolin => {
                         main_tool = Some(Item::new_from_asset_expect(
                             "common.items.npc_weapons.unique.quadlowquick",
                         ));
