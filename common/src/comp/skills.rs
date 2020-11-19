@@ -192,19 +192,24 @@ impl SkillSet {
     pub fn unlock_skill(&mut self, skill: Skill) {
         if !self.skills.contains(&skill) {
             if let Some(skill_group_type) = SkillSet::get_skill_group_type_for_skill(&skill) {
+                let prerequisites_met = self.prerequisites_met(skill);
                 if let Some(mut skill_group) = self
                     .skill_groups
                     .iter_mut()
                     .find(|x| x.skill_group_type == skill_group_type)
                 {
-                    if skill_group.available_sp > 0 {
-                        skill_group.available_sp -= 1;
-                        if let Skill::UnlockGroup(group) = skill {
-                            self.unlock_skill_group(group);
+                    if prerequisites_met {
+                        if skill_group.available_sp >= skill.skill_cost() {
+                            skill_group.available_sp -= skill.skill_cost();
+                            if let Skill::UnlockGroup(group) = skill {
+                                self.unlock_skill_group(group);
+                            }
+                            self.skills.insert(skill);
+                        } else {
+                            warn!("Tried to unlock skill for skill group with insufficient SP");
                         }
-                        self.skills.insert(skill);
                     } else {
-                        warn!("Tried to unlock skill for skill group with no available SP");
+                        warn!("Tried to unlock skill without meeting prerequisite skills");
                     }
                 } else {
                     warn!("Tried to unlock skill for a skill group that player does not have");
@@ -243,7 +248,7 @@ impl SkillSet {
                     .iter_mut()
                     .find(|x| x.skill_group_type == skill_group_type)
                 {
-                    skill_group.available_sp += 1;
+                    skill_group.available_sp += skill.skill_cost();
                     self.skills.remove(&skill);
                 } else {
                     warn!("Tried to refund skill for a skill group that player does not have");
@@ -318,6 +323,40 @@ impl SkillSet {
             skill_group.exp = (skill_group.exp as i32 + amount) as u16;
         } else {
             warn!("Tried to add experience to a skill group that player does not have");
+        }
+    }
+
+    /// Checks that the skill set contains all prerequisite skills for a
+    /// particular skill
+    pub fn prerequisites_met(&self, skill: Skill) -> bool {
+        skill
+            .prerequisite_skills()
+            .iter()
+            .all(|s| self.skills.contains(s))
+    }
+}
+
+impl Skill {
+    /// Returns a vec of prerequisite skills (it should only be necessary to
+    /// note direct prerequisites)
+    pub fn prerequisite_skills(self) -> Vec<Skill> {
+        let mut prerequisites = Vec::new();
+        use Skill::*;
+        match self {
+            General(GeneralSkill::HealthIncrease2) => {
+                prerequisites.push(General(GeneralSkill::HealthIncrease1));
+            },
+            _ => {},
+        }
+        prerequisites
+    }
+
+    /// Returns the cost in skill points of unlocking a particular skill
+    pub fn skill_cost(self) -> u16 {
+        use Skill::*;
+        match self {
+            General(GeneralSkill::HealthIncrease2) => 2,
+            _ => 1,
         }
     }
 }
