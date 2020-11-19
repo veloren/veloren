@@ -95,7 +95,8 @@ impl<'a> System<'a> for Sys {
             let body = entity.get_body();
             server_emitter.emit(ServerEvent::CreateNpc {
                 pos: comp::Pos(spawn_pos),
-                stats: comp::Stats::new("Traveller [rt]".to_string(), body),
+                stats: comp::Stats::new("Traveller [rt]".to_string(), body)
+                    .with_level(entity.get_level()),
                 health: comp::Health::new(body, 10),
                 loadout: entity.get_loadout(&ability_map),
                 body,

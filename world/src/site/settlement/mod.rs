@@ -10,6 +10,7 @@ use crate::{
     column::ColumnSample,
     sim::WorldSim,
     util::{RandomField, Sampler, StructureGen2d},
+    site::namegen::NameGen,
     IndexRef,
 };
 use common::{
@@ -139,6 +140,7 @@ impl Structure {
 }
 
 pub struct Settlement {
+    name: String,
     seed: u32,
     origin: Vec2<i32>,
     land: Land,
@@ -162,6 +164,7 @@ impl Settlement {
     pub fn generate(wpos: Vec2<i32>, sim: Option<&WorldSim>, rng: &mut impl Rng) -> Self {
         let mut ctx = GenCtx { sim, rng };
         let mut this = Self {
+            name: NameGen::location(ctx.rng).generate(),
             seed: ctx.rng.gen(),
             origin: wpos,
             land: Land::new(ctx.rng),
@@ -183,6 +186,10 @@ impl Settlement {
         this.place_buildings(&mut ctx);
 
         this
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
     }
 
     pub fn get_origin(&self) -> Vec2<i32> { self.origin }
@@ -529,7 +536,7 @@ impl Settlement {
         }
     }
 
-    pub fn radius(&self) -> f32 { 1200.0 }
+    pub fn radius(&self) -> f32 { 400.0 }
 
     #[allow(clippy::needless_update)] // TODO: Pending review in #587
     pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {

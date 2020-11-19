@@ -252,7 +252,7 @@ impl<'a> Widget for MiniMap<'a> {
 
                 Image::new(match &site.kind {
                     SiteKind::Town => self.imgs.mmap_site_town,
-                    SiteKind::Dungeon => self.imgs.mmap_site_dungeon,
+                    SiteKind::Dungeon { .. } => self.imgs.mmap_site_dungeon,
                     SiteKind::Castle => self.imgs.mmap_site_castle,
                 })
                 .x_y_position_relative_to(

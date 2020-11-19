@@ -2,9 +2,12 @@ use super::SpawnRules;
 use crate::{
     column::ColumnSample,
     sim::WorldSim,
-    site::settlement::building::{
-        archetype::keep::{Attr, FlagColor, Keep as KeepArchetype, StoneColor},
-        Archetype, Ori,
+    site::{
+        settlement::building::{
+            archetype::keep::{Attr, FlagColor, Keep as KeepArchetype, StoneColor},
+            Archetype, Ori,
+        },
+        namegen::NameGen,
     },
     IndexRef,
 };
@@ -32,6 +35,7 @@ struct Tower {
 }
 
 pub struct Castle {
+    name: String,
     origin: Vec2<i32>,
     //seed: u32,
     radius: i32,
@@ -64,6 +68,17 @@ impl Castle {
         let radius = 150;
 
         let this = Self {
+            name: {
+                let name = NameGen::location(ctx.rng).generate();
+                match ctx.rng.gen_range(0, 6) {
+                    0 => format!("Fort {}", name),
+                    1 => format!("{} Citadel", name),
+                    2 => format!("{} Castle", name),
+                    3 => format!("{} Stronghold", name),
+                    4 => format!("{} Fortress", name),
+                    _ => format!("{} Keep", name),
+                }
+            },
             origin: wpos,
             // alt: ctx
             //     .sim
@@ -141,6 +156,10 @@ impl Castle {
         this
     }
 
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
     pub fn contains_point(&self, wpos: Vec2<i32>) -> bool {
         let lpos = wpos - self.origin;
         for i in 0..self.towers.len() {
@@ -160,7 +179,7 @@ impl Castle {
 
     pub fn get_origin(&self) -> Vec2<i32> { self.origin }
 
-    pub fn radius(&self) -> f32 { 1200.0 }
+    pub fn radius(&self) -> f32 { 200.0 }
 
     #[allow(clippy::needless_update)] // TODO: Pending review in #587
     pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {

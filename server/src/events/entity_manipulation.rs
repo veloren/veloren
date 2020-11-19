@@ -620,9 +620,10 @@ pub fn handle_explosion(
                                 + (fade * (color[1] as f32 * 0.3 - color[1] as f32));
                             let b = color[2] as f32
                                 + (fade * (color[2] as f32 * 0.3 - color[2] as f32));
-                            color[0] = r as u8;
-                            color[1] = g as u8;
-                            color[2] = b as u8;
+                            // Darken blocks, but not too much
+                            color[0] = (r as u8).max(30);
+                            color[1] = (g as u8).max(30);
+                            color[2] = (b as u8).max(30);
                             block_change.set(block_pos, Block::new(block.kind(), color));
                         }
                     }
@@ -637,13 +638,19 @@ pub fn handle_explosion(
                     )
                     .normalized();
 
+                    let mut ray_energy = power;
+
                     let terrain = ecs.read_resource::<TerrainGrid>();
                     let _ = terrain
                         .ray(pos, pos + dir * power)
                         // TODO: Faster RNG
-                        .until(|block| block.is_liquid() || rand::random::<f32>() < 0.05)
+                        .until(|block: &Block| {
+                            let stop = block.is_liquid() || block.explode_power().is_none() || ray_energy <= 0.0;
+                            ray_energy -= block.explode_power().unwrap_or(0.0) + rand::random::<f32>() * 0.1;
+                            stop
+                        })
                         .for_each(|block: &Block, pos| {
-                            if block.is_explodable() {
+                            if block.explode_power().is_some() {
                                 block_change.set(pos, block.into_vacant());
                             }
                         })

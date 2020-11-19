@@ -24,6 +24,7 @@ pub struct Entity {
 const PERM_SPECIES: u32 = 0;
 const PERM_BODY: u32 = 1;
 const PERM_LOADOUT: u32 = 2;
+const PERM_LEVEL: u32 = 3;
 
 impl Entity {
     pub fn rng(&self, perm: u32) -> impl Rng {
@@ -33,6 +34,10 @@ impl Entity {
     pub fn get_body(&self) -> comp::Body {
         let species = *(&comp::humanoid::ALL_SPECIES).choose(&mut self.rng(PERM_SPECIES)).unwrap();
         comp::humanoid::Body::random_with(&mut self.rng(PERM_BODY), &species).into()
+    }
+
+    pub fn get_level(&self) -> u32 {
+        (self.rng(PERM_LEVEL).gen::<f32>().powf(2.0) * 15.0).ceil() as u32
     }
 
     pub fn get_loadout(&self, ability_map: &AbilityMap) -> comp::Loadout {
@@ -106,7 +111,7 @@ impl Entity {
             let travel_to_alt = world.sim().get_alt_approx(travel_to.map(|e| e as i32)).unwrap_or(0.0) as i32;
             let travel_to = terrain.find_space(Vec3::new(travel_to.x as i32, travel_to.y as i32, travel_to_alt)).map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0);
             self.controller.travel_to = Some(travel_to);
-            self.controller.speed_factor = 0.85;
+            self.controller.speed_factor = 0.70;
         });
     }
 }

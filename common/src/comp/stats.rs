@@ -133,6 +133,11 @@ impl Stats {
             body_type: comp::Body::Humanoid(comp::body::humanoid::Body::random()),
         }
     }
+
+    pub fn with_level(mut self, level: u32) -> Self {
+        self.level.set_level(level);
+        self
+    }
 }
 
 impl Component for Stats {

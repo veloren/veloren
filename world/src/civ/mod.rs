@@ -108,6 +108,7 @@ impl Civs {
                     kind,
                     center: loc,
                     place,
+                    site_tmp: None,
 
                     population: 0.0,
 
@@ -189,7 +190,7 @@ impl Civs {
 
         // Place sites in world
         let mut cnt = 0;
-        for sim_site in this.sites.values() {
+        for sim_site in this.sites.values_mut() {
             cnt += 1;
             let wpos = sim_site
                 .center
@@ -209,6 +210,7 @@ impl Civs {
                     WorldSite::castle(Castle::generate(wpos, Some(ctx.sim), &mut rng))
                 },
             });
+            sim_site.site_tmp = Some(site);
             let site_ref = &index.sites[site];
 
             let radius_chunks =
@@ -371,6 +373,7 @@ impl Civs {
             let loc = find_site_loc(ctx, None, 1)?;
             self.establish_site(ctx, loc, |place| Site {
                 kind: SiteKind::Settlement,
+                site_tmp: None,
                 center: loc,
                 place,
 
@@ -796,6 +799,8 @@ pub struct Track {
 #[derive(Debug)]
 pub struct Site {
     pub kind: SiteKind,
+    // TODO: Remove this field when overhauling
+    pub site_tmp: Option<Id<crate::site::Site>>,
     pub center: Vec2<i32>,
     pub place: Id<Place>,
 

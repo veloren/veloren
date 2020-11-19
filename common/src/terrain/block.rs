@@ -184,13 +184,16 @@ impl Block {
     }
 
     #[inline]
-    pub fn is_explodable(&self) -> bool {
+    pub fn explode_power(&self) -> Option<f32> {
         match self.kind() {
-            BlockKind::Leaves | BlockKind::Grass | BlockKind::WeakRock => true,
+            BlockKind::Leaves => Some(0.25),
+            BlockKind::Grass => Some(0.5),
+            BlockKind::WeakRock => Some(0.75),
+            BlockKind::Snow => Some(0.1),
             // Explodable means that the terrain sprite will get removed anyway, so all is good for
             // empty fluids.
             // TODO: Handle the case of terrain sprites we don't want to have explode
-            _ => self.get_sprite().is_some(),
+            _ => self.get_sprite().map(|_| 0.25),
         }
     }
 
