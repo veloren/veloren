@@ -43,6 +43,7 @@ make_case_elim!(
         Occultsaurok = 6,
         Mightysaurok = 7,
         Slysaurok = 8,
+        Mindflayer = 9,
     }
 );
 
@@ -60,6 +61,7 @@ pub struct AllSpecies<SpeciesMeta> {
     pub saurok_occult: SpeciesMeta,
     pub saurok_mighty: SpeciesMeta,
     pub saurok_sly: SpeciesMeta,
+    pub mindflayer: SpeciesMeta,
 }
 
 impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> {
@@ -77,11 +79,12 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
             Species::Occultsaurok => &self.saurok_occult,
             Species::Mightysaurok => &self.saurok_mighty,
             Species::Slysaurok => &self.saurok_sly,
+            Species::Mindflayer => &self.mindflayer,
         }
     }
 }
 
-pub const ALL_SPECIES: [Species; 9] = [
+pub const ALL_SPECIES: [Species; 10] = [
     Species::Ogre,
     Species::Cyclops,
     Species::Wendigo,
@@ -91,6 +94,7 @@ pub const ALL_SPECIES: [Species; 9] = [
     Species::Occultsaurok,
     Species::Mightysaurok,
     Species::Slysaurok,
+    Species::Mindflayer,
 ];
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {

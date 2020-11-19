@@ -611,4 +611,72 @@
             lateral: ("npc.saurok_sly.female.foot_r"),
         ),
     ),
+    (Mindflayer, Male): (
+        shoulder_l: (
+            offset: (-4.5, -3.0, -4.0),
+            lateral: ("npc.mindflayer.male.shoulder_l"),
+        ),
+        shoulder_r: (
+            offset: (-4.5, -3.0, -4.0),
+            lateral: ("npc.mindflayer.male.shoulder_r"),
+        ),
+        hand_l: (
+            offset: (-4.5, -4.0, -12.0),
+            lateral: ("npc.mindflayer.male.hand_l"),
+        ),
+        hand_r: (
+            offset: (-4.5, -4.0, -12.0),
+            lateral: ("npc.mindflayer.male.hand_r"),
+        ),
+        leg_l: (
+            offset: (-6.5, -10.0, -16.0),
+            lateral: ("armor.empty"),
+        ),
+        leg_r: (
+            offset: (-6.5, -10.0, -16.0),
+            lateral: ("armor.empty"),
+        ),
+        foot_l: (
+            offset: (-2.0, -4.5, -4.0),
+            lateral: ("npc.mindflayer.male.foot_l"),
+        ),
+        foot_r: (
+            offset: (-2.0, -4.5, -4.0),
+            lateral: ("npc.mindflayer.male.foot_r"),
+        )
+    ),
+    (Mindflayer, Female): (
+        shoulder_l: (
+            offset: (-4.5, -3.0, -4.0),
+            lateral: ("npc.mindflayer.male.shoulder_l"),
+        ),
+        shoulder_r: (
+            offset: (-4.5, -3.0, -4.0),
+            lateral: ("npc.mindflayer.male.shoulder_r"),
+        ),
+        hand_l: (
+            offset: (-4.5, -4.0, -12.0),
+            lateral: ("npc.mindflayer.male.hand_l"),
+        ),
+        hand_r: (
+            offset: (-4.5, -4.0, -12.0),
+            lateral: ("npc.mindflayer.male.hand_r"),
+        ),
+        leg_l: (
+            offset: (-6.5, -10.0, -16.0),
+            lateral: ("armor.empty"),
+        ),
+        leg_r: (
+            offset: (-6.5, -10.0, -16.0),
+            lateral: ("armor.empty"),
+        ),
+        foot_l: (
+            offset: (-2.0, -4.5, -4.0),
+            lateral: ("npc.mindflayer.male.foot_l"),
+        ),
+        foot_r: (
+            offset: (-2.0, -4.5, -4.0),
+            lateral: ("npc.mindflayer.male.foot_r"),
+        )
+    ),
 })

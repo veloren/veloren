@@ -211,6 +211,7 @@ pub struct Room {
     seed: u32,
     loot_density: f32,
     enemy_density: Option<f32>,
+    miniboss: bool,
     boss: bool,
     area: Rect<i32, i32>,
     height: i32,
@@ -267,6 +268,7 @@ impl Floor {
             seed: ctx.rng.gen(),
             loot_density: 0.0,
             enemy_density: None,
+            miniboss: false,
             boss: false,
             area: Rect::from((stair_tile - tile_offset - 1, Extent2::broadcast(3))),
             height: STAIR_ROOM_HEIGHT,
@@ -280,6 +282,7 @@ impl Floor {
                 seed: ctx.rng.gen(),
                 loot_density: 0.0,
                 enemy_density: Some(0.001), // Minions!
+                miniboss: false,
                 boss: true,
                 area: Rect::from((new_stair_tile - tile_offset - 4, Extent2::broadcast(9))),
                 height: 30,
@@ -291,6 +294,7 @@ impl Floor {
                 seed: ctx.rng.gen(),
                 loot_density: 0.0,
                 enemy_density: None,
+                miniboss: false,
                 boss: false,
                 area: Rect::from((new_stair_tile - tile_offset - 1, Extent2::broadcast(3))),
                 height: STAIR_ROOM_HEIGHT,
@@ -352,20 +356,34 @@ impl Floor {
                 Some(area) => area,
                 None => return,
             };
+            let mut dynamic_rng = rand::thread_rng();
 
-            self.create_room(Room {
-                seed: ctx.rng.gen(),
-                loot_density: 0.000025 + level as f32 * 0.00015,
-                enemy_density: Some(0.001 + level as f32 * 0.00006),
-                boss: false,
-                area,
-                height: ctx.rng.gen_range(10, 15),
-                pillars: if ctx.rng.gen_range(0, 4) == 0 {
-                    Some(2)
-                } else {
-                    None
-                },
-            });
+            match dynamic_rng.gen_range(0, 5) {
+                0 => self.create_room(Room {
+                    seed: ctx.rng.gen(),
+                    loot_density: 0.000025 + level as f32 * 0.00015,
+                    enemy_density: None,
+                    miniboss: true,
+                    boss: false,
+                    area,
+                    height: ctx.rng.gen_range(15, 20),
+                    pillars: Some(4),
+                }),
+                _ => self.create_room(Room {
+                    seed: ctx.rng.gen(),
+                    loot_density: 0.000025 + level as f32 * 0.00015,
+                    enemy_density: Some(0.001 + level as f32 * 0.00006),
+                    miniboss: false,
+                    boss: false,
+                    area,
+                    height: ctx.rng.gen_range(10, 15),
+                    pillars: if ctx.rng.gen_range(0, 4) == 0 {
+                        Some(4)
+                    } else {
+                        None
+                    },
+                }),
+            };
         }
     }
 
@@ -529,6 +547,43 @@ impl Floor {
                                     &comp::golem::Species::StoneGolem,
                                 )))
                                 .with_name("Stonework Defender".to_string())
+                                .with_loot_drop(comp::Item::new_from_asset_expect(chosen));
+
+                            supplement.add_entity(entity);
+                        }
+                    }
+                    if room.miniboss {
+                        let miniboss_spawn_tile = room.area.center();
+                        // Don't spawn the miniboss in a pillar
+                        let miniboss_tile_is_pillar = room
+                            .pillars
+                            .map(|pillar_space| {
+                                miniboss_spawn_tile
+                                    .map(|e| e.rem_euclid(pillar_space) == 0)
+                                    .reduce_and()
+                            })
+                            .unwrap_or(false);
+                        let miniboss_spawn_tile =
+                            miniboss_spawn_tile + if miniboss_tile_is_pillar { 1 } else { 0 };
+
+                        if tile_pos == miniboss_spawn_tile && tile_wcenter.xy() == wpos2d {
+                            let chosen =
+                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0, 5) {
+                                    0 => "common.loot_tables.loot_table_humanoids",
+                                    1 => "common.loot_tables.loot_table_armor_misc",
+                                    _ => "common.loot_tables.loot_table_cultists",
+                                });
+                            let chosen = chosen.choose();
+                            let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32))
+                                .with_level(1)
+                                .with_alignment(comp::Alignment::Enemy)
+                                .with_body(comp::Body::BipedLarge(
+                                    comp::biped_large::Body::random_with(
+                                        dynamic_rng,
+                                        &comp::biped_large::Species::Mindflayer,
+                                    ),
+                                ))
+                                .with_name("Mindflayer")
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen));
 
                             supplement.add_entity(entity);

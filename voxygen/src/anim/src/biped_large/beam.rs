@@ -61,7 +61,7 @@ impl Animation for BeamAnimation {
                     s_a.stc.2 + (movement1 * 16.0) * (1.0 - movement3),
                 );
                 next.control.orientation =
-                    Quaternion::rotation_x(s_a.stc.3 + (movement1 * -1.2) * (1.0 - movement3))
+                    Quaternion::rotation_x(s_a.stc.3 + (movement1 * -0.8) * (1.0 - movement3))
                         * Quaternion::rotation_y(
                             s_a.stc.4
                                 + (movement1 * -1.4 + (movement2 * 16.0).sin() * 0.07)
@@ -75,7 +75,7 @@ impl Animation for BeamAnimation {
 
                 next.hand_l.position = Vec3::new(
                     0.0 + (movement1 * -1.0 + (movement2 * 8.0).sin() * 3.5) * (1.0 - movement3),
-                    0.0 + (movement1 * -5.0
+                    0.0 + (movement1 * -8.0
                         + (movement2 * 8.0).sin() * -2.0
                         + (movement2 * 16.0).sin() * -1.5)
                         * (1.0 - movement3),
@@ -89,6 +89,18 @@ impl Animation for BeamAnimation {
                                 * (1.0 - movement3),
                         )
                         * Quaternion::rotation_z((movement1 * -2.8) * (1.0 - movement3));
+
+                next.shoulder_l.orientation = Quaternion::rotation_z(0.2)
+                    * Quaternion::rotation_x(
+                        (movement1 * 0.6 + (movement2 * 8.0 + PI / 2.0).sin() * -0.1)
+                            * (1.0 - movement3),
+                    );
+
+                next.shoulder_r.orientation = Quaternion::rotation_z(-0.2)
+                    * Quaternion::rotation_x(
+                        (movement1 * 1.1 + (movement2 * 8.0 + PI / 2.0).sin() * -0.1)
+                            * (1.0 - movement3),
+                    );
 
                 if velocity < 0.5 {
                     next.head.orientation =

@@ -839,4 +839,364 @@
             central: ("npc.roshwalr.male.tail"),
         ),
     ),
+    (Donkey, Male): (
+        head: (
+            offset: (-4.0, -3.0, 0.0),
+            central: ("npc.donkey.male.head"),
+        ),
+        neck: (
+            offset: (-3.0, -4.0, -6.5),
+            central: ("npc.donkey.male.neck"),
+        ),
+        jaw: (
+            offset: (-2.0, 0.0, -1.0),
+            central: ("npc.donkey.male.jaw"),
+        ),
+        torso_front: (
+            offset: (-5.0, -8.0, -6.5),
+            central: ("npc.donkey.male.torso_front"),
+        ),
+        torso_back: (
+            offset: (-5.0, -13.0, -5.5),
+            central: ("npc.donkey.male.torso_back"),
+        ),
+        ears: (
+            offset: (-5.0, -1.0, 0.0),
+            central: ("npc.donkey.male.ears"),
+        ),
+        tail: (
+            offset: (-1.0, -5.0, -12.0),
+            central: ("npc.donkey.male.tail"),
+        ),
+    ),
+    (Donkey, Female): (
+        head: (
+            offset: (-4.0, -3.0, 0.0),
+            central: ("npc.donkey.male.head"),
+        ),
+        neck: (
+            offset: (-3.0, -4.0, -7.0),
+            central: ("npc.donkey.male.neck"),
+        ),
+        jaw: (
+            offset: (-2.0, 0.0, -1.0),
+            central: ("npc.donkey.male.jaw"),
+        ),
+        torso_front: (
+            offset: (-5.0, -8.0, -6.5),
+            central: ("npc.donkey.male.torso_front"),
+        ),
+        torso_back: (
+            offset: (-5.0, -13.0, -5.5),
+            central: ("npc.donkey.male.torso_back"),
+        ),
+        ears: (
+            offset: (-5.0, -1.0, 0.0),
+            central: ("npc.donkey.male.ears"),
+        ),
+        tail: (
+            offset: (-1.0, -5.0, -12.0),
+            central: ("npc.donkey.male.tail"),
+        ),
+    ),
+    (Camel, Male): (
+        head: (
+            offset: (-3.5, -4.0, 0.0),
+            central: ("npc.camel.male.head"),
+        ),
+        neck: (
+            offset: (-3.5, -5.5, -8.0),
+            central: ("npc.camel.male.neck"),
+        ),
+        jaw: (
+            offset: (-1.5, 0.0, -1.5),
+            central: ("npc.camel.male.jaw"),
+        ),
+        torso_front: (
+            offset: (-5.5, -14.0, -9.5),
+            central: ("npc.camel.male.torso_front"),
+        ),
+        torso_back: (
+            offset: (-5.5, -15.0, -9.0),
+            central: ("npc.camel.male.torso_back"),
+        ),
+        ears: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        tail: (
+            offset: (-1.5, -3.0, -14.0),
+            central: ("npc.camel.male.tail"),
+        ),
+    ),
+    (Camel, Female): (
+        head: (
+            offset: (-3.5, -4.0, 0.0),
+            central: ("npc.camel.male.head"),
+        ),
+        neck: (
+            offset: (-3.5, -5.5, -8.0),
+            central: ("npc.camel.male.neck"),
+        ),
+        jaw: (
+            offset: (-1.5, 0.0, -1.5),
+            central: ("npc.camel.male.jaw"),
+        ),
+        torso_front: (
+            offset: (-5.5, -14.0, -9.5),
+            central: ("npc.camel.male.torso_front"),
+        ),
+        torso_back: (
+            offset: (-5.5, -15.0, -9.0),
+            central: ("npc.camel.male.torso_back"),
+        ),
+        ears: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        tail: (
+            offset: (-1.5, -3.0, -14.0),
+            central: ("npc.camel.male.tail"),
+        ),
+    ),
+    (Zebra, Male): (
+        head: (
+            offset: (-3.0, -3.0, 0.0),
+            central: ("npc.zebra.male.head"),
+        ),
+        neck: (
+            offset: (-3.0, -4.5, -7.0),
+            central: ("npc.zebra.male.neck"),
+        ),
+        jaw: (
+            offset: (-2.0, 0.0, -1.0),
+            central: ("npc.zebra.male.jaw"),
+        ),
+        torso_front: (
+            offset: (-5.0, -10.0, -6.5),
+            central: ("npc.zebra.male.torso_front"),
+        ),
+        torso_back: (
+            offset: (-4.0, -11.0, -4.5),
+            central: ("npc.zebra.male.torso_back"),
+        ),
+        ears: (
+            offset: (-4.0, -1.0, 0.0),
+            central: ("npc.zebra.male.ears"),
+        ),
+        tail: (
+            offset: (-1.0, -4.0, -12.0),
+            central: ("npc.zebra.male.tail"),
+        ),
+    ),
+    (Zebra, Female): (
+        head: (
+            offset: (-3.0, -3.0, 0.0),
+            central: ("npc.zebra.male.head"),
+        ),
+        neck: (
+            offset: (-3.0, -4.5, -7.0),
+            central: ("npc.zebra.male.neck"),
+        ),
+        jaw: (
+            offset: (-2.0, 0.0, -1.0),
+            central: ("npc.zebra.male.jaw"),
+        ),
+        torso_front: (
+            offset: (-5.0, -10.0, -6.5),
+            central: ("npc.zebra.male.torso_front"),
+        ),
+        torso_back: (
+            offset: (-4.0, -11.0, -4.5),
+            central: ("npc.zebra.male.torso_back"),
+        ),
+        ears: (
+            offset: (-4.0, -1.0, 0.0),
+            central: ("npc.zebra.male.ears"),
+        ),
+        tail: (
+            offset: (-1.0, -4.0, -12.0),
+            central: ("npc.zebra.male.tail"),
+        ),
+    ),
+    (Antelope, Male): (
+        head: (
+            offset: (-6.0, -7.0, 0.0),
+            central: ("npc.antelope.male.head"),
+        ),
+        neck: (
+            offset: (-3.0, -3.5, -5.0),
+            central: ("npc.antelope.male.neck"),
+        ),
+        jaw: (
+            offset: (-1.0, 0.0, -0.5),
+            central: ("npc.antelope.male.jaw"),
+        ),
+        torso_front: (
+            offset: (-4.0, -8.0, -3.5),
+            central: ("npc.antelope.male.torso_front"),
+        ),
+        torso_back: (
+            offset: (-4.0, -11.0, -3.5),
+            central: ("npc.antelope.male.torso_back"),
+        ),
+        ears: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        tail: (
+            offset: (-1.0, -3.0, -6.0),
+            central: ("npc.antelope.male.tail"),
+        ),
+    ),
+    (Antelope, Female): (
+        head: (
+            offset: (-6.0, -7.0, 0.0),
+            central: ("npc.antelope.male.head"),
+        ),
+        neck: (
+            offset: (-3.0, -3.5, -5.0),
+            central: ("npc.antelope.male.neck"),
+        ),
+        jaw: (
+            offset: (-1.0, 0.0, -0.5),
+            central: ("npc.antelope.male.jaw"),
+        ),
+        torso_front: (
+            offset: (-4.0, -8.0, -3.5),
+            central: ("npc.antelope.male.torso_front"),
+        ),
+        torso_back: (
+            offset: (-4.0, -11.0, -3.5),
+            central: ("npc.antelope.male.torso_back"),
+        ),
+        ears: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        tail: (
+            offset: (-1.0, -3.0, -6.0),
+            central: ("npc.antelope.male.tail"),
+        ),
+    ),
+    (Kelpie, Male): (
+        head: (
+            offset: (-4.0, -4.0, -8.5),
+            central: ("npc.kelpie.male.head"),
+        ),
+        neck: (
+            offset: (-4.0, -4.5, -7.5),
+            central: ("npc.kelpie.male.neck"),
+        ),
+        jaw: (
+            offset: (-2.0, 0.0, -1.5),
+            central: ("npc.kelpie.male.jaw"),
+        ),
+        torso_front: (
+            offset: (-5.0, -10.0, -6.5),
+            central: ("npc.kelpie.male.torso_front"),
+        ),
+        torso_back: (
+            offset: (-4.0, -10.0, -4.0),
+            central: ("npc.kelpie.male.torso_back"),
+        ),
+        ears: (
+            offset: (-3.0, -1.0, 0.0),
+            central: ("npc.kelpie.male.ears"),
+        ),
+        tail: (
+            offset: (-1.0, -6.0, -18.0),
+            central: ("npc.kelpie.male.tail"),
+        ),
+    ),
+    (Kelpie, Female): (
+        head: (
+            offset: (-4.0, -4.0, -8.5),
+            central: ("npc.kelpie.male.head"),
+        ),
+        neck: (
+            offset: (-4.0, -4.5, -7.5),
+            central: ("npc.kelpie.male.neck"),
+        ),
+        jaw: (
+            offset: (-2.0, 0.0, -1.5),
+            central: ("npc.kelpie.male.jaw"),
+        ),
+        torso_front: (
+            offset: (-5.0, -10.0, -6.5),
+            central: ("npc.kelpie.male.torso_front"),
+        ),
+        torso_back: (
+            offset: (-4.0, -10.0, -4.0),
+            central: ("npc.kelpie.male.torso_back"),
+        ),
+        ears: (
+            offset: (-3.0, -1.0, 0.0),
+            central: ("npc.kelpie.male.ears"),
+        ),
+        tail: (
+            offset: (-1.0, -6.0, -18.0),
+            central: ("npc.kelpie.male.tail"),
+        ),
+    ),
+    (Horse, Male): (
+        head: (
+            offset: (-3.0, -6.0, 0.0),
+            central: ("npc.horse.male.head"),
+        ),
+        neck: (
+            offset: (-3.0, -6.5, -6.5),
+            central: ("npc.horse.male.neck"),
+        ),
+        jaw: (
+            offset: (-2.0, 0.0, -2.0),
+            central: ("npc.horse.male.jaw"),
+        ),
+        torso_front: (
+            offset: (-5.0, -9.0, -7.0),
+            central: ("npc.horse.male.torso_front"),
+        ),
+        torso_back: (
+            offset: (-4.0, -10.0, -4.5),
+            central: ("npc.horse.male.torso_back"),
+        ),
+        ears: (
+            offset: (-3.0, -1.0, 0.0),
+            central: ("npc.horse.male.ears"),
+        ),
+        tail: (
+            offset: (-2.0, -10.0, -13.0),
+            central: ("npc.horse.male.tail"),
+        ),
+    ),
+    (Horse, Female): (
+        head: (
+            offset: (-3.0, -6.0, 0.0),
+            central: ("npc.horse.male.head"),
+        ),
+        neck: (
+            offset: (-3.0, -6.5, -6.5),
+            central: ("npc.horse.male.neck"),
+        ),
+        jaw: (
+            offset: (-2.0, 0.0, -2.0),
+            central: ("npc.horse.male.jaw"),
+        ),
+        torso_front: (
+            offset: (-5.0, -9.0, -7.0),
+            central: ("npc.horse.male.torso_front"),
+        ),
+        torso_back: (
+            offset: (-4.0, -10.0, -4.5),
+            central: ("npc.horse.male.torso_back"),
+        ),
+        ears: (
+            offset: (-3.0, -1.0, 0.0),
+            central: ("npc.horse.male.ears"),
+        ),
+        tail: (
+            offset: (-2.0, -10.0, -13.0),
+            central: ("npc.horse.male.tail"),
+        ),
+    ),
 })
