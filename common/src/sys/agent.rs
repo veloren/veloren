@@ -8,9 +8,9 @@ use crate::{
             tool::{ToolKind, UniqueKind},
             ItemKind,
         },
-        quadruped_low, Agent, Alignment, Body, CharacterState, ControlAction, ControlEvent,
-        Controller, Energy, GroupManip, Health, LightEmitter, Loadout, MountState, Ori,
-        PhysicsState, Pos, Scale, UnresolvedChatMsg, Vel,
+        Agent, Alignment, Body, CharacterState, ControlAction, ControlEvent, Controller, Energy,
+        GroupManip, Health, LightEmitter, Loadout, MountState, Ori, PhysicsState, Pos, Scale,
+        UnresolvedChatMsg, Vel,
     },
     event::{EventBus, ServerEvent},
     metrics::SysMetrics,
@@ -334,6 +334,7 @@ impl<'a> System<'a> for Sys {
                             Staff,
                             StoneGolemBoss,
                             Wolf,
+                            Ram,
                             QuadLowRanged,
                             TailSlap,
                             QuadLowQuick,
@@ -357,6 +358,8 @@ impl<'a> System<'a> for Sys {
                                 Tactic::StoneGolemBoss
                             },
                             Some(ToolKind::Unique(UniqueKind::QuadMedQuick)) => Tactic::Wolf,
+                            Some(ToolKind::Unique(UniqueKind::QuadMedCharge)) => Tactic::Ram,
+
                             Some(ToolKind::Unique(UniqueKind::QuadMedJump)) => Tactic::QuadMedJump,
                             Some(ToolKind::Unique(UniqueKind::QuadMedBasic)) => {
                                 Tactic::QuadLowBasic
@@ -466,6 +469,8 @@ impl<'a> System<'a> for Sys {
                                     && dist_sqrd < (4.0 * MIN_ATTACK_DIST * scale).powf(2.0))
                                 || (tactic == Tactic::Wolf
                                     && dist_sqrd < (3.0 * MIN_ATTACK_DIST * scale).powf(2.0))
+                                || (tactic == Tactic::Ram
+                                    && dist_sqrd < (15.0 * MIN_ATTACK_DIST * scale).powf(2.0))
                                 || ((tactic == Tactic::TailSlap || tactic == Tactic::QuadLowBasic)
                                     && dist_sqrd < (1.5 * MIN_ATTACK_DIST * scale).powf(2.0))
                                 || dist_sqrd < (MIN_ATTACK_DIST * scale).powf(2.0)
@@ -473,7 +478,7 @@ impl<'a> System<'a> for Sys {
                                 controller.actions.push(ControlAction::Wield);
                                 // Movement
                                 match tactic {
-                                    Tactic::Wolf => {
+                                    Tactic::Wolf | Tactic::Ram => {
                                         // Run away from target to get clear
                                         controller.actions.push(ControlAction::Unwield);
                                         inputs.move_dir = (pos.0 - tgt_pos.0)
@@ -592,6 +597,9 @@ impl<'a> System<'a> for Sys {
                             } else if tactic == Tactic::Wolf
                                 && dist_sqrd < (4.0 * MIN_ATTACK_DIST * scale).powf(2.0)
                                 && dist_sqrd > (3.0 * MIN_ATTACK_DIST * scale).powf(2.0)
+                                || tactic == Tactic::Ram
+                                    && dist_sqrd < (16.0 * MIN_ATTACK_DIST * scale).powf(2.0)
+                                    && dist_sqrd > (15.0 * MIN_ATTACK_DIST * scale).powf(2.0)
                             {
                                 if *powerup < 2.0 {
                                     controller.actions.push(ControlAction::Unwield);

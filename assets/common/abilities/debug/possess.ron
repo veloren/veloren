@@ -1,6 +1,6 @@
 BasicRanged(
     energy_cost: 0,
-    buildup_duration: 0,
+    buildup_duration: 1,
     recover_duration: 10,
     projectile: Possess,
     projectile_body: Object(ArrowSnake),
