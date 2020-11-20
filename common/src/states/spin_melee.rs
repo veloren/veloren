@@ -71,11 +71,8 @@ impl CharacterBehavior for Data {
                 Vec3::new(0.0, 0.0, update.vel.0.z + delta_vel_z) + data.inputs.move_dir * 5.0;
         }
 
-        // Allows for other states to interrupt this state
-        if self.static_data.is_interruptible
-            && !ability_key_is_pressed(data, self.static_data.ability_key)
-        {
-            handle_interrupt(data, &mut update);
+        if !ability_key_is_pressed(data, self.static_data.ability_key) {
+            handle_interrupt(data, &mut update, !self.static_data.is_interruptible);
             match update.character {
                 CharacterState::SpinMelee(_) => {},
                 _ => {
