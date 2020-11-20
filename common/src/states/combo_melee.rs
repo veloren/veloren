@@ -110,19 +110,10 @@ impl CharacterBehavior for Data {
 
         handle_orientation(data, &mut update, 1.0);
         handle_move(data, &mut update, 0.3);
-
-        let stage_index = (self.stage - 1) as usize;
-
-        // Allows for other states to interrupt this state
-        if self.static_data.is_interruptible
-            && !ability_key_is_pressed(data, self.static_data.ability_key)
-        {
-            handle_interrupt(data, &mut update);
-            if ability_key_is_pressed(data, AbilityKey::Dodge) {
-                handle_dodge_input(data, &mut update);
-                if let CharacterState::Roll(roll) = &mut update.character {
-                    roll.was_combo = Some((self.stage, self.combo));
-                }
+        if !ability_key_is_pressed(data, self.static_data.ability_key) {
+            handle_interrupt(data, &mut update, !self.static_data.is_interruptible);
+            if let CharacterState::Roll(roll) = &mut update.character {
+                roll.was_combo = Some((self.stage, self.combo));
             }
             match update.character {
                 CharacterState::ComboMelee(_) => {},
@@ -131,6 +122,8 @@ impl CharacterBehavior for Data {
                 },
             }
         }
+
+        let stage_index = (self.stage - 1) as usize;
 
         let speed_modifer = 1.0
             + self.static_data.max_speed_increase

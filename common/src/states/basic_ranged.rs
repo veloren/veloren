@@ -48,6 +48,15 @@ impl CharacterBehavior for Data {
 
         handle_move(data, &mut update, 0.3);
         handle_jump(data, &mut update);
+        if !ability_key_is_pressed(data, self.static_data.ability_key) {
+            handle_interrupt(data, &mut update, true);
+            match update.character {
+                CharacterState::BasicRanged(_) => {},
+                _ => {
+                    return update;
+                },
+            }
+        }
 
         match self.stage_section {
             StageSection::Buildup => {

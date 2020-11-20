@@ -63,6 +63,15 @@ impl CharacterBehavior for Data {
 
         handle_move(data, &mut update, 0.4);
         handle_jump(data, &mut update);
+        if !ability_key_is_pressed(data, self.static_data.ability_key) {
+            handle_interrupt(data, &mut update, true);
+            match update.character {
+                CharacterState::BasicBeam(_) => {},
+                _ => {
+                    return update;
+                },
+            }
+        }
 
         if unwrap_tool_data(data).is_none() {
             update.character = CharacterState::Idle;
