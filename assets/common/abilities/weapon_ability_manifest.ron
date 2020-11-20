@@ -62,22 +62,29 @@
         skills: [],
     ),
     Unique(QuadMedQuick): (
-        primary: "common.abilities.unique.quadmedquick.basic",
+        primary: "common.abilities.unique.quadmedquick.triplestrike",
         secondary: "common.abilities.unique.quadmedquick.dash",
         skills: [],
     ),
     Unique(QuadMedJump): (
         primary: "common.abilities.unique.quadmedjump.leap",
-        secondary: "common.abilities.unique.quadmedjump.leap",
-        skills: [],
+        secondary: "common.abilities.unique.quadmedjump.doublestrike",
+        skills: [
+            "common.abilities.unique.quadmedjump.quickleap"
+        ],
     ),
     Unique(QuadMedCharge): (
         primary: "common.abilities.unique.quadmedcharge.doublestrike",
         secondary: "common.abilities.unique.quadmedcharge.dash",
         skills: [],
     ),
+    Unique(QuadMedHoof): (
+        primary: "common.abilities.unique.quadmedbasic.basic",
+        secondary: "common.abilities.unique.quadmedbasic.basic",
+        skills: [],
+    ),
     Unique(QuadMedBasic): (
-        primary: "common.abilities.unique.quadmedbasic.triplestrike",
+        primary: "common.abilities.unique.quadmedbasic.singlestrike",
         secondary: "common.abilities.unique.quadmedbasic.triplestrike",
         skills: [],
     ),

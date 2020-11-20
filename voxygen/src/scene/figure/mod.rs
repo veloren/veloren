@@ -1544,7 +1544,7 @@ impl FigureMgr {
 
                                 _ => 0.0,
                             };
-                            anim::quadruped_medium::AlphaAnimation::update_skeleton(
+                            anim::quadruped_medium::HoofAnimation::update_skeleton(
                                 &target_base,
                                 (
                                     vel.0.magnitude(),

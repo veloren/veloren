@@ -1,6 +1,7 @@
 pub mod alpha;
 pub mod beta;
 pub mod feed;
+pub mod hoof;
 pub mod idle;
 pub mod jump;
 pub mod leapmelee;
@@ -8,8 +9,8 @@ pub mod run;
 
 // Reexports
 pub use self::{
-    alpha::AlphaAnimation, beta::BetaAnimation, feed::FeedAnimation, idle::IdleAnimation,
-    jump::JumpAnimation, leapmelee::LeapMeleeAnimation, run::RunAnimation,
+    alpha::AlphaAnimation, beta::BetaAnimation, feed::FeedAnimation, hoof::HoofAnimation,
+    idle::IdleAnimation, jump::JumpAnimation, leapmelee::LeapMeleeAnimation, run::RunAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};
