@@ -33,6 +33,7 @@ use tracing::{error, warn};
 use vek::*;
 
 /// Represents the format of the pre-processed color target.
+// TODO: `(gfx::format::R11_G11_B10, gfx::format::Float)` would be better in theory, but it doesn't seem to work
 pub type TgtColorFmt = gfx::format::Rgba16F;
 /// Represents the format of the pre-processed depth and stencil target.
 pub type TgtDepthStencilFmt = gfx::format::Depth;

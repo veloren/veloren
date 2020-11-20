@@ -18,11 +18,12 @@ impl<'a, R: Rng> NameGen<'a, R> {
     pub fn generate(self) -> String {
         let cons = vec![
             "d", "f", "ph", "r", "st", "t", "s", "p", "sh", "th", "br", "tr", "m", "k", "st", "w", "y",
+            "cr", "fr", "dr", "pl", "wr", "sn", "g", "qu", "l",
         ];
         let mut start = cons.clone();
         start.extend(vec![
-            "cr", "thr", "str", "br", "ivy", "est", "ost", "ing", "kr", "in", "on", "tr", "tw", "wh",
-            "eld", "ar", "or", "ear", "ir",
+            "cr", "thr", "str", "br", "iv", "est", "ost", "ing", "kr", "in", "on", "tr", "tw", "wh",
+            "eld", "ar", "or", "ear", "irr", "mi", "en", "ed", "et", "ow", "fr", "shr", "wr", "gr", "pr",
         ]);
         let mut middle = cons.clone();
         middle.extend(vec!["tt"]);
@@ -30,7 +31,7 @@ impl<'a, R: Rng> NameGen<'a, R> {
         let end = vec![
             "et", "ige", "age", "ist", "en", "on", "og", "end", "ind", "ock", "een", "edge", "ist",
             "ed", "est", "eed", "ast", "olt", "ey", "ean", "ead", "onk", "ink", "eon", "er", "ow",
-            "cot", "in", "on",
+            "ot", "in", "on", "id", "ir", "or", "in", "ig", "en",
         ];
 
         let mut name = String::new();
