@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Campfire SFX
 - Wind SFX system
 - Added Norwegian language
+- Roll can now interrupt attacks
 
 ### Changed
 

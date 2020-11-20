@@ -86,6 +86,7 @@ fn maps_basic_melee() {
                 knockback: 0.0,
                 range: 1.0,
                 max_angle: 1.0,
+                ability_key: states::utils::AbilityKey::Mouse1,
             },
             timer: Duration::default(),
             stage_section: states::utils::StageSection::Buildup,
