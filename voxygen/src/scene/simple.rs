@@ -83,7 +83,7 @@ pub struct Scene {
     figure_model_cache: FigureModelCache,
     figure_state: FigureState<CharacterSkeleton>,
 
-    turning_camera: bool,
+    //turning_camera: bool,
     turning_character: bool,
     char_ori: f32,
 }
@@ -193,7 +193,7 @@ impl Scene {
 
             camera,
 
-            turning_camera: false,
+            //turning_camera: false,
             turning_character: false,
             char_ori: -start_angle,
         }
@@ -216,18 +216,18 @@ impl Scene {
             },
             Event::MouseButton(button, state) => {
                 if state == PressState::Pressed {
-                    self.turning_camera = button == MouseButton::Right;
+                    //self.turning_camera = button == MouseButton::Right;
                     self.turning_character = button == MouseButton::Left;
                 } else {
-                    self.turning_camera = false;
+                    //self.turning_camera = false;
                     self.turning_character = false;
                 }
                 true
             },
             Event::CursorMove(delta) => {
-                if self.turning_camera {
+                /*if self.turning_camera {
                     self.camera.rotate_by(Vec3::new(delta.x * 0.01, 0.0, 0.0))
-                }
+                }*/
                 if self.turning_character {
                     self.char_ori += delta.x * 0.01;
                 }
