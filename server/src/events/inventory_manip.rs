@@ -39,6 +39,23 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
     let mut dropped_items = Vec::new();
     let mut thrown_items = Vec::new();
 
+    let get_cylinder = |state: &common::state::State, entity| {
+        let ecs = state.ecs();
+        let positions = ecs.read_storage::<comp::Pos>();
+        let scales = ecs.read_storage::<comp::Scale>();
+        let colliders = ecs.read_storage::<comp::Collider>();
+        let char_states = ecs.read_storage::<comp::CharacterState>();
+
+        positions.get(entity).map(|p| {
+            find_dist::Cylinder::from_components(
+                p.0,
+                scales.get(entity).copied(),
+                colliders.get(entity).copied(),
+                char_states.get(entity),
+            )
+        })
+    };
+
     match manip {
         comp::InventoryManip::Pickup(uid) => {
             let picked_up_item: Option<comp::Item>;
@@ -60,32 +77,14 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             ) {
                 picked_up_item = Some(item.clone());
 
-                {
-                    let ecs = state.ecs();
-                    let positions = ecs.read_storage::<comp::Pos>();
-                    let scales = ecs.read_storage::<comp::Scale>();
-                    let colliders = ecs.read_storage::<comp::Collider>();
-                    let char_states = ecs.read_storage::<comp::CharacterState>();
-
-                    let cylinder = |entity| {
-                        positions.get(entity).map(|p| {
-                            find_dist::Cylinder::from_components(
-                                p.0,
-                                scales.get(entity).copied(),
-                                colliders.get(entity).copied(),
-                                char_states.get(entity),
-                            )
-                        })
-                    };
-                    let entity_cylinder = cylinder(entity);
-                    if !within_pickup_range(entity_cylinder, || cylinder(item_entity)) {
-                        debug!(
-                            ?entity_cylinder,
-                            "Failed to pick up item as not within range, Uid: {}", uid
-                        );
-                        return;
-                    };
-                }
+                let entity_cylinder = get_cylinder(state, entity);
+                if !within_pickup_range(entity_cylinder, || get_cylinder(state, item_entity)) {
+                    debug!(
+                        ?entity_cylinder,
+                        "Failed to pick up item as not within range, Uid: {}", uid
+                    );
+                    return;
+                };
 
                 // Grab the health from the entity and check if the entity is dead.
                 let healths = state.ecs().read_storage::<comp::Health>();
@@ -131,34 +130,19 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             if let Some(block) = block {
                 if block.is_collectible() && state.can_set_block(pos) {
                     // Check if the block is within pickup range
-                    {
-                        let ecs = state.ecs();
-                        let positions = ecs.read_storage::<comp::Pos>();
-                        let scales = ecs.read_storage::<comp::Scale>();
-                        let colliders = ecs.read_storage::<comp::Collider>();
-                        let char_states = ecs.read_storage::<comp::CharacterState>();
-
-                        let entity_cylinder = positions.get(entity).map(|p| {
-                            find_dist::Cylinder::from_components(
-                                p.0,
-                                scales.get(entity).copied(),
-                                colliders.get(entity).copied(),
-                                char_states.get(entity),
-                            )
-                        });
-                        if !within_pickup_range(entity_cylinder, || {
-                            Some(find_dist::Cube {
-                                pos: pos.as_(),
-                                side_length: 1.0,
-                            })
-                        }) {
-                            debug!(
-                                ?entity_cylinder,
-                                "Failed to pick up block as not within range, block pos: {}", pos
-                            );
-                            return;
-                        };
-                    }
+                    let entity_cylinder = get_cylinder(state, entity);
+                    if !within_pickup_range(entity_cylinder, || {
+                        Some(find_dist::Cube {
+                            min: pos.as_(),
+                            side_length: 1.0,
+                        })
+                    }) {
+                        debug!(
+                            ?entity_cylinder,
+                            "Failed to pick up block as not within range, block pos: {}", pos
+                        );
+                        return;
+                    };
 
                     if let Some(item) = comp::Item::try_reclaim_from_block(block) {
                         let (event, item_was_added) = if let Some(inv) = state
