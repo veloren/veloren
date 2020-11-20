@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ambient SFX emitted from terrain blocks
 - Campfire SFX
 - Wind SFX system
+- Added Norwegian language
 
 ### Changed
 

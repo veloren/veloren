@@ -1,0 +1,645 @@
+/// Translation document instructions
+///
+/// In order to keep localization documents readible please follow the following
+/// rules:
+/// - separate the string map sections using a commentary describing the purpose
+///   of the next section
+/// - prepend multi-line strings with a commentary
+/// - append one blank lines after a multi-line strings and two after sections
+///
+/// To add a new language in Veloren, just write an additional `.ron` file in
+/// `assets/voxygen/i18n` and that's it!
+///
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Lokalisering for norsk bokmål 
+(
+    metadata: (
+        language_name: "Norsk",
+        language_identifier: "no",
+    ),
+    convert_utf8_to_ascii: false,
+    fonts: {
+        "opensans": Font (
+            asset_key: "voxygen.font.OpenSans-Regular",
+            scale_ratio: 1.0,
+        ),
+        "metamorph": Font (
+            asset_key: "voxygen.font.Metamorphous-Regular",
+            scale_ratio: 1.0,
+        ),
+        "alkhemi": Font (
+            asset_key: "voxygen.font.Alkhemikal",
+            scale_ratio: 1.0,
+        ),
+        "wizard": Font (
+            asset_key: "voxygen.font.wizard",
+            scale_ratio: 1.0,
+        ),
+        "cyri": Font (
+            asset_key: "voxygen.font.haxrcorp_4089_cyrillic_altgr_extended",
+            scale_ratio: 1.0,
+        ),
+    },
+    string_map: {
+        /// Start Common section
+        // Texts used in multiple locations with the same formatting
+        "common.username": "Brukernavn",
+        "common.singleplayer": "Enspiller",
+        "common.multiplayer": "Flerspiller",
+        "common.servers": "Servere",
+        "common.quit": "Avslutt",
+        "common.settings": "Innstillinger",
+        "common.languages": "Språk",
+        "common.interface": "Grensesnitt",
+        "common.gameplay": "Spillbarhet",
+        "common.controls": "Kontroller",
+        "common.video": "Grafikk",
+        "common.sound": "Lyd",
+        "common.resume": "Fortsett",
+        "common.characters": "Karakterer",
+        "common.close": "Lukk",
+        "common.yes": "Ja",
+        "common.no": "Nei",
+        "common.back": "Tilbake",
+        "common.create": "Lag",
+        "common.okay": "Ok",
+        "common.add": "Legg til",
+        "common.accept": "Aksepter",
+        "common.decline": "Avslå",
+        "common.disclaimer": "Bemerk",
+        "common.cancel": "Avbryt",
+        "common.none": "Ingen",
+        "common.error": "Feil",
+        "common.fatal_error": "Kritisk Feil",
+        "common.you": "Du",
+        "common.automatic": "Automatisk",
+        "common.random": "Tilfeldig",
+        // Settings Window title
+        "common.interface_settings": "Grensesnitt Instillinger",
+        "common.gameplay_settings": "Spillbarhet Innstillinger",
+        "common.controls_settings": "Kontroller Innstillinger",
+        "common.video_settings": "Grafikk Innstillinger",
+        "common.sound_settings": "Lyd Innstillinger",
+        "common.language_settings": "Språk Innstillinger",
+
+        // Message when connection to the server is lost
+        "common.connection_lost": r#"Mistet forbindelsen!
+Har serveren startet på nytt?
+Har det kommet nye oppdateringer?"#,
+
+
+        "common.species.orc": "Ork",
+        "common.species.human": "Menneske",
+        "common.species.dwarf": "Dverg",
+        "common.species.elf": "Alv",
+        "common.species.undead": "Udødelig",
+        "common.species.danari": "Danari",
+
+        "common.weapons.axe": "Øks",
+        "common.weapons.sword": "Sverd",
+        "common.weapons.staff": "Stav",
+        "common.weapons.bow": "Bue",
+        "common.weapons.hammer": "Hammer",
+        "common.weapons.sceptre": "Helbredings Septer",
+        "common.rand_appearance": "Tilfeldig utseende og navn",
+        /// End Common section
+
+
+        /// Start Main screen section
+        "main.username": "Brukernavn",
+        "main.server": "Server",
+        "main.password": "Passord",
+        "main.connecting": "Kobler til",
+        "main.creating_world": "Lager verden",
+        "main.tip": "Tips:",
+
+        // Welcome notice that appears the first time Veloren is started
+        "main.notice": r#"Velkommen til alfaversjonen av Veloren!
+
+Før du dykker inn i moroa, vennligst hold et par ting i tankene:
+
+- Dette er en veldig tidlig alfa. Forvent feil, ekstremt uferdig spilling, upolert mekanikk og manglende funksjoner.
+
+- Hvis du har konstruktive tilbakemeldinger eller feilrapporter, kan du kontakte oss via Reddit, GitLab eller vår Discord-server.
+
+- Veloren er lisensiert under GPL 3 åpen kildekode-lisensen. Det betyr at du er fri til å spille, endre og distribuere spillet på nytt, akkurat
+ som du ønsker (så lenge arbeidet også er under GPL 3).
+
+- Veloren er et ikke-profitt basert samfunnsprosjekt, og alle som jobber på prosjektet er frivillige.
+Hvis du liker det du ser, er du velkommen til å bli med i utviklings- eller kunstteamene!
+
+Takk for at du tar deg tid til å lese denne meldingen, vi håper at du liker spillet!
+
+- Veloren-utviklerne"#,
+
+        // Login process description
+        "main.login_process": r#"Informasjon om påloggingsprosessen:
+
+Vær oppmerksom på at du nå trenger en konto
+for å spille på godkjennings-aktiverte servere.
+
+Du kan opprette en konto på
+
+https://veloren.net/account/."#,
+        "main.login.server_not_found": "Server ikke funnet",
+        "main.login.authentication_error": "Innloggingsfeil på serveren",
+        "main.login.server_full": "Serveren er full",
+        "main.login.untrusted_auth_server": "Godkjenningsserver kan ikke stoles på",
+        "main.login.outdated_client_or_server": "Sannsynligvis er versjoner inkompatible, se etter oppdateringer.",
+        "main.login.timeout": "Serveren svarte ikke i tide. (Overbelastet eller nettverksproblemer).",
+        "main.login.server_shut_down": "Serveren stoppet",
+        "main.login.already_logged_in": "Du er allerede logget på serveren.",
+        "main.login.network_error": "Nettverksfeil",
+        "main.login.failed_sending_request": "Forespørsel til godkjenningsserver mislyktes",
+        "main.login.invalid_character": "Den valgte karakteren er ugyldig",
+        "main.login.client_crashed": "Klienten krasjet",
+        "main.login.not_on_whitelist": "Du trenger en hvitelisteoppføring av en administrator for å bli med",
+        "main.login.banned": "Du har blitt utestengt av følgende grunn",
+        "main.login.kicked": "Du har blitt sparket ut av følgende grunn",
+        "main.login.select_language": "Velg språk",
+
+        "main.servers.select_server": "Velg en server",
+
+        /// End Main screen section
+
+
+        /// Start HUD Section
+        "hud.do_not_show_on_startup": "Ikke vis dette på oppstart",
+        "hud.show_tips": "Vis tips",
+        "hud.quests": "Oppdrag",
+        "hud.you_died": "Du døde",
+        "hud.waypoint_saved": "Veipunkt lagret",
+
+        "hud.press_key_to_show_keybindings_fmt": "[{key}] Hurtigtaster",
+        "hud.press_key_to_toggle_lantern_fmt": "[{key}] Lykt",
+        "hud.press_key_to_show_debug_info_fmt": "Trykk {key} for å vise feilsøkingsinfo",
+        "hud.press_key_to_toggle_keybindings_fmt": "Trykk {key} for å skru av/på hurtigtaster",
+        "hud.press_key_to_toggle_debug_info_fmt": "Trykk {key} for å skru av/på feilsøkingsinformasjon",
+
+        // Chat outputs
+        "hud.chat.online_msg": "[{name}] logget på",
+        "hud.chat.offline_msg": "{name} logget av",
+
+        "hud.chat.default_death_msg": "[{name}] døde",
+        "hud.chat.environmental_kill_msg": "[{name}] døde i {environment}",
+        "hud.chat.fall_kill_msg": "[{name}] døde av fallskade",
+        "hud.chat.suicide_msg": "[{name}] døde av selvskader",
+
+        "hud.chat.pvp_melee_kill_msg": "[{attacker}] drepte [{victim}]",
+        "hud.chat.pvp_ranged_kill_msg": "[{attacker}] skjøt [{victim}]",
+        "hud.chat.pvp_explosion_kill_msg": "[{attacker}] sprengte [{victim}]",
+        "hud.chat.pvp_energy_kill_msg": "[{attacker}] drepte [{victim}] med magi",
+        "hud.chat.pvp_buff_kill_msg": "[{attacker}] drepte [{victim}]",
+
+
+        "hud.chat.npc_melee_kill_msg": "{attacker} drepte [{victim}]",
+        "hud.chat.npc_ranged_kill_msg": "{attacker} skjøt [{victim}]",
+        "hud.chat.npc_explosion_kill_msg": "{attacker} sprengte [{victim}]",
+        "hud.chat.npc_energy_kill_msg": "[{attacker}] drepte [{victim}] med magi",
+        "hud.chat.npc_other_kill_msg": "[{attacker}] drepte [{victim}]",
+
+        "hud.chat.loot_msg": "Du plukket opp [{item}]",
+        "hud.chat.loot_fail": "Ditt inventar er fullt!",
+        "hud.chat.goodbye": "Adjø!",
+        "hud.chat.connection_lost": "Forbindelse mistet. Utkastet om {time} sekunder.",
+
+        // SCT outputs
+        "hud.sct.experience": "{amount} Exp",
+        "hud.sct.block": "BLOKERT",
+
+        // Respawn message
+        "hud.press_key_to_respawn": r#"Trykk {key} for å gjennopstå ved det siste bålet du besøkte."#,
+
+        // Welcome message
+        "hud.welcome": r#"Velkommen til Veloren Alfa!
+
+
+Noen tips før du begynner:
+
+
+Trykk på F1 for å se tilgjengelige hurtigtaster.
+
+Skriv /hjelp inn i chatten for å se chat-kommandoer
+
+
+Det er kister og andre gjenstander som spawner tilfeldig i verden!
+
+Høyreklikk for å samle dem.
+
+For å brukte det du plyndrer fra disse kistene, åpne inventaret ditt med 'B'.
+
+Dobbeltklikk på varene i inventaret ditt for å bruke det eller ta det på.
+
+Kast dem ved å klikke og dra dem utenfor inventaret.
+
+
+Nettene kan bli ganske mørke i Veloren.
+
+Tenn din lykt ved å trykke på 'G'.
+
+
+Vil du frigjøre markøren for å lukke dette vinduet? Trykk på TAB!
+
+
+Kos deg i verden av Veloren."#,
+
+"hud.temp_quest_headline": r#"Vær så snill, Hjelp oss reisende!"#,
+"hud.temp_quest_text": r#"Fangehull fylt med onde kultister
+har dukket opp rundt våre fredelige byer!
+
+
+Samle noe selskap, samle mat
+og bekjemp deres dårlige ledere og akolytter.
+
+
+Kanskje du til og med kan skaffe deg en av de
+magisk infunderte gjenstandene?"#,
+
+
+
+        // Inventory
+        "hud.bag.inventory": "{playername}'s Inventar",
+        "hud.bag.stats_title": "{playername}'s Statistikk",
+        "hud.bag.exp": "Exp",
+        "hud.bag.armor": "Utrustning",
+        "hud.bag.stats": "Statistikk",
+        "hud.bag.head": "Hode",
+        "hud.bag.neck": "Nakke",
+        "hud.bag.tabard": "Tabard",
+        "hud.bag.shoulders": "Skulder",
+        "hud.bag.chest": "Bryst",
+        "hud.bag.hands": "Hender",
+        "hud.bag.lantern": "Lykt",
+        "hud.bag.glider": "Glidefly",
+        "hud.bag.belt": "Belte",
+        "hud.bag.ring": "Ring",
+        "hud.bag.back": "Rygg",
+        "hud.bag.legs": "Ben",
+        "hud.bag.feet": "Føtter",
+        "hud.bag.mainhand": "Hovedhånd",
+        "hud.bag.offhand": "Tillegshånd",
+
+
+        // Map and Questlog
+        "hud.map.map_title": "Kart",
+        "hud.map.qlog_title": "Oppdrag",
+
+        // Settings
+        "hud.settings.general": "Generell",
+        "hud.settings.none": "Ingen",
+        "hud.settings.press_behavior.toggle": "Veksle",
+        "hud.settings.press_behavior.hold": "Hold",
+        "hud.settings.help_window": "Hjelpevindu",
+        "hud.settings.debug_info": "Feilsøkingsinformasjon",
+        "hud.settings.tips_on_startup": "Tips-På-Oppstart",
+        "hud.settings.ui_scale": "UI-Skalering",
+        "hud.settings.relative_scaling": "Relativ Skalering",
+        "hud.settings.custom_scaling": "Tilpasset Skalering",
+        "hud.settings.crosshair": "Retikkel",
+        "hud.settings.transparency": "Gjennomsiktighet",
+        "hud.settings.hotbar": "Hurtigknappsbar",
+        "hud.settings.toggle_shortcuts": "Veksle Snarveier",
+        "hud.settings.buffs_skillbar": "Ikoner på Ferdighetsbar",
+        "hud.settings.buffs_mmap": "Ikoner på Minimap",
+        "hud.settings.toggle_bar_experience": "Veksle erfaringsbar",
+        "hud.settings.scrolling_combat_text": "Rullende kamptekst",
+        "hud.settings.single_damage_number": "Enkelt skadetall",
+        "hud.settings.cumulated_damage": "Kumulert skade",
+        "hud.settings.incoming_damage": "Innkommende skade",
+        "hud.settings.cumulated_incoming_damage": "Kumulert innkommende skade",
+        "hud.settings.speech_bubble": "Snakkeboble",
+        "hud.settings.speech_bubble_dark_mode": "Mørk modus for snakkeboble",
+        "hud.settings.speech_bubble_icon": "Snakkeboble ikon",
+        "hud.settings.energybar_numbers": "Energibar tall",
+        "hud.settings.values": "Verdier",
+        "hud.settings.percentages": "Prosentandeler",
+        "hud.settings.chat": "Chat",
+        "hud.settings.background_transparency": "Bakgrunnsgjennomsiktighet",
+        "hud.settings.chat_character_name": "Karakternavn i chat",
+        "hud.settings.loading_tips": "Oppstartsskjerm Tips",
+
+        "hud.settings.pan_sensitivity": "Panoreringssensitivitet",
+        "hud.settings.zoom_sensitivity": "Zoomingssensitivitet",
+        "hud.settings.invert_scroll_zoom": "Inverter skrollezoom",
+        "hud.settings.invert_mouse_y_axis": "Inverter mus Y Aksen",
+        "hud.settings.enable_mouse_smoothing": "Kamerautjevning",
+        "hud.settings.free_look_behavior": "Frimodus oppførsel",
+        "hud.settings.auto_walk_behavior": "Autogåing oppførsel",
+        "hud.settings.stop_auto_walk_on_input": "Stopp autogåing på bevegelse",
+
+        "hud.settings.view_distance": "Utsiktsavstand",
+        "hud.settings.sprites_view_distance": "Sprites utsiktsavstand",
+        "hud.settings.figures_view_distance": "Enhets utsiktsavstand",
+        "hud.settings.maximum_fps": "Maksimum FPS",
+        "hud.settings.fov": "Synsfelt (deg)",
+        "hud.settings.gamma": "Gamma",
+        "hud.settings.ambiance": "Stemning Brightness",
+        "hud.settings.antialiasing_mode": "Kantutjevningsmodus",
+        "hud.settings.cloud_rendering_mode": "Tegn-skyer-modus",
+        "hud.settings.fluid_rendering_mode": "Tegn-væske-modus",
+        "hud.settings.fluid_rendering_mode.cheap": "Billig",
+        "hud.settings.fluid_rendering_mode.shiny": "Skinnende",
+        "hud.settings.cloud_rendering_mode.minimal": "Minimal",
+        "hud.settings.cloud_rendering_mode.low": "Lav",
+        "hud.settings.cloud_rendering_mode.medium": "Medium",
+        "hud.settings.cloud_rendering_mode.high": "Høy",
+        "hud.settings.fullscreen": "Full skjerm",
+        "hud.settings.fullscreen_mode": "Fullskjermsmodus",
+        "hud.settings.fullscreen_mode.exclusive": "Eksklusiv",
+        "hud.settings.fullscreen_mode.borderless": "Uten kanter",
+        "hud.settings.particles": "Partikler",
+        "hud.settings.resolution": "Resolusjon",
+        "hud.settings.bit_depth": "Bit Dybde",
+        "hud.settings.refresh_rate": "Oppdateringsfrekvens",
+        "hud.settings.save_window_size": "Spar vindusstørrelse",
+        "hud.settings.lighting_rendering_mode": "Tegn-belysning-modus",
+        "hud.settings.lighting_rendering_mode.ashikhmin": "Type A - Høy    ",
+        "hud.settings.lighting_rendering_mode.blinnphong": "Type B - Medium",
+        "hud.settings.lighting_rendering_mode.lambertian": "Type L - Billing",
+        "hud.settings.shadow_rendering_mode": "Tegn-skygger-modus",
+        "hud.settings.shadow_rendering_mode.none": "Ingen",
+        "hud.settings.shadow_rendering_mode.cheap": "Billig",
+        "hud.settings.shadow_rendering_mode.map": "Kart",
+        "hud.settings.shadow_rendering_mode.map.resolution": "Resolusjon",
+        "hud.settings.lod_detail": "Nivå med detaljer",
+        "hud.settings.save_window_size": "Lagre vindusstørrelse",
+
+
+        "hud.settings.music_volume": "Musikkvolum",
+        "hud.settings.sound_effect_volume": "Lydeffektvolum",
+        "hud.settings.audio_device": "Lydenhet",
+
+        "hud.settings.awaitingkey": "Trykk på en tast...",
+        "hud.settings.unbound": "Ingen",
+        "hud.settings.reset_keybinds": "Tilbakestill til standardinnstillinger",
+
+        "hud.social": "Andre spillere",
+        "hud.social.online": "Tilstede:",
+        "hud.social.friends": "Venner",
+        "hud.social.not_yet_available": "Ikke tilgjengelig enda",
+        "hud.social.faction": "Fraksjon",
+        "hud.social.play_online_fmt": "{nb_player} spiller(e) tilstede",
+        "hud.social.name": "Navn",
+        "hud.social.level": "Nivå",
+        "hud.social.zone": "Sone",
+        "hud.social.account": "Bruker",
+
+
+        "hud.crafting": "Håndverk",
+        "hud.crafting.recipes": "Oppskrifter",
+        "hud.crafting.ingredients": "Ingredienser:",
+        "hud.crafting.craft": "Lag",
+        "hud.crafting.tool_cata": "Krever:",
+
+        "hud.group": "Gruppe",
+        "hud.group.invite_to_join": "{name} inviterte deg til gruppen deres!",
+        "hud.group.invite": "Inviter",
+        "hud.group.kick": "Spark",
+        "hud.group.assign_leader": "Tilordne leder",
+        "hud.group.leave": "Forlat Gruppe",
+        "hud.group.dead" : "Død",
+        "hud.group.out_of_range": "Ute av rekkevidde",
+        "hud.group.add_friend": "Legg til i vennelisten",
+        "hud.group.link_group": "Koble til grupper",
+        "hud.group.in_menu": "I Meny",
+        "hud.group.members": "Gruppemedlemmer",
+
+        "hud.spell": "Trylleformel",
+
+        "hud.free_look_indicator": "Frimodus aktiv. Trykk {key} for å skru av.",
+        "hud.auto_walk_indicator": "Autogåing aktiv",
+
+        /// End HUD section
+
+
+        /// Start GameInput section
+
+        "gameinput.primary": "Primær Angrep",
+        "gameinput.secondary": "Sekundær Angrep/Blokk/Sikt",
+        "gameinput.slot1": "Hurtigbar Luke 1",
+        "gameinput.slot2": "Hurtigbar Luke 2",
+        "gameinput.slot3": "Hurtigbar Luke 3",
+        "gameinput.slot4": "Hurtigbar Luke 4",
+        "gameinput.slot5": "Hurtigbar Luke 5",
+        "gameinput.slot6": "Hurtigbar Luke 6",
+        "gameinput.slot7": "Hurtigbar Luke 7",
+        "gameinput.slot8": "Hurtigbar Luke 8",
+        "gameinput.slot9": "Hurtigbar Luke 9",
+        "gameinput.slot10": "Hurtigbar Luke 10",
+        "gameinput.swaploadout": "Bytt utlastning",
+        "gameinput.togglecursor": "Veksle Musepeker",
+        "gameinput.help": "Veksle hjelpevindu",
+        "gameinput.toggleinterface": "Veksle Grensesnitt",
+        "gameinput.toggledebug": "Veksle FPS og feilsøkingsinfo",
+        "gameinput.screenshot": "Ta skjermbilde",
+        "gameinput.toggleingameui": "Veksle Navneskilt",
+        "gameinput.fullscreen": "Veksle fullskjerm",
+        "gameinput.moveforward": "Beveg frem",
+        "gameinput.moveleft": "Beveg venstre",
+        "gameinput.moveright": "Beveg høyre",
+        "gameinput.moveback": "Beveg bakover",
+        "gameinput.jump": "Hopp",
+        "gameinput.glide": "Glider",
+        "gameinput.roll": "Rull",
+        "gameinput.climb": "Klatre",
+        "gameinput.climbdown": "Klatre ned",
+        "gameinput.wallleap": "Veggsprang",
+        "gameinput.togglelantern": "Veksle lykt",
+        "gameinput.mount": "Monter",
+        "gameinput.chat": "Chat",
+        "gameinput.command": "Kommando",
+        "gameinput.escape": "Røm",
+        "gameinput.map": "Kart",
+        "gameinput.bag": "Bag",
+        "gameinput.social": "Sosial",
+        "gameinput.sit": "Sitt",
+        "gameinput.spellbook": "Trylleformler",
+        "gameinput.settings": "Innstillinger",
+        "gameinput.respawn": "Gjennopstå",
+        "gameinput.charge": "Lad opp",
+        "gameinput.togglewield": "Veksle Våpen",
+        "gameinput.interact": "Interaksjon",
+        "gameinput.freelook": "Frimodus",
+        "gameinput.autowalk": "Autogåing",
+        "gameinput.dance": "Dans",
+        "gameinput.select": "Velg enhet",
+        "gameinput.acceptgroupinvite": "Godta gruppeinvitasjon",
+        "gameinput.declinegroupinvite": "Avvis gruppeinvitasjon",
+        "gameinput.crafting": "Håndverk",
+        "gameinput.fly": "Fly",
+        "gameinput.sneak": "Snik",
+        "gameinput.swimdown": "Svøm nedover",
+        "gameinput.swimup": "Svøm oppover",
+
+        /// End GameInput section
+
+
+        /// Start chracter selection section
+        "char_selection.loading_characters": "Laster inn karakterer...",
+        "char_selection.delete_permanently": "Slett denne karakteren permanent?",
+        "char_selection.deleting_character": "Sletter karakter...",
+        "char_selection.change_server": "Bytt server",
+        "char_selection.enter_world": "Gå inn i verden",
+        "char_selection.logout": "Logg ut",
+        "char_selection.create_new_character": "Lag ny karakter",
+        "char_selection.creating_character": "Skaper karakter...",
+        "char_selection.character_creation": "Karakterskaping",
+
+        "char_selection.human_default": "Menneskestandarder",
+        "char_selection.level_fmt": "Nivå {level_nb}",
+        "char_selection.uncanny_valley": "Villmark",
+        "char_selection.plains_of_uncertainty": "Usikkerhetssletter",
+        "char_selection.beard": "Skjegg",
+        "char_selection.hair_style": "Hårstil",
+        "char_selection.hair_color": "Hårfarge",
+        "char_selection.eye_color": "Øyenfarge",
+        "char_selection.skin": "Hud",
+        "char_selection.eyeshape": "Øyedetaljer",
+        "char_selection.accessories": "Tilbehør",
+        "char_selection.create_info_name": "Karakteren din trenger et navn!",
+
+        /// End character selection section
+
+
+        /// Start character window section
+        "character_window.character_name": "Karakternavn",
+        // Character stats
+        "character_window.character_stats": r#"Utholdenhet
+
+Fitness
+
+Viljestyrke
+
+Beskyttelse
+"#,
+        /// End character window section
+
+
+        /// Start Escape Menu Section
+        "esc_menu.logout": "Logg ut",
+        "esc_menu.quit_game": "Avslutt spillet",
+        /// End Escape Menu Section
+
+        /// Buffs and Debuffs
+        "buff.remove": "Klikk for å fjerne",
+        "buff.title.missing": "Mangler tittel",
+        "buff.desc.missing": "Mangler beskrivelse",
+        // Buffs
+        "buff.title.heal": "Helbred",
+        "buff.desc.heal": "Helbred over tid.",
+        "buff.title.potion": "Trylledrikk",
+        "buff.desc.potion": "Drikker...",
+        "buff.title.saturation": "Metning",
+        "buff.desc.saturation": "Helbred over tid fra forbruksvarer.",
+        // Debuffs
+        "debuff.title.bleed": "Blør",
+        "debuff.desc.bleed": "Påfører regelmessig skade.",
+    },
+
+
+    vector_map: {
+        "loading.tips": [
+            "Trykk 'G' for å tenne lykten.",
+            "Trykk 'F1' for å se alle standard tastebindinger.",
+            "Du kan skrive /say eller /s for å bare chatte med spillere rett rundt deg.",
+            "Du kan skrive /region eller /r for å bare chatte med spillere et par hundre blokker rundt deg.",
+            "Du kan skrive /group eller /g for å bare chatte med spillere i din nåværende gruppe.",
+            "For å sende private meldinger skriv /tell etterfulgt av et spillernavn og meldingen din.",
+            "NPCer med samme nivå kan ha forskjellige problemer.",
+            "Hold øye med mat, kister og andre godsaker spredt over hele verden!",
+            "Inventar fylt med mat? Prøv å lage bedre mat med det!",
+            "Lurer du på hva du kan gjøre? Fangehull er merket med brune flekker på kartet!",
+            "Ikke glem å justere grafikken for systemet ditt. Trykk på 'N' for å åpne innstillingene.",
+            "Å spille med andre er gøy! Trykk 'O' for å se hvem som er online.",
+            "En NPC med en hodeskalle under helsebaren er ganske kraftig sammenlignet med deg selv.",
+            "Trykk 'J' for å danse. Fest!",
+            "Trykk 'L-Shift' for å åpne Glider og erobre himmelen.",
+            "Veloren er fortsatt i Pre-Alfa. Vi gjør vårt beste for å forbedre det hver dag!",
+            "Hvis du vil bli med i Dev-teamet eller bare ta en prat med oss, bli med i Discord-Serveren.",
+            "Du kan veksle for å vise mengden helse på helselinjen i innstillingene.",
+            "For å se statistikken din, klikk på 'Statistikk' -knappen i beholdningen.",
+        ],
+        "npc.speech.villager_under_attack": [
+            "Hjelp, jeg er under angrep!",
+            "Hjelp! Jeg er under angrep!",
+            "Au! Jeg er under angrep!",
+            "Au! Jeg er under angrep! Hjelp!",
+            "Hjelp meg! Jeg er under angrep!",
+            "Jeg er under angrep! Hjelp!",
+            "Jeg er under angrep! Hjelp meg!",
+            "Hjelp!",
+            "Hjelp! Hjelp!",
+            "Hjelp! Hjelp! Hjelp!",
+            "Jeg er under angrep!",
+            "AAAHHH! Jeg er under angrep!",
+            "AAAHHH! Jeg er under angrep! Hjelp!",
+            "Hjelp! Vi er under angrep!",
+            "Hjelp! Morder!",
+            "Hjelp! Det er en morder på frifot!",
+            "Hjelp! De prøver å drepe meg!",
+            "Vakter, jeg er under angrep!",
+            "Vakter! Jeg er under angrep!",
+            "Jeg er under angrep! Vakter!",
+            "Hjelp! Vakter! Jeg er under angrep!",
+            "Vakter! Kom raskt!",
+            "Vakter! Vakter!",
+            "Vakter! Det er en skurk som angriper meg!",
+            "Vakter, drep denne onde skurken!",
+            "Vakter! Det er en morder!",
+            "Vakter! Hjelp meg!",
+            "Du kommer ikke unna med dette! Vakter!",
+            "Du fiende!",
+            "Hjelp meg!",
+            "Hjelp! Vœr så snill!",
+            "Ouch! Vakter! Hjelp!",
+            "De etterfølger etter meg!",
+            "Hjelp! Hjelp! Jeg blir undertrykt!",
+            "Ah, nå ser vi volden som er bygd inn i systemet.",
+            "Det er bare en ripe!",
+            "Slutt med det!",
+            "Hva har jeg noensinne gjort mot deg?!",
+            "Vær så snill slutt å angripe meg!",
+            "Hei! Se for deg hvor du peker den tingen!",
+            "Avskyelige krek, bort med deg!",
+            "Stop det! Gå vekk!",
+            "Nå gjør du meg sint!",
+            "Oi! Hvem tror du at du er?!",
+            "Jeg tar hodet ditt for det!",
+            "Stop, vær så snill! Jeg har ingenting av verdi på meg!",
+            "Jeg får broren min til å ta deg, han er større enn meg!",
+            "Neiii, jeg sier det til mamma!",
+            "Forbann deg!",
+            "Vœr så snill ikke gjør det.",
+            "Det var ikke veldig snilt!",
+            "Våpnet ditt funker, du kan ta det vekk nå!",
+            "Bespar meg!",
+            "Vær så snill, jeg har familie!",
+            "Jeg er for ung til å dø!",
+            "Kan vi snakke om dette?",
+            "Vold er aldri svaret!",
+            "I dag ser ut til å være en dårlig dag...",
+            "Hei, det kjente jeg!",
+            "Eek!",
+            "Hvor uhøflig!",
+            "Stop, jeg ber deg!",
+            "Smitte beslage deg!",
+            "Dette er ikke gøy.",
+            "Hvordan våger du?!",
+            "Du kommer til å betale for dette!",
+            "Fortsett med dette og du kommer til å be unnskyld!",
+            "Ikke få meg til å banke deg!",
+            "Dette må være en misforståelse!",
+            "Du trenger ikke å gjøre dette!",
+            "Gå vekk, skurk!",
+            "Det gjorde vondt!",
+            "Hvorfor gjorde du det?",
+            "Etter åndene, forsvinn!",
+            "Du må ha forvekslet meg med noen andre!",
+            "Jeg fortjener ikke dette!",
+            "Vær så snill ikke gjør dette igjen!",
+            "Vakter, kast dette mennesket i havet!",
+            "Jeg får min tarasque til å etterfølge deg!",
+        ],
+    }
+)
