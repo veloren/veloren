@@ -408,6 +408,7 @@ impl Floor {
                     area,
                     height: ctx.rng.gen_range(15, 20),
                     pillars: Some(4),
+                    difficulty: self.difficulty,
                 }),
                 _ => self.create_room(Room {
                     seed: ctx.rng.gen(),
