@@ -143,6 +143,7 @@ impl<'a> Widget for Map<'a> {
         let show_dungeons = self.global_state.settings.gameplay.map_show_dungeons;
         let show_castles = self.global_state.settings.gameplay.map_show_castles;
         let mut events = Vec::new();
+        let i18n = &self.localized_strings;
         // Tooltips
         let site_tooltip = Tooltip::new({
             // Edge images [t, b, r, l]
@@ -191,7 +192,7 @@ impl<'a> Widget for Map<'a> {
             .set(state.ids.icon, ui);
 
         // Map Title
-        Text::new(self.localized_strings.get("hud.map.map_title"))
+        Text::new(i18n.get("hud.map.map_title"))
             .mid_top_with_margin_on(state.ids.frame, 3.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(29))
@@ -199,7 +200,7 @@ impl<'a> Widget for Map<'a> {
             .set(state.ids.map_title, ui);
 
         // Questlog Title
-        Text::new(self.localized_strings.get("hud.map.qlog_title"))
+        Text::new(i18n.get("hud.map.qlog_title"))
             .mid_top_with_margin_on(state.ids.qlog_align, 6.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(21))
@@ -343,7 +344,7 @@ impl<'a> Widget for Map<'a> {
         {
             events.push(Event::ShowDifficulties(!show_difficulty));
         }
-        Text::new("Difficulty")
+        Text::new(i18n.get("hud.map.difficulty"))
             .right_from(state.ids.show_difficulty_box, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -377,7 +378,7 @@ impl<'a> Widget for Map<'a> {
         {
             events.push(Event::ShowTowns(!show_towns));
         }
-        Text::new("Towns")
+        Text::new(i18n.get("hud.map.towns"))
             .right_from(state.ids.show_towns_box, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -411,7 +412,7 @@ impl<'a> Widget for Map<'a> {
         {
             events.push(Event::ShowCastles(!show_castles));
         }
-        Text::new("Castles")
+        Text::new(i18n.get("hud.map.castles"))
             .right_from(state.ids.show_castles_box, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -445,7 +446,7 @@ impl<'a> Widget for Map<'a> {
         {
             events.push(Event::ShowDungeons(!show_dungeons));
         }
-        Text::new("Dungeons")
+        Text::new(i18n.get("hud.map.dungeons"))
             .right_from(state.ids.show_dungeons_box, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -484,18 +485,23 @@ impl<'a> Widget for Map<'a> {
             {
                 continue;
             }
-            let title = site.name
-                .as_ref()
-                .map(|s| s.as_str())
-                .unwrap_or_else(|| match &site.kind {
-                    SiteKind::Town => "Town",
-                    SiteKind::Dungeon { .. } => "Dungeon",
-                    SiteKind::Castle => "Castle",
-                });
+            let title =
+                site.name
+                    .as_ref()
+                    .map(|s| s.as_str())
+                    .unwrap_or_else(|| match &site.kind {
+                        SiteKind::Town => i18n.get("hud.map.town"),
+                        SiteKind::Dungeon { .. } => i18n.get("hud.map.dungeon"),
+                        SiteKind::Castle => i18n.get("hud.map.castle"),
+                    });
             let (difficulty, desc) = match &site.kind {
-                SiteKind::Town => (0, "Town".to_string()),
-                SiteKind::Dungeon { difficulty } => (*difficulty, format!("Dungeon, difficulty {}", difficulty)),
-                SiteKind::Castle => (0, "Castle".to_string()),
+                SiteKind::Town => (0, i18n.get("hud.map.town").to_string()),
+                SiteKind::Dungeon { difficulty } => (
+                    *difficulty,
+                    i18n.get("hud.map.difficulty_dungeon")
+                        .replace("{difficulty}", difficulty.to_string().as_str()),
+                ),
+                SiteKind::Castle => (0, i18n.get("hud.map.castle").to_string()),
             };
             let site_btn = Button::image(match &site.kind {
                 SiteKind::Town => {
@@ -538,14 +544,18 @@ impl<'a> Widget for Map<'a> {
                 title,
                 &desc,
                 &site_tooltip,
-                match difficulty {
-                    1 => QUALITY_LOW,
-                    2 => QUALITY_COMMON,
-                    3 => QUALITY_MODERATE,
-                    4 => QUALITY_HIGH,
-                    5 => QUALITY_EPIC,
-                    6 => QUALITY_DEBUG,
-                    _ => TEXT_COLOR,
+                match &site.kind {
+                    SiteKind::Town => TEXT_COLOR,
+                    SiteKind::Castle => TEXT_COLOR,
+                    SiteKind::Dungeon { .. } => match difficulty {
+                        0 => QUALITY_LOW,
+                        1 => QUALITY_COMMON,
+                        2 => QUALITY_MODERATE,
+                        3 => QUALITY_HIGH,
+                        4 => QUALITY_EPIC,
+                        5 => QUALITY_DEBUG,
+                        _ => TEXT_COLOR,
+                    },
                 },
             );
             // Only display sites that are toggled on
@@ -572,33 +582,33 @@ impl<'a> Widget for Map<'a> {
             if show_difficulty {
                 let size = 1.8; // Size factor for difficulty indicators
                 let dif_img = Image::new(match difficulty {
-                    1 => self.imgs.map_dif_0,
-                    2 => self.imgs.map_dif_1,
-                    3 => self.imgs.map_dif_2,
-                    4 => self.imgs.map_dif_3,
-                    5 => self.imgs.map_dif_4,
-                    6 => self.imgs.map_dif_5,
+                    0 => self.imgs.map_dif_0,
+                    1 => self.imgs.map_dif_1,
+                    2 => self.imgs.map_dif_2,
+                    3 => self.imgs.map_dif_3,
+                    4 => self.imgs.map_dif_4,
+                    5 => self.imgs.map_dif_5,
                     _ => self.imgs.nothing,
                 })
                 .mid_top_with_margin_on(state.ids.mmap_site_icons[i], match difficulty {
-                    6 => -12.0 * size,
+                    5 => -12.0 * size,
                     _ => -4.0 * size,
                 })
                 .w(match difficulty {
-                    6 => 12.0 * size,
+                    5 => 12.0 * size,
                     _ => 4.0 * size * difficulty as f64,
                 })
                 .h(match difficulty {
-                    6 => 12.0 * size,
+                    5 => 12.0 * size,
                     _ => 4.0 * size,
                 })
                 .color(Some(match difficulty {
-                    1 => QUALITY_LOW,
-                    2 => QUALITY_COMMON,
-                    3 => QUALITY_MODERATE,
-                    4 => QUALITY_HIGH,
-                    5 => QUALITY_EPIC,
-                    6 => TEXT_COLOR,
+                    0 => QUALITY_LOW,
+                    1 => QUALITY_COMMON,
+                    2 => QUALITY_MODERATE,
+                    3 => QUALITY_HIGH,
+                    4 => QUALITY_EPIC,
+                    5 => QUALITY_DEBUG,
                     _ => TEXT_COLOR,
                 }));
                 match &site.kind {
@@ -672,7 +682,7 @@ impl<'a> Widget for Map<'a> {
             } else {
                 self.imgs.button
             })
-            .label("Recenter")
+            .label(i18n.get("hud.map.recenter"))
             .label_y(conrod_core::position::Relative::Scalar(1.0))
             .label_color(if recenter {
                 TEXT_COLOR
@@ -697,7 +707,7 @@ impl<'a> Widget for Map<'a> {
             .w_h(icon_size.x, icon_size.y)
             .color(Some(UI_HIGHLIGHT_0))
             .set(state.ids.drag_ico, ui);
-        Text::new("Drag")
+        Text::new(i18n.get("hud.map.drag"))
             .right_from(state.ids.drag_ico, tweak!(5.0))
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -709,7 +719,7 @@ impl<'a> Widget for Map<'a> {
             .w_h(icon_size.x, icon_size.y)
             .color(Some(UI_HIGHLIGHT_0))
             .set(state.ids.zoom_ico, ui);
-        Text::new("Zoom")
+        Text::new(i18n.get("hud.map.zoom"))
             .right_from(state.ids.zoom_ico, tweak!(5.0))
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)

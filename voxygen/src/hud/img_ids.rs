@@ -203,10 +203,13 @@ image_ids! {
         map_dif_5: "voxygen.element.map.dif_5",
         mmap_site_town: "voxygen.element.map.town",
         mmap_site_town_hover: "voxygen.element.map.town_hover",
+        mmap_site_town_bg: "voxygen.element.map.town_bg",
         mmap_site_dungeon: "voxygen.element.map.dungeon",
         mmap_site_dungeon_hover: "voxygen.element.map.dungeon_hover",
+        mmap_site_dungeon_bg: "voxygen.element.map.dungeon_bg",
         mmap_site_castle: "voxygen.element.map.castle",
         mmap_site_castle_hover: "voxygen.element.map.castle_hover",
+        mmap_site_castle_bg: "voxygen.element.map.castle_bg",
 
         // Window Parts
         window_3: "voxygen.element.frames.window_3",

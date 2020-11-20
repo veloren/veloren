@@ -49,8 +49,6 @@ use crate::{
     i18n::{i18n_asset_key, LanguageMetadata, Localization},
     render::{Consts, Globals, RenderMode, Renderer},
     scene::camera::{self, Camera},
-        
-    
     ui::{fonts::Fonts, img_ids::Rotations, slot, Graphic, Ingameable, ScaleMode, Ui},
     window::{Event as WinEvent, FullScreenSettings, GameInput},
     GlobalState,
@@ -67,9 +65,9 @@ use common::{
     span,
     sync::Uid,
     terrain::TerrainChunk,
+    util::srgba_to_linear,
     vol::RectRasterableVol,
 };
-use common::util::srgba_to_linear;
 use conrod_core::{
     text::cursor::Index,
     widget::{self, Button, Image, Text},
@@ -455,7 +453,7 @@ pub struct Show {
     want_grab: bool,
     stats: bool,
     free_look: bool,
-    auto_walk: bool,   
+    auto_walk: bool,
 }
 impl Show {
     fn bag(&mut self, open: bool) {
@@ -717,7 +715,7 @@ impl Hud {
                 ingame: true,
                 stats: false,
                 free_look: false,
-                auto_walk: false,                
+                auto_walk: false,
             },
             to_focus: None,
             //never_show: false,
@@ -2250,7 +2248,7 @@ impl Hud {
         }
         // Map
         if self.show.map {
-            for event in Map::new(                
+            for event in Map::new(
                 client,
                 &self.imgs,
                 &self.rot_imgs,
@@ -2289,13 +2287,12 @@ impl Hud {
                     },
                 }
             }
-        }
-        else {
+        } else {
             // Reset the map position when it's not showing
-            let drag = &global_state.settings.gameplay.map_drag;            
+            let drag = &global_state.settings.gameplay.map_drag;
             if drag.x != 0.0 || drag.y != 0.0 {
                 events.push(Event::MapDrag(drag - drag))
-            } 
+            }
         }
 
         if self.show.esc_menu {

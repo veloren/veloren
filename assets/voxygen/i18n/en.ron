@@ -414,6 +414,18 @@ magically infused items?"#,
         "hud.free_look_indicator": "Free look active. Press {key} to disable.",
         "hud.auto_walk_indicator": "Auto walk active",
 
+        "hud.map.difficulty": "Difficulty",
+        "hud.map.towns": "Towns",
+        "hud.map.castles": "Castles",
+        "hud.map.dungeons": "Dungeons",        
+        "hud.map.town": "Town",
+        "hud.map.castle": "Castle",
+        "hud.map.dungeon": "Dungeon",
+        "hud.map.difficulty_dungeon": "Dungeon\n\nDifficulty: {difficulty}",
+        "hud.map.drag": "Drag",
+        "hud.map.zoom": "Zoom",
+        "hud.map.recenter": "Recenter",
+
         /// End HUD section
 
 
