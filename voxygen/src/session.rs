@@ -1383,7 +1383,7 @@ fn select_interactable(
 
             // Pick closer one if they exist
             closest_interactable_block_pos
-                .filter(|block_pos|  player_cylinder.min_distance(Cube { pos: block_pos.as_(), side_length: 1.0}) < search_dist)
+                .filter(|block_pos|  player_cylinder.min_distance(Cube { min: block_pos.as_(), side_length: 1.0}) < search_dist)
                 .and_then(|block_pos|
                     client.state().terrain().get(block_pos).ok().copied()
                         .map(|b| Interactable::Block(b, block_pos))
