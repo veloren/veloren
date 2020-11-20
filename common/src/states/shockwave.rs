@@ -33,6 +33,8 @@ pub struct StaticData {
     pub requires_ground: bool,
     /// Movement speed efficiency
     pub move_efficiency: f32,
+    /// What key is used to press ability
+    pub ability_key: AbilityKey,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -51,6 +53,15 @@ impl CharacterBehavior for Data {
         let mut update = StateUpdate::from(data);
 
         handle_move(data, &mut update, self.static_data.move_efficiency);
+        if !ability_key_is_pressed(data, self.static_data.ability_key) {
+            handle_interrupt(data, &mut update, false);
+            match update.character {
+                CharacterState::Shockwave(_) => {},
+                _ => {
+                    return update;
+                },
+            }
+        }
 
         match self.stage_section {
             StageSection::Buildup => {
