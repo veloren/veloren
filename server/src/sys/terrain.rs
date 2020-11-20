@@ -164,6 +164,7 @@ impl<'a> System<'a> for Sys {
                     main_tool,
                     entity.is_giant,
                     &map,
+                    None,
                 )
                 .build();
 
