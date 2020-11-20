@@ -3,7 +3,7 @@ use crate::{
     block::block_from_structure,
     column::ColumnSample,
     sim::WorldSim,
-    site::{BlockMask, namegen::NameGen},
+    site::{namegen::NameGen, BlockMask},
     util::{attempt, Grid, RandomField, Sampler, CARDINALS, DIRS},
     IndexRef,
 };
@@ -76,7 +76,8 @@ impl Dungeon {
             noise: RandomField::new(ctx.rng.gen()),
             floors: (0..LEVELS)
                 .scan(Vec2::zero(), |stair_tile, level| {
-                    let (floor, st) = Floor::generate(&mut ctx, *stair_tile, level as i32, difficulty);
+                    let (floor, st) =
+                        Floor::generate(&mut ctx, *stair_tile, level as i32, difficulty);
                     *stair_tile = st;
                     Some(floor)
                 })
@@ -87,9 +88,7 @@ impl Dungeon {
         this
     }
 
-    pub fn name(&self) -> &str {
-        &self.name
-    }
+    pub fn name(&self) -> &str { &self.name }
 
     pub fn get_origin(&self) -> Vec2<i32> { self.origin }
 
@@ -103,9 +102,7 @@ impl Dungeon {
         }
     }
 
-    pub fn difficulty(&self) -> u32 {
-        self.difficulty
-    }
+    pub fn difficulty(&self) -> u32 { self.difficulty }
 
     pub fn apply_to<'a>(
         &'a self,
@@ -200,12 +197,10 @@ impl Dungeon {
         // Add waypoint
         let pos = self.origin.map2(FLOOR_SIZE, |e, sz| e + sz as i32 / 2);
         if area.contains_point(pos - self.origin) {
-            supplement.add_entity(EntityInfo::at(Vec3::new(
-                pos.x as f32,
-                pos.y as f32,
-                self.alt as f32,
-            ) + 0.5)
-                .into_waypoint());
+            supplement.add_entity(
+                EntityInfo::at(Vec3::new(pos.x as f32, pos.y as f32, self.alt as f32) + 0.5)
+                    .into_waypoint(),
+            );
         }
 
         let mut z = self.alt + ALT_OFFSET;
@@ -531,14 +526,57 @@ impl Floor {
                         && !tile_is_pillar
                     {
                         // Bad
-                        let chosen =
-                            Lottery::<String>::load_expect(match dynamic_rng.gen_range(0, 5) {
-                                0 => "common.loot_tables.loot_table_humanoids",
-                                1 => "common.loot_tables.loot_table_armor_misc",
-                                _ => "common.loot_tables.loot_table_cultists",
-                            });
+                        let chosen = match room.difficulty {
+                            0 => {
+                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0, 5) {
+                                    0 => "common.loot_tables.loot_table_humanoids",
+                                    1 => "common.loot_tables.loot_table_armor_misc",
+                                    _ => "common.loot_tables.loot_table_cultists",
+                                })
+                            },
+                            1 => {
+                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0, 5) {
+                                    0 => "common.loot_tables.loot_table_humanoids",
+                                    1 => "common.loot_tables.loot_table_armor_misc",
+                                    _ => "common.loot_tables.loot_table_cultists",
+                                })
+                            },
+                            2 => {
+                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0, 5) {
+                                    0 => "common.loot_tables.loot_table_humanoids",
+                                    1 => "common.loot_tables.loot_table_armor_misc",
+                                    _ => "common.loot_tables.loot_table_cultists",
+                                })
+                            },
+                            3 => {
+                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0, 5) {
+                                    0 => "common.loot_tables.loot_table_humanoids",
+                                    1 => "common.loot_tables.loot_table_armor_misc",
+                                    _ => "common.loot_tables.loot_table_cultists",
+                                })
+                            },
+                            4 => {
+                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0, 5) {
+                                    0 => "common.loot_tables.loot_table_humanoids",
+                                    1 => "common.loot_tables.loot_table_armor_misc",
+                                    _ => "common.loot_tables.loot_table_cultists",
+                                })
+                            },
+                            5 => {
+                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0, 5) {
+                                    0 => "common.loot_tables.loot_table_humanoids",
+                                    1 => "common.loot_tables.loot_table_armor_misc",
+                                    _ => "common.loot_tables.loot_table_cultists",
+                                })
+                            },
+                            _ => Lottery::<String>::load_expect(
+                                "common.loot_tables.loot_table_armor_misc",
+                            ),
+                        };
                         let chosen = chosen.choose();
-                        let is_giant = RandomField::new(room.seed.wrapping_add(1)).chance(Vec3::from(tile_pos), 0.2) && !room.boss;
+                        //let is_giant =
+                        // RandomField::new(room.seed.wrapping_add(1)).chance(Vec3::from(tile_pos),
+                        // 0.2) && !room.boss;
                         let entity = EntityInfo::at(
                             tile_wcenter.map(|e| e as f32)
                             // Randomly displace them a little
@@ -546,24 +584,92 @@ impl Floor {
                                 .map(|e| (RandomField::new(room.seed.wrapping_add(10 + e)).get(Vec3::from(tile_pos)) % 32) as i32 - 16)
                                 .map(|e| e as f32 / 16.0),
                         )
-                        .do_if(is_giant, |e| e.into_giant())
-                        .with_alignment(comp::Alignment::Enemy)
+                        //.do_if(is_giant, |e| e.into_giant())                        
                         .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
-                        .with_name("Cultist Acolyte")
-                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
-                        .with_main_tool(comp::Item::new_from_asset_expect(match dynamic_rng.gen_range(0, 6) {
-                            0 => "common.items.npc_weapons.axe.malachite_axe-0",
-                            1 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
-                            2 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
-                            3 => "common.items.npc_weapons.hammer.cultist_purp_2h-0",
-                            4 => "common.items.npc_weapons.staff.cultist_staff",
-                            _ => "common.items.npc_weapons.bow.horn_longbow-0",
-                        }))
-                        .with_level(dynamic_rng.gen_range(
+                        .with_alignment(comp::Alignment::Enemy)
+                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen)).with_evel(dynamic_rng.gen_range(
                             (room.difficulty as f32).powf(1.25) + 3.0,
                             (room.difficulty as f32).powf(1.5) + 4.0,
                         ).round() as u32);
-
+                        let entity = match room.difficulty {
+                            0 => entity.with_name("Outcast").with_main_tool(
+                                comp::Item::new_from_asset_expect(
+                                    match dynamic_rng.gen_range(0, 6) {
+                                        0 => "common.items.npc_weapons.axe.malachite_axe-0",
+                                        1 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
+                                        2 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
+                                        3 => "common.items.npc_weapons.hammer.cultist_purp_2h-0",
+                                        4 => "common.items.npc_weapons.staff.cultist_staff",
+                                        _ => "common.items.npc_weapons.bow.horn_longbow-0",
+                                    },
+                                ),
+                            ),
+                            1 => entity.with_name("Highwayman").with_main_tool(
+                                comp::Item::new_from_asset_expect(
+                                    match dynamic_rng.gen_range(0, 6) {
+                                        0 => "common.items.npc_weapons.axe.malachite_axe-0",
+                                        1 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
+                                        2 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
+                                        3 => "common.items.npc_weapons.hammer.cultist_purp_2h-0",
+                                        4 => "common.items.npc_weapons.staff.cultist_staff",
+                                        _ => "common.items.npc_weapons.bow.horn_longbow-0",
+                                    },
+                                ),
+                            ),
+                            2 => entity.with_name("Bandit").with_main_tool(
+                                comp::Item::new_from_asset_expect(
+                                    match dynamic_rng.gen_range(0, 6) {
+                                        0 => "common.items.npc_weapons.axe.malachite_axe-0",
+                                        1 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
+                                        2 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
+                                        3 => "common.items.npc_weapons.hammer.cultist_purp_2h-0",
+                                        4 => "common.items.npc_weapons.staff.cultist_staff",
+                                        _ => "common.items.npc_weapons.bow.horn_longbow-0",
+                                    },
+                                ),
+                            ),
+                            3 => entity.with_name("Cultist Novice").with_main_tool(
+                                comp::Item::new_from_asset_expect(
+                                    match dynamic_rng.gen_range(0, 6) {
+                                        0 => "common.items.npc_weapons.axe.malachite_axe-0",
+                                        1 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
+                                        2 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
+                                        3 => "common.items.npc_weapons.hammer.cultist_purp_2h-0",
+                                        4 => "common.items.npc_weapons.staff.cultist_staff",
+                                        _ => "common.items.npc_weapons.bow.horn_longbow-0",
+                                    },
+                                ),
+                            ),
+                            4 => entity.with_name("Cultist Acolyte").with_main_tool(
+                                comp::Item::new_from_asset_expect(
+                                    match dynamic_rng.gen_range(0, 6) {
+                                        0 => "common.items.npc_weapons.axe.malachite_axe-0",
+                                        1 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
+                                        2 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
+                                        3 => "common.items.npc_weapons.hammer.cultist_purp_2h-0",
+                                        4 => "common.items.npc_weapons.staff.cultist_staff",
+                                        _ => "common.items.npc_weapons.bow.horn_longbow-0",
+                                    },
+                                ),
+                            ),
+                            5 => entity.with_name("Cultist Elite").with_main_tool(
+                                comp::Item::new_from_asset_expect(
+                                    match dynamic_rng.gen_range(0, 6) {
+                                        0 => "common.items.npc_weapons.axe.malachite_axe-0",
+                                        1 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
+                                        2 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
+                                        3 => "common.items.npc_weapons.hammer.cultist_purp_2h-0",
+                                        4 => "common.items.npc_weapons.staff.cultist_staff",
+                                        _ => "common.items.npc_weapons.bow.horn_longbow-0",
+                                    },
+                                ),
+                            ),
+                            _ => entity.with_name("Humanoid").with_main_tool(
+                                comp::Item::new_from_asset_expect(
+                                    "common.items.npc_weapons.bow.horn_longbow-0",
+                                ),
+                            ),
+                        };
                         supplement.add_entity(entity);
                     }
 
@@ -595,10 +701,15 @@ impl Floor {
                                 )))
                                 .with_name("Stonework Defender".to_string())
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
-                                .with_level(dynamic_rng.gen_range(
-                                    (room.difficulty as f32).powf(1.25) + 3.0,
-                                    (room.difficulty as f32).powf(1.5) + 4.0,
-                                ).round() as u32 * 5);
+                                .with_level(
+                                    dynamic_rng
+                                        .gen_range(
+                                            (room.difficulty as f32).powf(1.25) + 3.0,
+                                            (room.difficulty as f32).powf(1.5) + 4.0,
+                                        )
+                                        .round() as u32
+                                        * 5,
+                                );
 
                             supplement.add_entity(entity);
                         }
