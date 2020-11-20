@@ -1,7 +1,7 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
-    Show, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
-};
+    Show, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN, QUALITY_COMMON, QUALITY_DEBUG, QUALITY_EPIC, QUALITY_HIGH, QUALITY_LOW, QUALITY_MODERATE,
+    };
 use crate::ui::{fonts::Fonts, img_ids};
 use client::{self, Client};
 use common::{comp, msg::world_msg::SiteKind, terrain::TerrainChunkSize, vol::RectVolSize};
@@ -10,7 +10,7 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-use inline_tweak::*;
+
 use specs::WorldExt;
 use vek::*;
 
@@ -29,6 +29,7 @@ widget_ids! {
         mmap_east,
         mmap_south,
         mmap_west,
+        mmap_site_icons_bgs[],
         mmap_site_icons[],
     }
 }
@@ -233,7 +234,15 @@ impl<'a> Widget for MiniMap<'a> {
                         .resize(self.client.sites().len(), &mut ui.widget_id_generator())
                 });
             }
-            for (i, site) in self.client.sites().iter().enumerate() {
+            if state.ids.mmap_site_icons_bgs.len() < self.client.sites().len() {
+                state.update(|state| {
+                    state
+                        .ids
+                        .mmap_site_icons_bgs
+                        .resize(self.client.sites().len(), &mut ui.widget_id_generator())
+                });
+            }        
+            for (i, site) in self.client.sites().iter().enumerate() {                
                 let rwpos = site.wpos.map(|e| e as f32) - player_pos;
                 let rcpos = rwpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e / sz as f32)
                     * state.zoom as f32
@@ -251,19 +260,42 @@ impl<'a> Widget for MiniMap<'a> {
                 }
 
                 Image::new(match &site.kind {
-                    SiteKind::Town => self.imgs.mmap_site_town,
-                    SiteKind::Dungeon { .. } => self.imgs.mmap_site_dungeon,
-                    SiteKind::Castle => self.imgs.mmap_site_castle,
+                    SiteKind::Town => self.imgs.mmap_site_town_bg,
+                    SiteKind::Dungeon { .. } => self.imgs.mmap_site_dungeon_bg,
+                    SiteKind::Castle => self.imgs.mmap_site_castle_bg,
                 })
                 .x_y_position_relative_to(
                     state.ids.grid,
                     position::Relative::Scalar(rpos.x as f64),
                     position::Relative::Scalar(rpos.y as f64),
                 )
-                .w_h(20.0 * tweak!(1.0), 20.0 * tweak!(1.0))
-                .color(Some(UI_HIGHLIGHT_0))
+                .w_h(20.0, 20.0)
+                .color(Some(
+                    match &site.kind {
+                        SiteKind::Town => Color::Rgba(1.0, 1.0, 1.0, 0.0),
+                        SiteKind::Castle => Color::Rgba(1.0, 1.0, 1.0, 0.0),
+                        SiteKind::Dungeon { difficulty } => match difficulty {
+                            0 => QUALITY_LOW,
+                            1 => QUALITY_COMMON,
+                            2 => QUALITY_MODERATE,
+                            3 => QUALITY_HIGH,
+                            4 => QUALITY_EPIC,
+                            5 => QUALITY_DEBUG,
+                            _ => Color::Rgba(1.0, 1.0, 1.0, 0.0),
+                        },
+                    },))
                 .floating(true)
                 .parent(ui.window)
+                .set(state.ids.mmap_site_icons_bgs[i], ui);
+                Image::new(match &site.kind {
+                    SiteKind::Town => self.imgs.mmap_site_town,
+                    SiteKind::Dungeon { .. } => self.imgs.mmap_site_dungeon,
+                    SiteKind::Castle => self.imgs.mmap_site_castle,
+                })
+                .middle_of(state.ids.mmap_site_icons_bgs[i])
+                .w_h(20.0, 20.0)
+                .color(Some(UI_HIGHLIGHT_0))
+                .floating(true)                
                 .set(state.ids.mmap_site_icons[i], ui);
             }
 
@@ -331,26 +363,25 @@ impl<'a> Widget for MiniMap<'a> {
         // TODO: Subregion name display
 
         // Title
-        
-        match self.client.current_chunk() {            
-            Some(chunk) => 
-            {
-            // Count characters in the name to avoid clipping with the name display
-            let name_len = chunk.meta().name().chars().count();            
-            Text::new(chunk.meta().name())
-                .mid_top_with_margin_on(state.ids.mmap_frame, match name_len {                    
-                    16..=30 => 4.0,      
-                    _ => 2.0,             
-                })
-                .font_size(self.fonts.cyri.scale(
-                    match name_len {
+
+        match self.client.current_chunk() {
+            Some(chunk) => {
+                // Count characters in the name to avoid clipping with the name display
+                let name_len = chunk.meta().name().chars().count();
+                Text::new(chunk.meta().name())
+                    .mid_top_with_margin_on(state.ids.mmap_frame, match name_len {
+                        16..=30 => 4.0,
+                        _ => 2.0,
+                    })
+                    .font_size(self.fonts.cyri.scale(match name_len {
                         0..=16 => 18,
                         16..=30 => 14,
                         _ => 14,
                     }))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(state.ids.mmap_location, ui)},
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(TEXT_COLOR)
+                    .set(state.ids.mmap_location, ui)
+            },
             None => Text::new(" ")
                 .mid_top_with_margin_on(state.ids.mmap_frame, 0.0)
                 .font_size(self.fonts.cyri.scale(18))

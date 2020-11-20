@@ -400,8 +400,17 @@ magischen Gegenstände ergattern?"#,
 
         "hud.free_look_indicator": "Freie Sicht aktiv",
         "hud.auto_walk_indicator": "Automatisches Laufen aktiv",
-
-
+        "hud.map.difficulty": "Schwierigkeit",
+        "hud.map.towns": "Dörfer",
+        "hud.map.castles": "Festungen",
+        "hud.map.dungeons": "Dungeons",
+        "hud.map.town": "Dorf",
+        "hud.map.castle": "Festung",
+        "hud.map.dungeon": "Dungeon",
+        "hud.map.difficulty_dungeon": "Dungeon\n\nSchwierigkeit: {difficulty}",
+        "hud.map.drag": "Ziehen",
+        "hud.map.zoom": "Zoomen",
+        "hud.map.recenter": "Zurücksetzen",
         /// End HUD section
         /// Start GameInput section
 
