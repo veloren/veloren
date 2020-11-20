@@ -67,7 +67,7 @@ impl CharacterBehavior for Data {
         handle_orientation(data, &mut update, 1.0);
         handle_move(data, &mut update, 0.1);
         if !ability_key_is_pressed(data, self.static_data.ability_key) {
-            handle_interrupt(data, &mut update, !self.static_data.is_interruptible);
+            handle_interrupt(data, &mut update, self.static_data.is_interruptible);
             match update.character {
                 CharacterState::DashMelee(_) => {},
                 _ => {
