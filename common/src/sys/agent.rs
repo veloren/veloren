@@ -392,8 +392,12 @@ impl<'a> System<'a> for Sys {
 
                             let eye_offset = body.map_or(0.0, |b| b.eye_height());
 
-                            let tgt_eye_offset =
+                            let mut tgt_eye_offset =
                                 bodies.get(*target).map_or(0.0, |b| b.eye_height());
+
+                            if tactic == Tactic::QuadMedJump {
+                                tgt_eye_offset += 2.0;
+                            }
 
                             let distance_offset = match tactic {
                                 Tactic::Bow => 0.0004 * pos.0.distance_squared(tgt_pos.0),
@@ -475,12 +479,10 @@ impl<'a> System<'a> for Sys {
                                     && dist_sqrd < (1.5 * MIN_ATTACK_DIST * scale).powf(2.0))
                                 || dist_sqrd < (MIN_ATTACK_DIST * scale).powf(2.0)
                             {
-                                controller.actions.push(ControlAction::Wield);
                                 // Movement
                                 match tactic {
                                     Tactic::Wolf | Tactic::Ram => {
                                         // Run away from target to get clear
-                                        controller.actions.push(ControlAction::Unwield);
                                         inputs.move_dir = (pos.0 - tgt_pos.0)
                                             .xy()
                                             .try_normalized()
@@ -502,7 +504,11 @@ impl<'a> System<'a> for Sys {
                                         inputs.move_dir = Vec2::zero();
                                     },
                                     Tactic::QuadMedJump => {
-                                        inputs.move_dir = Vec2::zero();
+                                        inputs.move_dir = (tgt_pos.0 - pos.0)
+                                            .xy()
+                                            .try_normalized()
+                                            .unwrap_or(Vec2::unit_y())
+                                            * 0.05;
                                     },
                                     _ => {
                                         inputs.move_dir = (tgt_pos.0 - pos.0)
@@ -601,29 +607,30 @@ impl<'a> System<'a> for Sys {
                                     && dist_sqrd < (16.0 * MIN_ATTACK_DIST * scale).powf(2.0)
                                     && dist_sqrd > (15.0 * MIN_ATTACK_DIST * scale).powf(2.0)
                             {
-                                if *powerup < 2.0 {
-                                    controller.actions.push(ControlAction::Unwield);
+                                let movement_interval = match tactic {
+                                    Tactic::Wolf => 2.0,
+                                    Tactic::Ram => 1.0,
+                                    _ => 4.0,
+                                };
+                                if *powerup < movement_interval {
                                     inputs.move_dir = (tgt_pos.0 - pos.0)
                                         .xy()
-                                        .rotated_z(0.45 * PI)
+                                        .rotated_z(0.47 * PI)
                                         .try_normalized()
                                         .unwrap_or(Vec2::unit_y());
                                     *powerup += dt.0;
-                                } else if *powerup < 2.5 {
-                                    controller.actions.push(ControlAction::Wield);
-                                    inputs.primary.set_state(true);
+                                } else if *powerup < movement_interval + 0.5 {
+                                    inputs.secondary.set_state(true);
                                     *powerup += dt.0;
-                                } else if *powerup < 4.5 {
-                                    controller.actions.push(ControlAction::Unwield);
+                                } else if *powerup < 2.0 * movement_interval + 0.5 {
                                     inputs.move_dir = (tgt_pos.0 - pos.0)
                                         .xy()
-                                        .rotated_z(-0.45 * PI)
+                                        .rotated_z(-0.47 * PI)
                                         .try_normalized()
                                         .unwrap_or(Vec2::unit_y());
                                     *powerup += dt.0;
-                                } else if *powerup < 5.0 {
-                                    controller.actions.push(ControlAction::Wield);
-                                    inputs.primary.set_state(true);
+                                } else if *powerup < 2.0 * movement_interval + 1.0 {
+                                    inputs.secondary.set_state(true);
                                     *powerup += dt.0;
                                 } else {
                                     *powerup = 0.0;
