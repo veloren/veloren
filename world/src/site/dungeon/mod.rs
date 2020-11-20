@@ -54,7 +54,7 @@ impl Dungeon {
     #[allow(clippy::let_and_return)] // TODO: Pending review in #587
     pub fn generate(wpos: Vec2<i32>, sim: Option<&WorldSim>, rng: &mut impl Rng) -> Self {
         let mut ctx = GenCtx { sim, rng };
-        let difficulty = ctx.rng.gen_range(0, 7);
+        let difficulty = ctx.rng.gen_range(0, 6);
         let this = Self {
             name: {
                 let name = NameGen::location(ctx.rng).generate();
