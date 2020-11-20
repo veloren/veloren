@@ -172,7 +172,8 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
     float cdist = max_dist;
     float ldist = cdist;
     // i is an emergency brake
-    for (int i = 0; cdist > 4 /* && i < 250 */; i ++) {
+    float min_dist = clamp(max_dist / 4, 0.25, 24);
+    for (int i = 0; cdist > min_dist && i < 250; i ++) {
         ldist = cdist;
         cdist = step_to_dist(trunc(dist_to_step(cdist - 0.25, quality)), quality);
 
