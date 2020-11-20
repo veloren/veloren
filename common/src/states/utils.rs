@@ -420,8 +420,8 @@ pub fn unwrap_tool_data<'a>(data: &'a JoinData) -> Option<&'a Tool> {
     }
 }
 
-pub fn handle_interrupt(data: &JoinData, update: &mut StateUpdate, only_dodge: bool) {
-    if !only_dodge {
+pub fn handle_interrupt(data: &JoinData, update: &mut StateUpdate, attacks_interrupt: bool) {
+    if attacks_interrupt {
         handle_ability1_input(data, update);
         handle_ability2_input(data, update);
         handle_ability3_input(data, update);

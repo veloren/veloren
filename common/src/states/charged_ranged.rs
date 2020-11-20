@@ -64,7 +64,7 @@ impl CharacterBehavior for Data {
         handle_move(data, &mut update, 0.3);
         handle_jump(data, &mut update);
         if !ability_key_is_pressed(data, self.static_data.ability_key) {
-            handle_interrupt(data, &mut update, true);
+            handle_interrupt(data, &mut update, false);
             match update.character {
                 CharacterState::ChargedRanged(_) => {},
                 _ => {
