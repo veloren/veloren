@@ -30,6 +30,8 @@ pub struct StaticData {
     pub forward_leap_strength: f32,
     /// Affects how high the player leaps
     pub vertical_leap_strength: f32,
+    /// What key is used to press ability
+    pub ability_key: AbilityKey,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -51,6 +53,15 @@ impl CharacterBehavior for Data {
 
         handle_move(data, &mut update, 0.3);
         handle_jump(data, &mut update);
+        if !ability_key_is_pressed(data, self.static_data.ability_key) {
+            handle_interrupt(data, &mut update, false);
+            match update.character {
+                CharacterState::LeapMelee(_) => {},
+                _ => {
+                    return update;
+                },
+            }
+        }
 
         match self.stage_section {
             // Delay before leaping into the air
