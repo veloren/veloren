@@ -7,7 +7,7 @@ LeapMelee(
     base_damage: 240,
     knockback: 12.0,
     range: 4.5,
-    max_angle: 30.0,
-    forward_leap_strength: 30.0,
-    vertical_leap_strength: 18.0,
+    max_angle: 180.0,
+    forward_leap_strength: 40.0,
+    vertical_leap_strength: 10.0,
 )

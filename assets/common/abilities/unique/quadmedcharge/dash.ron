@@ -9,7 +9,7 @@ DashMelee(
     energy_drain: 0,
     forward_speed: 2.0,
     buildup_duration: 500,
-    charge_duration: 1300,
+    charge_duration: 1200,
     swing_duration: 100,
     recover_duration: 500,
     infinite_charge: true,
