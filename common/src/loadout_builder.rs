@@ -109,12 +109,21 @@ impl LoadoutBuilder {
                             "common.items.npc_weapons.unique.quadmedquick",
                         ));
                     },
+                    quadruped_medium::Species::Donkey
+                    | quadruped_medium::Species::Horse
+                    | quadruped_medium::Species::Zebra
+                    | quadruped_medium::Species::Kelpie
+                    | quadruped_medium::Species::Antelope => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.quadmedhoof",
+                        ));
+                    },
                     quadruped_medium::Species::Saber => {
                         main_tool = Some(Item::new_from_asset_expect(
                             "common.items.npc_weapons.unique.quadmedjump",
                         ));
                     },
-                    quadruped_medium::Species::Tuskram => {
+                    quadruped_medium::Species::Tuskram | quadruped_medium::Species::Roshwalr => {
                         main_tool = Some(Item::new_from_asset_expect(
                             "common.items.npc_weapons.unique.quadmedcharge",
                         ));

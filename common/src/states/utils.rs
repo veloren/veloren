@@ -52,13 +52,13 @@ impl Body {
                 quadruped_medium::Species::Bonerattler => 130.0,
                 quadruped_medium::Species::Deer => 150.0,
                 quadruped_medium::Species::Hirdrasil => 160.0,
-                quadruped_medium::Species::Roshwalr => 75.0,
+                quadruped_medium::Species::Roshwalr => 160.0,
                 quadruped_medium::Species::Donkey => 110.0,
-                quadruped_medium::Species::Camel => 100.0,
-                quadruped_medium::Species::Zebra => 140.0,
-                quadruped_medium::Species::Antelope => 170.0,
-                quadruped_medium::Species::Kelpie => 175.0,
-                quadruped_medium::Species::Horse => 190.0,
+                quadruped_medium::Species::Camel => 75.0,
+                quadruped_medium::Species::Zebra => 150.0,
+                quadruped_medium::Species::Antelope => 185.0,
+                quadruped_medium::Species::Kelpie => 180.0,
+                quadruped_medium::Species::Horse => 180.0,
             },
             Body::BirdMedium(_) => 80.0,
             Body::FishMedium(_) => 50.0,
@@ -79,8 +79,8 @@ impl Body {
                 quadruped_low::Species::Rocksnapper => 70.0,
                 quadruped_low::Species::Pangolin => 120.0,
                 quadruped_low::Species::Maneater => 80.0,
-                quadruped_low::Species::Sandshark => 70.0,
-                quadruped_low::Species::Hakulaq => 170.0,
+                quadruped_low::Species::Sandshark => 160.0,
+                quadruped_low::Species::Hakulaq => 140.0,
             },
         }
     }
@@ -199,7 +199,7 @@ pub fn handle_forced_movement(
                 // Multiply decreasing amount linearly over time (with average of 1)
                 * 2.0 * progress
                 // Apply inputted movement directions with some efficiency
-                + (data.inputs.move_dir.try_normalized().unwrap_or_default() + update.vel.0.xy())
+                + (data.inputs.look_dir.try_normalized().unwrap_or_default()/* + update.vel.0.xy()*/)
                 .try_normalized()
                 .unwrap_or_default()
                 // Multiply by forward leap strength
