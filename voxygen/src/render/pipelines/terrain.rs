@@ -115,15 +115,18 @@ impl Vertex {
         //
         // However, we now have a problem. In the shader code with use hardware filtering to
         // get at the `light` and `glow` attributes (but not colour, that remains constant
-        // across a block). How to we resolve this if we're twiddling bits? The answer is to
+        // across a block). How do we resolve this if we're twiddling bits? The answer is to
         // very carefully manipulate the bit pattern such that the fields we want to filter
-        // (`light` and `glow`) always sit as the lower bits of the fields. Then, we can do
+        // (`light` and `glow`) always sit as the higher bits of the fields. Then, we can do
         // some modulation magic to extract them from the filtering unharmed and use
         // unfiltered texture access (i.e: `texelFetch`) to access the colours, plus a little
         // bit-fiddling.
+        //
+        // TODO: This isn't currently working (no idea why). See `srgb.glsl` for current impl
+        // that intead does manual bit-twiddling and filtering.
         [
-            ((col.r & 0b1110) << 4) | light.min(31),
-            ((col.b & 0b1110) << 4) | glow.min(31),
+            (light.min(31) << 3) | ((col.r & 0b1110) >> 1),
+            (glow.min(31) << 3) | ((col.r & 0b1110) >> 1),
             (col.r & 0b11110000) | (col.b >> 4),
             col.g, // Green is lucky, it remains unscathed
         ]
