@@ -1569,13 +1569,8 @@ fn handle_debug_column(
     let sampler = server.world.sample_columns();
     let mut wpos = Vec2::new(0, 0);
     if let Ok((x, y)) = scan_fmt!(&args, &action.arg_fmt(), i32, i32) {
-        //match server.state.read_component_copied::<comp::Pos>(target)
         wpos = Vec2::new(x, y);
-    }
-    /* let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
-        e / sz as i32
-    }); */
-    else {
+    } else {
         match server.state.read_component_copied::<comp::Pos>(target) {
             Some(pos) => wpos = pos.0.xy().map(|x| x as i32),
             None => server.notify_client(
@@ -1585,7 +1580,6 @@ fn handle_debug_column(
         }
     }
     let msg_generator = || {
-        // let sim_chunk = sim.get(chunk_pos)?;
         let alt = sim.get_interpolated(wpos, |chunk| chunk.alt)?;
         let basement = sim.get_interpolated(wpos, |chunk| chunk.basement)?;
         let water_alt = sim.get_interpolated(wpos, |chunk| chunk.water_alt)?;

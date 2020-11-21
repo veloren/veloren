@@ -26,15 +26,17 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
     chunk: &SimChunk,
     supplement: &mut ChunkSupplement,
 ) {
-    let scatter: &[(
-        fn(Vec3<f32>, &mut R) -> EntityInfo, // Entity
-        Range<usize>,                        // Group size range
-        bool,                                // Underwater?
-        fn(&SimChunk, &ColumnSample) -> f32, // Density
-    )] = &[
+    struct Entry<R> {
+        make_entity: fn(Vec3<f32>, &mut R) -> EntityInfo, // Entity
+        group_size: Range<usize>,                         // Group size range
+        is_underwater: bool,                              // Underwater?
+        get_density: fn(&SimChunk, &ColumnSample) -> f32, // Density
+    }
+
+    let scatter: &[Entry<R>] = &[
         // Tundra pack ennemies
-        (
-            |pos, rng| {
+        Entry {
+            make_entity: |pos, rng| {
                 EntityInfo::at(pos)
                     .with_body(match rng.gen_range(0, 3) {
                         0 => quadruped_medium::Body::random_with(
@@ -55,26 +57,26 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                     })
                     .with_alignment(Alignment::Enemy)
             },
-            1..4,
-            false,
-            |c, _col| close(c.temp, CONFIG.snow_temp, 0.3) * BASE_DENSITY * 1.0,
-        ),
+            group_size: 1..4,
+            is_underwater: false,
+            get_density: |c, _col| close(c.temp, CONFIG.snow_temp, 0.3) * BASE_DENSITY * 1.0,
+        },
         // Tundra rare solitary ennemies
-        (
-            |pos, rng| {
+        Entry {
+            make_entity: |pos, rng| {
                 EntityInfo::at(pos)
                     .with_body(
                         biped_large::Body::random_with(rng, &biped_large::Species::Wendigo).into(),
                     )
                     .with_alignment(Alignment::Enemy)
             },
-            1..2,
-            false,
-            |c, _col| close(c.temp, CONFIG.snow_temp, 0.15) * BASE_DENSITY * 0.1,
-        ),
+            group_size: 1..2,
+            is_underwater: false,
+            get_density: |c, _col| close(c.temp, CONFIG.snow_temp, 0.15) * BASE_DENSITY * 0.1,
+        },
         // Taiga pack ennemies
-        (
-            |pos, rng| {
+        Entry {
+            make_entity: |pos, rng| {
                 EntityInfo::at(pos)
                     .with_body(
                         quadruped_medium::Body::random_with(rng, &quadruped_medium::Species::Wolf)
@@ -82,15 +84,15 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                     )
                     .with_alignment(Alignment::Enemy)
             },
-            3..8,
-            false,
-            |c, col| {
+            group_size: 3..8,
+            is_underwater: false,
+            get_density: |c, col| {
                 close(c.temp, CONFIG.snow_temp + 0.2, 0.6) * col.tree_density * BASE_DENSITY * 1.0
             },
-        ),
+        },
         // Taiga pack wild
-        (
-            |pos, rng| {
+        Entry {
+            make_entity: |pos, rng| {
                 EntityInfo::at(pos)
                     .with_body(
                         quadruped_medium::Body::random_with(
@@ -101,13 +103,13 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                     )
                     .with_alignment(Alignment::Wild)
             },
-            1..4,
-            false,
-            |c, _col| close(c.temp, CONFIG.snow_temp + 0.2, 0.2) * BASE_DENSITY * 1.0,
-        ),
+            group_size: 1..4,
+            is_underwater: false,
+            get_density: |c, _col| close(c.temp, CONFIG.snow_temp + 0.2, 0.2) * BASE_DENSITY * 1.0,
+        },
         // Taiga solitary wild
-        (
-            |pos, rng| {
+        Entry {
+            make_entity: |pos, rng| {
                 EntityInfo::at(pos)
                     .with_body(match rng.gen_range(0, 5) {
                         0 => {
@@ -130,13 +132,13 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                     })
                     .with_alignment(Alignment::Wild)
             },
-            1..2,
-            false,
-            |c, _col| close(c.temp, CONFIG.snow_temp + 0.2, 0.6) * BASE_DENSITY * 5.0,
-        ),
+            group_size: 1..2,
+            is_underwater: false,
+            get_density: |c, _col| close(c.temp, CONFIG.snow_temp + 0.2, 0.6) * BASE_DENSITY * 5.0,
+        },
         // Temperate pack ennemies
-        (
-            |pos, rng| {
+        Entry {
+            make_entity: |pos, rng| {
                 EntityInfo::at(pos)
                     .with_body(match rng.gen_range(0, 2) {
                         0 => quadruped_medium::Body::random_with(
@@ -152,13 +154,13 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                     })
                     .with_alignment(Alignment::Enemy)
             },
-            1..2,
-            false,
-            |c, _col| close(c.temp, CONFIG.temperate_temp, 0.35) * BASE_DENSITY * 1.0,
-        ),
+            group_size: 1..2,
+            is_underwater: false,
+            get_density: |c, _col| close(c.temp, CONFIG.temperate_temp, 0.35) * BASE_DENSITY * 1.0,
+        },
         // Temperate pack wild
-        (
-            |pos, rng| {
+        Entry {
+            make_entity: |pos, rng| {
                 EntityInfo::at(pos)
                     .with_body(match rng.gen_range(0, 11) {
                         0 => quadruped_medium::Body::random_with(
@@ -212,19 +214,19 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                     })
                     .with_alignment(Alignment::Wild)
             },
-            1..8,
-            false,
-            |c, _col| {
+            group_size: 1..8,
+            is_underwater: false,
+            get_density: |c, _col| {
                 close(c.temp, CONFIG.temperate_temp, 0.5)
                     * close(c.humidity, CONFIG.forest_hum, 0.4)
                     //* col.tree_density
                     * BASE_DENSITY
                     * 4.0
             },
-        ),
+        },
         // Temperate solitary wild
-        (
-            |pos, rng| {
+        Entry {
+            make_entity: |pos, rng| {
                 EntityInfo::at(pos)
                     .with_body(match rng.gen_range(0, 15) {
                         0 => quadruped_small::Body {
@@ -297,18 +299,18 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                     })
                     .with_alignment(Alignment::Wild)
             },
-            1..2,
-            false,
-            |c, _col| {
+            group_size: 1..2,
+            is_underwater: false,
+            get_density: |c, _col| {
                 close(c.temp, CONFIG.temperate_temp, 0.5)
                     * BASE_DENSITY
                     * close(c.humidity, CONFIG.forest_hum, 0.4)
                     * 8.0
             },
-        ),
+        },
         // Rare temperate solitary enemies
-        (
-            |pos, rng| {
+        Entry {
+            make_entity: |pos, rng| {
                 EntityInfo::at(pos)
                     .with_body(match rng.gen_range(0, 4) {
                         0 => {
@@ -324,13 +326,13 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                     })
                     .with_alignment(Alignment::Enemy)
             },
-            1..2,
-            false,
-            |c, _col| close(c.temp, CONFIG.temperate_temp, 0.8) * BASE_DENSITY * 0.1,
-        ),
+            group_size: 1..2,
+            is_underwater: false,
+            get_density: |c, _col| close(c.temp, CONFIG.temperate_temp, 0.8) * BASE_DENSITY * 0.1,
+        },
         // Temperate river wildlife
-        (
-            |pos, rng| {
+        Entry {
+            make_entity: |pos, rng| {
                 EntityInfo::at(pos)
                     .with_body(match rng.gen_range(0, 3) {
                         0 => quadruped_small::Body::random_with(
@@ -349,9 +351,9 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                     })
                     .with_alignment(Alignment::Wild)
             },
-            1..2,
-            false,
-            |_c, col| {
+            group_size: 1..2,
+            is_underwater: false,
+            get_density: |_c, col| {
                 close(col.temp, CONFIG.temperate_temp, 0.6)
                     * if col.water_dist.map(|d| d < 10.0).unwrap_or(false) {
                         0.003
@@ -359,10 +361,10 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                         0.0
                     }
             },
-        ),
+        },
         // Temperate river ennemies
-        (
-            |pos, rng| {
+        Entry {
+            make_entity: |pos, rng| {
                 EntityInfo::at(pos)
                     .with_body(
                         quadruped_low::Body::random_with(rng, &quadruped_low::Species::Hakulaq)
@@ -370,9 +372,9 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                     )
                     .with_alignment(Alignment::Enemy)
             },
-            1..2,
-            false,
-            |_c, col| {
+            group_size: 1..2,
+            is_underwater: false,
+            get_density: |_c, col| {
                 close(col.temp, CONFIG.temperate_temp, 0.6)
                     * if col.water_dist.map(|d| d < 10.0).unwrap_or(false) {
                         0.0001
@@ -380,10 +382,10 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                         0.0
                     }
             },
-        ),
+        },
         // Tropical rock solitary ennemies
-        (
-            |pos, rng| {
+        Entry {
+            make_entity: |pos, rng| {
                 EntityInfo::at(pos)
                     .with_body(
                         quadruped_small::Body::random_with(
@@ -394,13 +396,15 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                     )
                     .with_alignment(Alignment::Enemy)
             },
-            1..2,
-            false,
-            |c, col| close(c.temp, CONFIG.tropical_temp + 0.1, 0.5) * col.rock * BASE_DENSITY * 5.0,
-        ),
+            group_size: 1..2,
+            is_underwater: false,
+            get_density: |c, col| {
+                close(c.temp, CONFIG.tropical_temp + 0.1, 0.5) * col.rock * BASE_DENSITY * 5.0
+            },
+        },
         // Jungle solitary ennemies
-        (
-            |pos, rng| {
+        Entry {
+            make_entity: |pos, rng| {
                 EntityInfo::at(pos)
                     .with_body(match rng.gen_range(0, 3) {
                         0 => {
@@ -420,18 +424,18 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                     })
                     .with_alignment(Alignment::Enemy)
             },
-            1..2,
-            false,
-            |c, _col| {
+            group_size: 1..2,
+            is_underwater: false,
+            get_density: |c, _col| {
                 close(c.temp, CONFIG.tropical_temp + 0.1, 0.4)
                     * close(c.humidity, CONFIG.jungle_hum, 0.3)
                     * BASE_DENSITY
                     * 4.0
             },
-        ),
+        },
         // Jungle solitary wild
-        (
-            |pos, rng| {
+        Entry {
+            make_entity: |pos, rng| {
                 EntityInfo::at(pos)
                     .with_body(match rng.gen_range(0, 3) {
                         0 => bird_medium::Body::random_with(rng, &bird_medium::Species::Parrot)
@@ -447,18 +451,18 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                     })
                     .with_alignment(Alignment::Wild)
             },
-            1..2,
-            false,
-            |c, _col| {
+            group_size: 1..2,
+            is_underwater: false,
+            get_density: |c, _col| {
                 close(c.temp, CONFIG.tropical_temp, 0.5)
                     * close(c.humidity, CONFIG.jungle_hum, 0.3)
                     * BASE_DENSITY
                     * 8.0
             },
-        ),
+        },
         // Tropical rare river enemy
-        (
-            |pos, rng| {
+        Entry {
+            make_entity: |pos, rng| {
                 EntityInfo::at(pos)
                     .with_body(match rng.gen_range(0, 2) {
                         // WE GROW 'EM BIG 'ERE
@@ -475,9 +479,9 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                     })
                     .with_alignment(Alignment::Enemy)
             },
-            1..3,
-            false,
-            |_c, col| {
+            group_size: 1..3,
+            is_underwater: false,
+            get_density: |_c, col| {
                 close(col.temp, CONFIG.tropical_temp + 0.2, 0.5)
                     * if col.water_dist.map(|d| d < 10.0).unwrap_or(false) {
                         0.0002
@@ -485,10 +489,10 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                         0.0
                     }
             },
-        ),
+        },
         // Tropical rare river wild
-        (
-            |pos, rng| {
+        Entry {
+            make_entity: |pos, rng| {
                 EntityInfo::at(pos)
                     .with_body(match rng.gen_range(0, 3) {
                         0 => {
@@ -508,9 +512,9 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                     })
                     .with_alignment(Alignment::Wild)
             },
-            1..3,
-            false,
-            |_c, col| {
+            group_size: 1..3,
+            is_underwater: false,
+            get_density: |_c, col| {
                 close(col.temp, CONFIG.tropical_temp, 0.5)
                     * if col.water_dist.map(|d| d < 10.0).unwrap_or(false) {
                         0.001
@@ -518,10 +522,10 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                         0.0
                     }
             },
-        ),
+        },
         // Tropical pack enemies
-        (
-            |pos, rng| {
+        Entry {
+            make_entity: |pos, rng| {
                 EntityInfo::at(pos)
                     .with_body(match rng.gen_range(0, 2) {
                         0 => quadruped_medium::Body::random_with(
@@ -537,18 +541,18 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                     })
                     .with_alignment(Alignment::Enemy)
             },
-            1..3,
-            false,
-            |c, _col| {
+            group_size: 1..3,
+            is_underwater: false,
+            get_density: |c, _col| {
                 close(c.temp, CONFIG.tropical_temp + 0.1, 0.4)
                     * close(c.humidity, CONFIG.desert_hum, 0.4)
                     * BASE_DENSITY
                     * 2.0
             },
-        ),
+        },
         // Desert pack wild
-        (
-            |pos, rng| {
+        Entry {
+            make_entity: |pos, rng| {
                 EntityInfo::at(pos)
                     .with_body(
                         quadruped_medium::Body::random_with(
@@ -559,18 +563,18 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                     )
                     .with_alignment(Alignment::Wild)
             },
-            3..8,
-            false,
-            |c, _col| {
+            group_size: 3..8,
+            is_underwater: false,
+            get_density: |c, _col| {
                 close(c.temp, CONFIG.tropical_temp + 0.1, 0.4)
                     * close(c.humidity, CONFIG.desert_hum, 0.4)
                     * BASE_DENSITY
                     * 1.0
             },
-        ),
+        },
         // Desert solitary enemies
-        (
-            |pos, rng| {
+        Entry {
+            make_entity: |pos, rng| {
                 EntityInfo::at(pos)
                     .with_body(match rng.gen_range(0, 2) {
                         0 => quadruped_medium::Body::random_with(
@@ -586,18 +590,18 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                     })
                     .with_alignment(Alignment::Enemy)
             },
-            1..2,
-            false,
-            |c, _col| {
+            group_size: 1..2,
+            is_underwater: false,
+            get_density: |c, _col| {
                 close(c.temp, CONFIG.desert_temp + 0.2, 0.3)
                     * close(c.humidity, CONFIG.desert_hum, 0.5)
                     * BASE_DENSITY
                     * 1.5
             },
-        ),
+        },
         // Desert solitary wild
-        (
-            |pos, rng| {
+        Entry {
+            make_entity: |pos, rng| {
                 EntityInfo::at(pos)
                     .with_body(match rng.gen_range(0, 5) {
                         0 => quadruped_small::Body::random_with(
@@ -627,10 +631,12 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                     })
                     .with_alignment(Alignment::Wild)
             },
-            1..2,
-            false,
-            |c, _col| close(c.temp, CONFIG.desert_temp + 0.2, 0.3) * BASE_DENSITY * 5.0,
-        ),
+            group_size: 1..2,
+            is_underwater: false,
+            get_density: |c, _col| {
+                close(c.temp, CONFIG.desert_temp + 0.2, 0.3) * BASE_DENSITY * 5.0
+            },
+        },
     ];
 
     for y in 0..vol.size_xy().y as i32 {
@@ -649,8 +655,16 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             let underwater = col_sample.water_level > col_sample.alt;
 
             let entity_group = scatter.iter().enumerate().find_map(
-                |(_i, (make_entity, group_size, is_underwater, f))| {
-                    let density = f(chunk, col_sample);
+                |(
+                    _i,
+                    Entry {
+                        make_entity,
+                        group_size,
+                        is_underwater,
+                        get_density,
+                    },
+                )| {
+                    let density = get_density(chunk, col_sample);
                     if density > 0.0
                         && dynamic_rng.gen::<f32>() < density
                         && underwater == *is_underwater
