@@ -61,6 +61,8 @@ pub struct TerrainChunkData {
     opaque_model: Model<TerrainPipeline>,
     fluid_model: Option<Model<FluidPipeline>>,
     col_lights: guillotiere::AllocId,
+    light_map: Box<dyn Fn(Vec3<i32>) -> f32 + Send + Sync>,
+    glow_map: Box<dyn Fn(Vec3<i32>) -> f32 + Send + Sync>,
     sprite_instances: HashMap<(SpriteKind, usize), Instances<SpriteInstance>>,
     locals: Consts<TerrainLocals>,
     pub blocks_of_interest: BlocksOfInterest,
@@ -87,6 +89,8 @@ struct MeshWorkerResponse {
     opaque_mesh: Mesh<TerrainPipeline>,
     fluid_mesh: Mesh<FluidPipeline>,
     col_lights_info: ColLightInfo,
+    light_map: Box<dyn Fn(Vec3<i32>) -> f32 + Send + Sync>,
+    glow_map: Box<dyn Fn(Vec3<i32>) -> f32 + Send + Sync>,
     sprite_instances: HashMap<(SpriteKind, usize), Vec<SpriteInstance>>,
     started_tick: u64,
     blocks_of_interest: BlocksOfInterest,
@@ -126,7 +130,7 @@ type SpriteSpec = sprite::sprite_kind::PureCases<Option<SpriteConfig<String>>>;
 /// Function executed by worker threads dedicated to chunk meshing.
 #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
 
-fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
+fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug + 'static>(
     pos: Vec2<i32>,
     z_bounds: (f32, f32),
     started_tick: u64,
@@ -139,7 +143,7 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
 ) -> MeshWorkerResponse {
     span!(_guard, "mesh_worker");
     let blocks_of_interest = BlocksOfInterest::from_chunk(&chunk);
-    let (opaque_mesh, fluid_mesh, _shadow_mesh, (bounds, col_lights_info)) =
+    let (opaque_mesh, fluid_mesh, _shadow_mesh, (bounds, col_lights_info, light_map, glow_map)) =
         volume.generate_mesh((range, Vec2::new(max_texture_size, max_texture_size), &blocks_of_interest));
     MeshWorkerResponse {
         pos,
@@ -190,6 +194,8 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
                                 cfg.wind_sway,
                                 rel_pos,
                                 ori,
+                                light_map(wpos),
+                                glow_map(wpos),
                             );
 
                             instances.entry(key).or_insert(Vec::new()).push(instance);
@@ -200,6 +206,8 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
 
             instances
         },
+        light_map,
+        glow_map,
         blocks_of_interest,
         started_tick,
     }
@@ -213,7 +221,7 @@ struct SpriteData {
     offset: Vec3<f32>,
 }
 
-pub struct Terrain<V: RectRasterableVol> {
+pub struct Terrain<V: RectRasterableVol = TerrainChunk> {
     atlas: AtlasAllocator,
     sprite_config: Arc<SpriteSpec>,
     chunks: HashMap<Vec2<i32>, TerrainChunkData>,
@@ -460,6 +468,18 @@ impl<V: RectRasterableVol> Terrain<V> {
         if let Some(_todo) = self.mesh_todo.remove(&pos) {
             //Do nothing on todo mesh removal.
         }
+    }
+
+    /// Find the light level (sunlight) at the given world position.
+    pub fn light_at_wpos(&self, wpos: Vec3<i32>) -> f32 {
+        let chunk_pos = Vec2::from(wpos).map2(TerrainChunk::RECT_SIZE, |e: i32, sz| e.div_euclid(sz as i32));
+        self.chunks.get(&chunk_pos).map(|c| (c.light_map)(wpos)).unwrap_or(1.0)
+    }
+
+    /// Find the glow level (light from lamps) at the given world position.
+    pub fn glow_at_wpos(&self, wpos: Vec3<i32>) -> f32 {
+        let chunk_pos = Vec2::from(wpos).map2(TerrainChunk::RECT_SIZE, |e: i32, sz| e.div_euclid(sz as i32));
+        self.chunks.get(&chunk_pos).map(|c| (c.glow_map)(wpos)).unwrap_or(0.0)
     }
 
     /// Maintain terrain data. To be called once per tick.
@@ -732,6 +752,8 @@ impl<V: RectRasterableVol> Terrain<V> {
                             None
                         },
                         col_lights: allocation.id,
+                        light_map: response.light_map,
+                        glow_map: response.glow_map,
                         sprite_instances: response
                             .sprite_instances
                             .into_iter()

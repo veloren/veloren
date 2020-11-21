@@ -13,6 +13,7 @@ use crate::{
     scene::{
         camera::{Camera, CameraMode, Dependents},
         math, LodData, SceneData,
+        terrain::Terrain,
     },
 };
 use anim::{
@@ -455,6 +456,7 @@ impl FigureMgr {
         // Visible chunk data.
         visible_psr_bounds: math::Aabr<f32>,
         camera: &Camera,
+        terrain: Option<&Terrain>,
     ) -> anim::vek::Aabb<f32> {
         span!(_guard, "maintain", "FigureManager::maintain");
         let state = scene_data.state;
@@ -1329,6 +1331,7 @@ impl FigureMgr {
                         is_player,
                         camera,
                         &mut update_buf,
+                        terrain,
                     );
                 },
                 Body::QuadrupedSmall(body) => {
@@ -1439,6 +1442,7 @@ impl FigureMgr {
                         is_player,
                         camera,
                         &mut update_buf,
+                        terrain,
                     );
                 },
                 Body::QuadrupedMedium(body) => {
@@ -1560,6 +1564,7 @@ impl FigureMgr {
                         is_player,
                         camera,
                         &mut update_buf,
+                        terrain,
                     );
                 },
                 Body::QuadrupedLow(body) => {
@@ -1668,6 +1673,7 @@ impl FigureMgr {
                         is_player,
                         camera,
                         &mut update_buf,
+                        terrain,
                     );
                 },
                 Body::BirdMedium(body) => {
@@ -1773,6 +1779,7 @@ impl FigureMgr {
                         is_player,
                         camera,
                         &mut update_buf,
+                        terrain,
                     );
                 },
                 Body::FishMedium(body) => {
@@ -1859,6 +1866,7 @@ impl FigureMgr {
                         is_player,
                         camera,
                         &mut update_buf,
+                        terrain,
                     );
                 },
                 Body::Dragon(body) => {
@@ -1941,6 +1949,7 @@ impl FigureMgr {
                         is_player,
                         camera,
                         &mut update_buf,
+                        terrain,
                     );
                 },
                 Body::Theropod(body) => {
@@ -2025,6 +2034,7 @@ impl FigureMgr {
                         is_player,
                         camera,
                         &mut update_buf,
+                        terrain,
                     );
                 },
                 Body::BirdSmall(body) => {
@@ -2111,6 +2121,7 @@ impl FigureMgr {
                         is_player,
                         camera,
                         &mut update_buf,
+                        terrain,
                     );
                 },
                 Body::FishSmall(body) => {
@@ -2197,6 +2208,7 @@ impl FigureMgr {
                         is_player,
                         camera,
                         &mut update_buf,
+                        terrain,
                     );
                 },
                 Body::BipedLarge(body) => {
@@ -2603,6 +2615,7 @@ impl FigureMgr {
                         is_player,
                         camera,
                         &mut update_buf,
+                        terrain,
                     );
                 },
                 Body::Golem(body) => {
@@ -2707,6 +2720,7 @@ impl FigureMgr {
                         is_player,
                         camera,
                         &mut update_buf,
+                        terrain,
                     );
                 },
                 Body::Object(body) => {
@@ -2740,6 +2754,7 @@ impl FigureMgr {
                         is_player,
                         camera,
                         &mut update_buf,
+                        terrain,
                     );
                 },
             }
@@ -3393,6 +3408,7 @@ impl<S: Skeleton> FigureState<S> {
         is_player: bool,
         _camera: &Camera,
         buf: &mut [anim::FigureBoneData; anim::MAX_BONE_COUNT],
+        terrain: Option<&Terrain>,
     ) {
         // NOTE: As long as update() always gets called after get_or_create_model(), and
         // visibility is not set again until after the model is rendered, we
@@ -3429,12 +3445,23 @@ impl<S: Skeleton> FigureState<S> {
             * anim::vek::Mat4::scaling_3d(anim::vek::Vec3::from(0.8 * scale));
 
         let atlas_offs = model.allocation.rectangle.min;
+
+        let (light, glow) = terrain
+            .map(|t| {
+                // Sample the location a little above to avoid clipping into terrain
+                let wpos = (Vec3::from(pos.into_array()) + Vec3::unit_z() * 0.5).map(|e: f32| e.floor() as i32);
+                (t.light_at_wpos(wpos), t.glow_at_wpos(wpos))
+            })
+            .unwrap_or((1.0, 0.0));
+
         let locals = FigureLocals::new(
             mat,
-            col,
+            col.rgb(),
             pos,
             vek::Vec2::new(atlas_offs.x, atlas_offs.y),
             is_player,
+            light,
+            glow,
         );
         renderer.update_consts(&mut self.locals, &[locals]).unwrap();
 

@@ -21,6 +21,7 @@ flat in vec3 f_norm;
 flat in float f_light;
 // flat in vec3 f_pos_norm;
 in vec2 f_uv_pos;
+in vec2 f_inst_light;
 // flat in uint f_atlas_pos;
 // in vec3 f_col;
 // in float f_ao;
@@ -133,6 +134,10 @@ void main() {
 
     vec3 emitted_light, reflected_light;
 
+    // Make voxel shadows block the sun and moon
+    sun_info.block = f_inst_light.x;
+    moon_info.block = f_inst_light.x;
+
     // To account for prior saturation.
     // float vert_light = pow(f_light, 1.5);
     // vec3 light_frac = light_reflection_factor(f_norm/*vec3(0, 0, 1.0)*/, view_dir, vec3(0, 0, -1.0), vec3(1.0), vec3(R_s), alpha);
@@ -169,6 +174,9 @@ void main() {
     reflected_light += point_light; */
 
     // float ao = /*pow(f_ao, 0.5)*/f_ao * 0.85 + 0.15;
+    float glow = f_inst_light.y;
+    emitted_light += glow;
+
     float ao = f_ao;
     emitted_light *= ao;
     reflected_light *= ao;

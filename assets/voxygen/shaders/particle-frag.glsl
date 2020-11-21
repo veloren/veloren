@@ -66,6 +66,13 @@ void main() {
 
     vec3 emitted_light, reflected_light;
 
+    // This is a bit of a hack. Because we can't find the volumetric lighting of each particle (they don't talk to the
+    // CPU) we need to some how find an approximation of how much the sun is blocked. We do this by fading out the sun
+    // as the particle moves underground. This isn't perfect, but it does at least mean that particles don't look like
+    // they're exposed to the sun when in dungeons
+    const float SUN_FADEOUT_DIST = 20.0;
+    sun_info.block *= clamp((f_pos.z - f_alt) / SUN_FADEOUT_DIST + 1, 0, 1);
+
     // To account for prior saturation.
     float max_light = 0.0;
     max_light += get_sun_diffuse2(sun_info, moon_info, f_norm, view_dir, k_a, k_d, k_s, alpha, emitted_light, reflected_light);

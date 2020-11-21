@@ -261,11 +261,14 @@ void main() {
     // emitted_light *= f_light * point_shadow * max(shade_frac, MIN_SHADOW);
     // reflected_light *= f_light * point_shadow * shade_frac;
     // max_light *= f_light * point_shadow * shade_frac;
-    emitted_light += pow(f_glow, 5) * 16;
-    reflected_light += pow(f_glow, 5) * 16;
     emitted_light *= f_light;
     reflected_light *= f_light;
     max_light *= f_light;
+
+    // TODO: Apply AO after this
+    float l = pow(f_glow, 6) * 8 + pow(f_glow, 2) * 0.5;
+    emitted_light += l;
+    reflected_light += l;
 
     max_light += lights_at(f_pos, f_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
 
