@@ -80,6 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Made settings less likely to reset when the format changes
 - Adjusted some keybindings
 - Consumables can now trigger multiple effects and buffs
+- Overhauled overworld spawns depending on chunk attributes
 
 ### Removed
 
