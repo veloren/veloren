@@ -434,7 +434,7 @@ fn handle_time(
             Ok(n) => n,
             Err(_) => match NaiveTime::parse_from_str(n, "%H:%M") {
                 Ok(time) => time.num_seconds_from_midnight() as f64,
-                // Accept `u12345`, seconds since midnight day 0`
+                // Accept `u12345`, seconds since midnight day 0
                 Err(_) => match n
                     .get(1..)
                     .filter(|_| n.chars().next() == Some('u'))

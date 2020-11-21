@@ -27,6 +27,7 @@ use rand::Rng;
 ///     .build();
 /// ```
 
+#[derive(Copy, Clone)]
 pub enum LoadoutConfig {
     Guard,
     Cultist,

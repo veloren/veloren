@@ -181,6 +181,9 @@ impl Block {
             .unwrap_or(true)
     }
 
+    /// Can this block be exploded? If so, what 'power' is required to do so?
+    /// Note that we don't really define what 'power' is. Consider the units
+    /// arbitrary and only important when compared to one-another.
     #[inline]
     pub fn explode_power(&self) -> Option<f32> {
         match self.kind() {
