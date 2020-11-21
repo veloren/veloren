@@ -1,4 +1,4 @@
-((    
+((
     default: (
         vox_spec: ("armor.foot.foot_none", (-2.5, -3.5, -2.0)),
         color: None
@@ -11,7 +11,7 @@
         "Assassin": (
             vox_spec: ("armor.foot.assa", (-2.5, -3.5, -2.0)),
             color: None
-        ),        
+        ),
         "Jester": (
             vox_spec: ("armor.foot.dark_jester-elf_shoe", (-2.5, -3.0, -2.0)),
             color: None
@@ -83,6 +83,14 @@
         "VeloriteMage0": (
           vox_spec: ("armor.foot.velorite_battlemage", (-2.5, -3.5, -2.0)),
           color: None
-      ),
+        ),
+        "Warlord": (
+          vox_spec: ("armor.foot.warlord", (-2.5, -3.5, -2.0)),
+          color: None
+        ),
+        "Warlock": (
+          vox_spec: ("armor.foot.warlock", (-2.5, -3.5, -2.0)),
+          color: None
+        ),
     },
 ))

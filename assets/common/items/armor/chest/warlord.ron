@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Warlord Cuirass",
+    description: "Belong to a mighty warlord.",
+    kind: Armor(
+        (
+            kind: Chest("Warlord"),
+            stats: (
+                protection: Normal(40.0)
+                ),            
+        )
+    ),
+    quality: Moderate,
+)

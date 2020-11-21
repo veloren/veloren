@@ -587,88 +587,106 @@ impl Floor {
                         //.do_if(is_giant, |e| e.into_giant())
                         .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
                         .with_alignment(comp::Alignment::Enemy)
-                        .with_config(common::loadout_builder::LoadoutConfig::Cultist)
+                        .with_config(common::loadout_builder::LoadoutConfig::CultistAcolyte)
                         .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                         .with_level(dynamic_rng.gen_range(
                             (room.difficulty as f32).powf(1.25) + 3.0,
                             (room.difficulty as f32).powf(1.5) + 4.0,
                         ).round() as u32);
                         let entity = match room.difficulty {
-                            0 => entity.with_name("Outcast").with_main_tool(
+                            0 => entity.with_name("Outcast")
+                            .with_config(common::loadout_builder::LoadoutConfig::Outcast)
+                            .with_main_tool(
                                 comp::Item::new_from_asset_expect(
                                     match dynamic_rng.gen_range(0, 6) {
-                                        0 => "common.items.npc_weapons.axe.malachite_axe-0",
-                                        1 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
-                                        2 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
-                                        3 => "common.items.npc_weapons.hammer.cultist_purp_2h-0",
-                                        4 => "common.items.npc_weapons.staff.cultist_staff",
-                                        _ => "common.items.npc_weapons.bow.horn_longbow-0",
+                                        0 => "common.items.weapons.axe.starter_axe",
+                                        1 => "common.items.weapons.sword.starter_sword",
+                                        2 => "common.items.weapons.sword.starter_sword",
+                                        3 => "common.items.weapons.hammer.starter_hammer",
+                                        4 => "common.items.weapons.staff.starter_staff",
+                                        _ => "common.items.weapons.bow.starter_bow",
                                     },
                                 ),
                             ),
-                            1 => entity.with_name("Highwayman").with_main_tool(
+                            1 => entity.with_name("Highwayman")
+                            .with_config(common::loadout_builder::LoadoutConfig::Highwayman)
+                            .with_main_tool(
                                 comp::Item::new_from_asset_expect(
                                     match dynamic_rng.gen_range(0, 6) {
-                                        0 => "common.items.npc_weapons.axe.malachite_axe-0",
-                                        1 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
-                                        2 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
-                                        3 => "common.items.npc_weapons.hammer.cultist_purp_2h-0",
-                                        4 => "common.items.npc_weapons.staff.cultist_staff",
-                                        _ => "common.items.npc_weapons.bow.horn_longbow-0",
+                                        0 => "common.items.weapons.axe.worn_iron_axe-0",
+                                        1 => "common.items.weapons.sword.zweihander_sword_0",
+                                        2 => "common.items.weapons.sword.zweihander_sword_0",
+                                        3 => "common.items.weapons.hammer.worn_iron_hammer-0",
+                                        4 => "common.items.weapons.staff.bone_staff",
+                                        _ => "common.items.weapons.bow.wood_shortbow-1",
                                     },
                                 ),
                             ),
-                            2 => entity.with_name("Bandit").with_main_tool(
+                            2 => entity.with_name("Bandit")
+                            .with_config(common::loadout_builder::LoadoutConfig::Bandit)
+                            .with_main_tool(
                                 comp::Item::new_from_asset_expect(
                                     match dynamic_rng.gen_range(0, 6) {
-                                        0 => "common.items.npc_weapons.axe.malachite_axe-0",
-                                        1 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
-                                        2 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
-                                        3 => "common.items.npc_weapons.hammer.cultist_purp_2h-0",
-                                        4 => "common.items.npc_weapons.staff.cultist_staff",
-                                        _ => "common.items.npc_weapons.bow.horn_longbow-0",
+                                        0 => "common.items.weapons.axe.bronze_axe-0",
+                                        1 => "common.items.weapons.sword.greatsword_2h_simple-0",
+                                        2 => "common.items.weapons.sword.cultist_purp_2h-0",
+                                        3 => "common.items.weapons.hammer.bronze_hammer-0",
+                                        4 => "common.items.weapons.staff.bone_staff",
+                                        _ => "common.items.weapons.bow.wood_longbow-0",
                                     },
                                 ),
                             ),
-                            3 => entity.with_name("Cultist Novice").with_main_tool(
+                            3 => entity.with_name("Cultist Novice")
+                            .with_config(common::loadout_builder::LoadoutConfig::CultistNovice)
+                            .with_main_tool(
                                 comp::Item::new_from_asset_expect(
                                     match dynamic_rng.gen_range(0, 6) {
-                                        0 => "common.items.npc_weapons.axe.malachite_axe-0",
-                                        1 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
-                                        2 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
-                                        3 => "common.items.npc_weapons.hammer.cultist_purp_2h-0",
-                                        4 => "common.items.npc_weapons.staff.cultist_staff",
-                                        _ => "common.items.npc_weapons.bow.horn_longbow-0",
+                                        0 => "common.items.weapons.axe.steel_axe-0",
+                                        1 => "common.items.weapons.sword.long_2h_orn-0",
+                                        2 => "common.items.weapons.sword.long_2h_orn-0",
+                                        3 => "common.items.weapons.hammer.cobalt_hammer-0",
+                                        4 => "common.items.weapons.staff.amethyst_staff",
+                                        _ => "common.items.weapons.bow.horn_longbow-0",
                                     },
                                 ),
                             ),
-                            4 => entity.with_name("Cultist Acolyte").with_main_tool(
+                            4 => entity.with_name("Cultist Acolyte")
+                            .with_config(common::loadout_builder::LoadoutConfig::CultistAcolyte)
+                            .with_main_tool(
                                 comp::Item::new_from_asset_expect(
                                     match dynamic_rng.gen_range(0, 6) {
-                                        0 => "common.items.npc_weapons.axe.malachite_axe-0",
-                                        1 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
-                                        2 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
-                                        3 => "common.items.npc_weapons.hammer.cultist_purp_2h-0",
-                                        4 => "common.items.npc_weapons.staff.cultist_staff",
-                                        _ => "common.items.npc_weapons.bow.horn_longbow-0",
+                                        0 => "common.items.weapons.axe.malachite_axe-0",
+                                        1 => "common.items.weapons.sword.cultist_purp_2h-0",
+                                        2 => "common.items.weapons.sword.cultist_purp_2h-0",
+                                        3 => "common.items.weapons.hammer.cultist_purp_2h-0",
+                                        4 => "common.items.weapons.staff.cultist_staff",
+                                        _ => "common.items.weapons.bow.horn_longbow-0",
                                     },
                                 ),
                             ),
-                            5 => entity.with_name("Cultist Elite").with_main_tool(
-                                comp::Item::new_from_asset_expect(
-                                    match dynamic_rng.gen_range(0, 6) {
-                                        0 => "common.items.npc_weapons.axe.malachite_axe-0",
-                                        1 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
-                                        2 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
-                                        3 => "common.items.npc_weapons.hammer.cultist_purp_2h-0",
-                                        4 => "common.items.npc_weapons.staff.cultist_staff",
-                                        _ => "common.items.npc_weapons.bow.horn_longbow-0",
-                                    },
+                            5 => match dynamic_rng.gen_range(0, 6) {
+                                0 => entity.with_name("Cultist Warlock")
+                                .with_config(common::loadout_builder::LoadoutConfig::Warlock)
+                                .with_main_tool(
+                                    comp::Item::new_from_asset_expect("common.items.npc_weapons.staff.cultist_staff"),
                                 ),
-                            ),
+                                _ => entity.with_name("Cultist Warlord")
+                                .with_config(common::loadout_builder::LoadoutConfig::Warlord)
+                                .with_main_tool(
+                                    comp::Item::new_from_asset_expect(
+                                        match dynamic_rng.gen_range(0, 5) {
+                                            0 => "common.items.weapons.axe.malachite_axe-0",
+                                            1 => "common.items.weapons.sword.cultist_purp_2h-0",
+                                            2 => "common.items.weapons.sword.cultist_purp_2h-0",
+                                            3 => "common.items.weapons.hammer.cultist_purp_2h-0",
+                                            _ => "common.items.weapons.bow.horn_longbow-0",
+                                        },
+                                    ),
+                                ),
+                            },
                             _ => entity.with_name("Humanoid").with_main_tool(
                                 comp::Item::new_from_asset_expect(
-                                    "common.items.npc_weapons.bow.horn_longbow-0",
+                                    "common.items.weapons.bow.horn_longbow-0",
                                 ),
                             ),
                         };
