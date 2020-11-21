@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Warlock Belt",
+    description: "Belong to a mighty warlock.",
+    kind: Armor(
+        (
+            kind: Belt("Warlock"),
+            stats: (
+                protection: Normal(8.0)
+                ),            
+        )
+    ),
+    quality: Moderate,
+)
