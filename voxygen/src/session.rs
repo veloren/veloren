@@ -21,7 +21,10 @@ use common::{
     outcome::Outcome,
     span,
     terrain::{Block, BlockKind},
-    util::Dir,
+    util::{
+        find_dist::{Cube, Cylinder, FindDist},
+        Dir,
+    },
     vol::ReadVol,
 };
 use ordered_float::OrderedFloat;
@@ -54,6 +57,7 @@ pub struct SessionState {
     is_aiming: bool,
     target_entity: Option<specs::Entity>,
     selected_entity: Option<(specs::Entity, std::time::Instant)>,
+    interactable: Option<Interactable>,
 }
 
 /// Represents an active game session (i.e., the one being played).
@@ -94,6 +98,7 @@ impl SessionState {
             is_aiming: false,
             target_entity: None,
             selected_entity: None,
+            interactable: None,
         }
     }
 
@@ -273,9 +278,9 @@ impl PlayState for SessionState {
                 .get(self.client.borrow().entity())
                 .is_some();
 
-            let interactable = select_interactable(
+            self.interactable = select_interactable(
                 &self.client.borrow(),
-                self.target_entity,
+                target_entity,
                 select_pos,
                 &self.scene,
             );
@@ -283,14 +288,12 @@ impl PlayState for SessionState {
             // Only highlight interactables
             // unless in build mode where select_pos highlighted
             self.scene
-                .set_select_pos(
-                    select_pos
-                        .filter(|_| can_build)
-                        .or_else(|| match interactable {
-                            Some(Interactable::Block(_, block_pos)) => Some(block_pos),
-                            _ => None,
-                        }),
-                );
+                .set_select_pos(select_pos.filter(|_| can_build).or_else(
+                    || match self.interactable {
+                        Some(Interactable::Block(_, block_pos)) => Some(block_pos),
+                        _ => None,
+                    },
+                ));
 
             // Handle window events.
             for event in events {
@@ -496,7 +499,7 @@ impl PlayState for SessionState {
                         self.key_state.collect = state;
 
                         if state {
-                            if let Some(interactable) = interactable {
+                            if let Some(interactable) = self.interactable {
                                 let mut client = self.client.borrow_mut();
                                 match interactable {
                                     Interactable::Block(block, pos) => {
@@ -1051,7 +1054,8 @@ impl PlayState for SessionState {
                 let scene_data = SceneData {
                     state: client.state(),
                     player_entity: client.entity(),
-                    target_entity: self.target_entity,
+                    // Only highlight if interactable
+                    target_entity: self.interactable.and_then(Interactable::entity),
                     loaded_distance: client.loaded_distance(),
                     view_distance: client.view_distance().unwrap_or(1),
                     tick: client.get_tick(),
@@ -1116,7 +1120,8 @@ impl PlayState for SessionState {
             let scene_data = SceneData {
                 state: client.state(),
                 player_entity: client.entity(),
-                target_entity: self.target_entity,
+                // Only highlight if interactable
+                target_entity: self.interactable.and_then(Interactable::entity),
                 loaded_distance: client.loaded_distance(),
                 view_distance: client.view_distance().unwrap_or(1),
                 tick: client.get_tick(),
@@ -1158,14 +1163,22 @@ fn under_cursor(
     span!(_guard, "under_cursor");
     // Choose a spot above the player's head for item distance checks
     let player_entity = client.entity();
-    let player_pos = match client
-        .state()
-        .read_storage::<comp::Pos>()
-        .get(player_entity)
-    {
-        Some(pos) => pos.0 + (Vec3::unit_z() * 2.0),
-        _ => cam_pos, // Should never happen, but a safe fallback
+    let ecs = client.state().ecs();
+    let positions = ecs.read_storage::<comp::Pos>();
+    let player_pos = match positions.get(player_entity) {
+        Some(pos) => pos.0,
+        None => cam_pos, // Should never happen, but a safe fallback
     };
+    let scales = ecs.read_storage();
+    let colliders = ecs.read_storage();
+    let char_states = ecs.read_storage();
+    // Get the player's cylinder
+    let player_cylinder = Cylinder::from_components(
+        player_pos,
+        scales.get(player_entity).copied(),
+        colliders.get(player_entity).copied(),
+        char_states.get(player_entity),
+    );
     let terrain = client.state().terrain();
 
     let cam_ray = terrain
@@ -1177,8 +1190,8 @@ fn under_cursor(
 
     // The ray hit something, is it within range?
     let (build_pos, select_pos) = if matches!(cam_ray.1, Ok(Some(_)) if
-        player_pos.distance_squared(cam_pos + cam_dir * cam_dist)
-        <= MAX_PICKUP_RANGE.powi(2))
+        player_cylinder.min_distance(cam_pos + cam_dir * (cam_dist + 0.01))
+        <= MAX_PICKUP_RANGE)
     {
         (
             Some((cam_pos + cam_dir * (cam_dist - 0.01)).map(|e| e.floor() as i32)),
@@ -1190,7 +1203,6 @@ fn under_cursor(
 
     // See if ray hits entities
     // Currently treated as spheres
-    let ecs = client.state().ecs();
     // Don't cast through blocks
     // Could check for intersection with entity from last frame to narrow this down
     let cast_dist = if let Ok(Some(_)) = cam_ray.1 {
@@ -1204,14 +1216,15 @@ fn under_cursor(
     // on final result)
     let mut nearby = (
         &ecs.entities(),
-        &ecs.read_storage::<comp::Pos>(),
-        ecs.read_storage::<comp::Scale>().maybe(),
+        &positions,
+        scales.maybe(),
         &ecs.read_storage::<comp::Body>()
     )
         .join()
         .filter(|(e, _, _, _)| *e != player_entity)
         .map(|(e, p, s, b)| {
             const RADIUS_SCALE: f32 = 3.0;
+            // TODO: use collider radius instead of body radius?
             let radius = s.map_or(1.0, |s| s.0) * b.radius() * RADIUS_SCALE;
             // Move position up from the feet
             let pos = Vec3::new(p.0.x, p.0.y, p.0.z + radius);
@@ -1239,9 +1252,17 @@ fn under_cursor(
         .map(|(e, p, r, _)| (e, *p, r))
         // Find first one that intersects the ray segment
         .find(|(_, p, r)| seg_ray.projected_point(*p).distance_squared(*p) < r.powi(2))
-        .and_then(|(e, p, r)| {
-            let dist_to_player = p.distance(player_pos);
-            (dist_to_player - r < MAX_TARGET_RANGE).then_some((*e, dist_to_player))
+        .and_then(|(e, p, _)| {
+            // Get the entity's cylinder
+            let target_cylinder = Cylinder::from_components(
+                p,
+                scales.get(*e).copied(),
+                colliders.get(*e).copied(),
+                char_states.get(*e),
+            );
+
+            let dist_to_player = player_cylinder.min_distance(target_cylinder);
+            (dist_to_player < MAX_TARGET_RANGE).then_some((*e, dist_to_player))
         });
 
     // TODO: consider setting build/select to None when targeting an entity
@@ -1254,6 +1275,15 @@ enum Interactable {
     Entity(specs::Entity),
 }
 
+impl Interactable {
+    fn entity(self) -> Option<specs::Entity> {
+        match self {
+            Self::Entity(e) => Some(e),
+            Self::Block(_, _) => None,
+        }
+    }
+}
+
 /// Select interactable to hightlight, display interaction text for, and to
 /// interact with if the interact key is pressed
 /// Selected in the following order
@@ -1262,13 +1292,17 @@ enum Interactable {
 /// 3) Closest of nearest interactable entity/block
 fn select_interactable(
     client: &Client,
-    target_entity: Option<specs::Entity>,
+    target_entity: Option<(specs::Entity, f32)>,
     selected_pos: Option<Vec3<i32>>,
     scene: &Scene,
 ) -> Option<Interactable> {
     span!(_guard, "select_interactable");
+    // TODO: once there are multiple distances for different types of interactions
+    // this code will need to be revamped to cull things by varying distances
+    // based on the types of interactions available for those things
     use common::{spiral::Spiral2d, terrain::TerrainChunk, vol::RectRasterableVol};
-    target_entity.map(Interactable::Entity)
+    target_entity
+        .and_then(|(e, dist_to_player)| (dist_to_player < MAX_PICKUP_RANGE).then_some(Interactable::Entity(e)))
         .or_else(|| selected_pos.and_then(|sp|
                 client.state().terrain().get(sp).ok().copied()
                     .filter(Block::is_collectible).map(|b| Interactable::Block(b, sp))
@@ -1276,80 +1310,84 @@ fn select_interactable(
         .or_else(|| {
             let ecs = client.state().ecs();
             let player_entity = client.entity();
-            ecs
-                .read_storage::<comp::Pos>()
-                .get(player_entity).and_then(|player_pos| {
-                    let closest_interactable_entity = (
-                        &ecs.entities(),
-                        &ecs.read_storage::<comp::Pos>(),
-                        ecs.read_storage::<comp::Scale>().maybe(),
-                        &ecs.read_storage::<comp::Body>(),
-                        // Must have this comp to be interactable (for now)
-                        &ecs.read_storage::<comp::Item>(),
-                    )
-                        .join()
-                        .filter(|(e, _, _, _, _)| *e != player_entity)
-                        .map(|(e, p, s, b, _)| {
-                            let radius = s.map_or(1.0, |s| s.0) * b.radius();
-                            // Distance squared from player to the entity
-                            // Note: the position of entities is currently at their feet so this
-                            // distance is between their feet positions
-                            let dist_sqr = p.0.distance_squared(player_pos.0);
-                            (e, radius, dist_sqr)
-                        })
-                        // Roughly filter out entities farther than interaction distance
-                        .filter(|(_, r, d_sqr)| *d_sqr <= MAX_PICKUP_RANGE.powi(2) + 2.0 * MAX_PICKUP_RANGE * r + r.powi(2))
-                        // Note: entities are approximated as spheres here
-                        // to determine which is closer
-                        // Substract sphere radius from distance to the player
-                        .map(|(e, r, d_sqr)| (e, d_sqr.sqrt() - r))
-                        .min_by_key(|(_, dist)| OrderedFloat(*dist));
+            let positions = ecs.read_storage::<comp::Pos>();
+            let player_pos = positions.get(player_entity)?.0;
 
-                    // Only search as far as closest interactable entity
-                    let search_dist = closest_interactable_entity
-                        .map_or(MAX_PICKUP_RANGE, |(_, dist)| dist);
-                    let player_chunk = player_pos.0.xy().map2(TerrainChunk::RECT_SIZE, |e, sz| {
-                        (e.floor() as i32).div_euclid(sz as i32)
-                    });
-                    let terrain = scene.terrain();
+            let scales = ecs.read_storage::<comp::Scale>();
+            let colliders = ecs.read_storage::<comp::Collider>();
+            let char_states = ecs.read_storage::<comp::CharacterState>();
 
-                    // Find closest interactable block
-                    // TODO: consider doing this one first?
-                    let closest_interactable_block_pos = Spiral2d::new()
-                        // TODO: this formula for the number to take was guessed
-                        // Note: assume RECT_SIZE.x == RECT_SIZE.y
-                        .take(((search_dist / TerrainChunk::RECT_SIZE.x as f32).ceil() as usize * 2 + 1).pow(2))
-                        .flat_map(|offset| {
-                            let chunk_pos = player_chunk + offset;
-                            let chunk_voxel_pos =
-                                    Vec3::<i32>::from(chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32));
-                            terrain.get(chunk_pos).map(|data| (data, chunk_voxel_pos))
-                        })
-                        // TODO: maybe we could make this more efficient by putting the
-                        // interactables is some sort of spatial structure
-                        .flat_map(|(chunk_data, chunk_pos)| {
-                            chunk_data
-                                .blocks_of_interest
-                                .interactables
-                                .iter()
-                                .map(move |block_offset| chunk_pos + block_offset)
-                        })
-                        // TODO: confirm that adding 0.5 here is correct
-                        .map(|block_pos| (
-                                block_pos,
-                                block_pos.map(|e| e as f32 + 0.5)
-                                    .distance_squared(player_pos.0)
-                        ))
-                        .min_by_key(|(_, dist_sqr)| OrderedFloat(*dist_sqr));
+            let player_cylinder = Cylinder::from_components(
+                player_pos,
+                scales.get(player_entity).copied(),
+                colliders.get(player_entity).copied(),
+                char_states.get(player_entity),
+            );
 
-                    // Pick closer one if they exist
-                    closest_interactable_block_pos
-                        .filter(|(_, dist_sqr)| search_dist.powi(2) > *dist_sqr)
-                        .and_then(|(block_pos, _)|
-                            client.state().terrain().get(block_pos).ok().copied()
-                                .map(|b| Interactable::Block(b, block_pos))
-                        )
-                        .or_else(|| closest_interactable_entity.map(|(e, _)| Interactable::Entity(e)))
+            let closest_interactable_entity = (
+                &ecs.entities(),
+                &positions,
+                scales.maybe(),
+                colliders.maybe(),
+                char_states.maybe(),
+                // Must have this comp to be interactable (for now)
+                &ecs.read_storage::<comp::Item>(),
+            )
+                .join()
+                .filter(|(e, _, _, _, _, _)| *e != player_entity)
+                .map(|(e, p, s, c, cs, _)| {
+                    let cylinder = Cylinder::from_components(p.0, s.copied(), c.copied(), cs);
+                    (e, cylinder)
                 })
+                // Roughly filter out entities farther than interaction distance
+                .filter(|(_, cylinder)| player_cylinder.approx_in_range(*cylinder, MAX_PICKUP_RANGE))
+                .map(|(e, cylinder)| (e, player_cylinder.min_distance(cylinder)))
+                .min_by_key(|(_, dist)| OrderedFloat(*dist));
+
+            // Only search as far as closest interactable entity
+            let search_dist = closest_interactable_entity
+                .map_or(MAX_PICKUP_RANGE, |(_, dist)| dist);
+            let player_chunk = player_pos.xy().map2(TerrainChunk::RECT_SIZE, |e, sz| {
+                (e.floor() as i32).div_euclid(sz as i32)
+            });
+            let terrain = scene.terrain();
+
+            // Find closest interactable block
+            // TODO: consider doing this one first?
+            let closest_interactable_block_pos = Spiral2d::new()
+                // TODO: this formula for the number to take was guessed
+                // Note: assume RECT_SIZE.x == RECT_SIZE.y
+                .take(((search_dist / TerrainChunk::RECT_SIZE.x as f32).ceil() as usize * 2 + 1).pow(2))
+                .flat_map(|offset| {
+                    let chunk_pos = player_chunk + offset;
+                    let chunk_voxel_pos =
+                            Vec3::<i32>::from(chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32));
+                    terrain.get(chunk_pos).map(|data| (data, chunk_voxel_pos))
+                })
+                // TODO: maybe we could make this more efficient by putting the
+                // interactables is some sort of spatial structure
+                .flat_map(|(chunk_data, chunk_pos)| {
+                    chunk_data
+                        .blocks_of_interest
+                        .interactables
+                        .iter()
+                        .map(move |block_offset| chunk_pos + block_offset)
+                })
+                .map(|block_pos| (
+                        block_pos,
+                        block_pos.map(|e| e as f32 + 0.5)
+                            .distance_squared(player_pos)
+                ))
+                .min_by_key(|(_, dist_sqr)| OrderedFloat(*dist_sqr))
+                .map(|(block_pos, _)| block_pos);
+
+            // Pick closer one if they exist
+            closest_interactable_block_pos
+                .filter(|block_pos|  player_cylinder.min_distance(Cube { min: block_pos.as_(), side_length: 1.0}) < search_dist)
+                .and_then(|block_pos|
+                    client.state().terrain().get(block_pos).ok().copied()
+                        .map(|b| Interactable::Block(b, block_pos))
+                )
+                .or_else(|| closest_interactable_entity.map(|(e, _)| Interactable::Entity(e)))
         })
 }
