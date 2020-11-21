@@ -586,9 +586,19 @@ fn draw_col_lights<D>(
                                 0.0
                             }
                     ) / 4.0;
+                    let glowiness = (
+                        get_glow(data, light_pos)
+                            + get_glow(data, light_pos - uv.x)
+                            + get_glow(data, light_pos - uv.y)
+                            + if direct_u_opacity || direct_v_opacity {
+                                get_glow(data, light_pos - uv.x - uv.y)
+                            } else {
+                                0.0
+                            }
+                    ) / 4.0;
                     let col = get_color(data, pos);
                     let light = (darkness * 31.5) as u8;
-                    let glow = (get_glow(data, light_pos) * 31.5) as u8;
+                    let glow = (glowiness * 31.5) as u8;
                     *col_light = make_col_light(light, glow, col);
                 });
         });
