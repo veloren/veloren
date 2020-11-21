@@ -572,4 +572,56 @@
             central: ("npc.sandshark.male.tail_front"),
         ),
     ),
+    (Lavadrake, Male): (
+        upper: (
+            offset: (-6.5, -2.0, -6.0),
+            central: ("npc.lavadrake.male.head_upper"),
+        ),
+        lower: (
+            offset: (-6.5, -1.0, -3.0),
+            central: ("npc.lavadrake.male.head_lower"),
+        ),
+        jaw: (
+            offset: (-3.5, 0.0, -5.0),
+            central: ("npc.lavadrake.male.jaw"),
+        ),
+        chest: (
+            offset: (-9.5, -11.5, -11.5),
+            central: ("npc.lavadrake.male.chest"),
+        ),
+        tail_rear: (
+            offset: (-6.5, -24.0, -3.5),
+            central: ("npc.lavadrake.male.tail_rear"),
+        ),
+		tail_front: (
+            offset: (-5.5, -12.0, -6.5),
+            central: ("npc.lavadrake.male.tail_front"),
+        ),
+    ),
+    (Lavadrake, Female): (
+        upper: (
+            offset: (-6.5, -2.0, -6.0),
+            central: ("npc.lavadrake.male.head_upper"),
+        ),
+        lower: (
+            offset: (-6.5, -1.0, -3.0),
+            central: ("npc.lavadrake.male.head_lower"),
+        ),
+        jaw: (
+            offset: (-3.5, 0.0, -5.0),
+            central: ("npc.lavadrake.male.jaw"),
+        ),
+        chest: (
+            offset: (-9.5, -11.5, -11.5),
+            central: ("npc.lavadrake.male.chest"),
+        ),
+        tail_rear: (
+            offset: (-6.5, -24.0, -3.5),
+            central: ("npc.lavadrake.male.tail_rear"),
+        ),
+		tail_front: (
+            offset: (-5.5, -12.0, -6.5),
+            central: ("npc.lavadrake.male.tail_front"),
+        ),
+    ),
 })

@@ -152,9 +152,28 @@ impl LoadoutBuilder {
                             "common.items.npc_weapons.unique.quadlowquick",
                         ));
                     },
+                    quadruped_low::Species::Lavadrake => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.quadlowbreathe",
+                        ));
+                    },
                     _ => {
                         main_tool = Some(Item::new_from_asset_expect(
                             "common.items.npc_weapons.unique.quadlowbasic",
+                        ));
+                    },
+                },
+                Body::QuadrupedSmall(quadruped_small) => match quadruped_small.species {
+                    _ => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.quadsmallbasic",
+                        ));
+                    },
+                },
+                Body::Theropod(theropod) => match theropod.species {
+                    _ => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.theropodbasic",
                         ));
                     },
                 },

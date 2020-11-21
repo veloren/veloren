@@ -1,5 +1,6 @@
 pub mod alpha;
 pub mod beta;
+pub mod dash;
 pub mod feed;
 pub mod hoof;
 pub mod idle;
@@ -9,7 +10,7 @@ pub mod run;
 
 // Reexports
 pub use self::{
-    alpha::AlphaAnimation, beta::BetaAnimation, feed::FeedAnimation, hoof::HoofAnimation,
+    alpha::AlphaAnimation, beta::BetaAnimation, dash::DashAnimation, feed::FeedAnimation, hoof::HoofAnimation,
     idle::IdleAnimation, jump::JumpAnimation, leapmelee::LeapMeleeAnimation, run::RunAnimation,
 };
 

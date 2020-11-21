@@ -178,7 +178,10 @@ pub enum UniqueKind {
     QuadMedBasic,
     QuadMedCharge,
     QuadLowRanged,
+    QuadLowBreathe,
     QuadLowTail,
     QuadLowQuick,
     QuadLowBasic,
+    QuadSmallBasic,
+    TheropodBasic,
 }
