@@ -56,6 +56,7 @@ pub struct Civs {
     >,
 
     pub sites: Store<Site>,
+    pub caves: Store<Vec2<i32>>,
 }
 
 // Change this to get rid of particularly horrid seeds
@@ -231,7 +232,7 @@ impl Civs {
     }
 
     // TODO: Move this
-    fn generate_cave(&self, ctx: &mut GenCtx<impl Rng>) {
+    fn generate_cave(&mut self, ctx: &mut GenCtx<impl Rng>) {
         let mut pos = ctx
             .sim
             .get_size()
@@ -292,6 +293,10 @@ impl Civs {
                 chunk.spawn_rate = 0.0;
             }
         }
+        self.caves
+            .insert(path.first().unwrap().0 * TerrainChunkSize::RECT_SIZE.map(|e: u32| e as i32));
+        self.caves
+            .insert(path.last().unwrap().0 * TerrainChunkSize::RECT_SIZE.map(|e: u32| e as i32));
     }
 
     pub fn place(&self, id: Id<Place>) -> &Place { self.places.get(id) }
