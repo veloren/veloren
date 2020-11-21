@@ -67,7 +67,7 @@ impl Locals {
 
         Self {
             model_mat: model_mat.into_col_arrays(),
-            highlight_col: [col.r, col.g, col.b, glow],
+            highlight_col: [col.r, col.g, col.b, 1.0],
             model_pos: pos.into_array(),
             atlas_offs: Vec4::from(atlas_offs).into_array(),
             model_light: [light, glow, 1.0, 1.0],
