@@ -476,7 +476,7 @@ impl Civs {
         let site = self.sites.insert(site_fn(place));
 
         // Find neighbors
-        const MAX_NEIGHBOR_DISTANCE: f32 = 500.0;
+        const MAX_NEIGHBOR_DISTANCE: f32 = 2000.0;
         let mut nearby = self
             .sites
             .iter()
@@ -613,6 +613,7 @@ fn find_path(
     a: Vec2<i32>,
     b: Vec2<i32>,
 ) -> Option<(Path<Vec2<i32>>, f32)> {
+    const MAX_PATH_ITERS: usize = 100_000;
     let sim = &ctx.sim;
     let heuristic = move |l: &Vec2<i32>| (l.distance_squared(b) as f32).sqrt();
     let neighbors = |l: &Vec2<i32>| {
@@ -630,13 +631,13 @@ fn find_path(
     // (2) we care about determinism across computers (ruling out AAHash);
     // (3) we have 8-byte keys (for which FxHash is fastest).
     let mut astar = Astar::new(
-        20000,
+        MAX_PATH_ITERS,
         a,
         heuristic,
         BuildHasherDefault::<FxHasher64>::default(),
     );
     astar
-        .poll(20000, heuristic, neighbors, transition, satisfied)
+        .poll(MAX_PATH_ITERS, heuristic, neighbors, transition, satisfied)
         .into_path()
         .and_then(|path| astar.get_cheapest_cost().map(|cost| (path, cost)))
 }
