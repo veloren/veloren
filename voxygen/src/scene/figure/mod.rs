@@ -3449,8 +3449,31 @@ impl<S: Skeleton> FigureState<S> {
         let (light, glow) = terrain
             .map(|t| {
                 // Sample the location a little above to avoid clipping into terrain
-                let wpos = (Vec3::from(pos.into_array()) + Vec3::unit_z() * 0.5).map(|e: f32| e.floor() as i32);
-                (t.light_at_wpos(wpos), t.glow_at_wpos(wpos))
+                // TODO: Try to make this faster? It might be fine though
+                let wpos = Vec3::from(pos.into_array()) + Vec3::unit_z();
+
+                let wposi = wpos.map(|e: f32| e.floor() as i32);
+                let sample = |off| {
+                    Vec2::new(t.light_at_wpos(wposi + off), t.glow_at_wpos(wposi + off))
+                };
+
+                let s_000 = sample(Vec3::new(0, 0, 0));
+                let s_100 = sample(Vec3::new(1, 0, 0));
+                let s_010 = sample(Vec3::new(0, 1, 0));
+                let s_110 = sample(Vec3::new(1, 1, 0));
+                let s_001 = sample(Vec3::new(0, 0, 1));
+                let s_101 = sample(Vec3::new(1, 0, 1));
+                let s_011 = sample(Vec3::new(0, 1, 1));
+                let s_111 = sample(Vec3::new(1, 1, 1));
+                let s_00 = Lerp::lerp(s_000, s_001, wpos.z.fract());
+                let s_10 = Lerp::lerp(s_100, s_101, wpos.z.fract());
+                let s_01 = Lerp::lerp(s_010, s_011, wpos.z.fract());
+                let s_11 = Lerp::lerp(s_110, s_111, wpos.z.fract());
+                let s_0 = Lerp::lerp(s_00, s_01, wpos.y.fract());
+                let s_1 = Lerp::lerp(s_10, s_11, wpos.y.fract());
+                let s = Lerp::lerp(s_10, s_11, wpos.y.fract());
+
+                s.into_tuple()
             })
             .unwrap_or((1.0, 0.0));
 
