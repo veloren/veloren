@@ -41,7 +41,6 @@ use crate::{
     util::{Grid, Sampler},
 };
 use common::{
-    comp::{self, bird_medium, quadruped_low, quadruped_medium, quadruped_small},
     generation::{ChunkSupplement, EntityInfo},
     msg::WorldMapMsg,
     terrain::{Block, BlockKind, SpriteKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
@@ -246,80 +245,8 @@ impl World {
             (Vec3::from(chunk_wpos2d) + lpos).map(|e: i32| e as f32) + 0.5
         };
 
-        const SPAWN_RATE: f32 = 0.1;
         let mut supplement = ChunkSupplement {
-            entities: if dynamic_rng.gen::<f32>() < SPAWN_RATE
-                && sim_chunk.chaos < 0.5
-                && !sim_chunk.is_underwater()
-            {
-                // TODO: REFACTOR: Define specific alignments in a config file instead of here
-                let is_hostile: bool;
-                let is_giant = dynamic_rng.gen_range(0, 8) == 0;
-                let quadmed = comp::Body::QuadrupedMedium(quadruped_medium::Body::random()); // Not all of them are hostile so we have to do the rng here
-                let quadlow = comp::Body::QuadrupedLow(quadruped_low::Body::random()); // Not all of them are hostile so we have to do the rng here
-                let entity = EntityInfo::at(gen_entity_pos(&mut dynamic_rng))
-                    .do_if(is_giant, |e| e.into_giant())
-                    .with_body(match dynamic_rng.gen_range(0, 5) {
-                        0 => {
-                            match quadmed {
-                                comp::Body::QuadrupedMedium(quadruped_medium) => {
-                                    match quadruped_medium.species {
-                                        quadruped_medium::Species::Catoblepas => is_hostile = false,
-                                        quadruped_medium::Species::Mouflon => is_hostile = false,
-                                        quadruped_medium::Species::Tuskram => is_hostile = false,
-                                        quadruped_medium::Species::Deer => is_hostile = false,
-                                        quadruped_medium::Species::Hirdrasil => is_hostile = false,
-                                        quadruped_medium::Species::Donkey => is_hostile = false,
-                                        quadruped_medium::Species::Camel => is_hostile = false,
-                                        quadruped_medium::Species::Zebra => is_hostile = false,
-                                        quadruped_medium::Species::Antelope => is_hostile = false,
-                                        quadruped_medium::Species::Kelpie => is_hostile = false,
-                                        quadruped_medium::Species::Horse => is_hostile = false,
-                                        _ => is_hostile = true,
-                                    }
-                                },
-                                _ => is_hostile = true,
-                            };
-                            quadmed
-                        },
-                        1 => {
-                            is_hostile = false;
-                            comp::Body::BirdMedium(bird_medium::Body::random())
-                        },
-                        2 => {
-                            match quadlow {
-                                comp::Body::QuadrupedLow(quadruped_low) => {
-                                    match quadruped_low.species {
-                                        quadruped_low::Species::Crocodile => is_hostile = true,
-                                        quadruped_low::Species::Alligator => is_hostile = true,
-                                        quadruped_low::Species::Maneater => is_hostile = true,
-                                        quadruped_low::Species::Sandshark => is_hostile = true,
-                                        quadruped_low::Species::Hakulaq => is_hostile = true,
-                                        _ => is_hostile = false,
-                                    }
-                                },
-                                _ => is_hostile = false,
-                            };
-                            quadlow
-                        },
-                        _ => {
-                            is_hostile = false;
-                            comp::Body::QuadrupedSmall(quadruped_small::Body::random())
-                        },
-                    })
-                    .with_alignment(if is_hostile {
-                        comp::Alignment::Enemy
-                    } else if is_giant {
-                        comp::Alignment::Npc
-                    } else {
-                        comp::Alignment::Wild
-                    })
-                    .with_automatic_name();
-
-                vec![entity]
-            } else {
-                Vec::new()
-            },
+            entities: Vec::new(),
         };
 
         if sim_chunk.contains_waypoint {
@@ -333,6 +260,17 @@ impl World {
             sample_get,
             &chunk,
             index,
+            &mut supplement,
+        );
+
+        // Apply layer supplement
+        layer::wildlife::apply_wildlife_supplement(
+            &mut dynamic_rng,
+            chunk_wpos2d,
+            sample_get,
+            &chunk,
+            index,
+            sim_chunk,
             &mut supplement,
         );
 

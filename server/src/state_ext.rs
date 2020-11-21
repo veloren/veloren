@@ -11,6 +11,7 @@ use common::{
     sync::{Uid, UidAllocator, WorldSyncExt},
     util::Dir,
 };
+use rand::prelude::*;
 use specs::{
     saveload::MarkerAllocator, Builder, Entity as EcsEntity, EntityBuilder as EcsEntityBuilder,
     Join, WorldExt,
@@ -121,7 +122,15 @@ impl StateExt for State {
             .create_entity_synced()
             .with(pos)
             .with(comp::Vel(Vec3::zero()))
-            .with(comp::Ori::default())
+            .with(comp::Ori(Dir::new(
+                Vec3::new(
+                    thread_rng().gen_range(-1.0, 1.0),
+                    thread_rng().gen_range(-1.0, 1.0),
+                    0.0,
+                )
+                .try_normalized()
+                .unwrap_or_default(),
+            )))
             .with(comp::Collider::Box {
                 radius: body.radius(),
                 z_min: 0.0,
