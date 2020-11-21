@@ -55,7 +55,9 @@ widget_ids! {
         drag_ico,
         zoom_txt,
         zoom_ico,
-
+        show_caves_img,
+        show_caves_box,
+        show_caves_text,
     }
 }
 
@@ -117,6 +119,7 @@ pub enum Event {
     ShowTowns(bool),
     ShowCastles(bool),
     ShowDungeons(bool),
+    ShowCaves(bool),
     Close,
 }
 
@@ -142,6 +145,7 @@ impl<'a> Widget for Map<'a> {
         let show_towns = self.global_state.settings.gameplay.map_show_towns;
         let show_dungeons = self.global_state.settings.gameplay.map_show_dungeons;
         let show_castles = self.global_state.settings.gameplay.map_show_castles;
+        let show_caves = self.global_state.settings.gameplay.map_show_caves;
         let mut events = Vec::new();
         let i18n = &self.localized_strings;
         // Tooltips
@@ -453,6 +457,40 @@ impl<'a> Widget for Map<'a> {
             .graphics_for(state.ids.show_dungeons_box)
             .color(TEXT_COLOR)
             .set(state.ids.show_dungeons_text, ui);
+        // Caves
+        Image::new(self.imgs.mmap_site_cave)
+            .down_from(state.ids.show_dungeons_img, 10.0)
+            .w_h(20.0, 20.0)
+            .set(state.ids.show_caves_img, ui);
+        if Button::image(if show_caves {
+            self.imgs.checkbox_checked
+        } else {
+            self.imgs.checkbox
+        })
+        .w_h(18.0, 18.0)
+        .hover_image(if show_caves {
+            self.imgs.checkbox_checked_mo
+        } else {
+            self.imgs.checkbox_mo
+        })
+        .press_image(if show_caves {
+            self.imgs.checkbox_checked
+        } else {
+            self.imgs.checkbox_press
+        })
+        .right_from(state.ids.show_caves_img, 10.0)
+        .set(state.ids.show_caves_box, ui)
+        .was_clicked()
+        {
+            events.push(Event::ShowCaves(!show_caves));
+        }
+        Text::new(i18n.get("hud.map.caves"))
+            .right_from(state.ids.show_caves_box, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .graphics_for(state.ids.show_caves_box)
+            .color(TEXT_COLOR)
+            .set(state.ids.show_caves_text, ui);
         // Map icons
         if state.ids.mmap_site_icons.len() < self.client.sites().len() {
             state.update(|state| {
@@ -493,6 +531,7 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Town => i18n.get("hud.map.town"),
                 SiteKind::Dungeon { .. } => i18n.get("hud.map.dungeon"),
                 SiteKind::Castle => i18n.get("hud.map.castle"),
+                SiteKind::Cave => i18n.get("hud.map.cave"),
             });
             let (difficulty, desc) = match &site.kind {
                 SiteKind::Town => (0, i18n.get("hud.map.town").to_string()),
@@ -502,6 +541,7 @@ impl<'a> Widget for Map<'a> {
                         .replace("{difficulty}", difficulty.to_string().as_str()),
                 ),
                 SiteKind::Castle => (0, i18n.get("hud.map.castle").to_string()),
+                SiteKind::Cave => (0, i18n.get("hud.map.cave").to_string()),
             };
             let site_btn = Button::image(match &site.kind {
                 SiteKind::Town => {
@@ -525,6 +565,13 @@ impl<'a> Widget for Map<'a> {
                         self.imgs.nothing
                     }
                 },
+                SiteKind::Cave => {
+                    if show_caves {
+                        self.imgs.mmap_site_cave
+                    } else {
+                        self.imgs.nothing
+                    }
+                },
             })
             .x_y_position_relative_to(
                 state.ids.grid,
@@ -536,6 +583,7 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Town => self.imgs.mmap_site_town_hover,
                 SiteKind::Dungeon { .. } => self.imgs.mmap_site_dungeon_hover,
                 SiteKind::Castle => self.imgs.mmap_site_castle_hover,
+                SiteKind::Cave => self.imgs.mmap_site_cave_hover,
             })
             .image_color(UI_HIGHLIGHT_0)
             .with_tooltip(
@@ -555,6 +603,7 @@ impl<'a> Widget for Map<'a> {
                         5 => QUALITY_DEBUG,
                         _ => TEXT_COLOR,
                     },
+                    SiteKind::Cave => TEXT_COLOR,
                 },
             );
             // Only display sites that are toggled on
@@ -571,6 +620,11 @@ impl<'a> Widget for Map<'a> {
                 },
                 SiteKind::Castle => {
                     if show_castles {
+                        site_btn.set(state.ids.mmap_site_icons[i], ui);
+                    }
+                },
+                SiteKind::Cave => {
+                    if show_caves {
                         site_btn.set(state.ids.mmap_site_icons[i], ui);
                     }
                 },
@@ -623,6 +677,11 @@ impl<'a> Widget for Map<'a> {
                     },
                     SiteKind::Castle => {
                         if show_castles {
+                            dif_img.set(state.ids.site_difs[i], ui)
+                        }
+                    },
+                    SiteKind::Cave => {
+                        if show_caves {
                             dif_img.set(state.ids.site_difs[i], ui)
                         }
                     },

@@ -114,6 +114,16 @@ impl World {
                         wpos: site.center * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
                     }
                 })
+                .chain(
+                    self.civs()
+                        .caves
+                        .iter()
+                        .map(|(_, pos)| world_msg::SiteInfo {
+                            name: None,
+                            kind: world_msg::SiteKind::Cave,
+                            wpos: *pos,
+                        }),
+                )
                 .collect(),
             ..self.sim.get_map(index)
         }

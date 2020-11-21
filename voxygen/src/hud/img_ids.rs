@@ -210,6 +210,9 @@ image_ids! {
         mmap_site_castle: "voxygen.element.map.castle",
         mmap_site_castle_hover: "voxygen.element.map.castle_hover",
         mmap_site_castle_bg: "voxygen.element.map.castle_bg",
+        mmap_site_cave_bg: "voxygen.element.map.cave_bg",
+        mmap_site_cave_hover: "voxygen.element.map.cave_hover",
+        mmap_site_cave: "voxygen.element.map.cave",
 
         // Window Parts
         window_3: "voxygen.element.frames.window_3",
