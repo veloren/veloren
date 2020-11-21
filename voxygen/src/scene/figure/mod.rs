@@ -3343,6 +3343,8 @@ pub struct FigureStateMeta {
     visible: bool,
     last_pos: Option<anim::vek::Vec3<f32>>,
     avg_vel: anim::vek::Vec3<f32>,
+    last_light: f32,
+    last_glow: f32,
 }
 
 impl FigureStateMeta {
@@ -3387,6 +3389,8 @@ impl<S: Skeleton> FigureState<S> {
                 can_shadow_sun: false,
                 last_pos: None,
                 avg_vel: anim::vek::Vec3::zero(),
+                last_light: 1.0,
+                last_glow: 0.0,
             },
             skeleton,
         }
@@ -3453,7 +3457,11 @@ impl<S: Skeleton> FigureState<S> {
                 let wpos = Vec3::from(pos.into_array()) + Vec3::unit_z();
 
                 let wposi = wpos.map(|e: f32| e.floor() as i32);
+
+                // TODO: Fix this up enough to make it work
+                /*
                 let sample = |off| {
+                    let off = off * wpos.map(|e| (e.fract() - 0.5).signum() as i32);
                     Vec2::new(t.light_at_wpos(wposi + off), t.glow_at_wpos(wposi + off))
                 };
 
@@ -3465,17 +3473,22 @@ impl<S: Skeleton> FigureState<S> {
                 let s_101 = sample(Vec3::new(1, 0, 1));
                 let s_011 = sample(Vec3::new(0, 1, 1));
                 let s_111 = sample(Vec3::new(1, 1, 1));
-                let s_00 = Lerp::lerp(s_000, s_001, wpos.z.fract());
-                let s_10 = Lerp::lerp(s_100, s_101, wpos.z.fract());
-                let s_01 = Lerp::lerp(s_010, s_011, wpos.z.fract());
-                let s_11 = Lerp::lerp(s_110, s_111, wpos.z.fract());
-                let s_0 = Lerp::lerp(s_00, s_01, wpos.y.fract());
-                let s_1 = Lerp::lerp(s_10, s_11, wpos.y.fract());
-                let s = Lerp::lerp(s_10, s_11, wpos.y.fract());
+                let s_00 = Lerp::lerp(s_000, s_001, (wpos.z.fract() - 0.5).abs() * 2.0);
+                let s_10 = Lerp::lerp(s_100, s_101, (wpos.z.fract() - 0.5).abs() * 2.0);
+                let s_01 = Lerp::lerp(s_010, s_011, (wpos.z.fract() - 0.5).abs() * 2.0);
+                let s_11 = Lerp::lerp(s_110, s_111, (wpos.z.fract() - 0.5).abs() * 2.0);
+                let s_0 = Lerp::lerp(s_00, s_01, (wpos.y.fract() - 0.5).abs() * 2.0);
+                let s_1 = Lerp::lerp(s_10, s_11, (wpos.y.fract() - 0.5).abs() * 2.0);
+                let s = Lerp::lerp(s_10, s_11, (wpos.x.fract() - 0.5).abs() * 2.0);
+                */
 
-                s.into_tuple()
+                Vec2::new(t.light_at_wpos(wposi), t.glow_at_wpos(wposi)).into_tuple()
             })
             .unwrap_or((1.0, 0.0));
+        // Fade between light and glow levels
+        // TODO: Making this temporal rather than spatial is a bit dumb but it's a very subtle difference
+        self.last_light = vek::Lerp::lerp(self.last_light, light, 16.0 * dt);
+        self.last_glow = vek::Lerp::lerp(self.last_glow, glow, 16.0 * dt);
 
         let locals = FigureLocals::new(
             mat,
@@ -3483,8 +3496,8 @@ impl<S: Skeleton> FigureState<S> {
             pos,
             vek::Vec2::new(atlas_offs.x, atlas_offs.y),
             is_player,
-            light,
-            glow,
+            self.last_light,
+            self.last_glow,
         );
         renderer.update_consts(&mut self.locals, &[locals]).unwrap();
 
