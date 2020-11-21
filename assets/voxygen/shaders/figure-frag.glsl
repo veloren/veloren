@@ -181,7 +181,7 @@ void main() {
 
     float ao = f_ao * sqrt(f_ao);//0.25 + f_ao * 0.75; ///*pow(f_ao, 0.5)*/f_ao * 0.85 + 0.15;
 
-    float glow = model_light.y;
+    float glow = pow(model_light.y, 2);
     emitted_light += glow;
 
     reflected_light *= ao;
