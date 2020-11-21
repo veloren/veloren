@@ -90,6 +90,7 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
 
     // Prevent clouds and mist appearing underground (but fade them out gently)
     float not_underground = clamp(1.0 - (alt_at(pos.xy - focus_off.xy) - (pos.z - focus_off.z)) / 80.0, 0, 1);
+    air *= not_underground;
     float vapor_density = (mist + cloud) * not_underground;
 
     if (emission_strength <= 0.0) {
