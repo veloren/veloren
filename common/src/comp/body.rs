@@ -512,6 +512,7 @@ impl Body {
             Body::QuadrupedSmall(quadruped_small) => match quadruped_small.species {
                 quadruped_small::Species::Dodarock => 30,
                 quadruped_small::Species::Hyena => 40,
+                quadruped_small::Species::Holladon => 40,
                 quadruped_small::Species::Porcupine => 30,
                 _ => 20,
             },

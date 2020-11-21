@@ -1,7 +1,7 @@
 use crate::{
     comp::{
         item::{Hands, ItemKind, Tool},
-        quadruped_low, quadruped_medium, Body, CharacterState, StateUpdate,
+        quadruped_low, quadruped_medium, theropod, Body, CharacterState, StateUpdate,
     },
     event::LocalEvent,
     states::*,
@@ -118,8 +118,19 @@ impl Body {
             Body::BipedLarge(_) => 12.0,
             Body::Object(_) => 5.0,
             Body::Golem(_) => 8.0,
-            Body::Theropod(_) => 1.0,
-            Body::QuadrupedLow(_) => 12.0,
+            Body::Theropod(theropod) => match theropod.species {
+                theropod::Species::Archaeos => 1.5,
+                theropod::Species::Odonto => 1.5,
+                _ => 10.0,
+            },
+            Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
+                quadruped_low::Species::Monitor => 9.0,
+                quadruped_low::Species::Asp => 8.0,
+                quadruped_low::Species::Tortoise => 3.0,
+                quadruped_low::Species::Rocksnapper => 4.0,
+                quadruped_low::Species::Maneater => 5.0,
+                _ => 6.0,
+            },
         }
     }
 

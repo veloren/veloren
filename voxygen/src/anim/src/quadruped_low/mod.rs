@@ -10,8 +10,9 @@ pub mod tailwhip;
 
 // Reexports
 pub use self::{
-    alpha::AlphaAnimation, beta::BetaAnimation, breathe::BreatheAnimation, dash::DashAnimation, idle::IdleAnimation,
-    jump::JumpAnimation, run::RunAnimation, shoot::ShootAnimation, tailwhip::TailwhipAnimation,
+    alpha::AlphaAnimation, beta::BetaAnimation, breathe::BreatheAnimation, dash::DashAnimation,
+    idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation, shoot::ShootAnimation,
+    tailwhip::TailwhipAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};

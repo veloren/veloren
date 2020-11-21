@@ -93,7 +93,7 @@ impl Animation for SwimAnimation {
         let abstilt = tilt.abs();
 
         let squash = if abstilt > 0.2 { 0.35 } else { 1.0 }; //condenses the body at strong turns
-        next.head.position = Vec3::new(0.0,  s_a.head.0, s_a.head.1 - 1.0 + short * 0.3);
+        next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1 - 1.0 + short * 0.3);
         next.head.orientation =
             Quaternion::rotation_z(head_look.x * 0.3 + short * -0.2 * intensity + tilt * 3.0)
                 * Quaternion::rotation_x(

@@ -54,13 +54,11 @@ impl Animation for DashAnimation {
         let shortalt =
             (anim_time as f32 * 16.0 as f32 + PI * 0.25).sin() * chargemovementbase * pullback;
 
-        next.head.orientation =
-            Quaternion::rotation_x(movement1abs * -0.2 + movement2abs * 0.8)
-                * Quaternion::rotation_z(short * -0.06 + twitch1 * 0.2);
+        next.head.orientation = Quaternion::rotation_x(movement1abs * -0.2 + movement2abs * 0.8)
+            * Quaternion::rotation_z(short * -0.06 + twitch1 * 0.2);
 
-        next.neck.orientation =
-            Quaternion::rotation_x(movement1abs * -0.2 + movement2abs * 0.5)
-                * Quaternion::rotation_z(short * 0.15 + twitch1 * 0.2);
+        next.neck.orientation = Quaternion::rotation_x(movement1abs * -0.2 + movement2abs * 0.5)
+            * Quaternion::rotation_z(short * 0.15 + twitch1 * 0.2);
 
         next.jaw.orientation = Quaternion::rotation_x(
             twitch1fast * 0.2
@@ -74,25 +72,28 @@ impl Animation for DashAnimation {
         next.tail.orientation = Quaternion::rotation_x(
             0.15 + movement1abs * -0.4 + movement2abs * 0.2 + chargemovementbase * 0.2,
         ) * Quaternion::rotation_z(shortalt * 0.15);
-if speed < 0.5
-{
-    if mirror == 1.0 {
-    next.leg_fl.orientation = Quaternion::rotation_x(movement1abs*0.6);
+        if speed < 0.5 {
+            if mirror == 1.0 {
+                next.leg_fl.orientation = Quaternion::rotation_x(movement1abs * 0.6);
 
-    next.foot_fl.orientation = Quaternion::rotation_x(movement1abs*-0.6+twitch1 * 0.3);
-    next.leg_bl.orientation = Quaternion::rotation_x(movement1abs*0.6);
+                next.foot_fl.orientation =
+                    Quaternion::rotation_x(movement1abs * -0.6 + twitch1 * 0.3);
+                next.leg_bl.orientation = Quaternion::rotation_x(movement1abs * 0.6);
 
-    next.foot_bl.orientation = Quaternion::rotation_x(movement1abs*-0.6+twitch1 * 0.3);
-    }else{
-    next.leg_fr.orientation = Quaternion::rotation_x(movement1abs*0.6);
+                next.foot_bl.orientation =
+                    Quaternion::rotation_x(movement1abs * -0.6 + twitch1 * 0.3);
+            } else {
+                next.leg_fr.orientation = Quaternion::rotation_x(movement1abs * 0.6);
 
-    next.foot_fr.orientation = Quaternion::rotation_x(movement1abs*-0.6+twitch1 * 0.3);
+                next.foot_fr.orientation =
+                    Quaternion::rotation_x(movement1abs * -0.6 + twitch1 * 0.3);
 
-    next.leg_br.orientation = Quaternion::rotation_x(movement1abs*0.6);
+                next.leg_br.orientation = Quaternion::rotation_x(movement1abs * 0.6);
 
-    next.foot_br.orientation = Quaternion::rotation_x(movement1abs*-0.6+twitch1 * 0.3);
-    }
-}
+                next.foot_br.orientation =
+                    Quaternion::rotation_x(movement1abs * -0.6 + twitch1 * 0.3);
+            }
+        }
 
         next
     }
