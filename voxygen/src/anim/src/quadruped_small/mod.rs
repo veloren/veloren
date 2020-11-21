@@ -5,7 +5,10 @@ pub mod jump;
 pub mod run;
 
 // Reexports
-pub use self::{alpha::AlphaAnimation, feed::FeedAnimation, idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation};
+pub use self::{
+    alpha::AlphaAnimation, feed::FeedAnimation, idle::IdleAnimation, jump::JumpAnimation,
+    run::RunAnimation,
+};
 
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};
 use common::comp::{self};

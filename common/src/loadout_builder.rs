@@ -104,7 +104,10 @@ impl LoadoutBuilder {
                     _ => {},
                 },
                 Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
-                    quadruped_medium::Species::Wolf | quadruped_medium::Species::Grolgar => {
+                    quadruped_medium::Species::Wolf
+                    | quadruped_medium::Species::Grolgar
+                    | quadruped_medium::Species::Lion
+                    | quadruped_medium::Species::Bonerattler => {
                         main_tool = Some(Item::new_from_asset_expect(
                             "common.items.npc_weapons.unique.quadmedquick",
                         ));
@@ -113,6 +116,8 @@ impl LoadoutBuilder {
                     | quadruped_medium::Species::Horse
                     | quadruped_medium::Species::Zebra
                     | quadruped_medium::Species::Kelpie
+                    | quadruped_medium::Species::Hirdrasil
+                    | quadruped_medium::Species::Deer
                     | quadruped_medium::Species::Antelope => {
                         main_tool = Some(Item::new_from_asset_expect(
                             "common.items.npc_weapons.unique.quadmedhoof",

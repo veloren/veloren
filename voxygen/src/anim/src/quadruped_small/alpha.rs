@@ -39,13 +39,13 @@ impl Animation for AlphaAnimation {
         let movement1abs = movement1base * pullback;
         let movement2abs = movement2base * pullback;
 
-        next.head.orientation = Quaternion::rotation_x(movement1abs*-0.7+movement2abs*2.0)*Quaternion::rotation_y(movement1*-0.6+movement2*1.2);
-
+        next.head.orientation = Quaternion::rotation_x(movement1abs * -0.7 + movement2abs * 2.0)
+            * Quaternion::rotation_y(movement1 * -0.6 + movement2 * 1.2);
 
         next.chest.orientation = Quaternion::rotation_y(movement1 * -0.08 + movement2 * 0.15)
             * Quaternion::rotation_z(movement1 * 0.2 + movement2 * -0.6);
 
-        next.tail.orientation = Quaternion::rotation_x(movement1abs*0.5+movement2abs*-1.0)
+        next.tail.orientation = Quaternion::rotation_x(movement1abs * 0.5 + movement2abs * -1.0)
             * Quaternion::rotation_z(movement1 * -0.4 + movement2 * -0.2);
 
         next

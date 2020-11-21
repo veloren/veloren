@@ -1415,46 +1415,45 @@ impl FigureMgr {
                         ),
                     };
                     let target_bones = match &character {
-
-                    CharacterState::ComboMelee(s) => {
-                        let stage_index = (s.stage - 1) as usize;
-                        let stage_time = s.timer.as_secs_f64();
-                        let stage_progress = match s.stage_section {
-                            StageSection::Buildup => {
-                                stage_time
-                                    / s.static_data.stage_data[stage_index]
-                                        .base_buildup_duration
-                                        .as_secs_f64()
-                            },
-                            StageSection::Swing => {
-                                stage_time
-                                    / s.static_data.stage_data[stage_index]
-                                        .base_swing_duration
-                                        .as_secs_f64()
-                            },
-                            StageSection::Recover => {
-                                stage_time
-                                    / s.static_data.stage_data[stage_index]
-                                        .base_recover_duration
-                                        .as_secs_f64()
-                            },
-                            _ => 0.0,
-                        };
-                        match s.stage {
-                            _ => anim::quadruped_small::AlphaAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    vel.0.magnitude(),
-                                    time,
-                                    Some(s.stage_section),
-                                    state.state_time,
+                        CharacterState::ComboMelee(s) => {
+                            let stage_index = (s.stage - 1) as usize;
+                            let stage_time = s.timer.as_secs_f64();
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time
+                                        / s.static_data.stage_data[stage_index]
+                                            .base_buildup_duration
+                                            .as_secs_f64()
+                                },
+                                StageSection::Swing => {
+                                    stage_time
+                                        / s.static_data.stage_data[stage_index]
+                                            .base_swing_duration
+                                            .as_secs_f64()
+                                },
+                                StageSection::Recover => {
+                                    stage_time
+                                        / s.static_data.stage_data[stage_index]
+                                            .base_recover_duration
+                                            .as_secs_f64()
+                                },
+                                _ => 0.0,
+                            };
+                            match s.stage {
+                                _ => anim::quadruped_small::AlphaAnimation::update_skeleton(
+                                    &target_base,
+                                    (
+                                        vel.0.magnitude(),
+                                        time,
+                                        Some(s.stage_section),
+                                        state.state_time,
+                                    ),
+                                    stage_progress,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
                                 ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            ),
-                        }
-                    },
+                            }
+                        },
                         CharacterState::Sit { .. } => {
                             anim::quadruped_small::FeedAnimation::update_skeleton(
                                 &target_base,
@@ -2376,7 +2375,7 @@ impl FigureMgr {
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
-                        _=> anim::theropod::IdleAnimation::update_skeleton(
+                        _ => anim::theropod::IdleAnimation::update_skeleton(
                             &TheropodSkeleton::default(),
                             time,
                             state.state_time,
@@ -2384,58 +2383,58 @@ impl FigureMgr {
                             skeleton_attr,
                         ),
                     };
-                        let target_bones = match &character {
-                            CharacterState::ComboMelee(s) => {
-                                let stage_index = (s.stage - 1) as usize;
-                                let stage_time = s.timer.as_secs_f64();
-                                let stage_progress = match s.stage_section {
-                                    StageSection::Buildup => {
-                                        stage_time
-                                            / s.static_data.stage_data[stage_index]
-                                                .base_buildup_duration
-                                                .as_secs_f64()
-                                    },
-                                    StageSection::Swing => {
-                                        stage_time
-                                            / s.static_data.stage_data[stage_index]
-                                                .base_swing_duration
-                                                .as_secs_f64()
-                                    },
-                                    StageSection::Recover => {
-                                        stage_time
-                                            / s.static_data.stage_data[stage_index]
-                                                .base_recover_duration
-                                                .as_secs_f64()
-                                    },
-                                    _ => 0.0,
-                                };
-                                match s.stage {
-                                    1 => anim::theropod::AlphaAnimation::update_skeleton(
-                                        &target_base,
-                                        (
-                                            vel.0.magnitude(),
-                                            time,
-                                            Some(s.stage_section),
-                                            state.state_time,
-                                        ),
-                                        stage_progress,
-                                        &mut state_animation_rate,
-                                        skeleton_attr,
+                    let target_bones = match &character {
+                        CharacterState::ComboMelee(s) => {
+                            let stage_index = (s.stage - 1) as usize;
+                            let stage_time = s.timer.as_secs_f64();
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time
+                                        / s.static_data.stage_data[stage_index]
+                                            .base_buildup_duration
+                                            .as_secs_f64()
+                                },
+                                StageSection::Swing => {
+                                    stage_time
+                                        / s.static_data.stage_data[stage_index]
+                                            .base_swing_duration
+                                            .as_secs_f64()
+                                },
+                                StageSection::Recover => {
+                                    stage_time
+                                        / s.static_data.stage_data[stage_index]
+                                            .base_recover_duration
+                                            .as_secs_f64()
+                                },
+                                _ => 0.0,
+                            };
+                            match s.stage {
+                                1 => anim::theropod::AlphaAnimation::update_skeleton(
+                                    &target_base,
+                                    (
+                                        vel.0.magnitude(),
+                                        time,
+                                        Some(s.stage_section),
+                                        state.state_time,
                                     ),
-                                    _ => anim::theropod::BetaAnimation::update_skeleton(
-                                        &target_base,
-                                        (
-                                            vel.0.magnitude(),
-                                            time,
-                                            Some(s.stage_section),
-                                            state.state_time,
-                                        ),
-                                        stage_progress,
-                                        &mut state_animation_rate,
-                                        skeleton_attr,
+                                    stage_progress,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                ),
+                                _ => anim::theropod::BetaAnimation::update_skeleton(
+                                    &target_base,
+                                    (
+                                        vel.0.magnitude(),
+                                        time,
+                                        Some(s.stage_section),
+                                        state.state_time,
                                     ),
-                                }
-                            },
+                                    stage_progress,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                ),
+                            }
+                        },
                         // TODO!
                         _ => target_base,
                     };

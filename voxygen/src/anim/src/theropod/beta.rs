@@ -1,6 +1,6 @@
 use super::{
     super::{vek::*, Animation},
-    TheropodSkeleton, SkeletonAttr,
+    SkeletonAttr, TheropodSkeleton,
 };
 use common::states::utils::StageSection;
 //use std::ops::Rem;
@@ -39,26 +39,27 @@ impl Animation for BetaAnimation {
         let movement1abs = movement1base * pullback;
         let movement2abs = movement2base * pullback;
 
-        next.head.orientation = Quaternion::rotation_x(movement1abs*-0.4+movement2abs*1.2)*Quaternion::rotation_y(movement1*0.1+movement2*-0.1);
-        next.neck.orientation = Quaternion::rotation_x(movement1abs*0.4+movement2abs*-1.2)*Quaternion::rotation_y(movement1*0.1+movement2*-0.1);
+        next.head.orientation = Quaternion::rotation_x(movement1abs * -0.4 + movement2abs * 1.2)
+            * Quaternion::rotation_y(movement1 * 0.1 + movement2 * -0.1);
+        next.neck.orientation = Quaternion::rotation_x(movement1abs * 0.4 + movement2abs * -1.2)
+            * Quaternion::rotation_y(movement1 * 0.1 + movement2 * -0.1);
 
+        next.chest_front.orientation =
+            Quaternion::rotation_x(movement1abs * 0.6 + movement2abs * -1.5);
+        next.chest_back.orientation =
+            Quaternion::rotation_x(movement1abs * -0.6 + movement2abs * 1.5);
 
+        next.leg_l.orientation = Quaternion::rotation_x(movement1abs * -0.5);
 
-        next.chest_front.orientation = Quaternion::rotation_x(movement1abs * 0.6+movement2abs*-1.5)
-            ;
-            next.chest_back.orientation = Quaternion::rotation_x(movement1abs * -0.6+movement2abs*1.5);
+        next.leg_r.orientation = Quaternion::rotation_x(movement1abs * -0.5);
+        next.foot_l.orientation = Quaternion::rotation_x(movement1abs * 0.4);
+        next.foot_r.orientation = Quaternion::rotation_x(movement1abs * 0.4);
 
-            next.leg_l.orientation = Quaternion::rotation_x(movement1abs *-0.5);
+        next.tail_front.orientation =
+            Quaternion::rotation_x(0.1 + movement1abs * -0.1 + movement2abs * -0.3);
 
-            next.leg_r.orientation = Quaternion::rotation_x(movement1abs *-0.5);
-            next.foot_l.orientation = Quaternion::rotation_x(movement1abs *0.4);
-            next.foot_r.orientation = Quaternion::rotation_x(movement1abs *0.4);
-
-        next.tail_front.orientation = Quaternion::rotation_x(0.1+movement1abs*-0.1+movement2abs*-0.3)
-            ;
-
-        next.tail_back.orientation = Quaternion::rotation_x(0.1+movement1abs*-0.1+movement2abs*-0.3)
-            ;
+        next.tail_back.orientation =
+            Quaternion::rotation_x(0.1 + movement1abs * -0.1 + movement2abs * -0.3);
         next
     }
 }

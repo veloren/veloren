@@ -36,35 +36,38 @@ impl Animation for BreatheAnimation {
         let subtract = global_time - timer;
         let check = subtract - subtract.trunc();
         let mirror = (check - 0.5).signum() as f32;
-        let twitch2 = mirror*(twitch*20.0).sin()*pullback;
-        let twitch2alt = mirror*(twitch*20.0+PI/2.0).sin()*pullback;
+        let twitch2 = mirror * (twitch * 20.0).sin() * pullback;
+        let twitch2alt = mirror * (twitch * 20.0 + PI / 2.0).sin() * pullback;
 
         let movement1abs = movement1base * pullback;
 
-        next.head_upper.orientation = Quaternion::rotation_x(movement1abs * 0.3+twitch2alt*0.02);
+        next.head_upper.orientation =
+            Quaternion::rotation_x(movement1abs * 0.3 + twitch2alt * 0.02);
 
         next.head_lower.orientation =
-            Quaternion::rotation_x(movement1abs * -0.3 )
-                * Quaternion::rotation_y(twitch2 * 0.02);
+            Quaternion::rotation_x(movement1abs * -0.3) * Quaternion::rotation_y(twitch2 * 0.02);
 
         next.jaw.orientation = Quaternion::rotation_x(movement1abs * -0.7 + twitch2 * 0.1);
-        next.chest.orientation = Quaternion::rotation_y(twitch2 * -0.02)
-            * Quaternion::rotation_z(0.0);
+        next.chest.orientation =
+            Quaternion::rotation_y(twitch2 * -0.02) * Quaternion::rotation_z(0.0);
 
-        next.tail_front.orientation = Quaternion::rotation_x(0.15+movement1abs*-0.15+twitch2alt*0.02)
-            * Quaternion::rotation_z(0.0);
+        next.tail_front.orientation =
+            Quaternion::rotation_x(0.15 + movement1abs * -0.15 + twitch2alt * 0.02)
+                * Quaternion::rotation_z(0.0);
 
-        next.tail_rear.orientation = Quaternion::rotation_x(-0.12+movement1abs*-0.2+twitch2alt*0.08)
-            * Quaternion::rotation_z(0.0);
-if speed < 0.5{
+        next.tail_rear.orientation =
+            Quaternion::rotation_x(-0.12 + movement1abs * -0.2 + twitch2alt * 0.08)
+                * Quaternion::rotation_z(0.0);
+        if speed < 0.5 {
             next.foot_fl.orientation = Quaternion::rotation_y(twitch2 * 0.02);
-    
+
             next.foot_fr.orientation = Quaternion::rotation_y(twitch2 * 0.02);
-    
+
             next.foot_bl.orientation = Quaternion::rotation_y(twitch2 * 0.02);
-    
+
             next.foot_br.orientation = Quaternion::rotation_y(twitch2 * 0.02);
-} else{};
+        } else {
+        };
         next
     }
 }
