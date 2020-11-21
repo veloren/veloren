@@ -158,13 +158,15 @@ impl<'a> System<'a> for Sys {
                     scale = 2.0 + rand::random::<f32>();
                 }
 
+                let config = entity.config;
+
                 let loadout = LoadoutBuilder::build_loadout(
                     body,
                     alignment,
                     main_tool,
                     entity.is_giant,
                     &map,
-                    None,
+                    config,
                 )
                 .build();
 

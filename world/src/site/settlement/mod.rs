@@ -930,6 +930,7 @@ impl Settlement {
                                     //_ => "common.items.npc_weapons.bow.starter_bow", TODO: Re-Add this when we have a better way of distributing npc_weapons here
                                 },
                             ))
+                            .with_config(common::loadout_builder::LoadoutConfig::Villager)
                         })
                         .do_if(is_dummy, |e| e.with_name("Training Dummy"))
                         .do_if(!is_dummy, |e| e.with_automatic_name());

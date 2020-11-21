@@ -584,10 +584,12 @@ impl Floor {
                                 .map(|e| (RandomField::new(room.seed.wrapping_add(10 + e)).get(Vec3::from(tile_pos)) % 32) as i32 - 16)
                                 .map(|e| e as f32 / 16.0),
                         )
-                        //.do_if(is_giant, |e| e.into_giant())                        
+                        //.do_if(is_giant, |e| e.into_giant())
                         .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
                         .with_alignment(comp::Alignment::Enemy)
-                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen)).with_evel(dynamic_rng.gen_range(
+                        .with_config(common::loadout_builder::LoadoutConfig::Cultist)
+                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
+                        .with_level(dynamic_rng.gen_range(
                             (room.difficulty as f32).powf(1.25) + 3.0,
                             (room.difficulty as f32).powf(1.5) + 4.0,
                         ).round() as u32);
