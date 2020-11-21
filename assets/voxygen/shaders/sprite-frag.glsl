@@ -174,7 +174,7 @@ void main() {
     reflected_light += point_light; */
 
     // float ao = /*pow(f_ao, 0.5)*/f_ao * 0.85 + 0.15;
-    float glow = pow(f_inst_light.y, 2);
+    vec3 glow = pow(f_inst_light.y, 2) * GLOW_COLOR;
     emitted_light += glow;
 
     float ao = f_ao;

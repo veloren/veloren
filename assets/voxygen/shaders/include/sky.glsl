@@ -44,6 +44,8 @@ const float UNDERWATER_MIST_DIST = 100.0;
 
 const float PERSISTENT_AMBIANCE = 1.0 / 32.0;// 1.0 / 80; // 1.0 / 512; // 0.00125 // 0.1;// 0.025; // 0.1;
 
+const vec3 GLOW_COLOR = vec3(1, 0.8, 0.5);
+
 //vec3 get_sun_dir(float time_of_day) {
 //    const float TIME_FACTOR = (PI * 2.0) / (3600.0 * 24.0);
 //
