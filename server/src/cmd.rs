@@ -126,7 +126,7 @@ fn handle_give_item(
         scan_fmt_some!(&args, &action.arg_fmt(), String, u32)
     {
         let give_amount = give_amount_opt.unwrap_or(1);
-        if let Ok(item) = Item::new_from_asset(&item_name) {
+        if let Ok(item) = Item::new_from_asset(&item_name.replace('/', ".").replace("\\", ".")) {
             let mut item: Item = item;
             if let Ok(()) = item.set_amount(give_amount.min(2000)) {
                 server
