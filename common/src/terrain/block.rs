@@ -167,13 +167,11 @@ impl Block {
 
     #[inline]
     pub fn get_glow(&self) -> Option<u8> {
-        // TODO: When we have proper volumetric lighting
-        // match self.get_sprite()? {
-        //     SpriteKind::StreetLamp | SpriteKind::StreetLampTall => Some(20),
-        //     SpriteKind::Velorite | SpriteKind::VeloriteFrag => Some(10),
-        //     _ => None,
-        // }
-        None
+        match self.get_sprite()? {
+            SpriteKind::StreetLamp | SpriteKind::StreetLampTall => Some(20),
+            SpriteKind::Velorite | SpriteKind::VeloriteFrag => Some(3),
+            _ => None,
+        }
     }
 
     #[inline]

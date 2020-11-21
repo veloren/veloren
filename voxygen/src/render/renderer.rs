@@ -67,7 +67,7 @@ pub type LodAltFmt = (gfx::format::R16_G16, gfx::format::Unorm);
 pub type LodColorFmt = (gfx::format::R8_G8_B8_A8, gfx::format::Srgb);
 
 /// Represents the format of greedy meshed color-light textures.
-pub type ColLightFmt = (gfx::format::R8_G8_B8_A8, gfx::format::Srgb);
+pub type ColLightFmt = (gfx::format::R8_G8_B8_A8, gfx::format::Unorm);
 
 /// A handle to a shadow depth target.
 pub type ShadowDepthStencilView =
@@ -994,13 +994,18 @@ impl Renderer {
     }
 
     /// Update a texture with the provided offset, size, and data.
-    pub fn update_texture(
+    pub fn update_texture<T: gfx::format::Formatted>(
         &mut self,
-        texture: &Texture,
+        texture: &Texture<T>,
         offset: [u16; 2],
         size: [u16; 2],
-        data: &[[u8; 4]],
-    ) -> Result<(), RenderError> {
+        data: &[<<T as gfx::format::Formatted>::Surface as gfx::format::SurfaceTyped>::DataType],
+    ) -> Result<(), RenderError>
+        where
+            <T as gfx::format::Formatted>::Surface: gfx::format::TextureSurface,
+            <T as gfx::format::Formatted>::Channel: gfx::format::TextureChannel,
+            <<T as gfx::format::Formatted>::Surface as gfx::format::SurfaceTyped>::DataType: Copy,
+    {
         texture.update(&mut self.encoder, offset, size, data)
     }
 
