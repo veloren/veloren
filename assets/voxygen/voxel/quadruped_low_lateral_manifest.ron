@@ -395,4 +395,40 @@
             lateral: ("npc.sandshark.male.foot_br"),
         ),
     ),
+    (Lavadrake, Male): (
+        front_left: (
+            offset: (-14.0, -4.0, -10.0),
+            lateral: ("npc.lavadrake.male.foot_fl"),
+        ),
+        front_right: (
+            offset: (0.0, -4.0, -10.0),
+            lateral: ("npc.lavadrake.male.foot_fr"),
+        ),
+        back_left: (
+            offset: (-14.0, -7.5, -10.0),
+            lateral: ("npc.lavadrake.male.foot_bl"),
+        ),
+        back_right: (
+            offset: (0.0, -7.5, -10.0),
+            lateral: ("npc.lavadrake.male.foot_br"),
+        ),
+    ),
+    (Lavadrake, Female): (
+        front_left: (
+            offset: (-14.0, -4.0, -10.0),
+            lateral: ("npc.lavadrake.male.foot_fl"),
+        ),
+        front_right: (
+            offset: (0.0, -4.0, -10.0),
+            lateral: ("npc.lavadrake.male.foot_fr"),
+        ),
+        back_left: (
+            offset: (-14.0, -7.5, -10.0),
+            lateral: ("npc.lavadrake.male.foot_bl"),
+        ),
+        back_right: (
+            offset: (0.0, -7.5, -10.0),
+            lateral: ("npc.lavadrake.male.foot_br"),
+        ),
+    ),
 })

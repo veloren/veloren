@@ -81,6 +81,7 @@ impl Body {
                 quadruped_low::Species::Maneater => 80.0,
                 quadruped_low::Species::Sandshark => 160.0,
                 quadruped_low::Species::Hakulaq => 140.0,
+                quadruped_low::Species::Lavadrake => 100.0,
             },
         }
     }
@@ -117,7 +118,7 @@ impl Body {
             Body::BipedLarge(_) => 12.0,
             Body::Object(_) => 5.0,
             Body::Golem(_) => 8.0,
-            Body::Theropod(_) => 35.0,
+            Body::Theropod(_) => 1.0,
             Body::QuadrupedLow(_) => 12.0,
         }
     }

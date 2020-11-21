@@ -1,5 +1,6 @@
 pub mod alpha;
 pub mod beta;
+pub mod breathe;
 pub mod dash;
 pub mod idle;
 pub mod jump;
@@ -9,7 +10,7 @@ pub mod tailwhip;
 
 // Reexports
 pub use self::{
-    alpha::AlphaAnimation, beta::BetaAnimation, dash::DashAnimation, idle::IdleAnimation,
+    alpha::AlphaAnimation, beta::BetaAnimation, breathe::BreatheAnimation, dash::DashAnimation, idle::IdleAnimation,
     jump::JumpAnimation, run::RunAnimation, shoot::ShootAnimation, tailwhip::TailwhipAnimation,
 };
 
@@ -127,6 +128,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Maneater, _) => (7.0, 11.5),
                 (Sandshark, _) => (8.5, 0.5),
                 (Hakulaq, _) => (8.0, 10.0),
+                (Lavadrake, _) => (7.0, 8.0),
             },
             head_lower: match (body.species, body.body_type) {
                 (Crocodile, _) => (8.0, 0.0),
@@ -141,6 +143,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Maneater, _) => (1.0, 4.5),
                 (Sandshark, _) => (13.5, -10.5),
                 (Hakulaq, _) => (10.5, 1.0),
+                (Lavadrake, _) => (11.5, -6.0),
             },
             jaw: match (body.species, body.body_type) {
                 (Crocodile, _) => (2.5, -3.0),
@@ -155,6 +158,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Maneater, _) => (-1.0, 4.0),
                 (Sandshark, _) => (-8.0, -5.5),
                 (Hakulaq, _) => (-6.5, -4.0),
+                (Lavadrake, _) => (3.0, -5.0),
             },
             chest: match (body.species, body.body_type) {
                 (Crocodile, _) => (0.0, 5.0),
@@ -169,6 +173,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Maneater, _) => (0.0, 12.0),
                 (Sandshark, _) => (0.0, 20.0),
                 (Hakulaq, _) => (0.0, 13.5),
+                (Lavadrake, _) => (0.0, 16.5),
             },
             tail_rear: match (body.species, body.body_type) {
                 (Crocodile, _) => (-12.5, -1.0),
@@ -183,6 +188,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Maneater, _) => (-15.0, 4.0),
                 (Sandshark, _) => (-10.0, 0.5),
                 (Hakulaq, _) => (-9.0, -2.0),
+                (Lavadrake, _) => (-12.0, -2.0),
             },
             tail_front: match (body.species, body.body_type) {
                 (Crocodile, _) => (-6.0, 0.0),
@@ -197,6 +203,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Maneater, _) => (-1.0, 4.0),
                 (Sandshark, _) => (-13.0, -8.0),
                 (Hakulaq, _) => (-6.0, -5.5),
+                (Lavadrake, _) => (-7.0, -4.5),
             },
             feet_f: match (body.species, body.body_type) {
                 (Crocodile, _) => (3.5, 6.0, -1.0),
@@ -211,6 +218,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Maneater, _) => (4.5, 4.0, -5.5),
                 (Sandshark, _) => (5.5, 2.0, -8.0),
                 (Hakulaq, _) => (4.5, 2.0, -4.5),
+                (Lavadrake, _) => (4.5, 4.0, -6.5),
             },
             feet_b: match (body.species, body.body_type) {
                 (Crocodile, _) => (3.5, -6.0, -1.0),
@@ -225,6 +233,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Maneater, _) => (4.5, -2.5, -3.0),
                 (Sandshark, _) => (3.5, -15.0, -14.0),
                 (Hakulaq, _) => (3.5, -8.0, -4.5),
+                (Lavadrake, _) => (3.5, -8.0, -6.5),
             },
             lean: match (body.species, body.body_type) {
                 (Pangolin, _) => (0.4, 0.0),
@@ -232,7 +241,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             },
             scaler: match (body.species, body.body_type) {
                 (Crocodile, _) => (1.3),
-                (Alligator, _) => (1.5),
+                (Alligator, _) => (1.4),
                 (Salamander, _) => (1.4),
                 (Monitor, _) => (1.1),
                 (Asp, _) => (1.4),
@@ -242,6 +251,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Maneater, _) => (1.4),
                 (Sandshark, _) => (1.0),
                 (Hakulaq, _) => (1.0),
+                (Lavadrake, _) => (1.4),
             },
             tempo: match (body.species, body.body_type) {
                 (Crocodile, _) => (0.7),
@@ -255,6 +265,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Maneater, _) => (0.9),
                 (Sandshark, _) => (1.0),
                 (Hakulaq, _) => (1.0),
+                (Lavadrake, _) => (1.1),
             },
         }
     }

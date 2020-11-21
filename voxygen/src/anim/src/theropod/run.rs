@@ -21,7 +21,7 @@ impl Animation for RunAnimation {
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
-        let speed = Vec2::<f32>::from(velocity).magnitude();
+        let speed = (Vec2::<f32>::from(velocity).magnitude()).min(22.0);
         *rate = 1.0;
 
         let breathe = (anim_time as f32 * 0.8).sin();
@@ -81,7 +81,7 @@ impl Animation for RunAnimation {
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1 + breathe * 0.3);
         next.head.orientation = Quaternion::rotation_x(-0.1 + short * -0.05)
             * Quaternion::rotation_y(tilt * 0.8)
-            * Quaternion::rotation_z(shortalt * -0.2 - tilt * 1.2);
+            * Quaternion::rotation_z(shortalt * -0.2 - tilt * 4.5);
 
         next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
         next.jaw.orientation = Quaternion::rotation_x(short * -0.03);
@@ -89,7 +89,7 @@ impl Animation for RunAnimation {
         next.neck.position = Vec3::new(0.0, s_a.neck.0, s_a.neck.1);
         next.neck.orientation = Quaternion::rotation_x(-0.1 + short * -0.04)
             * Quaternion::rotation_y(tilt * 0.3)
-            * Quaternion::rotation_z(shortalt * -0.1 - tilt * 1.2);
+            * Quaternion::rotation_z(shortalt * -0.1 - tilt * 4.2);
 
         next.chest_front.position = Vec3::new(
             0.0,
@@ -123,25 +123,25 @@ impl Animation for RunAnimation {
         next.leg_l.position = Vec3::new(
             -s_a.leg.0,
             s_a.leg.1 + amplitude3 * foot1b * -1.3,
-            s_a.leg.2 + amplitude3 * foot1a * 1.4,
+            s_a.leg.2 + amplitude3 * foot1a * 1.0,
         );
-        next.leg_l.orientation = Quaternion::rotation_x(-0.2 + amplitude3 * foot1a * 0.2)
+        next.leg_l.orientation = Quaternion::rotation_x(-0.2 + amplitude3 * foot1a * 0.15)
             * Quaternion::rotation_y(tilt * 0.5)
             * Quaternion::rotation_z(foot1a * -0.3 + tilt * -0.5);
 
         next.leg_r.position = Vec3::new(
             s_a.leg.0,
             s_a.leg.1 + amplitude3 * foot2b * -1.3,
-            s_a.leg.2 + amplitude3 * foot2a * 1.4,
+            s_a.leg.2 + amplitude3 * foot2a * 1.0,
         );
-        next.leg_r.orientation = Quaternion::rotation_x(-0.2 + amplitude3 * foot2a * 0.2)
+        next.leg_r.orientation = Quaternion::rotation_x(-0.2 + amplitude3 * foot2a * 0.15)
             * Quaternion::rotation_y(tilt * 0.5)
             * Quaternion::rotation_z(foot2a * 0.3 + tilt * -0.5);
 
         next.foot_l.position = Vec3::new(
             -s_a.foot.0,
-            s_a.foot.1 + canceler * -2.0 + amplitude3 * foot1b * -2.0,
-            s_a.foot.2 + canceler * 2.0 + (foot1a * 2.0).max(0.0) * amplitude2,
+            s_a.foot.1 + canceler * -1.0 + amplitude3 * foot1b * -2.0,
+            s_a.foot.2 + canceler * 2.0 + (foot1a * 1.5).max(0.0) * amplitude2,
         );
         next.foot_l.orientation = Quaternion::rotation_x(-0.3 + amplitude2 * foot1b * -0.35)
             * Quaternion::rotation_y(tilt * -1.0)
@@ -149,8 +149,8 @@ impl Animation for RunAnimation {
 
         next.foot_r.position = Vec3::new(
             s_a.foot.0,
-            s_a.foot.1 + canceler * -2.0 + amplitude3 * foot2b * -2.0,
-            s_a.foot.2 + canceler * 2.0 + (foot2a * 2.0).max(0.0) * amplitude2,
+            s_a.foot.1 + canceler * -1.0 + amplitude3 * foot2b * -2.0,
+            s_a.foot.2 + canceler * 2.0 + (foot2a * 1.5).max(0.0) * amplitude2,
         );
         next.foot_r.orientation = Quaternion::rotation_x(-0.3 + amplitude2 * foot2b * -0.35)
             * Quaternion::rotation_y(tilt * -1.0);
