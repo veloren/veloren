@@ -77,6 +77,7 @@ where
                 0.0
             }
         };
+        let get_glow = |vol: &mut V, pos: Vec3<i32>| 0.0;
         let get_color = |vol: &mut V, pos: Vec3<i32>| {
             vol.get(pos)
                 .ok()
@@ -100,6 +101,7 @@ where
             greedy_size,
             greedy_size_cross,
             get_light,
+            get_glow,
             get_color,
             get_opacity,
             should_draw,
@@ -179,6 +181,7 @@ where
                 0.0
             }
         };
+        let get_glow = |vol: &mut V, pos: Vec3<i32>| 0.0;
         let get_color = |vol: &mut V, pos: Vec3<i32>| {
             vol.get(pos)
                 .ok()
@@ -201,6 +204,7 @@ where
             greedy_size,
             greedy_size_cross,
             get_light,
+            get_glow,
             get_color,
             get_opacity,
             should_draw,
@@ -273,6 +277,7 @@ where
                 0.0
             }
         };
+        let get_glow = |vol: &mut V, pos: Vec3<i32>| 0.0;
         let get_color = |vol: &mut V, pos: Vec3<i32>| {
             vol.get(pos)
                 .ok()
@@ -295,6 +300,7 @@ where
             greedy_size,
             greedy_size_cross,
             get_light,
+            get_glow,
             get_color,
             get_opacity,
             should_draw,

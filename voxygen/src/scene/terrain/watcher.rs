@@ -17,6 +17,7 @@ pub struct BlocksOfInterest {
     // Note: these are only needed for chunks within the iteraction range so this is a potential
     // area for optimization
     pub interactables: Vec<Vec3<i32>>,
+    pub lights: Vec<(Vec3<i32>, u8)>,
 }
 
 impl BlocksOfInterest {
@@ -30,6 +31,7 @@ impl BlocksOfInterest {
         let mut reeds = Vec::new();
         let mut flowers = Vec::new();
         let mut interactables = Vec::new();
+        let mut lights = Vec::new();
 
         chunk
             .vol_iter(
@@ -73,6 +75,9 @@ impl BlocksOfInterest {
                 if block.is_collectible() {
                     interactables.push(pos);
                 }
+                if let Some(glow) = block.get_glow() {
+                    lights.push((pos, glow));
+                }
             });
 
         Self {
@@ -84,6 +89,7 @@ impl BlocksOfInterest {
             reeds,
             flowers,
             interactables,
+            lights,
         }
     }
 }

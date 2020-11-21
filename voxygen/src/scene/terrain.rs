@@ -138,8 +138,9 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
     sprite_config: &SpriteSpec,
 ) -> MeshWorkerResponse {
     span!(_guard, "mesh_worker");
+    let blocks_of_interest = BlocksOfInterest::from_chunk(&chunk);
     let (opaque_mesh, fluid_mesh, _shadow_mesh, (bounds, col_lights_info)) =
-        volume.generate_mesh((range, Vec2::new(max_texture_size, max_texture_size)));
+        volume.generate_mesh((range, Vec2::new(max_texture_size, max_texture_size), &blocks_of_interest));
     MeshWorkerResponse {
         pos,
         z_bounds: (bounds.min.z, bounds.max.z),
@@ -199,7 +200,7 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
 
             instances
         },
-        blocks_of_interest: BlocksOfInterest::from_chunk(&chunk),
+        blocks_of_interest,
         started_tick,
     }
 }

@@ -61,17 +61,8 @@ void main() {
     // vec3 dv = dFdy(f_pos);
     // vec3 f_norm = normalize(cross(du, dv));
 
-    // vec4 f_col_light = texture(t_col_light, (f_uv_pos + 0.5) / textureSize(t_col_light, 0)/* + uv_delta*//* - f_norm * 0.00001*/);
-    // vec4 f_col_light = textureGrad(t_col_light, (f_uv_pos + 0.5) / textureSize(t_col_light, 0), vec2(0.5), vec2(0.5));
-    vec4 f_col_light = texelFetch(t_col_light, ivec2(f_uv_pos)/* + uv_delta*//* - f_norm * 0.00001*/, 0);
-    vec3 f_col = /*linear_to_srgb*//*srgb_to_linear*/(f_col_light.rgb);
-    // vec3 f_col = vec3(1.0);
-    // vec2 texSize = textureSize(t_col_light, 0);
-    // float f_ao = f_col_light.a;
-    // float f_ao = f_col_light.a + length(vec2(dFdx(f_col_light.a), dFdy(f_col_light.a)));
-    float f_ao = texture(t_col_light, (f_uv_pos + 0.5) / textureSize(t_col_light, 0)).a;//1.0;//f_col_light.a * 4.0;// f_light = float(v_col_light & 0x3Fu) / 64.0;
-    // float f_ao = 1.0;
-    // float /*f_light*/f_ao = textureProj(t_col_light, vec3(f_uv_pos, texSize)).a;//1.0;//f_col_light.a * 4.0;// f_light = float(v_col_light & 0x3Fu) / 64.0;
+    float f_ao, f_glow;
+    vec3 f_col = greedy_extract_col_light_glow(t_col_light, f_uv_pos, f_ao, f_glow);
 
     // vec3 my_chunk_pos = f_pos_norm;
     // tgt_color = vec4(hash(floor(vec4(my_chunk_pos.x, 0, 0, 0))), hash(floor(vec4(0, my_chunk_pos.y, 0, 1))), hash(floor(vec4(0, 0, my_chunk_pos.z, 2))), 1.0);
