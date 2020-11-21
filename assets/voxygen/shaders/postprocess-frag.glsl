@@ -206,7 +206,7 @@ void main() {
 
     // Tonemapping
     float exposure_offset = 1.0;
-    // Adding an in-code offset to gamma and explosure let us have more precise control over the game's look
+    // Adding an in-code offset to gamma and exposure let us have more precise control over the game's look
     float gamma_offset = 0.3;
     aa_color.rgb = vec3(1.0) - exp(-aa_color.rgb * (gamma_exposure.y + exposure_offset));
     // gamma correction

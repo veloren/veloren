@@ -20,7 +20,8 @@ float emission_strength = clamp((sin(time_of_day.x / (3600 * 24)) - 0.8) / 0.1, 
 // Returns vec4(r, g, b, density)
 vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
     // Natural attenuation of air (air naturally attenuates light that passes through it)
-    // Simulate the atmosphere thinning above 3000 metres down to nothing at 5000 metres
+    // Simulate the atmosphere thinning as you get higher. Not physically accurate, but then
+    // it can't be since Veloren's world is flat, not spherical.
     float air = 0.00035 * clamp((10000.0 - pos.z) / 7000, 0, 1);
 
     // Mist sits close to the ground in valleys (TODO: use base_alt to put it closer to water)
