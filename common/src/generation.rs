@@ -8,6 +8,7 @@ pub enum EntityTemplate {
     Traveller,
 }
 
+#[derive(Clone)]
 pub struct EntityInfo {
     pub pos: Vec3<f32>,
     pub is_waypoint: bool, // Edge case, overrides everything else

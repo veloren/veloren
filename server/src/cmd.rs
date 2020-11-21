@@ -1561,42 +1561,49 @@ fn handle_debug_column(
 fn handle_debug_column(
     server: &mut Server,
     client: EcsEntity,
-    _target: EcsEntity,
+    target: EcsEntity,
     args: String,
     action: &ChatCommand,
 ) {
     let sim = server.world.sim();
     let sampler = server.world.sample_columns();
+    let mut wpos = Vec2::new(0, 0);
     if let Ok((x, y)) = scan_fmt!(&args, &action.arg_fmt(), i32, i32) {
-        let wpos = Vec2::new(x, y);
-        /* let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
-            e / sz as i32
-        }); */
+        wpos = Vec2::new(x, y);
+    } else {
+        match server.state.read_component_copied::<comp::Pos>(target) {
+            Some(pos) => wpos = pos.0.xy().map(|x| x as i32),
+            None => server.notify_client(
+                client,
+                ChatType::CommandError.server_msg(String::from("You have no position.")),
+            ),
+        }
+    }
+    let msg_generator = || {
+        let alt = sim.get_interpolated(wpos, |chunk| chunk.alt)?;
+        let basement = sim.get_interpolated(wpos, |chunk| chunk.basement)?;
+        let water_alt = sim.get_interpolated(wpos, |chunk| chunk.water_alt)?;
+        let chaos = sim.get_interpolated(wpos, |chunk| chunk.chaos)?;
+        let temp = sim.get_interpolated(wpos, |chunk| chunk.temp)?;
+        let humidity = sim.get_interpolated(wpos, |chunk| chunk.humidity)?;
+        let rockiness = sim.get_interpolated(wpos, |chunk| chunk.rockiness)?;
+        let tree_density = sim.get_interpolated(wpos, |chunk| chunk.tree_density)?;
+        let spawn_rate = sim.get_interpolated(wpos, |chunk| chunk.spawn_rate)?;
+        let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / sz as i32);
+        let chunk = sim.get(chunk_pos)?;
+        let col = sampler.get((wpos, server.index.as_index_ref()))?;
+        let gradient = sim.get_gradient_approx(chunk_pos)?;
+        let downhill = chunk.downhill;
+        let river = &chunk.river;
+        let flux = chunk.flux;
 
-        let msg_generator = || {
-            // let sim_chunk = sim.get(chunk_pos)?;
-            let alt = sim.get_interpolated(wpos, |chunk| chunk.alt)?;
-            let basement = sim.get_interpolated(wpos, |chunk| chunk.basement)?;
-            let water_alt = sim.get_interpolated(wpos, |chunk| chunk.water_alt)?;
-            let chaos = sim.get_interpolated(wpos, |chunk| chunk.chaos)?;
-            let temp = sim.get_interpolated(wpos, |chunk| chunk.temp)?;
-            let humidity = sim.get_interpolated(wpos, |chunk| chunk.humidity)?;
-            let rockiness = sim.get_interpolated(wpos, |chunk| chunk.rockiness)?;
-            let tree_density = sim.get_interpolated(wpos, |chunk| chunk.tree_density)?;
-            let spawn_rate = sim.get_interpolated(wpos, |chunk| chunk.spawn_rate)?;
-            let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / sz as i32);
-            let chunk = sim.get(chunk_pos)?;
-            let col = sampler.get((wpos, server.index.as_index_ref()))?;
-            let downhill = chunk.downhill;
-            let river = &chunk.river;
-            let flux = chunk.flux;
-
-            Some(format!(
-                r#"wpos: {:?}
+        Some(format!(
+            r#"wpos: {:?}
 alt {:?} ({:?})
 water_alt {:?} ({:?})
 basement {:?}
 river {:?}
+gradient {:?}
 downhill {:?}
 chaos {:?}
 flux {:?}
@@ -1605,35 +1612,30 @@ humidity {:?}
 rockiness {:?}
 tree_density {:?}
 spawn_rate {:?} "#,
-                wpos,
-                alt,
-                col.alt,
-                water_alt,
-                col.water_level,
-                basement,
-                river,
-                downhill,
-                chaos,
-                flux,
-                temp,
-                humidity,
-                rockiness,
-                tree_density,
-                spawn_rate
-            ))
-        };
-        if let Some(s) = msg_generator() {
-            server.notify_client(client, ChatType::CommandInfo.server_msg(s));
-        } else {
-            server.notify_client(
-                client,
-                ChatType::CommandError.server_msg("Not a pregenerated chunk."),
-            );
-        }
+            wpos,
+            alt,
+            col.alt,
+            water_alt,
+            col.water_level,
+            basement,
+            river,
+            gradient,
+            downhill,
+            chaos,
+            flux,
+            temp,
+            humidity,
+            rockiness,
+            tree_density,
+            spawn_rate
+        ))
+    };
+    if let Some(s) = msg_generator() {
+        server.notify_client(client, ChatType::CommandInfo.server_msg(s));
     } else {
         server.notify_client(
             client,
-            ChatType::CommandError.server_msg(action.help_string()),
+            ChatType::CommandError.server_msg("Not a pregenerated chunk."),
         );
     }
 }

@@ -54,10 +54,11 @@ use common::{
     },
     outcome::Outcome,
     recipe::default_recipe_book,
+    spiral::Spiral2d,
     state::{State, TimeOfDay},
     sync::WorldSyncExt,
     terrain::TerrainChunkSize,
-    vol::{ReadVol, RectVolSize},
+    vol::RectVolSize,
 };
 use futures_executor::block_on;
 use metrics::{PhysicsMetrics, ServerMetrics, StateTickMetrics, TickMetrics};
@@ -525,7 +526,16 @@ impl Server {
                 !&self.state.ecs().read_storage::<comp::Player>(),
             )
                 .join()
-                .filter(|(_, pos, _)| terrain.get(pos.0.map(|e| e.floor() as i32)).is_err())
+                .filter(|(_, pos, _)| {
+                    let chunk_key = terrain.pos_key(pos.0.map(|e| e.floor() as i32));
+                    // Check not only this chunk, but also all neighbours to avoid immediate
+                    // despawning if the entity walks outside of a valid chunk
+                    // briefly. If the entity isn't even near a loaded chunk then we get
+                    // rid of it.
+                    Spiral2d::new()
+                        .take(9)
+                        .all(|offs| terrain.get_key(chunk_key + offs).is_none())
+                })
                 .map(|(entity, _, _)| entity)
                 .collect::<Vec<_>>()
         };
