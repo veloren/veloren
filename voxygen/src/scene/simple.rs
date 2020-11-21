@@ -187,6 +187,7 @@ impl Scene {
                     false,
                     &camera,
                     &mut buf,
+                    None,
                 );
                 (model, state)
             }),
@@ -353,6 +354,7 @@ impl Scene {
                 false,
                 &self.camera,
                 &mut buf,
+                None,
             );
         }
     }

@@ -25,7 +25,7 @@ in vec4 inst_mat0;
 in vec4 inst_mat1;
 in vec4 inst_mat2;
 in vec4 inst_mat3;
-// in vec3 inst_col;
+in vec4 inst_light;
 in float inst_wind_sway;
 
 struct SpriteLocals {
@@ -77,6 +77,7 @@ flat out float f_light;
 // out vec3 f_col;
 // out float f_ao;
 out vec2 f_uv_pos;
+out vec2 f_inst_light;
 // flat out uint f_atlas_pos;
 // out vec3 light_pos[2];
 // out float f_light;
@@ -116,6 +117,8 @@ void main() {
     // float inst_wind_sway = instances.inst_wind_sway; */
     // float inst_wind_sway = wind_sway.w;
     // vec3 inst_offs = model_offs - focus_off.xyz;
+
+    f_inst_light = inst_light.xy;
 
     // vec3 sprite_pos = floor(inst_mat3.xyz * SCALE) + inst_offs;
 

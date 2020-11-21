@@ -698,9 +698,13 @@ impl Scene {
         );
 
         // Maintain the figures.
-        let _figure_bounds =
-            self.figure_mgr
-                .maintain(renderer, scene_data, visible_psr_bounds, &self.camera);
+        let _figure_bounds = self.figure_mgr.maintain(
+            renderer,
+            scene_data,
+            visible_psr_bounds,
+            &self.camera,
+            Some(&self.terrain),
+        );
 
         let sun_dir = scene_data.get_sun_dir();
         let is_daylight = sun_dir.z < 0.0;

@@ -25,6 +25,7 @@ layout (std140)
 uniform u_locals {
     mat4 model_mat;
     vec4 highlight_col;
+    vec4 model_light;
     ivec4 atlas_offs;
     vec3 model_pos;
     int flags;

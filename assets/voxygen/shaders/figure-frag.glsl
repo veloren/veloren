@@ -49,6 +49,7 @@ layout (std140)
 uniform u_locals {
     mat4 model_mat;
     vec4 highlight_col;
+    vec4 model_light;
     ivec4 atlas_offs;
     vec3 model_pos;
     // bit 0 - is player
@@ -159,6 +160,10 @@ void main() {
 
     vec3 emitted_light, reflected_light;
 
+    // Make voxel shadows block the sun and moon
+    sun_info.block *= model_light.x;
+    moon_info.block *= model_light.x;
+
     // vec3 light_frac = /*vec3(1.0);*//*vec3(max(dot(f_norm, -sun_dir) * 0.5 + 0.5, 0.0));*/light_reflection_factor(f_norm, view_dir, vec3(0, 0, -1.0), vec3(1.0), vec3(R_s), alpha);
     // vec3 point_light = light_at(f_pos, f_norm);
     // vec3 light, diffuse_light, ambient_light;
@@ -175,6 +180,9 @@ void main() {
     max_light += lights_at(f_pos, f_norm, view_dir, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
 
     float ao = f_ao * sqrt(f_ao);//0.25 + f_ao * 0.75; ///*pow(f_ao, 0.5)*/f_ao * 0.85 + 0.15;
+
+    float glow = model_light.y;
+    emitted_light += glow;
 
     reflected_light *= ao;
     emitted_light *= ao;

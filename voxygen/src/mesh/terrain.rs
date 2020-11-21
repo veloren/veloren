@@ -35,10 +35,12 @@ const MAX_LIGHT_DIST: i32 = SUNLIGHT as i32;
 
 fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     is_sunlight: bool,
+    // When above bounds
+    default_light: f32,
     bounds: Aabb<i32>,
     vol: &VolGrid2d<V>,
     lit_blocks: impl Iterator<Item = (Vec3<i32>, u8)>,
-) -> impl FnMut(Vec3<i32>) -> f32 + '_ {
+) -> impl Fn(Vec3<i32>) -> f32 + 'static + Send + Sync {
     span!(_guard, "calc_light");
     const UNKNOWN: u8 = 255;
     const OPAQUE: u8 = 254;
@@ -210,17 +212,25 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
         let pos = wpos - outer.min;
         light_map
             .get(lm_idx(pos.x, pos.y, pos.z))
-            .filter(|l| **l != OPAQUE && **l != UNKNOWN)
-            .map(|l| *l as f32 / SUNLIGHT as f32)
-            .unwrap_or(0.0)
+            .map(|l| if *l != OPAQUE && *l != UNKNOWN {
+                *l as f32 / SUNLIGHT as f32
+            } else {
+                0.0
+            })
+            .unwrap_or(default_light)
     }
 }
 
-impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
+impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug + 'static>
     Meshable<TerrainPipeline, FluidPipeline> for &'a VolGrid2d<V>
 {
     type Pipeline = TerrainPipeline;
-    type Result = (Aabb<f32>, ColLightInfo);
+    type Result = (
+        Aabb<f32>,
+        ColLightInfo,
+        Box<dyn Fn(Vec3<i32>) -> f32 + Send + Sync>,
+        Box<dyn Fn(Vec3<i32>) -> f32 + Send + Sync>,
+    );
     type ShadowPipeline = ShadowPipeline;
     type Supplement = (Aabb<i32>, Vec2<u16>, &'a BlocksOfInterest);
     type TranslucentPipeline = FluidPipeline;
@@ -266,9 +276,9 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
             }
         }
 
-        // Calculate chunk lighting
-        let mut light = calc_light(true, range, self, core::iter::empty());
-        let mut glow = calc_light(false, range, self, glow_blocks.into_iter());
+        // Calculate chunk lighting (sunlight defaults to 1.0, glow to 0.0)
+        let mut light = calc_light(true, 1.0, range, self, core::iter::empty());
+        let mut glow = calc_light(false, 0.0, range, self, glow_blocks.into_iter());
 
         let mut opaque_limits = None::<Limits>;
         let mut fluid_limits = None::<Limits>;
@@ -433,7 +443,7 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
             opaque_mesh,
             fluid_mesh,
             Mesh::new(),
-            (bounds, (col_lights, col_lights_size)),
+            (bounds, (col_lights, col_lights_size), Box::new(light), Box::new(glow)),
         )
     }
 }

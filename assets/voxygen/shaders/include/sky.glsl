@@ -7,6 +7,8 @@
 struct DirectionalLight {
     // vec3 dir;
     float shadow;
+    // Fully blocks all light, including ambience
+    float block;
     // vec3 color;
     // float brightness;
 };
@@ -135,6 +137,7 @@ vec3 get_moon_color(/*vec3 moon_dir*/) {
 
 DirectionalLight get_sun_info(vec4 _dir, float shade_frac/*, vec4 light_pos[2]*/, /*vec4 sun_pos*/vec3 f_pos) {
     float shadow = shade_frac;
+    float block = 1.0;
 #ifdef HAS_SHADOW_MAPS
 #if (SHADOW_MODE == SHADOW_MODE_MAP)
     if (sun_dir.z < /*0.6*/0.0) {
@@ -151,15 +154,16 @@ DirectionalLight get_sun_info(vec4 _dir, float shade_frac/*, vec4 light_pos[2]*/
     }
 #endif
 #endif
-    return DirectionalLight(/*dir, */shadow/*, get_sun_color(dir), get_sun_brightness(dir)*/);
+    return DirectionalLight(/*dir, */shadow, block/*, get_sun_color(dir), get_sun_brightness(dir)*/);
 }
 
 DirectionalLight get_moon_info(vec4 _dir, float shade_frac/*, vec4 light_pos[2]*/) {
     float shadow = shade_frac;
+    float block = 1.0;
 // #ifdef HAS_SHADOW_MAPS
 //     shadow = min(shade_frac, ShadowCalculationDirected(light_pos, 1u));
 // #endif
-    return DirectionalLight(/*dir, */shadow/*, get_moon_color(dir), get_moon_brightness(dir)*/);
+    return DirectionalLight(/*dir, */shadow, block/*, get_moon_color(dir), get_moon_brightness(dir)*/);
 }
 
 // // Calculates extra emission and reflectance (due to sunlight / moonlight).
@@ -227,8 +231,8 @@ float get_sun_diffuse2(DirectionalLight sun_info, DirectionalLight moon_info, ve
     vec3 sun_dir = sun_dir.xyz;
     vec3 moon_dir = moon_dir.xyz;
 
-    float sun_light = get_sun_brightness(/*sun_dir*/);//sun_info.brightness;;
-    float moon_light = get_moon_brightness(/*moon_dir*/);//moon_info.brightness;
+    float sun_light = get_sun_brightness(/*sun_dir*/) * sun_info.block;//sun_info.brightness;;
+    float moon_light = get_moon_brightness(/*moon_dir*/) * moon_info.block;//moon_info.brightness;
 
     vec3 sun_color = get_sun_color(/*sun_dir*/) * SUN_COLOR_FACTOR;//sun_info.color * SUN_COLOR_FACTOR;
     vec3 moon_color = get_moon_color(/*moon_dir*/);//moon_info.color;
