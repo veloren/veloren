@@ -116,7 +116,7 @@ impl LoadoutBuilder {
                     active_item,
                     second_item: None,
                     shoulder: Some(Item::new_from_asset_expect(
-                        "common.items.armor.shoulder.chain",
+                        "common.items.armor.shoulder.steel_0",
                     )),
                     chest: Some(Item::new_from_asset_expect(
                         "common.items.armor.chest.steel_0",
@@ -376,83 +376,47 @@ impl LoadoutBuilder {
                     head: None,
                     tabard: None,
                 },
-                Villager => {
-                    if is_giant {
-                        Loadout {
-                            active_item,
-                            second_item: None,
-                            shoulder: Some(Item::new_from_asset_expect(
-                                "common.items.armor.shoulder.plate_0",
-                            )),
-                            chest: Some(Item::new_from_asset_expect(match alignment {
-                                Alignment::Enemy => "common.items.npc_armor.chest.plate_red_0",
-                                _ => "common.items.npc_armor.chest.plate_green_0",
-                            })),
-                            belt: Some(Item::new_from_asset_expect(
-                                "common.items.armor.belt.plate_0",
-                            )),
-                            hand: Some(Item::new_from_asset_expect(
-                                "common.items.armor.hand.plate_0",
-                            )),
-                            pants: Some(Item::new_from_asset_expect(match alignment {
-                                Alignment::Enemy => "common.items.npc_armor.pants.plate_red_0",
-                                _ => "common.items.npc_armor.pants.plate_green_0",
-                            })),
-                            foot: Some(Item::new_from_asset_expect(
-                                "common.items.armor.foot.plate_0",
-                            )),
-                            back: None,
-                            ring: None,
-                            neck: None,
-                            lantern: None,
-                            glider: None,
-                            head: None,
-                            tabard: None,
-                        }
-                    } else {
-                        Loadout {
-                            active_item,
-                            second_item: None,
-                            shoulder: None,
-                            chest: Some(Item::new_from_asset_expect(
-                                match rand::thread_rng().gen_range(0, 10) {
-                                    0 => "common.items.armor.chest.worker_green_0",
-                                    1 => "common.items.armor.chest.worker_green_1",
-                                    2 => "common.items.armor.chest.worker_red_0",
-                                    3 => "common.items.armor.chest.worker_red_1",
-                                    4 => "common.items.armor.chest.worker_purple_0",
-                                    5 => "common.items.armor.chest.worker_purple_1",
-                                    6 => "common.items.armor.chest.worker_yellow_0",
-                                    7 => "common.items.armor.chest.worker_yellow_1",
-                                    8 => "common.items.armor.chest.worker_orange_0",
-                                    _ => "common.items.armor.chest.worker_orange_1",
-                                },
-                            )),
-                            belt: Some(Item::new_from_asset_expect(
-                                "common.items.armor.belt.leather_0",
-                            )),
-                            hand: None,
-                            pants: Some(Item::new_from_asset_expect(
-                                "common.items.armor.pants.worker_blue_0",
-                            )),
-                            foot: Some(Item::new_from_asset_expect(
-                                match rand::thread_rng().gen_range(0, 2) {
-                                    0 => "common.items.armor.foot.leather_0",
-                                    _ => "common.items.armor.starter.sandals_0",
-                                },
-                            )),
-                            back: None,
-                            ring: None,
-                            neck: None,
-                            lantern: Some(Item::new_from_asset_expect(
-                                "common.items.lantern.black_0",
-                            )),
-                            glider: None,
-                            head: None,
-                            tabard: None,
-                        }
-                    }
-                },
+                Villager => Loadout {
+                    active_item,
+                    second_item: None,
+                    shoulder: None,
+                    chest: Some(Item::new_from_asset_expect(
+                        match rand::thread_rng().gen_range(0, 10) {
+                            0 => "common.items.armor.chest.worker_green_0",
+                            1 => "common.items.armor.chest.worker_green_1",
+                            2 => "common.items.armor.chest.worker_red_0",
+                            3 => "common.items.armor.chest.worker_red_1",
+                            4 => "common.items.armor.chest.worker_purple_0",
+                            5 => "common.items.armor.chest.worker_purple_1",
+                            6 => "common.items.armor.chest.worker_yellow_0",
+                            7 => "common.items.armor.chest.worker_yellow_1",
+                            8 => "common.items.armor.chest.worker_orange_0",
+                            _ => "common.items.armor.chest.worker_orange_1",
+                        },
+                    )),
+                    belt: Some(Item::new_from_asset_expect(
+                        "common.items.armor.belt.leather_0",
+                    )),
+                    hand: None,
+                    pants: Some(Item::new_from_asset_expect(
+                        "common.items.armor.pants.worker_blue_0",
+                    )),
+                    foot: Some(Item::new_from_asset_expect(
+                        match rand::thread_rng().gen_range(0, 2) {
+                            0 => "common.items.armor.foot.leather_0",
+                            _ => "common.items.armor.starter.sandals_0",
+                        },
+                    )),
+                    back: None,
+                    ring: None,
+                    neck: None,
+                    lantern: Some(Item::new_from_asset_expect(
+                        "common.items.lantern.black_0",
+                    )),
+                    glider: None,
+                    head: None,
+                    tabard: None,
+                }
             }
         } else {
             match body {
