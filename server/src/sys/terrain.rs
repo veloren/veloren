@@ -187,6 +187,7 @@ impl<'a> System<'a> for Sys {
                     body,
                     alignment,
                     scale: comp::Scale(scale),
+                    home_chunk: Some(comp::HomeChunk(key)),
                     drop_item: entity.loot_drop,
                 })
             }
