@@ -54,8 +54,8 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
 
     let mut light_map = vec![UNKNOWN; outer.size().product() as usize];
     let lm_idx = {
-        let (w, h, _) = outer.clone().size().into_tuple();
-        move |x, y, z| (z * h * w + x * h + y) as usize
+        let (_, h, d) = outer.clone().size().into_tuple();
+        move |x, y, z| (h * d * x + d * y + z) as usize
     };
     // Light propagation queue
     let mut prop_que = lit_blocks
@@ -67,8 +67,8 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
         .collect::<VecDeque<_>>();
     // Start sun rays
     if is_sunlight {
-        for y in 0..outer.size().h {
-            for x in 0..outer.size().w {
+        for x in 0..outer.size().w {
+            for y in 0..outer.size().h {
                 let z = outer.size().d - 1;
                 let is_air = vol_cached
                     .get(outer.min + Vec3::new(x, y, z))
@@ -209,20 +209,20 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     }
 
     let min_bounds = Aabb {
-        min: bounds.min - Vec3::unit_z(),
-        max: bounds.max + Vec3::unit_z(),
+        min: bounds.min - 1,
+        max: bounds.max + 1,
     };
 
     // Minimise light map to reduce duplication. We can now discard light info
     // for blocks outside of the chunk borders.
     let mut light_map2 = vec![UNKNOWN; min_bounds.size().product() as usize];
     let lm_idx2 = {
-        let (w, h, _) = min_bounds.clone().size().into_tuple();
-        move |x, y, z| (z * h * w + x * h + y) as usize
+        let (_, h, d) = min_bounds.clone().size().into_tuple();
+        move |x, y, z| (h * d * x + d * y + z) as usize
     };
-    for z in 0..min_bounds.size().d {
+    for x in 0..min_bounds.size().w {
         for y in 0..min_bounds.size().h {
-            for x in 0..min_bounds.size().w {
+            for z in 0..min_bounds.size().d {
                 let off = min_bounds.min - outer.min;
                 light_map2[lm_idx2(x, y, z)] = light_map[lm_idx(x + off.x, y + off.y, z + off.z)];
             }
