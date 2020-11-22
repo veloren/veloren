@@ -542,7 +542,6 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Castle => self.imgs.mmap_site_castle_hover,
             })
             .image_color(UI_HIGHLIGHT_0)
-            .parent(ui.window)
             .with_tooltip(
                 self.tooltip_manager,
                 title,
@@ -673,6 +672,7 @@ impl<'a> Widget for Map<'a> {
                 .color(Some(UI_HIGHLIGHT_0))
                 .set(state.ids.indicator, ui);
         }
+
         // Info about controls
         let icon_size = Vec2::new(tweak!(25.6), tweak!(28.8));
         let recenter: bool;

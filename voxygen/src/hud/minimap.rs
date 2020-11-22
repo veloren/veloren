@@ -216,14 +216,6 @@ impl<'a> Widget for MiniMap<'a> {
                 .source_rectangle(rect_src)
                 .set(state.ids.grid, ui);
 
-            // Indicator
-            let ind_scale = 0.4;
-            Image::new(self.rot_imgs.indicator_mmap_small.none)
-                .middle_of(state.ids.grid)
-                .w_h(32.0 * ind_scale, 37.0 * ind_scale)
-                .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.indicator, ui);
-
             // Map icons
             if state.ids.mmap_site_icons.len() < self.client.sites().len() {
                 state.update(|state| {
@@ -298,6 +290,14 @@ impl<'a> Widget for MiniMap<'a> {
                 .color(Some(UI_HIGHLIGHT_0))
                 .set(state.ids.mmap_site_icons[i], ui);
             }
+
+            // Indicator
+            let ind_scale = 0.4;
+            Image::new(self.rot_imgs.indicator_mmap_small.none)
+                .middle_of(state.ids.grid)
+                .w_h(32.0 * ind_scale, 37.0 * ind_scale)
+                .color(Some(UI_HIGHLIGHT_0))
+                .set(state.ids.indicator, ui);
 
             // Compass directions
             let dirs = [
