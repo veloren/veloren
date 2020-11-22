@@ -532,37 +532,39 @@ impl Floor {
                         // Bad
                         let chosen = match room.difficulty {
                             0 => {
-                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0, 5) {
+                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0, 4) {
                                     0 => "common.loot_tables.loot_table_humanoids",
-                                    1 => "common.loot_tables.loot_table_armor_misc",
-                                    _ => "common.loot_tables.loot_table_cultists",
+                                    1 => "common.loot_tables.loot_table_armor_cloth",
+                                    _ => "common.loot_tables.loot_table_weapon_common",
                                 })
                             },
                             1 => {
-                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0, 5) {
+                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0, 4) {
                                     0 => "common.loot_tables.loot_table_humanoids",
-                                    1 => "common.loot_tables.loot_table_armor_misc",
-                                    _ => "common.loot_tables.loot_table_cultists",
+                                    1 => "common.loot_tables.loot_table_armor_light",
+                                    _ => "common.loot_tables.loot_table_weapon_uncommon",
                                 })
                             },
                             2 => {
-                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0, 5) {
+                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0, 4) {
                                     0 => "common.loot_tables.loot_table_humanoids",
-                                    1 => "common.loot_tables.loot_table_armor_misc",
-                                    _ => "common.loot_tables.loot_table_cultists",
+                                    1 => "common.loot_tables.loot_table_armor_heavy",
+                                    _ => "common.loot_tables.loot_table_weapon_rare",
                                 })
                             },
                             3 => {
-                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0, 5) {
+                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0, 10) {
                                     0 => "common.loot_tables.loot_table_humanoids",
-                                    1 => "common.loot_tables.loot_table_armor_misc",
+                                    1 => "common.loot_tables.loot_table_armor_heavy",
+                                    2 => "common.loot_tables.loot_table_weapon_rare",
                                     _ => "common.loot_tables.loot_table_cultists",
                                 })
                             },
                             4 => {
-                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0, 5) {
+                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0, 6) {
                                     0 => "common.loot_tables.loot_table_humanoids",
                                     1 => "common.loot_tables.loot_table_armor_misc",
+                                    2 => "common.loot_tables.loot_table_weapon_rare",
                                     _ => "common.loot_tables.loot_table_cultists",
                                 })
                             },
@@ -570,6 +572,7 @@ impl Floor {
                                 Lottery::<String>::load_expect(match dynamic_rng.gen_range(0, 5) {
                                     0 => "common.loot_tables.loot_table_humanoids",
                                     1 => "common.loot_tables.loot_table_armor_misc",
+                                    2 => "common.loot_tables.loot_table_weapon_rare",
                                     _ => "common.loot_tables.loot_table_cultists",
                                 })
                             },
@@ -600,6 +603,7 @@ impl Floor {
                         let entity = match room.difficulty {
                             0 => entity.with_name("Outcast")
                             .with_config(common::loadout_builder::LoadoutConfig::Outcast)
+                            .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                             .with_main_tool(
                                 comp::Item::new_from_asset_expect(
                                     match dynamic_rng.gen_range(0, 6) {
@@ -614,6 +618,7 @@ impl Floor {
                             ),
                             1 => entity.with_name("Highwayman")
                             .with_config(common::loadout_builder::LoadoutConfig::Highwayman)
+                            .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                             .with_main_tool(
                                 comp::Item::new_from_asset_expect(
                                     match dynamic_rng.gen_range(0, 6) {
@@ -628,6 +633,7 @@ impl Floor {
                             ),
                             2 => entity.with_name("Bandit")
                             .with_config(common::loadout_builder::LoadoutConfig::Bandit)
+                            .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                             .with_main_tool(
                                 comp::Item::new_from_asset_expect(
                                     match dynamic_rng.gen_range(0, 6) {
@@ -642,6 +648,7 @@ impl Floor {
                             ),
                             3 => entity.with_name("Cultist Novice")
                             .with_config(common::loadout_builder::LoadoutConfig::CultistNovice)
+                            .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                             .with_main_tool(
                                 comp::Item::new_from_asset_expect(
                                     match dynamic_rng.gen_range(0, 6) {
@@ -656,6 +663,7 @@ impl Floor {
                             ),
                             4 => entity.with_name("Cultist Acolyte")
                             .with_config(common::loadout_builder::LoadoutConfig::CultistAcolyte)
+                            .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                             .with_main_tool(
                                 comp::Item::new_from_asset_expect(
                                     match dynamic_rng.gen_range(0, 6) {
@@ -671,11 +679,13 @@ impl Floor {
                             5 => match dynamic_rng.gen_range(0, 6) {
                                 0 => entity.with_name("Cultist Warlock")
                                 .with_config(common::loadout_builder::LoadoutConfig::Warlock)
+                                .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                 .with_main_tool(
                                     comp::Item::new_from_asset_expect("common.items.npc_weapons.staff.cultist_staff"),
                                 ),
                                 _ => entity.with_name("Cultist Warlord")
                                 .with_config(common::loadout_builder::LoadoutConfig::Warlord)
+                                .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                 .with_main_tool(
                                     comp::Item::new_from_asset_expect(
                                         match dynamic_rng.gen_range(0, 5) {
@@ -712,9 +722,17 @@ impl Floor {
                             boss_spawn_tile + if boss_tile_is_pillar { 1 } else { 0 };
 
                         if tile_pos == boss_spawn_tile && tile_wcenter.xy() == wpos2d {
-                            let chosen = Lottery::<String>::load_expect(
-                                "common.loot_tables.loot_table_boss_cultist-leader",
-                            );
+                            let chosen = match room.difficulty {
+                                0 =>  Lottery::<String>::load_expect("common.loot_tables.loot_table_weapon_uncommon"),
+                                1 =>  Lottery::<String>::load_expect("common.loot_tables.loot_table_weapon_uncommon"),
+                                2 =>  Lottery::<String>::load_expect("common.loot_tables.loot_table_armor_heavy"),
+                                3 =>  Lottery::<String>::load_expect("common.loot_tables.loot_table_weapon_rare"),
+                                4 =>  Lottery::<String>::load_expect("common.loot_tables.loot_table_boss_cultist-leader"),
+                                5 =>  Lottery::<String>::load_expect("common.loot_tables.loot_table_boss_cultist-leader"),
+                                _ => Lottery::<String>::load_expect(
+                                    "common.loot_tables.loot_table_armor_misc",
+                                ),
+                            };
                             let chosen = chosen.choose();
                             let entity =
                             match room.difficulty {
@@ -851,9 +869,17 @@ impl Floor {
                             miniboss_spawn_tile + if miniboss_tile_is_pillar { 1 } else { 0 };
 
                             if tile_pos == miniboss_spawn_tile && tile_wcenter.xy() == wpos2d {
-                                let chosen = Lottery::<String>::load_expect(
-                                    "common.loot_tables.loot_table_boss_cultist-leader",
-                                );
+                                let chosen = match room.difficulty {
+                                    0 =>  Lottery::<String>::load_expect("common.loot_tables.loot_table_animal_parts"),
+                                    1 =>  Lottery::<String>::load_expect("common.loot_tables.loot_table_animal_parts"),
+                                    2 =>  Lottery::<String>::load_expect("common.loot_tables.loot_table_animal_parts"),
+                                    3 =>  Lottery::<String>::load_expect("common.loot_tables.loot_table_weapon_rare"),
+                                    4 =>  Lottery::<String>::load_expect("common.loot_tables.loot_table_weapon_rare"),
+                                    5 =>  Lottery::<String>::load_expect("common.loot_tables.loot_table_boss_cultist-leader"),
+                                    _ => Lottery::<String>::load_expect(
+                                        "common.loot_tables.loot_table_armor_misc",
+                                    ),
+                                };
                                 let chosen = chosen.choose();
                                 let entity =
                                 match room.difficulty {
