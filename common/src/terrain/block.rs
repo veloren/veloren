@@ -168,8 +168,10 @@ impl Block {
     #[inline]
     pub fn get_glow(&self) -> Option<u8> {
         match self.get_sprite()? {
-            SpriteKind::StreetLamp | SpriteKind::StreetLampTall => Some(20),
-            SpriteKind::Velorite | SpriteKind::VeloriteFrag => Some(3),
+            SpriteKind::StreetLamp | SpriteKind::StreetLampTall => Some(24),
+            SpriteKind::Ember => Some(20),
+            SpriteKind::WallLamp => Some(16),
+            SpriteKind::Velorite | SpriteKind::VeloriteFrag => Some(6),
             _ => None,
         }
     }
