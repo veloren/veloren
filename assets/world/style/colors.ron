@@ -132,7 +132,7 @@
                     ),
                 ),
             ),
-            plot_town_path: (90, 70, 45),
+            plot_town_path: (80, 40, 20),
 
             plot_field_dirt: (55, 20, 5),
             plot_field_mound: (40, 60, 10),
@@ -147,7 +147,7 @@
             plot_dirt: (90, 70, 50),
             plot_grass: (100, 200, 0),
             plot_water: (100, 150, 250),
-            plot_town: (90, 70, 50),
+            plot_town: (80, 40, 20),
             // TODO: Add field furrow stuff.
         ),
     ),
