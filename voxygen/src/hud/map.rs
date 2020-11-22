@@ -230,7 +230,6 @@ impl<'a> Widget for Map<'a> {
             .set(state.ids.grid, ui);
         // Map Image
         let (world_map, worldsize) = self.world_map;
-        let worldsize = worldsize.map2(TerrainChunkSize::RECT_SIZE, |e, f| e as f64 * f as f64);
 
         // Coordinates
         let player_pos = self
@@ -241,8 +240,8 @@ impl<'a> Widget for Map<'a> {
             .get(self.client.entity())
             .map_or(Vec3::zero(), |pos| pos.0);
 
-        let max_zoom = (worldsize / TerrainChunkSize::RECT_SIZE.map(|e| e as f64))
-            .reduce_partial_max()/*.min(f64::MAX)*/;
+        let max_zoom = worldsize
+            .reduce_partial_max() as f64/*.min(f64::MAX)*/;
 
         let map_size = Vec2::new(760.0, 760.0);
 
@@ -256,13 +255,14 @@ impl<'a> Widget for Map<'a> {
             .left()
             .map(|drag| Vec2::<f64>::from(drag.delta_xy))
             .sum();
-        let drag_new = drag + dragged / zoom;
+        // Drag represents offset of view from the player_pos in chunk coords
+        let drag_new = drag + dragged / map_size / zoom * worldsize.map(|e| e as f64);
         events.push(Event::MapDrag(drag_new));
 
         let rect_src = position::Rect::from_xy_dim(
             [
                 (player_pos.x as f64 / TerrainChunkSize::RECT_SIZE.x as f64) - drag.x,
-                ((worldsize.y - player_pos.y as f64) / TerrainChunkSize::RECT_SIZE.y as f64)
+                (worldsize.y as f64 - (player_pos.y as f64 / TerrainChunkSize::RECT_SIZE.y as f64))
                     + drag.y,
             ],
             [w_src, h_src],
@@ -302,13 +302,13 @@ impl<'a> Widget for Map<'a> {
             events.push(Event::MapZoom(new_val as f64));
         }*/
         // Handle zooming with the mousewheel
-        let zoom_lvl = self.global_state.settings.gameplay.map_zoom;
         let scrolled: f64 = ui
             .widget_input(state.ids.grid)
             .scrolls()
             .map(|scroll| scroll.y)
             .sum();
-        let new_zoom_lvl = (zoom_lvl * (1.0 + scrolled * 0.05 * PLATFORM_FACTOR))
+        let new_zoom_lvl = (self.global_state.settings.gameplay.map_zoom
+            * (1.0 + scrolled * 0.05 * PLATFORM_FACTOR))
             .clamped(1.22, 20.0 /* max_zoom */);
         events.push(Event::MapZoom(new_zoom_lvl as f64));
         // Icon settings
@@ -471,13 +471,17 @@ impl<'a> Widget for Map<'a> {
             });
         }
         for (i, site) in self.client.sites().iter().enumerate() {
+            // Site pos in world coordinates relative to the player
             let rwpos = site.wpos.map(|e| e as f32) - player_pos;
-            let rcpos =
-                rwpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e / sz as f32) * zoom as f32 * 3.0
-                    / 4.0;
-            let rpos = Vec2::unit_x().rotated_z(0.0) * rcpos.x
-                + Vec2::unit_y().rotated_z(0.0) * rcpos.y
-                + drag.map(|e| (e * zoom_lvl) as f32 / 1.67);
+            // Convert to chunk coordinates
+            let rcpos = rwpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e / sz as f32)
+                // Add map dragging
+                + drag.map(|e| e as f32);
+            // Convert to fractional coordinates relative to the worldsize
+            let rfpos = rcpos.map2(*worldsize, |e, sz| e / sz as f32);
+            // Convert to relative pixel coordinates from the center of the map
+            // Accounting for zooming
+            let rpos = rfpos.map2(map_size, |e, sz| e * sz as f32 * zoom as f32);
 
             if rpos
                 .map2(map_size, |e, sz| e.abs() > sz as f32 / 2.0)
@@ -639,16 +643,27 @@ impl<'a> Widget for Map<'a> {
             (e as f64 / sz).clamped(0.0, 1.0)
         });*/
         //let xy = rel * 760.0;
-        let rpos = drag.map(|e| (e * zoom_lvl) as f32 / 2.6);
+
+        // Offset from map center due to dragging
+        let rcpos = drag.map(|e| e as f32);
+        // Convert to fractional coordinates relative to the worldsize
+        let rfpos = rcpos.map2(*worldsize, |e, sz| e / sz as f32);
+        // Convert to relative pixel coordinates from the center of the map
+        // Accounting for zooming
+        let rpos = rfpos.map2(map_size, |e, sz| e * sz as f32 * zoom as f32);
+        // Don't show if outside or near the edge of the map
+        let arrow_sz = {
+            let scale = 0.6f64;
+            Vec2::new(32.0, 37.0) * scale
+        };
+        // Hide if icon could go off of the edge of the map
         if !rpos
-            .map2(map_size, |e, sz| e > sz as f32 / 1.67)
+            .map2(map_size, |e, sz| {
+                e.abs() + arrow_sz.map(|e| e as f32 / 2.0).magnitude() > sz as f32 / 2.0
+            })
             .reduce_or()
         {
-            let scale = 0.6;
-            let arrow_sz = Vec2::new(32.0, 37.0) * scale;
-            if drag.x == 0.0 && drag.y == 0.0 {
-                Image::new(self.rot_imgs.indicator_mmap_small.target_north)
-                //.top_left_with_margins_on(state.ids.grid, 407.0 - drag.y * zoom_lvl, 417.0 + drag.x * zoom_lvl)
+            Image::new(self.rot_imgs.indicator_mmap_small.target_north)
                 .x_y_position_relative_to(
                     state.ids.grid,
                     position::Relative::Scalar(rpos.x as f64),
@@ -656,10 +671,7 @@ impl<'a> Widget for Map<'a> {
                 )
                 .w_h(arrow_sz.x, arrow_sz.y)
                 .color(Some(UI_HIGHLIGHT_0))
-                .floating(true)
-                //.parent(ui.window)
                 .set(state.ids.indicator, ui);
-            }
         }
         // Info about controls
         let icon_size = Vec2::new(tweak!(25.6), tweak!(28.8));
@@ -699,7 +711,7 @@ impl<'a> Widget for Map<'a> {
             .set(state.ids.recenter_button, ui)
             .was_clicked()
         {
-            events.push(Event::MapDrag(drag_new - drag_new));
+            events.push(Event::MapDrag(Vec2::zero()));
         };
 
         Image::new(self.imgs.m_move_ico)
