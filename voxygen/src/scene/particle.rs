@@ -485,6 +485,14 @@ impl ParticleMgr {
                 cond: |_| true,
             },
             BlockParticles {
+                blocks: |boi| &boi.fire_bowls,
+                range: 2,
+                rate: 20.0,
+                lifetime: 0.25,
+                mode: ParticleMode::FireBowl,
+                cond: |_| true,
+            },
+            BlockParticles {
                 blocks: |boi| &boi.smokers,
                 range: 8,
                 rate: 3.0,
