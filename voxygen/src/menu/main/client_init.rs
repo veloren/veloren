@@ -12,7 +12,7 @@ use std::{
     thread,
     time::Duration,
 };
-use tracing::{debug, trace, warn};
+use tracing::{trace, warn};
 
 #[derive(Debug)]
 pub enum Error {
@@ -107,7 +107,7 @@ impl ClientInit {
                                         ));
                                         break 'tries;
                                     } else {
-                                        debug!("Cannot connect to server: Timeout (retrying...)");
+                                        warn!(?e, "Failed to connect to the server. Retrying...");
                                     }
                                 },
                                 Err(e) => {

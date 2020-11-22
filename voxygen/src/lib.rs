@@ -39,7 +39,7 @@ use crate::{
     settings::Settings,
     window::{Event, Window},
 };
-use common::{assets::watch, clock::Clock};
+use common::{assets::watch, clock::Clock, span};
 
 /// A type used to store state that is shared between all play states.
 pub struct GlobalState {
@@ -63,7 +63,10 @@ impl GlobalState {
         self.window.needs_refresh_resize();
     }
 
-    pub fn maintain(&mut self, dt: std::time::Duration) { self.audio.maintain(dt); }
+    pub fn maintain(&mut self, dt: std::time::Duration) {
+        span!(_guard, "maintain", "GlobalState::maintain");
+        self.audio.maintain(dt);
+    }
 
     #[cfg(feature = "singleplayer")]
     pub fn paused(&self) -> bool {
