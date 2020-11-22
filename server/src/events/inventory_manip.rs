@@ -559,7 +559,7 @@ fn within_pickup_range<S: FindDist<find_dist::Cylinder>>(
 ) -> bool {
     entity_cylinder
         .and_then(|entity_cylinder| {
-            shape_fn().map(|shape| dbg!(shape.min_distance(entity_cylinder)) < MAX_PICKUP_RANGE)
+            shape_fn().map(|shape| shape.min_distance(entity_cylinder) < MAX_PICKUP_RANGE)
         })
         .unwrap_or(false)
 }
