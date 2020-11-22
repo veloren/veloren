@@ -308,8 +308,8 @@ impl<'a> Widget for Map<'a> {
             .map(|scroll| scroll.y)
             .sum();
         let new_zoom_lvl = (self.global_state.settings.gameplay.map_zoom
-            * (1.0 + scrolled * 0.05 * PLATFORM_FACTOR))
-            .clamped(0.75, max_zoom / 64.0);
+            * (scrolled * 0.05 * PLATFORM_FACTOR).exp2())
+        .clamped(0.75, max_zoom / 64.0);
         events.push(Event::MapZoom(new_zoom_lvl as f64));
         // Icon settings
         // Alignment
