@@ -171,19 +171,19 @@ fn handle_main_events_cleared(
             .swap_buffers()
             .expect("Failed to swap window buffers!");
         drop(guard);
-        #[cfg(feature = "tracy")]
-        common::util::tracy_client::finish_continuous_frame!();
     }
 
     if !exit {
         // Wait for the next tick.
-        span!(_guard, "Main thread sleep");
+        span!(guard, "Main thread sleep");
         global_state.clock.set_target_dt(Duration::from_secs_f64(
             1.0 / global_state.settings.graphics.max_fps as f64,
         ));
         global_state.clock.tick();
+        drop(guard);
+        #[cfg(feature = "tracy")]
+        common::util::tracy_client::finish_continuous_frame!();
 
-        span!(_guard, "Maintain global state");
         // Maintain global state.
         global_state.maintain(global_state.clock.dt());
     }
