@@ -102,8 +102,8 @@ pub fn sample_pos(
         river_kind,
         spline_derivative,
         is_path,
-        is_cave,
-        _near_site,
+        //_is_cave,
+        //_near_site,
     ) = sampler
         .get(pos)
         .map(|sample| {
@@ -118,13 +118,13 @@ pub fn sample_pos(
                 sample.river.river_kind,
                 sample.river.spline_derivative,
                 sample.path.0.is_way(),
-                sample.cave.0.is_way(),
-                sample.sites.iter().any(|site| {
-                    index.sites[*site]
-                        .get_origin()
-                        .distance_squared(pos * TerrainChunkSize::RECT_SIZE.x as i32)
-                        < 64i32.pow(2)
-                }),
+                // sample.cave.0.is_way(),
+                // sample.sites.iter().any(|site| {
+                //     index.sites[*site]
+                //         .get_origin()
+                //         .distance_squared(pos * TerrainChunkSize::RECT_SIZE.x as i32)
+                //         < 64i32.pow(2)
+                //}),
             )
         })
         .unwrap_or((
@@ -138,8 +138,8 @@ pub fn sample_pos(
             None,
             Vec2::zero(),
             false,
-            false,
-            false,
+            // false,
+            // false,
         ));
 
     let humidity = humidity.min(1.0).max(0.0);
@@ -251,9 +251,9 @@ pub fn sample_pos(
         Rgb::new(0x57, 0x39, 0x33)
     } else*/ if is_path {
         Rgb::new(0x37, 0x29, 0x23)
-    } else if is_cave {
+    } /* else if is_cave {
         Rgb::new(0x37, 0x37, 0x37)
-    } else {
+    } */ else {
         rgb
     };
 
