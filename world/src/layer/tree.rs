@@ -14,7 +14,7 @@ use std::{collections::HashMap, f32, sync::Arc};
 use vek::*;
 
 lazy_static! {
-    pub static ref OAKS: Vec<Arc<Structure>> = Structure::load_group("oaks");    
+    pub static ref OAKS: Vec<Arc<Structure>> = Structure::load_group("oaks");
     pub static ref OAK_STUMPS: Vec<Arc<Structure>> = Structure::load_group("oak_stumps");
     pub static ref PINES: Vec<Arc<Structure>> = Structure::load_group("pines");
     pub static ref PALMS: Vec<Arc<Structure>> = Structure::load_group("palms");
@@ -53,7 +53,7 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
 
                 // Ensure that it's valid to place a tree here
                 if col.alt < col.water_level
-                    || col.spawn_rate < 0.5
+                    || col.spawn_rate < 0.9
                     || col.water_dist.map(|d| d < 8.0).unwrap_or(false)
                     || col.path.map(|(d, _, _, _)| d < 12.0).unwrap_or(false)
                 {
