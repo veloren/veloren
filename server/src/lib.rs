@@ -54,7 +54,6 @@ use common::{
     },
     outcome::Outcome,
     recipe::default_recipe_book,
-    spiral::Spiral2d,
     state::{State, TimeOfDay},
     sync::WorldSyncExt,
     terrain::TerrainChunkSize,
@@ -197,6 +196,7 @@ impl Server {
         state.ecs_mut().register::<RegionSubscription>();
         state.ecs_mut().register::<Client>();
         state.ecs_mut().register::<Presence>();
+        state.ecs_mut().register::<comp::HomeChunk>();
 
         //Alias validator
         let banned_words_paths = &settings.banned_words_files;
@@ -524,19 +524,17 @@ impl Server {
                 &self.state.ecs().entities(),
                 &self.state.ecs().read_storage::<comp::Pos>(),
                 !&self.state.ecs().read_storage::<comp::Player>(),
+                &self.state.ecs().read_storage::<comp::HomeChunk>(),
             )
                 .join()
-                .filter(|(_, pos, _)| {
+                .filter(|(_, pos, _, home_chunk)| {
                     let chunk_key = terrain.pos_key(pos.0.map(|e| e.floor() as i32));
-                    // Check not only this chunk, but also all neighbours to avoid immediate
-                    // despawning if the entity walks outside of a valid chunk
-                    // briefly. If the entity isn't even near a loaded chunk then we get
-                    // rid of it.
-                    Spiral2d::new()
-                        .take(9)
-                        .all(|offs| terrain.get_key(chunk_key + offs).is_none())
+                    // Check if both this chunk and the NPCs `home_chunk` is unloaded. If so,
+                    // we delete them. We check for `home_chunk` in order to avoid duplicating
+                    // the entity under some circumstances.
+                    terrain.get_key(chunk_key).is_none() && terrain.get_key(home_chunk.0).is_none()
                 })
-                .map(|(entity, _, _)| entity)
+                .map(|(entity, _, _, _)| entity)
                 .collect::<Vec<_>>()
         };
 

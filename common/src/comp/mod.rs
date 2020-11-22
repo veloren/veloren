@@ -10,6 +10,7 @@ mod controller;
 mod energy;
 pub mod group;
 mod health;
+pub mod home_chunk;
 mod inputs;
 mod inventory;
 mod last;
@@ -47,6 +48,7 @@ pub use controller::{
 pub use energy::{Energy, EnergyChange, EnergySource};
 pub use group::Group;
 pub use health::{Health, HealthChange, HealthSource};
+pub use home_chunk::HomeChunk;
 pub use inputs::CanBuild;
 pub use inventory::{
     item,
