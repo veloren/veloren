@@ -104,6 +104,7 @@ pub enum ServerEvent {
         agent: Option<comp::Agent>,
         alignment: comp::Alignment,
         scale: comp::Scale,
+        home_chunk: Option<comp::HomeChunk>,
         drop_item: Option<Item>,
     },
     CreateWaypoint(Vec3<f32>),

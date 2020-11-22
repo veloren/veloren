@@ -2,7 +2,7 @@ use crate::{sys, Server, StateExt};
 use common::{
     character::CharacterId,
     comp::{
-        self, beam, shockwave, Agent, Alignment, Body, Gravity, Health, Item, ItemDrop,
+        self, beam, shockwave, Agent, Alignment, Body, Gravity, Health, HomeChunk, Item, ItemDrop,
         LightEmitter, Loadout, Ori, Pos, Projectile, Scale, Stats, Vel, WaypointArea,
     },
     outcome::Outcome,
@@ -49,6 +49,7 @@ pub fn handle_create_npc(
     alignment: Alignment,
     scale: Scale,
     drop_item: Option<Item>,
+    home_chunk: Option<HomeChunk>,
 ) {
     let group = match alignment {
         Alignment::Wild => None,
@@ -79,6 +80,12 @@ pub fn handle_create_npc(
 
     let entity = if let Some(drop_item) = drop_item {
         entity.with(ItemDrop(drop_item))
+    } else {
+        entity
+    };
+
+    let entity = if let Some(home_chunk) = home_chunk {
+        entity.with(home_chunk)
     } else {
         entity
     };

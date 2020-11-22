@@ -81,6 +81,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Adjusted some keybindings
 - Consumables can now trigger multiple effects and buffs
 - Overhauled overworld spawns depending on chunk attributes
+- Fixed a bug which caused campfires and other stuff to duplicate
 
 ### Removed
 
