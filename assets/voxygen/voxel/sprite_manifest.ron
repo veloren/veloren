@@ -2005,6 +2005,17 @@ PotionMinor: Some((
 ],
     wind_sway: 0.0,
 )),
+// Ground Fire Bowls
+FireBowlGround: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.misc.lantern_ground_open",
+            offset: (-3.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+],
+    wind_sway: 0.0,
+)),
 // Underwater Grass
 GrassBlue: Some((
     variations: [

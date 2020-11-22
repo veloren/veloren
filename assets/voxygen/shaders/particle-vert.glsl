@@ -54,6 +54,7 @@ const int HEALING_BEAM = 13;
 const int ENERGY_NATURE = 14;
 const int FLAMETHROWER = 15;
 const int FIRE_SHOCKWAVE = 16;
+const int FIRE_BOWL = 17;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -161,6 +162,17 @@ void main() {
             ),
             vec3(1.0),
             vec4(2, 1.5 + rand5 * 0.5, 0, start_end(1.0, 0.0)),
+            spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3)
+        );
+        } else if (inst_mode == FIRE_BOWL) {
+        f_reflect = 0.0; // Fire doesn't reflect light, it emits it
+        attr = Attr(
+            linear_motion(
+                vec3(normalize(vec2(rand0, rand1)) * 0.1, 0.6),
+                vec3(rand2 * 0.2, rand3 * 0.5, 0.8 + rand4 * 0.5)
+            ),
+            vec3(0.2), // Size
+            vec4(2, 1.5 + rand5 * 0.5, 0, start_end(1.0, 0.0)), // Colour
             spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3)
         );
     } else if (inst_mode == GUN_POWDER_SPARK) {

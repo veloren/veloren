@@ -15,11 +15,14 @@ pub struct BlocksOfInterest {
     pub beehives: Vec<Vec3<i32>>,
     pub reeds: Vec<Vec3<i32>>,
     pub flowers: Vec<Vec3<i32>>,
+    pub fire_bowls: Vec<Vec3<i32>>,
     // Note: these are only needed for chunks within the iteraction range so this is a potential
     // area for optimization
     pub interactables: Vec<Vec3<i32>>,
     pub lights: Vec<(Vec3<i32>, u8)>,
 }
+
+use inline_tweak::*;
 
 impl BlocksOfInterest {
     pub fn from_chunk(chunk: &TerrainChunk) -> Self {
@@ -34,6 +37,7 @@ impl BlocksOfInterest {
         let mut flowers = Vec::new();
         let mut interactables = Vec::new();
         let mut lights = Vec::new();
+        let mut fire_bowls = Vec::new();
 
         chunk
             .vol_iter(
@@ -68,8 +72,9 @@ impl BlocksOfInterest {
                         },
                         // Offset positions to account for block height.
                         // TODO: Is this a good idea?
-                        Some(SpriteKind::StreetLamp) => fires.push(pos + Vec3::unit_z() * 3),
-                        Some(SpriteKind::StreetLampTall) => fires.push(pos + Vec3::unit_z() * 4),
+                        Some(SpriteKind::StreetLamp) => fire_bowls.push(pos + Vec3::unit_z() * 2),
+                        Some(SpriteKind::FireBowlGround) => fire_bowls.push(pos + Vec3::unit_z() * 1),
+                        Some(SpriteKind::StreetLampTall) => fire_bowls.push(pos + Vec3::unit_z() * 4),
                         Some(SpriteKind::Beehive) => beehives.push(pos),
                         Some(SpriteKind::Reed) => reeds.push(pos),
                         Some(SpriteKind::PinkFlower) => flowers.push(pos),
@@ -100,6 +105,7 @@ impl BlocksOfInterest {
             flowers,
             interactables,
             lights,
+            fire_bowls,
         }
     }
 }

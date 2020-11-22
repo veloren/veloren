@@ -369,11 +369,11 @@ impl<'a> Widget for MiniMap<'a> {
                 let name_len = chunk.meta().name().chars().count();
                 Text::new(chunk.meta().name())
                     .mid_top_with_margin_on(state.ids.mmap_frame, match name_len {
-                        16..=30 => 4.0,
+                        15..=30 => 4.0,
                         _ => 2.0,
                     })
                     .font_size(self.fonts.cyri.scale(match name_len {
-                        0..=16 => 18,
+                        0..=15 => 18,
                         16..=30 => 14,
                         _ => 14,
                     }))

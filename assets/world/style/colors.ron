@@ -147,7 +147,7 @@
             plot_dirt: (90, 70, 50),
             plot_grass: (100, 200, 0),
             plot_water: (100, 150, 250),
-            plot_town: (150, 110, 60),
+            plot_town: (90, 70, 50),
             // TODO: Add field furrow stuff.
         ),
     ),
