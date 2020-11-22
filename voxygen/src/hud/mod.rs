@@ -2471,6 +2471,10 @@ impl Hud {
                 }
                 true
             },
+            WinEvent::ScaleFactorChanged(scale_factor) => {
+                self.ui.scale_factor_changed(scale_factor);
+                false
+            },
             WinEvent::InputUpdate(GameInput::ToggleInterface, true) if !self.typing() => {
                 self.show.toggle_ui();
                 true

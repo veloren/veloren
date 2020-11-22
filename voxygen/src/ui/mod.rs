@@ -115,6 +115,8 @@ pub struct Ui {
     ingame_locals: Vec<Consts<UiLocals>>,
     // Window size for updating scaling
     window_resized: Option<Vec2<f64>>,
+    // Scale factor changed
+    scale_factor_changed: Option<f64>,
     // Used to delay cache resizing until after current frame is drawn
     need_cache_resize: bool,
     // Scaling of the ui
@@ -153,6 +155,7 @@ impl Ui {
             default_globals: renderer.create_consts(&[Globals::default()])?,
             ingame_locals: Vec::new(),
             window_resized: None,
+            scale_factor_changed: None,
             need_cache_resize: false,
             scale,
             tooltip_manager,
@@ -167,6 +170,10 @@ impl Ui {
         // Give conrod the new size.
         let (w, h) = self.scale.scaled_resolution().into_tuple();
         self.ui.handle_event(Input::Resize(w, h));
+    }
+
+    pub fn scale_factor_changed(&mut self, scale_factor: f64) {
+        self.scale_factor_changed = Some(scale_factor);
     }
 
     // Get a copy of Scale
@@ -284,8 +291,15 @@ impl Ui {
         self.tooltip_manager
             .maintain(self.ui.global_input(), self.scale.scale_factor_logical());
 
+        // Handle scale factor changing
+        let need_resize = if let Some(scale_factor) = self.scale_factor_changed.take() {
+            self.scale.scale_factor_changed(scale_factor)
+        } else {
+            false
+        };
+
         // Handle window resizing.
-        if let Some(new_dims) = self.window_resized.take() {
+        let need_resize = if let Some(new_dims) = self.window_resized.take() {
             let (old_w, old_h) = self.scale.scaled_resolution().into_tuple();
             self.scale.window_resized(new_dims);
             let (w, h) = self.scale.scaled_resolution().into_tuple();
@@ -296,7 +310,13 @@ impl Ui {
             // Somewhat inefficient for elements that won't change size after a window
             // resize
             let res = renderer.get_resolution();
-            self.need_cache_resize = res.x > 0 && res.y > 0 && !(old_w == w && old_h == h);
+            res.x > 0 && res.y > 0 && !(old_w == w && old_h == h)
+        } else {
+            false
+        } || need_resize;
+
+        if need_resize {
+            self.need_cache_resize = true;
         }
 
         if self.need_cache_resize {
