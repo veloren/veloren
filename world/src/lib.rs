@@ -118,10 +118,20 @@ impl World {
                     self.civs()
                         .caves
                         .iter()
-                        .map(|(_, pos)| world_msg::SiteInfo {
-                            name: None,
+                        .map(|(_, info)| world_msg::SiteInfo {
+                            name: Some(info.name.clone()),
                             kind: world_msg::SiteKind::Cave,
-                            wpos: *pos,
+                            wpos: info.location.0,
+                        }),
+                )
+                .chain(
+                    self.civs()
+                        .caves
+                        .iter()
+                        .map(|(_, info)| world_msg::SiteInfo {
+                            name: Some(info.name.clone()),
+                            kind: world_msg::SiteKind::Cave,
+                            wpos: info.location.1,
                         }),
                 )
                 .collect(),

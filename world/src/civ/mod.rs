@@ -6,7 +6,7 @@ use self::{Occupation::*, Stock::*};
 use crate::{
     config::CONFIG,
     sim::WorldSim,
-    site::{Castle, Dungeon, Settlement, Site as WorldSite},
+    site::{namegen::NameGen, Castle, Dungeon, Settlement, Site as WorldSite},
     util::{attempt, seed_expan, MapVec, CARDINALS, NEIGHBORS},
     Index,
 };
@@ -38,6 +38,11 @@ const fn initial_civ_count(map_size_lg: MapSizeLg) -> u32 {
     (3 << (map_size_lg.vec().x + map_size_lg.vec().y)) >> 16
 }
 
+pub struct CaveInfo {
+    pub location: (Vec2<i32>, Vec2<i32>),
+    pub name: String,
+}
+
 #[allow(clippy::type_complexity)] // TODO: Pending review in #587
 #[derive(Default)]
 pub struct Civs {
@@ -56,7 +61,7 @@ pub struct Civs {
     >,
 
     pub sites: Store<Site>,
-    pub caves: Store<Vec2<i32>>,
+    pub caves: Store<CaveInfo>,
 }
 
 // Change this to get rid of particularly horrid seeds
@@ -293,10 +298,24 @@ impl Civs {
                 chunk.spawn_rate = 0.0;
             }
         }
-        self.caves
-            .insert(path.first().unwrap().0 * TerrainChunkSize::RECT_SIZE.map(|e: u32| e as i32));
-        self.caves
-            .insert(path.last().unwrap().0 * TerrainChunkSize::RECT_SIZE.map(|e: u32| e as i32));
+        self.caves.insert(CaveInfo {
+            location: (
+                path.first().unwrap().0 * TerrainChunkSize::RECT_SIZE.map(|e: u32| e as i32),
+                path.last().unwrap().0 * TerrainChunkSize::RECT_SIZE.map(|e: u32| e as i32),
+            ),
+            name: {
+                let name = NameGen::location(&mut ctx.rng).generate();
+                match ctx.rng.gen_range(0, 7) {
+                    0 => format!("{} Hole", name),
+                    1 => format!("{} Cavern", name),
+                    2 => format!("{} Hollow", name),
+                    3 => format!("{} Tunnel", name),
+                    4 => format!("{} Mouth", name),
+                    5 => format!("{} Grotto", name),
+                    _ => format!("{} Den", name),
+                }
+            },
+        });
     }
 
     pub fn place(&self, id: Id<Place>) -> &Place { self.places.get(id) }
