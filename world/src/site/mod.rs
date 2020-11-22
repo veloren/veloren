@@ -2,7 +2,7 @@ mod block_mask;
 mod castle;
 mod dungeon;
 pub mod economy;
-mod namegen;
+pub mod namegen;
 mod settlement;
 
 // Reexports
