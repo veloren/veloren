@@ -256,7 +256,7 @@ impl<'a> Widget for Map<'a> {
             .map(|drag| Vec2::<f64>::from(drag.delta_xy))
             .sum();
         // Drag represents offset of view from the player_pos in chunk coords
-        let drag_new = drag + dragged / map_size / zoom * worldsize.map(|e| e as f64);
+        let drag_new = drag + dragged / map_size / zoom * max_zoom;
         events.push(Event::MapDrag(drag_new));
 
         let rect_src = position::Rect::from_xy_dim(
@@ -309,7 +309,7 @@ impl<'a> Widget for Map<'a> {
             .sum();
         let new_zoom_lvl = (self.global_state.settings.gameplay.map_zoom
             * (1.0 + scrolled * 0.05 * PLATFORM_FACTOR))
-            .clamped(1.22, 20.0 /* max_zoom */);
+            .clamped(0.75, max_zoom / 64.0);
         events.push(Event::MapZoom(new_zoom_lvl as f64));
         // Icon settings
         // Alignment
@@ -478,7 +478,7 @@ impl<'a> Widget for Map<'a> {
                 // Add map dragging
                 + drag.map(|e| e as f32);
             // Convert to fractional coordinates relative to the worldsize
-            let rfpos = rcpos.map2(*worldsize, |e, sz| e / sz as f32);
+            let rfpos = rcpos / max_zoom as f32;
             // Convert to relative pixel coordinates from the center of the map
             // Accounting for zooming
             let rpos = rfpos.map2(map_size, |e, sz| e * sz as f32 * zoom as f32);
@@ -647,7 +647,7 @@ impl<'a> Widget for Map<'a> {
         // Offset from map center due to dragging
         let rcpos = drag.map(|e| e as f32);
         // Convert to fractional coordinates relative to the worldsize
-        let rfpos = rcpos.map2(*worldsize, |e, sz| e / sz as f32);
+        let rfpos = rcpos / max_zoom as f32;
         // Convert to relative pixel coordinates from the center of the map
         // Accounting for zooming
         let rpos = rfpos.map2(map_size, |e, sz| e * sz as f32 * zoom as f32);
