@@ -247,7 +247,7 @@ impl<'a> Widget for MiniMap<'a> {
                 // Convert to chunk coordinates
                 let rcpos = rwpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e / sz as f32);
                 // Convert to fractional coordinates relative to the worldsize
-                let rfpos = rcpos.map2(*worldsize, |e, sz| e / sz as f32);
+                let rfpos = rcpos / max_zoom as f32;
                 // Convert to unrotated pixel coordinates from the player location on the map
                 // (the center)
                 // Accounting for zooming
