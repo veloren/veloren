@@ -75,7 +75,10 @@ impl State {
                 .as_ref()
                 .map(|i| i.item.kind())
                 .filter(|kind| {
-                    use common::comp::item::{tool::ToolKind, ItemKind};
+                    use common::comp::item::{
+                        tool::{ToolKind, UniqueKind},
+                        ItemKind,
+                    };
                     if let ItemKind::Tool(kind) = kind {
                         match &kind.kind {
                             ToolKind::Staff => true,
@@ -84,6 +87,8 @@ impl State {
                             ToolKind::Hammer => true,
                             ToolKind::Axe => true,
                             ToolKind::Bow => true,
+                            ToolKind::Unique(UniqueKind::QuadMedQuick) => true,
+                            ToolKind::Unique(UniqueKind::QuadLowBreathe) => true,
                             _ => false,
                         }
                     } else {

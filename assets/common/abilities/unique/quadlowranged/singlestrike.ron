@@ -2,7 +2,7 @@ ComboMelee(
     stage_data: [
         (
             stage: 1,
-            base_damage: 100,
+            base_damage: 60,
             max_damage: 60,
             damage_increase: 10,
             knockback: 5.0,

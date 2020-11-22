@@ -46,7 +46,7 @@ impl Animation for AlphaAnimation {
             Quaternion::rotation_x(movement1abs * 0.35 + movement2abs * -0.9)
                 * Quaternion::rotation_y(movement1 * 0.7 + movement2 * -1.0);
 
-        next.jaw.orientation = Quaternion::rotation_x(movement1abs * -0.6 + movement2abs * 0.6);
+        next.jaw.orientation = Quaternion::rotation_x(movement1abs * -0.5 + movement2abs * 0.5);
         next.chest.orientation = Quaternion::rotation_y(movement1 * -0.08 + movement2 * 0.15)
             * Quaternion::rotation_z(movement1 * -0.2 + movement2 * 0.6);
 

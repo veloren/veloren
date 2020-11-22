@@ -43,7 +43,7 @@ impl Body {
                 quadruped_medium::Species::Saber => 180.0,
                 quadruped_medium::Species::Tiger => 150.0,
                 quadruped_medium::Species::Tuskram => 160.0,
-                quadruped_medium::Species::Lion => 110.0,
+                quadruped_medium::Species::Lion => 170.0,
                 quadruped_medium::Species::Tarasque => 100.0,
                 quadruped_medium::Species::Wolf => 180.0,
                 quadruped_medium::Species::Frostfang => 180.0,
@@ -109,7 +109,7 @@ impl Body {
         match self {
             Body::Humanoid(_) => 20.0,
             Body::QuadrupedSmall(_) => 15.0,
-            Body::QuadrupedMedium(_) => 10.0,
+            Body::QuadrupedMedium(_) => 8.0,
             Body::BirdMedium(_) => 30.0,
             Body::FishMedium(_) => 5.0,
             Body::Dragon(_) => 5.0,
@@ -119,9 +119,9 @@ impl Body {
             Body::Object(_) => 5.0,
             Body::Golem(_) => 8.0,
             Body::Theropod(theropod) => match theropod.species {
-                theropod::Species::Archaeos => 1.5,
-                theropod::Species::Odonto => 1.5,
-                _ => 10.0,
+                theropod::Species::Archaeos => 2.5,
+                theropod::Species::Odonto => 2.5,
+                _ => 7.0,
             },
             Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
                 quadruped_low::Species::Monitor => 9.0,
@@ -129,6 +129,7 @@ impl Body {
                 quadruped_low::Species::Tortoise => 3.0,
                 quadruped_low::Species::Rocksnapper => 4.0,
                 quadruped_low::Species::Maneater => 5.0,
+                quadruped_low::Species::Lavadrake => 4.0,
                 _ => 6.0,
             },
         }

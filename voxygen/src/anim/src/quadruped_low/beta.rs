@@ -46,7 +46,7 @@ impl Animation for BetaAnimation {
             Quaternion::rotation_x(movement1abs * 0.15 + movement2abs * -0.6)
                 * Quaternion::rotation_y(movement1 * -0.1 + movement2 * 0.15);
 
-        next.jaw.orientation = Quaternion::rotation_x(movement1abs * -1.0 + movement2abs * 1.0);
+        next.jaw.orientation = Quaternion::rotation_x(movement1abs * -0.9 + movement2abs * 0.9);
         next.chest.orientation = Quaternion::rotation_y(movement1 * 0.08 + movement2 * -0.15)
             * Quaternion::rotation_z(movement1 * 0.2 + movement2 * -0.3);
 

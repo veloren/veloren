@@ -184,4 +184,5 @@ pub enum UniqueKind {
     QuadLowBasic,
     QuadSmallBasic,
     TheropodBasic,
+    TheropodBird,
 }

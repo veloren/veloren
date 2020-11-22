@@ -96,7 +96,9 @@
     Unique(QuadLowBreathe): (
         primary: "common.abilities.unique.quadlowbreathe.flamethrower",
         secondary: "common.abilities.unique.quadlowbreathe.triplestrike",
-        skills: [],
+        skills: [
+            "common.abilities.unique.quadlowbreathe.dash",
+        ],
     ),
     Unique(QuadLowTail): (
         primary: "common.abilities.unique.quadlowtail.charged",
@@ -121,6 +123,11 @@
     Unique(TheropodBasic): (
         primary: "common.abilities.unique.theropodbasic.triplestrike",
         secondary: "common.abilities.unique.theropodbasic.triplestrike",
+        skills: [],
+    ),
+    Unique(TheropodBird): (
+        primary: "common.abilities.unique.theropodbird.triplestrike",
+        secondary: "common.abilities.unique.theropodbird.triplestrike",
         skills: [],
     ),
     Debug: (
