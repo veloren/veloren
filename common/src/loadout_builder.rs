@@ -1,7 +1,7 @@
 use crate::comp::{
     biped_large, golem,
     item::{tool::AbilityMap, Item, ItemKind},
-    quadruped_low, quadruped_medium, Body, CharacterAbility, ItemConfig, Loadout,
+    quadruped_low, quadruped_medium, theropod, Body, CharacterAbility, ItemConfig, Loadout,
 };
 use rand::Rng;
 
@@ -176,6 +176,13 @@ impl LoadoutBuilder {
                     },
                 },
                 Body::Theropod(theropod) => match theropod.species {
+                    theropod::Species::Sandraptor
+                    | theropod::Species::Snowraptor
+                    | theropod::Species::Woodraptor => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.theropodbird",
+                        ));
+                    },
                     _ => {
                         main_tool = Some(Item::new_from_asset_expect(
                             "common.items.npc_weapons.unique.theropodbasic",

@@ -15,8 +15,8 @@ ComboMelee(
         ),
         (
             stage: 2,
-            base_damage: 80,
-            max_damage: 110,
+            base_damage: 130,
+            max_damage: 170,
             damage_increase: 15,
             knockback: 2.0,
             range: 3.5,

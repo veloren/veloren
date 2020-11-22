@@ -194,9 +194,9 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             scaler: match (body.species, body.body_type) {
                 (Archaeos, _) => (3.0),
                 (Odonto, _) => (3.0),
-                (Sandraptor, _) => (7.0),
-                (Snowraptor, _) => (7.0),
-                (Woodraptor, _) => (7.0),
+                (Sandraptor, _) => (8.0),
+                (Snowraptor, _) => (8.0),
+                (Woodraptor, _) => (8.0),
             },
         }
     }

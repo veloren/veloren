@@ -24,7 +24,7 @@ ComboMelee(
             base_buildup_duration: 500,
             base_swing_duration: 100,
             base_recover_duration: 300,
-            forward_movement: 1.5,
+            forward_movement: 0.5,
         ),
     ],
     initial_energy_gain: 0,

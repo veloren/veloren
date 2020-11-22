@@ -173,7 +173,12 @@ impl Body {
                 quadruped_low::Species::Pangolin => 1.3,
                 _ => 1.6,
             },
-            Body::Theropod(_) => 0.3,
+            Body::Theropod(body) => match body.species {
+                theropod::Species::Snowraptor => 0.5,
+                theropod::Species::Sandraptor => 0.5,
+                theropod::Species::Woodraptor => 0.5,            
+                _ => 0.9,
+            },
             Body::BirdMedium(_) => 0.35,
             Body::FishMedium(_) => 0.35,
             Body::Dragon(_) => 8.0,
@@ -312,7 +317,11 @@ impl Body {
             },
             Body::Object(_) => 10000,
             Body::Golem(_) => 2740,
-            Body::Theropod(_) => 1000,
+            Body::Theropod(theropod) => match theropod.species {
+                theropod::Species::Archaeos => 3000,
+                theropod::Species::Odonto => 2700,
+                _ => 1100,
+            },
             Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
                 quadruped_low::Species::Crocodile => 600,
                 quadruped_low::Species::Alligator => 600,
@@ -325,6 +334,8 @@ impl Body {
                 quadruped_low::Species::Maneater => 400,
                 quadruped_low::Species::Sandshark => 600,
                 quadruped_low::Species::Hakulaq => 400,
+                quadruped_low::Species::Lavadrake => 900,
+
                 _ => 200,
             },
         }
@@ -481,6 +492,7 @@ impl Body {
                 quadruped_low::Species::Maneater => 14,
                 quadruped_low::Species::Sandshark => 12,
                 quadruped_low::Species::Hakulaq => 10,
+                quadruped_low::Species::Lavadrake => 20,
                 _ => 10,
             },
         }
@@ -559,11 +571,15 @@ impl Body {
             },
             Body::Object(_) => 0,
             Body::Golem(_) => 250,
-            Body::Theropod(_) => 10,
+            Body::Theropod(theropod) => match theropod.species {
+                theropod::Species::Archaeos => 150,
+                theropod::Species::Odonto => 130,
+                _ => 70,
+            },
             Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
                 quadruped_low::Species::Crocodile => 50,
                 quadruped_low::Species::Alligator => 50,
-                quadruped_low::Species::Salamander => 30,
+                quadruped_low::Species::Salamander => 50,
                 quadruped_low::Species::Monitor => 30,
                 quadruped_low::Species::Asp => 35,
                 quadruped_low::Species::Tortoise => 10,

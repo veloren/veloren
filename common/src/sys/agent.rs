@@ -340,6 +340,8 @@ impl<'a> System<'a> for Sys {
                             QuadLowQuick,
                             QuadLowBasic,
                             QuadMedJump,
+                            Lavadrake,
+                            Theropod,
                         }
 
                         let tactic = match loadout.active_item.as_ref().and_then(|ic| {
@@ -374,6 +376,9 @@ impl<'a> System<'a> for Sys {
                             Some(ToolKind::Unique(UniqueKind::QuadLowBasic)) => {
                                 Tactic::QuadLowBasic
                             },
+                            Some(ToolKind::Unique(UniqueKind::QuadLowBreathe)) => Tactic::Lavadrake,
+                            Some(ToolKind::Unique(UniqueKind::TheropodBasic)) => Tactic::Theropod,
+                            Some(ToolKind::Unique(UniqueKind::TheropodBird)) => Tactic::Theropod,
                             _ => Tactic::Melee,
                         };
 
@@ -396,13 +401,13 @@ impl<'a> System<'a> for Sys {
                                 bodies.get(*target).map_or(0.0, |b| b.eye_height());
 
                             if tactic == Tactic::QuadMedJump {
-                                tgt_eye_offset += 2.0;
+                                tgt_eye_offset += 1.0;
                             }
 
                             let distance_offset = match tactic {
                                 Tactic::Bow => 0.0004 * pos.0.distance_squared(tgt_pos.0),
                                 Tactic::Staff => 0.0015 * pos.0.distance_squared(tgt_pos.0),
-                                Tactic::QuadLowRanged => 0.05 * pos.0.distance_squared(tgt_pos.0),
+                                Tactic::QuadLowRanged => 0.02 * pos.0.distance_squared(tgt_pos.0),
                                 _ => 0.0,
                             };
 
@@ -440,7 +445,11 @@ impl<'a> System<'a> for Sys {
                                 .map(|a| !matches!(a, Alignment::Enemy | Alignment::Owned(_)))
                                 .unwrap_or(true);
                             if 1.0 - agent.psyche.aggro > damage && flees {
-                                controller.actions.push(ControlAction::Unwield);
+                                if let Some(body) = body {
+                                    if body.is_humanoid() {
+                                        controller.actions.push(ControlAction::Unwield);
+                                    }
+                                }
                                 if dist_sqrd < MAX_FLEE_DIST.powf(2.0) {
                                     if let Some((bearing, speed)) = chaser.chase(
                                         &*terrain,
@@ -451,7 +460,7 @@ impl<'a> System<'a> for Sys {
                                             + (pos.0 - tgt_pos.0)
                                                 .try_normalized()
                                                 .unwrap_or_else(Vec3::unit_y)
-                                                * 8.0,
+                                                * 50.0,
                                         TraversalConfig {
                                             min_tgt_dist: 1.25,
                                             ..traversal_config
@@ -460,15 +469,17 @@ impl<'a> System<'a> for Sys {
                                         inputs.move_dir =
                                             bearing.xy().try_normalized().unwrap_or(Vec2::zero())
                                                 * speed
-                                                * 0.4; //Let small/slow animals flee slower than the player
+                                                * 1.0;
                                         inputs.jump.set_state(bearing.z > 1.5);
                                         inputs.move_z = bearing.z;
                                     }
                                 } else {
                                     do_idle = true;
                                 }
-                            } else if ((tactic == Tactic::Staff || tactic == Tactic::QuadMedJump)
-                                && dist_sqrd < (5.0 * MIN_ATTACK_DIST * scale).powf(2.0))
+                            } else if (tactic == Tactic::Theropod
+                                && dist_sqrd < (2.0 * MIN_ATTACK_DIST * scale).powf(2.0))
+                                || (tactic == Tactic::Lavadrake
+                                    && dist_sqrd < (2.5 * MIN_ATTACK_DIST * scale).powf(2.0))
                                 || (tactic == Tactic::QuadLowRanged
                                     && dist_sqrd < (4.0 * MIN_ATTACK_DIST * scale).powf(2.0))
                                 || (tactic == Tactic::Wolf
@@ -477,16 +488,25 @@ impl<'a> System<'a> for Sys {
                                     && dist_sqrd < (15.0 * MIN_ATTACK_DIST * scale).powf(2.0))
                                 || ((tactic == Tactic::TailSlap || tactic == Tactic::QuadLowBasic)
                                     && dist_sqrd < (1.5 * MIN_ATTACK_DIST * scale).powf(2.0))
+                                || (tactic == Tactic::QuadMedJump
+                                    && dist_sqrd < (1.5 * MIN_ATTACK_DIST * scale).powf(2.0))
                                 || dist_sqrd < (MIN_ATTACK_DIST * scale).powf(2.0)
                             {
                                 // Movement
                                 match tactic {
                                     Tactic::Wolf | Tactic::Ram => {
                                         // Run away from target to get clear
-                                        inputs.move_dir = (pos.0 - tgt_pos.0)
-                                            .xy()
-                                            .try_normalized()
-                                            .unwrap_or(Vec2::unit_y());
+                                        if dist_sqrd < (MIN_ATTACK_DIST * scale).powf(2.0)
+                                            && thread_rng().gen_bool(0.5)
+                                        {
+                                            inputs.move_dir = Vec2::zero();
+                                            inputs.primary.set_state(true);
+                                        } else {
+                                            inputs.move_dir = (pos.0 - tgt_pos.0)
+                                                .xy()
+                                                .try_normalized()
+                                                .unwrap_or(Vec2::unit_y());
+                                        }
                                     },
                                     Tactic::QuadLowRanged => {
                                         inputs.move_dir = (tgt_pos.0 - pos.0)
@@ -495,27 +515,14 @@ impl<'a> System<'a> for Sys {
                                             .unwrap_or(Vec2::unit_y());
                                     },
                                     Tactic::TailSlap => {
-                                        inputs.move_dir = Vec2::zero();
-                                    },
-                                    Tactic::QuadLowQuick => {
-                                        inputs.move_dir = Vec2::zero();
-                                    },
-                                    Tactic::QuadLowBasic => {
-                                        inputs.move_dir = Vec2::zero();
-                                    },
-                                    Tactic::QuadMedJump => {
-                                        inputs.move_dir = (tgt_pos.0 - pos.0)
-                                            .xy()
-                                            .try_normalized()
-                                            .unwrap_or(Vec2::unit_y())
-                                            * 0.05;
-                                    },
-                                    _ => {
                                         inputs.move_dir = (tgt_pos.0 - pos.0)
                                             .xy()
                                             .try_normalized()
                                             .unwrap_or(Vec2::unit_y())
                                             * 0.1;
+                                    },
+                                    _ => {
+                                        inputs.move_dir = Vec2::zero();
                                     },
                                 }
 
@@ -533,17 +540,6 @@ impl<'a> System<'a> for Sys {
                                         } else {
                                             inputs.primary.set_state(true);
                                             *powerup += dt.0;
-                                        }
-                                    },
-                                    Tactic::Staff => {
-                                        // Kind of arbitrary values, but feel right in game
-                                        if energy.current() > 800 && thread_rng().gen::<f32>() > 0.8
-                                        {
-                                            inputs.ability3.set_state(true)
-                                        } else if energy.current() > 10 {
-                                            inputs.secondary.set_state(true)
-                                        } else {
-                                            inputs.primary.set_state(true)
                                         }
                                     },
                                     Tactic::Sword => {
@@ -570,13 +566,14 @@ impl<'a> System<'a> for Sys {
                                         }
                                     },
                                     Tactic::Bow => inputs.roll.set_state(true),
+                                    Tactic::Staff => inputs.roll.set_state(true),
                                     Tactic::Melee => inputs.primary.set_state(true),
                                     // Animal attacks
                                     Tactic::TailSlap => {
                                         if *powerup > 4.0 {
                                             inputs.primary.set_state(false);
                                             *powerup = 0.0;
-                                        } else if *powerup > 2.0 {
+                                        } else if *powerup > 1.0 {
                                             inputs.primary.set_state(true);
                                             *powerup += dt.0;
                                         } else {
@@ -597,7 +594,9 @@ impl<'a> System<'a> for Sys {
                                         }
                                     },
                                     Tactic::QuadLowQuick => inputs.secondary.set_state(true),
-                                    Tactic::QuadMedJump => inputs.primary.set_state(true),
+                                    Tactic::QuadMedJump => inputs.secondary.set_state(true),
+                                    Tactic::Lavadrake => inputs.secondary.set_state(true),
+                                    Tactic::Theropod => inputs.primary.set_state(true),
                                     _ => {},
                                 }
                             } else if tactic == Tactic::Wolf
@@ -640,6 +639,46 @@ impl<'a> System<'a> for Sys {
                                 && dist_sqrd > (2.0 * MIN_ATTACK_DIST * scale).powf(2.0)
                             {
                                 inputs.primary.set_state(true);
+                            } else if tactic == Tactic::QuadMedJump
+                                && dist_sqrd < (5.0 * MIN_ATTACK_DIST * scale).powf(2.0)
+                            {
+                                inputs.ability3.set_state(true);
+                            } else if tactic == Tactic::Staff
+                                && dist_sqrd < (5.0 * MIN_ATTACK_DIST * scale).powf(2.0)
+                            {
+                                inputs.move_dir = Vec2::zero();
+                                if energy.current() > 800 && thread_rng().gen::<f32>() > 0.8 {
+                                    inputs.ability3.set_state(true);
+                                } else if energy.current() > 10 {
+                                    inputs.secondary.set_state(true);
+                                } else {
+                                    inputs.primary.set_state(true);
+                                }
+                            } else if tactic == Tactic::Lavadrake
+                                && dist_sqrd < (7.0 * MIN_ATTACK_DIST * scale).powf(2.0)
+                            {
+                                if *powerup < 2.0 {
+                                    inputs.move_dir = (tgt_pos.0 - pos.0)
+                                        .xy()
+                                        .rotated_z(0.47 * PI)
+                                        .try_normalized()
+                                        .unwrap_or(Vec2::unit_y());
+                                    inputs.primary.set_state(true);
+                                    *powerup += dt.0;
+                                } else if *powerup < 4.0 {
+                                    inputs.move_dir = (tgt_pos.0 - pos.0)
+                                        .xy()
+                                        .rotated_z(-0.47 * PI)
+                                        .try_normalized()
+                                        .unwrap_or(Vec2::unit_y());
+                                    inputs.primary.set_state(true);
+                                    *powerup += dt.0;
+                                } else if *powerup < 6.0 {
+                                    inputs.ability3.set_state(true);
+                                    *powerup += dt.0;
+                                } else {
+                                    *powerup = 0.0;
+                                }
                             } else if dist_sqrd < MAX_CHASE_DIST.powf(2.0)
                                 || (dist_sqrd < SIGHT_DIST.powf(2.0)
                                     && (!*been_close || !matches!(tactic, Tactic::Melee)))
@@ -716,6 +755,17 @@ impl<'a> System<'a> for Sys {
                                         },
                                         Tactic::QuadLowRanged => {
                                             inputs.secondary.set_state(true);
+                                        },
+                                        Tactic::QuadMedJump => {
+                                            inputs.primary.set_state(true);
+                                        },
+                                        Tactic::Lavadrake => {
+                                            if *powerup > 4.0 {
+                                                inputs.ability3.set_state(true);
+                                                *powerup = 0.0;
+                                            } else {
+                                                *powerup += dt.0;
+                                            }
                                         },
                                         _ => {},
                                     }
