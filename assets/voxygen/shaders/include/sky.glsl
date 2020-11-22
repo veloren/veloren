@@ -101,7 +101,7 @@ float cloud_shadow(vec3 pos, vec3 light_dir) {
 }
 
 float get_sun_brightness(/*vec3 sun_dir*/) {
-    return max(-sun_dir.z + 0.5, 0.0) * 0.9;
+    return max(-sun_dir.z + 0.5, 0.0);
 }
 
 float get_moon_brightness(/*vec3 moon_dir*/) {
