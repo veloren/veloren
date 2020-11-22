@@ -917,8 +917,17 @@ impl Settlement {
                         } else {
                             comp::Alignment::Tame
                         })
+                        .do_if(!is_dummy, |e| e.with_automatic_name())
+                        .do_if(is_dummy, |e| e.with_name("Training Dummy"))
                         .do_if(is_human && dynamic_rng.gen(), |entity| {
-                            entity.with_main_tool(Item::new_from_asset_expect(
+                            match dynamic_rng.gen_range(0, 5) {
+                            0 => entity.with_main_tool(Item::new_from_asset_expect(
+                                "common.items.weapons.sword.greatsword_2h_simple-0",
+                            ))
+                            .with_name("Guard")
+                            .with_level(dynamic_rng.gen_range(10, 15))
+                            .with_config(common::loadout_builder::LoadoutConfig::Guard),
+                            _ => entity.with_main_tool(Item::new_from_asset_expect(
                                 match dynamic_rng.gen_range(0, 7) {
                                     0 => "common.items.npc_weapons.tool.broom",
                                     1 => "common.items.npc_weapons.tool.hoe",
@@ -931,9 +940,8 @@ impl Settlement {
                                 },
                             ))
                             .with_config(common::loadout_builder::LoadoutConfig::Villager)
-                        })
-                        .do_if(is_dummy, |e| e.with_name("Training Dummy"))
-                        .do_if(!is_dummy, |e| e.with_automatic_name());
+                        }
+                        });
 
                     supplement.add_entity(entity);
                 }
