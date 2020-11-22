@@ -48,10 +48,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Willow forests
 - More significant temperature variation across the world
 - Initial implementation of real-time world simulation
+- Travellers that explore the world
 - HDR rendering
 - Map site icons
 - Map panning
 - Innumerable minor improvements to world generation
+- Variable dungeon difficulty
+- Aurora Borealis (localised entirely within the kitchen)
+- Block-based voxel lighting
 
 ### Changed
 
@@ -105,6 +109,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed a bug where firing fast projectile at a downwards angle caused them to veer off at a higher angle
 - Fixed a bug where ui scale in the login menu was not updated when changed in-game
 - Fixed a bug which caused campfires and other stuff to duplicate
+- Significantly improved water movement AI to stop entities getting stuck
+- Prevented entities, sprites and particles being lit when not visible to the sun
 
 ## [0.7.0] - 2020-08-15
 
