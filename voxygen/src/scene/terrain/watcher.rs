@@ -10,7 +10,8 @@ pub struct BlocksOfInterest {
     pub leaves: Vec<Vec3<i32>>,
     pub grass: Vec<Vec3<i32>>,
     pub river: Vec<Vec3<i32>>,
-    pub embers: Vec<Vec3<i32>>,
+    pub fires: Vec<Vec3<i32>>,
+    pub smokers: Vec<Vec3<i32>>,
     pub beehives: Vec<Vec3<i32>>,
     pub reeds: Vec<Vec3<i32>>,
     pub flowers: Vec<Vec3<i32>>,
@@ -26,7 +27,8 @@ impl BlocksOfInterest {
         let mut leaves = Vec::new();
         let mut grass = Vec::new();
         let mut river = Vec::new();
-        let mut embers = Vec::new();
+        let mut fires = Vec::new();
+        let mut smokers = Vec::new();
         let mut beehives = Vec::new();
         let mut reeds = Vec::new();
         let mut flowers = Vec::new();
@@ -60,7 +62,14 @@ impl BlocksOfInterest {
                         }
                     },
                     _ => match block.get_sprite() {
-                        Some(SpriteKind::Ember) => embers.push(pos),
+                        Some(SpriteKind::Ember) => {
+                            fires.push(pos);
+                            smokers.push(pos);
+                        },
+                        // Offset positions to account for block height.
+                        // TODO: Is this a good idea?
+                        Some(SpriteKind::StreetLamp) => fires.push(pos + Vec3::unit_z() * 3),
+                        Some(SpriteKind::StreetLampTall) => fires.push(pos + Vec3::unit_z() * 4),
                         Some(SpriteKind::Beehive) => beehives.push(pos),
                         Some(SpriteKind::Reed) => reeds.push(pos),
                         Some(SpriteKind::PinkFlower) => flowers.push(pos),
@@ -84,7 +93,8 @@ impl BlocksOfInterest {
             leaves,
             grass,
             river,
-            embers,
+            fires,
+            smokers,
             beehives,
             reeds,
             flowers,

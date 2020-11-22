@@ -122,7 +122,7 @@ impl SpriteKind {
             SpriteKind::Pumpkin => 0.81,
             SpriteKind::Cabbage => 0.45,
             SpriteKind::Chest => 1.09,
-            SpriteKind::StreetLamp => 3.0,
+            SpriteKind::StreetLamp => 2.65,
             SpriteKind::Carrot => 0.18,
             SpriteKind::Radish => 0.18,
             // TODO: Uncomment this when we have a way to open doors

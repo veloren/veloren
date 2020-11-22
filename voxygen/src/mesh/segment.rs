@@ -181,7 +181,7 @@ where
                 0.0
             }
         };
-        let get_glow = |vol: &mut V, pos: Vec3<i32>| 0.0;
+        let get_glow = |_vol: &mut V, _pos: Vec3<i32>| 0.0;
         let get_color = |vol: &mut V, pos: Vec3<i32>| {
             vol.get(pos)
                 .ok()
@@ -277,7 +277,7 @@ where
                 0.0
             }
         };
-        let get_glow = |vol: &mut V, pos: Vec3<i32>| 0.0;
+        let get_glow = |_vol: &mut V, _pos: Vec3<i32>| 0.0;
         let get_color = |vol: &mut V, pos: Vec3<i32>| {
             vol.get(pos)
                 .ok()
