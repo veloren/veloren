@@ -54,8 +54,8 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
 
     let mut light_map = vec![UNKNOWN; outer.size().product() as usize];
     let lm_idx = {
-        let (_, h, d) = outer.clone().size().into_tuple();
-        move |x, y, z| (h * d * x + d * y + z) as usize
+        let (w, h, _) = outer.clone().size().into_tuple();
+        move |x, y, z| (w * h * z + h * x + y) as usize
     };
     // Light propagation queue
     let mut prop_que = lit_blocks
@@ -217,8 +217,8 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     // for blocks outside of the chunk borders.
     let mut light_map2 = vec![UNKNOWN; min_bounds.size().product() as usize];
     let lm_idx2 = {
-        let (_, h, d) = min_bounds.clone().size().into_tuple();
-        move |x, y, z| (h * d * x + d * y + z) as usize
+        let (w, h, _) = min_bounds.clone().size().into_tuple();
+        move |x, y, z| (w * h * z + h * x + y) as usize
     };
     for x in 0..min_bounds.size().w {
         for y in 0..min_bounds.size().h {
