@@ -1032,14 +1032,15 @@ impl Floor {
         let tunnel_dist =
             1.0 - (dist_to_wall - wall_thickness).max(0.0) / (TILE_SIZE as f32 - wall_thickness);
 
-        let floor_sprite = if RandomField::new(7331).chance(Vec3::from(pos), 0.00005) {
+        let floor_sprite = if RandomField::new(7331).chance(Vec3::from(pos), 0.001) {
             BlockMask::new(
                 with_sprite(
-                    match (RandomField::new(1337).get(Vec3::from(pos)) / 2) % 20 {
+                    match (RandomField::new(1337).get(Vec3::from(pos)) / 2) % 30 {
                         0 => SpriteKind::Apple,
                         1 => SpriteKind::VeloriteFrag,
                         2 => SpriteKind::Velorite,
                         3..=8 => SpriteKind::Mushroom,
+                        9..=15 => SpriteKind::FireBowlGround,
                         _ => SpriteKind::ShortGrass,
                     },
                 ),
