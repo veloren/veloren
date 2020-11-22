@@ -14,7 +14,7 @@ use crate::{
     tui_runner::{Message, Tui},
 };
 use clap::{App, Arg, SubCommand};
-use common::clock::Clock;
+use common::{clock::Clock, span};
 use server::{Event, Input, Server};
 use std::{
     io,
@@ -144,11 +144,7 @@ fn main() -> io::Result<()> {
     // Wait for a tick so we don't start with a zero dt
 
     loop {
-        #[cfg(feature = "tracy")]
-        common::util::tracy_client::finish_continuous_frame!();
-        #[cfg(feature = "tracy")]
-        let frame = common::util::tracy_client::start_noncontinuous_frame!("work");
-
+        span!(guard, "work");
         // Terminate the server if instructed to do so by the shutdown coordinator
         if shutdown_coordinator.check(&mut server, &settings) {
             break;
@@ -195,10 +191,11 @@ fn main() -> io::Result<()> {
             }
         }
 
-        #[cfg(feature = "tracy")]
-        drop(frame);
+        drop(guard);
         // Wait for the next tick.
         clock.tick();
+        #[cfg(feature = "tracy")]
+        common::util::tracy_client::finish_continuous_frame!();
     }
 
     Ok(())

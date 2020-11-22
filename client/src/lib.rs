@@ -32,6 +32,7 @@ use common::{
     },
     outcome::Outcome,
     recipe::RecipeBook,
+    span,
     state::State,
     sync::{Uid, UidAllocator, WorldSyncExt},
     terrain::{block::Block, neighbors, BiomeKind, SitesKind, TerrainChunk, TerrainChunkSize},
@@ -935,6 +936,7 @@ impl Client {
         dt: Duration,
         add_foreign_systems: impl Fn(&mut DispatcherBuilder),
     ) -> Result<Vec<Event>, Error> {
+        span!(_guard, "tick", "Client::tick");
         // This tick function is the centre of the Veloren universe. Most client-side
         // things are managed from here, and as such it's important that it
         // stays organised. Please consult the core developers before making
