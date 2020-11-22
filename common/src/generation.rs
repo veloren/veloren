@@ -24,6 +24,7 @@ pub struct EntityInfo {
     pub level: Option<u32>,
     pub loot_drop: Option<Item>,
     pub config: Option<LoadoutConfig>,
+    pub pet: Option<Box<EntityInfo>>,
 }
 
 impl EntityInfo {
@@ -42,6 +43,7 @@ impl EntityInfo {
             level: None,
             loot_drop: None,
             config: None,
+            pet: None,
         }
     }
 
