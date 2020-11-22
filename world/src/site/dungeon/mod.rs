@@ -55,6 +55,7 @@ impl Dungeon {
     pub fn generate(wpos: Vec2<i32>, sim: Option<&WorldSim>, rng: &mut impl Rng) -> Self {
         let mut ctx = GenCtx { sim, rng };
         let difficulty = ctx.rng.gen_range(0, 6);
+        let floors = 3 + difficulty / 2;
         let this = Self {
             name: {
                 let name = NameGen::location(ctx.rng).generate();
@@ -74,7 +75,7 @@ impl Dungeon {
                 + 6,
             seed: ctx.rng.gen(),
             noise: RandomField::new(ctx.rng.gen()),
-            floors: (0..LEVELS)
+            floors: (0..floors)
                 .scan(Vec2::zero(), |stair_tile, level| {
                     let (floor, st) =
                         Floor::generate(&mut ctx, *stair_tile, level as i32, difficulty);
@@ -268,7 +269,10 @@ impl Floor {
         level: i32,
         difficulty: u32,
     ) -> (Self, Vec2<i32>) {
-        let final_level = level == LEVELS as i32 - 1;
+        let floors = 3 + difficulty / 2;
+        let final_level = level == floors as i32 - 1;
+        let width = (2 + difficulty / 2).min(4);
+        let height = (15 + difficulty * 3).min(30);
 
         let new_stair_tile = if final_level {
             Vec2::zero()
@@ -317,8 +321,8 @@ impl Floor {
                 enemy_density: Some(0.001), // Minions!
                 miniboss: false,
                 boss: true,
-                area: Rect::from((new_stair_tile - tile_offset - 4, Extent2::broadcast(9))),
-                height: 30,
+                area: Rect::from((new_stair_tile - tile_offset - 4, Extent2::broadcast(width as i32 * 2 + 1))),
+                height: height as i32,
                 pillars: Some(2),
                 difficulty,
             });
@@ -712,26 +716,101 @@ impl Floor {
                                 "common.loot_tables.loot_table_boss_cultist-leader",
                             );
                             let chosen = chosen.choose();
-                            let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                .with_level(dynamic_rng.gen_range(1, 5))
-                                .with_alignment(comp::Alignment::Enemy)
+                            let entity =
+                            match room.difficulty {
+                                0 => EntityInfo::at(tile_wcenter.map(|e| e as f32))
+                                .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
+                                .with_name("Outcast Leader".to_string())
+                                .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
+                                .with_config(common::loadout_builder::LoadoutConfig::Outcast)
+                                .with_scale(2.0)
+                                .with_main_tool(
+                                    comp::Item::new_from_asset_expect(
+                                        match dynamic_rng.gen_range(0, 6) {
+                                            0 => "common.items.weapons.axe.worn_iron_axe-0",
+                                            1 => "common.items.weapons.sword.zweihander_sword_0",
+                                            2 => "common.items.weapons.sword.zweihander_sword_0",
+                                            3 => "common.items.weapons.hammer.worn_iron_hammer-0",
+                                            4 => "common.items.weapons.staff.bone_staff",
+                                            _ => "common.items.weapons.bow.wood_shortbow-1",
+                                        },
+                                    ),
+                                ),
+                                1 => EntityInfo::at(tile_wcenter.map(|e| e as f32))
+                                .with_body(comp::Body::Theropod(comp::theropod::Body::random_with(
+                                    dynamic_rng,
+                                    &comp::theropod::Species::Odonto,
+                                )))
+                                .with_name("Odonto".to_string())
+                                .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
+                                2 => EntityInfo::at(tile_wcenter.map(|e| e as f32))
+                                .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
+                                .with_name("Bandit Captain".to_string())
+                                .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
+                                .with_config(common::loadout_builder::LoadoutConfig::Bandit)
+                                .with_scale(2.0)
+                                .with_main_tool(
+                                    comp::Item::new_from_asset_expect(
+                                        match dynamic_rng.gen_range(0, 6) {
+                                            0 => "common.items.weapons.axe.steel_axe-0",
+                                            1 => "common.items.weapons.sword.long_2h_orn-0",
+                                            2 => "common.items.weapons.sword.long_2h_orn-0",
+                                            3 => "common.items.weapons.hammer.cobalt_hammer-0",
+                                            4 => "common.items.weapons.staff.amethyst_staff",
+                                            _ => "common.items.weapons.bow.horn_longbow-0",
+                                        },
+                                    ),
+                                ),
+                                3 => EntityInfo::at(tile_wcenter.map(|e| e as f32))
+                                .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
+                                .with_name("Cultist Acolyte".to_string())
+                                .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
+                                .with_config(common::loadout_builder::LoadoutConfig::CultistAcolyte)
+                                .with_scale(2.0)
+                                .with_main_tool(
+                                    comp::Item::new_from_asset_expect(
+                                        match dynamic_rng.gen_range(0, 6) {
+                                            0 => "common.items.weapons.axe.malachite_axe-0",
+                                            1 => "common.items.weapons.sword.cultist_purp_2h-0",
+                                            2 => "common.items.weapons.sword.cultist_purp_2h-0",
+                                            3 => "common.items.weapons.hammer.cultist_purp_2h-0",
+                                            4 => "common.items.weapons.staff.cultist_staff",
+                                            _ => "common.items.weapons.bow.horn_longbow-0",
+                                        },
+                                    ),
+                                ),
+                                4 => EntityInfo::at(tile_wcenter.map(|e| e as f32))
                                 .with_body(comp::Body::Golem(comp::golem::Body::random_with(
                                     dynamic_rng,
                                     &comp::golem::Species::StoneGolem,
                                 )))
                                 .with_name("Stonework Defender".to_string())
-                                .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
-                                .with_level(
-                                    dynamic_rng
-                                        .gen_range(
-                                            (room.difficulty as f32).powf(1.25) + 3.0,
-                                            (room.difficulty as f32).powf(1.5) + 4.0,
-                                        )
-                                        .round() as u32
-                                        * 5,
-                                );
+                                .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
+                                5 => EntityInfo::at(tile_wcenter.map(|e| e as f32))
+                                .with_body(comp::Body::BipedLarge(comp::biped_large::Body::random_with(
+                                    dynamic_rng,
+                                    &comp::biped_large::Species::Mindflayer,
+                                )))
+                                .with_name("Mindflayer".to_string())
+                                .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
+                                _ => EntityInfo::at(tile_wcenter.map(|e| e as f32))
+                                .with_body(comp::Body::QuadrupedSmall(comp::quadruped_small::Body::random_with(
+                                    dynamic_rng,
+                                    &comp::quadruped_small::Species::Sheep,
+                                ))),
+                            };
 
-                            supplement.add_entity(entity);
+                            supplement.add_entity(entity.with_level(
+                                dynamic_rng
+                                    .gen_range(
+                                        (room.difficulty as f32).powf(1.25) + 3.0,
+                                        (room.difficulty as f32).powf(1.5) + 4.0,
+                                    )
+                                    .round() as u32
+                                    * 5,
+                                )
+                                .with_alignment(comp::Alignment::Enemy),
+                            );
                         }
                     }
                     if room.miniboss {
