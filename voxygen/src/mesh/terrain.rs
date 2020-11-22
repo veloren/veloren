@@ -36,7 +36,7 @@ const MAX_LIGHT_DIST: i32 = SUNLIGHT as i32;
 fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     is_sunlight: bool,
     // When above bounds
-    default_light: f32,
+    default_light: u8,
     bounds: Aabb<i32>,
     vol: &VolGrid2d<V>,
     lit_blocks: impl Iterator<Item = (Vec3<i32>, u8)>,
@@ -67,8 +67,8 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
         .collect::<VecDeque<_>>();
     // Start sun rays
     if is_sunlight {
-        for x in 0..outer.size().w {
-            for y in 0..outer.size().h {
+        for y in 0..outer.size().h {
+            for x in 0..outer.size().w {
                 let z = outer.size().d - 1;
                 let is_air = vol_cached
                     .get(outer.min + Vec3::new(x, y, z))
@@ -208,16 +208,41 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
         }
     }
 
+    let min_bounds = Aabb {
+        min: bounds.min - Vec3::unit_z(),
+        max: bounds.max + Vec3::unit_z(),
+    };
+
+    // Minimise light map to reduce duplication. We can now discard light info
+    // for blocks outside of the chunk borders.
+    let mut light_map2 = vec![UNKNOWN; min_bounds.size().product() as usize];
+    let lm_idx2 = {
+        let (w, h, _) = min_bounds.clone().size().into_tuple();
+        move |x, y, z| (z * h * w + x * h + y) as usize
+    };
+    for z in 0..min_bounds.size().d {
+        for y in 0..min_bounds.size().h {
+            for x in 0..min_bounds.size().w {
+                let off = min_bounds.min - outer.min;
+                light_map2[lm_idx2(x, y, z)] = light_map[lm_idx(x + off.x, y + off.y, z + off.z)];
+            }
+        }
+    }
+
+    drop(light_map);
+
     move |wpos| {
-        let pos = wpos - outer.min;
-        light_map
-            .get(lm_idx(pos.x, pos.y, pos.z))
-            .map(|l| if *l != OPAQUE && *l != UNKNOWN {
-                *l as f32 / SUNLIGHT as f32
-            } else {
-                0.0
-            })
-            .unwrap_or(default_light)
+        let pos = wpos - min_bounds.min;
+        let l = light_map2
+            .get(lm_idx2(pos.x, pos.y, pos.z))
+            .copied()
+            .unwrap_or(default_light);
+
+        if l != OPAQUE && l != UNKNOWN {
+            l as f32 / SUNLIGHT as f32
+        } else {
+            0.0
+        }
     }
 }
 
@@ -243,7 +268,7 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug + 'static>
 
     fn generate_mesh(
         self,
-        (range, max_texture_size, boi): Self::Supplement,
+        (range, max_texture_size, _boi): Self::Supplement,
     ) -> MeshGen<TerrainPipeline, FluidPipeline, Self> {
         span!(
             _guard,
@@ -277,8 +302,8 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug + 'static>
         }
 
         // Calculate chunk lighting (sunlight defaults to 1.0, glow to 0.0)
-        let mut light = calc_light(true, 1.0, range, self, core::iter::empty());
-        let mut glow = calc_light(false, 0.0, range, self, glow_blocks.into_iter());
+        let light = calc_light(true, SUNLIGHT, range, self, core::iter::empty());
+        let glow = calc_light(false, 0, range, self, glow_blocks.into_iter());
 
         let mut opaque_limits = None::<Limits>;
         let mut fluid_limits = None::<Limits>;

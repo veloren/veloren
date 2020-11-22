@@ -634,15 +634,15 @@ impl Settlement {
                                     .rotated_z(f32::consts::PI / 2.0)
                                     .normalized();
                                 let is_lamp = if path_dir.x.abs() > path_dir.y.abs() {
-                                    wpos2d.x as f32 % 30.0 / path_dir.dot(Vec2::unit_y()).abs()
+                                    wpos2d.x as f32 % 15.0 / path_dir.dot(Vec2::unit_y()).abs()
                                         <= 1.0
                                 } else {
-                                    (wpos2d.y as f32 + 10.0) % 30.0
+                                    (wpos2d.y as f32 + 10.0) % 15.0
                                         / path_dir.dot(Vec2::unit_x()).abs()
                                         <= 1.0
                                 };
                                 if (col_sample.path.map(|(dist, _, _, _)| dist > 6.0 && dist < 7.0).unwrap_or(false) && is_lamp) //roll(0, 50) == 0)
-                                    || (roll(0, 2000) == 0 && col_sample.path.map(|(dist, _, _, _)| dist > 20.0).unwrap_or(true))
+                                    || (roll(0, 750) == 0 && col_sample.path.map(|(dist, _, _, _)| dist > 20.0).unwrap_or(true))
                                 {
                                     surface_sprite = Some(SpriteKind::StreetLamp);
                                 }
