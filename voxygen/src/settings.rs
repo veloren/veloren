@@ -522,6 +522,7 @@ pub struct GameplaySettings {
     pub map_show_dungeons: bool,
     pub map_show_castles: bool,
     pub loading_tips: bool,
+    pub map_show_caves: bool,
 }
 
 impl Default for GameplaySettings {
@@ -558,6 +559,7 @@ impl Default for GameplaySettings {
             map_show_dungeons: true,
             map_show_castles: true,
             loading_tips: true,
+            map_show_caves: true,
         }
     }
 }

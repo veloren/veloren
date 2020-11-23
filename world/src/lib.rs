@@ -114,6 +114,22 @@ impl World {
                         wpos: site.center * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
                     }
                 })
+                .chain(
+                    self.civs()
+                        .caves
+                        .iter()
+                        .map(|(_, info)| {
+                            // separate the two locations, combine with name
+                            std::iter::once((info.name.clone(), info.location.0))
+                                .chain(std::iter::once((info.name.clone(), info.location.1)))
+                        })
+                        .flatten() // unwrap inner iteration
+                        .map(|(name, pos)| world_msg::SiteInfo {
+                            name: Some(name),
+                            kind: world_msg::SiteKind::Cave,
+                            wpos: pos,
+                        }),
+                )
                 .collect(),
             ..self.sim.get_map(index)
         }
