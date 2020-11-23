@@ -12,7 +12,9 @@ use crate::{
     },
     scene::{
         camera::{Camera, CameraMode, Dependents},
-        math, LodData, SceneData,
+        math,
+        terrain::Terrain,
+        LodData, SceneData,
     },
 };
 use anim::{
@@ -47,7 +49,7 @@ use specs::{Entity as EcsEntity, Join, LazyUpdate, WorldExt};
 use treeculler::{BVol, BoundingSphere};
 use vek::*;
 
-const DAMAGE_FADE_COEFFICIENT: f64 = 5.0;
+const DAMAGE_FADE_COEFFICIENT: f64 = 15.0;
 const MOVING_THRESHOLD: f32 = 0.7;
 const MOVING_THRESHOLD_SQR: f32 = MOVING_THRESHOLD * MOVING_THRESHOLD;
 
@@ -455,6 +457,7 @@ impl FigureMgr {
         // Visible chunk data.
         visible_psr_bounds: math::Aabr<f32>,
         camera: &Camera,
+        terrain: Option<&Terrain>,
     ) -> anim::vek::Aabb<f32> {
         span!(_guard, "maintain", "FigureManager::maintain");
         let state = scene_data.state;
@@ -665,7 +668,7 @@ impl FigureMgr {
             let col = health
                 .map(|h| {
                     vek::Rgba::broadcast(1.0)
-                        + vek::Rgba::new(2.0, 2.0, 2., 0.00).map(|c| {
+                        + vek::Rgba::new(10.0, 10.0, 10.0, 0.0).map(|c| {
                             (c / (1.0 + DAMAGE_FADE_COEFFICIENT * h.last_change.0)) as f32
                         })
                 })
@@ -1329,6 +1332,7 @@ impl FigureMgr {
                         is_player,
                         camera,
                         &mut update_buf,
+                        terrain,
                     );
                 },
                 Body::QuadrupedSmall(body) => {
@@ -1439,6 +1443,7 @@ impl FigureMgr {
                         is_player,
                         camera,
                         &mut update_buf,
+                        terrain,
                     );
                 },
                 Body::QuadrupedMedium(body) => {
@@ -1560,6 +1565,7 @@ impl FigureMgr {
                         is_player,
                         camera,
                         &mut update_buf,
+                        terrain,
                     );
                 },
                 Body::QuadrupedLow(body) => {
@@ -1668,6 +1674,7 @@ impl FigureMgr {
                         is_player,
                         camera,
                         &mut update_buf,
+                        terrain,
                     );
                 },
                 Body::BirdMedium(body) => {
@@ -1773,6 +1780,7 @@ impl FigureMgr {
                         is_player,
                         camera,
                         &mut update_buf,
+                        terrain,
                     );
                 },
                 Body::FishMedium(body) => {
@@ -1859,6 +1867,7 @@ impl FigureMgr {
                         is_player,
                         camera,
                         &mut update_buf,
+                        terrain,
                     );
                 },
                 Body::Dragon(body) => {
@@ -1941,6 +1950,7 @@ impl FigureMgr {
                         is_player,
                         camera,
                         &mut update_buf,
+                        terrain,
                     );
                 },
                 Body::Theropod(body) => {
@@ -2025,6 +2035,7 @@ impl FigureMgr {
                         is_player,
                         camera,
                         &mut update_buf,
+                        terrain,
                     );
                 },
                 Body::BirdSmall(body) => {
@@ -2111,6 +2122,7 @@ impl FigureMgr {
                         is_player,
                         camera,
                         &mut update_buf,
+                        terrain,
                     );
                 },
                 Body::FishSmall(body) => {
@@ -2197,6 +2209,7 @@ impl FigureMgr {
                         is_player,
                         camera,
                         &mut update_buf,
+                        terrain,
                     );
                 },
                 Body::BipedLarge(body) => {
@@ -2603,6 +2616,7 @@ impl FigureMgr {
                         is_player,
                         camera,
                         &mut update_buf,
+                        terrain,
                     );
                 },
                 Body::Golem(body) => {
@@ -2707,6 +2721,7 @@ impl FigureMgr {
                         is_player,
                         camera,
                         &mut update_buf,
+                        terrain,
                     );
                 },
                 Body::Object(body) => {
@@ -2740,6 +2755,7 @@ impl FigureMgr {
                         is_player,
                         camera,
                         &mut update_buf,
+                        terrain,
                     );
                 },
             }
@@ -3328,6 +3344,8 @@ pub struct FigureStateMeta {
     visible: bool,
     last_pos: Option<anim::vek::Vec3<f32>>,
     avg_vel: anim::vek::Vec3<f32>,
+    last_light: f32,
+    last_glow: f32,
 }
 
 impl FigureStateMeta {
@@ -3372,6 +3390,8 @@ impl<S: Skeleton> FigureState<S> {
                 can_shadow_sun: false,
                 last_pos: None,
                 avg_vel: anim::vek::Vec3::zero(),
+                last_light: 1.0,
+                last_glow: 0.0,
             },
             skeleton,
         }
@@ -3393,6 +3413,7 @@ impl<S: Skeleton> FigureState<S> {
         is_player: bool,
         _camera: &Camera,
         buf: &mut [anim::FigureBoneData; anim::MAX_BONE_COUNT],
+        terrain: Option<&Terrain>,
     ) {
         // NOTE: As long as update() always gets called after get_or_create_model(), and
         // visibility is not set again until after the model is rendered, we
@@ -3429,12 +3450,56 @@ impl<S: Skeleton> FigureState<S> {
             * anim::vek::Mat4::scaling_3d(anim::vek::Vec3::from(0.8 * scale));
 
         let atlas_offs = model.allocation.rectangle.min;
+
+        let (light, glow) = terrain
+            .map(|t| {
+                // Sample the location a little above to avoid clipping into terrain
+                // TODO: Try to make this faster? It might be fine though
+                let wpos = Vec3::from(pos.into_array()) + Vec3::unit_z();
+
+                let wposi = wpos.map(|e: f32| e.floor() as i32);
+
+                // TODO: Fix this up enough to make it work
+                /*
+                let sample = |off| {
+                    let off = off * wpos.map(|e| (e.fract() - 0.5).signum() as i32);
+                    Vec2::new(t.light_at_wpos(wposi + off), t.glow_at_wpos(wposi + off))
+                };
+
+                let s_000 = sample(Vec3::new(0, 0, 0));
+                let s_100 = sample(Vec3::new(1, 0, 0));
+                let s_010 = sample(Vec3::new(0, 1, 0));
+                let s_110 = sample(Vec3::new(1, 1, 0));
+                let s_001 = sample(Vec3::new(0, 0, 1));
+                let s_101 = sample(Vec3::new(1, 0, 1));
+                let s_011 = sample(Vec3::new(0, 1, 1));
+                let s_111 = sample(Vec3::new(1, 1, 1));
+                let s_00 = Lerp::lerp(s_000, s_001, (wpos.z.fract() - 0.5).abs() * 2.0);
+                let s_10 = Lerp::lerp(s_100, s_101, (wpos.z.fract() - 0.5).abs() * 2.0);
+                let s_01 = Lerp::lerp(s_010, s_011, (wpos.z.fract() - 0.5).abs() * 2.0);
+                let s_11 = Lerp::lerp(s_110, s_111, (wpos.z.fract() - 0.5).abs() * 2.0);
+                let s_0 = Lerp::lerp(s_00, s_01, (wpos.y.fract() - 0.5).abs() * 2.0);
+                let s_1 = Lerp::lerp(s_10, s_11, (wpos.y.fract() - 0.5).abs() * 2.0);
+                let s = Lerp::lerp(s_10, s_11, (wpos.x.fract() - 0.5).abs() * 2.0);
+                */
+
+                Vec2::new(t.light_at_wpos(wposi), t.glow_at_wpos(wposi)).into_tuple()
+            })
+            .unwrap_or((1.0, 0.0));
+        // Fade between light and glow levels
+        // TODO: Making this temporal rather than spatial is a bit dumb but it's a very
+        // subtle difference
+        self.last_light = vek::Lerp::lerp(self.last_light, light, 16.0 * dt);
+        self.last_glow = vek::Lerp::lerp(self.last_glow, glow, 16.0 * dt);
+
         let locals = FigureLocals::new(
             mat,
-            col,
+            col.rgb(),
             pos,
             vek::Vec2::new(atlas_offs.x, atlas_offs.y),
             is_player,
+            self.last_light,
+            self.last_glow,
         );
         renderer.update_consts(&mut self.locals, &[locals]).unwrap();
 

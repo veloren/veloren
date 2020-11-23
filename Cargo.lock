@@ -5406,6 +5406,7 @@ dependencies = [
  "scan_fmt",
  "serde",
  "serde_json",
+ "slab",
  "specs",
  "specs-idvs",
  "tiny_http",

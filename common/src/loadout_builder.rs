@@ -26,6 +26,20 @@ use rand::Rng;
 ///     )))
 ///     .build();
 /// ```
+
+#[derive(Copy, Clone)]
+pub enum LoadoutConfig {
+    Guard,
+    Villager,
+    Outcast,
+    Highwayman,
+    Bandit,
+    CultistNovice,
+    CultistAcolyte,
+    Warlord,
+    Warlock,
+}
+
 pub struct LoadoutBuilder(Loadout);
 
 impl LoadoutBuilder {
@@ -74,183 +88,193 @@ impl LoadoutBuilder {
     #[allow(clippy::single_match)]
     pub fn build_loadout(
         body: Body,
-        alignment: Alignment,
+        _alignment: Alignment,
         mut main_tool: Option<Item>,
         is_giant: bool,
         map: &AbilityMap,
+        config: Option<LoadoutConfig>,
     ) -> Self {
-        match body {
-            Body::Golem(golem) => match golem.species {
-                golem::Species::StoneGolem => {
-                    main_tool = Some(Item::new_from_asset_expect(
-                        "common.items.npc_weapons.unique.stone_golems_fist",
-                    ));
-                },
-                _ => {},
-            },
-            Body::BipedLarge(biped_large) => match (biped_large.species, biped_large.body_type) {
-                (biped_large::Species::Occultsaurok, _) => {
-                    main_tool = Some(Item::new_from_asset_expect(
-                        "common.items.npc_weapons.staff.saurok_staff",
-                    ));
-                },
-                (biped_large::Species::Mightysaurok, _) => {
-                    main_tool = Some(Item::new_from_asset_expect(
-                        "common.items.npc_weapons.sword.saurok_sword",
-                    ));
-                },
-                (biped_large::Species::Slysaurok, _) => {
-                    main_tool = Some(Item::new_from_asset_expect(
-                        "common.items.npc_weapons.bow.saurok_bow",
-                    ));
-                },
-                (biped_large::Species::Ogre, biped_large::BodyType::Male) => {
-                    main_tool = Some(Item::new_from_asset_expect(
-                        "common.items.npc_weapons.hammer.ogre_hammer",
-                    ));
-                },
-                (biped_large::Species::Ogre, biped_large::BodyType::Female) => {
-                    main_tool = Some(Item::new_from_asset_expect(
-                        "common.items.npc_weapons.staff.ogre_staff",
-                    ));
-                },
-                (biped_large::Species::Troll, _) => {
-                    main_tool = Some(Item::new_from_asset_expect(
-                        "common.items.npc_weapons.hammer.troll_hammer",
-                    ));
-                },
-                (biped_large::Species::Wendigo, _) => {
-                    main_tool = Some(Item::new_from_asset_expect(
-                        "common.items.npc_weapons.unique.beast_claws",
-                    ));
-                },
-                (biped_large::Species::Werewolf, _) => {
-                    main_tool = Some(Item::new_from_asset_expect(
-                        "common.items.npc_weapons.unique.beast_claws",
-                    ));
-                },
-                (biped_large::Species::Cyclops, _) => {
-                    main_tool = Some(Item::new_from_asset_expect(
-                        "common.items.npc_weapons.hammer.cyclops_hammer",
-                    ));
-                },
-                (biped_large::Species::Dullahan, _) => {
-                    main_tool = Some(Item::new_from_asset_expect(
-                        "common.items.npc_weapons.sword.dullahan_sword",
-                    ));
-                },
-                (biped_large::Species::Mindflayer, _) => {
-                    main_tool = Some(Item::new_from_asset_expect(
-                        "common.items.npc_weapons.staff.mindflayer_staff",
-                    ));
-                },
-            },
-            Body::Humanoid(_) => {
-                if is_giant {
-                    main_tool = Some(Item::new_from_asset_expect(
-                        "common.items.npc_weapons.sword.zweihander_sword_0",
-                    ));
-                }
-            },
-            _ => {},
-        };
+        let loadout = if let Some(config) = config {
+            let active_item = if let Some(ItemKind::Tool(_)) = main_tool.as_ref().map(|i| i.kind())
+            {
+                main_tool.map(|item| ItemConfig::from((item, map)))
+            } else {
+                Some(ItemConfig {
+                    // We need the empty item so npcs can attack
+                    item: Item::new_from_asset_expect("common.items.weapons.empty.empty"),
+                    ability1: Some(CharacterAbility::default()),
+                    ability2: None,
+                    ability3: None,
+                    block_ability: None,
+                    dodge_ability: None,
+                })
+            };
 
-        let active_item = if let Some(ItemKind::Tool(_)) = main_tool.as_ref().map(|i| i.kind()) {
-            main_tool.map(|item| ItemConfig::from((item, map)))
-        } else {
-            Some(ItemConfig {
-                // We need the empty item so npcs can attack
-                item: Item::new_from_asset_expect("common.items.weapons.empty.empty"),
-                ability1: Some(CharacterAbility::default()),
-                ability2: None,
-                ability3: None,
-                block_ability: None,
-                dodge_ability: None,
-            })
-        };
-
-        let loadout = match body {
-            Body::Humanoid(_) => match alignment {
-                Alignment::Npc => {
-                    if is_giant {
-                        Loadout {
-                            active_item,
-                            second_item: None,
-                            shoulder: Some(Item::new_from_asset_expect(
-                                "common.items.armor.shoulder.plate_0",
-                            )),
-                            chest: Some(Item::new_from_asset_expect(match alignment {
-                                Alignment::Enemy => "common.items.npc_armor.chest.plate_red_0",
-                                _ => "common.items.npc_armor.chest.plate_green_0",
-                            })),
-                            belt: Some(Item::new_from_asset_expect(
-                                "common.items.armor.belt.plate_0",
-                            )),
-                            hand: Some(Item::new_from_asset_expect(
-                                "common.items.armor.hand.plate_0",
-                            )),
-                            pants: Some(Item::new_from_asset_expect(match alignment {
-                                Alignment::Enemy => "common.items.npc_armor.pants.plate_red_0",
-                                _ => "common.items.npc_armor.pants.plate_green_0",
-                            })),
-                            foot: Some(Item::new_from_asset_expect(
-                                "common.items.armor.foot.plate_0",
-                            )),
-                            back: None,
-                            ring: None,
-                            neck: None,
-                            lantern: Some(Item::new_from_asset_expect(
-                                "common.items.lantern.black_0",
-                            )),
-                            glider: None,
-                            head: None,
-                            tabard: None,
-                        }
-                    } else {
-                        Loadout {
-                            active_item,
-                            second_item: None,
-                            shoulder: None,
-                            chest: Some(Item::new_from_asset_expect(
-                                match rand::thread_rng().gen_range(0, 10) {
-                                    0 => "common.items.armor.chest.worker_green_0",
-                                    1 => "common.items.armor.chest.worker_green_1",
-                                    2 => "common.items.armor.chest.worker_red_0",
-                                    3 => "common.items.armor.chest.worker_red_1",
-                                    4 => "common.items.armor.chest.worker_purple_0",
-                                    5 => "common.items.armor.chest.worker_purple_1",
-                                    6 => "common.items.armor.chest.worker_yellow_0",
-                                    7 => "common.items.armor.chest.worker_yellow_1",
-                                    8 => "common.items.armor.chest.worker_orange_0",
-                                    _ => "common.items.armor.chest.worker_orange_1",
-                                },
-                            )),
-                            belt: Some(Item::new_from_asset_expect(
-                                "common.items.armor.belt.leather_0",
-                            )),
-                            hand: None,
-                            pants: Some(Item::new_from_asset_expect(
-                                "common.items.armor.pants.worker_blue_0",
-                            )),
-                            foot: Some(Item::new_from_asset_expect(
-                                match rand::thread_rng().gen_range(0, 2) {
-                                    0 => "common.items.armor.foot.leather_0",
-                                    _ => "common.items.armor.starter.sandals_0",
-                                },
-                            )),
-                            back: None,
-                            ring: None,
-                            neck: None,
-                            lantern: Some(Item::new_from_asset_expect(
-                                "common.items.lantern.black_0",
-                            )),
-                            glider: None,
-                            head: None,
-                            tabard: None,
-                        }
-                    }
+            use LoadoutConfig::*;
+            match config {
+                Guard => Loadout {
+                    active_item,
+                    second_item: None,
+                    shoulder: Some(Item::new_from_asset_expect(
+                        "common.items.armor.shoulder.steel_0",
+                    )),
+                    chest: Some(Item::new_from_asset_expect(
+                        "common.items.armor.chest.steel_0",
+                    )),
+                    belt: Some(Item::new_from_asset_expect(
+                        "common.items.armor.belt.steel_0",
+                    )),
+                    hand: Some(Item::new_from_asset_expect(
+                        "common.items.armor.hand.steel_0",
+                    )),
+                    pants: Some(Item::new_from_asset_expect(
+                        "common.items.armor.pants.steel_0",
+                    )),
+                    foot: Some(Item::new_from_asset_expect(
+                        "common.items.armor.foot.steel_0",
+                    )),
+                    back: None,
+                    ring: None,
+                    neck: None,
+                    lantern: match rand::thread_rng().gen_range(0, 3) {
+                        0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
+                        _ => None,
+                    },
+                    glider: None,
+                    head: None,
+                    tabard: None,
                 },
-                Alignment::Enemy => Loadout {
+                Outcast => Loadout {
+                    active_item,
+                    second_item: None,
+                    shoulder: Some(Item::new_from_asset_expect(
+                        "common.items.armor.shoulder.cloth_purple_0",
+                    )),
+                    chest: Some(Item::new_from_asset_expect(
+                        "common.items.armor.chest.cloth_purple_0",
+                    )),
+                    belt: Some(Item::new_from_asset_expect(
+                        "common.items.armor.belt.cloth_purple_0",
+                    )),
+                    hand: Some(Item::new_from_asset_expect(
+                        "common.items.armor.hand.cloth_purple_0",
+                    )),
+                    pants: Some(Item::new_from_asset_expect(
+                        "common.items.armor.pants.cloth_purple_0",
+                    )),
+                    foot: Some(Item::new_from_asset_expect(
+                        "common.items.armor.foot.cloth_purple_0",
+                    )),
+                    back: None,
+                    ring: None,
+                    neck: None,
+                    lantern: match rand::thread_rng().gen_range(0, 3) {
+                        0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
+                        _ => None,
+                    },
+                    glider: None,
+                    head: None,
+                    tabard: None,
+                },
+                Highwayman => Loadout {
+                    active_item,
+                    second_item: None,
+                    shoulder: Some(Item::new_from_asset_expect(
+                        "common.items.armor.shoulder.leather_0",
+                    )),
+                    chest: Some(Item::new_from_asset_expect(
+                        "common.items.armor.chest.leather_0",
+                    )),
+                    belt: Some(Item::new_from_asset_expect(
+                        "common.items.armor.belt.leather_0",
+                    )),
+                    hand: Some(Item::new_from_asset_expect(
+                        "common.items.armor.hand.leather_0",
+                    )),
+                    pants: Some(Item::new_from_asset_expect(
+                        "common.items.armor.pants.leather_0",
+                    )),
+                    foot: Some(Item::new_from_asset_expect(
+                        "common.items.armor.foot.leather_0",
+                    )),
+                    back: None,
+                    ring: None,
+                    neck: None,
+                    lantern: match rand::thread_rng().gen_range(0, 3) {
+                        0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
+                        _ => None,
+                    },
+                    glider: None,
+                    head: None,
+                    tabard: None,
+                },
+                Bandit => Loadout {
+                    active_item,
+                    second_item: None,
+                    shoulder: Some(Item::new_from_asset_expect(
+                        "common.items.armor.shoulder.assassin",
+                    )),
+                    chest: Some(Item::new_from_asset_expect(
+                        "common.items.armor.chest.assassin",
+                    )),
+                    belt: Some(Item::new_from_asset_expect(
+                        "common.items.armor.belt.assassin",
+                    )),
+                    hand: Some(Item::new_from_asset_expect(
+                        "common.items.armor.hand.assassin",
+                    )),
+                    pants: Some(Item::new_from_asset_expect(
+                        "common.items.armor.pants.assassin",
+                    )),
+                    foot: Some(Item::new_from_asset_expect(
+                        "common.items.armor.foot.assassin",
+                    )),
+                    back: None,
+                    ring: None,
+                    neck: None,
+                    lantern: match rand::thread_rng().gen_range(0, 3) {
+                        0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
+                        _ => None,
+                    },
+                    glider: None,
+                    head: None,
+                    tabard: None,
+                },
+                CultistNovice => Loadout {
+                    active_item,
+                    second_item: None,
+                    shoulder: Some(Item::new_from_asset_expect(
+                        "common.items.armor.shoulder.steel_0",
+                    )),
+                    chest: Some(Item::new_from_asset_expect(
+                        "common.items.armor.chest.steel_0",
+                    )),
+                    belt: Some(Item::new_from_asset_expect(
+                        "common.items.armor.belt.steel_0",
+                    )),
+                    hand: Some(Item::new_from_asset_expect(
+                        "common.items.armor.hand.steel_0",
+                    )),
+                    pants: Some(Item::new_from_asset_expect(
+                        "common.items.armor.pants.steel_0",
+                    )),
+                    foot: Some(Item::new_from_asset_expect(
+                        "common.items.armor.foot.steel_0",
+                    )),
+                    back: Some(Item::new_from_asset_expect(
+                        "common.items.armor.back.dungeon_purple-0",
+                    )),
+                    ring: None,
+                    neck: None,
+                    lantern: match rand::thread_rng().gen_range(0, 3) {
+                        0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
+                        _ => None,
+                    },
+                    glider: None,
+                    head: None,
+                    tabard: None,
+                },
+                CultistAcolyte => Loadout {
                     active_item,
                     second_item: None,
                     shoulder: Some(Item::new_from_asset_expect(
@@ -284,10 +308,229 @@ impl LoadoutBuilder {
                     head: None,
                     tabard: None,
                 },
-                _ => LoadoutBuilder::animal(body).build(),
-            },
-            Body::Golem(golem) => match golem.species {
-                golem::Species::StoneGolem => Loadout {
+                Warlord => Loadout {
+                    active_item,
+                    second_item: None,
+                    shoulder: Some(Item::new_from_asset_expect(
+                        "common.items.armor.shoulder.warlord",
+                    )),
+                    chest: Some(Item::new_from_asset_expect(
+                        "common.items.armor.chest.warlord",
+                    )),
+                    belt: Some(Item::new_from_asset_expect(
+                        "common.items.armor.belt.warlord",
+                    )),
+                    hand: Some(Item::new_from_asset_expect(
+                        "common.items.armor.hand.warlord",
+                    )),
+                    pants: Some(Item::new_from_asset_expect(
+                        "common.items.armor.pants.warlord",
+                    )),
+                    foot: Some(Item::new_from_asset_expect(
+                        "common.items.armor.foot.warlord",
+                    )),
+                    back: Some(Item::new_from_asset_expect(
+                        "common.items.armor.back.warlord",
+                    )),
+                    ring: None,
+                    neck: None,
+                    lantern: match rand::thread_rng().gen_range(0, 3) {
+                        0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
+                        _ => None,
+                    },
+                    glider: None,
+                    head: None,
+                    tabard: None,
+                },
+                Warlock => Loadout {
+                    active_item,
+                    second_item: None,
+                    shoulder: Some(Item::new_from_asset_expect(
+                        "common.items.armor.shoulder.warlock",
+                    )),
+                    chest: Some(Item::new_from_asset_expect(
+                        "common.items.armor.chest.warlock",
+                    )),
+                    belt: Some(Item::new_from_asset_expect(
+                        "common.items.armor.belt.warlock",
+                    )),
+                    hand: Some(Item::new_from_asset_expect(
+                        "common.items.armor.hand.warlock",
+                    )),
+                    pants: Some(Item::new_from_asset_expect(
+                        "common.items.armor.pants.warlock",
+                    )),
+                    foot: Some(Item::new_from_asset_expect(
+                        "common.items.armor.foot.warlock",
+                    )),
+                    back: Some(Item::new_from_asset_expect(
+                        "common.items.armor.back.warlock",
+                    )),
+                    ring: None,
+                    neck: None,
+                    lantern: match rand::thread_rng().gen_range(0, 3) {
+                        0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
+                        _ => None,
+                    },
+                    glider: None,
+                    head: None,
+                    tabard: None,
+                },
+                Villager => Loadout {
+                    active_item,
+                    second_item: None,
+                    shoulder: None,
+                    chest: Some(Item::new_from_asset_expect(
+                        match rand::thread_rng().gen_range(0, 10) {
+                            0 => "common.items.armor.chest.worker_green_0",
+                            1 => "common.items.armor.chest.worker_green_1",
+                            2 => "common.items.armor.chest.worker_red_0",
+                            3 => "common.items.armor.chest.worker_red_1",
+                            4 => "common.items.armor.chest.worker_purple_0",
+                            5 => "common.items.armor.chest.worker_purple_1",
+                            6 => "common.items.armor.chest.worker_yellow_0",
+                            7 => "common.items.armor.chest.worker_yellow_1",
+                            8 => "common.items.armor.chest.worker_orange_0",
+                            _ => "common.items.armor.chest.worker_orange_1",
+                        },
+                    )),
+                    belt: Some(Item::new_from_asset_expect(
+                        "common.items.armor.belt.leather_0",
+                    )),
+                    hand: None,
+                    pants: Some(Item::new_from_asset_expect(
+                        "common.items.armor.pants.worker_blue_0",
+                    )),
+                    foot: Some(Item::new_from_asset_expect(
+                        match rand::thread_rng().gen_range(0, 2) {
+                            0 => "common.items.armor.foot.leather_0",
+                            _ => "common.items.armor.starter.sandals_0",
+                        },
+                    )),
+                    back: None,
+                    ring: None,
+                    neck: None,
+                    lantern: Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
+                    glider: None,
+                    head: None,
+                    tabard: None,
+                },
+            }
+        } else {
+            match body {
+                Body::Golem(golem) => match golem.species {
+                    golem::Species::StoneGolem => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.stone_golems_fist",
+                        ));
+                    },
+                    _ => {},
+                },
+                Body::BipedLarge(biped_large) => match (biped_large.species, biped_large.body_type)
+                {
+                    (biped_large::Species::Occultsaurok, _) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.staff.saurok_staff",
+                        ));
+                    },
+                    (biped_large::Species::Mightysaurok, _) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.sword.saurok_sword",
+                        ));
+                    },
+                    (biped_large::Species::Slysaurok, _) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.bow.saurok_bow",
+                        ));
+                    },
+                    (biped_large::Species::Ogre, biped_large::BodyType::Male) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.hammer.ogre_hammer",
+                        ));
+                    },
+                    (biped_large::Species::Ogre, biped_large::BodyType::Female) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.staff.ogre_staff",
+                        ));
+                    },
+                    (biped_large::Species::Troll, _) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.hammer.troll_hammer",
+                        ));
+                    },
+                    (biped_large::Species::Wendigo, _) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.beast_claws",
+                        ));
+                    },
+                    (biped_large::Species::Werewolf, _) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.beast_claws",
+                        ));
+                    },
+                    (biped_large::Species::Cyclops, _) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.hammer.cyclops_hammer",
+                        ));
+                    },
+                    (biped_large::Species::Dullahan, _) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.sword.dullahan_sword",
+                        ));
+                    },
+                    (biped_large::Species::Mindflayer, _) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.staff.mindflayer_staff",
+                        ));
+                    },
+                },
+                Body::Humanoid(_) => {
+                    if is_giant {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.sword.zweihander_sword_0",
+                        ));
+                    }
+                },
+                _ => {},
+            };
+
+            let active_item = if let Some(ItemKind::Tool(_)) = main_tool.as_ref().map(|i| i.kind())
+            {
+                main_tool.map(|item| ItemConfig::from((item, map)))
+            } else {
+                Some(ItemConfig {
+                    // We need the empty item so npcs can attack
+                    item: Item::new_from_asset_expect("common.items.weapons.empty.empty"),
+                    ability1: Some(CharacterAbility::default()),
+                    ability2: None,
+                    ability3: None,
+                    block_ability: None,
+                    dodge_ability: None,
+                })
+            };
+
+            match body {
+                Body::Golem(golem) => match golem.species {
+                    golem::Species::StoneGolem => Loadout {
+                        active_item,
+                        second_item: None,
+                        shoulder: None,
+                        chest: None,
+                        belt: None,
+                        hand: None,
+                        pants: None,
+                        foot: None,
+                        back: None,
+                        ring: None,
+                        neck: None,
+                        lantern: None,
+                        glider: None,
+                        head: None,
+                        tabard: None,
+                    },
+                    _ => LoadoutBuilder::animal(body).build(),
+                },
+                Body::BipedLarge(_) => Loadout {
                     active_item,
                     second_item: None,
                     shoulder: None,
@@ -305,25 +548,7 @@ impl LoadoutBuilder {
                     tabard: None,
                 },
                 _ => LoadoutBuilder::animal(body).build(),
-            },
-            Body::BipedLarge(_) => Loadout {
-                active_item,
-                second_item: None,
-                shoulder: None,
-                chest: None,
-                belt: None,
-                hand: None,
-                pants: None,
-                foot: None,
-                back: None,
-                ring: None,
-                neck: None,
-                lantern: None,
-                glider: None,
-                head: None,
-                tabard: None,
-            },
-            _ => LoadoutBuilder::animal(body).build(),
+            }
         };
 
         Self(loadout)

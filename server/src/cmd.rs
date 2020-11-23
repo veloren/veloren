@@ -423,32 +423,81 @@ fn handle_time(
 ) {
     let time = scan_fmt_some!(&args, &action.arg_fmt(), String);
     let new_time = match time.as_deref() {
-        Some("midnight") => NaiveTime::from_hms(0, 0, 0),
-        Some("night") => NaiveTime::from_hms(20, 0, 0),
-        Some("dawn") => NaiveTime::from_hms(5, 0, 0),
-        Some("morning") => NaiveTime::from_hms(8, 0, 0),
-        Some("day") => NaiveTime::from_hms(10, 0, 0),
-        Some("noon") => NaiveTime::from_hms(12, 0, 0),
-        Some("dusk") => NaiveTime::from_hms(17, 0, 0),
+        Some("midnight") => NaiveTime::from_hms(0, 0, 0).num_seconds_from_midnight() as f64,
+        Some("night") => NaiveTime::from_hms(20, 0, 0).num_seconds_from_midnight() as f64,
+        Some("dawn") => NaiveTime::from_hms(5, 0, 0).num_seconds_from_midnight() as f64,
+        Some("morning") => NaiveTime::from_hms(8, 0, 0).num_seconds_from_midnight() as f64,
+        Some("day") => NaiveTime::from_hms(10, 0, 0).num_seconds_from_midnight() as f64,
+        Some("noon") => NaiveTime::from_hms(12, 0, 0).num_seconds_from_midnight() as f64,
+        Some("dusk") => NaiveTime::from_hms(17, 0, 0).num_seconds_from_midnight() as f64,
         Some(n) => match n.parse() {
             Ok(n) => n,
             Err(_) => match NaiveTime::parse_from_str(n, "%H:%M") {
-                Ok(time) => time,
-                Err(_) => {
-                    server.notify_client(
-                        client,
-                        ChatType::CommandError.server_msg(format!("'{}' is not a valid time.", n)),
-                    );
-                    return;
+                Ok(time) => time.num_seconds_from_midnight() as f64,
+                // Accept `u12345`, seconds since midnight day 0
+                Err(_) => match n
+                    .get(1..)
+                    .filter(|_| n.starts_with('u'))
+                    .and_then(|n| n.trim_start_matches('u').parse::<u64>().ok())
+                {
+                    Some(n) => n as f64,
+                    None => {
+                        server.notify_client(
+                            client,
+                            ChatType::CommandError
+                                .server_msg(format!("'{}' is not a valid time.", n)),
+                        );
+                        return;
+                    },
                 },
             },
         },
         None => {
             let time_in_seconds = server.state.ecs_mut().read_resource::<TimeOfDay>().0;
 
+            // Would this ever change? Perhaps in a few hundred thousand years some
+            // game archeologists of the future will resurrect the best game of all
+            // time which, obviously, would be Veloren. By that time, the inescapable
+            // laws of thermodynamics will mean that the earth's rotation period
+            // would be slower. Of course, a few hundred thousand years is enough
+            // for the circadian rhythm of human biology to have shifted to account
+            // accordingly. When booting up Veloren for the first time in 337,241
+            // years, they might feel a touch of anguish at the fact that their
+            // earth days and the days within the game do not neatly divide into
+            // one-another. Understandably, they'll want to change this. Who
+            // wouldn't? It would be like turning the TV volume up to an odd number
+            // or having a slightly untuned radio (assuming they haven't begun
+            // broadcasting information directly into their brains). Totally
+            // unacceptable. No, the correct and proper thing to do would be to
+            // release a retroactive definitive edition DLC for $99 with the very
+            // welcome addition of shorter day periods and a complementary
+            // 'developer commentary' mode created by digging up the long-decayed
+            // skeletons of the Veloren team, measuring various attributes of their
+            // jawlines, and using them to recreate their voices. But how to go about
+            // this Herculean task? This code is jibberish! The last of the core Rust
+            // dev team died exactly 337,194 years ago! Rust is now a long-forgotten
+            // dialect of the ancient ones, lost to the sands of time. Ashes to ashes,
+            // dust to dust. When all hope is lost, one particularly intrepid
+            // post-human hominid exployed by the 'Veloren Revival Corp' (no doubt we
+            // still won't have gotted rid of this blasted 'capitalism' thing by then)
+            // might notice, after years of searching, a particularly curious
+            // inscription within the code. The letters `D`, `A`, `Y`. Curious! She
+            // consults the post-human hominid scholars of the old. Care to empathise
+            // with her shock when she discovers that these symbols, as alien as they
+            // may seem, correspond exactly to the word `ⓕя𝐢ᵇᵇ𝔩Ｅ`, the word for
+            // 'day' in the post-human hominid language, which is of course universal.
+            // Imagine also her surprise when, after much further translating, she
+            // finds a comment predicting her very existence and her struggle to
+            // decode this great mystery. Rejoyce! The Veloren Revival Corp. may now
+            // persist with their great Ultimate Edition DLC because the day period
+            // might now be changed because they have found the constant that controls
+            // it! Everybody was henceforth happy until the end of time.
+            //
+            // This one's for you, xMac ;)
+            const DAY: u64 = 86400;
             let current_time = NaiveTime::from_num_seconds_from_midnight_opt(
                 // Wraps around back to 0s if it exceeds 24 hours (24 hours = 86400s)
-                (time_in_seconds as u64 % 86400) as u32,
+                (time_in_seconds as u64 % DAY) as u32,
                 0,
             );
             let msg = match current_time {
@@ -460,16 +509,19 @@ fn handle_time(
         },
     };
 
-    server.state.ecs_mut().write_resource::<TimeOfDay>().0 =
-        new_time.num_seconds_from_midnight() as f64;
+    server.state.ecs_mut().write_resource::<TimeOfDay>().0 = new_time;
 
-    server.notify_client(
-        client,
-        ChatType::CommandInfo.server_msg(format!(
-            "Time changed to: {}",
-            new_time.format("%H:%M").to_string()
-        )),
-    );
+    if let Some(new_time) =
+        NaiveTime::from_num_seconds_from_midnight_opt(((new_time as u64) % 86400) as u32, 0)
+    {
+        server.notify_client(
+            client,
+            ChatType::CommandInfo.server_msg(format!(
+                "Time changed to: {}",
+                new_time.format("%H:%M").to_string(),
+            )),
+        );
+    }
 }
 
 fn handle_health(
@@ -661,9 +713,10 @@ fn handle_spawn(
                             let body = body();
 
                             let map = server.state().ability_map();
-                            let loadout =
-                                LoadoutBuilder::build_loadout(body, alignment, None, false, &map)
-                                    .build();
+                            let loadout = LoadoutBuilder::build_loadout(
+                                body, alignment, None, false, &map, None,
+                            )
+                            .build();
                             drop(map);
 
                             let mut entity_base = server

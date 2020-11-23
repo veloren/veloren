@@ -20,7 +20,7 @@ mod column;
 pub mod config;
 pub mod index;
 pub mod layer;
-pub mod rtsim;
+pub mod pathfinding;
 pub mod sim;
 pub mod sim2;
 pub mod site;
@@ -42,7 +42,7 @@ use crate::{
 };
 use common::{
     generation::{ChunkSupplement, EntityInfo},
-    msg::WorldMapMsg,
+    msg::{world_msg, WorldMapMsg},
     terrain::{Block, BlockKind, SpriteKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     vol::{ReadVol, RectVolSize, WriteVol},
 };
@@ -91,7 +91,33 @@ impl World {
         // TODO
     }
 
-    pub fn get_map_data(&self, index: IndexRef) -> WorldMapMsg { self.sim.get_map(index) }
+    pub fn get_map_data(&self, index: IndexRef) -> WorldMapMsg {
+        WorldMapMsg {
+            sites: self
+                .civs()
+                .sites
+                .iter()
+                .map(|(_, site)| {
+                    world_msg::SiteInfo {
+                        name: site.site_tmp.map(|id| index.sites[id].name().to_string()),
+                        // TODO: Probably unify these, at some point
+                        kind: match &site.kind {
+                            civ::SiteKind::Settlement => world_msg::SiteKind::Town,
+                            civ::SiteKind::Dungeon => world_msg::SiteKind::Dungeon {
+                                difficulty: match site.site_tmp.map(|id| &index.sites[id].kind) {
+                                    Some(site::SiteKind::Dungeon(d)) => d.difficulty(),
+                                    _ => 0,
+                                },
+                            },
+                            civ::SiteKind::Castle => world_msg::SiteKind::Castle,
+                        },
+                        wpos: site.center * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
+                    }
+                })
+                .collect(),
+            ..self.sim.get_map(index)
+        }
+    }
 
     pub fn sample_columns(
         &self,
@@ -113,6 +139,7 @@ impl World {
         let mut sampler = self.sample_blocks();
 
         let chunk_wpos2d = chunk_pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
+        let chunk_center_wpos2d = chunk_wpos2d + TerrainChunkSize::RECT_SIZE.map(|e| e as i32 / 2);
         let grid_border = 4;
         let zcache_grid = Grid::populate_from(
             TerrainChunkSize::RECT_SIZE.map(|e| e as i32) + grid_border * 2,
@@ -155,7 +182,21 @@ impl World {
         };
 
         let meta = TerrainChunkMeta::new(
-            sim_chunk.get_name(&self.sim),
+            sim_chunk
+                .sites
+                .iter()
+                .filter(|id| {
+                    index.sites[**id]
+                        .get_origin()
+                        .distance_squared(chunk_center_wpos2d) as f32
+                        <= index.sites[**id].radius().powf(2.0)
+                })
+                .min_by_key(|id| {
+                    index.sites[**id]
+                        .get_origin()
+                        .distance_squared(chunk_center_wpos2d)
+                })
+                .map(|id| index.sites[*id].name().to_string()),
             sim_chunk.get_biome(),
             sim_chunk.alt,
             sim_chunk.tree_density,
@@ -220,7 +261,7 @@ impl World {
         };
 
         layer::apply_trees_to(&mut canvas);
-        layer::apply_scatter_to(&mut canvas);
+        layer::apply_scatter_to(&mut canvas, &mut dynamic_rng);
         layer::apply_caves_to(&mut canvas);
         layer::apply_paths_to(&mut canvas);
 

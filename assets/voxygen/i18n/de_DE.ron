@@ -400,8 +400,17 @@ magischen Gegenstände ergattern?"#,
 
         "hud.free_look_indicator": "Freie Sicht aktiv",
         "hud.auto_walk_indicator": "Automatisches Laufen aktiv",
-
-
+        "hud.map.difficulty": "Schwierigkeit",
+        "hud.map.towns": "Dörfer",
+        "hud.map.castles": "Festungen",
+        "hud.map.dungeons": "Dungeons",
+        "hud.map.town": "Dorf",
+        "hud.map.castle": "Festung",
+        "hud.map.dungeon": "Dungeon",
+        "hud.map.difficulty_dungeon": "Dungeon\n\nSchwierigkeit: {difficulty}",
+        "hud.map.drag": "Ziehen",
+        "hud.map.zoom": "Zoomen",
+        "hud.map.recenter": "Zurücksetzen",
         /// End HUD section
         /// Start GameInput section
 
@@ -530,7 +539,7 @@ Willenskraft
             "NPCs mit demselben Level können unterschiedlich schwierig zu besiegen sein.",
             "Behaltet den Boden um euch im Blick! Dort gibt es Nahrung, Kisten und Anderes zu finden.",
             "Ist Euer Inventar voll mit Nahrung? Wertet es einfach durch Crafting auf!",
-            "Ihr sucht nach einem Abenteuer? Dungeons sind mit braunen Markierungen auf der Karte vermerkt!",
+            "Ihr sucht nach einem Abenteuer? Dungeons sind mit Markierungen auf der Karte vermerkt!",
             "Vergesst nicht Eure Grafikeinstellungen anzupassen! Mit 'N' kommt ihr in die Einstellungen.",
             "Zusammen kämpfen macht mehr Spaß! Drückt 'O' um Eure Mitspieler anzuzeigen.",
             "Ein NPC mit einem Schädel unter seiner Lebensanzeige ist deutlich stärker als Ihr.",

@@ -13,6 +13,7 @@ gfx_defines! {
     constant Locals {
         model_mat: [[f32; 4]; 4] = "model_mat",
         highlight_col: [f32; 4] = "highlight_col",
+        model_light: [f32; 4] = "model_light",
         atlas_offs: [i32; 4] = "atlas_offs",
         model_pos: [f32; 3] = "model_pos",
         flags: u32 = "flags",
@@ -54,19 +55,22 @@ gfx_defines! {
 impl Locals {
     pub fn new(
         model_mat: anim::vek::Mat4<f32>,
-        col: Rgba<f32>,
+        col: Rgb<f32>,
         pos: anim::vek::Vec3<f32>,
         atlas_offs: Vec2<i32>,
         is_player: bool,
+        light: f32,
+        glow: f32,
     ) -> Self {
         let mut flags = 0;
         flags |= is_player as u32;
 
         Self {
             model_mat: model_mat.into_col_arrays(),
-            highlight_col: col.into_array(),
+            highlight_col: [col.r, col.g, col.b, 1.0],
             model_pos: pos.into_array(),
             atlas_offs: Vec4::from(atlas_offs).into_array(),
+            model_light: [light, glow, 1.0, 1.0],
             flags,
         }
     }
@@ -76,10 +80,12 @@ impl Default for Locals {
     fn default() -> Self {
         Self::new(
             anim::vek::Mat4::identity(),
-            Rgba::broadcast(1.0),
+            Rgb::broadcast(1.0),
             anim::vek::Vec3::default(),
             Vec2::default(),
             false,
+            1.0,
+            0.0,
         )
     }
 }

@@ -10,8 +10,8 @@ use hashbrown::{HashMap, HashSet};
 use serde::{Deserialize, Serialize};
 use std::{fs, path::PathBuf};
 use tracing::warn;
+use vek::*;
 use winit::event::{MouseButton, VirtualKeyCode};
-
 // ControlSetting-like struct used by Serde, to handle not serializing/building
 // post-deserializing the inverse_keybindings hashmap
 #[derive(Serialize, Deserialize)]
@@ -516,6 +516,11 @@ pub struct GameplaySettings {
     pub auto_walk_behavior: PressBehavior,
     pub stop_auto_walk_on_input: bool,
     pub map_zoom: f64,
+    pub map_drag: Vec2<f64>,
+    pub map_show_difficulty: bool,
+    pub map_show_towns: bool,
+    pub map_show_dungeons: bool,
+    pub map_show_castles: bool,
     pub loading_tips: bool,
 }
 
@@ -546,7 +551,12 @@ impl Default for GameplaySettings {
             free_look_behavior: PressBehavior::Toggle,
             auto_walk_behavior: PressBehavior::Toggle,
             stop_auto_walk_on_input: true,
-            map_zoom: 4.0,
+            map_zoom: 10.0,
+            map_drag: Vec2 { x: 0.0, y: 0.0 },
+            map_show_difficulty: true,
+            map_show_towns: true,
+            map_show_dungeons: true,
+            map_show_castles: true,
             loading_tips: true,
         }
     }
@@ -620,6 +630,7 @@ pub struct GraphicsSettings {
     pub max_fps: u32,
     pub fov: u16,
     pub gamma: f32,
+    pub exposure: f32,
     pub ambiance: f32,
     pub render_mode: RenderMode,
     pub window_size: [u16; 2],
@@ -631,17 +642,18 @@ impl Default for GraphicsSettings {
     fn default() -> Self {
         Self {
             view_distance: 10,
-            sprite_render_distance: 150,
+            sprite_render_distance: 100,
             particles_enabled: true,
-            figure_lod_render_distance: 250,
+            figure_lod_render_distance: 300,
             max_fps: 60,
-            fov: 50,
+            fov: 70,
             gamma: 1.0,
-            ambiance: 20.0,
+            exposure: 1.0,
+            ambiance: 0.0,
             render_mode: RenderMode::default(),
             window_size: [1920, 1080],
             fullscreen: FullScreenSettings::default(),
-            lod_detail: 300,
+            lod_detail: 250,
         }
     }
 }

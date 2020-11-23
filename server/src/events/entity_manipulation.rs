@@ -1,6 +1,7 @@
 use crate::{
     client::Client,
     comp::{biped_large, quadruped_medium, quadruped_small, PhysicsState},
+    rtsim::RtSim,
     Server, SpawnPoint, StateExt,
 };
 use common::{
@@ -15,6 +16,7 @@ use common::{
     lottery::Lottery,
     msg::{PlayerListUpdate, ServerGeneral},
     outcome::Outcome,
+    rtsim::RtSimEntity,
     state::BlockChange,
     sync::{Uid, UidAllocator, WorldSyncExt},
     terrain::{Block, TerrainGrid},
@@ -308,7 +310,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         }
     })();
 
-    if state
+    let should_delete = if state
         .ecs()
         .write_storage::<Client>()
         .get_mut(entity)
@@ -339,6 +341,8 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
             .ecs()
             .write_storage::<comp::CharacterState>()
             .insert(entity, comp::CharacterState::default());
+
+        false
     } else if state.ecs().read_storage::<comp::Agent>().contains(entity) {
         use specs::Builder;
 
@@ -452,10 +456,24 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
             )
         }
 
-        let _ = state
-            .delete_entity_recorded(entity)
-            .map_err(|e| error!(?e, ?entity, "Failed to delete destroyed entity"));
+        true
     } else {
+        true
+    };
+
+    if should_delete {
+        if let Some(rtsim_entity) = state
+            .ecs()
+            .read_storage::<RtSimEntity>()
+            .get(entity)
+            .copied()
+        {
+            state
+                .ecs()
+                .write_resource::<RtSim>()
+                .destroy_entity(rtsim_entity.0);
+        }
+
         let _ = state
             .delete_entity_recorded(entity)
             .map_err(|e| error!(?e, ?entity, "Failed to delete destroyed entity"));
@@ -468,6 +486,16 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         error!(?e, "Failed to delete destroyed entity");
     }
     */
+}
+
+/// Delete an entity without any special actions (this is generally used for
+/// temporarily unloading an entity when it leaves the view distance). As much
+/// as possible, this function should simply make an entity cease to exist.
+pub fn handle_delete(server: &mut Server, entity: EcsEntity) {
+    let _ = server
+        .state_mut()
+        .delete_entity_recorded(entity)
+        .map_err(|e| error!(?e, ?entity, "Failed to delete destroyed entity"));
 }
 
 pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>) {
@@ -600,9 +628,10 @@ pub fn handle_explosion(
                                 + (fade * (color[1] as f32 * 0.3 - color[1] as f32));
                             let b = color[2] as f32
                                 + (fade * (color[2] as f32 * 0.3 - color[2] as f32));
-                            color[0] = r as u8;
-                            color[1] = g as u8;
-                            color[2] = b as u8;
+                            // Darken blocks, but not too much
+                            color[0] = (r as u8).max(30);
+                            color[1] = (g as u8).max(30);
+                            color[2] = (b as u8).max(30);
                             block_change.set(block_pos, Block::new(block.kind(), color));
                         }
                     }
@@ -617,13 +646,19 @@ pub fn handle_explosion(
                     )
                     .normalized();
 
+                    let mut ray_energy = power;
+
                     let terrain = ecs.read_resource::<TerrainGrid>();
                     let _ = terrain
                         .ray(pos, pos + dir * power)
                         // TODO: Faster RNG
-                        .until(|block| block.is_liquid() || rand::random::<f32>() < 0.05)
+                        .until(|block: &Block| {
+                            let stop = block.is_liquid() || block.explode_power().is_none() || ray_energy <= 0.0;
+                            ray_energy -= block.explode_power().unwrap_or(0.0) + rand::random::<f32>() * 0.1;
+                            stop
+                        })
                         .for_each(|block: &Block, pos| {
-                            if block.is_explodable() {
+                            if block.explode_power().is_some() {
                                 block_change.set(pos, block.into_vacant());
                             }
                         })

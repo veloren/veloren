@@ -1,10 +1,9 @@
 use crate::{span, vol::ReadVol};
 use vek::*;
 
-pub trait RayUntil<V> = FnMut(&V) -> bool;
 pub trait RayForEach<V> = FnMut(&V, Vec3<i32>);
 
-pub struct Ray<'a, V: ReadVol, F: RayUntil<V::Vox>, G: RayForEach<V::Vox>> {
+pub struct Ray<'a, V: ReadVol, F: FnMut(&V::Vox) -> bool, G: RayForEach<V::Vox>> {
     vol: &'a V,
     from: Vec3<f32>,
     to: Vec3<f32>,
@@ -14,7 +13,7 @@ pub struct Ray<'a, V: ReadVol, F: RayUntil<V::Vox>, G: RayForEach<V::Vox>> {
     ignore_error: bool,
 }
 
-impl<'a, V: ReadVol, F: RayUntil<V::Vox>, G: RayForEach<V::Vox>> Ray<'a, V, F, G> {
+impl<'a, V: ReadVol, F: FnMut(&V::Vox) -> bool, G: RayForEach<V::Vox>> Ray<'a, V, F, G> {
     pub fn new(vol: &'a V, from: Vec3<f32>, to: Vec3<f32>, until: F) -> Self {
         Self {
             vol,
@@ -27,7 +26,17 @@ impl<'a, V: ReadVol, F: RayUntil<V::Vox>, G: RayForEach<V::Vox>> Ray<'a, V, F, G
         }
     }
 
-    pub fn until(self, f: F) -> Ray<'a, V, F, G> { Ray { until: f, ..self } }
+    pub fn until<H: FnMut(&V::Vox) -> bool>(self, f: H) -> Ray<'a, V, H, G> {
+        Ray {
+            vol: self.vol,
+            from: self.from,
+            to: self.to,
+            until: f,
+            for_each: self.for_each,
+            max_iter: self.max_iter,
+            ignore_error: self.ignore_error,
+        }
+    }
 
     pub fn for_each<H: RayForEach<V::Vox>>(self, f: H) -> Ray<'a, V, F, H> {
         Ray {

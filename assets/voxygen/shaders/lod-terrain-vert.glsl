@@ -36,8 +36,8 @@ out float pull_down;
 // out float f_light;
 
 void main() {
-    // Find distances between vertices.
-    f_pos = lod_pos(v_pos, focus_pos.xy);
+    // Find distances between vertices. Pull down a tiny bit more to reduce z fighting near the ocean.
+    f_pos = lod_pos(v_pos, focus_pos.xy) - vec3(0, 0, 0.1);
     vec2 dims = vec2(1.0 / view_distance.y);
     vec4 f_square = focus_pos.xyxy + vec4(splay(v_pos - dims), splay(v_pos + dims));
     f_norm = lod_norm(f_pos.xy, f_square);

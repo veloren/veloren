@@ -7,6 +7,8 @@
 struct DirectionalLight {
     // vec3 dir;
     float shadow;
+    // Fully blocks all light, including ambience
+    float block;
     // vec3 color;
     // float brightness;
 };
@@ -16,19 +18,19 @@ const float PI = 3.141592;
 const vec3 SKY_DAY_TOP = vec3(0.1, 0.5, 0.9);
 const vec3 SKY_DAY_MID = vec3(0.02, 0.28, 0.8);
 const vec3 SKY_DAY_BOT = vec3(0.1, 0.2, 0.3);
-const vec3 DAY_LIGHT   = vec3(1.9, 1.75, 0.9);//vec3(1.5, 1.4, 1.0);
-const vec3 SUN_HALO_DAY = vec3(0.35, 0.35, 0.0);
+const vec3 DAY_LIGHT   = vec3(2.8, 3.5, 1.8);
+const vec3 SUN_HALO_DAY = vec3(0.06, 0.06, 0.005);
 
 const vec3 SKY_DUSK_TOP = vec3(0.06, 0.1, 0.20);
 const vec3 SKY_DUSK_MID = vec3(0.35, 0.1, 0.15);
 const vec3 SKY_DUSK_BOT = vec3(0.0, 0.1, 0.23);
-const vec3 DUSK_LIGHT   = vec3(9.0, 1.5, 0.15);
-const vec3 SUN_HALO_DUSK = vec3(1.2, 0.25, 0.0);
+const vec3 DUSK_LIGHT   = vec3(8.0, 1.5, 0.15);
+const vec3 SUN_HALO_DUSK = vec3(1.2, 0.15, 0.01);
 
 const vec3 SKY_NIGHT_TOP = vec3(0.001, 0.001, 0.0025);
 const vec3 SKY_NIGHT_MID = vec3(0.001, 0.005, 0.02);
 const vec3 SKY_NIGHT_BOT = vec3(0.002, 0.004, 0.004);
-const vec3 NIGHT_LIGHT   = vec3(0.002, 0.02, 0.02);
+const vec3 NIGHT_LIGHT   = vec3(5.0, 0.75, 0.2);
 // const vec3 NIGHT_LIGHT   = vec3(0.0, 0.0, 0.0);
 
 // Linear RGB, scattering coefficients for atmosphere at roughly R, G, B wavelengths.
@@ -41,6 +43,9 @@ const float SUN_COLOR_FACTOR = 5.0;//6.0;// * 1.5;//1.8;
 const float UNDERWATER_MIST_DIST = 100.0;
 
 const float PERSISTENT_AMBIANCE = 1.0 / 32.0;// 1.0 / 80; // 1.0 / 512; // 0.00125 // 0.1;// 0.025; // 0.1;
+
+// Allowed to be > 1 due to HDR
+const vec3 GLOW_COLOR = vec3(2, 1.30, 0.1);
 
 //vec3 get_sun_dir(float time_of_day) {
 //    const float TIME_FACTOR = (PI * 2.0) / (3600.0 * 24.0);
@@ -70,11 +75,16 @@ const float wind_speed = 0.25;
 vec2 wind_offset = vec2(time_of_day.x * wind_speed);
 
 float cloud_tendency_at(vec2 pos) {
-    return clamp(texture(t_noise, (pos + wind_offset) * 0.000075).x - 0.5, 0, 1);
+    float nz = texture(t_noise, (pos + wind_offset) * 0.000075).x - 0.5;
+    nz = clamp(nz, 0, 1);
+    #if (CLOUD_MODE >= CLOUD_MODE_MEDIUM)
+        nz += (texture(t_noise, (pos + wind_offset) * 0.00035).x - 0.5) * 0.15;
+    #endif
+    return nz;
 }
 
 float cloud_shadow(vec3 pos, vec3 light_dir) {
-    #if (CLOUD_MODE == CLOUD_MODE_NONE || CLOUD_MODE == CLOUD_MODE_MINIMAL)
+    #if (CLOUD_MODE <= CLOUD_MODE_MINIMAL)
         return 1.0;
     #else
         vec2 xy_offset = light_dir.xy * ((CLOUD_AVG_ALT - pos.z) / -light_dir.z);
@@ -82,17 +92,20 @@ float cloud_shadow(vec3 pos, vec3 light_dir) {
         // Fade out shadow if the sun angle is too steep (simulates a widening penumbra with distance)
         const vec2 FADE_RANGE = vec2(1500, 10000);
         float fade = 1.0 - clamp((length(xy_offset) - FADE_RANGE.x) / (FADE_RANGE.y - FADE_RANGE.x), 0, 1);
+        float cloud = cloud_tendency_at(pos.xy + focus_off.xy - xy_offset);
 
-        return max(0, 1 - fade * cloud_tendency_at(pos.xy + focus_off.xy - xy_offset) * 3.0);
+        cloud = cloud * 2.0;
+
+        return clamp(1 - fade * cloud * 1.65, 0, 1);
     #endif
 }
 
 float get_sun_brightness(/*vec3 sun_dir*/) {
-    return max(-sun_dir.z + 0.6, 0.0) * 0.9;
+    return max(-sun_dir.z + 0.5, 0.0);
 }
 
 float get_moon_brightness(/*vec3 moon_dir*/) {
-    return max(-moon_dir.z + 0.6, 0.0) * 0.1;
+    return max(-moon_dir.z + 0.6, 0.0) * 0.2;
 }
 
 vec3 get_sun_color(/*vec3 sun_dir*/) {
@@ -127,6 +140,7 @@ vec3 get_moon_color(/*vec3 moon_dir*/) {
 
 DirectionalLight get_sun_info(vec4 _dir, float shade_frac/*, vec4 light_pos[2]*/, /*vec4 sun_pos*/vec3 f_pos) {
     float shadow = shade_frac;
+    float block = 1.0;
 #ifdef HAS_SHADOW_MAPS
 #if (SHADOW_MODE == SHADOW_MODE_MAP)
     if (sun_dir.z < /*0.6*/0.0) {
@@ -143,15 +157,16 @@ DirectionalLight get_sun_info(vec4 _dir, float shade_frac/*, vec4 light_pos[2]*/
     }
 #endif
 #endif
-    return DirectionalLight(/*dir, */shadow/*, get_sun_color(dir), get_sun_brightness(dir)*/);
+    return DirectionalLight(/*dir, */shadow, block/*, get_sun_color(dir), get_sun_brightness(dir)*/);
 }
 
 DirectionalLight get_moon_info(vec4 _dir, float shade_frac/*, vec4 light_pos[2]*/) {
     float shadow = shade_frac;
+    float block = 1.0;
 // #ifdef HAS_SHADOW_MAPS
 //     shadow = min(shade_frac, ShadowCalculationDirected(light_pos, 1u));
 // #endif
-    return DirectionalLight(/*dir, */shadow/*, get_moon_color(dir), get_moon_brightness(dir)*/);
+    return DirectionalLight(/*dir, */shadow, block/*, get_moon_color(dir), get_moon_brightness(dir)*/);
 }
 
 // // Calculates extra emission and reflectance (due to sunlight / moonlight).
@@ -219,8 +234,8 @@ float get_sun_diffuse2(DirectionalLight sun_info, DirectionalLight moon_info, ve
     vec3 sun_dir = sun_dir.xyz;
     vec3 moon_dir = moon_dir.xyz;
 
-    float sun_light = get_sun_brightness(/*sun_dir*/);//sun_info.brightness;;
-    float moon_light = get_moon_brightness(/*moon_dir*/);//moon_info.brightness;
+    float sun_light = get_sun_brightness(/*sun_dir*/) * sun_info.block;//sun_info.brightness;;
+    float moon_light = get_moon_brightness(/*moon_dir*/) * moon_info.block;//moon_info.brightness;
 
     vec3 sun_color = get_sun_color(/*sun_dir*/) * SUN_COLOR_FACTOR;//sun_info.color * SUN_COLOR_FACTOR;
     vec3 moon_color = get_moon_color(/*moon_dir*/);//moon_info.color;
@@ -372,6 +387,7 @@ float get_sun_diffuse2(DirectionalLight sun_info, DirectionalLight moon_info, ve
 
 // This has been extracted into a function to allow quick exit when detecting a star.
 float is_star_at(vec3 dir) {
+
     float star_scale = 80.0;
 
     // Star positions
@@ -384,11 +400,13 @@ float is_star_at(vec3 dir) {
     float dist = length(pos - dir);
 
     // Star threshold
-    if (dist < 0.0015) {
-        return 1.0;
-    }
+    //if (dist < 0.0015) {
+    //    return 2.5;
+    //}
 
-    return 0.0;
+    //return 0.0;
+
+    return 1.0 / (1.0 + pow(dist * 1000, 8));
 }
 
 vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float quality, bool with_features, float refractionIndex) {
@@ -409,7 +427,7 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
     }
 
     // Sun
-    const vec3 SUN_SURF_COLOR = vec3(1.5, 0.9, 0.35) * 200.0;
+    const vec3 SUN_SURF_COLOR = vec3(1.5, 0.9, 0.35) * 3.0;
 
     vec3 sun_halo_color = mix(
         SUN_HALO_DUSK,
@@ -417,21 +435,24 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
         max(-sun_dir.z, 0.0)
     );
 
-    vec3 sun_halo = pow(max(dot(dir, -sun_dir) + 0.1, 0.0), 8.0) * sun_halo_color;
+    vec3 sun_halo = sun_halo_color * 16 * pow(max(dot(dir, -sun_dir), 0), 8.0);
     vec3 sun_surf = vec3(0);
     if (with_features) {
-        sun_surf = pow(max(dot(dir, -sun_dir) - 0.001, 0.0), 5000.0) * SUN_SURF_COLOR * SUN_COLOR_FACTOR; // Hack to prevent sun vanishing too early
+        float angle = 0.00035;
+        sun_surf = clamp((dot(dir, -sun_dir) - (1.0 - angle)) * 4 / angle, 0, 1) * SUN_SURF_COLOR * SUN_COLOR_FACTOR;
     }
     vec3 sun_light = sun_halo + sun_surf;
 
     // Moon
-    const vec3 MOON_SURF_COLOR = vec3(0.7, 1.0, 1.5) * 500.0;
-    const vec3 MOON_HALO_COLOR = vec3(0.015, 0.015, 0.05);
+    const vec3 MOON_SURF_COLOR = vec3(0.7, 1.0, 1.5) * 3.0;
+    const vec3 MOON_HALO_COLOR = vec3(0.015, 0.015, 0.05) * 25;
 
-    vec3 moon_halo = pow(max(dot(dir, -moon_dir) + 0.1, 0.0), 8.0) * MOON_HALO_COLOR;
+    vec3 moon_halo_color = MOON_HALO_COLOR;
+    vec3 moon_halo = moon_halo_color * pow(max(dot(dir, -moon_dir), 0), 500.0);
     vec3 moon_surf = vec3(0);
     if (with_features) {
-        moon_surf = pow(max(dot(dir, -moon_dir) - 0.001, 0.0), 5000.0) * MOON_SURF_COLOR; // Hack to prevent moon vanishing too early
+        float angle = 0.00035;
+        moon_surf = clamp((dot(dir, -moon_dir) - (1.0 - angle)) * 4 / angle, 0, 1) * MOON_SURF_COLOR;
     }
     vec3 moon_light = moon_halo + moon_surf;
 

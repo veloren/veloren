@@ -125,6 +125,9 @@ impl Block {
         }
     }
 
+    #[inline]
+    pub const fn empty() -> Self { Self::air(SpriteKind::Empty) }
+
     /// TODO: See if we can generalize this somehow.
     #[inline]
     pub const fn water(sprite: SpriteKind) -> Self {
@@ -164,13 +167,14 @@ impl Block {
 
     #[inline]
     pub fn get_glow(&self) -> Option<u8> {
-        // TODO: When we have proper volumetric lighting
-        // match self.get_sprite()? {
-        //     SpriteKind::StreetLamp | SpriteKind::StreetLampTall => Some(20),
-        //     SpriteKind::Velorite | SpriteKind::VeloriteFrag => Some(10),
-        //     _ => None,
-        // }
-        None
+        match self.get_sprite()? {
+            SpriteKind::StreetLamp | SpriteKind::StreetLampTall => Some(24),
+            SpriteKind::Ember => Some(20),
+            SpriteKind::WallLamp => Some(16),
+            SpriteKind::FireBowlGround => Some(16),
+            SpriteKind::Velorite | SpriteKind::VeloriteFrag => Some(6),
+            _ => None,
+        }
     }
 
     #[inline]
@@ -180,14 +184,20 @@ impl Block {
             .unwrap_or(true)
     }
 
+    /// Can this block be exploded? If so, what 'power' is required to do so?
+    /// Note that we don't really define what 'power' is. Consider the units
+    /// arbitrary and only important when compared to one-another.
     #[inline]
-    pub fn is_explodable(&self) -> bool {
+    pub fn explode_power(&self) -> Option<f32> {
         match self.kind() {
-            BlockKind::Leaves | BlockKind::Grass | BlockKind::WeakRock => true,
+            BlockKind::Leaves => Some(0.25),
+            BlockKind::Grass => Some(0.5),
+            BlockKind::WeakRock => Some(0.75),
+            BlockKind::Snow => Some(0.1),
             // Explodable means that the terrain sprite will get removed anyway, so all is good for
             // empty fluids.
             // TODO: Handle the case of terrain sprites we don't want to have explode
-            _ => self.get_sprite().is_some(),
+            _ => self.get_sprite().map(|_| 0.25),
         }
     }
 

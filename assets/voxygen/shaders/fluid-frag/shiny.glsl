@@ -77,13 +77,13 @@ float wave_height(vec3 pos) {
     );
 
     float height = (
-        (texture(t_noise, pos.xy * 0.03 + big_warp.xy + timer * 0.05).y - 0.5) * 1.0 +
-        (texture(t_noise, pos.yx * 0.03 + big_warp.yx - timer * 0.05).y - 0.5) * 1.0 +
-        (texture(t_waves, pos.xy * 0.1 + warp.xy + timer * 0.1).x - 0.5) * 0.5 +
-        (texture(t_waves, pos.yx * 0.1 + warp.yx - timer * 0.1).x - 0.5) * 0.5 +
-        (texture(t_noise, pos.yx * 0.3 + warp.xy * 0.5 + timer * 0.1).x - 0.5) * 0.2 +
-        (texture(t_noise, pos.yx * 0.3 + warp.yx * 0.5 - timer * 0.1).x - 0.5) * 0.2 +
-        (texture(t_noise, pos.yx * 1.0 + warp.yx * 0.0 - timer * 0.1).x - 0.5) * 0.05 +
+        (texture(t_noise, (pos.xy + pos.z) * 0.03 + big_warp.xy + timer * 0.05).y - 0.5) * 1.0 +
+        (texture(t_noise, (pos.yx + pos.z) * 0.03 + big_warp.yx - timer * 0.05).y - 0.5) * 1.0 +
+        (texture(t_waves, (pos.xy + pos.z) * 0.1 + warp.xy + timer * 0.1).x - 0.5) * 0.5 +
+        (texture(t_waves, (pos.yx + pos.z) * 0.1 + warp.yx - timer * 0.1).x - 0.5) * 0.5 +
+        (texture(t_noise, (pos.yx + pos.z) * 0.3 + warp.xy * 0.5 + timer * 0.1).x - 0.5) * 0.2 +
+        (texture(t_noise, (pos.xy + pos.z) * 0.3 + warp.yx * 0.5 - timer * 0.1).x - 0.5) * 0.2 +
+        (texture(t_noise, (pos.yx + pos.z) * 1.0 + warp.yx * 0.0 - timer * 0.1).x - 0.5) * 0.05 +
         0.0
     );
 
@@ -99,7 +99,9 @@ void main() {
     // Increase array access by 3 to access positive values
     uint norm_dir = ((f_pos_norm >> 29) & 0x1u) * 3u;
     // Use an array to avoid conditional branching
-    vec3 f_norm = normals[norm_axis + norm_dir];
+    // Temporarily assume all water faces up (this is incorrect but looks better)
+    vec3 f_norm = vec3(0, 0, 1);//normals[norm_axis + norm_dir];
+    vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
 
     // vec4 light_pos[2];
 //#if (SHADOW_MODE == SHADOW_MODE_MAP)
@@ -111,7 +113,6 @@ void main() {
 //    vec4 sun_pos = vec4(0.0);
 //#endif
 
-    vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
     // vec4 vert_pos4 = view_mat * vec4(f_pos, 1.0);
     // vec3 view_dir = normalize(-vec3(vert_pos4)/* / vert_pos4.w*/);
     vec3 view_dir = -cam_to_frag;
@@ -145,6 +146,7 @@ void main() {
 
     nmap = mix(f_norm, normalize(nmap), min(1.0 / pow(frag_dist, 0.75), 1));
 
+    //float suppress_waves = max(dot(), 0);
     vec3 norm = vec3(0, 0, 1) * nmap.z + b_norm * nmap.x + c_norm * nmap.y;
     // vec3 norm = f_norm;
 
@@ -176,8 +178,8 @@ void main() {
     // vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
     // Squared to account for prior saturation.
     float f_light = 1.0;// pow(f_light, 1.5);
-    vec3 reflect_color = get_sky_color(/*reflect_ray_dir*/beam_view_dir, time_of_day.x, f_pos, vec3(-100000), 0.25, true);
-    reflect_color = get_cloud_color(reflect_color, reflect_ray_dir, cam_pos.xyz, time_of_day.x, 100000.0, 1.0);
+    vec3 reflect_color = get_sky_color(/*reflect_ray_dir*/beam_view_dir, time_of_day.x, f_pos, vec3(-100000), 0.125, true);
+    reflect_color = get_cloud_color(reflect_color, reflect_ray_dir, cam_pos.xyz, time_of_day.x, 100000.0, 0.25);
     reflect_color *= f_light;
     // /*const */vec3 water_color = srgb_to_linear(vec3(0.2, 0.5, 1.0));
     // /*const */vec3 water_color = srgb_to_linear(vec3(0.8, 0.9, 1.0));
@@ -289,7 +291,8 @@ void main() {
     // diffuse_light += point_light;
     // reflected_light += point_light;
     // vec3 surf_color = srgb_to_linear(vec3(0.2, 0.5, 1.0)) * light * diffuse_light * ambient_light;
-    vec3 surf_color = illuminate(max_light, view_dir, water_color * emitted_light/* * log(1.0 - MU_WATER)*/, /*cam_attenuation * *//*water_color * */reflect_color * reflected_light/* * log(1.0 - MU_WATER)*/);
+    const float REFLECTANCE = 0.5;
+    vec3 surf_color = illuminate(max_light, view_dir, water_color * emitted_light/* * log(1.0 - MU_WATER)*/, /*cam_attenuation * *//*water_color * */reflect_color * REFLECTANCE/** reflected_light*//* * log(1.0 - MU_WATER)*/);
 
     // passthrough = pow(passthrough, 1.0 / (1.0 + water_depth_to_camera));
     /* surf_color = cam_attenuation.g < 0.5 ?

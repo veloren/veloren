@@ -666,7 +666,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                 )| {
                     let density = get_density(chunk, col_sample);
                     if density > 0.0
-                        && dynamic_rng.gen::<f32>() < density
+                        && dynamic_rng.gen::<f32>() < density * col_sample.spawn_rate
                         && underwater == *is_underwater
                         && col_sample.gradient < Some(1.3)
                     {

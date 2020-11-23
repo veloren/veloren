@@ -39,6 +39,7 @@ gfx_defines! {
         inst_mat1: [f32; 4] = "inst_mat1",
         inst_mat2: [f32; 4] = "inst_mat2",
         inst_mat3: [f32; 4] = "inst_mat3",
+        inst_light: [f32; 4] = "inst_light",
         inst_wind_sway: f32 = "inst_wind_sway",
     }
 
@@ -114,7 +115,14 @@ impl Vertex {
 }
 
 impl Instance {
-    pub fn new(mat: Mat4<f32>, wind_sway: f32, pos: Vec3<i32>, ori_bits: u8) -> Self {
+    pub fn new(
+        mat: Mat4<f32>,
+        wind_sway: f32,
+        pos: Vec3<i32>,
+        ori_bits: u8,
+        light: f32,
+        glow: f32,
+    ) -> Self {
         const EXTRA_NEG_Z: i32 = 32768;
 
         let mat_arr = mat.into_col_arrays();
@@ -127,13 +135,14 @@ impl Instance {
             inst_mat1: mat_arr[1],
             inst_mat2: mat_arr[2],
             inst_mat3: mat_arr[3],
+            inst_light: [light, glow, 1.0, 1.0],
             inst_wind_sway: wind_sway,
         }
     }
 }
 
 impl Default for Instance {
-    fn default() -> Self { Self::new(Mat4::identity(), 0.0, Vec3::zero(), 0) }
+    fn default() -> Self { Self::new(Mat4::identity(), 0.0, Vec3::zero(), 0, 1.0, 0.0) }
 }
 
 impl Default for Locals {

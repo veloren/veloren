@@ -1,6 +1,7 @@
-use crate::{column::ColumnSample, sim::SimChunk, util::RandomField, Canvas, CONFIG};
+use crate::{column::ColumnSample, sim::SimChunk, Canvas, CONFIG};
 use common::terrain::SpriteKind;
 use noise::NoiseFn;
+use rand::prelude::*;
 use std::f32;
 use vek::*;
 
@@ -10,7 +11,7 @@ fn close(x: f32, tgt: f32, falloff: f32) -> f32 {
 
 const MUSH_FACT: f32 = 1.0e-4; // To balance everything around the mushroom spawning rate
 const DEPTH_WATER_NORM: f32 = 15.0; // Water depth at which regular underwater sprites start spawning
-pub fn apply_scatter_to(canvas: &mut Canvas) {
+pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
     use SpriteKind::*;
     #[allow(clippy::type_complexity)]
     // TODO: Add back all sprites we had before
@@ -195,76 +196,40 @@ pub fn apply_scatter_to(canvas: &mut Canvas) {
         // Desert Plants
         (DeadBush, false, |c, _| {
             (
-                close(c.temp, 1.0, 0.95).min(close(c.humidity, 0.0, 0.3)) * MUSH_FACT * 15.0,
+                close(c.temp, 1.0, 0.95).min(close(c.humidity, 0.0, 0.3)) * MUSH_FACT * 7.5,
                 None,
             )
         }),
         (LargeCactus, false, |c, _| {
             (
-                close(c.temp, CONFIG.desert_temp + 0.2, 0.3).min(close(
-                    c.humidity,
-                    CONFIG.desert_hum,
-                    0.2,
-                )) * MUSH_FACT
-                    * 0.1,
+                close(c.temp, 1.0, 0.95).min(close(c.humidity, 0.0, 0.3)) * MUSH_FACT * 0.3,
                 None,
             )
         }),
-        /*(BarrelCactus, false, |c, col| {
+        (RoundCactus, false, |c, _| {
             (
-                close(c.temp, CONFIG.desert_temp + 0.2, 0.3).min(close(
-                    c.humidity,
-                    CONFIG.desert_hum,
-                    0.2,
-                )) * MUSH_FACT
-                    * 0.1,
+                close(c.temp, 1.0, 0.95).min(close(c.humidity, 0.0, 0.3)) * MUSH_FACT * 0.3,
                 None,
             )
         }),
-        (RoundCactus, false, |c, col| {
+        (ShortCactus, false, |c, _| {
             (
-                close(c.temp, CONFIG.desert_temp + 0.2, 0.3).min(close(
-                    c.humidity,
-                    CONFIG.desert_hum,
-                    0.2,
-                )) * MUSH_FACT
-                * 0.1,
+                close(c.temp, 1.0, 0.95).min(close(c.humidity, 0.0, 0.3)) * MUSH_FACT * 0.3,
                 None,
             )
         }),
-        (ShortCactus, false, |c, col| {
+        (MedFlatCactus, false, |c, _| {
             (
-                close(c.temp, CONFIG.desert_temp + 0.2, 0.3).min(close(
-                    c.humidity,
-                    CONFIG.desert_hum,
-                    0.2,
-                )) * MUSH_FACT
-                * 0.1,
+                close(c.temp, 1.0, 0.95).min(close(c.humidity, 0.0, 0.3)) * MUSH_FACT * 0.3,
                 None,
             )
         }),
-        (MedFlatCactus, false, |c, col| {
+        (ShortFlatCactus, false, |c, _| {
             (
-                close(c.temp, CONFIG.desert_temp + 0.2, 0.3).min(close(
-                    c.humidity,
-                    CONFIG.desert_hum,
-                    0.2,
-                )) * MUSH_FACT
-                * 0.1,
+                close(c.temp, 1.0, 0.95).min(close(c.humidity, 0.0, 0.3)) * MUSH_FACT * 0.3,
                 None,
             )
         }),
-        (ShortFlatCactus, false, |c, col| {
-            (
-                close(c.temp, CONFIG.desert_temp + 0.2, 0.3).min(close(
-                    c.humidity,
-                    CONFIG.desert_hum,
-                    0.2,
-                )) * MUSH_FACT
-                * 0.1,
-                None,
-            )
-        }),*/
         (Reed, false, |c, col| {
             (
                 close(c.humidity, CONFIG.jungle_hum, 0.7)
@@ -353,7 +318,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas) {
                     .unwrap_or(true);
                 if density > 0.0
                     && is_patch
-                    && RandomField::new(i as u32).chance(Vec3::new(wpos2d.x, wpos2d.y, 0), density)
+                    && rng.gen::<f32>() < density //RandomField::new(i as u32).chance(Vec3::new(wpos2d.x, wpos2d.y, 0), density)
                     && underwater == *is_underwater
                 {
                     Some(*kind)

@@ -19,6 +19,7 @@
 in vec3 f_pos;
 flat in vec3 f_norm;
 in vec4 f_col;
+in float f_reflect;
 
 out vec4 tgt_color;
 
@@ -59,11 +60,18 @@ void main() {
     const float R_s1s2 = pow((1.3325 - 1.0) / (1.3325 + 1.0), 2);
     float R_s = (f_pos.z < f_alt) ? mix(R_s2s1 * R_s1s0, R_s1s0, medium.x) : mix(R_s2s0, R_s1s2 * R_s2s0, medium.x);
 
-    vec3 k_a = vec3(1.0);
-    vec3 k_d = vec3(1.0);
-    vec3 k_s = vec3(R_s);
+    vec3 k_a = vec3(1.0) * f_reflect;
+    vec3 k_d = vec3(1.0) * f_reflect;
+    vec3 k_s = vec3(R_s) * f_reflect;
 
     vec3 emitted_light, reflected_light;
+
+    // This is a bit of a hack. Because we can't find the volumetric lighting of each particle (they don't talk to the
+    // CPU) we need to some how find an approximation of how much the sun is blocked. We do this by fading out the sun
+    // as the particle moves underground. This isn't perfect, but it does at least mean that particles don't look like
+    // they're exposed to the sun when in dungeons
+    const float SUN_FADEOUT_DIST = 20.0;
+    sun_info.block *= clamp((f_pos.z - f_alt) / SUN_FADEOUT_DIST + 1, 0, 1);
 
     // To account for prior saturation.
     float max_light = 0.0;
@@ -75,7 +83,8 @@ void main() {
     // TODO: Not this
     emitted_light += max(f_col.rgb - 1.0, vec3(0));
 
-    surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light);
+    surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light * f_reflect);
 
-    tgt_color = vec4(surf_color, f_col.a);
+    // Temporarily disable particle transparency to avoid artifacts
+    tgt_color = vec4(surf_color, 1.0 /*f_col.a*/);
 }

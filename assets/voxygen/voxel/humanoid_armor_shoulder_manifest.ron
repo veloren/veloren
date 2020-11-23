@@ -170,7 +170,7 @@
                 vox_spec: ("armor.shoulder.twigsflowers_shoulder_right", (-1.5, -5.0, 0.0)),
                 color: None
             ),
-        ),        
+        ),
         "ClothBlue1": (
             left: (
                 vox_spec: ("armor.shoulder.cloth_blue_left-1", (-4.0, -2.5, -0.5)),
@@ -240,7 +240,7 @@
                 vox_spec: ("armor.shoulder.leather_strips_right", (-2.0, -2.5, -2.0)),
                 color: None
             )
-        ),      
+        ),
         "DruidShoulder": (
             left: (
                 vox_spec: ("armor.shoulder.druid_left", (-4.0, -4.5 , -3.0)),
@@ -278,6 +278,26 @@
             ),
             right: (
                 vox_spec: ("armor.shoulder.velorite_battlemage_left", (-1.0, -4.0, 0.0)),
+                color: None
+            )
+        ),
+        "Warlord": (
+            left: (
+                vox_spec: ("armor.shoulder.warlord_left", (-8.0, -3.5 , -2.5)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.shoulder.warlord_right", (-1.0, -3.5 , -2.5)),
+                color: None
+            )
+        ),
+        "Warlock": (
+            left: (
+                vox_spec: ("armor.shoulder.warlock_left", (-6.0, -4.0 , -2.0)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.shoulder.warlock_left", (0.0, -4.0, -2.0)),
                 color: None
             )
         ),

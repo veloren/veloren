@@ -1501,6 +1501,7 @@ impl WorldSim {
             rgba: v,
             alt: alts,
             horizons,
+            sites: Vec::new(), // Will be substituted later
         }
     }
 
@@ -2061,12 +2062,13 @@ impl SimChunk {
 
         // We also correlate temperature negatively with altitude and absolute latitude,
         // using different weighting than we use for humidity.
-        const TEMP_WEIGHTS: [f32; 2] = [/* 1.5, */ 1.0, 2.0];
+        const TEMP_WEIGHTS: [f32; 3] = [/* 1.5, */ 1.0, 2.0, 1.0];
         let temp = cdf_irwin_hall(
             &TEMP_WEIGHTS,
             [
                 temp_uniform,
                 1.0 - alt_uniform, /* 1.0 - abs_lat_uniform*/
+                (gen_ctx.rock_nz.get((wposf.div(50000.0)).into_array()) as f32 * 2.5 + 1.0) * 0.5,
             ],
         )
         // Convert to [-1, 1]
@@ -2170,18 +2172,36 @@ impl SimChunk {
             // ...but is ultimately limited by available sunlight (and our tree generation system)
             .min(1.0);
 
-        // Sand dunes (formed over a short period of time)
+        // Add geologically short timescale undulation to the world for various reasons
         let alt = alt
+            // Don't add undulation to rivers, mainly because this could accidentally result in rivers flowing uphill
             + if river.near_water() {
                 0.0
             } else {
+                // Sand dunes (formed over a short period of time, so we don't care about erosion sim)
                 let warp = Vec2::new(
-                    gen_ctx.turb_x_nz.get(wposf.div(256.0).into_array()) as f32,
-                    gen_ctx.turb_y_nz.get(wposf.div(256.0).into_array()) as f32,
-                ) * 192.0;
-                let dune_nz = (wposf.map(|e| e as f32) + warp).sum().div(100.0).sin() * 0.5 + 0.5;
-                let dune_scale = 16.0;
-                dune_nz * dune_scale * (temp - 0.75).clamped(0.0, 0.25) * 4.0
+                    gen_ctx.turb_x_nz.get(wposf.div(350.0).into_array()) as f32,
+                    gen_ctx.turb_y_nz.get(wposf.div(350.0).into_array()) as f32,
+                ) * 200.0;
+                const DUNE_SCALE: f32 = 24.0;
+                const DUNE_LEN: f32 = 96.0;
+                const DUNE_DIR: Vec2<f32> = Vec2::new(1.0, 1.0);
+                let dune_dist = (wposf.map(|e| e as f32) + warp)
+                    .div(DUNE_LEN)
+                    .mul(DUNE_DIR.normalized())
+                    .sum();
+                let dune_nz = 0.5 - dune_dist.sin().abs() + 0.5 * (dune_dist + 0.5).sin().abs();
+                let dune = dune_nz * DUNE_SCALE * (temp - 0.75).clamped(0.0, 0.25) * 4.0;
+
+                // Trees bind to soil and their roots result in small accumulating undulations over geologically short
+                // periods of time. Forest floors are generally significantly bumpier than that of deforested areas.
+                // This is particularly pronounced in high-humidity areas.
+                let soil_nz = gen_ctx.hill_nz.get(wposf.div(96.0).into_array()) as f32;
+                let soil_nz = (soil_nz + 1.0) * 0.5;
+                const SOIL_SCALE: f32 = 16.0;
+                let soil = soil_nz * SOIL_SCALE * tree_density.powf(0.5) * humidity.powf(0.5);
+
+                dune + soil
             };
 
         Self {
@@ -2213,12 +2233,12 @@ impl SimChunk {
                     (
                         ForestKind::Palm,
                         (CONFIG.desert_hum, 1.5),
-                        (CONFIG.tropical_temp, 1.5),
+                        ((CONFIG.tropical_temp + CONFIG.desert_temp) / 2.0, 1.25),
                         (1.0, 2.0),
                     ),
                     (
                         ForestKind::Savannah,
-                        (CONFIG.desert_hum, 2.0),
+                        (0.0, 1.5),
                         (CONFIG.tropical_temp, 1.5),
                         (0.0, 1.0),
                     ),
@@ -2245,6 +2265,12 @@ impl SimChunk {
                         (CONFIG.desert_hum, 1.5),
                         (CONFIG.temperate_temp, 1.5),
                         (0.0, 1.0),
+                    ),
+                    (
+                        ForestKind::Swamp,
+                        ((CONFIG.forest_hum + CONFIG.jungle_hum) / 2.0, 2.0),
+                        ((CONFIG.temperate_temp + CONFIG.snow_temp) / 2.0, 2.0),
+                        (1.0, 2.5),
                     ),
                 ];
 
@@ -2286,19 +2312,6 @@ impl SimChunk {
     }
 
     pub fn get_base_z(&self) -> f32 { self.alt - self.chaos * 50.0 - 16.0 }
-
-    pub fn get_name(&self, _world: &WorldSim) -> Option<String> {
-        // TODO
-        None
-
-        /*
-        if let Some(loc) = &self.location {
-            Some(world.locations[loc.loc_idx].name().to_string())
-        } else {
-            None
-        }
-        */
-    }
 
     pub fn get_biome(&self) -> BiomeKind {
         if self.alt < CONFIG.sea_level {

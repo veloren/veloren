@@ -124,6 +124,9 @@ widget_ids! {
         gamma_slider,
         gamma_text,
         gamma_value,
+        exposure_slider,
+        exposure_text,
+        exposure_value,
         ambiance_slider,
         ambiance_text,
         ambiance_value,
@@ -284,6 +287,7 @@ pub enum Event {
     AdjustFOV(u16),
     AdjustLodDetail(u32),
     AdjustGamma(f32),
+    AdjustExposure(f32),
     AdjustAmbiance(f32),
     AdjustWindowSize([u16; 2]),
     ChangeFullscreenMode(FullScreenSettings),
@@ -1900,6 +1904,41 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.gamma_value, ui);
 
+            // Exposure
+            if let Some(new_val) = ImageSlider::discrete(
+                (self.global_state.settings.graphics.exposure * 16.0) as i32,
+                0,
+                32,
+                self.imgs.slider_indicator,
+                self.imgs.slider,
+            )
+            .w_h(104.0, 22.0)
+            .right_from(state.ids.gamma_slider, 50.0)
+            .track_breadth(12.0)
+            .slider_length(10.0)
+            .pad_track((5.0, 5.0))
+            .set(state.ids.exposure_slider, ui)
+            {
+                events.push(Event::AdjustExposure(new_val as f32 / 16.0));
+            }
+
+            Text::new(&self.localized_strings.get("hud.settings.exposure"))
+                .up_from(state.ids.exposure_slider, 8.0)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(TEXT_COLOR)
+                .set(state.ids.exposure_text, ui);
+
+            Text::new(&format!(
+                "{:.2}",
+                self.global_state.settings.graphics.exposure
+            ))
+            .right_from(state.ids.exposure_slider, 8.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.exposure_value, ui);
+
             //Ambiance Brightness
             // 320.0 = maximum brightness in shaders
             let min_ambiance = 10.0;
@@ -1912,7 +1951,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 self.imgs.slider,
             )
             .w_h(104.0, 22.0)
-            .right_from(state.ids.gamma_slider, 50.0)
+            .right_from(state.ids.exposure_slider, 50.0)
             .track_breadth(12.0)
             .slider_length(10.0)
             .pad_track((5.0, 5.0))
@@ -2125,6 +2164,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 CloudMode::Low,
                 CloudMode::Medium,
                 CloudMode::High,
+                CloudMode::Ultra,
             ];
             let mode_label_list = [
                 &self.localized_strings.get("common.none"),
@@ -2140,6 +2180,9 @@ impl<'a> Widget for SettingsWindow<'a> {
                 &self
                     .localized_strings
                     .get("hud.settings.cloud_rendering_mode.high"),
+                &self
+                    .localized_strings
+                    .get("hud.settings.cloud_rendering_mode.ultra"),
             ];
 
             // Get which cloud rendering mode is currently active

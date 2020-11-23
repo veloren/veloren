@@ -1,0 +1,12 @@
+ItemDef(
+    name: "Blue Leather Cuirass",
+    description: "",
+    kind: Armor(
+        (
+            kind: Chest("LeatherBlue0"),
+            stats: (
+                protection: Normal(5.0)),            
+        )
+    ),
+    quality: Moderate,
+)

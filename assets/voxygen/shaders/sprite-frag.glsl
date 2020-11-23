@@ -21,6 +21,7 @@ flat in vec3 f_norm;
 flat in float f_light;
 // flat in vec3 f_pos_norm;
 in vec2 f_uv_pos;
+in vec2 f_inst_light;
 // flat in uint f_atlas_pos;
 // in vec3 f_col;
 // in float f_ao;
@@ -61,17 +62,8 @@ void main() {
     // vec3 dv = dFdy(f_pos);
     // vec3 f_norm = normalize(cross(du, dv));
 
-    // vec4 f_col_light = texture(t_col_light, (f_uv_pos + 0.5) / textureSize(t_col_light, 0)/* + uv_delta*//* - f_norm * 0.00001*/);
-    // vec4 f_col_light = textureGrad(t_col_light, (f_uv_pos + 0.5) / textureSize(t_col_light, 0), vec2(0.5), vec2(0.5));
-    vec4 f_col_light = texelFetch(t_col_light, ivec2(f_uv_pos)/* + uv_delta*//* - f_norm * 0.00001*/, 0);
-    vec3 f_col = /*linear_to_srgb*//*srgb_to_linear*/(f_col_light.rgb);
-    // vec3 f_col = vec3(1.0);
-    // vec2 texSize = textureSize(t_col_light, 0);
-    // float f_ao = f_col_light.a;
-    // float f_ao = f_col_light.a + length(vec2(dFdx(f_col_light.a), dFdy(f_col_light.a)));
-    float f_ao = texture(t_col_light, (f_uv_pos + 0.5) / textureSize(t_col_light, 0)).a;//1.0;//f_col_light.a * 4.0;// f_light = float(v_col_light & 0x3Fu) / 64.0;
-    // float f_ao = 1.0;
-    // float /*f_light*/f_ao = textureProj(t_col_light, vec3(f_uv_pos, texSize)).a;//1.0;//f_col_light.a * 4.0;// f_light = float(v_col_light & 0x3Fu) / 64.0;
+    float f_ao, f_glow;
+    vec3 f_col = greedy_extract_col_light_glow(t_col_light, f_uv_pos, f_ao, f_glow);
 
     // vec3 my_chunk_pos = f_pos_norm;
     // tgt_color = vec4(hash(floor(vec4(my_chunk_pos.x, 0, 0, 0))), hash(floor(vec4(0, my_chunk_pos.y, 0, 1))), hash(floor(vec4(0, 0, my_chunk_pos.z, 2))), 1.0);
@@ -142,6 +134,10 @@ void main() {
 
     vec3 emitted_light, reflected_light;
 
+    // Make voxel shadows block the sun and moon
+    sun_info.block = f_inst_light.x;
+    moon_info.block = f_inst_light.x;
+
     // To account for prior saturation.
     // float vert_light = pow(f_light, 1.5);
     // vec3 light_frac = light_reflection_factor(f_norm/*vec3(0, 0, 1.0)*/, view_dir, vec3(0, 0, -1.0), vec3(1.0), vec3(R_s), alpha);
@@ -178,6 +174,9 @@ void main() {
     reflected_light += point_light; */
 
     // float ao = /*pow(f_ao, 0.5)*/f_ao * 0.85 + 0.15;
+    vec3 glow = pow(f_inst_light.y, 3) * 4 * GLOW_COLOR;
+    emitted_light += glow;
+
     float ao = f_ao;
     emitted_light *= ao;
     reflected_light *= ao;

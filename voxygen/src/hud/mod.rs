@@ -48,10 +48,7 @@ use crate::{
     hud::img_ids::ImgsRot,
     i18n::{i18n_asset_key, LanguageMetadata, Localization},
     render::{Consts, Globals, RenderMode, Renderer},
-    scene::{
-        camera::{self, Camera},
-        lod,
-    },
+    scene::camera::{self, Camera},
     ui::{fonts::Fonts, img_ids::Rotations, slot, Graphic, Ingameable, ScaleMode, Ui},
     window::{Event as WinEvent, FullScreenSettings, GameInput},
     GlobalState,
@@ -68,6 +65,7 @@ use common::{
     span,
     sync::Uid,
     terrain::TerrainChunk,
+    util::srgba_to_linear,
     vol::RectRasterableVol,
 };
 use conrod_core::{
@@ -75,6 +73,7 @@ use conrod_core::{
     widget::{self, Button, Image, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
+use inline_tweak::*;
 use specs::{Join, WorldExt};
 use std::{
     collections::{HashMap, VecDeque},
@@ -323,8 +322,14 @@ pub enum Event {
     ChangeMaxFPS(u32),
     ChangeFOV(u16),
     ChangeGamma(f32),
+    ChangeExposure(f32),
     ChangeAmbiance(f32),
     MapZoom(f64),
+    MapDrag(Vec2<f64>),
+    MapShowDifficulty(bool),
+    MapShowTowns(bool),
+    MapShowDungeons(bool),
+    MapShowCastles(bool),
     AdjustWindowSize([u16; 2]),
     ChangeFullscreenMode(FullScreenSettings),
     ToggleParticlesEnabled(bool),
@@ -639,8 +644,7 @@ impl Hud {
         let ids = Ids::new(ui.id_generator());
         // NOTE: Use a border the same color as the LOD ocean color (but with a
         // translucent alpha since UI have transparency and LOD doesn't).
-        let mut water_color = lod::water_color();
-        water_color.a = 0.5;
+        let water_color = srgba_to_linear(Rgba::new(0.0, tweak!(0.18), tweak!(0.37), tweak!(1.0)));
         // Load world map
         let world_map = (
             ui.add_graphic_with_rotations(Graphic::Image(
@@ -2152,6 +2156,9 @@ impl Hud {
                     settings_window::Event::AdjustGamma(new_gamma) => {
                         events.push(Event::ChangeGamma(new_gamma));
                     },
+                    settings_window::Event::AdjustExposure(new_exposure) => {
+                        events.push(Event::ChangeExposure(new_exposure));
+                    },
                     settings_window::Event::AdjustAmbiance(new_ambiance) => {
                         events.push(Event::ChangeAmbiance(new_ambiance));
                     },
@@ -2242,7 +2249,6 @@ impl Hud {
         // Map
         if self.show.map {
             for event in Map::new(
-                &self.show,
                 client,
                 &self.imgs,
                 &self.rot_imgs,
@@ -2251,6 +2257,7 @@ impl Hud {
                 self.pulse,
                 &self.i18n,
                 &global_state,
+                tooltip_manager,
             )
             .set(self.ids.map, ui_widgets)
             {
@@ -2260,10 +2267,31 @@ impl Hud {
                         self.show.want_grab = true;
                         self.force_ungrab = false;
                     },
+                    map::Event::ShowDifficulties(map_show_difficulties) => {
+                        events.push(Event::MapShowDifficulty(map_show_difficulties));
+                    },
+                    map::Event::ShowTowns(map_show_towns) => {
+                        events.push(Event::MapShowTowns(map_show_towns));
+                    },
+                    map::Event::ShowCastles(map_show_castles) => {
+                        events.push(Event::MapShowCastles(map_show_castles));
+                    },
+                    map::Event::ShowDungeons(map_show_dungeons) => {
+                        events.push(Event::MapShowDungeons(map_show_dungeons));
+                    },
                     map::Event::MapZoom(map_zoom) => {
                         events.push(Event::MapZoom(map_zoom));
                     },
+                    map::Event::MapDrag(map_drag) => {
+                        events.push(Event::MapDrag(map_drag));
+                    },
                 }
+            }
+        } else {
+            // Reset the map position when it's not showing
+            let drag = &global_state.settings.gameplay.map_drag;
+            if drag.x != 0.0 || drag.y != 0.0 {
+                events.push(Event::MapDrag(Vec2::zero()))
             }
         }
 

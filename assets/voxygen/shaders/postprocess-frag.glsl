@@ -204,6 +204,14 @@ void main() {
 
     vec4 aa_color = aa_apply(src_color, uv * screen_res.xy, screen_res.xy);
 
+    // Tonemapping
+    float exposure_offset = 1.0;
+    // Adding an in-code offset to gamma and exposure let us have more precise control over the game's look
+    float gamma_offset = 0.3;
+    aa_color.rgb = vec3(1.0) - exp(-aa_color.rgb * (gamma_exposure.y + exposure_offset));
+    // gamma correction
+    aa_color.rgb = pow(aa_color.rgb, vec3(gamma_exposure.x + gamma_offset));
+
     /*
     // Apply clouds to `aa_color`
     #if (CLOUD_MODE != CLOUD_MODE_NONE)
@@ -238,7 +246,7 @@ void main() {
     //hsva_color.z = 1.0 - 1.0 / (1.0 * hsva_color.z + 1.0);
     //vec4 final_color = vec4(hsv2rgb(hsva_color.rgb), hsva_color.a);
 
-    vec4 final_color = pow(aa_color, gamma);
+    vec4 final_color = aa_color;
 
 #if (FLUID_MODE == FLUID_MODE_CHEAP)
     if (medium.x == 1u) {

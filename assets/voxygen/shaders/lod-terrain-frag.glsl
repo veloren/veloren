@@ -278,8 +278,8 @@ void main() {
     //   return true;
     // }
 
-    bvec3 hit_yz_xz_xy;
-    vec3 dist_yz_xz_xy;
+    //bvec3 hit_yz_xz_xy;
+    //vec3 dist_yz_xz_xy;
     /* {
         // vec3 rDotn = -f_orig_view_dir * -sides;
         // vec3 rDotn = f_orig_view_dir * sides;
@@ -301,8 +301,8 @@ void main() {
         // vec3 s = -sides * (f_pos + delta_sides - cam_pos.xyz) / (-f_orig_view_dir * -sides);
         // vec3 s = (f_pos + delta_sides - cam_pos.xyz) / -f_orig_view_dir;
         // dist_yz_xz_xy = abs(s);
-        hit_yz_xz_xy = greaterThanEqual(f_orig_view_dir * sides, vec3(0.000001));
-        dist_yz_xz_xy = abs((f_pos + delta_sides - cam_pos.xyz) / f_orig_view_dir);
+        //hit_yz_xz_xy = greaterThanEqual(f_orig_view_dir * sides, vec3(0.000001));
+        //dist_yz_xz_xy = abs((f_pos + delta_sides - cam_pos.xyz) / f_orig_view_dir);
     }
 
     // vec3 xy_point = f_pos, xz_point = f_pos, yz_point = f_pos;
@@ -310,11 +310,12 @@ void main() {
     // bool hit_xz = (/*ao_xy < 1.0 || ao_yz < 1.0*//*min(f_ao_vec.x, f_ao_vec.z)*//*f_ao_vec.y < 1.0*/true/*min(corner_xy.y, corner_yz.x) < 1.0*//*min(corner_xz.x, corner_xz.y) < 1.0*/) && IntersectRayPlane(cam_pos.xyz, -f_orig_view_dir, vec3(f_pos.x, f_pos.y + delta_sides.y/* - sides.y*/, f_pos.z), vec3(0.0, -sides.y, 0.0), xz_point);
     // bool hit_yz = (/*ao_xy < 1.0 || ao_xz < 1.0*//*min(f_ao_vec.y, f_ao_vec.z) < 1.0*//*f_ao_vec.x < 1.0*/true/*true*//*min(corner_xy.x, corner_xz.x) < 1.0*//*min(corner_yz.x, corner_yz.y) < 1.0*/) && IntersectRayPlane(cam_pos.xyz, -f_orig_view_dir, vec3(f_pos.x + delta_sides.x/* - sides.x*/, f_pos.y, f_pos.z), vec3(-sides.x, 0.0, 0.0), yz_point);
     // float xy_dist = distance(cam_pos.xyz, xy_point), xz_dist = distance(cam_pos.xyz, xz_point), yz_dist = distance(cam_pos.xyz, yz_point);
-    bool hit_xy = hit_yz_xz_xy.z, hit_xz = hit_yz_xz_xy.y, hit_yz = hit_yz_xz_xy.x;
-    float xy_dist = dist_yz_xz_xy.z, xz_dist = dist_yz_xz_xy.y, yz_dist = dist_yz_xz_xy.x;
+    //bool hit_xy = hit_yz_xz_xy.z, hit_xz = hit_yz_xz_xy.y, hit_yz = hit_yz_xz_xy.x;
+    //float xy_dist = dist_yz_xz_xy.z, xz_dist = dist_yz_xz_xy.y, yz_dist = dist_yz_xz_xy.x;
     // hit_xy = hit_xy && distance(f_pos.xy + delta_sides.xy, xy_point.xy) <= 1.0;
     // hit_xz = hit_xz && distance(f_pos.xz + delta_sides.xz, xz_point.xz) <= 1.0;
     // hit_yz = hit_yz && distance(f_pos.yz + delta_sides.yz, yz_point.yz) <= 1.0;
+    /*
     vec3 voxel_norm =
         hit_yz ?
             hit_xz ?
@@ -325,6 +326,29 @@ void main() {
             hit_xz ?
                 hit_xy ? xz_dist < xy_dist ? vec3(0.0, sides.y, 0.0) : vec3(0.0, 0.0, sides.z) : vec3(0.0, sides.y, 0.0) :
                 hit_xy ? vec3(0.0, 0.0, sides.z) : vec3(0.0, 0.0, 0.0);
+    */
+    vec3 voxel_norm;
+
+    const float VOXELIZE_DIST = 2000;
+    float voxelize_factor = clamp(1.0 - (distance(focus_pos.xy, f_pos.xy) - view_distance.x) / VOXELIZE_DIST, 0, 1);
+    vec3 cam_dir = normalize(cam_pos.xyz - f_pos.xyz);
+    vec3 side_norm = normalize(vec3(my_norm.xy, 0));
+    vec3 top_norm = vec3(0, 0, 1);
+    float side_factor = 1.0 - my_norm.z;
+    // min(dot(vec3(0, -sign(cam_dir.y), 0), -cam_dir), dot(vec3(-sign(cam_dir.x), 0, 0), -cam_dir))
+    if (max(abs(my_norm.x), abs(my_norm.y)) < 0.01 || fract(my_alt) * clamp(dot(normalize(vec3(cam_dir.xy, 0)), side_norm), 0, 1) < cam_dir.z / my_norm.z) {
+        f_ao *= mix(1.0, clamp(fract(my_alt) / length(my_norm.xy) + clamp(dot(side_norm, -cam_dir), 0, 1), 0, 1), voxelize_factor);
+        voxel_norm = top_norm;
+    } else {
+        f_ao *= mix(1.0, clamp(pow(fract(my_alt), 0.5), 0, 1), voxelize_factor);
+
+        if (fract(f_pos.x) * abs(my_norm.y / cam_dir.x) < fract(f_pos.y) * abs(my_norm.x / cam_dir.y)) {
+            voxel_norm = vec3(sign(cam_dir.x), 0, 0);
+        } else {
+            voxel_norm = vec3(0, sign(cam_dir.y), 0);
+        }
+    }
+
     // vec3 f_ao_view = max(vec3(dot(f_orig_view_dir.yz, sides.yz), dot(f_orig_view_dir.xz, sides.xz), dot(f_orig_view_dir.xy, sides.xy)), 0.0);
     // delta_sides *= sqrt(1.0 - f_ao_view * f_ao_view);
     // delta_sides *= 1.0 - mix(view_dir / f_ao_view, vec3(0.0), equal(f_ao_view, vec3(0.0)));// sqrt(1.0 - f_ao_view * f_ao_view);
@@ -446,7 +470,7 @@ void main() {
     voxel_norm = normalize(mix(voxel_norm, lerpy_norm, clamp(my_norm.z * my_norm.z - (1.0 - DIST), 0, 1) / DIST));
 
     f_pos.xyz += abs(voxel_norm) * delta_sides;
-    voxel_norm = mix(voxel_norm == vec3(0.0) ? f_norm : voxel_norm, my_norm, clamp((f_orig_len - view_distance.x) / 3500, 0, 1));
+    voxel_norm = mix(my_norm, voxel_norm == vec3(0.0) ? f_norm : voxel_norm, voxelize_factor);
 
     vec3 hash_pos = f_pos + focus_off.xyz;
     const float A = 0.055;
@@ -470,7 +494,7 @@ void main() {
     // f_ao = 1.0;
     // f_ao = dot(f_ao_vec, sqrt(1.0 - delta_sides * delta_sides));
 
-    f_ao = dot(f_ao_vec, abs(voxel_norm));
+    f_ao *= dot(f_ao_vec, abs(voxel_norm));
     // f_ao = sqrt(dot(f_ao_vec * abs(voxel_norm), sqrt(1.0 - delta_sides * delta_sides)) / 3.0);
 
     // vec3 ao_pos2 = min(fract(f_pos), 1.0 - fract(f_pos));

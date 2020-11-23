@@ -1,5 +1,7 @@
 use super::SysTimer;
-use crate::{chunk_generator::ChunkGenerator, client::Client, presence::Presence, Tick};
+use crate::{
+    chunk_generator::ChunkGenerator, client::Client, presence::Presence, rtsim::RtSim, Tick,
+};
 use common::{
     comp::{self, bird_medium, item::tool::AbilityMap, Alignment, Pos},
     event::{EventBus, ServerEvent},
@@ -32,6 +34,7 @@ impl<'a> System<'a> for Sys {
         WriteExpect<'a, ChunkGenerator>,
         WriteExpect<'a, TerrainGrid>,
         Write<'a, TerrainChanges>,
+        WriteExpect<'a, RtSim>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Presence>,
         ReadStorage<'a, Client>,
@@ -47,6 +50,7 @@ impl<'a> System<'a> for Sys {
             mut chunk_generator,
             mut terrain,
             mut terrain_changes,
+            mut rtsim,
             positions,
             presences,
             clients,
@@ -100,10 +104,20 @@ impl<'a> System<'a> for Sys {
                 terrain_changes.modified_chunks.insert(key);
             } else {
                 terrain_changes.new_chunks.insert(key);
+                rtsim.hook_load_chunk(key);
             }
 
             // Handle chunk supplement
             for entity in supplement.entities {
+                // Check this because it's a common source of weird bugs
+                assert!(
+                    terrain
+                        .pos_key(entity.pos.map(|e| e.floor() as i32))
+                        .map2(key, |e, tgt| (e - tgt).abs() <= 1)
+                        .reduce_and(),
+                    "Chunk spawned entity that wasn't nearby",
+                );
+
                 if entity.is_waypoint {
                     server_emitter.emit(ServerEvent::CreateWaypoint(entity.pos));
                     continue;
@@ -144,12 +158,15 @@ impl<'a> System<'a> for Sys {
                     scale = 2.0 + rand::random::<f32>();
                 }
 
+                let config = entity.config;
+
                 let loadout = LoadoutBuilder::build_loadout(
                     body,
                     alignment,
                     main_tool,
                     entity.is_giant,
                     &map,
+                    config,
                 )
                 .build();
 
@@ -180,7 +197,7 @@ impl<'a> System<'a> for Sys {
                     health,
                     loadout,
                     agent: if entity.has_agency {
-                        Some(comp::Agent::new(entity.pos, can_speak, &body))
+                        Some(comp::Agent::new(Some(entity.pos), can_speak, &body))
                     } else {
                         None
                     },
@@ -189,6 +206,7 @@ impl<'a> System<'a> for Sys {
                     scale: comp::Scale(scale),
                     home_chunk: Some(comp::HomeChunk(key)),
                     drop_item: entity.loot_drop,
+                    rtsim_entity: None,
                 })
             }
         }
@@ -217,10 +235,12 @@ impl<'a> System<'a> for Sys {
                     chunks_to_remove.push(chunk_key);
                 }
             });
+
         for key in chunks_to_remove {
             // TODO: code duplication for chunk insertion between here and state.rs
             if terrain.remove(key).is_some() {
                 terrain_changes.removed_chunks.insert(key);
+                rtsim.hook_unload_chunk(key);
             }
 
             chunk_generator.cancel_if_pending(key);

@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Warlord Legguards",
+    description: "Belong to a mighty warlord.",
+    kind: Armor(
+        (
+            kind: Pants("Warlord"),
+            stats: (
+                protection: Normal(30.0)
+                ),            
+        )
+    ),
+    quality: Moderate,
+)

@@ -87,6 +87,14 @@
         "VeloriteMage0": (
           vox_spec: ("armor.belt.velorite_battlemage", (-5.0, -3.5, 2.0)),
           color: None
-      ),
+        ),
+        "Warlord":(
+            vox_spec: ("armor.belt.warlord", (-4.0, -3.5, 1.0)),
+            color: None
+        ),
+        "Warlock":(
+            vox_spec: ("armor.belt.warlock", (-4.0, -3.0, 2.0)),
+            color: None
+        ),
     },
 ))

@@ -107,6 +107,7 @@ make_case_elim!(
         GrassBlue = 0x51,
         ChestBurried = 0x52,
         Mud = 0x53,
+        FireBowlGround = 0x54,
     }
 );
 
@@ -122,9 +123,10 @@ impl SpriteKind {
             SpriteKind::Pumpkin => 0.81,
             SpriteKind::Cabbage => 0.45,
             SpriteKind::Chest => 1.09,
-            SpriteKind::StreetLamp => 3.0,
+            SpriteKind::StreetLamp => 2.65,
             SpriteKind::Carrot => 0.18,
             SpriteKind::Radish => 0.18,
+            SpriteKind::FireBowlGround => 0.55,
             // TODO: Uncomment this when we have a way to open doors
             // SpriteKind::Door => 3.0,
             SpriteKind::Bed => 1.54,
@@ -234,6 +236,7 @@ impl SpriteKind {
                 | SpriteKind::Beehive
                 | SpriteKind::PotionMinor
                 | SpriteKind::VialEmpty
+                | SpriteKind::FireBowlGround
         )
     }
 }

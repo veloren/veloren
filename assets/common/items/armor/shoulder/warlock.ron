@@ -1,0 +1,12 @@
+ItemDef(
+    name: "Warlock Shoulders",
+    description: "Belong to a mighty warlock.",
+    kind: Armor(
+        (
+            kind: Shoulder("Warlock"),
+            stats: (
+                protection: Normal(22.0)),            
+        )
+    ),
+    quality: Common,
+)

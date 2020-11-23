@@ -9,6 +9,7 @@ use super::SpawnRules;
 use crate::{
     column::ColumnSample,
     sim::WorldSim,
+    site::namegen::NameGen,
     util::{RandomField, Sampler, StructureGen2d},
     IndexRef,
 };
@@ -139,6 +140,7 @@ impl Structure {
 }
 
 pub struct Settlement {
+    name: String,
     seed: u32,
     origin: Vec2<i32>,
     land: Land,
@@ -162,6 +164,7 @@ impl Settlement {
     pub fn generate(wpos: Vec2<i32>, sim: Option<&WorldSim>, rng: &mut impl Rng) -> Self {
         let mut ctx = GenCtx { sim, rng };
         let mut this = Self {
+            name: NameGen::location(ctx.rng).generate(),
             seed: ctx.rng.gen(),
             origin: wpos,
             land: Land::new(ctx.rng),
@@ -184,6 +187,8 @@ impl Settlement {
 
         this
     }
+
+    pub fn name(&self) -> &str { &self.name }
 
     pub fn get_origin(&self) -> Vec2<i32> { self.origin }
 
@@ -529,7 +534,7 @@ impl Settlement {
         }
     }
 
-    pub fn radius(&self) -> f32 { 1200.0 }
+    pub fn radius(&self) -> f32 { 400.0 }
 
     #[allow(clippy::needless_update)] // TODO: Pending review in #587
     pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
@@ -627,15 +632,15 @@ impl Settlement {
                                     .rotated_z(f32::consts::PI / 2.0)
                                     .normalized();
                                 let is_lamp = if path_dir.x.abs() > path_dir.y.abs() {
-                                    wpos2d.x as f32 % 30.0 / path_dir.dot(Vec2::unit_y()).abs()
+                                    wpos2d.x as f32 % 15.0 / path_dir.dot(Vec2::unit_y()).abs()
                                         <= 1.0
                                 } else {
-                                    (wpos2d.y as f32 + 10.0) % 30.0
+                                    (wpos2d.y as f32 + 10.0) % 15.0
                                         / path_dir.dot(Vec2::unit_x()).abs()
                                         <= 1.0
                                 };
                                 if (col_sample.path.map(|(dist, _, _, _)| dist > 6.0 && dist < 7.0).unwrap_or(false) && is_lamp) //roll(0, 50) == 0)
-                                    || (roll(0, 2000) == 0 && col_sample.path.map(|(dist, _, _, _)| dist > 20.0).unwrap_or(true))
+                                    || (roll(0, 750) == 0 && col_sample.path.map(|(dist, _, _, _)| dist > 20.0).unwrap_or(true))
                                 {
                                     surface_sprite = Some(SpriteKind::StreetLamp);
                                 }
@@ -910,9 +915,20 @@ impl Settlement {
                         } else {
                             comp::Alignment::Tame
                         })
+                        .do_if(!is_dummy, |e| e.with_automatic_name())
+                        .do_if(is_dummy, |e| e.with_name("Training Dummy"))
                         .do_if(is_human && dynamic_rng.gen(), |entity| {
-                            entity.with_main_tool(Item::new_from_asset_expect(
-                                match dynamic_rng.gen_range(0, 7) {
+                            match dynamic_rng.gen_range(0, 5) {
+                                0 => entity
+                                    .with_main_tool(Item::new_from_asset_expect(
+                                        "common.items.weapons.sword.greatsword_2h_simple-0",
+                                    ))
+                                    .with_name("Guard")
+                                    .with_level(dynamic_rng.gen_range(10, 15))
+                                    .with_config(common::loadout_builder::LoadoutConfig::Guard),
+                                _ => entity
+                                    .with_main_tool(Item::new_from_asset_expect(
+                                        match dynamic_rng.gen_range(0, 7) {
                                     0 => "common.items.npc_weapons.tool.broom",
                                     1 => "common.items.npc_weapons.tool.hoe",
                                     2 => "common.items.npc_weapons.tool.pickaxe",
@@ -922,10 +938,10 @@ impl Settlement {
                                     _ => "common.items.npc_weapons.tool.shovel-1",
                                     //_ => "common.items.npc_weapons.bow.starter_bow", TODO: Re-Add this when we have a better way of distributing npc_weapons here
                                 },
-                            ))
-                        })
-                        .do_if(is_dummy, |e| e.with_name("Training Dummy"))
-                        .do_if(!is_dummy, |e| e.with_automatic_name());
+                                    ))
+                                    .with_config(common::loadout_builder::LoadoutConfig::Villager),
+                            }
+                        });
 
                     supplement.add_entity(entity);
                 }

@@ -27,6 +27,7 @@ in vec3 f_pos;
 // in vec3 f_chunk_pos;
 // #ifdef FLUID_MODE_SHINY
 flat in uint f_pos_norm;
+flat in float f_load_time;
 // #else
 // const uint f_pos_norm = 0u;
 // #endif
@@ -60,6 +61,13 @@ out vec4 tgt_color;
 #include <lod.glsl>
 
 void main() {
+    /*
+    float nz = abs(hash(vec4(floor((f_pos + focus_off.xyz) * 5.0), 0)));
+    if (nz > (tick.x - load_time) / 0.5 || distance(focus_pos.xy, f_pos.xy) / view_distance.x + nz * 0.1 > 1.0) {
+        discard;
+    }
+    */
+
     // discard;
     // vec4 f_col_light = textureGrad(t_col_light, f_uv_pos / texSize, 0.25, 0.25);
     // vec4 f_col_light = texture(t_col_light, (f_uv_pos) / texSize);
@@ -73,12 +81,9 @@ void main() {
     vec2 f_uv_pos = f_uv_pos + atlas_offs.xy;
     // vec4 f_col_light = textureProj(t_col_light, vec3(f_uv_pos + 0.5, textureSize(t_col_light, 0)));//(f_uv_pos/* + 0.5*/) / texSize);
     // float f_light = textureProj(t_col_light, vec3(f_uv_pos + 0.5, textureSize(t_col_light, 0))).a;//1.0;//f_col_light.a * 4.0;// f_light = float(v_col_light & 0x3Fu) / 64.0;
-    vec4 f_col_light = texelFetch(t_col_light, ivec2(f_uv_pos)/* + uv_delta*//* - f_norm * 0.00001*/, 0);
-    // float f_light = f_col_light.a;
-    // vec4 f_col_light = texelFetch(t_col_light, ivec2(int(f_uv_pos.x), int(f_uv_pos.y)/* + uv_delta*//* - f_norm * 0.00001*/), 0);
-    vec3 f_col = /*linear_to_srgb*//*srgb_to_linear*/(f_col_light.rgb);
-    // vec3 f_col = vec3(1.0);
-    float f_light = texture(t_col_light, (f_uv_pos + 0.5) / textureSize(t_col_light, 0)).a;//1.0;//f_col_light.a * 4.0;// f_light = float(v_col_light & 0x3Fu) / 64.0;
+    float f_light, f_glow;
+    vec3 f_col = greedy_extract_col_light_glow(t_col_light, f_uv_pos, f_light, f_glow);
+    //float f_light = (uint(texture(t_col_light, (f_uv_pos + 0.5) / textureSize(t_col_light, 0)).r * 255.0) & 0x1Fu) / 31.0;
     // vec2 texSize = textureSize(t_col_light, 0);
     // float f_light = texture(t_col_light, f_uv_pos/* + vec2(atlas_offs.xy)*/).a;//1.0;//f_col_light.a * 4.0;// f_light = float(v_col_light & 0x3Fu) / 64.0;
     // float f_light = textureProj(t_col_light, vec3(f_uv_pos/* + vec2(atlas_offs.xy)*/, texSize.x)).a;//1.0;//f_col_light.a * 4.0;// f_light = float(v_col_light & 0x3Fu) / 64.0;
@@ -259,6 +264,11 @@ void main() {
     emitted_light *= f_light;
     reflected_light *= f_light;
     max_light *= f_light;
+
+    // TODO: Apply AO after this
+    vec3 glow = GLOW_COLOR * (pow(f_glow, 6) * 8 + pow(f_glow, 2) * 0.5);
+    emitted_light += glow;
+    reflected_light += glow;
 
     max_light += lights_at(f_pos, f_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
 
