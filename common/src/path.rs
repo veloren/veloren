@@ -130,7 +130,8 @@ impl Route {
 
             // Determine whether we're close enough to the next to to consider it completed
             let dist_sqrd = pos.xy().distance_squared(closest_tgt.xy());
-            if dist_sqrd < traversal_cfg.node_tolerance.powf(2.0) * if be_precise { 0.25 } else { 1.0 }
+            if dist_sqrd
+                < traversal_cfg.node_tolerance.powf(2.0) * if be_precise { 0.25 } else { 1.0 }
                 && (((pos.z - closest_tgt.z > 1.2 || (pos.z - closest_tgt.z > -0.2 && traversal_cfg.on_ground))
                     && (pos.z - closest_tgt.z < 1.2 || (pos.z - closest_tgt.z < 2.9 && vel.z < -0.05))
                     && vel.z <= 0.0
@@ -142,7 +143,9 @@ impl Route {
                         .0
                         > pos.distance(closest_tgt) * 0.9 || dist_sqrd < 0.5)
                     && self.next_idx < self.path.len())
-                || (traversal_cfg.in_liquid && pos.z < closest_tgt.z + 0.8 && pos.z > closest_tgt.z))
+                    || (traversal_cfg.in_liquid
+                        && pos.z < closest_tgt.z + 0.8
+                        && pos.z > closest_tgt.z))
             {
                 // Node completed, move on to the next one
                 self.next_idx += 1;
@@ -438,15 +441,14 @@ fn walkable<V>(vol: &V, pos: Vec3<i32>) -> bool
 where
     V: BaseVol<Vox = Block> + ReadVol,
 {
-    let below = vol.get(pos - Vec3::unit_z())
+    let below = vol
+        .get(pos - Vec3::unit_z())
         .ok()
         .copied()
         .unwrap_or_else(Block::empty);
-    let a = vol.get(pos)
-        .ok()
-        .copied()
-        .unwrap_or_else(Block::empty);
-    let b = vol.get(pos + Vec3::unit_z())
+    let a = vol.get(pos).ok().copied().unwrap_or_else(Block::empty);
+    let b = vol
+        .get(pos + Vec3::unit_z())
         .ok()
         .copied()
         .unwrap_or_else(Block::empty);
@@ -513,10 +515,10 @@ where
         ];
 
         const JUMPS: [Vec3<i32>; 4] = [
-            Vec3::new(0, 1, 2),   // Forward Upwardx2
-            Vec3::new(1, 0, 2),   // Right Upwardx2
-            Vec3::new(0, -1, 2),  // Backward Upwardx2
-            Vec3::new(-1, 0, 2),  // Left Upwardx2
+            Vec3::new(0, 1, 2),  // Forward Upwardx2
+            Vec3::new(1, 0, 2),  // Right Upwardx2
+            Vec3::new(0, -1, 2), // Backward Upwardx2
+            Vec3::new(-1, 0, 2), // Left Upwardx2
         ];
 
         // let walkable = [
@@ -538,13 +540,15 @@ where
         // ];
 
         DIRS.iter()
-            .chain(Some(JUMPS.iter())
-                .filter(|_| vol
-                    .get(pos)
-                    .map(|b| !b.is_liquid())
-                    .unwrap_or(true) || traversal_cfg.can_climb)
-                .into_iter()
-                .flatten())
+            .chain(
+                Some(JUMPS.iter())
+                    .filter(|_| {
+                        vol.get(pos).map(|b| !b.is_liquid()).unwrap_or(true)
+                            || traversal_cfg.can_climb
+                    })
+                    .into_iter()
+                    .flatten(),
+            )
             .map(move |dir| (pos, dir))
             .filter(move |(pos, dir)| {
                 is_walkable(pos)

@@ -250,6 +250,7 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug + 'static>
     Meshable<TerrainPipeline, FluidPipeline> for &'a VolGrid2d<V>
 {
     type Pipeline = TerrainPipeline;
+    #[allow(clippy::type_complexity)]
     type Result = (
         Aabb<f32>,
         ColLightInfo,
@@ -468,7 +469,12 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug + 'static>
             opaque_mesh,
             fluid_mesh,
             Mesh::new(),
-            (bounds, (col_lights, col_lights_size), Box::new(light), Box::new(glow)),
+            (
+                bounds,
+                (col_lights, col_lights_size),
+                Box::new(light),
+                Box::new(glow),
+            ),
         )
     }
 }

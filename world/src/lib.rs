@@ -182,10 +182,20 @@ impl World {
         };
 
         let meta = TerrainChunkMeta::new(
-            sim_chunk.sites
+            sim_chunk
+                .sites
                 .iter()
-                .filter(|id| index.sites[**id].get_origin().distance_squared(chunk_center_wpos2d) as f32 <= index.sites[**id].radius().powf(2.0))
-                .min_by_key(|id| index.sites[**id].get_origin().distance_squared(chunk_center_wpos2d))
+                .filter(|id| {
+                    index.sites[**id]
+                        .get_origin()
+                        .distance_squared(chunk_center_wpos2d) as f32
+                        <= index.sites[**id].radius().powf(2.0)
+                })
+                .min_by_key(|id| {
+                    index.sites[**id]
+                        .get_origin()
+                        .distance_squared(chunk_center_wpos2d)
+                })
                 .map(|id| index.sites[*id].name().to_string()),
             sim_chunk.get_biome(),
             sim_chunk.alt,

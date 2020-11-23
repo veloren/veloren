@@ -1,25 +1,23 @@
-mod load_chunks;
-mod unload_chunks;
-mod tick;
-mod entity;
-mod chunks;
+#![allow(dead_code)] // TODO: Remove this when rtsim is fleshed out
 
-use vek::*;
+mod chunks;
+mod entity;
+mod load_chunks;
+mod tick;
+mod unload_chunks;
+
+use self::{chunks::Chunks, entity::Entity};
 use common::{
+    comp,
+    rtsim::{RtSimController, RtSimEntity, RtSimId},
     state::State,
     terrain::TerrainChunk,
-    rtsim::{RtSimEntity, RtSimId, RtSimController},
     vol::RectRasterableVol,
-    comp,
 };
-use specs::{DispatcherBuilder, WorldExt};
-use specs_idvs::IdvStorage;
-use slab::Slab;
 use rand::prelude::*;
-use self::{
-    entity::Entity,
-    chunks::Chunks,
-};
+use slab::Slab;
+use specs::{DispatcherBuilder, WorldExt};
+use vek::*;
 
 pub struct RtSim {
     tick: u64,
@@ -88,12 +86,14 @@ pub fn init(state: &mut State, world: &world::World) {
     let mut rtsim = RtSim::new(world.sim().get_size());
 
     for _ in 0..2500 {
-        let pos = rtsim.chunks.size().map2(
-            TerrainChunk::RECT_SIZE,
-            |sz, chunk_sz| thread_rng().gen_range(0, sz * chunk_sz) as i32,
-        );
+        let pos = rtsim
+            .chunks
+            .size()
+            .map2(TerrainChunk::RECT_SIZE, |sz, chunk_sz| {
+                thread_rng().gen_range(0, sz * chunk_sz) as i32
+            });
 
-        let id = rtsim.entities.insert(Entity {
+        rtsim.entities.insert(Entity {
             is_loaded: false,
             pos: Vec3::from(pos.map(|e| e as f32)),
             seed: thread_rng().gen(),
@@ -101,8 +101,6 @@ pub fn init(state: &mut State, world: &world::World) {
             last_tick: 0,
             brain: Default::default(),
         });
-
-        // tracing::info!("Spawned rtsim NPC {} at {:?}", id, pos);
     }
 
     state.ecs_mut().insert(rtsim);

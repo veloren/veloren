@@ -6,8 +6,8 @@ use common::{
         LightEmitter, Loadout, Ori, Pos, Projectile, Scale, Stats, Vel, WaypointArea,
     },
     outcome::Outcome,
-    util::Dir,
     rtsim::RtSimEntity,
+    util::Dir,
 };
 use comp::group;
 use specs::{Builder, Entity as EcsEntity, WorldExt};

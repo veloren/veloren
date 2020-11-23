@@ -33,7 +33,8 @@ use tracing::{error, warn};
 use vek::*;
 
 /// Represents the format of the pre-processed color target.
-// TODO: `(gfx::format::R11_G11_B10, gfx::format::Float)` would be better in theory, but it doesn't seem to work
+// TODO: `(gfx::format::R11_G11_B10, gfx::format::Float)` would be better in
+// theory, but it doesn't seem to work
 pub type TgtColorFmt = gfx::format::Rgba16F;
 /// Represents the format of the pre-processed depth and stencil target.
 pub type TgtDepthStencilFmt = gfx::format::Depth;
@@ -1001,10 +1002,10 @@ impl Renderer {
         size: [u16; 2],
         data: &[<<T as gfx::format::Formatted>::Surface as gfx::format::SurfaceTyped>::DataType],
     ) -> Result<(), RenderError>
-        where
-            <T as gfx::format::Formatted>::Surface: gfx::format::TextureSurface,
-            <T as gfx::format::Formatted>::Channel: gfx::format::TextureChannel,
-            <<T as gfx::format::Formatted>::Surface as gfx::format::SurfaceTyped>::DataType: Copy,
+    where
+        <T as gfx::format::Formatted>::Surface: gfx::format::TextureSurface,
+        <T as gfx::format::Formatted>::Channel: gfx::format::TextureChannel,
+        <<T as gfx::format::Formatted>::Surface as gfx::format::SurfaceTyped>::DataType: Copy,
     {
         texture.update(&mut self.encoder, offset, size, data)
     }

@@ -52,9 +52,7 @@ use common::{
     comp::{self, ChatType},
     event::{EventBus, ServerEvent},
     msg::{
-        world_msg::{SiteInfo, SiteKind},
-        ClientType, DisconnectReason, ServerGeneral, ServerInfo, ServerInit, ServerMsg,
-        WorldMapMsg,
+        ClientType, DisconnectReason, ServerGeneral, ServerInfo, ServerInit, ServerMsg, WorldMapMsg,
     },
     outcome::Outcome,
     recipe::default_recipe_book,
@@ -62,7 +60,7 @@ use common::{
     state::{State, TimeOfDay},
     sync::WorldSyncExt,
     terrain::TerrainChunkSize,
-    vol::{ReadVol, RectVolSize},
+    vol::RectVolSize,
 };
 use futures_executor::block_on;
 use metrics::{PhysicsMetrics, ServerMetrics, StateTickMetrics, TickMetrics};
@@ -327,7 +325,7 @@ impl Server {
 
         // Insert the world into the ECS (todo: Maybe not an Arc?)
         let world = Arc::new(world);
-        state.ecs_mut().insert(world.clone());
+        state.ecs_mut().insert(Arc::clone(&world));
         state.ecs_mut().insert(index.clone());
 
         // Set starting time for the server.

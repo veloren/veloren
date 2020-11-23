@@ -6,6 +6,7 @@ use common::{
 use rand::prelude::*;
 use vek::*;
 
+#[derive(Default)]
 pub struct BlocksOfInterest {
     pub leaves: Vec<Vec3<i32>>,
     pub grass: Vec<Vec3<i32>>,
@@ -21,8 +22,6 @@ pub struct BlocksOfInterest {
     pub interactables: Vec<Vec3<i32>>,
     pub lights: Vec<(Vec3<i32>, u8)>,
 }
-
-use inline_tweak::*;
 
 impl BlocksOfInterest {
     pub fn from_chunk(chunk: &TerrainChunk) -> Self {
@@ -73,8 +72,10 @@ impl BlocksOfInterest {
                         // Offset positions to account for block height.
                         // TODO: Is this a good idea?
                         Some(SpriteKind::StreetLamp) => fire_bowls.push(pos + Vec3::unit_z() * 2),
-                        Some(SpriteKind::FireBowlGround) => fire_bowls.push(pos + Vec3::unit_z() * 1),
-                        Some(SpriteKind::StreetLampTall) => fire_bowls.push(pos + Vec3::unit_z() * 4),
+                        Some(SpriteKind::FireBowlGround) => fire_bowls.push(pos + Vec3::unit_z()),
+                        Some(SpriteKind::StreetLampTall) => {
+                            fire_bowls.push(pos + Vec3::unit_z() * 4)
+                        },
                         Some(SpriteKind::Beehive) => beehives.push(pos),
                         Some(SpriteKind::Reed) => reeds.push(pos),
                         Some(SpriteKind::PinkFlower) => flowers.push(pos),

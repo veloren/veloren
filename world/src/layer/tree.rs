@@ -31,6 +31,7 @@ static MODEL_RAND: RandomPerm = RandomPerm::new(0xDB21C052);
 static UNIT_CHOOSER: UnitChooser = UnitChooser::new(0x700F4EC7);
 static QUIRKY_RAND: RandomPerm = RandomPerm::new(0xA634460F);
 
+#[allow(clippy::if_same_then_else)]
 pub fn apply_trees_to(canvas: &mut Canvas) {
     struct Tree {
         pos: Vec3<i32>,
@@ -51,15 +52,17 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
 
                 let is_quirky = QUIRKY_RAND.chance(seed, 1.0 / 500.0);
 
-                // Ensure that it's valid to place a tree here
+                // Ensure that it's valid to place a *thing* here
                 if col.alt < col.water_level
                     || col.spawn_rate < 0.9
                     || col.water_dist.map(|d| d < 8.0).unwrap_or(false)
                     || col.path.map(|(d, _, _, _)| d < 12.0).unwrap_or(false)
                 {
                     return None;
-                } else if !is_quirky
-                    && ((seed.wrapping_mul(13)) & 0xFF) as f32 / 256.0 > col.tree_density
+                }
+
+                // Ensure that it's valid to place a tree here
+                if !is_quirky && ((seed.wrapping_mul(13)) & 0xFF) as f32 / 256.0 > col.tree_density
                 {
                     return None;
                 }

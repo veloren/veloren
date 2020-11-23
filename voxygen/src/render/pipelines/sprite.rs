@@ -115,7 +115,14 @@ impl Vertex {
 }
 
 impl Instance {
-    pub fn new(mat: Mat4<f32>, wind_sway: f32, pos: Vec3<i32>, ori_bits: u8, light: f32, glow: f32) -> Self {
+    pub fn new(
+        mat: Mat4<f32>,
+        wind_sway: f32,
+        pos: Vec3<i32>,
+        ori_bits: u8,
+        light: f32,
+        glow: f32,
+    ) -> Self {
         const EXTRA_NEG_Z: i32 = 32768;
 
         let mat_arr = mat.into_col_arrays();

@@ -144,7 +144,11 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug + '
     span!(_guard, "mesh_worker");
     let blocks_of_interest = BlocksOfInterest::from_chunk(&chunk);
     let (opaque_mesh, fluid_mesh, _shadow_mesh, (bounds, col_lights_info, light_map, glow_map)) =
-        volume.generate_mesh((range, Vec2::new(max_texture_size, max_texture_size), &blocks_of_interest));
+        volume.generate_mesh((
+            range,
+            Vec2::new(max_texture_size, max_texture_size),
+            &blocks_of_interest,
+        ));
     MeshWorkerResponse {
         pos,
         z_bounds: (bounds.min.z, bounds.max.z),
@@ -472,14 +476,24 @@ impl<V: RectRasterableVol> Terrain<V> {
 
     /// Find the light level (sunlight) at the given world position.
     pub fn light_at_wpos(&self, wpos: Vec3<i32>) -> f32 {
-        let chunk_pos = Vec2::from(wpos).map2(TerrainChunk::RECT_SIZE, |e: i32, sz| e.div_euclid(sz as i32));
-        self.chunks.get(&chunk_pos).map(|c| (c.light_map)(wpos)).unwrap_or(1.0)
+        let chunk_pos = Vec2::from(wpos).map2(TerrainChunk::RECT_SIZE, |e: i32, sz| {
+            e.div_euclid(sz as i32)
+        });
+        self.chunks
+            .get(&chunk_pos)
+            .map(|c| (c.light_map)(wpos))
+            .unwrap_or(1.0)
     }
 
     /// Find the glow level (light from lamps) at the given world position.
     pub fn glow_at_wpos(&self, wpos: Vec3<i32>) -> f32 {
-        let chunk_pos = Vec2::from(wpos).map2(TerrainChunk::RECT_SIZE, |e: i32, sz| e.div_euclid(sz as i32));
-        self.chunks.get(&chunk_pos).map(|c| (c.glow_map)(wpos)).unwrap_or(0.0)
+        let chunk_pos = Vec2::from(wpos).map2(TerrainChunk::RECT_SIZE, |e: i32, sz| {
+            e.div_euclid(sz as i32)
+        });
+        self.chunks
+            .get(&chunk_pos)
+            .map(|c| (c.glow_map)(wpos))
+            .unwrap_or(0.0)
     }
 
     /// Maintain terrain data. To be called once per tick.

@@ -1,8 +1,8 @@
 use crate::{
     client::Client,
     comp::{biped_large, quadruped_medium, quadruped_small, PhysicsState},
-    Server, SpawnPoint, StateExt,
     rtsim::RtSim,
+    Server, SpawnPoint, StateExt,
 };
 use common::{
     assets::Asset,
@@ -16,12 +16,12 @@ use common::{
     lottery::Lottery,
     msg::{PlayerListUpdate, ServerGeneral},
     outcome::Outcome,
+    rtsim::RtSimEntity,
     state::BlockChange,
     sync::{Uid, UidAllocator, WorldSyncExt},
     terrain::{Block, TerrainGrid},
     vol::ReadVol,
     Damage, DamageSource, Explosion, GroupTarget, RadiusEffect,
-    rtsim::RtSimEntity,
 };
 use comp::item::Reagent;
 use rand::prelude::*;
@@ -462,8 +462,16 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
     };
 
     if should_delete {
-        if let Some(rtsim_entity) = state.ecs().read_storage::<RtSimEntity>().get(entity).copied() {
-            state.ecs().write_resource::<RtSim>().destroy_entity(rtsim_entity.0);
+        if let Some(rtsim_entity) = state
+            .ecs()
+            .read_storage::<RtSimEntity>()
+            .get(entity)
+            .copied()
+        {
+            state
+                .ecs()
+                .write_resource::<RtSim>()
+                .destroy_entity(rtsim_entity.0);
         }
 
         let _ = state

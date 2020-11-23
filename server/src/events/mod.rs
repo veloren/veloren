@@ -8,8 +8,8 @@ use entity_creation::{
     handle_loaded_character_data, handle_shockwave, handle_shoot,
 };
 use entity_manipulation::{
-    handle_buff, handle_damage, handle_destroy, handle_delete, handle_energy_change, handle_explosion,
-    handle_knockback, handle_land_on_ground, handle_level_up, handle_respawn,
+    handle_buff, handle_damage, handle_delete, handle_destroy, handle_energy_change,
+    handle_explosion, handle_knockback, handle_land_on_ground, handle_level_up, handle_respawn,
 };
 use group_manip::handle_group;
 use interaction::{handle_lantern, handle_mount, handle_possess, handle_unmount};
@@ -120,8 +120,18 @@ impl Server {
                     drop_item,
                     rtsim_entity,
                 } => handle_create_npc(
-                    self, pos, stats, health, loadout, body, agent, alignment, scale, drop_item,
-                    home_chunk, rtsim_entity,
+                    self,
+                    pos,
+                    stats,
+                    health,
+                    loadout,
+                    body,
+                    agent,
+                    alignment,
+                    scale,
+                    drop_item,
+                    home_chunk,
+                    rtsim_entity,
                 ),
                 ServerEvent::CreateWaypoint(pos) => handle_create_waypoint(self, pos),
                 ServerEvent::ClientDisconnect(entity) => {
