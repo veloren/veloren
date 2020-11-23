@@ -72,7 +72,6 @@ fn main() {
                 sample_pos(
                     config,
                     sampler,
-                    index,
                     samples,
                     uniform_idx_as_vec2(map_size_lg, posi),
                 )
