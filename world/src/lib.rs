@@ -118,20 +118,16 @@ impl World {
                     self.civs()
                         .caves
                         .iter()
-                        .map(|(_, info)| world_msg::SiteInfo {
-                            name: Some(info.name.clone()),
+                        .map(|(_, info)| {
+                            // separate the two locations, combine with name
+                            std::iter::once((info.name.clone(), info.location.0))
+                                .chain(std::iter::once((info.name.clone(), info.location.1)))
+                        })
+                        .flatten() // unwrap inner iteration
+                        .map(|(name, pos)| world_msg::SiteInfo {
+                            name: Some(name),
                             kind: world_msg::SiteKind::Cave,
-                            wpos: info.location.0,
-                        }),
-                )
-                .chain(
-                    self.civs()
-                        .caves
-                        .iter()
-                        .map(|(_, info)| world_msg::SiteInfo {
-                            name: Some(info.name.clone()),
-                            kind: world_msg::SiteKind::Cave,
-                            wpos: info.location.1,
+                            wpos: pos,
                         }),
                 )
                 .collect(),
