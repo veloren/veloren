@@ -103,7 +103,7 @@ pub fn sample_pos(
         spline_derivative,
         is_path,
         is_cave,
-        near_site,
+        _near_site,
     ) = sampler
         .get(pos)
         .map(|sample| {

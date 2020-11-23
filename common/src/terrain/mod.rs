@@ -19,7 +19,7 @@ use roots::find_roots_cubic;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    vol::{RectVolSize, ReadVol},
+    vol::{ReadVol, RectVolSize},
     volumes::vol_grid_2d::VolGrid2d,
 };
 use vek::*;

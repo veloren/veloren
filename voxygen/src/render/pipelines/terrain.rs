@@ -107,23 +107,25 @@ impl Vertex {
     ) -> <<ColLightFmt as gfx::format::Formatted>::Surface as gfx::format::SurfaceTyped>::DataType
     {
         //[col.r, col.g, col.b, light]
-        // It would be nice for this to be cleaner, but we want to squeeze 5 fields into 4.
-        // We can do this because both `light` and `glow` go from 0 to 31, meaning that they
-        // can both fit into 5 bits. If we steal a bit from red and blue each (not green,
-        // human eyes are more sensitive to changes in green) then we get just enough to
-        // expand the nibbles of the alpha field enough to fit both `light` and `glow`.
+        // It would be nice for this to be cleaner, but we want to squeeze 5 fields into
+        // 4. We can do this because both `light` and `glow` go from 0 to 31,
+        // meaning that they can both fit into 5 bits. If we steal a bit from
+        // red and blue each (not green, human eyes are more sensitive to
+        // changes in green) then we get just enough to expand the nibbles of
+        // the alpha field enough to fit both `light` and `glow`.
         //
-        // However, we now have a problem. In the shader code with use hardware filtering to
-        // get at the `light` and `glow` attributes (but not colour, that remains constant
-        // across a block). How do we resolve this if we're twiddling bits? The answer is to
-        // very carefully manipulate the bit pattern such that the fields we want to filter
-        // (`light` and `glow`) always sit as the higher bits of the fields. Then, we can do
+        // However, we now have a problem. In the shader code with use hardware
+        // filtering to get at the `light` and `glow` attributes (but not
+        // colour, that remains constant across a block). How do we resolve this
+        // if we're twiddling bits? The answer is to very carefully manipulate
+        // the bit pattern such that the fields we want to filter (`light` and
+        // `glow`) always sit as the higher bits of the fields. Then, we can do
         // some modulation magic to extract them from the filtering unharmed and use
-        // unfiltered texture access (i.e: `texelFetch`) to access the colours, plus a little
-        // bit-fiddling.
+        // unfiltered texture access (i.e: `texelFetch`) to access the colours, plus a
+        // little bit-fiddling.
         //
-        // TODO: This isn't currently working (no idea why). See `srgb.glsl` for current impl
-        // that intead does manual bit-twiddling and filtering.
+        // TODO: This isn't currently working (no idea why). See `srgb.glsl` for current
+        // impl that intead does manual bit-twiddling and filtering.
         [
             (light.min(31) << 3) | ((col.r & 0b1110) >> 1),
             (glow.min(31) << 3) | ((col.r & 0b1110) >> 1),

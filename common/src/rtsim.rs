@@ -3,8 +3,8 @@
 // `Agent`). When possible, this should be moved to the `rtsim`
 // module in `server`.
 
-use specs_idvs::IdvStorage;
 use specs::Component;
+use specs_idvs::IdvStorage;
 use vek::*;
 
 pub type RtSimId = usize;
@@ -16,20 +16,20 @@ impl Component for RtSimEntity {
     type Storage = IdvStorage<Self>;
 }
 
-/// This type is the map route through which the rtsim (real-time simulation) aspect
-/// of the game communicates with the rest of the game. It is analagous to
-/// `comp::Controller` in that it provides a consistent interface for simulation NPCs
-/// to control their actions. Unlike `comp::Controller`, it is very abstract and is
-/// intended for consumption by both the agent code and the internal rtsim simulation
-/// code (depending on whether the entity is loaded into the game as a physical entity
-/// or not). Agent code should attempt to act upon its instructions where reasonable
-/// although deviations for various reasons (obstacle avoidance, counter-attacking,
-/// etc.) are expected.
+/// This type is the map route through which the rtsim (real-time simulation)
+/// aspect of the game communicates with the rest of the game. It is analagous
+/// to `comp::Controller` in that it provides a consistent interface for
+/// simulation NPCs to control their actions. Unlike `comp::Controller`, it is
+/// very abstract and is intended for consumption by both the agent code and the
+/// internal rtsim simulation code (depending on whether the entity is loaded
+/// into the game as a physical entity or not). Agent code should attempt to act
+/// upon its instructions where reasonable although deviations for various
+/// reasons (obstacle avoidance, counter-attacking, etc.) are expected.
 #[derive(Clone, Debug)]
 pub struct RtSimController {
     /// When this field is `Some(..)`, the agent should attempt to make progress
-    /// toward the given location, accounting for obstacles and other high-priority
-    /// situations like being attacked.
+    /// toward the given location, accounting for obstacles and other
+    /// high-priority situations like being attacked.
     pub travel_to: Option<Vec3<f32>>,
     /// Proportion of full speed to move
     pub speed_factor: f32,
@@ -45,7 +45,5 @@ impl Default for RtSimController {
 }
 
 impl RtSimController {
-    pub fn reset(&mut self) {
-        *self = Self::default();
-    }
+    pub fn reset(&mut self) { *self = Self::default(); }
 }

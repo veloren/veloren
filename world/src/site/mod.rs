@@ -1,8 +1,8 @@
 mod block_mask;
 mod castle;
 mod dungeon;
-mod namegen;
 pub mod economy;
+mod namegen;
 mod settlement;
 
 // Reexports

@@ -1,4 +1,4 @@
-use crate::{column::ColumnSample, sim::SimChunk, util::RandomField, Canvas, CONFIG};
+use crate::{column::ColumnSample, sim::SimChunk, Canvas, CONFIG};
 use common::terrain::SpriteKind;
 use noise::NoiseFn;
 use rand::prelude::*;

@@ -2,8 +2,8 @@ use super::{terrain::BlocksOfInterest, SceneData, Terrain};
 use crate::{
     mesh::{greedy::GreedyMesh, Meshable},
     render::{
-        pipelines::particle::ParticleMode, GlobalModel, Instances, LodData, Model,
-        ParticleInstance, ParticlePipeline, Renderer, Light,
+        pipelines::particle::ParticleMode, GlobalModel, Instances, Light, LodData, Model,
+        ParticleInstance, ParticlePipeline, Renderer,
     },
 };
 use common::{
@@ -73,7 +73,8 @@ impl ParticleMgr {
                                     ParticleMode::EnergyNature,
                                     *pos + Vec3::<f32>::zero()
                                         .map(|_| rng.gen_range(-1.0, 1.0))
-                                        .normalized() * *radius,
+                                        .normalized()
+                                        * *radius,
                                 )
                             },
                         );
@@ -87,7 +88,8 @@ impl ParticleMgr {
                                     ParticleMode::CampfireFire,
                                     *pos + Vec3::<f32>::zero()
                                         .map(|_| rng.gen_range(-1.0, 1.0))
-                                        .normalized() * *radius,
+                                        .normalized()
+                                        * *radius,
                                 )
                             },
                         );
@@ -121,7 +123,8 @@ impl ParticleMgr {
                                 ParticleMode::CampfireSmoke,
                                 *pos + Vec3::<f32>::zero()
                                     .map(|_| rng.gen_range(-1.0, 1.0))
-                                    .normalized() * *radius,
+                                    .normalized()
+                                    * *radius,
                             )
                         },
                     );
@@ -377,11 +380,7 @@ impl ParticleMgr {
                 if b.stage_section == StageSection::Cast {
                     if b.static_data.base_hps > 0 {
                         // Emit a light when using healing
-                        lights.push(Light::new(
-                            pos.0 + b.offset,
-                            Rgb::new(0.1, 1.0, 0.15),
-                            1.0,
-                        ));
+                        lights.push(Light::new(pos.0 + b.offset, Rgb::new(0.1, 1.0, 0.15), 1.0));
                         for i in 0..self.scheduler.heartbeats(Duration::from_millis(1)) {
                             self.particles.push(Particle::new_beam(
                                 b.static_data.beam_duration,

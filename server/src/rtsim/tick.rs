@@ -1,3 +1,5 @@
+#![allow(dead_code)] // TODO: Remove this when rtsim is fleshed out
+
 use super::*;
 use common::{
     comp,
@@ -12,6 +14,7 @@ const ENTITY_TICK_PERIOD: u64 = 30;
 
 pub struct Sys;
 impl<'a> System<'a> for Sys {
+    #[allow(clippy::type_complexity)]
     type SystemData = (
         Read<'a, DeltaTime>,
         Read<'a, EventBus<ServerEvent>>,
@@ -33,7 +36,7 @@ impl<'a> System<'a> for Sys {
             mut rtsim,
             terrain,
             world,
-            index,
+            _index,
             positions,
             rtsim_entities,
             mut agents,

@@ -2291,7 +2291,7 @@ impl Hud {
             // Reset the map position when it's not showing
             let drag = &global_state.settings.gameplay.map_drag;
             if drag.x != 0.0 || drag.y != 0.0 {
-                events.push(Event::MapDrag(drag - drag))
+                events.push(Event::MapDrag(Vec2::zero()))
             }
         }
 

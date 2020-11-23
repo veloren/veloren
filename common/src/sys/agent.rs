@@ -223,24 +223,18 @@ impl<'a> System<'a> for Sys {
                 match &mut agent.activity {
                     Activity::Idle { bearing, chaser } => {
                         if let Some(travel_to) = agent.rtsim_controller.travel_to {
-                            if let Some((bearing, speed)) = chaser.chase(
-                                &*terrain,
-                                pos.0,
-                                vel.0,
-                                travel_to,
-                                TraversalConfig {
+                            if let Some((bearing, speed)) =
+                                chaser.chase(&*terrain, pos.0, vel.0, travel_to, TraversalConfig {
                                     min_tgt_dist: 1.25,
                                     ..traversal_config
-                                },
-                            ) {
-                                inputs.move_dir = bearing
-                                    .xy()
-                                    .try_normalized()
-                                    .unwrap_or(Vec2::zero())
-                                    * speed.min(agent.rtsim_controller.speed_factor);
+                                })
+                            {
+                                inputs.move_dir =
+                                    bearing.xy().try_normalized().unwrap_or(Vec2::zero())
+                                        * speed.min(agent.rtsim_controller.speed_factor);
                                 inputs.jump.set_state(bearing.z > 1.5);
                                 inputs.climb = Some(comp::Climb::Up);
-                                    //.filter(|_| bearing.z > 0.1 || physics_state.in_liquid.is_some());
+                                //.filter(|_| bearing.z > 0.1 || physics_state.in_liquid.is_some());
                                 inputs.move_z = bearing.z + 0.05;
                             }
                         } else {

@@ -9,8 +9,8 @@ use super::SpawnRules;
 use crate::{
     column::ColumnSample,
     sim::WorldSim,
-    util::{RandomField, Sampler, StructureGen2d},
     site::namegen::NameGen,
+    util::{RandomField, Sampler, StructureGen2d},
     IndexRef,
 };
 use common::{
@@ -188,9 +188,7 @@ impl Settlement {
         this
     }
 
-    pub fn name(&self) -> &str {
-        &self.name
-    }
+    pub fn name(&self) -> &str { &self.name }
 
     pub fn get_origin(&self) -> Vec2<i32> { self.origin }
 
@@ -921,14 +919,16 @@ impl Settlement {
                         .do_if(is_dummy, |e| e.with_name("Training Dummy"))
                         .do_if(is_human && dynamic_rng.gen(), |entity| {
                             match dynamic_rng.gen_range(0, 5) {
-                            0 => entity.with_main_tool(Item::new_from_asset_expect(
-                                "common.items.weapons.sword.greatsword_2h_simple-0",
-                            ))
-                            .with_name("Guard")
-                            .with_level(dynamic_rng.gen_range(10, 15))
-                            .with_config(common::loadout_builder::LoadoutConfig::Guard),
-                            _ => entity.with_main_tool(Item::new_from_asset_expect(
-                                match dynamic_rng.gen_range(0, 7) {
+                                0 => entity
+                                    .with_main_tool(Item::new_from_asset_expect(
+                                        "common.items.weapons.sword.greatsword_2h_simple-0",
+                                    ))
+                                    .with_name("Guard")
+                                    .with_level(dynamic_rng.gen_range(10, 15))
+                                    .with_config(common::loadout_builder::LoadoutConfig::Guard),
+                                _ => entity
+                                    .with_main_tool(Item::new_from_asset_expect(
+                                        match dynamic_rng.gen_range(0, 7) {
                                     0 => "common.items.npc_weapons.tool.broom",
                                     1 => "common.items.npc_weapons.tool.hoe",
                                     2 => "common.items.npc_weapons.tool.pickaxe",
@@ -938,9 +938,9 @@ impl Settlement {
                                     _ => "common.items.npc_weapons.tool.shovel-1",
                                     //_ => "common.items.npc_weapons.bow.starter_bow", TODO: Re-Add this when we have a better way of distributing npc_weapons here
                                 },
-                            ))
-                            .with_config(common::loadout_builder::LoadoutConfig::Villager)
-                        }
+                                    ))
+                                    .with_config(common::loadout_builder::LoadoutConfig::Villager),
+                            }
                         });
 
                     supplement.add_entity(entity);

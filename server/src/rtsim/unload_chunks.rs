@@ -4,10 +4,11 @@ use common::{
     event::{EventBus, ServerEvent},
     terrain::TerrainGrid,
 };
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, Write, WriteExpect};
+use specs::{Entities, Read, ReadExpect, ReadStorage, System, WriteExpect};
 
 pub struct Sys;
 impl<'a> System<'a> for Sys {
+    #[allow(clippy::type_complexity)]
     type SystemData = (
         Read<'a, EventBus<ServerEvent>>,
         WriteExpect<'a, RtSim>,
@@ -20,17 +21,17 @@ impl<'a> System<'a> for Sys {
     fn run(
         &mut self,
         (
-            server_event_bus,
+            _server_event_bus,
             mut rtsim,
-            terrain_grid,
-            entities,
-            rtsim_entities,
-            positions,
+            _terrain_grid,
+            _entities,
+            _rtsim_entities,
+            _positions,
         ): Self::SystemData,
     ) {
         let chunks = std::mem::take(&mut rtsim.chunks.chunks_to_unload);
 
-        for chunk in chunks {
+        for _chunk in chunks {
             // TODO
         }
     }

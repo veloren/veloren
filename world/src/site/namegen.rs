@@ -17,13 +17,14 @@ impl<'a, R: Rng> NameGen<'a, R> {
 
     pub fn generate(self) -> String {
         let cons = vec![
-            "d", "f", "ph", "r", "st", "t", "s", "p", "sh", "th", "br", "tr", "m", "k", "st", "w", "y",
-            "cr", "fr", "dr", "pl", "wr", "sn", "g", "qu", "l",
+            "d", "f", "ph", "r", "st", "t", "s", "p", "sh", "th", "br", "tr", "m", "k", "st", "w",
+            "y", "cr", "fr", "dr", "pl", "wr", "sn", "g", "qu", "l",
         ];
         let mut start = cons.clone();
         start.extend(vec![
-            "cr", "thr", "str", "br", "iv", "est", "ost", "ing", "kr", "in", "on", "tr", "tw", "wh",
-            "eld", "ar", "or", "ear", "irr", "mi", "en", "ed", "et", "ow", "fr", "shr", "wr", "gr", "pr",
+            "cr", "thr", "str", "br", "iv", "est", "ost", "ing", "kr", "in", "on", "tr", "tw",
+            "wh", "eld", "ar", "or", "ear", "irr", "mi", "en", "ed", "et", "ow", "fr", "shr", "wr",
+            "gr", "pr",
         ]);
         let mut middle = cons.clone();
         middle.extend(vec!["tt"]);
@@ -43,14 +44,9 @@ impl<'a, R: Rng> NameGen<'a, R> {
         }
         name += end.choose(self.rng).unwrap();
 
-        name
-            .chars()
+        name.chars()
             .enumerate()
-            .map(|(i, c)| if i == 0 {
-                c.to_ascii_uppercase()
-            } else {
-                c
-            })
+            .map(|(i, c)| if i == 0 { c.to_ascii_uppercase() } else { c })
             .collect()
     }
 }

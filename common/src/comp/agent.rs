@@ -1,8 +1,8 @@
 use crate::{
     comp::{humanoid, quadruped_low, quadruped_medium, quadruped_small, Body},
     path::Chaser,
-    sync::Uid,
     rtsim::RtSimController,
+    sync::Uid,
 };
 use specs::{Component, Entity as EcsEntity};
 use specs_idvs::IdvStorage;

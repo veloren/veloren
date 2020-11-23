@@ -3,11 +3,11 @@ use crate::{
     column::ColumnSample,
     sim::WorldSim,
     site::{
+        namegen::NameGen,
         settlement::building::{
             archetype::keep::{Attr, FlagColor, Keep as KeepArchetype, StoneColor},
             Archetype, Ori,
         },
-        namegen::NameGen,
     },
     IndexRef,
 };
@@ -156,9 +156,7 @@ impl Castle {
         this
     }
 
-    pub fn name(&self) -> &str {
-        &self.name
-    }
+    pub fn name(&self) -> &str { &self.name }
 
     pub fn contains_point(&self, wpos: Vec2<i32>) -> bool {
         let lpos = wpos - self.origin;

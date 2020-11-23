@@ -489,15 +489,11 @@ impl<'a> Widget for Map<'a> {
             {
                 continue;
             }
-            let title =
-                site.name
-                    .as_ref()
-                    .map(|s| s.as_str())
-                    .unwrap_or_else(|| match &site.kind {
-                        SiteKind::Town => i18n.get("hud.map.town"),
-                        SiteKind::Dungeon { .. } => i18n.get("hud.map.dungeon"),
-                        SiteKind::Castle => i18n.get("hud.map.castle"),
-                    });
+            let title = site.name.as_deref().unwrap_or_else(|| match &site.kind {
+                SiteKind::Town => i18n.get("hud.map.town"),
+                SiteKind::Dungeon { .. } => i18n.get("hud.map.dungeon"),
+                SiteKind::Castle => i18n.get("hud.map.castle"),
+            });
             let (difficulty, desc) = match &site.kind {
                 SiteKind::Town => (0, i18n.get("hud.map.town").to_string()),
                 SiteKind::Dungeon { difficulty } => (
@@ -656,10 +652,9 @@ impl<'a> Widget for Map<'a> {
             Vec2::new(32.0, 37.0) * scale
         };
         // Hide if icon could go off of the edge of the map
+        let arrow_mag = arrow_sz.map(|e| e as f32 / 2.0).magnitude();
         if !rpos
-            .map2(map_size, |e, sz| {
-                e.abs() + arrow_sz.map(|e| e as f32 / 2.0).magnitude() > sz as f32 / 2.0
-            })
+            .map2(map_size, |e, sz| e.abs() + arrow_mag > sz as f32 / 2.0)
             .reduce_or()
         {
             Image::new(self.rot_imgs.indicator_mmap_small.target_north)

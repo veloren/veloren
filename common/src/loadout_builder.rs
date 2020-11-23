@@ -88,7 +88,7 @@ impl LoadoutBuilder {
     #[allow(clippy::single_match)]
     pub fn build_loadout(
         body: Body,
-        alignment: Alignment,
+        _alignment: Alignment,
         mut main_tool: Option<Item>,
         is_giant: bool,
         map: &AbilityMap,
@@ -410,13 +410,11 @@ impl LoadoutBuilder {
                     back: None,
                     ring: None,
                     neck: None,
-                    lantern: Some(Item::new_from_asset_expect(
-                        "common.items.lantern.black_0",
-                    )),
+                    lantern: Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
                     glider: None,
                     head: None,
                     tabard: None,
-                }
+                },
             }
         } else {
             match body {

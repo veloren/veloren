@@ -12,8 +12,9 @@ use crate::{
     },
     scene::{
         camera::{Camera, CameraMode, Dependents},
-        math, LodData, SceneData,
+        math,
         terrain::Terrain,
+        LodData, SceneData,
     },
 };
 use anim::{
@@ -3486,7 +3487,8 @@ impl<S: Skeleton> FigureState<S> {
             })
             .unwrap_or((1.0, 0.0));
         // Fade between light and glow levels
-        // TODO: Making this temporal rather than spatial is a bit dumb but it's a very subtle difference
+        // TODO: Making this temporal rather than spatial is a bit dumb but it's a very
+        // subtle difference
         self.last_light = vek::Lerp::lerp(self.last_light, light, 16.0 * dt);
         self.last_glow = vek::Lerp::lerp(self.last_glow, glow, 16.0 * dt);
 

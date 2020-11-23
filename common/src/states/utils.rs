@@ -5,7 +5,10 @@ use crate::{
     },
     event::LocalEvent,
     states::*,
-    sys::{character_behavior::JoinData, phys::{GRAVITY, FRIC_GROUND}},
+    sys::{
+        character_behavior::JoinData,
+        phys::{FRIC_GROUND, GRAVITY},
+    },
     util::Dir,
 };
 use serde::{Deserialize, Serialize};
@@ -95,6 +98,7 @@ impl Body {
         }
     }
 
+    #[allow(clippy::match_like_matches_macro)]
     pub fn can_climb(&self) -> bool {
         match self {
             Body::Humanoid(_) => true,
