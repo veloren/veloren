@@ -1,7 +1,7 @@
 DashMelee(
     energy_cost: 0,
     base_damage: 150,
-    max_damage: 150,
+    max_damage: 190,
     base_knockback: 8.0,
     max_knockback: 25.0,
     range: 4.0,
@@ -13,5 +13,5 @@ DashMelee(
     swing_duration: 100,
     recover_duration: 1100,
     infinite_charge: true,
-    is_interruptible: true,
+    is_interruptible: false,
 )

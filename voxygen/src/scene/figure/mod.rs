@@ -1439,8 +1439,8 @@ impl FigureMgr {
                                 },
                                 _ => 0.0,
                             };
-                            match s.stage {
-                                _ => anim::quadruped_small::AlphaAnimation::update_skeleton(
+                            {
+                                anim::quadruped_small::AlphaAnimation::update_skeleton(
                                     &target_base,
                                     (
                                         vel.0.magnitude(),
@@ -1451,7 +1451,7 @@ impl FigureMgr {
                                     stage_progress,
                                     &mut state_animation_rate,
                                     skeleton_attr,
-                                ),
+                                )
                             }
                         },
                         CharacterState::Sit { .. } => {

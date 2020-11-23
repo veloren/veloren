@@ -212,7 +212,7 @@ pub fn handle_forced_movement(
                 // Multiply decreasing amount linearly over time (with average of 1)
                 * 2.0 * progress
                 // Apply inputted movement directions with some efficiency
-                + (data.inputs.look_dir.try_normalized().unwrap_or_default()/* + update.vel.0.xy()*/)
+                + (data.inputs.look_dir.try_normalized().unwrap_or_default())
                 .try_normalized()
                 .unwrap_or_default()
                 // Multiply by forward leap strength
