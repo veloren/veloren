@@ -524,7 +524,7 @@ impl Server {
                 &self.state.ecs().entities(),
                 &self.state.ecs().read_storage::<comp::Pos>(),
                 !&self.state.ecs().read_storage::<comp::Player>(),
-                &self.state.ecs().read_storage::<comp::HomeChunk>(),
+                self.state.ecs().read_storage::<comp::HomeChunk>().maybe(),
             )
                 .join()
                 .filter(|(_, pos, _, home_chunk)| {
@@ -532,7 +532,8 @@ impl Server {
                     // Check if both this chunk and the NPCs `home_chunk` is unloaded. If so,
                     // we delete them. We check for `home_chunk` in order to avoid duplicating
                     // the entity under some circumstances.
-                    terrain.get_key(chunk_key).is_none() && terrain.get_key(home_chunk.0).is_none()
+                    terrain.get_key(chunk_key).is_none()
+                        && home_chunk.map_or(true, |hc| terrain.get_key(hc.0).is_none())
                 })
                 .map(|(entity, _, _, _)| entity)
                 .collect::<Vec<_>>()
