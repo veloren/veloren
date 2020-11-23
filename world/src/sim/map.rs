@@ -71,7 +71,7 @@ pub fn sample_wpos(config: &MapConfig, sampler: &WorldSim, wpos: Vec2<i32>) -> f
 pub fn sample_pos(
     config: &MapConfig,
     sampler: &WorldSim,
-    index: IndexRef,
+    _index: IndexRef,
     samples: Option<&[Option<ColumnSample>]>,
     pos: Vec2<i32>,
 ) -> MapSample {
