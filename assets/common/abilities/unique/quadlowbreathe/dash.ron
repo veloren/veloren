@@ -13,5 +13,5 @@ DashMelee(
     swing_duration: 100,
     recover_duration: 800,
     infinite_charge: true,
-    is_interruptible: true,
+    is_interruptible: false,
 )

@@ -25,13 +25,20 @@ impl Animation for DashAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let (movement1base, chargemovementbase, movement2base, movement3) = match stage_section {
-            Some(StageSection::Buildup) => ((anim_time as f32).powf(0.5), 0.0, 0.0, 0.0),
-            Some(StageSection::Charge) => (1.0, 1.0, 0.0, 0.0),
-            Some(StageSection::Swing) => (1.0, 1.0, (anim_time as f32).powf(4.0), 0.0),
-            Some(StageSection::Recover) => (1.0, 1.0, 1.0, anim_time as f32),
-            _ => (0.0, 0.0, 0.0, 0.0),
-        };
+        let (movement1base, chargemovementbase, movement2base, movement3, legtell) =
+            match stage_section {
+                Some(StageSection::Buildup) => (
+                    (anim_time as f32).powf(0.5),
+                    0.0,
+                    0.0,
+                    0.0,
+                    (anim_time as f32),
+                ),
+                Some(StageSection::Charge) => (1.0, 1.0, 0.0, 0.0, 0.0),
+                Some(StageSection::Swing) => (1.0, 1.0, (anim_time as f32).powf(4.0), 0.0, 1.0),
+                Some(StageSection::Recover) => (1.0, 1.0, 1.0, anim_time as f32, 1.0),
+                _ => (0.0, 0.0, 0.0, 0.0, 0.0),
+            };
         let pullback = 1.0 - movement3;
         let subtract = global_time - timer;
         let check = subtract - subtract.trunc();
@@ -43,6 +50,8 @@ impl Animation for DashAnimation {
         //let movement2 = mirror * movement2base * pullback;
         let movement1abs = movement1base * pullback;
         let movement2abs = movement2base * pullback;
+        let legtwitch = (legtell * 6.0).sin() * pullback;
+        let legswing = legtell * pullback;
         let short = (((1.0)
             / (0.72
                 + 0.28 * ((anim_time as f32 * 16.0 as f32 + PI * 0.25).sin()).powf(2.0 as f32)))
@@ -71,35 +80,43 @@ impl Animation for DashAnimation {
         next.tail.orientation = Quaternion::rotation_x(
             0.15 + movement1abs * -0.4 + movement2abs * 0.2 + chargemovementbase * 0.2,
         ) * Quaternion::rotation_z(shortalt * 0.15);
-        if let Some(stage_section) = stage_section {
-            match stage_section {
-                StageSection::Buildup => {
-        if mirror == 1.0 {
-                next.leg_fl.orientation = Quaternion::rotation_x(movement1abs * 0.8);
+        if legtell > 0.0 {
+            if mirror.is_sign_positive() {
+                next.leg_fl.orientation = Quaternion::rotation_x(legswing * 1.1);
 
                 next.foot_fl.orientation =
-                    Quaternion::rotation_x(movement1abs * -0.8 + twitch1 * 0.5);
-                next.leg_bl.orientation = Quaternion::rotation_x(movement1abs * 0.8);
+                    Quaternion::rotation_x(legswing * -1.1 + legtwitch * 0.5);
+                next.leg_bl.orientation = Quaternion::rotation_x(legswing * 1.1);
 
                 next.foot_bl.orientation =
-                    Quaternion::rotation_x(movement1abs * -0.8 + twitch1 * 0.5);
+                    Quaternion::rotation_x(legswing * -1.1 + legtwitch * 0.5);
+
+                next.leg_fr.orientation = Quaternion::rotation_x(0.0);
+
+                next.foot_fr.orientation = Quaternion::rotation_x(0.0);
+
+                next.leg_br.orientation = Quaternion::rotation_x(0.0);
+
+                next.foot_br.orientation = Quaternion::rotation_x(0.0);
             } else {
-                next.leg_fr.orientation = Quaternion::rotation_x(movement1abs * 0.8);
+                next.leg_fl.orientation = Quaternion::rotation_x(0.0);
+
+                next.foot_fl.orientation = Quaternion::rotation_x(0.0);
+                next.leg_bl.orientation = Quaternion::rotation_x(0.0);
+
+                next.foot_bl.orientation = Quaternion::rotation_x(0.0);
+
+                next.leg_fr.orientation = Quaternion::rotation_x(legswing * 1.1);
 
                 next.foot_fr.orientation =
-                    Quaternion::rotation_x(movement1abs * -0.8 + twitch1 * 0.5);
+                    Quaternion::rotation_x(legswing * -1.1 + legtwitch * 0.5);
 
-                next.leg_br.orientation = Quaternion::rotation_x(movement1abs * 0.8);
+                next.leg_br.orientation = Quaternion::rotation_x(legswing * 1.1);
 
                 next.foot_br.orientation =
-                    Quaternion::rotation_x(movement1abs * -0.8 + twitch1 * 0.5);
+                    Quaternion::rotation_x(legswing * -1.1 + legtwitch * 0.5);
             }
-        },
-    _ => {},
-
-    }
-        }
-
+        };
         next
     }
 }

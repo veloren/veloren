@@ -168,12 +168,10 @@ impl LoadoutBuilder {
                         ));
                     },
                 },
-                Body::QuadrupedSmall(quadruped_small) => match quadruped_small.species {
-                    _ => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.quadsmallbasic",
-                        ));
-                    },
+                Body::QuadrupedSmall(_) => {
+                    main_tool = Some(Item::new_from_asset_expect(
+                        "common.items.npc_weapons.unique.quadsmallbasic",
+                    ));
                 },
                 Body::Theropod(theropod) => match theropod.species {
                     theropod::Species::Sandraptor
