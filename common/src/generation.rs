@@ -1,5 +1,6 @@
 use crate::{
     comp::{self, humanoid, Alignment, Body, Item},
+    loadout_builder::LoadoutConfig,
     npc::{self, NPC_NAMES},
 };
 use vek::*;
@@ -22,6 +23,8 @@ pub struct EntityInfo {
     pub scale: f32,
     pub level: Option<u32>,
     pub loot_drop: Option<Item>,
+    pub config: Option<LoadoutConfig>,
+    pub pet: Option<Box<EntityInfo>>,
 }
 
 impl EntityInfo {
@@ -39,6 +42,8 @@ impl EntityInfo {
             scale: 1.0,
             level: None,
             loot_drop: None,
+            config: None,
+            pet: None,
         }
     }
 
@@ -101,6 +106,11 @@ impl EntityInfo {
 
     pub fn with_level(mut self, level: u32) -> Self {
         self.level = Some(level);
+        self
+    }
+
+    pub fn with_config(mut self, config: LoadoutConfig) -> Self {
+        self.config = Some(config);
         self
     }
 

@@ -6,17 +6,21 @@ use common::{
 use rand::prelude::*;
 use vek::*;
 
+#[derive(Default)]
 pub struct BlocksOfInterest {
     pub leaves: Vec<Vec3<i32>>,
     pub grass: Vec<Vec3<i32>>,
     pub river: Vec<Vec3<i32>>,
-    pub embers: Vec<Vec3<i32>>,
+    pub fires: Vec<Vec3<i32>>,
+    pub smokers: Vec<Vec3<i32>>,
     pub beehives: Vec<Vec3<i32>>,
     pub reeds: Vec<Vec3<i32>>,
     pub flowers: Vec<Vec3<i32>>,
+    pub fire_bowls: Vec<Vec3<i32>>,
     // Note: these are only needed for chunks within the iteraction range so this is a potential
     // area for optimization
     pub interactables: Vec<Vec3<i32>>,
+    pub lights: Vec<(Vec3<i32>, u8)>,
 }
 
 impl BlocksOfInterest {
@@ -25,11 +29,14 @@ impl BlocksOfInterest {
         let mut leaves = Vec::new();
         let mut grass = Vec::new();
         let mut river = Vec::new();
-        let mut embers = Vec::new();
+        let mut fires = Vec::new();
+        let mut smokers = Vec::new();
         let mut beehives = Vec::new();
         let mut reeds = Vec::new();
         let mut flowers = Vec::new();
         let mut interactables = Vec::new();
+        let mut lights = Vec::new();
+        let mut fire_bowls = Vec::new();
 
         chunk
             .vol_iter(
@@ -58,7 +65,17 @@ impl BlocksOfInterest {
                         }
                     },
                     _ => match block.get_sprite() {
-                        Some(SpriteKind::Ember) => embers.push(pos),
+                        Some(SpriteKind::Ember) => {
+                            fires.push(pos);
+                            smokers.push(pos);
+                        },
+                        // Offset positions to account for block height.
+                        // TODO: Is this a good idea?
+                        Some(SpriteKind::StreetLamp) => fire_bowls.push(pos + Vec3::unit_z() * 2),
+                        Some(SpriteKind::FireBowlGround) => fire_bowls.push(pos + Vec3::unit_z()),
+                        Some(SpriteKind::StreetLampTall) => {
+                            fire_bowls.push(pos + Vec3::unit_z() * 4)
+                        },
                         Some(SpriteKind::Beehive) => beehives.push(pos),
                         Some(SpriteKind::Reed) => reeds.push(pos),
                         Some(SpriteKind::PinkFlower) => flowers.push(pos),
@@ -73,17 +90,23 @@ impl BlocksOfInterest {
                 if block.is_collectible() {
                     interactables.push(pos);
                 }
+                if let Some(glow) = block.get_glow() {
+                    lights.push((pos, glow));
+                }
             });
 
         Self {
             leaves,
             grass,
             river,
-            embers,
+            fires,
+            smokers,
             beehives,
             reeds,
             flowers,
             interactables,
+            lights,
+            fire_bowls,
         }
     }
 }

@@ -31,7 +31,7 @@
         "Kimono": (
             vox_spec: ("armor.pants.cloth_red_kimono", (-5.0, -3.5, 0.0)),
             color: None
-        ),    
+        ),
         "PlateGreen0": (
             vox_spec: ("armor.pants.plate_green-0", (-5.0, -3.5, 1.0)),
             color: None
@@ -67,7 +67,7 @@
         "CultistPurple": (
             vox_spec: ("armor.pants.cultist", (-5.0, -3.5, 1.0)),
             color: Some((30, 0, 64))
-        ),        
+        ),
         "Steel0": (
             vox_spec: ("armor.pants.steel-0", (-6.0, -4.5, 1.0)),
             color: None
@@ -101,8 +101,20 @@
             color: None
         ),
         "VeloriteMage0": (
-          vox_spec: ("armor.pants.velorite_battlemage", (-6.0, -3.5, -2.0)),
-          color: None
-      ),
+            vox_spec: ("armor.pants.velorite_battlemage", (-6.0, -3.5, -2.0)),
+            color: None
+        ),
+        "LeatherBlue0": (
+            vox_spec: ("armor.pants.leather_blue-0", (-5.0, -3.5, 1.0)),
+            color: None
+        ),
+        "Warlord": (
+            vox_spec: ("armor.pants.warlord", (-6.0, -4.5, -2.0)),
+            color: None
+        ),
+        "Warlock": (
+            vox_spec: ("armor.pants.warlock", (-5.0, -4.0, -2.0)),
+            color: None
+        ),
     },
 ))

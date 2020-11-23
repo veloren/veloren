@@ -5,7 +5,10 @@ use crate::{
     },
     event::LocalEvent,
     states::*,
-    sys::{character_behavior::JoinData, phys::GRAVITY},
+    sys::{
+        character_behavior::JoinData,
+        phys::{FRIC_GROUND, GRAVITY},
+    },
     util::Dir,
 };
 use serde::{Deserialize, Serialize};
@@ -49,6 +52,25 @@ impl Body {
         }
     }
 
+    /// Attempt to determine the maximum speed of the character
+    /// when moving on the ground
+    pub fn max_speed_approx(&self) -> f32 {
+        // Inverse kinematics: at what velocity will acceleration
+        // be cancelled out by friction drag?
+        // Note: we assume no air (this is fine, current physics
+        // uses max(air_drag, ground_drag)).
+        // Derived via...
+        // v = (v + dv / 30) * (1 - drag).powf(2) (accel cancels drag)
+        // => 1 = (1 + (dv / 30) / v) * (1 - drag).powf(2)
+        // => 1 / (1 - drag).powf(2) = 1 + (dv / 30) / v
+        // => 1 / (1 - drag).powf(2) - 1 = (dv / 30) / v
+        // => 1 / (1 / (1 - drag).powf(2) - 1) = v / (dv / 30)
+        // => (dv / 30) / (1 / (1 - drag).powf(2) - 1) = v
+        let v = (-self.base_accel() / 30.0) / ((1.0 - FRIC_GROUND).powf(2.0) - 1.0);
+        debug_assert!(v >= 0.0, "Speed must be positive!");
+        v
+    }
+
     pub fn base_ori_rate(&self) -> f32 {
         match self {
             Body::Humanoid(_) => 20.0,
@@ -72,6 +94,14 @@ impl Body {
             Body::BirdMedium(_) => true,
             Body::Dragon(_) => true,
             Body::BirdSmall(_) => true,
+            _ => false,
+        }
+    }
+
+    #[allow(clippy::match_like_matches_macro)]
+    pub fn can_climb(&self) -> bool {
+        match self {
+            Body::Humanoid(_) => true,
             _ => false,
         }
     }
@@ -265,7 +295,7 @@ pub fn handle_climb(data: &JoinData, update: &mut StateUpdate) {
             .map(|depth| depth > 1.0)
             .unwrap_or(false)
         //&& update.vel.0.z < 0.0
-        && data.body.is_humanoid()
+        && data.body.can_climb()
         && update.energy.current() > 100
     {
         update.character = CharacterState::Climb;

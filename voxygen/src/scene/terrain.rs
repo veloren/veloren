@@ -36,11 +36,23 @@ use vek::*;
 
 const SPRITE_SCALE: Vec3<f32> = Vec3::new(1.0 / 11.0, 1.0 / 11.0, 1.0 / 11.0);
 
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-enum Visibility {
-    OutOfRange = 0,
-    InRange = 1,
-    Visible = 2,
+#[derive(Clone, Copy, Debug)]
+struct Visibility {
+    in_range: bool,
+    in_frustum: bool,
+}
+
+impl Visibility {
+    /// Should the chunk actually get rendered?
+    fn is_visible(&self) -> bool {
+        // Currently, we don't take into account in_range to allow all chunks to do
+        // pop-in. This isn't really a problem because we no longer have VD mist
+        // or anything like that. Also, we don't load chunks outside of the VD
+        // anyway so this literally just controls which chunks get actually
+        // rendered.
+        /* self.in_range && */
+        self.in_frustum
+    }
 }
 
 pub struct TerrainChunkData {
@@ -49,6 +61,8 @@ pub struct TerrainChunkData {
     opaque_model: Model<TerrainPipeline>,
     fluid_model: Option<Model<FluidPipeline>>,
     col_lights: guillotiere::AllocId,
+    light_map: Box<dyn Fn(Vec3<i32>) -> f32 + Send + Sync>,
+    glow_map: Box<dyn Fn(Vec3<i32>) -> f32 + Send + Sync>,
     sprite_instances: HashMap<(SpriteKind, usize), Instances<SpriteInstance>>,
     locals: Consts<TerrainLocals>,
     pub blocks_of_interest: BlocksOfInterest,
@@ -75,6 +89,8 @@ struct MeshWorkerResponse {
     opaque_mesh: Mesh<TerrainPipeline>,
     fluid_mesh: Mesh<FluidPipeline>,
     col_lights_info: ColLightInfo,
+    light_map: Box<dyn Fn(Vec3<i32>) -> f32 + Send + Sync>,
+    glow_map: Box<dyn Fn(Vec3<i32>) -> f32 + Send + Sync>,
     sprite_instances: HashMap<(SpriteKind, usize), Vec<SpriteInstance>>,
     started_tick: u64,
     blocks_of_interest: BlocksOfInterest,
@@ -114,7 +130,7 @@ type SpriteSpec = sprite::sprite_kind::PureCases<Option<SpriteConfig<String>>>;
 /// Function executed by worker threads dedicated to chunk meshing.
 #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
 
-fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
+fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug + 'static>(
     pos: Vec2<i32>,
     z_bounds: (f32, f32),
     started_tick: u64,
@@ -126,8 +142,13 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
     sprite_config: &SpriteSpec,
 ) -> MeshWorkerResponse {
     span!(_guard, "mesh_worker");
-    let (opaque_mesh, fluid_mesh, _shadow_mesh, (bounds, col_lights_info)) =
-        volume.generate_mesh((range, Vec2::new(max_texture_size, max_texture_size)));
+    let blocks_of_interest = BlocksOfInterest::from_chunk(&chunk);
+    let (opaque_mesh, fluid_mesh, _shadow_mesh, (bounds, col_lights_info, light_map, glow_map)) =
+        volume.generate_mesh((
+            range,
+            Vec2::new(max_texture_size, max_texture_size),
+            &blocks_of_interest,
+        ));
     MeshWorkerResponse {
         pos,
         z_bounds: (bounds.min.z, bounds.max.z),
@@ -177,6 +198,8 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
                                 cfg.wind_sway,
                                 rel_pos,
                                 ori,
+                                light_map(wpos),
+                                glow_map(wpos),
                             );
 
                             instances.entry(key).or_insert(Vec::new()).push(instance);
@@ -187,7 +210,9 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
 
             instances
         },
-        blocks_of_interest: BlocksOfInterest::from_chunk(&chunk),
+        light_map,
+        glow_map,
+        blocks_of_interest,
         started_tick,
     }
 }
@@ -200,7 +225,7 @@ struct SpriteData {
     offset: Vec3<f32>,
 }
 
-pub struct Terrain<V: RectRasterableVol> {
+pub struct Terrain<V: RectRasterableVol = TerrainChunk> {
     atlas: AtlasAllocator,
     sprite_config: Arc<SpriteSpec>,
     chunks: HashMap<Vec2<i32>, TerrainChunkData>,
@@ -236,9 +261,7 @@ pub struct Terrain<V: RectRasterableVol> {
 }
 
 impl TerrainChunkData {
-    pub fn can_shadow_sun(&self) -> bool {
-        self.visible == Visibility::Visible || self.can_shadow_sun
-    }
+    pub fn can_shadow_sun(&self) -> bool { self.visible.is_visible() || self.can_shadow_sun }
 }
 
 impl<V: RectRasterableVol> Terrain<V> {
@@ -291,7 +314,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                                  }| Vec3::new(x, y, z),
                             )
                             .unwrap_or(zero);
-                        let max_model_size = Vec3::new(15.0, 15.0, 63.0);
+                        let max_model_size = Vec3::new(31.0, 31.0, 63.0);
                         let model_scale = max_model_size.map2(model_size, |max_sz: f32, cur_sz| {
                             let scale = max_sz / max_sz.max(cur_sz as f32);
                             if scale < 1.0 && (cur_sz as f32 * scale).ceil() > max_sz {
@@ -449,6 +472,28 @@ impl<V: RectRasterableVol> Terrain<V> {
         if let Some(_todo) = self.mesh_todo.remove(&pos) {
             //Do nothing on todo mesh removal.
         }
+    }
+
+    /// Find the light level (sunlight) at the given world position.
+    pub fn light_at_wpos(&self, wpos: Vec3<i32>) -> f32 {
+        let chunk_pos = Vec2::from(wpos).map2(TerrainChunk::RECT_SIZE, |e: i32, sz| {
+            e.div_euclid(sz as i32)
+        });
+        self.chunks
+            .get(&chunk_pos)
+            .map(|c| (c.light_map)(wpos))
+            .unwrap_or(1.0)
+    }
+
+    /// Find the glow level (light from lamps) at the given world position.
+    pub fn glow_at_wpos(&self, wpos: Vec3<i32>) -> f32 {
+        let chunk_pos = Vec2::from(wpos).map2(TerrainChunk::RECT_SIZE, |e: i32, sz| {
+            e.div_euclid(sz as i32)
+        });
+        self.chunks
+            .get(&chunk_pos)
+            .map(|c| (c.glow_map)(wpos))
+            .unwrap_or(0.0)
     }
 
     /// Maintain terrain data. To be called once per tick.
@@ -721,6 +766,8 @@ impl<V: RectRasterableVol> Terrain<V> {
                             None
                         },
                         col_lights: allocation.id,
+                        light_map: response.light_map,
+                        glow_map: response.glow_map,
                         sprite_instances: response
                             .sprite_instances
                             .into_iter()
@@ -751,7 +798,10 @@ impl<V: RectRasterableVol> Terrain<V> {
                                 load_time,
                             }])
                             .expect("Failed to upload chunk locals to the GPU!"),
-                        visible: Visibility::OutOfRange,
+                        visible: Visibility {
+                            in_range: false,
+                            in_frustum: false,
+                        },
                         can_shadow_point: false,
                         can_shadow_sun: false,
                         blocks_of_interest: response.blocks_of_interest,
@@ -793,10 +843,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             let distance_2 = Vec2::<f32>::from(focus_pos).distance_squared(nearest_in_chunk);
             let in_range = distance_2 < loaded_distance.powf(2.0);
 
-            if !in_range {
-                chunk.visible = Visibility::OutOfRange;
-                continue;
-            }
+            chunk.visible.in_range = in_range;
 
             // Ensure the chunk is within the view frustum
             let chunk_min = [chunk_pos.x, chunk_pos.y, chunk.z_bounds.0];
@@ -810,11 +857,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                 .coherent_test_against_frustum(&frustum, chunk.frustum_last_plane_index);
 
             chunk.frustum_last_plane_index = last_plane_index;
-            chunk.visible = if in_frustum {
-                Visibility::Visible
-            } else {
-                Visibility::InRange
-            };
+            chunk.visible.in_frustum = in_frustum;
             let chunk_box = Aabb {
                 min: Vec3::from(chunk_min),
                 max: Vec3::from(chunk_max),
@@ -910,7 +953,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                 // NOTE: We deliberately avoid doing this computation for chunks we already know
                 // are visible, since by definition they'll always intersect the visible view
                 // frustum.
-                .filter(|chunk| chunk.1.visible <= Visibility::InRange)
+                .filter(|chunk| !chunk.1.visible.in_frustum)
                 .for_each(|(&pos, chunk)| {
                     chunk.can_shadow_sun = can_shadow_sun(pos, chunk);
                 });
@@ -958,7 +1001,7 @@ impl<V: RectRasterableVol> Terrain<V> {
     pub fn visible_chunk_count(&self) -> usize {
         self.chunks
             .iter()
-            .filter(|(_, c)| c.visible == Visibility::Visible)
+            .filter(|(_, c)| c.visible.is_visible())
             .count()
     }
 
@@ -1046,7 +1089,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             .take(self.chunks.len());
 
         for (_, chunk) in chunk_iter {
-            if chunk.visible == Visibility::Visible {
+            if chunk.visible.is_visible() {
                 renderer.render_terrain_chunk(
                     &chunk.opaque_model,
                     &self.col_lights,
@@ -1086,7 +1129,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         let chunk_size = V::RECT_SIZE.map(|e| e as f32);
         let chunk_mag = (chunk_size * (f32::consts::SQRT_2 * 0.5)).magnitude_squared();
         for (pos, chunk) in chunk_iter.clone() {
-            if chunk.visible == Visibility::Visible {
+            if chunk.visible.is_visible() {
                 let sprite_low_detail_distance = sprite_render_distance * 0.75;
                 let sprite_mid_detail_distance = sprite_render_distance * 0.5;
                 let sprite_hid_detail_distance = sprite_render_distance * 0.35;
@@ -1146,7 +1189,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         // Translucent
         chunk_iter
             .clone()
-            .filter(|(_, chunk)| chunk.visible == Visibility::Visible)
+            .filter(|(_, chunk)| chunk.visible.is_visible())
             .filter_map(|(_, chunk)| {
                 chunk
                     .fluid_model

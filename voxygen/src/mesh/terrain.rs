@@ -4,6 +4,7 @@ use crate::{
         MeshGen, Meshable,
     },
     render::{self, ColLightInfo, FluidPipeline, Mesh, ShadowPipeline, TerrainPipeline},
+    scene::terrain::BlocksOfInterest,
 };
 use common::{
     span,
@@ -30,13 +31,16 @@ enum FaceKind {
 }
 
 const SUNLIGHT: u8 = 24;
-const _MAX_LIGHT_DIST: i32 = SUNLIGHT as i32;
+const MAX_LIGHT_DIST: i32 = SUNLIGHT as i32;
 
 fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
+    is_sunlight: bool,
+    // When above bounds
+    default_light: u8,
     bounds: Aabb<i32>,
     vol: &VolGrid2d<V>,
     lit_blocks: impl Iterator<Item = (Vec3<i32>, u8)>,
-) -> impl FnMut(Vec3<i32>) -> f32 + '_ {
+) -> impl Fn(Vec3<i32>) -> f32 + 'static + Send + Sync {
     span!(_guard, "calc_light");
     const UNKNOWN: u8 = 255;
     const OPAQUE: u8 = 254;
@@ -51,38 +55,40 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     let mut light_map = vec![UNKNOWN; outer.size().product() as usize];
     let lm_idx = {
         let (w, h, _) = outer.clone().size().into_tuple();
-        move |x, y, z| (z * h * w + x * h + y) as usize
+        move |x, y, z| (w * h * z + h * x + y) as usize
     };
     // Light propagation queue
     let mut prop_que = lit_blocks
         .map(|(pos, light)| {
             let rpos = pos - outer.min;
-            light_map[lm_idx(rpos.x, rpos.y, rpos.z)] = light;
+            light_map[lm_idx(rpos.x, rpos.y, rpos.z)] = light.min(SUNLIGHT); // Brightest light
             (rpos.x as u8, rpos.y as u8, rpos.z as u16)
         })
         .collect::<VecDeque<_>>();
     // Start sun rays
-    for x in 0..outer.size().w {
-        for y in 0..outer.size().h {
-            let z = outer.size().d - 1;
-            let is_air = vol_cached
-                .get(outer.min + Vec3::new(x, y, z))
-                .ok()
-                .map_or(false, |b| b.is_air());
-
-            light_map[lm_idx(x, y, z)] = if is_air {
-                if vol_cached
-                    .get(outer.min + Vec3::new(x, y, z - 1))
+    if is_sunlight {
+        for x in 0..outer.size().w {
+            for y in 0..outer.size().h {
+                let z = outer.size().d - 1;
+                let is_air = vol_cached
+                    .get(outer.min + Vec3::new(x, y, z))
                     .ok()
-                    .map_or(false, |b| b.is_air())
-                {
-                    light_map[lm_idx(x, y, z - 1)] = SUNLIGHT;
-                    prop_que.push_back((x as u8, y as u8, z as u16));
-                }
-                SUNLIGHT
-            } else {
-                OPAQUE
-            };
+                    .map_or(false, |b| b.is_air());
+
+                light_map[lm_idx(x, y, z)] = if is_air {
+                    if vol_cached
+                        .get(outer.min + Vec3::new(x, y, z - 1))
+                        .ok()
+                        .map_or(false, |b| b.is_air())
+                    {
+                        light_map[lm_idx(x, y, z - 1)] = SUNLIGHT;
+                        prop_que.push_back((x as u8, y as u8, z as u16));
+                    }
+                    SUNLIGHT
+                } else {
+                    OPAQUE
+                };
+            }
         }
     }
 
@@ -123,7 +129,7 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
         let light = light_map[lm_idx(pos.x, pos.y, pos.z)];
 
         // If ray propagate downwards at full strength
-        if light == SUNLIGHT {
+        if is_sunlight && light == SUNLIGHT {
             // Down is special cased and we know up is a ray
             // Special cased ray propagation
             let pos = Vec3::new(pos.x, pos.y, pos.z - 1);
@@ -202,23 +208,57 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
         }
     }
 
+    let min_bounds = Aabb {
+        min: bounds.min - 1,
+        max: bounds.max + 1,
+    };
+
+    // Minimise light map to reduce duplication. We can now discard light info
+    // for blocks outside of the chunk borders.
+    let mut light_map2 = vec![UNKNOWN; min_bounds.size().product() as usize];
+    let lm_idx2 = {
+        let (w, h, _) = min_bounds.clone().size().into_tuple();
+        move |x, y, z| (w * h * z + h * x + y) as usize
+    };
+    for x in 0..min_bounds.size().w {
+        for y in 0..min_bounds.size().h {
+            for z in 0..min_bounds.size().d {
+                let off = min_bounds.min - outer.min;
+                light_map2[lm_idx2(x, y, z)] = light_map[lm_idx(x + off.x, y + off.y, z + off.z)];
+            }
+        }
+    }
+
+    drop(light_map);
+
     move |wpos| {
-        let pos = wpos - outer.min;
-        light_map
-            .get(lm_idx(pos.x, pos.y, pos.z))
-            .filter(|l| **l != OPAQUE && **l != UNKNOWN)
-            .map(|l| *l as f32 / SUNLIGHT as f32)
-            .unwrap_or(0.0)
+        let pos = wpos - min_bounds.min;
+        let l = light_map2
+            .get(lm_idx2(pos.x, pos.y, pos.z))
+            .copied()
+            .unwrap_or(default_light);
+
+        if l != OPAQUE && l != UNKNOWN {
+            l as f32 / SUNLIGHT as f32
+        } else {
+            0.0
+        }
     }
 }
 
-impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
+impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug + 'static>
     Meshable<TerrainPipeline, FluidPipeline> for &'a VolGrid2d<V>
 {
     type Pipeline = TerrainPipeline;
-    type Result = (Aabb<f32>, ColLightInfo);
+    #[allow(clippy::type_complexity)]
+    type Result = (
+        Aabb<f32>,
+        ColLightInfo,
+        Box<dyn Fn(Vec3<i32>) -> f32 + Send + Sync>,
+        Box<dyn Fn(Vec3<i32>) -> f32 + Send + Sync>,
+    );
     type ShadowPipeline = ShadowPipeline;
-    type Supplement = (Aabb<i32>, Vec2<u16>);
+    type Supplement = (Aabb<i32>, Vec2<u16>, &'a BlocksOfInterest);
     type TranslucentPipeline = FluidPipeline;
 
     #[allow(clippy::collapsible_if)]
@@ -229,21 +269,42 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
 
     fn generate_mesh(
         self,
-        (range, max_texture_size): Self::Supplement,
+        (range, max_texture_size, _boi): Self::Supplement,
     ) -> MeshGen<TerrainPipeline, FluidPipeline, Self> {
         span!(
             _guard,
             "generate_mesh",
             "<&VolGrid2d as Meshable<_, _>>::generate_mesh"
         );
+
         // Find blocks that should glow
-        // FIXME: Replace with real lit blocks when we actually have blocks that glow.
-        let lit_blocks = core::iter::empty();
+        // TODO: Search neighbouring chunks too!
+        // let glow_blocks = boi.lights
+        //     .iter()
+        //     .map(|(pos, glow)| (*pos + range.min.xy(), *glow));
         /*  DefaultVolIterator::new(self, range.min - MAX_LIGHT_DIST, range.max + MAX_LIGHT_DIST)
         .filter_map(|(pos, block)| block.get_glow().map(|glow| (pos, glow))); */
 
-        // Calculate chunk lighting
-        let mut light = calc_light(range, self, lit_blocks);
+        let mut glow_blocks = Vec::new();
+
+        // TODO: This expensive, use BlocksOfInterest instead
+        let mut volume = self.cached();
+        for x in -MAX_LIGHT_DIST..range.size().w + MAX_LIGHT_DIST {
+            for y in -MAX_LIGHT_DIST..range.size().h + MAX_LIGHT_DIST {
+                for z in -1..range.size().d + 1 {
+                    let wpos = range.min + Vec3::new(x, y, z);
+                    volume
+                        .get(wpos)
+                        .ok()
+                        .and_then(|b| b.get_glow())
+                        .map(|glow| glow_blocks.push((wpos, glow)));
+                }
+            }
+        }
+
+        // Calculate chunk lighting (sunlight defaults to 1.0, glow to 0.0)
+        let light = calc_light(true, SUNLIGHT, range, self, core::iter::empty());
+        let glow = calc_light(false, 0, range, self, glow_blocks.into_iter());
 
         let mut opaque_limits = None::<Limits>;
         let mut fluid_limits = None::<Limits>;
@@ -265,8 +326,9 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
                 for x in 0..range.size().w {
                     for y in 0..range.size().h {
                         for z in -1..range.size().d + 1 {
+                            let wpos = range.min + Vec3::new(x, y, z);
                             let block = volume
-                                .get(range.min + Vec3::new(x, y, z))
+                                .get(wpos)
                                 .map(|b| *b)
                                 // TODO: Replace with None or some other more reasonable value,
                                 // since it's not clear this will work properly with liquid.
@@ -342,6 +404,7 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
         let draw_delta = Vec3::new(1, 1, z_start);
 
         let get_light = |_: &mut (), pos: Vec3<i32>| light(pos + range.min);
+        let get_glow = |_: &mut (), pos: Vec3<i32>| glow(pos + range.min);
         let get_color =
             |_: &mut (), pos: Vec3<i32>| flat_get(pos).get_color().unwrap_or(Rgb::zero());
         let get_opacity = |_: &mut (), pos: Vec3<i32>| !flat_get(pos).is_opaque();
@@ -365,6 +428,7 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
             greedy_size,
             greedy_size_cross,
             get_light,
+            get_glow,
             get_color,
             get_opacity,
             should_draw,
@@ -405,7 +469,12 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
             opaque_mesh,
             fluid_mesh,
             Mesh::new(),
-            (bounds, (col_lights, col_lights_size)),
+            (
+                bounds,
+                (col_lights, col_lights_size),
+                Box::new(light),
+                Box::new(glow),
+            ),
         )
     }
 }

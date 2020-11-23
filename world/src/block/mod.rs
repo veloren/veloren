@@ -209,8 +209,8 @@ pub fn block_from_structure(
 ) -> Option<Block> {
     let field = RandomField::new(structure_seed);
 
-    let lerp = ((field.get(Vec3::from(structure_pos)).rem_euclid(256)) as f32 / 255.0) * 0.85
-        + ((field.get(pos + std::i32::MAX / 2).rem_euclid(256)) as f32 / 255.0) * 0.15;
+    let lerp = ((field.get(Vec3::from(structure_pos)).rem_euclid(256)) as f32 / 255.0) * 0.8
+        + ((field.get(pos + std::i32::MAX / 2).rem_euclid(256)) as f32 / 255.0) * 0.2;
 
     match sblock {
         StructureBlock::None => None,
@@ -244,7 +244,7 @@ pub fn block_from_structure(
         },
         StructureBlock::Chest => {
             if structure_seed % 10 < 7 {
-                None
+                Some(Block::empty())
             } else {
                 Some(with_sprite(SpriteKind::Chest))
             }

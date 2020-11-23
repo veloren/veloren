@@ -964,8 +964,32 @@ impl PlayState for SessionState {
                         global_state.settings.gameplay.map_zoom = map_zoom;
                         global_state.settings.save_to_file_warn();
                     },
+                    HudEvent::MapDrag(map_drag) => {
+                        global_state.settings.gameplay.map_drag = map_drag;
+                        global_state.settings.save_to_file_warn();
+                    },
+                    HudEvent::MapShowDifficulty(map_show_difficulty) => {
+                        global_state.settings.gameplay.map_show_difficulty = map_show_difficulty;
+                        global_state.settings.save_to_file_warn();
+                    },
+                    HudEvent::MapShowTowns(map_show_towns) => {
+                        global_state.settings.gameplay.map_show_towns = map_show_towns;
+                        global_state.settings.save_to_file_warn();
+                    },
+                    HudEvent::MapShowDungeons(map_show_dungeons) => {
+                        global_state.settings.gameplay.map_show_dungeons = map_show_dungeons;
+                        global_state.settings.save_to_file_warn();
+                    },
+                    HudEvent::MapShowCastles(map_show_castles) => {
+                        global_state.settings.gameplay.map_show_castles = map_show_castles;
+                        global_state.settings.save_to_file_warn();
+                    },
                     HudEvent::ChangeGamma(new_gamma) => {
                         global_state.settings.graphics.gamma = new_gamma;
+                        global_state.settings.save_to_file_warn();
+                    },
+                    HudEvent::ChangeExposure(new_exposure) => {
+                        global_state.settings.graphics.exposure = new_exposure;
                         global_state.settings.save_to_file_warn();
                     },
                     HudEvent::ChangeAmbiance(new_ambiance) => {
@@ -1061,6 +1085,7 @@ impl PlayState for SessionState {
                     tick: client.get_tick(),
                     thread_pool: client.thread_pool(),
                     gamma: global_state.settings.graphics.gamma,
+                    exposure: global_state.settings.graphics.exposure,
                     ambiance: global_state.settings.graphics.ambiance,
                     mouse_smoothing: global_state.settings.gameplay.smooth_pan_enable,
                     sprite_render_distance: global_state.settings.graphics.sprite_render_distance
@@ -1127,6 +1152,7 @@ impl PlayState for SessionState {
                 tick: client.get_tick(),
                 thread_pool: client.thread_pool(),
                 gamma: settings.graphics.gamma,
+                exposure: settings.graphics.exposure,
                 ambiance: settings.graphics.ambiance,
                 mouse_smoothing: settings.gameplay.smooth_pan_enable,
                 sprite_render_distance: settings.graphics.sprite_render_distance as f32,

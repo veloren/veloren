@@ -19,16 +19,16 @@ use std::ops::Range;
 use vek::*;
 
 pub const GRAVITY: f32 = 9.81 * 5.0;
-const BOUYANCY: f32 = 1.0;
+pub const BOUYANCY: f32 = 1.0;
 // Friction values used for linear damping. They are unitless quantities. The
 // value of these quantities must be between zero and one. They represent the
 // amount an object will slow down within 1/60th of a second. Eg. if the
 // friction is 0.01, and the speed is 1.0, then after 1/60th of a second the
 // speed will be 0.99. after 1 second the speed will be 0.54, which is 0.99 ^
 // 60.
-const FRIC_GROUND: f32 = 0.15;
-const FRIC_AIR: f32 = 0.0125;
-const FRIC_FLUID: f32 = 0.2;
+pub const FRIC_GROUND: f32 = 0.15;
+pub const FRIC_AIR: f32 = 0.0125;
+pub const FRIC_FLUID: f32 = 0.4;
 
 // Integrates forces, calculates the new velocity based off of the old velocity
 // dt = delta time
@@ -711,7 +711,7 @@ impl<'a> System<'a> for Sys {
                 },
                 Collider::Point => {
                     let (dist, block) = terrain.ray(pos.0, pos.0 + pos_delta)
-                        .until(|block| block.is_filled())
+                        .until(|block: &Block| block.is_filled())
                         .ignore_error().cast();
 
                     pos.0 += pos_delta.try_normalized().unwrap_or(Vec3::zero()) * dist;

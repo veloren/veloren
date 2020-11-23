@@ -1,6 +1,7 @@
 use crate::{
     comp::{humanoid, quadruped_low, quadruped_medium, quadruped_small, Body},
     path::Chaser,
+    rtsim::RtSimController,
     sync::Uid,
 };
 use specs::{Component, Entity as EcsEntity};
@@ -68,6 +69,7 @@ impl Component for Alignment {
 pub struct Psyche {
     pub aggro: f32, // 0.0 = always flees, 1.0 = always attacks, 0.5 = flee at 50% health
 }
+
 impl<'a> From<&'a Body> for Psyche {
     fn from(body: &'a Body) -> Self {
         Self {
@@ -137,6 +139,7 @@ impl<'a> From<&'a Body> for Psyche {
 
 #[derive(Clone, Debug, Default)]
 pub struct Agent {
+    pub rtsim_controller: RtSimController,
     pub patrol_origin: Option<Vec3<f32>>,
     pub activity: Activity,
     /// Does the agent talk when e.g. hit by the player
@@ -151,8 +154,7 @@ impl Agent {
         self
     }
 
-    pub fn new(origin: Vec3<f32>, can_speak: bool, body: &Body) -> Self {
-        let patrol_origin = Some(origin);
+    pub fn new(patrol_origin: Option<Vec3<f32>>, can_speak: bool, body: &Body) -> Self {
         Agent {
             patrol_origin,
             can_speak,
@@ -168,7 +170,10 @@ impl Component for Agent {
 
 #[derive(Clone, Debug)]
 pub enum Activity {
-    Idle(Vec2<f32>),
+    Idle {
+        bearing: Vec2<f32>,
+        chaser: Chaser,
+    },
     Follow {
         target: EcsEntity,
         chaser: Chaser,
@@ -189,5 +194,10 @@ impl Activity {
 }
 
 impl Default for Activity {
-    fn default() -> Self { Activity::Idle(Vec2::zero()) }
+    fn default() -> Self {
+        Activity::Idle {
+            bearing: Vec2::zero(),
+            chaser: Chaser::default(),
+        }
+    }
 }

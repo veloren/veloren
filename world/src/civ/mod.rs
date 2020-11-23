@@ -41,21 +41,21 @@ const fn initial_civ_count(map_size_lg: MapSizeLg) -> u32 {
 #[allow(clippy::type_complexity)] // TODO: Pending review in #587
 #[derive(Default)]
 pub struct Civs {
-    civs: Store<Civ>,
-    places: Store<Place>,
+    pub civs: Store<Civ>,
+    pub places: Store<Place>,
 
-    tracks: Store<Track>,
+    pub tracks: Store<Track>,
     /// We use this hasher (FxHasher64) because
     /// (1) we don't care about DDOS attacks (ruling out SipHash);
     /// (2) we care about determinism across computers (ruling out AAHash);
     /// (3) we have 8-byte keys (for which FxHash is fastest).
-    track_map: HashMap<
+    pub track_map: HashMap<
         Id<Site>,
         HashMap<Id<Site>, Id<Track>, BuildHasherDefault<FxHasher64>>,
         BuildHasherDefault<FxHasher64>,
     >,
 
-    sites: Store<Site>,
+    pub sites: Store<Site>,
 }
 
 // Change this to get rid of particularly horrid seeds
@@ -108,6 +108,7 @@ impl Civs {
                     kind,
                     center: loc,
                     place,
+                    site_tmp: None,
 
                     population: 0.0,
 
@@ -189,7 +190,7 @@ impl Civs {
 
         // Place sites in world
         let mut cnt = 0;
-        for sim_site in this.sites.values() {
+        for sim_site in this.sites.values_mut() {
             cnt += 1;
             let wpos = sim_site
                 .center
@@ -209,6 +210,7 @@ impl Civs {
                     WorldSite::castle(Castle::generate(wpos, Some(ctx.sim), &mut rng))
                 },
             });
+            sim_site.site_tmp = Some(site);
             let site_ref = &index.sites[site];
 
             let radius_chunks =
@@ -371,6 +373,7 @@ impl Civs {
             let loc = find_site_loc(ctx, None, 1)?;
             self.establish_site(ctx, loc, |place| Site {
                 kind: SiteKind::Settlement,
+                site_tmp: None,
                 center: loc,
                 place,
 
@@ -473,7 +476,7 @@ impl Civs {
         let site = self.sites.insert(site_fn(place));
 
         // Find neighbors
-        const MAX_NEIGHBOR_DISTANCE: f32 = 500.0;
+        const MAX_NEIGHBOR_DISTANCE: f32 = 2000.0;
         let mut nearby = self
             .sites
             .iter()
@@ -610,6 +613,7 @@ fn find_path(
     a: Vec2<i32>,
     b: Vec2<i32>,
 ) -> Option<(Path<Vec2<i32>>, f32)> {
+    const MAX_PATH_ITERS: usize = 100_000;
     let sim = &ctx.sim;
     let heuristic = move |l: &Vec2<i32>| (l.distance_squared(b) as f32).sqrt();
     let neighbors = |l: &Vec2<i32>| {
@@ -627,13 +631,13 @@ fn find_path(
     // (2) we care about determinism across computers (ruling out AAHash);
     // (3) we have 8-byte keys (for which FxHash is fastest).
     let mut astar = Astar::new(
-        20000,
+        MAX_PATH_ITERS,
         a,
         heuristic,
         BuildHasherDefault::<FxHasher64>::default(),
     );
     astar
-        .poll(20000, heuristic, neighbors, transition, satisfied)
+        .poll(MAX_PATH_ITERS, heuristic, neighbors, transition, satisfied)
         .into_path()
         .and_then(|path| astar.get_cheapest_cost().map(|cost| (path, cost)))
 }
@@ -796,6 +800,8 @@ pub struct Track {
 #[derive(Debug)]
 pub struct Site {
     pub kind: SiteKind,
+    // TODO: Remove this field when overhauling
+    pub site_tmp: Option<Id<crate::site::Site>>,
     pub center: Vec2<i32>,
     pub place: Id<Place>,
 

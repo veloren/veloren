@@ -103,7 +103,7 @@ pub fn sample_pos(
         spline_derivative,
         is_path,
         is_cave,
-        near_site,
+        _near_site,
     ) = sampler
         .get(pos)
         .map(|sample| {
@@ -247,9 +247,9 @@ pub fn sample_pos(
         ),
     };
     // TODO: Make principled.
-    let rgb = if near_site {
+    let rgb = /*if near_site {
         Rgb::new(0x57, 0x39, 0x33)
-    } else if is_path {
+    } else*/ if is_path {
         Rgb::new(0x37, 0x29, 0x23)
     } else if is_cave {
         Rgb::new(0x37, 0x37, 0x37)

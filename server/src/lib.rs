@@ -18,6 +18,7 @@ pub mod login_provider;
 pub mod metrics;
 pub mod persistence;
 pub mod presence;
+pub mod rtsim;
 pub mod settings;
 pub mod state_ext;
 pub mod sys;
@@ -41,6 +42,7 @@ use crate::{
     data_dir::DataDir,
     login_provider::LoginProvider,
     presence::{Presence, RegionSubscription},
+    rtsim::RtSim,
     state_ext::StateExt,
     sys::sentinel::{DeletedEntities, TrackedComps},
 };
@@ -54,6 +56,7 @@ use common::{
     },
     outcome::Outcome,
     recipe::default_recipe_book,
+    rtsim::RtSimEntity,
     state::{State, TimeOfDay},
     sync::WorldSyncExt,
     terrain::TerrainChunkSize,
@@ -80,7 +83,6 @@ use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 #[cfg(feature = "worldgen")]
 use world::{
-    civ::SiteKind,
     sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP},
     IndexOwned, World,
 };
@@ -253,6 +255,7 @@ impl Server {
             horizons: [(vec![0], vec![0]), (vec![0], vec![0])],
             sea_level: 0.0,
             alt: vec![30],
+            sites: Vec::new(),
         };
 
         #[cfg(feature = "worldgen")]
@@ -269,7 +272,7 @@ impl Server {
             let spawn_chunk = world
                 .civs()
                 .sites()
-                .filter(|site| matches!(site.kind, SiteKind::Settlement))
+                .filter(|site| matches!(site.kind, world::civ::SiteKind::Settlement))
                 .map(|site| site.center)
                 .min_by_key(|site_pos| site_pos.distance_squared(center_chunk))
                 .unwrap_or(center_chunk);
@@ -320,6 +323,11 @@ impl Server {
         // set the spawn point we calculated above
         state.ecs_mut().insert(SpawnPoint(spawn_point));
 
+        // Insert the world into the ECS (todo: Maybe not an Arc?)
+        let world = Arc::new(world);
+        state.ecs_mut().insert(Arc::clone(&world));
+        state.ecs_mut().insert(index.clone());
+
         // Set starting time for the server.
         state.ecs_mut().write_resource::<TimeOfDay>().0 = settings.start_time;
 
@@ -353,9 +361,12 @@ impl Server {
         block_on(network.listen(ProtocolAddr::Tcp(settings.gameserver_address)))?;
         let connection_handler = ConnectionHandler::new(network);
 
+        // Initiate real-time world simulation
+        rtsim::init(&mut state, &world);
+
         let this = Self {
             state,
-            world: Arc::new(world),
+            world,
             index,
             map,
 
@@ -488,7 +499,14 @@ impl Server {
         // 4) Tick the server's LocalState.
         // 5) Fetch any generated `TerrainChunk`s and insert them into the terrain.
         // in sys/terrain.rs
-        self.state.tick(dt, sys::add_server_systems, false);
+        self.state.tick(
+            dt,
+            |dispatcher_builder| {
+                sys::add_server_systems(dispatcher_builder);
+                rtsim::add_server_systems(dispatcher_builder);
+            },
+            false,
+        );
 
         let before_handle_events = Instant::now();
 
@@ -540,6 +558,20 @@ impl Server {
         };
 
         for entity in to_delete {
+            // Assimilate entities that are part of the real-time world simulation
+            if let Some(rtsim_entity) = self
+                .state
+                .ecs()
+                .read_storage::<RtSimEntity>()
+                .get(entity)
+                .copied()
+            {
+                self.state
+                    .ecs()
+                    .write_resource::<RtSim>()
+                    .assimilate_entity(rtsim_entity.0);
+            }
+
             if let Err(e) = self.state.delete_entity_recorded(entity) {
                 error!(?e, "Failed to delete agent outside the terrain");
             }

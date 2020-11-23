@@ -1198,6 +1198,56 @@
         "voxel.armor.shoulder.bonerattler_right",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
+    //Warlord Set
+    Armor(Chest("Warlord")): VoxTrans(
+        "voxel.armor.chest.warlord",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Pants("Warlord")): VoxTrans(
+        "voxel.armor.pants.warlord",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Belt("Warlord")): VoxTrans(
+        "voxel.armor.belt.warlord",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.4,
+    ),
+    Armor(Foot("Warlord")): VoxTrans(
+        "voxel.armor.foot.warlord",
+        (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
+    ),
+    Armor(Hand("Warlord")): VoxTrans(
+        "voxel.armor.hand.warlord_right",
+        (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
+    ),
+    Armor(Shoulder("Warlord")): VoxTrans(
+        "voxel.armor.shoulder.warlord_right",
+        (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
+    ),
+    //Warlock Set
+    Armor(Chest("Warlock")): VoxTrans(
+        "voxel.armor.chest.warlock",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Pants("Warlock")): VoxTrans(
+        "voxel.armor.pants.warlock",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Belt("Warlock")): VoxTrans(
+        "voxel.armor.belt.warlock",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.4,
+    ),
+    Armor(Foot("Warlock")): VoxTrans(
+        "voxel.armor.foot.warlock",
+        (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
+    ),
+    Armor(Hand("Warlock")): VoxTrans(
+        "voxel.armor.hand.warlock_right",
+        (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
+    ),
+    Armor(Shoulder("Warlock")): VoxTrans(
+        "voxel.armor.shoulder.warlock_right",
+        (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
+    ),
     //misc
      Armor(Pants("Hunting")): VoxTrans(
         "voxel.armor.pants.grayscale",
@@ -1230,6 +1280,14 @@
     ),
     Armor(Back("BackpackBlue0")): VoxTrans(
         "voxel.armor.back.backpack-0",
+        (0.0, 0.0, 0.0), (-90.0, 0.0, 0.0), 1.0,
+    ),
+    Armor(Back("Warlord")): VoxTrans(
+        "voxel.armor.back.warlord",
+        (0.0, 0.0, 0.0), (-90.0, 0.0, 0.0), 1.0,
+    ),
+    Armor(Back("Warlock")): VoxTrans(
+        "voxel.armor.back.warlock",
         (0.0, 0.0, 0.0), (-90.0, 0.0, 0.0), 1.0,
     ),
     // Rings

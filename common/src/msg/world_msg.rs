@@ -120,4 +120,20 @@ pub struct WorldMapMsg {
     /// angles, or that we don't need as much precision as we currently have
     /// (256 possible angles).
     pub horizons: [(Vec<u8>, Vec<u8>); 2],
+    pub sites: Vec<SiteInfo>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SiteInfo {
+    pub kind: SiteKind,
+    pub wpos: Vec2<i32>,
+    pub name: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[repr(u8)]
+pub enum SiteKind {
+    Town,
+    Dungeon { difficulty: u32 },
+    Castle,
 }

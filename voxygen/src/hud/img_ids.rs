@@ -153,6 +153,8 @@ image_ids! {
         skillbar_frame: "voxygen.element.skillbar.frame",
         m1_ico: "voxygen.element.icons.m1",
         m2_ico: "voxygen.element.icons.m2",
+        m_scroll_ico: "voxygen.element.icons.m_scroll",
+        m_move_ico: "voxygen.element.icons.m_move",
 
         // Other Icons/Art
         skull: "voxygen.element.icons.skull",
@@ -193,6 +195,21 @@ image_ids! {
         mmap_minus: "voxygen.element.buttons.min_plus.mmap_button-min",
         mmap_minus_hover: "voxygen.element.buttons.min_plus.mmap_button-min_hover",
         mmap_minus_press: "voxygen.element.buttons.min_plus.mmap_button-min_press",
+        map_dif_0: "voxygen.element.map.dif_0",
+        map_dif_1: "voxygen.element.map.dif_1",
+        map_dif_2: "voxygen.element.map.dif_2",
+        map_dif_3: "voxygen.element.map.dif_3",
+        map_dif_4: "voxygen.element.map.dif_4",
+        map_dif_5: "voxygen.element.map.dif_5",
+        mmap_site_town: "voxygen.element.map.town",
+        mmap_site_town_hover: "voxygen.element.map.town_hover",
+        mmap_site_town_bg: "voxygen.element.map.town_bg",
+        mmap_site_dungeon: "voxygen.element.map.dungeon",
+        mmap_site_dungeon_hover: "voxygen.element.map.dungeon_hover",
+        mmap_site_dungeon_bg: "voxygen.element.map.dungeon_bg",
+        mmap_site_castle: "voxygen.element.map.castle",
+        mmap_site_castle_hover: "voxygen.element.map.castle_hover",
+        mmap_site_castle_bg: "voxygen.element.map.castle_bg",
 
         // Window Parts
         window_3: "voxygen.element.frames.window_3",

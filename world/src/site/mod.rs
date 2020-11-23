@@ -2,6 +2,7 @@ mod block_mask;
 mod castle;
 mod dungeon;
 pub mod economy;
+mod namegen;
 mod settlement;
 
 // Reexports
@@ -89,6 +90,14 @@ impl Site {
             SiteKind::Settlement(s) => s.spawn_rules(wpos),
             SiteKind::Dungeon(d) => d.spawn_rules(wpos),
             SiteKind::Castle(c) => c.spawn_rules(wpos),
+        }
+    }
+
+    pub fn name(&self) -> &str {
+        match &self.kind {
+            SiteKind::Settlement(s) => s.name(),
+            SiteKind::Dungeon(d) => d.name(),
+            SiteKind::Castle(c) => c.name(),
         }
     }
 

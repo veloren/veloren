@@ -11,7 +11,7 @@ type TodoRect = (
     Vec3<i32>,
 );
 
-pub struct GreedyConfig<D, FL, FC, FO, FS, FP> {
+pub struct GreedyConfig<D, FL, FG, FC, FO, FS, FP> {
     pub data: D,
     /// The minimum position to mesh, in the coordinate system used
     /// for queries against the volume.
@@ -36,6 +36,9 @@ pub struct GreedyConfig<D, FL, FC, FO, FS, FP> {
     /// Given a position, return the lighting information for the voxel at that
     /// position.
     pub get_light: FL,
+    /// Given a position, return the glow information for the voxel at that
+    /// position (i.e: additional non-sun light).
+    pub get_glow: FG,
     /// Given a position, return the color information for the voxel at that
     /// position.
     pub get_color: FC,
@@ -140,11 +143,12 @@ impl<'a> GreedyMesh<'a> {
     /// Returns an estimate of the bounds of the current meshed model.
     ///
     /// For more information on the config parameter, see [GreedyConfig].
-    pub fn push<M: PartialEq, D: 'a, FL, FC, FO, FS, FP>(
+    pub fn push<M: PartialEq, D: 'a, FL, FG, FC, FO, FS, FP>(
         &mut self,
-        config: GreedyConfig<D, FL, FC, FO, FS, FP>,
+        config: GreedyConfig<D, FL, FG, FC, FO, FS, FP>,
     ) where
         FL: for<'r> FnMut(&'r mut D, Vec3<i32>) -> f32 + 'a,
+        FG: for<'r> FnMut(&'r mut D, Vec3<i32>) -> f32 + 'a,
         FC: for<'r> FnMut(&'r mut D, Vec3<i32>) -> Rgb<u8> + 'a,
         FO: for<'r> FnMut(&'r mut D, Vec3<i32>) -> bool + 'a,
         FS: for<'r> FnMut(&'r mut D, Vec3<i32>, Vec3<i32>, Vec2<Vec3<i32>>) -> Option<(bool, M)>,
@@ -173,7 +177,7 @@ impl<'a> GreedyMesh<'a> {
         span!(_guard, "finalize", "GreedyMesh::finalize");
         let cur_size = self.col_lights_size;
         let col_lights = vec![
-            TerrainVertex::make_col_light(254, Rgb::broadcast(254));
+            TerrainVertex::make_col_light(254, 0, Rgb::broadcast(254));
             usize::from(cur_size.x) * usize::from(cur_size.y)
         ];
         let mut col_lights_info = (col_lights, cur_size);
@@ -186,7 +190,7 @@ impl<'a> GreedyMesh<'a> {
     pub fn max_size(&self) -> guillotiere::Size { self.max_size }
 }
 
-fn greedy_mesh<'a, M: PartialEq, D: 'a, FL, FC, FO, FS, FP>(
+fn greedy_mesh<'a, M: PartialEq, D: 'a, FL, FG, FC, FO, FS, FP>(
     atlas: &mut guillotiere::SimpleAtlasAllocator,
     col_lights_size: &mut Vec2<u16>,
     max_size: guillotiere::Size,
@@ -196,14 +200,16 @@ fn greedy_mesh<'a, M: PartialEq, D: 'a, FL, FC, FO, FS, FP>(
         greedy_size,
         greedy_size_cross,
         get_light,
+        get_glow,
         get_color,
         get_opacity,
         mut should_draw,
         mut push_quad,
-    }: GreedyConfig<D, FL, FC, FO, FS, FP>,
+    }: GreedyConfig<D, FL, FG, FC, FO, FS, FP>,
 ) -> Box<SuspendedMesh<'a>>
 where
     FL: for<'r> FnMut(&'r mut D, Vec3<i32>) -> f32 + 'a,
+    FG: for<'r> FnMut(&'r mut D, Vec3<i32>) -> f32 + 'a,
     FC: for<'r> FnMut(&'r mut D, Vec3<i32>) -> Rgb<u8> + 'a,
     FO: for<'r> FnMut(&'r mut D, Vec3<i32>) -> bool + 'a,
     FS: for<'r> FnMut(&'r mut D, Vec3<i32>, Vec3<i32>, Vec2<Vec3<i32>>) -> Option<(bool, M)>,
@@ -356,6 +362,7 @@ where
             todo_rects,
             draw_delta,
             get_light,
+            get_glow,
             get_color,
             get_opacity,
             TerrainVertex::make_col_light,
@@ -511,9 +518,10 @@ fn draw_col_lights<D>(
     todo_rects: Vec<TodoRect>,
     draw_delta: Vec3<i32>,
     mut get_light: impl FnMut(&mut D, Vec3<i32>) -> f32,
+    mut get_glow: impl FnMut(&mut D, Vec3<i32>) -> f32,
     mut get_color: impl FnMut(&mut D, Vec3<i32>) -> Rgb<u8>,
     mut get_opacity: impl FnMut(&mut D, Vec3<i32>) -> bool,
-    mut make_col_light: impl FnMut(u8, Rgb<u8>) -> <<ColLightFmt as gfx::format::Formatted>::Surface as gfx::format::SurfaceTyped>::DataType,
+    mut make_col_light: impl FnMut(u8, u8, Rgb<u8>) -> <<ColLightFmt as gfx::format::Formatted>::Surface as gfx::format::SurfaceTyped>::DataType,
 ) {
     todo_rects.into_iter().for_each(|(pos, uv, rect, delta)| {
         // NOTE: Conversions are safe because width, height, and offset must be
@@ -578,9 +586,19 @@ fn draw_col_lights<D>(
                                 0.0
                             }
                     ) / 4.0;
+                    let glowiness = (get_glow(data, light_pos)
+                        + get_glow(data, light_pos - uv.x)
+                        + get_glow(data, light_pos - uv.y)
+                        + if direct_u_opacity || direct_v_opacity {
+                            get_glow(data, light_pos - uv.x - uv.y)
+                        } else {
+                            0.0
+                        })
+                        / 4.0;
                     let col = get_color(data, pos);
-                    let light = (darkness * 255.0) as u8;
-                    *col_light = make_col_light(light, col);
+                    let light = (darkness * 31.5) as u8;
+                    let glow = (glowiness * 31.5) as u8;
+                    *col_light = make_col_light(light, glow, col);
                 });
         });
     });

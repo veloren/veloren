@@ -1,0 +1,12 @@
+ItemDef(
+    name: "Warlord Handguards",
+    description: "Belong to a mighty warlord.",
+    kind: Armor(
+        (
+            kind: Hand("Warlord"),
+            stats: (
+                protection: Normal(15.0)),            
+        )
+    ),
+    quality: Common,
+)

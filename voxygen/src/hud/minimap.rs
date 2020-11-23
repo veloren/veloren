@@ -1,15 +1,17 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
-    Show, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
+    Show, QUALITY_COMMON, QUALITY_DEBUG, QUALITY_EPIC, QUALITY_HIGH, QUALITY_LOW, QUALITY_MODERATE,
+    TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::ui::{fonts::Fonts, img_ids};
 use client::{self, Client};
-use common::{comp, terrain::TerrainChunkSize, vol::RectVolSize};
+use common::{comp, msg::world_msg::SiteKind, terrain::TerrainChunkSize, vol::RectVolSize};
 use conrod_core::{
     color, position,
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
+
 use specs::WorldExt;
 use vek::*;
 
@@ -28,6 +30,8 @@ widget_ids! {
         mmap_east,
         mmap_south,
         mmap_west,
+        mmap_site_icons_bgs[],
+        mmap_site_icons[],
     }
 }
 
@@ -121,9 +125,8 @@ impl<'a> Widget for MiniMap<'a> {
                 .mid_top_with_margin_on(state.ids.mmap_frame_2, 18.0 * SCALE)
                 .set(state.ids.mmap_frame_bg, ui);
 
-            // Map size
+            // Map size in chunk coords
             let (world_map, worldsize) = self.world_map;
-            let worldsize = worldsize.map2(TerrainChunkSize::RECT_SIZE, |e, f| e as f64 * f as f64);
 
             // Zoom Buttons
 
@@ -133,8 +136,8 @@ impl<'a> Widget for MiniMap<'a> {
             // TODO: Either prevent zooming all the way in, *or* see if we can interpolate
             // somehow if you zoom in too far.  Or both.
             let min_zoom = 1.0;
-            let max_zoom = (worldsize / TerrainChunkSize::RECT_SIZE.map(|e| e as f64))
-                .reduce_partial_max()/*.min(f64::MAX)*/;
+            let max_zoom = worldsize
+                .reduce_partial_max() as f64/*.min(f64::MAX)*/;
 
             // NOTE: Not sure if a button can be clicked while disabled, but we still double
             // check for both kinds of zoom to make sure that not only was the
@@ -197,20 +200,96 @@ impl<'a> Widget for MiniMap<'a> {
             let rect_src = position::Rect::from_xy_dim(
                 [
                     player_pos.x as f64 / TerrainChunkSize::RECT_SIZE.x as f64,
-                    (worldsize.y - player_pos.y as f64) / TerrainChunkSize::RECT_SIZE.y as f64,
+                    worldsize.y as f64
+                        - (player_pos.y as f64 / TerrainChunkSize::RECT_SIZE.y as f64),
                 ],
                 [w_src, h_src],
             );
 
-            let map_size = Vec2::new(170.0, 170.0);
+            let map_size = Vec2::new(170.0 * SCALE, 170.0 * SCALE);
 
             // Map Image
             Image::new(world_map.source_north)
                 .middle_of(state.ids.mmap_frame_bg)
-                .w_h(map_size.x * SCALE, map_size.y * SCALE)
+                .w_h(map_size.x, map_size.y)
                 .parent(state.ids.mmap_frame_bg)
                 .source_rectangle(rect_src)
                 .set(state.ids.grid, ui);
+
+            // Map icons
+            if state.ids.mmap_site_icons.len() < self.client.sites().len() {
+                state.update(|state| {
+                    state
+                        .ids
+                        .mmap_site_icons
+                        .resize(self.client.sites().len(), &mut ui.widget_id_generator())
+                });
+            }
+            if state.ids.mmap_site_icons_bgs.len() < self.client.sites().len() {
+                state.update(|state| {
+                    state
+                        .ids
+                        .mmap_site_icons_bgs
+                        .resize(self.client.sites().len(), &mut ui.widget_id_generator())
+                });
+            }
+            for (i, site) in self.client.sites().iter().enumerate() {
+                // Site pos in world coordinates relative to the player
+                let rwpos = site.wpos.map(|e| e as f32) - player_pos;
+                // Convert to chunk coordinates
+                let rcpos = rwpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e / sz as f32);
+                // Convert to fractional coordinates relative to the worldsize
+                let rfpos = rcpos / max_zoom as f32;
+                // Convert to unrotated pixel coordinates from the player location on the map
+                // (the center)
+                // Accounting for zooming
+                let rpixpos = rfpos.map2(map_size, |e, sz| e * sz as f32 * zoom as f32);
+                let rpos = Vec2::unit_x().rotated_z(self.ori.x) * rpixpos.x
+                    + Vec2::unit_y().rotated_z(self.ori.x) * rpixpos.y;
+
+                if rpos
+                    .map2(map_size, |e, sz| e.abs() > sz as f32 / 2.0)
+                    .reduce_or()
+                {
+                    continue;
+                }
+
+                Image::new(match &site.kind {
+                    SiteKind::Town => self.imgs.mmap_site_town_bg,
+                    SiteKind::Dungeon { .. } => self.imgs.mmap_site_dungeon_bg,
+                    SiteKind::Castle => self.imgs.mmap_site_castle_bg,
+                })
+                .x_y_position_relative_to(
+                    state.ids.grid,
+                    position::Relative::Scalar(rpos.x as f64),
+                    position::Relative::Scalar(rpos.y as f64),
+                )
+                .w_h(20.0, 20.0)
+                .color(Some(match &site.kind {
+                    SiteKind::Town => Color::Rgba(1.0, 1.0, 1.0, 0.0),
+                    SiteKind::Castle => Color::Rgba(1.0, 1.0, 1.0, 0.0),
+                    SiteKind::Dungeon { difficulty } => match difficulty {
+                        0 => QUALITY_LOW,
+                        1 => QUALITY_COMMON,
+                        2 => QUALITY_MODERATE,
+                        3 => QUALITY_HIGH,
+                        4 => QUALITY_EPIC,
+                        5 => QUALITY_DEBUG,
+                        _ => Color::Rgba(1.0, 1.0, 1.0, 0.0),
+                    },
+                }))
+                .parent(state.ids.grid)
+                .set(state.ids.mmap_site_icons_bgs[i], ui);
+                Image::new(match &site.kind {
+                    SiteKind::Town => self.imgs.mmap_site_town,
+                    SiteKind::Dungeon { .. } => self.imgs.mmap_site_dungeon,
+                    SiteKind::Castle => self.imgs.mmap_site_castle,
+                })
+                .middle_of(state.ids.mmap_site_icons_bgs[i])
+                .w_h(20.0, 20.0)
+                .color(Some(UI_HIGHLIGHT_0))
+                .set(state.ids.mmap_site_icons[i], ui);
+            }
 
             // Indicator
             let ind_scale = 0.4;
@@ -218,8 +297,6 @@ impl<'a> Widget for MiniMap<'a> {
                 .middle_of(state.ids.grid)
                 .w_h(32.0 * ind_scale, 37.0 * ind_scale)
                 .color(Some(UI_HIGHLIGHT_0))
-                .floating(true)
-                .parent(ui.window)
                 .set(state.ids.indicator, ui);
 
             // Compass directions
@@ -232,9 +309,8 @@ impl<'a> Widget for MiniMap<'a> {
             for (dir, id, name, bold) in dirs.iter() {
                 let cardinal_dir = Vec2::unit_x().rotated_z(self.ori.x as f64) * dir.x
                     + Vec2::unit_y().rotated_z(self.ori.x as f64) * dir.y;
-                let clamped = (cardinal_dir * 3.0)
-                    / (cardinal_dir * 3.0).map(|e| e.abs()).reduce_partial_max();
-                let pos = clamped * (map_size * 0.73 - 10.0);
+                let clamped = cardinal_dir / cardinal_dir.map(|e| e.abs()).reduce_partial_max();
+                let pos = clamped * (map_size / 2.0 - 10.0);
                 Text::new(name)
                     .x_y_position_relative_to(
                         state.ids.grid,
@@ -248,7 +324,6 @@ impl<'a> Widget for MiniMap<'a> {
                     } else {
                         TEXT_COLOR
                     })
-                    .floating(true)
                     .parent(ui.window)
                     .set(*id, ui);
             }
@@ -287,13 +362,25 @@ impl<'a> Widget for MiniMap<'a> {
         // TODO: Subregion name display
 
         // Title
+
         match self.client.current_chunk() {
-            Some(chunk) => Text::new(chunk.meta().name())
-                .mid_top_with_margin_on(state.ids.mmap_frame, 2.0)
-                .font_size(self.fonts.cyri.scale(18))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(state.ids.mmap_location, ui),
+            Some(chunk) => {
+                // Count characters in the name to avoid clipping with the name display
+                let name_len = chunk.meta().name().chars().count();
+                Text::new(chunk.meta().name())
+                    .mid_top_with_margin_on(state.ids.mmap_frame, match name_len {
+                        15..=30 => 4.0,
+                        _ => 2.0,
+                    })
+                    .font_size(self.fonts.cyri.scale(match name_len {
+                        0..=15 => 18,
+                        16..=30 => 14,
+                        _ => 14,
+                    }))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(TEXT_COLOR)
+                    .set(state.ids.mmap_location, ui)
+            },
             None => Text::new(" ")
                 .mid_top_with_margin_on(state.ids.mmap_frame, 0.0)
                 .font_size(self.fonts.cyri.scale(18))

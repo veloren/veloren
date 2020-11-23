@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Warlock Slippers",
+    description: "Belong to a mighty warlock.",
+    kind: Armor(
+        (
+            kind: Foot("Warlock"),
+            stats: (
+                protection: Normal(8.0)
+                ),            
+        )
+    ),
+    quality: Moderate,
+)

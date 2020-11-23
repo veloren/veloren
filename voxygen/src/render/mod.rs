@@ -110,45 +110,27 @@ impl Default for AaMode {
 /// Cloud modes
 #[derive(PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum CloudMode {
-    /// No clouds.  On computers that can't handle loops well, have performance
-    /// issues in fragment shaders in general, or just have large
-    /// resolutions, this can be a *very* impactful performance difference.
-    /// Part of that is because of inefficiencies in how we implement
-    /// regular clouds.  It is still not all that cheap on low-end machines, due
-    /// to many calculations being performed that use relatively expensive
-    /// functions, and at some point I'd like to both optimize the regular
-    /// sky shader further and create an even cheaper option.
+    /// No clouds. As cheap as it gets.
     None,
-    /// Volumetric clouds.  This option can be *very* expensive on low-end
-    /// machines, to the point of making the game unusable, for several
-    /// reasons:
-    ///
-    /// - The volumetric clouds use raymarching, which will cause catastrophic
-    ///   performance degradation on GPUs without good support for loops.  There
-    ///   is an attempt to minimize the impact of this using a z-range check,
-    ///   but on some low-end GPUs (such as some integrated graphics cards) this
-    ///   test doesn't appear to be able to be predicted well at shader
-    ///   invocation time.
-    /// - The cloud computations themselves are fairly involved, further
-    ///   degrading performance.
-    /// - Although the sky shader is always drawn at the outer edges of the
-    ///   skybox, the clouds themselves are supposed to be positioned much
-    ///   lower, which means the depth check for the skybox incorrectly cuts off
-    ///   clouds in some places.  To compensate for these cases (e.g. where
-    ///   terrain is occluded by clouds from above, and the camera is above the
-    ///   clouds), we currently branch to see if we need to render the clouds in
-    ///   *every* fragment shader.  For machines that can't optimize the check,
-    ///   this is absurdly expensive, so we should look at alternatives in the
-    ///   future that player better with the GPU.
+    /// Clouds, but barely. Ideally, any machine should be able to handle this
+    /// just fine.
     Minimal,
+    /// Enough visual detail to be pleasing, but generally using poor-but-cheap
+    /// approximations to derive parameters
     Low,
-    High,
-    #[serde(other)]
+    /// More detail. Enough to look good in most cases. For those that value
+    /// looks but also high framerates.
     Medium,
+    /// High, but with extra compute power thrown at it to smooth out subtle
+    /// imperfections
+    Ultra,
+    /// Lots of detail with good-but-costly derivation of parameters.
+    #[serde(other)]
+    High,
 }
 
 impl Default for CloudMode {
-    fn default() -> Self { CloudMode::Medium }
+    fn default() -> Self { CloudMode::High }
 }
 
 /// Fluid modes

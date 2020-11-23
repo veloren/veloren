@@ -25,7 +25,7 @@ in vec4 inst_mat0;
 in vec4 inst_mat1;
 in vec4 inst_mat2;
 in vec4 inst_mat3;
-// in vec3 inst_col;
+in vec4 inst_light;
 in float inst_wind_sway;
 
 struct SpriteLocals {
@@ -77,6 +77,7 @@ flat out float f_light;
 // out vec3 f_col;
 // out float f_ao;
 out vec2 f_uv_pos;
+out vec2 f_inst_light;
 // flat out uint f_atlas_pos;
 // out vec3 light_pos[2];
 // out float f_light;
@@ -117,6 +118,8 @@ void main() {
     // float inst_wind_sway = wind_sway.w;
     // vec3 inst_offs = model_offs - focus_off.xyz;
 
+    f_inst_light = inst_light.xy;
+
     // vec3 sprite_pos = floor(inst_mat3.xyz * SCALE) + inst_offs;
 
     // f_pos_norm = v_pos;
@@ -139,6 +142,9 @@ void main() {
     // f_pos = v_pos + (model_offs - focus_off.xyz);
 
     f_pos = (inst_mat * vec4(v_pos_, 1.0)).xyz * SCALE + inst_offs;
+
+    // Terrain 'pop-in' effect
+    f_pos.z -= 250.0 * (1.0 - min(1.0001 - 0.02 / pow(tick.x - load_time, 10.0), 1.0));
     // f_pos = (inst_mat * v_pos_) * SCALE + sprite_pos;
 
     // f_pos = (inst_mat * vec4(v_pos * SCALE, 1)).xyz + (model_offs - focus_off.xyz);

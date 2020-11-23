@@ -1,4 +1,5 @@
 use super::{seed_expan, Sampler};
+use rand::RngCore;
 use vek::*;
 
 #[derive(Clone, Copy)]
@@ -45,6 +46,10 @@ pub struct RandomPerm {
 
 impl RandomPerm {
     pub const fn new(seed: u32) -> Self { Self { seed } }
+
+    pub fn chance(&self, perm: u32, chance: f32) -> bool {
+        (self.get(perm) % (1 << 16)) as f32 / ((1 << 16) as f32) < chance
+    }
 }
 
 impl Sampler<'static> for RandomPerm {
@@ -53,5 +58,29 @@ impl Sampler<'static> for RandomPerm {
 
     fn get(&self, perm: Self::Index) -> Self::Sample {
         seed_expan::diffuse_mult(&[self.seed, perm])
+    }
+}
+
+// `RandomPerm` is not high-quality but it is at least fast and deterministic.
+impl RngCore for RandomPerm {
+    fn next_u32(&mut self) -> u32 {
+        self.seed = self.get(self.seed);
+        self.seed
+    }
+
+    fn next_u64(&mut self) -> u64 {
+        let a = self.next_u32();
+        let b = self.next_u32();
+        (a as u64) << 32 | b as u64
+    }
+
+    fn fill_bytes(&mut self, dest: &mut [u8]) {
+        dest.iter_mut()
+            .for_each(|b| *b = (self.next_u32() & 0xFF) as u8);
+    }
+
+    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), rand::Error> {
+        self.fill_bytes(dest);
+        Ok(())
     }
 }

@@ -49,6 +49,7 @@ layout (std140)
 uniform u_locals {
     mat4 model_mat;
     vec4 highlight_col;
+    vec4 model_light;
     ivec4 atlas_offs;
     vec3 model_pos;
     // bit 0 - is player
@@ -82,13 +83,8 @@ void main() {
     // vec3 f_col = f_col_light.rgb;
     // float f_ao = f_col_light.a;
 
-    // vec2 f_uv_pos = f_uv_pos + atlas_offs.xy;
-    vec4 f_col_light = texelFetch(t_col_light, ivec2(f_uv_pos)/* + uv_delta*//* - f_norm * 0.00001*/, 0);
-    // vec4 f_col_light = texelFetch(t_col_light, ivec2(int(f_uv_pos.x), int(f_uv_pos.y)/* + uv_delta*//* - f_norm * 0.00001*/), 0);
-    vec3 f_col = /*linear_to_srgb*//*srgb_to_linear*/(f_col_light.rgb);
-    // vec3 f_col = vec3(1.0);
-    // vec2 texSize = textureSize(t_col_light, 0);
-    float f_ao = texture(t_col_light, (f_uv_pos + 0.5) / textureSize(t_col_light, 0)).a;//1.0;//f_col_light.a * 4.0;// f_light = float(v_col_light & 0x3Fu) / 64.0;
+    float f_ao, f_glow;
+    vec3 f_col = greedy_extract_col_light_glow(t_col_light, f_uv_pos, f_ao, f_glow);
     // float /*f_light*/f_ao = textureProj(t_col_light, vec3(f_uv_pos, texSize)).a;//1.0;//f_col_light.a * 4.0;// f_light = float(v_col_light & 0x3Fu) / 64.0;
 
     // vec3 my_chunk_pos = (vec3((uvec3(f_pos_norm) >> uvec3(0, 9, 18)) & uvec3(0x1FFu)) - 256.0) / 2.0;
@@ -164,6 +160,10 @@ void main() {
 
     vec3 emitted_light, reflected_light;
 
+    // Make voxel shadows block the sun and moon
+    sun_info.block *= model_light.x;
+    moon_info.block *= model_light.x;
+
     // vec3 light_frac = /*vec3(1.0);*//*vec3(max(dot(f_norm, -sun_dir) * 0.5 + 0.5, 0.0));*/light_reflection_factor(f_norm, view_dir, vec3(0, 0, -1.0), vec3(1.0), vec3(R_s), alpha);
     // vec3 point_light = light_at(f_pos, f_norm);
     // vec3 light, diffuse_light, ambient_light;
@@ -180,6 +180,9 @@ void main() {
     max_light += lights_at(f_pos, f_norm, view_dir, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
 
     float ao = f_ao * sqrt(f_ao);//0.25 + f_ao * 0.75; ///*pow(f_ao, 0.5)*/f_ao * 0.85 + 0.15;
+
+    vec3 glow = pow(model_light.y, 3) * 4 * GLOW_COLOR;
+    emitted_light += glow;
 
     reflected_light *= ao;
     emitted_light *= ao;

@@ -65,8 +65,12 @@ pub struct TraversalConfig {
     pub slow_factor: f32,
     /// Whether the agent is currently on the ground.
     pub on_ground: bool,
+    /// Whether the agent is currently in water.
+    pub in_liquid: bool,
     /// The distance to the target below which it is considered reached.
     pub min_tgt_dist: f32,
+    /// Whether the agent can climb.
+    pub can_climb: bool,
 }
 
 const DIAGONALS: [Vec2<i32>; 8] = [
@@ -126,18 +130,22 @@ impl Route {
 
             // Determine whether we're close enough to the next to to consider it completed
             let dist_sqrd = pos.xy().distance_squared(closest_tgt.xy());
-            if dist_sqrd < traversal_cfg.node_tolerance.powf(2.0) * if be_precise { 0.25 } else { 1.0 }
-                && (pos.z - closest_tgt.z > 1.2 || (pos.z - closest_tgt.z > -0.2 && traversal_cfg.on_ground))
-                && (pos.z - closest_tgt.z < 1.2 || (pos.z - closest_tgt.z < 2.9 && vel.z < -0.05))
-                && vel.z <= 0.0
-                // Only consider the node reached if there's nothing solid between us and it
-                && (vol
-                    .ray(pos + Vec3::unit_z() * 1.5, closest_tgt + Vec3::unit_z() * 1.5)
-                    .until(Block::is_solid)
-                    .cast()
-                    .0
-                    > pos.distance(closest_tgt) * 0.9 || dist_sqrd < 0.5)
-                && self.next_idx < self.path.len()
+            if dist_sqrd
+                < traversal_cfg.node_tolerance.powf(2.0) * if be_precise { 0.25 } else { 1.0 }
+                && (((pos.z - closest_tgt.z > 1.2 || (pos.z - closest_tgt.z > -0.2 && traversal_cfg.on_ground))
+                    && (pos.z - closest_tgt.z < 1.2 || (pos.z - closest_tgt.z < 2.9 && vel.z < -0.05))
+                    && vel.z <= 0.0
+                    // Only consider the node reached if there's nothing solid between us and it
+                    && (vol
+                        .ray(pos + Vec3::unit_z() * 1.5, closest_tgt + Vec3::unit_z() * 1.5)
+                        .until(Block::is_solid)
+                        .cast()
+                        .0
+                        > pos.distance(closest_tgt) * 0.9 || dist_sqrd < 0.5)
+                    && self.next_idx < self.path.len())
+                    || (traversal_cfg.in_liquid
+                        && pos.z < closest_tgt.z + 0.8
+                        && pos.z > closest_tgt.z))
             {
                 // Node completed, move on to the next one
                 self.next_idx += 1;
@@ -387,7 +395,7 @@ impl Chaser {
             {
                 self.last_search_tgt = Some(tgt);
 
-                let (path, complete) = find_path(&mut self.astar, vol, pos, tgt);
+                let (path, complete) = find_path(&mut self.astar, vol, pos, tgt, &traversal_cfg);
 
                 self.route = path.map(|path| {
                     let start_index = path
@@ -415,7 +423,7 @@ impl Chaser {
                 vol.get(
                     (pos + Vec3::<f32>::from(tgt_dir) * 2.5).map(|e| e as i32) + Vec3::unit_z() * z,
                 )
-                .map(|b| !b.is_solid())
+                .map(|b| b.is_air())
                 .unwrap_or(false)
             });
 
@@ -433,17 +441,21 @@ fn walkable<V>(vol: &V, pos: Vec3<i32>) -> bool
 where
     V: BaseVol<Vox = Block> + ReadVol,
 {
-    vol.get(pos - Vec3::new(0, 0, 1))
-        .map(|b| b.is_solid() && b.solid_height() == 1.0)
-        .unwrap_or(false)
-        && vol
-            .get(pos + Vec3::new(0, 0, 0))
-            .map(|b| !b.is_solid())
-            .unwrap_or(true)
-        && vol
-            .get(pos + Vec3::new(0, 0, 1))
-            .map(|b| !b.is_solid())
-            .unwrap_or(true)
+    let below = vol
+        .get(pos - Vec3::unit_z())
+        .ok()
+        .copied()
+        .unwrap_or_else(Block::empty);
+    let a = vol.get(pos).ok().copied().unwrap_or_else(Block::empty);
+    let b = vol
+        .get(pos + Vec3::unit_z())
+        .ok()
+        .copied()
+        .unwrap_or_else(Block::empty);
+
+    let on_ground = below.is_filled();
+    let in_liquid = a.is_liquid();
+    (on_ground || in_liquid) && !a.is_solid() && !b.is_solid()
 }
 
 /// Attempt to search for a path to a target, returning the path (if one was
@@ -453,6 +465,7 @@ fn find_path<V>(
     vol: &V,
     startf: Vec3<f32>,
     endf: Vec3<f32>,
+    traversal_cfg: &TraversalConfig,
 ) -> (Option<Path<Vec3<i32>>>, bool)
 where
     V: BaseVol<Vox = Block> + ReadVol,
@@ -481,28 +494,31 @@ where
     let heuristic = |pos: &Vec3<i32>| (pos.distance_squared(end) as f32).sqrt();
     let neighbors = |pos: &Vec3<i32>| {
         let pos = *pos;
-        const DIRS: [Vec3<i32>; 21] = [
+        const DIRS: [Vec3<i32>; 17] = [
             Vec3::new(0, 1, 0),   // Forward
             Vec3::new(0, 1, 1),   // Forward upward
-            Vec3::new(0, 1, 2),   // Forward Upwardx2
             Vec3::new(0, 1, -1),  // Forward downward
             Vec3::new(0, 1, -2),  // Forward downwardx2
             Vec3::new(1, 0, 0),   // Right
             Vec3::new(1, 0, 1),   // Right upward
-            Vec3::new(1, 0, 2),   // Right Upwardx2
             Vec3::new(1, 0, -1),  // Right downward
             Vec3::new(1, 0, -2),  // Right downwardx2
             Vec3::new(0, -1, 0),  // Backwards
             Vec3::new(0, -1, 1),  // Backward Upward
-            Vec3::new(0, -1, 2),  // Backward Upwardx2
             Vec3::new(0, -1, -1), // Backward downward
             Vec3::new(0, -1, -2), // Backward downwardx2
             Vec3::new(-1, 0, 0),  // Left
             Vec3::new(-1, 0, 1),  // Left upward
-            Vec3::new(-1, 0, 2),  // Left Upwardx2
             Vec3::new(-1, 0, -1), // Left downward
             Vec3::new(-1, 0, -2), // Left downwardx2
             Vec3::new(0, 0, -1),  // Downwards
+        ];
+
+        const JUMPS: [Vec3<i32>; 4] = [
+            Vec3::new(0, 1, 2),  // Forward Upwardx2
+            Vec3::new(1, 0, 2),  // Right Upwardx2
+            Vec3::new(0, -1, 2), // Backward Upwardx2
+            Vec3::new(-1, 0, 2), // Left Upwardx2
         ];
 
         // let walkable = [
@@ -524,6 +540,15 @@ where
         // ];
 
         DIRS.iter()
+            .chain(
+                Some(JUMPS.iter())
+                    .filter(|_| {
+                        vol.get(pos).map(|b| !b.is_liquid()).unwrap_or(true)
+                            || traversal_cfg.can_climb
+                    })
+                    .into_iter()
+                    .flatten(),
+            )
             .map(move |dir| (pos, dir))
             .filter(move |(pos, dir)| {
                 is_walkable(pos)

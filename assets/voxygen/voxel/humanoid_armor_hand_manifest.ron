@@ -190,5 +190,25 @@
                 color: None
             )
         ),
+        "Warlord": (
+            left: (
+                vox_spec: ("armor.hand.warlord_left", (-3.0, -2.0, -5.0)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.hand.warlord_right", (-2.0, -2.0, -5.0)),
+                color: None
+            )
+        ),
+        "Warlock": (
+            left: (
+                vox_spec: ("armor.hand.warlock_left", (-4.5, -3.5, -5.0)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.hand.warlock_right", (-2.5, -3.5, -5.0)),
+                color: None
+            )
+        ),
     },
 ))

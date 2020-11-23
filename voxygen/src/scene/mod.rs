@@ -115,6 +115,7 @@ pub struct SceneData<'a> {
     pub tick: u64,
     pub thread_pool: &'a uvth::ThreadPool,
     pub gamma: f32,
+    pub exposure: f32,
     pub ambiance: f32,
     pub mouse_smoothing: bool,
     pub sprite_render_distance: f32,
@@ -534,9 +535,15 @@ impl Scene {
         let loaded_distance =
             (0.98 * self.loaded_distance + 0.02 * scene_data.loaded_distance).max(0.01);
 
-        // Update light constants
+        // Reset lights ready for the next tick
         let lights = &mut self.light_data;
         lights.clear();
+
+        // Maintain the particles.
+        self.particle_mgr
+            .maintain(renderer, &scene_data, &self.terrain, lights);
+
+        // Update light constants
         lights.extend(
             (
                 &scene_data.state.ecs().read_storage::<comp::Pos>(),
@@ -659,6 +666,7 @@ impl Scene {
                     .unwrap_or(BlockKind::Air),
                 self.select_pos.map(|e| e - focus_off.map(|e| e as i32)),
                 scene_data.gamma,
+                scene_data.exposure,
                 scene_data.ambiance,
                 self.camera.get_mode(),
                 scene_data.sprite_render_distance as f32 - 20.0,
@@ -691,9 +699,13 @@ impl Scene {
         );
 
         // Maintain the figures.
-        let _figure_bounds =
-            self.figure_mgr
-                .maintain(renderer, scene_data, visible_psr_bounds, &self.camera);
+        let _figure_bounds = self.figure_mgr.maintain(
+            renderer,
+            scene_data,
+            visible_psr_bounds,
+            &self.camera,
+            Some(&self.terrain),
+        );
 
         let sun_dir = scene_data.get_sun_dir();
         let is_daylight = sun_dir.z < 0.0;
@@ -986,10 +998,6 @@ impl Scene {
 
         // Remove unused figures.
         self.figure_mgr.clean(scene_data.tick);
-
-        // Maintain the particles.
-        self.particle_mgr
-            .maintain(renderer, &scene_data, &self.terrain);
 
         // Maintain audio
         self.sfx_mgr.maintain(

@@ -95,6 +95,7 @@ pub struct SceneData<'a> {
     pub thread_pool: &'a uvth::ThreadPool,
     pub body: Option<humanoid::Body>,
     pub gamma: f32,
+    pub exposure: f32,
     pub ambiance: f32,
     pub figure_lod_render_distance: f32,
     pub mouse_smoothing: bool,
@@ -186,6 +187,7 @@ impl Scene {
                     false,
                     &camera,
                     &mut buf,
+                    None,
                 );
                 (model, state)
             }),
@@ -259,7 +261,7 @@ impl Scene {
         } = self.camera.dependents();
         const VD: f32 = 115.0; // View Distance
 
-        const TIME: f64 = 9.0 * 60.0 * 60.0;
+        const TIME: f64 = 8.6 * 60.0 * 60.0;
         const SHADOW_NEAR: f32 = 1.0;
         const SHADOW_FAR: f32 = 25.0;
 
@@ -281,6 +283,7 @@ impl Scene {
             BlockKind::Air,
             None,
             scene_data.gamma,
+            scene_data.exposure,
             scene_data.ambiance,
             self.camera.get_mode(),
             250.0,
@@ -351,6 +354,7 @@ impl Scene {
                 false,
                 &self.camera,
                 &mut buf,
+                None,
             );
         }
     }

@@ -205,6 +205,9 @@ vec2 splay(vec2 pos) {
     // /const float CBRT_2 = cbrt(2.0) / 2.0;
     // vec2 splayed = pos * (view_distance.x * SQRT_2 + pow(len * 0.5, 3.0) * (SPLAY_MULT - view_distance.x));
     vec2 splayed = pos * (view_distance.x * SQRT_2 + len_pow * (textureSize(t_alt, 0) * 32.0/* - view_distance.x*/));
+    if (abs(pos.x) > 0.99 || abs(pos.y) > 0.99) {
+        splayed *= 10.0;
+    }
     return splayed;
 
     // Radial: pos.x = r - view_distance.x from focus_pos, pos.y = θ from cam_pos to focus_pos on xy plane.

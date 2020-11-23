@@ -77,6 +77,7 @@ where
                 0.0
             }
         };
+        let get_glow = |_vol: &mut V, _pos: Vec3<i32>| 0.0;
         let get_color = |vol: &mut V, pos: Vec3<i32>| {
             vol.get(pos)
                 .ok()
@@ -100,6 +101,7 @@ where
             greedy_size,
             greedy_size_cross,
             get_light,
+            get_glow,
             get_color,
             get_opacity,
             should_draw,
@@ -159,9 +161,10 @@ where
                 && lower_bound.z <= upper_bound.z
         );
         let greedy_size = upper_bound - lower_bound + 1;
+        // TODO: Should this be 16, 16, 64?
         assert!(
-            greedy_size.x <= 16 && greedy_size.y <= 16 && greedy_size.z <= 64,
-            "Sprite size out of bounds: {:?} ≤ (15, 15, 63)",
+            greedy_size.x <= 32 && greedy_size.y <= 32 && greedy_size.z <= 64,
+            "Sprite size out of bounds: {:?} ≤ (31, 31, 63)",
             greedy_size - 1
         );
         // NOTE: Cast to usize is safe because of previous check, since all values fit
@@ -178,6 +181,7 @@ where
                 0.0
             }
         };
+        let get_glow = |_vol: &mut V, _pos: Vec3<i32>| 0.0;
         let get_color = |vol: &mut V, pos: Vec3<i32>| {
             vol.get(pos)
                 .ok()
@@ -200,6 +204,7 @@ where
             greedy_size,
             greedy_size_cross,
             get_light,
+            get_glow,
             get_color,
             get_opacity,
             should_draw,
@@ -272,6 +277,7 @@ where
                 0.0
             }
         };
+        let get_glow = |_vol: &mut V, _pos: Vec3<i32>| 0.0;
         let get_color = |vol: &mut V, pos: Vec3<i32>| {
             vol.get(pos)
                 .ok()
@@ -294,6 +300,7 @@ where
             greedy_size,
             greedy_size_cross,
             get_light,
+            get_glow,
             get_color,
             get_opacity,
             should_draw,
