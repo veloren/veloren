@@ -99,8 +99,8 @@ impl CharacterBehavior for Data {
                     });
                     // Gets offsets
                     let body_offsets = Vec3::new(
-                        data.body.radius() * 3.0 * data.inputs.look_dir.x,
-                        data.body.radius() * 3.0 * data.inputs.look_dir.y,
+                        (data.body.radius() + 1.0) * data.inputs.look_dir.x,
+                        (data.body.radius() + 1.0) * data.inputs.look_dir.y,
                         data.body.eye_height(),
                     ) * 0.55;
                     // Build up

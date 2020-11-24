@@ -621,6 +621,8 @@ impl Body {
             _ => Vec3::unit_z(),
         }
     }
+
+    pub fn can_strafe(&self) -> bool { matches!(self, Body::Humanoid(_)) }
 }
 
 impl Component for Body {

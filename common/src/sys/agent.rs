@@ -337,7 +337,7 @@ impl<'a> System<'a> for Sys {
                             Bow,
                             Staff,
                             StoneGolemBoss,
-                            CircleCharge { radius: u8, circle_time: u8 },
+                            CircleCharge { radius: u32, circle_time: u32 },
                             QuadLowRanged,
                             TailSlap,
                             QuadLowQuick,
@@ -411,18 +411,18 @@ impl<'a> System<'a> for Sys {
 
                             let eye_offset = body.map_or(0.0, |b| b.eye_height());
 
-                            let mut tgt_eye_offset =
-                                bodies.get(*target).map_or(0.0, |b| b.eye_height());
-
-                            // Special case for jumping attacks to jump at the body
-                            // of the target and not the ground around the target
-                            // For the ranged it is to shoot at the feet and not
-                            // the head to get splash damage
-                            if tactic == Tactic::QuadMedJump {
-                                tgt_eye_offset += 1.0;
-                            } else if matches!(tactic, Tactic::QuadLowRanged) {
-                                tgt_eye_offset -= 1.0;
-                            }
+                            let tgt_eye_offset = bodies.get(*target).map_or(0.0, |b| b.eye_height()) +
+                                // Special case for jumping attacks to jump at the body
+                                // of the target and not the ground around the target
+                                // For the ranged it is to shoot at the feet and not
+                                // the head to get splash damage
+                                if tactic == Tactic::QuadMedJump {
+                                    1.0
+                                } else if matches!(tactic, Tactic::QuadLowRanged) {
+                                    -1.0
+                                } else {
+                                    0.0
+                                };
 
                             // Hacky distance offset for ranged weapons
                             let distance_offset = match tactic {
@@ -467,7 +467,7 @@ impl<'a> System<'a> for Sys {
                                 .unwrap_or(true);
                             if 1.0 - agent.psyche.aggro > damage && flees {
                                 if let Some(body) = body {
-                                    if body.is_humanoid() {
+                                    if body.can_strafe() {
                                         controller.actions.push(ControlAction::Unwield);
                                     }
                                 }
@@ -529,7 +529,7 @@ impl<'a> System<'a> for Sys {
                                                 inputs.move_z = bearing.z;
                                             }
 
-                                            if dist_sqrd < 16.0f32.powf(2.0)
+                                            if dist_sqrd < 16.0f32.powi(2)
                                                 && thread_rng().gen::<f32>() < 0.02
                                             {
                                                 inputs.roll.set_state(true);
