@@ -160,15 +160,7 @@ impl<'a> System<'a> for Sys {
 
                 let config = entity.config;
 
-                let loadout = LoadoutBuilder::build_loadout(
-                    body,
-                    alignment,
-                    main_tool,
-                    entity.is_giant,
-                    &map,
-                    config,
-                )
-                .build();
+                let loadout = LoadoutBuilder::build_loadout(body, main_tool, &map, config).build();
 
                 let health = comp::Health::new(stats.body_type, stats.level.level());
 
