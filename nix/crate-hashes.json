@@ -1,14 +1,21 @@
 {
   "auth-common 0.1.0 (git+https://gitlab.com/veloren/auth.git?rev=b943c85e4a38f5ec60cd18c34c73097640162bfe#b943c85e4a38f5ec60cd18c34c73097640162bfe)": "0ckpx36a5gmzirsih03ddfyp4iz23ffwb6sc75smb4srx1ivc7fy",
   "authc 1.0.0 (git+https://gitlab.com/veloren/auth.git?rev=b943c85e4a38f5ec60cd18c34c73097640162bfe#b943c85e4a38f5ec60cd18c34c73097640162bfe)": "0ckpx36a5gmzirsih03ddfyp4iz23ffwb6sc75smb4srx1ivc7fy",
-  "conrod_core 0.63.0 (git+https://gitlab.com/veloren/conrod.git#1ab6eccf94b16a8977a3274b31d4dbfef9cf9a30)": "1xr12b422wb2ygfzn5mfbqyqp8zia2ciclxladzlan7hr5h226jc",
-  "conrod_derive 0.63.0 (git+https://gitlab.com/veloren/conrod.git#1ab6eccf94b16a8977a3274b31d4dbfef9cf9a30)": "1xr12b422wb2ygfzn5mfbqyqp8zia2ciclxladzlan7hr5h226jc",
-  "conrod_winit 0.63.0 (git+https://gitlab.com/veloren/conrod.git#1ab6eccf94b16a8977a3274b31d4dbfef9cf9a30)": "1xr12b422wb2ygfzn5mfbqyqp8zia2ciclxladzlan7hr5h226jc",
+  "conrod_core 0.63.0 (git+https://gitlab.com/veloren/conrod.git?branch=copypasta_0.7#1ae5193588fb662a7189d81edd9f2d653c7f1da0)": "14sxyw8si0c2md5p5hssvfl12368hqp1fy6ighd7v4lb8fqwp6zj",
+  "conrod_derive 0.63.0 (git+https://gitlab.com/veloren/conrod.git?branch=copypasta_0.7#1ae5193588fb662a7189d81edd9f2d653c7f1da0)": "14sxyw8si0c2md5p5hssvfl12368hqp1fy6ighd7v4lb8fqwp6zj",
+  "conrod_winit 0.63.0 (git+https://gitlab.com/veloren/conrod.git?branch=copypasta_0.7#1ae5193588fb662a7189d81edd9f2d653c7f1da0)": "14sxyw8si0c2md5p5hssvfl12368hqp1fy6ighd7v4lb8fqwp6zj",
   "euc 0.5.1 (git+https://github.com/zesterer/euc.git#c9a7c17a03d45fce00caeeca09afa1e1558cd183)": "0qvk0bx1arkgmdc59sip39zszdw2fwv6jcy5jinv18n5m1nrclw4",
-  "guillotiere 0.4.2 (git+https://github.com/Imberflur/guillotiere#42c298f5bcf0f95f1a004360d05e25ca3711e9ed)": "1knqbn777f3cgzbsaqawzclgrqf3nav6x3gjzc2hsls3acccx1ya",
-  "msgbox 0.4.0 (git+https://github.com/bekker/msgbox-rs.git?rev=68fe39a#68fe39a60019b38a1569ae4e9ed796a0f0542673)": "18h6s50n7mz2ggfishhi91p2298shqhzx5xagpg9q4zb4y90c2wr",
+  "iced_core 0.2.1 (git+https://github.com/hecrj/iced?rev=f464316#f46431600cb61d4e83e0ded1ca79525478436be3)": "08ixcznfi6wmznjyg0ahi9zs12x5mlbw1bznifqr66gkpa25kyp1",
+  "iced_futures 0.1.2 (git+https://github.com/hecrj/iced?rev=f464316#f46431600cb61d4e83e0ded1ca79525478436be3)": "08ixcznfi6wmznjyg0ahi9zs12x5mlbw1bznifqr66gkpa25kyp1",
+  "iced_graphics 0.1.0 (git+https://github.com/hecrj/iced?rev=f464316#f46431600cb61d4e83e0ded1ca79525478436be3)": "08ixcznfi6wmznjyg0ahi9zs12x5mlbw1bznifqr66gkpa25kyp1",
+  "iced_native 0.2.2 (git+https://github.com/hecrj/iced?rev=f464316#f46431600cb61d4e83e0ded1ca79525478436be3)": "08ixcznfi6wmznjyg0ahi9zs12x5mlbw1bznifqr66gkpa25kyp1",
+  "iced_style 0.1.0 (git+https://github.com/hecrj/iced?rev=f464316#f46431600cb61d4e83e0ded1ca79525478436be3)": "08ixcznfi6wmznjyg0ahi9zs12x5mlbw1bznifqr66gkpa25kyp1",
+  "iced_winit 0.1.1 (git+https://github.com/hecrj/iced?rev=f464316#f46431600cb61d4e83e0ded1ca79525478436be3)": "08ixcznfi6wmznjyg0ahi9zs12x5mlbw1bznifqr66gkpa25kyp1",
   "portpicker 0.1.0 (git+https://github.com/xMAC94x/portpicker-rs#9d6df36c53c94684080a64a7212dd6bfc3617ee4)": "00vl2k3xfihxq86kf5rsknjl8dxmrxqhwajwn0hj4gzgnbssr0rx",
+  "scan_fmt 0.2.5 (git+https://github.com/Imberflur/scan_fmt#5f9e8eed73e93e8d19fa864d76e75bb4984cffe7)": "1g36jm3rii6iziqpddszhdk6bqpa7jzsbmrlfzmsmi16zcisrvid",
   "specs 0.16.1 (git+https://github.com/amethyst/specs.git?rev=7a2e348ab2223818bad487695c66c43db88050a5#7a2e348ab2223818bad487695c66c43db88050a5)": "1z7gjiq7zirg9az3ly1y2ghi5m7s3x1bp35gw5x0cyv50fsi3pjq",
   "specs-idvs 0.1.0 (git+https://gitlab.com/veloren/specs-idvs.git?branch=specs-git#fcb0b2306b571f62f9f85d89e79e087454d95efd)": "00w4kc60d7mjb5gbkcxrxzarshmhf4idqm3sk8335f7s3pn9q0s5",
-  "winit 0.22.2 (git+https://github.com/Imberflur/winit.git?branch=macos-test#e98133adf2abbfc4368f6c069d0beb2b8b688b42)": "0hv9wfsn1d5fwrs37vqyazrwys8665q03m9sygk2kal1jbl3x8zj"
+  "tui 0.10.0 (git+https://github.com/fdehau/tui-rs.git?branch=paragraph-scroll#54b841fab6cfdb38e8dc1382176e965787964b4c)": "0si3sp0hkjjrrfvmiynhai35pgjlnflw7qwwh268rpivdl8bd9xz",
+  "vek 0.12.0 (git+https://gitlab.com/veloren/vek.git?branch=fix_intrinsics#237a78528b505f34f6dde5dc77db3b642388fe4a)": "1v3kxjl826zf0zbi9pbwpw75ybidr0cdsgx772l0671zmp3yrkjg",
+  "winit 0.23.0 (git+https://gitlab.com/veloren/winit.git?branch=macos-test-spiffed#7c8c5f21384c898f50d37298d229093549b08803)": "1amfl8xpmyh7a4sy87iz5rybdgfn598crl6y6hxyrmyamg6cbqd4"
 }
