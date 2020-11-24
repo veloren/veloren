@@ -87,20 +87,13 @@ impl Entity {
             "common.items.armor.shoulder.leather_0",
         ));
 
-        LoadoutBuilder::build_loadout(
-            self.get_body(),
-            comp::Alignment::Npc,
-            Some(main_tool),
-            false,
-            ability_map,
-            None,
-        )
-        .back(back)
-        .lantern(lantern)
-        .chest(chest)
-        .pants(pants)
-        .shoulder(shoulder)
-        .build()
+        LoadoutBuilder::build_loadout(self.get_body(), Some(main_tool), ability_map, None)
+            .back(back)
+            .lantern(lantern)
+            .chest(chest)
+            .pants(pants)
+            .shoulder(shoulder)
+            .build()
     }
 
     pub fn tick(&mut self, terrain: &TerrainGrid, world: &World) {
