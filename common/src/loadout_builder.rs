@@ -1,7 +1,7 @@
 use crate::comp::{
     biped_large, golem,
     item::{tool::AbilityMap, Item, ItemKind},
-    Alignment, Body, CharacterAbility, ItemConfig, Loadout,
+    Body, CharacterAbility, ItemConfig, Loadout,
 };
 use rand::Rng;
 
@@ -88,28 +88,92 @@ impl LoadoutBuilder {
     #[allow(clippy::single_match)]
     pub fn build_loadout(
         body: Body,
-        _alignment: Alignment,
         mut main_tool: Option<Item>,
-        is_giant: bool,
         map: &AbilityMap,
         config: Option<LoadoutConfig>,
     ) -> Self {
-        let loadout = if let Some(config) = config {
-            let active_item = if let Some(ItemKind::Tool(_)) = main_tool.as_ref().map(|i| i.kind())
-            {
-                main_tool.map(|item| ItemConfig::from((item, map)))
-            } else {
-                Some(ItemConfig {
-                    // We need the empty item so npcs can attack
-                    item: Item::new_from_asset_expect("common.items.weapons.empty.empty"),
-                    ability1: Some(CharacterAbility::default()),
-                    ability2: None,
-                    ability3: None,
-                    block_ability: None,
-                    dodge_ability: None,
-                })
+        // If no main tool is passed in, checks if species has a default main tool
+        if main_tool.is_none() {
+            match body {
+                Body::Golem(golem) => match golem.species {
+                    golem::Species::StoneGolem => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.stone_golems_fist",
+                        ));
+                    },
+                    _ => {},
+                },
+                Body::BipedLarge(biped_large) => match (biped_large.species, biped_large.body_type)
+                {
+                    (biped_large::Species::Occultsaurok, _) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.staff.saurok_staff",
+                        ));
+                    },
+                    (biped_large::Species::Mightysaurok, _) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.sword.saurok_sword",
+                        ));
+                    },
+                    (biped_large::Species::Slysaurok, _) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.bow.saurok_bow",
+                        ));
+                    },
+                    (biped_large::Species::Ogre, biped_large::BodyType::Male) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.hammer.ogre_hammer",
+                        ));
+                    },
+                    (biped_large::Species::Ogre, biped_large::BodyType::Female) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.staff.ogre_staff",
+                        ));
+                    },
+                    (biped_large::Species::Troll, _) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.hammer.troll_hammer",
+                        ));
+                    },
+                    (biped_large::Species::Wendigo, _) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.beast_claws",
+                        ));
+                    },
+                    (biped_large::Species::Werewolf, _) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.beast_claws",
+                        ));
+                    },
+                    (biped_large::Species::Cyclops, _) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.hammer.cyclops_hammer",
+                        ));
+                    },
+                    (biped_large::Species::Dullahan, _) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.sword.dullahan_sword",
+                        ));
+                    },
+                    (biped_large::Species::Mindflayer, _) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.staff.mindflayer_staff",
+                        ));
+                    },
+                },
+                _ => {},
             };
+        }
 
+        // Constructs ItemConfig from Item
+        let active_item = if let Some(ItemKind::Tool(_)) = main_tool.as_ref().map(|i| i.kind()) {
+            main_tool.map(|item| ItemConfig::from((item, map)))
+        } else {
+            Some(LoadoutBuilder::animal(body))
+        };
+
+        // Creates rest of loadout
+        let loadout = if let Some(config) = config {
             use LoadoutConfig::*;
             match config {
                 Guard => Loadout {
@@ -417,137 +481,22 @@ impl LoadoutBuilder {
                 },
             }
         } else {
-            match body {
-                Body::Golem(golem) => match golem.species {
-                    golem::Species::StoneGolem => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.stone_golems_fist",
-                        ));
-                    },
-                    _ => {},
-                },
-                Body::BipedLarge(biped_large) => match (biped_large.species, biped_large.body_type)
-                {
-                    (biped_large::Species::Occultsaurok, _) => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.staff.saurok_staff",
-                        ));
-                    },
-                    (biped_large::Species::Mightysaurok, _) => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.sword.saurok_sword",
-                        ));
-                    },
-                    (biped_large::Species::Slysaurok, _) => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.bow.saurok_bow",
-                        ));
-                    },
-                    (biped_large::Species::Ogre, biped_large::BodyType::Male) => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.hammer.ogre_hammer",
-                        ));
-                    },
-                    (biped_large::Species::Ogre, biped_large::BodyType::Female) => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.staff.ogre_staff",
-                        ));
-                    },
-                    (biped_large::Species::Troll, _) => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.hammer.troll_hammer",
-                        ));
-                    },
-                    (biped_large::Species::Wendigo, _) => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.beast_claws",
-                        ));
-                    },
-                    (biped_large::Species::Werewolf, _) => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.beast_claws",
-                        ));
-                    },
-                    (biped_large::Species::Cyclops, _) => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.hammer.cyclops_hammer",
-                        ));
-                    },
-                    (biped_large::Species::Dullahan, _) => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.sword.dullahan_sword",
-                        ));
-                    },
-                    (biped_large::Species::Mindflayer, _) => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.staff.mindflayer_staff",
-                        ));
-                    },
-                },
-                Body::Humanoid(_) => {
-                    if is_giant {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.sword.zweihander_sword_0",
-                        ));
-                    }
-                },
-                _ => {},
-            };
-
-            let active_item = if let Some(ItemKind::Tool(_)) = main_tool.as_ref().map(|i| i.kind())
-            {
-                main_tool.map(|item| ItemConfig::from((item, map)))
-            } else {
-                Some(ItemConfig {
-                    // We need the empty item so npcs can attack
-                    item: Item::new_from_asset_expect("common.items.weapons.empty.empty"),
-                    ability1: Some(CharacterAbility::default()),
-                    ability2: None,
-                    ability3: None,
-                    block_ability: None,
-                    dodge_ability: None,
-                })
-            };
-
-            match body {
-                Body::Golem(golem) => match golem.species {
-                    golem::Species::StoneGolem => Loadout {
-                        active_item,
-                        second_item: None,
-                        shoulder: None,
-                        chest: None,
-                        belt: None,
-                        hand: None,
-                        pants: None,
-                        foot: None,
-                        back: None,
-                        ring: None,
-                        neck: None,
-                        lantern: None,
-                        glider: None,
-                        head: None,
-                        tabard: None,
-                    },
-                    _ => LoadoutBuilder::animal(body).build(),
-                },
-                Body::BipedLarge(_) => Loadout {
-                    active_item,
-                    second_item: None,
-                    shoulder: None,
-                    chest: None,
-                    belt: None,
-                    hand: None,
-                    pants: None,
-                    foot: None,
-                    back: None,
-                    ring: None,
-                    neck: None,
-                    lantern: None,
-                    glider: None,
-                    head: None,
-                    tabard: None,
-                },
-                _ => LoadoutBuilder::animal(body).build(),
+            Loadout {
+                active_item,
+                second_item: None,
+                shoulder: None,
+                chest: None,
+                belt: None,
+                hand: None,
+                pants: None,
+                foot: None,
+                back: None,
+                ring: None,
+                neck: None,
+                lantern: None,
+                glider: None,
+                head: None,
+                tabard: None,
             }
         };
 
@@ -555,40 +504,24 @@ impl LoadoutBuilder {
     }
 
     /// Default animal configuration
-    pub fn animal(body: Body) -> Self {
-        Self(Loadout {
-            active_item: Some(ItemConfig {
-                item: Item::new_from_asset_expect("common.items.weapons.empty.empty"),
-                ability1: Some(CharacterAbility::BasicMelee {
-                    energy_cost: 10,
-                    buildup_duration: 500,
-                    swing_duration: 100,
-                    recover_duration: 100,
-                    base_damage: body.base_dmg(),
-                    knockback: 0.0,
-                    range: body.base_range(),
-                    max_angle: 20.0,
-                }),
-                ability2: None,
-                ability3: None,
-                block_ability: None,
-                dodge_ability: None,
+    pub fn animal(body: Body) -> ItemConfig {
+        ItemConfig {
+            item: Item::new_from_asset_expect("common.items.weapons.empty.empty"),
+            ability1: Some(CharacterAbility::BasicMelee {
+                energy_cost: 10,
+                buildup_duration: 500,
+                swing_duration: 100,
+                recover_duration: 100,
+                base_damage: body.base_dmg(),
+                knockback: 0.0,
+                range: body.base_range(),
+                max_angle: 20.0,
             }),
-            second_item: None,
-            shoulder: None,
-            chest: None,
-            belt: None,
-            hand: None,
-            pants: None,
-            foot: None,
-            back: None,
-            ring: None,
-            neck: None,
-            lantern: None,
-            glider: None,
-            head: None,
-            tabard: None,
-        })
+            ability2: None,
+            ability3: None,
+            block_ability: None,
+            dodge_ability: None,
+        }
     }
 
     /// Get the default [ItemConfig](../comp/struct.ItemConfig.html) for a tool
