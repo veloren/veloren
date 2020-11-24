@@ -621,9 +621,9 @@ vec3 compute_attenuation_point(vec3 wpos, vec3 ray_dir, vec3 mu, float surface_a
 vec3 greedy_extract_col_light_glow(sampler2D t_col_light, vec2 f_uv_pos, out float f_light, out float f_glow) {
     uvec4 f_col_light = uvec4(texelFetch(t_col_light, ivec2(f_uv_pos), 0) * 255);
     vec3 f_col = vec3(
-        float(((f_col_light.r << 1u) & 0xFu) | (((f_col_light.b >> 4u) & 0xFu) << 4u)),
+        float(((f_col_light.r & 0x7u) << 1u) | (f_col_light.b & 0xF0u)),
         float(f_col_light.a),
-        float(((f_col_light.g << 1u) & 0xFu) | (((f_col_light.b >> 0u) & 0xFu) << 4u))
+        float(((f_col_light.g & 0x7u) << 1u) | ((f_col_light.b & 0x0Fu) << 4u))
     ) / 255.0;
 
     // TODO: Figure out how to use `texture` and modulation to avoid needing to do manual filtering

@@ -127,8 +127,8 @@ impl Vertex {
         // TODO: This isn't currently working (no idea why). See `srgb.glsl` for current
         // impl that intead does manual bit-twiddling and filtering.
         [
-            (light.min(31) << 3) | ((col.r & 0b1110) >> 1),
-            (glow.min(31) << 3) | ((col.r & 0b1110) >> 1),
+            (light.min(31) << 3) | ((col.r >> 1) & 0b111),
+            (glow.min(31) << 3) | ((col.b >> 1) & 0b111),
             (col.r & 0b11110000) | (col.b >> 4),
             col.g, // Green is lucky, it remains unscathed
         ]
