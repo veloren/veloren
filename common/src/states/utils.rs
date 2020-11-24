@@ -232,7 +232,7 @@ pub fn handle_forced_movement(
 
 pub fn handle_orientation(data: &JoinData, update: &mut StateUpdate, rate: f32) {
     // Set direction based on move direction
-    let ori_dir = if (update.character.is_aimed() && data.body.is_humanoid())
+    let ori_dir = if (update.character.is_aimed() && data.body.can_strafe())
         || update.character.is_attack()
     {
         data.inputs.look_dir.xy()
