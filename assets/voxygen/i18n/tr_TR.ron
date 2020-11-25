@@ -65,7 +65,8 @@
         "common.back": "Geri",
         "common.create": "Oluştur",
         "common.okay": "Tamam",
-        "common.accept": "Kabul Et",
+        "common.add": "Ekle",
+        "common.accept": "Kabul Et", 
         "common.decline": "Reddet",
         "common.disclaimer": "Uyarı",
         "common.cancel": "İptal Et",
@@ -107,7 +108,10 @@ Sunucu yeniden mi başladı?
 
 
         /// Start Main screen section
-        "main.connecting": "Bağlanılıyor",
+        "main.username": "Kullanıcı adı",
+        "main.server": "Sunucu",
+        "main.password": "Şifre",
+        "main.connecting": "Bağlanılıyor", 
         "main.creating_world": "Dünya oluşturuluyor",
         "main.tip": "İpucu:",
 
@@ -154,6 +158,11 @@ bir hesap oluşturabilirsin."#,
         "main.login.invalid_character": "Seçilen karakter geçersiz",
         "main.login.client_crashed": "İstemci çöktü",
         "main.login.not_on_whitelist": "Sunucuya girmek için bir Yönetici tarafından beyaz listeye eklenmen gerekiyor",
+        "main.login.banned": "Sunucudan aşağıdaki sebepten dolayı yasaklandınız",
+        "main.login.kicked": "Sunucudan aşağıdaki sebepten dolayı atıldınız",
+        "main.login.select_language": "Bir dil seç",
+        
+        "main.servers.select_server": "Bir sunucu seç",
 
         /// End Main screen section
 
@@ -166,7 +175,7 @@ bir hesap oluşturabilirsin."#,
         "hud.waypoint_saved": "Yol noktası kaydedildi",
 
         "hud.press_key_to_show_keybindings_fmt": "Kontrolleri göstermek için {key}'e bas",
-        "hud.press_key_to_toggle_lantern_fmt": "Fenerini yakıp söndürmek için [{key}]'e bas",
+        "hud.press_key_to_toggle_lantern_fmt": "Fenerini yakmak veya söndürmek için [{key}]'e bas", 
         "hud.press_key_to_show_debug_info_fmt": "Hata ayıklama bilgilerini göstermek için {key}'e bas",
         "hud.press_key_to_toggle_keybindings_fmt": "Kontrolleri açmak veya kapamak için {key}'e bas",
         "hud.press_key_to_toggle_debug_info_fmt": "Hata ayıklama bilgilerini açmak veya kapamak için {key}'e bas",
@@ -184,7 +193,7 @@ bir hesap oluşturabilirsin."#,
         "hud.chat.pvp_ranged_kill_msg": "[{victim}], [{attacker}] tarafından vuruldu.",
         "hud.chat.pvp_explosion_kill_msg": "[{victim}], [{attacker}] tarafından havaya uçuruldu.",
         "hud.chat.pvp_energy_kill_msg": "[{victim}], [{attacker}] tarafından büyü ile mağlup edildi.",
-        "hud.chat.pvp_other_kill_msg": "[{victim}], [{attacker}] tarafından öldürüldü.",
+        "hud.chat.pvp_buff_kill_msg": "[{victim}], [{attacker}] tarafından öldürüldü.",
 
 
         "hud.chat.npc_melee_kill_msg": "[{victim}], [{attacker}] tarafından mağlup edildi.",
@@ -330,8 +339,10 @@ edince kapat"#,
         "hud.settings.maximum_fps": "Maksimum FPS",
         "hud.settings.fov": "Görüş alanı (derece)",
         "hud.settings.gamma": "Gama",
-        "hud.settings.ambiance": "Ortam Parlaklığı",
+        "hud.settings.exposure": "Görünürlük",
+        "hud.settings.ambiance": "Ortam Parlaklığı", 
         "hud.settings.antialiasing_mode": "Kenar Yumuşatma Modu",
+        "hud.settings.upscale_factor": "Render Büyütme Faktörü",
         "hud.settings.cloud_rendering_mode": "Bulut Kalitesi",
         "hud.settings.fluid_rendering_mode": "Su Kalitesi",
         "hud.settings.fluid_rendering_mode.cheap": "Basit",
@@ -340,6 +351,7 @@ edince kapat"#,
         "hud.settings.cloud_rendering_mode.low": "Düşük",
         "hud.settings.cloud_rendering_mode.medium": "Orta",
         "hud.settings.cloud_rendering_mode.high": "Yüksek",
+        "hud.settings.cloud_rendering_mode.ultra": "En Yüksek",
         "hud.settings.fullscreen": "Tam Ekran",
         "hud.settings.fullscreen_mode": "Tam Ekran Modu",
         "hud.settings.fullscreen_mode.exclusive": "Ekranı kapla",
@@ -348,16 +360,17 @@ edince kapat"#,
         "hud.settings.resolution": "Çözünürlük",
         "hud.settings.bit_depth": "Bit Derinliği",
         "hud.settings.refresh_rate": "Yenileme Hızı",
-        "hud.settings.save_window_size": "Pencere boyutunu kaydet",
         "hud.settings.lighting_rendering_mode": "Aydınlanma Modu",
         "hud.settings.lighting_rendering_mode.ashikhmin": "A Tipi - Yüksek",
         "hud.settings.lighting_rendering_mode.blinnphong": "B Tipi - Orta",
         "hud.settings.lighting_rendering_mode.lambertian": "L Tipi - Düşük",
         "hud.settings.shadow_rendering_mode": "Gölge Modu",
-        "hud.settings.shadow_rendering_mode.none": "Kapalı",
+        "hud.settings.shadow_rendering_mode.none": "Yok",
         "hud.settings.shadow_rendering_mode.cheap": "Basit",
         "hud.settings.shadow_rendering_mode.map": "Ayrıntılı",
         "hud.settings.shadow_rendering_mode.map.resolution": "Çözünürlük",
+        "hud.settings.lod_detail": "Uzak Cisim Detayı",
+        "hud.settings.save_window_size": "Pencere boyutunu kaydet",
 
         "hud.settings.music_volume": "Müzik Sesi",
         "hud.settings.sound_effect_volume": "Efekt Sesi",
@@ -399,8 +412,22 @@ edince kapat"#,
 
         "hud.spell": "Büyü",
 
-        "hud.free_look_indicator": "Serbest bakış açık",
+        "hud.free_look_indicator": "Serbest bakış açık, kapatmak için {key} tuşuna bas",
         "hud.auto_walk_indicator": "Otomatik yürüme açık",
+
+        "hud.map.difficulty": "Zorluk",
+        "hud.map.towns": "Şehirler",
+        "hud.map.castles": "Kaleler",
+        "hud.map.dungeons": "Zindanlar",
+        "hud.map.caves": "Mağaralar",
+        "hud.map.cave": "Mağara",
+        "hud.map.town": "Şehir",
+        "hud.map.castle": "Kale",
+        "hud.map.dungeon": "Zindan",
+        "hud.map.difficulty_dungeon": "Zindan\n\nZorluk: {difficulty}",
+        "hud.map.drag": "Sürükle",
+        "hud.map.zoom": "Büyüt / küçült",
+        "hud.map.recenter": "Merkezle",
 
         /// End HUD section
 
@@ -459,9 +486,10 @@ edince kapat"#,
         "gameinput.acceptgroupinvite": "Grup Davetini Kabul Et",
         "gameinput.declinegroupinvite": "Grup Davetini Reddet",
         "gameinput.crafting": "Üretim",
-        "gameinput.sneak": "Eğil",
-        "gameinput.swimdown": "Aşağı Dal",
-        "gameinput.swimup": "Yüzeye çık",
+        "gameinput.fly": "Uç",
+        "gameinput.sneak": "Eğil", 
+        "gameinput.swimdown": "Aşağı yüz",
+        "gameinput.swimup": "Yukarı yüz", 
 
         /// End GameInput section
 
@@ -474,7 +502,7 @@ silmek istediğinden emin misin?"#,
         "char_selection.change_server": "Sunucu Değiştir",
         "char_selection.enter_world": "Dünyaya Gir",
         "char_selection.logout": "Çıkış yap",
-        "char_selection.create_new_charater": "Yeni Karakter Oluştur",
+        "char_selection.create_new_character": "Yeni Karakter Oluştur",
         "char_selection.creating_character": "Karakter oluşturuluyor...",
         "char_selection.character_creation": "Karakter Oluşturma",
 
@@ -504,10 +532,8 @@ silmek istediğinden emin misin?"#,
 İrade gücü
 
 Koruma
-"#,
-
-
-        /// Start character window section
+"#, 
+        /// End character window section
 
 
         /// Start Escape Menu Section
@@ -520,11 +546,15 @@ Koruma
         "buff.title.missing": "İsim Yok",
         "buff.desc.missing": "Açıklama Yok",
         // Buffs
-        "buff.title.heal": "İyileştirme Testi",
-        "buff.desc.heal": "Bu etki iyileştirmeyi test etmek için.",
+        "buff.title.heal": "İyileşme",
+        "buff.desc.heal": "Zamanla can kazan.",
+        "buff.title.potion": "İksir",
+        "buff.desc.potion": "İçiyor...",
+        "buff.title.saturation": "Satürasyon",
+        "buff.desc.saturation": "Tüketilebilen maddelerden zamanla can kazan.",
         // Debuffs
         "debuff.title.bleed": "Kanama",
-        "debuff.desc.bleed": "Normal hasar verir.",
+        "debuff.desc.bleed": "Sıradan hasar verir.",
     },
 
     vector_map: {
