@@ -63,8 +63,8 @@ image_ids_ice! {
 }
 
 // Randomly loaded background images
-const BG_IMGS: [&str; 13] = [
-    "voxygen.background.bg_1",
+const BG_IMGS: [&str; 10] = [
+    //"voxygen.background.bg_1",
     "voxygen.background.bg_2",
     "voxygen.background.bg_3",
     "voxygen.background.bg_4",
@@ -72,14 +72,14 @@ const BG_IMGS: [&str; 13] = [
     "voxygen.background.bg_6",
     "voxygen.background.bg_7",
     "voxygen.background.bg_8",
-    "voxygen.background.bg_9",
-    //"voxygen.background.bg_10",
-    "voxygen.background.bg_11",
-    //"voxygen.background.bg_12",
+    //"voxygen.background.bg_9",
+    "voxygen.background.bg_10",
+    //"voxygen.background.bg_11",
+    "voxygen.background.bg_12",
     "voxygen.background.bg_13",
     //"voxygen.background.bg_14",
-    "voxygen.background.bg_15",
-    "voxygen.background.bg_16",
+    //"voxygen.background.bg_15",
+    //"voxygen.background.bg_16",
 ];
 
 pub enum Event {

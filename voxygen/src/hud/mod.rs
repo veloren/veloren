@@ -73,7 +73,6 @@ use conrod_core::{
     widget::{self, Button, Image, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
-use inline_tweak::*;
 use specs::{Join, WorldExt};
 use std::{
     collections::{HashMap, VecDeque},
@@ -645,7 +644,7 @@ impl Hud {
         let ids = Ids::new(ui.id_generator());
         // NOTE: Use a border the same color as the LOD ocean color (but with a
         // translucent alpha since UI have transparency and LOD doesn't).
-        let water_color = srgba_to_linear(Rgba::new(0.0, tweak!(0.18), tweak!(0.37), tweak!(1.0)));
+        let water_color = srgba_to_linear(Rgba::new(0.0, 0.18, 0.37, 1.0));
         // Load world map
         let world_map = (
             ui.add_graphic_with_rotations(Graphic::Image(
