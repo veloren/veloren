@@ -36,6 +36,7 @@ use crate::{
 };
 use common::{
     assets,
+    grid::Grid,
     msg::WorldMapMsg,
     store::Id,
     terrain::{
@@ -1498,8 +1499,8 @@ impl WorldSim {
             dimensions_lg: self.map_size_lg().vec(),
             sea_level: CONFIG.sea_level,
             max_height: self.max_height,
-            rgba: v,
-            alt: alts,
+            rgba: Grid::from_raw(self.get_size().map(|e| e as i32), v),
+            alt: Grid::from_raw(self.get_size().map(|e| e as i32), alts),
             horizons,
             sites: Vec::new(), // Will be substituted later
         }

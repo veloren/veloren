@@ -30,6 +30,7 @@ pub mod event;
 pub mod explosion;
 pub mod figure;
 pub mod generation;
+pub mod grid;
 pub mod loadout_builder;
 pub mod lottery;
 pub mod metrics;

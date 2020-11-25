@@ -29,9 +29,9 @@ impl Lod {
             data: LodData::new(
                 renderer,
                 client.world_map.1,
-                &client.lod_base,
-                &client.lod_alt,
-                &client.lod_horizon,
+                &client.lod_base.raw(),
+                &client.lod_alt.raw(),
+                &client.lod_horizon.raw(),
                 settings.graphics.lod_detail.max(100).min(2500),
                 water_color().into_array().into(),
             ),

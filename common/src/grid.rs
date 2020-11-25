@@ -1,11 +1,20 @@
+use serde::{Deserialize, Serialize};
+use std::ops::{Index, IndexMut};
 use vek::*;
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Grid<T> {
     cells: Vec<T>,
     size: Vec2<i32>,
 }
 
 impl<T> Grid<T> {
+    pub fn from_raw(size: Vec2<i32>, raw: impl Into<Vec<T>>) -> Self {
+        let cells = raw.into();
+        assert_eq!(size.product() as usize, cells.len());
+        Self { cells, size }
+    }
+
     pub fn populate_from(size: Vec2<i32>, mut f: impl FnMut(Vec2<i32>) -> T) -> Self {
         Self {
             cells: (0..size.y)
@@ -80,5 +89,33 @@ impl<T> Grid<T> {
                 })
             })
             .flatten()
+    }
+
+    pub fn raw(&self) -> &[T] { &self.cells }
+}
+
+impl<T> Index<Vec2<i32>> for Grid<T> {
+    type Output = T;
+
+    fn index(&self, index: Vec2<i32>) -> &Self::Output {
+        self.get(index).unwrap_or_else(|| {
+            panic!(
+                "Attempted to index grid of size {:?} with index {:?}",
+                self.size(),
+                index
+            )
+        })
+    }
+}
+
+impl<T> IndexMut<Vec2<i32>> for Grid<T> {
+    fn index_mut(&mut self, index: Vec2<i32>) -> &mut Self::Output {
+        let size = self.size();
+        self.get_mut(index).unwrap_or_else(|| {
+            panic!(
+                "Attempted to index grid of size {:?} with index {:?}",
+                size, index
+            )
+        })
     }
 }
