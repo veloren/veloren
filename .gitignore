@@ -49,4 +49,5 @@ userdata
 .DS_Store
 
 # Nix
-nix/result
+nix/result*
+/result*
