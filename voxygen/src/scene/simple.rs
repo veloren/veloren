@@ -106,7 +106,10 @@ impl Scene {
         let start_angle = 90.0f32.to_radians();
         let resolution = renderer.get_resolution().map(|e| e as f32);
 
-        let map_bounds = client.world_map.2;
+        let map_bounds = Vec2::new(
+            client.world_data().min_chunk_alt(),
+            client.world_data().max_chunk_alt(),
+        );
         let map_border = [0.0, 0.0, 0.0, 0.0];
         let map_image = [0];
         let alt_image = [0];
