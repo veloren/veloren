@@ -558,7 +558,7 @@ impl LoadoutBuilder {
                     back: None,
                     ring: None,
                     neck: None,
-                    lantern: Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
+                    lantern: None,
                     glider: None,
                     head: None,
                     tabard: None,

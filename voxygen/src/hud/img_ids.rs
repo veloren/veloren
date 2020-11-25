@@ -6,7 +6,7 @@ rotation_image_ids! {
         <VoxelGraphic>
 
         <ImageGraphic>
-        indicator_mmap_small: "voxygen.element.buttons.indicator_mmap_small",
+        indicator_mmap_small: "voxygen.element.buttons.indicator_mmap",
          // Tooltip Test
          tt_side: "voxygen/element/frames/tt_test_edge",
          tt_corner: "voxygen/element/frames/tt_test_corner_tr",
@@ -178,6 +178,7 @@ image_ids! {
         map_frame: "voxygen.element.misc_bg.map_frame",
         map_frame_art: "voxygen.element.misc_bg.map_frame_art",
         indicator_mmap: "voxygen.element.buttons.indicator_mmap",
+        indicator_map_overlay: "voxygen.element.buttons.indicator_mmap_small",
 
         // MiniMap
         mmap_frame: "voxygen.element.frames.mmap",
@@ -195,12 +196,12 @@ image_ids! {
         mmap_minus: "voxygen.element.buttons.min_plus.mmap_button-min",
         mmap_minus_hover: "voxygen.element.buttons.min_plus.mmap_button-min_hover",
         mmap_minus_press: "voxygen.element.buttons.min_plus.mmap_button-min_press",
-        map_dif_0: "voxygen.element.map.dif_0",
         map_dif_1: "voxygen.element.map.dif_1",
         map_dif_2: "voxygen.element.map.dif_2",
         map_dif_3: "voxygen.element.map.dif_3",
         map_dif_4: "voxygen.element.map.dif_4",
         map_dif_5: "voxygen.element.map.dif_5",
+        map_dif_6: "voxygen.element.map.dif_6",
         mmap_site_town: "voxygen.element.map.town",
         mmap_site_town_hover: "voxygen.element.map.town_hover",
         mmap_site_town_bg: "voxygen.element.map.town_bg",
