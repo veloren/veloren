@@ -251,7 +251,7 @@ impl Controller {
 }
 
 impl Component for Controller {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = IdvStorage<Self>;
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
