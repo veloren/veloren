@@ -82,8 +82,11 @@ pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch_builder.add(tick::Sys, TICK_SYS, &[LOAD_CHUNK_SYS, UNLOAD_CHUNK_SYS]);
 }
 
-pub fn init(state: &mut State, world: &world::World) {
+pub fn init(state: &mut State, #[cfg(feature = "worldgen")] world: &world::World) {
+    #[cfg(feature = "worldgen")]
     let mut rtsim = RtSim::new(world.sim().get_size());
+    #[cfg(not(feature = "worldgen"))]
+    let mut rtsim = RtSim::new(Vec2::new(40, 40));
 
     for _ in 0..2500 {
         let pos = rtsim
