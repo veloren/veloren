@@ -32,9 +32,8 @@ impl Animation for ChargeswingAnimation {
 
         let lab = 1.0;
 
-        let short = (((5.0)
-            / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 8.0).sin()).powf(2.0 as f32)))
-        .sqrt())
+        let short = (((5.0) / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 8.0).sin()).powi(2)))
+            .sqrt())
             * ((anim_time as f32 * lab as f32 * 8.0).sin());
         // end spin stuff
 
@@ -46,7 +45,7 @@ impl Animation for ChargeswingAnimation {
                 (anim_time as f32 * 18.0 * lab as f32).sin(),
             ),
             Some(StageSection::Swing) => (1.0, anim_time as f32, 0.0, 0.0),
-            Some(StageSection::Recover) => (1.0, 1.0, (anim_time as f32).powf(4.0), 0.0),
+            Some(StageSection::Recover) => (1.0, 1.0, (anim_time as f32).powi(4), 0.0),
             _ => (0.0, 0.0, 0.0, 0.0),
         };
         if let Some(ToolKind::Hammer) = active_tool_kind {

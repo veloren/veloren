@@ -27,9 +27,8 @@ impl Animation for DanceAnimation {
         *rate = 1.0;
 
         let lab = 1.0;
-        let short = (((5.0)
-            / (3.0 + 2.0 * ((anim_time as f32 * lab as f32 * 6.0).sin()).powf(2.0 as f32)))
-        .sqrt())
+        let short = (((5.0) / (3.0 + 2.0 * ((anim_time as f32 * lab as f32 * 6.0).sin()).powi(2)))
+            .sqrt())
             * ((anim_time as f32 * lab as f32 * 6.0).sin());
         let noisea = (anim_time as f32 * 11.0 + PI / 6.0).sin();
         let noiseb = (anim_time as f32 * 19.0 + PI / 4.0).sin();
@@ -39,7 +38,7 @@ impl Animation for DanceAnimation {
         let shortealt = (anim_time as f32 * lab as f32 * 6.0 + PI / 2.0).sin();
 
         let foot = (((5.0)
-            / (1.0 + (4.0) * ((anim_time as f32 * lab as f32 * 8.0).sin()).powf(2.0 as f32)))
+            / (1.0 + (4.0) * ((anim_time as f32 * lab as f32 * 8.0).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * lab as f32 * 8.0).sin());
 

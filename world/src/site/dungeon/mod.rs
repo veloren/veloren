@@ -1105,9 +1105,9 @@ impl Floor {
         let make_staircase = move |pos: Vec3<i32>, radius: f32, inner_radius: f32, stretch: f32| {
             let stone = BlockMask::new(Block::new(BlockKind::Rock, colors.stone.into()), 5);
 
-            if (pos.xy().magnitude_squared() as f32) < inner_radius.powf(2.0) {
+            if (pos.xy().magnitude_squared() as f32) < inner_radius.powi(2) {
                 stone
-            } else if (pos.xy().magnitude_squared() as f32) < radius.powf(2.0) {
+            } else if (pos.xy().magnitude_squared() as f32) < radius.powi(2) {
                 if ((pos.x as f32).atan2(pos.y as f32) / (f32::consts::PI * 2.0) * stretch
                     + (floor_z + pos.z) as f32)
                     .rem_euclid(stretch)
@@ -1163,7 +1163,7 @@ impl Floor {
             Some(Tile::Solid) => BlockMask::nothing(),
             Some(Tile::Tunnel) => {
                 if dist_to_wall >= wall_thickness
-                    && (z as f32) < tunnel_height * (1.0 - tunnel_dist.powf(4.0))
+                    && (z as f32) < tunnel_height * (1.0 - tunnel_dist.powi(4))
                 {
                     if z == 0 { floor_sprite } else { vacant }
                 } else {
@@ -1173,15 +1173,14 @@ impl Floor {
             Some(Tile::Room(room)) | Some(Tile::DownStair(room))
                 if dist_to_wall < wall_thickness
                     || z as f32
-                        >= self.rooms[*room].height as f32 * (1.0 - tunnel_dist.powf(4.0))
+                        >= self.rooms[*room].height as f32 * (1.0 - tunnel_dist.powi(4))
                     || self.rooms[*room]
                         .pillars
                         .map(|pillar_space| {
                             tile_pos
                                 .map(|e| e.rem_euclid(pillar_space) == 0)
                                 .reduce_and()
-                                && rtile_pos.map(|e| e as f32).magnitude_squared()
-                                    < 3.5f32.powf(2.0)
+                                && rtile_pos.map(|e| e as f32).magnitude_squared() < 3.5f32.powi(2)
                         })
                         .unwrap_or(false) =>
             {

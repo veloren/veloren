@@ -50,16 +50,12 @@ impl Animation for SwimAnimation {
         let foot = (anim_time as f32 * lab as f32 * 6.0 + PI * -0.1).sin();
 
         let footrotl = (((1.0)
-            / (0.2
-                + (0.8)
-                    * ((anim_time as f32 * 6.0 * lab as f32 + PI * 1.4).sin()).powf(2.0 as f32)))
+            / (0.2 + (0.8) * ((anim_time as f32 * 6.0 * lab as f32 + PI * 1.4).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * 6.0 * lab as f32 + PI * 1.4).sin());
 
         let footrotr = (((1.0)
-            / (0.2
-                + (0.8)
-                    * ((anim_time as f32 * 6.0 * lab as f32 + PI * 0.4).sin()).powf(2.0 as f32)))
+            / (0.2 + (0.8) * ((anim_time as f32 * 6.0 * lab as f32 + PI * 0.4).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * 6.0 * lab as f32 + PI * 0.4).sin());
 
@@ -93,7 +89,7 @@ impl Animation for SwimAnimation {
         let abstilt = tilt.abs();
 
         let squash = if abstilt > 0.2 { 0.35 } else { 1.0 }; //condenses the body at strong turns
-        next.head.position = Vec3::new(0.0, -3.0 + s_a.head.0, s_a.head.1 - 1.0 + short * 0.3);
+        next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1 - 1.0 + short * 0.3);
         next.head.orientation =
             Quaternion::rotation_z(head_look.x * 0.3 + short * -0.2 * intensity + tilt * 3.0)
                 * Quaternion::rotation_x(

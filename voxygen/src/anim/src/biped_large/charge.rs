@@ -32,24 +32,21 @@ impl Animation for ChargeAnimation {
 
         let lab = 1.0;
 
-        let foot = (((5.0)
-            / (0.2 + 4.8 * ((anim_time as f32 * lab as f32 * 8.0).sin()).powf(2.0 as f32)))
-        .sqrt())
+        let foot = (((5.0) / (0.2 + 4.8 * ((anim_time as f32 * lab as f32 * 8.0).sin()).powi(2)))
+            .sqrt())
             * ((anim_time as f32 * lab as f32 * 8.0).sin());
         let foote = (((5.0)
-            / (0.5 + 4.5 * ((anim_time as f32 * lab as f32 * 8.0 + 1.57).sin()).powf(2.0 as f32)))
+            / (0.5 + 4.5 * ((anim_time as f32 * lab as f32 * 8.0 + 1.57).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * lab as f32 * 8.0).sin());
-        let stress = (((5.0)
-            / (0.5 + 4.5 * ((anim_time as f32 * lab as f32 * 20.0).cos()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * lab as f32 * 20.0).cos());
-        let quick = (((5.0)
-            / (3.5 + 1.5 * ((anim_time as f32 * lab as f32 * 8.0).sin()).powf(2.0 as f32)))
-        .sqrt())
+        let stress =
+            (((5.0) / (0.5 + 4.5 * ((anim_time as f32 * lab as f32 * 20.0).cos()).powi(2))).sqrt())
+                * ((anim_time as f32 * lab as f32 * 20.0).cos());
+        let quick = (((5.0) / (3.5 + 1.5 * ((anim_time as f32 * lab as f32 * 8.0).sin()).powi(2)))
+            .sqrt())
             * ((anim_time as f32 * lab as f32 * 8.0).sin());
-        let stop = ((anim_time as f32).powf(0.3 as f32)).min(1.2);
-        let stopa = ((anim_time as f32).powf(0.9 as f32)).min(5.0);
+        let stop = ((anim_time as f32).powf(0.3)).min(1.2);
+        let stopa = ((anim_time as f32).powf(0.9)).min(5.0);
 
         let ori: Vec2<f32> = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);

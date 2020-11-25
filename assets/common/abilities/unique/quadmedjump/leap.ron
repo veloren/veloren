@@ -1,0 +1,13 @@
+LeapMelee(
+    energy_cost: 0,
+    buildup_duration: 500,
+    movement_duration: 400,
+    swing_duration: 75,
+    recover_duration: 200,
+    base_damage: 240,
+    knockback: 12.0,
+    range: 4.5,
+    max_angle: 180.0,
+    forward_leap_strength: 40.0,
+    vertical_leap_strength: 10.0,
+)

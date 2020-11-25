@@ -37,9 +37,7 @@ impl Path {
     /// Return the number of blocks of headspace required at the given path
     /// distance
     /// TODO: make this generic over width
-    pub fn head_space(&self, dist: f32) -> i32 {
-        (8 - (dist * 0.25).powf(6.0).round() as i32).max(1)
-    }
+    pub fn head_space(&self, dist: f32) -> i32 { (8 - (dist * 0.25).powi(6).round() as i32).max(1) }
 
     /// Get the surface colour of a path given the surrounding surface color
     pub fn surface_color(&self, col: Rgb<u8>) -> Rgb<u8> { col.map(|e| (e as f32 * 0.7) as u8) }

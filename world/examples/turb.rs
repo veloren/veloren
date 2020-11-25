@@ -22,7 +22,7 @@ fn main() {
 
                 let pos = pos * 10.0;
 
-                let pos = (0..10).fold(pos, |pos, _| pos.map(|e| e.powf(3.0) - 1.0));
+                let pos = (0..10).fold(pos, |pos, _| pos.map(|e| e.powi(3) - 1.0));
 
                 let val = if pos.map(|e| e.abs() < 0.5).reduce_and() {
                     1.0f32

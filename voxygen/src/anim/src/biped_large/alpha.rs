@@ -37,19 +37,17 @@ impl Animation for AlphaAnimation {
         let (movement1, movement2, movement3) = match stage_section {
             Some(StageSection::Buildup) => ((anim_time as f32).powf(0.25), 0.0, 0.0),
             Some(StageSection::Swing) => (1.0, anim_time as f32, 0.0),
-            Some(StageSection::Recover) => (1.0, 1.0, (anim_time as f32).powf(4.0)),
+            Some(StageSection::Recover) => (1.0, 1.0, (anim_time as f32).powi(4)),
             _ => (0.0, 0.0, 0.0),
         };
 
         let foot = (((1.0)
-            / (0.2
-                + 0.8
-                    * ((anim_time as f32 * lab as f32 * 2.0 * velocity).sin()).powf(2.0 as f32)))
+            / (0.2 + 0.8 * ((anim_time as f32 * lab as f32 * 2.0 * velocity).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * lab as f32 * 2.0 * velocity).sin());
         let slowersmooth = (anim_time as f32 * lab as f32 * 4.0).sin();
         let slower = (((1.0)
-            / (0.0001 + 0.999 * ((anim_time as f32 * lab as f32 * 4.0).sin()).powf(2.0 as f32)))
+            / (0.0001 + 0.999 * ((anim_time as f32 * lab as f32 * 4.0).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * lab as f32 * 4.0).sin());
 

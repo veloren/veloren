@@ -174,9 +174,9 @@ impl Archetype for Keep {
         let make_staircase = move |pos: Vec3<i32>, radius: f32, inner_radius: f32, stretch: f32| {
             let stone = BlockMask::new(Block::new(BlockKind::Rock, dungeon_stone.into()), 5);
 
-            if (pos.xy().magnitude_squared() as f32) < inner_radius.powf(2.0) {
+            if (pos.xy().magnitude_squared() as f32) < inner_radius.powi(2) {
                 stone
-            } else if (pos.xy().magnitude_squared() as f32) < radius.powf(2.0) {
+            } else if (pos.xy().magnitude_squared() as f32) < radius.powi(2) {
                 if ((pos.x as f32).atan2(pos.y as f32) / (std::f32::consts::PI * 2.0) * stretch
                     + pos.z as f32)
                     .rem_euclid(stretch)
@@ -205,7 +205,7 @@ impl Archetype for Keep {
         let door_height = 6;
         let rampart_height = roof_height + if ridge_x % 2 == 0 { 3 } else { 4 };
         let min_dist = if attr.rounded {
-            bound_offset.map(|e| e.pow(2) as f32).sum().powf(0.5) as i32
+            bound_offset.map(|e| e.pow(2) as f32).sum().sqrt() as i32
         } else {
             bound_offset.map(|e| e.abs()).reduce_max()
         };

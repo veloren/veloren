@@ -32,6 +32,8 @@ pub struct StaticData {
     pub charge_duration: Duration,
     /// How long the weapon is swinging for
     pub swing_duration: Duration,
+    /// At what fraction of the swing duration to apply the melee "hit"
+    pub hit_timing: f32,
     /// How long the state has until exiting
     pub recover_duration: Duration,
     /// What key is used to press ability
@@ -130,7 +132,20 @@ impl CharacterBehavior for Data {
                 }
             },
             StageSection::Swing => {
-                if !self.exhausted {
+                if self.timer.as_millis() as f32
+                    > self.static_data.hit_timing
+                        * self.static_data.swing_duration.as_millis() as f32
+                    && !self.exhausted
+                {
+                    // Swing
+                    update.character = CharacterState::ChargedMelee(Data {
+                        timer: self
+                            .timer
+                            .checked_add(Duration::from_secs_f32(data.dt.0))
+                            .unwrap_or_default(),
+                        exhausted: true,
+                        ..*self
+                    });
                     let mut damage = Damage {
                         source: DamageSource::Melee,
                         value: self.static_data.max_damage as f32,
@@ -151,16 +166,6 @@ impl CharacterBehavior for Data {
                         applied: false,
                         hit_count: 0,
                         knockback: Knockback::Away(knockback),
-                    });
-
-                    // Starts swinging
-                    update.character = CharacterState::ChargedMelee(Data {
-                        timer: self
-                            .timer
-                            .checked_add(Duration::from_secs_f32(data.dt.0))
-                            .unwrap_or_default(),
-                        exhausted: true,
-                        ..*self
                     });
                 } else if self.timer < self.static_data.swing_duration {
                     // Swings

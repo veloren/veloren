@@ -35,17 +35,16 @@ impl Animation for DashAnimation {
             Some(StageSection::Buildup) => ((anim_time as f32).powf(0.25), 0.0, 0.0, 0.0),
             Some(StageSection::Charge) => (1.0, anim_time as f32, 0.0, 0.0),
             Some(StageSection::Swing) => (1.0, 1.0, anim_time as f32, 0.0),
-            Some(StageSection::Recover) => (1.1, 1.0, 1.0, (anim_time as f32).powf(4.0)),
+            Some(StageSection::Recover) => (1.1, 1.0, 1.0, (anim_time as f32).powi(4)),
             _ => (0.0, 0.0, 0.0, 0.0),
         };
 
         fn slow(x: f32) -> f32 {
-            (((5.0) / (1.1 + 3.9 * ((x * 12.4).sin()).powf(2.0 as f32))).sqrt())
-                * ((x * 12.4).sin())
+            (((5.0) / (1.1 + 3.9 * ((x * 12.4).sin()).powi(2))).sqrt()) * ((x * 12.4).sin())
         }
 
         fn short(x: f32) -> f32 {
-            (((5.0) / (1.5 + 3.5 * ((x * 5.0).sin()).powf(2.0 as f32))).sqrt()) * ((x * 5.0).sin())
+            (((5.0) / (1.5 + 3.5 * ((x * 5.0).sin()).powi(2))).sqrt()) * ((x * 5.0).sin())
         }
         fn foothoril(x: f32) -> f32 { (x * 5.0 + PI * 1.45).sin() }
         fn foothorir(x: f32) -> f32 { (x * 5.0 + PI * (0.45)).sin() }
@@ -54,12 +53,12 @@ impl Animation for DashAnimation {
         fn footvertr(x: f32) -> f32 { (x * 5.0 + PI).sin() }
 
         fn footrotl(x: f32) -> f32 {
-            (((1.0) / (0.05 + (0.95) * ((x * 5.0 + PI * 1.4).sin()).powf(2.0 as f32))).sqrt())
+            (((1.0) / (0.05 + (0.95) * ((x * 5.0 + PI * 1.4).sin()).powi(2))).sqrt())
                 * ((x * 5.0 + PI * 1.4).sin())
         }
 
         fn footrotr(x: f32) -> f32 {
-            (((1.0) / (0.05 + (0.95) * ((x * 5.0 + PI * 0.4).sin()).powf(2.0 as f32))).sqrt())
+            (((1.0) / (0.05 + (0.95) * ((x * 5.0 + PI * 0.4).sin()).powi(2))).sqrt())
                 * ((x * 5.0 + PI * 0.4).sin())
         }
 

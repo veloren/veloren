@@ -65,7 +65,7 @@
             central: ("npc.saber.male.head"),
         ),
         neck: (
-            offset: (-4.0, -5.5, -4.0),
+            offset: (-4.0, -2.0, -4.0),
             central: ("npc.saber.male.neck"),
         ),
         jaw: (
@@ -95,7 +95,7 @@
             central: ("npc.saber.male.head"),
         ),
         neck: (
-            offset: (-4.0, -5.5, -4.0),
+            offset: (-4.0, -2.0, -4.0),
             central: ("npc.saber.male.neck"),
         ),
         jaw: (
@@ -121,11 +121,11 @@
     ),
     (Tuskram, Male): (
         head: (
-            offset: (-10.0, -6.0, -6.5),
+            offset: (-10.0, -2.0, -6.5),
             central: ("npc.tuskram.male.head"),
         ),
         neck: (
-            offset: (-4.0, -5.0, -3.5),
+            offset: (-4.0, -2.0, -3.5),
             central: ("npc.tuskram.male.neck"),
         ),
         jaw: (
@@ -151,11 +151,11 @@
     ),
     (Tuskram, Female): (
         head: (
-            offset: (-10.0, -6.0, -6.5),
+            offset: (-10.0, -2.0, -6.5),
             central: ("npc.tuskram.male.head"),
         ),
         neck: (
-            offset: (-4.0, -5.0, -3.5),
+            offset: (-4.0, -2.0, -3.5),
             central: ("npc.tuskram.male.neck"),
         ),
         jaw: (
@@ -185,7 +185,7 @@
             central: ("npc.lion.male.head"),
         ),
         neck: (
-            offset: (-7.5, -5.5, -8.5),
+            offset: (-7.5, -3.0, -8.5),
             central: ("npc.lion.male.neck"),
         ),
         jaw: (
@@ -215,7 +215,7 @@
             central: ("npc.lion.male.head"),
         ),
         neck: (
-            offset: (-7.5, -5.5, -8.5),
+            offset: (-7.5, -3.0, -8.5),
             central: ("npc.lion.male.neck"),
         ),
         jaw: (
@@ -245,7 +245,7 @@
             central: ("npc.tarasque.male.head"),
         ),
         neck: (
-            offset: (-5.0, -3.0, -4.5),
+            offset: (-5.0, -2.0, -4.5),
             central: ("npc.tarasque.male.neck"),
         ),
         jaw: (
@@ -275,7 +275,7 @@
             central: ("npc.tarasque.male.head"),
         ),
         neck: (
-            offset: (-5.0, -3.0, -4.5),
+            offset: (-5.0, -2.0, -4.5),
             central: ("npc.tarasque.male.neck"),
         ),
         jaw: (
@@ -365,7 +365,7 @@
             central: ("npc.wolf.male.head"),
         ),
         neck: (
-            offset: (-5.0, -4.5, -5.0),
+            offset: (-5.0, -2.0, -5.0),
             central: ("npc.wolf.male.neck"),
         ),
         jaw: (
@@ -395,7 +395,7 @@
             central: ("npc.wolf.male.head"),
         ),
         neck: (
-            offset: (-5.0, -4.5, -5.0),
+            offset: (-5.0, -2.0, -5.0),
             central: ("npc.wolf.male.neck"),
         ),
         jaw: (
@@ -425,7 +425,7 @@
             central: ("npc.frostfang.male.head"),
         ),
         neck: (
-            offset: (-3.0, -2.0, -4.0),
+            offset: (-3.0, -1.0, -4.0),
             central: ("npc.frostfang.male.neck"),
         ),
         jaw: (
@@ -455,7 +455,7 @@
             central: ("npc.frostfang.male.head"),
         ),
         neck: (
-            offset: (-3.0, -2.0, -4.0),
+            offset: (-3.0, -1.0, -4.0),
             central: ("npc.frostfang.male.neck"),
         ),
         jaw: (
@@ -485,7 +485,7 @@
             central: ("npc.mouflon.male.head"),
         ),
         neck: (
-            offset: (-4.0, -4.0, -4.5),
+            offset: (-4.0, -2.0, -4.5),
             central: ("npc.mouflon.male.neck"),
         ),
         jaw: (
@@ -515,7 +515,7 @@
             central: ("npc.mouflon.male.head"),
         ),
         neck: (
-            offset: (-4.0, -4.0, -4.5),
+            offset: (-4.0, -2.0, -4.5),
             central: ("npc.mouflon.male.neck"),
         ),
         jaw: (
@@ -605,7 +605,7 @@
             central: ("npc.bonerattler.male.head"),
         ),
         neck: (
-            offset: (-4.5, -2.0, -5.0),
+            offset: (-4.5, -1.0, -5.0),
             central: ("npc.bonerattler.male.neck"),
         ),
         jaw: (
@@ -635,7 +635,7 @@
             central: ("npc.bonerattler.male.head"),
         ),
         neck: (
-            offset: (-4.5, -2.0, -5.0),
+            offset: (-4.5, -1.0, -5.0),
             central: ("npc.bonerattler.male.neck"),
         ),
         jaw: (
@@ -665,7 +665,7 @@
             central: ("npc.deer.male.head"),
         ),
         neck: (
-            offset: (-3.0, -3.5, -4.0),
+            offset: (-3.0, -2.0, -4.0),
             central: ("npc.deer.male.neck"),
         ),
         jaw: (
@@ -695,7 +695,7 @@
             central: ("npc.deer.female.head"),
         ),
         neck: (
-            offset: (-3.0, -3.5, -4.0),
+            offset: (-3.0, -2.0, -4.0),
             central: ("npc.deer.female.neck"),
         ),
         jaw: (
@@ -725,7 +725,7 @@
             central: ("npc.hirdrasil.male.head"),
         ),
         neck: (
-            offset: (-4.0, -4.0, -6.0),
+            offset: (-4.0, -2.0, -6.0),
             central: ("npc.hirdrasil.male.neck"),
         ),
         jaw: (
@@ -755,7 +755,7 @@
             central: ("npc.hirdrasil.male.head"),
         ),
         neck: (
-            offset: (-4.0, -4.0, -6.0),
+            offset: (-4.0, -2.0, -6.0),
             central: ("npc.hirdrasil.male.neck"),
         ),
         jaw: (
@@ -785,7 +785,7 @@
             central: ("npc.roshwalr.male.head"),
         ),
         neck: (
-            offset: (-7.0, -3.0, -11.5),
+            offset: (-7.0, -2.0, -11.5),
             central: ("npc.roshwalr.male.neck"),
         ),
         jaw: (
@@ -815,7 +815,7 @@
             central: ("npc.roshwalr.male.head"),
         ),
         neck: (
-            offset: (-7.0, -3.0, -11.5),
+            offset: (-7.0, -2.0, -11.5),
             central: ("npc.roshwalr.male.neck"),
         ),
         jaw: (

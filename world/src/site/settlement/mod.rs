@@ -221,7 +221,7 @@ impl Settlement {
     /// Testing only
     pub fn place_river(&mut self, rng: &mut impl Rng) {
         let river_dir = Vec2::new(rng.gen::<f32>() - 0.5, rng.gen::<f32>() - 0.5).normalized();
-        let radius = 500.0 + rng.gen::<f32>().powf(2.0) * 1000.0;
+        let radius = 500.0 + rng.gen::<f32>().powi(2) * 1000.0;
         let river = self.land.new_plot(Plot::Water);
         let river_offs = Vec2::new(rng.gen_range(-3, 4), rng.gen_range(-3, 4));
 
@@ -1133,7 +1133,7 @@ impl Land {
         let center_tile = self.tile_at(neighbors[4].0.map(to_tile));
 
         if let Some(tower) = center_tile.and_then(|tile| tile.tower.as_ref()) {
-            if (neighbors[4].0.distance_squared(pos) as f32) < tower.radius().powf(2.0) {
+            if (neighbors[4].0.distance_squared(pos) as f32) < tower.radius().powi(2) {
                 sample.tower = Some((tower, neighbors[4].0));
             }
         }

@@ -53,30 +53,26 @@ impl Animation for RunAnimation {
         let footrotl = (((1.0)
             / (0.5
                 + (0.5)
-                    * ((anim_time as f32 * 16.0 * walk * lab as f32 + PI * 1.4).sin())
-                        .powf(2.0 as f32)))
+                    * ((anim_time as f32 * 16.0 * walk * lab as f32 + PI * 1.4).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * 16.0 * walk * lab as f32 + PI * 1.4).sin());
 
         let footrotr = (((1.0)
             / (0.5
                 + (0.5)
-                    * ((anim_time as f32 * 16.0 * walk * lab as f32 + PI * 0.4).sin())
-                        .powf(2.0 as f32)))
+                    * ((anim_time as f32 * 16.0 * walk * lab as f32 + PI * 0.4).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * 16.0 * walk * lab as f32 + PI * 0.4).sin());
 
         let short = (((5.0)
-            / (1.5
-                + 3.5 * ((anim_time as f32 * lab as f32 * 16.0 * walk).sin()).powf(2.0 as f32)))
+            / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 16.0 * walk).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * lab as f32 * 16.0 * walk).sin());
         let noisea = (anim_time as f32 * 11.0 + PI / 6.0).sin();
         let noiseb = (anim_time as f32 * 19.0 + PI / 4.0).sin();
 
         let shorte = (((5.0)
-            / (4.0
-                + 1.0 * ((anim_time as f32 * lab as f32 * 16.0 * walk).sin()).powf(2.0 as f32)))
+            / (4.0 + 1.0 * ((anim_time as f32 * lab as f32 * 16.0 * walk).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * lab as f32 * 16.0 * walk).sin());
 

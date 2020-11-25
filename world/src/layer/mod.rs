@@ -118,8 +118,8 @@ pub fn apply_caves_to(canvas: &mut Canvas) {
             let cave_x = (cave_dist / cave.width).min(1.0);
 
             // Relative units
-            let cave_floor = 0.0 - 0.5 * (1.0 - cave_x.powf(2.0)).max(0.0).sqrt() * cave.width;
-            let cave_height = (1.0 - cave_x.powf(2.0)).max(0.0).sqrt() * cave.width;
+            let cave_floor = 0.0 - 0.5 * (1.0 - cave_x.powi(2)).max(0.0).sqrt() * cave.width;
+            let cave_height = (1.0 - cave_x.powi(2)).max(0.0).sqrt() * cave.width;
 
             // Abs units
             let cave_base = (cave.alt + cave_floor) as i32;
@@ -222,7 +222,7 @@ pub fn apply_caves_supplement<'a>(
                 let cave_x = (cave_dist / cave.width).min(1.0);
 
                 // Relative units
-                let cave_floor = 0.0 - 0.5 * (1.0 - cave_x.powf(2.0)).max(0.0).sqrt() * cave.width;
+                let cave_floor = 0.0 - 0.5 * (1.0 - cave_x.powi(2)).max(0.0).sqrt() * cave.width;
 
                 // Abs units
                 let cave_base = (cave.alt + cave_floor) as i32;
@@ -240,7 +240,7 @@ pub fn apply_caves_supplement<'a>(
                         wpos2d.y as f32,
                         cave_base as f32,
                     ))
-                    .with_body(match dynamic_rng.gen_range(0, 6) {
+                    .with_body(match dynamic_rng.gen_range(0, 5) {
                         0 => {
                             is_hostile = false;
                             let species = match dynamic_rng.gen_range(0, 4) {
@@ -253,7 +253,7 @@ pub fn apply_caves_supplement<'a>(
                         },
                         1 => {
                             is_hostile = true;
-                            let species = match dynamic_rng.gen_range(0, 5) {
+                            let species = match dynamic_rng.gen_range(0, 2) {
                                 0 => comp::quadruped_medium::Species::Tarasque,
                                 _ => comp::quadruped_medium::Species::Bonerattler,
                             };
@@ -261,15 +261,27 @@ pub fn apply_caves_supplement<'a>(
                         },
                         2 => {
                             is_hostile = true;
-                            let species = match dynamic_rng.gen_range(0, 4) {
-                                1 => comp::quadruped_low::Species::Rocksnapper,
+                            let species = match dynamic_rng.gen_range(0, 3) {
+                                0 => comp::quadruped_low::Species::Rocksnapper,
+                                1 => comp::quadruped_low::Species::Lavadrake,
                                 _ => comp::quadruped_low::Species::Salamander,
                             };
                             comp::quadruped_low::Body::random_with(dynamic_rng, &species).into()
                         },
+                        3 => {
+                            is_hostile = true;
+                            let species = match dynamic_rng.gen_range(0, 5) {
+                                0 => comp::theropod::Species::Sandraptor,
+                                1 => comp::theropod::Species::Snowraptor,
+                                2 => comp::theropod::Species::Woodraptor,
+                                3 => comp::theropod::Species::Odonto,
+                                _ => comp::theropod::Species::Archaeos,
+                            };
+                            comp::theropod::Body::random_with(dynamic_rng, &species).into()
+                        },
                         _ => {
                             is_hostile = true;
-                            let species = match dynamic_rng.gen_range(0, 8) {
+                            let species = match dynamic_rng.gen_range(0, 4) {
                                 0 => comp::biped_large::Species::Ogre,
                                 1 => comp::biped_large::Species::Cyclops,
                                 2 => comp::biped_large::Species::Wendigo,

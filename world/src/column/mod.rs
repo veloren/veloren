@@ -238,7 +238,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             let river_width = Lerp::lerp(
                 river_width_min,
                 river_width_max,
-                river_t.max(0.0).min(1.0).powf(0.5),
+                river_t.max(0.0).min(1.0).sqrt(),
             );
 
             let river_width = river_width * (1.0 + river_width_noise * 0.3);
@@ -716,7 +716,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 .div(100.0)
                 .into_array(),
         ) as f32)
-            //.mul(water_dist.map(|wd| (wd / 2.0).clamped(0.0, 1.0).powf(0.5)).unwrap_or(1.0))
+            //.mul(water_dist.map(|wd| (wd / 2.0).clamped(0.0, 1.0).sqrt()).unwrap_or(1.0))
             .mul(rockiness)
             .sub(0.4)
             .max(0.0)
@@ -745,7 +745,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let wposf3d = Vec3::new(wposf.x, wposf.y, alt as f64);
 
         let marble_small = (sim.gen_ctx.hill_nz.get((wposf3d.div(3.0)).into_array()) as f32)
-            .powf(3.0)
+            .powi(3)
             .add(1.0)
             .mul(0.5);
         let marble_mid = (sim.gen_ctx.hill_nz.get((wposf3d.div(12.0)).into_array()) as f32)

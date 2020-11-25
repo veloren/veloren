@@ -56,6 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Variable dungeon difficulty
 - Aurora Borealis (localised entirely within the kitchen)
 - Block-based voxel lighting
+- Animals now have customized attacks and AI
 
 ### Changed
 

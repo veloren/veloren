@@ -2,12 +2,13 @@ use super::{
     super::{vek::*, Animation},
     QuadrupedLowSkeleton, SkeletonAttr,
 };
-use std::f32::consts::PI;
+use common::states::utils::StageSection;
+//use std::ops::Rem;
 
 pub struct AlphaAnimation;
 
 impl Animation for AlphaAnimation {
-    type Dependency = (f32, f64);
+    type Dependency = (f32, f64, Option<StageSection>, f64);
     type Skeleton = QuadrupedLowSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -16,58 +17,44 @@ impl Animation for AlphaAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_low_alpha")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (velocity, _global_time): Self::Dependency,
+        (_velocity, global_time, stage_section, timer): Self::Dependency,
         anim_time: f64,
         _rate: &mut f32,
-        s_a: &SkeletonAttr,
+        _s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let short = (((1.0)
-            / (0.1 + 0.9 * ((anim_time as f32 * 8.0 + PI * 2.5).sin()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * 8.0 + PI * 2.5).sin());
-        let quick = (((1.0)
-            / (0.001 + 0.9999 * ((anim_time as f32 * 7.0 + PI * 0.0).sin()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * 7.0 + PI * 0.0).sin());
-
-        next.head_upper.position = Vec3::new(0.0, s_a.head_upper.0, s_a.head_upper.1);
-        next.head_upper.orientation = Quaternion::rotation_z(short * 0.3);
-
-        next.head_lower.position = Vec3::new(0.0, s_a.head_lower.0, s_a.head_lower.1);
-        next.head_lower.orientation =
-            Quaternion::rotation_z(short * 0.2) * Quaternion::rotation_y(short * -0.4);
-
-        next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
-        next.jaw.orientation = Quaternion::rotation_x(-0.2 + quick * 0.3);
-
-        next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1) * s_a.scaler / 11.0;
-        next.chest.orientation = Quaternion::rotation_y(short * -0.07);
-
-        next.tail_front.position = Vec3::new(0.0, s_a.tail_front.0, s_a.tail_front.1);
-        next.tail_front.orientation = Quaternion::rotation_x(0.15)
-            * Quaternion::rotation_y(short * 0.2)
-            * Quaternion::rotation_z(short * 0.3);
-
-        next.tail_rear.position = Vec3::new(0.0, s_a.tail_rear.0, s_a.tail_rear.1);
-        next.tail_rear.orientation = Quaternion::rotation_y(short * 0.5)
-            * Quaternion::rotation_x(-0.12)
-            * Quaternion::rotation_z(short * 0.3);
-        if velocity < 1.0 {
-            next.foot_fl.position = Vec3::new(-s_a.feet_f.0, s_a.feet_f.1, s_a.feet_f.2);
-            next.foot_fl.orientation = Quaternion::rotation_y(short * 0.12);
-
-            next.foot_fr.position = Vec3::new(s_a.feet_f.0, s_a.feet_f.1, s_a.feet_f.2);
-            next.foot_fr.orientation = Quaternion::rotation_y(short * 0.12);
-
-            next.foot_bl.position = Vec3::new(-s_a.feet_b.0, s_a.feet_b.1, s_a.feet_b.2);
-            next.foot_bl.orientation = Quaternion::rotation_y(short * 0.12);
-
-            next.foot_br.position = Vec3::new(s_a.feet_b.0, s_a.feet_b.1, s_a.feet_b.2);
-            next.foot_br.orientation = Quaternion::rotation_y(short * 0.12);
-        } else {
+        let (movement1base, movement2base, movement3) = match stage_section {
+            Some(StageSection::Buildup) => ((anim_time as f32).sqrt(), 0.0, 0.0),
+            Some(StageSection::Swing) => (1.0, (anim_time as f32).powi(4), 0.0),
+            Some(StageSection::Recover) => (1.0, 1.0, anim_time as f32),
+            _ => (0.0, 0.0, 0.0),
         };
+        let pullback = 1.0 - movement3;
+        let subtract = global_time - timer;
+        let check = subtract - subtract.trunc();
+        let mirror = (check - 0.5).signum() as f32;
+        let twitch3 = (mirror * movement3 * 9.0).sin();
+        let movement1 = mirror * movement1base * pullback;
+        let movement2 = mirror * movement2base * pullback;
+        let movement1abs = movement1base * pullback;
+        let movement2abs = movement2base * pullback;
+
+        next.head_upper.orientation = Quaternion::rotation_z(twitch3 * -0.7);
+
+        next.head_lower.orientation =
+            Quaternion::rotation_x(movement1abs * 0.35 + movement2abs * -0.9)
+                * Quaternion::rotation_y(movement1 * 0.7 + movement2 * -1.0);
+
+        next.jaw.orientation = Quaternion::rotation_x(movement1abs * -0.5 + movement2abs * 0.5);
+        next.chest.orientation = Quaternion::rotation_y(movement1 * -0.08 + movement2 * 0.15)
+            * Quaternion::rotation_z(movement1 * -0.2 + movement2 * 0.6);
+
+        next.tail_front.orientation = Quaternion::rotation_x(0.15)
+            * Quaternion::rotation_z(movement1 * -0.4 + movement2 * -0.2);
+
+        next.tail_rear.orientation = Quaternion::rotation_x(-0.12)
+            * Quaternion::rotation_z(movement1 * -0.4 + movement2 * -0.2);
         next
     }
 }

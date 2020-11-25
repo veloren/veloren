@@ -85,7 +85,7 @@ impl<'a> BlockGen<'a> {
                     .gen_ctx
                     .warp_nz
                     .get(wposf.div(24.0))
-                    .mul((chaos - 0.1).max(0.0).min(1.0).powf(2.0))
+                    .mul((chaos - 0.1).max(0.0).min(1.0).powi(2))
                     .mul(16.0);
                 let warp = Lerp::lerp(0.0, warp, warp_factor);
 
@@ -125,7 +125,7 @@ impl<'a> BlockGen<'a> {
         } else if (wposf.z as f32) < height {
             let grass_factor = (wposf.z as f32 - (height - grass_depth))
                 .div(grass_depth)
-                .powf(0.5);
+                .sqrt();
             let col = Lerp::lerp(sub_surface_color, surface_color, grass_factor);
             // Surface
             Some(Block::new(
@@ -144,7 +144,7 @@ impl<'a> BlockGen<'a> {
         }
         .or_else(|| {
             // Rocks
-            if (height + 2.5 - wposf.z as f32).div(7.5).abs().powf(2.0) < rock {
+            if (height + 2.5 - wposf.z as f32).div(7.5).abs().powi(2) < rock {
                 #[allow(clippy::identity_op)]
                 let field0 = RandomField::new(world.seed + 0);
                 let field1 = RandomField::new(world.seed + 1);

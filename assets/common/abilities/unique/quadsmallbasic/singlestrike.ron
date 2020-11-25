@@ -1,0 +1,23 @@
+ComboMelee(
+    stage_data: [
+        (
+            stage: 1,
+            base_damage: 30,
+            max_damage: 30,
+            damage_increase: 0,
+            knockback: 5.0,
+            range: 3.5,
+            angle: 60.0,
+            base_buildup_duration: 300,
+            base_swing_duration: 150,
+            base_recover_duration: 300,
+            forward_movement: 1.0,
+        ),
+    ],
+    initial_energy_gain: 0,
+    max_energy_gain: 0,
+    energy_increase: 0,
+    speed_increase: 0.0,
+    max_speed_increase: 1.0,
+    is_interruptible: false,
+)

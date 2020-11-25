@@ -1,0 +1,15 @@
+ItemDef(
+    name: "Quad Med Charge",
+    description: "testing123",
+    kind: Tool(
+        (
+            kind: Unique(QuadMedCharge),
+            stats: (
+                equip_time_millis: 10,
+                power: 1.00,
+                speed: 1.00,
+            ),
+        )
+    ),
+    quality: Low,
+)

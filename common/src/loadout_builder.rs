@@ -1,7 +1,7 @@
 use crate::comp::{
     biped_large, golem,
     item::{tool::AbilityMap, Item, ItemKind},
-    Body, CharacterAbility, ItemConfig, Loadout,
+    quadruped_low, quadruped_medium, theropod, Body, CharacterAbility, ItemConfig, Loadout,
 };
 use rand::Rng;
 
@@ -102,6 +102,90 @@ impl LoadoutBuilder {
                         ));
                     },
                     _ => {},
+                },
+                Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
+                    quadruped_medium::Species::Wolf
+                    | quadruped_medium::Species::Grolgar
+                    | quadruped_medium::Species::Lion
+                    | quadruped_medium::Species::Bonerattler => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.quadmedquick",
+                        ));
+                    },
+                    quadruped_medium::Species::Donkey
+                    | quadruped_medium::Species::Horse
+                    | quadruped_medium::Species::Zebra
+                    | quadruped_medium::Species::Kelpie
+                    | quadruped_medium::Species::Hirdrasil
+                    | quadruped_medium::Species::Deer
+                    | quadruped_medium::Species::Antelope => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.quadmedhoof",
+                        ));
+                    },
+                    quadruped_medium::Species::Saber => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.quadmedjump",
+                        ));
+                    },
+                    quadruped_medium::Species::Tuskram | quadruped_medium::Species::Roshwalr => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.quadmedcharge",
+                        ));
+                    },
+                    _ => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.quadmedbasic",
+                        ));
+                    },
+                },
+                Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
+                    quadruped_low::Species::Maneater | quadruped_low::Species::Asp => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.quadlowranged",
+                        ));
+                    },
+                    quadruped_low::Species::Crocodile
+                    | quadruped_low::Species::Alligator
+                    | quadruped_low::Species::Salamander => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.quadlowtail",
+                        ));
+                    },
+                    quadruped_low::Species::Monitor | quadruped_low::Species::Pangolin => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.quadlowquick",
+                        ));
+                    },
+                    quadruped_low::Species::Lavadrake => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.quadlowbreathe",
+                        ));
+                    },
+                    _ => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.quadlowbasic",
+                        ));
+                    },
+                },
+                Body::QuadrupedSmall(_) => {
+                    main_tool = Some(Item::new_from_asset_expect(
+                        "common.items.npc_weapons.unique.quadsmallbasic",
+                    ));
+                },
+                Body::Theropod(theropod) => match theropod.species {
+                    theropod::Species::Sandraptor
+                    | theropod::Species::Snowraptor
+                    | theropod::Species::Woodraptor => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.theropodbird",
+                        ));
+                    },
+                    _ => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.theropodbasic",
+                        ));
+                    },
                 },
                 Body::BipedLarge(biped_large) => match (biped_large.species, biped_large.body_type)
                 {
