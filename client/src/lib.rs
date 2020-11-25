@@ -24,6 +24,7 @@ use common::{
         InventoryManip, InventoryUpdateEvent,
     },
     event::{EventBus, LocalEvent},
+    grid::Grid,
     msg::{
         validate_chat_msg, world_msg::SiteInfo, ChatMsgValidationError, ClientGeneral, ClientMsg,
         ClientRegister, ClientType, DisconnectReason, InviteAnswer, Notification, PingMsg,
@@ -80,15 +81,15 @@ pub struct Client {
     /// Just the "base" layer for LOD; currently includes colors and nothing
     /// else. In the future we'll add more layers, like shadows, rivers, and
     /// probably foliage, cities, roads, and other structures.
-    pub lod_base: Vec<u32>,
+    pub lod_base: Grid<u32>,
     /// The "height" layer for LOD; currently includes only land altitudes, but
     /// in the future should also water depth, and probably other
     /// information as well.
-    pub lod_alt: Vec<u32>,
+    pub lod_alt: Grid<u32>,
     /// The "shadow" layer for LOD.  Includes east and west horizon angles and
     /// an approximate max occluder height, which we use to try to
     /// approximate soft and volumetric shadows.
-    pub lod_horizon: Vec<u32>,
+    pub lod_horizon: Grid<u32>,
     /// A fully rendered map image for use with the map and minimap; note that
     /// this can be constructed dynamically by combining the layers of world
     /// map data (e.g. with shadow map data or river data), but at present
@@ -229,11 +230,10 @@ impl Client {
                 let sea_level = world_map.sea_level;
                 let rgba = world_map.rgba;
                 let alt = world_map.alt;
-                let expected_size = (u32::from(map_size.x) * u32::from(map_size.y)) as usize;
-                if rgba.len() != expected_size {
+                if rgba.size() != map_size.map(|e| e as i32) {
                     return Err(Error::Other("Server sent a bad world map image".into()));
                 }
-                if alt.len() != expected_size {
+                if rgba.size() != map_size.map(|e| e as i32) {
                     return Err(Error::Other("Server sent a bad altitude map.".into()));
                 }
                 let [west, east] = world_map.horizons;
@@ -257,7 +257,7 @@ impl Client {
                 let horizons = [unzip_horizons(&west), unzip_horizons(&east)];
 
                 // Redraw map (with shadows this time).
-                let mut world_map_rgba = vec![0u32; rgba.len()];
+                let mut world_map_rgba = vec![0u32; rgba.size().product() as usize];
                 let mut map_config = common::terrain::map::MapConfig::orthographic(
                     map_size_lg,
                     core::ops::RangeInclusive::new(0.0, max_height),
@@ -274,14 +274,14 @@ impl Client {
                     |pos| {
                         let (rgba, alt, downhill_wpos) = if bounds_check(pos) {
                             let posi = pos.y as usize * map_size.x as usize + pos.x as usize;
-                            let [r, g, b, a] = rgba[posi].to_le_bytes();
-                            let alti = alt[posi];
+                            let [r, g, b, a] = rgba[pos].to_le_bytes();
+                            let alti = alt[pos];
                             // Compute downhill.
                             let downhill = {
                                 let mut best = -1;
                                 let mut besth = alti;
                                 for nposi in neighbors(map_size_lg, posi) {
-                                    let nbh = alt[nposi];
+                                    let nbh = alt.raw()[nposi];
                                     if nbh < besth {
                                         besth = nbh;
                                         best = nposi as isize;
@@ -317,8 +317,7 @@ impl Client {
                     |wpos| {
                         let pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, f| e / f as i32);
                         rescale_height(if bounds_check(pos) {
-                            let posi = pos.y as usize * map_size.x as usize + pos.x as usize;
-                            scale_height_big(alt[posi])
+                            scale_height_big(alt[pos])
                         } else {
                             0.0
                         })
@@ -361,7 +360,7 @@ impl Client {
                     entity,
                     lod_base,
                     lod_alt,
-                    lod_horizon,
+                    Grid::from_raw(map_size.map(|e| e as i32), lod_horizon),
                     (world_map_img, map_size, map_bounds),
                     world_map.sites,
                     recipe_book,
