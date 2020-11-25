@@ -18,8 +18,6 @@ use conrod_core::{
 use specs::WorldExt;
 use vek::*;
 
-use inline_tweak::*;
-
 widget_ids! {
     struct Ids {
         frame,
@@ -31,6 +29,7 @@ widget_ids! {
         qlog_align,
         location_name,
         indicator,
+        indicator_overlay,
         grid,
         map_title,
         qlog_title,
@@ -60,11 +59,6 @@ widget_ids! {
         show_caves_text,
     }
 }
-
-#[cfg(target_os = "windows")]
-const PLATFORM_FACTOR: f64 = 1.0;
-#[cfg(not(target_os = "windows"))]
-const PLATFORM_FACTOR: f64 = -1.0;
 
 #[derive(WidgetCommon)]
 pub struct Map<'a> {
@@ -181,7 +175,7 @@ impl<'a> Widget for Map<'a> {
 
         // Map Content Alignment
         Rectangle::fill_with([814.0, 834.0], color::TRANSPARENT)
-            .top_left_with_margins_on(state.ids.frame, 46.0, tweak!(240.0))
+            .top_left_with_margins_on(state.ids.frame, 46.0, 240.0)
             .set(state.ids.map_align, ui);
 
         // Questlog Content Alignment
@@ -288,23 +282,6 @@ impl<'a> Widget for Map<'a> {
             .parent(state.ids.bg)
             .source_rectangle(rect_src)
             .set(state.ids.grid, ui);
-
-        /*if let Some(new_val) = ImageSlider::discrete(
-            self.global_state.settings.gameplay.map_zoom as i32,
-            1,
-            30,
-            self.imgs.slider_indicator_small,
-            self.imgs.slider,
-        )
-        .w_h(600.0, 22.0 * 2.0)
-        .mid_bottom_with_margin_on(state.ids.grid, -55.0)
-        .track_breadth(12.0 * 2.0)
-        .slider_length(22.0 * 2.0)
-        .pad_track((12.0, 12.0))
-        .set(state.ids.zoom_slider, ui)
-        {
-            events.push(Event::MapZoom(new_val as f64));
-        }*/
         // Handle zooming with the mousewheel
         let scrolled: f64 = ui
             .widget_input(state.ids.grid)
@@ -312,8 +289,8 @@ impl<'a> Widget for Map<'a> {
             .map(|scroll| scroll.y)
             .sum();
         let new_zoom_lvl = (self.global_state.settings.gameplay.map_zoom
-            * (scrolled * 0.05 * PLATFORM_FACTOR).exp2())
-        .clamped(0.75, max_zoom / 64.0);
+            * (scrolled * 0.05 * -1.0).exp2())
+        .clamped(1.25, max_zoom / 64.0);
         events.push(Event::MapZoom(new_zoom_lvl as f64));
         // Icon settings
         // Alignment
@@ -322,7 +299,7 @@ impl<'a> Widget for Map<'a> {
             .set(state.ids.map_settings_align, ui);
         // Checkboxes
         // Show difficulties
-        Image::new(self.imgs.map_dif_5)
+        Image::new(self.imgs.map_dif_6)
             .top_left_with_margins_on(state.ids.map_settings_align, 5.0, 5.0)
             .w_h(20.0, 20.0)
             .set(state.ids.show_difficulty_img, ui);
@@ -544,34 +521,10 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Cave => (0, i18n.get("hud.map.cave").to_string()),
             };
             let site_btn = Button::image(match &site.kind {
-                SiteKind::Town => {
-                    if show_towns {
-                        self.imgs.mmap_site_town
-                    } else {
-                        self.imgs.nothing
-                    }
-                },
-                SiteKind::Dungeon { .. } => {
-                    if show_dungeons {
-                        self.imgs.mmap_site_dungeon
-                    } else {
-                        self.imgs.nothing
-                    }
-                },
-                SiteKind::Castle => {
-                    if show_castles {
-                        self.imgs.mmap_site_castle
-                    } else {
-                        self.imgs.nothing
-                    }
-                },
-                SiteKind::Cave => {
-                    if show_caves {
-                        self.imgs.mmap_site_cave
-                    } else {
-                        self.imgs.nothing
-                    }
-                },
+                SiteKind::Town => self.imgs.mmap_site_town,
+                SiteKind::Dungeon { .. } => self.imgs.mmap_site_dungeon,
+                SiteKind::Castle => self.imgs.mmap_site_castle,
+                SiteKind::Cave => self.imgs.mmap_site_cave,
             })
             .x_y_position_relative_to(
                 state.ids.grid,
@@ -635,12 +588,11 @@ impl<'a> Widget for Map<'a> {
             if show_difficulty {
                 let size = 1.8; // Size factor for difficulty indicators
                 let dif_img = Image::new(match difficulty {
-                    0 => self.imgs.map_dif_0,
                     1 => self.imgs.map_dif_1,
                     2 => self.imgs.map_dif_2,
                     3 => self.imgs.map_dif_3,
                     4 => self.imgs.map_dif_4,
-                    5 => self.imgs.map_dif_5,
+                    5 => self.imgs.map_dif_6,
                     _ => self.imgs.nothing,
                 })
                 .mid_top_with_margin_on(state.ids.mmap_site_icons[i], match difficulty {
@@ -707,8 +659,8 @@ impl<'a> Widget for Map<'a> {
         let rpos = rfpos.map2(map_size, |e, sz| e * sz as f32 * zoom as f32);
         // Don't show if outside or near the edge of the map
         let arrow_sz = {
-            let scale = 0.6f64;
-            Vec2::new(32.0, 37.0) * scale
+            let scale = 0.5;
+            Vec2::new(36.0, 37.0) * scale
         };
         // Hide if icon could go off of the edge of the map
         let arrow_mag = arrow_sz.map(|e| e as f32 / 2.0).magnitude();
@@ -728,7 +680,7 @@ impl<'a> Widget for Map<'a> {
         }
 
         // Info about controls
-        let icon_size = Vec2::new(tweak!(25.6), tweak!(28.8));
+        let icon_size = Vec2::new(25.6, 28.8);
         let recenter: bool;
         if drag.x != 0.0 || drag.y != 0.0 {
             recenter = true
@@ -737,7 +689,7 @@ impl<'a> Widget for Map<'a> {
         };
         if Button::image(self.imgs.button)
             .w_h(92.0, icon_size.y)
-            .mid_bottom_with_margin_on(state.ids.grid, tweak!(-36.0))
+            .mid_bottom_with_margin_on(state.ids.grid, -36.0)
             .hover_image(if recenter {
                 self.imgs.button_hover
             } else {
@@ -769,24 +721,24 @@ impl<'a> Widget for Map<'a> {
         };
 
         Image::new(self.imgs.m_move_ico)
-            .bottom_left_with_margins_on(state.ids.grid, tweak!(-36.0), 0.0)
+            .bottom_left_with_margins_on(state.ids.grid, -36.0, 0.0)
             .w_h(icon_size.x, icon_size.y)
             .color(Some(UI_HIGHLIGHT_0))
             .set(state.ids.drag_ico, ui);
         Text::new(i18n.get("hud.map.drag"))
-            .right_from(state.ids.drag_ico, tweak!(5.0))
+            .right_from(state.ids.drag_ico, 5.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
             .graphics_for(state.ids.grid)
             .color(TEXT_COLOR)
             .set(state.ids.drag_txt, ui);
         Image::new(self.imgs.m_scroll_ico)
-            .right_from(state.ids.drag_txt, tweak!(5.0))
+            .right_from(state.ids.drag_txt, 5.0)
             .w_h(icon_size.x, icon_size.y)
             .color(Some(UI_HIGHLIGHT_0))
             .set(state.ids.zoom_ico, ui);
         Text::new(i18n.get("hud.map.zoom"))
-            .right_from(state.ids.zoom_ico, tweak!(5.0))
+            .right_from(state.ids.zoom_ico, 5.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
             .graphics_for(state.ids.grid)
