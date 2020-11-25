@@ -941,6 +941,10 @@ impl Window {
                 self.scale_factor = scale_factor;
                 self.events.push(Event::ScaleFactorChanged(scale_factor));
             },
+            WindowEvent::Moved(winit::dpi::PhysicalPosition { x, y }) => {
+                self.events
+                    .push(Event::Moved(Vec2::new(x as u32, y as u32)));
+            },
             WindowEvent::ReceivedCharacter(c) => self.events.push(Event::Char(c)),
             WindowEvent::MouseInput { button, state, .. } => {
                 if let (true, Some(game_inputs)) =

@@ -362,7 +362,10 @@ impl Server {
         let connection_handler = ConnectionHandler::new(network);
 
         // Initiate real-time world simulation
+        #[cfg(feature = "worldgen")]
         rtsim::init(&mut state, &world);
+        #[cfg(not(feature = "worldgen"))]
+        rtsim::init(&mut state);
 
         let this = Self {
             state,
@@ -503,6 +506,7 @@ impl Server {
             dt,
             |dispatcher_builder| {
                 sys::add_server_systems(dispatcher_builder);
+                #[cfg(feature = "worldgen")]
                 rtsim::add_server_systems(dispatcher_builder);
             },
             false,

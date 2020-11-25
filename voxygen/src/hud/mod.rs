@@ -2628,6 +2628,9 @@ impl Hud {
             WinEvent::Moved(_) => {
                 // Prevent the cursor from being grabbed while the window is being moved as this
                 // causes the window to move erratically
+                // TODO: this creates an issue where if you move the window then you need to
+                // close a menu to re-grab the mouse (and if one isn't already
+                // open you need to open and close a menu)
                 self.show.want_grab = false;
                 true
             },
