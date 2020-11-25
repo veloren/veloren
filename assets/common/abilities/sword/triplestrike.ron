@@ -41,9 +41,9 @@ ComboMelee(
         ),
     ],
     initial_energy_gain: 0,
-    max_energy_gain: 100,
-    energy_increase: 20,
-    speed_increase: 0.05,
+    max_energy_gain: 200,
+    energy_increase: 25,
+    speed_increase: 0.1,
     max_speed_increase: 1.8,
     is_interruptible: true,
 )
