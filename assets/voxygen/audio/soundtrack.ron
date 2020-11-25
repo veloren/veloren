@@ -8,6 +8,27 @@
 
 (
     tracks: [
+		(
+			title: "Winter Falls",
+			path: "voxygen.audio.soundtrack.winter_falls",
+			length: 215.0,
+			timing: None,
+			biomes: [
+				(Mountain, 1),
+				(Snowland, 1),
+			],
+			site: Some(Void),
+			artist: "DaforLynx"
+		),
+		(
+			title: "Short Meandering",
+			path: "voxygen.audio.soundtrack.short_meandering",
+			length: 147.0,
+			timing: Some(Night),
+			biomes: [],
+			site: Some(Void),
+			artist: "Ap1evideogame"
+		),
         (
             title: "Oceania",
             path: "voxygen.audio.soundtrack.oceania",
@@ -46,6 +67,16 @@
             site: Some(Void),
             artist: "Aeronic",
         ),
+		(
+			//Repeat for site
+            title: "Into The Dark Forest",
+            path: "voxygen.audio.soundtrack.into_the_dark_forest",
+            length: 184.0,
+            timing: Some(Night),
+            biomes: [],
+            site: Some(Cave),
+            artist: "Aeronic",
+        ),
         (
             title: "Field Grazing",
             path: "voxygen.audio.soundtrack.field_grazing",
@@ -53,6 +84,7 @@
             timing: Some(Day),
             biomes: [
                 (Grassland, 1),
+				(Forest, 1)
             ],
             site: Some(Void),
             artist: "Aeronic",
@@ -112,6 +144,7 @@
             timing: Some(Night),
             biomes: [
                 (Grassland, 1),
+				(Forest, 1),
             ],
             site: Some(Void),
             artist: "Aeronic",
