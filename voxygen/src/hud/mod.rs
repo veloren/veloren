@@ -648,10 +648,10 @@ impl Hud {
         // Load world map
         let world_map = (
             ui.add_graphic_with_rotations(Graphic::Image(
-                Arc::clone(&client.world_map.0),
+                Arc::clone(client.world_data().map_image()),
                 Some(water_color),
             )),
-            client.world_map.1.map(u32::from),
+            client.world_data().chunk_size().map(|e| e as u32),
         );
         // Load images.
         let imgs = Imgs::load(&mut ui).expect("Failed to load images!");
@@ -666,7 +666,7 @@ impl Hud {
         // Load fonts.
         let fonts = Fonts::load(&i18n.fonts, &mut ui).expect("Impossible to load fonts!");
         // Get the server name.
-        let server = &client.server_info.name;
+        let server = &client.server_info().name;
         // Get the id, unwrap is safe because this CANNOT be None at this
         // point.
 

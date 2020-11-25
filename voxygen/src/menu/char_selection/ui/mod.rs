@@ -287,7 +287,12 @@ impl Controls {
         }
     }
 
-    fn view(&mut self, _settings: &Settings, client: &Client) -> Element<Message> {
+    fn view(
+        &mut self,
+        _settings: &Settings,
+        client: &Client,
+        error: &Option<String>,
+    ) -> Element<Message> {
         // TODO: use font scale thing for text size (use on button size for buttons with
         // text)
 
@@ -348,7 +353,7 @@ impl Controls {
                 // Note: we don't need to persist this because it is the default
                 if self.selected.is_none() {
                     self.selected = client
-                        .character_list
+                        .character_list()
                         .characters
                         .get(0)
                         .and_then(|i| i.character.id);
@@ -356,13 +361,13 @@ impl Controls {
                 // Get the index of the selected character
                 let selected = self.selected.and_then(|id| {
                     client
-                        .character_list
+                        .character_list()
                         .characters
                         .iter()
                         .position(|i| i.character.id == Some(id))
                 });
 
-                if let Some(error) = &client.character_list.error {
+                if let Some(error) = error {
                     // TODO: use more user friendly errors with suggestions on potential solutions
                     // instead of directly showing error message here
                     *info_content = Some(InfoContent::CharacterError(format!(
@@ -377,14 +382,14 @@ impl Controls {
                     Some(InfoContent::LoadingCharacters)
                         | Some(InfoContent::CreatingCharacter)
                         | Some(InfoContent::DeletingCharacter)
-                ) && !client.character_list.loading
+                ) && !client.character_list().loading
                 {
                     *info_content = None;
                 }
 
                 let server = Container::new(
                     Column::with_children(vec![
-                        Text::new(&client.server_info.name)
+                        Text::new(&client.server_info().name)
                             .size(fonts.cyri.scale(25))
                             .into(),
                         // TODO: show additional server info here
@@ -399,7 +404,7 @@ impl Controls {
                 .width(Length::Fill);
 
                 let characters = {
-                    let characters = &client.character_list.characters;
+                    let characters = &client.character_list().characters;
                     let num = characters.len();
                     // Ensure we have enough button states
                     character_buttons.resize_with(num * 2, Default::default);
@@ -1387,12 +1392,13 @@ pub struct CharSelectionUi {
     controls: Controls,
     enter_pressed: bool,
     select_character: Option<CharacterId>,
+    pub error: Option<String>,
 }
 
 impl CharSelectionUi {
     pub fn new(global_state: &mut GlobalState, client: &Client) -> Self {
         // Load up the last selected character for this server
-        let server_name = &client.server_info.name;
+        let server_name = &client.server_info().name;
         let selected_character = global_state.profile.get_selected_character(server_name);
 
         // Load language
@@ -1432,6 +1438,7 @@ impl CharSelectionUi {
             controls,
             enter_pressed: false,
             select_character: None,
+            error: None,
         }
     }
 
@@ -1491,12 +1498,15 @@ impl CharSelectionUi {
 
     pub fn select_character(&mut self, id: CharacterId) { self.select_character = Some(id); }
 
+    pub fn display_error(&mut self, error: String) { self.error = Some(error); }
+
     // TODO: do we need whole client here or just character list?
     pub fn maintain(&mut self, global_state: &mut GlobalState, client: &Client) -> Vec<Event> {
         let mut events = Vec::new();
 
         let (mut messages, _) = self.ui.maintain(
-            self.controls.view(&global_state.settings, &client),
+            self.controls
+                .view(&global_state.settings, &client, &self.error),
             global_state.window.renderer_mut(),
             global_state.clipboard.as_ref(),
         );
@@ -1514,7 +1524,7 @@ impl CharSelectionUi {
             self.controls.update(
                 message,
                 &mut events,
-                &client.character_list.characters,
+                &client.character_list().characters,
                 &*client.state().ability_map(),
             )
         });

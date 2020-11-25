@@ -71,13 +71,10 @@ pub enum Event {
     SetViewDistance(u32),
     Outcome(Outcome),
     CharacterCreated(CharacterId),
+    CharacterError(String),
 }
 
-pub struct Client {
-    registered: bool,
-    presence: Option<PresenceKind>,
-    thread_pool: ThreadPool,
-    pub server_info: ServerInfo,
+pub struct WorldData {
     /// Just the "base" layer for LOD; currently includes colors and nothing
     /// else. In the future we'll add more layers, like shadows, rivers, and
     /// probably foliage, cities, roads, and other structures.
@@ -99,9 +96,27 @@ pub struct Client {
     /// in chunks), and the third element holds the minimum height for any land
     /// chunk (i.e. the sea level) in its x coordinate, and the maximum land
     /// height above this height (i.e. the max height) in its y coordinate.
-    pub world_map: (Arc<DynamicImage>, Vec2<u16>, Vec2<f32>),
-    pub player_list: HashMap<Uid, PlayerInfo>,
-    pub character_list: CharacterList,
+    map: (Arc<DynamicImage>, Vec2<u16>, Vec2<f32>),
+}
+
+impl WorldData {
+    pub fn chunk_size(&self) -> Vec2<u16> { self.map.1 }
+
+    pub fn map_image(&self) -> &Arc<DynamicImage> { &self.map.0 }
+
+    pub fn min_chunk_alt(&self) -> f32 { self.map.2.x }
+
+    pub fn max_chunk_alt(&self) -> f32 { self.map.2.y }
+}
+
+pub struct Client {
+    registered: bool,
+    presence: Option<PresenceKind>,
+    thread_pool: ThreadPool,
+    server_info: ServerInfo,
+    world_data: WorldData,
+    player_list: HashMap<Uid, PlayerInfo>,
+    character_list: CharacterList,
     sites: Vec<SiteInfo>,
     recipe_book: RecipeBook,
     available_recipes: HashSet<String>,
@@ -146,7 +161,6 @@ pub struct Client {
 pub struct CharacterList {
     pub characters: Vec<CharacterItem>,
     pub loading: bool,
-    pub error: Option<String>,
 }
 
 impl Client {
@@ -385,10 +399,12 @@ impl Client {
             presence: None,
             thread_pool,
             server_info,
-            world_map,
-            lod_base,
-            lod_alt,
-            lod_horizon,
+            world_data: WorldData {
+                lod_base,
+                lod_alt,
+                lod_horizon,
+                map: world_map,
+            },
             player_list: HashMap::new(),
             character_list: CharacterList::default(),
             sites,
@@ -610,6 +626,14 @@ impl Client {
             )));
         }
     }
+
+    pub fn player_list(&self) -> &HashMap<Uid, PlayerInfo> { &self.player_list }
+
+    pub fn character_list(&self) -> &CharacterList { &self.character_list }
+
+    pub fn server_info(&self) -> &ServerInfo { &self.server_info }
+
+    pub fn world_data(&self) -> &WorldData { &self.world_data }
 
     pub fn recipe_book(&self) -> &RecipeBook { &self.recipe_book }
 
@@ -1480,13 +1504,13 @@ impl Client {
             },
             ServerGeneral::CharacterActionError(error) => {
                 warn!("CharacterActionError: {:?}.", error);
-                self.character_list.error = Some(error);
+                events.push(Event::CharacterError(error));
             },
             ServerGeneral::CharacterDataLoadError(error) => {
                 trace!("Handling join error by server");
                 self.presence = None;
                 self.clean_state();
-                self.character_list.error = Some(error);
+                events.push(Event::CharacterError(error));
             },
             ServerGeneral::CharacterCreated(character_id) => {
                 events.push(Event::CharacterCreated(character_id));
