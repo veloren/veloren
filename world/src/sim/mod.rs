@@ -492,7 +492,7 @@ impl WorldSim {
                 .set_frequency((10_000.0 / continent_scale) as f64)
                 // persistence = lacunarity^(-(1.0 - fractal increment))
                 .set_lacunarity(util::HybridMulti::DEFAULT_LACUNARITY)
-                .set_persistence(util::HybridMulti::DEFAULT_LACUNARITY.powf(-(1.0 - 0.0)))
+                .set_persistence(util::HybridMulti::DEFAULT_LACUNARITY.powi(-1))
                 .set_offset(0.0)
                 .set_seed(rng.gen()),
             temp_nz: Fbm::new()
@@ -530,7 +530,7 @@ impl WorldSim {
                 .set_lacunarity(rock_lacunarity)
                 // persistence = lacunarity^(-(1.0 - fractal increment))
                 // NOTE: In paper, fractal increment is roughly 0.25.
-                .set_persistence(rock_lacunarity.powf(-(1.0 - 0.25)))
+                .set_persistence(rock_lacunarity.powf(-0.75))
                 .set_frequency(
                     1.0 * (5_000.0 / continent_scale)
                         / (2.0 * TerrainChunkSize::RECT_SIZE.x as f64 * 2.0.powi(10 - 1)),
@@ -749,7 +749,7 @@ impl WorldSim {
                     .mul(0.3)
                     .add(1.0)
                     .mul(0.4)
-                    + spring(alt_main.abs().powf(0.5).min(0.75).mul(60.0).sin(), 4.0).mul(0.045)
+                    + spring(alt_main.abs().sqrt().min(0.75).mul(60.0).sin(), 4.0).mul(0.045)
             };
 
             // Now we can compute the final altitude using chaos.
@@ -815,7 +815,7 @@ impl WorldSim {
                 None
             } else {
                 let oheight = alt_old_no_ocean[posi].0 as f64 - 0.5;
-                let height = (oheight + 0.5).powf(2.0);
+                let height = (oheight + 0.5).powi(2);
                 Some(height)
             }
         });
@@ -2199,7 +2199,7 @@ impl SimChunk {
                 let soil_nz = gen_ctx.hill_nz.get(wposf.div(96.0).into_array()) as f32;
                 let soil_nz = (soil_nz + 1.0) * 0.5;
                 const SOIL_SCALE: f32 = 16.0;
-                let soil = soil_nz * SOIL_SCALE * tree_density.powf(0.5) * humidity.powf(0.5);
+                let soil = soil_nz * SOIL_SCALE * tree_density.sqrt() * humidity.sqrt();
 
                 dune + soil
             };

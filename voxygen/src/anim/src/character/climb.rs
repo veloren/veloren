@@ -39,14 +39,11 @@ impl Animation for ClimbAnimation {
         let dropa = (anim_time as f32 * constant as f32 * 4.0).sin();
 
         let quick = (((5.0)
-            / (0.6 + 4.0 * ((anim_time as f32 * constant as f32 * 1.5).sin()).powf(2.0 as f32)))
+            / (0.6 + 4.0 * ((anim_time as f32 * constant as f32 * 1.5).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * constant as f32 * 1.5).sin());
         let quicka = (((5.0)
-            / (0.6
-                + 4.0
-                    * ((anim_time as f32 * constant as f32 * 1.5 + PI / 2.0).sin())
-                        .powf(2.0 as f32)))
+            / (0.6 + 4.0 * ((anim_time as f32 * constant as f32 * 1.5 + PI / 2.0).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * constant as f32 * 1.5 + PI / 2.0).sin());
         let head_look = Vec2::new(

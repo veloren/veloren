@@ -674,7 +674,7 @@ fn walk_in_dir(sim: &WorldSim, a: Vec2<i32>, dir: Vec2<i32>) -> Option<f32> {
         let a_chunk = sim.get(a)?;
         let b_chunk = sim.get(a + dir)?;
 
-        let hill_cost = ((b_chunk.alt - a_chunk.alt).abs() / 5.0).powf(2.0);
+        let hill_cost = ((b_chunk.alt - a_chunk.alt).abs() / 5.0).powi(2);
         let water_cost = if b_chunk.river.near_water() {
             50.0
         } else {

@@ -205,7 +205,7 @@ impl World {
                     index.sites[**id]
                         .get_origin()
                         .distance_squared(chunk_center_wpos2d) as f32
-                        <= index.sites[**id].radius().powf(2.0)
+                        <= index.sites[**id].radius().powi(2)
                 })
                 .min_by_key(|id| {
                     index.sites[**id]

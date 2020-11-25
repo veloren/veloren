@@ -39,16 +39,12 @@ impl Animation for SneakAnimation {
         let footvertr = (anim_time as f32 * 7.0 * lab as f32 + PI).sin();
 
         let footrotl = (((5.0)
-            / (2.5
-                + (2.5)
-                    * ((anim_time as f32 * 7.0 * lab as f32 + PI * 1.4).sin()).powf(2.0 as f32)))
+            / (2.5 + (2.5) * ((anim_time as f32 * 7.0 * lab as f32 + PI * 1.4).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * 7.0 * lab as f32 + PI * 1.4).sin());
 
         let footrotr = (((5.0)
-            / (1.0
-                + (4.0)
-                    * ((anim_time as f32 * 7.0 * lab as f32 + PI * 0.4).sin()).powf(2.0 as f32)))
+            / (1.0 + (4.0) * ((anim_time as f32 * 7.0 * lab as f32 + PI * 0.4).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * 7.0 * lab as f32 + PI * 0.4).sin());
 
@@ -56,10 +52,9 @@ impl Animation for SneakAnimation {
         let noisea = (anim_time as f32 * 11.0 + PI / 6.0).sin();
         let noiseb = (anim_time as f32 * 19.0 + PI / 4.0).sin();
 
-        let shorte = (((5.0)
-            / (4.0 + 1.0 * ((anim_time as f32 * lab as f32 * 7.0).sin()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * lab as f32 * 7.0).sin());
+        let shorte =
+            (((5.0) / (4.0 + 1.0 * ((anim_time as f32 * lab as f32 * 7.0).sin()).powi(2))).sqrt())
+                * ((anim_time as f32 * lab as f32 * 7.0).sin());
 
         let shortalt = (anim_time as f32 * lab as f32 * 7.0 + PI / 2.0).sin();
 

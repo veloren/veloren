@@ -61,6 +61,75 @@
         secondary: "common.abilities.unique.beastclaws.basic",
         skills: [],
     ),
+    Unique(QuadMedQuick): (
+        primary: "common.abilities.unique.quadmedquick.triplestrike",
+        secondary: "common.abilities.unique.quadmedquick.dash",
+        skills: [],
+    ),
+    Unique(QuadMedJump): (
+        primary: "common.abilities.unique.quadmedjump.leap",
+        secondary: "common.abilities.unique.quadmedjump.doublestrike",
+        skills: [
+            "common.abilities.unique.quadmedjump.quickleap"
+        ],
+    ),
+    Unique(QuadMedCharge): (
+        primary: "common.abilities.unique.quadmedcharge.doublestrike",
+        secondary: "common.abilities.unique.quadmedcharge.dash",
+        skills: [],
+    ),
+    Unique(QuadMedHoof): (
+        primary: "common.abilities.unique.quadmedhoof.basic",
+        secondary: "common.abilities.unique.quadmedhoof.basic",
+        skills: [],
+    ),
+    Unique(QuadMedBasic): (
+        primary: "common.abilities.unique.quadmedbasic.singlestrike",
+        secondary: "common.abilities.unique.quadmedbasic.triplestrike",
+        skills: [],
+    ),
+    Unique(QuadLowRanged): (
+        primary: "common.abilities.unique.quadlowranged.singlestrike",
+        secondary: "common.abilities.unique.quadlowranged.firebomb",
+        skills: [],
+    ),
+    Unique(QuadLowBreathe): (
+        primary: "common.abilities.unique.quadlowbreathe.flamethrower",
+        secondary: "common.abilities.unique.quadlowbreathe.triplestrike",
+        skills: [
+            "common.abilities.unique.quadlowbreathe.dash",
+        ],
+    ),
+    Unique(QuadLowTail): (
+        primary: "common.abilities.unique.quadlowtail.charged",
+        secondary: "common.abilities.unique.quadlowtail.triplestrike",
+        skills: [],
+    ),
+    Unique(QuadLowQuick): (
+        primary: "common.abilities.unique.quadlowquick.dash",
+        secondary: "common.abilities.unique.quadlowquick.quadstrike",
+        skills: [],
+    ),
+    Unique(QuadLowBasic): (
+        primary: "common.abilities.unique.quadlowbasic.triplestrike",
+        secondary: "common.abilities.unique.quadlowbasic.singlestrike",
+        skills: [],
+    ),
+    Unique(QuadSmallBasic): (
+        primary: "common.abilities.unique.quadsmallbasic.singlestrike",
+        secondary: "common.abilities.unique.quadsmallbasic.singlestrike",
+        skills: [],
+    ),
+    Unique(TheropodBasic): (
+        primary: "common.abilities.unique.theropodbasic.triplestrike",
+        secondary: "common.abilities.unique.theropodbasic.triplestrike",
+        skills: [],
+    ),
+    Unique(TheropodBird): (
+        primary: "common.abilities.unique.theropodbird.triplestrike",
+        secondary: "common.abilities.unique.theropodbird.triplestrike",
+        skills: [],
+    ),
     Debug: (
         primary: "common.abilities.debug.forwardboost",
         secondary: "common.abilities.debug.upboost",

@@ -30,8 +30,7 @@ impl Animation for ShockwaveAnimation {
 
         let slower = (((1.0)
             / (0.00001
-                + 0.9999
-                    * ((anim_time as f32 * lab as f32 * 2.0 - 0.5 * PI).sin()).powf(2.0 as f32)))
+                + 0.9999 * ((anim_time as f32 * lab as f32 * 2.0 - 0.5 * PI).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * lab as f32 * 2.0 - 0.5 * PI).sin())
             + 1.0;

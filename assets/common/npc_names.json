@@ -769,6 +769,10 @@
             "hakulaq": {
                 "keyword": "hakulaq",
                 "generic": "Hakulaq"
+            },
+            "lavadrake": {
+                "keyword": "lavadrake",
+                "generic": "Lava Drake"
             }
         }
     }

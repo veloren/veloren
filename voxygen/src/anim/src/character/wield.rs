@@ -62,9 +62,7 @@ impl Animation for WieldAnimation {
         let footvertlstatic = (anim_time as f32 * 10.0 * lab as f32).sin();
         let footvertrstatic = (anim_time as f32 * 10.0 * lab as f32 + PI).sin();
         let footrotl = (((1.0)
-            / (0.5
-                + (0.5)
-                    * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.4).sin()).powf(2.0 as f32)))
+            / (0.5 + (0.5) * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.4).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.4).sin());
 
@@ -75,10 +73,9 @@ impl Animation for WieldAnimation {
         let slow = (anim_time as f32 * 5.0 + PI).sin();
 
         let u_slowalt = (anim_time as f32 * 3.0 + PI).cos();
-        let short = (((5.0)
-            / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 16.0).sin()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * lab as f32 * 16.0).sin());
+        let short =
+            (((5.0) / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 16.0).sin()).powi(2))).sqrt())
+                * ((anim_time as f32 * lab as f32 * 16.0).sin());
         let direction = velocity.y * -0.098 * orientation.y + velocity.x * -0.098 * orientation.x;
         let side = velocity.x * -0.098 * orientation.y + velocity.y * 0.098 * orientation.x;
         let strafeabs = (1.0 / (direction).abs() - 1.0).min(1.0);

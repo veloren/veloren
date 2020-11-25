@@ -35,12 +35,12 @@ impl Animation for SpinAnimation {
         let (movement1, movement2, movement3) = match stage_section {
             Some(StageSection::Buildup) => ((anim_time as f32).powf(0.25), 0.0, 0.0),
             Some(StageSection::Swing) => (1.0, (anim_time as f32).powf(1.8), 0.0),
-            Some(StageSection::Recover) => (1.0, 1.0, (anim_time as f32).powf(4.0)),
+            Some(StageSection::Recover) => (1.0, 1.0, (anim_time as f32).powi(4)),
             _ => (0.0, 0.0, 0.0),
         };
 
         let foot = (((5.0)
-            / (1.1 + 3.9 * ((anim_time as f32 * lab as f32 * 10.32).sin()).powf(2.0 as f32)))
+            / (1.1 + 3.9 * ((anim_time as f32 * lab as f32 * 10.32).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * lab as f32 * 10.32).sin());
 

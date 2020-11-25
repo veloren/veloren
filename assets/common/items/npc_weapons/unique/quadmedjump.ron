@@ -1,0 +1,15 @@
+ItemDef(
+    name: "Quad Med Jump",
+    description: "testing123",
+    kind: Tool(
+        (
+            kind: Unique(QuadMedJump),
+            stats: (
+                equip_time_millis: 10,
+                power: 1.00,
+                speed: 1.0,
+            ),
+        )
+    ),
+    quality: Low,
+)

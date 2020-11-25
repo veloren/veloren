@@ -1,9 +1,14 @@
+pub mod alpha;
+pub mod beta;
 pub mod idle;
 pub mod jump;
 pub mod run;
 
 // Reexports
-pub use self::{idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation};
+pub use self::{
+    alpha::AlphaAnimation, beta::BetaAnimation, idle::IdleAnimation, jump::JumpAnimation,
+    run::RunAnimation,
+};
 
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};
 use common::comp::{self};
@@ -189,9 +194,9 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             scaler: match (body.species, body.body_type) {
                 (Archaeos, _) => (3.0),
                 (Odonto, _) => (3.0),
-                (Sandraptor, _) => (7.0),
-                (Snowraptor, _) => (7.0),
-                (Woodraptor, _) => (7.0),
+                (Sandraptor, _) => (8.0),
+                (Snowraptor, _) => (8.0),
+                (Woodraptor, _) => (8.0),
             },
         }
     }
