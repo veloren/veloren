@@ -27,7 +27,7 @@ impl Animation for BreatheAnimation {
         let speed = (Vec2::<f32>::from(velocity).magnitude()).min(24.0);
 
         let (movement1base, _movement2base, movement3, twitch) = match stage_section {
-            Some(StageSection::Buildup) => ((anim_time as f32).powf(0.5), 0.0, 0.0, 0.0),
+            Some(StageSection::Buildup) => ((anim_time as f32).sqrt(), 0.0, 0.0, 0.0),
             Some(StageSection::Cast) => (1.0, (anim_time as f32).min(1.0), 0.0, anim_time as f32),
             Some(StageSection::Recover) => (1.0, 1.0, anim_time as f32, 1.0),
             _ => (0.0, 0.0, 0.0, 0.0),

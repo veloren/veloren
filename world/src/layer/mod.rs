@@ -118,8 +118,8 @@ pub fn apply_caves_to(canvas: &mut Canvas) {
             let cave_x = (cave_dist / cave.width).min(1.0);
 
             // Relative units
-            let cave_floor = 0.0 - 0.5 * (1.0 - cave_x.powf(2.0)).max(0.0).sqrt() * cave.width;
-            let cave_height = (1.0 - cave_x.powf(2.0)).max(0.0).sqrt() * cave.width;
+            let cave_floor = 0.0 - 0.5 * (1.0 - cave_x.powi(2)).max(0.0).sqrt() * cave.width;
+            let cave_height = (1.0 - cave_x.powi(2)).max(0.0).sqrt() * cave.width;
 
             // Abs units
             let cave_base = (cave.alt + cave_floor) as i32;
@@ -222,7 +222,7 @@ pub fn apply_caves_supplement<'a>(
                 let cave_x = (cave_dist / cave.width).min(1.0);
 
                 // Relative units
-                let cave_floor = 0.0 - 0.5 * (1.0 - cave_x.powf(2.0)).max(0.0).sqrt() * cave.width;
+                let cave_floor = 0.0 - 0.5 * (1.0 - cave_x.powi(2)).max(0.0).sqrt() * cave.width;
 
                 // Abs units
                 let cave_base = (cave.alt + cave_floor) as i32;

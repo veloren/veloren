@@ -26,31 +26,23 @@ impl Animation for RunAnimation {
 
         let lab = 0.45; //.65
         let foothoril = (((1.0)
-            / (0.4
-                + (0.6)
-                    * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.4).sin()).powf(2.0 as f32)))
+            / (0.4 + (0.6) * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.4).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.4).sin());
         let foothorir = (((1.0)
-            / (0.4
-                + (0.6)
-                    * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.4).sin()).powf(2.0 as f32)))
+            / (0.4 + (0.6) * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.4).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.4).sin());
         let footvertl = (anim_time as f32 * 16.0 * lab as f32).sin();
         let footvertr = (anim_time as f32 * 16.0 * lab as f32 + PI).sin();
 
         let footrotl = (((5.0)
-            / (2.5
-                + (2.5)
-                    * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.4).sin()).powf(2.0 as f32)))
+            / (2.5 + (2.5) * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.4).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.4).sin());
 
         let footrotr = (((5.0)
-            / (1.0
-                + (4.0)
-                    * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.4).sin()).powf(2.0 as f32)))
+            / (1.0 + (4.0) * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.4).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.4).sin());
 

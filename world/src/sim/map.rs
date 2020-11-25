@@ -157,7 +157,7 @@ pub fn sample_pos(
                 Lerp::lerp(
                     sample.sub_surface_color,
                     sample.surface_color,
-                    ((wposz as f32 - (alt - grass_depth)) / grass_depth).powf(0.5),
+                    ((wposz as f32 - (alt - grass_depth)) / grass_depth).sqrt(),
                 )
                 .map(|e| e as f64)
             }

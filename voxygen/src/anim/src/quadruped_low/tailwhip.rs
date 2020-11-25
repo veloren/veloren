@@ -31,11 +31,11 @@ impl Animation for TailwhipAnimation {
                 (anim_time as f32 * 15.0).sin(),
                 0.0,
             ),
-            Some(StageSection::Swing) => (1.0, (anim_time as f32).powf(4.0), 0.0, 1.0, 0.0),
+            Some(StageSection::Swing) => (1.0, (anim_time as f32).powi(4), 0.0, 1.0, 0.0),
             Some(StageSection::Recover) => (
                 1.0,
                 1.0,
-                (anim_time as f32).powf(6.0),
+                (anim_time as f32).powi(6),
                 1.0,
                 (anim_time as f32 * 7.0).sin(),
             ),

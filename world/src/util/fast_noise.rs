@@ -37,7 +37,7 @@ impl Sampler<'static> for FastNoise {
 
         let factor = pos.map(|e| {
             let f = e.fract().add(1.0).fract() as f32;
-            f.powf(2.0) * (3.0 - 2.0 * f)
+            f.powi(2) * (3.0 - 2.0 * f)
         });
 
         let x00 = v000 + factor.x * (v100 - v000);

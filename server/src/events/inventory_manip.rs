@@ -286,8 +286,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                         )
                                             .join()
                                             .filter(|(_, wild_pos, _)| {
-                                                wild_pos.0.distance_squared(pos.0)
-                                                    < 5.0f32.powf(2.0)
+                                                wild_pos.0.distance_squared(pos.0) < 5.0f32.powi(2)
                                             })
                                             .filter(|(_, _, alignment)| {
                                                 alignment == &&comp::Alignment::Wild

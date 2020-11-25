@@ -131,7 +131,7 @@ impl Route {
             // Determine whether we're close enough to the next to to consider it completed
             let dist_sqrd = pos.xy().distance_squared(closest_tgt.xy());
             if dist_sqrd
-                < traversal_cfg.node_tolerance.powf(2.0) * if be_precise { 0.25 } else { 1.0 }
+                < traversal_cfg.node_tolerance.powi(2) * if be_precise { 0.25 } else { 1.0 }
                 && (((pos.z - closest_tgt.z > 1.2 || (pos.z - closest_tgt.z > -0.2 && traversal_cfg.on_ground))
                     && (pos.z - closest_tgt.z < 1.2 || (pos.z - closest_tgt.z < 2.9 && vel.z < -0.05))
                     && vel.z <= 0.0
@@ -272,7 +272,7 @@ impl Route {
         let straight_factor = next_dir
             .dot(vel.xy().try_normalized().unwrap_or(next_dir))
             .max(0.0)
-            .powf(2.0);
+            .powi(2);
 
         let bez = CubicBezier2 {
             start: pos.xy(),
@@ -347,7 +347,7 @@ impl Chaser {
             .map(|e| e.map(|e| e as f32 + 0.5))
             .unwrap_or(tgt);
         if ((pos - end) * Vec3::new(1.0, 1.0, 2.0)).magnitude_squared()
-            < traversal_cfg.min_tgt_dist.powf(2.0)
+            < traversal_cfg.min_tgt_dist.powi(2)
         {
             self.route = None;
             return None;

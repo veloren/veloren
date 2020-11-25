@@ -42,7 +42,7 @@ impl Animation for RunAnimation {
                 + 0.28
                     * ((anim_time as f32 * (16.0) * lab as f32 * speedmult + PI * -0.15 - 0.5)
                         .sin())
-                    .powf(2.0 as f32)))
+                    .powi(2)))
         .sqrt())
             * ((anim_time as f32 * (16.0) * lab as f32 * speedmult + PI * -0.15 - 0.5).sin());
 

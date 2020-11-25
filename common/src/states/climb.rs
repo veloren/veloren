@@ -44,7 +44,7 @@ impl CharacterBehavior for Data {
         // Move player
         update.vel.0 += Vec2::broadcast(data.dt.0)
             * data.inputs.move_dir
-            * if update.vel.0.magnitude_squared() < CLIMB_SPEED.powf(2.0) {
+            * if update.vel.0.magnitude_squared() < CLIMB_SPEED.powi(2) {
                 HUMANOID_CLIMB_ACCEL
             } else {
                 0.0

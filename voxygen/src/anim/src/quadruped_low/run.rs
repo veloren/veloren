@@ -27,47 +27,32 @@ impl Animation for RunAnimation {
         let x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude()).max(-0.7);
 
         let short = (((1.0)
-            / (0.72
-                + 0.28
-                    * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.25).sin())
-                        .powf(2.0 as f32)))
+            / (0.72 + 0.28 * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.25).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.25).sin());
         let shortalt = (anim_time as f32 * 16.0 * lab as f32 + PI * 0.25).sin();
 
         let foothoril = (((1.0)
-            / (0.4
-                + (0.6)
-                    * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.45).sin())
-                        .powf(2.0 as f32)))
+            / (0.4 + (0.6) * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.45).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.45).sin());
         let footvertl = (anim_time as f32 * 16.0 * lab as f32 + PI * 0.0).sin();
 
         let foothorir = (((1.0)
-            / (0.4
-                + (0.6)
-                    * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.45).sin())
-                        .powf(2.0 as f32)))
+            / (0.4 + (0.6) * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.45).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.45).sin());
         let footvertr = (anim_time as f32 * 16.0 * lab as f32 + PI).sin();
 
         //back feet
         let foothorilb = (((1.0)
-            / (0.4
-                + (0.6)
-                    * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.05).sin())
-                        .powf(2.0 as f32)))
+            / (0.4 + (0.6) * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.05).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.05).sin());
         let footvertlb = (anim_time as f32 * 16.0 * lab as f32 + PI * (-0.4)).sin();
 
         let foothorirb = (((1.0)
-            / (0.4
-                + (0.6)
-                    * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.05).sin())
-                        .powf(2.0 as f32)))
+            / (0.4 + (0.6) * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.05).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.05).sin());
         let footvertrb = (anim_time as f32 * 16.0 * lab as f32 + PI * 0.6).sin();

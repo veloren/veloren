@@ -52,7 +52,7 @@ impl Animation for SpinMeleeAnimation {
         };
 
         let spin = if anim_time < 1.1 && velocity.z.abs() < 0.1 {
-            0.5 * ((anim_time as f32).powf(2.0))
+            0.5 * ((anim_time as f32).powi(2))
         } else {
             lab as f32 * anim_time as f32 * 0.9
         };

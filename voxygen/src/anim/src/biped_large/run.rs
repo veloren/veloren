@@ -47,15 +47,11 @@ impl Animation for RunAnimation {
 
         let lab = 0.65; //.65
         let foothoril = (((1.0)
-            / (0.4
-                + (0.6)
-                    * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.4).sin()).powf(2.0 as f32)))
+            / (0.4 + (0.6) * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.4).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.4).sin());
         let foothorir = (((1.0)
-            / (0.4
-                + (0.6)
-                    * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.4).sin()).powf(2.0 as f32)))
+            / (0.4 + (0.6) * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.4).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.4).sin());
 
@@ -65,24 +61,20 @@ impl Animation for RunAnimation {
         let handhorir = (anim_time as f32 * 16.0 * lab as f32 + PI * 0.4).sin();
 
         let footrotl = (((5.0)
-            / (2.5
-                + (2.5)
-                    * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.4).sin()).powf(2.0 as f32)))
+            / (2.5 + (2.5) * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.4).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.4).sin());
 
         let footrotr = (((5.0)
-            / (1.0
-                + (4.0)
-                    * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.4).sin()).powf(2.0 as f32)))
+            / (1.0 + (4.0) * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.4).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.4).sin());
 
         let amplitude = (speed / 21.0).max(0.25);
-        let amplitude2 = (speed * 1.4 / 21.0).powf(0.5).max(0.6);
-        let amplitude3 = (speed / 21.0).powf(0.5).max(0.35);
+        let amplitude2 = (speed * 1.4 / 21.0).sqrt().max(0.6);
+        let amplitude3 = (speed / 21.0).sqrt().max(0.35);
         let speedmult = 1.0;
-        let canceler = (speed / 21.0).powf(0.5);
+        let canceler = (speed / 21.0).sqrt();
 
         let short = (anim_time as f32 * (16.0) * lab as f32 * speedmult + PI * -0.15).sin();
         //

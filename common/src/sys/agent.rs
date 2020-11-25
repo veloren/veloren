@@ -269,7 +269,7 @@ impl<'a> System<'a> for Sys {
                                     0.0
                                 };
 
-                            if bearing.magnitude_squared() > 0.5f32.powf(2.0) {
+                            if bearing.magnitude_squared() > 0.5f32.powi(2) {
                                 inputs.move_dir = *bearing * 0.65;
                             }
 
@@ -471,7 +471,7 @@ impl<'a> System<'a> for Sys {
                                         controller.actions.push(ControlAction::Unwield);
                                     }
                                 }
-                                if dist_sqrd < MAX_FLEE_DIST.powf(2.0) {
+                                if dist_sqrd < MAX_FLEE_DIST.powi(2) {
                                     if let Some((bearing, speed)) = chaser.chase(
                                         &*terrain,
                                         pos.0,
@@ -501,13 +501,13 @@ impl<'a> System<'a> for Sys {
                                 // depending on the distance from the agent to the target
                                 match tactic {
                                     Tactic::Melee => {
-                                        if dist_sqrd < (MIN_ATTACK_DIST * scale).powf(2.0) {
+                                        if dist_sqrd < (MIN_ATTACK_DIST * scale).powi(2) {
                                             inputs.primary.set_state(true);
                                             inputs.move_dir = Vec2::zero();
-                                        } else if dist_sqrd < MAX_CHASE_DIST.powf(2.0)
-                                            || (dist_sqrd < SIGHT_DIST.powf(2.0) && !*been_close)
+                                        } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
+                                            || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
                                         {
-                                            if dist_sqrd < MAX_CHASE_DIST.powf(2.0) {
+                                            if dist_sqrd < MAX_CHASE_DIST.powi(2) {
                                                 *been_close = true;
                                             }
                                             if let Some((bearing, speed)) = chaser.chase(
@@ -539,7 +539,7 @@ impl<'a> System<'a> for Sys {
                                         }
                                     },
                                     Tactic::Axe => {
-                                        if dist_sqrd < (MIN_ATTACK_DIST * scale).powf(2.0) {
+                                        if dist_sqrd < (MIN_ATTACK_DIST * scale).powi(2) {
                                             inputs.move_dir = Vec2::zero();
                                             if *powerup > 6.0 {
                                                 inputs.secondary.set_state(false);
@@ -556,10 +556,10 @@ impl<'a> System<'a> for Sys {
                                                 inputs.primary.set_state(true);
                                                 *powerup += dt.0;
                                             }
-                                        } else if dist_sqrd < MAX_CHASE_DIST.powf(2.0)
-                                            || (dist_sqrd < SIGHT_DIST.powf(2.0) && !*been_close)
+                                        } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
+                                            || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
                                         {
-                                            if dist_sqrd < MAX_CHASE_DIST.powf(2.0) {
+                                            if dist_sqrd < MAX_CHASE_DIST.powi(2) {
                                                 *been_close = true;
                                             }
                                             if let Some((bearing, speed)) = chaser.chase(
@@ -580,7 +580,7 @@ impl<'a> System<'a> for Sys {
                                                 inputs.jump.set_state(bearing.z > 1.5);
                                                 inputs.move_z = bearing.z;
                                             }
-                                            if dist_sqrd < 16.0f32.powf(2.0)
+                                            if dist_sqrd < 16.0f32.powi(2)
                                                 && thread_rng().gen::<f32>() < 0.02
                                             {
                                                 inputs.roll.set_state(true);
@@ -590,7 +590,7 @@ impl<'a> System<'a> for Sys {
                                         }
                                     },
                                     Tactic::Hammer => {
-                                        if dist_sqrd < (MIN_ATTACK_DIST * scale).powf(2.0) {
+                                        if dist_sqrd < (MIN_ATTACK_DIST * scale).powi(2) {
                                             inputs.move_dir = Vec2::zero();
                                             if *powerup > 4.0 {
                                                 inputs.secondary.set_state(false);
@@ -605,10 +605,10 @@ impl<'a> System<'a> for Sys {
                                                 inputs.primary.set_state(true);
                                                 *powerup += dt.0;
                                             }
-                                        } else if dist_sqrd < MAX_CHASE_DIST.powf(2.0)
-                                            || (dist_sqrd < SIGHT_DIST.powf(2.0) && !*been_close)
+                                        } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
+                                            || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
                                         {
-                                            if dist_sqrd < MAX_CHASE_DIST.powf(2.0) {
+                                            if dist_sqrd < MAX_CHASE_DIST.powi(2) {
                                                 *been_close = true;
                                             }
                                             if let Some((bearing, speed)) = chaser.chase(
@@ -643,7 +643,7 @@ impl<'a> System<'a> for Sys {
                                                     inputs.move_z = bearing.z;
                                                 }
                                             }
-                                            if dist_sqrd < 16.0f32.powf(2.0)
+                                            if dist_sqrd < 16.0f32.powi(2)
                                                 && thread_rng().gen::<f32>() < 0.02
                                             {
                                                 inputs.roll.set_state(true);
@@ -653,7 +653,7 @@ impl<'a> System<'a> for Sys {
                                         }
                                     },
                                     Tactic::Sword => {
-                                        if dist_sqrd < (MIN_ATTACK_DIST * scale).powf(2.0) {
+                                        if dist_sqrd < (MIN_ATTACK_DIST * scale).powi(2) {
                                             inputs.move_dir = Vec2::zero();
                                             if *powerup < 2.0 && energy.current() > 600 {
                                                 inputs.ability3.set_state(true);
@@ -664,10 +664,10 @@ impl<'a> System<'a> for Sys {
                                                 inputs.primary.set_state(true);
                                                 *powerup += dt.0;
                                             }
-                                        } else if dist_sqrd < MAX_CHASE_DIST.powf(2.0)
-                                            || (dist_sqrd < SIGHT_DIST.powf(2.0) && !*been_close)
+                                        } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
+                                            || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
                                         {
-                                            if dist_sqrd < MAX_CHASE_DIST.powf(2.0) {
+                                            if dist_sqrd < MAX_CHASE_DIST.powi(2) {
                                                 *been_close = true;
                                             }
                                             if let Some((bearing, speed)) = chaser.chase(
@@ -702,7 +702,7 @@ impl<'a> System<'a> for Sys {
                                                     inputs.move_z = bearing.z;
                                                 }
                                             }
-                                            if dist_sqrd < 16.0f32.powf(2.0)
+                                            if dist_sqrd < 16.0f32.powi(2)
                                                 && thread_rng().gen::<f32>() < 0.02
                                             {
                                                 inputs.roll.set_state(true);
@@ -712,12 +712,12 @@ impl<'a> System<'a> for Sys {
                                         }
                                     },
                                     Tactic::Bow => {
-                                        if dist_sqrd < (2.0 * MIN_ATTACK_DIST * scale).powf(2.0) {
+                                        if dist_sqrd < (2.0 * MIN_ATTACK_DIST * scale).powi(2) {
                                             inputs.roll.set_state(true);
-                                        } else if dist_sqrd < MAX_CHASE_DIST.powf(2.0)
-                                            || (dist_sqrd < SIGHT_DIST.powf(2.0) && !*been_close)
+                                        } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
+                                            || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
                                         {
-                                            if dist_sqrd < MAX_CHASE_DIST.powf(2.0) {
+                                            if dist_sqrd < MAX_CHASE_DIST.powi(2) {
                                                 *been_close = true;
                                             }
                                             if let Some((bearing, speed)) = chaser.chase(
@@ -768,7 +768,7 @@ impl<'a> System<'a> for Sys {
                                                     inputs.move_z = bearing.z;
                                                 }
                                             }
-                                            if dist_sqrd < 16.0f32.powf(2.0)
+                                            if dist_sqrd < 16.0f32.powi(2)
                                                 && thread_rng().gen::<f32>() < 0.02
                                             {
                                                 inputs.roll.set_state(true);
@@ -778,10 +778,10 @@ impl<'a> System<'a> for Sys {
                                         }
                                     },
                                     Tactic::Staff => {
-                                        if dist_sqrd < (MIN_ATTACK_DIST * scale).powf(2.0) {
+                                        if dist_sqrd < (MIN_ATTACK_DIST * scale).powi(2) {
                                             inputs.roll.set_state(true);
                                         } else if dist_sqrd
-                                            < (5.0 * MIN_ATTACK_DIST * scale).powf(2.0)
+                                            < (5.0 * MIN_ATTACK_DIST * scale).powi(2)
                                         {
                                             if *powerup < 1.5 {
                                                 inputs.move_dir = (tgt_pos.0 - pos.0)
@@ -809,10 +809,10 @@ impl<'a> System<'a> for Sys {
                                             } else {
                                                 inputs.primary.set_state(true);
                                             }
-                                        } else if dist_sqrd < MAX_CHASE_DIST.powf(2.0)
-                                            || (dist_sqrd < SIGHT_DIST.powf(2.0) && !*been_close)
+                                        } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
+                                            || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
                                         {
-                                            if dist_sqrd < MAX_CHASE_DIST.powf(2.0) {
+                                            if dist_sqrd < MAX_CHASE_DIST.powi(2) {
                                                 *been_close = true;
                                             }
                                             if let Some((bearing, speed)) = chaser.chase(
@@ -845,7 +845,7 @@ impl<'a> System<'a> for Sys {
                                                     inputs.move_z = bearing.z;
                                                 }
                                             }
-                                            if dist_sqrd < 16.0f32.powf(2.0)
+                                            if dist_sqrd < 16.0f32.powi(2)
                                                 && thread_rng().gen::<f32>() < 0.02
                                             {
                                                 inputs.roll.set_state(true);
@@ -855,13 +855,13 @@ impl<'a> System<'a> for Sys {
                                         }
                                     },
                                     Tactic::StoneGolemBoss => {
-                                        if dist_sqrd < (MIN_ATTACK_DIST * scale).powf(2.0) {
+                                        if dist_sqrd < (MIN_ATTACK_DIST * scale).powi(2) {
                                             inputs.move_dir = Vec2::zero();
                                             inputs.primary.set_state(true);
-                                        } else if dist_sqrd < MAX_CHASE_DIST.powf(2.0)
-                                            || (dist_sqrd < SIGHT_DIST.powf(2.0) && !*been_close)
+                                        } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
+                                            || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
                                         {
-                                            if dist_sqrd < MAX_CHASE_DIST.powf(2.0) {
+                                            if dist_sqrd < MAX_CHASE_DIST.powi(2) {
                                                 *been_close = true;
                                             }
                                             if let Some((bearing, speed)) = chaser.chase(
@@ -904,13 +904,13 @@ impl<'a> System<'a> for Sys {
                                         radius,
                                         circle_time,
                                     } => {
-                                        if dist_sqrd < (MIN_ATTACK_DIST * scale).powf(2.0)
+                                        if dist_sqrd < (MIN_ATTACK_DIST * scale).powi(2)
                                             && thread_rng().gen_bool(0.5)
                                         {
                                             inputs.move_dir = Vec2::zero();
                                             inputs.primary.set_state(true);
                                         } else if dist_sqrd
-                                            < (radius as f32 * MIN_ATTACK_DIST * scale).powf(2.0)
+                                            < (radius as f32 * MIN_ATTACK_DIST * scale).powi(2)
                                         {
                                             inputs.move_dir = (pos.0 - tgt_pos.0)
                                                 .xy()
@@ -918,10 +918,9 @@ impl<'a> System<'a> for Sys {
                                                 .unwrap_or(Vec2::unit_y());
                                         } else if dist_sqrd
                                             < ((radius as f32 + 1.0) * MIN_ATTACK_DIST * scale)
-                                                .powf(2.0)
+                                                .powi(2)
                                             && dist_sqrd
-                                                > (radius as f32 * MIN_ATTACK_DIST * scale)
-                                                    .powf(2.0)
+                                                > (radius as f32 * MIN_ATTACK_DIST * scale).powi(2)
                                         {
                                             if *powerup < circle_time as f32 {
                                                 inputs.move_dir = (tgt_pos.0 - pos.0)
@@ -946,10 +945,10 @@ impl<'a> System<'a> for Sys {
                                             } else {
                                                 *powerup = 0.0;
                                             }
-                                        } else if dist_sqrd < MAX_CHASE_DIST.powf(2.0)
-                                            || (dist_sqrd < SIGHT_DIST.powf(2.0) && !*been_close)
+                                        } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
+                                            || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
                                         {
-                                            if dist_sqrd < MAX_CHASE_DIST.powf(2.0) {
+                                            if dist_sqrd < MAX_CHASE_DIST.powi(2) {
                                                 *been_close = true;
                                             }
                                             if let Some((bearing, speed)) = chaser.chase(
@@ -975,16 +974,16 @@ impl<'a> System<'a> for Sys {
                                         }
                                     },
                                     Tactic::QuadLowRanged => {
-                                        if dist_sqrd < (5.0 * MIN_ATTACK_DIST * scale).powf(2.0) {
+                                        if dist_sqrd < (5.0 * MIN_ATTACK_DIST * scale).powi(2) {
                                             inputs.move_dir = (tgt_pos.0 - pos.0)
                                                 .xy()
                                                 .try_normalized()
                                                 .unwrap_or(Vec2::unit_y());
                                             inputs.primary.set_state(true);
-                                        } else if dist_sqrd < MAX_CHASE_DIST.powf(2.0)
-                                            || (dist_sqrd < SIGHT_DIST.powf(2.0) && !*been_close)
+                                        } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
+                                            || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
                                         {
-                                            if dist_sqrd < MAX_CHASE_DIST.powf(2.0) {
+                                            if dist_sqrd < MAX_CHASE_DIST.powi(2) {
                                                 *been_close = true;
                                             }
                                             if let Some((bearing, speed)) = chaser.chase(
@@ -1028,7 +1027,7 @@ impl<'a> System<'a> for Sys {
                                         }
                                     },
                                     Tactic::TailSlap => {
-                                        if dist_sqrd < (1.5 * MIN_ATTACK_DIST * scale).powf(2.0) {
+                                        if dist_sqrd < (1.5 * MIN_ATTACK_DIST * scale).powi(2) {
                                             if *powerup > 4.0 {
                                                 inputs.primary.set_state(false);
                                                 *powerup = 0.0;
@@ -1044,10 +1043,10 @@ impl<'a> System<'a> for Sys {
                                                 .try_normalized()
                                                 .unwrap_or(Vec2::unit_y())
                                                 * 0.1;
-                                        } else if dist_sqrd < MAX_CHASE_DIST.powf(2.0)
-                                            || (dist_sqrd < SIGHT_DIST.powf(2.0) && !*been_close)
+                                        } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
+                                            || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
                                         {
-                                            if dist_sqrd < MAX_CHASE_DIST.powf(2.0) {
+                                            if dist_sqrd < MAX_CHASE_DIST.powi(2) {
                                                 *been_close = true;
                                             }
                                             if let Some((bearing, speed)) = chaser.chase(
@@ -1073,12 +1072,12 @@ impl<'a> System<'a> for Sys {
                                         }
                                     },
                                     Tactic::QuadLowQuick => {
-                                        if dist_sqrd < (1.5 * MIN_ATTACK_DIST * scale).powf(2.0) {
+                                        if dist_sqrd < (1.5 * MIN_ATTACK_DIST * scale).powi(2) {
                                             inputs.move_dir = Vec2::zero();
                                             inputs.secondary.set_state(true);
                                         } else if dist_sqrd
-                                            < (3.0 * MIN_ATTACK_DIST * scale).powf(2.0)
-                                            && dist_sqrd > (2.0 * MIN_ATTACK_DIST * scale).powf(2.0)
+                                            < (3.0 * MIN_ATTACK_DIST * scale).powi(2)
+                                            && dist_sqrd > (2.0 * MIN_ATTACK_DIST * scale).powi(2)
                                         {
                                             inputs.primary.set_state(true);
                                             inputs.move_dir = (tgt_pos.0 - pos.0)
@@ -1086,10 +1085,10 @@ impl<'a> System<'a> for Sys {
                                                 .rotated_z(-0.47 * PI)
                                                 .try_normalized()
                                                 .unwrap_or(Vec2::unit_y());
-                                        } else if dist_sqrd < MAX_CHASE_DIST.powf(2.0)
-                                            || (dist_sqrd < SIGHT_DIST.powf(2.0) && !*been_close)
+                                        } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
+                                            || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
                                         {
-                                            if dist_sqrd < MAX_CHASE_DIST.powf(2.0) {
+                                            if dist_sqrd < MAX_CHASE_DIST.powi(2) {
                                                 *been_close = true;
                                             }
                                             if let Some((bearing, speed)) = chaser.chase(
@@ -1115,7 +1114,7 @@ impl<'a> System<'a> for Sys {
                                         }
                                     },
                                     Tactic::QuadLowBasic => {
-                                        if dist_sqrd < (1.5 * MIN_ATTACK_DIST * scale).powf(2.0) {
+                                        if dist_sqrd < (1.5 * MIN_ATTACK_DIST * scale).powi(2) {
                                             inputs.move_dir = Vec2::zero();
                                             if *powerup > 5.0 {
                                                 *powerup = 0.0;
@@ -1126,10 +1125,10 @@ impl<'a> System<'a> for Sys {
                                                 inputs.primary.set_state(true);
                                                 *powerup += dt.0;
                                             }
-                                        } else if dist_sqrd < MAX_CHASE_DIST.powf(2.0)
-                                            || (dist_sqrd < SIGHT_DIST.powf(2.0) && !*been_close)
+                                        } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
+                                            || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
                                         {
-                                            if dist_sqrd < MAX_CHASE_DIST.powf(2.0) {
+                                            if dist_sqrd < MAX_CHASE_DIST.powi(2) {
                                                 *been_close = true;
                                             }
                                             if let Some((bearing, speed)) = chaser.chase(
@@ -1155,17 +1154,17 @@ impl<'a> System<'a> for Sys {
                                         }
                                     },
                                     Tactic::QuadMedJump => {
-                                        if dist_sqrd < (1.5 * MIN_ATTACK_DIST * scale).powf(2.0) {
+                                        if dist_sqrd < (1.5 * MIN_ATTACK_DIST * scale).powi(2) {
                                             inputs.move_dir = Vec2::zero();
                                             inputs.secondary.set_state(true);
                                         } else if dist_sqrd
-                                            < (5.0 * MIN_ATTACK_DIST * scale).powf(2.0)
+                                            < (5.0 * MIN_ATTACK_DIST * scale).powi(2)
                                         {
                                             inputs.ability3.set_state(true);
-                                        } else if dist_sqrd < MAX_CHASE_DIST.powf(2.0)
-                                            || (dist_sqrd < SIGHT_DIST.powf(2.0) && !*been_close)
+                                        } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
+                                            || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
                                         {
-                                            if dist_sqrd < MAX_CHASE_DIST.powf(2.0) {
+                                            if dist_sqrd < MAX_CHASE_DIST.powi(2) {
                                                 *been_close = true;
                                             }
                                             if let Some((bearing, speed)) = chaser.chase(
@@ -1200,7 +1199,7 @@ impl<'a> System<'a> for Sys {
                                         }
                                     },
                                     Tactic::QuadMedBasic => {
-                                        if dist_sqrd < (MIN_ATTACK_DIST * scale).powf(2.0) {
+                                        if dist_sqrd < (MIN_ATTACK_DIST * scale).powi(2) {
                                             inputs.move_dir = Vec2::zero();
                                             if *powerup < 2.0 {
                                                 inputs.secondary.set_state(true);
@@ -1211,10 +1210,10 @@ impl<'a> System<'a> for Sys {
                                             } else {
                                                 *powerup = 0.0;
                                             }
-                                        } else if dist_sqrd < MAX_CHASE_DIST.powf(2.0)
-                                            || (dist_sqrd < SIGHT_DIST.powf(2.0) && !*been_close)
+                                        } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
+                                            || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
                                         {
-                                            if dist_sqrd < MAX_CHASE_DIST.powf(2.0) {
+                                            if dist_sqrd < MAX_CHASE_DIST.powi(2) {
                                                 *been_close = true;
                                             }
                                             if let Some((bearing, speed)) = chaser.chase(
@@ -1240,11 +1239,11 @@ impl<'a> System<'a> for Sys {
                                         }
                                     },
                                     Tactic::Lavadrake => {
-                                        if dist_sqrd < (2.5 * MIN_ATTACK_DIST * scale).powf(2.0) {
+                                        if dist_sqrd < (2.5 * MIN_ATTACK_DIST * scale).powi(2) {
                                             inputs.move_dir = Vec2::zero();
                                             inputs.secondary.set_state(true);
                                         } else if dist_sqrd
-                                            < (7.0 * MIN_ATTACK_DIST * scale).powf(2.0)
+                                            < (7.0 * MIN_ATTACK_DIST * scale).powi(2)
                                         {
                                             if *powerup < 2.0 {
                                                 inputs.move_dir = (tgt_pos.0 - pos.0)
@@ -1268,10 +1267,10 @@ impl<'a> System<'a> for Sys {
                                             } else {
                                                 *powerup = 0.0;
                                             }
-                                        } else if dist_sqrd < MAX_CHASE_DIST.powf(2.0)
-                                            || (dist_sqrd < SIGHT_DIST.powf(2.0) && !*been_close)
+                                        } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
+                                            || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
                                         {
-                                            if dist_sqrd < MAX_CHASE_DIST.powf(2.0) {
+                                            if dist_sqrd < MAX_CHASE_DIST.powi(2) {
                                                 *been_close = true;
                                             }
                                             if let Some((bearing, speed)) = chaser.chase(
@@ -1297,13 +1296,13 @@ impl<'a> System<'a> for Sys {
                                         }
                                     },
                                     Tactic::Theropod => {
-                                        if dist_sqrd < (2.0 * MIN_ATTACK_DIST * scale).powf(2.0) {
+                                        if dist_sqrd < (2.0 * MIN_ATTACK_DIST * scale).powi(2) {
                                             inputs.move_dir = Vec2::zero();
                                             inputs.primary.set_state(true);
-                                        } else if dist_sqrd < MAX_CHASE_DIST.powf(2.0)
-                                            || (dist_sqrd < SIGHT_DIST.powf(2.0) && !*been_close)
+                                        } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
+                                            || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
                                         {
-                                            if dist_sqrd < MAX_CHASE_DIST.powf(2.0) {
+                                            if dist_sqrd < MAX_CHASE_DIST.powi(2) {
                                                 *been_close = true;
                                             }
                                             if let Some((bearing, speed)) = chaser.chase(
@@ -1359,11 +1358,11 @@ impl<'a> System<'a> for Sys {
                             search_dist *= SNEAK_COEFFICIENT;
                             listen_dist *= SNEAK_COEFFICIENT;
                         }
-                        ((e_pos.0.distance_squared(pos.0) < search_dist.powf(2.0) &&
+                        ((e_pos.0.distance_squared(pos.0) < search_dist.powi(2) &&
                             // Within our view
                             (e_pos.0 - pos.0).try_normalized().map(|v| v.dot(*inputs.look_dir) > 0.15).unwrap_or(true))
                                 // Within listen distance
-                                || e_pos.0.distance_squared(pos.0) < listen_dist.powf(2.0))
+                                || e_pos.0.distance_squared(pos.0) < listen_dist.powi(2))
                             && *e != entity
                             && !e_health.is_dead
                             && alignment
@@ -1438,7 +1437,7 @@ impl<'a> System<'a> for Sys {
 
                     let owner_pos = positions.get(owner)?;
                     let dist_sqrd = pos.0.distance_squared(owner_pos.0);
-                    if dist_sqrd > MAX_FOLLOW_DIST.powf(2.0) && !agent.activity.is_follow() {
+                    if dist_sqrd > MAX_FOLLOW_DIST.powi(2) && !agent.activity.is_follow() {
                         agent.activity = Activity::Follow {
                             target: owner,
                             chaser: Chaser::default(),
@@ -1503,6 +1502,6 @@ fn can_see_tgt(terrain: &TerrainGrid, pos: &Pos, tgt_pos: &Pos, dist_sqrd: f32) 
         .until(Block::is_opaque)
         .cast()
         .0
-        .powf(2.0)
+        .powi(2)
         >= dist_sqrd
 }
