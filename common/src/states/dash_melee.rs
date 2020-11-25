@@ -105,11 +105,15 @@ impl CharacterBehavior for Data {
                     && update.energy.current() > 0
                 {
                     // Forward movement
+                    let charge_frac = (self.timer.as_secs_f32()
+                        / self.static_data.charge_duration.as_secs_f32())
+                    .min(1.0);
+
                     handle_forced_movement(
                         data,
                         &mut update,
                         ForcedMovement::Forward {
-                            strength: self.static_data.forward_speed,
+                            strength: self.static_data.forward_speed * charge_frac.sqrt(),
                         },
                         0.1,
                     );
@@ -119,9 +123,6 @@ impl CharacterBehavior for Data {
                     if !self.exhausted {
                         // Hit attempt (also checks if player is moving)
                         if update.vel.0.distance_squared(Vec3::zero()) > 1.0 {
-                            let charge_frac = (self.timer.as_secs_f32()
-                                / self.static_data.charge_duration.as_secs_f32())
-                            .min(1.0);
                             let mut damage = Damage {
                                 source: DamageSource::Melee,
                                 value: self.static_data.max_damage as f32,

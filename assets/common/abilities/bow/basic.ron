@@ -1,11 +1,11 @@
 BasicRanged(
     energy_cost: 0,
-    buildup_duration: 200,
+    buildup_duration: 500,
     recover_duration: 300,
     projectile: Arrow(
-        damage: 40.0,
-        knockback: 10.0,
-        energy_regen: 50,
+        damage: 80.0,
+        knockback: 5.0,
+        energy_regen: 100,
     ),
     projectile_body: Object(Arrow),
     projectile_light: None,
