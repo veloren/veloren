@@ -32,7 +32,7 @@ impl Entity {
     }
 
     pub fn get_level(&self) -> u32 {
-        (self.rng(PERM_LEVEL).gen::<f32>().powf(2.0) * 15.0).ceil() as u32
+        (self.rng(PERM_LEVEL).gen::<f32>().powi(2) * 15.0).ceil() as u32
     }
 
     pub fn get_loadout(&self, ability_map: &AbilityMap) -> comp::Loadout {

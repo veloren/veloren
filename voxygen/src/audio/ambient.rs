@@ -76,7 +76,7 @@ impl AmbientMgr {
             // the lower wind volume. The trees make more of an impact
             // the closer the camera is to the ground.
             self.tree_multiplier =
-                ((1.0 - tree_density) + ((cam_pos.z - terrain_alt) / 150.0).powf(2.0)).min(1.0);
+                ((1.0 - tree_density) + ((cam_pos.z - terrain_alt) / 150.0).powi(2)).min(1.0);
 
             let mut volume_multiplier = alt_multiplier * self.tree_multiplier;
 

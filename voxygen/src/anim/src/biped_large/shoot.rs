@@ -126,7 +126,7 @@ impl Animation for ShootAnimation {
                 let (movement1, movement2, movement3) = match stage_section {
                     Some(StageSection::Buildup) => ((anim_time as f32).powf(0.25), 0.0, 0.0),
                     Some(StageSection::Swing) => (1.0, anim_time as f32, 0.0),
-                    Some(StageSection::Recover) => (1.0, 1.0, (anim_time as f32).powf(4.0)),
+                    Some(StageSection::Recover) => (1.0, 1.0, (anim_time as f32).powi(4)),
                     _ => (0.0, 0.0, 0.0),
                 };
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);

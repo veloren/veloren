@@ -94,13 +94,13 @@ impl Body {
         // Note: we assume no air (this is fine, current physics
         // uses max(air_drag, ground_drag)).
         // Derived via...
-        // v = (v + dv / 30) * (1 - drag).powf(2) (accel cancels drag)
-        // => 1 = (1 + (dv / 30) / v) * (1 - drag).powf(2)
-        // => 1 / (1 - drag).powf(2) = 1 + (dv / 30) / v
-        // => 1 / (1 - drag).powf(2) - 1 = (dv / 30) / v
-        // => 1 / (1 / (1 - drag).powf(2) - 1) = v / (dv / 30)
-        // => (dv / 30) / (1 / (1 - drag).powf(2) - 1) = v
-        let v = (-self.base_accel() / 30.0) / ((1.0 - FRIC_GROUND).powf(2.0) - 1.0);
+        // v = (v + dv / 30) * (1 - drag).powi(2) (accel cancels drag)
+        // => 1 = (1 + (dv / 30) / v) * (1 - drag).powi(2)
+        // => 1 / (1 - drag).powi(2) = 1 + (dv / 30) / v
+        // => 1 / (1 - drag).powi(2) - 1 = (dv / 30) / v
+        // => 1 / (1 / (1 - drag).powi(2) - 1) = v / (dv / 30)
+        // => (dv / 30) / (1 / (1 - drag).powi(2) - 1) = v
+        let v = (-self.base_accel() / 30.0) / ((1.0 - FRIC_GROUND).powi(2) - 1.0);
         debug_assert!(v >= 0.0, "Speed must be positive!");
         v
     }
@@ -251,7 +251,7 @@ fn swim_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32, depth: 
     // Update velocity
     update.vel.0 += Vec2::broadcast(data.dt.0)
         * data.inputs.move_dir
-        * if update.vel.0.magnitude_squared() < BASE_HUMANOID_WATER_SPEED.powf(2.0) {
+        * if update.vel.0.magnitude_squared() < BASE_HUMANOID_WATER_SPEED.powi(2) {
             BASE_HUMANOID_WATER_ACCEL
         } else {
             0.0
@@ -268,7 +268,7 @@ fn swim_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32, depth: 
             * data
                 .inputs
                 .move_z
-                .clamped(-1.0, depth.clamped(0.0, 1.0).powf(3.0)))
+                .clamped(-1.0, depth.clamped(0.0, 1.0).powi(3)))
     .min(BASE_HUMANOID_WATER_SPEED);
 }
 

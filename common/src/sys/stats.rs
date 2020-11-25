@@ -115,7 +115,7 @@ impl<'a> System<'a> for Sys {
                         // Have to account for Calc I differential equations due to acceleration
                         energy.change_by(EnergyChange {
                             amount: (energy.regen_rate * dt.0
-                                + ENERGY_REGEN_ACCEL * dt.0.powf(2.0) / 2.0)
+                                + ENERGY_REGEN_ACCEL * dt.0.powi(2) / 2.0)
                                 as i32,
                             source: EnergySource::Regen,
                         });

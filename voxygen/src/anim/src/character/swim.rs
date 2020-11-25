@@ -50,16 +50,12 @@ impl Animation for SwimAnimation {
         let foot = (anim_time as f32 * lab as f32 * 6.0 + PI * -0.1).sin();
 
         let footrotl = (((1.0)
-            / (0.2
-                + (0.8)
-                    * ((anim_time as f32 * 6.0 * lab as f32 + PI * 1.4).sin()).powf(2.0 as f32)))
+            / (0.2 + (0.8) * ((anim_time as f32 * 6.0 * lab as f32 + PI * 1.4).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * 6.0 * lab as f32 + PI * 1.4).sin());
 
         let footrotr = (((1.0)
-            / (0.2
-                + (0.8)
-                    * ((anim_time as f32 * 6.0 * lab as f32 + PI * 0.4).sin()).powf(2.0 as f32)))
+            / (0.2 + (0.8) * ((anim_time as f32 * 6.0 * lab as f32 + PI * 0.4).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * 6.0 * lab as f32 + PI * 0.4).sin());
 

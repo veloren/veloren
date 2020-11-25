@@ -26,9 +26,9 @@ impl Animation for DashAnimation {
         let mut next = (*skeleton).clone();
 
         let (movement1base, chargemovementbase, movement2base, movement3) = match stage_section {
-            Some(StageSection::Buildup) => ((anim_time as f32).powf(0.5), 0.0, 0.0, 0.0),
+            Some(StageSection::Buildup) => ((anim_time as f32).sqrt(), 0.0, 0.0, 0.0),
             Some(StageSection::Charge) => (1.0, 1.0, 0.0, 0.0),
-            Some(StageSection::Swing) => (1.0, 1.0, (anim_time as f32).powf(4.0), 0.0),
+            Some(StageSection::Swing) => (1.0, 1.0, (anim_time as f32).powi(4), 0.0),
             Some(StageSection::Recover) => (1.0, 1.0, 1.0, anim_time as f32),
             _ => (0.0, 0.0, 0.0, 0.0),
         };
@@ -44,8 +44,7 @@ impl Animation for DashAnimation {
         let movement1abs = movement1base * pullback;
         let movement2abs = movement2base * pullback;
         let short = (((1.0)
-            / (0.72
-                + 0.28 * ((anim_time as f32 * 16.0 as f32 + PI * 0.25).sin()).powf(2.0 as f32)))
+            / (0.72 + 0.28 * ((anim_time as f32 * 16.0 as f32 + PI * 0.25).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * 16.0 as f32 + PI * 0.25).sin())
             * chargemovementbase

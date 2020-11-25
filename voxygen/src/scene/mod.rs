@@ -563,7 +563,7 @@ impl Scene {
                     light_anim.col != Rgb::zero()
                         && light_anim.strength > 0.0
                         && (pos.0.distance_squared(player_pos) as f32)
-                            < loaded_distance.powf(2.0) + LIGHT_DIST_RADIUS
+                            < loaded_distance.powi(2) + LIGHT_DIST_RADIUS
                 })
                 .map(|(pos, ori, interpolated, light_anim)| {
                     // Use interpolated values if they are available
@@ -617,7 +617,7 @@ impl Scene {
             .filter(|(_, _, _, _, health)| !health.is_dead)
             .filter(|(pos, _, _, _, _)| {
                 (pos.0.distance_squared(player_pos) as f32)
-                    < (loaded_distance.min(SHADOW_MAX_DIST) + SHADOW_DIST_RADIUS).powf(2.0)
+                    < (loaded_distance.min(SHADOW_MAX_DIST) + SHADOW_DIST_RADIUS).powi(2)
             })
             .map(|(pos, interpolated, scale, _, _)| {
                 Shadow::new(

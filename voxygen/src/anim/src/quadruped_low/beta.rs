@@ -25,8 +25,8 @@ impl Animation for BetaAnimation {
         let mut next = (*skeleton).clone();
 
         let (movement1base, movement2base, movement3) = match stage_section {
-            Some(StageSection::Buildup) => ((anim_time as f32).powf(0.5), 0.0, 0.0),
-            Some(StageSection::Swing) => (1.0, (anim_time as f32).powf(4.0), 0.0),
+            Some(StageSection::Buildup) => ((anim_time as f32).sqrt(), 0.0, 0.0),
+            Some(StageSection::Swing) => (1.0, (anim_time as f32).powi(4), 0.0),
             Some(StageSection::Recover) => (1.0, 1.0, anim_time as f32),
             _ => (0.0, 0.0, 0.0),
         };

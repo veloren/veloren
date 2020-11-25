@@ -27,16 +27,16 @@ impl Animation for RunAnimation {
         //let increasefreqtest = (((1.0/speed)*3.0).round()).min(5.0);
         let lab = 0.72; //0.72
         let amplitude = (speed / 24.0).max(0.25);
-        let amplitude2 = (speed * 1.4 / 24.0).powf(0.5).max(0.6);
-        let amplitude3 = (speed / 24.0).powf(0.5).max(0.35);
+        let amplitude2 = (speed * 1.4 / 24.0).sqrt().max(0.6);
+        let amplitude3 = (speed / 24.0).sqrt().max(0.35);
         let speedmult = s_a.tempo;
-        let canceler = (speed / 24.0).powf(0.5);
+        let canceler = (speed / 24.0).sqrt();
         let short = (((1.0)
             / (0.72
                 + 0.28
                     * ((anim_time as f32 * (16.0) * lab as f32 * speedmult + PI * -0.15 - 0.5)
                         .sin())
-                    .powf(2.0 as f32)))
+                    .powi(2)))
         .sqrt())
             * ((anim_time as f32 * (16.0) * lab as f32 * speedmult + PI * -0.15 - 0.5).sin());
 

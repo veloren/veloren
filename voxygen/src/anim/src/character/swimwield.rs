@@ -30,16 +30,12 @@ impl Animation for SwimWieldAnimation {
         *rate = 1.0;
         let intensity = if speed > 0.5 { 1.0 } else { 0.3 };
         let footrotl = (((1.0)
-            / (0.2
-                + (0.8)
-                    * ((anim_time as f32 * 6.0 * lab as f32 + PI * 1.4).sin()).powf(2.0 as f32)))
+            / (0.2 + (0.8) * ((anim_time as f32 * 6.0 * lab as f32 + PI * 1.4).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * 6.0 * lab as f32 + PI * 1.4).sin());
 
         let footrotr = (((1.0)
-            / (0.2
-                + (0.8)
-                    * ((anim_time as f32 * 6.0 * lab as f32 + PI * 0.4).sin()).powf(2.0 as f32)))
+            / (0.2 + (0.8) * ((anim_time as f32 * 6.0 * lab as f32 + PI * 0.4).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * 6.0 * lab as f32 + PI * 0.4).sin());
 
@@ -61,10 +57,9 @@ impl Animation for SwimWieldAnimation {
         let foothoril = (anim_time as f32 * 6.0 * lab as f32 + PI * 1.45).sin();
         let foothorir = (anim_time as f32 * 6.0 * lab as f32 + PI * (0.45)).sin();
         let u_slowalt = (anim_time as f32 * 3.0 + PI).cos();
-        let short = (((5.0)
-            / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 16.0).sin()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * lab as f32 * 16.0).sin());
+        let short =
+            (((5.0) / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 16.0).sin()).powi(2))).sqrt())
+                * ((anim_time as f32 * lab as f32 * 16.0).sin());
         let noisea = (anim_time as f32 * 11.0 + PI / 6.0).sin();
         let noiseb = (anim_time as f32 * 19.0 + PI / 4.0).sin();
 

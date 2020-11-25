@@ -26,9 +26,7 @@ impl Animation for RunAnimation {
         let lab = 0.6; //6
 
         let short = (((1.0)
-            / (0.72
-                + 0.28
-                    * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.0).sin()).powf(2.0 as f32)))
+            / (0.72 + 0.28 * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.0).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.0).sin());
 

@@ -27,9 +27,7 @@ impl Animation for AlphaAnimation {
         let lab = 1.0;
 
         let slower = (((1.0)
-            / (0.05
-                + 0.95
-                    * ((anim_time as f32 * lab as f32 * 8.0 - 0.5 * PI).sin()).powf(2.0 as f32)))
+            / (0.05 + 0.95 * ((anim_time as f32 * lab as f32 * 8.0 - 0.5 * PI).sin()).powi(2)))
         .sqrt())
             * ((anim_time as f32 * lab as f32 * 8.0 - 0.5 * PI).sin())
             + 1.0;

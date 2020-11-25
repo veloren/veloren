@@ -601,7 +601,7 @@ impl FigureMgr {
 
             if (i as u64 + tick)
                 % (1 + ((pos.0.distance_squared(focus_pos).powf(0.25)
-                    - MIN_PERFECT_RATE_DIST.powf(0.5))
+                    - MIN_PERFECT_RATE_DIST.sqrt())
                 .max(0.0)
                     / 3.0) as u64)
                 != 0
@@ -3630,9 +3630,9 @@ impl FigureMgr {
             let figure_low_detail_distance = figure_lod_render_distance * 0.75;
             let figure_mid_detail_distance = figure_lod_render_distance * 0.5;
 
-            let model = if pos.distance_squared(cam_pos) > figure_low_detail_distance.powf(2.0) {
+            let model = if pos.distance_squared(cam_pos) > figure_low_detail_distance.powi(2) {
                 &model_entry.models[2]
-            } else if pos.distance_squared(cam_pos) > figure_mid_detail_distance.powf(2.0) {
+            } else if pos.distance_squared(cam_pos) > figure_mid_detail_distance.powi(2) {
                 &model_entry.models[1]
             } else {
                 &model_entry.models[0]

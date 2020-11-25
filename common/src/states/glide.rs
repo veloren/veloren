@@ -41,7 +41,7 @@ impl CharacterBehavior for Data {
         // Move player according to movement direction vector
         update.vel.0 += Vec2::broadcast(data.dt.0)
             * data.inputs.move_dir
-            * if data.vel.0.magnitude_squared() < GLIDE_SPEED.powf(2.0) {
+            * if data.vel.0.magnitude_squared() < GLIDE_SPEED.powi(2) {
                 GLIDE_ACCEL
             } else {
                 0.0
@@ -52,10 +52,10 @@ impl CharacterBehavior for Data {
         update.ori.0 = Dir::slerp_to_vec3(update.ori.0, ori_dir.into(), 2.0 * data.dt.0);
 
         // Apply Glide antigrav lift
-        if Vec2::<f32>::from(update.vel.0).magnitude_squared() < GLIDE_SPEED.powf(2.0)
+        if Vec2::<f32>::from(update.vel.0).magnitude_squared() < GLIDE_SPEED.powi(2)
             && update.vel.0.z < 0.0
         {
-            let lift = GLIDE_ANTIGRAV + update.vel.0.z.abs().powf(2.0) * 0.15;
+            let lift = GLIDE_ANTIGRAV + update.vel.0.z.abs().powi(2) * 0.15;
             update.vel.0.z += data.dt.0
                 * lift
                 * (Vec2::<f32>::from(update.vel.0).magnitude() * 0.075)

@@ -925,7 +925,7 @@ fn erode(
                         };
 
                         // Higher rock strength tends to lead to higher curvature?
-                        let kd_factor = (max_slope / mid_slope).powf(2.0);
+                        let kd_factor = (max_slope / mid_slope).powi(2);
                         let k_da = k_da * kd_factor;
 
                         let mwrec_i = &mwrec[posi];

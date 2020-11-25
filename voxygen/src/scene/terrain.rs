@@ -841,7 +841,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             // boundary
             let nearest_in_chunk = Vec2::from(focus_pos).clamped(chunk_pos, chunk_pos + chunk_sz);
             let distance_2 = Vec2::<f32>::from(focus_pos).distance_squared(nearest_in_chunk);
-            let in_range = distance_2 < loaded_distance.powf(2.0);
+            let in_range = distance_2 < loaded_distance.powi(2);
 
             chunk.visible.in_range = in_range;
 
@@ -1150,7 +1150,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                         .min(Vec2::from(cam_pos).distance_squared(
                             chunk_center + chunk_size.x * 0.5 - chunk_size.y * 0.5,
                         ));
-                if focus_dist_sqrd < sprite_render_distance.powf(2.0) {
+                if focus_dist_sqrd < sprite_render_distance.powi(2) {
                     for (kind, instances) in (&chunk.sprite_instances).into_iter() {
                         let SpriteData { model, locals, .. } = if kind
                             .0
@@ -1159,14 +1159,14 @@ impl<V: RectRasterableVol> Terrain<V> {
                             .map(|config| config.wind_sway >= 0.4)
                             .unwrap_or(false)
                             && dist_sqrd <= chunk_mag
-                            || dist_sqrd < sprite_high_detail_distance.powf(2.0)
+                            || dist_sqrd < sprite_high_detail_distance.powi(2)
                         {
                             &self.sprite_data[&kind][0]
-                        } else if dist_sqrd < sprite_hid_detail_distance.powf(2.0) {
+                        } else if dist_sqrd < sprite_hid_detail_distance.powi(2) {
                             &self.sprite_data[&kind][1]
-                        } else if dist_sqrd < sprite_mid_detail_distance.powf(2.0) {
+                        } else if dist_sqrd < sprite_mid_detail_distance.powi(2) {
                             &self.sprite_data[&kind][2]
-                        } else if dist_sqrd < sprite_low_detail_distance.powf(2.0) {
+                        } else if dist_sqrd < sprite_low_detail_distance.powi(2) {
                             &self.sprite_data[&kind][3]
                         } else {
                             &self.sprite_data[&kind][4]
