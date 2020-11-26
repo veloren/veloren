@@ -103,7 +103,7 @@ impl<'a> System<'a> for Sys {
                 health: comp::Health::new(body, 10),
                 loadout: entity.get_loadout(&ability_map),
                 body,
-                agent: Some(comp::Agent::new(None, true, &body)),
+                agent: Some(comp::Agent::new(None, true, &body, false)),
                 alignment: comp::Alignment::Npc,
                 scale: comp::Scale(1.0),
                 drop_item: None,
