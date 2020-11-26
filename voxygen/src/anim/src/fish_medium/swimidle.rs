@@ -1,23 +1,27 @@
-use super::{super::Animation, FishMediumSkeleton, SkeletonAttr};
-//use std::{f32::consts::PI, ops::Mul};
-use super::super::vek::*;
-use std::f32::consts::PI;
+use super::{
+    super::{vek::*, Animation},
+    FishMediumSkeleton, SkeletonAttr,
+};
+use std::{f32::consts::PI, ops::Mul};
 
-pub struct IdleAnimation;
+pub struct SwimIdleAnimation;
 
-impl Animation for IdleAnimation {
-    type Dependency = f64;
+type SwimIdleAnimationDependency = (Vec3<f32>, Vec3<f32>, Vec3<f32>, f64, Vec3<f32>);
+
+impl Animation for SwimIdleAnimation {
+    type Dependency = SwimIdleAnimationDependency;
     type Skeleton = FishMediumSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
-    const UPDATE_FN: &'static [u8] = b"fish_medium_idle\0";
+    const UPDATE_FN: &'static [u8] = b"fish_medium_swimidle\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "fish_medium_idle")]
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "fish_medium_swimidle")]
+
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        _global_time: Self::Dependency,
+        (velocity, orientation, last_ori, global_time, avg_vel): Self::Dependency,
         anim_time: f64,
-        _rate: &mut f32,
+        rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();

@@ -700,16 +700,30 @@
     "fish_small": {
         "body": {
             "keyword": "fish_small",
-            "names": []
+            "names": [
+                "Dagon"
+            ]
         },
-        "species": null
+        "species": {
+            "sardine": {
+                "keyword": "sardine",
+                "generic": "Sardine"
+            }
+        }
     },
     "fish_medium": {
         "body": {
             "keyword": "fish_medium",
-            "names": []
+            "names": [
+                "Njord"
+            ]
         },
-        "species": null
+        "species": {
+            "marlin": {
+                "keyword": "marlin",
+                "generic": "Marlin"
+            }
+        }
     },
     "bird_small": {
         "body": {

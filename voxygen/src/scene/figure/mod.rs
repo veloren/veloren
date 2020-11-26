@@ -2203,11 +2203,18 @@ impl FigureMgr {
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
-
-                        // TODO!
-                        _ => anim::fish_medium::IdleAnimation::update_skeleton(
+                        // Idle Water
+                        (_, false, true) => anim::fish_medium::SwimIdleAnimation::update_skeleton(
                             &FishMediumSkeleton::default(),
-                            time,
+                            (vel.0, ori, state.last_ori, time, state.avg_vel),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
+                        // Swim
+                        (_, true, true) => anim::fish_medium::SwimAnimation::update_skeleton(
+                            &FishMediumSkeleton::default(),
+                            (vel.0, ori, state.last_ori, time, state.avg_vel),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -2598,11 +2605,10 @@ impl FigureMgr {
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
-
-                        // TODO!
-                        _ => anim::fish_small::IdleAnimation::update_skeleton(
+                        // Swim
+                        (_, _, true) => anim::fish_small::SwimAnimation::update_skeleton(
                             &FishSmallSkeleton::default(),
-                            time,
+                            (vel.0, ori, state.last_ori, time, state.avg_vel),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,

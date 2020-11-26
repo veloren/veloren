@@ -6,86 +6,73 @@ make_proj_elim!(
     body,
     #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
     pub struct Body {
-        pub head: Head,
-        pub torso: Torso,
-        pub rear: Rear,
-        pub tail: Tail,
-        pub fin_l: FinL,
-        pub fin_r: FinR,
+        pub species: Species,
+        pub body_type: BodyType,
     }
 );
 
 impl Body {
     pub fn random() -> Self {
         let mut rng = thread_rng();
-        Self {
-            head: *(&ALL_HEADS).choose(&mut rng).unwrap(),
-            torso: *(&ALL_TORSOS).choose(&mut rng).unwrap(),
-            rear: *(&ALL_REARS).choose(&mut rng).unwrap(),
-            tail: *(&ALL_TAILS).choose(&mut rng).unwrap(),
-            fin_l: *(&ALL_FIN_LS).choose(&mut rng).unwrap(),
-            fin_r: *(&ALL_FIN_RS).choose(&mut rng).unwrap(),
+        let species = *(&ALL_SPECIES).choose(&mut rng).unwrap();
+        Self::random_with(&mut rng, &species)
+    }
+
+    #[inline]
+    pub fn random_with(rng: &mut impl rand::Rng, &species: &Species) -> Self {
+        let body_type = *(&ALL_BODY_TYPES).choose(rng).unwrap();
+        Self { species, body_type }
+    }
+}
+
+impl From<Body> for super::Body {
+    fn from(body: Body) -> Self { super::Body::FishMedium(body) }
+}
+
+make_case_elim!(
+    species,
+    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    #[repr(u32)]
+    pub enum Species {
+        Marlin = 0,
+    }
+);
+
+/// Data representing per-species generic data.
+///
+/// NOTE: Deliberately don't (yet?) implement serialize.
+#[derive(Clone, Debug, Deserialize)]
+pub struct AllSpecies<SpeciesMeta> {
+    pub marlin: SpeciesMeta,
+}
+
+impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> {
+    type Output = SpeciesMeta;
+
+    #[inline]
+    fn index(&self, &index: &'a Species) -> &Self::Output {
+        match index {
+            Species::Marlin => &self.marlin,
         }
     }
 }
 
-make_case_elim!(
-    head,
-    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-    #[repr(u32)]
-    pub enum Head {
-        Default = 0,
-    }
-);
+pub const ALL_SPECIES: [Species; 1] = [Species::Marlin];
 
-const ALL_HEADS: [Head; 1] = [Head::Default];
+impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
+    type IntoIter = std::iter::Copied<std::slice::Iter<'static, Self::Item>>;
+    type Item = Species;
+
+    fn into_iter(self) -> Self::IntoIter { ALL_SPECIES.iter().copied() }
+}
 
 make_case_elim!(
-    torso,
+    body_type,
     #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
     #[repr(u32)]
-    pub enum Torso {
-        Default = 0,
+    pub enum BodyType {
+        Female = 0,
+        Male = 1,
     }
 );
-const ALL_TORSOS: [Torso; 1] = [Torso::Default];
-
-make_case_elim!(
-    rear,
-    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-    #[repr(u32)]
-    pub enum Rear {
-        Default = 0,
-    }
-);
-const ALL_REARS: [Rear; 1] = [Rear::Default];
-
-make_case_elim!(
-    tail,
-    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-    #[repr(u32)]
-    pub enum Tail {
-        Default = 0,
-    }
-);
-const ALL_TAILS: [Tail; 1] = [Tail::Default];
-
-make_case_elim!(
-    fin_l,
-    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-    #[repr(u32)]
-    pub enum FinL {
-        Default = 0,
-    }
-);
-const ALL_FIN_LS: [FinL; 1] = [FinL::Default];
-
-make_case_elim!(
-    fin_r,
-    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-    #[repr(u32)]
-    pub enum FinR {
-        Default = 0,
-    }
-);
-const ALL_FIN_RS: [FinR; 1] = [FinR::Default];
+pub const ALL_BODY_TYPES: [BodyType; 2] = [BodyType::Female, BodyType::Male];

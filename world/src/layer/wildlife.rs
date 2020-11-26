@@ -1,8 +1,8 @@
 use crate::{column::ColumnSample, sim::SimChunk, IndexRef, CONFIG};
 use common::{
     comp::{
-        biped_large, bird_medium, quadruped_low, quadruped_medium, quadruped_small, theropod,
-        Alignment,
+        biped_large, bird_medium, fish_medium, quadruped_low, quadruped_medium, quadruped_small,
+        theropod, Alignment,
     },
     generation::{ChunkSupplement, EntityInfo},
     terrain::Block,
@@ -759,6 +759,21 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             is_underwater: false,
             get_density: |c, _col| {
                 close(c.temp, CONFIG.desert_temp + 0.2, 0.3) * BASE_DENSITY * 5.0
+            },
+        },
+        // Underwater
+        Entry {
+            make_entity: |pos, rng| {
+                EntityInfo::at(pos)
+                    .with_body(
+                        fish_medium::Body::random_with(rng, &fish_medium::Species::Marlin).into(),
+                    )
+                    .with_alignment(Alignment::Wild)
+            },
+            group_size: 3..5,
+            is_underwater: true,
+            get_density: |c, col| {
+                close(c.temp, CONFIG.temperate_temp, 1.0) * col.tree_density * BASE_DENSITY * 5.0
             },
         },
     ];
