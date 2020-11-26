@@ -90,11 +90,14 @@ impl<'a> Widget for Overitem<'a> {
         //             | E |
         //              ———
 
-        // scale at max distance is 10, and at min distance is 30
-        let scale: f64 = ((1.5
-            - (self.distance_from_player_sqr / common::consts::MAX_PICKUP_RANGE.powi(2)))
-            * 20.0)
-            .into();
+        // Scale at max distance is 10, and at min distance is 30. Disabled since the
+        // scaling ruins glyph caching, causing performance issues near lootbags
+        // let scale: f64 = ((1.5
+        //     - (self.distance_from_player_sqr /
+        //       common::consts::MAX_PICKUP_RANGE.powi(2)))
+        //     * 20.0)
+        //     .into();
+        let scale = 30.0;
         let text_font_size = scale * 1.0;
         let text_pos_y = scale * 1.2;
         let btn_rect_size = scale * 0.8;
