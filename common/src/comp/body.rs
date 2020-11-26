@@ -479,7 +479,11 @@ impl Body {
             },
             Body::Object(_) => 1,
             Body::Golem(_) => 256,
-            Body::Theropod(_) => 2,
+            Body::Theropod(theropod) => match theropod.species {
+                theropod::Species::Archaeos => 90,
+                theropod::Species::Odonto => 80,
+                _ => 50,
+            },
             Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
                 quadruped_low::Species::Crocodile => 10,
                 quadruped_low::Species::Alligator => 10,
@@ -495,25 +499,6 @@ impl Body {
                 quadruped_low::Species::Lavadrake => 20,
                 _ => 10,
             },
-        }
-    }
-
-    #[allow(unreachable_patterns)]
-    pub fn base_exp_increase(&self) -> u32 {
-        match self {
-            Body::Humanoid(_) => 2,
-            Body::QuadrupedSmall(_) => 1,
-            Body::QuadrupedMedium(_) => 1,
-            Body::BirdMedium(_) => 1,
-            Body::FishMedium(_) => 1,
-            Body::Dragon(_) => 32,
-            Body::BirdSmall(_) => 1,
-            Body::FishSmall(_) => 1,
-            Body::BipedLarge(_) => 2,
-            Body::Object(_) => 0,
-            Body::Golem(_) => 12,
-            Body::Theropod(_) => 1,
-            Body::QuadrupedLow(_) => 1,
         }
     }
 

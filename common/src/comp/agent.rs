@@ -154,11 +154,20 @@ impl Agent {
         self
     }
 
-    pub fn new(patrol_origin: Option<Vec3<f32>>, can_speak: bool, body: &Body) -> Self {
+    pub fn new(
+        patrol_origin: Option<Vec3<f32>>,
+        can_speak: bool,
+        body: &Body,
+        no_flee: bool,
+    ) -> Self {
         Agent {
             patrol_origin,
             can_speak,
-            psyche: Psyche::from(body),
+            psyche: if no_flee {
+                Psyche { aggro: 1.0 }
+            } else {
+                Psyche::from(body)
+            },
             ..Default::default()
         }
     }

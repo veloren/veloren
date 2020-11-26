@@ -1,8 +1,8 @@
 ChargedRanged(
     energy_cost: 1,
     energy_drain: 300,
-    initial_damage: 40,
-    max_damage: 200,
+    initial_damage: 50,
+    max_damage: 250,
     initial_knockback: 10.0,
     max_knockback: 20.0,
     speed: 1.0,
