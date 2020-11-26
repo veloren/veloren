@@ -651,7 +651,7 @@ impl Default for GraphicsSettings {
             fov: 70,
             gamma: 1.0,
             exposure: 1.0,
-            ambiance: 0.0,
+            ambiance: 10.0,
             render_mode: RenderMode::default(),
             window_size: [1920, 1080],
             fullscreen: FullScreenSettings::default(),
