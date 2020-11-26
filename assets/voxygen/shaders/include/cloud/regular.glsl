@@ -86,7 +86,7 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
         #endif
     }
 
-    float mist_sun_access = 0.5 + turb_noise;
+    float mist_sun_access = 0.5 + turb_noise * 0.5;
     float mist_moon_access = mist_sun_access;
     sun_access = mix(cloud_sun_access, mist_sun_access, clamp(mist * 20000, 0, 1));
     moon_access = mix(cloud_moon_access, mist_moon_access, clamp(mist * 20000, 0, 1));
@@ -108,6 +108,9 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
         float emission_alt = 4000.0;
         #if (CLOUD_MODE >= CLOUD_MODE_LOW)
             emission_alt += (noise_3d(vec3(wind_pos.xy * 0.00003 + cloud_tendency * 0.2, time_of_day.x * 0.0001)) - 0.5) * 6000;
+        #endif
+        #if (CLOUD_MODE >= CLOUD_MODE_HIGH)
+            emission_alt += (noise_3d(vec3(wind_pos.xy * 0.0005 + cloud_tendency * 0.2, emission_alt * 0.0001 + time_of_day.x * 0.0005)) - 0.5) * 1000;
         #endif
         float tail = (texture(t_noise, wind_pos.xy * 0.00005).x - 0.5) * 10 + (z - emission_alt) * 0.001;
         vec3 emission_col = vec3(0.6 + tail * 0.6, 1.0, 0.3 + tail * 0.2);
