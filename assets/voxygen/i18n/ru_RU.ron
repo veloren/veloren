@@ -1,3 +1,17 @@
+/// Translation document instructions
+///
+/// In order to keep localization documents readible please follow the following
+/// rules:
+/// - separate the string map sections using a commentary describing the purpose
+///   of the next section
+/// - prepend multi-line strings with a commentary
+/// - append one blank lines after a multi-line strings and two after sections
+///
+/// To add a new language in Veloren, just write an additional `.ron` file in
+/// `assets/voxygen/i18n` and that's it!
+///
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
 /// Localization for "global" Russian
 (
     metadata: (
@@ -42,6 +56,7 @@
         "common.controls": "Управление",
         "common.video": "Видео",
         "common.sound": "Звук",
+        "common.languages": "Языки",
         "common.resume": "Продолжить",
         "common.characters": "Персонажи",
         "common.close": "Закрыть",
@@ -49,7 +64,7 @@
         "common.no": "Нет",
         "common.back": "Назад",
         "common.create": "Создать",
-        "common.okay": "Хорошо",
+        "common.okay": "Окей",
         "common.accept": "Принять",
         "common.decline": "Отклонить",
         "common.disclaimer": "Дисклеймер",
@@ -59,6 +74,14 @@
         "common.fatal_error": "Критическая ошибка",
         "common.you": "Вы",
         "common.automatic": "Авто",
+        "common.random": "Случайно",
+        // Settings Window title
+        "common.interface_settings": "Настройки интерфейса",
+        "common.gameplay_settings": "Настройки геймплея",
+        "common.controls_settings": "Настройки управления",
+        "common.video_settings": "Графические настройки",
+        "common.sound_settings": "Звуковые настройки",
+        "common.language_settings": "Языковые настройки",
 
         // Message when connection to the server is lost
         "common.connection_lost": r#"Соединение потеряно!
@@ -78,10 +101,15 @@
         "common.weapons.staff": "Посох",
         "common.weapons.bow": "Лук",
         "common.weapons.hammer": "Молот",
+        "common.weapons.sceptre": "Лечащий посох",
+        "common.rand_appearance": "Случайная внешность и имя",
         /// End Common section
 
 
         /// Start Main screen section
+        "main.username": "Имя пользователя",
+        "main.server": "Сервер",
+        "main.password": "Пароль",
         "main.connecting": "Подключение",
         "main.creating_world": "Создание мира",
         "main.tip": "Совет:",
@@ -126,6 +154,11 @@ https://veloren.net/account/."#,
         "main.login.invalid_character": "Выбранный персонаж недоступен",
         "main.login.client_crashed": "Клиент вылетел",
         "main.login.not_on_whitelist": "Чтобы войти, необходимо быть внесенным в Вайтлист",
+        "main.login.banned": "Вы были забанены по следующей причине",
+        "main.login.kicked": "Вы были кикнуты по следующей причине",
+        "main.login.select_language": "Выбрать язык",
+
+        "main.servers.select_server": "Выбрать сервер",
 
         /// End Main screen section
 
@@ -136,15 +169,35 @@ https://veloren.net/account/."#,
         "hud.quests": "Квесты",
         "hud.you_died": "Вы мертвы",
         "hud.waypoint_saved": "Точка спауна сохранена",
-        
-        "hud.press_key_to_show_keybindings_fmt": "Нажмите {key}, чтобы посмотреть раскладку",
+
+        "hud.press_key_to_show_keybindings_fmt": "[{key}] Раскладка",
+        "hud.press_key_to_toggle_lantern_fmt": "[{key}] Фонарь",
         "hud.press_key_to_show_debug_info_fmt": "Нажмите {key}, чтобы показать панель отладки",
-        "hud.press_key_to_toggle_keybindings_fmt": "Нажмите {key}, чтобы привязать клавишу",
-        "hud.press_key_to_toggle_debug_info_fmt": "Нажмите {key}, чтобы переназначить панель отладки",
+        "hud.press_key_to_toggle_keybindings_fmt": "Нажмите {key}, чтобы показать раскладку",
+        "hud.press_key_to_toggle_debug_info_fmt": "Нажмите {key}, чтобы включить панель отладки",
 
         // Chat outputs
         "hud.chat.online_msg": "[{name}] сейчас онлайн.",
         "hud.chat.offline_msg": "[{name}] сейчас оффлайн.",
+
+        "hud.chat.default_death_msg": "[{name}] умер",
+        "hud.chat.environmental_kill_msg": "[{name}] умер от {environment}",
+        "hud.chat.fall_kill_msg": "[{name}] разбился",
+        "hud.chat.suicide_msg": "[{name}] сам стал виной своей смерти",
+
+        "hud.chat.pvp_melee_kill_msg": "[{attacker}] одолел [{victim}]",
+        "hud.chat.pvp_ranged_kill_msg": "[{attacker}] подстрелил [{victim}]",
+        "hud.chat.pvp_explosion_kill_msg": "[{attacker}] взорвал [{victim}]",
+        "hud.chat.pvp_energy_kill_msg": "[{attacker}] убил [{victim}] с помощью магии",
+        "hud.chat.pvp_buff_kill_msg": "[{attacker}] убил [{victim}]",
+
+
+        "hud.chat.npc_melee_kill_msg": "{attacker} убил [{victim}]",
+        "hud.chat.npc_ranged_kill_msg": "{attacker} подстрелил [{victim}]",
+        "hud.chat.npc_explosion_kill_msg": "{attacker} взорвал [{victim}]",
+        "hud.chat.npc_energy_kill_msg": "[{attacker}] убил [{victim}] с помощью магии",
+        "hud.chat.npc_other_kill_msg": "[{attacker}] убил [{victim}]",
+
         "hud.chat.loot_msg": "Вы подобрали [{item}]",
         "hud.chat.loot_fail": "Ваш инвентарь полон!",
         "hud.chat.goodbye": "До встречи!",
@@ -199,7 +252,7 @@ https://veloren.net/account/."#,
 и победи мерзкого лидера и его приспешников.
 
 
-Может ты даже сможешь получить один из их
+Может быть ты даже сможешь получить один из их
 магических предметов?"#,
 
 
@@ -217,13 +270,14 @@ https://veloren.net/account/."#,
         "hud.bag.chest": "Нагрудник",
         "hud.bag.hands": "Руки",
         "hud.bag.lantern": "Фонарь",
+        "hud.bag.glider": "Глайдер",
         "hud.bag.belt": "Пояс",
         "hud.bag.ring": "Кольцо",
         "hud.bag.back": "Спина",
         "hud.bag.legs": "Ноги",
         "hud.bag.feet": "Ботинки",
         "hud.bag.mainhand": "Главная рука",
-        "hud.bag.offhand": "Второстепенная рука",    
+        "hud.bag.offhand": "Второстепенная рука",
 
 
         // Map and Questlog
@@ -243,8 +297,10 @@ https://veloren.net/account/."#,
         "hud.settings.custom_scaling": "Пользовательское масштабирование",
         "hud.settings.crosshair": "Перекрестие",
         "hud.settings.transparency": "Прозрачность",
-        "hud.settings.hotbar": "Хотбар",        
+        "hud.settings.hotbar": "Хотбар",
         "hud.settings.toggle_shortcuts": "Отображать ярлыки",
+        "hud.settings.buffs_skillbar": "Баффы на панели навыков",
+        "hud.settings.buffs_mmap": "Баффы на миникарте",
         "hud.settings.toggle_bar_experience": "Отображать полоску опыта",
         "hud.settings.scrolling_combat_text": "Боевой журнал",
         "hud.settings.single_damage_number": "Отдельные числа урона",
@@ -277,18 +333,39 @@ https://veloren.net/account/."#,
         "hud.settings.maximum_fps": "Максимум FPS",
         "hud.settings.fov": "Поле зрения (градусы)",
         "hud.settings.gamma": "Гамма",
+        "hud.settings.exposure": "Экспозиция",
+        "hud.settings.ambiance": "Яркость окружения",
         "hud.settings.antialiasing_mode": "Сглаживание",
         "hud.settings.cloud_rendering_mode": "Рендер облаков",
         "hud.settings.fluid_rendering_mode": "Рендер жидкостей",
         "hud.settings.fluid_rendering_mode.cheap": "Низко",
         "hud.settings.fluid_rendering_mode.shiny": "Высоко",
-        "hud.settings.cloud_rendering_mode.regular": "Обычно",
+        "hud.settings.cloud_rendering_mode.minimal": "Минимально",
+        "hud.settings.cloud_rendering_mode.low": "Низко",
+        "hud.settings.cloud_rendering_mode.medium": "Средне",
+        "hud.settings.cloud_rendering_mode.high": "Высоко",
+        "hud.settings.cloud_rendering_mode.ultra": "Ультра",
+        "hud.settings.fullscreen": "Полный экран",
+        "hud.settings.fullscreen_mode": "Режим полного экрана",
+        "hud.settings.fullscreen_mode.exclusive": "Особый",
+        "hud.settings.fullscreen_mode.borderless": "Без рамок",
         "hud.settings.particles": "Частицы",
         "hud.settings.resolution": "Разрешение",
         "hud.settings.bit_depth": "Разрядность",
         "hud.settings.refresh_rate": "Частота обновления",
-        "hud.settings.fullscreen": "Полный экран",
         "hud.settings.save_window_size": "Сохранить размер окна",
+        "hud.settings.lighting_rendering_mode": "Режим рендера освещения",
+        "hud.settings.lighting_rendering_mode.ashikhmin": "Тип A - Высоко    ",
+        "hud.settings.lighting_rendering_mode.blinnphong": "Тип B - Средне",
+        "hud.settings.lighting_rendering_mode.lambertian": "Тип L - Низко",
+        "hud.settings.shadow_rendering_mode": "Режим рендера теней",
+        "hud.settings.shadow_rendering_mode.none": "Нет",
+        "hud.settings.shadow_rendering_mode.cheap": "Низко",
+        "hud.settings.shadow_rendering_mode.map": "Карта",
+        "hud.settings.shadow_rendering_mode.map.resolution": "Разрешение",
+        "hud.settings.lod_detail": "LoD-детали",
+        "hud.settings.save_window_size": "Сохранить размер окна",
+
 
         "hud.settings.music_volume": "Громкость музыки",
         "hud.settings.sound_effect_volume": "Громкость звуковых эффектов",
@@ -307,6 +384,7 @@ https://veloren.net/account/."#,
         "hud.social.name": "Имя",
         "hud.social.level": "Ур.",
         "hud.social.zone": "Зона",
+        "hud.social.account": "Аккаунт",
 
 
         "hud.crafting": "Крафт",
@@ -328,10 +406,24 @@ https://veloren.net/account/."#,
         "hud.group.in_menu": "В меню",
         "hud.group.members": "Участники группы",
 
-        "hud.spell": "Заклинание",
+        "hud.spell": "Заклинания",
 
-        "hud.free_look_indicator": "Свободная камера активна",
+        "hud.free_look_indicator": "Свободная камера активна. Нажмите {key}, чтобы выключить",
         "hud.auto_walk_indicator": "Автодвижение активно",
+
+        "hud.map.difficulty": "Сложность",
+        "hud.map.towns": "Города",
+        "hud.map.castles": "Замки",
+        "hud.map.dungeons": "Данжи",
+        "hud.map.caves": "Пещеры",
+        "hud.map.cave": "Пещера",
+        "hud.map.town": "Город",
+        "hud.map.castle": "Замок",
+        "hud.map.dungeon": "Данж",
+        "hud.map.difficulty_dungeon": "Сложность данжа: {difficulty}",
+        "hud.map.drag": "Перетащить",
+        "hud.map.zoom": "Зум",
+        "hud.map.recenter": "Рецентрировать",
 
         /// End HUD section
 
@@ -340,7 +432,7 @@ https://veloren.net/account/."#,
 
         "gameinput.primary": "Основная атака",
         "gameinput.secondary": "Второстепенная атака/Блок/Прицел",
-       "gameinput.slot1": "Быстрый слот 1",        
+       "gameinput.slot1": "Быстрый слот 1",
         "gameinput.slot2": "Быстрый слот 2",
         "gameinput.slot3": "Быстрый слот 3",
         "gameinput.slot4": "Быстрый слот 4",
@@ -351,7 +443,7 @@ https://veloren.net/account/."#,
         "gameinput.slot9": "Быстрый слот 9",
         "gameinput.slot10": "Быстрый слот 10",
         "gameinput.swaploadout": "Сменить снаряжение",
-        "gameinput.togglecursor": "Отображать курсор курсор",
+        "gameinput.togglecursor": "Отображать курсор",
         "gameinput.help": "Отображать окно помощи",
         "gameinput.toggleinterface": "Отображать интерфейс",
         "gameinput.toggledebug": "Отображать FPS и экран отладки",
@@ -371,6 +463,7 @@ https://veloren.net/account/."#,
         "gameinput.togglelantern": "Включить фонарь",
         "gameinput.mount": "Оседлать",
         "gameinput.enter": "Войти",
+        "gameinput.chat": "Чат",
         "gameinput.command": "Командовать",
         "gameinput.escape": "Выйти",
         "gameinput.map": "Карта",
@@ -378,7 +471,7 @@ https://veloren.net/account/."#,
         "gameinput.social": "Социальное",
         "gameinput.sit": "Сесть",
         "gameinput.spellbook": "Заклинания",
-        "gameinput.settings": "Найстройки",
+        "gameinput.settings": "Настройки",
         "gameinput.respawn": "Возродиться",
         "gameinput.charge": "Зарядить",
         "gameinput.togglewield": "Достать/убрать оружие",
@@ -389,7 +482,12 @@ https://veloren.net/account/."#,
         "gameinput.select": "Выбрать объект",
         "gameinput.acceptgroupinvite": "Принять приглашение в группу",
         "gameinput.declinegroupinvite": "Отклонить приглашение в группу",
-        
+        "gameinput.crafting": "Крафт",
+        "gameinput.fly": "Полет",
+        "gameinput.sneak": "Скрытность",
+        "gameinput.swimdown": "Плыть вниз",
+        "gameinput.swimup": "Плыть вверх",
+
         /// End GameInput section
 
 
@@ -439,9 +537,24 @@ https://veloren.net/account/."#,
         "esc_menu.quit_game": "Выйти из игры",
         /// End Escape Menu Section
 
+        /// Buffs and Debuffs
+        "buff.remove": "Кликните, чтобы убрать",
+        "buff.title.missing": "Отсутствует название",
+        "buff.desc.missing": "Отсутствует описание",
+        // Buffs
+        "buff.title.heal": "Лечение",
+        "buff.desc.heal": "Лечит в течении времени.",
+        "buff.title.potion": "Зелье",
+        "buff.desc.potion": "Пьем...",
+        "buff.title.saturation": "Сыт",
+        "buff.desc.saturation": "Получайте здоровье от расходников в течении времени.",
+        // Debuffs
+        "debuff.title.bleed": "Кровотечение",
+        "debuff.desc.bleed": "Наносит переодический урон.",
+
     },
 
-    
+
     vector_map: {
         "loading.tips": [
             "Нажмите 'G', чтобы зажечь фонарь.",
