@@ -6,7 +6,8 @@ use common::{
         bird_medium::{self, BodyType as BMBodyType, Species as BMSpecies},
         bird_small,
         dragon::{self, BodyType as DBodyType, Species as DSpecies},
-        fish_medium, fish_small,
+        fish_medium::{self, BodyType as FMBodyType, Species as FMSpecies},
+        fish_small::{self, BodyType as FSBodyType, Species as FSSpecies},
         golem::{self, BodyType as GBodyType, Species as GSpecies},
         humanoid::{self, Body, BodyType, EyeColor, Skin, Species},
         object,
@@ -2086,17 +2087,257 @@ impl TheropodLateralSpec {
     }
 }
 ////
+#[derive(Deserialize)]
+struct FishMediumCentralSpec(HashMap<(FMSpecies, FMBodyType), SidedFMCentralVoxSpec>);
+
+#[derive(Deserialize)]
+struct SidedFMCentralVoxSpec {
+    head: FishMediumCentralSubSpec,
+    jaw: FishMediumCentralSubSpec,
+    chest_front: FishMediumCentralSubSpec,
+    chest_back: FishMediumCentralSubSpec,
+    tail: FishMediumCentralSubSpec,
+}
+#[derive(Deserialize)]
+struct FishMediumCentralSubSpec {
+    offset: [f32; 3], // Should be relative to initial origin
+    central: VoxSimple,
+}
+#[derive(Deserialize)]
+struct FishMediumLateralSpec(HashMap<(FMSpecies, FMBodyType), SidedFMLateralVoxSpec>);
+#[derive(Deserialize)]
+struct SidedFMLateralVoxSpec {
+    fin_l: FishMediumLateralSubSpec,
+    fin_r: FishMediumLateralSubSpec,
+}
+#[derive(Deserialize)]
+struct FishMediumLateralSubSpec {
+    offset: [f32; 3], // Should be relative to initial origin
+    lateral: VoxSimple,
+}
+
 make_vox_spec!(
     fish_medium::Body,
-    struct FishMediumSpec {},
-    |FigureKey { body, .. }, _spec| {
+    struct FishMediumSpec {
+        central: FishMediumCentralSpec = "voxygen.voxel.fish_medium_central_manifest",
+        lateral: FishMediumLateralSpec = "voxygen.voxel.fish_medium_lateral_manifest",
+    },
+    |FigureKey { body, .. }, spec| {
         [
-            Some(mesh_fish_medium_head(body.head)),
-            Some(mesh_fish_medium_torso(body.torso)),
-            Some(mesh_fish_medium_rear(body.rear)),
-            Some(mesh_fish_medium_tail(body.tail)),
-            Some(mesh_fish_medium_fin_l(body.fin_l)),
-            Some(mesh_fish_medium_fin_r(body.fin_r)),
+            Some(spec.central.asset.mesh_head(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.central.asset.mesh_jaw(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.central.asset.mesh_chest_front(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.central.asset.mesh_chest_back(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.central.asset.mesh_tail(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.asset.mesh_fin_l(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.asset.mesh_fin_r(
+                body.species,
+                body.body_type,
+            )),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+        ]
+    },
+);
+
+impl FishMediumCentralSpec {
+    fn mesh_head(&self, species: FMSpecies, body_type: FMBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No head specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.head.central.0);
+
+        (central, Vec3::from(spec.head.offset))
+    }
+
+    fn mesh_jaw(&self, species: FMSpecies, body_type: FMBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No jaw specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.jaw.central.0);
+
+        (central, Vec3::from(spec.jaw.offset))
+    }
+
+    fn mesh_chest_front(&self, species: FMSpecies, body_type: FMBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No front chest specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.chest_front.central.0);
+
+        (central, Vec3::from(spec.chest_front.offset))
+    }
+
+    fn mesh_chest_back(&self, species: FMSpecies, body_type: FMBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No back chest specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.chest_back.central.0);
+
+        (central, Vec3::from(spec.chest_back.offset))
+    }
+
+    fn mesh_tail(&self, species: FMSpecies, body_type: FMBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No tail specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.tail.central.0);
+
+        (central, Vec3::from(spec.tail.offset))
+    }
+}
+
+impl FishMediumLateralSpec {
+    fn mesh_fin_l(&self, species: FMSpecies, body_type: FMBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No fin specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.fin_l.lateral.0);
+
+        (lateral, Vec3::from(spec.fin_l.offset))
+    }
+
+    fn mesh_fin_r(&self, species: FMSpecies, body_type: FMBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No fin specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.fin_r.lateral.0);
+
+        (lateral, Vec3::from(spec.fin_r.offset))
+    }
+}
+
+////
+#[derive(Deserialize)]
+struct FishSmallCentralSpec(HashMap<(FSSpecies, FSBodyType), SidedFSCentralVoxSpec>);
+
+#[derive(Deserialize)]
+struct SidedFSCentralVoxSpec {
+    head: FishSmallCentralSubSpec,
+    chest: FishSmallCentralSubSpec,
+    tail: FishSmallCentralSubSpec,
+}
+#[derive(Deserialize)]
+struct FishSmallCentralSubSpec {
+    offset: [f32; 3], // Should be relative to initial origin
+    central: VoxSimple,
+}
+#[derive(Deserialize)]
+struct FishSmallLateralSpec(HashMap<(FSSpecies, FSBodyType), SidedFSLateralVoxSpec>);
+#[derive(Deserialize)]
+struct SidedFSLateralVoxSpec {
+    fin_l: FishSmallLateralSubSpec,
+    fin_r: FishSmallLateralSubSpec,
+}
+#[derive(Deserialize)]
+struct FishSmallLateralSubSpec {
+    offset: [f32; 3], // Should be relative to initial origin
+    lateral: VoxSimple,
+}
+
+make_vox_spec!(
+    fish_small::Body,
+    struct FishSmallSpec {
+        central: FishSmallCentralSpec = "voxygen.voxel.fish_small_central_manifest",
+        lateral: FishSmallLateralSpec = "voxygen.voxel.fish_small_lateral_manifest",
+    },
+    |FigureKey { body, .. }, spec| {
+        [
+            Some(spec.central.asset.mesh_head(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.central.asset.mesh_chest(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.central.asset.mesh_tail(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.asset.mesh_fin_l(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.asset.mesh_fin_r(
+                body.species,
+                body.body_type,
+            )),
+            None,
             None,
             None,
             None,
@@ -2111,58 +2352,88 @@ make_vox_spec!(
     },
 );
 
-fn mesh_fish_medium_head(head: fish_medium::Head) -> BoneMeshes {
-    load_mesh(
-        match head {
-            fish_medium::Head::Default => "npc.marlin.head",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-    )
+impl FishSmallCentralSpec {
+    fn mesh_head(&self, species: FSSpecies, body_type: FSBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No head specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.head.central.0);
+
+        (central, Vec3::from(spec.head.offset))
+    }
+
+    fn mesh_chest(&self, species: FSSpecies, body_type: FSBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No chest specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.chest.central.0);
+
+        (central, Vec3::from(spec.chest.offset))
+    }
+
+    fn mesh_tail(&self, species: FSSpecies, body_type: FSBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No tail specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.tail.central.0);
+
+        (central, Vec3::from(spec.tail.offset))
+    }
 }
 
-fn mesh_fish_medium_torso(torso: fish_medium::Torso) -> BoneMeshes {
-    load_mesh(
-        match torso {
-            fish_medium::Torso::Default => "npc.marlin.torso",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-    )
-}
+impl FishSmallLateralSpec {
+    fn mesh_fin_l(&self, species: FSSpecies, body_type: FSBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No fin specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.fin_l.lateral.0);
 
-fn mesh_fish_medium_rear(rear: fish_medium::Rear) -> BoneMeshes {
-    load_mesh(
-        match rear {
-            fish_medium::Rear::Default => "npc.marlin.rear",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-    )
-}
+        (lateral, Vec3::from(spec.fin_l.offset))
+    }
 
-fn mesh_fish_medium_tail(tail: fish_medium::Tail) -> BoneMeshes {
-    load_mesh(
-        match tail {
-            fish_medium::Tail::Default => "npc.marlin.tail",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-    )
-}
+    fn mesh_fin_r(&self, species: FSSpecies, body_type: FSBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No fin specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.fin_r.lateral.0);
 
-fn mesh_fish_medium_fin_l(fin_l: fish_medium::FinL) -> BoneMeshes {
-    load_mesh(
-        match fin_l {
-            fish_medium::FinL::Default => "npc.marlin.fin_l",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-    )
-}
-
-fn mesh_fish_medium_fin_r(fin_r: fish_medium::FinR) -> BoneMeshes {
-    load_mesh(
-        match fin_r {
-            fish_medium::FinR::Default => "npc.marlin.fin_r",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-    )
+        (lateral, Vec3::from(spec.fin_r.offset))
+    }
 }
 
 ////
@@ -2583,49 +2854,7 @@ fn mesh_bird_small_wing_r(wing_r: bird_small::WingR) -> BoneMeshes {
         Vec3::new(-7.0, -6.0, -6.0),
     )
 }
-////
-make_vox_spec!(
-    fish_small::Body,
-    struct FishSmallSpec {},
-    |FigureKey { body, .. }, _spec| {
-        [
-            Some(mesh_fish_small_torso(body.torso)),
-            Some(mesh_fish_small_tail(body.tail)),
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-        ]
-    },
-);
 
-fn mesh_fish_small_torso(torso: fish_small::Torso) -> BoneMeshes {
-    load_mesh(
-        match torso {
-            fish_small::Torso::Default => "npc.cardinalfish.torso",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-    )
-}
-
-fn mesh_fish_small_tail(tail: fish_small::Tail) -> BoneMeshes {
-    load_mesh(
-        match tail {
-            fish_small::Tail::Default => "npc.cardinalfish.tail",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-    )
-}
 ////
 #[derive(Deserialize)]
 struct BipedLargeCentralSpec(HashMap<(BLSpecies, BLBodyType), SidedBLCentralVoxSpec>);

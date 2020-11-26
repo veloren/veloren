@@ -17,33 +17,31 @@ impl Animation for RunAnimation {
         _global_time: Self::Dependency,
         _anim_time: f64,
         _rate: &mut f32,
-        _skeleton_attr: &SkeletonAttr,
+        s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        next.head.scale = Vec3::one() / 10.88;
-        next.torso.scale = Vec3::one() * 1.01;
-        next.rear.scale = Vec3::one() * 0.98;
-        next.tail.scale = Vec3::one() / 11.0;
-        next.fin_l.scale = Vec3::one() / 11.0;
-        next.fin_r.scale = Vec3::one() / 10.5;
+        next.chest_front.scale = Vec3::one() / 11.0;
 
-        next.head.position = Vec3::new(0.0, 7.5, 15.0) / 11.0;
+        next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
         next.head.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
 
-        next.torso.position = Vec3::new(0.0, 4.5, 2.0);
-        next.torso.orientation = Quaternion::rotation_x(0.0);
+        next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
+        next.jaw.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
 
-        next.rear.position = Vec3::new(0.0, 3.1, -4.5);
-        next.rear.orientation = Quaternion::rotation_z(0.0);
+        next.chest_front.position = Vec3::new(0.0, s_a.chest_front.0, s_a.chest_front.1) / 11.0;
+        next.chest_front.orientation = Quaternion::rotation_x(0.0);
 
-        next.tail.position = Vec3::new(0.0, -13.0, 8.0) / 11.0;
+        next.chest_back.position = Vec3::new(0.0, s_a.chest_back.0, s_a.chest_back.1);
+        next.chest_back.orientation = Quaternion::rotation_z(0.0);
+
+        next.tail.position = Vec3::new(0.0, s_a.tail.0, s_a.tail.1);
         next.tail.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
 
-        next.fin_l.position = Vec3::new(0.0, -11.7, 11.0) / 11.0;
+        next.fin_l.position = Vec3::new(-s_a.fin.0, s_a.fin.1, s_a.fin.2);
         next.fin_l.orientation = Quaternion::rotation_y(0.0);
 
-        next.fin_r.position = Vec3::new(0.0, 0.0, 12.0) / 11.0;
+        next.fin_r.position = Vec3::new(s_a.fin.0, s_a.fin.1, s_a.fin.2);
         next.fin_r.orientation = Quaternion::rotation_y(0.0);
         next
     }

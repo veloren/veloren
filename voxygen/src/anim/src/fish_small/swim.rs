@@ -1,20 +1,24 @@
-use super::{super::Animation, FishSmallSkeleton, SkeletonAttr};
-//use std::{f32::consts::PI, ops::Mul};
-use super::super::vek::*;
+use super::{
+    super::{vek::*, Animation},
+    FishSmallSkeleton, SkeletonAttr,
+};
 
-pub struct IdleAnimation;
+pub struct SwimAnimation;
 
-impl Animation for IdleAnimation {
-    type Dependency = f64;
+type SwimAnimationDependency = (Vec3<f32>, Vec3<f32>, Vec3<f32>, f64, Vec3<f32>);
+
+impl Animation for SwimAnimation {
+    type Dependency = SwimAnimationDependency;
     type Skeleton = FishSmallSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
-    const UPDATE_FN: &'static [u8] = b"fish_small_idle\0";
+    const UPDATE_FN: &'static [u8] = b"fish_small_swim\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "fish_small_idle")]
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "fish_small_swim")]
+
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        _global_time: Self::Dependency,
+        (velocity, orientation, last_ori, global_time, avg_vel): Self::Dependency,
         _anim_time: f64,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

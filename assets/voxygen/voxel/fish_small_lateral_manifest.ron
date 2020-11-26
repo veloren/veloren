@@ -1,0 +1,22 @@
+({
+    (Sardine, Male): (
+        fin_l: (
+            offset: (-1.5, -5.0, -3.0),
+            lateral: ("npc.sardine.male.fin_l"),
+        ),
+        fin_r: (
+            offset: (-1.5, -5.0, -3.0),
+            lateral: ("npc.sardine.male.fin_r"),
+        ),
+    ),
+    (Sardine, Female): (
+        fin_l: (
+            offset: (-1.5, -5.0, -3.0),
+            lateral: ("npc.sardine.male.fin_l"),
+        ),
+        fin_r: (
+            offset: (-1.5, -5.0, -3.0),
+            lateral: ("npc.sardine.male.fin_r"),
+        ),
+    ),
+})
