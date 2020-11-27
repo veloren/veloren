@@ -97,6 +97,7 @@ impl CharacterBehavior for Data {
                             vertical: self.static_data.vertical_leap_strength,
                             forward: self.static_data.forward_leap_strength,
                             progress,
+                            direction: MovementDirection::Look,
                         },
                         0.15,
                     );

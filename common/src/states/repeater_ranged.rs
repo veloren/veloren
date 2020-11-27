@@ -75,6 +75,7 @@ impl CharacterBehavior for Data {
                             vertical: leap_strength,
                             forward: 10.0,
                             progress,
+                            direction: MovementDirection::Move,
                         },
                         1.0,
                     );
