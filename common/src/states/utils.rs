@@ -202,19 +202,19 @@ pub fn handle_forced_movement(
             vertical,
             forward,
             progress,
+            direction,
         } => {
+            let dir = direction.get_2d_dir(data);
             // Apply jumping force
             update.vel.0 = Vec3::new(
-                data.inputs.look_dir.x,
-                data.inputs.look_dir.y,
+                dir.x,
+                dir.y,
                 vertical,
             )
                 // Multiply decreasing amount linearly over time (with average of 1)
                 * 2.0 * progress
-                // Apply inputted movement directions with some efficiency
-                + (data.inputs.look_dir.try_normalized().unwrap_or_default())
-                .try_normalized()
-                .unwrap_or_default()
+                // Apply direction
+                + Vec3::from(dir)
                 // Multiply by forward leap strength
                     * forward
                 // Control forward movement based on look direction.
@@ -555,8 +555,27 @@ pub enum ForcedMovement {
         vertical: f32,
         forward: f32,
         progress: f32,
+        direction: MovementDirection,
     },
     Hover {
         move_input: f32,
     },
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub enum MovementDirection {
+    Look,
+    Move,
+}
+
+impl MovementDirection {
+    pub fn get_2d_dir(self, data: &JoinData) -> Vec2<f32> {
+        use MovementDirection::*;
+        match self {
+            Look => data.inputs.look_dir.xy(),
+            Move => data.inputs.move_dir,
+        }
+        .try_normalized()
+        .unwrap_or_default()
+    }
 }
