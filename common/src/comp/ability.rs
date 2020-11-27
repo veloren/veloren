@@ -480,6 +480,24 @@ impl CharacterAbility {
         }
         self
     }
+
+    pub fn get_energy_cost(&self) -> u32 {
+        use CharacterAbility::*;
+        match self {
+            BasicMelee { energy_cost, .. }
+            | BasicRanged { energy_cost, .. }
+            | RepeaterRanged { energy_cost, .. }
+            | DashMelee { energy_cost, .. }
+            | Roll { energy_cost, .. }
+            | LeapMelee { energy_cost, .. }
+            | SpinMelee { energy_cost, .. }
+            | ChargedMelee { energy_cost, .. }
+            | ChargedRanged { energy_cost, .. }
+            | Shockwave { energy_cost, .. }
+            | BasicBeam { energy_cost, .. } => *energy_cost,
+            _ => 0,
+        }
+    }
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]

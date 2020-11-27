@@ -17,7 +17,7 @@ use crate::{
 };
 use common::comp::{
     item::{
-        tool::{Tool, ToolKind},
+        tool::{AbilityMap, Tool, ToolKind},
         Hands, ItemKind,
     },
     Energy, Health, Inventory, Loadout, Stats,
@@ -138,6 +138,7 @@ pub struct Skillbar<'a> {
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
     show: &'a Show,
+    ability_map: &'a AbilityMap,
 }
 
 impl<'a> Skillbar<'a> {
@@ -161,6 +162,7 @@ impl<'a> Skillbar<'a> {
         slot_manager: &'a mut slots::SlotManager,
         localized_strings: &'a Localization,
         show: &'a Show,
+        ability_map: &'a AbilityMap,
     ) -> Self {
         Self {
             global_state,
@@ -182,6 +184,7 @@ impl<'a> Skillbar<'a> {
             slot_manager,
             localized_strings,
             show,
+            ability_map,
         }
     }
 }
@@ -470,7 +473,13 @@ impl<'a> Widget for Skillbar<'a> {
                 .set(state.ids.stamina_txt, ui);
         }
         // Slots
-        let content_source = (self.hotbar, self.inventory, self.loadout, self.energy); // TODO: avoid this
+        let content_source = (
+            self.hotbar,
+            self.inventory,
+            self.loadout,
+            self.energy,
+            self.ability_map,
+        ); // TODO: avoid this
         let image_source = (self.item_imgs, self.imgs);
         let mut slot_maker = SlotMaker {
             // TODO: is a separate image needed for the frame?
@@ -646,22 +655,22 @@ impl<'a> Widget for Skillbar<'a> {
             .right_from(state.ids.m1_slot_bg, 0.0)
             .set(state.ids.m2_slot, ui);
 
-        let active_tool_kind = match self.loadout.active_item.as_ref().map(|i| i.item.kind()) {
-            Some(ItemKind::Tool(Tool { kind, .. })) => Some(kind),
+        let active_tool = match self.loadout.active_item.as_ref().map(|i| i.item.kind()) {
+            Some(ItemKind::Tool(tool)) => Some(tool),
             _ => None,
         };
 
-        let second_tool_kind = match self.loadout.second_item.as_ref().map(|i| i.item.kind()) {
-            Some(ItemKind::Tool(Tool { kind, .. })) => Some(kind),
+        let second_tool = match self.loadout.second_item.as_ref().map(|i| i.item.kind()) {
+            Some(ItemKind::Tool(tool)) => Some(tool),
             _ => None,
         };
 
-        let tool_kind = match (
-            active_tool_kind.map(|tk| tk.hands()),
-            second_tool_kind.map(|tk| tk.hands()),
+        let tool = match (
+            active_tool.map(|t| t.kind.hands()),
+            second_tool.map(|t| t.kind.hands()),
         ) {
-            (Some(Hands::TwoHand), _) => active_tool_kind,
-            (_, Some(Hands::OneHand)) => second_tool_kind,
+            (Some(Hands::TwoHand), _) => active_tool,
+            (_, Some(Hands::OneHand)) => second_tool,
             (_, _) => None,
         };
 
@@ -669,7 +678,7 @@ impl<'a> Widget for Skillbar<'a> {
             .w_h(40.0, 40.0)
             .middle_of(state.ids.m2_slot)
             .set(state.ids.m2_slot_bg, ui);
-        Button::image(match tool_kind {
+        Button::image(match tool.map(|t| t.kind) {
             Some(ToolKind::Sword) => self.imgs.twohsword_m2,
             Some(ToolKind::Dagger) => self.imgs.onehdagger_m2,
             Some(ToolKind::Shield) => self.imgs.onehshield_m2,
@@ -683,30 +692,19 @@ impl<'a> Widget for Skillbar<'a> {
         })
         .w_h(36.0, 36.0)
         .middle_of(state.ids.m2_slot_bg)
-        .image_color(match tool_kind {
-            // TODO Automate this to grey out unavailable M2 skills
-            Some(ToolKind::Sword) => {
-                if self.energy.current() as f64 >= 200.0 {
-                    Color::Rgba(1.0, 1.0, 1.0, 1.0)
-                } else {
-                    Color::Rgba(0.3, 0.3, 0.3, 0.8)
-                }
-            },
-            Some(ToolKind::Sceptre) => {
-                if self.energy.current() as f64 >= 400.0 {
-                    Color::Rgba(1.0, 1.0, 1.0, 1.0)
-                } else {
-                    Color::Rgba(0.3, 0.3, 0.3, 0.8)
-                }
-            },
-            Some(ToolKind::Axe) => {
-                if self.energy.current() as f64 >= 100.0 {
-                    Color::Rgba(1.0, 1.0, 1.0, 1.0)
-                } else {
-                    Color::Rgba(0.3, 0.3, 0.3, 0.8)
-                }
-            },
-            _ => Color::Rgba(1.0, 1.0, 1.0, 1.0),
+        .image_color(if let Some(tool) = tool {
+            if self.energy.current()
+                >= tool
+                    .get_abilities(self.ability_map)
+                    .secondary
+                    .get_energy_cost()
+            {
+                Color::Rgba(1.0, 1.0, 1.0, 1.0)
+            } else {
+                Color::Rgba(0.3, 0.3, 0.3, 0.8)
+            }
+        } else {
+            Color::Rgba(1.0, 1.0, 1.0, 1.0)
         })
         .set(state.ids.m2_content, ui);
         // Slot 6-10

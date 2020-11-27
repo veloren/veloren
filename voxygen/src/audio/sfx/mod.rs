@@ -191,7 +191,7 @@ impl From<&InventoryUpdateEvent> for SfxEvent {
                 // back to the default Collected event
                 match &item.kind() {
                     ItemKind::Tool(tool) => {
-                        SfxEvent::Inventory(SfxInventoryEvent::CollectedTool(tool.kind.clone()))
+                        SfxEvent::Inventory(SfxInventoryEvent::CollectedTool(tool.kind))
                     },
                     ItemKind::Ingredient { kind } => match &kind[..] {
                         "ShinyGem" => {

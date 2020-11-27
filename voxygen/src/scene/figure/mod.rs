@@ -688,7 +688,7 @@ impl FigureMgr {
                 .and_then(|l| l.active_item.as_ref())
                 .map(|i| i.item.kind());
             let active_tool_kind = if let Some(ItemKind::Tool(tool)) = active_item_kind {
-                Some(tool.kind.clone())
+                Some(tool.kind)
             } else {
                 None
             };
@@ -698,7 +698,7 @@ impl FigureMgr {
                 .map(|i| i.item.kind());
 
             let second_tool_kind = if let Some(ItemKind::Tool(tool)) = second_item_kind {
-                Some(tool.kind.clone())
+                Some(tool.kind)
             } else {
                 None
             };
@@ -740,12 +740,7 @@ impl FigureMgr {
                         // Standing
                         (true, false, false) => anim::character::StandAnimation::update_skeleton(
                             &CharacterSkeleton::default(),
-                            (
-                                active_tool_kind.clone(),
-                                second_tool_kind.clone(),
-                                time,
-                                state.avg_vel,
-                            ),
+                            (active_tool_kind, second_tool_kind, time, state.avg_vel),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -754,8 +749,8 @@ impl FigureMgr {
                         (true, true, false) => anim::character::RunAnimation::update_skeleton(
                             &CharacterSkeleton::default(),
                             (
-                                active_tool_kind.clone(),
-                                second_tool_kind.clone(),
+                                active_tool_kind,
+                                second_tool_kind,
                                 vel.0,
                                 ori,
                                 state.last_ori,
@@ -770,8 +765,8 @@ impl FigureMgr {
                         (false, _, false) => anim::character::JumpAnimation::update_skeleton(
                             &CharacterSkeleton::default(),
                             (
-                                active_tool_kind.clone(),
-                                second_tool_kind.clone(),
+                                active_tool_kind,
+                                second_tool_kind,
                                 ori,
                                 state.last_ori,
                                 time,
@@ -784,8 +779,8 @@ impl FigureMgr {
                         (_, _, true) => anim::character::SwimAnimation::update_skeleton(
                             &CharacterSkeleton::default(),
                             (
-                                active_tool_kind.clone(),
-                                second_tool_kind.clone(),
+                                active_tool_kind,
+                                second_tool_kind,
                                 vel.0,
                                 ori,
                                 state.last_ori,
@@ -2669,8 +2664,8 @@ impl FigureMgr {
                         (true, true, false) => anim::biped_large::RunAnimation::update_skeleton(
                             &BipedLargeSkeleton::default(),
                             (
-                                active_tool_kind.clone(),
-                                second_tool_kind.clone(),
+                                active_tool_kind,
+                                second_tool_kind,
                                 vel.0.magnitude(),
                                 ori,
                                 state.last_ori,
@@ -2684,14 +2679,14 @@ impl FigureMgr {
                         // In air
                         (false, _, false) => anim::biped_large::JumpAnimation::update_skeleton(
                             &BipedLargeSkeleton::default(),
-                            (active_tool_kind.clone(), second_tool_kind.clone(), time),
+                            (active_tool_kind, second_tool_kind, time),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
                         _ => anim::biped_large::IdleAnimation::update_skeleton(
                             &BipedLargeSkeleton::default(),
-                            (active_tool_kind.clone(), second_tool_kind.clone(), time),
+                            (active_tool_kind, second_tool_kind, time),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
