@@ -1927,6 +1927,7 @@ impl Hud {
         let character_states = ecs.read_storage::<comp::CharacterState>();
         let controllers = ecs.read_storage::<comp::Controller>();
         let inventories = ecs.read_storage::<comp::Inventory>();
+        let ability_map = ecs.fetch::<comp::item::tool::AbilityMap>();
         if let (
             Some(stats),
             Some(health),
@@ -1963,6 +1964,7 @@ impl Hud {
                 &mut self.slot_manager,
                 &self.i18n,
                 &self.show,
+                &ability_map,
             )
             .set(self.ids.skillbar, ui_widgets);
         }

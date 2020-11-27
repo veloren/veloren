@@ -6,7 +6,7 @@ use super::{
 use crate::ui::slot::{self, SlotKey, SumSlot};
 use common::comp::{
     item::{
-        tool::{Tool, ToolKind},
+        tool::{AbilityMap, ToolKind},
         ItemKind,
     },
     Energy, Inventory, Loadout,
@@ -90,7 +90,13 @@ pub enum HotbarImage {
     BowJumpBurst,
 }
 
-type HotbarSource<'a> = (&'a hotbar::State, &'a Inventory, &'a Loadout, &'a Energy);
+type HotbarSource<'a> = (
+    &'a hotbar::State,
+    &'a Inventory,
+    &'a Loadout,
+    &'a Energy,
+    &'a AbilityMap,
+);
 type HotbarImageSource<'a> = (&'a ItemImgs, &'a img_ids::Imgs);
 
 impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
@@ -98,57 +104,49 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
 
     fn image_key(
         &self,
-        (hotbar, inventory, loadout, energy): &HotbarSource<'a>,
+        (hotbar, inventory, loadout, energy, ability_map): &HotbarSource<'a>,
     ) -> Option<(Self::ImageKey, Option<Color>)> {
         hotbar.get(*self).and_then(|contents| match contents {
             hotbar::SlotContents::Inventory(idx) => inventory
                 .get(idx)
                 .map(|item| HotbarImage::Item(item.into()))
                 .map(|i| (i, None)),
-            hotbar::SlotContents::Ability3 => loadout
-                .active_item
-                .as_ref()
-                .map(|i| i.item.kind())
-                .and_then(|kind| {
-                    match kind {
-                        ItemKind::Tool(Tool { kind, .. }) => match kind {
-                            ToolKind::Staff => Some(HotbarImage::FireAoe),
-                            ToolKind::Hammer => Some(HotbarImage::HammerLeap),
-                            ToolKind::Axe => Some(HotbarImage::AxeLeapSlash),
-                            ToolKind::Bow => Some(HotbarImage::BowJumpBurst),
-                            ToolKind::Debug => Some(HotbarImage::SnakeArrow),
-                            ToolKind::Sword => Some(HotbarImage::SwordWhirlwind),
-                            _ => None,
-                        },
+            hotbar::SlotContents::Ability3 => {
+                let tool = match loadout.active_item.as_ref().map(|i| i.item.kind()) {
+                    Some(ItemKind::Tool(tool)) => Some(tool),
+                    _ => None,
+                };
+
+                tool.and_then(|tool| {
+                    match tool.kind {
+                        ToolKind::Staff => Some(HotbarImage::FireAoe),
+                        ToolKind::Hammer => Some(HotbarImage::HammerLeap),
+                        ToolKind::Axe => Some(HotbarImage::AxeLeapSlash),
+                        ToolKind::Bow => Some(HotbarImage::BowJumpBurst),
+                        ToolKind::Debug => Some(HotbarImage::SnakeArrow),
+                        ToolKind::Sword => Some(HotbarImage::SwordWhirlwind),
                         _ => None,
                     }
-                    .map(|image_key| match image_key {
-                        HotbarImage::FireAoe => (
-                            image_key,
-                            (energy.current() < 600).then_some(Color::Rgba(0.3, 0.3, 0.3, 0.8)),
-                        ),
-                        HotbarImage::HammerLeap => (
-                            image_key,
-                            (energy.current() < 700).then_some(Color::Rgba(0.3, 0.3, 0.3, 0.8)),
-                        ),
-                        HotbarImage::AxeLeapSlash => (
-                            image_key,
-                            (energy.current() < 450).then_some(Color::Rgba(0.3, 0.3, 0.3, 0.8)),
-                        ),
-                        HotbarImage::BowJumpBurst => (
-                            image_key,
-                            (energy.current() < 450).then_some(Color::Rgba(0.3, 0.3, 0.3, 0.8)),
-                        ),
-                        _ => (
-                            image_key,
-                            (energy.current() < 1000).then_some(Color::Rgba(1.0, 1.0, 1.0, 1.0)),
-                        ),
+                    .map(|i| {
+                        (
+                            i,
+                            if let Some(skill) = tool.get_abilities(ability_map).skills.get(0) {
+                                if energy.current() >= skill.get_energy_cost() {
+                                    Some(Color::Rgba(1.0, 1.0, 1.0, 1.0))
+                                } else {
+                                    Some(Color::Rgba(0.3, 0.3, 0.3, 0.8))
+                                }
+                            } else {
+                                Some(Color::Rgba(1.0, 1.0, 1.0, 1.0))
+                            },
+                        )
                     })
-                }),
+                })
+            },
         })
     }
 
-    fn amount(&self, (hotbar, inventory, _, _): &HotbarSource<'a>) -> Option<u32> {
+    fn amount(&self, (hotbar, inventory, _, _, _): &HotbarSource<'a>) -> Option<u32> {
         hotbar
             .get(*self)
             .and_then(|content| match content {
