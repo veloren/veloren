@@ -146,15 +146,15 @@ impl CombatEventMapper {
                     if character_state.is_attack() {
                         return SfxEvent::Attack(
                             CharacterAbilityType::from(character_state),
-                            data.kind.clone(),
+                            data.kind,
                         );
                     } else if let Some(wield_event) = match (
                         previous_state.weapon_drawn,
                         character_state.is_dodge(),
                         Self::weapon_drawn(character_state),
                     ) {
-                        (false, false, true) => Some(SfxEvent::Wield(data.kind.clone())),
-                        (true, false, false) => Some(SfxEvent::Unwield(data.kind.clone())),
+                        (false, false, true) => Some(SfxEvent::Wield(data.kind)),
+                        (true, false, false) => Some(SfxEvent::Unwield(data.kind)),
                         _ => None,
                     } {
                         return wield_event;
