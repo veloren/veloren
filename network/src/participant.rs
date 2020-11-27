@@ -290,6 +290,7 @@ impl BParticipant {
                 if let Err(e) = ci.b2r_read_shutdown.send(()) {
                     trace!(?cid, ?e, "seems like was already shut down");
                 }
+                ci.b2w_frame_s.close_channel();
             }
             //TODO FIXME tags: takeover channel multiple
             info!(
@@ -652,6 +653,7 @@ impl BParticipant {
                      itself, ignoring"
                 );
             };
+            ci.b2w_frame_s.close_channel();
         }
 
         //Wait for other bparticipants mgr to close via AtomicUsize
