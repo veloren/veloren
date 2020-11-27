@@ -69,31 +69,34 @@ impl AmbientMgr {
             // non-positional ambient sound in the game. Others can be added
             // as seen fit.
 
-            // Wind volume increases with altitude
-            let alt_multiplier = (cam_pos.z / 1200.0).abs();
+            let target_volume = {
+                // Wind volume increases with altitude
+                let alt_multiplier = (cam_pos.z / 1200.0).abs();
 
-            // Tree density factors into wind volume. The more trees,
-            // the lower wind volume. The trees make more of an impact
-            // the closer the camera is to the ground.
-            self.tree_multiplier =
-                ((1.0 - tree_density) + ((cam_pos.z - terrain_alt) / 150.0).powi(2)).min(1.0);
+                // Tree density factors into wind volume. The more trees,
+                // the lower wind volume. The trees make more of an impact
+                // the closer the camera is to the ground.
+                self.tree_multiplier = ((1.0 - tree_density)
+                    + ((cam_pos.z - terrain_alt).abs() / 150.0).powi(2))
+                .min(1.0);
 
-            let mut volume_multiplier = alt_multiplier * self.tree_multiplier;
+                let mut volume_multiplier = alt_multiplier * self.tree_multiplier;
 
-            // Checks if the camera is underwater to stop ambient sounds
-            if state
-                .terrain()
-                .get((cam_pos).map(|e| e.floor() as i32))
-                .map(|b| b.is_liquid())
-                .unwrap_or(false)
-            {
-                volume_multiplier *= 0.1;
-            }
-            if cam_pos.z < terrain_alt - 10.0 {
-                volume_multiplier = 0.0;
-            }
+                // Checks if the camera is underwater to stop ambient sounds
+                if state
+                    .terrain()
+                    .get((cam_pos).map(|e| e.floor() as i32))
+                    .map(|b| b.is_liquid())
+                    .unwrap_or(false)
+                {
+                    volume_multiplier *= 0.1;
+                }
+                if cam_pos.z < terrain_alt - 10.0 {
+                    volume_multiplier = 0.0;
+                }
 
-            let target_volume = volume_multiplier.clamped(0.0, 1.0);
+                volume_multiplier.clamped(0.0, 1.0)
+            };
 
             // Transitions the ambient sounds (more) smoothly
             self.volume = audio.get_ambient_volume();
@@ -113,7 +116,7 @@ impl AmbientMgr {
                     self.began_playing = Instant::now();
                     self.next_track_change = track.length;
 
-                    audio.play_ambient(AmbientChannelTag::Wind, &track.path, volume_multiplier);
+                    audio.play_ambient(AmbientChannelTag::Wind, &track.path, target_volume);
                 }
             }
         }
