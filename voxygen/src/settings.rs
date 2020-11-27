@@ -604,7 +604,9 @@ impl Default for Log {
         // Chooses a path to store the logs by the following order:
         //  - The VOXYGEN_LOGS environment variable
         //  - The ProjectsDirs data local directory
-        // This only selects if there isn't already an entry in the settings file
+        // This function is only called if there isn't already an entry in the settings
+        // file. However, the VOXYGEN_LOGS environment variable always overrides
+        // the log file path if set.
         let logs_path = std::env::var_os("VOXYGEN_LOGS")
             .map(PathBuf::from)
             .unwrap_or_else(|| {
@@ -776,8 +778,21 @@ impl Settings {
         let path = Self::get_settings_path();
 
         if let Ok(file) = fs::File::open(&path) {
-            match ron::de::from_reader(file) {
-                Ok(s) => return s,
+            match ron::de::from_reader::<_, Self>(file) {
+                Ok(mut s) => {
+                    // Override the logs path if it is explicitly set using the VOXYGEN_LOGS
+                    // environment variable. This is needed to support package managers that enforce
+                    // strict application confinement (e.g. snap). In fact, the veloren snap package
+                    // relies on this environment variable to be respected in
+                    // order to communicate a path where the snap package is
+                    // allowed to write to.
+                    if let Some(logs_path_override) =
+                        std::env::var_os("VOXYGEN_LOGS").map(PathBuf::from)
+                    {
+                        s.log.logs_path = logs_path_override;
+                    }
+                    return s;
+                },
                 Err(e) => {
                     warn!(?e, "Failed to parse setting file! Fallback to default.");
                     // Rename the corrupted settings file
