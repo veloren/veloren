@@ -140,7 +140,7 @@ impl Ui {
         let tooltip_manager = TooltipManager::new(
             ui.widget_id_generator(),
             Duration::from_millis(1),
-            Duration::from_millis(100),
+            Duration::from_millis(0),
             scale.scale_factor_logical(),
         );
 
