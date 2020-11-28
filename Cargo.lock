@@ -5314,7 +5314,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-chat-cli"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
  "tracing",
  "tracing-subscriber",
@@ -5324,7 +5324,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-client"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
  "authc",
  "byteorder",
@@ -5346,7 +5346,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-common"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
  "arraygen",
  "authc",
@@ -5383,7 +5383,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-server"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
  "authc",
  "chrono",
@@ -5420,7 +5420,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-server-cli"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
  "ansi-parser",
  "clap",
@@ -5439,7 +5439,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-voxygen"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
  "backtrace",
  "bincode",
@@ -5503,7 +5503,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-voxygen-anim"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
  "find_folder",
  "inline_tweak",
@@ -5517,7 +5517,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-world"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
  "arr_macro",
  "bincode",
