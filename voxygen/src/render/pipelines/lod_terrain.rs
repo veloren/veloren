@@ -17,14 +17,12 @@ impl Vertex {
 
     fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
         use std::mem;
+        const ATTRIBUTES: [wgpu::VertexAttributeDescriptor; 1] =
+            wgpu::vertex_attr_array![0 => Float2];
         wgpu::VertexBufferDescriptor {
             stride: mem::size_of::<Self>() as wgpu::BufferAddress,
             step_mode: wgpu::InputStepMode::Vertex,
-            attributes: &[wgpu::VertexAttributeDescriptor {
-                offset: 0,
-                shader_location: 0,
-                format: wgpu::VertexFormat::Float2,
-            }],
+            attributes: &ATTRIBUTES,
         }
     }
 }
@@ -87,7 +85,6 @@ impl LodData {
             &texture_info,
             &view_info,
             &sampler_info,
-            map_size.x * 4,
             bytemuck::cast_slice(lod_base),
         );
         texture_info.format = wgpu::TextureFormat::Rg16Uint;
@@ -96,7 +93,6 @@ impl LodData {
             &texture_info,
             &view_info,
             &sampler_info,
-            map_size.x * 4,
             bytemuck::cast_slice(lod_base),
         );
         texture_info.format = wgpu::TextureFormat::Rgba8Unorm;
@@ -105,7 +101,6 @@ impl LodData {
             &texture_info,
             &view_info,
             &sampler_info,
-            map_size.x * 4,
             bytemuck::cast_slice(lod_base),
         );
 
@@ -198,6 +193,7 @@ impl LodTerrainPipeline {
             rasterization_state: Some(wgpu::RasterizationStateDescriptor {
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: wgpu::CullMode::Back,
+                polygon_mode: wgpu::PolygonMode::Fill,
                 clamp_depth: false,
                 depth_bias: 0,
                 depth_bias_slope_scale: 0.0,

@@ -27,7 +27,7 @@ pub use widgets::{
 
 use crate::{
     render::{
-        create_ui_quad, create_ui_tri, Consts, Globals, Mesh, Model, RenderError, Renderer,
+        create_ui_quad, create_ui_tri, Consts, DynamicModel, Globals, Mesh, RenderError, Renderer,
         UIVertex, UiLocals, UiMode,
     },
     window::Window,
@@ -111,7 +111,7 @@ pub struct Ui {
     // during redrawing.
     mesh: Mesh<UIVertex>,
     // Model for drawing the ui
-    model: Model<UIVertex>,
+    model: DynamicModel<UIVertex>,
     // Consts for default ui drawing position (ie the interface)
     interface_locals: Consts<UiLocals>,
     default_globals: Consts<Globals>,
@@ -164,7 +164,7 @@ impl Ui {
             cache: Cache::new(renderer)?,
             draw_commands: Vec::new(),
             mesh: Mesh::new(),
-            model: renderer.create_dynamic_model(100)?,
+            model: renderer.create_dynamic_model(100),
             interface_locals: renderer.create_consts(&[UiLocals::default()])?,
             default_globals: renderer.create_consts(&[Globals::default()])?,
             ingame_locals: Vec::new(),
@@ -341,7 +341,7 @@ impl Ui {
             // Avoid resetting cache if window size didn't change
             // Somewhat inefficient for elements that won't change size after a window
             // resize
-            let res = renderer.get_resolution();
+            let res = renderer.resolution();
             res.x > 0 && res.y > 0 && !(old_w == w && old_h == h)
         } else {
             false
@@ -389,7 +389,7 @@ impl Ui {
         };
 
         let (half_res, x_align, y_align) = {
-            let res = renderer.get_resolution();
+            let res = renderer.resolution();
             (
                 res.map(|e| e as f32 / 2.0),
                 (res.x & 1) as f32 * 0.5,
@@ -569,23 +569,15 @@ impl Ui {
                 tracing::debug!("Updating glyphs and clearing text cache.");
 
                 if let Err(err) = glyph_cache.cache_queued(|rect, data| {
-                    let offset = [rect.min.x as u16, rect.min.y as u16];
-                    let size = [rect.width() as u16, rect.height() as u16];
+                    let offset = [rect.min.x as u32, rect.min.y as u32];
+                    let size = [rect.width() as u32, rect.height() as u32];
 
                     let new_data = data
                         .iter()
                         .map(|x| [255, 255, 255, *x])
                         .collect::<Vec<[u8; 4]>>();
 
-                    if let Err(err) = renderer.update_texture(
-                        cache_tex,
-                        offset,
-                        size,
-                        &new_data,
-                        rect.width() * 4,
-                    ) {
-                        warn!("Failed to update texture: {:?}", err);
-                    }
+                    renderer.update_texture(cache_tex, offset, size, &new_data);
                 }) {
                     // FIXME: If we actually hit this error, it's still possible we could salvage
                     // things in various ways (for instance, the current queue might have extra
@@ -831,6 +823,7 @@ impl Ui {
                             let cache_dims = graphic_cache
                                 .get_tex(tex_id)
                                 .get_dimensions()
+                                .xy()
                                 .map(|e| e as f32);
                             let min = Vec2::new(aabr.min.x as f32, aabr.max.y as f32) / cache_dims;
                             let max = Vec2::new(aabr.max.x as f32, aabr.min.y as f32) / cache_dims;
@@ -964,12 +957,10 @@ impl Ui {
                                 // Push new position command
                                 let world_pos = Vec4::from_point(parameters.pos);
                                 if self.ingame_locals.len() > ingame_local_index {
-                                    renderer
-                                        .update_consts(
-                                            &mut self.ingame_locals[ingame_local_index],
-                                            &[world_pos.into()],
-                                        )
-                                        .unwrap();
+                                    renderer.update_consts(
+                                        &mut self.ingame_locals[ingame_local_index],
+                                        &[world_pos.into()],
+                                    )
                                 } else {
                                     self.ingame_locals
                                         .push(renderer.create_consts(&[world_pos.into()]).unwrap());
@@ -1017,13 +1008,11 @@ impl Ui {
 
         // Create a larger dynamic model if the mesh is larger than the current model
         // size.
-        if self.model.vbuf.len() < self.mesh.vertices().len() {
-            self.model = renderer
-                .create_dynamic_model(self.mesh.vertices().len() * 4 / 3)
-                .unwrap();
+        if self.model.len() < self.mesh.vertices().len() {
+            self.model = renderer.create_dynamic_model(self.mesh.vertices().len() * 4 / 3);
         }
         // Update model with new mesh.
-        renderer.update_model(&self.model, &self.mesh, 0).unwrap();
+        renderer.update_model(&self.model, &self.mesh, 0);
     }
 
     pub fn render(&self, renderer: &mut Renderer, maybe_globals: Option<&Consts<Globals>>) {
@@ -1045,7 +1034,9 @@ impl Ui {
                         DrawKind::Plain => self.cache.glyph_cache_tex(),
                     };
                     let model = self.model.submodel(verts.clone());
-                    renderer.render_ui_element(model, tex, scissor, globals, locals);
+                    // TODO
+                    //renderer.render_ui_element(model, tex, scissor, globals,
+                    // locals);
                 },
             }
         }
@@ -1053,12 +1044,12 @@ impl Ui {
 }
 
 fn default_scissor(renderer: &Renderer) -> Aabr<u16> {
-    let (screen_w, screen_h) = renderer.get_resolution().into_tuple();
+    let (screen_w, screen_h) = renderer.resolution().into_tuple();
     Aabr {
         min: Vec2 { x: 0, y: 0 },
         max: Vec2 {
-            x: screen_w,
-            y: screen_h,
+            x: screen_w as u16,
+            y: screen_h as u16,
         },
     }
 }

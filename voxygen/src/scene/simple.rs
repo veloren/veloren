@@ -30,7 +30,6 @@ use common::{
     terrain::BlockKind,
     vol::{BaseVol, ReadVol},
 };
-use tracing::error;
 use vek::*;
 use winit::event::MouseButton;
 
@@ -104,7 +103,7 @@ pub struct SceneData<'a> {
 impl Scene {
     pub fn new(renderer: &mut Renderer, backdrop: Option<&str>, client: &Client) -> Self {
         let start_angle = 90.0f32.to_radians();
-        let resolution = renderer.get_resolution().map(|e| e as f32);
+        let resolution = renderer.resolution().map(|e| e as f32);
 
         let map_bounds = Vec2::new(
             client.world_data().min_chunk_alt(),
@@ -278,7 +277,7 @@ impl Scene {
             self.map_bounds,
             TIME,
             scene_data.time,
-            renderer.get_resolution().as_(),
+            renderer.resolution().as_(),
             Vec2::new(SHADOW_NEAR, SHADOW_FAR),
             0,
             0,
@@ -380,12 +379,12 @@ impl Scene {
         body: Option<humanoid::Body>,
         inventory: Option<&Inventory>,
     ) {
-        renderer.render_skybox(
+        /*renderer.render_skybox(
             &self.skybox.model,
             &self.data,
             &self.skybox.locals,
             &self.lod,
-        );
+        );*/
 
         if let Some(body) = body {
             let model = &self.figure_model_cache.get_model(
@@ -398,40 +397,40 @@ impl Scene {
             );
 
             if let Some(model) = model {
-                renderer.render_figure(
-                    &model.models[0],
-                    &self.col_lights.texture(model),
-                    &self.data,
-                    self.figure_state.locals(),
-                    self.figure_state.bone_consts(),
-                    &self.lod,
-                );
+                // renderer.render_figure(
+                //     &model.models[0],
+                //     &self.col_lights.texture(model),
+                //     &self.data,
+                //     self.figure_state.locals(),
+                //     self.figure_state.bone_consts(),
+                //     &self.lod,
+                // );
             }
         }
 
         if let Some((model, state)) = &self.backdrop {
-            renderer.render_figure(
+            /*renderer.render_figure(
                 &model.models[0],
                 &self.col_lights.texture(model),
                 &self.data,
                 state.locals(),
                 state.bone_consts(),
                 &self.lod,
-            );
+            );*/
         }
 
-        renderer.render_clouds(
-            &self.clouds.model,
-            &self.data.globals,
-            &self.clouds.locals,
-            &self.lod,
-        );
+        // renderer.render_clouds(
+        //     &self.clouds.model,
+        //     &self.data.globals,
+        //     &self.clouds.locals,
+        //     &self.lod,
+        // );
 
-        renderer.render_post_process(
-            &self.postprocess.model,
-            &self.data.globals,
-            &self.postprocess.locals,
-            &self.lod,
-        );
+        // renderer.render_post_process(
+        //     &self.postprocess.model,
+        //     &self.data.globals,
+        //     &self.postprocess.locals,
+        //     &self.lod,
+        // );
     }
 }

@@ -8,7 +8,7 @@ use hashbrown::HashMap;
 use vek::*;
 
 // Multiplied by current window size
-const GLYPH_CACHE_SIZE: u16 = 1;
+const GLYPH_CACHE_SIZE: u32 = 1;
 // Glyph cache tolerances
 const SCALE_TOLERANCE: f32 = 0.5;
 const POSITION_TOLERANCE: f32 = 0.5;
@@ -26,7 +26,7 @@ pub struct Cache {
 // TODO: Should functions be returning UiError instead of Error?
 impl Cache {
     pub fn new(renderer: &mut Renderer) -> Result<Self, Error> {
-        let (w, h) = renderer.get_resolution().into_tuple();
+        let (w, h) = renderer.resolution().into_tuple();
 
         let max_texture_size = renderer.max_texture_size();
 
@@ -36,11 +36,11 @@ impl Cache {
         Ok(Self {
             text_cache: Default::default(),
             glyph_cache: GlyphCache::builder()
-                .dimensions(glyph_cache_dims.x as u32, glyph_cache_dims.y as u32)
+                .dimensions(glyph_cache_dims.x, glyph_cache_dims.y)
                 .scale_tolerance(SCALE_TOLERANCE)
                 .position_tolerance(POSITION_TOLERANCE)
                 .build(),
-            glyph_cache_tex: renderer.create_dynamic_texture(glyph_cache_dims.map(|e| e as u16))?,
+            glyph_cache_tex: renderer.create_dynamic_texture(glyph_cache_dims),
             graphic_cache: GraphicCache::new(renderer),
         })
     }
@@ -82,14 +82,14 @@ impl Cache {
         self.text_cache.clear();
         let max_texture_size = renderer.max_texture_size();
         let cache_dims = renderer
-            .get_resolution()
+            .resolution()
             .map(|e| (e * GLYPH_CACHE_SIZE).min(max_texture_size).max(512));
         self.glyph_cache = GlyphCache::builder()
-            .dimensions(cache_dims.x as u32, cache_dims.y as u32)
+            .dimensions(cache_dims.x, cache_dims.y)
             .scale_tolerance(SCALE_TOLERANCE)
             .position_tolerance(POSITION_TOLERANCE)
             .build();
-        self.glyph_cache_tex = renderer.create_dynamic_texture(cache_dims.map(|e| e as u16))?;
+        self.glyph_cache_tex = renderer.create_dynamic_texture(cache_dims);
         Ok(())
     }
 }

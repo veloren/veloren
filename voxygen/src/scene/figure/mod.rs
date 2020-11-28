@@ -8,7 +8,7 @@ use crate::{
     ecs::comp::Interpolated,
     render::{
         pipelines, ColLightInfo, Consts, FigureBoneData, FigureLocals, FigureModel, GlobalModel,
-        Mesh, RenderError, Renderer, TerrainVertex, Texture,
+        Mesh, RenderError, Renderer, SubModel, TerrainVertex, Texture,
     },
     scene::{
         camera::{Camera, CameraMode, Dependents},
@@ -63,7 +63,7 @@ pub type CameraData<'a> = (&'a Camera, f32);
 pub type FigureModelRef<'a> = (
     &'a Consts<FigureLocals>,
     &'a Consts<FigureBoneData>,
-    &'a FigureModel,
+    SubModel<'a, TerrainVertex>,
     &'a Texture, /* <ColLightFmt> */
 );
 
@@ -81,9 +81,19 @@ pub struct FigureModelEntry<const N: usize> {
     /* TODO: Consider using mipmaps instead of storing multiple texture atlases for different
      * LOD levels. */
     col_lights: Texture, /* <ColLightFmt> */
-    /// Models stored in this figure entry; there may be several for one figure,
-    /// because of LOD models.
-    pub models: [FigureModel; N],
+    /// Vertex ranges stored in this figure entry; there may be several for one
+    /// figure, because of LOD models.
+    lod_vertex_ranges: [Range<u32>; N],
+    model: FigureModel,
+}
+
+impl<const N: usize> FigureModelEntry<N> {
+    pub fn lod_model(&self, lod: usize) -> SubModel<TerrainVertex> {
+        // Note: Range doesn't impl Copy even for trivially Cloneable things
+        self.model
+            .opaque
+            .submodel(self.lod_vertex_ranges[lod].clone())
+    }
 }
 
 struct FigureMgrStates {
@@ -4734,13 +4744,14 @@ impl FigureMgr {
                     figure_lod_render_distance * scale.map_or(1.0, |s| s.0),
                     |state| state.can_shadow_sun(),
                 ) {
-                    renderer.render_figure_shadow_directed(
-                        model,
-                        global,
-                        locals,
-                        bone_consts,
-                        &global.shadow_mats,
-                    );
+                    // TODO
+                    //renderer.render_figure_shadow_directed(
+                    //    model,
+                    //    global,
+                    //    locals,
+                    //    bone_consts,
+                    //    &global.shadow_mats,
+                    //);
                 }
             });
         }
@@ -4791,7 +4802,8 @@ impl FigureMgr {
                     figure_lod_render_distance * scale.map_or(1.0, |s| s.0),
                     |state| state.visible(),
                 ) {
-                    renderer.render_figure(model, &col_lights, global, locals, bone_consts, lod);
+                    // renderer.render_figure(model, &col_lights, global,
+                    // locals, bone_consts, lod);
                 }
             }
         }
@@ -4839,15 +4851,16 @@ impl FigureMgr {
                 figure_lod_render_distance,
                 |state| state.visible(),
             ) {
-                renderer.render_player(model, &col_lights, global, locals, bone_consts, lod);
-                renderer.render_player_shadow(
+                //renderer.render_player(model, &col_lights, global, locals,
+                // bone_consts, lod);
+                /*renderer.render_player_shadow(
                     model,
                     &col_lights,
                     global,
                     bone_consts,
                     lod,
                     &global.shadow_mats,
-                );
+                );*/
             }
         }
     }
@@ -5175,11 +5188,11 @@ impl FigureMgr {
             let figure_mid_detail_distance = figure_lod_render_distance * 0.5;
 
             let model = if pos.distance_squared(cam_pos) > figure_low_detail_distance.powi(2) {
-                &model_entry.models[2]
+                model_entry.lod_model(2)
             } else if pos.distance_squared(cam_pos) > figure_mid_detail_distance.powi(2) {
-                &model_entry.models[1]
+                model_entry.lod_model(1)
             } else {
-                &model_entry.models[0]
+                model_entry.lod_model(0)
             };
 
             Some((locals, bone_consts, model, col_lights_.texture(model_entry)))
@@ -5225,7 +5238,7 @@ impl FigureColLights {
         renderer: &mut Renderer,
         (tex, tex_size): ColLightInfo,
         (opaque, bounds): (Mesh<TerrainVertex>, math::Aabb<f32>),
-        vertex_range: [Range<u32>; N],
+        vertex_ranges: [Range<u32>; N],
     ) -> Result<FigureModelEntry<N>, RenderError> {
         span!(_guard, "create_figure", "FigureColLights::create_figure");
         let atlas = &mut self.atlas;
@@ -5237,22 +5250,22 @@ impl FigureColLights {
             .expect("The model size for this figure does not fit in a u32!");
         let model = renderer.create_model(&opaque)?;
 
+        vertex_ranges.iter().for_each(|range| {
+            assert!(
+                range.start <= range.end && range.end <= model_len,
+                "The provided vertex range for figure mesh {:?} does not fit in the model, which \
+                 is of size {:?}!",
+                range,
+                model_len
+            );
+        });
+
         Ok(FigureModelEntry {
             _bounds: bounds,
-            models: vertex_range.map(|range| {
-                assert!(
-                    range.start <= range.end && range.end <= model_len,
-                    "The provided vertex range for figure mesh {:?} does not fit in the model, \
-                     which is of size {:?}!",
-                    range,
-                    model_len
-                );
-                FigureModel {
-                    opaque: model.submodel(range),
-                }
-            }),
-            col_lights,
             allocation,
+            col_lights,
+            lod_vertex_ranges: vertex_ranges,
+            model: FigureModel { opaque: model },
         })
     }
 

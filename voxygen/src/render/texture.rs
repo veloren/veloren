@@ -18,7 +18,7 @@ impl Texture {
         filter_method: Option<wgpu::FilterMode>,
         address_mode: Option<wgpu::AddressMode>,
     ) -> Result<Self, RenderError> {
-        // TODO: Actualy handle images that aren't in rgba format properly.
+        // TODO: Actually handle images that aren't in rgba format properly.
         let buffer = image.as_flat_samples_u8().ok_or_else(|| {
             RenderError::CustomError(
                 "We currently do not support color formats using more than 4 bytes / pixel.".into(),
@@ -38,7 +38,7 @@ impl Texture {
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Rgba8UnormSrgb,
-            usage: wgpu::TextureUsage::COPY_DST | wgpu::TextureUsage::SAMPLED,
+            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
         });
 
         let mut command_encoder =
@@ -107,7 +107,8 @@ impl Texture {
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Rgba8UnormSrgb,
-            usage: wgpu::TextureUsage::COPY_DST | wgpu::TextureUsage::SAMPLED,
+            // TODO: nondynamic version doesn't seeem to have different usage, unify code?
+            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
         };
 
         let sampler_info = wgpu::SamplerDescriptor {
@@ -161,8 +162,10 @@ impl Texture {
         offset: [u32; 2],
         size: [u32; 2],
         data: &[u8],
-        bytes_per_row: u32,
     ) {
+        // Note: we only accept 4 bytes per pixel
+        // (enforce this is API?)
+        debug_assert_eq!(data.len(), size[0] as usize * size[1] as usize * 4);
         // TODO: Only works for 2D images
         queue.write_texture(
             wgpu::TextureCopyViewBase {
@@ -177,8 +180,8 @@ impl Texture {
             data,
             wgpu::TextureDataLayout {
                 offset: 0,
-                bytes_per_row,
-                rows_per_image: self.size.height,
+                bytes_per_row: size[0] * 4,
+                rows_per_image: size[1],
             },
             wgpu::Extent3d {
                 width: size[0],
@@ -189,5 +192,7 @@ impl Texture {
     }
 
     /// Get dimensions of the represented image.
-    pub fn get_dimensions(&self) -> Extent3d { self.size }
+    pub fn get_dimensions(&self) -> vek::Vec3<u32> {
+        vek::Vec3::new(self.size.width, self.size.height, self.size.depth)
+    }
 }

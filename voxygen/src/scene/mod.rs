@@ -271,7 +271,7 @@ impl Scene {
         client: &Client,
         settings: &Settings,
     ) -> Self {
-        let resolution = renderer.get_resolution().map(|e| e as f32);
+        let resolution = renderer.resolution().map(|e| e as f32);
         let sprite_render_context = lazy_init(renderer);
 
         Self {
@@ -642,7 +642,7 @@ impl Scene {
             self.map_bounds,
             time_of_day,
             scene_data.state.get_time(),
-            renderer.get_resolution().as_(),
+            renderer.resolution().as_(),
             Vec2::new(SHADOW_NEAR, SHADOW_FAR),
             lights.len(),
             shadows.len(),
@@ -1061,7 +1061,7 @@ impl Scene {
         self.lod.render(renderer, global);
 
         // Render the skybox.
-        renderer.render_skybox(&self.skybox.model, global, &self.skybox.locals, lod);
+        // TODO: renderer.render_skybox(&self.skybox.model, global, lod);
 
         self.terrain.render_translucent(
             renderer,
@@ -1075,19 +1075,20 @@ impl Scene {
         // Render particle effects.
         self.particle_mgr.render(renderer, scene_data, global, lod);
 
-        // Render clouds (a post-processing effect)
-        renderer.render_clouds(
-            &self.clouds.model,
-            &global.globals,
-            &self.clouds.locals,
-            self.lod.get_data(),
-        );
+        // TODO:
+        // // Render clouds (a post-processing effect)
+        // renderer.render_clouds(
+        //     &self.clouds.model,
+        //     &global.globals,
+        //     &self.clouds.locals,
+        //     self.lod.get_data(),
+        // );
 
-        renderer.render_post_process(
-            &self.postprocess.model,
-            &global.globals,
-            &self.postprocess.locals,
-            self.lod.get_data(),
-        );
+        // renderer.render_post_process(
+        //     &self.postprocess.model,
+        //     &global.globals,
+        //     &self.postprocess.locals,
+        //     self.lod.get_data(),
+        // );
     }
 }

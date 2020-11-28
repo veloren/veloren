@@ -1,4 +1,8 @@
-use super::{buffer::Buffer, mesh::Mesh, Vertex};
+use super::{
+    buffer::{Buffer, DynamicBuffer},
+    mesh::Mesh,
+    Vertex,
+};
 use std::ops::Range;
 
 /// Represents a mesh that has been sent to the GPU.
@@ -20,13 +24,7 @@ pub struct Model<V: Vertex> {
 impl<V: Vertex> Model<V> {
     pub fn new(device: &wgpu::Device, mesh: &Mesh<V>) -> Self {
         Self {
-            vbuf: Buffer::new_with_data(device, wgpu::BufferUsage::VERTEX, mesh.vertices()),
-        }
-    }
-
-    pub fn new_dynamic(device: &wgpu::Device, size: u64) -> Self {
-        Self {
-            vbuf: Buffer::new(device, size, wgpu::BufferUsage::VERTEX),
+            vbuf: Buffer::new(device, wgpu::BufferUsage::VERTEX, mesh.vertices()),
         }
     }
 
@@ -40,15 +38,44 @@ impl<V: Vertex> Model<V> {
         }
     }
 
+    pub fn buf(&self) -> &wgpu::Buffer { &self.vbuf.buf }
+
+    pub fn len(&self) -> usize { self.vbuf.len() }
+}
+
+/// Represents a mesh that has been sent to the GPU.
+pub struct DynamicModel<V: Vertex> {
+    vbuf: DynamicBuffer<V>,
+}
+
+impl<V: Vertex> DynamicModel<V> {
+    pub fn new(device: &wgpu::Device, size: usize) -> Self {
+        Self {
+            vbuf: DynamicBuffer::new(device, size, wgpu::BufferUsage::VERTEX),
+        }
+    }
+
     pub fn update(
-        &mut self,
+        &self,
         device: &wgpu::Device,
         queue: &wgpu::Queue,
         mesh: &Mesh<V>,
-        offset: u64,
+        offset: usize,
     ) {
         self.vbuf.update(device, queue, mesh.vertices(), offset)
     }
 
+    /// Create a model with a slice of a portion of this model to send to the
+    /// renderer.
+    pub fn submodel(&self, vertex_range: Range<u32>) -> SubModel<V> {
+        SubModel {
+            vertex_range,
+            buf: self.buf(),
+            phantom_data: std::marker::PhantomData,
+        }
+    }
+
     pub fn buf(&self) -> &wgpu::Buffer { &self.vbuf.buf }
+
+    pub fn len(&self) -> usize { self.vbuf.len() }
 }

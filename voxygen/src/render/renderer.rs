@@ -2,7 +2,7 @@ use super::{
     consts::Consts,
     instances::Instances,
     mesh::Mesh,
-    model::Model,
+    model::{DynamicModel, Model},
     pipelines::{
         clouds, figure, fluid, lod_terrain, particle, postprocess, shadow, skybox, sprite, terrain,
         ui, GlobalsLayouts,
@@ -177,9 +177,9 @@ pub struct Layouts {
 /// rendering subsystem and contains any state necessary to interact with the
 /// GPU, along with pipeline state objects (PSOs) needed to renderer different
 /// kinds of models to the screen.
-pub struct Renderer<'a> {
-    window: &'a winit::window::Window,
-
+pub struct Renderer {
+    // TODO: why????
+    //window: &'a winit::window::Window,
     device: wgpu::Device,
     queue: wgpu::Queue,
     swap_chain: wgpu::SwapChain,
@@ -216,12 +216,14 @@ pub struct Renderer<'a> {
     noise_tex: Texture,
 
     mode: RenderMode,
+
+    resolution: Vec2<u32>,
 }
 
-impl<'a> Renderer<'a> {
+impl Renderer {
     /// Create a new `Renderer` from a variety of backend-specific components
     /// and the window targets.
-    pub fn new(window: &'a winit::window::Window, mode: RenderMode) -> Result<Self, RenderError> {
+    pub fn new(window: &winit::window::Window, mode: RenderMode) -> Result<Self, RenderError> {
         // Enable seamless cubemaps globally, where available--they are essentially a
         // strict improvement on regular cube maps.
         //
@@ -231,7 +233,9 @@ impl<'a> Renderer<'a> {
 
         let dims = window.inner_size();
 
-        let instance = wgpu::Instance::new(wgpu::BackendBit::PRIMARY | wgpu::BackendBit::SECONDARY);
+        let instance = wgpu::Instance::new(
+            wgpu::BackendBit::PRIMARY, /* | wgpu::BackendBit::SECONDARY */
+        );
 
         // This is unsafe because the window handle must be valid, if you find a way to
         // have an invalid winit::Window then you have bigger issues
@@ -251,6 +255,7 @@ impl<'a> Renderer<'a> {
         let (device, queue) = futures::executor::block_on(adapter.request_device(
             &wgpu::DeviceDescriptor {
                 // TODO
+                label: None,
                 features: Features::DEPTH_CLAMPING | Features::ADDRESS_MODE_CLAMP_TO_BORDER,
                 limits: Limits::default(),
                 shader_validation: true,
@@ -269,7 +274,7 @@ impl<'a> Renderer<'a> {
         );
 
         let sc_desc = wgpu::SwapChainDescriptor {
-            usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
+            usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
             format: wgpu::TextureFormat::Bgra8UnormSrgb,
             width: dims.width,
             height: dims.height,
@@ -387,8 +392,6 @@ impl<'a> Renderer<'a> {
         )?;
 
         Ok(Self {
-            window,
-
             device,
             queue,
             swap_chain,
@@ -423,6 +426,8 @@ impl<'a> Renderer<'a> {
             noise_tex,
 
             mode,
+
+            resolution: Vec2::new(dims.width, dims.height),
         })
     }
 
@@ -443,7 +448,7 @@ impl<'a> Renderer<'a> {
         self.mode = mode;
 
         // Recreate render target
-        self.on_resize()?;
+        self.on_resize(self.resolution)?;
 
         // Recreate pipelines with the new AA mode
         self.recreate_pipelines();
@@ -455,13 +460,11 @@ impl<'a> Renderer<'a> {
     pub fn render_mode(&self) -> &RenderMode { &self.mode }
 
     /// Resize internal render targets to match window render target dimensions.
-    pub fn on_resize(&mut self) -> Result<(), RenderError> {
-        let dims = self.window.inner_size();
-
+    pub fn on_resize(&mut self, dims: Vec2<u32>) -> Result<(), RenderError> {
         // Avoid panics when creating texture with w,h of 0,0.
-        if dims.width != 0 && dims.height != 0 {
+        if dims.x != 0 && dims.y != 0 {
             let (tgt_color_view, tgt_depth_stencil_view, tgt_color_pp_view, win_depth_view) =
-                Self::create_rt_views(&mut self.device, (dims.width, dims.height), &self.mode)?;
+                Self::create_rt_views(&mut self.device, (dims.x, dims.y), &self.mode)?;
             self.win_depth_view = win_depth_view;
             self.tgt_color_view = tgt_color_view;
             self.tgt_depth_stencil_view = tgt_depth_stencil_view;
@@ -469,8 +472,7 @@ impl<'a> Renderer<'a> {
             if let (Some(shadow_map), ShadowMode::Map(mode)) =
                 (self.shadow_map.as_mut(), self.mode.shadow)
             {
-                match Self::create_shadow_views(&mut self.device, (dims.width, dims.height), &mode)
-                {
+                match Self::create_shadow_views(&mut self.device, (dims.x, dims.y), &mode) {
                     Ok((point_depth_stencil, directed_depth_stencil)) => {
                         shadow_map.point_depth_stencil = point_depth_stencil;
                         shadow_map.directed_depth_stencil = directed_depth_stencil;
@@ -480,6 +482,8 @@ impl<'a> Renderer<'a> {
                     },
                 }
             }
+
+            self.resolution = dims;
         }
 
         Ok(())
@@ -523,7 +527,7 @@ impl<'a> Renderer<'a> {
                 sample_count,
                 dimension: wgpu::TextureDimension::D2,
                 format: wgpu::TextureFormat::Rgba8UnormSrgb,
-                usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::OUTPUT_ATTACHMENT,
+                usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::RENDER_ATTACHMENT,
             });
 
             tex.create_view(&wgpu::TextureViewDescriptor {
@@ -553,7 +557,7 @@ impl<'a> Renderer<'a> {
             sample_count,
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Depth24Plus,
-            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::OUTPUT_ATTACHMENT,
+            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::RENDER_ATTACHMENT,
         });
         let tgt_depth_stencil_view =
             tgt_depth_stencil_tex.create_view(&wgpu::TextureViewDescriptor {
@@ -578,7 +582,7 @@ impl<'a> Renderer<'a> {
             sample_count,
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Depth24Plus,
-            usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
+            usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
         });
         let win_depth_view = tgt_depth_stencil_tex.create_view(&wgpu::TextureViewDescriptor {
             label: None,
@@ -667,7 +671,19 @@ impl<'a> Renderer<'a> {
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Depth24Plus,
-            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::OUTPUT_ATTACHMENT,
+            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::RENDER_ATTACHMENT,
+        };
+
+        //TODO: (0, levels - 1), ?? from master
+        let mut point_shadow_view = wgpu::TextureViewDescriptor {
+            label: None,
+            format: Some(wgpu::TextureFormat::Depth24Plus),
+            dimension: Some(wgpu::TextureViewDimension::Cube),
+            aspect: wgpu::TextureAspect::DepthOnly,
+            base_mip_level: 0,
+            level_count: None,
+            base_array_layer: 0,
+            array_layer_count: None,
         };
 
         let directed_shadow_tex = wgpu::TextureDescriptor {
@@ -681,10 +697,10 @@ impl<'a> Renderer<'a> {
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Depth24Plus,
-            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::OUTPUT_ATTACHMENT,
+            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::RENDER_ATTACHMENT,
         };
 
-        let mut view_info = wgpu::TextureViewDescriptor {
+        let directed_shadow_view = wgpu::TextureViewDescriptor {
             label: None,
             format: Some(wgpu::TextureFormat::Depth24Plus),
             dimension: Some(wgpu::TextureViewDimension::D2),
@@ -707,30 +723,27 @@ impl<'a> Renderer<'a> {
             ..Default::default()
         };
 
-        let point_tgt_shadow =
-            Texture::new_raw(device, &point_shadow_tex, &view_info, &sampler_info);
-        view_info.dimension = Some(wgpu::TextureViewDimension::Cube);
-        let directed_shadow_tex =
-            Texture::new_raw(device, &directed_shadow_tex, &view_info, &sampler_info);
+        let point_shadow_tex =
+            Texture::new_raw(device, &point_shadow_tex, &point_shadow_view, &sampler_info);
+        let directed_shadow_tex = Texture::new_raw(
+            device,
+            &directed_shadow_tex,
+            &directed_shadow_view,
+            &sampler_info,
+        );
 
-        Ok((point_tgt_shadow, directed_shadow_tex))
+        Ok((point_shadow_tex, directed_shadow_tex))
     }
 
     /// Get the resolution of the render target.
-    pub fn get_resolution(&self) -> Vec2<u32> {
-        let dims = self.window.inner_size();
-
-        Vec2::new(dims.width, dims.height)
-    }
+    pub fn resolution(&self) -> Vec2<u32> { self.resolution }
 
     /// Get the resolution of the shadow render target.
     pub fn get_shadow_resolution(&self) -> (Vec2<u32>, Vec2<u32>) {
         if let Some(shadow_map) = &self.shadow_map {
-            let point_dims = shadow_map.point_depth_stencil.get_dimensions();
-            let directed_dims = shadow_map.directed_depth_stencil.get_dimensions();
             (
-                Vec2::new(point_dims.width, point_dims.height),
-                Vec2::new(directed_dims.width, directed_dims.height),
+                shadow_map.point_depth_stencil.get_dimensions().xy(),
+                shadow_map.directed_depth_stencil.get_dimensions().xy(),
             )
         } else {
             (Vec2::new(1, 1), Vec2::new(1, 1))
@@ -882,7 +895,7 @@ impl<'a> Renderer<'a> {
         &mut self,
         vals: &[T],
     ) -> Result<Consts<T>, RenderError> {
-        let mut consts = Consts::new(&self.device, vals.len() as u64);
+        let mut consts = Consts::new(&self.device, vals.len());
         consts.update(&self.device, &self.queue, vals, 0);
         Ok(consts)
     }
@@ -897,7 +910,7 @@ impl<'a> Renderer<'a> {
         &mut self,
         vals: &[T],
     ) -> Result<Instances<T>, RenderError> {
-        let mut instances = Instances::new(&self.device, vals.len() as u64);
+        let mut instances = Instances::new(&self.device, vals.len());
         instances.update(&self.device, &self.queue, vals, 0);
         Ok(instances)
     }
@@ -908,12 +921,12 @@ impl<'a> Renderer<'a> {
     }
 
     /// Create a new dynamic model with the specified size.
-    pub fn create_dynamic_model<V: Vertex>(&mut self, size: u64) -> Model<V> {
-        Model::new_dynamic(&self.device, size)
+    pub fn create_dynamic_model<V: Vertex>(&mut self, size: usize) -> DynamicModel<V> {
+        DynamicModel::new(&self.device, size)
     }
 
     /// Update a dynamic model with a mesh and a offset.
-    pub fn update_model<V: Vertex>(&mut self, model: &Model<V>, mesh: &Mesh<V>, offset: u64) {
+    pub fn update_model<V: Vertex>(&self, model: &DynamicModel<V>, mesh: &Mesh<V>, offset: usize) {
         model.update(&self.device, &self.queue, mesh, offset)
     }
 
@@ -933,7 +946,6 @@ impl<'a> Renderer<'a> {
         texture_info: &wgpu::TextureDescriptor,
         view_info: &wgpu::TextureViewDescriptor,
         sampler_info: &wgpu::SamplerDescriptor,
-        bytes_per_row: u32,
         data: &[u8],
     ) -> Texture {
         let tex = Texture::new_raw(&self.device, &texture_info, &view_info, &sampler_info);
@@ -944,7 +956,6 @@ impl<'a> Renderer<'a> {
             [0; 2],
             [texture_info.size.width, texture_info.size.height],
             data,
-            bytes_per_row,
         );
 
         tex
@@ -1004,7 +1015,6 @@ impl<'a> Renderer<'a> {
         // Copy,    {
         //        texture.update(&mut self.encoder, offset, size, data)
         data: &[[u8; 4]],
-        bytes_per_row: u32,
     ) {
         texture.update(
             &self.device,
@@ -1012,7 +1022,6 @@ impl<'a> Renderer<'a> {
             offset,
             size,
             bytemuck::cast_slice(data),
-            bytes_per_row,
         )
     }
 
@@ -1882,16 +1891,16 @@ fn create_pipelines(
         Ok(ResolvedInclude {
             resolved_name: name.to_string(),
             content: match name {
-                "constants.glsl" => constants,
-                "globals.glsl" => *globals,
-                "shadows.glsl" => *shadows,
-                "sky.glsl" => *sky,
-                "light.glsl" => *light,
-                "srgb.glsl" => *srgb,
-                "random.glsl" => *random,
-                "lod.glsl" => *lod,
-                "anti-aliasing.glsl" => *anti_alias,
-                "cloud.glsl" => *cloud,
+                "constants.glsl" => constants.clone(),
+                "globals.glsl" => globals.as_ref().clone(),
+                "shadows.glsl" => shadows.as_ref().clone(),
+                "sky.glsl" => sky.as_ref().clone(),
+                "light.glsl" => light.as_ref().clone(),
+                "srgb.glsl" => srgb.as_ref().clone(),
+                "random.glsl" => random.as_ref().clone(),
+                "lod.glsl" => lod.as_ref().clone(),
+                "anti-aliasing.glsl" => anti_alias.as_ref().clone(),
+                "cloud.glsl" => cloud.as_ref().clone(),
                 other => return Err(format!("Include {} is not defined", other)),
             },
         })
@@ -2298,7 +2307,7 @@ fn create_pipelines(
     ))
 }
 
-pub fn create_shader_module(
+fn create_shader_module(
     device: &wgpu::Device,
     compiler: &mut shaderc::Compiler,
     source: &str,

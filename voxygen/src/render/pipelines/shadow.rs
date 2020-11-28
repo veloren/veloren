@@ -95,7 +95,6 @@ pub fn create_col_lights(
         &texture_info,
         &view_info,
         &sampler_info,
-        col_lights_size.x * 4,
         bytemuck::cast_slice(&col_lights),
     )
 }
@@ -149,6 +148,7 @@ impl ShadowFigurePipeline {
             rasterization_state: Some(wgpu::RasterizationStateDescriptor {
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: wgpu::CullMode::Back,
+                polygon_mode: wgpu::PolygonMode::Fill,
                 clamp_depth: false,
                 depth_bias: 0,
                 depth_bias_slope_scale: 0.0,
@@ -231,6 +231,7 @@ impl ShadowPipeline {
             rasterization_state: Some(wgpu::RasterizationStateDescriptor {
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: wgpu::CullMode::Back,
+                polygon_mode: wgpu::PolygonMode::Fill,
                 clamp_depth: false,
                 depth_bias: 0,
                 depth_bias_slope_scale: 0.0,

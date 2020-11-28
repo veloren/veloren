@@ -15,7 +15,7 @@ pub use self::{
     error::RenderError,
     instances::Instances,
     mesh::{Mesh, Quad, Tri},
-    model::{Model, SubModel},
+    model::{DynamicModel, Model, SubModel},
     pipelines::{
         clouds::{create_mesh as create_clouds_mesh, Locals as CloudsLocals},
         figure::{

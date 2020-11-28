@@ -15,10 +15,12 @@ pub struct Vertex {
 impl Vertex {
     fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
         use std::mem;
+        const ATTRIBUTES: [wgpu::VertexAttributeDescriptor; 5] =
+            wgpu::vertex_attr_array![0 => Float2, 1 => Float2, 2 => Float4, 3 => Float2, 4 => Uint];
         wgpu::VertexBufferDescriptor {
             stride: mem::size_of::<Self>() as wgpu::BufferAddress,
             step_mode: wgpu::InputStepMode::Vertex,
-            attributes: &wgpu::vertex_attr_array![0 => Float2, 1 => Float2, 2 => Float4, 3 => Float2, 4 => Uint],
+            attributes: &ATTRIBUTES,
         }
     }
 }
@@ -165,6 +167,7 @@ impl UIPipeline {
             rasterization_state: Some(wgpu::RasterizationStateDescriptor {
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: wgpu::CullMode::Back,
+                polygon_mode: wgpu::PolygonMode::Fill,
                 clamp_depth: false,
                 depth_bias: 0,
                 depth_bias_slope_scale: 0.0,

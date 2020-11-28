@@ -61,7 +61,8 @@ impl Lod {
 
     pub fn render(&self, renderer: &mut Renderer, global: &GlobalModel) {
         if let Some((_, model)) = self.model.as_ref() {
-            renderer.render_lod_terrain(&model, global, &self.locals, &self.data);
+            //renderer.render_lod_terrain(&model, global, &self.locals,
+            // &self.data);
         }
     }
 }

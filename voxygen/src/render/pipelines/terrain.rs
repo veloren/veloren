@@ -120,20 +120,23 @@ impl Vertex {
 
     pub fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
         use std::mem;
+        const ATTRIBUTES: [wgpu::VertexAttributeDescriptor; 2] =
+            wgpu::vertex_attr_array![0 => Uint,1 => Uint];
         wgpu::VertexBufferDescriptor {
             stride: mem::size_of::<Self>() as wgpu::BufferAddress,
             step_mode: wgpu::InputStepMode::Vertex,
-            attributes: &wgpu::vertex_attr_array![0 => Uint,1 => Uint],
+            attributes: &ATTRIBUTES,
         }
     }
 }
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Zeroable, Pod)]
+// TODO: new function and private fields??
 pub struct Locals {
-    model_offs: [f32; 3],
-    load_time: f32,
-    atlas_offs: [i32; 4],
+    pub model_offs: [f32; 3],
+    pub load_time: f32,
+    pub atlas_offs: [i32; 4],
 }
 
 impl Locals {
@@ -233,6 +236,7 @@ impl TerrainPipeline {
             rasterization_state: Some(wgpu::RasterizationStateDescriptor {
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: wgpu::CullMode::Back,
+                polygon_mode: wgpu::PolygonMode::Fill,
                 clamp_depth: false,
                 depth_bias: 0,
                 depth_bias_slope_scale: 0.0,

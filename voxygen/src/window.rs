@@ -518,7 +518,7 @@ impl KeyMouse {
 }
 
 pub struct Window {
-    renderer: Renderer<'static>,
+    renderer: Renderer,
     window: winit::window::Window,
     cursor_grabbed: bool,
     pub pan_sensitivity: u32,
@@ -658,7 +658,7 @@ impl Window {
 
     pub fn renderer(&self) -> &Renderer { &self.renderer }
 
-    pub fn renderer_mut(&mut self) -> &mut Renderer<'static> { &mut self.renderer }
+    pub fn renderer_mut(&mut self) -> &mut Renderer { &mut self.renderer }
 
     pub fn resolve_deduplicated_events(&mut self, settings: &mut Settings) {
         // Handle screenshots and toggling fullscreen
@@ -941,7 +941,9 @@ impl Window {
                 // let (mut color_view, mut depth_view) = self.renderer.win_views_mut();
                 // self.window.resize(physical);
                 // self.window.update_gfx(&mut color_view, &mut depth_view);
-                self.renderer.on_resize().unwrap();
+                self.renderer
+                    .on_resize(Vec2::new(physical.width, physical.height))
+                    .unwrap();
                 // TODO: update users of this event with the fact that it is now the physical
                 // size
                 let winit::dpi::PhysicalSize { width, height } = physical;

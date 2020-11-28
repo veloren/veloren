@@ -1429,12 +1429,12 @@ impl<V: RectRasterableVol> Terrain<V> {
                 .chain(self.shadow_chunks.iter().map(|(_, chunk)| chunk))
                 .for_each(|chunk| {
                     // Directed light shadows.
-                    renderer.render_terrain_shadow_directed(
+                    /*renderer.render_terrain_shadow_directed(
                         &chunk.opaque_model,
                         global,
                         &chunk.locals,
                         &global.shadow_mats,
-                    );
+                    );*/
                 });
         }
 
@@ -1445,12 +1445,12 @@ impl<V: RectRasterableVol> Terrain<V> {
         light_data.iter().take(1).for_each(|_light| {
             chunk_iter.clone().for_each(|chunk| {
                 if chunk.can_shadow_point {
-                    renderer.render_shadow_point(
+                    /*renderer.render_shadow_point(
                         &chunk.opaque_model,
                         global,
                         &chunk.locals,
                         &global.shadow_mats,
-                    );
+                    );*/
                 }
             });
         });
@@ -1477,13 +1477,13 @@ impl<V: RectRasterableVol> Terrain<V> {
 
         for (_, chunk) in chunk_iter {
             if chunk.visible.is_visible() {
-                renderer.render_terrain_chunk(
+                /* renderer.render_terrain_chunk(
                     &chunk.opaque_model,
                     &chunk.texture,
                     global,
                     &chunk.locals,
                     lod,
-                );
+                );*/
             }
         }
     }
@@ -1558,7 +1558,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                         } else {
                             &self.sprite_data[&kind][4]
                         };
-                        renderer.render_sprites(
+                        /*renderer.render_sprites(
                             model,
                             &self.sprite_col_lights,
                             global,
@@ -1566,7 +1566,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                             locals,
                             &instances,
                             lod,
-                        );
+                        );*/
                     }
                 }
             }
@@ -1587,13 +1587,13 @@ impl<V: RectRasterableVol> Terrain<V> {
             .into_iter()
             .rev() // Render back-to-front
             .for_each(|(model, locals)| {
-                renderer.render_fluid_chunk(
+                /*renderer.render_fluid_chunk(
                     model,
                     global,
                     locals,
                     lod,
                     &self.waves,
-                )
+                )*/
             });
     }
 }

@@ -61,10 +61,12 @@ impl Vertex {
 
     fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
         use std::mem;
+        const ATTRIBUTES: [wgpu::VertexAttributeDescriptor; 3] =
+            wgpu::vertex_attr_array![0 => Float3, 1 => Uint, 2 => Uint];
         wgpu::VertexBufferDescriptor {
             stride: mem::size_of::<Self>() as wgpu::BufferAddress,
             step_mode: wgpu::InputStepMode::Vertex,
-            attributes: &wgpu::vertex_attr_array![0 => Float3, 1 => Uint, 2 => Uint],
+            attributes: &ATTRIBUTES,
         }
     }
 }
@@ -109,10 +111,11 @@ impl Instance {
 
     fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
         use std::mem;
+        const ATTRIBUTES: [wgpu::VertexAttributeDescriptor; 6] = wgpu::vertex_attr_array![0 => Uint, 1 => Float4,2 => Float4, 3 => Float4,4 => Float4, 5 => Float];
         wgpu::VertexBufferDescriptor {
             stride: mem::size_of::<Self>() as wgpu::BufferAddress,
             step_mode: wgpu::InputStepMode::Instance,
-            attributes: &wgpu::vertex_attr_array![0 => Uint, 1 => Float4,2 => Float4, 3 => Float4,4 => Float4,5 => Float],
+            attributes: &ATTRIBUTES,
         }
     }
 }
@@ -253,6 +256,7 @@ impl SpritePipeline {
             rasterization_state: Some(wgpu::RasterizationStateDescriptor {
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: wgpu::CullMode::Back,
+                polygon_mode: wgpu::PolygonMode::Fill,
                 clamp_depth: false,
                 depth_bias: 0,
                 depth_bias_slope_scale: 0.0,
