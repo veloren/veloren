@@ -2,7 +2,7 @@
 authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>", "Imbris <imbrisf@gmail.com>"]
 edition = "2018"
 name = "veloren-voxygen-anim"
-version = "0.7.0"
+version = "0.8.0"
 
 [lib]
 name = "voxygen_anim"
