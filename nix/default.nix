@@ -12,8 +12,8 @@ let
   isBuildingVoxygen = isBuildingCrate "veloren-voxygen";
   isBuildingServerCli = isBuildingCrate "veloren-server-cli";
 
-  pkgs = import ./nixpkgs.nix { inherit sources system; };
-  common = import ./common.nix { inherit pkgs; };
+  common = import ./common.nix { inherit sources system; };
+  inherit (common) pkgs;
 
   meta = with pkgs; {
     description = "Veloren is a multiplayer voxel RPG written in Rust.";
@@ -42,7 +42,7 @@ let
             name = "git";
           }
         }
-        ${pkgs.git}/bin/git ${subcommands} > $out
+        (${pkgs.git}/bin/git ${subcommands}) > $out
       '')
     else
       abort ''
