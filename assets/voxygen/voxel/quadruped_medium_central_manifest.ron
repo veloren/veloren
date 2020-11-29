@@ -812,7 +812,7 @@
     (Roshwalr, Female): (
         head: (
             offset: (-13.0, 0.0, -12.0),
-            central: ("npc.roshwalr.male.head"),
+            central: ("npc.roshwalr.female.head"),
         ),
         neck: (
             offset: (-7.0, -2.0, -11.5),
