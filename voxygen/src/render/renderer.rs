@@ -14,6 +14,7 @@ use super::{
 use common::assets::{self, AssetExt, AssetHandle};
 use common_base::span;
 use core::convert::TryFrom;
+use hashbrown::HashMap;
 use tracing::{error, info, warn};
 use vek::*;
 
@@ -35,52 +36,7 @@ impl assets::Asset for Glsl {
 }
 
 struct Shaders {
-    constants: AssetHandle<Glsl>,
-    globals: AssetHandle<Glsl>,
-    sky: AssetHandle<Glsl>,
-    light: AssetHandle<Glsl>,
-    srgb: AssetHandle<Glsl>,
-    random: AssetHandle<Glsl>,
-    lod: AssetHandle<Glsl>,
-    shadows: AssetHandle<Glsl>,
-
-    anti_alias_none: AssetHandle<Glsl>,
-    anti_alias_fxaa: AssetHandle<Glsl>,
-    anti_alias_msaa_x4: AssetHandle<Glsl>,
-    anti_alias_msaa_x8: AssetHandle<Glsl>,
-    anti_alias_msaa_x16: AssetHandle<Glsl>,
-    cloud_none: AssetHandle<Glsl>,
-    cloud_regular: AssetHandle<Glsl>,
-    figure_vert: AssetHandle<Glsl>,
-
-    terrain_point_shadow_vert: AssetHandle<Glsl>,
-    terrain_directed_shadow_vert: AssetHandle<Glsl>,
-    figure_directed_shadow_vert: AssetHandle<Glsl>,
-    directed_shadow_frag: AssetHandle<Glsl>,
-
-    skybox_vert: AssetHandle<Glsl>,
-    skybox_frag: AssetHandle<Glsl>,
-    figure_frag: AssetHandle<Glsl>,
-    terrain_vert: AssetHandle<Glsl>,
-    terrain_frag: AssetHandle<Glsl>,
-    fluid_vert: AssetHandle<Glsl>,
-    fluid_frag_cheap: AssetHandle<Glsl>,
-    fluid_frag_shiny: AssetHandle<Glsl>,
-    sprite_vert: AssetHandle<Glsl>,
-    sprite_frag: AssetHandle<Glsl>,
-    particle_vert: AssetHandle<Glsl>,
-    particle_frag: AssetHandle<Glsl>,
-    ui_vert: AssetHandle<Glsl>,
-    ui_frag: AssetHandle<Glsl>,
-    lod_terrain_vert: AssetHandle<Glsl>,
-    lod_terrain_frag: AssetHandle<Glsl>,
-    clouds_vert: AssetHandle<Glsl>,
-    clouds_frag: AssetHandle<Glsl>,
-    postprocess_vert: AssetHandle<Glsl>,
-    postprocess_frag: AssetHandle<Glsl>,
-    player_shadow_frag: AssetHandle<Glsl>,
-    light_shadows_geom: AssetHandle<Glsl>,
-    light_shadows_frag: AssetHandle<Glsl>,
+    shaders: HashMap<String, AssetHandle<Glsl>>,
 }
 
 impl assets::Compound for Shaders {
@@ -90,58 +46,68 @@ impl assets::Compound for Shaders {
         _: &assets::AssetCache<S>,
         _: &str,
     ) -> Result<Shaders, assets::Error> {
-        Ok(Shaders {
-            constants: AssetExt::load("voxygen.shaders.include.constants")?,
-            globals: AssetExt::load("voxygen.shaders.include.globals")?,
-            sky: AssetExt::load("voxygen.shaders.include.sky")?,
-            light: AssetExt::load("voxygen.shaders.include.light")?,
-            srgb: AssetExt::load("voxygen.shaders.include.srgb")?,
-            random: AssetExt::load("voxygen.shaders.include.random")?,
-            lod: AssetExt::load("voxygen.shaders.include.lod")?,
-            shadows: AssetExt::load("voxygen.shaders.include.shadows")?,
+        let shaders = [
+            "include.constants",
+            "include.globals",
+            "include.sky",
+            "include.light",
+            "include.srgb",
+            "include.random",
+            "include.lod",
+            "include.shadows",
+            "antialias.none",
+            "antialias.fxaa",
+            "antialias.msaa-x4",
+            "antialias.msaa-x8",
+            "antialias.msaa-x16",
+            "include.cloud.none",
+            "include.cloud.regular",
+            "figure-vert",
+            "light-shadows-vert",
+            "light-shadows-directed-vert",
+            "light-shadows-figure-vert",
+            "light-shadows-directed-frag",
+            "skybox-vert",
+            "skybox-frag",
+            "figure-frag",
+            "terrain-vert",
+            "terrain-frag",
+            "fluid-vert",
+            "fluid-frag.cheap",
+            "fluid-frag.shiny",
+            "sprite-vert",
+            "sprite-frag",
+            "particle-vert",
+            "particle-frag",
+            "ui-vert",
+            "ui-frag",
+            "lod-terrain-vert",
+            "lod-terrain-frag",
+            "clouds-vert",
+            "clouds-frag",
+            "postprocess-vert",
+            "postprocess-frag",
+            "player-shadow-frag",
+            "light-shadows-geom",
+            "light-shadows-frag",
+        ];
 
-            anti_alias_none: AssetExt::load("voxygen.shaders.antialias.none")?,
-            anti_alias_fxaa: AssetExt::load("voxygen.shaders.antialias.fxaa")?,
-            anti_alias_msaa_x4: AssetExt::load("voxygen.shaders.antialias.msaa-x4")?,
-            anti_alias_msaa_x8: AssetExt::load("voxygen.shaders.antialias.msaa-x8")?,
-            anti_alias_msaa_x16: AssetExt::load("voxygen.shaders.antialias.msaa-x16")?,
-            cloud_none: AssetExt::load("voxygen.shaders.include.cloud.none")?,
-            cloud_regular: AssetExt::load("voxygen.shaders.include.cloud.regular")?,
-            figure_vert: AssetExt::load("voxygen.shaders.figure-vert")?,
+        let shaders = shaders
+            .into_iter()
+            .map(|shader| {
+                let full_specifier = ["voxygen.shaders.", shader].concat();
+                let asset = AssetExt::load(&full_specifier)?;
+                Ok((String::from(*shader), asset))
+            })
+            .collect::<Result<HashMap<_, _>, assets::Error>>()?;
 
-            terrain_point_shadow_vert: AssetExt::load("voxygen.shaders.light-shadows-vert")?,
-            terrain_directed_shadow_vert: AssetExt::load(
-                "voxygen.shaders.light-shadows-directed-vert",
-            )?,
-            figure_directed_shadow_vert: AssetExt::load(
-                "voxygen.shaders.light-shadows-figure-vert",
-            )?,
-            directed_shadow_frag: AssetExt::load("voxygen.shaders.light-shadows-directed-frag")?,
+        Ok(Self { shaders })
+    }
+}
 
-            skybox_vert: AssetExt::load("voxygen.shaders.skybox-vert")?,
-            skybox_frag: AssetExt::load("voxygen.shaders.skybox-frag")?,
-            figure_frag: AssetExt::load("voxygen.shaders.figure-frag")?,
-            terrain_vert: AssetExt::load("voxygen.shaders.terrain-vert")?,
-            terrain_frag: AssetExt::load("voxygen.shaders.terrain-frag")?,
-            fluid_vert: AssetExt::load("voxygen.shaders.fluid-vert")?,
-            fluid_frag_cheap: AssetExt::load("voxygen.shaders.fluid-frag.cheap")?,
-            fluid_frag_shiny: AssetExt::load("voxygen.shaders.fluid-frag.shiny")?,
-            sprite_vert: AssetExt::load("voxygen.shaders.sprite-vert")?,
-            sprite_frag: AssetExt::load("voxygen.shaders.sprite-frag")?,
-            particle_vert: AssetExt::load("voxygen.shaders.particle-vert")?,
-            particle_frag: AssetExt::load("voxygen.shaders.particle-frag")?,
-            ui_vert: AssetExt::load("voxygen.shaders.ui-vert")?,
-            ui_frag: AssetExt::load("voxygen.shaders.ui-frag")?,
-            lod_terrain_vert: AssetExt::load("voxygen.shaders.lod-terrain-vert")?,
-            lod_terrain_frag: AssetExt::load("voxygen.shaders.lod-terrain-frag")?,
-            clouds_vert: AssetExt::load("voxygen.shaders.clouds-vert")?,
-            clouds_frag: AssetExt::load("voxygen.shaders.clouds-frag")?,
-            postprocess_vert: AssetExt::load("voxygen.shaders.postprocess-vert")?,
-            postprocess_frag: AssetExt::load("voxygen.shaders.postprocess-frag")?,
-            player_shadow_frag: AssetExt::load("voxygen.shaders.player-shadow-frag")?,
-            light_shadows_geom: AssetExt::load("voxygen.shaders.light-shadows-geom")?,
-            light_shadows_frag: AssetExt::load("voxygen.shaders.light-shadows-frag")?,
-        })
+impl Shaders {
+    fn get(&self, shader: &str) -> Option<impl std::ops::Deref<Target = Glsl>> {
+        self.shaders.get(shader).map(|a| a.read())
     }
 }
 
@@ -337,7 +303,14 @@ impl Renderer {
             point_shadow_pipeline,
             terrain_directed_shadow_pipeline,
             figure_directed_shadow_pipeline,
-        ) = create_pipelines(&device, &layouts, &mode, &sc_desc, shadow_views.is_some())?;
+        ) = create_pipelines(
+            &device,
+            &layouts,
+            &shaders.read(),
+            &mode,
+            &sc_desc,
+            shadow_views.is_some(),
+        )?;
 
         let (tgt_color_view, tgt_depth_stencil_view, tgt_color_pp_view, win_depth_view) =
             Self::create_rt_views(&device, (dims.width, dims.height), &mode)?;
@@ -424,8 +397,6 @@ impl Renderer {
             postprocess_pipeline,
             shaders,
             //player_shadow_pipeline,
-            shader_reload_indicator,
-
             noise_tex,
 
             mode,
@@ -1827,14 +1798,14 @@ fn create_pipelines(
 > {
     use shaderc::{CompileOptions, Compiler, OptimizationLevel, ResolvedInclude, ShaderKind};
 
-    let constants = &shaders.constants.read().0;
-    let globals = &shaders.globals.read().0;
-    let sky = &shaders.sky.read().0;
-    let light = &shaders.light.read().0;
-    let srgb = &shaders.srgb.read().0;
-    let random = &shaders.random.read().0;
-    let lod = &shaders.lod.read().0;
-    let shadows = &shaders.shadows.read().0;
+    let constants = shaders.get("include.constants").unwrap();
+    let globals = shaders.get("include.globals").unwrap();
+    let sky = shaders.get("include.sky").unwrap();
+    let light = shaders.get("include.light").unwrap();
+    let srgb = shaders.get("include.srgb").unwrap();
+    let random = shaders.get("include.random").unwrap();
+    let lod = shaders.get("include.lod").unwrap();
+    let shadows = shaders.get("include.shadows").unwrap();
 
     // We dynamically add extra configuration settings to the constants file.
     let constants = format!(
@@ -1848,7 +1819,7 @@ fn create_pipelines(
 #define SHADOW_MODE {}
 
 "#,
-        constants,
+        &constants.0,
         // TODO: Configurable vertex/fragment shader preference.
         "VOXYGEN_COMPUTATION_PREFERENCE_FRAGMENT",
         match mode.fluid {
@@ -1875,18 +1846,22 @@ fn create_pipelines(
         },
     );
 
-    let anti_alias = &match mode.aa {
-        AaMode::None => shaders.anti_alias_none,
-        AaMode::Fxaa => shaders.anti_alias_fxaa,
-        AaMode::MsaaX4 => shaders.anti_alias_msaa_x4,
-        AaMode::MsaaX8 => shaders.anti_alias_msaa_x8,
-        AaMode::MsaaX16 => shaders.anti_alias_msaa_x16,
-    };
+    let anti_alias = shaders
+        .get(match mode.aa {
+            AaMode::None => "antialias.none",
+            AaMode::Fxaa => "antialias.fxaa",
+            AaMode::MsaaX4 => "antialias.msaa-x4",
+            AaMode::MsaaX8 => "antialias.msaa-x8",
+            AaMode::MsaaX16 => "antialias.msaa-x16",
+        })
+        .unwrap();
 
-    let cloud = &match mode.cloud {
-        CloudMode::None => shaders.cloud_none,
-        _ => shaders.cloud_regular,
-    };
+    let cloud = shaders
+        .get(match mode.cloud {
+            CloudMode::None => "include.cloud.none",
+            _ => "include.cloud.regular",
+        })
+        .unwrap();
 
     let mut compiler = Compiler::new().ok_or(RenderError::ErrorInitializingCompiler)?;
     let mut options = CompileOptions::new().ok_or(RenderError::ErrorInitializingCompiler)?;
@@ -1896,96 +1871,44 @@ fn create_pipelines(
             resolved_name: name.to_string(),
             content: match name {
                 "constants.glsl" => constants.clone(),
-                "globals.glsl" => globals.as_ref().clone(),
-                "shadows.glsl" => shadows.as_ref().clone(),
-                "sky.glsl" => sky.as_ref().clone(),
-                "light.glsl" => light.as_ref().clone(),
-                "srgb.glsl" => srgb.as_ref().clone(),
-                "random.glsl" => random.as_ref().clone(),
-                "lod.glsl" => lod.as_ref().clone(),
-                "anti-aliasing.glsl" => anti_alias.as_ref().clone(),
-                "cloud.glsl" => cloud.as_ref().clone(),
+                "globals.glsl" => globals.0.to_owned(),
+                "shadows.glsl" => shadows.0.to_owned(),
+                "sky.glsl" => sky.0.to_owned(),
+                "light.glsl" => light.0.to_owned(),
+                "srgb.glsl" => srgb.0.to_owned(),
+                "random.glsl" => random.0.to_owned(),
+                "lod.glsl" => lod.0.to_owned(),
+                "anti-aliasing.glsl" => anti_alias.0.to_owned(),
+                "cloud.glsl" => cloud.0.to_owned(),
                 other => return Err(format!("Include {} is not defined", other)),
             },
         })
     });
 
-    let figure_vert = &shaders.figure_vert.read().0;
+    let mut create_shader = |name, kind| {
+        let glsl = &shaders.get(name).unwrap().0;
+        let file_name = format!("{}.glsl", name);
+        create_shader_module(device, &mut compiler, glsl, kind, &file_name, &options)
+    };
 
-    let terrain_point_shadow_vert = &shaders.terrain_point_shadow_vert.read().0;
+    let figure_vert_mod = create_shader("figure-vert", ShaderKind::Vertex)?;
 
-    let terrain_directed_shadow_vert = &shaders.terrain_directed_shadow_vert.read().0;
+    let terrain_point_shadow_vert_mod = create_shader("light-shadows-vert", ShaderKind::Vertex)?;
 
-    let figure_directed_shadow_vert = &shadows.figure_directed_shadow_vert.read().0;
+    let terrain_directed_shadow_vert_mod =
+        create_shader("light-shadows-directed-vert", ShaderKind::Vertex)?;
 
-    let directed_shadow_frag = &shaders.directed_shadow_frag.read().0;
+    let figure_directed_shadow_vert_mod =
+        create_shader("light-shadows-figure-vert", ShaderKind::Vertex)?;
 
-    let figure_vert_mod = create_shader_module(
-        device,
-        &mut compiler,
-        &figure_vert,
-        ShaderKind::Vertex,
-        "figure-vert.glsl",
-        &options,
-    )?;
-
-    let terrain_point_shadow_vert_mod = create_shader_module(
-        device,
-        &mut compiler,
-        &terrain_point_shadow_vert,
-        ShaderKind::Vertex,
-        "light-shadows-vert.glsl",
-        &options,
-    )?;
-
-    let terrain_directed_shadow_vert_mod = create_shader_module(
-        device,
-        &mut compiler,
-        &terrain_directed_shadow_vert,
-        ShaderKind::Vertex,
-        "light-shadows-directed-vert.glsl",
-        &options,
-    )?;
-
-    let figure_directed_shadow_vert_mod = create_shader_module(
-        device,
-        &mut compiler,
-        &figure_directed_shadow_vert,
-        ShaderKind::Vertex,
-        "light-shadows-figure-vert.glsl",
-        &options,
-    )?;
-
-    // TODO: closure to to make calling this easier
-
-    let directed_shadow_frag_mod = create_shader_module(
-        device,
-        &mut compiler,
-        &directed_shadow_frag,
-        ShaderKind::Fragment,
-        "light-shadows-directed-frag.glsl",
-        &options,
-    )?;
+    let directed_shadow_frag_mod =
+        create_shader("light-shadows-directed-frag", ShaderKind::Fragment)?;
 
     // Construct a pipeline for rendering skyboxes
     let skybox_pipeline = skybox::SkyboxPipeline::new(
         device,
-        &create_shader_module(
-            device,
-            &mut compiler,
-            shaders.skybox_vert.read().0,
-            ShaderKind::Vertex,
-            "skybox-vert.glsl",
-            &options,
-        )?,
-        &create_shader_module(
-            device,
-            &mut compiler,
-            shaders.skybox_frag.read().0,
-            ShaderKind::Fragment,
-            "skybox-frag.glsl",
-            &options,
-        )?,
+        &create_shader("skybox-vert", ShaderKind::Vertex)?,
+        &create_shader("skybox-frag", ShaderKind::Fragment)?,
         sc_desc,
         &layouts.global,
         mode.aa,
@@ -1995,39 +1918,19 @@ fn create_pipelines(
     let figure_pipeline = figure::FigurePipeline::new(
         device,
         &figure_vert_mod,
-        &create_shader_module(
-            device,
-            &mut compiler,
-            shaders.figure_frag.read().0,
-            ShaderKind::Fragment,
-            "figure-frag.glsl",
-            &options,
-        )?,
+        &create_shader("figure-frag", ShaderKind::Fragment)?,
         sc_desc,
         &layouts.global,
         &layouts.figure,
         mode.aa,
     );
 
+    let terrain_vert = create_shader("terrain-vert", ShaderKind::Vertex)?;
     // Construct a pipeline for rendering terrain
     let terrain_pipeline = terrain::TerrainPipeline::new(
         device,
-        &create_shader_module(
-            device,
-            &mut compiler,
-            shaders.terrain_vert.read().0,
-            ShaderKind::Vertex,
-            "terrain-vert.glsl",
-            &options,
-        )?,
-        &create_shader_module(
-            device,
-            &mut compiler,
-            shaders.terrain_frag.read().0,
-            ShaderKind::Fragment,
-            "terrain-frag.glsl",
-            &options,
-        )?,
+        &terrain_vert,
+        &create_shader("terrain-frag", ShaderKind::Fragment)?,
         sc_desc,
         &layouts.global,
         &layouts.terrain,
@@ -2035,27 +1938,15 @@ fn create_pipelines(
     );
 
     // Construct a pipeline for rendering fluids
+    let selected_fluid_shader = ["fluid-frag.", match mode.fluid {
+        FluidMode::Cheap => "cheap",
+        FluidMode::Shiny => "shiny",
+    }]
+    .concat();
     let fluid_pipeline = fluid::FluidPipeline::new(
         device,
-        &create_shader_module(
-            device,
-            &mut compiler,
-            shaders.fluid_vert.read().0,
-            ShaderKind::Vertex,
-            "terrain-vert.glsl",
-            &options,
-        )?,
-        &create_shader_module(
-            device,
-            &mut compiler,
-            match mode.fluid {
-                FluidMode::Cheap => shaders.fluid_frag_cheap.read().0,
-                FluidMode::Shiny => shaders.fluid_frag_shiny.read().0,
-            },
-            ShaderKind::Fragment,
-            "fluid-frag.glsl",
-            &options,
-        )?,
+        &terrain_vert,
+        &create_shader(&selected_fluid_shader, ShaderKind::Fragment)?,
         sc_desc,
         &layouts.global,
         &layouts.fluid,
@@ -2065,22 +1956,8 @@ fn create_pipelines(
     // Construct a pipeline for rendering sprites
     let sprite_pipeline = sprite::SpritePipeline::new(
         device,
-        &create_shader_module(
-            device,
-            &mut compiler,
-            shaders.sprite_vert.read().0,
-            ShaderKind::Vertex,
-            "sprite-vert.glsl",
-            &options,
-        )?,
-        &create_shader_module(
-            device,
-            &mut compiler,
-            shaders.sprite_frag.read().0,
-            ShaderKind::Fragment,
-            "sprite-frag.glsl",
-            &options,
-        )?,
+        &create_shader("sprite-vert", ShaderKind::Vertex)?,
+        &create_shader("sprite-frag", ShaderKind::Fragment)?,
         sc_desc,
         &layouts.global,
         &layouts.sprite,
@@ -2091,22 +1968,8 @@ fn create_pipelines(
     // Construct a pipeline for rendering particles
     let particle_pipeline = particle::ParticlePipeline::new(
         device,
-        &create_shader_module(
-            device,
-            &mut compiler,
-            shaders.particle_vert.read().0,
-            ShaderKind::Vertex,
-            "particle-vert.glsl",
-            &options,
-        )?,
-        &create_shader_module(
-            device,
-            &mut compiler,
-            shaders.particle_frag.read().0,
-            ShaderKind::Fragment,
-            "particle-frag.glsl",
-            &options,
-        )?,
+        &create_shader("particle-vert", ShaderKind::Vertex)?,
+        &create_shader("particle-frag", ShaderKind::Fragment)?,
         sc_desc,
         &layouts.global,
         mode.aa,
@@ -2115,22 +1978,8 @@ fn create_pipelines(
     // Construct a pipeline for rendering UI elements
     let ui_pipeline = ui::UIPipeline::new(
         device,
-        &create_shader_module(
-            device,
-            &mut compiler,
-            shaders.ui_vert.read().0,
-            ShaderKind::Vertex,
-            "ui-vert.glsl",
-            &options,
-        )?,
-        &create_shader_module(
-            device,
-            &mut compiler,
-            shaders.ui_frag.read().0,
-            ShaderKind::Fragment,
-            "ui-frag.glsl",
-            &options,
-        )?,
+        &create_shader("ui-vert", ShaderKind::Vertex)?,
+        &create_shader("ui-frag", ShaderKind::Fragment)?,
         sc_desc,
         &layouts.global,
         &layouts.ui,
@@ -2140,22 +1989,8 @@ fn create_pipelines(
     // Construct a pipeline for rendering terrain
     let lod_terrain_pipeline = lod_terrain::LodTerrainPipeline::new(
         device,
-        &create_shader_module(
-            device,
-            &mut compiler,
-            shaders.lod_terrain_vert.read().0,
-            ShaderKind::Vertex,
-            "lod-terrain-vert.glsl",
-            &options,
-        )?,
-        &create_shader_module(
-            device,
-            &mut compiler,
-            shaders.lod_terrain_frag.read().0,
-            ShaderKind::Fragment,
-            "lod-terrain-frag.glsl",
-            &options,
-        )?,
+        &create_shader("lod-terrain-vert", ShaderKind::Vertex)?,
+        &create_shader("lod-terrain-frag", ShaderKind::Fragment)?,
         sc_desc,
         &layouts.global,
         mode.aa,
@@ -2164,22 +1999,8 @@ fn create_pipelines(
     // Construct a pipeline for rendering our clouds (a kind of post-processing)
     let clouds_pipeline = clouds::CloudsPipeline::new(
         device,
-        &create_shader_module(
-            device,
-            &mut compiler,
-            &Glsl::load_watched("voxygen.shaders.clouds-vert", shader_reload_indicator).unwrap(),
-            ShaderKind::Vertex,
-            "clouds-vert.glsl",
-            &options,
-        )?,
-        &create_shader_module(
-            device,
-            &mut compiler,
-            &Glsl::load_watched("voxygen.shaders.clouds-frag", shader_reload_indicator).unwrap(),
-            ShaderKind::Fragment,
-            "clouds-frag.glsl",
-            &options,
-        )?,
+        &create_shader("clouds-vert", ShaderKind::Vertex)?,
+        &create_shader("clouds-frag", ShaderKind::Fragment)?,
         sc_desc,
         &layouts.global,
         &layouts.clouds,
@@ -2189,22 +2010,8 @@ fn create_pipelines(
     // Construct a pipeline for rendering our post-processing
     let postprocess_pipeline = postprocess::PostProcessPipeline::new(
         device,
-        &create_shader_module(
-            device,
-            &mut compiler,
-            shaders.postprocess_vert.read().0,
-            ShaderKind::Vertex,
-            "postprocess-vert.glsl",
-            &options,
-        )?,
-        &create_shader_module(
-            device,
-            &mut compiler,
-            shaders.postprocess_frag.read().0,
-            ShaderKind::Fragment,
-            "postprocess-frag.glsl",
-            &options,
-        )?,
+        &create_shader("postprocess-vert", ShaderKind::Vertex)?,
+        &create_shader("postprocess-frag", ShaderKind::Fragment)?,
         sc_desc,
         &layouts.global,
         &layouts.postprocess,
@@ -2335,7 +2142,9 @@ fn create_shader_module(
 ) -> Result<wgpu::ShaderModule, RenderError> {
     use std::borrow::Cow;
 
-    let spv = compiler.compile_into_spirv(source, kind, file_name, "main", Some(options))?;
+    let spv = compiler
+        .compile_into_spirv(source, kind, file_name, "main", Some(options))
+        .map_err(|e| (file_name, e))?;
 
     Ok(
         device.create_shader_module(wgpu::ShaderModuleSource::SpirV(Cow::Borrowed(

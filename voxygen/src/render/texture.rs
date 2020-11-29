@@ -41,7 +41,7 @@ impl Texture {
             usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
         });
 
-        let mut command_encoder =
+        let command_encoder =
             device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
 
         queue.write_texture(
