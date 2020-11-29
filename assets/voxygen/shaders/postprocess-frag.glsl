@@ -22,17 +22,27 @@
 #include <srgb.glsl>
 #include <cloud.glsl>
 
-//uniform sampler2D src_depth;
+layout(set = 1, binding = 0)
+uniform texture2D t_src_color;
+layout(set = 1, binding = 1)
+uniform sampler s_src_color;
 
-in vec2 f_pos;
+// TODO: unused
+layout(set = 1, binding = 2)
+uniform texture2D t_src_depth;
+layout(set = 1, binding = 3)
+uniform sampler s_src_depth;
 
-layout (std140)
+
+layout(location = 0) in vec2 f_pos;
+
+layout (std140, set = 1, binding = 4)
 uniform u_locals {
     mat4 proj_mat_inv;
     mat4 view_mat_inv;
 };
 
-out vec4 tgt_color;
+layout(location = 0) out vec4 tgt_color;
 
 vec3 rgb2hsv(vec3 c) {
     vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
@@ -202,7 +212,7 @@ void main() {
 
     // float bright_color = (bright_color0 + bright_color1 + bright_color2 + bright_color3 + bright_color4) / 5.0;
 
-    vec4 aa_color = aa_apply(src_color, uv * screen_res.xy, screen_res.xy);
+    vec4 aa_color = aa_apply(t_src_color, s_src_color, uv * screen_res.xy, screen_res.xy);
 
     // Tonemapping
     float exposure_offset = 1.0;

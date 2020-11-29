@@ -148,6 +148,7 @@ impl Locals {
         }
     }
 
+    // TODO: unused?
     fn layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
         device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: None,
@@ -175,6 +176,7 @@ impl SpriteLayout {
                 label: None,
                 entries: &[
                     // locals
+                    // TODO: different freq
                     wgpu::BindGroupLayoutEntry {
                         binding: 0,
                         visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,

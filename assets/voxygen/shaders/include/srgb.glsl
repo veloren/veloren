@@ -1,3 +1,5 @@
+#ifndef SRGB_GLSL
+#define SRGB_GLSL
 // Linear RGB, attenuation coefficients for water at roughly R, G, B wavelengths.
 // See https://en.wikipedia.org/wiki/Electromagnetic_absorption_by_water
 const vec3 MU_WATER = vec3(0.6, 0.04, 0.01);
@@ -618,8 +620,8 @@ vec3 compute_attenuation_point(vec3 wpos, vec3 ray_dir, vec3 mu, float surface_a
 //}
 //#endif
 
-vec3 greedy_extract_col_light_attr(sampler2D t_col_light, vec2 f_uv_pos, out float f_light, out float f_glow, out uint f_attr) {
-    uvec4 f_col_light = uvec4(texelFetch(t_col_light, ivec2(f_uv_pos), 0) * 255);
+vec3 greedy_extract_col_light_attr(texture2D t_col_light, sampler s_col_light, vec2 f_uv_pos, out float f_light, out float f_glow, out uint f_attr) {
+    uvec4 f_col_light = uvec4(texelFetch(sampler2D(t_col_light, s_col_light), ivec2(f_uv_pos), 0) * 255);
     vec3 f_col = vec3(
         float(((f_col_light.r & 0x7u) << 1u) | (f_col_light.b & 0xF0u)),
         float(f_col_light.a),
@@ -628,9 +630,9 @@ vec3 greedy_extract_col_light_attr(sampler2D t_col_light, vec2 f_uv_pos, out flo
 
     // TODO: Figure out how to use `texture` and modulation to avoid needing to do manual filtering
     vec2 light_00 = vec2(uvec2(f_col_light.rg) >> 3u);
-    vec2 light_10 = vec2(uvec2(texelFetch(t_col_light, ivec2(f_uv_pos) + ivec2(1, 0), 0).rg * 255.0) >> 3u);
-    vec2 light_01 = vec2(uvec2(texelFetch(t_col_light, ivec2(f_uv_pos) + ivec2(0, 1), 0).rg * 255.0) >> 3u);
-    vec2 light_11 = vec2(uvec2(texelFetch(t_col_light, ivec2(f_uv_pos) + ivec2(1, 1), 0).rg * 255.0) >> 3u);
+    vec2 light_10 = vec2(uvec2(texelFetch(sampler2D(t_col_light, s_col_light), ivec2(f_uv_pos) + ivec2(1, 0), 0).rg * 255.0) >> 3u);
+    vec2 light_01 = vec2(uvec2(texelFetch(sampler2D(t_col_light, s_col_light), ivec2(f_uv_pos) + ivec2(0, 1), 0).rg * 255.0) >> 3u);
+    vec2 light_11 = vec2(uvec2(texelFetch(sampler2D(t_col_light, s_col_light), ivec2(f_uv_pos) + ivec2(1, 1), 0).rg * 255.0) >> 3u);
     vec2 light_0 = mix(light_00, light_01, fract(f_uv_pos.y));
     vec2 light_1 = mix(light_10, light_11, fract(f_uv_pos.y));
     vec2 light = mix(light_0, light_1, fract(f_uv_pos.x));
@@ -644,7 +646,8 @@ vec3 greedy_extract_col_light_attr(sampler2D t_col_light, vec2 f_uv_pos, out flo
     return srgb_to_linear(f_col);
 }
 
-vec3 greedy_extract_col_light_glow(sampler2D t_col_light, vec2 f_uv_pos, out float f_light, out float f_glow) {
+vec3 greedy_extract_col_light_glow(texture2D t_col_light, sampler s_col_light, vec2 f_uv_pos, out float f_light, out float f_glow) {
     uint f_attr;
     return greedy_extract_col_light_attr(t_col_light, f_uv_pos, f_light, f_glow, f_attr);
 }
+#endif

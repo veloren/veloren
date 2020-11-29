@@ -20,16 +20,11 @@
 #include <srgb.glsl>
 #include <lod.glsl>
 
-in vec2 v_pos;
+layout(location = 0) in vec2 v_pos;
 
-layout (std140)
-uniform u_locals {
-    vec4 nul;
-};
-
-out vec3 f_pos;
-out vec3 f_norm;
-out float pull_down;
+layout(location = 0) out vec3 f_pos;
+layout(location = 1) out vec3 f_norm;
+layout(location = 2) out float pull_down;
 // out vec2 v_pos_orig;
 // out vec4 f_square;
 // out vec4 f_shadow;

@@ -16,19 +16,22 @@
 
 #include <globals.glsl>
 
-in vec3 f_pos;
-flat in vec3 f_norm;
-flat in float f_select;
+layout(location = 0) in vec3 f_pos;
+layout(location = 1) flat in vec3 f_norm;
+layout(location = 2) flat in float f_select;
 // flat in vec3 f_pos_norm;
-in vec2 f_uv_pos;
-in vec2 f_inst_light;
+layout(location = 3) in vec2 f_uv_pos;
+layout(location = 4) in vec2 f_inst_light;
 // flat in uint f_atlas_pos;
 // in vec3 f_col;
 // in float f_ao;
 // in float f_light;
 // in vec4 light_pos[2];
 
-uniform sampler2D t_col_light;
+layout(set = 2, binding = 1)
+uniform texture2D t_col_light;
+layout(set = 2, binding = 2)
+uniform sampler s_col_light;
 
 //struct ShadowLocals {
 //    mat4 shadowMatrices;
@@ -40,7 +43,7 @@ uniform sampler2D t_col_light;
 //    ShadowLocals shadowMats[/*MAX_LAYER_FACES*/192];
 //};
 
-out vec4 tgt_color;
+layout(location = 0) out vec4 tgt_color;
 
 #include <sky.glsl>
 #include <light.glsl>
@@ -63,7 +66,7 @@ void main() {
     // vec3 f_norm = normalize(cross(du, dv));
 
     float f_ao, f_glow;
-    vec3 f_col = greedy_extract_col_light_glow(t_col_light, f_uv_pos, f_ao, f_glow);
+    vec3 f_col = greedy_extract_col_light_glow(t_col_light, s_col_light, f_uv_pos, f_ao, f_glow);
 
     // vec3 my_chunk_pos = f_pos_norm;
     // tgt_color = vec4(hash(floor(vec4(my_chunk_pos.x, 0, 0, 0))), hash(floor(vec4(0, my_chunk_pos.y, 0, 1))), hash(floor(vec4(0, 0, my_chunk_pos.z, 2))), 1.0);
@@ -97,7 +100,7 @@ void main() {
 #endif
 
 #if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP)
-    vec4 f_shadow = textureBicubic(t_horizon, pos_to_tex(f_pos.xy));
+    vec4 f_shadow = textureBicubic(t_horizon, s_horizon, pos_to_tex(f_pos.xy));
     float sun_shade_frac = horizon_at2(f_shadow, f_alt, f_pos, sun_dir);
     // float sun_shade_frac = 1.0;//horizon_at2(f_shadow, f_alt, f_pos, sun_dir);
 #elif (SHADOW_MODE == SHADOW_MODE_NONE)

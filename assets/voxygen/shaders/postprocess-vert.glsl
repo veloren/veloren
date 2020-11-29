@@ -18,9 +18,9 @@
 
 #include <globals.glsl>
 
-in vec2 v_pos;
+layout(location = 0) in vec2 v_pos;
 
-out vec2 f_pos;
+layout(location = 0) out vec2 f_pos;
 
 void main() {
     f_pos = v_pos;

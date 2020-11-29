@@ -16,17 +16,17 @@
 #include <srgb.glsl>
 #include <sky.glsl>
 
-in vec3 v_pos;
-in uint v_atlas_pos;
+layout(location = 0) in vec3 v_pos;
+layout(location = 1) in uint v_atlas_pos;
 // in uint v_col;
-in uint v_norm_ao;
-in uint inst_pos_ori;
-in vec4 inst_mat0;
-in vec4 inst_mat1;
-in vec4 inst_mat2;
-in vec4 inst_mat3;
-in vec4 inst_light;
-in float inst_wind_sway;
+layout(location = 2) in uint v_norm_ao;
+layout(location = 3) in uint inst_pos_ori;
+layout(location = 4) in vec4 inst_mat0;
+layout(location = 5) in vec4 inst_mat1;
+layout(location = 6) in vec4 inst_mat2;
+layout(location = 7) in vec4 inst_mat3;
+layout(location = 8) in vec4 inst_light;
+layout(location = 9) in float inst_wind_sway;
 
 struct SpriteLocals {
     mat4 mat;
@@ -34,7 +34,7 @@ struct SpriteLocals {
     vec4 offs;
 };
 
-layout (std140)
+layout(std140, set = 2, binding = 0)
 uniform u_locals {
     mat4 mat;
     vec4 wind_sway;
@@ -63,21 +63,21 @@ uniform u_locals {
 //    ShadowLocals shadowMats[/*MAX_LAYER_FACES*/192];
 //};
 
-layout (std140)
+layout (std140, set = 1, binding = 0)
 uniform u_terrain_locals {
     vec3 model_offs;
     float load_time;
     ivec4 atlas_offs;
 };
 
-out vec3 f_pos;
-flat out vec3 f_norm;
-flat out float f_select;
+layout(location = 0) out vec3 f_pos;
+layout(location = 1) flat out vec3 f_norm;
+layout(location = 2) flat out float f_select;
 // flat out vec3 f_pos_norm;
 // out vec3 f_col;
 // out float f_ao;
-out vec2 f_uv_pos;
-out vec2 f_inst_light;
+layout(location = 3) out vec2 f_uv_pos;
+layout(location = 4) out vec2 f_inst_light;
 // flat out uint f_atlas_pos;
 // out vec3 light_pos[2];
 // out float f_light;

@@ -2,22 +2,25 @@
 
 #include <globals.glsl>
 
-in vec2 v_pos;
-in vec2 v_uv;
-in vec2 v_center;
-in vec4 v_color;
-in uint v_mode;
+layout(location = 0) in vec2 v_pos;
+layout(location = 1) in vec2 v_uv;
+layout(location = 2) in vec4 v_color;
+layout(location = 3) in vec2 v_center;
+layout(location = 4) in uint v_mode;
 
-layout (std140)
+layout (std140, set = 1, binding = 0)
 uniform u_locals {
     vec4 w_pos;
 };
 
-uniform sampler2D u_tex;
+layout(set = 1, binding = 1)
+uniform texture2D t_tex;
+layout(set = 1, binding = 2)
+uniform sampler s_tex;
 
-out vec2 f_uv;
-flat out uint f_mode;
-out vec4 f_color;
+layout(location = 0) out vec2 f_uv;
+layout(location = 1) out vec4 f_color;
+layout(location = 2) flat out uint f_mode;
 
 void main() {
     f_color = v_color;
@@ -36,7 +39,7 @@ void main() {
         gl_Position = vec4(v_pos, -1.0, 1.0);
         vec2 look_at_dir = normalize(vec2(-view_mat[0][2], -view_mat[1][2]));
         // TODO: Consider cleaning up matrix to something more efficient (e.g. a mat3).
-        vec2 aspect_ratio = textureSize(u_tex, 0).yx;
+        vec2 aspect_ratio = textureSize(sampler2D(t_tex, s_tex), 0).yx;
         mat2 look_at = mat2(look_at_dir.y, look_at_dir.x, -look_at_dir.x, look_at_dir.y);
         vec2 v_centered = (v_uv - v_center) / aspect_ratio;
         vec2 v_rotated = look_at * v_centered;

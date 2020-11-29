@@ -170,6 +170,7 @@ impl TerrainLayout {
                         count: None,
                     },
                     // col lights
+                    // TODO: same frequency?
                     wgpu::BindGroupLayoutEntry {
                         binding: 1,
                         visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,

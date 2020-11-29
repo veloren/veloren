@@ -72,6 +72,7 @@ impl BoneData {
         }
     }
 
+    // TODO: delete? the one below is being used
     fn layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
         device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: None,
@@ -142,6 +143,7 @@ impl FigureLayout {
                         },
                         count: None,
                     },
+                    // TODO: does this change at the same frequency?
                     // col lights
                     wgpu::BindGroupLayoutEntry {
                         binding: 2,

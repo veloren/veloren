@@ -23,8 +23,8 @@
 #include <globals.glsl>
 #include <random.glsl>
 
-in vec3 f_pos;
-flat in uint f_pos_norm;
+layout(location = 0) in vec3 f_pos;
+layout(location = 1) flat in uint f_pos_norm;
 // in vec3 f_col;
 // in float f_light;
 // in vec3 light_pos[2];
@@ -39,16 +39,19 @@ flat in uint f_pos_norm;
 //    ShadowLocals shadowMats[/*MAX_LAYER_FACES*/192];
 //};
 
-layout (std140)
+layout(std140, set = 2, binding = 0)
 uniform u_locals {
     vec3 model_offs;
     float load_time;
     ivec4 atlas_offs;
 };
 
-uniform sampler2D t_waves;
+layout(set = 1, binding = 0)
+uniform texture2D t_waves;
+layout(set = 1, binding = 1)
+uniform sampler s_waves;
 
-out vec4 tgt_color;
+layout(location = 0) out vec4 tgt_color;
 
 #include <cloud.glsl>
 #include <light.glsl>
@@ -65,25 +68,25 @@ float wave_height(vec3 pos) {
 
     pos *= 0.5;
     vec3 big_warp = (
-        texture(t_noise, fract(pos.xy * 0.03 + timer * 0.01)).xyz * 0.5 +
-        texture(t_noise, fract(pos.yx * 0.03 - timer * 0.01)).xyz * 0.5 +
+        texture(sampler2D(t_noise, s_noise), fract(pos.xy * 0.03 + timer * 0.01)).xyz * 0.5 +
+        texture(sampler2D(t_noise, s_noise), fract(pos.yx * 0.03 - timer * 0.01)).xyz * 0.5 +
         vec3(0)
     );
 
     vec3 warp = (
-        texture(t_noise, fract(pos.yx * 0.1 + timer * 0.02)).xyz * 0.3 +
-        texture(t_noise, fract(pos.yx * 0.1 - timer * 0.02)).xyz * 0.3 +
+        texture(sampler2D(t_noise, s_noise), fract(pos.yx * 0.1 + timer * 0.02)).xyz * 0.3 +
+        texture(sampler2D(t_noise, s_noise), fract(pos.yx * 0.1 - timer * 0.02)).xyz * 0.3 +
         vec3(0)
     );
 
     float height = (
-        (texture(t_noise, (pos.xy + pos.z) * 0.03 + big_warp.xy + timer * 0.05).y - 0.5) * 1.0 +
-        (texture(t_noise, (pos.yx + pos.z) * 0.03 + big_warp.yx - timer * 0.05).y - 0.5) * 1.0 +
-        (texture(t_noise, (pos.xy + pos.z) * 0.1 + warp.xy + timer * 0.1).x - 0.5) * 0.5 +
-        (texture(t_noise, (pos.yx + pos.z) * 0.1 + warp.yx - timer * 0.1).x - 0.5) * 0.5 +
-        (texture(t_noise, (pos.yx + pos.z) * 0.3 + warp.xy * 0.5 + timer * 0.1).x - 0.5) * 0.2 +
-        (texture(t_noise, (pos.xy + pos.z) * 0.3 + warp.yx * 0.5 - timer * 0.1).x - 0.5) * 0.2 +
-        (texture(t_noise, (pos.yx + pos.z) * 1.0 + warp.yx * 0.0 - timer * 0.1).x - 0.5) * 0.05 +
+        (texture(sampler2D(t_noise, s_noise), (pos.xy + pos.z) * 0.03 + big_warp.xy + timer * 0.05).y - 0.5) * 1.0 +
+        (texture(sampler2D(t_noise, s_noise), (pos.yx + pos.z) * 0.03 + big_warp.yx - timer * 0.05).y - 0.5) * 1.0 +
+        (texture(sampler2D(t_noise, s_noise), (pos.xy + pos.z) * 0.1 + warp.xy + timer * 0.1).x - 0.5) * 0.5 +
+        (texture(sampler2D(t_noise, s_noise), (pos.yx + pos.z) * 0.1 + warp.yx - timer * 0.1).x - 0.5) * 0.5 +
+        (texture(sampler2D(t_noise, s_noise), (pos.yx + pos.z) * 0.3 + warp.xy * 0.5 + timer * 0.1).x - 0.5) * 0.2 +
+        (texture(sampler2D(t_noise, s_noise), (pos.xy + pos.z) * 0.3 + warp.yx * 0.5 - timer * 0.1).x - 0.5) * 0.2 +
+        (texture(sampler2D(t_noise, s_noise), (pos.yx + pos.z) * 1.0 + warp.yx * 0.0 - timer * 0.1).x - 0.5) * 0.05 +
         0.0
     );
 
@@ -191,7 +194,7 @@ void main() {
     /* vec3 sun_dir = get_sun_dir(time_of_day.x);
     vec3 moon_dir = get_moon_dir(time_of_day.x); */
 #if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP)
-    vec4 f_shadow = textureBicubic(t_horizon, pos_to_tex(f_pos.xy));
+    vec4 f_shadow = textureBicubic(t_horizon, s_horizon, pos_to_tex(f_pos.xy));
     float sun_shade_frac = horizon_at2(f_shadow, f_alt, f_pos, sun_dir);
 #elif (SHADOW_MODE == SHADOW_MODE_NONE)
     float sun_shade_frac = 1.0;//horizon_at2(f_shadow, f_alt, f_pos, sun_dir);

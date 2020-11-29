@@ -1866,6 +1866,7 @@ fn create_pipelines(
     let mut compiler = Compiler::new().ok_or(RenderError::ErrorInitializingCompiler)?;
     let mut options = CompileOptions::new().ok_or(RenderError::ErrorInitializingCompiler)?;
     options.set_optimization_level(OptimizationLevel::Performance);
+    options.set_forced_version_profile(420, shaderc::GlslProfile::Core);
     options.set_include_callback(move |name, _, shader_name, _| {
         Ok(ResolvedInclude {
             resolved_name: name.to_string(),
@@ -1950,6 +1951,7 @@ fn create_pipelines(
         sc_desc,
         &layouts.global,
         &layouts.fluid,
+        &layouts.terrain,
         mode.aa,
     );
 

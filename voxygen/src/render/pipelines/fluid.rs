@@ -1,4 +1,4 @@
-use super::super::{AaMode, GlobalsLayouts};
+use super::super::{AaMode, GlobalsLayouts, TerrainLayout};
 use bytemuck::{Pod, Zeroable};
 use vek::*;
 
@@ -87,13 +87,18 @@ impl FluidPipeline {
         sc_desc: &wgpu::SwapChainDescriptor,
         global_layout: &GlobalsLayouts,
         layout: &FluidLayout,
+        terrain_layout: &TerrainLayout,
         aa_mode: AaMode,
     ) -> Self {
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Fluid pipeline layout"),
                 push_constant_ranges: &[],
-                bind_group_layouts: &[&global_layout.globals, &layout.waves],
+                bind_group_layouts: &[
+                    &global_layout.globals,
+                    &layout.waves,
+                    &terrain_layout.locals,
+                ],
             });
 
         let samples = match aa_mode {

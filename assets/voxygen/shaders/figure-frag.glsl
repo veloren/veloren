@@ -17,14 +17,16 @@
 #define HAS_SHADOW_MAPS
 
 #include <globals.glsl>
+#include <light.glsl>
+#include <cloud.glsl>
 
-in vec3 f_pos;
+layout(location = 0) in vec3 f_pos;
 // in float dummy;
 // in vec3 f_col;
 // in float f_ao;
 // flat in uint f_pos_norm;
-flat in vec3 f_norm;
-/*centroid */in vec2 f_uv_pos;
+layout(location = 1) flat in vec3 f_norm;
+/*centroid */layout(location = 2) in vec2 f_uv_pos;
 // in float f_alt;
 // in vec4 f_shadow;
 // in vec3 light_pos[2];
@@ -35,7 +37,10 @@ flat in vec3 f_norm;
 // const vec4 sun_pos = vec4(0.0);
 // #endif
 
-uniform sampler2D t_col_light;
+layout(set = 1, binding = 2)
+uniform texture2D t_col_light;
+layout(set = 1, binding = 3)
+uniform sampler s_col_light;
 
 //struct ShadowLocals {
 //  mat4 shadowMatrices;
@@ -47,7 +52,7 @@ uniform sampler2D t_col_light;
 //    ShadowLocals shadowMats[/*MAX_LAYER_FACES*/192];
 //};
 
-layout (std140)
+layout (std140, set = 1, binding = 0)
 uniform u_locals {
     mat4 model_mat;
     vec4 highlight_col;
@@ -65,16 +70,12 @@ struct BoneData {
     mat4 normals_mat;
 };
 
-layout (std140)
+layout (std140, set = 1, binding = 1)
 uniform u_bones {
     BoneData bones[16];
 };
 
-#include <cloud.glsl>
-#include <light.glsl>
-#include <lod.glsl>
-
-out vec4 tgt_color;
+layout(location = 0) out vec4 tgt_color;
 
 void main() {
     // vec2 texSize = textureSize(t_col_light, 0);
@@ -88,8 +89,7 @@ void main() {
 
     float f_ao, f_glow;
     uint material = 0xFFu;
-    vec3 f_col = greedy_extract_col_light_attr(t_col_light, f_uv_pos, f_ao, f_glow, material);
-
+    vec3 f_col = greedy_extract_col_light_attr(t_col_light, s_col_light, f_uv_pos, f_ao, f_glow, material);
     // float /*f_light*/f_ao = textureProj(t_col_light, vec3(f_uv_pos, texSize)).a;//1.0;//f_col_light.a * 4.0;// f_light = float(v_col_light & 0x3Fu) / 64.0;
 
     // vec3 my_chunk_pos = (vec3((uvec3(f_pos_norm) >> uvec3(0, 9, 18)) & uvec3(0x1FFu)) - 256.0) / 2.0;
@@ -131,7 +131,7 @@ void main() {
 #endif
 
 #if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP)
-    vec4 f_shadow = textureBicubic(t_horizon, pos_to_tex(f_pos.xy));
+    vec4 f_shadow = textureBicubic(t_horizon, s_horizon, pos_to_tex(f_pos.xy));
     float sun_shade_frac = horizon_at2(f_shadow, f_alt, f_pos, sun_dir);
 #elif (SHADOW_MODE == SHADOW_MODE_NONE)
     float sun_shade_frac = 1.0;//horizon_at2(f_shadow, f_alt, f_pos, sun_dir);

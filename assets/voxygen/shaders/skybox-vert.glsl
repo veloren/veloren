@@ -18,14 +18,9 @@
 
 #include <globals.glsl>
 
-in vec3 v_pos;
+layout(location = 0) in vec3 v_pos;
 
-layout (std140)
-uniform u_locals {
-    vec4 nul;
-};
-
-out vec3 f_pos;
+layout(location = 0) out vec3 f_pos;
 
 void main() {
     /* vec3 v_pos = v_pos;

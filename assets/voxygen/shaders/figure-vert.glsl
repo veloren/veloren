@@ -17,15 +17,15 @@
 #include <globals.glsl>
 #include <lod.glsl>
 
-in uint v_pos_norm;
-in uint v_atlas_pos;
+layout(location = 0) in uint v_pos_norm;
+layout(location = 1) in uint v_atlas_pos;
 
 // in vec3 v_norm;
 /* in uint v_col;
 // out vec3 light_pos[2];
 in uint v_ao_bone; */
 
-layout (std140)
+layout (std140, set = 1, binding = 0)
 uniform u_locals {
     mat4 model_mat;
     vec4 highlight_col;
@@ -43,7 +43,7 @@ struct BoneData {
     mat4 normals_mat;
 };
 
-layout (std140)
+layout (std140, set = 1, binding = 1)
 uniform u_bones {
     // Warning: might not actually be 16 elements long. Don't index out of bounds!
     BoneData bones[16];
@@ -59,11 +59,11 @@ uniform u_bones {
 //    ShadowLocals shadowMats[/*MAX_LAYER_FACES*/192];
 //};
 
-out vec3 f_pos;
+layout(location = 0) out vec3 f_pos;
 // flat out uint f_pos_norm;
-flat out vec3 f_norm;
+layout(location = 1) flat out vec3 f_norm;
 // float dummy;
-/*centroid */out vec2 f_uv_pos;
+/*centroid */layout(location = 2) out vec2 f_uv_pos;
 // out vec3 f_col;
 // out float f_ao;
 // out float f_alt;

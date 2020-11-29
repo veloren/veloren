@@ -1,3 +1,6 @@
+#ifndef SHADOWS_GLSL
+#define SHADOWS_GLSL
+
 #ifdef HAS_SHADOW_MAPS
 
     #if (SHADOW_MODE == SHADOW_MODE_MAP)
@@ -6,17 +9,25 @@ struct ShadowLocals {
     mat4 texture_mat;
 };
 
-layout (std140)
+layout (std140, set = 0, binding = 9)
 uniform u_light_shadows {
     ShadowLocals shadowMats[/*MAX_LAYER_FACES*/192];
 };
 
-uniform sampler2DShadow t_directed_shadow_maps;
+// Use with sampler2DShadow
+layout(set = 0, binding = 13)
+uniform texture2D t_directed_shadow_maps;
+layout(set = 0, binding = 14)
+uniform sampler s_directed_shadow_maps;
 // uniform sampler2DArrayShadow t_directed_shadow_maps;
 
 // uniform samplerCubeArrayShadow t_shadow_maps;
 // uniform samplerCubeArray t_shadow_maps;
-uniform samplerCubeShadow t_point_shadow_maps;
+// Use with samplerCubeShadow
+layout(set = 0, binding = 11)
+uniform textureCube t_point_shadow_maps;
+layout(set = 0, binding = 12)
+uniform sampler s_point_shadow_maps;
 // uniform samplerCube t_shadow_maps;
 
 // uniform sampler2DArray t_directed_shadow_maps;
@@ -64,7 +75,7 @@ float ShadowCalculationPoint(uint lightIndex, vec3 fragToLight, vec3 fragNorm, /
     {
         float currentDepth = VectorToDepth(fragToLight);// + bias;
 
-        float visibility = texture(t_point_shadow_maps, vec4(fragToLight, currentDepth));// / (screen_res.w/* - screen_res.z*/)/*1.0 -bias*//*-(currentDepth - bias) / screen_res.w*//*-screen_res.w*/);
+        float visibility = texture(samplerCubeShadow(t_point_shadow_maps, s_point_shadow_maps), vec4(fragToLight, currentDepth));// / (screen_res.w/* - screen_res.z*/)/*1.0 -bias*//*-(currentDepth - bias) / screen_res.w*//*-screen_res.w*/);
         /* if (visibility == 1.0 || visibility == 0.0) {
             return visibility;
         } */
@@ -157,7 +168,7 @@ float ShadowCalculationDirected(in vec3 fragPos)//in vec4 /*light_pos[2]*/sun_po
     mat4 texture_mat = shadowMats[0].texture_mat;
     vec4 sun_pos = texture_mat * vec4(fragPos, 1.0);
     // sun_pos.z -= sun_pos.w * bias;
-    float visibility = textureProj(t_directed_shadow_maps, sun_pos);
+    float visibility = textureProj(sampler2DShadow(t_directed_shadow_maps, s_directed_shadow_maps), sun_pos);
     /* float visibilityLeft = textureProj(t_directed_shadow_maps, sun_shadow.texture_mat * vec4(fragPos + vec3(0.0, -diskRadius, 0.0), 1.0));
     float visibilityRight = textureProj(t_directed_shadow_maps, sun_shadow.texture_mat * vec4(fragPos + vec3(0.0, diskRadius, 0.0), 1.0)); */
     // float nearVisibility = textureProj(t_directed_shadow_maps + vec3(0.001, sun_pos));
@@ -215,4 +226,6 @@ float ShadowCalculationPoint(uint lightIndex, vec3 fragToLight, vec3 fragNorm, /
 {
     return 1.0;
 }
+#endif
+
 #endif

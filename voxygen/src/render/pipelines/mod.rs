@@ -316,6 +316,7 @@ impl GlobalsLayouts {
                     count: None,
                 },
                 // light shadows
+                // TODO: should this be a uniform?
                 wgpu::BindGroupLayoutEntry {
                     binding: 9,
                     visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,

@@ -23,14 +23,14 @@
 #include <cloud.glsl>
 #include <lod.glsl>
 
-in vec3 f_pos;
-in vec3 f_norm;
-in float pull_down;
+layout(location = 0) in vec3 f_pos;
+layout(location = 1) in vec3 f_norm;
+layout(location = 2) in float pull_down;
 // in vec2 v_pos_orig;
 // in vec4 f_shadow;
 // in vec4 f_square;
 
-out vec4 tgt_color;
+layout(location = 0) out vec4 tgt_color;
 
 /// const vec4 sun_pos = vec4(0);
 // const vec4 light_pos[2] = vec4[](vec4(0), vec4(0)/*, vec3(00), vec3(0), vec3(0), vec3(0)*/);
@@ -444,7 +444,7 @@ void main() {
 #endif
 
 #if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP)
-    vec4 f_shadow = textureBicubic(t_horizon, pos_to_tex(f_pos.xy));
+    vec4 f_shadow = textureBicubic(t_horizon, s_horizon, pos_to_tex(f_pos.xy));
     float sun_shade_frac = horizon_at2(f_shadow, shadow_alt, f_pos, sun_dir);
     // float sun_shade_frac = 1.0;
 #elif (SHADOW_MODE == SHADOW_MODE_NONE)

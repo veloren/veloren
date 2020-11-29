@@ -16,18 +16,11 @@
 
 #define LIGHTING_DISTRIBUTION LIGHTING_DISTRIBUTION_BECKMANN
 
-#include <globals.glsl>
-#include <sky.glsl>
-#include <lod.glsl>
+#include <lod.glsl> // includes sky, globals
 
-in vec3 f_pos;
+layout(location = 0) in vec3 f_pos;
 
-layout (std140)
-uniform u_locals {
-    vec4 nul;
-};
-
-out vec4 tgt_color;
+layout(location = 0) out vec4 tgt_color;
 
 void main() {
     // tgt_color = vec4(MU_SCATTER, 1.0);
