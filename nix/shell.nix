@@ -20,5 +20,6 @@ mkShell {
       trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= veloren-nix.cachix.org-1:zokfKJqVsNV6kI/oJdLF6TYBdNPYGSb+diMVQPn/5Rc=
     "
     export LD_LIBRARY_PATH=${common.neededLibPathsVoxygen}
+    git lfs install --local && git lfs fetch && git lfs checkout
   '';
 }
