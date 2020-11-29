@@ -21,10 +21,7 @@ impl Animation for RunAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        next.head.scale = Vec3::one() / 11.0;
-
-        next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
-        next.head.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
+        next.chest.scale = Vec3::one() / 11.0;
 
         next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1) / 11.0;
         next.chest.orientation = Quaternion::rotation_x(0.0);

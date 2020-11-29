@@ -2287,7 +2287,6 @@ struct FishSmallCentralSpec(HashMap<(FSSpecies, FSBodyType), SidedFSCentralVoxSp
 
 #[derive(Deserialize)]
 struct SidedFSCentralVoxSpec {
-    head: FishSmallCentralSubSpec,
     chest: FishSmallCentralSubSpec,
     tail: FishSmallCentralSubSpec,
 }
@@ -2317,10 +2316,6 @@ make_vox_spec!(
     },
     |FigureKey { body, .. }, spec| {
         [
-            Some(spec.central.asset.mesh_head(
-                body.species,
-                body.body_type,
-            )),
             Some(spec.central.asset.mesh_chest(
                 body.species,
                 body.body_type,
@@ -2348,27 +2343,12 @@ make_vox_spec!(
             None,
             None,
             None,
+            None,
         ]
     },
 );
 
 impl FishSmallCentralSpec {
-    fn mesh_head(&self, species: FSSpecies, body_type: FSBodyType) -> BoneMeshes {
-        let spec = match self.0.get(&(species, body_type)) {
-            Some(spec) => spec,
-            None => {
-                error!(
-                    "No head specification exists for the combination of {:?} and {:?}",
-                    species, body_type
-                );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            },
-        };
-        let central = graceful_load_segment(&spec.head.central.0);
-
-        (central, Vec3::from(spec.head.offset))
-    }
-
     fn mesh_chest(&self, species: FSSpecies, body_type: FSBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,

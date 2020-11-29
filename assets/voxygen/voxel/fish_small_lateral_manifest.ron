@@ -1,22 +1,22 @@
 ({
-    (Sardine, Male): (
+    (Clownfish, Male): (
         fin_l: (
-            offset: (-1.5, -5.0, -3.0),
-            lateral: ("npc.sardine.male.fin_l"),
+            offset: (-0.5, -3.0, -4.0),
+            lateral: ("npc.clownfish.male.fin_l"),
         ),
         fin_r: (
-            offset: (-1.5, -5.0, -3.0),
-            lateral: ("npc.sardine.male.fin_r"),
+            offset: (-0.5, -3.0, -4.0),
+            lateral: ("npc.clownfish.male.fin_r"),
         ),
     ),
-    (Sardine, Female): (
+    (Clownfish, Female): (
         fin_l: (
-            offset: (-1.5, -5.0, -3.0),
-            lateral: ("npc.sardine.male.fin_l"),
+            offset: (-0.5, -3.0, -4.0),
+            lateral: ("npc.clownfish.male.fin_l"),
         ),
         fin_r: (
-            offset: (-1.5, -5.0, -3.0),
-            lateral: ("npc.sardine.male.fin_r"),
+            offset: (-0.5, -3.0, -4.0),
+            lateral: ("npc.clownfish.male.fin_r"),
         ),
     ),
 })
