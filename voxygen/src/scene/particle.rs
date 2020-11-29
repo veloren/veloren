@@ -1226,7 +1226,7 @@ fn default_cache(renderer: &mut Renderer) -> HashMap<&'static str, Model<Particl
 
         let segment = Segment::from(&vox.read().0);
         let segment_size = segment.size();
-        let mesh = generate_mesh_base_vol_particle(segment, &mut greedy).0;
+        let mut mesh = generate_mesh_base_vol_particle(segment, &mut greedy).0;
         // Center particle vertices around origin
         for vert in mesh.vertices_mut() {
             vert.pos[0] -= segment_size.x as f32 / 2.0;

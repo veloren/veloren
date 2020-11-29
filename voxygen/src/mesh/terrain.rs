@@ -230,7 +230,6 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
 #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
 pub fn generate_mesh<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug + 'static>(
     vol: &'a VolGrid2d<V>,
-    (range, max_texture_size): (Aabb<i32>, Vec2<u16>),
     (range, max_texture_size, _boi): (Aabb<i32>, Vec2<u16>, &'a BlocksOfInterest),
 ) -> MeshGen<
     TerrainVertex,
@@ -254,13 +253,13 @@ pub fn generate_mesh<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug + '
     // let glow_blocks = boi.lights
     //     .iter()
     //     .map(|(pos, glow)| (*pos + range.min.xy(), *glow));
-    /*  DefaultVolIterator::new(self, range.min - MAX_LIGHT_DIST, range.max + MAX_LIGHT_DIST)
+    /*  DefaultVolIterator::new(vol, range.min - MAX_LIGHT_DIST, range.max + MAX_LIGHT_DIST)
     .filter_map(|(pos, block)| block.get_glow().map(|glow| (pos, glow))); */
 
     let mut glow_blocks = Vec::new();
 
     // TODO: This expensive, use BlocksOfInterest instead
-    let mut volume = self.cached();
+    let mut volume = vol.cached();
     for x in -MAX_LIGHT_DIST..range.size().w + MAX_LIGHT_DIST {
         for y in -MAX_LIGHT_DIST..range.size().h + MAX_LIGHT_DIST {
             for z in -1..range.size().d + 1 {
@@ -275,8 +274,8 @@ pub fn generate_mesh<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug + '
     }
 
     // Calculate chunk lighting (sunlight defaults to 1.0, glow to 0.0)
-    let light = calc_light(true, SUNLIGHT, range, self, core::iter::empty());
-    let glow = calc_light(false, 0, range, self, glow_blocks.into_iter());
+    let light = calc_light(true, SUNLIGHT, range, vol, core::iter::empty());
+    let glow = calc_light(false, 0, range, vol, glow_blocks.into_iter());
 
     let mut opaque_limits = None::<Limits>;
     let mut fluid_limits = None::<Limits>;

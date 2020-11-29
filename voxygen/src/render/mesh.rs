@@ -26,7 +26,7 @@ impl<V: Vertex> Mesh<V> {
     pub fn vertices(&self) -> &[V] { &self.verts }
 
     /// Get a mutable slice referencing the vertices of this mesh.
-    pub fn vertices_mut(&mut self) -> &mut [P::Vertex] { &mut self.verts }
+    pub fn vertices_mut(&mut self) -> &mut [V] { &mut self.verts }
 
     /// Push a new vertex onto the end of this mesh.
     pub fn push(&mut self, vert: V) { self.verts.push(vert); }
@@ -55,7 +55,7 @@ impl<V: Vertex> Mesh<V> {
     }
 
     /// Overwrite a quad
-    pub fn replace_quad(&mut self, index: usize, quad: Quad<P>) {
+    pub fn replace_quad(&mut self, index: usize, quad: Quad<V>) {
         debug_assert!(index % 3 == 0);
         assert!(index + 5 < self.verts.len());
         // Tri 1

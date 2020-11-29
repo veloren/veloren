@@ -16,7 +16,7 @@ use super::{
 use crate::{
     render::{
         create_ui_quad, create_ui_quad_vert_gradient, Consts, DynamicModel, Globals, Mesh,
-        Renderer, UiLocals, UiMode, UiPipeline,
+        Renderer, UiLocals, UiMode, UiVertex,
     },
     Error,
 };
@@ -83,7 +83,7 @@ pub struct IcedRenderer {
     //image_map: Map<(Image, Rotation)>,
     cache: Cache,
     // Model for drawing the ui
-    model: DynamicModel<UiPipeline>,
+    model: DynamicModel<UiVertex>,
     // Consts to specify positions of ingame elements (e.g. Nametags)
     ingame_locals: Vec<Consts<UiLocals>>,
     // Consts for default ui drawing position (ie the interface)
@@ -105,7 +105,7 @@ pub struct IcedRenderer {
 
     // Per-frame/update
     current_state: State,
-    mesh: Mesh<UiPipeline>,
+    mesh: Mesh<UiVertex>,
     glyphs: Vec<(usize, usize, Rgba<f32>, Vec2<u32>)>,
     // Output from glyph_brush in the previous frame
     // It can sometimes ask you to redraw with these instead (idk if that is done with
@@ -128,7 +128,7 @@ impl IcedRenderer {
         Ok(Self {
             cache: Cache::new(renderer, default_font)?,
             draw_commands: Vec::new(),
-            model: renderer.create_dynamic_model(100)?,
+            model: renderer.create_dynamic_model(100),
             interface_locals: renderer.create_consts(&[UiLocals::default()])?,
             default_globals: renderer.create_consts(&[Globals::default()])?,
             ingame_locals: Vec::new(),
@@ -232,17 +232,15 @@ impl IcedRenderer {
 
         let brush_result = glyph_cache.process_queued(
             |rect, tex_data| {
-                let offset = [rect.min[0] as u16, rect.min[1] as u16];
-                let size = [rect.width() as u16, rect.height() as u16];
+                let offset = rect.min;
+                let size = [rect.width(), rect.height()];
 
                 let new_data = tex_data
                     .iter()
                     .map(|x| [255, 255, 255, *x])
                     .collect::<Vec<[u8; 4]>>();
 
-                if let Err(err) = renderer.update_texture(cache_tex, offset, size, &new_data) {
-                    tracing::warn!("Failed to update glyph cache texture: {:?}", err);
-                }
+                renderer.update_texture(cache_tex, offset, size, &new_data);
             },
             // Urgh more allocation we don't need
             |vertex_data| {
@@ -313,13 +311,11 @@ impl IcedRenderer {
 
         // Create a larger dynamic model if the mesh is larger than the current model
         // size.
-        if self.model.vbuf.len() < self.mesh.vertices().len() {
-            self.model = renderer
-                .create_dynamic_model(self.mesh.vertices().len() * 4 / 3)
-                .unwrap();
+        if self.model.len() < self.mesh.vertices().len() {
+            self.model = renderer.create_dynamic_model(self.mesh.vertices().len() * 4 / 3);
         }
         // Update model with new mesh.
-        renderer.update_model(&self.model, &self.mesh, 0).unwrap();
+        renderer.update_model(&self.model, &self.mesh, 0);
     }
 
     // Returns (half_res, align)
@@ -554,6 +550,7 @@ impl IcedRenderer {
                         let cache_dims = graphic_cache
                             .get_tex(tex_id)
                             .get_dimensions()
+                            .xy()
                             .map(|e| e as f32);
                         let min = Vec2::new(aabr.min.x as f32, aabr.max.y as f32) / cache_dims;
                         let max = Vec2::new(aabr.max.x as f32, aabr.min.y as f32) / cache_dims;
@@ -792,7 +789,9 @@ impl IcedRenderer {
                         DrawKind::Plain => self.cache.glyph_cache_tex(),
                     };
                     let model = self.model.submodel(verts.clone());
-                    renderer.render_ui_element(model, tex, scissor, globals, locals);
+                    // TODO
+                    //renderer.render_ui_element(model, tex, scissor, globals,
+                    // locals);
                 },
             }
         }

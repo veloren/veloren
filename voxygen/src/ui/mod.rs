@@ -28,7 +28,7 @@ pub use widgets::{
 use crate::{
     render::{
         create_ui_quad, create_ui_tri, Consts, DynamicModel, Globals, Mesh, RenderError, Renderer,
-        UIVertex, UiLocals, UiMode,
+        UiLocals, UiMode, UiVertex,
     },
     window::Window,
     Error,
@@ -109,9 +109,9 @@ pub struct Ui {
     draw_commands: Vec<DrawCommand>,
     // Mesh buffer for UI vertices; we reuse its allocation in order to limit vector reallocations
     // during redrawing.
-    mesh: Mesh<UIVertex>,
+    mesh: Mesh<UiVertex>,
     // Model for drawing the ui
-    model: DynamicModel<UIVertex>,
+    model: DynamicModel<UiVertex>,
     // Consts for default ui drawing position (ie the interface)
     interface_locals: Consts<UiLocals>,
     default_globals: Consts<Globals>,

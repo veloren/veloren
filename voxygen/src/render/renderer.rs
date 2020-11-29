@@ -164,6 +164,7 @@ pub struct ShadowMapRenderer {
 pub struct Layouts {
     pub(self) global: GlobalsLayouts,
 
+    pub(self) clouds: clouds::CloudsLayout,
     pub(self) figure: figure::FigureLayout,
     pub(self) fluid: fluid::FluidLayout,
     pub(self) postprocess: postprocess::PostProcessLayout,
@@ -202,7 +203,7 @@ pub struct Renderer {
     fluid_pipeline: fluid::FluidPipeline,
     lod_terrain_pipeline: lod_terrain::LodTerrainPipeline,
     particle_pipeline: particle::ParticlePipeline,
-    //clouds_pipeline: wgpu::RenderPipeline,
+    clouds_pipeline: clouds::CloudsPipeline,
     postprocess_pipeline: postprocess::PostProcessPipeline,
     // Consider reenabling at some time
     // player_shadow_pipeline: figure::FigurePipeline,
@@ -298,6 +299,7 @@ impl Renderer {
         let layouts = {
             let global = GlobalsLayouts::new(&device);
 
+            let clouds = clouds::CloudsLayout::new(&device);
             let figure = figure::FigureLayout::new(&device);
             let fluid = fluid::FluidLayout::new(&device);
             let postprocess = postprocess::PostProcessLayout::new(&device);
@@ -309,6 +311,7 @@ impl Renderer {
             Layouts {
                 global,
 
+                clouds,
                 figure,
                 fluid,
                 postprocess,
@@ -502,8 +505,8 @@ impl Renderer {
         ),
         RenderError,
     > {
-        let upscaled = Vec2::from(size)
-            .map(|e: u16| (e as f32 * mode.upscale_mode.factor) as u16)
+        let upscaled = Vec2::<u32>::from(size)
+            .map(|e| (e as f32 * mode.upscale_mode.factor) as u32)
             .into_tuple();
         let (width, height, sample_count) = match mode.aa {
             AaMode::None | AaMode::Fxaa => (upscaled.0, upscaled.1, 1),
@@ -894,6 +897,7 @@ impl Renderer {
     pub fn create_consts<T: Copy + bytemuck::Pod>(
         &mut self,
         vals: &[T],
+        // TODO: don't use result here
     ) -> Result<Consts<T>, RenderError> {
         let mut consts = Consts::new(&self.device, vals.len());
         consts.update(&self.device, &self.queue, vals, 0);
@@ -1812,7 +1816,7 @@ fn create_pipelines(
         particle::ParticlePipeline,
         ui::UIPipeline,
         lod_terrain::LodTerrainPipeline,
-        // TODO: clouds
+        clouds::CloudsPipeline,
         postprocess::PostProcessPipeline,
         //figure::FigurePipeline,
         Option<shadow::ShadowPipeline>,
@@ -1957,7 +1961,7 @@ fn create_pipelines(
     let directed_shadow_frag_mod = create_shader_module(
         device,
         &mut compiler,
-        directed_shadow_frag,
+        &directed_shadow_frag,
         ShaderKind::Fragment,
         "light-shadows-directed-frag.glsl",
         &options,
@@ -2158,15 +2162,29 @@ fn create_pipelines(
     );
 
     // Construct a pipeline for rendering our clouds (a kind of post-processing)
-    // let clouds_pipeline = create_pipeline(
-    //     factory,
-    //     clouds::pipe::new(),
-    //     &Glsl::load_watched("voxygen.shaders.clouds-vert",
-    // shader_reload_indicator).unwrap(),     &Glsl::load_watched("voxygen.
-    // shaders.clouds-frag", shader_reload_indicator).unwrap(),
-    //     &include_ctx,
-    //     gfx::state::CullFace::Back,
-    // )?;
+    let clouds_pipeline = clouds::CloudsPipeline::new(
+        device,
+        &create_shader_module(
+            device,
+            &mut compiler,
+            &Glsl::load_watched("voxygen.shaders.clouds-vert", shader_reload_indicator).unwrap(),
+            ShaderKind::Vertex,
+            "clouds-vert.glsl",
+            &options,
+        )?,
+        &create_shader_module(
+            device,
+            &mut compiler,
+            &Glsl::load_watched("voxygen.shaders.clouds-frag", shader_reload_indicator).unwrap(),
+            ShaderKind::Fragment,
+            "clouds-frag.glsl",
+            &options,
+        )?,
+        sc_desc,
+        &layouts.global,
+        &layouts.clouds,
+        mode.aa,
+    );
 
     // Construct a pipeline for rendering our post-processing
     let postprocess_pipeline = postprocess::PostProcessPipeline::new(

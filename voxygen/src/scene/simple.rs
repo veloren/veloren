@@ -1,9 +1,9 @@
 use crate::{
     mesh::{greedy::GreedyMesh, segment::generate_mesh_base_vol_terrain},
     render::{
-        create_clouds_mesh, create_pp_mesh, create_skybox_mesh, BoneMeshes, CloudsLocals, Consts,
-        FigureModel, GlobalModel, Globals, Light, Mesh, Model, PostProcessLocals,
-        PostProcessVertex, Renderer, Shadow, ShadowLocals, SkyboxLocals, SkyboxVertex,
+        create_clouds_mesh, create_pp_mesh, create_skybox_mesh, BoneMeshes, CloudsLocals,
+        CloudsVertex, Consts, FigureModel, GlobalModel, Globals, Light, Mesh, Model,
+        PostProcessLocals, PostProcessVertex, Renderer, Shadow, ShadowLocals, SkyboxVertex,
         TerrainVertex,
     },
     scene::{
@@ -60,10 +60,11 @@ struct Skybox {
 
 struct PostProcess {
     model: Model<PostProcessVertex>,
+    locals: Consts<PostProcessLocals>,
 }
 
 struct Clouds {
-    model: Model<CloudsPipeline>,
+    model: Model<CloudsVertex>,
     locals: Consts<CloudsLocals>,
 }
 
@@ -140,6 +141,9 @@ impl Scene {
             },
             postprocess: PostProcess {
                 model: renderer.create_model(&create_pp_mesh()).unwrap(),
+                locals: renderer
+                    .create_consts(&[PostProcessLocals::default()])
+                    .unwrap(),
             },
             lod: LodData::new(
                 renderer,

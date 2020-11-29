@@ -32,7 +32,7 @@ use vek::*;
 /// needed to mesh figures.
 struct MeshWorkerResponse<const N: usize> {
     col_light: ColLightInfo,
-    opaque: Mesh<TerrainPipeline>,
+    opaque: Mesh<TerrainVertex>,
     bounds: anim::vek::Aabb<f32>,
     vertex_range: [Range<u32>; N],
 }

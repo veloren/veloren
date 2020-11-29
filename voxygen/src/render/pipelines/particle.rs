@@ -5,7 +5,7 @@ use vek::*;
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Zeroable, Pod)]
 pub struct Vertex {
-    pos: [f32; 3],
+    pub pos: [f32; 3],
     // ____BBBBBBBBGGGGGGGGRRRRRRRR
     // col: u32 = "v_col",
     // ...AANNN
