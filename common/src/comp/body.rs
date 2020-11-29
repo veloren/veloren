@@ -87,7 +87,7 @@ impl<BodyMeta, SpeciesMeta> core::ops::Index<NpcKind> for AllBodies<BodyMeta, Sp
             NpcKind::Pig => &self.quadruped_small.body,
             NpcKind::Wolf => &self.quadruped_medium.body,
             NpcKind::Duck => &self.bird_medium.body,
-            NpcKind::Sardine => &self.fish_medium.body,
+            NpcKind::Clownfish => &self.fish_medium.body,
             NpcKind::Marlin => &self.fish_small.body,
             NpcKind::Ogre => &self.biped_large.body,
             NpcKind::StoneGolem => &self.golem.body,

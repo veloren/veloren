@@ -22,7 +22,6 @@ impl Animation for IdleAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let slower = (anim_time as f32 * 1.0 + PI).sin();
         let slow = (anim_time as f32 * 3.5 + PI).sin();
         let slowalt = (anim_time as f32 * 3.5 + PI + 0.2).sin();
 

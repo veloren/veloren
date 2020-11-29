@@ -686,7 +686,7 @@
         "species": {
             "reddragon": {
                 "keyword": "reddragon",
-                "generic": "Reddragon"
+                "generic": "Red Dragon"
             }
         }
     },
@@ -705,9 +705,9 @@
             ]
         },
         "species": {
-            "sardine": {
-                "keyword": "sardine",
-                "generic": "Sardine"
+            "clownfish": {
+                "keyword": "clownfish",
+                "generic": "Clownfish"
             }
         }
     },

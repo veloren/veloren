@@ -34,7 +34,7 @@ make_case_elim!(
     #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
     #[repr(u32)]
     pub enum Species {
-        Sardine = 0,
+        Clownfish = 0,
     }
 );
 
@@ -43,7 +43,7 @@ make_case_elim!(
 /// NOTE: Deliberately don't (yet?) implement serialize.
 #[derive(Clone, Debug, Deserialize)]
 pub struct AllSpecies<SpeciesMeta> {
-    pub sardine: SpeciesMeta,
+    pub clownfish: SpeciesMeta,
 }
 
 impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> {
@@ -52,12 +52,12 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
     #[inline]
     fn index(&self, &index: &'a Species) -> &Self::Output {
         match index {
-            Species::Sardine => &self.sardine,
+            Species::Clownfish => &self.clownfish,
         }
     }
 }
 
-pub const ALL_SPECIES: [Species; 1] = [Species::Sardine];
+pub const ALL_SPECIES: [Species; 1] = [Species::Clownfish];
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
     type IntoIter = std::iter::Copied<std::slice::Iter<'static, Self::Item>>;

@@ -19,15 +19,13 @@ impl Animation for SwimAnimation {
 
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (velocity, orientation, last_ori, global_time, avg_vel): Self::Dependency,
+        (velocity, orientation, last_ori, _global_time, avg_vel): Self::Dependency,
         anim_time: f64,
-        rate: &mut f32,
+        _rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let slower = (anim_time as f32 * 1.0 + PI).sin();
-        let slow = (anim_time as f32 * 3.5 + PI).sin();
         let slowalt = (anim_time as f32 * 3.5 + PI + 0.2).sin();
         let fast = (anim_time as f32 * 5.5 + PI).sin();
         let fastalt = (anim_time as f32 * 5.5 + PI + 0.2).sin();
@@ -47,8 +45,6 @@ impl Animation for SwimAnimation {
         } * 1.3;
         let abstilt = tilt.abs();
         let x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude());
-
-        let squash = if abstilt > 0.2 { 0.35 } else { 1.0 }; //condenses the body at strong turns
 
         next.chest_front.scale = Vec3::one() / 11.0;
 
