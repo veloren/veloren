@@ -23,6 +23,16 @@ You can configure the crates to be built with debug mode (not recommended, equal
 nix-env -f nix/default.nix --arg release false
 ```
 
+If you aren't on NixOS, you can run `veloren-voxygen` using the provided `nixGLIntel` in the dev shell:
+```shell
+nixGLIntel veloren-voxygen
+```
+If you have an Nvidia GPU, you can enter the dev shell like so:
+```shell
+nix-shell nix/shell.nix --arg nvidia true
+```
+And you'll be able to use `nixGLNvidia` and `nixGLNvidiaBumblebee`.
+
 ### Managing Cargo.nix
 
 Enter the development shell.
@@ -43,9 +53,9 @@ niv update
 
 ### Formatting
 
-Use [nixfmt](https://github.com/serokell/nixfmt) to format files.
+Use [nixpkgs-fmt](https://github.com/nix-community/nixpkgs-fmt) to format files.
 
-To format every Nix file in current working directory:
+To format every Nix file:
 ```shell
-nixfmt *.nix
+nixpkgs-fmt nix/*.nix
 ```
