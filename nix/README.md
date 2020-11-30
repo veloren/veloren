@@ -8,6 +8,13 @@ It is recommended that you enter the dev shell before starting to build using `n
 since it will setup a Cachix cache for you. (you can configure this for your user's `nix.conf` by running `cachix use veloren-nix` once in the dev shell,
 which will make the cache available when you run commands outside of the dev shell).
 
+If you have [direnv](https://direnv.net) setup on your system, it is also recommended to copy the `envrc`
+(or `envrc-nvidia`, if you have an Nvidia GPU) file to the root of the repository as `.envrc`:
+```shell
+cp nix/envrc .envrc
+```
+This will make your env have the dev env setup automatically.
+
 To build and install Voxygen and the server CLI into user profile, run:
 ```shell
 nix-env -f nix/default.nix -i
