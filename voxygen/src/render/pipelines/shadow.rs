@@ -22,6 +22,7 @@ impl Locals {
 
     pub fn default() -> Self { Self::new(Mat4::identity(), Mat4::identity()) }
 
+    // TODO: unused?
     fn layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
         device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: None,
@@ -114,6 +115,8 @@ impl ShadowFigurePipeline {
         layout: &ShadowLayout,
         aa_mode: AaMode,
     ) -> Self {
+        common::span!(_guard, "new");
+        tracing::error!("test");
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Shadow figure pipeline layout"),

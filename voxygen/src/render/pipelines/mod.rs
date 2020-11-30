@@ -316,26 +316,19 @@ impl GlobalsLayouts {
                     count: None,
                 },
                 // light shadows
-                // TODO: should this be a uniform?
                 wgpu::BindGroupLayoutEntry {
                     binding: 9,
                     visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                    ty: wgpu::BindingType::SampledTexture {
-                        component_type: wgpu::TextureComponentType::Float,
-                        dimension: wgpu::TextureViewDimension::D2,
-                        multisampled: false,
+                    // TODO: is this relevant?
+                    ty: wgpu::BindingType::UniformBuffer {
+                        dynamic: false,
+                        min_binding_size: None,
                     },
-                    count: None,
-                },
-                wgpu::BindGroupLayoutEntry {
-                    binding: 10,
-                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                    ty: wgpu::BindingType::Sampler { comparison: false },
                     count: None,
                 },
                 // point shadow_maps
                 wgpu::BindGroupLayoutEntry {
-                    binding: 11,
+                    binding: 10,
                     visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
                     ty: wgpu::BindingType::SampledTexture {
                         component_type: wgpu::TextureComponentType::Float,
@@ -345,14 +338,14 @@ impl GlobalsLayouts {
                     count: None,
                 },
                 wgpu::BindGroupLayoutEntry {
-                    binding: 12,
+                    binding: 11,
                     visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
                     ty: wgpu::BindingType::Sampler { comparison: false },
                     count: None,
                 },
                 // directed shadow maps
                 wgpu::BindGroupLayoutEntry {
-                    binding: 13,
+                    binding: 12,
                     visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
                     ty: wgpu::BindingType::SampledTexture {
                         component_type: wgpu::TextureComponentType::Float,
@@ -362,14 +355,14 @@ impl GlobalsLayouts {
                     count: None,
                 },
                 wgpu::BindGroupLayoutEntry {
-                    binding: 14,
+                    binding: 13,
                     visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
                     ty: wgpu::BindingType::Sampler { comparison: false },
                     count: None,
                 },
                 // lod map (t_map)
                 wgpu::BindGroupLayoutEntry {
-                    binding: 15,
+                    binding: 14,
                     visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
                     ty: wgpu::BindingType::SampledTexture {
                         component_type: wgpu::TextureComponentType::Float,
@@ -379,7 +372,7 @@ impl GlobalsLayouts {
                     count: None,
                 },
                 wgpu::BindGroupLayoutEntry {
-                    binding: 16,
+                    binding: 15,
                     visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
                     ty: wgpu::BindingType::Sampler { comparison: false },
                     count: None,

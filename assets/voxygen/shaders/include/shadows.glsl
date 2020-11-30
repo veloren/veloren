@@ -15,18 +15,18 @@ uniform u_light_shadows {
 };
 
 // Use with sampler2DShadow
-layout(set = 0, binding = 13)
+layout(set = 0, binding = 12)
 uniform texture2D t_directed_shadow_maps;
-layout(set = 0, binding = 14)
+layout(set = 0, binding = 13)
 uniform sampler s_directed_shadow_maps;
 // uniform sampler2DArrayShadow t_directed_shadow_maps;
 
 // uniform samplerCubeArrayShadow t_shadow_maps;
 // uniform samplerCubeArray t_shadow_maps;
 // Use with samplerCubeShadow
-layout(set = 0, binding = 11)
+layout(set = 0, binding = 10)
 uniform textureCube t_point_shadow_maps;
-layout(set = 0, binding = 12)
+layout(set = 0, binding = 11)
 uniform sampler s_point_shadow_maps;
 // uniform samplerCube t_shadow_maps;
 

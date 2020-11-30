@@ -111,7 +111,7 @@ impl Instance {
 
     fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
         use std::mem;
-        const ATTRIBUTES: [wgpu::VertexAttributeDescriptor; 6] = wgpu::vertex_attr_array![0 => Uint, 1 => Float4,2 => Float4, 3 => Float4,4 => Float4, 5 => Float];
+        const ATTRIBUTES: [wgpu::VertexAttributeDescriptor; 7] = wgpu::vertex_attr_array![3 => Uint, 4 => Float4, 5 => Float4, 6 => Float4,7 => Float4, 8 => Float4, 9 => Float];
         wgpu::VertexBufferDescriptor {
             stride: mem::size_of::<Self>() as wgpu::BufferAddress,
             step_mode: wgpu::InputStepMode::Instance,
@@ -224,6 +224,7 @@ impl SpritePipeline {
         terrain_layout: &TerrainLayout,
         aa_mode: AaMode,
     ) -> Self {
+        common::span!(_guard, "SpritePipeline::new");
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Sprite pipeline layout"),

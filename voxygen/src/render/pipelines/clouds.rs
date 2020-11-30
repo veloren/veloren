@@ -139,6 +139,7 @@ impl CloudsPipeline {
         layout: &CloudsLayout,
         aa_mode: AaMode,
     ) -> Self {
+        common::span!(_guard, "CloudsPipeline::new");
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Clouds pipeline layout"),

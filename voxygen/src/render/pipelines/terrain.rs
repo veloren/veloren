@@ -207,6 +207,7 @@ impl TerrainPipeline {
         layout: &TerrainLayout,
         aa_mode: AaMode,
     ) -> Self {
+        common::span!(_guard, "TerrainPipeline::new");
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Terrain pipeline layout"),

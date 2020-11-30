@@ -16,7 +16,9 @@
 
 #define LIGHTING_DISTRIBUTION LIGHTING_DISTRIBUTION_BECKMANN
 
-#include <lod.glsl> // includes sky, globals
+#include <globals.glsl>
+#include <sky.glsl>
+#include <lod.glsl>
 
 layout(location = 0) in vec3 f_pos;
 

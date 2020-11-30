@@ -35,6 +35,7 @@ impl SkyboxPipeline {
         layouts: &GlobalsLayouts,
         aa_mode: AaMode,
     ) -> Self {
+        common::span!(_guard, "SkyboxPipeline::new");
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Skybox pipeline layout"),

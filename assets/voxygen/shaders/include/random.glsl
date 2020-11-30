@@ -2,7 +2,7 @@
 #define RANDOM_GLSL
 
 layout(set = 0, binding = 1) uniform texture2D t_noise;
-layout(set = 0, binding = 1) uniform sampler s_noise;
+layout(set = 0, binding = 2) uniform sampler s_noise;
 
 float hash(vec4 p) {
     p = fract(p * 0.3183099 + 0.1) - fract(p + 23.22121);

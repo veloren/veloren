@@ -1946,7 +1946,7 @@ fn create_pipelines(
     .concat();
     let fluid_pipeline = fluid::FluidPipeline::new(
         device,
-        &terrain_vert,
+        &create_shader("fluid-vert", ShaderKind::Vertex)?,
         &create_shader(&selected_fluid_shader, ShaderKind::Fragment)?,
         sc_desc,
         &layouts.global,
