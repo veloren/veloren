@@ -42,6 +42,7 @@ userdata
 *.sqlite-shm
 
 # direnv
+/.direnv
 /.envrc
 *.bat
 

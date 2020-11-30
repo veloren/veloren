@@ -1,21 +1,18 @@
 {
-/* `crate2nix` doesn't support profiles in `Cargo.toml`, so default to release.
-   Otherwise bad performance (non-release is built with opt level 0)
-*/
-release ? true, cratesToBuild ? [ "veloren-voxygen" "veloren-server-cli" ]
+  # `crate2nix` doesn't support profiles in `Cargo.toml`, so default to release.
+  # Otherwise bad performance (non-release is built with opt level 0)
+  release ? true
+, cratesToBuild ? [ "veloren-voxygen" "veloren-server-cli" ]
 , system ? builtins.currentSystem
-, sources ? import ./sources.nix { inherit system; } }:
-
+, nixpkgs ? sources.nixpkgs
+, nvidia ? false
+, sources ? import ./sources.nix { inherit system; }
+}:
 let
-  isBuildingCrate = name:
-    builtins.any (otherName: name == otherName) cratesToBuild;
-  isBuildingVoxygen = isBuildingCrate "veloren-voxygen";
-  isBuildingServerCli = isBuildingCrate "veloren-server-cli";
+  common = import ./common.nix { inherit nixpkgs system sources; };
+  inherit (common) pkgs;
 
-  pkgs = import ./nixpkgs.nix { inherit sources system; };
-  common = import ./common.nix { inherit pkgs; };
-
-  meta = with pkgs; {
+  meta = with pkgs.stdenv.lib; {
     description = "Veloren is a multiplayer voxel RPG written in Rust.";
     longDescription = ''
       Veloren is a multiplayer voxel RPG written in Rust.
@@ -23,36 +20,43 @@ let
     '';
     homepage = "https://veloren.net";
     upstream = "https://gitlab.com/veloren/veloren";
-    license = lib.licenses.gpl3;
-    maintainers = [ lib.maintainers.yusdacra ];
-    platforms = lib.platforms.all;
+    license = licenses.gpl3;
+    maintainers = [ maintainers.yusdacra ];
+    platforms = platforms.all;
   };
 
-  makeGitCommand = subcommands: name:
-    # Check if git-lfs is working. This is a partial check only,
-    # the actual check is done in `common/build.rs`. We do this
-    # so that the build fails early.
-    if builtins.pathExists ../assets/voxygen/background/bg_main.png then
-      builtins.readFile (pkgs.runCommand name { } ''
-        cd ${
-        # Only copy the `.git` directory to nix store, anything else is a waste.
-          builtins.path {
-            path = ../.git;
-            # Nix store path names don't accept names that start with a dot.
-            name = "git";
-          }
-        }
-        ${pkgs.git}/bin/git ${subcommands} > $out
-      '')
+  isGitLfsSetup =
+    let
+      gitLfsCheckOutput = with common;
+        builtins.readFile (pkgs.runCommand "gitLfsCheck" { } ''
+          [ "$(${pkgs.file}/bin/file --mime-type ${gitLfsCheckFile})" = "${gitLfsCheckFile}: image/png" ]
+          printf $? > $out
+        '');
+    in
+    if gitLfsCheckOutput == "0" then
+      true
     else
       abort ''
-        Git Large File Storage (git-lfs) has not been set up correctly.
+        Git Large File Storage (`git-lfs`) has not been set up correctly.
         Most common reasons:
-        	- git-lfs was not installed before cloning this repository
-        	- this repository was not cloned from the primary gitlab mirror.
-        	- The github mirror does not support lfs.
+          - `git-lfs` was not installed before cloning this repository.
+          - This repository was not cloned from the primary GitLab mirror.
+          - The GitHub mirror does not support LFS.
         See the book at https://book.veloren.net/ for details.
       '';
+
+  makeGitCommand = subcommands: name:
+    builtins.readFile (pkgs.runCommand name { } ''
+      cd ${
+      # Only copy the `.git` directory to nix store, anything else is a waste.
+        builtins.path {
+          path = ../.git;
+          # Nix store path names don't accept names that start with a dot.
+          name = "veloren-git-dir";
+        }
+      }
+      (${pkgs.git}/bin/git ${subcommands}) > $out
+    '');
 
   gitHash = makeGitCommand
     "log -n 1 --pretty=format:%h/%cd --date=format:%Y-%m-%d-%H:%M --abbrev=8"
@@ -61,73 +65,87 @@ let
   gitTag =
     # If the git command errors out we feed an empty string
     makeGitCommand "describe --exact-match --tags HEAD || printf ''"
-    "getGitTag";
+      "getGitTag";
 
+  # If gitTag has a tag (meaning the commit we are on is a *release*), use it as version, else:
+  # Just use the prettified hash we have, if we don't have it the build fails
   version = if gitTag != "" then gitTag else gitHash;
+  # Sanitize version string since it might contain illegal characters for a Nix store path
+  # Used in the derivation(s) name
+  sanitizedVersion = pkgs.stdenv.lib.strings.sanitizeDerivationName version;
+
+  veloren-assets = pkgs.runCommand "makeAssetsDir" { } ''
+    mkdir $out
+    ln -sf ${../assets} $out/assets
+  '';
+
+  velorenVoxygenDesktopFile = pkgs.makeDesktopItem rec {
+    name = "veloren-voxygen";
+    exec = name;
+    icon = ../assets/voxygen/logo.ico;
+    comment =
+      "Official client for Veloren - the open-world, open-source multiplayer voxel RPG";
+    desktopName = "Voxygen";
+    genericName = "Veloren Client";
+    categories = "Game;";
+  };
 
   veloren-crates = with pkgs;
     callPackage ./Cargo.nix {
       defaultCrateOverrides = with common;
         defaultCrateOverrides // {
-          libudev-sys = _: { buildInputs = crateDeps.libudev-sys; };
-          alsa-sys = _: { buildInputs = crateDeps.alsa-sys; };
-          veloren-common = _:
-            (if isBuildingServerCli then {
-              DISABLE_GIT_LFS_CHECK = true;
-            } else
-              { }) // {
-                # Declare env values here so that `common/build.rs` sees them
-                NIX_GIT_HASH = gitHash;
-                NIX_GIT_TAG = gitTag;
-              };
-          veloren-network = _: { buildInputs = crateDeps.veloren-network; };
-          veloren-server-cli = _: { VELOREN_USERDATA_STRATEGY = "system"; };
-          veloren-voxygen = _: {
+          libudev-sys = _: crateDeps.libudev-sys;
+          alsa-sys = _: crateDeps.alsa-sys;
+          veloren-network = _: crateDeps.veloren-network;
+          veloren-common = _: {
+            # Disable `git-lfs` check here since we check it ourselves
+            # We have to include the command output here, otherwise Nix won't run it
+            DISABLE_GIT_LFS_CHECK = isGitLfsSetup;
+            # Declare env values here so that `common/build.rs` sees them
+            NIX_GIT_HASH = gitHash;
+            NIX_GIT_TAG = gitTag;
+          };
+          veloren-server-cli = _: {
+            name = "veloren-server-cli_${sanitizedVersion}";
+            inherit version;
             VELOREN_USERDATA_STRATEGY = "system";
-            buildInputs = crateDeps.veloren-voxygen;
             nativeBuildInputs = [ makeWrapper ];
             postInstall = ''
-              wrapProgram $out/bin/veloren-voxygen --set LD_LIBRARY_PATH ${neededLibPaths}
+              wrapProgram $out/bin/veloren-server-cli --set VELOREN_ASSETS ${veloren-assets}
             '';
+            meta = meta // {
+              longDescription = ''
+                ${meta.longDescription}
+                "This package includes the server CLI."
+              '';
+            };
+          };
+          veloren-voxygen = _: {
+            name = "veloren-voxygen_${sanitizedVersion}";
+            inherit version;
+            VELOREN_USERDATA_STRATEGY = "system";
+            inherit (crateDeps.veloren-voxygen) buildInputs;
+            nativeBuildInputs = crateDeps.veloren-voxygen.nativeBuildInputs
+            ++ [ makeWrapper copyDesktopItems ];
+            desktopItems = [ velorenVoxygenDesktopFile ];
+            postInstall = ''
+              wrapProgram $out/bin/veloren-voxygen\
+                --set VELOREN_ASSETS ${veloren-assets}\
+                --set LD_LIBRARY_PATH ${
+                  lib.makeLibraryPath common.voxygenNeededLibs
+                }
+            '';
+            meta = meta // {
+              longDescription = ''
+                ${meta.longDescription}
+                "This package includes the official client, Voxygen."
+              '';
+            };
           };
         };
       inherit release pkgs;
     };
 
-  veloren-assets = pkgs.symlinkJoin {
-    inherit version;
-    name = "veloren-assets_${version}";
-    paths = [
-      (pkgs.runCommand "mkVelorenAssetsDir" { } ''
-        mkdir -p $out/share/veloren
-        ln -sf ${../assets} $out/share/veloren/assets
-      '')
-    ];
-    meta = meta // {
-      longDescription = ''
-        ${meta.longDescription}
-        This package includes the assets.
-      '';
-    };
-  };
-
-  makePkg = name:
-    pkgs.symlinkJoin {
-      inherit version;
-      name = "${name}_${version}";
-      paths = [ veloren-crates.workspaceMembers."${name}".build ];
-      meta = meta // {
-        longDescription = ''
-          ${meta.longDescription}
-          ${if isBuildingVoxygen then
-            "This package includes the client, Voxygen."
-          else
-            ""}
-          ${if isBuildingServerCli then
-            "This package includes the server CLI."
-          else
-            ""}
-        '';
-      };
-    };
-in (pkgs.lib.genAttrs cratesToBuild makePkg) // { inherit veloren-assets; }
+  makePkg = name: veloren-crates.workspaceMembers."${name}".build;
+in
+(pkgs.lib.genAttrs cratesToBuild makePkg)

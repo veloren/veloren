@@ -5,10 +5,22 @@
         "homepage": "",
         "owner": "kolloch",
         "repo": "crate2nix",
-        "rev": "df3e4e6570c1058d947d70876712209a1eca6731",
-        "sha256": "1kn98ckf2h4j3xmc50n6904p5g226qa1c1jgha511d9l6lgks24r",
+        "rev": "3701179c8aef0677dab1915457ca0f367f2dc523",
+        "sha256": "0z5vz3dcbx53a7q6xrm8qjrn62zlvzvaxdisv2axfh70qq4lx4n2",
         "type": "tarball",
-        "url": "https://github.com/kolloch/crate2nix/archive/df3e4e6570c1058d947d70876712209a1eca6731.tar.gz",
+        "url": "https://github.com/kolloch/crate2nix/archive/3701179c8aef0677dab1915457ca0f367f2dc523.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "nixGL": {
+        "branch": "master",
+        "description": "A wrapper tool for nix OpenGL application",
+        "homepage": null,
+        "owner": "guibou",
+        "repo": "nixGL",
+        "rev": "7d6bc1b21316bab6cf4a6520c2639a11c25a220e",
+        "sha256": "02y38zmdplk7a9ihsxvnrzhhv7324mmf5g8hmxqizaid5k5ydpr3",
+        "type": "tarball",
+        "url": "https://github.com/guibou/nixGL/archive/7d6bc1b21316bab6cf4a6520c2639a11c25a220e.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nixpkgs": {
@@ -17,10 +29,10 @@
         "homepage": "",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "6625284c397b44bc9518a5a1567c1b5aae455c08",
-        "sha256": "1w0czzv53sg35gp7sr506facbmzd33jm34p6cg23fb9kz5rf5c89",
+        "rev": "b6bca3d80619f1565ba0ea635b0d38234e41c6bd",
+        "sha256": "09d4f6h98rmxnxzm1x07jxgrc81k6mz7fjigq375fkmb41j2kdsi",
         "type": "tarball",
-        "url": "https://github.com/NixOS/nixpkgs/archive/6625284c397b44bc9518a5a1567c1b5aae455c08.tar.gz",
+        "url": "https://github.com/NixOS/nixpkgs/archive/b6bca3d80619f1565ba0ea635b0d38234e41c6bd.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nixpkgsMoz": {
