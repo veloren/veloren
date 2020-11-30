@@ -600,7 +600,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 if let Some(new_val) = ImageSlider::continuous(
                     scale.log(2.0),
                     0.5f64.log(2.0),
-                    1.0f64.log(2.0),
+                    2.0f64.log(2.0),
                     self.imgs.slider_indicator,
                     self.imgs.slider,
                 )
