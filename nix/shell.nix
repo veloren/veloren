@@ -16,7 +16,7 @@ let
 
   bundleCrate = writeScriptBin "bundleCrate" ''
     #!${stdenv.shell}
-    ${nix-bundle}/bin/nix-bundle "(pkgs.callPackage ./nix/default.nix { }).$1" /bin/$1
+    ${nix-bundle}/bin/nix-bundle "(pkgs.callPackage ./nix/default.nix { cratesToBuild = [ \"$1\" ]; }).$1" /bin/$1
   '';
 in
 with common;
