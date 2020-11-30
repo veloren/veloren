@@ -60,7 +60,7 @@ use common::{
     state::{State, TimeOfDay},
     sync::WorldSyncExt,
     terrain::TerrainChunkSize,
-    vol::RectVolSize,
+    vol::{ReadVol, RectVolSize},
 };
 use futures_executor::block_on;
 use metrics::{PhysicsMetrics, ServerMetrics, StateTickMetrics, TickMetrics};
@@ -280,43 +280,40 @@ impl Server {
             // calculate the absolute position of the chunk in the world
             // (we could add TerrainChunkSize::RECT_SIZE / 2 here, to spawn in the middle of
             // the chunk)
-            let spawn_location = spawn_chunk.map2(TerrainChunkSize::RECT_SIZE, |e, sz| {
+            let spawn_wpos = spawn_chunk.map2(TerrainChunkSize::RECT_SIZE, |e, sz| {
                 e as i32 * sz as i32 + sz as i32 / 2
             });
 
-            // get a z cache for the column in which we want to spawn
-            let mut block_sampler = world.sample_blocks();
-            let z_cache = block_sampler
-                .get_z_cache(spawn_location, index)
-                .expect(&format!("no z_cache found for chunk: {}", spawn_chunk));
+            // unwrapping because generate_chunk only returns err when should_continue evals
+            // to true
+            let (tc, _cs) = world.generate_chunk(index, spawn_chunk, || false).unwrap();
+            let min_z = tc.get_min_z();
+            let max_z = tc.get_max_z();
 
-            // get the minimum and maximum z values at which there could be solid blocks
-            let (min_z, max_z) = z_cache.get_z_limits();
-            // round range outwards, so no potential air block is missed
-            let min_z = min_z.floor() as i32;
-            let max_z = max_z.ceil() as i32;
-
-            // loop over all blocks from min_z to max_z + 1
-            // until the first air block is found
-            // (up to max_z + 1, because max_z could still be a solid block)
-            // if no air block is found default to max_z + 1
-            let z = (min_z..(max_z + 1) + 1)
-                .find(|z| {
-                    block_sampler
-                        .get_with_z_cache(
-                            Vec3::new(spawn_location.x, spawn_location.y, *z),
-                            Some(&z_cache),
-                        )
-                        .map(|b| b.is_air())
-                        .unwrap_or(false)
+            let pos = Vec3::new(spawn_wpos.x, spawn_wpos.y, min_z);
+            (0..(max_z - min_z))
+                .map(|z_diff| pos + Vec3::unit_z() * z_diff)
+                .find(|test_pos| {
+                    let chunk_relative_xy = test_pos
+                        .xy()
+                        .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e.rem_euclid(sz as i32));
+                    tc.get(
+                        Vec3::new(chunk_relative_xy.x, chunk_relative_xy.y, test_pos.z)
+                            - Vec3::unit_z(),
+                    )
+                    .map_or(false, |b| b.is_filled())
+                        && (0..3).all(|z| {
+                            tc.get(
+                                Vec3::new(chunk_relative_xy.x, chunk_relative_xy.y, test_pos.z)
+                                    + Vec3::unit_z() * z,
+                            )
+                            .map_or(true, |b| !b.is_solid())
+                        })
                 })
-                .unwrap_or(max_z + 1);
-
-            // build the actual spawn point and
-            // add 0.5, so that the player spawns in the middle of the block
-            Vec3::new(spawn_location.x, spawn_location.y, z).map(|e| (e as f32)) + 0.5
+                .unwrap_or(pos)
+                .map(|e| e as f32)
+                + 0.5
         };
-
         #[cfg(not(feature = "worldgen"))]
         let spawn_point = Vec3::new(0.0, 0.0, 256.0);
 
