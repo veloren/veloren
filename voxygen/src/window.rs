@@ -952,6 +952,7 @@ impl Window {
                     .push(Event::Resize(Vec2::new(width as u32, height as u32)));
             },
             WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
+                // TODO: is window resized event emitted? or do we need to handle that here?
                 self.scale_factor = scale_factor;
                 self.events.push(Event::ScaleFactorChanged(scale_factor));
             },

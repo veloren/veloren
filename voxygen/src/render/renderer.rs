@@ -151,6 +151,7 @@ pub struct Renderer {
     queue: wgpu::Queue,
     swap_chain: wgpu::SwapChain,
     sc_desc: wgpu::SwapChainDescriptor,
+    surface: wgpu::Surface,
 
     win_depth_view: wgpu::TextureView,
 
@@ -372,6 +373,7 @@ impl Renderer {
             queue,
             swap_chain,
             sc_desc,
+            surface,
 
             win_depth_view,
 
@@ -437,6 +439,13 @@ impl Renderer {
     pub fn on_resize(&mut self, dims: Vec2<u32>) -> Result<(), RenderError> {
         // Avoid panics when creating texture with w,h of 0,0.
         if dims.x != 0 && dims.y != 0 {
+            // Resize swap chain
+            self.resolution = dims;
+            self.sc_desc.width = dims.x;
+            self.sc_desc.height = dims.y;
+            self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
+
+            // Resize other render targets
             let (tgt_color_view, tgt_depth_stencil_view, tgt_color_pp_view, win_depth_view) =
                 Self::create_rt_views(&mut self.device, (dims.x, dims.y), &self.mode)?;
             self.win_depth_view = win_depth_view;
@@ -456,8 +465,6 @@ impl Renderer {
                     },
                 }
             }
-
-            self.resolution = dims;
         }
 
         Ok(())
@@ -797,14 +804,58 @@ impl Renderer {
 
     /// Perform all queued draw calls for this frame and clean up discarded
     /// items.
-    pub fn flush(&mut self) {
+    pub fn flush(&mut self) -> Result<(), RenderError> {
         span!(_guard, "flush", "Renderer::flush");
+        let frame = match self.swap_chain.get_current_frame() {
+            Ok(frame) => frame.output,
+            // If lost recreate the swap chain
+            Err(err @ wgpu::SwapChainError::Lost) => {
+                warn!("{}. Recreating swap chain. A frame will be missed", err);
+                return self.on_resize(self.resolution);
+            },
+            Err(err @ wgpu::SwapChainError::Timeout) => {
+                warn!("{}. This will probably be resolved on the next frame", err);
+                return Ok(());
+            },
+            Err(err @ wgpu::SwapChainError::Outdated) => {
+                warn!("{}. This will probably be resolved on the next frame", err);
+                return Ok(());
+            },
+            Err(err @ wgpu::SwapChainError::OutOfMemory) => return Err(err.into()),
+        };
+        let mut encoder = self
+            .device
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                label: Some("A render encoder"),
+            });
+        {
+            let _render_pas = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
+                    attachment: &frame.view,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color {
+                            r: 0.1,
+                            g: 0.7,
+                            b: 0.3,
+                            a: 1.0,
+                        }),
+                        store: true,
+                    },
+                }],
+                depth_stencil_attachment: None,
+            });
+        }
+        self.queue.submit(std::iter::once(encoder.finish()));
+
         self.device.poll(wgpu::Maintain::Poll);
 
         // If the shaders files were changed attempt to recreate the shaders
         if self.shaders.reloaded() {
             self.recreate_pipelines();
         }
+
+        Ok(())
     }
 
     /// Recreate the pipelines

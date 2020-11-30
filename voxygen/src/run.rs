@@ -175,7 +175,8 @@ fn handle_main_events_cleared(
         // Render the screen using the global renderer
         last.render(renderer, &global_state.settings);
         // Finish the frame.
-        // global_state.window.renderer_mut().flush();
+        // TODO: do this as part of dropping rendering thing
+        global_state.window.renderer_mut().flush().unwrap();
         // // Display the frame on the window.
         // global_state
         //     .window

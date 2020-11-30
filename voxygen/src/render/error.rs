@@ -11,6 +11,7 @@ pub enum RenderError {
 }
 
 use std::fmt;
+// TODO: just impl and use Display?
 impl fmt::Debug for RenderError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -18,7 +19,11 @@ impl fmt::Debug for RenderError {
                 f.debug_tuple("RequestDeviceError").field(err).finish()
             },
             Self::MappingError(err) => f.debug_tuple("MappingError").field(err).finish(),
-            Self::SwapChainError(err) => f.debug_tuple("SwapChainError").field(err).finish(),
+            Self::SwapChainError(err) => f
+                .debug_tuple("SwapChainError")
+                // Use Display formatting for this error since they have nice descriptions
+                .field(&format!("{}", err))
+                .finish(),
             Self::CustomError(err) => f.debug_tuple("CustomError").field(err).finish(),
             Self::CouldNotFindAdapter => f.debug_tuple("CouldNotFindAdapter").finish(),
             Self::ErrorInitializingCompiler => f.debug_tuple("ErrorInitializingCompiler").finish(),
