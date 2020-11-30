@@ -18,12 +18,27 @@ impl Texture {
         filter_method: Option<wgpu::FilterMode>,
         address_mode: Option<wgpu::AddressMode>,
     ) -> Result<Self, RenderError> {
+        let format = match &image {
+            DynamicImage::ImageLuma8(_) => wgpu::TextureFormat::R8Unorm,
+            DynamicImage::ImageLumaA8(_) => panic!("ImageLuma8 unsupported"),
+            DynamicImage::ImageRgb8(_) => panic!("ImageRgb8 unsupported"),
+            DynamicImage::ImageRgba8(_) => wgpu::TextureFormat::Rgba8UnormSrgb,
+            DynamicImage::ImageBgr8(_) => panic!("ImageBgr8 unsupported"),
+            DynamicImage::ImageBgra8(_) => panic!("ImageBgra8 unsupported"),
+            DynamicImage::ImageLuma16(_) => panic!("ImageLuma16 unsupported"),
+            DynamicImage::ImageLumaA16(_) => panic!("ImageLumaA16 unsupported"),
+            DynamicImage::ImageRgb16(_) => panic!("ImageRgb16 unsupported"),
+            DynamicImage::ImageRgba16(_) => panic!("ImageRgba16 unsupported"),
+        };
+
         // TODO: Actually handle images that aren't in rgba format properly.
         let buffer = image.as_flat_samples_u8().ok_or_else(|| {
             RenderError::CustomError(
                 "We currently do not support color formats using more than 4 bytes / pixel.".into(),
             )
         })?;
+
+        let bytes_per_pixel = u32::from(buffer.layout.channels);
 
         let size = Extent3d {
             width: image.width(),
@@ -37,7 +52,7 @@ impl Texture {
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Rgba8UnormSrgb,
+            format,
             usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
         });
 
@@ -53,7 +68,7 @@ impl Texture {
             buffer.as_slice(),
             wgpu::TextureDataLayout {
                 offset: 0,
-                bytes_per_row: image.width() * 4,
+                bytes_per_row: image.width() * bytes_per_pixel,
                 rows_per_image: image.height(),
             },
             wgpu::Extent3d {
@@ -76,7 +91,7 @@ impl Texture {
 
         let view = tex.create_view(&wgpu::TextureViewDescriptor {
             label: None,
-            format: Some(wgpu::TextureFormat::Rgba8UnormSrgb),
+            format: Some(format),
             dimension: Some(wgpu::TextureViewDimension::D2),
             aspect: wgpu::TextureAspect::All,
             base_mip_level: 0,

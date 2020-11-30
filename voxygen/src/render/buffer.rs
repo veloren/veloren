@@ -35,7 +35,7 @@ impl<T: Copy + Pod> DynamicBuffer<T> {
             buf: device.create_buffer(&wgpu::BufferDescriptor {
                 label: None,
                 mapped_at_creation: false,
-                size: (len / std::mem::size_of::<T>()) as u64,
+                size: len as u64 * std::mem::size_of::<T>() as u64,
                 usage: usage | wgpu::BufferUsage::COPY_DST,
             }),
             len,
@@ -48,7 +48,7 @@ impl<T: Copy + Pod> DynamicBuffer<T> {
         if !vals.is_empty() {
             queue.write_buffer(
                 &self.buf,
-                (offset / std::mem::size_of::<T>()) as u64,
+                offset as u64 * std::mem::size_of::<T>() as u64,
                 bytemuck::cast_slice(vals),
             )
         }
