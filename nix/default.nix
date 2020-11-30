@@ -67,11 +67,11 @@ let
     makeGitCommand "describe --exact-match --tags HEAD || printf ''"
       "getGitTag";
 
-  # If gitTag has a tag (meaning the commit we are on is a *release*), use it as version
-  # If not, we just use the prettified hash we have
+  # If gitTag has a tag (meaning the commit we are on is a *release*), use it as version, else:
+  # Just use the prettified hash we have, if we don't have it the build fails
   version = if gitTag != "" then gitTag else gitHash;
-  # Sanitize version string since it contains not allowed characters for a Nix store path
-  # Only used in the package name
+  # Sanitize version string since it might contain illegal characters for a Nix store path
+  # Used in the derivation(s) name
   sanitizedVersion = pkgs.stdenv.lib.strings.sanitizeDerivationName version;
 
   veloren-assets = pkgs.runCommand "makeAssetsDir" { } ''
@@ -79,25 +79,31 @@ let
     ln -sf ${../assets} $out/assets
   '';
 
+  velorenVoxygenDesktopFile = pkgs.makeDesktopItem rec {
+    name = "veloren-voxygen";
+    exec = name;
+    icon = ../assets/voxygen/logo.ico;
+    comment =
+      "Official client for Veloren - the open-world, open-source multiplayer voxel RPG";
+    desktopName = "Voxygen";
+    genericName = "Veloren Client";
+    categories = "Game;";
+  };
+
   veloren-crates = with pkgs;
     callPackage ./Cargo.nix {
       defaultCrateOverrides = with common;
         defaultCrateOverrides // {
-          libudev-sys = _: {
-            inherit (crateDeps.libudev-sys) nativeBuildInputs buildInputs;
-          };
-          alsa-sys = _: {
-            inherit (crateDeps.alsa-sys) nativeBuildInputs buildInputs;
-          };
+          libudev-sys = _: crateDeps.libudev-sys;
+          alsa-sys = _: crateDeps.alsa-sys;
+          veloren-network = _: crateDeps.veloren-network;
           veloren-common = _: {
             # Disable `git-lfs` check here since we check it ourselves
+            # We have to include the command output here, otherwise Nix won't run it
             DISABLE_GIT_LFS_CHECK = isGitLfsSetup;
             # Declare env values here so that `common/build.rs` sees them
             NIX_GIT_HASH = gitHash;
             NIX_GIT_TAG = gitTag;
-          };
-          veloren-network = _: {
-            inherit (crateDeps.veloren-network) nativeBuildInputs buildInputs;
           };
           veloren-server-cli = _: {
             name = "veloren-server-cli_${sanitizedVersion}";
@@ -120,7 +126,8 @@ let
             VELOREN_USERDATA_STRATEGY = "system";
             inherit (crateDeps.veloren-voxygen) buildInputs;
             nativeBuildInputs = crateDeps.veloren-voxygen.nativeBuildInputs
-            ++ [ makeWrapper ];
+            ++ [ makeWrapper copyDesktopItems ];
+            desktopItems = [ velorenVoxygenDesktopFile ];
             postInstall = ''
               wrapProgram $out/bin/veloren-voxygen\
                 --set VELOREN_ASSETS ${veloren-assets}\
@@ -131,7 +138,7 @@ let
             meta = meta // {
               longDescription = ''
                 ${meta.longDescription}
-                "This package includes the client, Voxygen."
+                "This package includes the official client, Voxygen."
               '';
             };
           };

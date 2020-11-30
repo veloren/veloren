@@ -1,3 +1,8 @@
+## Important
+
+If you are going to call the derivations with a custom `nixpkgs` argument, make sure that the `nixpkgs` you pass is on at least the same commit or newer than it.
+Unexpected errors may pop up if you use an older version. Same goes for the `sources` argument.
+
 ### How to use
 
 To enter the development shell (which includes all tools mentioned in this readme + tools you'll need to develop Veloren), run:
