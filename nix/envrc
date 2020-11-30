@@ -1,0 +1,2 @@
+source_env nix/envrc-common
+use nix nix/shell.nix
