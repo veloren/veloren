@@ -1,7 +1,7 @@
 use crate::ecs::comp::Interpolated;
 use common::{
     comp::{Ori, Pos, Vel},
-    state::DeltaTime,
+    resources::DeltaTime,
     util::Dir,
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};

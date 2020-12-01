@@ -3,12 +3,9 @@ use crate::{
         item::{Hands, ItemKind, Tool},
         quadruped_low, quadruped_medium, theropod, Body, CharacterState, StateUpdate,
     },
+    consts::{FRIC_GROUND, GRAVITY},
     event::LocalEvent,
-    states::*,
-    sys::{
-        character_behavior::JoinData,
-        phys::{FRIC_GROUND, GRAVITY},
-    },
+    states::{behavior::JoinData, *},
     util::Dir,
 };
 use serde::{Deserialize, Serialize};

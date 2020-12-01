@@ -1,7 +1,7 @@
 use super::utils::*;
 use crate::{
     comp::{CharacterState, StateUpdate},
-    sys::character_behavior::{CharacterBehavior, JoinData},
+    states::behavior::{CharacterBehavior, JoinData},
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;

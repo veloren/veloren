@@ -1,9 +1,9 @@
 use crate::{
     comp::{Attacking, CharacterState, EnergyChange, EnergySource, StateUpdate},
-    states::utils::*,
-    sys::{
-        character_behavior::{CharacterBehavior, JoinData},
-        phys::GRAVITY,
+    consts::GRAVITY,
+    states::{
+        behavior::{CharacterBehavior, JoinData},
+        utils::*,
     },
     Damage, DamageSource, GroupTarget, Knockback,
 };

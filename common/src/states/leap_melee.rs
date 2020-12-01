@@ -1,7 +1,9 @@
 use crate::{
     comp::{Attacking, CharacterState, StateUpdate},
-    states::utils::{StageSection, *},
-    sys::character_behavior::{CharacterBehavior, JoinData},
+    states::{
+        behavior::{CharacterBehavior, JoinData},
+        utils::{StageSection, *},
+    },
     Damage, DamageSource, GroupTarget, Knockback,
 };
 use serde::{Deserialize, Serialize};

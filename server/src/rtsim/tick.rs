@@ -4,7 +4,7 @@ use super::*;
 use common::{
     comp,
     event::{EventBus, ServerEvent},
-    state::DeltaTime,
+    resources::DeltaTime,
     terrain::TerrainGrid,
 };
 use specs::{Join, Read, ReadExpect, ReadStorage, System, WriteExpect, WriteStorage};

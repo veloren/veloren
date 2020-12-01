@@ -1,10 +1,10 @@
-use crate::{
+use common::{
     comp::{
         group, Body, Health, HealthSource, Last, Loadout, Ori, PhysicsState, Pos, Scale, Shockwave,
         ShockwaveHitEntities,
     },
     event::{EventBus, LocalEvent, ServerEvent},
-    state::{DeltaTime, Time},
+    resources::{DeltaTime, Time},
     sync::{Uid, UidAllocator},
     util::Dir,
     GroupTarget,

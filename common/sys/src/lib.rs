@@ -1,3 +1,5 @@
+#![feature(label_break_value, bool_to_option)]
+
 pub mod agent;
 mod beam;
 mod buff;
@@ -8,6 +10,7 @@ mod mount;
 pub mod phys;
 mod projectile;
 mod shockwave;
+pub mod state;
 mod stats;
 
 // External

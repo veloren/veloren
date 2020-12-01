@@ -10,10 +10,10 @@ use super::EventMapper;
 use client::Client;
 use common::{
     comp::{object, Body, Pos},
-    state::State,
     terrain::TerrainChunk,
     vol::ReadVol,
 };
+use common_sys::state::State;
 use hashbrown::HashMap;
 use specs::{Entity as EcsEntity, Join, WorldExt};
 use std::time::{Duration, Instant};

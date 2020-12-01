@@ -4,7 +4,8 @@ mod combat;
 mod movement;
 
 use client::Client;
-use common::{state::State, terrain::TerrainChunk};
+use common::terrain::TerrainChunk;
+use common_sys::state::State;
 
 use block::BlockEventMapper;
 use campfire::CampfireEventMapper;

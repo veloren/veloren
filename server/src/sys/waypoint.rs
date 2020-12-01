@@ -3,8 +3,8 @@ use crate::client::Client;
 use common::{
     comp::{Player, Pos, Waypoint, WaypointArea},
     msg::{Notification, ServerGeneral},
+    resources::Time,
     span,
-    state::Time,
 };
 use specs::{Entities, Join, Read, ReadStorage, System, Write, WriteStorage};
 

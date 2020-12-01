@@ -1,9 +1,11 @@
 use crate::{
     comp::{beam, Body, CharacterState, EnergyChange, EnergySource, Ori, Pos, StateUpdate},
     event::ServerEvent,
-    states::utils::*,
+    states::{
+        behavior::{CharacterBehavior, JoinData},
+        utils::*,
+    },
     sync::Uid,
-    sys::character_behavior::{CharacterBehavior, JoinData},
     Damage, DamageSource, GroupTarget,
 };
 use serde::{Deserialize, Serialize};

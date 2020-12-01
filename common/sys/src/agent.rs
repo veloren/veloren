@@ -1,4 +1,4 @@
-use crate::{
+use common::{
     comp::{
         self,
         agent::Activity,
@@ -15,8 +15,8 @@ use crate::{
     event::{EventBus, ServerEvent},
     metrics::SysMetrics,
     path::{Chaser, TraversalConfig},
+    resources::{DeltaTime, Time, TimeOfDay},
     span,
-    state::{DeltaTime, Time, TimeOfDay},
     sync::{Uid, UidAllocator},
     terrain::{Block, TerrainGrid},
     time::DayPeriod,
