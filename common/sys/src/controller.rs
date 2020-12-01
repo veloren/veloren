@@ -1,12 +1,12 @@
-use crate::{
+use common::{
     comp::{
         slot::{EquipSlot, Slot},
         BuffChange, CharacterState, ControlEvent, Controller, InventoryManip,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::SysMetrics,
+    resources::DeltaTime,
     span,
-    state::DeltaTime,
     sync::{Uid, UidAllocator},
 };
 use specs::{

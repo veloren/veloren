@@ -1,4 +1,4 @@
-use crate::{
+use common::{
     comp::{Controller, MountState, Mounting, Ori, Pos, Vel},
     metrics::SysMetrics,
     span,
@@ -66,12 +66,12 @@ impl<'a> System<'a> for Sys {
                             let _ = orientations.insert(mounter, ori);
                             let _ = velocities.insert(mounter, vel);
                         }
-                        controllers.get_mut(entity).map(|controller| {
+                        if let Some(controller) = controllers.get_mut(entity) {
                             *controller = Controller {
                                 inputs,
                                 ..Default::default()
                             }
-                        });
+                        }
                     } else {
                         *(mount_states.get_mut_unchecked()) = MountState::Unmounted;
                     }

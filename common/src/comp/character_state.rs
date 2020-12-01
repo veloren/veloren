@@ -1,8 +1,7 @@
 use crate::{
     comp::{Energy, Ori, Pos, Vel},
     event::{LocalEvent, ServerEvent},
-    states::*,
-    sys::character_behavior::JoinData,
+    states::{behavior::JoinData, *},
     Damage, GroupTarget, Knockback,
 };
 use serde::{Deserialize, Serialize};

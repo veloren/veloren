@@ -1,18 +1,17 @@
-use crate::{
+use common::{
     comp,
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::{PhysicsMetrics, SysMetrics},
     region::RegionMap,
+    resources::{DeltaTime, Time, TimeOfDay},
     span,
     sync::WorldSyncExt,
-    sys,
     terrain::{Block, TerrainChunk, TerrainGrid},
     time::DayPeriod,
     vol::{ReadVol, WriteVol},
 };
 use hashbrown::{HashMap, HashSet};
 use rayon::{ThreadPool, ThreadPoolBuilder};
-use serde::{Deserialize, Serialize};
 use specs::{
     shred::{Fetch, FetchMut},
     storage::{MaskedStorage as EcsMaskedStorage, Storage as EcsStorage},
@@ -24,18 +23,6 @@ use vek::*;
 /// How much faster should an in-game day be compared to a real day?
 // TODO: Don't hard-code this.
 const DAY_CYCLE_FACTOR: f64 = 24.0 * 2.0;
-
-/// A resource that stores the time of day.
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, Default)]
-pub struct TimeOfDay(pub f64);
-
-/// A resource that stores the tick (i.e: physics) time.
-#[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
-pub struct Time(pub f64);
-
-/// A resource that stores the time since the previous tick.
-#[derive(Default)]
-pub struct DeltaTime(pub f32);
 
 /// At what point should we stop speeding up physics to compensate for lag? If
 /// we speed physics up too fast, we'd skip important physics events like
@@ -380,7 +367,7 @@ impl State {
         // Create and run a dispatcher for ecs systems.
         let mut dispatch_builder =
             DispatcherBuilder::new().with_pool(Arc::clone(&self.thread_pool));
-        sys::add_local_systems(&mut dispatch_builder);
+        common_sys::add_local_systems(&mut dispatch_builder);
         // TODO: Consider alternative ways to do this
         add_foreign_systems(&mut dispatch_builder);
         // This dispatches all the systems in parallel.

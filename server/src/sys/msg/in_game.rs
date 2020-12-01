@@ -5,10 +5,10 @@ use common::{
     event::{EventBus, ServerEvent},
     msg::{ClientGeneral, PresenceKind, ServerGeneral},
     span,
-    state::BlockChange,
     terrain::{TerrainChunkSize, TerrainGrid},
     vol::{ReadVol, RectVolSize},
 };
+use common_state::BlockChange;
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, Write, WriteStorage};
 use tracing::{debug, trace};
 

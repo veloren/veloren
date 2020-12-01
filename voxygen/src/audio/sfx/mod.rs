@@ -95,9 +95,9 @@ use common::{
         object, Body, CharacterAbilityType, InventoryUpdateEvent,
     },
     outcome::Outcome,
-    state::State,
     terrain::TerrainChunk,
 };
+use common_state::State;
 use event_mapper::SfxEventMapper;
 use hashbrown::HashMap;
 use rand::prelude::*;

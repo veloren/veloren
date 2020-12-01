@@ -1,9 +1,9 @@
-use crate::{
+use common::{
     comp::{CharacterState, Energy, EnergyChange, EnergySource, Health, HealthSource, Stats},
     event::{EventBus, ServerEvent},
     metrics::SysMetrics,
+    resources::DeltaTime,
     span,
-    state::DeltaTime,
 };
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
 

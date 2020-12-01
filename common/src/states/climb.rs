@@ -1,10 +1,8 @@
 use crate::{
     comp::{CharacterState, Climb, EnergySource, StateUpdate},
+    consts::GRAVITY,
     event::LocalEvent,
-    sys::{
-        character_behavior::{CharacterBehavior, JoinData},
-        phys::GRAVITY,
-    },
+    states::behavior::{CharacterBehavior, JoinData},
     util::Dir,
 };
 use serde::{Deserialize, Serialize};

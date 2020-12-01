@@ -4,7 +4,8 @@ use crate::{
     scene::Camera,
 };
 use client::Client;
-use common::{assets, state::State, vol::ReadVol};
+use common::{assets, vol::ReadVol};
+use common_state::State;
 use serde::Deserialize;
 use std::time::Instant;
 use tracing::warn;

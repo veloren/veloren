@@ -1,13 +1,13 @@
 use super::utils::handle_climb;
 use crate::{
     comp::{CharacterState, StateUpdate},
-    sys::character_behavior::{CharacterBehavior, JoinData},
+    states::behavior::{CharacterBehavior, JoinData},
     util::Dir,
 };
 use serde::{Deserialize, Serialize};
 use vek::Vec2;
 // Gravity is 9.81 * 4, so this makes gravity equal to .15
-const GLIDE_ANTIGRAV: f32 = crate::sys::phys::GRAVITY * 0.90;
+const GLIDE_ANTIGRAV: f32 = crate::consts::GRAVITY * 0.90;
 const GLIDE_ACCEL: f32 = 12.0;
 const GLIDE_SPEED: f32 = 45.0;
 

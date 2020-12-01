@@ -14,7 +14,7 @@ use common::{
     event::{EventBus, ServerEvent},
     msg::{DisconnectReason, Notification, PlayerListUpdate, ServerGeneral},
     npc::{self, get_npc_name},
-    state::TimeOfDay,
+    resources::TimeOfDay,
     sync::{Uid, WorldSyncExt},
     terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
     util::Dir,
@@ -374,7 +374,10 @@ fn handle_home(
         .is_some()
     {
         let home_pos = server.state.ecs().read_resource::<SpawnPoint>().0;
-        let time = *server.state.ecs().read_resource::<common::state::Time>();
+        let time = *server
+            .state
+            .ecs()
+            .read_resource::<common::resources::Time>();
 
         server.state.write_component(target, comp::Pos(home_pos));
         server
