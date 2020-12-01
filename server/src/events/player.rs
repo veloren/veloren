@@ -8,9 +8,9 @@ use common::{
     comp::{group, Player},
     msg::{PlayerListUpdate, PresenceKind, ServerGeneral},
     span,
-    state::State,
     sync::{Uid, UidAllocator},
 };
+use common_state::State;
 use futures_executor::block_on;
 use specs::{saveload::MarkerAllocator, Builder, Entity as EcsEntity, WorldExt};
 use tracing::{debug, error, trace, warn};

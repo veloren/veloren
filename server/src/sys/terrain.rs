@@ -9,10 +9,10 @@ use common::{
     msg::ServerGeneral,
     npc::NPC_NAMES,
     span,
-    state::TerrainChanges,
     terrain::TerrainGrid,
     LoadoutBuilder,
 };
+use common_state::TerrainChanges;
 use rand::Rng;
 use specs::{Join, Read, ReadExpect, ReadStorage, System, Write, WriteExpect};
 use std::sync::Arc;

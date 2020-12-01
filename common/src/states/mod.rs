@@ -2,6 +2,7 @@ pub mod basic_beam;
 pub mod basic_block;
 pub mod basic_melee;
 pub mod basic_ranged;
+pub mod behavior;
 pub mod boost;
 pub mod charged_melee;
 pub mod charged_ranged;

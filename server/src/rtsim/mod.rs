@@ -10,10 +10,10 @@ use self::{chunks::Chunks, entity::Entity};
 use common::{
     comp,
     rtsim::{RtSimController, RtSimEntity, RtSimId},
-    state::State,
     terrain::TerrainChunk,
     vol::RectRasterableVol,
 };
+use common_state::State;
 use rand::prelude::*;
 use slab::Slab;
 use specs::{DispatcherBuilder, WorldExt};

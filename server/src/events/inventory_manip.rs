@@ -11,6 +11,7 @@ use common::{
     util::find_dist::{self, FindDist},
     vol::ReadVol,
 };
+use common_state::State;
 use comp::LightEmitter;
 use rand::Rng;
 use specs::{join::Join, world::WorldExt, Builder, Entity as EcsEntity, WriteStorage};
@@ -39,7 +40,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
     let mut dropped_items = Vec::new();
     let mut thrown_items = Vec::new();
 
-    let get_cylinder = |state: &common::state::State, entity| {
+    let get_cylinder = |state: &State, entity| {
         let ecs = state.ecs();
         let positions = ecs.read_storage::<comp::Pos>();
         let scales = ecs.read_storage::<comp::Scale>();

@@ -6,10 +6,10 @@ use crate::{
         Body, CharacterState, EnergySource, Gravity, LightEmitter, StateUpdate,
     },
     states::{
+        behavior::JoinData,
         utils::{AbilityKey, StageSection},
         *,
     },
-    sys::character_behavior::JoinData,
     Knockback,
 };
 use arraygen::Arraygen;

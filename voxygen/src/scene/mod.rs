@@ -27,11 +27,12 @@ use client::Client;
 use common::{
     comp,
     outcome::Outcome,
+    resources::DeltaTime,
     span,
-    state::{DeltaTime, State},
     terrain::{BlockKind, TerrainChunk},
     vol::ReadVol,
 };
+use common_state::State;
 use comp::item::Reagent;
 use num::traits::{Float, FloatConst};
 use specs::{Entity as EcsEntity, Join, WorldExt};

@@ -10,7 +10,7 @@ use crate::{
     Direction, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
-use common::{assets::Asset, comp, span, state::DeltaTime};
+use common::{assets::Asset, comp, resources::DeltaTime, span};
 use specs::WorldExt;
 use std::{cell::RefCell, rc::Rc};
 use tracing::error;

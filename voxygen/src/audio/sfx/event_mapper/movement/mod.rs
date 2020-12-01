@@ -10,10 +10,10 @@ use crate::{
 use client::Client;
 use common::{
     comp::{Body, CharacterState, PhysicsState, Pos, Vel},
-    state::State,
     terrain::{BlockKind, TerrainChunk},
     vol::ReadVol,
 };
+use common_state::State;
 use hashbrown::HashMap;
 use specs::{Entity as EcsEntity, Join, WorldExt};
 use std::time::{Duration, Instant};

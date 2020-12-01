@@ -1,8 +1,10 @@
 use crate::{
     comp::{Body, CharacterState, Gravity, LightEmitter, ProjectileConstructor, StateUpdate},
     event::ServerEvent,
-    states::utils::{StageSection, *},
-    sys::character_behavior::*,
+    states::{
+        behavior::{CharacterBehavior, JoinData},
+        utils::{StageSection, *},
+    },
     util::dir::*,
 };
 use serde::{Deserialize, Serialize};
