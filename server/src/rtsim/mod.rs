@@ -13,7 +13,7 @@ use common::{
     terrain::TerrainChunk,
     vol::RectRasterableVol,
 };
-use common_state::State;
+use common_sys::state::State;
 use rand::prelude::*;
 use slab::Slab;
 use specs::{DispatcherBuilder, WorldExt};

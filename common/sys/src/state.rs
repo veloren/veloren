@@ -367,7 +367,7 @@ impl State {
         // Create and run a dispatcher for ecs systems.
         let mut dispatch_builder =
             DispatcherBuilder::new().with_pool(Arc::clone(&self.thread_pool));
-        common_sys::add_local_systems(&mut dispatch_builder);
+        crate::add_local_systems(&mut dispatch_builder);
         // TODO: Consider alternative ways to do this
         add_foreign_systems(&mut dispatch_builder);
         // This dispatches all the systems in parallel.

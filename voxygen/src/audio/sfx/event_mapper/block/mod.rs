@@ -14,7 +14,7 @@ use common::{
     terrain::TerrainChunk,
     vol::{ReadVol, RectRasterableVol},
 };
-use common_state::State;
+use common_sys::state::State;
 use hashbrown::HashMap;
 use rand::{thread_rng, Rng};
 use std::time::Instant;

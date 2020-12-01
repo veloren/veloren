@@ -48,7 +48,7 @@ use common::{
     assets,
     terrain::{BiomeKind, SitesKind},
 };
-use common_state::State;
+use common_sys::state::State;
 use rand::{prelude::SliceRandom, thread_rng, Rng};
 use serde::Deserialize;
 use std::time::Instant;

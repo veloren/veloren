@@ -11,7 +11,7 @@ use common::{
     util::find_dist::{self, FindDist},
     vol::ReadVol,
 };
-use common_state::State;
+use common_sys::state::State;
 use comp::LightEmitter;
 use rand::Rng;
 use specs::{join::Join, world::WorldExt, Builder, Entity as EcsEntity, WriteStorage};

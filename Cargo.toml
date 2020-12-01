@@ -3,8 +3,7 @@ cargo-features = ["named-profiles","profile-overrides"]
 [workspace]
 members = [
 	"common",
-    "common/state",
-    "common/sys",
+	"common/sys",
 	"client",
 	"chat-cli",
 	"server",

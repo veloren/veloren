@@ -37,7 +37,7 @@ use common::{
     terrain::TerrainChunk,
     vol::RectRasterableVol,
 };
-use common_state::State;
+use common_sys::state::State;
 use core::{
     borrow::Borrow,
     convert::TryFrom,
