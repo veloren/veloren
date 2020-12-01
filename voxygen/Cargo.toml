@@ -23,7 +23,7 @@ client = {package = "veloren-client", path = "../client"}
 common = {package = "veloren-common", path = "../common"}
 common_sys = {package = "veloren_common_sys", path = "../common/sys"}
 
-anim = {package = "veloren-voxygen-anim", path = "src/anim", default-features = false}
+anim = {package = "veloren-voxygen-anim", path = "anim", default-features = false}
 
 # Graphics
 gfx = "0.18.2"
