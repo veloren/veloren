@@ -1,8 +1,10 @@
 use crate::{
     comp::{Body, CharacterState, Gravity, LightEmitter, ProjectileConstructor, StateUpdate},
     event::ServerEvent,
-    states::utils::*,
-    sys::character_behavior::{CharacterBehavior, JoinData},
+    states::{
+        behavior::{CharacterBehavior, JoinData},
+        utils::*,
+    },
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;

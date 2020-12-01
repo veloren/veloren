@@ -1,7 +1,7 @@
 use super::utils::*;
 use crate::{
     comp::StateUpdate,
-    sys::character_behavior::{CharacterBehavior, JoinData},
+    states::behavior::{CharacterBehavior, JoinData},
 };
 use serde::{Deserialize, Serialize};
 

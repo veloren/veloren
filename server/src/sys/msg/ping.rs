@@ -3,8 +3,8 @@ use crate::{client::Client, metrics::PlayerMetrics, Settings};
 use common::{
     event::{EventBus, ServerEvent},
     msg::PingMsg,
+    resources::Time,
     span,
-    state::Time,
 };
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, Write};
 use std::sync::atomic::Ordering;

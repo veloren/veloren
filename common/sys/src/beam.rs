@@ -1,10 +1,10 @@
-use crate::{
+use common::{
     comp::{
         group, Beam, BeamSegment, Body, Energy, EnergyChange, EnergySource, Health, HealthChange,
         HealthSource, Last, Loadout, Ori, Pos, Scale,
     },
     event::{EventBus, ServerEvent},
-    state::{DeltaTime, Time},
+    resources::{DeltaTime, Time},
     sync::{Uid, UidAllocator},
     GroupTarget,
 };

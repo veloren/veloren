@@ -56,12 +56,13 @@ use common::{
     },
     outcome::Outcome,
     recipe::default_recipe_book,
+    resources::TimeOfDay,
     rtsim::RtSimEntity,
-    state::{State, TimeOfDay},
     sync::WorldSyncExt,
     terrain::TerrainChunkSize,
     vol::{ReadVol, RectVolSize},
 };
+use common_sys::state::State;
 use futures_executor::block_on;
 use metrics::{PhysicsMetrics, ServerMetrics, StateTickMetrics, TickMetrics};
 use network::{Network, Pid, ProtocolAddr};
@@ -806,40 +807,39 @@ impl Server {
             let projectile_ns = res.projectile_ns.load(Ordering::Relaxed);
             let melee_ns = res.melee_ns.load(Ordering::Relaxed);
 
-            c.with_label_values(&[common::sys::AGENT_SYS])
+            c.with_label_values(&[common_sys::AGENT_SYS])
                 .inc_by(agent_ns);
-            c.with_label_values(&[common::sys::MOUNT_SYS])
+            c.with_label_values(&[common_sys::MOUNT_SYS])
                 .inc_by(mount_ns);
-            c.with_label_values(&[common::sys::CONTROLLER_SYS])
+            c.with_label_values(&[common_sys::CONTROLLER_SYS])
                 .inc_by(controller_ns);
-            c.with_label_values(&[common::sys::CHARACTER_BEHAVIOR_SYS])
+            c.with_label_values(&[common_sys::CHARACTER_BEHAVIOR_SYS])
                 .inc_by(character_behavior_ns);
-            c.with_label_values(&[common::sys::STATS_SYS])
+            c.with_label_values(&[common_sys::STATS_SYS])
                 .inc_by(stats_ns);
-            c.with_label_values(&[common::sys::PHYS_SYS])
-                .inc_by(phys_ns);
-            c.with_label_values(&[common::sys::PROJECTILE_SYS])
+            c.with_label_values(&[common_sys::PHYS_SYS]).inc_by(phys_ns);
+            c.with_label_values(&[common_sys::PROJECTILE_SYS])
                 .inc_by(projectile_ns);
-            c.with_label_values(&[common::sys::MELEE_SYS])
+            c.with_label_values(&[common_sys::MELEE_SYS])
                 .inc_by(melee_ns);
 
             const NANOSEC_PER_SEC: f64 = Duration::from_secs(1).as_nanos() as f64;
             let h = &self.state_tick_metrics.state_tick_time_hist;
-            h.with_label_values(&[common::sys::AGENT_SYS])
+            h.with_label_values(&[common_sys::AGENT_SYS])
                 .observe(agent_ns as f64 / NANOSEC_PER_SEC);
-            h.with_label_values(&[common::sys::MOUNT_SYS])
+            h.with_label_values(&[common_sys::MOUNT_SYS])
                 .observe(mount_ns as f64 / NANOSEC_PER_SEC);
-            h.with_label_values(&[common::sys::CONTROLLER_SYS])
+            h.with_label_values(&[common_sys::CONTROLLER_SYS])
                 .observe(controller_ns as f64 / NANOSEC_PER_SEC);
-            h.with_label_values(&[common::sys::CHARACTER_BEHAVIOR_SYS])
+            h.with_label_values(&[common_sys::CHARACTER_BEHAVIOR_SYS])
                 .observe(character_behavior_ns as f64 / NANOSEC_PER_SEC);
-            h.with_label_values(&[common::sys::STATS_SYS])
+            h.with_label_values(&[common_sys::STATS_SYS])
                 .observe(stats_ns as f64 / NANOSEC_PER_SEC);
-            h.with_label_values(&[common::sys::PHYS_SYS])
+            h.with_label_values(&[common_sys::PHYS_SYS])
                 .observe(phys_ns as f64 / NANOSEC_PER_SEC);
-            h.with_label_values(&[common::sys::PROJECTILE_SYS])
+            h.with_label_values(&[common_sys::PROJECTILE_SYS])
                 .observe(projectile_ns as f64 / NANOSEC_PER_SEC);
-            h.with_label_values(&[common::sys::MELEE_SYS])
+            h.with_label_values(&[common_sys::MELEE_SYS])
                 .observe(melee_ns as f64 / NANOSEC_PER_SEC);
         }
 

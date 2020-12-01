@@ -1,8 +1,10 @@
 use crate::{
     comp::{shockwave, CharacterState, StateUpdate},
     event::ServerEvent,
-    states::utils::*,
-    sys::character_behavior::{CharacterBehavior, JoinData},
+    states::{
+        behavior::{CharacterBehavior, JoinData},
+        utils::*,
+    },
     Damage, DamageSource, GroupTarget, Knockback,
 };
 use serde::{Deserialize, Serialize};

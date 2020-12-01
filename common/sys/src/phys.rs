@@ -1,12 +1,13 @@
-use crate::{
+use common::{
     comp::{
         BeamSegment, CharacterState, Collider, Gravity, Mass, Mounting, Ori, PhysicsState, Pos,
         PreviousVelDtCache, Projectile, Scale, Shockwave, Sticky, Vel,
     },
+    consts::{FRIC_GROUND, GRAVITY},
     event::{EventBus, ServerEvent},
     metrics::{PhysicsMetrics, SysMetrics},
+    resources::DeltaTime,
     span,
-    state::DeltaTime,
     sync::Uid,
     terrain::{Block, TerrainGrid},
     vol::ReadVol,
@@ -18,7 +19,6 @@ use specs::{
 use std::ops::Range;
 use vek::*;
 
-pub const GRAVITY: f32 = 9.81 * 5.0;
 pub const BOUYANCY: f32 = 1.0;
 // Friction values used for linear damping. They are unitless quantities. The
 // value of these quantities must be between zero and one. They represent the
@@ -26,7 +26,6 @@ pub const BOUYANCY: f32 = 1.0;
 // friction is 0.01, and the speed is 1.0, then after 1/60th of a second the
 // speed will be 0.99. after 1 second the speed will be 0.54, which is 0.99 ^
 // 60.
-pub const FRIC_GROUND: f32 = 0.15;
 pub const FRIC_AIR: f32 = 0.0125;
 pub const FRIC_FLUID: f32 = 0.4;
 

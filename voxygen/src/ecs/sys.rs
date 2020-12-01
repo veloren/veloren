@@ -9,7 +9,7 @@ const INTERPOLATION_SYS: &str = "interpolation_voxygen_sys";
 
 pub fn add_local_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch_builder.add(interpolation::Sys, INTERPOLATION_SYS, &[
-        common::sys::PHYS_SYS,
+        common_sys::PHYS_SYS,
     ]);
     dispatch_builder.add(floater::Sys, FLOATER_SYS, &[INTERPOLATION_SYS]);
 }

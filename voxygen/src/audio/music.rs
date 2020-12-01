@@ -46,9 +46,9 @@ use crate::audio::{AudioFrontend, MusicChannelTag};
 use client::Client;
 use common::{
     assets,
-    state::State,
     terrain::{BiomeKind, SitesKind},
 };
+use common_sys::state::State;
 use rand::{prelude::SliceRandom, thread_rng, Rng};
 use serde::Deserialize;
 use std::time::Instant;

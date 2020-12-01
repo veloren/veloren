@@ -1,10 +1,10 @@
-use crate::{
+use common::{
     comp::{
         BuffCategory, BuffChange, BuffEffect, BuffId, BuffSource, Buffs, Health, HealthChange,
         HealthSource, Loadout, ModifierKind,
     },
     event::{EventBus, ServerEvent},
-    state::DeltaTime,
+    resources::DeltaTime,
     DamageSource,
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};

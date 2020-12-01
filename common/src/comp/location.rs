@@ -1,4 +1,4 @@
-use crate::state::Time;
+use crate::resources::Time;
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;

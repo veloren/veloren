@@ -4,8 +4,8 @@ use common::{
     comp::{ChatMode, Player, UnresolvedChatMsg},
     event::{EventBus, ServerEvent},
     msg::{validate_chat_msg, ChatMsgValidationError, ClientGeneral, MAX_BYTES_CHAT_MSG},
+    resources::Time,
     span,
-    state::Time,
     sync::Uid,
 };
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, Write};

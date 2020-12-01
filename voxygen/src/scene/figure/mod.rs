@@ -31,12 +31,13 @@ use common::{
         Body, CharacterState, Health, Item, Last, LightAnimation, LightEmitter, Loadout, Ori,
         PhysicsState, Pos, Scale, Vel,
     },
+    resources::DeltaTime,
     span,
-    state::{DeltaTime, State},
     states::utils::StageSection,
     terrain::TerrainChunk,
     vol::RectRasterableVol,
 };
+use common_sys::state::State;
 use core::{
     borrow::Borrow,
     convert::TryFrom,

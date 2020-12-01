@@ -4,7 +4,8 @@ use crate::{
     comp,
     outcome::Outcome,
     recipe::RecipeBook,
-    state, sync,
+    resources::TimeOfDay,
+    sync,
     sync::Uid,
     terrain::{Block, TerrainChunk},
 };
@@ -49,7 +50,7 @@ pub enum ServerInit {
     TooManyPlayers,
     GameSync {
         entity_package: sync::EntityPackage<EcsCompPacket>,
-        time_of_day: state::TimeOfDay,
+        time_of_day: TimeOfDay,
         max_group_size: u32,
         client_timeout: Duration,
         world_map: crate::msg::world_msg::WorldMapMsg,
@@ -110,7 +111,7 @@ pub enum ServerGeneral {
     /// formatting the message and turning it into a speech bubble.
     ChatMsg(comp::ChatMsg),
     SetPlayerEntity(Uid),
-    TimeOfDay(state::TimeOfDay),
+    TimeOfDay(TimeOfDay),
     EntitySync(sync::EntitySyncPackage),
     CompSync(sync::CompSyncPackage<EcsCompPacket>),
     CreateEntity(sync::EntityPackage<EcsCompPacket>),

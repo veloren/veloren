@@ -11,7 +11,7 @@ use common::{
     character::CharacterId,
     comp::{item::tool::AbilityMap, Body as CompBody, Waypoint, *},
     loadout_builder,
-    state::Time,
+    resources::Time,
 };
 use core::{convert::TryFrom, num::NonZeroU64};
 use itertools::{Either, Itertools};

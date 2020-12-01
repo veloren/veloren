@@ -33,11 +33,11 @@ use common::{
     outcome::Outcome,
     recipe::RecipeBook,
     span,
-    state::State,
     sync::{Uid, UidAllocator, WorldSyncExt},
     terrain::{block::Block, neighbors, BiomeKind, SitesKind, TerrainChunk, TerrainChunkSize},
     vol::RectVolSize,
 };
+use common_sys::state::State;
 use comp::BuffKind;
 use futures_executor::block_on;
 use futures_timer::Delay;

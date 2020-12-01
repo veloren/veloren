@@ -11,10 +11,10 @@ use client::Client;
 use common::{
     comp::Pos,
     spiral::Spiral2d,
-    state::State,
     terrain::TerrainChunk,
     vol::{ReadVol, RectRasterableVol},
 };
+use common_sys::state::State;
 use hashbrown::HashMap;
 use rand::{thread_rng, Rng};
 use std::time::Instant;
