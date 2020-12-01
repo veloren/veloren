@@ -2079,7 +2079,8 @@ impl<'a> Widget for SettingsWindow<'a> {
                 AaMode::MsaaX16, */
             ];
             let mode_label_list = [
-                "No AA", "FXAA",
+                "No AA",
+                "FXAA",
                 /* "MSAA x4",
                 "MSAA x8",
                 "MSAA x16 (experimental)", */
