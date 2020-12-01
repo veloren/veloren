@@ -1,9 +1,9 @@
 BasicRanged(
-    energy_cost: 800,
+    energy_cost: 400,
     buildup_duration: 800,
     recover_duration: 50,
     projectile: Heal(
-        heal: 140.0,
+        heal: 100.0,
         damage: 50.0,
         radius: 6.0,
     ),
