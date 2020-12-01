@@ -75,9 +75,9 @@ impl LoadedLib {
             Ok(lib) => lib,
             Err(e) => panic!(
                 "Tried to load dynamic library from {:?}, but it could not be found. The first \
-                 reason might be that you need to uncomment a line in \
-                 `voxygen/src/anim/Cargo.toml` to build the library required for hot reloading. \
-                 The second is we may require a special case for your OS so we can find it. {:?}",
+                 reason might be that you need to uncomment a line in `voxygen/anim/Cargo.toml` \
+                 to build the library required for hot reloading. The second is we may require a \
+                 special case for your OS so we can find it. {:?}",
                 lib_path, e
             ),
         };
@@ -129,7 +129,7 @@ impl LoadedLib {
 /// Initialise a watcher.
 ///
 /// The assumption is that this is run from the voxygen crate's root directory
-/// as it will watch the relative path `src/anim` for any changes to `.rs`
+/// as it will watch the relative path `anim` for any changes to `.rs`
 /// files. Upon noticing changes it will wait a moment and then recompile.
 pub fn init() {
     // Make sure first compile is done by accessing the lazy_static and then
@@ -141,7 +141,7 @@ pub fn init() {
 
     // Start watcher
     let mut watcher = immediate_watcher(move |res| event_fn(res, &reload_send)).unwrap();
-    watcher.watch("src/anim", RecursiveMode::Recursive).unwrap();
+    watcher.watch("anim", RecursiveMode::Recursive).unwrap();
 
     // Start reloader that watcher signals
     // "Debounces" events since I can't find the option to do this in the latest
@@ -158,7 +158,7 @@ pub fn init() {
 
             info!(
                 ?modified_paths,
-                "Hot reloading animations because files in `src/anim` modified."
+                "Hot reloading animations because files in `anim` modified."
             );
 
             hotreload();
