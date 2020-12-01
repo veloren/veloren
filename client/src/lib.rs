@@ -37,7 +37,7 @@ use common::{
     terrain::{block::Block, neighbors, BiomeKind, SitesKind, TerrainChunk, TerrainChunkSize},
     vol::RectVolSize,
 };
-use common_state::State;
+use common_sys::state::State;
 use comp::BuffKind;
 use futures_executor::block_on;
 use futures_timer::Delay;

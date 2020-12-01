@@ -97,7 +97,7 @@ use common::{
     outcome::Outcome,
     terrain::TerrainChunk,
 };
-use common_state::State;
+use common_sys::state::State;
 use event_mapper::SfxEventMapper;
 use hashbrown::HashMap;
 use rand::prelude::*;

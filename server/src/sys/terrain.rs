@@ -12,7 +12,7 @@ use common::{
     terrain::TerrainGrid,
     LoadoutBuilder,
 };
-use common_state::TerrainChanges;
+use common_sys::state::TerrainChanges;
 use rand::Rng;
 use specs::{Join, Read, ReadExpect, ReadStorage, System, Write, WriteExpect};
 use std::sync::Arc;

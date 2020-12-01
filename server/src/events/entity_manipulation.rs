@@ -22,7 +22,7 @@ use common::{
     vol::ReadVol,
     Damage, DamageSource, Explosion, GroupTarget, RadiusEffect,
 };
-use common_state::BlockChange;
+use common_sys::state::BlockChange;
 use comp::item::Reagent;
 use rand::prelude::*;
 use specs::{join::Join, saveload::MarkerAllocator, Entity as EcsEntity, WorldExt};

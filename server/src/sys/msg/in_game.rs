@@ -8,7 +8,7 @@ use common::{
     terrain::{TerrainChunkSize, TerrainGrid},
     vol::{ReadVol, RectVolSize},
 };
-use common_state::BlockChange;
+use common_sys::state::BlockChange;
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, Write, WriteStorage};
 use tracing::{debug, trace};
 

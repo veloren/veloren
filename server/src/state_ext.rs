@@ -10,7 +10,7 @@ use common::{
     sync::{Uid, UidAllocator, WorldSyncExt},
     util::Dir,
 };
-use common_state::State;
+use common_sys::state::State;
 use rand::prelude::*;
 use specs::{
     saveload::MarkerAllocator, Builder, Entity as EcsEntity, EntityBuilder as EcsEntityBuilder,

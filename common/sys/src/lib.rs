@@ -10,6 +10,7 @@ mod mount;
 pub mod phys;
 mod projectile;
 mod shockwave;
+pub mod state;
 mod stats;
 
 // External

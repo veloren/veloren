@@ -5341,7 +5341,7 @@ dependencies = [
  "uvth 3.1.1",
  "vek 0.12.0",
  "veloren-common",
- "veloren_common_state",
+ "veloren_common_sys",
  "veloren_network",
 ]
 
@@ -5416,7 +5416,6 @@ dependencies = [
  "vek 0.12.0",
  "veloren-common",
  "veloren-world",
- "veloren_common_state",
  "veloren_common_sys",
  "veloren_network",
 ]
@@ -5499,7 +5498,6 @@ dependencies = [
  "veloren-server",
  "veloren-voxygen-anim",
  "veloren-world",
- "veloren_common_state",
  "veloren_common_sys",
  "window_clipboard",
  "winit",
@@ -5550,29 +5548,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "veloren_common_state"
+name = "veloren_common_sys"
 version = "0.8.0"
 dependencies = [
  "hashbrown 0.7.2",
  "indexmap",
  "rand 0.7.3",
  "rayon",
- "slab",
- "specs",
- "tracing",
- "tracy-client",
- "vek 0.12.0",
- "veloren-common",
- "veloren_common_sys",
-]
-
-[[package]]
-name = "veloren_common_sys"
-version = "0.8.0"
-dependencies = [
- "rand 0.7.3",
- "rayon",
  "serde",
+ "slab",
  "specs",
  "tracing",
  "tracy-client",

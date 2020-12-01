@@ -10,7 +10,7 @@ use common::{
     span,
     sync::{Uid, UidAllocator},
 };
-use common_state::State;
+use common_sys::state::State;
 use futures_executor::block_on;
 use specs::{saveload::MarkerAllocator, Builder, Entity as EcsEntity, WorldExt};
 use tracing::{debug, error, trace, warn};

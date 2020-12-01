@@ -1,7 +1,7 @@
 use super::SysTimer;
 use crate::{client::Client, presence::Presence};
 use common::{comp::Pos, msg::ServerGeneral, span, terrain::TerrainGrid};
-use common_state::TerrainChanges;
+use common_sys::state::TerrainChanges;
 use specs::{Join, Read, ReadExpect, ReadStorage, System, Write};
 
 /// This systems sends new chunks to clients as well as changes to existing
