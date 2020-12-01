@@ -8,9 +8,9 @@ members = [
 	"server",
 	"server-cli",
 	"voxygen",
+	"voxygen/anim",
 	"world",
 	"network",
-    "voxygen/src/anim",
 	"tools"
 ]
 
