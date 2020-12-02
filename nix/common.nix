@@ -3,10 +3,19 @@ let
   mozPkgs = import "${sources.nixpkgsMoz}/package-set.nix" {
     pkgs = import nixpkgs { inherit system; };
   };
-  rustChannel = mozPkgs.rustChannelOf {
-    rustToolchain = ../rust-toolchain;
-    sha256 = "sha256-P4FTKRe0nM1FRDV0Q+QY2WcC8M9IR7aPMMLWDfv+rEk=";
-  };
+
+  rustChannel = let
+    channel = mozPkgs.rustChannelOf {
+      rustToolchain = ../rust-toolchain;
+      sha256 = "sha256-P4FTKRe0nM1FRDV0Q+QY2WcC8M9IR7aPMMLWDfv+rEk=";
+    };
+    flip = f: a: b: f b a;
+    mapAttrs = builtins.mapAttrs;
+  in flip mapAttrs channel (name: value:
+    (if name == "rust" then
+      value.override { extensions = [ "rust-src" ]; }
+    else
+      value));
 
   pkgs = import nixpkgs {
     inherit system;
@@ -14,14 +23,13 @@ let
       (final: prev: {
         rustc = rustChannel.rust;
         inherit (rustChannel)
-          ;
+        ;
         crate2nix = prev.callPackage sources.crate2nix { pkgs = prev; };
         nixGL = prev.callPackage sources.nixGL { pkgs = prev; };
       })
     ];
   };
-in
-with pkgs;
+in with pkgs;
 let
   # deps that crates need (for compiling)
   crateDeps = {
@@ -48,5 +56,4 @@ let
     ++ [ libGL ];
 
   gitLfsCheckFile = ../assets/voxygen/background/bg_main.png;
-in
-{ inherit pkgs voxygenNeededLibs crateDeps gitLfsCheckFile; }
+in { inherit pkgs voxygenNeededLibs crateDeps gitLfsCheckFile; }
