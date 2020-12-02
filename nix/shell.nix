@@ -42,7 +42,7 @@ mkShell {
       substituters = https://cache.nixos.org https://veloren-nix.cachix.org
       trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= veloren-nix.cachix.org-1:zokfKJqVsNV6kI/oJdLF6TYBdNPYGSb+diMVQPn/5Rc=
     "
-    # We need this so that Voxygen runs
+    # Add libraries Voxygen needs so that it runs
     export LD_LIBRARY_PATH=${lib.makeLibraryPath voxygenNeededLibs}
 
     # No need to install git-lfs and run fetch / checkout commands if we have it setup
