@@ -2077,14 +2077,13 @@ impl<'a> Widget for SettingsWindow<'a> {
                 /* AaMode::MsaaX4,
                 AaMode::MsaaX8,
                 AaMode::MsaaX16, */
-                AaMode::SsaaX4,
             ];
             let mode_label_list = [
-                "No AA", "FXAA",
+                "No AA",
+                "FXAA",
                 /* "MSAA x4",
                 "MSAA x8",
                 "MSAA x16 (experimental)", */
-                "SSAA x4",
             ];
 
             // Get which AA mode is currently active
