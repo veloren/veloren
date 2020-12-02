@@ -91,14 +91,6 @@ pub enum AaMode {
     /// also struggle in the future with deferred shading, so they may be
     /// removed in the future.
     MsaaX16,
-    /// Super-sampling antialiasing, 4 samples per pixel.
-    ///
-    /// Unlike MSAA, SSAA *always* performs 4 samples per pixel, rather than
-    /// trying to choose importance samples at boundary regions, so it works
-    /// much better with techniques like deferred rendering and greedy
-    /// meshing that (without significantly more work) invalidate the
-    /// GPU's assumptions about importance sampling.
-    SsaaX4,
     #[serde(other)]
     None,
 }

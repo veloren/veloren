@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Doubled range of ScaleMode slider when set to Custom
 
 ### Removed
+- SSAAx4 option
 
 ### Fixed
 

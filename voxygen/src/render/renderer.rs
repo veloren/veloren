@@ -448,10 +448,6 @@ impl Renderer {
                 gfx::texture::Kind::D2(upscaled.0, upscaled.1, gfx::texture::AaMode::Single)
             },
             // TODO: Ensure sampling in the shader is exactly between the 4 texels
-            AaMode::SsaaX4 => {
-                // TODO: Figure out how to do upscaling correctly with SSAA
-                gfx::texture::Kind::D2(size.0 * 2, size.1 * 2, gfx::texture::AaMode::Single)
-            },
             AaMode::MsaaX4 => {
                 gfx::texture::Kind::D2(upscaled.0, upscaled.1, gfx::texture::AaMode::Multi(4))
             },
@@ -1852,7 +1848,7 @@ fn create_pipelines(
 
     let anti_alias = Glsl::load_watched(
         &["voxygen.shaders.antialias.", match mode.aa {
-            AaMode::None | AaMode::SsaaX4 => "none",
+            AaMode::None => "none",
             AaMode::Fxaa => "fxaa",
             AaMode::MsaaX4 => "msaa-x4",
             AaMode::MsaaX8 => "msaa-x8",
