@@ -26,7 +26,6 @@ pub struct IcedUi {
     renderer: IcedRenderer,
     cache: Option<Cache>,
     events: Vec<Event>,
-    clipboard: Clipboard,
     cursor_position: Vec2<f32>,
     // Scaling of the ui
     scale: Scale,
@@ -55,7 +54,6 @@ impl IcedUi {
             cache: Some(Cache::new()),
             events: Vec::new(),
             // TODO: handle None
-            clipboard: Clipboard::new(window.window()).unwrap(),
             cursor_position: Vec2::zero(),
             scale,
             scale_changed: false,
@@ -146,6 +144,7 @@ impl IcedUi {
         &mut self,
         root: E,
         renderer: &mut Renderer,
+        clipboard: Option<&Clipboard>,
     ) -> (Vec<M>, mouse::Interaction) {
         span!(_guard, "maintain", "IcedUi::maintain");
         // Handle window resizing, dpi factor change, and scale mode changing
@@ -188,7 +187,10 @@ impl IcedUi {
         let messages = user_interface.update(
             &self.events,
             cursor_position,
-            Some(&self.clipboard),
+            match clipboard {
+                Some(c) => Some(c),
+                None => None,
+            },
             &self.renderer,
         );
         drop(guard);
