@@ -53,6 +53,7 @@ pub struct GlobalState {
     pub singleplayer: Option<Singleplayer>,
     // TODO: redo this so that the watcher doesn't have to exist for reloading to occur
     pub localization_watcher: watch::ReloadIndicator,
+    pub clipboard: Option<iced_winit::Clipboard>,
 }
 
 impl GlobalState {

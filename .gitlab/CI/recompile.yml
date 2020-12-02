@@ -8,6 +8,7 @@
       changes:
         - "**/*.{glsl,rs,ron,toml,vox,png}"
         - "rust-toolchain"
+        - "Cargo.lock"
         - ".gitlab-ci.yml"
         - "**/*.yml"
 
@@ -19,5 +20,6 @@
     - changes:
         - "**/*.{glsl,rs,ron,toml,vox,png,wav}"
         - "rust-toolchain"
+        - "Cargo.lock"
         - ".gitlab-ci.yml"
         - "**/*.yml"

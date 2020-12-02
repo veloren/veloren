@@ -590,6 +590,7 @@ impl<'a> MainMenuUi {
         let (messages, _) = self.ui.maintain(
             self.controls.view(&global_state.settings, dt.as_secs_f32()),
             global_state.window.renderer_mut(),
+            global_state.clipboard.as_ref(),
         );
 
         messages.into_iter().for_each(|message| {

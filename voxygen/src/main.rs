@@ -178,6 +178,8 @@ fn main() {
     // Create window
     let (window, event_loop) = Window::new(&settings).expect("Failed to create window!");
 
+    let clipboard = iced_winit::Clipboard::new(window.window());
+
     let global_state = GlobalState {
         audio,
         profile,
@@ -190,6 +192,7 @@ fn main() {
         #[cfg(feature = "singleplayer")]
         singleplayer: None,
         localization_watcher,
+        clipboard,
     };
 
     run::run(global_state, event_loop);
