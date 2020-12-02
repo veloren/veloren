@@ -79,6 +79,6 @@ inherits =  'release'
 debug = 1
 
 [patch.crates-io]
-# cpal conflict fix isn't released yet
+# macos CI fix isn't merged yet 
 winit = { git = "https://gitlab.com/veloren/winit.git", branch = "macos-test-spiffed" }
 vek = { git = "https://gitlab.com/veloren/vek.git", branch = "fix_intrinsics" }

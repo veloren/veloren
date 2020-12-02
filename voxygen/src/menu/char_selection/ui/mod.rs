@@ -1498,6 +1498,7 @@ impl CharSelectionUi {
         let (mut messages, _) = self.ui.maintain(
             self.controls.view(&global_state.settings, &client),
             global_state.window.renderer_mut(),
+            global_state.clipboard.as_ref(),
         );
 
         if self.enter_pressed {
