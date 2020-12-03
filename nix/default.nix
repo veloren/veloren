@@ -5,7 +5,6 @@
 , cratesToBuild ? [ "veloren-voxygen" "veloren-server-cli" ]
 , system ? builtins.currentSystem
 , nixpkgs ? sources.nixpkgs
-, nvidia ? false
 , sources ? import ./sources.nix { inherit system; }
 }:
 let
@@ -22,7 +21,8 @@ let
     upstream = "https://gitlab.com/veloren/veloren";
     license = licenses.gpl3;
     maintainers = [ maintainers.yusdacra ];
-    platforms = platforms.all;
+    # TODO: Make this work on BSD and Mac OS
+    platforms = platforms.linux;
   };
 
   isGitLfsSetup =

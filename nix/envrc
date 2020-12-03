@@ -1,2 +1,5 @@
-source_env nix/envrc-common
+watch_file nix/shell.nix
+watch_file nix/common.nix
+watch_file nix/sources.nix
+watch_file nix/sources.json
 use nix nix/shell.nix
