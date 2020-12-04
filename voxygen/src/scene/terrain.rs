@@ -8,13 +8,13 @@ use crate::{
         terrain::{generate_mesh, SUNLIGHT},
     },
     render::{
-        pipelines, ColLightInfo, Consts, FluidVertex, GlobalModel, Instances, Mesh, Model,
+        pipelines, ColLightInfo, Consts, FluidVertex, GlobalModel, Instances, LodData, Mesh, Model,
         RenderError, Renderer, SpriteInstance, SpriteLocals, SpriteVertex, TerrainLocals,
         TerrainVertex, Texture,
     },
 };
 
-use super::{math, LodData, SceneData};
+use super::{math, SceneData};
 use common::{
     assets::{self, AssetExt, DotVoxAsset},
     figure::Segment,
@@ -517,9 +517,7 @@ impl SpriteRenderContext {
                                      offset,
                                  }| {
                                     SpriteData {
-                                        locals: renderer
-                                            .create_consts(&locals)
-                                            .expect("Failed to upload sprite locals to the GPU!"),
+                                        locals: renderer.create_consts(&locals_buffer),
                                         model: renderer.create_model(&model).expect(
                                             "Failed to upload sprite model data to the GPU!",
                                         ),
@@ -1161,24 +1159,22 @@ impl<V: RectRasterableVol> Terrain<V> {
                             light_map: mesh.light_map,
                             glow_map: mesh.glow_map,
                             sprite_instances,
-                            locals: renderer
-                                .create_consts(&[TerrainLocals {
-                                    model_offs: Vec3::from(
-                                        response.pos.map2(VolGrid2d::<V>::chunk_size(), |e, sz| {
-                                            e as f32 * sz as f32
-                                        }),
-                                    )
-                                    .into_array(),
-                                    atlas_offs: Vec4::new(
-                                        atlas_offs.x as i32,
-                                        atlas_offs.y as i32,
-                                        0,
-                                        0,
-                                    )
-                                    .into_array(),
-                                    load_time,
-                                }])
-                                .expect("Failed to upload chunk locals to the GPU!"),
+                            locals: renderer.create_consts(&[TerrainLocals {
+                                model_offs: Vec3::from(
+                                    response.pos.map2(VolGrid2d::<V>::chunk_size(), |e, sz| {
+                                        e as f32 * sz as f32
+                                    }),
+                                )
+                                .into_array(),
+                                atlas_offs: Vec4::new(
+                                    atlas_offs.x as i32,
+                                    atlas_offs.y as i32,
+                                    0,
+                                    0,
+                                )
+                                .into_array(),
+                                load_time,
+                            }]),
                             visible: Visibility {
                                 in_range: false,
                                 in_frustum: false,

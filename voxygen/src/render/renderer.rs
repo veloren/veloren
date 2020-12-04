@@ -1,3 +1,8 @@
+mod bind_group;
+mod drawer;
+
+pub use drawer::{Drawer, UiDrawer};
+
 use super::{
     consts::Consts,
     instances::Instances,
@@ -8,8 +13,8 @@ use super::{
         ui, GlobalsLayouts,
     },
     texture::Texture,
-    AaMode, AddressMode, CloudMode, FilterMode, FluidMode, LightingMode, RenderError, RenderMode,
-    ShadowMapMode, ShadowMode, Vertex,
+    AaMode, AddressMode, CloudMode, FilterMode, FluidMode, GlobalsBindGroup, LightingMode,
+    RenderError, RenderMode, ShadowMapMode, ShadowMode, Vertex,
 };
 use common::assets::{self, AssetExt, AssetHandle};
 use common_base::span;
@@ -20,6 +25,7 @@ use vek::*;
 
 /// A type representing data that can be converted to an immutable texture map
 /// of ColLight data (used for texture atlases created during greedy meshing).
+// TODO: revert to u16
 pub type ColLightInfo = (Vec<[u8; 4]>, Vec2<u32>);
 
 /// Load from a GLSL file.
@@ -116,9 +122,9 @@ impl Shaders {
 pub struct ShadowMapRenderer {
     // directed_encoder: gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
     // point_encoder: gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
-    directed_depth_stencil: Texture,
+    directed_depth: Texture,
 
-    point_depth_stencil: Texture,
+    point_depth: Texture,
 
     point_pipeline: shadow::ShadowPipeline,
     terrain_directed_pipeline: shadow::ShadowPipeline,
@@ -128,6 +134,7 @@ pub struct ShadowMapRenderer {
 
 /// A type that stores all the layouts associated with this renderer.
 pub struct Layouts {
+    // TODO: pub(self)??
     pub(self) global: GlobalsLayouts,
 
     pub(self) clouds: clouds::CloudsLayout,
@@ -137,7 +144,7 @@ pub struct Layouts {
     pub(self) shadow: shadow::ShadowLayout,
     pub(self) sprite: sprite::SpriteLayout,
     pub(self) terrain: terrain::TerrainLayout,
-    pub(self) ui: ui::UILayout,
+    pub(self) ui: ui::UiLayout,
 }
 
 /// A type that encapsulates rendering state. `Renderer` is central to Voxygen's
@@ -156,7 +163,7 @@ pub struct Renderer {
     win_depth_view: wgpu::TextureView,
 
     tgt_color_view: wgpu::TextureView,
-    tgt_depth_stencil_view: wgpu::TextureView,
+    tgt_depth_view: wgpu::TextureView,
     // TODO: rename
     tgt_color_pp_view: wgpu::TextureView,
 
@@ -177,7 +184,7 @@ pub struct Renderer {
     skybox_pipeline: skybox::SkyboxPipeline,
     sprite_pipeline: sprite::SpritePipeline,
     terrain_pipeline: terrain::TerrainPipeline,
-    ui_pipeline: ui::UIPipeline,
+    ui_pipeline: ui::UiPipeline,
 
     shaders: AssetHandle<Shaders>,
 
@@ -273,7 +280,7 @@ impl Renderer {
             let shadow = shadow::ShadowLayout::new(&device);
             let sprite = sprite::SpriteLayout::new(&device);
             let terrain = terrain::TerrainLayout::new(&device);
-            let ui = ui::UILayout::new(&device);
+            let ui = ui::UiLayout::new(&device);
 
             Layouts {
                 global,
@@ -313,7 +320,7 @@ impl Renderer {
             shadow_views.is_some(),
         )?;
 
-        let (tgt_color_view, tgt_depth_stencil_view, tgt_color_pp_view, win_depth_view) =
+        let (tgt_color_view, tgt_depth_view, tgt_color_pp_view, win_depth_view) =
             Self::create_rt_views(&device, (dims.width, dims.height), &mode)?;
 
         let shadow_map = if let (
@@ -327,16 +334,16 @@ impl Renderer {
             figure_directed_shadow_pipeline,
             shadow_views,
         ) {
-            let (point_depth_stencil, directed_depth_stencil) = shadow_views;
+            let (point_depth, directed_depth) = shadow_views;
 
             let layout = shadow::ShadowLayout::new(&device);
 
             Some(ShadowMapRenderer {
-                directed_depth_stencil,
+                directed_depth,
 
                 // point_encoder: factory.create_command_buffer().into(),
                 // directed_encoder: factory.create_command_buffer().into(),
-                point_depth_stencil,
+                point_depth,
 
                 point_pipeline,
                 terrain_directed_pipeline,
@@ -378,7 +385,7 @@ impl Renderer {
             win_depth_view,
 
             tgt_color_view,
-            tgt_depth_stencil_view,
+            tgt_depth_view,
             tgt_color_pp_view,
 
             sampler,
@@ -411,7 +418,7 @@ impl Renderer {
     /// before post-processing.
     #[allow(dead_code)]
     pub fn tgt_views(&self) -> (&wgpu::TextureView, &wgpu::TextureView) {
-        (&self.tgt_color_view, &self.tgt_depth_stencil_view)
+        (&self.tgt_color_view, &self.tgt_depth_view)
     }
 
     /// Get references to the internal render target views that get displayed
@@ -446,19 +453,19 @@ impl Renderer {
             self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
 
             // Resize other render targets
-            let (tgt_color_view, tgt_depth_stencil_view, tgt_color_pp_view, win_depth_view) =
+            let (tgt_color_view, tgt_depth_view, tgt_color_pp_view, win_depth_view) =
                 Self::create_rt_views(&mut self.device, (dims.x, dims.y), &self.mode)?;
             self.win_depth_view = win_depth_view;
             self.tgt_color_view = tgt_color_view;
-            self.tgt_depth_stencil_view = tgt_depth_stencil_view;
+            self.tgt_depth_view = tgt_depth_view;
             self.tgt_color_pp_view = tgt_color_pp_view;
             if let (Some(shadow_map), ShadowMode::Map(mode)) =
                 (self.shadow_map.as_mut(), self.mode.shadow)
             {
                 match Self::create_shadow_views(&mut self.device, (dims.x, dims.y), &mode) {
-                    Ok((point_depth_stencil, directed_depth_stencil)) => {
-                        shadow_map.point_depth_stencil = point_depth_stencil;
-                        shadow_map.directed_depth_stencil = directed_depth_stencil;
+                    Ok((point_depth, directed_depth)) => {
+                        shadow_map.point_depth = point_depth;
+                        shadow_map.directed_depth = directed_depth;
                     },
                     Err(err) => {
                         warn!("Could not create shadow map views: {:?}", err);
@@ -496,7 +503,7 @@ impl Renderer {
         };
         let levels = 1;
 
-        let mut color_view = || {
+        let color_view = || {
             let tex = device.create_texture(&wgpu::TextureDescriptor {
                 label: None,
                 size: wgpu::Extent3d {
@@ -527,7 +534,7 @@ impl Renderer {
         let tgt_color_view = color_view();
         let tgt_color_pp_view = color_view();
 
-        let tgt_depth_stencil_tex = device.create_texture(&wgpu::TextureDescriptor {
+        let tgt_depth_tex = device.create_texture(&wgpu::TextureDescriptor {
             label: None,
             size: wgpu::Extent3d {
                 width,
@@ -540,17 +547,16 @@ impl Renderer {
             format: wgpu::TextureFormat::Depth24Plus,
             usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::RENDER_ATTACHMENT,
         });
-        let tgt_depth_stencil_view =
-            tgt_depth_stencil_tex.create_view(&wgpu::TextureViewDescriptor {
-                label: None,
-                format: Some(wgpu::TextureFormat::Depth24Plus),
-                dimension: Some(wgpu::TextureViewDimension::D2),
-                aspect: wgpu::TextureAspect::DepthOnly,
-                base_mip_level: 0,
-                level_count: None,
-                base_array_layer: 0,
-                array_layer_count: None,
-            });
+        let tgt_depth_view = tgt_depth_tex.create_view(&wgpu::TextureViewDescriptor {
+            label: None,
+            format: Some(wgpu::TextureFormat::Depth24Plus),
+            dimension: Some(wgpu::TextureViewDimension::D2),
+            aspect: wgpu::TextureAspect::DepthOnly,
+            base_mip_level: 0,
+            level_count: None,
+            base_array_layer: 0,
+            array_layer_count: None,
+        });
 
         let win_depth_tex = device.create_texture(&wgpu::TextureDescriptor {
             label: None,
@@ -565,7 +571,7 @@ impl Renderer {
             format: wgpu::TextureFormat::Depth24Plus,
             usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
         });
-        let win_depth_view = tgt_depth_stencil_tex.create_view(&wgpu::TextureViewDescriptor {
+        let win_depth_view = tgt_depth_tex.create_view(&wgpu::TextureViewDescriptor {
             label: None,
             format: Some(wgpu::TextureFormat::Depth24Plus),
             dimension: Some(wgpu::TextureViewDimension::D2),
@@ -578,7 +584,7 @@ impl Renderer {
 
         Ok((
             tgt_color_view,
-            tgt_depth_stencil_view,
+            tgt_depth_view,
             tgt_color_pp_view,
             win_depth_view,
         ))
@@ -656,7 +662,7 @@ impl Renderer {
         };
 
         //TODO: (0, levels - 1), ?? from master
-        let mut point_shadow_view = wgpu::TextureViewDescriptor {
+        let point_shadow_view = wgpu::TextureViewDescriptor {
             label: None,
             format: Some(wgpu::TextureFormat::Depth24Plus),
             dimension: Some(wgpu::TextureViewDimension::Cube),
@@ -723,8 +729,8 @@ impl Renderer {
     pub fn get_shadow_resolution(&self) -> (Vec2<u32>, Vec2<u32>) {
         if let Some(shadow_map) = &self.shadow_map {
             (
-                shadow_map.point_depth_stencil.get_dimensions().xy(),
-                shadow_map.directed_depth_stencil.get_dimensions().xy(),
+                shadow_map.point_depth.get_dimensions().xy(),
+                shadow_map.directed_depth.get_dimensions().xy(),
             )
         } else {
             (Vec2::new(1, 1), Vec2::new(1, 1))
@@ -741,10 +747,10 @@ impl Renderer {
     //     if let Some(shadow_map) = self.shadow_map.as_mut() {
     //         // let point_encoder = &mut shadow_map.point_encoder;
     //         let point_encoder = &mut self.encoder;
-    //         point_encoder.clear_depth(&shadow_map.point_depth_stencil_view, 1.0);
+    //         point_encoder.clear_depth(&shadow_map.point_depth_view, 1.0);
     //         // let directed_encoder = &mut shadow_map.directed_encoder;
     //         let directed_encoder = &mut self.encoder;
-    //         directed_encoder.clear_depth(&shadow_map.directed_depth_stencil_view,
+    //         directed_encoder.clear_depth(&shadow_map.directed_depth_view,
     // 1.0);     }
     // }
 
@@ -802,51 +808,20 @@ impl Renderer {
     //     }
     // }
 
-    /// Perform all queued draw calls for this frame and clean up discarded
-    /// items.
-    pub fn flush(&mut self) -> Result<(), RenderError> {
-        span!(_guard, "flush", "Renderer::flush");
-        let frame = match self.swap_chain.get_current_frame() {
-            Ok(frame) => frame.output,
-            // If lost recreate the swap chain
-            Err(err @ wgpu::SwapChainError::Lost) => {
-                warn!("{}. Recreating swap chain. A frame will be missed", err);
-                return self.on_resize(self.resolution);
-            },
-            Err(err @ wgpu::SwapChainError::Timeout) => {
-                warn!("{}. This will probably be resolved on the next frame", err);
-                return Ok(());
-            },
-            Err(err @ wgpu::SwapChainError::Outdated) => {
-                warn!("{}. This will probably be resolved on the next frame", err);
-                return Ok(());
-            },
-            Err(err @ wgpu::SwapChainError::OutOfMemory) => return Err(err.into()),
-        };
-        let mut encoder = self
-            .device
-            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
-                label: Some("A render encoder"),
-            });
-        {
-            let _render_pas = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
-                    attachment: &frame.view,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r: 0.1,
-                            g: 0.7,
-                            b: 0.3,
-                            a: 1.0,
-                        }),
-                        store: true,
-                    },
-                }],
-                depth_stencil_attachment: None,
-            });
-        }
-        self.queue.submit(std::iter::once(encoder.finish()));
+    /// Start recording the frame
+    /// When the returned `Drawer` is dropped the recorded draw calls will be
+    /// submitted to the queue
+    /// If there is an intermittent issue with the swap chain then Ok(None) will
+    /// be returned
+    pub fn start_recording_frame<'a>(
+        &'a mut self,
+        globals: &'a GlobalsBindGroup,
+    ) -> Result<Option<Drawer<'a>>, RenderError> {
+        span!(
+            _guard,
+            "start_recording_frame",
+            "Renderer::start_recording_frame"
+        );
 
         self.device.poll(wgpu::Maintain::Poll);
 
@@ -855,7 +830,30 @@ impl Renderer {
             self.recreate_pipelines();
         }
 
-        Ok(())
+        let tex = match self.swap_chain.get_current_frame() {
+            Ok(frame) => frame.output,
+            // If lost recreate the swap chain
+            Err(err @ wgpu::SwapChainError::Lost) => {
+                warn!("{}. Recreating swap chain. A frame will be missed", err);
+                return self.on_resize(self.resolution).map(|()| None);
+            },
+            Err(err @ wgpu::SwapChainError::Timeout) => {
+                warn!("{}. This will probably be resolved on the next frame", err);
+                return Ok(None);
+            },
+            Err(err @ wgpu::SwapChainError::Outdated) => {
+                warn!("{}. This will probably be resolved on the next frame", err);
+                return Ok(None);
+            },
+            Err(err @ wgpu::SwapChainError::OutOfMemory) => return Err(err.into()),
+        };
+        let encoder = self
+            .device
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                label: Some("A render encoder"),
+            });
+
+        Ok(Some(Drawer::new(encoder, self, tex, globals)))
     }
 
     /// Recreate the pipelines
@@ -916,14 +914,10 @@ impl Renderer {
     }
 
     /// Create a new set of constants with the provided values.
-    pub fn create_consts<T: Copy + bytemuck::Pod>(
-        &mut self,
-        vals: &[T],
-        // TODO: don't use result here
-    ) -> Result<Consts<T>, RenderError> {
+    pub fn create_consts<T: Copy + bytemuck::Pod>(&mut self, vals: &[T]) -> Consts<T> {
         let mut consts = Consts::new(&self.device, vals.len());
         consts.update(&self.device, &self.queue, vals, 0);
-        Ok(consts)
+        consts
     }
 
     /// Update a set of constants with the provided values.
@@ -1134,8 +1128,8 @@ impl Renderer {
     // self.noise_tex.sampler.clone()),             alt: (lod.alt.srv.clone(),
     // lod.alt.sampler.clone()),             horizon: (lod.horizon.srv.clone(),
     // lod.horizon.sampler.clone()),             tgt_color:
-    // self.tgt_color_view.clone(),             tgt_depth_stencil:
-    // (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),         },
+    // self.tgt_color_view.clone(),             tgt_depth:
+    // (self.tgt_depth_view.clone()/* , (1, 1) */),         },
     //     );
     // }
 
@@ -1193,8 +1187,8 @@ impl Renderer {
     // self.noise_tex.sampler.clone()),             alt: (lod.alt.srv.clone(),
     // lod.alt.sampler.clone()),             horizon: (lod.horizon.srv.clone(),
     // lod.horizon.sampler.clone()),             tgt_color:
-    // self.tgt_color_view.clone(),             tgt_depth_stencil:
-    // (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),         },
+    // self.tgt_color_view.clone(),             tgt_depth:
+    // (self.tgt_depth_view.clone()/* , (1, 1) */),         },
     //     );
     // }
 
@@ -1253,8 +1247,8 @@ impl Renderer {
     // self.noise_tex.sampler.clone()),             alt: (lod.alt.srv.clone(),
     // lod.alt.sampler.clone()),             horizon: (lod.horizon.srv.clone(),
     // lod.horizon.sampler.clone()),             tgt_color:
-    // self.tgt_color_view.clone(),             tgt_depth_stencil:
-    // (self.tgt_depth_stencil_view.clone()/* , (0, 0) */),         },
+    // self.tgt_color_view.clone(),             tgt_depth:
+    // (self.tgt_depth_view.clone()/* , (0, 0) */),         },
     //     ); */
     // }
 
@@ -1312,8 +1306,8 @@ impl Renderer {
     // self.noise_tex.sampler.clone()),             alt: (lod.alt.srv.clone(),
     // lod.alt.sampler.clone()),             horizon: (lod.horizon.srv.clone(),
     // lod.horizon.sampler.clone()),             tgt_color:
-    // self.tgt_color_view.clone(),             tgt_depth_stencil:
-    // (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),         },
+    // self.tgt_color_view.clone(),             tgt_depth:
+    // (self.tgt_depth_view.clone()/* , (1, 1) */),         },
     //     );
     // }
 
@@ -1371,8 +1365,8 @@ impl Renderer {
     // self.noise_tex.sampler.clone()),             alt: (lod.alt.srv.clone(),
     // lod.alt.sampler.clone()),             horizon: (lod.horizon.srv.clone(),
     // lod.horizon.sampler.clone()),             tgt_color:
-    // self.tgt_color_view.clone(),             tgt_depth_stencil:
-    // (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),         },
+    // self.tgt_color_view.clone(),             tgt_depth:
+    // (self.tgt_depth_view.clone()/* , (1, 1) */),         },
     //     );
     // }
 
@@ -1414,7 +1408,7 @@ impl Renderer {
 
     //             // Shadow stuff
     //             light_shadows: locals.buf.clone(),
-    //             tgt_depth_stencil: shadow_map.point_depth_stencil_view.clone(),
+    //             tgt_depth: shadow_map.point_depth_view.clone(),
     //         },
     //     );
     // }
@@ -1457,8 +1451,8 @@ impl Renderer {
 
     //             // Shadow stuff
     //             light_shadows: locals.buf.clone(),
-    //             tgt_depth_stencil:
-    // shadow_map.directed_depth_stencil_view.clone(),         },
+    //             tgt_depth:
+    // shadow_map.directed_depth_view.clone(),         },
     //     );
     // }
 
@@ -1503,8 +1497,8 @@ impl Renderer {
 
     //             // Shadow stuff
     //             light_shadows: locals.buf.clone(),
-    //             tgt_depth_stencil:
-    // shadow_map.directed_depth_stencil_view.clone(),         },
+    //             tgt_depth:
+    // shadow_map.directed_depth_view.clone(),         },
     //     );
     // }
 
@@ -1560,8 +1554,8 @@ impl Renderer {
     //             noise: (self.noise_tex.srv.clone(),
     // self.noise_tex.sampler.clone()),             waves: (waves.srv.clone(),
     // waves.sampler.clone()),             tgt_color:
-    // self.tgt_color_view.clone(),             tgt_depth_stencil:
-    // (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),         },
+    // self.tgt_color_view.clone(),             tgt_depth:
+    // (self.tgt_depth_view.clone()/* , (1, 1) */),         },
     //     );
     // }
 
@@ -1625,8 +1619,8 @@ impl Renderer {
     // self.noise_tex.sampler.clone()),             alt: (lod.alt.srv.clone(),
     // lod.alt.sampler.clone()),             horizon: (lod.horizon.srv.clone(),
     // lod.horizon.sampler.clone()),             tgt_color:
-    // self.tgt_color_view.clone(),             tgt_depth_stencil:
-    // (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),         },
+    // self.tgt_color_view.clone(),             tgt_depth:
+    // (self.tgt_depth_view.clone()/* , (1, 1) */),         },
     //     );
     // }
 
@@ -1657,8 +1651,8 @@ impl Renderer {
     // lod.map.sampler.clone()),             alt: (lod.alt.srv.clone(),
     // lod.alt.sampler.clone()),             horizon: (lod.horizon.srv.clone(),
     // lod.horizon.sampler.clone()),             tgt_color:
-    // self.tgt_color_view.clone(),             tgt_depth_stencil:
-    // (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),         },
+    // self.tgt_color_view.clone(),             tgt_depth:
+    // (self.tgt_depth_view.clone()/* , (1, 1) */),         },
     //     );
     // }
 
@@ -1711,8 +1705,8 @@ impl Renderer {
     // self.noise_tex.sampler.clone()),             alt: (lod.alt.srv.clone(),
     // lod.alt.sampler.clone()),             horizon: (lod.horizon.srv.clone(),
     // lod.horizon.sampler.clone()),             tgt_color:
-    // self.tgt_color_view.clone(),             tgt_depth_stencil:
-    // (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),         },
+    // self.tgt_color_view.clone(),             tgt_depth:
+    // (self.tgt_depth_view.clone()/* , (1, 1) */),         },
     //     );
     // }
 
@@ -1836,7 +1830,7 @@ fn create_pipelines(
         fluid::FluidPipeline,
         sprite::SpritePipeline,
         particle::ParticlePipeline,
-        ui::UIPipeline,
+        ui::UiPipeline,
         lod_terrain::LodTerrainPipeline,
         clouds::CloudsPipeline,
         postprocess::PostProcessPipeline,
@@ -2029,7 +2023,7 @@ fn create_pipelines(
     );
 
     // Construct a pipeline for rendering UI elements
-    let ui_pipeline = ui::UIPipeline::new(
+    let ui_pipeline = ui::UiPipeline::new(
         device,
         &create_shader("ui-vert", ShaderKind::Vertex)?,
         &create_shader("ui-frag", ShaderKind::Fragment)?,
@@ -2077,7 +2071,7 @@ fn create_pipelines(
     // let player_shadow_pipeline = create_pipeline(
     //     factory,
     //     figure::pipe::Init {
-    //         tgt_depth_stencil: (gfx::preset::depth::PASS_TEST/*,
+    //         tgt_depth: (gfx::preset::depth::PASS_TEST/*,
     //         Stencil::new(
     //             Comparison::Equal,
     //             0xff,

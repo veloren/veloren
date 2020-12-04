@@ -179,7 +179,7 @@ impl Texture {
         data: &[u8],
     ) {
         // Note: we only accept 4 bytes per pixel
-        // (enforce this is API?)
+        // (enforce this in API?)
         debug_assert_eq!(data.len(), size[0] as usize * size[1] as usize * 4);
         // TODO: Only works for 2D images
         queue.write_texture(

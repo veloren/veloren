@@ -1,6 +1,6 @@
 use super::graphic::{Graphic, GraphicCache, Id as GraphicId};
 use crate::{
-    render::{Renderer, Texture},
+    render::{Renderer, Texture, UiTextureBindGroup},
     Error,
 };
 use common::assets::{self, AssetExt};
@@ -46,7 +46,7 @@ pub struct FontId(pub(super) glyph_brush::FontId);
 
 pub struct Cache {
     glyph_brush: RefCell<GlyphBrush>,
-    glyph_cache_tex: Texture,
+    glyph_cache_tex: (Texture, UiTextureBindGroup),
     graphic_cache: GraphicCache,
 }
 
@@ -66,16 +66,22 @@ impl Cache {
             .draw_cache_position_tolerance(POSITION_TOLERANCE)
             .build();
 
+        let glyph_cache_tex = {
+            let tex = renderer.create_dynamic_texture(glyph_cache_dims);
+            let bind = renderer.ui_bind_texture(&tex);
+            (tex, bind)
+        };
+
         Ok(Self {
             glyph_brush: RefCell::new(glyph_brush),
-            glyph_cache_tex: renderer.create_dynamic_texture(glyph_cache_dims),
+            glyph_cache_tex,
             graphic_cache: GraphicCache::new(renderer),
         })
     }
 
-    pub fn glyph_cache_tex(&self) -> &Texture { &self.glyph_cache_tex }
+    pub fn glyph_cache_tex(&self) -> &(Texture, UiTextureBindGroup) { &self.glyph_cache_tex }
 
-    pub fn glyph_cache_mut_and_tex(&mut self) -> (&mut GlyphBrush, &Texture) {
+    pub fn glyph_cache_mut_and_tex(&mut self) -> (&mut GlyphBrush, &(Texture, UiTextureBindGroup)) {
         (self.glyph_brush.get_mut(), &self.glyph_cache_tex)
     }
 
@@ -117,6 +123,7 @@ impl Cache {
         self.graphic_cache.replace_graphic(id, graphic)
     }
 
+    // TODO: combine resize functions
     // Resizes and clears the GraphicCache
     pub fn resize_graphic_cache(&mut self, renderer: &mut Renderer) {
         self.graphic_cache.clear_cache(renderer);
@@ -134,7 +141,12 @@ impl Cache {
             .initial_cache_size((cache_dims.x, cache_dims.y))
             .build();
 
-        self.glyph_cache_tex = renderer.create_dynamic_texture(cache_dims);
+        self.glyph_cache_tex = {
+            let tex = renderer.create_dynamic_texture(cache_dims);
+            let bind = renderer.ui_bind_texture(&tex);
+            (tex, bind)
+        };
+
         Ok(())
     }
 }

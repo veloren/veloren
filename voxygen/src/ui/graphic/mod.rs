@@ -4,7 +4,7 @@ mod renderer;
 pub use renderer::{SampleStrat, Transform};
 
 use crate::{
-    render::{Renderer, Texture},
+    render::{Renderer, Texture, UiTextureBindGroup},
     ui::KeyedJobs,
 };
 use common::{figure::Segment, slowjob::SlowJobPool};
@@ -142,7 +142,7 @@ pub struct GraphicCache {
 
     // Atlases with the index of their texture in the textures vec
     atlases: Vec<(SimpleAtlasAllocator, usize)>,
-    textures: Vec<Texture>,
+    textures: Vec<(Texture, UiTextureBindGroup)>,
     // Stores the location of graphics rendered at a particular resolution and cached on the cpu
     cache_map: HashMap<Parameters, CachedDetails>,
 
@@ -191,7 +191,7 @@ impl GraphicCache {
     pub fn get_graphic(&self, id: Id) -> Option<&Graphic> { self.graphic_map.get(&id) }
 
     /// Used to acquire textures for rendering
-    pub fn get_tex(&self, id: TexId) -> &Texture {
+    pub fn get_tex(&self, id: TexId) -> &(Texture, UiTextureBindGroup) {
         self.textures.get(id.0).expect("Invalid TexId used")
     }
 
@@ -293,7 +293,7 @@ impl GraphicCache {
                     // color.
                     assert!(border.is_none());
                     // Transfer to the gpu
-                    upload_image(renderer, aabr, &textures[idx], &image);
+                    upload_image(renderer, aabr, &textures[idx].0, &image);
                 }
 
                 return Some((transformed_aabr(aabr.map(|e| e as f64)), TexId(idx)));
@@ -335,7 +335,7 @@ impl GraphicCache {
                         valid: true,
                         aabr,
                     });
-                    upload_image(renderer, aabr, &textures[texture_idx], &image);
+                    upload_image(renderer, aabr, &textures[texture_idx].0, &image);
                     break;
                 }
             }
@@ -355,7 +355,7 @@ impl GraphicCache {
                     let atlas_idx = atlases.len();
                     textures.push(texture);
                     atlases.push((atlas, tex_idx));
-                    upload_image(renderer, aabr, &textures[tex_idx], &image);
+                    upload_image(renderer, aabr, &textures[tex_idx].0, &image);
                     CachedDetails::Atlas {
                         atlas_idx,
                         valid: true,
@@ -365,7 +365,11 @@ impl GraphicCache {
             }
         } else {
             // Create a texture just for this
-            let texture = renderer.create_dynamic_texture(dims.map(|e| e as u32));
+            let texture = {
+                let tex = renderer.create_dynamic_texture(dims.map(|e| e as u32));
+                let bind = renderer.ui_bind_texture(&tex);
+                (tex, bind)
+            };
             // NOTE: All mutations happen only after the texture creation succeeds!
             let index = textures.len();
             textures.push(texture);
@@ -376,7 +380,7 @@ impl GraphicCache {
                     // Note texture should always match the cached dimensions
                     max: dims,
                 },
-                &textures[index],
+                &textures[index].0,
                 &image,
             );
             CachedDetails::Texture { index, valid: true }
@@ -450,11 +454,18 @@ fn atlas_size(renderer: &Renderer) -> Vec2<u32> {
     })
 }
 
-fn create_atlas_texture(renderer: &mut Renderer) -> (SimpleAtlasAllocator, Texture) {
+fn create_atlas_texture(
+    renderer: &mut Renderer,
+) -> (SimpleAtlasAllocator, (Texture, UiTextureBindGroup)) {
     let size = atlas_size(renderer);
     // Note: here we assume the atlas size is under i32::MAX
     let atlas = SimpleAtlasAllocator::new(size2(size.x as i32, size.y as i32));
-    let texture = renderer.create_dynamic_texture(size);
+    let texture = {
+        let tex = renderer.create_dynamic_texture(size);
+        let bind = renderer.ui_bind_texture(&tex);
+        (tex, bind)
+    };
+
     (atlas, texture)
 }
 
@@ -480,8 +491,12 @@ fn upload_image(renderer: &mut Renderer, aabr: Aabr<u16>, tex: &Texture, image: 
     );
 }
 
-fn create_image(renderer: &mut Renderer, image: RgbaImage, border_color: Rgba<f32>) -> Texture {
-    renderer
+fn create_image(
+    renderer: &mut Renderer,
+    image: RgbaImage,
+    border_color: Rgba<f32>,
+) -> (Texture, UiTextureBindGroup) {
+    let tex = renderer
         .create_texture(
             &DynamicImage::ImageRgba8(image),
             None,
@@ -489,5 +504,8 @@ fn create_image(renderer: &mut Renderer, image: RgbaImage, border_color: Rgba<f3
             // Some(border_color.into_array().into()),
             Some(wgpu::AddressMode::ClampToBorder),
         )
-        .expect("create_texture only panics is non ImageRbga8 is passed")
+        .expect("create_texture only panics is non ImageRbga8 is passed");
+    let bind = renderer.ui_bind_texture(&tex);
+
+    (tex, bind)
 }

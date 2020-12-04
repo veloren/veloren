@@ -10,7 +10,7 @@ pub mod sprite;
 pub mod terrain;
 pub mod ui;
 
-use super::Consts;
+use super::{Consts, Texture};
 use crate::scene::camera::CameraMode;
 use bytemuck::{Pod, Zeroable};
 use common::terrain::BlockKind;
@@ -225,6 +225,10 @@ pub struct GlobalModel {
     pub shadow_mats: Consts<shadow::Locals>,
 }
 
+pub struct GlobalsBindGroup {
+    pub(super) bind_group: wgpu::BindGroup,
+}
+
 pub struct GlobalsLayouts {
     pub globals: wgpu::BindGroupLayout,
 }
@@ -315,7 +319,7 @@ impl GlobalsLayouts {
                     ty: wgpu::BindingType::Sampler { comparison: false },
                     count: None,
                 },
-                // light shadows
+                // light shadows (ie shadows from a light?)
                 wgpu::BindGroupLayoutEntry {
                     binding: 9,
                     visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
@@ -381,5 +385,97 @@ impl GlobalsLayouts {
         });
 
         Self { globals }
+    }
+
+    pub fn bind(
+        &self,
+        device: &wgpu::Device,
+        global_model: &GlobalModel,
+        lod_data: &lod_terrain::LodData,
+        noise: &Texture,
+        point_shadow_map: &Texture,
+        directed_shadow_map: &Texture,
+    ) -> GlobalsBindGroup {
+        let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: None,
+            layout: &self.globals,
+            entries: &[
+                // Global uniform
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: global_model.globals.buf().as_entire_binding(),
+                },
+                // Noise tex
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::TextureView(&noise.view),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 2,
+                    resource: wgpu::BindingResource::Sampler(&noise.sampler),
+                },
+                // Light uniform
+                wgpu::BindGroupEntry {
+                    binding: 3,
+                    resource: global_model.lights.buf().as_entire_binding(),
+                },
+                // Shadow uniform
+                wgpu::BindGroupEntry {
+                    binding: 4,
+                    resource: global_model.shadows.buf().as_entire_binding(),
+                },
+                // Alt texture
+                wgpu::BindGroupEntry {
+                    binding: 5,
+                    resource: wgpu::BindingResource::TextureView(&lod_data.alt.view),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 6,
+                    resource: wgpu::BindingResource::Sampler(&lod_data.alt.sampler),
+                },
+                // Horizon texture
+                wgpu::BindGroupEntry {
+                    binding: 7,
+                    resource: wgpu::BindingResource::TextureView(&lod_data.horizon.view),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 8,
+                    resource: wgpu::BindingResource::Sampler(&lod_data.horizon.sampler),
+                },
+                // light shadows
+                wgpu::BindGroupEntry {
+                    binding: 9,
+                    resource: global_model.shadow_mats.buf().as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 10,
+                    resource: wgpu::BindingResource::TextureView(&point_shadow_map.view),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 11,
+                    resource: wgpu::BindingResource::Sampler(&point_shadow_map.sampler),
+                },
+                // directed shadow maps
+                wgpu::BindGroupEntry {
+                    binding: 12,
+                    resource: wgpu::BindingResource::TextureView(&directed_shadow_map.view),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 13,
+                    resource: wgpu::BindingResource::Sampler(&directed_shadow_map.sampler),
+                },
+                // lod map (t_map)
+                wgpu::BindGroupEntry {
+                    binding: 14,
+                    resource: wgpu::BindingResource::TextureView(&lod_data.map.view),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 15,
+                    resource: wgpu::BindingResource::Sampler(&lod_data.map.sampler),
+                },
+            ],
+        });
+
+        GlobalsBindGroup { bind_group }
     }
 }

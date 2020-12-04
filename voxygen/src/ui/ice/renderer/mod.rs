@@ -15,8 +15,8 @@ use super::{
 };
 use crate::{
     render::{
-        create_ui_quad, create_ui_quad_vert_gradient, Consts, DynamicModel, Globals, Mesh,
-        Renderer, UiLocals, UiMode, UiVertex,
+        create_ui_quad, create_ui_quad_vert_gradient, Consts, DynamicModel, Mesh, Renderer,
+        UiDrawer, UiLocals, UiLocalsBindGroup, UiMode, UiVertex,
     },
     Error,
 };
@@ -85,10 +85,10 @@ pub struct IcedRenderer {
     // Model for drawing the ui
     model: DynamicModel<UiVertex>,
     // Consts to specify positions of ingame elements (e.g. Nametags)
-    ingame_locals: Vec<Consts<UiLocals>>,
+    ingame_locals: Vec<(Consts<UiLocals>, UiLocalsBindGroup)>,
     // Consts for default ui drawing position (ie the interface)
-    interface_locals: Consts<UiLocals>,
-    default_globals: Consts<Globals>,
+    interface_locals: (Consts<UiLocals>, UiLocalsBindGroup),
+    //default_globals: Consts<Globals>,
 
     // Used to delay cache resizing until after current frame is drawn
     //need_cache_resize: bool,
@@ -125,12 +125,18 @@ impl IcedRenderer {
         let (half_res, align, p_scale) =
             Self::calculate_resolution_dependents(physical_resolution, scaled_resolution);
 
+        let interface_locals = {
+            let locals = renderer.create_consts(&[UiLocals::default()]);
+            let bind = renderer.ui_bind_locals(&locals);
+            (locals, bind)
+        };
+
         Ok(Self {
             cache: Cache::new(renderer, default_font)?,
             draw_commands: Vec::new(),
             model: renderer.create_dynamic_model(100),
-            interface_locals: renderer.create_consts(&[UiLocals::default()])?,
-            default_globals: renderer.create_consts(&[Globals::default()])?,
+            interface_locals,
+            //default_globals: renderer.create_consts(&[Globals::default()]),
             ingame_locals: Vec::new(),
             mesh: Mesh::new(),
             glyphs: Vec::new(),
@@ -227,7 +233,7 @@ impl IcedRenderer {
             .push(DrawCommand::plain(self.start..self.mesh.vertices().len()));*/
 
         // Fill in placeholder glyph quads
-        let (glyph_cache, cache_tex) = self.cache.glyph_cache_mut_and_tex();
+        let (glyph_cache, (cache_tex, _)) = self.cache.glyph_cache_mut_and_tex();
         let half_res = self.half_res;
 
         let brush_result = glyph_cache.process_queued(
@@ -549,6 +555,7 @@ impl IcedRenderer {
                     Some((aabr, tex_id)) => {
                         let cache_dims = graphic_cache
                             .get_tex(tex_id)
+                            .0
                             .get_dimensions()
                             .xy()
                             .map(|e| e as f32);
@@ -770,28 +777,32 @@ impl IcedRenderer {
         }
     }
 
-    pub fn render(&self, renderer: &mut Renderer, maybe_globals: Option<&Consts<Globals>>) {
+    pub fn render<'pass_ref, 'pass: 'pass_ref, 'data: 'pass>(
+        &'data self,
+        drawer: &mut UiDrawer<'pass_ref, 'pass>, /* maybe_globals: Option<&Consts<Globals>> */
+    ) {
         span!(_guard, "render", "IcedRenderer::render");
-        let mut scissor = self.window_scissor;
-        let globals = maybe_globals.unwrap_or(&self.default_globals);
-        let mut locals = &self.interface_locals;
+        let mut drawer = drawer.prepare(&self.interface_locals.1, &self.model, self.window_scissor);
+        //let mut scissor = self.window_scissor;
+        //let globals = maybe_globals.unwrap_or(&self.default_globals);
+        //let mut locals = &self.interface_locals.1;
         for draw_command in self.draw_commands.iter() {
             match draw_command {
                 DrawCommand::Scissor(new_scissor) => {
-                    scissor = *new_scissor;
+                    drawer.set_scissor(*new_scissor);
                 },
                 DrawCommand::WorldPos(index) => {
-                    locals = index.map_or(&self.interface_locals, |i| &self.ingame_locals[i]);
+                    drawer.set_locals(
+                        index.map_or(&self.interface_locals.1, |i| &self.ingame_locals[i].1),
+                    );
                 },
                 DrawCommand::Draw { kind, verts } => {
+                    // TODO: don't make these assert!(!verts.is_empty());
                     let tex = match kind {
                         DrawKind::Image(tex_id) => self.cache.graphic_cache().get_tex(*tex_id),
                         DrawKind::Plain => self.cache.glyph_cache_tex(),
                     };
-                    let model = self.model.submodel(verts.clone());
-                    // TODO
-                    //renderer.render_ui_element(model, tex, scissor, globals,
-                    // locals);
+                    drawer.draw(&tex.1, verts.clone()); // Note: trivial clone
                 },
             }
         }

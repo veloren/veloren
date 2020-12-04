@@ -2,7 +2,7 @@ use bytemuck::Pod;
 use wgpu::util::DeviceExt;
 
 pub struct Buffer<T: Copy + Pod> {
-    pub buf: wgpu::Buffer,
+    pub(super) buf: wgpu::Buffer,
     // Size in number of elements
     // TODO: determine if this is a good name
     len: usize,

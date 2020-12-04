@@ -2,14 +2,13 @@ use crate::{
     mesh::{greedy::GreedyMesh, segment::generate_mesh_base_vol_terrain},
     render::{
         create_clouds_mesh, create_pp_mesh, create_skybox_mesh, BoneMeshes, CloudsLocals,
-        CloudsVertex, Consts, FigureModel, GlobalModel, Globals, Light, Mesh, Model,
+        CloudsVertex, Consts, FigureModel, GlobalModel, Globals, Light, LodData, Mesh, Model,
         PostProcessLocals, PostProcessVertex, Renderer, Shadow, ShadowLocals, SkyboxVertex,
         TerrainVertex,
     },
     scene::{
         camera::{self, Camera, CameraMode},
         figure::{load_mesh, FigureColLights, FigureModelCache, FigureModelEntry, FigureState},
-        LodData,
     },
     window::{Event, PressState},
 };
@@ -110,10 +109,6 @@ impl Scene {
             client.world_data().min_chunk_alt(),
             client.world_data().max_chunk_alt(),
         );
-        let map_border = [0.0, 0.0, 0.0, 0.0];
-        let map_image = [0];
-        let alt_image = [0];
-        let horizon_image = [0x_00_01_00_01];
 
         let mut camera = Camera::new(resolution.x / resolution.y, CameraMode::ThirdPerson);
         camera.set_focus_pos(Vec3::unit_z() * 1.5);
@@ -124,12 +119,10 @@ impl Scene {
 
         Self {
             data: GlobalModel {
-                globals: renderer.create_consts(&[Globals::default()]).unwrap(),
-                lights: renderer.create_consts(&[Light::default(); 32]).unwrap(),
-                shadows: renderer.create_consts(&[Shadow::default(); 32]).unwrap(),
-                shadow_mats: renderer
-                    .create_consts(&[ShadowLocals::default(); 6])
-                    .unwrap(),
+                globals: renderer.create_consts(&[Globals::default()]),
+                lights: renderer.create_consts(&[Light::default(); 32]),
+                shadows: renderer.create_consts(&[Shadow::default(); 32]),
+                shadow_mats: renderer.create_consts(&[ShadowLocals::default(); 6]),
             },
 
             skybox: Skybox {
@@ -137,23 +130,13 @@ impl Scene {
             },
             clouds: Clouds {
                 model: renderer.create_model(&create_clouds_mesh()).unwrap(),
-                locals: renderer.create_consts(&[CloudsLocals::default()]).unwrap(),
+                locals: renderer.create_consts(&[CloudsLocals::default()]),
             },
             postprocess: PostProcess {
                 model: renderer.create_model(&create_pp_mesh()).unwrap(),
-                locals: renderer
-                    .create_consts(&[PostProcessLocals::default()])
-                    .unwrap(),
+                locals: renderer.create_consts(&[PostProcessLocals::default()]),
             },
-            lod: LodData::new(
-                renderer,
-                Vec2::new(1, 1),
-                &map_image,
-                &alt_image,
-                &horizon_image,
-                1,
-                //map_border.into(),
-            ),
+            lod: LodData::dummy(renderer),
             map_bounds,
 
             figure_model_cache: FigureModelCache::new(),

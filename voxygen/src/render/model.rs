@@ -13,7 +13,7 @@ pub struct SubModel<'a, V: Vertex> {
 }
 
 impl<'a, V: Vertex> SubModel<'a, V> {
-    pub fn buf(&self) -> &wgpu::Buffer { self.buf }
+    pub(super) fn buf(&self) -> &wgpu::Buffer { self.buf }
 }
 
 /// Represents a mesh that has been sent to the GPU.
@@ -38,7 +38,7 @@ impl<V: Vertex> Model<V> {
         }
     }
 
-    pub fn buf(&self) -> &wgpu::Buffer { &self.vbuf.buf }
+    pub(super) fn buf(&self) -> &wgpu::Buffer { &self.vbuf.buf }
 
     pub fn len(&self) -> usize { self.vbuf.len() }
 }

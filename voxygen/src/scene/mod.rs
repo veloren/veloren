@@ -17,8 +17,8 @@ use crate::{
     audio::{ambient::AmbientMgr, music::MusicMgr, sfx::SfxMgr, AudioFrontend},
     render::{
         create_clouds_mesh, create_pp_mesh, create_skybox_mesh, CloudsLocals, CloudsVertex, Consts,
-        GlobalModel, Globals, Light, LodData, Model, PostProcessLocals, PostProcessVertex,
-        Renderer, Shadow, ShadowLocals, SkyboxVertex,
+        GlobalModel, Globals, Light, Model, PostProcessLocals, PostProcessVertex, Renderer, Shadow,
+        ShadowLocals, SkyboxVertex,
     },
     settings::Settings,
     window::{AnalogGameInput, Event},
@@ -277,16 +277,11 @@ impl Scene {
 
         Self {
             data: GlobalModel {
-                globals: renderer.create_consts(&[Globals::default()]).unwrap(),
-                lights: renderer
-                    .create_consts(&[Light::default(); MAX_LIGHT_COUNT])
-                    .unwrap(),
-                shadows: renderer
-                    .create_consts(&[Shadow::default(); MAX_SHADOW_COUNT])
-                    .unwrap(),
+                globals: renderer.create_consts(&[Globals::default()]),
+                lights: renderer.create_consts(&[Light::default(); MAX_LIGHT_COUNT]),
+                shadows: renderer.create_consts(&[Shadow::default(); MAX_SHADOW_COUNT]),
                 shadow_mats: renderer
-                    .create_consts(&[ShadowLocals::default(); MAX_LIGHT_COUNT * 6 + 6])
-                    .unwrap(),
+                    .create_consts(&[ShadowLocals::default(); MAX_LIGHT_COUNT * 6 + 6]),
             },
             camera: Camera::new(resolution.x / resolution.y, CameraMode::ThirdPerson),
             camera_input_state: Vec2::zero(),
@@ -297,13 +292,11 @@ impl Scene {
             },
             clouds: Clouds {
                 model: renderer.create_model(&create_clouds_mesh()).unwrap(),
-                locals: renderer.create_consts(&[CloudsLocals::default()]).unwrap(),
+                locals: renderer.create_consts(&[CloudsLocals::default()]),
             },
             postprocess: PostProcess {
                 model: renderer.create_model(&create_pp_mesh()).unwrap(),
-                locals: renderer
-                    .create_consts(&[PostProcessLocals::default()])
-                    .unwrap(),
+                locals: renderer.create_consts(&[PostProcessLocals::default()]),
             },
             terrain: Terrain::new(renderer, sprite_render_context),
             lod: Lod::new(renderer, client, settings),

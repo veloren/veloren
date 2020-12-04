@@ -11,9 +11,9 @@ uniform u_locals {
     vec4 w_pos;
 };
 
-layout(set = 1, binding = 1)
+layout(set = 2, binding = 0)
 uniform texture2D t_tex;
-layout(set = 1, binding = 2)
+layout(set = 2, binding = 1)
 uniform sampler s_tex;
 
 layout(location = 0) out vec4 tgt_color;

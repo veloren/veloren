@@ -35,6 +35,25 @@ pub struct LodData {
 }
 
 impl LodData {
+    pub fn dummy(renderer: &mut Renderer) -> Self {
+        let map_size = Vec2::new(1, 1);
+        let map_border = [0.0, 0.0, 0.0, 0.0];
+        let map_image = [0];
+        let alt_image = [0];
+        let horizon_image = [0x_00_01_00_01];
+        //let map_border = [0.0, 0.0, 0.0, 0.0];
+
+        Self::new(
+            renderer,
+            map_size,
+            &map_image,
+            &alt_image,
+            &horizon_image,
+            1,
+            //map_border.into(),
+        )
+    }
+
     pub fn new(
         renderer: &mut Renderer,
         map_size: Vec2<u32>,
@@ -44,65 +63,54 @@ impl LodData {
         tgt_detail: u32,
         //border_color: gfx::texture::PackedColor,
     ) -> Self {
-        let mut texture_info = wgpu::TextureDescriptor {
-            label: None,
-            size: wgpu::Extent3d {
-                width: map_size.x,
-                height: map_size.y,
-                depth: 1,
-            },
-            mip_level_count: 1,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Rgba8UnormSrgb,
-            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
-        };
+        let mut create_texture = |format, data| {
+            let texture_info = wgpu::TextureDescriptor {
+                label: None,
+                size: wgpu::Extent3d {
+                    width: map_size.x,
+                    height: map_size.y,
+                    depth: 1,
+                },
+                mip_level_count: 1,
+                sample_count: 1,
+                dimension: wgpu::TextureDimension::D2,
+                format,
+                usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
+            };
 
-        let sampler_info = wgpu::SamplerDescriptor {
-            label: None,
-            address_mode_u: wgpu::AddressMode::ClampToEdge,
-            address_mode_v: wgpu::AddressMode::ClampToEdge,
-            address_mode_w: wgpu::AddressMode::ClampToEdge,
-            mag_filter: wgpu::FilterMode::Linear,
-            min_filter: wgpu::FilterMode::Linear,
-            mipmap_filter: wgpu::FilterMode::Nearest,
-            border_color: Some(wgpu::SamplerBorderColor::TransparentBlack),
-            ..Default::default()
-        };
+            let sampler_info = wgpu::SamplerDescriptor {
+                label: None,
+                address_mode_u: wgpu::AddressMode::ClampToEdge,
+                address_mode_v: wgpu::AddressMode::ClampToEdge,
+                address_mode_w: wgpu::AddressMode::ClampToEdge,
+                mag_filter: wgpu::FilterMode::Linear,
+                min_filter: wgpu::FilterMode::Linear,
+                mipmap_filter: wgpu::FilterMode::Nearest,
+                border_color: Some(wgpu::SamplerBorderColor::TransparentBlack),
+                ..Default::default()
+            };
 
-        let mut view_info = wgpu::TextureViewDescriptor {
-            label: None,
-            format: Some(wgpu::TextureFormat::Rgba8UnormSrgb),
-            dimension: Some(wgpu::TextureViewDimension::D2),
-            aspect: wgpu::TextureAspect::All,
-            base_mip_level: 0,
-            level_count: None,
-            base_array_layer: 0,
-            array_layer_count: None,
-        };
+            let view_info = wgpu::TextureViewDescriptor {
+                label: None,
+                format: Some(format),
+                dimension: Some(wgpu::TextureViewDimension::D2),
+                aspect: wgpu::TextureAspect::All,
+                base_mip_level: 0,
+                level_count: None,
+                base_array_layer: 0,
+                array_layer_count: None,
+            };
 
-        let map = renderer.create_texture_with_data_raw(
-            &texture_info,
-            &view_info,
-            &sampler_info,
-            bytemuck::cast_slice(lod_base),
-        );
-        texture_info.format = wgpu::TextureFormat::Rg16Uint;
-        view_info.format = Some(wgpu::TextureFormat::Rg16Uint);
-        let alt = renderer.create_texture_with_data_raw(
-            &texture_info,
-            &view_info,
-            &sampler_info,
-            bytemuck::cast_slice(lod_base),
-        );
-        texture_info.format = wgpu::TextureFormat::Rgba8Unorm;
-        view_info.format = Some(wgpu::TextureFormat::Rg16Uint);
-        let horizon = renderer.create_texture_with_data_raw(
-            &texture_info,
-            &view_info,
-            &sampler_info,
-            bytemuck::cast_slice(lod_base),
-        );
+            renderer.create_texture_with_data_raw(
+                &texture_info,
+                &view_info,
+                &sampler_info,
+                bytemuck::cast_slice(data),
+            )
+        };
+        let map = create_texture(wgpu::TextureFormat::Rgba8UnormSrgb, lod_base);
+        let alt = create_texture(wgpu::TextureFormat::Rg16Uint, lod_alt);
+        let horizon = create_texture(wgpu::TextureFormat::Rgba8Unorm, lod_horizon);
 
         Self {
             map,
@@ -173,7 +181,6 @@ impl LodTerrainPipeline {
         let samples = match aa_mode {
             AaMode::None | AaMode::Fxaa => 1,
             // TODO: Ensure sampling in the shader is exactly between the 4 texels
-            AaMode::SsaaX4 => 1,
             AaMode::MsaaX4 => 4,
             AaMode::MsaaX8 => 8,
             AaMode::MsaaX16 => 16,

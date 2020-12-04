@@ -14,7 +14,11 @@ use super::{
     graphic::{self, Graphic},
     scale::{Scale, ScaleMode},
 };
-use crate::{render::Renderer, window::Window, Error};
+use crate::{
+    render::{Renderer, UiDrawer},
+    window::Window,
+    Error,
+};
 use common::slowjob::SlowJobPool;
 use common_base::span;
 use iced::{mouse, Cache, Size, UserInterface};
@@ -214,5 +218,5 @@ impl IcedUi {
         (messages, mouse_interaction)
     }
 
-    pub fn render(&self, renderer: &mut Renderer) { self.renderer.render(renderer, None); }
+    pub fn render<'a>(&'a self, drawer: &mut UiDrawer<'_, 'a>) { self.renderer.render(drawer); }
 }

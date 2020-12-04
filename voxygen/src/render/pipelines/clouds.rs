@@ -150,7 +150,6 @@ impl CloudsPipeline {
         let samples = match aa_mode {
             AaMode::None | AaMode::Fxaa => 1,
             // TODO: Ensure sampling in the shader is exactly between the 4 texels
-            AaMode::SsaaX4 => 1,
             AaMode::MsaaX4 => 4,
             AaMode::MsaaX8 => 8,
             AaMode::MsaaX16 => 16,

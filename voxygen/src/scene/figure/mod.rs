@@ -8,13 +8,13 @@ use crate::{
     ecs::comp::Interpolated,
     render::{
         pipelines, ColLightInfo, Consts, FigureBoneData, FigureLocals, FigureModel, GlobalModel,
-        Mesh, RenderError, Renderer, SubModel, TerrainVertex, Texture,
+        LodData, Mesh, RenderError, Renderer, SubModel, TerrainVertex, Texture,
     },
     scene::{
         camera::{Camera, CameraMode, Dependents},
         math,
         terrain::Terrain,
-        LodData, SceneData,
+        SceneData,
     },
 };
 use anim::{
@@ -5352,8 +5352,8 @@ impl<S: Skeleton> FigureState<S> {
         let bone_consts = figure_bone_data_from_anim(&buf);
         Self {
             meta: FigureStateMeta {
-                bone_consts: renderer.create_consts(bone_consts).unwrap(),
-                locals: renderer.create_consts(&[FigureLocals::default()]).unwrap(),
+                bone_consts: renderer.create_consts(bone_consts),
+                locals: renderer.create_consts(&[FigureLocals::default()]),
                 lantern_offset,
                 state_time: 0.0,
                 last_ori: Ori::default().into(),

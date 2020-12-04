@@ -1,4 +1,4 @@
-use super::super::{AaMode, GlobalsLayouts, Quad, Tri};
+use super::super::{AaMode, Consts, GlobalsLayouts, Quad, Texture, Tri};
 use bytemuck::{Pod, Zeroable};
 use vek::*;
 
@@ -80,11 +80,20 @@ impl Mode {
     }
 }
 
-pub struct UILayout {
-    pub locals: wgpu::BindGroupLayout,
+pub struct LocalsBindGroup {
+    pub(in super::super) bind_group: wgpu::BindGroup,
 }
 
-impl UILayout {
+pub struct TextureBindGroup {
+    pub(in super::super) bind_group: wgpu::BindGroup,
+}
+
+pub struct UiLayout {
+    pub locals: wgpu::BindGroupLayout,
+    pub texture: wgpu::BindGroupLayout,
+}
+
+impl UiLayout {
     pub fn new(device: &wgpu::Device) -> Self {
         Self {
             locals: device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -100,9 +109,14 @@ impl UILayout {
                         },
                         count: None,
                     },
+                ],
+            }),
+            texture: device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                label: None,
+                entries: &[
                     // texture
                     wgpu::BindGroupLayoutEntry {
-                        binding: 1,
+                        binding: 0,
                         visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
                         ty: wgpu::BindingType::SampledTexture {
                             component_type: wgpu::TextureComponentType::Float,
@@ -112,7 +126,7 @@ impl UILayout {
                         count: None,
                     },
                     wgpu::BindGroupLayoutEntry {
-                        binding: 2,
+                        binding: 1,
                         visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
                         ty: wgpu::BindingType::Sampler { comparison: false },
                         count: None,
@@ -121,33 +135,64 @@ impl UILayout {
             }),
         }
     }
+
+    pub fn bind_locals(&self, device: &wgpu::Device, locals: &Consts<Locals>) -> LocalsBindGroup {
+        let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: None,
+            layout: &self.locals,
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: locals.buf().as_entire_binding(),
+            }],
+        });
+
+        LocalsBindGroup { bind_group }
+    }
+
+    pub fn bind_texture(&self, device: &wgpu::Device, texture: &Texture) -> TextureBindGroup {
+        let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: None,
+            layout: &self.texture,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&texture.view),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Sampler(&texture.sampler),
+                },
+            ],
+        });
+
+        TextureBindGroup { bind_group }
+    }
 }
 
-pub struct UIPipeline {
+pub struct UiPipeline {
     pub pipeline: wgpu::RenderPipeline,
 }
 
-impl UIPipeline {
+impl UiPipeline {
     pub fn new(
         device: &wgpu::Device,
         vs_module: &wgpu::ShaderModule,
         fs_module: &wgpu::ShaderModule,
         sc_desc: &wgpu::SwapChainDescriptor,
         global_layout: &GlobalsLayouts,
-        layout: &UILayout,
+        layout: &UiLayout,
         aa_mode: AaMode,
     ) -> Self {
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                label: Some("UI pipeline layout"),
+                label: Some("Ui pipeline layout"),
                 push_constant_ranges: &[],
-                bind_group_layouts: &[&global_layout.globals, &layout.locals],
+                bind_group_layouts: &[&global_layout.globals, &layout.locals, &layout.texture],
             });
 
         let samples = match aa_mode {
             AaMode::None | AaMode::Fxaa => 1,
             // TODO: Ensure sampling in the shader is exactly between the 4 texels
-            AaMode::SsaaX4 => 1,
             AaMode::MsaaX4 => 4,
             AaMode::MsaaX8 => 8,
             AaMode::MsaaX16 => 16,

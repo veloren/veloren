@@ -37,11 +37,12 @@ pub use self::{
         ui::{
             create_quad as create_ui_quad,
             create_quad_vert_gradient as create_ui_quad_vert_gradient, create_tri as create_ui_tri,
-            Locals as UiLocals, Mode as UiMode, Vertex as UiVertex,
+            Locals as UiLocals, LocalsBindGroup as UiLocalsBindGroup, Mode as UiMode,
+            TextureBindGroup as UiTextureBindGroup, Vertex as UiVertex,
         },
-        GlobalModel, Globals, GlobalsLayouts, Light, Shadow,
+        GlobalModel, Globals, GlobalsBindGroup, GlobalsLayouts, Light, Shadow,
     },
-    renderer::{ColLightInfo, Renderer},
+    renderer::{ColLightInfo, Drawer, Renderer, UiDrawer},
     texture::Texture,
 };
 pub use wgpu::{AddressMode, FilterMode};
