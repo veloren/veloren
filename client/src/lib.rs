@@ -982,14 +982,9 @@ impl Client {
                                 SkillGroupType::Weapon(Sceptre),
                             )));
                         },
-                        "@unlock health1" => {
+                        "@unlock health" => {
                             self.send_msg(ClientGeneral::UnlockSkill(Skill::General(
-                                GeneralSkill::HealthIncrease1,
-                            )));
-                        },
-                        "@unlock health2" => {
-                            self.send_msg(ClientGeneral::UnlockSkill(Skill::General(
-                                GeneralSkill::HealthIncrease2,
+                                GeneralSkill::HealthIncrease,
                             )));
                         },
                         _ => {},
