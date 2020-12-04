@@ -81,6 +81,10 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::GiveItem => handle_give_item,
         ChatCommand::Goto => handle_goto,
         ChatCommand::Group => handle_group,
+        ChatCommand::GroupInvite => handle_group_invite,
+        ChatCommand::GroupKick => handle_group_kick,
+        ChatCommand::GroupLeave => handle_group_leave,
+        ChatCommand::GroupPromote => handle_group_promote,
         ChatCommand::Health => handle_health,
         ChatCommand::Help => handle_help,
         ChatCommand::Home => handle_home,
@@ -1447,6 +1451,144 @@ fn handle_group(
         server.notify_client(
             client,
             ChatType::CommandError.server_msg("Please create a group first"),
+        );
+    }
+}
+
+fn handle_group_invite(
+    server: &mut Server,
+    client: EcsEntity,
+    _target: EcsEntity,
+    args: String,
+    action: &ChatCommand,
+) {
+    if let Some(target_alias) = scan_fmt_some!(&args, &action.arg_fmt(), String) {
+        let ecs = server.state.ecs();
+        let target_player_opt = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
+            .join()
+            .find(|(_, player)| player.alias == target_alias)
+            .map(|(entity, _)| entity);
+
+        if let Some(target_player) = target_player_opt {
+            let uid = *ecs
+                .read_storage::<Uid>()
+                .get(target_player)
+                .expect("Failed to get uid for player");
+
+            ecs.read_resource::<EventBus<ServerEvent>>()
+                .emit_now(ServerEvent::GroupManip(
+                    client,
+                    comp::GroupManip::Invite(uid),
+                ));
+
+            server.notify_client(
+                client,
+                ChatType::CommandInfo.server_msg(format!("Invited {} to the group.", target_alias)),
+            );
+        } else {
+            server.notify_client(
+                client,
+                ChatType::CommandError
+                    .server_msg(format!("Player with alias {} not found", target_alias)),
+            )
+        }
+    } else {
+        server.notify_client(
+            client,
+            ChatType::CommandError.server_msg(action.help_string()),
+        );
+    }
+}
+
+fn handle_group_kick(
+    server: &mut Server,
+    client: EcsEntity,
+    _target: EcsEntity,
+    args: String,
+    action: &ChatCommand,
+) {
+    // Checking if leader is already done in group_manip
+    if let Some(target_alias) = scan_fmt_some!(&args, &action.arg_fmt(), String) {
+        let ecs = server.state.ecs();
+        let target_player_opt = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
+            .join()
+            .find(|(_, player)| player.alias == target_alias)
+            .map(|(entity, _)| entity);
+
+        if let Some(target_player) = target_player_opt {
+            let uid = *ecs
+                .read_storage::<Uid>()
+                .get(target_player)
+                .expect("Failed to get uid for player");
+
+            ecs.read_resource::<EventBus<ServerEvent>>()
+                .emit_now(ServerEvent::GroupManip(client, comp::GroupManip::Kick(uid)));
+        } else {
+            server.notify_client(
+                client,
+                ChatType::CommandError
+                    .server_msg(format!("Player with alias {} not found", target_alias)),
+            )
+        }
+    } else {
+        server.notify_client(
+            client,
+            ChatType::CommandError.server_msg(action.help_string()),
+        );
+    }
+}
+
+fn handle_group_leave(
+    server: &mut Server,
+    client: EcsEntity,
+    _target: EcsEntity,
+    _args: String,
+    _action: &ChatCommand,
+) {
+    server
+        .state
+        .ecs()
+        .read_resource::<EventBus<ServerEvent>>()
+        .emit_now(ServerEvent::GroupManip(client, comp::GroupManip::Leave));
+}
+
+fn handle_group_promote(
+    server: &mut Server,
+    client: EcsEntity,
+    _target: EcsEntity,
+    args: String,
+    action: &ChatCommand,
+) {
+    // Checking if leader is already done in group_manip
+    if let Some(target_alias) = scan_fmt_some!(&args, &action.arg_fmt(), String) {
+        let ecs = server.state.ecs();
+        let target_player_opt = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
+            .join()
+            .find(|(_, player)| player.alias == target_alias)
+            .map(|(entity, _)| entity);
+
+        if let Some(target_player) = target_player_opt {
+            let uid = *ecs
+                .read_storage::<Uid>()
+                .get(target_player)
+                .expect("Failed to get uid for player");
+
+            ecs.read_resource::<EventBus<ServerEvent>>()
+                .emit_now(ServerEvent::GroupManip(
+                    client,
+                    comp::GroupManip::AssignLeader(uid),
+                ));
+        } else {
+            server.notify_client(
+                client,
+                ChatType::CommandError
+                    .server_msg(format!("Player with alias {} not found", target_alias)),
+            )
+        }
+    } else {
+        server.notify_client(
+            client,
+            ChatType::CommandError.server_msg(action.help_string()),
         );
     }
 }
