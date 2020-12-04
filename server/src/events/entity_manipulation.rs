@@ -7,7 +7,7 @@ use crate::{
 use common::{
     assets::Asset,
     comp::{
-        self, buff,
+        self, aura, buff,
         chat::{KillSource, KillType},
         object, Alignment, Body, Energy, EnergyChange, Group, Health, HealthChange, HealthSource,
         Item, Player, Pos, Stats,
@@ -738,6 +738,24 @@ pub fn handle_level_up(server: &mut Server, entity: EcsEntity, new_level: u32) {
     ));
     ecs.write_resource::<Vec<Outcome>>()
         .push(Outcome::LevelUp { pos });
+}
+
+pub fn handle_aura(server: &mut Server, entity: EcsEntity, aura_change: aura::AuraChange) {
+    let ecs = &server.state.ecs();
+    let mut auras_all = ecs.write_storage::<comp::Auras>();
+    if let Some(auras) = auras_all.get_mut(entity) {
+        use aura::AuraChange;
+        match aura_change {
+            AuraChange::Add(new_aura) => {
+                auras.insert(new_aura);
+            },
+            AuraChange::RemoveByKey(keys) => {
+                for key in keys {
+                    auras.remove(key);
+                }
+            },
+        }
+    }
 }
 
 pub fn handle_buff(server: &mut Server, entity: EcsEntity, buff_change: buff::BuffChange) {

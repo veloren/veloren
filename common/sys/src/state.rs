@@ -101,6 +101,7 @@ impl State {
         ecs.register::<comp::Player>();
         ecs.register::<comp::Stats>();
         ecs.register::<comp::Buffs>();
+        ecs.register::<comp::Auras>();
         ecs.register::<comp::Energy>();
         ecs.register::<comp::Health>();
         ecs.register::<comp::CanBuild>();

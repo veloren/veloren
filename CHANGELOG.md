@@ -10,11 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added chat commands for inviting, kicking, leaving, and promoting in groups
+- Aura system
+- Campfire resting heal
 
 ### Changed
+
 - Doubled range of ScaleMode slider when set to Custom
 
 ### Removed
+
 - SSAAx4 option
 
 ### Fixed
