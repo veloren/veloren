@@ -17,8 +17,10 @@ pub enum BuffKind {
     /// Lower a creature's max health
     /// Currently placeholder buff to show other stuff is possible
     Cursed,
-    // Applied when drinking a potion
+    /// Applied when drinking a potion
     Potion,
+    /// Applied when sitting at a campfire
+    CampfireHeal,
 }
 
 impl BuffKind {
@@ -30,6 +32,7 @@ impl BuffKind {
             BuffKind::Bleeding { .. } => false,
             BuffKind::Cursed { .. } => false,
             BuffKind::Potion { .. } => true,
+            BuffKind::CampfireHeal { .. } => true,
         }
     }
 }
@@ -39,6 +42,10 @@ impl BuffKind {
 pub struct BuffData {
     pub strength: f32,
     pub duration: Option<Duration>,
+}
+
+impl BuffData {
+    pub fn new(strength: f32, duration: Option<Duration>) -> Self { Self { strength, duration } }
 }
 
 /// De/buff category ID.
@@ -56,14 +63,18 @@ pub enum BuffCategory {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ModifierKind {
     Additive,
-    Multiplicative,
+    Fractional,
 }
 
 /// Data indicating and configuring behaviour of a de/buff.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum BuffEffect {
     /// Periodically damages or heals entity
-    HealthChangeOverTime { rate: f32, accumulated: f32 },
+    HealthChangeOverTime {
+        rate: f32,
+        accumulated: f32,
+        kind: ModifierKind,
+    },
     /// Changes maximum health by a certain amount
     MaxHealthModifier { value: f32, kind: ModifierKind },
 }
@@ -124,6 +135,7 @@ impl Buff {
                 vec![BuffEffect::HealthChangeOverTime {
                     rate: -data.strength,
                     accumulated: 0.0,
+                    kind: ModifierKind::Additive,
                 }],
                 data.duration,
             ),
@@ -131,6 +143,15 @@ impl Buff {
                 vec![BuffEffect::HealthChangeOverTime {
                     rate: data.strength,
                     accumulated: 0.0,
+                    kind: ModifierKind::Additive,
+                }],
+                data.duration,
+            ),
+            BuffKind::CampfireHeal => (
+                vec![BuffEffect::HealthChangeOverTime {
+                    rate: data.strength,
+                    accumulated: 0.0,
+                    kind: ModifierKind::Fractional,
                 }],
                 data.duration,
             ),
@@ -254,6 +275,8 @@ impl Buffs {
         self.id_counter += 1;
         self.force_insert(self.id_counter, buff)
     }
+
+    pub fn contains(&self, kind: BuffKind) -> bool { self.kinds.contains_key(&kind) }
 
     // Iterate through buffs of a given kind in effect order (most powerful first)
     pub fn iter_kind(&self, kind: BuffKind) -> impl Iterator<Item = (BuffId, &Buff)> + '_ {

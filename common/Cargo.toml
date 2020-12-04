@@ -39,6 +39,7 @@ authc = { git = "https://gitlab.com/veloren/auth.git", rev = "b943c85e4a38f5ec60
 
 # Data structures
 hashbrown = { version = "0.7.2", features = ["rayon", "serde", "nightly"] }
+slotmap = { version = "0.4.0", features = ["serde", "unstable"] }
 indexmap = "1.3.0"
 slab = "0.4.2"
 

@@ -1,6 +1,7 @@
 mod ability;
 mod admin;
 pub mod agent;
+pub mod aura;
 pub mod beam;
 pub mod body;
 pub mod buff;
@@ -28,6 +29,7 @@ pub mod visual;
 pub use ability::{CharacterAbility, CharacterAbilityType, ItemConfig, Loadout};
 pub use admin::Admin;
 pub use agent::{Agent, Alignment};
+pub use aura::{Aura, AuraChange, AuraKind, Auras};
 pub use beam::{Beam, BeamSegment};
 pub use body::{
     biped_large, bird_medium, bird_small, dragon, fish_medium, fish_small, golem, humanoid, object,

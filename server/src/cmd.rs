@@ -9,7 +9,12 @@ use crate::{
 use chrono::{NaiveTime, Timelike};
 use common::{
     cmd::{ChatCommand, CHAT_COMMANDS, CHAT_SHORTCUTS},
-    comp::{self, ChatType, Item, LightEmitter, WaypointArea},
+    comp::{
+        self,
+        aura::{Aura, AuraKind},
+        buff::{BuffCategory, BuffData, BuffKind, BuffSource},
+        ChatType, Item, LightEmitter, WaypointArea,
+    },
     effect::Effect,
     event::{EventBus, ServerEvent},
     msg::{DisconnectReason, Notification, PlayerListUpdate, ServerGeneral},
@@ -23,7 +28,7 @@ use common::{
 };
 use rand::Rng;
 use specs::{Builder, Entity as EcsEntity, Join, WorldExt};
-use std::convert::TryFrom;
+use std::{convert::TryFrom, time::Duration};
 use vek::*;
 use world::util::Sampler;
 
@@ -875,6 +880,16 @@ fn handle_spawn_campfire(
                     animated: true,
                 })
                 .with(WaypointArea::default())
+                .with(comp::Auras::new(Aura::new(
+                    AuraKind::Buff {
+                        kind: BuffKind::CampfireHeal,
+                        data: BuffData::new(0.01, Some(Duration::from_secs(1))),
+                        category: BuffCategory::Natural,
+                        source: BuffSource::World,
+                    },
+                    5.0,
+                    None,
+                )))
                 .build();
 
             server.notify_client(
