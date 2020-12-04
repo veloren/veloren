@@ -116,6 +116,10 @@ pub enum ServerEvent {
     ChatCmd(EcsEntity, String),
     /// Send a chat message to the player from an npc or other player
     Chat(comp::UnresolvedChatMsg),
+    Aura {
+        entity: EcsEntity,
+        aura_change: comp::AuraChange,
+    },
     Buff {
         entity: EcsEntity,
         buff_change: comp::BuffChange,

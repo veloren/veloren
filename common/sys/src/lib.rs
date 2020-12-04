@@ -1,6 +1,7 @@
 #![feature(label_break_value, bool_to_option)]
 
 pub mod agent;
+mod aura;
 mod beam;
 mod buff;
 pub mod character_behavior;
@@ -28,6 +29,7 @@ pub const PROJECTILE_SYS: &str = "projectile_sys";
 pub const SHOCKWAVE_SYS: &str = "shockwave_sys";
 pub const STATS_SYS: &str = "stats_sys";
 pub const BUFFS_SYS: &str = "buffs_sys";
+pub const AURAS_SYS: &str = "auras_sys";
 
 pub fn add_local_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch_builder.add(agent::Sys, AGENT_SYS, &[]);
@@ -43,4 +45,5 @@ pub fn add_local_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch_builder.add(shockwave::Sys, SHOCKWAVE_SYS, &[PHYS_SYS]);
     dispatch_builder.add(beam::Sys, BEAM_SYS, &[PHYS_SYS]);
     dispatch_builder.add(melee::Sys, MELEE_SYS, &[PROJECTILE_SYS]);
+    dispatch_builder.add(aura::Sys, AURAS_SYS, &[]);
 }

@@ -8,7 +8,7 @@ use entity_creation::{
     handle_loaded_character_data, handle_shockwave, handle_shoot,
 };
 use entity_manipulation::{
-    handle_buff, handle_damage, handle_delete, handle_destroy, handle_energy_change,
+    handle_aura, handle_buff, handle_damage, handle_delete, handle_destroy, handle_energy_change,
     handle_explosion, handle_knockback, handle_land_on_ground, handle_level_up, handle_respawn,
 };
 use group_manip::handle_group;
@@ -147,6 +147,10 @@ impl Server {
                 ServerEvent::Chat(msg) => {
                     chat_messages.push(msg);
                 },
+                ServerEvent::Aura {
+                    entity,
+                    aura_change,
+                } => handle_aura(self, entity, aura_change),
                 ServerEvent::Buff {
                     entity,
                     buff_change,
