@@ -13,8 +13,7 @@ lazy_static! {
         let mut defs = HashMap::new();
         defs.insert(
             SkillGroupType::General, [
-                Skill::General(GeneralSkill::HealthIncrease1),
-                Skill::General(GeneralSkill::HealthIncrease2),
+                Skill::General(GeneralSkill::HealthIncrease),
                 Skill::UnlockGroup(SkillGroupType::Weapon(ToolKind::Sword)),
                 Skill::UnlockGroup(SkillGroupType::Weapon(ToolKind::Axe)),
                 Skill::UnlockGroup(SkillGroupType::Weapon(ToolKind::Hammer)),
@@ -98,8 +97,7 @@ pub enum SceptreSkill {
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum GeneralSkill {
-    HealthIncrease1,
-    HealthIncrease2,
+    HealthIncrease,
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
@@ -134,8 +132,10 @@ impl SkillGroup {
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct SkillSet {
     pub skill_groups: Vec<SkillGroup>,
-    pub skills: HashSet<Skill>,
+    pub skills: HashMap<Skill, Level>,
 }
+
+pub type Level = Option<u16>;
 
 impl Default for SkillSet {
     /// Instantiate a new skill set with the default skill groups with no
@@ -145,7 +145,7 @@ impl Default for SkillSet {
         // TODO: Default skill groups for new players?
         Self {
             skill_groups: vec![SkillGroup::new(SkillGroupType::General)],
-            skills: HashSet::new(),
+            skills: HashMap::new(),
         }
     }
 }
@@ -190,38 +190,39 @@ impl SkillSet {
     /// assert_eq!(skillset.skills.len(), 1);
     /// ```
     pub fn unlock_skill(&mut self, skill: Skill) {
-        if !self.skills.contains(&skill) {
-            if let Some(skill_group_type) = SkillSet::get_skill_group_type_for_skill(&skill) {
-                let prerequisites_met = self.prerequisites_met(skill);
-                if let Some(mut skill_group) = self
-                    .skill_groups
-                    .iter_mut()
-                    .find(|x| x.skill_group_type == skill_group_type)
-                {
-                    if prerequisites_met {
-                        if skill_group.available_sp >= skill.skill_cost() {
-                            skill_group.available_sp -= skill.skill_cost();
-                            if let Skill::UnlockGroup(group) = skill {
-                                self.unlock_skill_group(group);
-                            }
-                            self.skills.insert(skill);
-                        } else {
-                            warn!("Tried to unlock skill for skill group with insufficient SP");
+        if let Some(skill_group_type) = SkillSet::get_skill_group_type_for_skill(&skill) {
+            let level = if self.skills.contains_key(&skill) {
+                self.skills.get(&skill).copied().flatten().map(|l| l + 1)
+            } else {
+                skill.get_max_level().map(|_| 1)
+            };
+            let prerequisites_met = self.prerequisites_met(skill, level);
+            if let Some(mut skill_group) = self
+                .skill_groups
+                .iter_mut()
+                .find(|x| x.skill_group_type == skill_group_type)
+            {
+                if prerequisites_met {
+                    if skill_group.available_sp >= skill.skill_cost(level) {
+                        skill_group.available_sp -= skill.skill_cost(level);
+                        if let Skill::UnlockGroup(group) = skill {
+                            self.unlock_skill_group(group);
                         }
+                        self.skills.insert(skill, level);
                     } else {
-                        warn!("Tried to unlock skill without meeting prerequisite skills");
+                        warn!("Tried to unlock skill for skill group with insufficient SP");
                     }
                 } else {
-                    warn!("Tried to unlock skill for a skill group that player does not have");
+                    warn!("Tried to unlock skill without meeting prerequisite skills");
                 }
             } else {
-                warn!(
-                    ?skill,
-                    "Tried to unlock skill that does not exist in any skill group!"
-                );
+                warn!("Tried to unlock skill for a skill group that player does not have");
             }
         } else {
-            warn!("Tried to unlock already unlocked skill");
+            warn!(
+                ?skill,
+                "Tried to unlock skill that does not exist in any skill group!"
+            );
         }
     }
 
@@ -241,15 +242,21 @@ impl SkillSet {
     /// assert_eq!(skillset.skills.len(), 0);
     /// ```
     pub fn refund_skill(&mut self, skill: Skill) {
-        if self.skills.contains(&skill) {
+        if self.skills.contains_key(&skill) {
             if let Some(skill_group_type) = SkillSet::get_skill_group_type_for_skill(&skill) {
                 if let Some(mut skill_group) = self
                     .skill_groups
                     .iter_mut()
                     .find(|x| x.skill_group_type == skill_group_type)
                 {
-                    skill_group.available_sp += skill.skill_cost();
-                    self.skills.remove(&skill);
+                    // We know key is already contained, so unwrap is safe
+                    let level = *(self.skills.get(&skill).unwrap());
+                    skill_group.available_sp += skill.skill_cost(level);
+                    if level.map_or(false, |l| l > 1) {
+                        self.skills.insert(skill, level.map(|l| l - 1));
+                    } else {
+                        self.skills.remove(&skill);
+                    }
                 } else {
                     warn!("Tried to refund skill for a skill group that player does not have");
                 }
@@ -328,23 +335,46 @@ impl SkillSet {
 
     /// Checks that the skill set contains all prerequisite skills for a
     /// particular skill
-    pub fn prerequisites_met(&self, skill: Skill) -> bool {
-        skill
-            .prerequisite_skills()
-            .iter()
-            .all(|s| self.skills.contains(s))
+    pub fn prerequisites_met(&self, skill: Skill, level: Level) -> bool {
+        skill.prerequisite_skills(level).iter().all(|(s, l)| {
+            self.skills.contains_key(s) && self.skills.get(s).map_or(false, |l_b| l_b >= l)
+        })
     }
 }
 
 impl Skill {
     /// Returns a vec of prerequisite skills (it should only be necessary to
     /// note direct prerequisites)
-    pub fn prerequisite_skills(self) -> Vec<Skill> {
-        let mut prerequisites = Vec::new();
+    pub fn prerequisite_skills(self, level: Level) -> HashMap<Skill, Level> {
+        let mut prerequisites = HashMap::new();
         use Skill::*;
+        if let Some(level) = level {
+            if level > self.get_max_level().unwrap_or(0) {
+                // Sets a prerequisite of itself for skills beyond the max level
+                prerequisites.insert(self, Some(level));
+            } else if level > 1 {
+                // For skills above level 1, sets prerequisite of skill of lower level
+                prerequisites.insert(self, Some(level - 1));
+            }
+        }
         match self {
-            General(GeneralSkill::HealthIncrease2) => {
-                prerequisites.push(General(GeneralSkill::HealthIncrease1));
+            UnlockGroup(SkillGroupType::Weapon(ToolKind::Sword)) => {
+                prerequisites.insert(General(GeneralSkill::HealthIncrease), Some(1));
+            },
+            UnlockGroup(SkillGroupType::Weapon(ToolKind::Axe)) => {
+                prerequisites.insert(General(GeneralSkill::HealthIncrease), Some(1));
+            },
+            UnlockGroup(SkillGroupType::Weapon(ToolKind::Hammer)) => {
+                prerequisites.insert(General(GeneralSkill::HealthIncrease), Some(1));
+            },
+            UnlockGroup(SkillGroupType::Weapon(ToolKind::Bow)) => {
+                prerequisites.insert(General(GeneralSkill::HealthIncrease), Some(1));
+            },
+            UnlockGroup(SkillGroupType::Weapon(ToolKind::Staff)) => {
+                prerequisites.insert(General(GeneralSkill::HealthIncrease), Some(1));
+            },
+            UnlockGroup(SkillGroupType::Weapon(ToolKind::Sceptre)) => {
+                prerequisites.insert(General(GeneralSkill::HealthIncrease), Some(1));
             },
             _ => {},
         }
@@ -352,11 +382,21 @@ impl Skill {
     }
 
     /// Returns the cost in skill points of unlocking a particular skill
-    pub fn skill_cost(self) -> u16 {
+    pub fn skill_cost(self, level: Level) -> u16 {
         use Skill::*;
         match self {
-            General(GeneralSkill::HealthIncrease2) => 2,
-            _ => 1,
+            General(GeneralSkill::HealthIncrease) => 2 * level.unwrap_or(1),
+            _ => level.unwrap_or(1),
+        }
+    }
+
+    /// Returns the maximum level a skill can reach, returns None if the skill
+    /// doesn't level
+    pub fn get_max_level(self) -> Option<u16> {
+        use Skill::*;
+        match self {
+            General(GeneralSkill::HealthIncrease) => Some(10),
+            _ => None,
         }
     }
 }
