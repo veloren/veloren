@@ -79,7 +79,11 @@ impl<'a> System<'a> for Sys {
                     // Now, execute the buff, based on it's delta
                     for effect in &mut buff.effects {
                         match effect {
-                            BuffEffect::HealthChangeOverTime { rate, accumulated } => {
+                            BuffEffect::HealthChangeOverTime {
+                                rate,
+                                accumulated,
+                                kind,
+                            } => {
                                 *accumulated += *rate * dt.0;
                                 // Apply damage only once a second (with a minimum of 1 damage), or
                                 // when a buff is removed
@@ -94,22 +98,25 @@ impl<'a> System<'a> for Sys {
                                             by: buff_owner,
                                         }
                                     };
+                                    let amount = match *kind {
+                                        ModifierKind::Additive => *accumulated as i32,
+                                        ModifierKind::Fractional => {
+                                            (health.maximum() as f32 * *accumulated) as i32
+                                        },
+                                    };
                                     server_emitter.emit(ServerEvent::Damage {
                                         entity,
-                                        change: HealthChange {
-                                            amount: *accumulated as i32,
-                                            cause,
-                                        },
+                                        change: HealthChange { amount, cause },
                                     });
                                     *accumulated = 0.0;
                                 };
                             },
                             BuffEffect::MaxHealthModifier { value, kind } => match kind {
-                                ModifierKind::Multiplicative => {
-                                    health.set_maximum((health.maximum() as f32 * *value) as u32);
-                                },
                                 ModifierKind::Additive => {
                                     health.set_maximum((health.maximum() as f32 + *value) as u32);
+                                },
+                                ModifierKind::Fractional => {
+                                    health.set_maximum((health.maximum() as f32 * *value) as u32);
                                 },
                             },
                         };

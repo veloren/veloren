@@ -2,15 +2,19 @@ use crate::{sys, Server, StateExt};
 use common::{
     character::CharacterId,
     comp::{
-        self, beam, shockwave, Agent, Alignment, Body, Gravity, Health, HomeChunk, Item, ItemDrop,
+        self,
+        aura::{Aura, AuraKind},
+        beam,
+        buff::{BuffCategory, BuffData, BuffKind, BuffSource},
+        group, shockwave, Agent, Alignment, Body, Gravity, Health, HomeChunk, Item, ItemDrop,
         LightEmitter, Loadout, Ori, Pos, Projectile, Scale, Stats, Vel, WaypointArea,
     },
     outcome::Outcome,
     rtsim::RtSimEntity,
     util::Dir,
 };
-use comp::group;
 use specs::{Builder, Entity as EcsEntity, WorldExt};
+use std::time::Duration;
 use vek::{Rgb, Vec3};
 
 pub fn handle_initialize_character(
@@ -180,5 +184,15 @@ pub fn handle_create_waypoint(server: &mut Server, pos: Vec3<f32>) {
         })
         .with(WaypointArea::default())
         .with(comp::Mass(10_f32.powi(10)))
+        .with(comp::Auras::new(Aura::new(
+            AuraKind::Buff {
+                kind: BuffKind::CampfireHeal,
+                data: BuffData::new(0.01, Some(Duration::from_secs(1))),
+                category: BuffCategory::Natural,
+                source: BuffSource::World,
+            },
+            5.0,
+            None,
+        )))
         .build();
 }
