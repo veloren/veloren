@@ -16,8 +16,9 @@ pub use self::{
 use crate::{
     audio::{ambient::AmbientMgr, music::MusicMgr, sfx::SfxMgr, AudioFrontend},
     render::{
-        create_skybox_mesh, CloudsLocals, Consts, GlobalModel, Globals, GlobalsBindGroup, Light,
-        Model, PostProcessLocals, Renderer, Shadow, ShadowLocals, SkyboxVertex,
+        create_skybox_mesh, CloudsLocals, Consts, FirstPassDrawer, GlobalModel, Globals,
+        GlobalsBindGroup, Light, Model, PostProcessLocals, Renderer, Shadow, ShadowLocals,
+        SkyboxVertex,
     },
     settings::Settings,
     window::{AnalogGameInput, Event},
@@ -976,9 +977,9 @@ impl Scene {
     pub fn global_bind_group(&self) -> &GlobalsBindGroup { &self.globals_bind_group }
 
     /// Render the scene using the provided `Renderer`.
-    pub fn render(
-        &mut self,
-        renderer: &mut Renderer,
+    pub fn render<'a>(
+        &'a self,
+        drawer: &mut FirstPassDrawer<'a>,
         state: &State,
         player_entity: EcsEntity,
         tick: u64,
@@ -995,7 +996,7 @@ impl Scene {
         let camera_data = (&self.camera, scene_data.figure_lod_render_distance);
 
         // would instead have this as an extension.
-        if renderer.render_mode().shadow.is_map() && (is_daylight || !light_data.1.is_empty()) {
+        /*if renderer.render_mode().shadow.is_map() && (is_daylight || !light_data.1.is_empty()) {
             // if is_daylight {
             //     // Set up shadow mapping.
             //     renderer.start_shadows();
@@ -1013,10 +1014,10 @@ impl Scene {
             //     // Flush shadows.
             //     renderer.flush_shadows();
             // }
-        }
+        }*/
         let lod = self.lod.get_data();
 
-        self.figure_mgr.render_player(
+        /*self.figure_mgr.render_player(
             renderer,
             state,
             player_entity,
@@ -1024,10 +1025,10 @@ impl Scene {
             global,
             lod,
             camera_data,
-        );
+        );*/
 
         // Render terrain and figures.
-        self.terrain.render(renderer, global, lod, focus_pos);
+        /*self.terrain.render(renderer, global, lod, focus_pos);
 
         self.figure_mgr.render(
             renderer,
@@ -1038,21 +1039,22 @@ impl Scene {
             lod,
             camera_data,
         );
-        self.lod.render(renderer, global);
+        self.lod.render(renderer, global);*/
 
         // Render the skybox.
         // TODO: renderer.render_skybox(&self.skybox.model, global, lod);
 
-        self.terrain.render_translucent(
+        /*self.terrain.render_translucent(
             renderer,
             global,
             lod,
             focus_pos,
             cam_pos,
             scene_data.sprite_render_distance,
-        );
+        );*/
 
         // Render particle effects.
-        self.particle_mgr.render(renderer, scene_data, global, lod);
+        self.particle_mgr
+            .render(&mut drawer.draw_particles(), scene_data);
     }
 }

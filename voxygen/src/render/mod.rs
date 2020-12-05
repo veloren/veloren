@@ -40,7 +40,13 @@ pub use self::{
         },
         GlobalModel, Globals, GlobalsBindGroup, GlobalsLayouts, Light, Shadow,
     },
-    renderer::{ColLightInfo, Drawer, Renderer, UiDrawer},
+    renderer::{
+        drawer::{
+            Drawer, FirstPassDrawer, ParticleDrawer, PreparedUiDrawer, SecondPassDrawer,
+            ThirdPassDrawer, UiDrawer,
+        },
+        ColLightInfo, Renderer,
+    },
     texture::Texture,
 };
 pub use wgpu::{AddressMode, FilterMode};

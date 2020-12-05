@@ -136,7 +136,7 @@ impl Camera {
         self.dependents.view_mat_inv = self.dependents.view_mat.inverted();
 
         self.dependents.proj_mat =
-            Mat4::perspective_rh_no(self.fov, self.aspect, NEAR_PLANE, FAR_PLANE);
+            Mat4::perspective_rh_zo(self.fov, self.aspect, NEAR_PLANE, FAR_PLANE);
         self.dependents.proj_mat_inv = self.dependents.proj_mat.inverted();
 
         // TODO: Make this more efficient.

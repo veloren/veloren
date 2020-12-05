@@ -25,45 +25,6 @@ impl Locals {
     }
 }
 
-/*#[repr(C)]
-#[derive(Copy, Clone, Debug, Zeroable, Pod)]
-pub struct Vertex {
-    pos: [f32; 2],
-}
-
-impl Vertex {
-    fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
-        use std::mem;
-        const ATTRIBUTES: [wgpu::VertexAttributeDescriptor; 1] =
-            wgpu::vertex_attr_array![0 => Float2];
-        wgpu::VertexBufferDescriptor {
-            stride: mem::size_of::<Self>() as wgpu::BufferAddress,
-            step_mode: wgpu::InputStepMode::Vertex,
-            attributes: &ATTRIBUTES,
-        }
-    }
-}
-
-pub fn create_mesh() -> Mesh<Vertex> {
-    let mut mesh = Mesh::new();
-
-    #[rustfmt::skip]
-    mesh.push_tri(Tri::new(
-        Vertex { pos: [ 1.0, -1.0] },
-        Vertex { pos: [-1.0,  1.0] },
-        Vertex { pos: [-1.0, -1.0] },
-    ));
-
-    #[rustfmt::skip]
-    mesh.push_tri(Tri::new(
-        Vertex { pos: [1.0, -1.0] },
-        Vertex { pos: [1.0,  1.0] },
-        Vertex { pos: [-1.0, 1.0] },
-    ));
-
-    mesh
-}*/
-
 pub struct BindGroup {
     pub(in super::super) bind_group: wgpu::BindGroup,
 }
@@ -92,7 +53,10 @@ impl CloudsLayout {
                     wgpu::BindGroupLayoutEntry {
                         binding: 1,
                         visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                        ty: wgpu::BindingType::Sampler { filtering: true, comparison: false },
+                        ty: wgpu::BindingType::Sampler {
+                            filtering: true,
+                            comparison: false,
+                        },
                         count: None,
                     },
                     // Depth source
@@ -109,7 +73,10 @@ impl CloudsLayout {
                     wgpu::BindGroupLayoutEntry {
                         binding: 3,
                         visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                        ty: wgpu::BindingType::Sampler { filtering: true, comparison: false },
+                        ty: wgpu::BindingType::Sampler {
+                            filtering: true,
+                            comparison: false,
+                        },
                         count: None,
                     },
                     // Locals

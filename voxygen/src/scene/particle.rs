@@ -3,7 +3,7 @@ use crate::{
     mesh::{greedy::GreedyMesh, segment::generate_mesh_base_vol_particle},
     render::{
         pipelines::particle::ParticleMode, GlobalModel, Instances, Light, LodData, Model,
-        ParticleInstance, ParticleVertex, Renderer,
+        ParticleDrawer, ParticleInstance, ParticleVertex, Renderer,
     },
 };
 use common::{
@@ -1178,13 +1178,7 @@ impl ParticleMgr {
         self.instances = gpu_instances;
     }
 
-    pub fn render(
-        &self,
-        renderer: &mut Renderer,
-        scene_data: &SceneData,
-        global: &GlobalModel,
-        lod: &LodData,
-    ) {
+    pub fn render<'a>(&'a self, drawer: &mut ParticleDrawer<'_, 'a>, scene_data: &SceneData) {
         span!(_guard, "render", "ParticleMgr::render");
         if scene_data.particles_enabled {
             let model = &self
@@ -1192,8 +1186,7 @@ impl ParticleMgr {
                 .get(DEFAULT_MODEL_KEY)
                 .expect("Expected particle model in cache");
 
-            /* renderer.render_particles(model, global, &self.instances,
-             * lod); */
+            drawer.draw(model, &self.instances);
         }
     }
 

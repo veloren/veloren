@@ -5,8 +5,8 @@ use super::{
         instances::Instances,
         model::{DynamicModel, Model},
         pipelines::{
-            clouds, figure, fluid, postprocess, sprite, terrain, ui, GlobalsBindGroup, Light,
-            Shadow,
+            clouds, figure, fluid, particle, postprocess, sprite, terrain, ui, GlobalsBindGroup,
+            Light, Shadow,
         },
     },
     Renderer,
@@ -19,7 +19,6 @@ pub struct Drawer<'a> {
     renderer: &'a mut Renderer,
     tex: wgpu::SwapChainTexture,
     globals: &'a GlobalsBindGroup,
-    //pub(super) postprocess_locals: wgpu::BindGroup,
 }
 
 impl<'a> Drawer<'a> {
@@ -111,7 +110,7 @@ impl<'a> Drawer<'a> {
                         },
                     }],
                     // TODO: do we need this?
-                    depth_stencil_attachment: None
+                    depth_stencil_attachment: None,
                 });
 
         render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
@@ -231,6 +230,36 @@ impl<'a> FirstPassDrawer<'a> {
         self.render_pass.set_vertex_buffer(1, &instances.ibuf, 0, 0);
         self.render_pass.draw(verts, 0..instances.count() as u32);
     }*/
+
+    pub fn draw_particles<'c>(&'c mut self) -> ParticleDrawer<'c, 'a> {
+        self.render_pass
+            .set_pipeline(&self.renderer.particle_pipeline.pipeline);
+
+        ParticleDrawer {
+            render_pass: &mut self.render_pass,
+        }
+    }
+}
+
+pub struct ParticleDrawer<'pass_ref, 'pass: 'pass_ref> {
+    render_pass: &'pass_ref mut wgpu::RenderPass<'pass>,
+}
+
+impl<'pass_ref, 'pass: 'pass_ref> ParticleDrawer<'pass_ref, 'pass> {
+    // Note: if we ever need to draw less than the whole model, this api can be
+    // changed
+    pub fn draw<'data: 'pass>(
+        &mut self,
+        model: &'data Model<particle::Vertex>,
+        instances: &'data Instances<particle::Instance>,
+    ) {
+        self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
+        self.render_pass
+            .set_vertex_buffer(1, instances.buf().slice(..));
+        self.render_pass
+            // TODO: since we cast to u32 maybe this should returned by the len/count functions?
+            .draw(0..model.len() as u32, 0..instances.count() as u32);
+    }
 }
 
 pub struct SecondPassDrawer<'a> {
@@ -262,7 +291,7 @@ impl<'a> ThirdPassDrawer<'a> {
         self.render_pass.draw(0..3, 0..1);
     }
 
-    pub fn draw_ui<'c>(&'c mut self) -> UiDrawer<'c, 'a> {
+    pub fn draw_ui(&mut self) -> UiDrawer<'_, 'a> {
         self.render_pass
             .set_pipeline(&self.renderer.ui_pipeline.pipeline);
 

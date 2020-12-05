@@ -174,7 +174,6 @@ impl ParticlePipeline {
         device: &wgpu::Device,
         vs_module: &wgpu::ShaderModule,
         fs_module: &wgpu::ShaderModule,
-        sc_desc: &wgpu::SwapChainDescriptor,
         global_layout: &GlobalsLayouts,
         aa_mode: AaMode,
     ) -> Self {
@@ -216,7 +215,8 @@ impl ParticlePipeline {
             }),
             primitive_topology: wgpu::PrimitiveTopology::TriangleList,
             color_states: &[wgpu::ColorStateDescriptor {
-                format: sc_desc.format,
+                // TODO pass this format in or make it a const
+                format: wgpu::TextureFormat::Rgba8UnormSrgb,
                 color_blend: wgpu::BlendDescriptor {
                     src_factor: wgpu::BlendFactor::SrcAlpha,
                     dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,

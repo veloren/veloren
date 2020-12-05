@@ -1,7 +1,5 @@
 mod binding;
-mod drawer;
-
-pub use drawer::{Drawer, UiDrawer};
+pub(super) mod drawer;
 
 use super::{
     consts::Consts,
@@ -172,12 +170,10 @@ impl Locals {
             sampler,
             &clouds_locals,
         );
-        let postprocess_bind = layouts.postprocess.bind(
-            device,
-            tgt_color_pp_view,
-            sampler,
-            &postprocess_locals,
-        );
+        let postprocess_bind =
+            layouts
+                .postprocess
+                .bind(device, tgt_color_pp_view, sampler, &postprocess_locals);
 
         Self {
             clouds: clouds_locals,
@@ -203,12 +199,10 @@ impl Locals {
             sampler,
             &self.clouds,
         );
-        self.postprocess_bind = layouts.postprocess.bind(
-            device,
-            tgt_color_pp_view,
-            sampler,
-            &self.postprocess,
-        );
+        self.postprocess_bind =
+            layouts
+                .postprocess
+                .bind(device, tgt_color_pp_view, sampler, &self.postprocess);
     }
 }
 
@@ -920,7 +914,7 @@ impl Renderer {
     pub fn start_recording_frame<'a>(
         &'a mut self,
         globals: &'a GlobalsBindGroup,
-    ) -> Result<Option<Drawer<'a>>, RenderError> {
+    ) -> Result<Option<drawer::Drawer<'a>>, RenderError> {
         span!(
             _guard,
             "start_recording_frame",
@@ -958,7 +952,7 @@ impl Renderer {
                 label: Some("A render encoder"),
             });
 
-        Ok(Some(Drawer::new(encoder, self, tex, globals)))
+        Ok(Some(drawer::Drawer::new(encoder, self, tex, globals)))
     }
 
     /// Recreate the pipelines
@@ -2134,7 +2128,6 @@ fn create_pipelines(
         device,
         &create_shader("particle-vert", ShaderKind::Vertex)?,
         &create_shader("particle-frag", ShaderKind::Fragment)?,
-        sc_desc,
         &layouts.global,
         mode.aa,
     );
