@@ -1,0 +1,29 @@
+({
+    General: [
+        General(HealthIncrease),
+        UnlockGroup(Weapon(Sword)),
+        UnlockGroup(Weapon(Axe)),
+        UnlockGroup(Weapon(Hammer)),
+        UnlockGroup(Weapon(Bow)),
+        UnlockGroup(Weapon(Staff)),
+        UnlockGroup(Weapon(Sceptre)),
+    ],
+    Weapon(Sword): [
+        Sword(UnlockSpin),
+    ],
+    Weapon(Axe): [
+        Axe(UnlockLeap),
+    ],
+    Weapon(Hammer): [
+        Hammer(UnlockLeap),
+    ],
+    Weapon(Bow): [
+        Bow(UnlockRepeater),
+    ],
+    Weapon(Staff): [
+        Staff(UnlockShockwave),
+    ],
+    Weapon(Sceptre): [
+        Sceptre(Unlock404),
+    ],
+})
