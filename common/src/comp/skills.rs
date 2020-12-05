@@ -1,51 +1,30 @@
-use crate::comp::item::tool::ToolKind;
+use crate::{
+    assets::{self, Asset, AssetExt},
+    comp::item::tool::ToolKind,
+};
 use hashbrown::{HashMap, HashSet};
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use std::hash::Hash;
 use tracing::warn;
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct SkillMap(HashMap<SkillGroupType, HashSet<Skill>>);
+
+impl Asset for SkillMap {
+    type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
+}
+
 lazy_static! {
     // Determines the skills that comprise each skill group - this data is used to determine
     // which of a player's skill groups a particular skill should be added to when a skill unlock
-    // is requested. TODO: Externalise this data in a RON file for ease of modification
+    // is requested.
     pub static ref SKILL_GROUP_DEFS: HashMap<SkillGroupType, HashSet<Skill>> = {
-        let mut defs = HashMap::new();
-        defs.insert(
-            SkillGroupType::General, [
-                Skill::General(GeneralSkill::HealthIncrease),
-                Skill::UnlockGroup(SkillGroupType::Weapon(ToolKind::Sword)),
-                Skill::UnlockGroup(SkillGroupType::Weapon(ToolKind::Axe)),
-                Skill::UnlockGroup(SkillGroupType::Weapon(ToolKind::Hammer)),
-                Skill::UnlockGroup(SkillGroupType::Weapon(ToolKind::Bow)),
-                Skill::UnlockGroup(SkillGroupType::Weapon(ToolKind::Staff)),
-                Skill::UnlockGroup(SkillGroupType::Weapon(ToolKind::Sceptre)),
-            ].iter().cloned().collect::<HashSet<Skill>>());
-        defs.insert(
-            SkillGroupType::Weapon(ToolKind::Sword), [
-                Skill::Sword(SwordSkill::UnlockSpin),
-            ].iter().cloned().collect::<HashSet<Skill>>());
-        defs.insert(
-            SkillGroupType::Weapon(ToolKind::Axe), [
-                Skill::Axe(AxeSkill::UnlockLeap),
-            ].iter().cloned().collect::<HashSet<Skill>>());
-        defs.insert(
-            SkillGroupType::Weapon(ToolKind::Hammer), [
-                Skill::Hammer(HammerSkill::UnlockLeap),
-            ].iter().cloned().collect::<HashSet<Skill>>());
-        defs.insert(
-            SkillGroupType::Weapon(ToolKind::Bow), [
-                Skill::Bow(BowSkill::UnlockRepeater),
-            ].iter().cloned().collect::<HashSet<Skill>>());
-        defs.insert(
-            SkillGroupType::Weapon(ToolKind::Staff), [
-                Skill::Staff(StaffSkill::UnlockShockwave),
-            ].iter().cloned().collect::<HashSet<Skill>>());
-        defs.insert(
-            SkillGroupType::Weapon(ToolKind::Sceptre), [
-                Skill::Sceptre(SceptreSkill::Unlock404),
-            ].iter().cloned().collect::<HashSet<Skill>>());
-        defs
+        SkillMap::load_expect_cloned(
+            "common.skills_skill-groups_manifest",
+        ).0
     };
 }
 
@@ -142,7 +121,6 @@ impl Default for SkillSet {
     /// unlocked skills in them - used when adding a skill set to a new
     /// player
     fn default() -> Self {
-        // TODO: Default skill groups for new players?
         Self {
             skill_groups: vec![SkillGroup::new(SkillGroupType::General)],
             skills: HashMap::new(),
@@ -191,32 +169,37 @@ impl SkillSet {
     /// ```
     pub fn unlock_skill(&mut self, skill: Skill) {
         if let Some(skill_group_type) = SkillSet::get_skill_group_type_for_skill(&skill) {
-            let level = if self.skills.contains_key(&skill) {
+            let next_level = if self.skills.contains_key(&skill) {
                 self.skills.get(&skill).copied().flatten().map(|l| l + 1)
             } else {
                 skill.get_max_level().map(|_| 1)
             };
-            let prerequisites_met = self.prerequisites_met(skill, level);
-            if let Some(mut skill_group) = self
-                .skill_groups
-                .iter_mut()
-                .find(|x| x.skill_group_type == skill_group_type)
+            let prerequisites_met = self.prerequisites_met(skill, next_level);
+            if !self.skills.contains_key(&skill) && !matches!(self.skills.get(&skill), Some(&None))
             {
-                if prerequisites_met {
-                    if skill_group.available_sp >= skill.skill_cost(level) {
-                        skill_group.available_sp -= skill.skill_cost(level);
-                        if let Skill::UnlockGroup(group) = skill {
-                            self.unlock_skill_group(group);
+                if let Some(mut skill_group) = self
+                    .skill_groups
+                    .iter_mut()
+                    .find(|x| x.skill_group_type == skill_group_type)
+                {
+                    if prerequisites_met {
+                        if skill_group.available_sp >= skill.skill_cost(next_level) {
+                            skill_group.available_sp -= skill.skill_cost(next_level);
+                            if let Skill::UnlockGroup(group) = skill {
+                                self.unlock_skill_group(group);
+                            }
+                            self.skills.insert(skill, next_level);
+                        } else {
+                            warn!("Tried to unlock skill for skill group with insufficient SP");
                         }
-                        self.skills.insert(skill, level);
                     } else {
-                        warn!("Tried to unlock skill for skill group with insufficient SP");
+                        warn!("Tried to unlock skill without meeting prerequisite skills");
                     }
                 } else {
-                    warn!("Tried to unlock skill without meeting prerequisite skills");
+                    warn!("Tried to unlock skill for a skill group that player does not have");
                 }
             } else {
-                warn!("Tried to unlock skill for a skill group that player does not have");
+                warn!("Tried to unlock skill the player already has")
             }
         } else {
             warn!(
