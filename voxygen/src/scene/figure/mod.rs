@@ -2170,6 +2170,13 @@ impl FigureMgr {
                         _ => continue,
                     };
 
+                    // Bad, can potentially overflow
+                    if vel.0.magnitude_squared() != 0.0 {
+                        state.acc_vel += vel.0.magnitude() * dt;
+                    } else {
+                        state.acc_vel = 0.0;
+                    }
+
                     if !character.same_variant(&last_character.0) {
                         state.state_time = 0.0;
                     }
@@ -2214,7 +2221,14 @@ impl FigureMgr {
                         // Swim
                         (_, true, true) => anim::fish_medium::SwimAnimation::update_skeleton(
                             &FishMediumSkeleton::default(),
-                            (vel.0, ori, state.last_ori, time, state.avg_vel),
+                            (
+                                vel.0,
+                                ori,
+                                state.last_ori,
+                                time,
+                                state.avg_vel,
+                                state.acc_vel,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -2572,6 +2586,13 @@ impl FigureMgr {
                         _ => continue,
                     };
 
+                    // Bad, can potentially overflow
+                    if vel.0.magnitude_squared() != 0.0 {
+                        state.acc_vel += vel.0.magnitude() * dt;
+                    } else {
+                        state.acc_vel = 0.0;
+                    }
+
                     if !character.same_variant(&last_character.0) {
                         state.state_time = 0.0;
                     }
@@ -2616,7 +2637,14 @@ impl FigureMgr {
                         // Swim
                         (_, true, true) => anim::fish_small::SwimAnimation::update_skeleton(
                             &FishSmallSkeleton::default(),
-                            (vel.0, ori, state.last_ori, time, state.avg_vel),
+                            (
+                                vel.0,
+                                ori,
+                                state.last_ori,
+                                time,
+                                state.avg_vel,
+                                state.acc_vel,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -3775,6 +3803,7 @@ pub struct FigureStateMeta {
     avg_vel: anim::vek::Vec3<f32>,
     last_light: f32,
     last_glow: f32,
+    acc_vel: f32,
 }
 
 impl FigureStateMeta {
@@ -3821,6 +3850,7 @@ impl<S: Skeleton> FigureState<S> {
                 avg_vel: anim::vek::Vec3::zero(),
                 last_light: 1.0,
                 last_glow: 0.0,
+                acc_vel: 0.0,
             },
             skeleton,
         }
