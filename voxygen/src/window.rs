@@ -565,15 +565,6 @@ impl Window {
             false,
         );
 
-        // let (window, device, factory, win_color_view, win_depth_view) =
-        //     glutin::ContextBuilder::new()
-        //         .with_gl(glutin::GlRequest::Specific(glutin::Api::OpenGl, (3, 3)))
-        //         .with_vsync(false)
-        //         .with_gfx_color_depth::<WinColorFmt, WinDepthFmt>()
-        //         .build_windowed(win_builder, &event_loop)
-        //         .map_err(|err| Error::BackendError(Box::new(err)))?
-        //         .init_gfx::<WinColorFmt, WinDepthFmt>();
-
         let window = win_builder.build(&event_loop).unwrap();
 
         let renderer = Renderer::new(&window, settings.graphics.render_mode.clone())?;

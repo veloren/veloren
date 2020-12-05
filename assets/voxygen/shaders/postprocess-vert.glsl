@@ -18,8 +18,6 @@
 
 #include <globals.glsl>
 
-layout(location = 0) in vec2 v_pos;
-
 layout(location = 0) out vec2 f_pos;
 
 void main() {
