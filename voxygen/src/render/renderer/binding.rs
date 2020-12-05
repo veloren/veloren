@@ -8,7 +8,6 @@ use super::{
 };
 
 impl Renderer {
-    // TODO: rework this to use the Bound type?
     pub fn bind_globals(
         &self,
         global_model: &GlobalModel,

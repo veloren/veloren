@@ -17,8 +17,8 @@ use crate::{
     audio::{ambient::AmbientMgr, music::MusicMgr, sfx::SfxMgr, AudioFrontend},
     render::{
         create_clouds_mesh, create_pp_mesh, create_skybox_mesh, CloudsLocals, CloudsVertex, Consts,
-        GlobalModel, Globals, Light, Model, PostProcessLocals, PostProcessVertex, Renderer, Shadow,
-        ShadowLocals, SkyboxVertex,
+        GlobalModel, Globals, GlobalsBindGroup, Light, Model, PostProcessLocals, PostProcessVertex,
+        Renderer, Shadow, ShadowLocals, SkyboxVertex,
     },
     settings::Settings,
     window::{AnalogGameInput, Event},
@@ -41,7 +41,7 @@ use vek::*;
 // TODO: Don't hard-code this.
 const CURSOR_PAN_SCALE: f32 = 0.005;
 
-const MAX_LIGHT_COUNT: usize = 31;
+const MAX_LIGHT_COUNT: usize = 20; // 31 (total shadow_mats is limited to 128 with default max_uniform_buffer_binding_size)
 const MAX_SHADOW_COUNT: usize = 24;
 const NUM_DIRECTED_LIGHTS: usize = 1;
 const LIGHT_DIST_RADIUS: f32 = 64.0; // The distance beyond which lights may not emit light from their origin
@@ -82,6 +82,7 @@ struct PostProcess {
 
 pub struct Scene {
     data: GlobalModel,
+    globals_bind_group: GlobalsBindGroup,
     camera: Camera,
     camera_input_state: Vec2<f32>,
     event_lights: Vec<EventLight>,
@@ -275,14 +276,21 @@ impl Scene {
         let resolution = renderer.resolution().map(|e| e as f32);
         let sprite_render_context = lazy_init(renderer);
 
+        let data = GlobalModel {
+            globals: renderer.create_consts(&[Globals::default()]),
+            lights: renderer.create_consts(&[Light::default(); MAX_LIGHT_COUNT]),
+            shadows: renderer.create_consts(&[Shadow::default(); MAX_SHADOW_COUNT]),
+            shadow_mats: renderer
+                .create_consts(&[ShadowLocals::default(); MAX_LIGHT_COUNT * 6 + 6]),
+        };
+
+        let lod = Lod::new(renderer, client, settings);
+
+        let globals_bind_group = renderer.bind_globals(&data, lod.get_data());
+
         Self {
-            data: GlobalModel {
-                globals: renderer.create_consts(&[Globals::default()]),
-                lights: renderer.create_consts(&[Light::default(); MAX_LIGHT_COUNT]),
-                shadows: renderer.create_consts(&[Shadow::default(); MAX_SHADOW_COUNT]),
-                shadow_mats: renderer
-                    .create_consts(&[ShadowLocals::default(); MAX_LIGHT_COUNT * 6 + 6]),
-            },
+            data,
+            globals_bind_group,
             camera: Camera::new(resolution.x / resolution.y, CameraMode::ThirdPerson),
             camera_input_state: Vec2::zero(),
             event_lights: Vec::new(),
@@ -299,7 +307,7 @@ impl Scene {
                 locals: renderer.create_consts(&[PostProcessLocals::default()]),
             },
             terrain: Terrain::new(renderer, sprite_render_context),
-            lod: Lod::new(renderer, client, settings),
+            lod,
             loaded_distance: 0.0,
             map_bounds: Vec2::new(
                 client.world_data().min_chunk_alt(),
@@ -991,6 +999,8 @@ impl Scene {
         self.ambient_mgr
             .maintain(audio, scene_data.state, client, &self.camera);
     }
+
+    pub fn global_bind_group(&self) -> &GlobalsBindGroup { &self.globals_bind_group }
 
     /// Render the scene using the provided `Renderer`.
     pub fn render(

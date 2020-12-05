@@ -1417,8 +1417,18 @@ impl PlayState for SessionState {
                 &scene_data,
             );
         }
+
+        let mut drawer = match renderer
+            .start_recording_frame(self.scene.global_bind_group())
+            .unwrap()
+        {
+            Some(d) => d,
+            // Couldn't get swap chain texture this frame
+            None => return,
+        };
+
         // Draw the UI to the screen
-        self.hud.render(renderer, self.scene.globals());
+        self.hud.render(&mut drawer.third_pass().draw_ui());
     }
 }
 
