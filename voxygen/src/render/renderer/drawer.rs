@@ -111,16 +111,7 @@ impl<'a> Drawer<'a> {
                         },
                     }],
                     // TODO: do we need this?
-                    depth_stencil_attachment: Some(
-                        wgpu::RenderPassDepthStencilAttachmentDescriptor {
-                            attachment: &self.renderer.win_depth_view,
-                            depth_ops: Some(wgpu::Operations {
-                                load: wgpu::LoadOp::Clear(1.0),
-                                store: true,
-                            }),
-                            stencil_ops: None,
-                        },
-                    ),
+                    depth_stencil_attachment: None
                 });
 
         render_pass.set_bind_group(0, &self.globals.bind_group, &[]);

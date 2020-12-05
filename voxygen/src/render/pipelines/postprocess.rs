@@ -92,27 +92,9 @@ impl PostProcessLayout {
                         ty: wgpu::BindingType::Sampler { filtering: true, comparison: false },
                         count: None,
                     },
-                    // src depth
-                    // TODO: THIS IS UNUSED IN THE SHADER
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 2,
-                        visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                        ty: wgpu::BindingType::Texture {
-                            sample_type: wgpu::TextureSampleType::Float { filterable: true },
-                            view_dimension: wgpu::TextureViewDimension::D2,
-                            multisampled: false,
-                        },
-                        count: None,
-                    },
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 3,
-                        visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                        ty: wgpu::BindingType::Sampler { filtering: true, comparison: false },
-                        count: None,
-                    },
                     // Locals
                     wgpu::BindGroupLayoutEntry {
-                        binding: 4,
+                        binding: 2,
                         visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
                         ty: wgpu::BindingType::Buffer {
                             ty: wgpu::BufferBindingType::Uniform,
@@ -130,7 +112,6 @@ impl PostProcessLayout {
         &self,
         device: &wgpu::Device,
         src_color: &wgpu::TextureView,
-        src_depth: &wgpu::TextureView,
         sampler: &wgpu::Sampler,
         locals: &Consts<Locals>,
     ) -> BindGroup {
@@ -148,14 +129,6 @@ impl PostProcessLayout {
                 },
                 wgpu::BindGroupEntry {
                     binding: 2,
-                    resource: wgpu::BindingResource::TextureView(src_depth),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 3,
-                    resource: wgpu::BindingResource::Sampler(sampler),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 4,
                     resource: locals.buf().as_entire_binding(),
                 },
             ],
@@ -222,17 +195,7 @@ impl PostProcessPipeline {
                 alpha_blend: wgpu::BlendDescriptor::REPLACE,
                 write_mask: wgpu::ColorWrite::ALL,
             }],
-            depth_stencil_state: Some(wgpu::DepthStencilStateDescriptor {
-                format: wgpu::TextureFormat::Depth24Plus,
-                depth_write_enabled: false,
-                depth_compare: wgpu::CompareFunction::Always,
-                stencil: wgpu::StencilStateDescriptor {
-                    front: wgpu::StencilStateFaceDescriptor::IGNORE,
-                    back: wgpu::StencilStateFaceDescriptor::IGNORE,
-                    read_mask: !0,
-                    write_mask: !0,
-                },
-            }),
+            depth_stencil_state: None,
             vertex_state: wgpu::VertexStateDescriptor {
                 index_format: None,
                 vertex_buffers: &[/*Vertex::desc()*/],

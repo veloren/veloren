@@ -238,17 +238,7 @@ impl UiPipeline {
                 },
                 write_mask: wgpu::ColorWrite::ALL,
             }],
-            depth_stencil_state: Some(wgpu::DepthStencilStateDescriptor {
-                format: wgpu::TextureFormat::Depth24Plus,
-                depth_write_enabled: false,
-                depth_compare: wgpu::CompareFunction::LessEqual,
-                stencil: wgpu::StencilStateDescriptor {
-                    front: wgpu::StencilStateFaceDescriptor::IGNORE,
-                    back: wgpu::StencilStateFaceDescriptor::IGNORE,
-                    read_mask: !0,
-                    write_mask: !0,
-                },
-            }),
+            depth_stencil_state: None,
             vertex_state: wgpu::VertexStateDescriptor {
                 index_format: None,
                 vertex_buffers: &[Vertex::desc()],
