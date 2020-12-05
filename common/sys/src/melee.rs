@@ -132,14 +132,14 @@ impl<'a> System<'a> for Sys {
                         server_emitter.emit(ServerEvent::Damage { entity: b, change });
                         // Apply bleeding buff on melee hits with 10% chance
                         // TODO: Don't have buff uniformly applied on all melee attacks
-                        if change.amount < 0 && thread_rng().gen::<f32>() < 0.1 {
+                        if change.0.amount < 0 && thread_rng().gen::<f32>() < 0.1 {
                             use buff::*;
                             server_emitter.emit(ServerEvent::Buff {
                                 entity: b,
                                 buff_change: BuffChange::Add(Buff::new(
                                     BuffKind::Bleeding,
                                     BuffData {
-                                        strength: -change.amount as f32 / 10.0,
+                                        strength: -change.0.amount as f32 / 10.0,
                                         duration: Some(Duration::from_secs(10)),
                                     },
                                     vec![BuffCategory::Physical],

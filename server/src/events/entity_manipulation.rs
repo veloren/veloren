@@ -14,7 +14,7 @@ use common::{
         self, aura, buff,
         chat::{KillSource, KillType},
         object, Alignment, Body, Energy, EnergyChange, Group, Health, HealthChange, HealthSource,
-        Inventory, Item, Player, Pos, Stats,
+        Inventory, Item, Player, Poise, PoiseState, Pos, Stats,
     },
     effect::Effect,
     lottery::Lottery,
@@ -23,7 +23,7 @@ use common::{
     terrain::{Block, TerrainGrid},
     uid::{Uid, UidAllocator},
     vol::ReadVol,
-    Damage, DamageSource, Explosion, GroupTarget, RadiusEffect,
+    Damage, DamageSource, Explosion, GroupTarget, Knockback, RadiusEffect,
 };
 use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 use common_sys::state::BlockChange;
@@ -31,13 +31,89 @@ use comp::item::Reagent;
 use hashbrown::HashSet;
 use rand::prelude::*;
 use specs::{join::Join, saveload::MarkerAllocator, Entity as EcsEntity, WorldExt};
+use std::time::Duration;
 use tracing::error;
 use vek::Vec3;
 
-pub fn handle_damage(server: &Server, entity: EcsEntity, change: HealthChange) {
+pub fn handle_damage(server: &Server, entity: EcsEntity, change: (HealthChange, i32)) {
     let ecs = &server.state.ecs();
     if let Some(mut health) = ecs.write_storage::<Health>().get_mut(entity) {
         health.change_by(change);
+    if let Some(poise) = ecs.write_storage::<Poise>().get_mut(entity) {
+        poise.change_by(change.1);
+        let was_wielded =
+            if let Some(character_state) = ecs.read_storage::<comp::CharacterState>().get(entity) {
+                character_state.is_wield()
+            } else {
+                false
+            };
+        match poise.poise_state() {
+            PoiseState::Normal => {},
+            PoiseState::Interrupted => {
+                poise.reset();
+                let _ = ecs.write_storage::<comp::CharacterState>().insert(
+                    entity,
+                    comp::CharacterState::Stunned(common::states::stunned::Data {
+                        static_data: common::states::stunned::StaticData {
+                            buildup_duration: Duration::from_millis(250),
+                            recover_duration: Duration::from_millis(250),
+                            knockback: Knockback::Away(0.0),
+                        },
+                        timer: Duration::default(),
+                        stage_section: common::states::utils::StageSection::Buildup,
+                        was_wielded,
+                    }),
+                );
+            },
+            PoiseState::Stunned => {
+                poise.reset();
+                let _ = ecs.write_storage::<comp::CharacterState>().insert(
+                    entity,
+                    comp::CharacterState::Stunned(common::states::stunned::Data {
+                        static_data: common::states::stunned::StaticData {
+                            buildup_duration: Duration::from_millis(250),
+                            recover_duration: Duration::from_millis(250),
+                            knockback: Knockback::Away(0.0),
+                        },
+                        timer: Duration::default(),
+                        stage_section: common::states::utils::StageSection::Buildup,
+                        was_wielded,
+                    }),
+                );
+            },
+            PoiseState::Dazed => {
+                poise.reset();
+                let _ = ecs.write_storage::<comp::CharacterState>().insert(
+                    entity,
+                    comp::CharacterState::Stunned(common::states::stunned::Data {
+                        static_data: common::states::stunned::StaticData {
+                            buildup_duration: Duration::from_millis(250),
+                            recover_duration: Duration::from_millis(250),
+                            knockback: Knockback::Away(0.0),
+                        },
+                        timer: Duration::default(),
+                        stage_section: common::states::utils::StageSection::Buildup,
+                        was_wielded,
+                    }),
+                );
+            },
+            PoiseState::KnockedDown => {
+                poise.reset();
+                let _ = ecs.write_storage::<comp::CharacterState>().insert(
+                    entity,
+                    comp::CharacterState::Stunned(common::states::stunned::Data {
+                        static_data: common::states::stunned::StaticData {
+                            buildup_duration: Duration::from_millis(250),
+                            recover_duration: Duration::from_millis(250),
+                            knockback: Knockback::Away(0.0),
+                        },
+                        timer: Duration::default(),
+                        stage_section: common::states::utils::StageSection::Buildup,
+                        was_wielded,
+                    }),
+                );
+            },
+        }
     }
 }
 
@@ -487,6 +563,7 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
             let damage = Damage {
                 source: DamageSource::Falling,
                 value: falldmg,
+                poise_damage: 70.0,
             };
             let inventories = state.ecs().read_storage::<Inventory>();
             let change = damage.modify_damage(inventories.get(entity), None);

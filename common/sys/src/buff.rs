@@ -114,7 +114,7 @@ impl<'a> System<'a> for Sys {
                                     };
                                     server_emitter.emit(ServerEvent::Damage {
                                         entity,
-                                        change: HealthChange { amount, cause },
+                                        change: (HealthChange { amount, cause }, 0),
                                     });
                                     *accumulated = 0.0;
                                 };

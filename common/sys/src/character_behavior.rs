@@ -4,7 +4,7 @@ use common::{
     comp::{
         inventory::slot::{EquipSlot, Slot},
         Attacking, Beam, Body, CharacterState, Controller, Energy, Health, Inventory, Mounting,
-        Ori, PhysicsState, Pos, StateUpdate, Stats, Vel,
+        Ori, PhysicsState, Poise, Pos, StateUpdate, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::SysMetrics,
@@ -65,6 +65,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Inventory>,
         WriteStorage<'a, Controller>,
         ReadStorage<'a, Health>,
+        ReadStorage<'a, Poise>,
         ReadStorage<'a, Body>,
         ReadStorage<'a, PhysicsState>,
         ReadStorage<'a, Attacking>,
@@ -93,6 +94,7 @@ impl<'a> System<'a> for Sys {
             mut inventories,
             mut controllers,
             healths,
+            poises,
             bodies,
             physics_states,
             attacking_storage,
@@ -118,6 +120,7 @@ impl<'a> System<'a> for Sys {
             &mut inventories.restrict_mut(),
             &mut controllers,
             &healths,
+            poises.maybe(),
             &bodies,
             &physics_states,
             attacking_storage.maybe(),
@@ -151,6 +154,8 @@ impl<'a> System<'a> for Sys {
                     CharacterState::GlideWield => {
                         states::glide_wield::Data.handle_event(&j, action)
                     },
+                    CharacterState::Stunned(data) => data.handle_event(&j, action),
+                    CharacterState::Staggered(data) => data.handle_event(&j, action),
                     CharacterState::Sit => {
                         states::sit::Data::handle_event(&states::sit::Data, &j, action)
                     },
@@ -191,6 +196,8 @@ impl<'a> System<'a> for Sys {
                 CharacterState::Climb => states::climb::Data.behavior(&j),
                 CharacterState::Glide => states::glide::Data.behavior(&j),
                 CharacterState::GlideWield => states::glide_wield::Data.behavior(&j),
+                CharacterState::Stunned(data) => data.behavior(&j),
+                CharacterState::Staggered(data) => data.behavior(&j),
                 CharacterState::Sit => states::sit::Data::behavior(&states::sit::Data, &j),
                 CharacterState::Dance => states::dance::Data::behavior(&states::dance::Data, &j),
                 CharacterState::Sneak => states::sneak::Data::behavior(&states::sneak::Data, &j),

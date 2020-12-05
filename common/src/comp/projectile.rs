@@ -88,6 +88,7 @@ impl ProjectileConstructor {
                         Effect::Damage(Some(GroupTarget::OutOfGroup), Damage {
                             source: DamageSource::Projectile,
                             value: damage,
+                            poise_damage: 0.0,
                         }),
                         Effect::Knockback(Knockback::Away(knockback)),
                         Effect::RewardEnergy(energy_regen),
@@ -115,6 +116,7 @@ impl ProjectileConstructor {
                                 effect::Effect::Damage(Damage {
                                     source: DamageSource::Explosion,
                                     value: damage,
+                                    poise_damage: 10.0,
                                 }),
                             ),
                             RadiusEffect::TerrainDestruction(2.0),
@@ -131,6 +133,7 @@ impl ProjectileConstructor {
                             effect::Effect::Damage(Damage {
                                 source: DamageSource::Explosion,
                                 value: damage,
+                                poise_damage: 10.0,
                             }),
                         )],
                         radius,
@@ -172,6 +175,7 @@ impl ProjectileConstructor {
                                 effect::Effect::Damage(Damage {
                                     source: DamageSource::Explosion,
                                     value: damage,
+                                    poise_damage: 0.0,
                                 }),
                             ),
                             RadiusEffect::Entity(
@@ -179,6 +183,7 @@ impl ProjectileConstructor {
                                 effect::Effect::Damage(Damage {
                                     source: DamageSource::Healing,
                                     value: heal,
+                                    poise_damage: 0.0,
                                 }),
                             ),
                         ],
@@ -195,6 +200,7 @@ impl ProjectileConstructor {
                                 effect::Effect::Damage(Damage {
                                     source: DamageSource::Explosion,
                                     value: damage,
+                                    poise_damage: 0.0,
                                 }),
                             ),
                             RadiusEffect::Entity(
@@ -202,6 +208,7 @@ impl ProjectileConstructor {
                                 effect::Effect::Damage(Damage {
                                     source: DamageSource::Healing,
                                     value: heal,
+                                    poise_damage: 0.0,
                                 }),
                             ),
                         ],

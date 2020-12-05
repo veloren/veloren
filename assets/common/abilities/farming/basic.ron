@@ -4,6 +4,7 @@ BasicMelee(
     swing_duration: 100,
     recover_duration: 150,
     base_damage: 50,
+    base_poise_damage: 5,
     knockback: 0.0,
     range: 3.5,
     max_angle: 20.0,

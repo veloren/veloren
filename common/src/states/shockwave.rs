@@ -21,6 +21,8 @@ pub struct StaticData {
     pub recover_duration: Duration,
     /// Base damage
     pub damage: u32,
+    /// Base poise damage
+    pub poise_damage: u32,
     /// Knockback
     pub knockback: Knockback,
     /// Angle of the shockwave
@@ -86,6 +88,7 @@ impl CharacterBehavior for Data {
                         damages: vec![(Some(GroupTarget::OutOfGroup), Damage {
                             source: DamageSource::Shockwave,
                             value: self.static_data.damage as f32,
+                            poise_damage: self.static_data.poise_damage as f32,
                         })],
                         knockback: self.static_data.knockback,
                         requires_ground: self.static_data.requires_ground,

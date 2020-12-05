@@ -24,6 +24,8 @@ pub struct StaticData {
     pub initial_knockback: f32,
     /// How much the knockback is scaled by
     pub scaled_knockback: f32,
+    /// Initial poise damage
+    pub initial_poise_damage: u32,
     /// Max range
     pub range: f32,
     /// Max angle (45.0 will give you a 90.0 angle window)
@@ -152,6 +154,7 @@ impl CharacterBehavior for Data {
                         source: DamageSource::Melee,
                         value: self.static_data.initial_damage as f32
                             + self.charge_amount * self.static_data.scaled_damage as f32,
+                        poise_damage: self.static_data.initial_poise_damage as f32,
                     };
                     let knockback = self.static_data.initial_knockback
                         + self.charge_amount * self.static_data.scaled_knockback;

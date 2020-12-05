@@ -36,6 +36,7 @@ pub trait StateExt {
         stats: comp::Stats,
         health: comp::Health,
         inventory: comp::Inventory,
+        poise: comp::Poise,
         body: comp::Body,
     ) -> EcsEntityBuilder;
     /// Build a static object entity
@@ -95,6 +96,12 @@ impl StateExt for State {
                     .get_mut(entity)
                     .map(|mut health| health.change_by(change));
             },
+            Effect::Poise(change) => {
+                self.ecs()
+                    .write_storage::<comp::Poise>()
+                    .get_mut(entity)
+                    .map(|poise| poise.change_by(change));
+            },
             Effect::Buff(buff) => {
                 self.ecs()
                     .write_storage::<comp::Buffs>()
@@ -117,6 +124,7 @@ impl StateExt for State {
         stats: comp::Stats,
         health: comp::Health,
         inventory: comp::Inventory,
+        poise: comp::Poise,
         body: comp::Body,
     ) -> EcsEntityBuilder {
         self.ecs_mut()
@@ -149,6 +157,7 @@ impl StateExt for State {
             ))
             .with(stats)
             .with(health)
+            .with(poise)
             .with(comp::Alignment::Npc)
             .with(comp::Gravity(1.0))
             .with(comp::CharacterState::default())
@@ -292,6 +301,7 @@ impl StateExt for State {
             );
             self.write_component(entity, comp::Health::new(body, health_level));
             self.write_component(entity, comp::Energy::new(body, energy_level));
+            self.write_component(entity, comp::Poise::new(body));
             self.write_component(entity, stats);
             self.write_component(entity, inventory);
             self.write_component(

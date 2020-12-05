@@ -54,6 +54,7 @@ impl<'a> System<'a> for Sys {
                                         Effect::Damage(Damage {
                                             source: DamageSource::Explosion,
                                             value: 500.0,
+                                            poise_damage: 60.0,
                                         }),
                                     ),
                                     RadiusEffect::TerrainDestruction(4.0),
@@ -81,6 +82,7 @@ impl<'a> System<'a> for Sys {
                                         Effect::Damage(Damage {
                                             source: DamageSource::Explosion,
                                             value: 50.0,
+                                            poise_damage: 10.0,
                                         }),
                                     ),
                                     RadiusEffect::TerrainDestruction(4.0),

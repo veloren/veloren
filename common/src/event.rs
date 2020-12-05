@@ -34,7 +34,7 @@ pub enum ServerEvent {
     },
     Damage {
         entity: EcsEntity,
-        change: comp::HealthChange,
+        change: (comp::HealthChange, i32),
     },
     Delete(EcsEntity),
     Destroy {
@@ -98,6 +98,7 @@ pub enum ServerEvent {
         pos: comp::Pos,
         stats: comp::Stats,
         health: comp::Health,
+        poise: comp::Poise,
         loadout: comp::inventory::loadout::Loadout,
         body: comp::Body,
         agent: Option<comp::Agent>,

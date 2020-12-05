@@ -214,7 +214,10 @@ impl<'a> System<'a> for Sys {
                 },
                 // Non-combat abilities that consume energy;
                 // temporarily stall energy gain, but preserve regen_rate.
-                CharacterState::Roll { .. } | CharacterState::Climb { .. } => {},
+                CharacterState::Roll { .. }
+                | CharacterState::Climb { .. }
+                | CharacterState::Stunned { .. }
+                | CharacterState::Staggered { .. } => {},
             }
         }
         sys_metrics.stats_ns.store(
