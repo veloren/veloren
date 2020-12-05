@@ -5,7 +5,7 @@ use vek::*;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Grid<T> {
     cells: Vec<T>,
-    size: Vec2<i32>,
+    size: Vec2<i32>, // TODO: use u32
 }
 
 impl<T> Grid<T> {

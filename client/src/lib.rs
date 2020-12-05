@@ -247,7 +247,7 @@ impl Client {
                 if rgba.size() != map_size.map(|e| e as i32) {
                     return Err(Error::Other("Server sent a bad world map image".into()));
                 }
-                if rgba.size() != map_size.map(|e| e as i32) {
+                if alt.size() != map_size.map(|e| e as i32) {
                     return Err(Error::Other("Server sent a bad altitude map.".into()));
                 }
                 let [west, east] = world_map.horizons;
