@@ -90,7 +90,7 @@ impl SkyboxPipeline {
                 },
             }),
             vertex_state: wgpu::VertexStateDescriptor {
-                index_format: wgpu::IndexFormat::Uint16,
+                index_format: None,
                 vertex_buffers: &[Vertex::desc()],
             },
             sample_count: samples,
