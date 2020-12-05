@@ -133,18 +133,85 @@ pub struct ShadowMapRenderer {
 }
 
 /// A type that stores all the layouts associated with this renderer.
-pub struct Layouts {
-    // TODO: pub(self)??
-    pub(self) global: GlobalsLayouts,
+struct Layouts {
+    global: GlobalsLayouts,
 
-    pub(self) clouds: clouds::CloudsLayout,
-    pub(self) figure: figure::FigureLayout,
-    pub(self) fluid: fluid::FluidLayout,
-    pub(self) postprocess: postprocess::PostProcessLayout,
-    pub(self) shadow: shadow::ShadowLayout,
-    pub(self) sprite: sprite::SpriteLayout,
-    pub(self) terrain: terrain::TerrainLayout,
-    pub(self) ui: ui::UiLayout,
+    clouds: clouds::CloudsLayout,
+    figure: figure::FigureLayout,
+    fluid: fluid::FluidLayout,
+    postprocess: postprocess::PostProcessLayout,
+    shadow: shadow::ShadowLayout,
+    sprite: sprite::SpriteLayout,
+    terrain: terrain::TerrainLayout,
+    ui: ui::UiLayout,
+}
+
+struct Locals {
+    clouds: Consts<clouds::Locals>,
+    clouds_bind: clouds::BindGroup,
+
+    postprocess: Consts<postprocess::Locals>,
+    postprocess_bind: postprocess::BindGroup,
+}
+
+impl Locals {
+    fn new(
+        device: &wgpu::Device,
+        layouts: &Layouts,
+        clouds_locals: Consts<clouds::Locals>,
+        postprocess_locals: Consts<postprocess::Locals>,
+        tgt_color_view: &wgpu::TextureView,
+        tgt_depth_view: &wgpu::TextureView,
+        tgt_color_pp_view: &wgpu::TextureView,
+        sampler: &wgpu::Sampler,
+    ) -> Self {
+        let clouds_bind = layouts.clouds.bind(
+            device,
+            tgt_color_view,
+            tgt_depth_view,
+            sampler,
+            &clouds_locals,
+        );
+        let postprocess_bind = layouts.postprocess.bind(
+            device,
+            tgt_color_pp_view,
+            tgt_depth_view,
+            sampler,
+            &postprocess_locals,
+        );
+
+        Self {
+            clouds: clouds_locals,
+            clouds_bind,
+            postprocess: postprocess_locals,
+            postprocess_bind,
+        }
+    }
+
+    fn rebind(
+        &mut self,
+        device: &wgpu::Device,
+        layouts: &Layouts,
+        tgt_color_view: &wgpu::TextureView,
+        tgt_depth_view: &wgpu::TextureView,
+        tgt_color_pp_view: &wgpu::TextureView,
+        sampler: &wgpu::Sampler,
+    ) {
+        self.clouds_bind = layouts.clouds.bind(
+            device,
+            tgt_color_view,
+            tgt_depth_view,
+            sampler,
+            &self.clouds,
+        );
+        self.postprocess_bind = layouts.postprocess.bind(
+            device,
+            tgt_color_pp_view,
+            tgt_depth_view,
+            sampler,
+            &self.postprocess,
+        );
+    }
 }
 
 /// A type that encapsulates rendering state. `Renderer` is central to Voxygen's
@@ -187,6 +254,12 @@ pub struct Renderer {
     ui_pipeline: ui::UiPipeline,
 
     shaders: AssetHandle<Shaders>,
+
+    // Note: we keep these here since their bind groups need to be updated if we resize the
+    // color/depth textures
+    locals: Locals,
+
+    shader_reload_indicator: ReloadIndicator,
 
     noise_tex: Texture,
 
@@ -375,6 +448,28 @@ impl Renderer {
             Some(wgpu::AddressMode::Repeat),
         )?;
 
+        let clouds_locals = {
+            let mut consts = Consts::new(&device, 1);
+            consts.update(&device, &queue, &[clouds::Locals::default()], 0);
+            consts
+        };
+        let postprocess_locals = {
+            let mut consts = Consts::new(&device, 1);
+            consts.update(&device, &queue, &[postprocess::Locals::default()], 0);
+            consts
+        };
+
+        let locals = Locals::new(
+            &device,
+            &layouts,
+            clouds_locals,
+            postprocess_locals,
+            &tgt_color_view,
+            &tgt_depth_view,
+            &tgt_color_pp_view,
+            &sampler,
+        );
+
         Ok(Self {
             device,
             queue,
@@ -406,6 +501,8 @@ impl Renderer {
             postprocess_pipeline,
             shaders,
             //player_shadow_pipeline,
+            locals,
+
             noise_tex,
 
             mode,
@@ -459,6 +556,17 @@ impl Renderer {
             self.tgt_color_view = tgt_color_view;
             self.tgt_depth_view = tgt_depth_view;
             self.tgt_color_pp_view = tgt_color_pp_view;
+            // Rebind views to clouds/postprocess bind groups
+            self.locals.rebind(
+                &self.device,
+                &self.layouts,
+                &self.tgt_color_view,
+                &self.tgt_depth_view,
+                &self.tgt_color_pp_view,
+                &self.sampler,
+            );
+
+            // TODO: rebind globals
             if let (Some(shadow_map), ShadowMode::Map(mode)) =
                 (self.shadow_map.as_mut(), self.mode.shadow)
             {
@@ -823,6 +931,7 @@ impl Renderer {
             "Renderer::start_recording_frame"
         );
 
+        // TODO: does this make sense here?
         self.device.poll(wgpu::Maintain::Poll);
 
         // If the shaders files were changed attempt to recreate the shaders
@@ -921,8 +1030,20 @@ impl Renderer {
     }
 
     /// Update a set of constants with the provided values.
-    pub fn update_consts<T: Copy + bytemuck::Pod>(&mut self, consts: &mut Consts<T>, vals: &[T]) {
+    pub fn update_consts<T: Copy + bytemuck::Pod>(&self, consts: &mut Consts<T>, vals: &[T]) {
         consts.update(&self.device, &self.queue, vals, 0)
+    }
+
+    pub fn update_clouds_locals(&mut self, new_val: clouds::Locals) {
+        self.locals
+            .clouds
+            .update(&self.device, &self.queue, &[new_val], 0)
+    }
+
+    pub fn update_postprocess_locals(&mut self, new_val: postprocess::Locals) {
+        self.locals
+            .postprocess
+            .update(&self.device, &self.queue, &[new_val], 0)
     }
 
     /// Create a new set of instances with the provided values.
@@ -2048,7 +2169,7 @@ fn create_pipelines(
         device,
         &create_shader("clouds-vert", ShaderKind::Vertex)?,
         &create_shader("clouds-frag", ShaderKind::Fragment)?,
-        sc_desc,
+        // TODO: pass in format of intermediate color buffer
         &layouts.global,
         &layouts.clouds,
         mode.aa,

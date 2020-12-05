@@ -1,4 +1,4 @@
-use super::super::{AaMode, GlobalsLayouts, Mesh, Tri};
+use super::super::{AaMode, Bound, Consts, GlobalsLayouts, Mesh, Tri};
 use bytemuck::{Pod, Zeroable};
 use vek::*;
 
@@ -22,7 +22,7 @@ impl Locals {
     }
 }
 
-#[repr(C)]
+/*#[repr(C)]
 #[derive(Copy, Clone, Debug, Zeroable, Pod)]
 pub struct Vertex {
     pub pos: [f32; 2],
@@ -59,16 +59,20 @@ pub fn create_mesh() -> Mesh<Vertex> {
     ));
 
     mesh
+}*/
+
+pub struct BindGroup {
+    pub(in super::super) bind_group: wgpu::BindGroup,
 }
 
 pub struct PostProcessLayout {
-    pub src_color: wgpu::BindGroupLayout,
+    pub layout: wgpu::BindGroupLayout,
 }
 
 impl PostProcessLayout {
     pub fn new(device: &wgpu::Device) -> Self {
         Self {
-            src_color: device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            layout: device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
                 label: None,
                 entries: &[
                     // src color
@@ -119,6 +123,44 @@ impl PostProcessLayout {
             }),
         }
     }
+
+    pub fn bind(
+        &self,
+        device: &wgpu::Device,
+        src_color: &wgpu::TextureView,
+        src_depth: &wgpu::TextureView,
+        sampler: &wgpu::Sampler,
+        locals: &Consts<Locals>,
+    ) -> BindGroup {
+        let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: None,
+            layout: &self.layout,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(src_color),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Sampler(sampler),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 2,
+                    resource: wgpu::BindingResource::TextureView(src_depth),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 3,
+                    resource: wgpu::BindingResource::Sampler(sampler),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 4,
+                    resource: locals.buf().as_entire_binding(),
+                },
+            ],
+        });
+
+        BindGroup { bind_group }
+    }
 }
 
 pub struct PostProcessPipeline {
@@ -140,7 +182,7 @@ impl PostProcessPipeline {
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Post process pipeline layout"),
                 push_constant_ranges: &[],
-                bind_group_layouts: &[&global_layout.globals, &layout.src_color],
+                bind_group_layouts: &[&global_layout.globals, &layout.layout],
             });
 
         let samples = match aa_mode {
@@ -191,7 +233,7 @@ impl PostProcessPipeline {
             }),
             vertex_state: wgpu::VertexStateDescriptor {
                 index_format: wgpu::IndexFormat::Uint16,
-                vertex_buffers: &[Vertex::desc()],
+                vertex_buffers: &[/*Vertex::desc()*/],
             },
             sample_count: samples,
             sample_mask: !0,

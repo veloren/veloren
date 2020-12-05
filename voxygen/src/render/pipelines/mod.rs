@@ -290,7 +290,7 @@ impl GlobalsLayouts {
                     binding: 5,
                     visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
                     ty: wgpu::BindingType::SampledTexture {
-                        component_type: wgpu::TextureComponentType::Float,
+                        component_type: wgpu::TextureComponentType::Uint,
                         dimension: wgpu::TextureViewDimension::D2,
                         multisampled: false,
                     },

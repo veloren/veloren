@@ -1427,8 +1427,16 @@ impl PlayState for SessionState {
             None => return,
         };
 
+        // Render world
+        /* let mut first_pass = */
+        drawer.first_pass();
+        // Clouds
+        drawer.second_pass().draw_clouds();
+        // PostProcess and UI
+        let mut third_pass = drawer.third_pass();
+        third_pass.draw_post_process();
         // Draw the UI to the screen
-        self.hud.render(&mut drawer.third_pass().draw_ui());
+        self.hud.render(&mut third_pass.draw_ui());
     }
 }
 

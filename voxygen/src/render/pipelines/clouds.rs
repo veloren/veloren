@@ -1,5 +1,5 @@
 use super::{
-    super::{AaMode, Mesh, Tri},
+    super::{AaMode, Bound, Consts, Mesh, Tri},
     GlobalsLayouts,
 };
 use bytemuck::{Pod, Zeroable};
@@ -25,7 +25,7 @@ impl Locals {
     }
 }
 
-#[repr(C)]
+/*#[repr(C)]
 #[derive(Copy, Clone, Debug, Zeroable, Pod)]
 pub struct Vertex {
     pos: [f32; 2],
@@ -62,6 +62,10 @@ pub fn create_mesh() -> Mesh<Vertex> {
     ));
 
     mesh
+}*/
+
+pub struct BindGroup {
+    pub(in super::super) bind_group: wgpu::BindGroup,
 }
 
 pub struct CloudsLayout {
@@ -123,6 +127,44 @@ impl CloudsLayout {
             }),
         }
     }
+
+    pub fn bind(
+        &self,
+        device: &wgpu::Device,
+        src_color: &wgpu::TextureView,
+        src_depth: &wgpu::TextureView,
+        sampler: &wgpu::Sampler,
+        locals: &Consts<Locals>,
+    ) -> BindGroup {
+        let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: None,
+            layout: &self.layout,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(src_color),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Sampler(sampler),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 2,
+                    resource: wgpu::BindingResource::TextureView(src_depth),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 3,
+                    resource: wgpu::BindingResource::Sampler(sampler),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 4,
+                    resource: locals.buf().as_entire_binding(),
+                },
+            ],
+        });
+
+        BindGroup { bind_group }
+    }
 }
 
 pub struct CloudsPipeline {
@@ -134,7 +176,6 @@ impl CloudsPipeline {
         device: &wgpu::Device,
         vs_module: &wgpu::ShaderModule,
         fs_module: &wgpu::ShaderModule,
-        sc_desc: &wgpu::SwapChainDescriptor,
         global_layout: &GlobalsLayouts,
         layout: &CloudsLayout,
         aa_mode: AaMode,
@@ -166,6 +207,7 @@ impl CloudsPipeline {
                 module: fs_module,
                 entry_point: "main",
             }),
+            // TODO: this could be None?
             rasterization_state: Some(wgpu::RasterizationStateDescriptor {
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: wgpu::CullMode::Back,
@@ -177,25 +219,15 @@ impl CloudsPipeline {
             }),
             primitive_topology: wgpu::PrimitiveTopology::TriangleList,
             color_states: &[wgpu::ColorStateDescriptor {
-                format: sc_desc.format,
+                format: wgpu::TextureFormat::Rgba8UnormSrgb,
                 color_blend: wgpu::BlendDescriptor::REPLACE,
                 alpha_blend: wgpu::BlendDescriptor::REPLACE,
                 write_mask: wgpu::ColorWrite::ALL,
             }],
-            depth_stencil_state: Some(wgpu::DepthStencilStateDescriptor {
-                format: wgpu::TextureFormat::Depth24Plus,
-                depth_write_enabled: false,
-                depth_compare: wgpu::CompareFunction::Always,
-                stencil: wgpu::StencilStateDescriptor {
-                    front: wgpu::StencilStateFaceDescriptor::IGNORE,
-                    back: wgpu::StencilStateFaceDescriptor::IGNORE,
-                    read_mask: !0,
-                    write_mask: !0,
-                },
-            }),
+            depth_stencil_state: None,
             vertex_state: wgpu::VertexStateDescriptor {
                 index_format: wgpu::IndexFormat::Uint16,
-                vertex_buffers: &[Vertex::desc()],
+                vertex_buffers: &[/*Vertex::desc()*/],
             },
             sample_count: samples,
             sample_mask: !0,

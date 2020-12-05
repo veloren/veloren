@@ -19,9 +19,7 @@ pub use self::{
     mesh::{Mesh, Quad, Tri},
     model::{DynamicModel, Model, SubModel},
     pipelines::{
-        clouds::{
-            create_mesh as create_clouds_mesh, Locals as CloudsLocals, Vertex as CloudsVertex,
-        },
+        clouds::Locals as CloudsLocals,
         figure::{
             BoneData as FigureBoneData, BoneMeshes, FigureLayout, FigureModel,
             Locals as FigureLocals,
@@ -29,9 +27,7 @@ pub use self::{
         fluid::Vertex as FluidVertex,
         lod_terrain::{LodData, Vertex as LodTerrainVertex},
         particle::{Instance as ParticleInstance, Vertex as ParticleVertex},
-        postprocess::{
-            create_mesh as create_pp_mesh, Locals as PostProcessLocals, Vertex as PostProcessVertex,
-        },
+        postprocess::Locals as PostProcessLocals,
         shadow::Locals as ShadowLocals,
         skybox::{create_mesh as create_skybox_mesh, Vertex as SkyboxVertex},
         sprite::{Instance as SpriteInstance, Locals as SpriteLocals, Vertex as SpriteVertex},

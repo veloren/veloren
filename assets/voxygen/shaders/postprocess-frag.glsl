@@ -180,6 +180,7 @@ vec3 wpos_at(vec2 uv) {
 */
 
 void main() {
+    // TODO: precompute in the vertex shader?
     vec2 uv = (f_pos + 1.0) * 0.5;
 
     /* if (medium.x == 1u) {

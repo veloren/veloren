@@ -771,7 +771,7 @@ impl IcedRenderer {
         }
     }
 
-    pub fn render<'pass, 'data: 'pass>(&'data self, drawer: &mut UiDrawer<'_, 'pass>) {
+    pub fn render<'a>(&'a self, drawer: &mut UiDrawer<'_, 'a>) {
         span!(_guard, "render", "IcedRenderer::render");
         let mut drawer = drawer.prepare(&self.interface_locals, &self.model, self.window_scissor);
         for draw_command in self.draw_commands.iter() {

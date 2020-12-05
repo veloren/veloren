@@ -245,8 +245,15 @@ impl PlayState for CharSelectionState {
         //self.scene
         //    .render(renderer, client.get_tick(), humanoid_body, loadout);
 
+        // Render world
+        /* let mut first_pass = */
+        drawer.first_pass();
+        // Clouds
+        drawer.second_pass().draw_clouds();
+        // PostProcess and UI
+        let mut third_pass = drawer.third_pass();
+        third_pass.draw_post_process();
         // Draw the UI to the screen.
-        self.char_selection_ui
-            .render(&mut drawer.third_pass().draw_ui());
+        self.char_selection_ui.render(&mut third_pass.draw_ui());
     }
 }

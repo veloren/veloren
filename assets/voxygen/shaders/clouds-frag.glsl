@@ -65,6 +65,7 @@ vec3 wpos_at(vec2 uv) {
 }
 
 void main() {
+    // TODO: precompute in the vertex shader?
     vec2 uv = (f_pos + 1.0) * 0.5;
 
     vec4 color = texture(sampler2D(t_src_color, s_src_color), uv);

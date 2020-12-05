@@ -5,7 +5,8 @@ use super::{
         instances::Instances,
         model::{DynamicModel, Model},
         pipelines::{
-            figure, fluid, postprocess, sprite, terrain, ui, GlobalsBindGroup, Light, Shadow,
+            clouds, figure, fluid, postprocess, sprite, terrain, ui, GlobalsBindGroup, Light,
+            Shadow,
         },
     },
     Renderer,
@@ -36,8 +37,8 @@ impl<'a> Drawer<'a> {
         }
     }
 
-    /*pub fn first_pass(&mut self) -> FirstPassDrawer {
-        let render_pass =
+    pub fn first_pass(&mut self) -> FirstPassDrawer {
+        let mut render_pass =
             self.encoder
                 .as_mut()
                 .unwrap()
@@ -45,19 +46,19 @@ impl<'a> Drawer<'a> {
                     color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
                         attachment: &self.renderer.tgt_color_view,
                         resolve_target: None,
-                        load_op: wgpu::LoadOp::Clear,
-                        store_op: wgpu::StoreOp::Store,
-                        clear_color: wgpu::Color::TRANSPARENT,
+                        ops: wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                            store: true,
+                        },
                     }],
                     depth_stencil_attachment: Some(
                         wgpu::RenderPassDepthStencilAttachmentDescriptor {
-                            attachment: &self.renderer.depth_stencil_texture.view,
-                            depth_load_op: wgpu::LoadOp::Clear,
-                            depth_store_op: wgpu::StoreOp::Store,
-                            clear_depth: 1.0,
-                            stencil_load_op: wgpu::LoadOp::Clear,
-                            stencil_store_op: wgpu::StoreOp::Store,
-                            clear_stencil: 0,
+                            attachment: &self.renderer.tgt_depth_view,
+                            depth_ops: Some(wgpu::Operations {
+                                load: wgpu::LoadOp::Clear(1.0),
+                                store: true,
+                            }),
+                            stencil_ops: None,
                         },
                     ),
                 });
@@ -71,7 +72,7 @@ impl<'a> Drawer<'a> {
     }
 
     pub fn second_pass(&mut self) -> SecondPassDrawer {
-        let render_pass =
+        let mut render_pass =
             self.encoder
                 .as_mut()
                 .unwrap()
@@ -79,9 +80,10 @@ impl<'a> Drawer<'a> {
                     color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
                         attachment: &self.renderer.tgt_color_pp_view,
                         resolve_target: None,
-                        load_op: wgpu::LoadOp::Clear,
-                        store_op: wgpu::StoreOp::Store,
-                        clear_color: wgpu::Color::TRANSPARENT,
+                        ops: wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                            store: true,
+                        },
                     }],
                     depth_stencil_attachment: None,
                 });
@@ -92,7 +94,7 @@ impl<'a> Drawer<'a> {
             render_pass,
             renderer: &self.renderer,
         }
-    }*/
+    }
 
     pub fn third_pass(&mut self) -> ThirdPassDrawer {
         let mut render_pass =
@@ -126,26 +128,27 @@ impl<'a> Drawer<'a> {
         ThirdPassDrawer {
             render_pass,
             renderer: &self.renderer,
-            //postprocess_locals: &self.postprocess_locals,
         }
     }
 }
 
 impl<'a> Drop for Drawer<'a> {
     fn drop(&mut self) {
+        // TODO: submitting things to the queue can let the gpu start on them sooner
+        // maybe we should submit each render pass to the queue as they are produced?
         self.renderer
             .queue
             .submit(std::iter::once(self.encoder.take().unwrap().finish()));
     }
 }
 
-/*pub struct FirstPassDrawer<'a> {
+pub struct FirstPassDrawer<'a> {
     pub(super) render_pass: wgpu::RenderPass<'a>,
     pub renderer: &'a Renderer,
 }
 
 impl<'a> FirstPassDrawer<'a> {
-    pub fn draw_skybox<'b: 'a>(
+    /*pub fn draw_skybox<'b: 'a>(
         &mut self,
         model: &'b Model,
         globals: &'b Consts<Globals>,
@@ -236,7 +239,7 @@ impl<'a> FirstPassDrawer<'a> {
         self.render_pass.set_vertex_buffer(0, &model.vbuf, 0, 0);
         self.render_pass.set_vertex_buffer(1, &instances.ibuf, 0, 0);
         self.render_pass.draw(verts, 0..instances.count() as u32);
-    }
+    }*/
 }
 
 pub struct SecondPassDrawer<'a> {
@@ -245,40 +248,27 @@ pub struct SecondPassDrawer<'a> {
 }
 
 impl<'a> SecondPassDrawer<'a> {
-    pub fn draw_post_process<'b: 'a>(
-        &mut self,
-        model: &'b Model,
-        globals: &'b Consts<Globals>,
-        verts: Range<u32>,
-    ) {
+    pub fn draw_clouds<'b: 'a>(&mut self) {
         self.render_pass
-            .set_pipeline(&self.renderer.postprocess_pipeline.pipeline);
-        self.render_pass.set_bind_group(0, &globals.bind_group, &[]);
+            .set_pipeline(&self.renderer.clouds_pipeline.pipeline);
         self.render_pass
-            .set_bind_group(1, self.postprocess_locals, &[]);
-        self.render_pass.set_vertex_buffer(0, &model.vbuf, 0, 0);
-        self.render_pass.draw(verts, 0..1);
+            .set_bind_group(1, &self.renderer.locals.clouds_bind.bind_group, &[]);
+        self.render_pass.draw(0..3, 0..1);
     }
-}*/
+}
 
 pub struct ThirdPassDrawer<'a> {
     render_pass: wgpu::RenderPass<'a>,
     renderer: &'a Renderer,
-    //postprocess_locals: &'a wgpu::BindGroup,
 }
 
 impl<'a> ThirdPassDrawer<'a> {
-    pub fn draw_post_process<'b: 'a>(
-        &mut self,
-        model: &'b Model<postprocess::Vertex>,
-        verts: Range<u32>,
-    ) {
+    pub fn draw_post_process<'b: 'a>(&mut self) {
         self.render_pass
             .set_pipeline(&self.renderer.postprocess_pipeline.pipeline);
-        //self.render_pass
-        //    .set_bind_group(1, self.postprocess_locals, &[]);
-        self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
-        self.render_pass.draw(verts, 0..1);
+        self.render_pass
+            .set_bind_group(1, &self.renderer.locals.postprocess_bind.bind_group, &[]);
+        self.render_pass.draw(0..3, 0..1);
     }
 
     pub fn draw_ui<'c>(&'c mut self) -> UiDrawer<'c, 'a> {

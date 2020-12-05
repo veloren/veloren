@@ -16,9 +16,8 @@ pub use self::{
 use crate::{
     audio::{ambient::AmbientMgr, music::MusicMgr, sfx::SfxMgr, AudioFrontend},
     render::{
-        create_clouds_mesh, create_pp_mesh, create_skybox_mesh, CloudsLocals, CloudsVertex, Consts,
-        GlobalModel, Globals, GlobalsBindGroup, Light, Model, PostProcessLocals, PostProcessVertex,
-        Renderer, Shadow, ShadowLocals, SkyboxVertex,
+        create_skybox_mesh, CloudsLocals, Consts, GlobalModel, Globals, GlobalsBindGroup, Light,
+        Model, PostProcessLocals, Renderer, Shadow, ShadowLocals, SkyboxVertex,
     },
     settings::Settings,
     window::{AnalogGameInput, Event},
@@ -70,16 +69,6 @@ struct Skybox {
     model: Model<SkyboxVertex>,
 }
 
-struct Clouds {
-    model: Model<CloudsVertex>,
-    locals: Consts<CloudsLocals>,
-}
-
-struct PostProcess {
-    model: Model<PostProcessVertex>,
-    locals: Consts<PostProcessLocals>,
-}
-
 pub struct Scene {
     data: GlobalModel,
     globals_bind_group: GlobalsBindGroup,
@@ -88,8 +77,6 @@ pub struct Scene {
     event_lights: Vec<EventLight>,
 
     skybox: Skybox,
-    clouds: Clouds,
-    postprocess: PostProcess,
     terrain: Terrain<TerrainChunk>,
     pub lod: Lod,
     loaded_distance: f32,
@@ -297,14 +284,6 @@ impl Scene {
 
             skybox: Skybox {
                 model: renderer.create_model(&create_skybox_mesh()).unwrap(),
-            },
-            clouds: Clouds {
-                model: renderer.create_model(&create_clouds_mesh()).unwrap(),
-                locals: renderer.create_consts(&[CloudsLocals::default()]),
-            },
-            postprocess: PostProcess {
-                model: renderer.create_model(&create_pp_mesh()).unwrap(),
-                locals: renderer.create_consts(&[PostProcessLocals::default()]),
             },
             terrain: Terrain::new(renderer, sprite_render_context),
             lod,
@@ -665,14 +644,8 @@ impl Scene {
             self.camera.get_mode(),
             scene_data.sprite_render_distance as f32 - 20.0,
         )]);
-        renderer.update_consts(&mut self.clouds.locals, &[CloudsLocals::new(
-            proj_mat_inv,
-            view_mat_inv,
-        )]);
-        renderer.update_consts(&mut self.postprocess.locals, &[PostProcessLocals::new(
-            proj_mat_inv,
-            view_mat_inv,
-        )]);
+        renderer.update_clouds_locals(CloudsLocals::new(proj_mat_inv, view_mat_inv));
+        renderer.update_postprocess_locals(PostProcessLocals::new(proj_mat_inv, view_mat_inv));
 
         // Maintain LoD.
         self.lod.maintain(renderer);
@@ -1081,21 +1054,5 @@ impl Scene {
 
         // Render particle effects.
         self.particle_mgr.render(renderer, scene_data, global, lod);
-
-        // TODO:
-        // // Render clouds (a post-processing effect)
-        // renderer.render_clouds(
-        //     &self.clouds.model,
-        //     &global.globals,
-        //     &self.clouds.locals,
-        //     self.lod.get_data(),
-        // );
-
-        // renderer.render_post_process(
-        //     &self.postprocess.model,
-        //     &global.globals,
-        //     &self.postprocess.locals,
-        //     self.lod.get_data(),
-        // );
     }
 }

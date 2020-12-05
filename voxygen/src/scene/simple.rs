@@ -1,9 +1,8 @@
 use crate::{
     mesh::{greedy::GreedyMesh, segment::generate_mesh_base_vol_terrain},
     render::{
-        create_clouds_mesh, create_pp_mesh, create_skybox_mesh, BoneMeshes, CloudsLocals,
-        CloudsVertex, Consts, FigureModel, GlobalModel, Globals, GlobalsBindGroup, Light, LodData,
-        Mesh, Model, PostProcessLocals, PostProcessVertex, Renderer, Shadow, ShadowLocals,
+        create_skybox_mesh, BoneMeshes, Consts, FigureModel, GlobalModel, Globals,
+        GlobalsBindGroup, Light, LodData, Mesh, Model, Renderer, Shadow, ShadowLocals,
         SkyboxVertex, TerrainVertex,
     },
     scene::{
@@ -57,24 +56,12 @@ struct Skybox {
     model: Model<SkyboxVertex>,
 }
 
-struct PostProcess {
-    model: Model<PostProcessVertex>,
-    locals: Consts<PostProcessLocals>,
-}
-
-struct Clouds {
-    model: Model<CloudsVertex>,
-    locals: Consts<CloudsLocals>,
-}
-
 pub struct Scene {
     data: GlobalModel,
     globals_bind_group: GlobalsBindGroup,
     camera: Camera,
 
     skybox: Skybox,
-    clouds: Clouds,
-    postprocess: PostProcess,
     lod: LodData,
     map_bounds: Vec2<f32>,
 
@@ -133,14 +120,6 @@ impl Scene {
             globals_bind_group,
             skybox: Skybox {
                 model: renderer.create_model(&create_skybox_mesh()).unwrap(),
-            },
-            clouds: Clouds {
-                model: renderer.create_model(&create_clouds_mesh()).unwrap(),
-                locals: renderer.create_consts(&[CloudsLocals::default()]),
-            },
-            postprocess: PostProcess {
-                model: renderer.create_model(&create_pp_mesh()).unwrap(),
-                locals: renderer.create_consts(&[PostProcessLocals::default()]),
             },
             lod,
             map_bounds,
