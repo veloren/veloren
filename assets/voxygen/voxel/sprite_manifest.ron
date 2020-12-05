@@ -519,6 +519,13 @@ Mushroom: Some((
             offset: (-6.0, -6.0, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
+    ],
+    wind_sway: 0.1,
+)),
+
+// Cave Mushrooms
+CaveMushroom: Some((
+    variations: [
         (
             model: "voxygen.voxel.sprite.mushrooms.mushroom-11",
             offset: (-8.0, -8.0, 0.0),
@@ -2028,7 +2035,7 @@ GrassBlue: Some((
             model: "voxygen.voxel.sprite.underwater_grass.blue-1",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 0.5),
-        ),        
+        ),
     ],
     wind_sway: 1.0,
 )),
@@ -2044,7 +2051,7 @@ ChestBurried: Some((
              model: "voxygen.voxel.sprite.underwater_chests.chest_vines",
             offset: (-10.0, -8.5, 0.0),
             lod_axes: (0.0, 0.0, 0.5),
-        ),        
+        ),
     ],
     wind_sway: 0.0,
 )),
@@ -2060,7 +2067,7 @@ Mud: Some((
             model: "voxygen.voxel.sprite.underwater_mud.mud-1",
             offset: (-8.5, -7.5, 0.0),
             lod_axes: (0.0, 0.0, 0.5),
-        ),        
+        ),
     ],
     wind_sway: 0.0,
 )),

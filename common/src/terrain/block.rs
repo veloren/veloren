@@ -173,6 +173,7 @@ impl Block {
             SpriteKind::WallLamp => Some(16),
             SpriteKind::FireBowlGround => Some(16),
             SpriteKind::Velorite | SpriteKind::VeloriteFrag => Some(6),
+            SpriteKind::CaveMushroom => Some(12),
             _ => None,
         }
     }
