@@ -2,9 +2,9 @@ use crate::{
     mesh::{greedy::GreedyMesh, segment::generate_mesh_base_vol_terrain},
     render::{
         create_clouds_mesh, create_pp_mesh, create_skybox_mesh, BoneMeshes, CloudsLocals,
-        CloudsVertex, Consts, FigureModel, GlobalModel, Globals, Light, LodData, Mesh, Model,
-        PostProcessLocals, PostProcessVertex, Renderer, Shadow, ShadowLocals, SkyboxVertex,
-        TerrainVertex,
+        CloudsVertex, Consts, FigureModel, GlobalModel, Globals, GlobalsBindGroup, Light, LodData,
+        Mesh, Model, PostProcessLocals, PostProcessVertex, Renderer, Shadow, ShadowLocals,
+        SkyboxVertex, TerrainVertex,
     },
     scene::{
         camera::{self, Camera, CameraMode},
@@ -69,6 +69,7 @@ struct Clouds {
 
 pub struct Scene {
     data: GlobalModel,
+    globals_bind_group: GlobalsBindGroup,
     camera: Camera,
 
     skybox: Skybox,
@@ -117,14 +118,19 @@ impl Scene {
 
         let mut col_lights = FigureColLights::new(renderer);
 
-        Self {
-            data: GlobalModel {
-                globals: renderer.create_consts(&[Globals::default()]),
-                lights: renderer.create_consts(&[Light::default(); 32]),
-                shadows: renderer.create_consts(&[Shadow::default(); 32]),
-                shadow_mats: renderer.create_consts(&[ShadowLocals::default(); 6]),
-            },
+        let data = GlobalModel {
+            globals: renderer.create_consts(&[Globals::default()]),
+            lights: renderer.create_consts(&[Light::default(); 32]),
+            shadows: renderer.create_consts(&[Shadow::default(); 32]),
+            shadow_mats: renderer.create_consts(&[ShadowLocals::default(); 6]),
+        };
+        let lod = LodData::dummy(renderer);
 
+        let globals_bind_group = renderer.bind_globals(&data, &lod);
+
+        Self {
+            data,
+            globals_bind_group,
             skybox: Skybox {
                 model: renderer.create_model(&create_skybox_mesh()).unwrap(),
             },
@@ -136,7 +142,7 @@ impl Scene {
                 model: renderer.create_model(&create_pp_mesh()).unwrap(),
                 locals: renderer.create_consts(&[PostProcessLocals::default()]),
             },
-            lod: LodData::dummy(renderer),
+            lod,
             map_bounds,
 
             figure_model_cache: FigureModelCache::new(),
@@ -358,6 +364,8 @@ impl Scene {
             );
         }
     }
+
+    pub fn global_bind_group(&self) -> &GlobalsBindGroup { &self.globals_bind_group }
 
     pub fn render(
         &mut self,

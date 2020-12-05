@@ -228,15 +228,25 @@ impl PlayState for CharSelectionState {
     fn name(&self) -> &'static str { "Character Selection" }
 
     fn render(&mut self, renderer: &mut Renderer, _: &Settings) {
+        let mut drawer = match renderer
+            .start_recording_frame(self.scene.global_bind_group())
+            .unwrap()
+        {
+            Some(d) => d,
+            // Couldn't get swap chain texture this fime
+            None => return,
+        };
+
         let client = self.client.borrow();
         let (humanoid_body, loadout) =
             Self::get_humanoid_body_inventory(&self.char_selection_ui, &client);
 
         // Render the scene.
-        self.scene
-            .render(renderer, client.get_tick(), humanoid_body, loadout);
+        //self.scene
+        //    .render(renderer, client.get_tick(), humanoid_body, loadout);
 
         // Draw the UI to the screen.
-        self.char_selection_ui.render(renderer);
+        self.char_selection_ui
+            .render(&mut drawer.third_pass().draw_ui());
     }
 }

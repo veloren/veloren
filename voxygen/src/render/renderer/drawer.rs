@@ -104,12 +104,7 @@ impl<'a> Drawer<'a> {
                         attachment: &self.tex.view,
                         resolve_target: None,
                         ops: wgpu::Operations {
-                            load: wgpu::LoadOp::Clear(wgpu::Color {
-                                r: 1.0,
-                                g: 0.25,
-                                b: 0.5,
-                                a: 0.5,
-                            }),
+                            load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
                             store: true,
                         },
                     }],
@@ -310,7 +305,7 @@ impl<'pass_ref, 'pass: 'pass_ref> UiDrawer<'pass_ref, 'pass> {
     /// set with every draw call
     pub fn prepare<'data: 'pass>(
         &mut self,
-        locals: &'data ui::LocalsBindGroup,
+        locals: &'data ui::BoundLocals,
         //texture: &'b ui::TextureBindGroup,
         buf: &'data DynamicModel<ui::Vertex>,
         scissor: Aabr<u16>,
@@ -331,7 +326,7 @@ impl<'pass_ref, 'pass: 'pass_ref> UiDrawer<'pass_ref, 'pass> {
 }
 
 impl<'pass_ref, 'pass: 'pass_ref> PreparedUiDrawer<'pass_ref, 'pass> {
-    pub fn set_locals<'data: 'pass>(&mut self, locals: &'data ui::LocalsBindGroup) {
+    pub fn set_locals<'data: 'pass>(&mut self, locals: &'data ui::BoundLocals) {
         self.render_pass.set_bind_group(1, &locals.bind_group, &[]);
     }
 
@@ -345,12 +340,12 @@ impl<'pass_ref, 'pass: 'pass_ref> PreparedUiDrawer<'pass_ref, 'pass> {
 
     pub fn set_scissor<'data: 'pass>(&mut self, scissor: Aabr<u16>) {
         let Aabr { min, max } = scissor;
-        //self.render_pass.set_scissor_rect(
-        //    min.x as u32,
-        //    min.y as u32,
-        //    (max.x - min.x) as u32,
-        //    (max.y - min.y) as u32,
-        //);
+        self.render_pass.set_scissor_rect(
+            min.x as u32,
+            min.y as u32,
+            (max.x - min.x) as u32,
+            (max.y - min.y) as u32,
+        );
     }
 
     pub fn draw<'data: 'pass>(&mut self, texture: &'data ui::TextureBindGroup, verts: Range<u32>) {

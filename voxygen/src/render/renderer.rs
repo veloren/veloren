@@ -1,4 +1,4 @@
-mod bind_group;
+mod binding;
 mod drawer;
 
 pub use drawer::{Drawer, UiDrawer};

@@ -3624,7 +3624,7 @@ impl Hud {
         span!(_guard, "render", "Hud::render");
         // Don't show anything if the UI is toggled off.
         if self.show.ui {
-            self.ui.render(renderer, Some(globals));
+            //self.ui.render(renderer, Some(globals));
         }
     }
 

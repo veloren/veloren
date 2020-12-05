@@ -28,7 +28,7 @@ pub use widgets::{
 use crate::{
     render::{
         create_ui_quad, create_ui_tri, Consts, DynamicModel, Globals, Mesh, RenderError, Renderer,
-        UiLocals, UiMode, UiVertex,
+        UiBoundLocals, UiDrawer, UiLocals, UiMode, UiVertex,
     },
     window::Window,
     Error,
@@ -113,10 +113,9 @@ pub struct Ui {
     // Model for drawing the ui
     model: DynamicModel<UiVertex>,
     // Consts for default ui drawing position (ie the interface)
-    interface_locals: Consts<UiLocals>,
-    default_globals: Consts<Globals>,
+    interface_locals: UiBoundLocals,
     // Consts to specify positions of ingame elements (e.g. Nametags)
-    ingame_locals: Vec<Consts<UiLocals>>,
+    ingame_locals: Vec<UiBoundLocals>,
     // Window size for updating scaling
     window_resized: Option<Vec2<f64>>,
     // Scale factor changed
@@ -129,12 +128,15 @@ pub struct Ui {
     tooltip_manager: TooltipManager,
     // Item tooltips manager
     item_tooltip_manager: ItemTooltipManager,
+    // Scissor for the whole window
+    window_scissor: Aabr<u16>,
 }
 
 impl Ui {
     pub fn new(window: &mut Window) -> Result<Self, Error> {
         let scale = Scale::new(window, ScaleMode::Absolute(1.0), 1.0);
         let win_dims = scale.scaled_resolution().into_array();
+        let physical_resolution = scale.physical_resolution();
 
         let renderer = window.renderer_mut();
 
@@ -158,6 +160,8 @@ impl Ui {
             scale.scale_factor_logical(),
         );
 
+        let interface_locals = renderer.create_ui_bound_locals(&[UiLocals::default()]);
+
         Ok(Self {
             ui,
             image_map: Map::new(),
@@ -165,8 +169,7 @@ impl Ui {
             draw_commands: Vec::new(),
             mesh: Mesh::new(),
             model: renderer.create_dynamic_model(100),
-            interface_locals: renderer.create_consts(&[UiLocals::default()]),
-            default_globals: renderer.create_consts(&[Globals::default()]),
+            interface_locals,
             ingame_locals: Vec::new(),
             window_resized: None,
             scale_factor_changed: None,
@@ -174,6 +177,7 @@ impl Ui {
             scale,
             tooltip_manager,
             item_tooltip_manager,
+            window_scissor: default_scissor(physical_resolution),
         })
     }
 
@@ -336,6 +340,7 @@ impl Ui {
             self.scale.window_resized(new_dims);
             let (w, h) = self.scale.scaled_resolution().into_tuple();
             self.ui.handle_event(Input::Resize(w, h));
+            self.window_scissor = default_scissor(self.scale.physical_resolution());
 
             // Avoid panic in graphic cache when minimizing.
             // Avoid resetting cache if window size didn't change
@@ -577,7 +582,7 @@ impl Ui {
                         .map(|x| [255, 255, 255, *x])
                         .collect::<Vec<[u8; 4]>>();
 
-                    renderer.update_texture(cache_tex, offset, size, &new_data);
+                    renderer.update_texture(&cache_tex.0, offset, size, &new_data);
                 }) {
                     // FIXME: If we actually hit this error, it's still possible we could salvage
                     // things in various ways (for instance, the current queue might have extra
@@ -613,7 +618,7 @@ impl Ui {
         let mut current_state = State::Plain;
         let mut start = 0;
 
-        let window_scissor = default_scissor(renderer);
+        let window_scissor = self.window_scissor;
         let mut current_scissor = window_scissor;
 
         let mut ingame_local_index = 0;
@@ -964,7 +969,7 @@ impl Ui {
                                     )
                                 } else {
                                     self.ingame_locals
-                                        .push(renderer.create_consts(&[world_pos.into()]));
+                                        .push(renderer.create_ui_bound_locals(&[world_pos.into()]));
                                 }
                                 self.draw_commands
                                     .push(DrawCommand::WorldPos(Some(ingame_local_index)));
@@ -1016,42 +1021,38 @@ impl Ui {
         renderer.update_model(&self.model, &self.mesh, 0);
     }
 
-    pub fn render(&self, renderer: &mut Renderer, maybe_globals: Option<&Consts<Globals>>) {
+    pub fn render<'pass, 'data: 'pass>(&'data self, drawer: &mut UiDrawer<'_, 'pass>) {
         span!(_guard, "render", "Ui::render");
-        let mut scissor = default_scissor(renderer);
-        let globals = maybe_globals.unwrap_or(&self.default_globals);
-        let mut locals = &self.interface_locals;
+        let mut drawer = drawer.prepare(&self.interface_locals, &self.model, self.window_scissor);
         for draw_command in self.draw_commands.iter() {
             match draw_command {
                 DrawCommand::Scissor(new_scissor) => {
-                    scissor = *new_scissor;
+                    drawer.set_scissor(*new_scissor);
                 },
                 DrawCommand::WorldPos(index) => {
-                    locals = index.map_or(&self.interface_locals, |i| &self.ingame_locals[i]);
+                    drawer.set_locals(
+                        index.map_or(&self.interface_locals, |i| &self.ingame_locals[i]),
+                    );
                 },
                 DrawCommand::Draw { kind, verts } => {
-                    //let tex = match kind {
-                    //    DrawKind::Image(tex_id) =>
-                    // self.cache.graphic_cache().get_tex(*tex_id),
-                    //    DrawKind::Plain => self.cache.glyph_cache_tex(),
-                    //};
-                    //let model = self.model.submodel(verts.clone());
-                    // TODO
-                    //renderer.render_ui_element(model, tex, scissor, globals,
-                    // locals);
+                    let tex = match kind {
+                        DrawKind::Image(tex_id) => self.cache.graphic_cache().get_tex(*tex_id),
+                        DrawKind::Plain => self.cache.glyph_cache_tex(),
+                    };
+                    drawer.draw(&tex.1, verts.clone()); // Note: trivial clone
                 },
             }
         }
     }
 }
 
-fn default_scissor(renderer: &Renderer) -> Aabr<u16> {
-    let (screen_w, screen_h) = renderer.resolution().into_tuple();
+fn default_scissor(physical_resolution: Vec2<u16>) -> Aabr<u16> {
+    let (screen_w, screen_h) = physical_resolution.into_tuple();
     Aabr {
         min: Vec2 { x: 0, y: 0 },
         max: Vec2 {
-            x: screen_w as u16,
-            y: screen_h as u16,
+            x: screen_w,
+            y: screen_h,
         },
     }
 }

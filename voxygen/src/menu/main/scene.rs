@@ -3,8 +3,6 @@ use crate::render::{
 };
 
 pub struct Scene {
-    // global_data: GlobalModel,
-    // lod_data: LodData,
     bind_group: GlobalsBindGroup,
 }
 

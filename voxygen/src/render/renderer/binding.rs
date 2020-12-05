@@ -8,6 +8,7 @@ use super::{
 };
 
 impl Renderer {
+    // TODO: rework this to use the Bound type?
     pub fn bind_globals(
         &self,
         global_model: &GlobalModel,
@@ -28,7 +29,8 @@ impl Renderer {
         )
     }
 
-    pub fn ui_bind_locals(&self, locals: &Consts<ui::Locals>) -> ui::LocalsBindGroup {
+    pub fn create_ui_bound_locals(&mut self, vals: &[ui::Locals]) -> ui::BoundLocals {
+        let locals = self.create_consts(vals);
         self.layouts.ui.bind_locals(&self.device, locals)
     }
 

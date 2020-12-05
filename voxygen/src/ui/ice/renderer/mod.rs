@@ -16,7 +16,7 @@ use super::{
 use crate::{
     render::{
         create_ui_quad, create_ui_quad_vert_gradient, Consts, DynamicModel, Mesh, Renderer,
-        UiDrawer, UiLocals, UiLocalsBindGroup, UiMode, UiVertex,
+        UiBoundLocals, UiDrawer, UiLocals, UiMode, UiVertex,
     },
     Error,
 };
@@ -85,10 +85,9 @@ pub struct IcedRenderer {
     // Model for drawing the ui
     model: DynamicModel<UiVertex>,
     // Consts to specify positions of ingame elements (e.g. Nametags)
-    ingame_locals: Vec<(Consts<UiLocals>, UiLocalsBindGroup)>,
+    ingame_locals: Vec<UiBoundLocals>,
     // Consts for default ui drawing position (ie the interface)
-    interface_locals: (Consts<UiLocals>, UiLocalsBindGroup),
-    //default_globals: Consts<Globals>,
+    interface_locals: UiBoundLocals,
 
     // Used to delay cache resizing until after current frame is drawn
     //need_cache_resize: bool,
@@ -125,18 +124,13 @@ impl IcedRenderer {
         let (half_res, align, p_scale) =
             Self::calculate_resolution_dependents(physical_resolution, scaled_resolution);
 
-        let interface_locals = {
-            let locals = renderer.create_consts(&[UiLocals::default()]);
-            let bind = renderer.ui_bind_locals(&locals);
-            (locals, bind)
-        };
+        let interface_locals = renderer.create_ui_bound_locals(&[UiLocals::default()]);
 
         Ok(Self {
             cache: Cache::new(renderer, default_font)?,
             draw_commands: Vec::new(),
             model: renderer.create_dynamic_model(100),
             interface_locals,
-            //default_globals: renderer.create_consts(&[Globals::default()]),
             ingame_locals: Vec::new(),
             mesh: Mesh::new(),
             glyphs: Vec::new(),
@@ -777,15 +771,9 @@ impl IcedRenderer {
         }
     }
 
-    pub fn render<'pass_ref, 'pass: 'pass_ref, 'data: 'pass>(
-        &'data self,
-        drawer: &mut UiDrawer<'pass_ref, 'pass>, /* maybe_globals: Option<&Consts<Globals>> */
-    ) {
+    pub fn render<'pass, 'data: 'pass>(&'data self, drawer: &mut UiDrawer<'_, 'pass>) {
         span!(_guard, "render", "IcedRenderer::render");
-        let mut drawer = drawer.prepare(&self.interface_locals.1, &self.model, self.window_scissor);
-        //let mut scissor = self.window_scissor;
-        //let globals = maybe_globals.unwrap_or(&self.default_globals);
-        //let mut locals = &self.interface_locals.1;
+        let mut drawer = drawer.prepare(&self.interface_locals, &self.model, self.window_scissor);
         for draw_command in self.draw_commands.iter() {
             match draw_command {
                 DrawCommand::Scissor(new_scissor) => {
@@ -793,11 +781,11 @@ impl IcedRenderer {
                 },
                 DrawCommand::WorldPos(index) => {
                     drawer.set_locals(
-                        index.map_or(&self.interface_locals.1, |i| &self.ingame_locals[i].1),
+                        index.map_or(&self.interface_locals, |i| &self.ingame_locals[i]),
                     );
                 },
                 DrawCommand::Draw { kind, verts } => {
-                    // TODO: don't make these assert!(!verts.is_empty());
+                    // TODO: don't make these: assert!(!verts.is_empty());
                     let tex = match kind {
                         DrawKind::Image(tex_id) => self.cache.graphic_cache().get_tex(*tex_id),
                         DrawKind::Plain => self.cache.glyph_cache_tex(),

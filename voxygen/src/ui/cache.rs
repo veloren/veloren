@@ -1,6 +1,6 @@
 use super::graphic::{Graphic, GraphicCache, Id as GraphicId};
 use crate::{
-    render::{Mesh, Renderer, Texture, UiVertex},
+    render::{Mesh, Renderer, Texture, UiTextureBindGroup, UiVertex},
     Error,
 };
 use conrod_core::{text::GlyphCache, widget::Id};
@@ -19,7 +19,7 @@ pub struct Cache {
     // Map from text ids to their positioned glyphs.
     text_cache: TextCache,
     glyph_cache: GlyphCache<'static>,
-    glyph_cache_tex: Texture,
+    glyph_cache_tex: (Texture, UiTextureBindGroup),
     graphic_cache: GraphicCache,
 }
 
@@ -33,6 +33,12 @@ impl Cache {
         let glyph_cache_dims =
             Vec2::new(w, h).map(|e| (e * GLYPH_CACHE_SIZE).min(max_texture_size).max(512));
 
+        let glyph_cache_tex = {
+            let tex = renderer.create_dynamic_texture(glyph_cache_dims);
+            let bind = renderer.ui_bind_texture(&tex);
+            (tex, bind)
+        };
+
         Ok(Self {
             text_cache: Default::default(),
             glyph_cache: GlyphCache::builder()
@@ -40,12 +46,12 @@ impl Cache {
                 .scale_tolerance(SCALE_TOLERANCE)
                 .position_tolerance(POSITION_TOLERANCE)
                 .build(),
-            glyph_cache_tex: renderer.create_dynamic_texture(glyph_cache_dims),
+            glyph_cache_tex,
             graphic_cache: GraphicCache::new(renderer),
         })
     }
 
-    pub fn glyph_cache_tex(&self) -> &Texture { &self.glyph_cache_tex }
+    pub fn glyph_cache_tex(&self) -> &(Texture, UiTextureBindGroup) { &self.glyph_cache_tex }
 
     pub fn cache_mut_and_tex(
         &mut self,
@@ -53,7 +59,7 @@ impl Cache {
         &mut GraphicCache,
         &mut TextCache,
         &mut GlyphCache<'static>,
-        &Texture,
+        &(Texture, UiTextureBindGroup),
     ) {
         (
             &mut self.graphic_cache,
@@ -89,7 +95,11 @@ impl Cache {
             .scale_tolerance(SCALE_TOLERANCE)
             .position_tolerance(POSITION_TOLERANCE)
             .build();
-        self.glyph_cache_tex = renderer.create_dynamic_texture(cache_dims);
+        self.glyph_cache_tex = {
+            let tex = renderer.create_dynamic_texture(cache_dims);
+            let bind = renderer.ui_bind_texture(&tex);
+            (tex, bind)
+        };
         Ok(())
     }
 }

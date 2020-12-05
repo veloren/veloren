@@ -1,4 +1,4 @@
-use super::super::{AaMode, Consts, GlobalsLayouts, Quad, Texture, Tri};
+use super::super::{AaMode, Bound, Consts, GlobalsLayouts, Quad, Texture, Tri};
 use bytemuck::{Pod, Zeroable};
 use vek::*;
 
@@ -80,9 +80,7 @@ impl Mode {
     }
 }
 
-pub struct LocalsBindGroup {
-    pub(in super::super) bind_group: wgpu::BindGroup,
-}
+pub type BoundLocals = Bound<Consts<Locals>>;
 
 pub struct TextureBindGroup {
     pub(in super::super) bind_group: wgpu::BindGroup,
@@ -136,7 +134,7 @@ impl UiLayout {
         }
     }
 
-    pub fn bind_locals(&self, device: &wgpu::Device, locals: &Consts<Locals>) -> LocalsBindGroup {
+    pub fn bind_locals(&self, device: &wgpu::Device, locals: Consts<Locals>) -> BoundLocals {
         let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: None,
             layout: &self.locals,
@@ -146,7 +144,10 @@ impl UiLayout {
             }],
         });
 
-        LocalsBindGroup { bind_group }
+        BoundLocals {
+            bind_group,
+            with: locals,
+        }
     }
 
     pub fn bind_texture(&self, device: &wgpu::Device, texture: &Texture) -> TextureBindGroup {

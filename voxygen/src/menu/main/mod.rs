@@ -249,7 +249,6 @@ impl PlayState for MainMenuState {
     fn name(&self) -> &'static str { "Title" }
 
     fn render(&mut self, renderer: &mut Renderer, _: &Settings) {
-        // TODO: maybe the drawer should be passed in from above?
         let mut drawer = match renderer
             .start_recording_frame(self.scene.global_bind_group())
             .unwrap()
