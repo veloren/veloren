@@ -48,7 +48,7 @@ fn main() {
     )
     .expect("Failed to create client instance");
 
-    println!("Server info: {:?}", client.server_info);
+    println!("Server info: {:?}", client.server_info());
 
     println!("Players online: {:?}", client.get_players());
 
