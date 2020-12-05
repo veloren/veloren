@@ -3,6 +3,7 @@ ChargedMelee(
     energy_drain: 300,
     initial_damage: 10,
     scaled_damage: 160,
+    initial_poise_damage: 10,
     initial_knockback: 10.0,
     scaled_knockback: 50.0,
     range: 3.5,

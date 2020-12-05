@@ -17,6 +17,8 @@ pub struct StaticData {
     pub base_damage: u32,
     /// How much the attack scales in damage
     pub scaled_damage: u32,
+    /// Initial poise damage
+    pub base_poise_damage: u32,
     /// How much the attack knocks the target back initially
     pub base_knockback: f32,
     /// How much the attack scales in knockback
@@ -129,6 +131,7 @@ impl CharacterBehavior for Data {
                                 source: DamageSource::Melee,
                                 value: self.static_data.base_damage as f32
                                     + charge_frac * self.static_data.scaled_damage as f32,
+                                poise_damage: self.static_data.base_poise_damage as f32,
                             };
                             let knockback = self.static_data.base_knockback
                                 + charge_frac * self.static_data.scaled_knockback;

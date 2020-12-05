@@ -2,6 +2,7 @@ DashMelee(
     energy_cost: 0,
     base_damage: 130,
     scaled_damage: 20,
+    base_poise_damage: 30,
     base_knockback: 8.0,
     scaled_knockback: 7.0,
     range: 2.0,

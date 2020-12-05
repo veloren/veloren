@@ -21,5 +21,7 @@ pub mod shockwave;
 pub mod sit;
 pub mod sneak;
 pub mod spin_melee;
+pub mod staggered;
+pub mod stunned;
 pub mod utils;
 pub mod wielding;

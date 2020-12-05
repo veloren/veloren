@@ -122,10 +122,12 @@ impl CharacterBehavior for Data {
                     let damage = Damage {
                         source: DamageSource::Energy,
                         value: self.static_data.base_dps as f32 / self.static_data.tick_rate,
+                        poise_damage: 0.0,
                     };
                     let heal = Damage {
                         source: DamageSource::Healing,
                         value: self.static_data.base_hps as f32 / self.static_data.tick_rate,
+                        poise_damage: 0.0,
                     };
                     let speed =
                         self.static_data.range / self.static_data.beam_duration.as_secs_f32();

@@ -9,7 +9,7 @@ use common::{
         group,
         inventory::loadout::Loadout,
         shockwave, Agent, Alignment, Body, Gravity, Health, HomeChunk, Inventory, Item, ItemDrop,
-        LightEmitter, Ori, Pos, Projectile, Scale, Stats, Vel, WaypointArea,
+        LightEmitter, Ori, Poise, Pos, Projectile, Scale, Stats, Vel, WaypointArea,
     },
     outcome::Outcome,
     rtsim::RtSimEntity,
@@ -49,6 +49,7 @@ pub fn handle_create_npc(
     pos: Pos,
     stats: Stats,
     health: Health,
+    poise: Poise,
     loadout: Loadout,
     body: Body,
     agent: impl Into<Option<Agent>>,
@@ -71,7 +72,7 @@ pub fn handle_create_npc(
 
     let entity = server
         .state
-        .create_npc(pos, stats, health, inventory, body)
+        .create_npc(pos, stats, health, poise, inventory, body)
         .with(scale)
         .with(alignment);
 

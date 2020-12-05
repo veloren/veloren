@@ -20,6 +20,8 @@ pub struct StaticData {
     pub recover_duration: Duration,
     /// Base damage
     pub base_damage: u32,
+    /// Base poise reduction
+    pub base_poise_damage: u32,
     /// Knockback
     pub knockback: f32,
     /// Max range
@@ -92,6 +94,7 @@ impl CharacterBehavior for Data {
                         damages: vec![(Some(GroupTarget::OutOfGroup), Damage {
                             source: DamageSource::Melee,
                             value: self.static_data.base_damage as f32,
+                            poise_damage: self.static_data.base_poise_damage as f32,
                         })],
                         range: self.static_data.range,
                         max_angle: 180_f32.to_radians(),

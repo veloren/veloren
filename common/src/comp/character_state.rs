@@ -44,6 +44,10 @@ pub enum CharacterState {
     Sneak,
     Glide,
     GlideWield,
+    /// A stunned state
+    Stunned(stunned::Data),
+    /// A stagger state similar to a stun but knocked to the ground
+    Staggered(staggered::Data),
     /// A basic blocking state
     BasicBlock,
     /// Player is busy equipping or unequipping weapons
@@ -102,6 +106,10 @@ impl CharacterState {
 
     pub fn is_stealthy(&self) -> bool {
         matches!(self, CharacterState::Sneak | CharacterState::Roll(_))
+    }
+
+    pub fn is_stunned(&self) -> bool {
+        matches!(self, CharacterState::Stunned { .. } | CharacterState::Staggered { .. })
     }
 
     pub fn is_attack(&self) -> bool {

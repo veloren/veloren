@@ -174,14 +174,17 @@ impl<'a> System<'a> for Sys {
                                 if let Some(entity) = beam_owner {
                                     server_emitter.emit(ServerEvent::Damage {
                                         entity,
-                                        change: HealthChange {
-                                            amount: (-change.amount as f32
-                                                * beam_segment.lifesteal_eff)
-                                                as i32,
-                                            cause: HealthSource::Heal {
-                                                by: beam_segment.owner,
+                                        change: (
+                                            HealthChange {
+                                                amount: (-change.0.amount as f32
+                                                    * beam_segment.lifesteal_eff)
+                                                    as i32,
+                                                cause: HealthSource::Heal {
+                                                    by: beam_segment.owner,
+                                                },
                                             },
-                                        },
+                                            0,
+                                        ),
                                     });
                                     server_emitter.emit(ServerEvent::EnergyChange {
                                         entity,

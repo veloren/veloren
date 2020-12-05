@@ -30,6 +30,8 @@ pub struct StaticData {
     pub initial_damage: u32,
     /// How much the damage scales as it is charged
     pub scaled_damage: u32,
+    /// Initial poise damage
+    pub initial_poise_damage: u32,
     /// How much knockback there is with no charge
     pub initial_knockback: f32,
     /// How much the knockback scales as it is charged
@@ -106,6 +108,7 @@ impl CharacterBehavior for Data {
                         source: DamageSource::Projectile,
                         value: self.static_data.initial_damage as f32
                             + charge_frac * self.static_data.scaled_damage as f32,
+                        poise_damage: self.static_data.initial_poise_damage as f32,
                     };
                     let knockback = self.static_data.initial_knockback
                         + charge_frac * self.static_data.scaled_knockback;
