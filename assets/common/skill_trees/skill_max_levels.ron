@@ -1,0 +1,14 @@
+({
+    General(HealthIncrease): Some(10),
+    Sword(TsDamage): Some(3),
+    Sword(TsRegen): Some(3),
+    Sword(TsSpeed): Some(3),
+    Sword(DCost): Some(2),
+    Sword(DDrain): Some(2),
+    Sword(DDamage): Some(2),
+    Sword(DScaling): Some(3),
+    Sword(SDamage): Some(2),
+    Sword(SSpeed): Some(2),
+    Sword(SCost): Some(2),
+    Sword(SSpins): Some(2),
+})

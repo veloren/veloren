@@ -9,9 +9,27 @@ use std::hash::Hash;
 use tracing::warn;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct SkillMap(HashMap<SkillGroupType, HashSet<Skill>>);
+pub struct SkillTreeMap(HashMap<SkillGroupType, HashSet<Skill>>);
 
-impl Asset for SkillMap {
+impl Asset for SkillTreeMap {
+    type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct SkillLevelMap(HashMap<Skill, Level>);
+
+impl Asset for SkillLevelMap {
+    type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct SkillPrerequisitesMap(HashMap<Skill, HashMap<Skill, Level>>);
+
+impl Asset for SkillPrerequisitesMap {
     type Loader = assets::RonLoader;
 
     const EXTENSION: &'static str = "ron";
@@ -22,8 +40,20 @@ lazy_static! {
     // which of a player's skill groups a particular skill should be added to when a skill unlock
     // is requested.
     pub static ref SKILL_GROUP_DEFS: HashMap<SkillGroupType, HashSet<Skill>> = {
-        SkillMap::load_expect_cloned(
-            "common.skills_skill-groups_manifest",
+        SkillTreeMap::load_expect_cloned(
+            "common.skill_trees.skills_skill-groups_manifest",
+        ).0
+    };
+    // Loads the maximum level that a skill can obtain
+    pub static ref SKILL_MAX_LEVEL: HashMap<Skill, Level> = {
+        SkillLevelMap::load_expect_cloned(
+            "common.skill_trees.skill_max_levels",
+        ).0
+    };
+    // Loads the prerequisite skills for a particular skill
+    pub static ref SKILL_PREREQUISITES: HashMap<Skill, HashMap<Skill, Level>> = {
+        SkillPrerequisitesMap::load_expect_cloned(
+            "common.skill_trees.skill_prerequisites",
         ).0
     };
 }
@@ -46,7 +76,26 @@ pub enum Skill {
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum SwordSkill {
-    UnlockSpin,
+    // Sword passives
+    InterruptingAttacks,
+    // Triple strike upgrades
+    TsCombo,
+    TsDamage,
+    TsRegen,
+    TsSpeed,
+    // Dash upgrades
+    DCost,
+    DDrain,
+    DDamage,
+    DScaling,
+    DSpeed,
+    DInfinite,
+    // Spin upgrades
+    SUnlockSpin,
+    SDamage,
+    SSpeed,
+    SCost,
+    SSpins,
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
@@ -175,8 +224,7 @@ impl SkillSet {
                 skill.get_max_level().map(|_| 1)
             };
             let prerequisites_met = self.prerequisites_met(skill, next_level);
-            if !self.skills.contains_key(&skill) && !matches!(self.skills.get(&skill), Some(&None))
-            {
+            if !matches!(self.skills.get(&skill), Some(&None)) {
                 if let Some(mut skill_group) = self
                     .skill_groups
                     .iter_mut()
@@ -330,7 +378,6 @@ impl Skill {
     /// note direct prerequisites)
     pub fn prerequisite_skills(self, level: Level) -> HashMap<Skill, Level> {
         let mut prerequisites = HashMap::new();
-        use Skill::*;
         if let Some(level) = level {
             if level > self.get_max_level().unwrap_or(0) {
                 // Sets a prerequisite of itself for skills beyond the max level
@@ -340,26 +387,8 @@ impl Skill {
                 prerequisites.insert(self, Some(level - 1));
             }
         }
-        match self {
-            UnlockGroup(SkillGroupType::Weapon(ToolKind::Sword)) => {
-                prerequisites.insert(General(GeneralSkill::HealthIncrease), Some(1));
-            },
-            UnlockGroup(SkillGroupType::Weapon(ToolKind::Axe)) => {
-                prerequisites.insert(General(GeneralSkill::HealthIncrease), Some(1));
-            },
-            UnlockGroup(SkillGroupType::Weapon(ToolKind::Hammer)) => {
-                prerequisites.insert(General(GeneralSkill::HealthIncrease), Some(1));
-            },
-            UnlockGroup(SkillGroupType::Weapon(ToolKind::Bow)) => {
-                prerequisites.insert(General(GeneralSkill::HealthIncrease), Some(1));
-            },
-            UnlockGroup(SkillGroupType::Weapon(ToolKind::Staff)) => {
-                prerequisites.insert(General(GeneralSkill::HealthIncrease), Some(1));
-            },
-            UnlockGroup(SkillGroupType::Weapon(ToolKind::Sceptre)) => {
-                prerequisites.insert(General(GeneralSkill::HealthIncrease), Some(1));
-            },
-            _ => {},
+        if let Some(skills) = SKILL_PREREQUISITES.get(&self) {
+            prerequisites.extend(skills);
         }
         prerequisites
     }
@@ -368,20 +397,14 @@ impl Skill {
     pub fn skill_cost(self, level: Level) -> u16 {
         use Skill::*;
         match self {
-            General(GeneralSkill::HealthIncrease) => 2 * level.unwrap_or(1),
+            General(GeneralSkill::HealthIncrease) => 1,
             _ => level.unwrap_or(1),
         }
     }
 
     /// Returns the maximum level a skill can reach, returns None if the skill
     /// doesn't level
-    pub fn get_max_level(self) -> Option<u16> {
-        use Skill::*;
-        match self {
-            General(GeneralSkill::HealthIncrease) => Some(10),
-            _ => None,
-        }
-    }
+    pub fn get_max_level(self) -> Option<u16> { SKILL_MAX_LEVEL.get(&self).copied().flatten() }
 }
 
 #[cfg(test)]
