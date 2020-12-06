@@ -17,7 +17,7 @@ impl Renderer {
             Some(shadow_map) => (&shadow_map.point_depth, &shadow_map.directed_depth),
             None => (&self.noise_tex, &self.noise_tex),
         };
-
+        dbg!(self.shadow_map.is_some());
         self.layouts.global.bind(
             &self.device,
             global_model,

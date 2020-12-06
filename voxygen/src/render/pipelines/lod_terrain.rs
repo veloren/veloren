@@ -109,8 +109,14 @@ impl LodData {
             )
         };
         let map = create_texture(wgpu::TextureFormat::Rgba8UnormSrgb, lod_base);
+        //             SamplerInfo {
+        //                 border: border_color,
         let alt = create_texture(wgpu::TextureFormat::Rg16Uint, lod_alt);
+        //             SamplerInfo {
+        //                 border: [0.0, 0.0, 0.0, 0.0].into(),
         let horizon = create_texture(wgpu::TextureFormat::Rgba8Unorm, lod_horizon);
+        //             SamplerInfo {
+        //                 border: [1.0, 0.0, 1.0, 0.0].into(),
 
         Self {
             map,
@@ -118,43 +124,6 @@ impl LodData {
             horizon,
             tgt_detail,
         }
-
-        // Self {
-        //     map: renderer
-        //         .create_texture_immutable_raw(
-        //             kind,
-        //             gfx::texture::Mipmap::Provided,
-        //             &[gfx::memory::cast_slice(lod_base)],
-        //             SamplerInfo {
-        //                 border: border_color,
-        //                 ..info
-        //             },
-        //         )
-        //         .expect("Failed to generate map texture"),
-        //     alt: renderer
-        //         .create_texture_immutable_raw(
-        //             kind,
-        //             gfx::texture::Mipmap::Provided,
-        //             &[gfx::memory::cast_slice(lod_alt)],
-        //             SamplerInfo {
-        //                 border: [0.0, 0.0, 0.0, 0.0].into(),
-        //                 ..info
-        //             },
-        //         )
-        //         .expect("Failed to generate alt texture"),
-        //     horizon: renderer
-        //         .create_texture_immutable_raw(
-        //             kind,
-        //             gfx::texture::Mipmap::Provided,
-        //             &[gfx::memory::cast_slice(lod_horizon)],
-        //             SamplerInfo {
-        //                 border: [1.0, 0.0, 1.0, 0.0].into(),
-        //                 ..info
-        //             },
-        //         )
-        //         .expect("Failed to generate horizon texture"),
-        //     tgt_detail,
-        // }
     }
 }
 

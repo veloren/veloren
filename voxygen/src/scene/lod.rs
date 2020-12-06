@@ -1,7 +1,7 @@
 use crate::{
     render::{
         pipelines::lod_terrain::{LodData, Vertex},
-        GlobalModel, LodTerrainVertex, Mesh, Model, Quad, Renderer,
+        FirstPassDrawer, GlobalModel, LodTerrainVertex, Mesh, Model, Quad, Renderer,
     },
     settings::Settings,
 };
@@ -59,10 +59,9 @@ impl Lod {
         }
     }
 
-    pub fn render(&self, renderer: &mut Renderer, global: &GlobalModel) {
+    pub fn render<'a>(&'a self, drawer: &mut FirstPassDrawer<'a>) {
         if let Some((_, model)) = self.model.as_ref() {
-            //renderer.render_lod_terrain(&model, global, &self.locals,
-            // &self.data);
+            drawer.draw_lod_terrain(&model);
         }
     }
 }

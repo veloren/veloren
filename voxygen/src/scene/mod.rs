@@ -1030,8 +1030,9 @@ impl Scene {
             global,
             lod,
             camera_data,
-        );
-        self.lod.render(renderer, global);*/
+        );*/
+
+        self.lod.render(drawer);
 
         // Render the skybox.
         drawer.draw_skybox(&self.skybox.model);

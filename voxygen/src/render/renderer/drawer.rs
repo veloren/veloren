@@ -5,8 +5,8 @@ use super::{
         instances::Instances,
         model::{DynamicModel, Model, SubModel},
         pipelines::{
-            clouds, figure, fluid, particle, postprocess, skybox, sprite, terrain, ui, ColLights,
-            GlobalsBindGroup, Light, Shadow,
+            clouds, figure, fluid, lod_terrain, particle, postprocess, skybox, sprite, terrain, ui,
+            ColLights, GlobalsBindGroup, Light, Shadow,
         },
     },
     Renderer,
@@ -140,6 +140,13 @@ impl<'a> FirstPassDrawer<'a> {
     pub fn draw_skybox<'b: 'a>(&mut self, model: &'b Model<skybox::Vertex>) {
         self.render_pass
             .set_pipeline(&self.renderer.skybox_pipeline.pipeline);
+        self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
+        self.render_pass.draw(0..model.len() as u32, 0..1);
+    }
+
+    pub fn draw_lod_terrain<'b: 'a>(&mut self, model: &'b Model<lod_terrain::Vertex>) {
+        self.render_pass
+            .set_pipeline(&self.renderer.lod_terrain_pipeline.pipeline);
         self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
         self.render_pass.draw(0..model.len() as u32, 0..1);
     }

@@ -229,7 +229,7 @@ pub struct Renderer {
     sampler: wgpu::Sampler,
 
     shadow_map: Option<ShadowMapRenderer>,
-
+    //dummy_shadow_tex: wgpu::TextureView,
     layouts: Layouts,
 
     figure_pipeline: figure::FigurePipeline,
@@ -2305,9 +2305,9 @@ fn create_shader_module(
         .compile_into_spirv(source, kind, file_name, "main", Some(options))
         .map_err(|e| (file_name, e))?;
 
-    Ok(
-        device.create_shader_module(wgpu::ShaderModuleSource::SpirV(Cow::Borrowed(
-            spv.as_binary(),
-        ))),
-    )
+    Ok(device.create_shader_module(&wgpu::ShaderModuleDescriptor {
+        label: Some(source),
+        source: wgpu::ShaderSource::SpirV(Cow::Borrowed(spv.as_binary())),
+        experimental_translation: false,
+    }))
 }
