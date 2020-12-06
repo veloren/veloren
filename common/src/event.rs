@@ -34,7 +34,11 @@ pub enum ServerEvent {
     },
     Damage {
         entity: EcsEntity,
-        change: (comp::HealthChange, i32),
+        change: comp::HealthChange,
+    },
+    PoiseChange {
+        entity: EcsEntity,
+        change: comp::PoiseChange,
     },
     Delete(EcsEntity),
     Destroy {

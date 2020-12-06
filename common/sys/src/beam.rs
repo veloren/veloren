@@ -1,7 +1,7 @@
 use common::{
     comp::{
         group, Beam, BeamSegment, Body, Energy, EnergyChange, EnergySource, Health, HealthChange,
-        HealthSource, Inventory, Last, Ori, Pos, Scale,
+        HealthSource, Inventory, Last, Ori, PoiseChange, PoiseSource, Pos, Scale,
     },
     event::{EventBus, ServerEvent},
     resources::{DeltaTime, Time},
@@ -158,7 +158,7 @@ impl<'a> System<'a> for Sys {
                         continue;
                     }
 
-                    for (target, damage) in beam_segment.damages.iter() {
+                    for (target, damage, poise_damage) in beam_segment.effects.iter() {
                         if let Some(target) = target {
                             if *target != target_group {
                                 continue;
@@ -167,6 +167,8 @@ impl<'a> System<'a> for Sys {
 
                         //  Modify damage
                         let change = damage.modify_damage(inventories.get(b), beam_segment.owner);
+                        let poise_change = poise_damage
+                            .modify_poise_damage(inventories.get(b), beam_segment.owner);
 
                         match target {
                             Some(GroupTarget::OutOfGroup) => {
@@ -174,17 +176,18 @@ impl<'a> System<'a> for Sys {
                                 if let Some(entity) = beam_owner {
                                     server_emitter.emit(ServerEvent::Damage {
                                         entity,
-                                        change: (
-                                            HealthChange {
-                                                amount: (-change.0.amount as f32
-                                                    * beam_segment.lifesteal_eff)
-                                                    as i32,
-                                                cause: HealthSource::Heal {
-                                                    by: beam_segment.owner,
-                                                },
+                                        change: HealthChange {
+                                            amount: (-change.amount as f32
+                                                * beam_segment.lifesteal_eff)
+                                                as i32,
+                                            cause: HealthSource::Heal {
+                                                by: beam_segment.owner,
                                             },
-                                            0,
-                                        ),
+                                        },
+                                    });
+                                    server_emitter.emit(ServerEvent::PoiseChange {
+                                        entity,
+                                        change: poise_change,
                                     });
                                     server_emitter.emit(ServerEvent::EnergyChange {
                                         entity,

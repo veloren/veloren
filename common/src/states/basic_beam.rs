@@ -1,5 +1,8 @@
 use crate::{
-    comp::{beam, Body, CharacterState, EnergyChange, EnergySource, Ori, Pos, StateUpdate},
+    comp::{
+        beam, Body, CharacterState, EnergyChange, EnergySource, Ori, PoiseChange, PoiseSource, Pos,
+        StateUpdate,
+    },
     event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -122,21 +125,27 @@ impl CharacterBehavior for Data {
                     let damage = Damage {
                         source: DamageSource::Energy,
                         value: self.static_data.base_dps as f32 / self.static_data.tick_rate,
-                        poise_damage: 0.0,
+                    };
+                    let poise_damage = PoiseChange {
+                        amount: 0,
+                        source: PoiseSource::Beam,
                     };
                     let heal = Damage {
                         source: DamageSource::Healing,
                         value: self.static_data.base_hps as f32 / self.static_data.tick_rate,
-                        poise_damage: 0.0,
+                    };
+                    let reverse_poise = PoiseChange {
+                        amount: 0,
+                        source: PoiseSource::Beam,
                     };
                     let speed =
                         self.static_data.range / self.static_data.beam_duration.as_secs_f32();
                     let properties = beam::Properties {
                         angle: self.static_data.max_angle.to_radians(),
                         speed,
-                        damages: vec![
-                            (Some(GroupTarget::OutOfGroup), damage),
-                            (Some(GroupTarget::InGroup), heal),
+                        effects: vec![
+                            (Some(GroupTarget::OutOfGroup), damage, poise_damage),
+                            (Some(GroupTarget::InGroup), heal, reverse_poise),
                         ],
                         lifesteal_eff: self.static_data.lifesteal_eff,
                         energy_regen: self.static_data.energy_regen,

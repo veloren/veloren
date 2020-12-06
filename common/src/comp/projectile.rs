@@ -1,5 +1,8 @@
 use crate::{
-    comp::buff::{BuffCategory, BuffData, BuffKind},
+    comp::{
+        buff::{BuffCategory, BuffData, BuffKind},
+        PoiseChange, PoiseSource,
+    },
     effect::{self, BuffEffect},
     uid::Uid,
     Damage, DamageSource, Explosion, GroupTarget, Knockback, RadiusEffect,
@@ -11,7 +14,7 @@ use std::time::Duration;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Effect {
-    Damage(Option<GroupTarget>, Damage),
+    Damage(Option<GroupTarget>, Damage, PoiseChange),
     Knockback(Knockback),
     RewardEnergy(u32),
     Explode(Explosion),
@@ -85,11 +88,17 @@ impl ProjectileConstructor {
                 Projectile {
                     hit_solid: vec![Effect::Stick],
                     hit_entity: vec![
-                        Effect::Damage(Some(GroupTarget::OutOfGroup), Damage {
-                            source: DamageSource::Projectile,
-                            value: damage,
-                            poise_damage: 0.0,
-                        }),
+                        Effect::Damage(
+                            Some(GroupTarget::OutOfGroup),
+                            Damage {
+                                source: DamageSource::Projectile,
+                                value: damage,
+                            },
+                            PoiseChange {
+                                amount: 0,
+                                source: PoiseSource::Projectile,
+                            },
+                        ),
                         Effect::Knockback(Knockback::Away(knockback)),
                         Effect::RewardEnergy(energy_regen),
                         Effect::Vanish,
@@ -111,14 +120,12 @@ impl ProjectileConstructor {
                 hit_solid: vec![
                     Effect::Explode(Explosion {
                         effects: vec![
-                            RadiusEffect::Entity(
-                                Some(GroupTarget::OutOfGroup),
+                            RadiusEffect::Entity(Some(GroupTarget::OutOfGroup), vec![
                                 effect::Effect::Damage(Damage {
                                     source: DamageSource::Explosion,
                                     value: damage,
-                                    poise_damage: 10.0,
                                 }),
-                            ),
+                            ]),
                             RadiusEffect::TerrainDestruction(2.0),
                         ],
                         radius,
@@ -128,14 +135,12 @@ impl ProjectileConstructor {
                 ],
                 hit_entity: vec![
                     Effect::Explode(Explosion {
-                        effects: vec![RadiusEffect::Entity(
-                            Some(GroupTarget::OutOfGroup),
+                        effects: vec![RadiusEffect::Entity(Some(GroupTarget::OutOfGroup), vec![
                             effect::Effect::Damage(Damage {
                                 source: DamageSource::Explosion,
                                 value: damage,
-                                poise_damage: 10.0,
                             }),
-                        )],
+                        ])],
                         radius,
                         energy_regen,
                     }),
@@ -170,22 +175,18 @@ impl ProjectileConstructor {
                 hit_solid: vec![
                     Effect::Explode(Explosion {
                         effects: vec![
-                            RadiusEffect::Entity(
-                                Some(GroupTarget::OutOfGroup),
+                            RadiusEffect::Entity(Some(GroupTarget::OutOfGroup), vec![
                                 effect::Effect::Damage(Damage {
                                     source: DamageSource::Explosion,
                                     value: damage,
-                                    poise_damage: 0.0,
                                 }),
-                            ),
-                            RadiusEffect::Entity(
-                                Some(GroupTarget::InGroup),
+                            ]),
+                            RadiusEffect::Entity(Some(GroupTarget::InGroup), vec![
                                 effect::Effect::Damage(Damage {
                                     source: DamageSource::Healing,
                                     value: heal,
-                                    poise_damage: 0.0,
                                 }),
-                            ),
+                            ]),
                         ],
                         radius,
                         energy_regen: 0,
@@ -195,22 +196,18 @@ impl ProjectileConstructor {
                 hit_entity: vec![
                     Effect::Explode(Explosion {
                         effects: vec![
-                            RadiusEffect::Entity(
-                                Some(GroupTarget::OutOfGroup),
+                            RadiusEffect::Entity(Some(GroupTarget::OutOfGroup), vec![
                                 effect::Effect::Damage(Damage {
                                     source: DamageSource::Explosion,
                                     value: damage,
-                                    poise_damage: 0.0,
                                 }),
-                            ),
-                            RadiusEffect::Entity(
-                                Some(GroupTarget::InGroup),
+                            ]),
+                            RadiusEffect::Entity(Some(GroupTarget::InGroup), vec![
                                 effect::Effect::Damage(Damage {
                                     source: DamageSource::Healing,
                                     value: heal,
-                                    poise_damage: 0.0,
                                 }),
-                            ),
+                            ]),
                         ],
                         radius,
                         energy_regen: 0,

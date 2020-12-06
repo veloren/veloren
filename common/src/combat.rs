@@ -40,7 +40,6 @@ pub enum DamageSource {
 pub struct Damage {
     pub source: DamageSource,
     pub value: f32,
-    pub poise_damage: f32,
 }
 
 impl Damage {
@@ -84,16 +83,13 @@ impl Damage {
                     damage += critdamage;
                 }
 
-                (
-                    HealthChange {
-                        amount: -damage as i32,
-                        cause: HealthSource::Damage {
-                            kind: self.source,
-                            by: uid,
-                        },
+                HealthChange {
+                    amount: -damage as i32,
+                    cause: HealthSource::Damage {
+                        kind: self.source,
+                        by: uid,
                     },
-                    -poise_damage as i32,
-                )
+                }
             },
             DamageSource::Projectile => {
                 // Critical hit
@@ -103,82 +99,63 @@ impl Damage {
                 // Armor
                 damage *= 1.0 - damage_reduction;
 
-                (
-                    HealthChange {
-                        amount: -damage as i32,
-                        cause: HealthSource::Damage {
-                            kind: self.source,
-                            by: uid,
-                        },
+                HealthChange {
+                    amount: -damage as i32,
+                    cause: HealthSource::Damage {
+                        kind: self.source,
+                        by: uid,
                     },
-                    -poise_damage as i32,
-                )
+                }
             },
             DamageSource::Explosion => {
                 // Armor
                 damage *= 1.0 - damage_reduction;
 
-                (
-                    HealthChange {
-                        amount: -damage as i32,
-                        cause: HealthSource::Damage {
-                            kind: self.source,
-                            by: uid,
-                        },
+                HealthChange {
+                    amount: -damage as i32,
+                    cause: HealthSource::Damage {
+                        kind: self.source,
+                        by: uid,
                     },
-                    -poise_damage as i32,
-                )
+                }
             },
             DamageSource::Shockwave => {
                 // Armor
                 damage *= 1.0 - damage_reduction;
 
-                (
-                    HealthChange {
-                        amount: -damage as i32,
-                        cause: HealthSource::Damage {
-                            kind: self.source,
-                            by: uid,
-                        },
+                HealthChange {
+                    amount: -damage as i32,
+                    cause: HealthSource::Damage {
+                        kind: self.source,
+                        by: uid,
                     },
-                    -poise_damage as i32,
-                )
+                }
             },
             DamageSource::Energy => {
                 // Armor
                 damage *= 1.0 - damage_reduction;
 
-                (
-                    HealthChange {
-                        amount: -damage as i32,
-                        cause: HealthSource::Damage {
-                            kind: self.source,
-                            by: uid,
-                        },
-                    },
-                    -poise_damage as i32,
-                )
-            },
-            DamageSource::Healing => (
                 HealthChange {
-                    amount: damage as i32,
-                    cause: HealthSource::Heal { by: uid },
-                },
-                0,
-            ),
+                    amount: -damage as i32,
+                    cause: HealthSource::Damage {
+                        kind: self.source,
+                        by: uid,
+                    },
+                }
+            },
+            DamageSource::Healing => HealthChange {
+                amount: damage as i32,
+                cause: HealthSource::Heal { by: uid },
+            },
             DamageSource::Falling => {
                 // Armor
                 if (damage_reduction - 1.0).abs() < f32::EPSILON {
                     damage = 0.0;
-                    poise_damage = 0.0;
                 }
-                (
-                    HealthChange {
-                        amount: -damage as i32,
-                        cause: HealthSource::World,
-                    },
-                    -poise_damage as i32,
-                )
+                HealthChange {
+                    amount: -damage as i32,
+                    cause: HealthSource::World,
+                },
             },
             DamageSource::Buff(_) => HealthChange {
                 amount: -damage as i32,
@@ -193,8 +170,7 @@ impl Damage {
                     kind: self.source,
                     by: uid,
                 },
-                -poise_damage as i32,
-            ),
+            },
         }
     }
 

@@ -13,8 +13,9 @@ use common::{
     comp::{
         self, aura, buff,
         chat::{KillSource, KillType},
-        object, Alignment, Body, Energy, EnergyChange, Group, Health, HealthChange, HealthSource,
-        Inventory, Item, Player, Poise, PoiseState, Pos, Stats,
+        object, poise, Alignment, Body, Energy, EnergyChange, Group, Health, HealthChange,
+        HealthSource, Inventory, Item, Player, Poise, PoiseChange, PoiseSource, PoiseState, Pos,
+        Stats,
     },
     effect::Effect,
     lottery::Lottery,
@@ -35,12 +36,11 @@ use std::time::Duration;
 use tracing::error;
 use vek::Vec3;
 
-pub fn handle_damage(server: &Server, entity: EcsEntity, change: (HealthChange, i32)) {
+pub fn handle_poise(server: &Server, entity: EcsEntity, change: PoiseChange) {
     let ecs = &server.state.ecs();
-    if let Some(mut health) = ecs.write_storage::<Health>().get_mut(entity) {
-        health.change_by(change);
     if let Some(poise) = ecs.write_storage::<Poise>().get_mut(entity) {
-        poise.change_by(change.1);
+        poise.change_by(change);
+        println!("poise: {:?}", change);
         let was_wielded =
             if let Some(character_state) = ecs.read_storage::<comp::CharacterState>().get(entity) {
                 character_state.is_wield()
@@ -114,6 +114,12 @@ pub fn handle_damage(server: &Server, entity: EcsEntity, change: (HealthChange, 
                 );
             },
         }
+    }
+}
+pub fn handle_damage(server: &Server, entity: EcsEntity, change: HealthChange) {
+    let ecs = &server.state.ecs();
+    if let Some(health) = ecs.write_storage::<Health>().get_mut(entity) {
+        health.change_by(change);
     }
 }
 
@@ -559,15 +565,22 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
     let state = &server.state;
     if vel.z <= -30.0 {
         if let Some(mut health) = state.ecs().write_storage::<comp::Health>().get_mut(entity) {
-            let falldmg = (vel.z.powi(2) / 20.0 - 40.0) * 10.0;
-            let damage = Damage {
-                source: DamageSource::Falling,
-                value: falldmg,
-                poise_damage: 70.0,
-            };
-            let inventories = state.ecs().read_storage::<Inventory>();
-            let change = damage.modify_damage(inventories.get(entity), None);
-            health.change_by(change);
+            if let Some(poise) = state.ecs().write_storage::<comp::Poise>().get_mut(entity) {
+                let falldmg = (vel.z.powi(2) / 20.0 - 40.0) * 10.0;
+                let damage = Damage {
+                    source: DamageSource::Falling,
+                    value: falldmg,
+                };
+                let poise_damage = PoiseChange {
+                    amount: -(falldmg / 2.0) as i32,
+                    source: PoiseSource::Falling,
+                };
+                let inventories = state.ecs().read_storage::<Inventory>();
+                let change = damage.modify_damage(inventories.get(entity), None);
+                let poise_change = poise_damage.modify_poise_damage(inventories.get(entity), None);
+                health.change_by(change);
+                poise.change_by(poise_change);
+            }
         }
     }
 }
@@ -641,15 +654,29 @@ pub fn handle_explosion(
         } else {
             1.0
         };
+
     ecs.write_resource::<Vec<Outcome>>()
         .push(Outcome::Explosion {
             pos,
             power: outcome_power,
             radius: explosion.radius,
-            is_attack: explosion
-                .effects
-                .iter()
-                .any(|e| matches!(e, RadiusEffect::Entity(_, Effect::Damage(_)))),
+            is_attack: true, //explosion
+            //.effects
+            //.iter()
+            ////.any(|e| matches!(e, RadiusEffect::Entity(_, Effect::Damage(_)))),
+            //.any(|e| match e {
+            //    RadiusEffect::Entity(_, effect_vec) => {
+            //        effect_vec.iter().any(|f| {
+            //        matches!(
+            //            f,
+            //            Effect::Damage(Damage {
+            //                source: DamageSource::Healing,
+            //                ..
+            //            })
+            //        )
+            //        })
+            //    },
+            //}),
             reagent,
         });
     let owner_entity = owner.and_then(|uid| {
@@ -733,7 +760,7 @@ pub fn handle_explosion(
                         .cast();
                 }
             },
-            RadiusEffect::Entity(target, mut effect) => {
+            RadiusEffect::Entity(target, mut effects) => {
                 for (entity_b, pos_b) in (&ecs.entities(), &ecs.read_storage::<comp::Pos>()).join()
                 {
                     // See if entities are in the same group
@@ -767,17 +794,19 @@ pub fn handle_explosion(
                             .map_or(false, |h| !h.is_dead);
 
                         if is_alive {
-                            effect.modify_strength(strength);
-                            server.state().apply_effect(entity_b, effect.clone(), owner);
-                            // Apply energy change
-                            if let Some(owner) = owner_entity {
-                                if let Some(mut energy) =
-                                    ecs.write_storage::<comp::Energy>().get_mut(owner)
-                                {
-                                    energy.change_by(EnergyChange {
-                                        amount: explosion.energy_regen as i32,
-                                        source: comp::EnergySource::HitEnemy,
-                                    });
+                            for effect in effects.iter_mut() {
+                                effect.modify_strength(strength);
+                                server.state().apply_effect(entity_b, effect.clone(), owner);
+                                // Apply energy change
+                                if let Some(owner) = owner_entity {
+                                    if let Some(mut energy) =
+                                        ecs.write_storage::<comp::Energy>().get_mut(owner)
+                                    {
+                                        energy.change_by(EnergyChange {
+                                            amount: explosion.energy_regen as i32,
+                                            source: comp::EnergySource::HitEnemy,
+                                        });
+                                    }
                                 }
                             }
                         }

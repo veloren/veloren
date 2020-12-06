@@ -1,5 +1,8 @@
 use crate::{
-    comp::{Attacking, CharacterState, EnergyChange, EnergySource, StateUpdate},
+    comp::{
+        Attacking, CharacterState, EnergyChange, EnergySource, PoiseChange, PoiseSource,
+        StateUpdate,
+    },
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -131,12 +134,19 @@ impl CharacterBehavior for Data {
                                 source: DamageSource::Melee,
                                 value: self.static_data.base_damage as f32
                                     + charge_frac * self.static_data.scaled_damage as f32,
-                                poise_damage: self.static_data.base_poise_damage as f32,
+                            };
+                            let mut poise_damage = PoiseChange {
+                                amount: -(self.static_data.base_poise_damage as i32),
+                                source: PoiseSource::Melee,
                             };
                             let knockback = self.static_data.base_knockback
                                 + charge_frac * self.static_data.scaled_knockback;
                             data.updater.insert(data.entity, Attacking {
-                                damages: vec![(Some(GroupTarget::OutOfGroup), damage)],
+                                effects: vec![(
+                                    Some(GroupTarget::OutOfGroup),
+                                    damage,
+                                    poise_damage,
+                                )],
                                 range: self.static_data.range,
                                 max_angle: self.static_data.angle.to_radians(),
                                 applied: false,

@@ -1,5 +1,5 @@
 use crate::{
-    comp::{Energy, Ori, Pos, Vel},
+    comp::{Energy, Ori, PoiseChange, Pos, Vel},
     event::{LocalEvent, ServerEvent},
     states::{behavior::JoinData, *},
     Damage, GroupTarget, Knockback,
@@ -172,7 +172,7 @@ impl Component for CharacterState {
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Attacking {
-    pub damages: Vec<(Option<GroupTarget>, Damage)>,
+    pub effects: Vec<(Option<GroupTarget>, Damage, PoiseChange)>,
     pub range: f32,
     pub max_angle: f32,
     pub applied: bool,

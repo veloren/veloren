@@ -1360,14 +1360,10 @@ fn handle_explosion(
                     pos: pos.0,
                     explosion: Explosion {
                         effects: vec![
-                            RadiusEffect::Entity(
-                                None,
-                                Effect::Damage(Damage {
-                                    source: DamageSource::Explosion,
-                                    value: 100.0 * power,
-                                    poise_damage: 100.0,
-                                }),
-                            ),
+                            RadiusEffect::Entity(None, vec![Effect::Damage(Damage {
+                                source: DamageSource::Explosion,
+                                value: 100.0 * power,
+                            })]),
                             RadiusEffect::TerrainDestruction(power),
                         ],
                         radius: 3.0 * power,
