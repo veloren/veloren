@@ -1,4 +1,5 @@
 use crate::tuilog::TuiLog;
+use termcolor::{ColorChoice, StandardStream};
 use tracing::Level;
 use tracing_subscriber::{filter::LevelFilter, EnvFilter, FmtSubscriber};
 #[cfg(feature = "tracy")]
@@ -55,7 +56,7 @@ pub fn init(basic: bool) {
             .with_env_filter(filter);
 
         if basic {
-            subscriber.init();
+            subscriber.with_writer(|| StandardStream::stdout(ColorChoice::Auto)).init();
         } else {
             subscriber.with_writer(|| LOG.clone()).init();
         }

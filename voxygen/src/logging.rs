@@ -2,6 +2,7 @@ use std::fs;
 
 use crate::settings::Settings;
 
+use termcolor::{ColorChoice, StandardStream};
 use tracing::{debug, error, info, trace};
 use tracing_subscriber::{filter::LevelFilter, prelude::*, registry, EnvFilter};
 
@@ -71,7 +72,8 @@ pub fn init(settings: &Settings) -> Vec<impl Drop> {
     let filter = base_exceptions(EnvFilter::new("")).add_directive(LevelFilter::TRACE.into());
 
     // Create the terminal writer layer.
-    let (non_blocking, _stdio_guard) = tracing_appender::non_blocking(std::io::stdout());
+    let (non_blocking, _stdio_guard) =
+        tracing_appender::non_blocking(StandardStream::stdout(ColorChoice::Auto));
     _guards.push(_stdio_guard);
 
     // Try to create the log file's parent folders.
