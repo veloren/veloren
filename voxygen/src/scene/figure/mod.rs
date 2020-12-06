@@ -7,8 +7,8 @@ pub use load::load_mesh; // TODO: Don't make this public.
 use crate::{
     ecs::comp::Interpolated,
     render::{
-        pipelines, ColLightInfo, Consts, FigureBoneData, FigureLocals, FigureModel, GlobalModel,
-        LodData, Mesh, RenderError, Renderer, SubModel, TerrainVertex, Texture,
+        pipelines, ColLightInfo, FigureBoneData, FigureLocals, FigureModel, FirstPassDrawer,
+        GlobalModel, LodData, Mesh, RenderError, Renderer, SubModel, TerrainVertex,
     },
     scene::{
         camera::{Camera, CameraMode, Dependents},
@@ -63,7 +63,7 @@ pub type CameraData<'a> = (&'a Camera, f32);
 pub type FigureModelRef<'a> = (
     &'a pipelines::figure::BoundLocals,
     SubModel<'a, TerrainVertex>,
-    &'a Texture, /* <ColLightFmt> */
+    &'a pipelines::figure::ColLights, /* <ColLightFmt> */
 );
 
 /// An entry holding enough information to draw or destroy a figure in a
@@ -4809,9 +4809,9 @@ impl FigureMgr {
     }
 
     #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
-    pub fn render_player(
-        &self,
-        renderer: &mut Renderer,
+    pub fn render_player<'a>(
+        &'a self,
+        drawer: &mut FirstPassDrawer<'a>,
         state: &State,
         player_entity: EcsEntity,
         tick: u64,
@@ -4850,8 +4850,7 @@ impl FigureMgr {
                 figure_lod_render_distance,
                 |state| state.visible(),
             ) {
-                //renderer.render_player(model, &col_lights, global, locals,
-                // bone_consts, lod);
+                drawer.draw_figure(model, bound, col_lights);
                 /*renderer.render_player_shadow(
                     model,
                     &col_lights,
