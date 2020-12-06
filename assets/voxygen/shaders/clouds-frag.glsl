@@ -32,7 +32,7 @@ uniform texture2D t_src_depth;
 layout(set = 1, binding = 3)
 uniform sampler s_src_depth;
 
-layout(location = 0) in vec2 f_pos;
+layout(location = 0) in vec2 uv;
 
 layout (std140, set = 1, binding = 4)
 uniform u_locals {
@@ -58,9 +58,6 @@ vec3 wpos_at(vec2 uv) {
 }
 
 void main() {
-    // TODO: precompute in the vertex shader?
-    vec2 uv = (f_pos + 1.0) * 0.5;
-
     vec4 color = texture(sampler2D(t_src_color, s_src_color), uv);
 
     // Apply clouds

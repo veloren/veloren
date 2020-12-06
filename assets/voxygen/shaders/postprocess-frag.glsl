@@ -28,7 +28,7 @@ layout(set = 1, binding = 1)
 uniform sampler s_src_color;
 
 
-layout(location = 0) in vec2 f_pos;
+layout(location = 0) in vec2 uv;
 
 layout (std140, set = 1, binding = 2)
 uniform u_locals {
@@ -150,9 +150,6 @@ vec3 _illuminate(float max_light, vec3 view_dir, /*vec3 max_light, */vec3 emitte
 }
 
 void main() {
-    // TODO: precompute in the vertex shader?
-    vec2 uv = (f_pos + 1.0) * 0.5;
-
     /* if (medium.x == 1u) {
         uv = clamp(uv + vec2(sin(uv.y * 16.0 + tick.x), sin(uv.x * 24.0 + tick.x)) * 0.005, 0, 1);
     } */
