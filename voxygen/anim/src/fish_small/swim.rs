@@ -26,7 +26,7 @@ impl Animation for SwimAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let fast = (acc_vel * 5.0 + PI).sin();
+        let fast = (acc_vel * s_a.tempo + PI).sin();
 
         let ori: Vec2<f32> = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);
@@ -41,22 +41,24 @@ impl Animation for SwimAnimation {
         } else {
             0.0
         } * 1.3;
-        let abstilt = tilt.abs();
         let x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude());
+        let vel = (velocity.magnitude()).min(s_a.amplitude);
+        let slowvel = vel * 0.1;
 
         next.chest.scale = Vec3::one() / 13.0;
 
         next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1) / 13.0;
-        next.chest.orientation = Quaternion::rotation_x(velocity.z.abs() * -0.005 + abstilt * 1.0 + x_tilt) * Quaternion::rotation_z(fast * -0.1);
+        next.chest.orientation = Quaternion::rotation_x(velocity.z.abs() * -0.005 + x_tilt)
+            * Quaternion::rotation_z(fast * -0.1);
 
         next.tail.position = Vec3::new(0.0, s_a.tail.0, s_a.tail.1);
-        next.tail.orientation = Quaternion::rotation_z(fast * -1.0 * velocity.magnitude() * 0.1 + tilt * 2.0);
+        next.tail.orientation = Quaternion::rotation_z(fast * -1.0 * slowvel + tilt * 2.0);
 
         next.fin_l.position = Vec3::new(-s_a.fin.0, s_a.fin.1, s_a.fin.2);
-        next.fin_l.orientation = Quaternion::rotation_z(fast * 0.6 * velocity.magnitude() * 0.1 - 0.3 + tilt * -0.5);
+        next.fin_l.orientation = Quaternion::rotation_z(fast * 0.6 * slowvel - 0.3 + tilt * -0.5);
 
         next.fin_r.position = Vec3::new(s_a.fin.0, s_a.fin.1, s_a.fin.2);
-        next.fin_r.orientation = Quaternion::rotation_z(fast * -0.6 * velocity.magnitude() * 0.1 + 0.3 + tilt * -0.5);
+        next.fin_r.orientation = Quaternion::rotation_z(fast * -0.6 * slowvel + 0.3 + tilt * -0.5);
         next
     }
 }

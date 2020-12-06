@@ -1,14 +1,8 @@
 pub mod idle;
-pub mod jump;
-pub mod run;
 pub mod swim;
-pub mod swimidle;
 
 // Reexports
-pub use self::{
-    idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation, swim::SwimAnimation,
-    swimidle::SwimIdleAnimation,
-};
+pub use self::{idle::IdleAnimation, swim::SwimAnimation};
 
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};
 use common::comp::{self};
@@ -64,6 +58,8 @@ pub struct SkeletonAttr {
     chest_back: (f32, f32),
     tail: (f32, f32),
     fin: (f32, f32, f32),
+    tempo: f32,
+    amplitude: f32,
 }
 
 impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
@@ -86,6 +82,8 @@ impl Default for SkeletonAttr {
             chest_back: (0.0, 0.0),
             tail: (0.0, 0.0),
             fin: (0.0, 0.0, 0.0),
+            tempo: 0.0,
+            amplitude: 0.0,
         }
     }
 }
@@ -111,6 +109,12 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             },
             fin: match (body.species, body.body_type) {
                 (Marlin, _) => (2.5, 1.0, 3.5),
+            },
+            tempo: match (body.species, body.body_type) {
+                (Marlin, _) => 4.0,
+            },
+            amplitude: match (body.species, body.body_type) {
+                (Marlin, _) => 4.0,
             },
         }
     }
