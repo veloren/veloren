@@ -276,15 +276,18 @@ impl ParticleMgr {
             self.maintain_shockwave_particles(scene_data);
             self.maintain_aura_particles(scene_data);
             self.maintain_buff_particles(scene_data);
+
+            self.upload_particles(renderer);
         } else {
             // remove all particle lifespans
-            self.particles.clear();
+            if !self.particles.is_empty() {
+                self.particles.clear();
+                self.upload_particles(renderer);
+            }
 
             // remove all timings
             self.scheduler.clear();
         }
-
-        self.upload_particles(renderer);
     }
 
     fn maintain_body_particles(&mut self, scene_data: &SceneData) {

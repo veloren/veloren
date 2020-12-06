@@ -9,7 +9,8 @@ struct Light {
 
 layout (std140, set = 0, binding = 3)
 uniform u_lights {
-    Light lights[31];
+    // TODO: insert light max count constant here when loading the shaders
+    Light lights[20];
 };
 
 struct Shadow {

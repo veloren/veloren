@@ -11,7 +11,7 @@ struct ShadowLocals {
 
 layout (std140, set = 0, binding = 9)
 uniform u_light_shadows {
-    ShadowLocals shadowMats[/*MAX_LAYER_FACES*/192];
+    ShadowLocals shadowMats[/*MAX_LAYER_FACES*//*192*/126];
 };
 
 // Use with sampler2DShadow

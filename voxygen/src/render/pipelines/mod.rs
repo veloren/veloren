@@ -220,6 +220,7 @@ impl Default for Shadow {
 
 // Global scene data spread across several arrays.
 pub struct GlobalModel {
+    // TODO: enforce that these are the lengths in the shaders??
     pub globals: Consts<Globals>,
     pub lights: Consts<Light>,
     pub shadows: Consts<Shadow>,

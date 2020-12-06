@@ -107,8 +107,8 @@ impl Scene {
 
         let data = GlobalModel {
             globals: renderer.create_consts(&[Globals::default()]),
-            lights: renderer.create_consts(&[Light::default(); 32]),
-            shadows: renderer.create_consts(&[Shadow::default(); 32]),
+            lights: renderer.create_consts(&[Light::default(); 20]),
+            shadows: renderer.create_consts(&[Shadow::default(); 24]),
             shadow_mats: renderer.create_consts(&[ShadowLocals::default(); 6]),
         };
         let lod = LodData::dummy(renderer);
