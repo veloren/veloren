@@ -229,7 +229,9 @@ pub struct Renderer {
     sampler: wgpu::Sampler,
 
     shadow_map: Option<ShadowMapRenderer>,
-    //dummy_shadow_tex: wgpu::TextureView,
+    dummy_shadow_cube_tex: Texture,
+    dummy_shadow_tex: Texture,
+
     layouts: Layouts,
 
     figure_pipeline: figure::FigurePipeline,
@@ -332,6 +334,9 @@ impl Renderer {
         .ok();
 
         let shaders = Shaders::load_expect("");
+
+        let (dummy_shadow_cube_tex, dummy_shadow_tex) =
+            Self::create_dummy_shadow_tex(&device, &queue);
 
         let layouts = {
             let global = GlobalsLayouts::new(&device);
@@ -476,6 +481,8 @@ impl Renderer {
             sampler,
 
             shadow_map,
+            dummy_shadow_cube_tex,
+            dummy_shadow_tex,
 
             layouts,
 
@@ -686,6 +693,76 @@ impl Renderer {
             tgt_color_pp_view,
             win_depth_view,
         ))
+    }
+
+    fn create_dummy_shadow_tex(device: &wgpu::Device, queue: &wgpu::Queue) -> (Texture, Texture) {
+        let make_tex = |view_dim, depth| {
+            let tex = wgpu::TextureDescriptor {
+                label: None,
+                size: wgpu::Extent3d {
+                    width: 4,
+                    height: 4,
+                    depth,
+                },
+                mip_level_count: 1,
+                sample_count: 1,
+                dimension: wgpu::TextureDimension::D2,
+                format: wgpu::TextureFormat::Depth24Plus,
+                usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::RENDER_ATTACHMENT,
+            };
+
+            let view = wgpu::TextureViewDescriptor {
+                label: None,
+                format: Some(wgpu::TextureFormat::Depth24Plus),
+                dimension: Some(view_dim),
+                aspect: wgpu::TextureAspect::DepthOnly,
+                base_mip_level: 0,
+                level_count: None,
+                base_array_layer: 0,
+                array_layer_count: None,
+            };
+
+            let sampler_info = wgpu::SamplerDescriptor {
+                label: None,
+                address_mode_u: wgpu::AddressMode::ClampToEdge,
+                address_mode_v: wgpu::AddressMode::ClampToEdge,
+                address_mode_w: wgpu::AddressMode::ClampToEdge,
+                mag_filter: wgpu::FilterMode::Linear,
+                min_filter: wgpu::FilterMode::Linear,
+                mipmap_filter: wgpu::FilterMode::Nearest,
+                compare: Some(wgpu::CompareFunction::LessEqual),
+                ..Default::default()
+            };
+
+            Texture::new_raw(device, &tex, &view, &sampler_info)
+        };
+
+        let cube_tex = make_tex(wgpu::TextureViewDimension::Cube, 6);
+        let tex = make_tex(wgpu::TextureViewDimension::D2, 1);
+
+        // Clear to 1.0
+        let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+            label: Some("Dummy shadow tex clearing encoder"),
+        });
+        let mut clear = |tex: &Texture| {
+            encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                color_attachments: &[],
+                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachmentDescriptor {
+                    attachment: &tex.view,
+                    depth_ops: Some(wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(1.0),
+                        store: true,
+                    }),
+                    stencil_ops: None,
+                }),
+            });
+        };
+        clear(&cube_tex);
+        clear(&tex);
+        drop(clear);
+        queue.submit(std::iter::once(encoder.finish()));
+
+        (cube_tex, tex)
     }
 
     /// Create textures and views for shadow maps.

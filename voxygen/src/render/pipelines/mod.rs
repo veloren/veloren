@@ -367,7 +367,7 @@ impl GlobalsLayouts {
                     visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
                     ty: wgpu::BindingType::Sampler {
                         filtering: true,
-                        comparison: false,
+                        comparison: true,
                     },
                     count: None,
                 },
@@ -387,7 +387,7 @@ impl GlobalsLayouts {
                     visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
                     ty: wgpu::BindingType::Sampler {
                         filtering: true,
-                        comparison: false,
+                        comparison: true,
                     },
                     count: None,
                 },

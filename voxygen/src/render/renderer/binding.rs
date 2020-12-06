@@ -15,9 +15,9 @@ impl Renderer {
     ) -> GlobalsBindGroup {
         let (point_shadow_map, directed_shadow_map) = match &self.shadow_map {
             Some(shadow_map) => (&shadow_map.point_depth, &shadow_map.directed_depth),
-            None => (&self.noise_tex, &self.noise_tex),
+            None => (&self.dummy_shadow_cube_tex, &self.dummy_shadow_tex),
         };
-        dbg!(self.shadow_map.is_some());
+
         self.layouts.global.bind(
             &self.device,
             global_model,
