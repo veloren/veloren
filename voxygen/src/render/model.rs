@@ -13,7 +13,10 @@ pub struct SubModel<'a, V: Vertex> {
 }
 
 impl<'a, V: Vertex> SubModel<'a, V> {
-    pub(super) fn buf(&self) -> wgpu::BufferSlice<'a> { self.buf.slice(map_range(&self.vertex_range)) }
+    pub(super) fn buf(&self) -> wgpu::BufferSlice<'a> {
+        self.buf.slice(map_range(&self.vertex_range))
+    }
+
     pub fn len(&self) -> u32 { self.vertex_range.end - self.vertex_range.start }
 }
 

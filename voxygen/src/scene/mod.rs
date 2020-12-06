@@ -1017,20 +1017,12 @@ impl Scene {
         }*/
         let lod = self.lod.get_data();
 
-        self.figure_mgr.render_player(
-            drawer,
-            state,
-            player_entity,
-            tick,
-            global,
-            lod,
-            camera_data,
-        );
+        self.figure_mgr
+            .render_player(drawer, state, player_entity, tick, global, lod, camera_data);
 
-        // Render terrain and figures.
-        /*self.terrain.render(renderer, global, lod, focus_pos);
+        self.terrain.render(drawer, global, lod, focus_pos);
 
-        self.figure_mgr.render(
+        /* self.figure_mgr.render(
             renderer,
             state,
             player_entity,

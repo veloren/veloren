@@ -7,8 +7,9 @@ pub use load::load_mesh; // TODO: Don't make this public.
 use crate::{
     ecs::comp::Interpolated,
     render::{
-        pipelines, ColLightInfo, FigureBoneData, FigureLocals, FigureModel, FirstPassDrawer,
-        GlobalModel, LodData, Mesh, RenderError, Renderer, SubModel, TerrainVertex,
+        pipelines::{self, ColLights},
+        ColLightInfo, FigureBoneData, FigureLocals, FigureModel, FirstPassDrawer, GlobalModel,
+        LodData, Mesh, RenderError, Renderer, SubModel, TerrainVertex,
     },
     scene::{
         camera::{Camera, CameraMode, Dependents},
@@ -63,7 +64,7 @@ pub type CameraData<'a> = (&'a Camera, f32);
 pub type FigureModelRef<'a> = (
     &'a pipelines::figure::BoundLocals,
     SubModel<'a, TerrainVertex>,
-    &'a pipelines::figure::ColLights, /* <ColLightFmt> */
+    &'a ColLights<pipelines::figure::Locals>,
 );
 
 /// An entry holding enough information to draw or destroy a figure in a
@@ -79,7 +80,7 @@ pub struct FigureModelEntry<const N: usize> {
     /// Texture used to store color/light information for this figure entry.
     /* TODO: Consider using mipmaps instead of storing multiple texture atlases for different
      * LOD levels. */
-    col_lights: pipelines::figure::ColLights,
+    col_lights: ColLights<pipelines::figure::Locals>,
     /// Vertex ranges stored in this figure entry; there may be several for one
     /// figure, because of LOD models.
     lod_vertex_ranges: [Range<u32>; N],
@@ -5207,7 +5208,7 @@ impl FigureColLights {
     pub fn texture<'a, const N: usize>(
         &'a self,
         model: &'a FigureModelEntry<N>,
-    ) -> &'a pipelines::figure::ColLights {
+    ) -> &'a ColLights<pipelines::figure::Locals> {
         /* &self.col_lights */
         &model.col_lights
     }
@@ -5231,7 +5232,7 @@ impl FigureColLights {
             .allocate(guillotiere::Size::new(tex_size.x as i32, tex_size.y as i32))
             .expect("Not yet implemented: allocate new atlas on allocation failure.");
         let col_lights = pipelines::shadow::create_col_lights(renderer, &(tex, tex_size));
-        let col_lights = renderer.figure_bind_texture(col_lights);
+        let col_lights = renderer.figure_bind_col_light(col_lights);
         let model_len = u32::try_from(opaque.vertices().len())
             .expect("The model size for this figure does not fit in a u32!");
         let model = renderer.create_model(&opaque)?;

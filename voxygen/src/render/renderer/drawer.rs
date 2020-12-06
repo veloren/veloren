@@ -3,10 +3,10 @@ use super::{
         buffer::Buffer,
         consts::Consts,
         instances::Instances,
-        model::{DynamicModel, SubModel,Model},
+        model::{DynamicModel, Model, SubModel},
         pipelines::{
-            clouds, figure, fluid, particle, postprocess, sprite, terrain, ui, GlobalsBindGroup,
-            Light, Shadow,
+            clouds, figure, fluid, particle, postprocess, sprite, terrain, ui, ColLights,
+            GlobalsBindGroup, Light, Shadow,
         },
     },
     Renderer,
@@ -154,28 +154,30 @@ impl<'a> FirstPassDrawer<'a> {
         &mut self,
         model: SubModel<'b, terrain::Vertex>,
         locals: &'b figure::BoundLocals,
-        col_lights: &'b figure::ColLights
+        col_lights: &'b ColLights<figure::Locals>,
     ) {
         self.render_pass
             .set_pipeline(&self.renderer.figure_pipeline.pipeline);
         self.render_pass.set_bind_group(1, &locals.bind_group, &[]);
-        self.render_pass.set_bind_group(2, &col_lights.bind_group, &[]);
         self.render_pass
-            .set_vertex_buffer(0, model.buf());
+            .set_bind_group(2, &col_lights.bind_group, &[]);
+        self.render_pass.set_vertex_buffer(0, model.buf());
         self.render_pass.draw(0..model.len(), 0..1);
     }
 
     pub fn draw_terrain<'b: 'a>(
         &mut self,
-        model: &'b SubModel<terrain::Vertex>,
+        model: &'b Model<terrain::Vertex>,
         locals: &'b terrain::BoundLocals,
+        col_lights: &'b ColLights<terrain::Locals>,
     ) {
         self.render_pass
             .set_pipeline(&self.renderer.terrain_pipeline.pipeline);
         self.render_pass.set_bind_group(1, &locals.bind_group, &[]);
         self.render_pass
-            .set_vertex_buffer(0, model.buf());
-        self.render_pass.draw(0..model.len(), 0..1)
+            .set_bind_group(2, &col_lights.bind_group, &[]);
+        self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
+        self.render_pass.draw(0..model.len() as u32, 0..1)
     }
 
     /*pub fn draw_fluid<'b: 'a>(

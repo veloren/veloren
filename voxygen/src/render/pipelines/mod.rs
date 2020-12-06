@@ -15,6 +15,7 @@ use crate::scene::camera::CameraMode;
 use bytemuck::{Pod, Zeroable};
 use common::terrain::BlockKind;
 use vek::*;
+use wgpu::BindGroup;
 
 pub const MAX_POINT_LIGHT_COUNT: usize = 31;
 pub const MAX_FIGURE_SHADOW_COUNT: usize = 24;
@@ -231,6 +232,13 @@ pub struct GlobalsBindGroup {
 
 pub struct GlobalsLayouts {
     pub globals: wgpu::BindGroupLayout,
+    pub col_light: wgpu::BindGroupLayout,
+}
+
+pub struct ColLights<Locals> {
+    pub bind_group: BindGroup,
+    pub texture: Texture,
+    phantom: std::marker::PhantomData<Locals>,
 }
 
 impl GlobalsLayouts {
@@ -406,7 +414,33 @@ impl GlobalsLayouts {
             ],
         });
 
-        Self { globals }
+        let col_light = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            label: None,
+            entries: &[
+                // col lights
+                wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::Texture {
+                        sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                        view_dimension: wgpu::TextureViewDimension::D2,
+                        multisampled: false,
+                    },
+                    count: None,
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 1,
+                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::Sampler {
+                        filtering: true,
+                        comparison: false,
+                    },
+                    count: None,
+                },
+            ],
+        });
+
+        Self { globals, col_light }
     }
 
     pub fn bind(
@@ -499,5 +533,32 @@ impl GlobalsLayouts {
         });
 
         GlobalsBindGroup { bind_group }
+    }
+
+    pub fn bind_col_light<Locals>(
+        &self,
+        device: &wgpu::Device,
+        col_light: Texture,
+    ) -> ColLights<Locals> {
+        let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: None,
+            layout: &self.col_light,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&col_light.view),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Sampler(&col_light.sampler),
+                },
+            ],
+        });
+
+        ColLights {
+            texture: col_light,
+            bind_group,
+            phantom: std::marker::PhantomData,
+        }
     }
 }

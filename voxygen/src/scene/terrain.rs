@@ -8,8 +8,9 @@ use crate::{
         terrain::{generate_mesh, SUNLIGHT},
     },
     render::{
-        pipelines, ColLightInfo, Consts, FluidVertex, GlobalModel, Instances, LodData, Mesh, Model,
-        RenderError, Renderer, SpriteInstance, SpriteLocals, SpriteVertex, TerrainLocals,
+        pipelines::{self, ColLights},
+        ColLightInfo, Consts, FirstPassDrawer, FluidVertex, GlobalModel, Instances, LodData, Mesh,
+        Model, RenderError, Renderer, SpriteInstance, SpriteLocals, SpriteVertex, TerrainLocals,
         TerrainVertex, Texture,
     },
 };
@@ -75,11 +76,11 @@ pub struct TerrainChunkData {
     /// shadow chunks will still keep it alive; we could deal with this by
     /// making this an `Option`, but it probably isn't worth it since they
     /// shouldn't be that much more nonlocal than regular chunks).
-    texture: Arc<Texture>, // TODO: make this actually work with a bind group
+    col_lights: Arc<ColLights<pipelines::terrain::Locals>>,
     light_map: LightMapFn,
     glow_map: LightMapFn,
     sprite_instances: HashMap<(SpriteKind, usize), Instances<SpriteInstance>>,
-    locals: Consts<TerrainLocals>,
+    locals: pipelines::terrain::BoundLocals,
     pub blocks_of_interest: BlocksOfInterest,
 
     visible: Visibility,
@@ -330,7 +331,7 @@ pub struct Terrain<V: RectRasterableVol = TerrainChunk> {
     /// we allocate.  Code cannot assume that this is the assigned texture
     /// for any particular chunk; look at the `texture` field in
     /// `TerrainChunkData` for that.
-    col_lights: Texture, /* <ColLightFmt> */
+    col_lights: ColLights<pipelines::terrain::Locals>,
     waves: Texture,
 
     phantom: PhantomData<V>,
@@ -577,7 +578,7 @@ impl<V: RectRasterableVol> Terrain<V> {
 
     fn make_atlas(
         renderer: &mut Renderer,
-    ) -> Result<(AtlasAllocator, Texture /* <ColLightFmt> */), RenderError> {
+    ) -> Result<(AtlasAllocator, ColLights<pipelines::terrain::Locals>), RenderError> {
         span!(_guard, "make_atlas", "Terrain::make_atlas");
         let max_texture_size = renderer.max_texture_size();
         let atlas_size = guillotiere::Size::new(max_texture_size as i32, max_texture_size as i32);
@@ -622,7 +623,8 @@ impl<V: RectRasterableVol> Terrain<V> {
                 ..Default::default()
             },
         );
-        Ok((atlas, texture))
+        let col_light = renderer.terrain_bind_col_light(texture);
+        Ok((atlas, col_light))
     }
 
     fn remove_chunk_meta(&mut self, _pos: Vec2<i32>, chunk: &TerrainChunkData) {
@@ -1134,7 +1136,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                             allocation.rectangle.min.y as u32,
                         );
                         renderer.update_texture(
-                            col_lights,
+                            &col_lights,
                             atlas_offs.into_array(),
                             tex_size.into_array(),
                             &tex,
@@ -1159,7 +1161,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                             light_map: mesh.light_map,
                             glow_map: mesh.glow_map,
                             sprite_instances,
-                            locals: renderer.create_consts(&[TerrainLocals {
+                            locals: renderer.create_terrain_bound_locals(&[TerrainLocals {
                                 model_offs: Vec3::from(
                                     response.pos.map2(VolGrid2d::<V>::chunk_size(), |e, sz| {
                                         e as f32 * sz as f32
@@ -1452,9 +1454,9 @@ impl<V: RectRasterableVol> Terrain<V> {
         });
     }
 
-    pub fn render(
-        &self,
-        renderer: &mut Renderer,
+    pub fn render<'a>(
+        &'a self,
+        drawer: &mut FirstPassDrawer<'a>,
         global: &GlobalModel,
         lod: &LodData,
         focus_pos: Vec3<f32>,
@@ -1473,13 +1475,7 @@ impl<V: RectRasterableVol> Terrain<V> {
 
         for (_, chunk) in chunk_iter {
             if chunk.visible.is_visible() {
-                /* renderer.render_terrain_chunk(
-                    &chunk.opaque_model,
-                    &chunk.texture,
-                    global,
-                    &chunk.locals,
-                    lod,
-                );*/
+                drawer.draw_terrain(&chunk.opaque_model, &chunk.locals, &self.col_lights)
             }
         }
     }

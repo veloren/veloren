@@ -172,28 +172,24 @@ impl TerrainLayout {
                         },
                         count: None,
                     },
-                    // col lights
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 1,
-                        visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                        ty: wgpu::BindingType::Texture {
-                            sample_type: wgpu::TextureSampleType::Float { filterable: true },
-                            view_dimension: wgpu::TextureViewDimension::D2,
-                            multisampled: false,
-                        },
-                        count: None,
-                    },
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 2,
-                        visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                        ty: wgpu::BindingType::Sampler {
-                            filtering: true,
-                            comparison: false,
-                        },
-                        count: None,
-                    },
                 ],
             }),
+        }
+    }
+
+    pub fn bind_locals(&self, device: &wgpu::Device, locals: Consts<Locals>) -> BoundLocals {
+        let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: None,
+            layout: &self.locals,
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: locals.buf().as_entire_binding(),
+            }],
+        });
+
+        BoundLocals {
+            bind_group,
+            with: locals,
         }
     }
 }
@@ -217,7 +213,11 @@ impl TerrainPipeline {
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Terrain pipeline layout"),
                 push_constant_ranges: &[],
-                bind_group_layouts: &[&global_layout.globals, &layout.locals],
+                bind_group_layouts: &[
+                    &global_layout.globals,
+                    &layout.locals,
+                    &global_layout.col_light,
+                ],
             });
 
         let samples = match aa_mode {
