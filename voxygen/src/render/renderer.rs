@@ -2128,6 +2128,7 @@ fn create_pipelines(
         device,
         &create_shader("particle-vert", ShaderKind::Vertex)?,
         &create_shader("particle-frag", ShaderKind::Fragment)?,
+        sc_desc,
         &layouts.global,
         mode.aa,
     );
