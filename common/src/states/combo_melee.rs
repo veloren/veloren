@@ -1,5 +1,8 @@
 use crate::{
-    comp::{Attacking, CharacterState, EnergyChange, EnergySource, StateUpdate},
+    comp::{
+        Attacking, CharacterState, EnergyChange, EnergySource, PoiseChange, PoiseSource,
+        StateUpdate,
+    },
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -167,12 +170,19 @@ impl CharacterBehavior for Data {
                             .min(self.combo / self.static_data.num_stages)
                             * self.static_data.stage_data[stage_index].damage_increase;
                     let poise_damage = self.static_data.stage_data[stage_index].base_poise_damage;
+                    println!("Combo melee poise damage: {:?}", poise_damage);
                     data.updater.insert(data.entity, Attacking {
-                        damages: vec![(Some(GroupTarget::OutOfGroup), Damage {
-                            source: DamageSource::Melee,
-                            value: damage as f32,
-                            poise_damage: poise_damage as f32,
-                        })],
+                        effects: vec![(
+                            Some(GroupTarget::OutOfGroup),
+                            Damage {
+                                source: DamageSource::Melee,
+                                value: damage as f32,
+                            },
+                            PoiseChange {
+                                amount: -(poise_damage as i32),
+                                source: PoiseSource::Melee,
+                            },
+                        )],
                         range: self.static_data.stage_data[stage_index].range,
                         max_angle: self.static_data.stage_data[stage_index].angle.to_radians(),
                         applied: false,

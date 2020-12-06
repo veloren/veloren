@@ -2,7 +2,7 @@ use crate::{
     comp::{
         buff::{BuffCategory, BuffData, BuffKind},
         projectile, Body, CharacterState, EnergyChange, EnergySource, Gravity, LightEmitter,
-        Projectile, StateUpdate,
+        PoiseChange, PoiseSource, Projectile, StateUpdate,
     },
     effect::BuffEffect,
     event::ServerEvent,
@@ -108,7 +108,10 @@ impl CharacterBehavior for Data {
                         source: DamageSource::Projectile,
                         value: self.static_data.initial_damage as f32
                             + charge_frac * self.static_data.scaled_damage as f32,
-                        poise_damage: self.static_data.initial_poise_damage as f32,
+                    };
+                    let mut poise_damage = PoiseChange {
+                        amount: -(self.static_data.initial_poise_damage as i32),
+                        source: PoiseSource::Projectile,
                     };
                     let knockback = self.static_data.initial_knockback
                         + charge_frac * self.static_data.scaled_knockback;
@@ -116,7 +119,11 @@ impl CharacterBehavior for Data {
                     let projectile = Projectile {
                         hit_solid: vec![projectile::Effect::Stick],
                         hit_entity: vec![
-                            projectile::Effect::Damage(Some(GroupTarget::OutOfGroup), damage),
+                            projectile::Effect::Damage(
+                                Some(GroupTarget::OutOfGroup),
+                                damage,
+                                poise_damage,
+                            ),
                             projectile::Effect::Knockback(Knockback::Away(knockback)),
                             projectile::Effect::Vanish,
                             projectile::Effect::Buff {

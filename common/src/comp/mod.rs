@@ -66,7 +66,7 @@ pub use phys::{
     Sticky, Vel,
 };
 pub use player::Player;
-pub use poise::{Poise, PoiseState};
+pub use poise::{Poise, PoiseChange, PoiseSource, PoiseState};
 pub use projectile::{Projectile, ProjectileConstructor};
 pub use shockwave::{Shockwave, ShockwaveHitEntities};
 pub use skills::{Skill, SkillGroup, SkillGroupKind, SkillSet};
