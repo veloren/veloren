@@ -1,5 +1,4 @@
 pub mod fast_noise;
-pub mod grid;
 pub mod map_vec;
 pub mod random;
 pub mod sampler;
@@ -11,7 +10,6 @@ pub mod unit_chooser;
 // Reexports
 pub use self::{
     fast_noise::FastNoise,
-    grid::Grid,
     map_vec::MapVec,
     random::{RandomField, RandomPerm},
     sampler::{Sampler, SamplerMut},
@@ -19,6 +17,8 @@ pub use self::{
     structure::StructureGen2d,
     unit_chooser::UnitChooser,
 };
+
+pub use common::grid::Grid;
 
 use fxhash::FxHasher32;
 use hashbrown::{HashMap, HashSet};

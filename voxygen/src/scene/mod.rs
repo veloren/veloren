@@ -304,7 +304,10 @@ impl Scene {
             terrain: Terrain::new(renderer),
             lod: Lod::new(renderer, client, settings),
             loaded_distance: 0.0,
-            map_bounds: client.world_map.2,
+            map_bounds: Vec2::new(
+                client.world_data().min_chunk_alt(),
+                client.world_data().max_chunk_alt(),
+            ),
             select_pos: None,
             light_data: Vec::new(),
             particle_mgr: ParticleMgr::new(renderer),

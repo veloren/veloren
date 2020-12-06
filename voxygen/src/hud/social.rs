@@ -266,7 +266,11 @@ impl<'a> Widget for Social<'a> {
         }
         // Online Tab
         if let SocialTab::Online = self.show.social_tab {
-            let players = self.client.player_list.iter().filter(|(_, p)| p.is_online);
+            let players = self
+                .client
+                .player_list()
+                .iter()
+                .filter(|(_, p)| p.is_online);
             let count = players.clone().count();
             let height = if count > 1 {
                 count as f64 - 1.0 + 20.0 * count as f64 - 1.0
@@ -517,12 +521,12 @@ impl<'a> Widget for Social<'a> {
                         .as_ref()
                         .map(|(s, _)| *s)
                         .filter(|selected| {
-                            self.client
-                                .player_list
-                                .get(selected)
-                                .map_or(false, |selected_player| {
+                            self.client.player_list().get(selected).map_or(
+                                false,
+                                |selected_player| {
                                     selected_player.is_online && selected_player.character.is_some()
-                                })
+                                },
+                            )
                         })
                         .or_else(|| {
                             self.selected_entity

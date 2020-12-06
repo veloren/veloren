@@ -44,7 +44,7 @@ impl CharSelectionState {
         client: &'a Client,
     ) -> (Option<comp::humanoid::Body>, Option<&'a comp::Loadout>) {
         char_selection_ui
-            .display_body_loadout(&client.character_list.characters)
+            .display_body_loadout(&client.character_list().characters)
             .map(|(body, loadout)| {
                 (
                     match body {
@@ -124,11 +124,11 @@ impl PlayState for CharSelectionState {
                         )));
                     },
                     ui::Event::ClearCharacterListError => {
-                        self.client.borrow_mut().character_list.error = None;
+                        self.char_selection_ui.error = None;
                     },
                     ui::Event::SelectCharacter(selected) => {
                         let client = self.client.borrow();
-                        let server_name = &client.server_info.name;
+                        let server_name = &client.server_info().name;
                         // Select newly created character
                         global_state
                             .profile
@@ -193,6 +193,9 @@ impl PlayState for CharSelectionState {
                             },
                             client::Event::CharacterCreated(character_id) => {
                                 self.char_selection_ui.select_character(character_id);
+                            },
+                            client::Event::CharacterError(error) => {
+                                self.char_selection_ui.display_error(error);
                             },
                             _ => {},
                         }

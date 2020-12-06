@@ -1,10 +1,10 @@
 [
     (10, Velorite),
     (15, VeloriteFrag),
-    (110, Stones),    
+    (110, Stones),
     (150, ShortGrass),
-    (60, Mushroom),
+    (120, CaveMushroom),
     (2, ShinyGem),
     (2, Chest),
-    (15, Crate),    
+    (15, Crate),
 ]
