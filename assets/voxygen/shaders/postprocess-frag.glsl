@@ -149,30 +149,6 @@ vec3 _illuminate(float max_light, vec3 view_dir, /*vec3 max_light, */vec3 emitte
     // return /*srgb_to_linear*/(/*0.5*//*0.125 * */vec3(pow(color.x, gamma), pow(color.y, gamma), pow(color.z, gamma)));
 }
 
-/*
-float depth_at(vec2 uv) {
-    float buf_depth = texture(src_depth, uv).x;
-    vec4 clip_space = vec4(uv * 2.0 - 1.0, buf_depth, 1.0);
-    vec4 view_space = proj_mat_inv * clip_space;
-    view_space /= view_space.w;
-    return -view_space.z;
-}
-
-vec3 wpos_at(vec2 uv) {
-    float buf_depth = texture(src_depth, uv).x * 2.0 - 1.0;
-    mat4 inv = view_mat_inv * proj_mat_inv;//inverse(all_mat);
-    vec4 clip_space = vec4(uv * 2.0 - 1.0, buf_depth, 1.0);
-    vec4 view_space = inv * clip_space;
-    view_space /= view_space.w;
-    if (buf_depth == 1.0) {
-        vec3 direction = normalize(view_space.xyz);
-        return direction.xyz * 100000.0 + cam_pos.xyz;
-    } else {
-        return view_space.xyz;
-    }
-}
-*/
-
 void main() {
     // TODO: precompute in the vertex shader?
     vec2 uv = (f_pos + 1.0) * 0.5;

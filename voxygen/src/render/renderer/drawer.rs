@@ -5,7 +5,7 @@ use super::{
         instances::Instances,
         model::{DynamicModel, Model, SubModel},
         pipelines::{
-            clouds, figure, fluid, particle, postprocess, sprite, terrain, ui, ColLights,
+            clouds, figure, fluid, particle, postprocess, skybox, sprite, terrain, ui, ColLights,
             GlobalsBindGroup, Light, Shadow,
         },
     },
@@ -137,18 +137,12 @@ pub struct FirstPassDrawer<'a> {
 }
 
 impl<'a> FirstPassDrawer<'a> {
-    /*pub fn draw_skybox<'b: 'a>(
-        &mut self,
-        model: &'b Model,
-        globals: &'b Consts<Globals>,
-        verts: Range<u32>,
-    ) {
+    pub fn draw_skybox<'b: 'a>(&mut self, model: &'b Model<skybox::Vertex>) {
         self.render_pass
             .set_pipeline(&self.renderer.skybox_pipeline.pipeline);
-        self.render_pass.set_bind_group(0, &globals.bind_group, &[]);
-        self.render_pass.set_vertex_buffer(0, &model.vbuf, 0, 0);
-        self.render_pass.draw(verts, 0..1);
-    }*/
+        self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
+        self.render_pass.draw(0..model.len() as u32, 0..1);
+    }
 
     pub fn draw_figure<'b: 'a>(
         &mut self,

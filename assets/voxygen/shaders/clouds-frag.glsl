@@ -42,16 +42,9 @@ uniform u_locals {
 
 layout(location = 0) out vec4 tgt_color;
 
-float depth_at(vec2 uv) {
-    float buf_depth = texture(sampler2D(t_src_depth, s_src_depth), uv).x;
-    vec4 clip_space = vec4(uv * 2.0 - 1.0, buf_depth, 1.0);
-    vec4 view_space = proj_mat_inv * clip_space;
-    view_space /= view_space.w;
-    return -view_space.z;
-}
 
 vec3 wpos_at(vec2 uv) {
-    float buf_depth = texture(sampler2D(t_src_depth, s_src_depth), uv).x * 2.0 - 1.0;
+    float buf_depth = texture(sampler2D(t_src_depth, s_src_depth), uv).x;
     mat4 inv = view_mat_inv * proj_mat_inv;//inverse(all_mat);
     vec4 clip_space = vec4((uv * 2.0 - 1.0) * vec2(1, -1), buf_depth, 1.0);
     vec4 view_space = inv * clip_space;

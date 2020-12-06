@@ -12,6 +12,8 @@ tracy-world-server = "-Zunstable-options run --bin veloren-server-cli --features
 test-voxygen = "run --bin veloren-voxygen --no-default-features --features gl,simd"
 tracy-voxygen = "-Zunstable-options run --bin veloren-voxygen --no-default-features --features tracy,gl,simd --profile no_overflow"
 server = "run --bin veloren-server-cli"
+dbg-voxygen = "run --bin veloren-voxygen -Zunstable-options --profile debuginfo"
+
 
 [env]
 RUSTC_FORCE_INCREMENTAL = "1"

@@ -1034,7 +1034,7 @@ impl Scene {
         self.lod.render(renderer, global);*/
 
         // Render the skybox.
-        // TODO: renderer.render_skybox(&self.skybox.model, global, lod);
+        drawer.draw_skybox(&self.skybox.model);
 
         /*self.terrain.render_translucent(
             renderer,
