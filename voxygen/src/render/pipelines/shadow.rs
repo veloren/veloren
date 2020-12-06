@@ -65,7 +65,7 @@ pub fn create_col_lights(
         mip_level_count: 1,
         sample_count: 1,
         dimension: wgpu::TextureDimension::D2,
-        format: wgpu::TextureFormat::Rgba8UnormSrgb,
+        format: wgpu::TextureFormat::Rgba8Unorm,
         usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
     };
 
@@ -83,7 +83,7 @@ pub fn create_col_lights(
 
     let view_info = wgpu::TextureViewDescriptor {
         label: None,
-        format: Some(wgpu::TextureFormat::Rgba8UnormSrgb),
+        format: Some(wgpu::TextureFormat::Rgba8Unorm),
         dimension: Some(wgpu::TextureViewDimension::D2),
         aspect: wgpu::TextureAspect::All,
         base_mip_level: 0,
