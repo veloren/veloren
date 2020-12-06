@@ -1,7 +1,7 @@
 use crate::{
     mesh::{greedy::GreedyMesh, segment::generate_mesh_base_vol_terrain},
     render::{
-        create_skybox_mesh, BoneMeshes, Consts, FigureModel, GlobalModel, Globals,
+        create_skybox_mesh, BoneMeshes, Consts, FigureModel, FirstPassDrawer, GlobalModel, Globals,
         GlobalsBindGroup, Light, LodData, Mesh, Model, Renderer, Shadow, ShadowLocals,
         SkyboxVertex, TerrainVertex,
     },
@@ -346,20 +346,13 @@ impl Scene {
 
     pub fn global_bind_group(&self) -> &GlobalsBindGroup { &self.globals_bind_group }
 
-    pub fn render(
-        &mut self,
-        renderer: &mut Renderer,
+    pub fn render<'a>(
+        &'a self,
+        drawer: &mut FirstPassDrawer<'a>,
         tick: u64,
         body: Option<humanoid::Body>,
         inventory: Option<&Inventory>,
     ) {
-        /*renderer.render_skybox(
-            &self.skybox.model,
-            &self.data,
-            &self.skybox.locals,
-            &self.lod,
-        );*/
-
         if let Some(body) = body {
             let model = &self.figure_model_cache.get_model(
                 &self.col_lights,
@@ -371,40 +364,20 @@ impl Scene {
             );
 
             if let Some(model) = model {
-                // renderer.render_figure(
-                //     &model.models[0],
-                //     &self.col_lights.texture(model),
-                //     &self.data,
-                //     self.figure_state.locals(),
-                //     self.figure_state.bone_consts(),
-                //     &self.lod,
-                // );
+                drawer.draw_figure(
+                    model.lod_model(0),
+                    self.figure_state.bound(),
+                    &self.col_lights.texture(model),
+                );
             }
         }
 
         if let Some((model, state)) = &self.backdrop {
-            /*renderer.render_figure(
-                &model.models[0],
+            drawer.draw_figure(
+                model.lod_model(0),
+                state.bound(),
                 &self.col_lights.texture(model),
-                &self.data,
-                state.locals(),
-                state.bone_consts(),
-                &self.lod,
-            );*/
+            );
         }
-
-        // renderer.render_clouds(
-        //     &self.clouds.model,
-        //     &self.data.globals,
-        //     &self.clouds.locals,
-        //     &self.lod,
-        // );
-
-        // renderer.render_post_process(
-        //     &self.postprocess.model,
-        //     &self.data.globals,
-        //     &self.postprocess.locals,
-        //     &self.lod,
-        // );
     }
 }

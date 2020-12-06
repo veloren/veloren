@@ -241,13 +241,9 @@ impl PlayState for CharSelectionState {
         let (humanoid_body, loadout) =
             Self::get_humanoid_body_inventory(&self.char_selection_ui, &client);
 
-        // Render the scene.
-        //self.scene
-        //    .render(renderer, client.get_tick(), humanoid_body, loadout);
+        self.scene
+            .render(&mut drawer.first_pass(), client.get_tick(), humanoid_body, loadout);
 
-        // Render world
-        /* let mut first_pass = */
-        drawer.first_pass();
         // Clouds
         drawer.second_pass().draw_clouds();
         // PostProcess and UI

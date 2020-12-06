@@ -144,6 +144,7 @@ impl CloudsPipeline {
         vs_module: &wgpu::ShaderModule,
         fs_module: &wgpu::ShaderModule,
         global_layout: &GlobalsLayouts,
+        sc_desc: &wgpu::SwapChainDescriptor,
         layout: &CloudsLayout,
         aa_mode: AaMode,
     ) -> Self {
@@ -177,7 +178,7 @@ impl CloudsPipeline {
             rasterization_state: None,
             primitive_topology: wgpu::PrimitiveTopology::TriangleList,
             color_states: &[wgpu::ColorStateDescriptor {
-                format: wgpu::TextureFormat::Rgba8UnormSrgb,
+                format: sc_desc.format,
                 color_blend: wgpu::BlendDescriptor::REPLACE,
                 alpha_blend: wgpu::BlendDescriptor::REPLACE,
                 write_mask: wgpu::ColorWrite::ALL,

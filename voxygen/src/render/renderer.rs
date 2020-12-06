@@ -612,13 +612,13 @@ impl Renderer {
                 mip_level_count: levels,
                 sample_count,
                 dimension: wgpu::TextureDimension::D2,
-                format: wgpu::TextureFormat::Rgba8UnormSrgb,
+                format: wgpu::TextureFormat::Bgra8UnormSrgb,
                 usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::RENDER_ATTACHMENT,
             });
 
             tex.create_view(&wgpu::TextureViewDescriptor {
                 label: None,
-                format: Some(wgpu::TextureFormat::Rgba8UnormSrgb),
+                format: Some(wgpu::TextureFormat::Bgra8UnormSrgb),
                 dimension: Some(wgpu::TextureViewDimension::D2),
                 // TODO: why is this not Color?
                 aspect: wgpu::TextureAspect::All,
@@ -2160,6 +2160,7 @@ fn create_pipelines(
         &create_shader("clouds-frag", ShaderKind::Fragment)?,
         // TODO: pass in format of intermediate color buffer
         &layouts.global,
+        sc_desc,
         &layouts.clouds,
         mode.aa,
     );

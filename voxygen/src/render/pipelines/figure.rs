@@ -1,5 +1,5 @@
 use super::{
-    super::{AaMode, GlobalsLayouts, Mesh, Model},
+    super::{AaMode, Bound, Consts, GlobalsLayouts, Mesh, Model, Texture},
     terrain::Vertex,
 };
 use crate::mesh::greedy::GreedyMesh;
@@ -24,6 +24,9 @@ pub struct BoneData {
     bone_mat: [[f32; 4]; 4],
     normals_mat: [[f32; 4]; 4],
 }
+
+pub type BoundLocals = Bound<(Consts<Locals>, Consts<BoneData>)>;
+pub type ColLights = Bound<Texture>;
 
 impl Locals {
     pub fn new(
@@ -99,6 +102,7 @@ pub type BoneMeshes = (Mesh<Vertex>, anim::vek::Aabb<f32>);
 
 pub struct FigureLayout {
     pub locals: wgpu::BindGroupLayout,
+    pub col_light: wgpu::BindGroupLayout,
 }
 
 impl FigureLayout {
@@ -129,9 +133,14 @@ impl FigureLayout {
                         },
                         count: None,
                     },
+                ],
+            }),
+            col_light: device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                label: None,
+                entries: &[
                     // col lights
                     wgpu::BindGroupLayoutEntry {
-                        binding: 2,
+                        binding: 0,
                         visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
                         ty: wgpu::BindingType::Texture {
                             sample_type: wgpu::TextureSampleType::Float { filterable: true },
@@ -141,13 +150,65 @@ impl FigureLayout {
                         count: None,
                     },
                     wgpu::BindGroupLayoutEntry {
-                        binding: 3,
+                        binding: 1,
                         visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                        ty: wgpu::BindingType::Sampler {  filtering: true, comparison: false },
+                        ty: wgpu::BindingType::Sampler {
+                            filtering: true,
+                            comparison: false,
+                        },
                         count: None,
                     },
                 ],
             }),
+        }
+    }
+
+    pub fn bind_locals(
+        &self,
+        device: &wgpu::Device,
+        locals: Consts<Locals>,
+        bone_data: Consts<BoneData>,
+    ) -> BoundLocals {
+        let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: None,
+            layout: &self.locals,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: locals.buf().as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: bone_data.buf().as_entire_binding(),
+                },
+            ],
+        });
+
+        BoundLocals {
+            bind_group,
+            with: (locals, bone_data),
+        }
+    }
+
+    pub fn bind_texture(&self, device: &wgpu::Device, col_light: Texture) -> ColLights {
+        let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: None,
+            layout: &self.col_light,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&col_light.view),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Sampler(&col_light.sampler),
+                },
+            ],
+        });
+
+        ColLights {
+            bind_group,
+            with: col_light,
         }
     }
 }
@@ -171,7 +232,7 @@ impl FigurePipeline {
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Figure pipeline layout"),
                 push_constant_ranges: &[],
-                bind_group_layouts: &[&global_layout.globals, &layout.locals],
+                bind_group_layouts: &[&global_layout.globals, &layout.locals, &layout.col_light],
             });
 
         let samples = match aa_mode {

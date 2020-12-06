@@ -1,7 +1,7 @@
 use super::{
     super::{
         consts::Consts,
-        pipelines::{lod_terrain, ui, GlobalModel, GlobalsBindGroup},
+        pipelines::{figure, lod_terrain, ui, GlobalModel, GlobalsBindGroup},
         texture::Texture,
     },
     Renderer,
@@ -35,5 +35,21 @@ impl Renderer {
 
     pub fn ui_bind_texture(&self, texture: &Texture) -> ui::TextureBindGroup {
         self.layouts.ui.bind_texture(&self.device, texture)
+    }
+
+    pub fn create_figure_bound_locals(
+        &mut self,
+        locals: &[figure::Locals],
+        bone_data: &[figure::BoneData],
+    ) -> figure::BoundLocals {
+        let locals = self.create_consts(locals);
+        let bone_data = self.create_consts(bone_data);
+        self.layouts
+            .figure
+            .bind_locals(&self.device, locals, bone_data)
+    }
+
+    pub fn figure_bind_texture(&self, col_light: Texture) -> figure::ColLights {
+        self.layouts.figure.bind_texture(&self.device, col_light)
     }
 }

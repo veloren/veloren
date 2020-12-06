@@ -37,9 +37,9 @@ layout(location = 1) flat in vec3 f_norm;
 // const vec4 sun_pos = vec4(0.0);
 // #endif
 
-layout(set = 1, binding = 2)
+layout(set = 2, binding = 0)
 uniform texture2D t_col_light;
-layout(set = 1, binding = 3)
+layout(set = 2, binding = 1)
 uniform sampler s_col_light;
 
 //struct ShadowLocals {

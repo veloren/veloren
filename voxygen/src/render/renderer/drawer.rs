@@ -3,7 +3,7 @@ use super::{
         buffer::Buffer,
         consts::Consts,
         instances::Instances,
-        model::{DynamicModel, Model},
+        model::{DynamicModel, SubModel,Model},
         pipelines::{
             clouds, figure, fluid, particle, postprocess, sprite, terrain, ui, GlobalsBindGroup,
             Light, Shadow,
@@ -109,7 +109,6 @@ impl<'a> Drawer<'a> {
                             store: true,
                         },
                     }],
-                    // TODO: do we need this?
                     depth_stencil_attachment: None,
                 });
 
@@ -149,49 +148,37 @@ impl<'a> FirstPassDrawer<'a> {
         self.render_pass.set_bind_group(0, &globals.bind_group, &[]);
         self.render_pass.set_vertex_buffer(0, &model.vbuf, 0, 0);
         self.render_pass.draw(verts, 0..1);
-    }
+    }*/
 
     pub fn draw_figure<'b: 'a>(
         &mut self,
-        model: &'b Model,
-        locals: &'b Consts<figure::Locals>,
-        bones: &'b Consts<figure::BoneData>,
-        globals: &'b Consts<Globals>,
-        lights: &'b Consts<Light>,
-        shadows: &'b Consts<Shadow>,
-        verts: Range<u32>,
+        model: SubModel<'b, terrain::Vertex>,
+        locals: &'b figure::BoundLocals,
+        col_lights: &'b figure::ColLights
     ) {
         self.render_pass
             .set_pipeline(&self.renderer.figure_pipeline.pipeline);
-        self.render_pass.set_bind_group(0, &globals.bind_group, &[]);
-        self.render_pass.set_bind_group(1, &lights.bind_group, &[]);
-        self.render_pass.set_bind_group(2, &shadows.bind_group, &[]);
-        self.render_pass.set_bind_group(3, &locals.bind_group, &[]);
-        self.render_pass.set_bind_group(4, &bones.bind_group, &[]);
-        self.render_pass.set_vertex_buffer(0, &model.vbuf, 0, 0);
-        self.render_pass.draw(verts, 0..1);
+        self.render_pass.set_bind_group(1, &locals.bind_group, &[]);
+        self.render_pass.set_bind_group(2, &col_lights.bind_group, &[]);
+        self.render_pass
+            .set_vertex_buffer(0, model.buf());
+        self.render_pass.draw(0..model.len(), 0..1);
     }
 
     pub fn draw_terrain<'b: 'a>(
         &mut self,
-        model: &'b Model,
-        locals: &'b Consts<terrain::Locals>,
-        globals: &'b Consts<Globals>,
-        lights: &'b Consts<Light>,
-        shadows: &'b Consts<Shadow>,
-        verts: Range<u32>,
+        model: &'b SubModel<terrain::Vertex>,
+        locals: &'b terrain::BoundLocals,
     ) {
         self.render_pass
             .set_pipeline(&self.renderer.terrain_pipeline.pipeline);
-        self.render_pass.set_bind_group(0, &globals.bind_group, &[]);
-        self.render_pass.set_bind_group(1, &lights.bind_group, &[]);
-        self.render_pass.set_bind_group(2, &shadows.bind_group, &[]);
-        self.render_pass.set_bind_group(3, &locals.bind_group, &[]);
-        self.render_pass.set_vertex_buffer(0, &model.vbuf, 0, 0);
-        self.render_pass.draw(verts, 0..1)
+        self.render_pass.set_bind_group(1, &locals.bind_group, &[]);
+        self.render_pass
+            .set_vertex_buffer(0, model.buf());
+        self.render_pass.draw(0..model.len(), 0..1)
     }
 
-    pub fn draw_fluid<'b: 'a>(
+    /*pub fn draw_fluid<'b: 'a>(
         &mut self,
         model: &'b Model,
         locals: &'b Consts<terrain::Locals>,
