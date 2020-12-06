@@ -178,7 +178,7 @@ impl<'a> Widget for Group<'a> {
         }
 
         // Helper
-        let uid_to_name_text = |uid, client: &Client| match client.player_list.get(&uid) {
+        let uid_to_name_text = |uid, client: &Client| match client.player_list().get(&uid) {
             Some(player_info) => player_info
                 .character
                 .as_ref()

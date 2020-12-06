@@ -108,6 +108,7 @@ make_case_elim!(
         ChestBurried = 0x52,
         Mud = 0x53,
         FireBowlGround = 0x54,
+        CaveMushroom = 0x55,
     }
 );
 

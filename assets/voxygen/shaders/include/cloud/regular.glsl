@@ -44,6 +44,8 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
     float turb_noise = 0.0;
     float sun_access = 0.0;
     float moon_access = 0.0;
+    float cloud_sun_access = 0.0;
+    float cloud_moon_access = 0.0;
     // This is a silly optimisation but it actually nets us a fair few fps by skipping quite a few expensive calcs
     if (cloud_tendency > 0 || mist > 0.0) {
         // Turbulence (small variations in clouds/mist)
@@ -66,9 +68,9 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
         cloud = cloud_flat * pow(cloud_factor, 2) * 20;
 
         // What proportion of sunlight is *not* being blocked by nearby cloud? (approximation)
-        sun_access = clamp((pos.z - cloud_attr.x + turb_noise * 250.0) * 0.002 + 0.35 + max(mist * 20000, 0), 0, 1);
+        cloud_sun_access = clamp((pos.z - cloud_attr.x + turb_noise * 250.0) * 0.002 + 0.35, 0, 1);
         // Since we're assuming the sun/moon is always above (not always correct) it's the same for the moon
-        moon_access = sun_access;
+        cloud_moon_access = sun_access;
 
         #if (CLOUD_MODE >= CLOUD_MODE_HIGH)
             // Try to calculate a reasonable approximation of the cloud normal
@@ -79,10 +81,15 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
                 (cloud_tendency - cloud_tendency_y) * 4,
                 (pos.z - cloud_attr.x) / 250 + turb_noise + 0.25
             );
-            sun_access = mix(max(dot(-sun_dir.xyz, cloud_norm) + 0.0, 0.025), sun_access, 0.25);
-            moon_access = mix(max(dot(-moon_dir.xyz, cloud_norm) + 0.35, 0.025), moon_access, 0.25);
+            cloud_sun_access = mix(max(dot(-sun_dir.xyz, cloud_norm) + 0.0, 0.025), cloud_sun_access, 0.25);
+            cloud_moon_access = mix(max(dot(-moon_dir.xyz, cloud_norm) + 0.35, 0.025), cloud_moon_access, 0.25);
         #endif
     }
+
+    float mist_sun_access = 0.5 + turb_noise * 0.5;
+    float mist_moon_access = mist_sun_access;
+    sun_access = mix(cloud_sun_access, mist_sun_access, clamp(mist * 20000, 0, 1));
+    moon_access = mix(cloud_moon_access, mist_moon_access, clamp(mist * 20000, 0, 1));
 
     // Prevent mist (i.e: vapour beneath clouds) being accessible to the sun to avoid visual problems
     //float suppress_mist = clamp((pos.z - cloud_attr.x + cloud_attr.y) / 300, 0, 1);
@@ -101,6 +108,9 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
         float emission_alt = 4000.0;
         #if (CLOUD_MODE >= CLOUD_MODE_LOW)
             emission_alt += (noise_3d(vec3(wind_pos.xy * 0.00003 + cloud_tendency * 0.2, time_of_day.x * 0.0001)) - 0.5) * 6000;
+        #endif
+        #if (CLOUD_MODE >= CLOUD_MODE_HIGH)
+            emission_alt += (noise_3d(vec3(wind_pos.xy * 0.0005 + cloud_tendency * 0.2, emission_alt * 0.0001 + time_of_day.x * 0.0005)) - 0.5) * 1000;
         #endif
         float tail = (texture(t_noise, wind_pos.xy * 0.00005).x - 0.5) * 10 + (z - emission_alt) * 0.001;
         vec3 emission_col = vec3(0.6 + tail * 0.6, 1.0, 0.3 + tail * 0.2);
