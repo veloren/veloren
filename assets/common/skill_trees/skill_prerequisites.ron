@@ -1,0 +1,12 @@
+({
+    UnlockGroup(Weapon(Sword)): {General(HealthIncrease): Some(1)},
+    UnlockGroup(Weapon(Axe)): {General(HealthIncrease): Some(1)},
+    UnlockGroup(Weapon(Hammer)): {General(HealthIncrease): Some(1)},
+    UnlockGroup(Weapon(Bow)): {General(HealthIncrease): Some(1)},
+    UnlockGroup(Weapon(Staff)): {General(HealthIncrease): Some(1)},
+    UnlockGroup(Weapon(Sceptre)): {General(HealthIncrease): Some(1)},
+    Sword(SDamage): {Sword(SUnlockSpin): None},
+    Sword(SSpeed): {Sword(SUnlockSpin): None},
+    Sword(SCost): {Sword(SUnlockSpin): None},
+    Sword(SSpins): {Sword(SUnlockSpin): None},
+})
