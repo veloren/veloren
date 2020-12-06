@@ -20,15 +20,15 @@ impl Animation for SwimAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (velocity, orientation, last_ori, _global_time, avg_vel, acc_vel): Self::Dependency,
-        anim_time: f64,
+        _anim_time: f64,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let slowalt = (anim_time as f32 * 2.5 + PI + 0.2).sin();
-        let fast = (acc_vel * 4.0 + PI).sin();
-        let fastalt = (acc_vel * 4.0 + PI + 0.2).sin();
+        let slowalt = (acc_vel as f32 * s_a.tempo / 1.5 + PI + 0.2).sin();
+        let fast = (acc_vel * s_a.tempo + PI).sin();
+        let fastalt = (acc_vel * s_a.tempo + PI + 0.2).sin();
 
         let ori: Vec2<f32> = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);
@@ -43,10 +43,9 @@ impl Animation for SwimAnimation {
         } else {
             0.0
         } * 1.3;
-        let abstilt = tilt.abs();
         let x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude());
-
-        println!("{}", acc_vel);
+        let vel = (velocity.magnitude()).min(s_a.amplitude);
+        let slowvel = vel * 0.1;
 
         next.chest_front.scale = Vec3::one() / 11.0;
 
@@ -54,28 +53,22 @@ impl Animation for SwimAnimation {
         next.head.orientation = Quaternion::rotation_z(slowalt * -0.1 + tilt * -2.0);
 
         next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
-        next.jaw.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
 
         next.chest_front.position = Vec3::new(0.0, s_a.chest_front.0, s_a.chest_front.1) / 11.0;
-        next.chest_front.orientation =
-            Quaternion::rotation_x(velocity.z.abs() * -0.005 + abstilt * 1.0 + x_tilt)
-                * Quaternion::rotation_z(fast * velocity.magnitude() * -0.02);
+        next.chest_front.orientation = Quaternion::rotation_x(velocity.z.abs() * -0.005 + x_tilt)
+            * Quaternion::rotation_z(fast * vel * -0.02);
 
         next.chest_back.position = Vec3::new(0.0, s_a.chest_back.0, s_a.chest_back.1);
-        next.chest_back.orientation =
-            Quaternion::rotation_z(fastalt * velocity.magnitude() * 0.1 + tilt * 2.0);
+        next.chest_back.orientation = Quaternion::rotation_z(fastalt * slowvel + tilt * 2.0);
 
         next.tail.position = Vec3::new(0.0, s_a.tail.0, s_a.tail.1);
-        next.tail.orientation =
-            Quaternion::rotation_z(fast * velocity.magnitude() * 0.1 + tilt * 2.0);
+        next.tail.orientation = Quaternion::rotation_z(fast * slowvel + tilt * 2.0);
 
         next.fin_l.position = Vec3::new(-s_a.fin.0, s_a.fin.1, s_a.fin.2);
-        next.fin_l.orientation =
-            Quaternion::rotation_z(fast * velocity.magnitude() * 0.1 - 0.1 + tilt * -0.5);
+        next.fin_l.orientation = Quaternion::rotation_z(fast * slowvel - 0.1 + tilt * -0.5);
 
         next.fin_r.position = Vec3::new(s_a.fin.0, s_a.fin.1, s_a.fin.2);
-        next.fin_r.orientation =
-            Quaternion::rotation_z(fast * velocity.magnitude() * -0.1 + 0.1 + tilt * -0.5);
+        next.fin_r.orientation = Quaternion::rotation_z(fast * -slowvel + 0.1 + tilt * -0.5);
         next
     }
 }

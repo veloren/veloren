@@ -1,21 +1,25 @@
-use super::{super::Animation, FishMediumSkeleton, SkeletonAttr};
-//use std::{f32::consts::PI, ops::Mul};
-use super::super::vek::*;
+use super::{
+    super::{vek::*, Animation},
+    FishMediumSkeleton, SkeletonAttr,
+};
 use std::f32::consts::PI;
 
 pub struct IdleAnimation;
 
+type IdleAnimationDependency = (Vec3<f32>, Vec3<f32>, Vec3<f32>, f64, Vec3<f32>);
+
 impl Animation for IdleAnimation {
-    type Dependency = f64;
+    type Dependency = IdleAnimationDependency;
     type Skeleton = FishMediumSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"fish_medium_idle\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "fish_medium_idle")]
+
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        _global_time: Self::Dependency,
+        (_velocity, _orientation, _last_ori, _global_time, _avg_vel): Self::Dependency,
         anim_time: f64,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -31,7 +35,6 @@ impl Animation for IdleAnimation {
         next.head.orientation = Quaternion::rotation_z(slowalt * -0.1);
 
         next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
-        next.jaw.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
 
         next.chest_front.position = Vec3::new(0.0, s_a.chest_front.0, s_a.chest_front.1) / 11.0;
         next.chest_front.orientation = Quaternion::rotation_x(0.0);
