@@ -118,12 +118,11 @@ pub fn handle_shoot(
 ) {
     let state = server.state_mut();
 
-    let mut pos = state
-        .ecs()
-        .read_storage::<Pos>()
-        .get(entity)
-        .expect("Failed to fetch entity")
-        .0;
+    let mut pos = if let Some(pos) = state.ecs().read_storage::<Pos>().get(entity) {
+        pos.0
+    } else {
+        return;
+    };
 
     let vel = *dir * speed;
 
