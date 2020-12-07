@@ -1022,15 +1022,8 @@ impl Scene {
 
         self.terrain.render(drawer, focus_pos);
 
-        /* self.figure_mgr.render(
-            renderer,
-            state,
-            player_entity,
-            tick,
-            global,
-            lod,
-            camera_data,
-        );*/
+        self.figure_mgr
+            .render(drawer, state, player_entity, tick, global, lod, camera_data);
 
         self.lod.render(drawer);
 
