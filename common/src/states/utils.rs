@@ -1,8 +1,10 @@
 use crate::{
     comp::{
         inventory::slot::EquipSlot,
-        item::{Hands, ItemKind, Tool},
-        quadruped_low, quadruped_medium, theropod, Body, CharacterState, StateUpdate,
+        item::{Hands, ItemKind, Tool, ToolKind},
+        quadruped_low, quadruped_medium,
+        skills::{Skill, SwordSkill},
+        theropod, Body, CharacterState, StateUpdate,
     },
     consts::{FRIC_GROUND, GRAVITY},
     event::LocalEvent,
@@ -386,10 +388,19 @@ pub fn handle_ability1_input(data: &JoinData, update: &mut StateUpdate) {
         if let Some(ability) = data
             .inventory
             .equipped(EquipSlot::Mainhand)
-            .and_then(|i| i.item_config_expect().ability1.as_ref())
+            .and_then(|i| {
+                i.item_config_expect().ability1.as_ref().map(|a| {
+                    let tool = match i.kind() {
+                        ItemKind::Tool(tool) => Some(tool.kind),
+                        _ => None,
+                    };
+                    a.clone()
+                        .adjusted_by_skills(&data.stats.skill_set.skills, tool)
+                })
+            })
             .filter(|ability| ability.requirements_paid(data, update))
         {
-            update.character = (ability, AbilityKey::Mouse1).into();
+            update.character = (&ability, AbilityKey::Mouse1).into();
         }
     }
 }
@@ -422,20 +433,38 @@ pub fn handle_ability2_input(data: &JoinData, update: &mut StateUpdate) {
                 if let Some(ability) = data
                     .inventory
                     .equipped(EquipSlot::Mainhand)
-                    .and_then(|i| i.item_config_expect().ability2.as_ref())
+                    .and_then(|i| {
+                        i.item_config_expect().ability2.as_ref().map(|a| {
+                            let tool = match i.kind() {
+                                ItemKind::Tool(tool) => Some(tool.kind),
+                                _ => None,
+                            };
+                            a.clone()
+                                .adjusted_by_skills(&data.stats.skill_set.skills, tool)
+                        })
+                    })
                     .filter(|ability| ability.requirements_paid(data, update))
                 {
-                    update.character = (ability, AbilityKey::Mouse2).into();
+                    update.character = (&ability, AbilityKey::Mouse2).into();
                 }
             },
             (_, Some(Hands::OneHand)) => {
                 if let Some(ability) = data
                     .inventory
                     .equipped(EquipSlot::Offhand)
-                    .and_then(|i| i.item_config_expect().ability2.as_ref())
+                    .and_then(|i| {
+                        i.item_config_expect().ability2.as_ref().map(|a| {
+                            let tool = match i.kind() {
+                                ItemKind::Tool(tool) => Some(tool.kind),
+                                _ => None,
+                            };
+                            a.clone()
+                                .adjusted_by_skills(&data.stats.skill_set.skills, tool)
+                        })
+                    })
                     .filter(|ability| ability.requirements_paid(data, update))
                 {
-                    update.character = (ability, AbilityKey::Mouse2).into();
+                    update.character = (&ability, AbilityKey::Mouse2).into();
                 }
             },
             (_, _) => {},
@@ -448,10 +477,33 @@ pub fn handle_ability3_input(data: &JoinData, update: &mut StateUpdate) {
         if let Some(ability) = data
             .inventory
             .equipped(EquipSlot::Mainhand)
-            .and_then(|i| i.item_config_expect().ability3.as_ref())
+            .and_then(|i| {
+                let tool = match i.kind() {
+                    ItemKind::Tool(tool) => Some(tool.kind),
+                    _ => None,
+                };
+                i.item_config_expect().ability3
+                    .as_ref()
+                    .and_then(|s| match tool {
+                        Some(ToolKind::Sword)
+                            if !&data
+                                .stats
+                                .skill_set
+                                .skills
+                                .contains_key(&Skill::Sword(SwordSkill::SUnlockSpin)) =>
+                        {
+                            None
+                        },
+                        _ => Some(s),
+                    })
+                    .map(|a| {
+                        a.clone()
+                            .adjusted_by_skills(&data.stats.skill_set.skills, tool)
+                    })
+            })
             .filter(|ability| ability.requirements_paid(data, update))
         {
-            update.character = (ability, AbilityKey::Skill1).into();
+            update.character = (&ability, AbilityKey::Skill1).into();
         }
     }
 }

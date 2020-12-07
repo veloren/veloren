@@ -74,9 +74,10 @@ pub struct StaticData {
     /// Energy gain increase per combo
     pub energy_increase: u32,
     /// (100% - speed_increase) is percentage speed increases from current to
-    /// max when combo increases
+    /// max per combo increase
     pub speed_increase: f32,
-    /// (100% + max_speed_increase) is the max attack speed
+    /// This value is the highest percentage speed can increase from the base
+    /// speed
     pub max_speed_increase: f32,
     /// Number of times damage scales with combo
     pub scales_from_combo: u32,

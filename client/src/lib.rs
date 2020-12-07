@@ -957,6 +957,86 @@ impl Client {
                                 SkillGroupType::Weapon(Sword),
                             )));
                         },
+                        "@unlock sword interrupt" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Sword(
+                                SwordSkill::InterruptingAttacks,
+                            )));
+                        },
+                        "@unlock sword combo" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Sword(
+                                SwordSkill::TsCombo,
+                            )));
+                        },
+                        "@unlock sword combo damage" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Sword(
+                                SwordSkill::TsDamage,
+                            )));
+                        },
+                        "@unlock sword combo regen" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Sword(
+                                SwordSkill::TsRegen,
+                            )));
+                        },
+                        "@unlock sword combo speed" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Sword(
+                                SwordSkill::TsSpeed,
+                            )));
+                        },
+                        "@unlock sword dash cost" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Sword(
+                                SwordSkill::DCost,
+                            )));
+                        },
+                        "@unlock sword dash drain" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Sword(
+                                SwordSkill::DDrain,
+                            )));
+                        },
+                        "@unlock sword dash damage" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Sword(
+                                SwordSkill::DDamage,
+                            )));
+                        },
+                        "@unlock sword dash scaling" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Sword(
+                                SwordSkill::DScaling,
+                            )));
+                        },
+                        "@unlock sword dash speed" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Sword(
+                                SwordSkill::DSpeed,
+                            )));
+                        },
+                        "@unlock sword dash infinite" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Sword(
+                                SwordSkill::DInfinite,
+                            )));
+                        },
+                        "@unlock sword spin unlock" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Sword(
+                                SwordSkill::SUnlockSpin,
+                            )));
+                        },
+                        "@unlock sword spin damage" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Sword(
+                                SwordSkill::SDamage,
+                            )));
+                        },
+                        "@unlock sword spin speed" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Sword(
+                                SwordSkill::SSpeed,
+                            )));
+                        },
+                        "@unlock sword spin cost" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Sword(
+                                SwordSkill::SCost,
+                            )));
+                        },
+                        "@unlock sword spin num" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Sword(
+                                SwordSkill::SSpins,
+                            )));
+                        },
                         "@unlock axe" => {
                             self.send_msg(ClientGeneral::UnlockSkill(Skill::UnlockGroup(
                                 SkillGroupType::Weapon(Axe),

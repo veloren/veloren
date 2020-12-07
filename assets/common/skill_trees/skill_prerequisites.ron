@@ -9,4 +9,12 @@
     Sword(SSpeed): {Sword(SUnlockSpin): None},
     Sword(SCost): {Sword(SUnlockSpin): None},
     Sword(SSpins): {Sword(SUnlockSpin): None},
+    Sword(DDrain): {Sword(DDamage): Some(1)},
+    Sword(DCost): {Sword(DDamage): Some(1)},
+    Sword(DSpeed): {Sword(DDamage): Some(1)},
+    Sword(DInfinite): {Sword(DDamage): Some(1)},
+    Sword(DScaling): {Sword(DDamage): Some(1)},
+    Sword(TsDamage): {Sword(TsCombo): None},
+    Sword(TsRegen): {Sword(TsCombo): None},
+    Sword(TsSpeed): {Sword(TsCombo): None},
 })
