@@ -133,6 +133,23 @@ impl Vertex {
             col.g, // Green is lucky, it remains unscathed
         ]
     }
+
+    pub fn make_col_light_figure(
+        // 0 to 31
+        light: u8,
+        glowy: bool,
+        shiny: bool,
+        col: Rgb<u8>,
+    ) -> <<ColLightFmt as gfx::format::Formatted>::Surface as gfx::format::SurfaceTyped>::DataType
+    {
+        let attr = 0 | ((glowy as u8) << 0) | ((shiny as u8) << 1);
+        [
+            (light.min(31) << 3) | ((col.r >> 1) & 0b111),
+            (attr.min(31) << 3) | ((col.b >> 1) & 0b111),
+            (col.r & 0b11110000) | (col.b >> 4),
+            col.g, // Green is lucky, it remains unscathed
+        ]
+    }
 }
 
 impl Locals {

@@ -70,7 +70,7 @@ uniform u_bones {
     BoneData bones[16];
 };
 
-#include <sky.glsl>
+#include <cloud.glsl>
 #include <light.glsl>
 #include <lod.glsl>
 
@@ -87,7 +87,9 @@ void main() {
     // float f_ao = f_col_light.a;
 
     float f_ao, f_glow;
-    vec3 f_col = greedy_extract_col_light_glow(t_col_light, f_uv_pos, f_ao, f_glow);
+    uint material = 0xFFu;
+    vec3 f_col = greedy_extract_col_light_attr(t_col_light, f_uv_pos, f_ao, f_glow, material);
+
     // float /*f_light*/f_ao = textureProj(t_col_light, vec3(f_uv_pos, texSize)).a;//1.0;//f_col_light.a * 4.0;// f_light = float(v_col_light & 0x3Fu) / 64.0;
 
     // vec3 my_chunk_pos = (vec3((uvec3(f_pos_norm) >> uvec3(0, 9, 18)) & uvec3(0x1FFu)) - 256.0) / 2.0;
@@ -161,6 +163,10 @@ void main() {
     vec3 k_d = vec3(1.0);
     vec3 k_s = vec3(R_s);
 
+    if ((material & (1u << 1u)) > 0u) {
+        k_s = vec3(10.0);
+    }
+
     vec3 emitted_light, reflected_light;
 
     // Make voxel shadows block the sun and moon
@@ -184,10 +190,15 @@ void main() {
 
     float ao = f_ao * sqrt(f_ao);//0.25 + f_ao * 0.75; ///*pow(f_ao, 0.5)*/f_ao * 0.85 + 0.15;
 
+    if ((material & (1u << 0u)) > 0u) {
+        emitted_light *= 1000;
+    }
+
     float glow_mag = length(model_glow.xyz);
     vec3 glow = pow(model_glow.w, 2) * 4
         * glow_light(f_pos)
         * (max(dot(f_norm, model_glow.xyz / glow_mag) * 0.5 + 0.5, 0.0) + max(1.0 - glow_mag, 0.0));
+
     emitted_light += glow;
 
     reflected_light *= ao;
@@ -206,7 +217,16 @@ void main() {
     // diffuse_light += point_light;
     // reflected_light += point_light;
     // vec3 surf_color = illuminate(srgb_to_linear(highlight_col.rgb * f_col), light, diffuse_light, ambient_light);
-    surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light) * highlight_col.rgb;
+    float reflectance = 0.0;
+    vec3 reflect_color = vec3(0);
+    if ((material & (1u << 1u)) > 0u) {
+        vec3 reflect_ray_dir = reflect(cam_to_frag, f_norm);
+        reflect_color = get_sky_color(reflect_ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.125, true);
+        reflect_color = get_cloud_color(reflect_color, reflect_ray_dir, cam_pos.xyz, time_of_day.x, 100000.0, 0.25);
+        reflectance = 0.15;
+    }
+
+    surf_color = illuminate(max_light, view_dir, mix(surf_color * emitted_light, reflect_color, reflectance), mix(surf_color * reflected_light, reflect_color, reflectance)) * highlight_col.rgb;
 
     // if ((flags & 1) == 1 && int(cam_mode) == 1) {
     //  float distance = distance(vec3(cam_pos), focus_pos.xyz) - 2;

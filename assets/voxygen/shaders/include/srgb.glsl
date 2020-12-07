@@ -618,7 +618,7 @@ vec3 compute_attenuation_point(vec3 wpos, vec3 ray_dir, vec3 mu, float surface_a
 //}
 //#endif
 
-vec3 greedy_extract_col_light_glow(sampler2D t_col_light, vec2 f_uv_pos, out float f_light, out float f_glow) {
+vec3 greedy_extract_col_light_attr(sampler2D t_col_light, vec2 f_uv_pos, out float f_light, out float f_glow, out uint f_attr) {
     uvec4 f_col_light = uvec4(texelFetch(t_col_light, ivec2(f_uv_pos), 0) * 255);
     vec3 f_col = vec3(
         float(((f_col_light.r & 0x7u) << 1u) | (f_col_light.b & 0xF0u)),
@@ -640,5 +640,11 @@ vec3 greedy_extract_col_light_glow(sampler2D t_col_light, vec2 f_uv_pos, out flo
 
     f_light = light.x / 31.0;
     f_glow = light.y / 31.0;
+    f_attr = f_col_light.g >> 3u;
     return srgb_to_linear(f_col);
+}
+
+vec3 greedy_extract_col_light_glow(sampler2D t_col_light, vec2 f_uv_pos, out float f_light, out float f_glow) {
+    uint f_attr;
+    return greedy_extract_col_light_attr(t_col_light, f_uv_pos, f_light, f_glow, f_attr);
 }
