@@ -223,7 +223,7 @@ void main() {
         vec3 reflect_ray_dir = reflect(cam_to_frag, f_norm);
         reflect_color = get_sky_color(reflect_ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.125, true);
         reflect_color = get_cloud_color(reflect_color, reflect_ray_dir, cam_pos.xyz, time_of_day.x, 100000.0, 0.25);
-        reflectance = 0.15;
+        reflectance = 1.0;
     }
 
     surf_color = illuminate(max_light, view_dir, mix(surf_color * emitted_light, reflect_color, reflectance), mix(surf_color * reflected_light, reflect_color, reflectance)) * highlight_col.rgb;
