@@ -23,6 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed a bug that would cause a server crash when a player levelled up or fired
+  a projectile in very specific circumstances
+
 ## [0.8.0] - 2020-11-28
 
 ### Added
