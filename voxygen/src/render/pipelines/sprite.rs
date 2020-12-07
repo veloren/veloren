@@ -1,6 +1,7 @@
-use super::super::{AaMode, Bound, Consts, GlobalsLayouts, TerrainLayout};
+use super::super::{AaMode, Bound, Consts, GlobalsLayouts, TerrainLayout, Vertex as VertexTrait};
 use bytemuck::{Pod, Zeroable};
 use core::fmt;
+use std::mem;
 use vek::*;
 
 #[repr(C)]
@@ -60,15 +61,18 @@ impl Vertex {
     }
 
     fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
-        use std::mem;
         const ATTRIBUTES: [wgpu::VertexAttributeDescriptor; 3] =
             wgpu::vertex_attr_array![0 => Float3, 1 => Uint, 2 => Uint];
         wgpu::VertexBufferDescriptor {
-            stride: mem::size_of::<Self>() as wgpu::BufferAddress,
+            stride: Self::STRIDE,
             step_mode: wgpu::InputStepMode::Vertex,
             attributes: &ATTRIBUTES,
         }
     }
+}
+
+impl VertexTrait for Vertex {
+    const STRIDE: wgpu::BufferAddress = mem::size_of::<Self>() as wgpu::BufferAddress;
 }
 
 #[repr(C)]
@@ -110,7 +114,6 @@ impl Instance {
     }
 
     fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
-        use std::mem;
         const ATTRIBUTES: [wgpu::VertexAttributeDescriptor; 7] = wgpu::vertex_attr_array![3 => Uint, 4 => Float4, 5 => Float4, 6 => Float4,7 => Float4, 8 => Float4, 9 => Float];
         wgpu::VertexBufferDescriptor {
             stride: mem::size_of::<Self>() as wgpu::BufferAddress,

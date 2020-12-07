@@ -51,7 +51,9 @@ pub use self::{
 };
 pub use wgpu::{AddressMode, FilterMode};
 
-pub trait Vertex = Clone + bytemuck::Pod;
+pub trait Vertex: Clone + bytemuck::Pod {
+    const STRIDE: wgpu::BufferAddress;
+}
 
 use serde::{Deserialize, Serialize};
 /// Anti-aliasing modes

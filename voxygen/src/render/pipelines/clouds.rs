@@ -1,5 +1,5 @@
 use super::{
-    super::{AaMode, Bound, Consts, Mesh, Tri},
+    super::{AaMode, Consts},
     GlobalsLayouts,
 };
 use bytemuck::{Pod, Zeroable};
@@ -186,7 +186,7 @@ impl CloudsPipeline {
             depth_stencil_state: None,
             vertex_state: wgpu::VertexStateDescriptor {
                 index_format: None,
-                vertex_buffers: &[/*Vertex::desc()*/],
+                vertex_buffers: &[],
             },
             sample_count: samples,
             sample_mask: !0,

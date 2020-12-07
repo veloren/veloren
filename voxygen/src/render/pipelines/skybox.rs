@@ -1,5 +1,6 @@
-use super::super::{AaMode, GlobalsLayouts, Mesh, Quad};
+use super::super::{AaMode, GlobalsLayouts, Mesh, Quad, Vertex as VertexTrait};
 use bytemuck::{Pod, Zeroable};
+use std::mem;
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Zeroable, Pod)]
@@ -9,9 +10,8 @@ pub struct Vertex {
 
 impl Vertex {
     fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
-        use std::mem;
         wgpu::VertexBufferDescriptor {
-            stride: mem::size_of::<Self>() as wgpu::BufferAddress,
+            stride: Self::STRIDE,
             step_mode: wgpu::InputStepMode::Vertex,
             attributes: &[wgpu::VertexAttributeDescriptor {
                 offset: 0,
@@ -20,6 +20,10 @@ impl Vertex {
             }],
         }
     }
+}
+
+impl VertexTrait for Vertex {
+    const STRIDE: wgpu::BufferAddress = mem::size_of::<Self>() as wgpu::BufferAddress;
 }
 
 pub struct SkyboxPipeline {

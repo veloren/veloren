@@ -1,5 +1,6 @@
-use super::super::{AaMode, GlobalsLayouts, TerrainLayout, Texture};
+use super::super::{AaMode, GlobalsLayouts, TerrainLayout, Texture, Vertex as VertexTrait};
 use bytemuck::{Pod, Zeroable};
+use std::mem;
 use vek::*;
 
 #[repr(C)]
@@ -32,15 +33,18 @@ impl Vertex {
     }
 
     fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
-        use std::mem;
         const ATTRIBUTES: [wgpu::VertexAttributeDescriptor; 1] =
             wgpu::vertex_attr_array![0 => Uint];
         wgpu::VertexBufferDescriptor {
-            stride: mem::size_of::<Self>() as wgpu::BufferAddress,
+            stride: Self::STRIDE,
             step_mode: wgpu::InputStepMode::Vertex,
             attributes: &ATTRIBUTES,
         }
     }
+}
+
+impl VertexTrait for Vertex {
+    const STRIDE: wgpu::BufferAddress = mem::size_of::<Self>() as wgpu::BufferAddress;
 }
 
 pub struct BindGroup {

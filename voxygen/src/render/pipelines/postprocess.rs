@@ -1,4 +1,4 @@
-use super::super::{AaMode, Bound, Consts, GlobalsLayouts, Mesh, Tri};
+use super::super::{AaMode, Consts, GlobalsLayouts};
 use bytemuck::{Pod, Zeroable};
 use vek::*;
 
@@ -154,7 +154,7 @@ impl PostProcessPipeline {
             depth_stencil_state: None,
             vertex_state: wgpu::VertexStateDescriptor {
                 index_format: None,
-                vertex_buffers: &[/*Vertex::desc()*/],
+                vertex_buffers: &[],
             },
             sample_count: samples,
             sample_mask: !0,

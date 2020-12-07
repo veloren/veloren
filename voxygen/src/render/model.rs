@@ -14,7 +14,9 @@ pub struct SubModel<'a, V: Vertex> {
 
 impl<'a, V: Vertex> SubModel<'a, V> {
     pub(super) fn buf(&self) -> wgpu::BufferSlice<'a> {
-        self.buf.slice(map_range(&self.vertex_range))
+        let start = self.vertex_range.start as wgpu::BufferAddress * V::STRIDE;
+        let end = self.vertex_range.end as wgpu::BufferAddress * V::STRIDE;
+        self.buf.slice(start..end)
     }
 
     pub fn len(&self) -> u32 { self.vertex_range.end - self.vertex_range.start }
@@ -83,5 +85,3 @@ impl<V: Vertex> DynamicModel<V> {
 
     pub fn len(&self) -> usize { self.vbuf.len() }
 }
-
-fn map_range(range: &Range<u32>) -> Range<u64> { (range.start as u64)..(range.end as u64) }

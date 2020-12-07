@@ -1,6 +1,5 @@
 use super::{
     super::{
-        consts::Consts,
         pipelines::{
             figure, fluid, lod_terrain, sprite, terrain, ui, ColLights, GlobalModel,
             GlobalsBindGroup,
