@@ -721,23 +721,18 @@ pub fn handle_explosion(
 
 pub fn handle_level_up(server: &mut Server, entity: EcsEntity, new_level: u32) {
     let ecs = &server.state.ecs();
-    let uids = server.state.ecs().read_storage::<Uid>();
-    let uid = uids
+    if let Some((uid, pos)) = ecs
+        .read_storage::<Uid>()
         .get(entity)
-        .expect("Failed to fetch uid component for entity.");
-    let pos = server
-        .state
-        .ecs()
-        .read_storage::<Pos>()
-        .get(entity)
-        .expect("Failed to fetch position component for the entity.")
-        .0;
-
-    server.state.notify_players(ServerGeneral::PlayerListUpdate(
-        PlayerListUpdate::LevelChange(*uid, new_level),
-    ));
-    ecs.write_resource::<Vec<Outcome>>()
-        .push(Outcome::LevelUp { pos });
+        .copied()
+        .zip(ecs.read_storage::<Pos>().get(entity).map(|p| p.0))
+    {
+        ecs.write_resource::<Vec<Outcome>>()
+            .push(Outcome::LevelUp { pos });
+        server.state.notify_players(ServerGeneral::PlayerListUpdate(
+            PlayerListUpdate::LevelChange(uid, new_level),
+        ));
+    }
 }
 
 pub fn handle_aura(server: &mut Server, entity: EcsEntity, aura_change: aura::AuraChange) {
