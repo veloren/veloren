@@ -272,7 +272,7 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug + '
 
 struct SpriteData {
     /* mat: Mat4<f32>, */
-    locals: Consts<SpriteLocals>,
+    locals: pipelines::sprite::BoundLocals,
     model: Model<SpriteVertex>,
     /* scale: Vec3<f32>, */
     offset: Vec3<f32>,
@@ -326,7 +326,7 @@ pub struct Terrain<V: RectRasterableVol = TerrainChunk> {
 
     // GPU data
     sprite_data: Arc<HashMap<(SpriteKind, usize), Vec<SpriteData>>>,
-    sprite_col_lights: Texture, /* <ColLightFmt> */
+    sprite_col_lights: ColLights<pipelines::sprite::Locals>,
     /// As stated previously, this is always the very latest texture into which
     /// we allocate.  Code cannot assume that this is the assigned texture
     /// for any particular chunk; look at the `texture` field in
@@ -518,7 +518,7 @@ impl SpriteRenderContext {
                                      offset,
                                  }| {
                                     SpriteData {
-                                        locals: renderer.create_consts(&locals_buffer),
+                                        locals: renderer.create_sprite_bound_locals(&locals_buffer),
                                         model: renderer.create_model(&model).expect(
                                             "Failed to upload sprite model data to the GPU!",
                                         ),
@@ -563,7 +563,8 @@ impl<V: RectRasterableVol> Terrain<V> {
             mesh_todos_active: Arc::new(AtomicU64::new(0)),
             mesh_recv_overflow: 0.0,
             sprite_data: sprite_render_context.sprite_data,
-            sprite_col_lights: sprite_render_context.sprite_col_lights,
+            sprite_col_lights: renderer
+                .sprite_bind_col_light(sprite_render_context.sprite_col_lights),
             waves: {
                 let waves_tex = renderer
                     .create_texture(
@@ -1546,15 +1547,14 @@ impl<V: RectRasterableVol> Terrain<V> {
                         } else {
                             &self.sprite_data[&kind][4]
                         };
-                        /*renderer.render_sprites(
+
+                        drawer.draw_sprite(
                             model,
-                            &self.sprite_col_lights,
-                            global,
+                            instances,
                             &chunk.locals,
                             locals,
-                            &instances,
-                            lod,
-                        );*/
+                            &self.sprite_col_lights,
+                        );
                     }
                 }
             }

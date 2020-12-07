@@ -1,4 +1,4 @@
-use super::super::{AaMode, GlobalsLayouts, TerrainLayout};
+use super::super::{AaMode, Bound, Consts, GlobalsLayouts, TerrainLayout};
 use bytemuck::{Pod, Zeroable};
 use core::fmt;
 use vek::*;
@@ -135,6 +135,8 @@ pub struct Locals {
     offs: [f32; 4],
 }
 
+pub type BoundLocals = Bound<Consts<Locals>>;
+
 impl Default for Locals {
     fn default() -> Self { Self::new(Mat4::identity(), Vec3::one(), Vec3::zero(), 0.0) }
 }
@@ -170,28 +172,24 @@ impl SpriteLayout {
                         },
                         count: None,
                     },
-                    // col lights
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 1,
-                        visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                        ty: wgpu::BindingType::Texture {
-                            sample_type: wgpu::TextureSampleType::Float { filterable: true },
-                            view_dimension: wgpu::TextureViewDimension::D2,
-                            multisampled: false,
-                        },
-                        count: None,
-                    },
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 2,
-                        visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                        ty: wgpu::BindingType::Sampler {
-                            filtering: true,
-                            comparison: false,
-                        },
-                        count: None,
-                    },
                 ],
             }),
+        }
+    }
+
+    pub fn bind_locals(&self, device: &wgpu::Device, locals: Consts<Locals>) -> BoundLocals {
+        let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: None,
+            layout: &self.locals,
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: locals.buf().as_entire_binding(),
+            }],
+        });
+
+        BoundLocals {
+            bind_group,
+            with: locals,
         }
     }
 }
@@ -220,6 +218,7 @@ impl SpritePipeline {
                     &global_layout.globals,
                     &terrain_layout.locals,
                     &layout.locals,
+                    &global_layout.col_light,
                 ],
             });
 

@@ -2,7 +2,8 @@ use super::{
     super::{
         consts::Consts,
         pipelines::{
-            figure, fluid, lod_terrain, terrain, ui, ColLights, GlobalModel, GlobalsBindGroup,
+            figure, fluid, lod_terrain, sprite, terrain, ui, ColLights, GlobalModel,
+            GlobalsBindGroup,
         },
         texture::Texture,
     },
@@ -59,11 +60,20 @@ impl Renderer {
         self.layouts.terrain.bind_locals(&self.device, locals)
     }
 
+    pub fn create_sprite_bound_locals(&mut self, locals: &[sprite::Locals]) -> sprite::BoundLocals {
+        let locals = self.create_consts(locals);
+        self.layouts.sprite.bind_locals(&self.device, locals)
+    }
+
     pub fn figure_bind_col_light(&self, col_light: Texture) -> ColLights<figure::Locals> {
         self.layouts.global.bind_col_light(&self.device, col_light)
     }
 
     pub fn terrain_bind_col_light(&self, col_light: Texture) -> ColLights<terrain::Locals> {
+        self.layouts.global.bind_col_light(&self.device, col_light)
+    }
+
+    pub fn sprite_bind_col_light(&self, col_light: Texture) -> ColLights<sprite::Locals> {
         self.layouts.global.bind_col_light(&self.device, col_light)
     }
 

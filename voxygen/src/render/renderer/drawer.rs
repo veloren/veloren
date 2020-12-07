@@ -190,24 +190,27 @@ impl<'a> FirstPassDrawer<'a> {
         }
     }
 
-    /*pub fn draw_sprite<'b: 'a>(
+    pub fn draw_sprite<'b: 'a>(
         &mut self,
-        model: &'b Model,
-        instances: &'a Instances<sprite::Instance>,
-        globals: &'b Consts<Globals>,
-        lights: &'b Consts<Light>,
-        shadows: &'b Consts<Shadow>,
-        verts: Range<u32>,
+        model: &'b Model<sprite::Vertex>,
+        instances: &'b Instances<sprite::Instance>,
+        terrain_locals: &'b terrain::BoundLocals,
+        locals: &'b sprite::BoundLocals,
+        col_lights: &'b ColLights<sprite::Locals>,
     ) {
         self.render_pass
             .set_pipeline(&self.renderer.sprite_pipeline.pipeline);
-        self.render_pass.set_bind_group(0, &globals.bind_group, &[]);
-        self.render_pass.set_bind_group(1, &lights.bind_group, &[]);
-        self.render_pass.set_bind_group(2, &shadows.bind_group, &[]);
-        self.render_pass.set_vertex_buffer(0, &model.vbuf, 0, 0);
-        self.render_pass.set_vertex_buffer(1, &instances.ibuf, 0, 0);
-        self.render_pass.draw(verts, 0..instances.count() as u32);
-    }*/
+        self.render_pass
+            .set_bind_group(1, &terrain_locals.bind_group, &[]);
+        self.render_pass.set_bind_group(2, &locals.bind_group, &[]);
+        self.render_pass
+            .set_bind_group(3, &col_lights.bind_group, &[]);
+        self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
+        self.render_pass
+            .set_vertex_buffer(1, instances.buf().slice(..));
+        self.render_pass
+            .draw(0..model.len() as u32, 0..instances.count() as u32);
+    }
 
     pub fn draw_fluid<'b: 'a>(&mut self, waves: &'b fluid::BindGroup) -> FluidDrawer<'_, 'a> {
         self.render_pass
