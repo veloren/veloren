@@ -24,7 +24,7 @@ pub use self::{
             BoneData as FigureBoneData, BoneMeshes, FigureLayout, FigureModel,
             Locals as FigureLocals,
         },
-        fluid::Vertex as FluidVertex,
+        fluid::{BindGroup as FluidWaves, Vertex as FluidVertex},
         lod_terrain::{LodData, Vertex as LodTerrainVertex},
         particle::{Instance as ParticleInstance, Vertex as ParticleVertex},
         postprocess::Locals as PostProcessLocals,

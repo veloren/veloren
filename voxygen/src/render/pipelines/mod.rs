@@ -15,7 +15,6 @@ use crate::scene::camera::CameraMode;
 use bytemuck::{Pod, Zeroable};
 use common::terrain::BlockKind;
 use vek::*;
-use wgpu::BindGroup;
 
 pub const MAX_POINT_LIGHT_COUNT: usize = 31;
 pub const MAX_FIGURE_SHADOW_COUNT: usize = 24;
@@ -243,7 +242,7 @@ pub struct GlobalsLayouts {
 }
 
 pub struct ColLights<Locals> {
-    pub bind_group: BindGroup,
+    pub bind_group: wgpu::BindGroup,
     pub texture: Texture,
     phantom: std::marker::PhantomData<Locals>,
 }

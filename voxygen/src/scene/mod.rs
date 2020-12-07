@@ -1020,7 +1020,7 @@ impl Scene {
         self.figure_mgr
             .render_player(drawer, state, player_entity, tick, global, lod, camera_data);
 
-        self.terrain.render(drawer, global, lod, focus_pos);
+        self.terrain.render(drawer, focus_pos);
 
         /* self.figure_mgr.render(
             renderer,
@@ -1037,14 +1037,12 @@ impl Scene {
         // Render the skybox.
         drawer.draw_skybox(&self.skybox.model);
 
-        /*self.terrain.render_translucent(
-            renderer,
-            global,
-            lod,
+        self.terrain.render_translucent(
+            drawer,
             focus_pos,
             cam_pos,
             scene_data.sprite_render_distance,
-        );*/
+        );
 
         // Render particle effects.
         self.particle_mgr

@@ -1,4 +1,4 @@
-use super::super::{AaMode, GlobalsLayouts, TerrainLayout};
+use super::super::{AaMode, GlobalsLayouts, TerrainLayout, Texture};
 use bytemuck::{Pod, Zeroable};
 use vek::*;
 
@@ -43,6 +43,11 @@ impl Vertex {
     }
 }
 
+pub struct BindGroup {
+    pub(in super::super) bind_group: wgpu::BindGroup,
+    waves: Texture,
+}
+
 pub struct FluidLayout {
     pub waves: wgpu::BindGroupLayout,
 }
@@ -75,6 +80,25 @@ impl FluidLayout {
                 ],
             }),
         }
+    }
+
+    pub fn bind(&self, device: &wgpu::Device, waves: Texture) -> BindGroup {
+        let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: None,
+            layout: &self.waves,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&waves.view),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Sampler(&waves.sampler),
+                },
+            ],
+        });
+
+        BindGroup { bind_group, waves }
     }
 }
 

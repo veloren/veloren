@@ -1,7 +1,9 @@
 use super::{
     super::{
         consts::Consts,
-        pipelines::{figure, lod_terrain, terrain, ui, ColLights, GlobalModel, GlobalsBindGroup},
+        pipelines::{
+            figure, fluid, lod_terrain, terrain, ui, ColLights, GlobalModel, GlobalsBindGroup,
+        },
         texture::Texture,
     },
     Renderer,
@@ -63,5 +65,9 @@ impl Renderer {
 
     pub fn terrain_bind_col_light(&self, col_light: Texture) -> ColLights<terrain::Locals> {
         self.layouts.global.bind_col_light(&self.device, col_light)
+    }
+
+    pub fn fluid_bind_waves(&self, texture: Texture) -> fluid::BindGroup {
+        self.layouts.fluid.bind(&self.device, texture)
     }
 }

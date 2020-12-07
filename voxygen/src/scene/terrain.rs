@@ -9,9 +9,9 @@ use crate::{
     },
     render::{
         pipelines::{self, ColLights},
-        ColLightInfo, Consts, FirstPassDrawer, FluidVertex, GlobalModel, Instances, LodData, Mesh,
-        Model, RenderError, Renderer, SpriteInstance, SpriteLocals, SpriteVertex, TerrainLocals,
-        TerrainVertex, Texture,
+        ColLightInfo, Consts, FirstPassDrawer, FluidVertex, FluidWaves, GlobalModel, Instances,
+        LodData, Mesh, Model, RenderError, Renderer, SpriteInstance, SpriteLocals, SpriteVertex,
+        TerrainLocals, TerrainVertex, Texture,
     },
 };
 
@@ -332,7 +332,7 @@ pub struct Terrain<V: RectRasterableVol = TerrainChunk> {
     /// for any particular chunk; look at the `texture` field in
     /// `TerrainChunkData` for that.
     col_lights: ColLights<pipelines::terrain::Locals>,
-    waves: Texture,
+    waves: FluidWaves,
 
     phantom: PhantomData<V>,
 }
@@ -564,13 +564,17 @@ impl<V: RectRasterableVol> Terrain<V> {
             mesh_recv_overflow: 0.0,
             sprite_data: sprite_render_context.sprite_data,
             sprite_col_lights: sprite_render_context.sprite_col_lights,
-            waves: renderer
-                .create_texture(
-                    &assets::Image::load_expect("voxygen.texture.waves").read().0,
-                    Some(wgpu::FilterMode::Linear),
-                    Some(wgpu::AddressMode::Repeat),
-                )
-                .expect("Failed to create wave texture"),
+            waves: {
+                let waves_tex = renderer
+                    .create_texture(
+                        &assets::Image::load_expect("voxygen.texture.waves").read().0,
+                        Some(wgpu::FilterMode::Linear),
+                        Some(wgpu::AddressMode::Repeat),
+                    )
+                    .expect("Failed to create wave texture");
+
+                renderer.fluid_bind_waves(waves_tex)
+            },
             col_lights,
             phantom: PhantomData,
         }
@@ -1454,13 +1458,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         });
     }
 
-    pub fn render<'a>(
-        &'a self,
-        drawer: &mut FirstPassDrawer<'a>,
-        global: &GlobalModel,
-        lod: &LodData,
-        focus_pos: Vec3<f32>,
-    ) {
+    pub fn render<'a>(&'a self, drawer: &mut FirstPassDrawer<'a>, focus_pos: Vec3<f32>) {
         span!(_guard, "render", "Terrain::render");
         let focus_chunk = Vec2::from(focus_pos).map2(TerrainChunk::RECT_SIZE, |e: f32, sz| {
             (e as i32).div_euclid(sz as i32)
@@ -1480,11 +1478,9 @@ impl<V: RectRasterableVol> Terrain<V> {
         }
     }
 
-    pub fn render_translucent(
-        &self,
-        renderer: &mut Renderer,
-        global: &GlobalModel,
-        lod: &LodData,
+    pub fn render_translucent<'a>(
+        &'a self,
+        drawer: &mut FirstPassDrawer<'a>,
         focus_pos: Vec3<f32>,
         cam_pos: Vec3<f32>,
         sprite_render_distance: f32,
@@ -1566,6 +1562,8 @@ impl<V: RectRasterableVol> Terrain<V> {
         drop(guard);
 
         // Translucent
+        span!(guard, "Fluid chunks");
+        let mut fluid_drawer = drawer.draw_fluid(&self.waves);
         chunk_iter
             .clone()
             .filter(|(_, chunk)| chunk.visible.is_visible())
@@ -1579,13 +1577,12 @@ impl<V: RectRasterableVol> Terrain<V> {
             .into_iter()
             .rev() // Render back-to-front
             .for_each(|(model, locals)| {
-                /*renderer.render_fluid_chunk(
+                fluid_drawer.draw(
                     model,
-                    global,
                     locals,
-                    lod,
-                    &self.waves,
-                )*/
+                )
             });
+        drop(fluid_drawer);
+        drop(guard);
     }
 }
