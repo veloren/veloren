@@ -24,11 +24,17 @@ pub const MAX_DIRECTED_LIGHT_COUNT: usize = 6;
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Zeroable, Pod)]
 pub struct Globals {
+    /// Transformation from world coordinate space (with focus_off as the
+    /// origin) to the camera space
     view_mat: [[f32; 4]; 4],
     proj_mat: [[f32; 4]; 4],
+    /// proj_mat * view_mat
     all_mat: [[f32; 4]; 4],
+    /// Offset of the camera from the focus position
     cam_pos: [f32; 4],
+    /// Integer portion of the focus position in world coordinates
     focus_off: [f32; 4],
+    /// Fractions portion of the focus position
     focus_pos: [f32; 4],
     /// NOTE: view_distance.x is the horizontal view distance, view_distance.y
     /// is the LOD detail, view_distance.z is the

@@ -121,8 +121,10 @@ vec4 utextureBicubic(utexture2D tex, sampler sampl, vec2 texCoords) {
     , sy);
 }
 
+const float U16_MAX = 65535.0;
+
 float alt_at(vec2 pos) {
-    return (/*round*/(texture/*textureBicubic*/(usampler2D(t_alt, s_alt), pos_to_uv(t_alt, s_alt, pos)).r * (/*1300.0*//*1278.7266845703125*/view_distance.w)) + /*140.0*/view_distance.z - focus_off.z);
+    return (/*round*/(texture/*textureBicubic*/(usampler2D(t_alt, s_alt), pos_to_uv(t_alt, s_alt, pos)).r / U16_MAX * (/*1300.0*//*1278.7266845703125*/view_distance.w)) + /*140.0*/view_distance.z - focus_off.z);
     //+ (texture(t_noise, pos * 0.002).x - 0.5) * 64.0;
 
     // return 0.0
@@ -136,7 +138,6 @@ float alt_at_real(vec2 pos) {
 // #if (FLUID_MODE == FLUID_MODE_CHEAP)
 //  return alt_at(pos);
 // #elif (FLUID_MODE == FLUID_MODE_SHINY)
-    const float U16_MAX = 65535.0;
     return (/*round*/(utextureBicubic(t_alt, s_alt, pos_to_tex(pos)).r / U16_MAX * (/*1300.0*//*1278.7266845703125*/view_distance.w)) + /*140.0*/view_distance.z - focus_off.z);
 // #endif
         //+ (texture(t_noise, pos * 0.002).x - 0.5) * 64.0;
