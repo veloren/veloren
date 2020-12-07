@@ -1,7 +1,7 @@
 ({
     General(HealthIncrease): Some(10),
     Sword(TsDamage): Some(3),
-    Sword(TsRegen): Some(3),
+    Sword(TsRegen): Some(2),
     Sword(TsSpeed): Some(3),
     Sword(DCost): Some(2),
     Sword(DDrain): Some(2),

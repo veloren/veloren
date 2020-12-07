@@ -1,8 +1,9 @@
 use crate::{
     assets::{self, Asset},
     comp::{
+        inventory::item::tool::ToolKind,
         projectile::ProjectileConstructor,
-        Body, CharacterState, EnergySource, Gravity, LightEmitter, StateUpdate,
+        skills, Body, CharacterState, EnergySource, Gravity, LightEmitter, StateUpdate,
     },
     states::{
         behavior::JoinData,
@@ -11,6 +12,7 @@ use crate::{
     },
     Knockback,
 };
+use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use vek::Vec3;
@@ -493,6 +495,131 @@ impl CharacterAbility {
             _ => 0,
         }
     }
+
+    pub fn adjusted_by_skills(
+        mut self,
+        skills: &HashMap<skills::Skill, skills::Level>,
+        tool: Option<ToolKind>,
+    ) -> Self {
+        use skills::Skill::*;
+        use CharacterAbility::*;
+        if let Some(tool) = tool {
+            match tool {
+                ToolKind::Sword => {
+                    use skills::SwordSkill::*;
+                    match self {
+                        ComboMelee {
+                            ref mut is_interruptible,
+                            ref mut speed_increase,
+                            ref mut max_speed_increase,
+                            ref mut stage_data,
+                            ref mut max_energy_gain,
+                            ref mut scales_from_combo,
+                            ..
+                        } => {
+                            *is_interruptible = skills.contains_key(&Sword(InterruptingAttacks));
+                            let speed_segments =
+                                Sword(TsSpeed).get_max_level().map_or(1, |l| l + 1) as f32;
+                            let speed_level = if skills.contains_key(&Sword(TsCombo)) {
+                                skills
+                                    .get(&Sword(TsSpeed))
+                                    .copied()
+                                    .flatten()
+                                    .map_or(1, |l| l + 1) as f32
+                            } else {
+                                0.0
+                            };
+                            {
+                                *speed_increase *= speed_level / speed_segments;
+                                *max_speed_increase *= speed_level / speed_segments;
+                            }
+                            let energy_level = if let Some(level) =
+                                skills.get(&Sword(TsRegen)).copied().flatten()
+                            {
+                                level
+                            } else {
+                                0
+                            };
+                            {
+                                *max_energy_gain = (*max_energy_gain as f32
+                                    * ((energy_level + 1) * stage_data.len() as u16 - 1) as f32
+                                    / ((Sword(TsRegen).get_max_level().unwrap() + 1)
+                                        * stage_data.len() as u16
+                                        - 1) as f32)
+                                    as u32;
+                            }
+                            *scales_from_combo = skills
+                                .get(&Sword(TsDamage))
+                                .copied()
+                                .flatten()
+                                .unwrap_or(0)
+                                .into();
+                        },
+                        DashMelee {
+                            ref mut is_interruptible,
+                            ref mut energy_cost,
+                            ref mut energy_drain,
+                            ref mut base_damage,
+                            ref mut scaled_damage,
+                            ref mut forward_speed,
+                            ref mut infinite_charge,
+                            ..
+                        } => {
+                            *is_interruptible = skills.contains_key(&Sword(InterruptingAttacks));
+                            if let Some(level) = skills.get(&Sword(DCost)).copied().flatten() {
+                                *energy_cost =
+                                    (*energy_cost as f32 * 0.75_f32.powi(level.into())) as u32;
+                            }
+                            if let Some(level) = skills.get(&Sword(DDrain)).copied().flatten() {
+                                *energy_drain =
+                                    (*energy_drain as f32 * 0.75_f32.powi(level.into())) as u32;
+                            }
+                            if let Some(level) = skills.get(&Sword(DDamage)).copied().flatten() {
+                                *base_damage =
+                                    (*base_damage as f32 * 1.2_f32.powi(level.into())) as u32;
+                            }
+                            if let Some(level) = skills.get(&Sword(DScaling)).copied().flatten() {
+                                *scaled_damage =
+                                    (*scaled_damage as f32 * 1.2_f32.powi(level.into())) as u32;
+                            }
+                            if skills.contains_key(&Sword(DSpeed)) {
+                                *forward_speed *= 1.5;
+                            }
+                            *infinite_charge = skills.contains_key(&Sword(DInfinite));
+                        },
+                        SpinMelee {
+                            ref mut is_interruptible,
+                            ref mut base_damage,
+                            ref mut swing_duration,
+                            ref mut energy_cost,
+                            ref mut num_spins,
+                            ..
+                        } => {
+                            *is_interruptible = skills.contains_key(&Sword(InterruptingAttacks));
+                            if let Some(level) = skills.get(&Sword(SDamage)).copied().flatten() {
+                                *base_damage =
+                                    (*base_damage as f32 * 1.4_f32.powi(level.into())) as u32;
+                            }
+                            if let Some(level) = skills.get(&Sword(SSpeed)).copied().flatten() {
+                                *swing_duration =
+                                    (*swing_duration as f32 * 0.8_f32.powi(level.into())) as u64;
+                            }
+                            if let Some(level) = skills.get(&Sword(SCost)).copied().flatten() {
+                                *energy_cost =
+                                    (*energy_cost as f32 * 0.75_f32.powi(level.into())) as u32;
+                            }
+                            *num_spins = skills.get(&Sword(SSpins)).copied().flatten().unwrap_or(0)
+                                as u32
+                                + 1;
+                        },
+                        _ => {},
+                    }
+                },
+                _ => {},
+            }
+        }
+        self
+    }
 }
 
 impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
@@ -636,7 +763,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                     max_energy_gain: *max_energy_gain,
                     energy_increase: *energy_increase,
                     speed_increase: 1.0 - *speed_increase,
-                    max_speed_increase: *max_speed_increase - 1.0,
+                    max_speed_increase: *max_speed_increase,
                     scales_from_combo: *scales_from_combo,
                     is_interruptible: *is_interruptible,
                     ability_key: key,
