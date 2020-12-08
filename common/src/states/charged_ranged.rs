@@ -28,12 +28,12 @@ pub struct StaticData {
     pub energy_drain: u32,
     /// How much damage is dealt with no charge
     pub initial_damage: u32,
-    /// How much damage is dealt with max charge
-    pub max_damage: u32,
+    /// How much the damage scales as it is charged
+    pub scaled_damage: u32,
     /// How much knockback there is with no charge
     pub initial_knockback: f32,
-    /// How much knockback there is at max charge
-    pub max_knockback: f32,
+    /// How much the knockback scales as it is charged
+    pub scaled_knockback: f32,
     /// Speed stat of the weapon
     pub speed: f32,
     /// Projectile information
@@ -41,7 +41,7 @@ pub struct StaticData {
     pub projectile_light: Option<LightEmitter>,
     pub projectile_gravity: Option<Gravity>,
     pub initial_projectile_speed: f32,
-    pub max_projectile_speed: f32,
+    pub scaled_projectile_speed: f32,
     /// What key is used to press ability
     pub ability_key: AbilityKey,
 }
@@ -100,15 +100,13 @@ impl CharacterBehavior for Data {
                     let charge_frac = (self.timer.as_secs_f32()
                         / self.static_data.charge_duration.as_secs_f32())
                     .min(1.0);
-                    let mut damage = Damage {
+                    let damage = Damage {
                         source: DamageSource::Projectile,
-                        value: self.static_data.max_damage as f32,
+                        value: self.static_data.initial_damage as f32
+                            + charge_frac * self.static_data.scaled_damage as f32,
                     };
-                    damage.interpolate_damage(charge_frac, self.static_data.initial_damage as f32);
-                    let knockback = self.static_data.initial_knockback as f32
-                        + (charge_frac
-                            * (self.static_data.max_knockback - self.static_data.initial_knockback)
-                                as f32);
+                    let knockback = self.static_data.initial_knockback
+                        + charge_frac * self.static_data.scaled_knockback;
                     // Fire
                     let projectile = Projectile {
                         hit_solid: vec![projectile::Effect::Stick],
@@ -140,9 +138,7 @@ impl CharacterBehavior for Data {
                         light: self.static_data.projectile_light,
                         gravity: self.static_data.projectile_gravity,
                         speed: self.static_data.initial_projectile_speed
-                            + charge_frac
-                                * (self.static_data.max_projectile_speed
-                                    - self.static_data.initial_projectile_speed),
+                            + charge_frac * self.static_data.scaled_projectile_speed,
                     });
 
                     update.character = CharacterState::ChargedRanged(Data {

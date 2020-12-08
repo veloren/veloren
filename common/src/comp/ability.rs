@@ -49,7 +49,7 @@ impl From<&CharacterState> for CharacterAbilityType {
             CharacterState::SpinMelee(data) => Self::SpinMelee(data.stage_section),
             CharacterState::ChargedMelee(data) => Self::ChargedMelee(data.stage_section),
             CharacterState::ChargedRanged(_) => Self::ChargedRanged,
-            CharacterState::Shockwave(_) => Self::ChargedRanged,
+            CharacterState::Shockwave(_) => Self::Shockwave,
             CharacterState::BasicBeam(_) => Self::BasicBeam,
             CharacterState::RepeaterRanged(_) => Self::RepeaterRanged,
             _ => Self::BasicMelee,
@@ -101,9 +101,9 @@ pub enum CharacterAbility {
     DashMelee {
         energy_cost: u32,
         base_damage: u32,
-        max_damage: u32,
+        scaled_damage: u32,
         base_knockback: f32,
-        max_knockback: f32,
+        scaled_knockback: f32,
         range: f32,
         angle: f32,
         energy_drain: u32,
@@ -130,6 +130,7 @@ pub enum CharacterAbility {
         energy_increase: u32,
         speed_increase: f32,
         max_speed_increase: f32,
+        scales_from_combo: u32,
         is_interruptible: bool,
     },
     LeapMelee {
@@ -163,9 +164,9 @@ pub enum CharacterAbility {
         energy_cost: u32,
         energy_drain: u32,
         initial_damage: u32,
-        max_damage: u32,
+        scaled_damage: u32,
         initial_knockback: f32,
-        max_knockback: f32,
+        scaled_knockback: f32,
         range: f32,
         max_angle: f32,
         speed: f32,
@@ -178,9 +179,9 @@ pub enum CharacterAbility {
         energy_cost: u32,
         energy_drain: u32,
         initial_damage: u32,
-        max_damage: u32,
+        scaled_damage: u32,
         initial_knockback: f32,
-        max_knockback: f32,
+        scaled_knockback: f32,
         speed: f32,
         buildup_duration: u64,
         charge_duration: u64,
@@ -189,7 +190,7 @@ pub enum CharacterAbility {
         projectile_light: Option<LightEmitter>,
         projectile_gravity: Option<Gravity>,
         initial_projectile_speed: f32,
-        max_projectile_speed: f32,
+        scaled_projectile_speed: f32,
     },
     Shockwave {
         energy_cost: u32,
@@ -362,14 +363,14 @@ impl CharacterAbility {
             },
             DashMelee {
                 ref mut base_damage,
-                ref mut max_damage,
+                ref mut scaled_damage,
                 ref mut buildup_duration,
                 ref mut swing_duration,
                 ref mut recover_duration,
                 ..
             } => {
                 *base_damage = (*base_damage as f32 * power) as u32;
-                *max_damage = (*max_damage as f32 * power) as u32;
+                *scaled_damage = (*scaled_damage as f32 * power) as u32;
                 *buildup_duration = (*buildup_duration as f32 / speed) as u64;
                 *swing_duration = (*swing_duration as f32 / speed) as u64;
                 *recover_duration = (*recover_duration as f32 / speed) as u64;
@@ -421,7 +422,7 @@ impl CharacterAbility {
             },
             ChargedMelee {
                 ref mut initial_damage,
-                ref mut max_damage,
+                ref mut scaled_damage,
                 speed: ref mut ability_speed,
                 ref mut charge_duration,
                 ref mut swing_duration,
@@ -429,7 +430,7 @@ impl CharacterAbility {
                 ..
             } => {
                 *initial_damage = (*initial_damage as f32 * power) as u32;
-                *max_damage = (*max_damage as f32 * power) as u32;
+                *scaled_damage = (*scaled_damage as f32 * power) as u32;
                 *ability_speed *= speed;
                 *charge_duration = (*charge_duration as f32 / speed) as u64;
                 *swing_duration = (*swing_duration as f32 / speed) as u64;
@@ -437,7 +438,7 @@ impl CharacterAbility {
             },
             ChargedRanged {
                 ref mut initial_damage,
-                ref mut max_damage,
+                ref mut scaled_damage,
                 speed: ref mut ability_speed,
                 ref mut buildup_duration,
                 ref mut charge_duration,
@@ -445,7 +446,7 @@ impl CharacterAbility {
                 ..
             } => {
                 *initial_damage = (*initial_damage as f32 * power) as u32;
-                *max_damage = (*max_damage as f32 * power) as u32;
+                *scaled_damage = (*scaled_damage as f32 * power) as u32;
                 *ability_speed *= speed;
                 *buildup_duration = (*buildup_duration as f32 / speed) as u64;
                 *charge_duration = (*charge_duration as f32 / speed) as u64;
@@ -654,9 +655,9 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
             CharacterAbility::DashMelee {
                 energy_cost: _,
                 base_damage,
-                max_damage,
+                scaled_damage,
                 base_knockback,
-                max_knockback,
+                scaled_knockback,
                 range,
                 angle,
                 energy_drain,
@@ -670,9 +671,9 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
             } => CharacterState::DashMelee(dash_melee::Data {
                 static_data: dash_melee::StaticData {
                     base_damage: *base_damage,
-                    max_damage: *max_damage,
+                    scaled_damage: *scaled_damage,
                     base_knockback: *base_knockback,
-                    max_knockback: *max_knockback,
+                    scaled_knockback: *scaled_knockback,
                     range: *range,
                     angle: *angle,
                     energy_drain: *energy_drain,
@@ -718,6 +719,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                 energy_increase,
                 speed_increase,
                 max_speed_increase,
+                scales_from_combo,
                 is_interruptible,
             } => CharacterState::ComboMelee(combo_melee::Data {
                 static_data: combo_melee::StaticData {
@@ -728,6 +730,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                     energy_increase: *energy_increase,
                     speed_increase: 1.0 - *speed_increase,
                     max_speed_increase: *max_speed_increase - 1.0,
+                    scales_from_combo: *scales_from_combo,
                     is_interruptible: *is_interruptible,
                     ability_key: key,
                 },
@@ -805,9 +808,9 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                 energy_cost,
                 energy_drain,
                 initial_damage,
-                max_damage,
+                scaled_damage,
                 initial_knockback,
-                max_knockback,
+                scaled_knockback,
                 speed,
                 charge_duration,
                 swing_duration,
@@ -820,9 +823,9 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                     energy_cost: *energy_cost,
                     energy_drain: *energy_drain,
                     initial_damage: *initial_damage,
-                    max_damage: *max_damage,
+                    scaled_damage: *scaled_damage,
                     initial_knockback: *initial_knockback,
-                    max_knockback: *max_knockback,
+                    scaled_knockback: *scaled_knockback,
                     speed: *speed,
                     range: *range,
                     max_angle: *max_angle,
@@ -841,9 +844,9 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                 energy_cost: _,
                 energy_drain,
                 initial_damage,
-                max_damage,
+                scaled_damage,
                 initial_knockback,
-                max_knockback,
+                scaled_knockback,
                 speed,
                 buildup_duration,
                 charge_duration,
@@ -852,7 +855,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                 projectile_light,
                 projectile_gravity,
                 initial_projectile_speed,
-                max_projectile_speed,
+                scaled_projectile_speed,
             } => CharacterState::ChargedRanged(charged_ranged::Data {
                 static_data: charged_ranged::StaticData {
                     buildup_duration: Duration::from_millis(*buildup_duration),
@@ -860,15 +863,15 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                     recover_duration: Duration::from_millis(*recover_duration),
                     energy_drain: *energy_drain,
                     initial_damage: *initial_damage,
-                    max_damage: *max_damage,
+                    scaled_damage: *scaled_damage,
                     speed: *speed,
                     initial_knockback: *initial_knockback,
-                    max_knockback: *max_knockback,
+                    scaled_knockback: *scaled_knockback,
                     projectile_body: *projectile_body,
                     projectile_light: *projectile_light,
                     projectile_gravity: *projectile_gravity,
                     initial_projectile_speed: *initial_projectile_speed,
-                    max_projectile_speed: *max_projectile_speed,
+                    scaled_projectile_speed: *scaled_projectile_speed,
                     ability_key: key,
                 },
                 timer: Duration::default(),
