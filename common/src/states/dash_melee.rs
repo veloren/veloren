@@ -15,12 +15,12 @@ use vek::Vec3;
 pub struct StaticData {
     /// How much damage the attack initially does
     pub base_damage: u32,
-    /// How much damage the attack does at max charge distance
-    pub max_damage: u32,
+    /// How much the attack scales in damage
+    pub scaled_damage: u32,
     /// How much the attack knocks the target back initially
     pub base_knockback: f32,
-    /// How much knockback happens at max charge distance
-    pub max_knockback: f32,
+    /// How much the attack scales in knockback
+    pub scaled_knockback: f32,
     /// Range of the attack
     pub range: f32,
     /// Angle of the attack
@@ -125,18 +125,13 @@ impl CharacterBehavior for Data {
                     if !self.exhausted {
                         // Hit attempt (also checks if player is moving)
                         if update.vel.0.distance_squared(Vec3::zero()) > 1.0 {
-                            let mut damage = Damage {
+                            let damage = Damage {
                                 source: DamageSource::Melee,
-                                value: self.static_data.max_damage as f32,
+                                value: self.static_data.base_damage as f32
+                                    + charge_frac * self.static_data.scaled_damage as f32,
                             };
-                            damage.interpolate_damage(
-                                charge_frac,
-                                self.static_data.base_damage as f32,
-                            );
-                            let knockback = (self.static_data.max_knockback
-                                - self.static_data.base_knockback)
-                                * charge_frac
-                                + self.static_data.base_knockback;
+                            let knockback = self.static_data.base_knockback
+                                + charge_frac * self.static_data.scaled_knockback;
                             data.updater.insert(data.entity, Attacking {
                                 damages: vec![(Some(GroupTarget::OutOfGroup), damage)],
                                 range: self.static_data.range,

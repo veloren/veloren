@@ -126,7 +126,6 @@ fn matches_ability_stage() {
                 stage_data: vec![states::combo_melee::Stage {
                     stage: 1,
                     base_damage: 100,
-                    max_damage: 120,
                     damage_increase: 10,
                     knockback: 10.0,
                     range: 4.0,
@@ -141,6 +140,7 @@ fn matches_ability_stage() {
                 energy_increase: 20,
                 speed_increase: 0.05,
                 max_speed_increase: 1.8,
+                scales_from_combo: 2,
                 is_interruptible: true,
                 ability_key: states::utils::AbilityKey::Mouse1,
             },
@@ -187,7 +187,6 @@ fn ignores_different_ability_stage() {
                 stage_data: vec![states::combo_melee::Stage {
                     stage: 1,
                     base_damage: 100,
-                    max_damage: 120,
                     damage_increase: 10,
                     knockback: 10.0,
                     range: 4.0,
@@ -202,6 +201,7 @@ fn ignores_different_ability_stage() {
                 energy_increase: 20,
                 speed_increase: 0.05,
                 max_speed_increase: 1.8,
+                scales_from_combo: 2,
                 is_interruptible: true,
                 ability_key: states::utils::AbilityKey::Mouse1,
             },

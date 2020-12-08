@@ -15,8 +15,6 @@ pub struct Stage<T> {
     pub stage: u32,
     /// Initial damage of stage
     pub base_damage: u32,
-    /// Max damage of stage
-    pub max_damage: u32,
     /// Damage scaling per combo
     pub damage_increase: u32,
     /// Knockback of stage
@@ -41,7 +39,6 @@ impl Stage<u64> {
         Stage::<Duration> {
             stage: self.stage,
             base_damage: self.base_damage,
-            max_damage: self.max_damage,
             damage_increase: self.damage_increase,
             knockback: self.knockback,
             range: self.range,
@@ -55,7 +52,6 @@ impl Stage<u64> {
 
     pub fn adjusted_by_stats(mut self, power: f32, speed: f32) -> Self {
         self.base_damage = (self.base_damage as f32 * power) as u32;
-        self.max_damage = (self.max_damage as f32 * power) as u32;
         self.damage_increase = (self.damage_increase as f32 * power) as u32;
         self.base_buildup_duration = (self.base_buildup_duration as f32 / speed) as u64;
         self.base_swing_duration = (self.base_swing_duration as f32 / speed) as u64;
@@ -82,6 +78,8 @@ pub struct StaticData {
     pub speed_increase: f32,
     /// (100% + max_speed_increase) is the max attack speed
     pub max_speed_increase: f32,
+    /// Number of times damage scales with combo
+    pub scales_from_combo: u32,
     /// Whether the state can be interrupted by other abilities
     pub is_interruptible: bool,
     /// What key is used to press ability
@@ -153,11 +151,12 @@ impl CharacterBehavior for Data {
                     });
 
                     // Hit attempt
-                    let damage = self.static_data.stage_data[stage_index].max_damage.min(
-                        self.static_data.stage_data[stage_index].base_damage
-                            + self.combo / self.static_data.num_stages
-                                * self.static_data.stage_data[stage_index].damage_increase,
-                    );
+                    let damage = self.static_data.stage_data[stage_index].base_damage
+                        + self
+                            .static_data
+                            .scales_from_combo
+                            .min(self.combo / self.static_data.num_stages)
+                            * self.static_data.stage_data[stage_index].damage_increase;
                     data.updater.insert(data.entity, Attacking {
                         damages: vec![(Some(GroupTarget::OutOfGroup), Damage {
                             source: DamageSource::Melee,

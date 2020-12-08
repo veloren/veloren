@@ -3,7 +3,6 @@ ComboMelee(
         (
             stage: 1,
             base_damage: 150,
-            max_damage: 150,
             damage_increase: 0,
             knockback: 5.0,
             range: 5.5,
@@ -19,5 +18,6 @@ ComboMelee(
     energy_increase: 0,
     speed_increase: 0.0,
     max_speed_increase: 1.0,
+    scales_from_combo: 0,
     is_interruptible: false,
 )
