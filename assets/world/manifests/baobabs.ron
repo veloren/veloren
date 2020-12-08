@@ -1,0 +1,56 @@
+#![enable(unwrap_newtypes)]
+
+[
+    (
+        specifier: "world.tree.baobab.0",
+        center: (27, 35, 10)
+    ),
+    (
+        specifier: "world.tree.baobab.1",
+        center: (23, 22, 6)
+    ),
+    (
+        specifier: "world.tree.baobab.2",
+        center: (23, 22, 6)
+    ),
+    (
+        specifier: "world.tree.baobab.3",
+        center: (18, 16, 10)
+    ),
+    (
+        specifier: "world.tree.baobab.4",
+        center: (15, 16, 5)
+    ),
+    (
+        specifier: "world.tree.baobab.5",
+        center: (11, 12, 4)
+    ),
+    (
+        specifier: "world.tree.baobab.5",
+        center: (11, 12, 4)
+    ),
+    (
+        specifier: "world.tree.baobab.5",
+        center: (11, 12, 4)
+    ),
+    (
+        specifier: "world.tree.baobab.5",
+        center: (11, 12, 4)
+    ),
+    (
+        specifier: "world.tree.baobab.5",
+        center: (11, 12, 4)
+    ),
+    (
+        specifier: "world.tree.baobab.6",
+        center: (17, 17, 4)
+    ),
+    (
+        specifier: "world.tree.acacia.2",
+        center: (5, 5, 4)
+    ),
+    (
+        specifier: "world.tree.acacia.3",
+        center: (6, 6, 3)
+    ),
+]
