@@ -18,12 +18,12 @@ pub struct StaticData {
     pub energy_cost: u32,
     /// How much damage is dealt with no charge
     pub initial_damage: u32,
-    /// How much damage is dealt with max charge
-    pub max_damage: u32,
+    /// How much the damage is scaled by
+    pub scaled_damage: u32,
     /// How much knockback there is with no charge
     pub initial_knockback: f32,
-    /// How much knockback there is at max charge
-    pub max_knockback: f32,
+    /// How much the knockback is scaled by
+    pub scaled_knockback: f32,
     /// Max range
     pub range: f32,
     /// Max angle (45.0 will give you a 90.0 angle window)
@@ -148,17 +148,13 @@ impl CharacterBehavior for Data {
                         exhausted: true,
                         ..*self
                     });
-                    let mut damage = Damage {
+                    let damage = Damage {
                         source: DamageSource::Melee,
-                        value: self.static_data.max_damage as f32,
+                        value: self.static_data.initial_damage as f32
+                            + self.charge_amount * self.static_data.scaled_damage as f32,
                     };
-                    damage.interpolate_damage(
-                        self.charge_amount,
-                        self.static_data.initial_damage as f32,
-                    );
                     let knockback = self.static_data.initial_knockback
-                        + (self.static_data.max_knockback - self.static_data.initial_knockback)
-                            * self.charge_amount;
+                        + self.charge_amount * self.static_data.scaled_knockback;
 
                     // Hit attempt
                     data.updater.insert(data.entity, Attacking {
