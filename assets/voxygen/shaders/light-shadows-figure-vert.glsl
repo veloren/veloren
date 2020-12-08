@@ -24,7 +24,13 @@
 // Currently, we only need globals for focus_off.
 #include <globals.glsl>
 // For shadow locals.
-#include <shadows.glsl>
+// #include <shadows.glsl>
+
+layout (std140, set = 0, binding = 9)
+uniform u_light_shadows {
+    mat4 shadowMatrices;
+    mat4 texture_mat;
+};
 
 /* Accurate packed shadow maps for many lights at once!
  *
@@ -73,6 +79,6 @@ void main() {
         vec4(pos, 1.0)
     ).xyz + (model_pos - focus_off.xyz/* + vec3(0.0, 0.0, 0.0001)*/);
 
-    gl_Position = shadowMats[/*layer_face*/0].shadowMatrices * vec4(f_pos, 1.0);
+    gl_Position = shadowMatrices * vec4(f_pos, 1.0);
 #endif
 }

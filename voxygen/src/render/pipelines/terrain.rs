@@ -219,6 +219,7 @@ impl TerrainPipeline {
                 push_constant_ranges: &[],
                 bind_group_layouts: &[
                     &global_layout.globals,
+                    &global_layout.shadow_textures,
                     &layout.locals,
                     &global_layout.col_light,
                 ],

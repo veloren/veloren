@@ -1,7 +1,7 @@
 use super::{
     super::{
         pipelines::{
-            figure, fluid, lod_terrain, sprite, terrain, ui, ColLights, GlobalModel,
+            figure, fluid, lod_terrain, shadow, sprite, terrain, ui, ColLights, GlobalModel,
             GlobalsBindGroup,
         },
         texture::Texture,
@@ -57,6 +57,11 @@ impl Renderer {
     ) -> terrain::BoundLocals {
         let locals = self.create_consts(locals);
         self.layouts.terrain.bind_locals(&self.device, locals)
+    }
+
+    pub fn create_shadow_bound_locals(&mut self, locals: &[shadow::Locals]) -> shadow::BoundLocals {
+        let locals = self.create_consts(locals);
+        self.layouts.shadow.bind_locals(&self.device, locals)
     }
 
     pub fn create_sprite_bound_locals(&mut self, locals: &[sprite::Locals]) -> sprite::BoundLocals {

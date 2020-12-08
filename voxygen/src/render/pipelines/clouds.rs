@@ -153,7 +153,11 @@ impl CloudsPipeline {
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Clouds pipeline layout"),
                 push_constant_ranges: &[],
-                bind_group_layouts: &[&global_layout.globals, &layout.layout],
+                bind_group_layouts: &[
+                    &global_layout.globals,
+                    &global_layout.shadow_textures,
+                    &layout.layout,
+                ],
             });
 
         let samples = match aa_mode {

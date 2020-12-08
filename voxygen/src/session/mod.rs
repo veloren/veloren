@@ -1418,6 +1418,33 @@ impl PlayState for SessionState {
                 particles_enabled: settings.graphics.particles_enabled,
                 is_aiming: self.is_aiming,
             };
+            drawer.shadow_pass().map(|mut drawer| {
+                self.scene.render_terrain_shadows(
+                    &mut drawer,
+                    client.state(),
+                    client.entity(),
+                    client.get_tick(),
+                    &scene_data,
+                );
+            });
+
+            self.scene.render_point_shadows(
+                &mut drawer,
+                client.state(),
+                client.entity(),
+                client.get_tick(),
+                &scene_data,
+            );
+
+            drawer.shadow_pass().map(|mut drawer| {
+                self.scene.render_figure_shadows(
+                    &mut drawer,
+                    client.state(),
+                    client.entity(),
+                    client.get_tick(),
+                    &scene_data,
+                );
+            });
             self.scene.render(
                 &mut drawer.first_pass(),
                 client.state(),

@@ -330,9 +330,9 @@ vec3 lod_pos(vec2 pos, vec2 focus_pos) {
 }
 
 #ifdef HAS_LOD_FULL_INFO
-layout(set = 0, binding = 14)
+layout(set = 0, binding = 10)
 uniform texture2D t_map;
-layout(set = 0, binding = 15)
+layout(set = 0, binding = 11)
 uniform sampler s_map;
 
 vec3 lod_col(vec2 pos) {

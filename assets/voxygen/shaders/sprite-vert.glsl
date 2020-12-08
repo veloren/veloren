@@ -34,7 +34,7 @@ struct SpriteLocals {
     vec4 offs;
 };
 
-layout(std140, set = 2, binding = 0)
+layout(std140, set = 3, binding = 0)
 uniform u_locals {
     mat4 mat;
     vec4 wind_sway;
@@ -63,7 +63,7 @@ uniform u_locals {
 //    ShadowLocals shadowMats[/*MAX_LAYER_FACES*/192];
 //};
 
-layout (std140, set = 1, binding = 0)
+layout (std140, set = 2, binding = 0)
 uniform u_terrain_locals {
     vec3 model_offs;
     float load_time;

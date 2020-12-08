@@ -28,7 +28,7 @@ pub use self::{
         lod_terrain::{LodData, Vertex as LodTerrainVertex},
         particle::{Instance as ParticleInstance, Vertex as ParticleVertex},
         postprocess::Locals as PostProcessLocals,
-        shadow::Locals as ShadowLocals,
+        shadow::{Locals as ShadowLocals, PointLightMatrix},
         skybox::{create_mesh as create_skybox_mesh, Vertex as SkyboxVertex},
         sprite::{Instance as SpriteInstance, Locals as SpriteLocals, Vertex as SpriteVertex},
         terrain::{Locals as TerrainLocals, TerrainLayout, Vertex as TerrainVertex},
@@ -43,7 +43,7 @@ pub use self::{
     renderer::{
         drawer::{
             Drawer, FirstPassDrawer, ParticleDrawer, PreparedUiDrawer, SecondPassDrawer,
-            ThirdPassDrawer, UiDrawer,
+            ShadowDrawer, ThirdPassDrawer, UiDrawer,
         },
         ColLightInfo, Renderer,
     },

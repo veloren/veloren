@@ -45,12 +45,12 @@ in vec4 sun_pos;
 const vec4 sun_pos = vec4(0.0);
 #endif */
 
-layout(set = 2, binding = 0)
+layout(set = 3, binding = 0)
 uniform texture2D t_col_light;
-layout(set = 2, binding = 1)
+layout(set = 3, binding = 1)
 uniform sampler s_col_light;
 
-layout (std140, set = 1, binding = 0)
+layout (std140, set = 2, binding = 0)
 uniform u_locals {
     vec3 model_offs;
     float load_time;

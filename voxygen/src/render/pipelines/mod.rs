@@ -229,16 +229,19 @@ pub struct GlobalModel {
     pub globals: Consts<Globals>,
     pub lights: Consts<Light>,
     pub shadows: Consts<Shadow>,
-    pub shadow_mats: Consts<shadow::Locals>,
+    pub shadow_mats: shadow::BoundLocals,
+    pub point_light_matrices: Box<[shadow::PointLightMatrix; 126]>,
 }
 
 pub struct GlobalsBindGroup {
     pub(super) bind_group: wgpu::BindGroup,
+    pub(super) shadow_textures: wgpu::BindGroup,
 }
 
 pub struct GlobalsLayouts {
     pub globals: wgpu::BindGroupLayout,
     pub col_light: wgpu::BindGroupLayout,
+    pub shadow_textures: wgpu::BindGroupLayout,
 }
 
 pub struct ColLights<Locals> {
@@ -357,59 +360,19 @@ impl GlobalsLayouts {
                     },
                     count: None,
                 },
-                // point shadow_maps
+                // lod map (t_map)
                 wgpu::BindGroupLayoutEntry {
                     binding: 10,
                     visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
                     ty: wgpu::BindingType::Texture {
                         sample_type: wgpu::TextureSampleType::Float { filterable: true },
-                        view_dimension: wgpu::TextureViewDimension::Cube,
+                        view_dimension: wgpu::TextureViewDimension::D2,
                         multisampled: false,
                     },
                     count: None,
                 },
                 wgpu::BindGroupLayoutEntry {
                     binding: 11,
-                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                    ty: wgpu::BindingType::Sampler {
-                        filtering: true,
-                        comparison: true,
-                    },
-                    count: None,
-                },
-                // directed shadow maps
-                wgpu::BindGroupLayoutEntry {
-                    binding: 12,
-                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                    ty: wgpu::BindingType::Texture {
-                        sample_type: wgpu::TextureSampleType::Float { filterable: true },
-                        view_dimension: wgpu::TextureViewDimension::D2,
-                        multisampled: false,
-                    },
-                    count: None,
-                },
-                wgpu::BindGroupLayoutEntry {
-                    binding: 13,
-                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                    ty: wgpu::BindingType::Sampler {
-                        filtering: true,
-                        comparison: true,
-                    },
-                    count: None,
-                },
-                // lod map (t_map)
-                wgpu::BindGroupLayoutEntry {
-                    binding: 14,
-                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                    ty: wgpu::BindingType::Texture {
-                        sample_type: wgpu::TextureSampleType::Float { filterable: true },
-                        view_dimension: wgpu::TextureViewDimension::D2,
-                        multisampled: false,
-                    },
-                    count: None,
-                },
-                wgpu::BindGroupLayoutEntry {
-                    binding: 15,
                     visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
                     ty: wgpu::BindingType::Sampler {
                         filtering: true,
@@ -446,7 +409,57 @@ impl GlobalsLayouts {
             ],
         });
 
-        Self { globals, col_light }
+        let shadow_textures = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            label: None,
+            entries: &[
+                // point shadow_maps
+                wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::Texture {
+                        sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                        view_dimension: wgpu::TextureViewDimension::Cube,
+                        multisampled: false,
+                    },
+                    count: None,
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 1,
+                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::Sampler {
+                        filtering: true,
+                        comparison: true,
+                    },
+                    count: None,
+                },
+                // directed shadow maps
+                wgpu::BindGroupLayoutEntry {
+                    binding: 2,
+                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::Texture {
+                        sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                        view_dimension: wgpu::TextureViewDimension::D2,
+                        multisampled: false,
+                    },
+                    count: None,
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 3,
+                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::Sampler {
+                        filtering: true,
+                        comparison: true,
+                    },
+                    count: None,
+                },
+            ],
+        });
+
+        Self {
+            globals,
+            col_light,
+            shadow_textures,
+        }
     }
 
     pub fn bind(
@@ -509,36 +522,45 @@ impl GlobalsLayouts {
                     binding: 9,
                     resource: global_model.shadow_mats.buf().as_entire_binding(),
                 },
-                wgpu::BindGroupEntry {
-                    binding: 10,
-                    resource: wgpu::BindingResource::TextureView(&point_shadow_map.view),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 11,
-                    resource: wgpu::BindingResource::Sampler(&point_shadow_map.sampler),
-                },
-                // directed shadow maps
-                wgpu::BindGroupEntry {
-                    binding: 12,
-                    resource: wgpu::BindingResource::TextureView(&directed_shadow_map.view),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 13,
-                    resource: wgpu::BindingResource::Sampler(&directed_shadow_map.sampler),
-                },
                 // lod map (t_map)
                 wgpu::BindGroupEntry {
-                    binding: 14,
+                    binding: 10,
                     resource: wgpu::BindingResource::TextureView(&lod_data.map.view),
                 },
                 wgpu::BindGroupEntry {
-                    binding: 15,
+                    binding: 11,
                     resource: wgpu::BindingResource::Sampler(&lod_data.map.sampler),
                 },
             ],
         });
 
-        GlobalsBindGroup { bind_group }
+        let shadow_textures = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: None,
+            layout: &self.shadow_textures,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&point_shadow_map.view),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Sampler(&point_shadow_map.sampler),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 2,
+                    resource: wgpu::BindingResource::TextureView(&directed_shadow_map.view),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 3,
+                    resource: wgpu::BindingResource::Sampler(&directed_shadow_map.sampler),
+                },
+            ],
+        });
+
+        GlobalsBindGroup {
+            bind_group,
+            shadow_textures,
+        }
     }
 
     pub fn bind_col_light<Locals>(

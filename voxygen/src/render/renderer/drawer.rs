@@ -5,18 +5,18 @@ use super::{
         instances::Instances,
         model::{DynamicModel, Model, SubModel},
         pipelines::{
-            clouds, figure, fluid, lod_terrain, particle, postprocess, skybox, sprite, terrain, ui,
-            ColLights, GlobalsBindGroup, Light, Shadow,
+            clouds, figure, fluid, lod_terrain, particle, postprocess, shadow, skybox, sprite,
+            terrain, ui, ColLights, GlobalsBindGroup, Light, Shadow,
         },
     },
-    Renderer,
+    Renderer, ShadowMapRenderer,
 };
-use std::ops::Range;
+use std::{ops::Range};
 use vek::Aabr;
 
 pub struct Drawer<'a> {
     encoder: Option<wgpu::CommandEncoder>,
-    renderer: &'a mut Renderer,
+    pub renderer: &'a mut Renderer,
     tex: wgpu::SwapChainTexture,
     globals: &'a GlobalsBindGroup,
 }
@@ -63,10 +63,43 @@ impl<'a> Drawer<'a> {
                 });
 
         render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
+        render_pass.set_bind_group(1, &self.globals.shadow_textures, &[]);
 
         FirstPassDrawer {
             render_pass,
             renderer: &self.renderer,
+        }
+    }
+
+    pub fn shadow_pass(&mut self) -> Option<ShadowDrawer> {
+        if let Some(ref shadow_renderer) = self.renderer.shadow_map {
+            let mut render_pass =
+                self.encoder
+                    .as_mut()
+                    .unwrap()
+                    .begin_render_pass(&wgpu::RenderPassDescriptor {
+                        color_attachments: &[],
+                        depth_stencil_attachment: Some(
+                            wgpu::RenderPassDepthStencilAttachmentDescriptor {
+                                attachment: &shadow_renderer.directed_depth.view,
+                                depth_ops: Some(wgpu::Operations {
+                                    load: wgpu::LoadOp::Clear(1.0),
+                                    store: true,
+                                }),
+                                stencil_ops: None,
+                            },
+                        ),
+                    });
+
+            render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
+
+            Some(ShadowDrawer {
+                render_pass,
+                renderer: &self.renderer,
+                shadow_renderer,
+            })
+        } else {
+            None
         }
     }
 
@@ -88,6 +121,7 @@ impl<'a> Drawer<'a> {
                 });
 
         render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
+        render_pass.set_bind_group(1, &self.globals.shadow_textures, &[]);
 
         SecondPassDrawer {
             render_pass,
@@ -117,6 +151,68 @@ impl<'a> Drawer<'a> {
         ThirdPassDrawer {
             render_pass,
             renderer: &self.renderer,
+        }
+    }
+
+    pub fn draw_point_shadow<'b: 'a>(
+        &mut self,
+        model: &'b Model<terrain::Vertex>,
+        locals: &'b terrain::BoundLocals,
+        matrices: &[shadow::PointLightMatrix; 126],
+    ) {
+        if let Some(ref shadow_renderer) = self.renderer.shadow_map {
+            const STRIDE: usize = std::mem::size_of::<shadow::PointLightMatrix>();
+            let data = bytemuck::cast_slice(matrices);
+
+            for face in 0..6 {
+                let view =
+                    shadow_renderer
+                        .point_depth
+                        .tex
+                        .create_view(&wgpu::TextureViewDescriptor {
+                            label: Some("Point shadow cubemap face"),
+                            format: None,
+                            dimension: Some(wgpu::TextureViewDimension::D2Array),
+                            aspect: wgpu::TextureAspect::All,
+                            base_mip_level: 0,
+                            level_count: None,
+                            base_array_layer: face,
+                            array_layer_count: None,
+                        });
+
+                let mut render_pass =
+                    self.encoder
+                        .as_mut()
+                        .unwrap()
+                        .begin_render_pass(&wgpu::RenderPassDescriptor {
+                            color_attachments: &[],
+                            depth_stencil_attachment: Some(
+                                wgpu::RenderPassDepthStencilAttachmentDescriptor {
+                                    attachment: &view,
+                                    depth_ops: Some(wgpu::Operations {
+                                        load: wgpu::LoadOp::Clear(1.0),
+                                        store: true,
+                                    }),
+                                    stencil_ops: None,
+                                },
+                            ),
+                        });
+
+                render_pass.set_pipeline(&shadow_renderer.point_pipeline.pipeline);
+                render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
+                render_pass.set_bind_group(1, &locals.bind_group, &[]);
+                render_pass.set_vertex_buffer(0, model.buf().slice(..));
+
+                for point_light in 0..20 {
+                    render_pass.set_push_constants(
+                        wgpu::ShaderStage::all(),
+                        0,
+                        &data[(6 * point_light * STRIDE + face as usize * STRIDE)
+                            ..(6 * point_light * STRIDE + (face + 1) as usize * STRIDE)],
+                    );
+                    render_pass.draw(0..model.len() as u32, 0..1);
+                }
+            }
         }
     }
 }
@@ -159,9 +255,9 @@ impl<'a> FirstPassDrawer<'a> {
     ) {
         self.render_pass
             .set_pipeline(&self.renderer.figure_pipeline.pipeline);
-        self.render_pass.set_bind_group(1, &locals.bind_group, &[]);
+        self.render_pass.set_bind_group(2, &locals.bind_group, &[]);
         self.render_pass
-            .set_bind_group(2, &col_lights.bind_group, &[]);
+            .set_bind_group(3, &col_lights.bind_group, &[]);
         self.render_pass.set_vertex_buffer(0, model.buf());
         self.render_pass.draw(0..model.len(), 0..1);
     }
@@ -174,9 +270,9 @@ impl<'a> FirstPassDrawer<'a> {
     ) {
         self.render_pass
             .set_pipeline(&self.renderer.terrain_pipeline.pipeline);
-        self.render_pass.set_bind_group(1, &locals.bind_group, &[]);
+        self.render_pass.set_bind_group(2, &locals.bind_group, &[]);
         self.render_pass
-            .set_bind_group(2, &col_lights.bind_group, &[]);
+            .set_bind_group(3, &col_lights.bind_group, &[]);
         self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
         self.render_pass.draw(0..model.len() as u32, 0..1)
     }
@@ -201,10 +297,10 @@ impl<'a> FirstPassDrawer<'a> {
         self.render_pass
             .set_pipeline(&self.renderer.sprite_pipeline.pipeline);
         self.render_pass
-            .set_bind_group(1, &terrain_locals.bind_group, &[]);
-        self.render_pass.set_bind_group(2, &locals.bind_group, &[]);
+            .set_bind_group(2, &terrain_locals.bind_group, &[]);
+        self.render_pass.set_bind_group(3, &locals.bind_group, &[]);
         self.render_pass
-            .set_bind_group(3, &col_lights.bind_group, &[]);
+            .set_bind_group(4, &col_lights.bind_group, &[]);
         self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
         self.render_pass
             .set_vertex_buffer(1, instances.buf().slice(..));
@@ -215,7 +311,7 @@ impl<'a> FirstPassDrawer<'a> {
     pub fn draw_fluid<'b: 'a>(&mut self, waves: &'b fluid::BindGroup) -> FluidDrawer<'_, 'a> {
         self.render_pass
             .set_pipeline(&self.renderer.fluid_pipeline.pipeline);
-        self.render_pass.set_bind_group(1, &waves.bind_group, &[]);
+        self.render_pass.set_bind_group(2, &waves.bind_group, &[]);
 
         FluidDrawer {
             render_pass: &mut self.render_pass,
@@ -244,6 +340,38 @@ impl<'pass_ref, 'pass: 'pass_ref> ParticleDrawer<'pass_ref, 'pass> {
     }
 }
 
+pub struct ShadowDrawer<'pass> {
+    render_pass: wgpu::RenderPass<'pass>,
+    pub renderer: &'pass Renderer,
+    shadow_renderer: &'pass ShadowMapRenderer,
+}
+
+impl<'pass> ShadowDrawer<'pass> {
+    pub fn draw_figure_shadow<'b: 'pass>(
+        &mut self,
+        model: SubModel<'b, terrain::Vertex>,
+        locals: &'b figure::BoundLocals,
+    ) {
+        self.render_pass
+            .set_pipeline(&self.shadow_renderer.figure_directed_pipeline.pipeline);
+        self.render_pass.set_bind_group(1, &locals.bind_group, &[]);
+        self.render_pass.set_vertex_buffer(0, model.buf());
+        self.render_pass.draw(0..model.len(), 0..1);
+    }
+
+    pub fn draw_terrain_shadow<'b: 'pass>(
+        &mut self,
+        model: &'b Model<terrain::Vertex>,
+        locals: &'b terrain::BoundLocals,
+    ) {
+        self.render_pass
+            .set_pipeline(&self.shadow_renderer.terrain_directed_pipeline.pipeline);
+        self.render_pass.set_bind_group(1, &locals.bind_group, &[]);
+        self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
+        self.render_pass.draw(0..model.len() as u32, 0..1);
+    }
+}
+
 pub struct FluidDrawer<'pass_ref, 'pass: 'pass_ref> {
     render_pass: &'pass_ref mut wgpu::RenderPass<'pass>,
 }
@@ -255,7 +383,7 @@ impl<'pass_ref, 'pass: 'pass_ref> FluidDrawer<'pass_ref, 'pass> {
         locals: &'data terrain::BoundLocals,
     ) {
         self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
-        self.render_pass.set_bind_group(2, &locals.bind_group, &[]);
+        self.render_pass.set_bind_group(3, &locals.bind_group, &[]);
         self.render_pass.draw(0..model.len() as u32, 0..1);
     }
 }
@@ -270,7 +398,7 @@ impl<'a> SecondPassDrawer<'a> {
         self.render_pass
             .set_pipeline(&self.renderer.clouds_pipeline.pipeline);
         self.render_pass
-            .set_bind_group(1, &self.renderer.locals.clouds_bind.bind_group, &[]);
+            .set_bind_group(2, &self.renderer.locals.clouds_bind.bind_group, &[]);
         self.render_pass.draw(0..3, 0..1);
     }
 }

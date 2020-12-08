@@ -25,7 +25,7 @@ layout(location = 1) in uint v_atlas_pos;
 // out vec3 light_pos[2];
 in uint v_ao_bone; */
 
-layout (std140, set = 1, binding = 0)
+layout (std140, set = 2, binding = 0)
 uniform u_locals {
     mat4 model_mat;
     vec4 highlight_col;
@@ -43,7 +43,7 @@ struct BoneData {
     mat4 normals_mat;
 };
 
-layout (std140, set = 1, binding = 1)
+layout (std140, set = 2, binding = 1)
 uniform u_bones {
     // Warning: might not actually be 16 elements long. Don't index out of bounds!
     BoneData bones[16];

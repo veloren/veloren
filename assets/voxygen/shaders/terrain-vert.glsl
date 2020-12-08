@@ -28,7 +28,7 @@ layout(location = 0) in uint v_pos_norm;
 // in uint v_col_light;
 layout(location = 1) in uint v_atlas_pos;
 
-layout (std140, set = 1, binding = 0)
+layout (std140, set = 2, binding = 0)
 uniform u_locals {
     vec3 model_offs;
     float load_time;
@@ -155,7 +155,7 @@ void main() {
 
 #ifdef HAS_SHADOW_MAPS
     gl_Position =
-        /*all_mat*/shadowMats[0].shadowMatrices/*texture_mat*/ *
+        /*all_mat*/shadowMatrices/*texture_mat*/ *
         vec4(f_pos/*newRay*/, 1);
     gl_Position.z = clamp(gl_Position.z, -abs(gl_Position.w), abs(gl_Position.w));
 #else

@@ -124,7 +124,7 @@ pub struct ShadowMapRenderer {
 
     point_depth: Texture,
 
-    point_pipeline: shadow::ShadowPipeline,
+    point_pipeline: shadow::PointShadowPipeline,
     terrain_directed_pipeline: shadow::ShadowPipeline,
     figure_directed_pipeline: shadow::ShadowFigurePipeline,
     layout: shadow::ShadowLayout,
@@ -292,12 +292,18 @@ impl Renderer {
 
         use wgpu::{Features, Limits};
 
+        let mut limits = Limits::default();
+        limits.max_bind_groups = 5;
+        limits.max_push_constant_size = 64;
+
         let (device, queue) = futures::executor::block_on(adapter.request_device(
             &wgpu::DeviceDescriptor {
                 // TODO
                 label: None,
-                features: Features::DEPTH_CLAMPING | Features::ADDRESS_MODE_CLAMP_TO_BORDER,
-                limits: Limits::default(),
+                features: Features::DEPTH_CLAMPING
+                    | Features::ADDRESS_MODE_CLAMP_TO_BORDER
+                    | Features::PUSH_CONSTANTS,
+                limits,
                 shader_validation: true,
             },
             None,
@@ -955,33 +961,6 @@ impl Renderer {
         //     });
         // }
     }
-
-    // /// Set up shadow rendering.
-    // pub fn start_shadows(&mut self) {
-    //     if !self.mode.shadow.is_map() {
-    //         return;
-    //     }
-    //     if let Some(_shadow_map) = self.shadow_map.as_mut() {
-    //         self.encoder.flush(&mut self.device);
-    //         Self::set_depth_clamp(&mut self.device, true);
-    //     }
-    // }
-
-    // /// Perform all queued draw calls for global.shadows.
-    // pub fn flush_shadows(&mut self) {
-    //     if !self.mode.shadow.is_map() {
-    //         return;
-    //     }
-    //     if let Some(_shadow_map) = self.shadow_map.as_mut() {
-    //         let point_encoder = &mut self.encoder;
-    //         // let point_encoder = &mut shadow_map.point_encoder;
-    //         point_encoder.flush(&mut self.device);
-    //         // let directed_encoder = &mut shadow_map.directed_encoder;
-    //         // directed_encoder.flush(&mut self.device);
-    //         // Reset depth clamping.
-    //         Self::set_depth_clamp(&mut self.device, false);
-    //     }
-    // }
 
     /// Start recording the frame
     /// When the returned `Drawer` is dropped the recorded draw calls will be
@@ -2023,7 +2002,7 @@ fn create_pipelines(
         clouds::CloudsPipeline,
         postprocess::PostProcessPipeline,
         //figure::FigurePipeline,
-        Option<shadow::ShadowPipeline>,
+        Option<shadow::PointShadowPipeline>,
         Option<shadow::ShadowPipeline>,
         Option<shadow::ShadowFigurePipeline>,
     ),
@@ -2278,77 +2257,35 @@ fn create_pipelines(
     //     gfx::state::CullFace::Back,
     // )?;
 
-    // Sharp can fix it later ;)
-    //
-    // // Construct a pipeline for rendering point light terrain shadow maps.
-    // let point_shadow_pipeline = match create_shadow_pipeline(
-    //     factory,
-    //     shadow::pipe::new(),
-    //     &terrain_point_shadow_vert,
-    //     Some(
-    //         &Glsl::load_watched(
-    //             "voxygen.shaders.light-shadows-geom",
-    //             shader_reload_indicator,
-    //         )
-    //         .unwrap(),
-    //     ),
-    //     &Glsl::load_watched(
-    //         "voxygen.shaders.light-shadows-frag",
-    //         shader_reload_indicator,
-    //     )
-    //     .unwrap(),
-    //     &include_ctx,
-    //     gfx::state::CullFace::Back,
-    //     None, // Some(gfx::state::Offset(2, 0))
-    // ) {
-    //     Ok(pipe) => Some(pipe),
-    //     Err(err) => {
-    //         warn!("Could not load point shadow map pipeline: {:?}", err);
-    //         None
-    //     },
-    // };
+    // Construct a pipeline for rendering point light terrain shadow maps.
+    let point_shadow_pipeline = shadow::PointShadowPipeline::new(
+        device,
+        &create_shader("point-light-shadows-vert", ShaderKind::Vertex)?,
+        &create_shader("light-shadows-frag", ShaderKind::Fragment)?,
+        &layouts.global,
+        &layouts.terrain,
+        mode.aa,
+    );
 
-    // // Construct a pipeline for rendering directional light terrain shadow maps.
-    // let terrain_directed_shadow_pipeline = match create_shadow_pipeline(
-    //     factory,
-    //     shadow::pipe::new(),
-    //     &terrain_directed_shadow_vert,
-    //     None,
-    //     &directed_shadow_frag,
-    //     &include_ctx,
-    //     gfx::state::CullFace::Back,
-    //     None, // Some(gfx::state::Offset(2, 1))
-    // ) {
-    //     Ok(pipe) => Some(pipe),
-    //     Err(err) => {
-    //         warn!(
-    //             "Could not load directed terrain shadow map pipeline: {:?}",
-    //             err
-    //         );
-    //         None
-    //     },
-    // };
+    // Construct a pipeline for rendering directional light terrain shadow maps.
+    let terrain_directed_shadow_pipeline = shadow::ShadowPipeline::new(
+        device,
+        &terrain_directed_shadow_vert_mod,
+        &directed_shadow_frag_mod,
+        &layouts.global,
+        &layouts.terrain,
+        mode.aa,
+    );
 
-    // // Construct a pipeline for rendering directional light figure shadow maps.
-    // let figure_directed_shadow_pipeline = match create_shadow_pipeline(
-    //     factory,
-    //     shadow::figure_pipe::new(),
-    //     &figure_directed_shadow_vert,
-    //     None,
-    //     &directed_shadow_frag,
-    //     &include_ctx,
-    //     gfx::state::CullFace::Back,
-    //     None, // Some(gfx::state::Offset(2, 1))
-    // ) {
-    //     Ok(pipe) => Some(pipe),
-    //     Err(err) => {
-    //         warn!(
-    //             "Could not load directed figure shadow map pipeline: {:?}",
-    //             err
-    //         );
-    //         None
-    //     },
-    // };
+    // Construct a pipeline for rendering directional light figure shadow maps.
+    let figure_directed_shadow_pipeline = shadow::ShadowFigurePipeline::new(
+        device,
+        &figure_directed_shadow_vert_mod,
+        &directed_shadow_frag_mod,
+        &layouts.global,
+        &layouts.figure,
+        mode.aa,
+    );
 
     Ok((
         skybox_pipeline,
@@ -2362,9 +2299,9 @@ fn create_pipelines(
         clouds_pipeline,
         postprocess_pipeline,
         // player_shadow_pipeline,
-        None,
-        None,
-        None,
+        Some(point_shadow_pipeline),
+        Some(terrain_directed_shadow_pipeline),
+        Some(figure_directed_shadow_pipeline),
     ))
 }
 

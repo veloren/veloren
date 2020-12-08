@@ -148,7 +148,7 @@ impl LodTerrainPipeline {
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Lod terrain pipeline layout"),
                 push_constant_ranges: &[],
-                bind_group_layouts: &[&global_layout.globals],
+                bind_group_layouts: &[&global_layout.globals, &global_layout.shadow_textures],
             });
 
         let samples = match aa_mode {

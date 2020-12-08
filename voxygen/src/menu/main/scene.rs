@@ -1,5 +1,6 @@
 use crate::render::{
-    GlobalModel, Globals, GlobalsBindGroup, Light, LodData, Renderer, Shadow, ShadowLocals,
+    GlobalModel, Globals, GlobalsBindGroup, Light, LodData, PointLightMatrix, Renderer, Shadow,
+    ShadowLocals,
 };
 
 pub struct Scene {
@@ -12,7 +13,8 @@ impl Scene {
             globals: renderer.create_consts(&[Globals::default()]),
             lights: renderer.create_consts(&[Light::default(); 32]),
             shadows: renderer.create_consts(&[Shadow::default(); 32]),
-            shadow_mats: renderer.create_consts(&[ShadowLocals::default(); 6]),
+            shadow_mats: renderer.create_shadow_bound_locals(&[ShadowLocals::default()]),
+            point_light_matrices: Box::new([PointLightMatrix::default(); 126]),
         };
 
         let lod_data = LodData::dummy(renderer);

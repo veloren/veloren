@@ -2,8 +2,8 @@ use crate::{
     mesh::{greedy::GreedyMesh, segment::generate_mesh_base_vol_terrain},
     render::{
         create_skybox_mesh, BoneMeshes, Consts, FigureModel, FirstPassDrawer, GlobalModel, Globals,
-        GlobalsBindGroup, Light, LodData, Mesh, Model, Renderer, Shadow, ShadowLocals,
-        SkyboxVertex, TerrainVertex,
+        GlobalsBindGroup, Light, LodData, Mesh, Model, PointLightMatrix, Renderer, Shadow,
+        ShadowLocals, SkyboxVertex, TerrainVertex,
     },
     scene::{
         camera::{self, Camera, CameraMode},
@@ -109,7 +109,8 @@ impl Scene {
             globals: renderer.create_consts(&[Globals::default()]),
             lights: renderer.create_consts(&[Light::default(); 20]),
             shadows: renderer.create_consts(&[Shadow::default(); 24]),
-            shadow_mats: renderer.create_consts(&[ShadowLocals::default(); 6]),
+            shadow_mats: renderer.create_shadow_bound_locals(&[ShadowLocals::default()]),
+            point_light_matrices: Box::new([PointLightMatrix::default(); 126]),
         };
         let lod = LodData::dummy(renderer);
 

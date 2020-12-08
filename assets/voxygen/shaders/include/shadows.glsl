@@ -3,30 +3,26 @@
 
 #ifdef HAS_SHADOW_MAPS
 
-    #if (SHADOW_MODE == SHADOW_MODE_MAP)
-struct ShadowLocals {
+#if (SHADOW_MODE == SHADOW_MODE_MAP)
+layout (std140, set = 0, binding = 9)
+uniform u_light_shadows {
     mat4 shadowMatrices;
     mat4 texture_mat;
 };
 
-layout (std140, set = 0, binding = 9)
-uniform u_light_shadows {
-    ShadowLocals shadowMats[/*MAX_LAYER_FACES*//*192*/126];
-};
-
 // Use with sampler2DShadow
-layout(set = 0, binding = 12)
+layout(set = 1, binding = 2)
 uniform texture2D t_directed_shadow_maps;
-layout(set = 0, binding = 13)
+layout(set = 1, binding = 3)
 uniform sampler s_directed_shadow_maps;
 // uniform sampler2DArrayShadow t_directed_shadow_maps;
 
 // uniform samplerCubeArrayShadow t_shadow_maps;
 // uniform samplerCubeArray t_shadow_maps;
 // Use with samplerCubeShadow
-layout(set = 0, binding = 10)
+layout(set = 1, binding = 0)
 uniform textureCube t_point_shadow_maps;
-layout(set = 0, binding = 11)
+layout(set = 1, binding = 1)
 uniform sampler s_point_shadow_maps;
 // uniform samplerCube t_shadow_maps;
 
@@ -165,7 +161,6 @@ float ShadowCalculationDirected(in vec3 fragPos)//in vec4 /*light_pos[2]*/sun_po
     } */
     // vec3 fragPos = sun_pos.xyz;// / sun_pos.w;//light_pos[lightIndex].xyz;
     // sun_pos.z += sun_pos.w * bias;
-    mat4 texture_mat = shadowMats[0].texture_mat;
     vec4 sun_pos = texture_mat * vec4(fragPos, 1.0);
     // sun_pos.z -= sun_pos.w * bias;
     float visibility = textureProj(sampler2DShadow(t_directed_shadow_maps, s_directed_shadow_maps), sun_pos);

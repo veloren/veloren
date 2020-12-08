@@ -1,6 +1,6 @@
 use super::super::{
-    AaMode, ColLightInfo, FigureLayout, GlobalsLayouts, Renderer, TerrainLayout, TerrainVertex,
-    Texture,
+    AaMode, Bound, ColLightInfo, Consts, FigureLayout, GlobalsLayouts, Renderer, TerrainLayout,
+    TerrainVertex, Texture,
 };
 use bytemuck::{Pod, Zeroable};
 use vek::*;
@@ -21,23 +21,9 @@ impl Locals {
     }
 
     pub fn default() -> Self { Self::new(Mat4::identity(), Mat4::identity()) }
-
-    fn layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
-        device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: None,
-            entries: &[wgpu::BindGroupLayoutEntry {
-                binding: 0,
-                visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                ty: wgpu::BindingType::Buffer {
-                    ty: wgpu::BufferBindingType::Uniform,
-                    has_dynamic_offset: false,
-                    min_binding_size: None,
-                },
-                count: None,
-            }],
-        })
-    }
 }
+
+pub type BoundLocals = Bound<Consts<Locals>>;
 
 pub struct ShadowLayout {
     pub locals: wgpu::BindGroupLayout,
@@ -46,9 +32,47 @@ pub struct ShadowLayout {
 impl ShadowLayout {
     pub fn new(device: &wgpu::Device) -> Self {
         Self {
-            locals: Locals::layout(device),
+            locals: device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                label: None,
+                entries: &[wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::Buffer {
+                        ty: wgpu::BufferBindingType::Uniform,
+                        has_dynamic_offset: false,
+                        min_binding_size: None,
+                    },
+                    count: None,
+                }],
+            }),
         }
     }
+
+    pub fn bind_locals(&self, device: &wgpu::Device, locals: Consts<Locals>) -> BoundLocals {
+        let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: None,
+            layout: &self.locals,
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: locals.buf().as_entire_binding(),
+            }],
+        });
+
+        BoundLocals {
+            bind_group,
+            with: locals,
+        }
+    }
+}
+
+#[repr(C)]
+#[derive(Copy, Clone, Debug, Zeroable, Pod)]
+pub struct PointLightMatrix([[f32; 4]; 4]);
+
+impl PointLightMatrix {
+    pub fn new(shadow_mat: Mat4<f32>) -> Self { Self(shadow_mat.into_col_arrays()) }
+
+    pub fn default() -> Self { Self::new(Mat4::identity()) }
 }
 
 pub fn create_col_lights(
@@ -109,23 +133,17 @@ impl ShadowFigurePipeline {
         device: &wgpu::Device,
         vs_module: &wgpu::ShaderModule,
         fs_module: &wgpu::ShaderModule,
-        sc_desc: &wgpu::SwapChainDescriptor,
         global_layout: &GlobalsLayouts,
         figure_layout: &FigureLayout,
-        layout: &ShadowLayout,
         aa_mode: AaMode,
     ) -> Self {
         common::span!(_guard, "new");
-        tracing::error!("test");
+
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Shadow figure pipeline layout"),
                 push_constant_ranges: &[],
-                bind_group_layouts: &[
-                    &global_layout.globals,
-                    &figure_layout.locals,
-                    &layout.locals,
-                ],
+                bind_group_layouts: &[&global_layout.globals, &figure_layout.locals],
             });
 
         let samples = match aa_mode {
@@ -151,7 +169,7 @@ impl ShadowFigurePipeline {
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: wgpu::CullMode::Back,
                 polygon_mode: wgpu::PolygonMode::Fill,
-                clamp_depth: false,
+                clamp_depth: true,
                 depth_bias: 0,
                 depth_bias_slope_scale: 0.0,
                 depth_bias_clamp: 0.0,
@@ -193,21 +211,15 @@ impl ShadowPipeline {
         device: &wgpu::Device,
         vs_module: &wgpu::ShaderModule,
         fs_module: &wgpu::ShaderModule,
-        sc_desc: &wgpu::SwapChainDescriptor,
         global_layout: &GlobalsLayouts,
         terrain_layout: &TerrainLayout,
-        layout: &ShadowLayout,
         aa_mode: AaMode,
     ) -> Self {
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Shadow pipeline layout"),
                 push_constant_ranges: &[],
-                bind_group_layouts: &[
-                    &global_layout.globals,
-                    &terrain_layout.locals,
-                    &layout.locals,
-                ],
+                bind_group_layouts: &[&global_layout.globals, &terrain_layout.locals],
             });
 
         let samples = match aa_mode {
@@ -233,7 +245,85 @@ impl ShadowPipeline {
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: wgpu::CullMode::Back,
                 polygon_mode: wgpu::PolygonMode::Fill,
-                clamp_depth: false,
+                clamp_depth: true,
+                depth_bias: 0,
+                depth_bias_slope_scale: 0.0,
+                depth_bias_clamp: 0.0,
+            }),
+            primitive_topology: wgpu::PrimitiveTopology::TriangleList,
+            color_states: &[],
+            depth_stencil_state: Some(wgpu::DepthStencilStateDescriptor {
+                format: wgpu::TextureFormat::Depth24Plus,
+                depth_write_enabled: true,
+                depth_compare: wgpu::CompareFunction::Less,
+                stencil: wgpu::StencilStateDescriptor {
+                    front: wgpu::StencilStateFaceDescriptor::IGNORE,
+                    back: wgpu::StencilStateFaceDescriptor::IGNORE,
+                    read_mask: !0,
+                    write_mask: !0,
+                },
+            }),
+            vertex_state: wgpu::VertexStateDescriptor {
+                index_format: None,
+                vertex_buffers: &[TerrainVertex::desc()],
+            },
+            sample_count: samples,
+            sample_mask: !0,
+            alpha_to_coverage_enabled: false,
+        });
+
+        Self {
+            pipeline: render_pipeline,
+        }
+    }
+}
+pub struct PointShadowPipeline {
+    pub pipeline: wgpu::RenderPipeline,
+}
+
+impl PointShadowPipeline {
+    pub fn new(
+        device: &wgpu::Device,
+        vs_module: &wgpu::ShaderModule,
+        fs_module: &wgpu::ShaderModule,
+        global_layout: &GlobalsLayouts,
+        terrain_layout: &TerrainLayout,
+        aa_mode: AaMode,
+    ) -> Self {
+        let render_pipeline_layout =
+            device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                label: Some("Shadow pipeline layout"),
+                push_constant_ranges: &[wgpu::PushConstantRange {
+                    stages: wgpu::ShaderStage::all(),
+                    range: 0..64,
+                }],
+                bind_group_layouts: &[&global_layout.globals, &terrain_layout.locals],
+            });
+
+        let samples = match aa_mode {
+            AaMode::None | AaMode::Fxaa => 1,
+            // TODO: Ensure sampling in the shader is exactly between the 4 texels
+            AaMode::MsaaX4 => 4,
+            AaMode::MsaaX8 => 8,
+            AaMode::MsaaX16 => 16,
+        };
+
+        let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("Shadow pipeline"),
+            layout: Some(&render_pipeline_layout),
+            vertex_stage: wgpu::ProgrammableStageDescriptor {
+                module: vs_module,
+                entry_point: "main",
+            },
+            fragment_stage: Some(wgpu::ProgrammableStageDescriptor {
+                module: fs_module,
+                entry_point: "main",
+            }),
+            rasterization_state: Some(wgpu::RasterizationStateDescriptor {
+                front_face: wgpu::FrontFace::Ccw,
+                cull_mode: wgpu::CullMode::Back,
+                polygon_mode: wgpu::PolygonMode::Fill,
+                clamp_depth: true,
                 depth_bias: 0,
                 depth_bias_slope_scale: 0.0,
                 depth_bias_clamp: 0.0,

@@ -9,7 +9,7 @@ use crate::{
     render::{
         pipelines::{self, ColLights},
         ColLightInfo, FigureBoneData, FigureLocals, FigureModel, FirstPassDrawer, GlobalModel,
-        LodData, Mesh, RenderError, Renderer, SubModel, TerrainVertex,
+        LodData, Mesh, RenderError, Renderer, ShadowDrawer, SubModel, TerrainVertex,
     },
     scene::{
         camera::{Camera, CameraMode, Dependents},
@@ -4706,20 +4706,17 @@ impl FigureMgr {
         visible_aabb
     }
 
-    pub fn render_shadows(
-        &self,
-        renderer: &mut Renderer,
+    pub fn render_shadows<'a>(
+        &'a self,
+        drawer: &mut ShadowDrawer<'a>,
         state: &State,
         tick: u64,
-        global: &GlobalModel,
-        (is_daylight, _light_data): super::LightData,
         (camera, figure_lod_render_distance): CameraData,
     ) {
         span!(_guard, "render_shadows", "FigureManager::render_shadows");
         let ecs = state.ecs();
 
-        if is_daylight && renderer.render_mode().shadow.is_map() {
-            (
+        (
                 &ecs.entities(),
                 &ecs.read_storage::<Pos>(),
                 ecs.read_storage::<Ori>().maybe(),
@@ -4744,17 +4741,9 @@ impl FigureMgr {
                     figure_lod_render_distance * scale.map_or(1.0, |s| s.0),
                     |state| state.can_shadow_sun(),
                 ) {
-                    // TODO
-                    //renderer.render_figure_shadow_directed(
-                    //    model,
-                    //    global,
-                    //    locals,
-                    //    bone_consts,
-                    //    &global.shadow_mats,
-                    //);
+                    drawer.draw_figure_shadow(model, bound);
                 }
             });
-        }
     }
 
     #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587

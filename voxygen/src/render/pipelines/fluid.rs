@@ -128,6 +128,7 @@ impl FluidPipeline {
                 push_constant_ranges: &[],
                 bind_group_layouts: &[
                     &global_layout.globals,
+                    &global_layout.shadow_textures,
                     &layout.waves,
                     &terrain_layout.locals,
                 ],
