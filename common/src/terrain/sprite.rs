@@ -185,6 +185,7 @@ impl SpriteKind {
             SpriteKind::ShortGrass => false,
             SpriteKind::Apple => true,
             SpriteKind::Mushroom => true,
+            SpriteKind::CaveMushroom => true,
             SpriteKind::Velorite => true,
             SpriteKind::VeloriteFrag => true,
             SpriteKind::Chest => true,

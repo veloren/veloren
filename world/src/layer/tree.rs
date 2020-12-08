@@ -19,6 +19,7 @@ lazy_static! {
     pub static ref PINES: Vec<Arc<Structure>> = Structure::load_group("pines");
     pub static ref PALMS: Vec<Arc<Structure>> = Structure::load_group("palms");
     pub static ref ACACIAS: Vec<Arc<Structure>> = Structure::load_group("acacias");
+    pub static ref BAOBABS: Vec<Arc<Structure>> = Structure::load_group("baobabs");
     pub static ref FRUIT_TREES: Vec<Arc<Structure>> = Structure::load_group("fruit_trees");
     pub static ref BIRCHES: Vec<Arc<Structure>> = Structure::load_group("birch");
     pub static ref MANGROVE_TREES: Vec<Arc<Structure>> = Structure::load_group("mangrove_trees");
@@ -85,7 +86,8 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
                                     &FRUIT_TREES
                                 },
                                 ForestKind::Palm => &PALMS,
-                                ForestKind::Savannah => &ACACIAS,
+                                ForestKind::Acacia => &ACACIAS,
+                                ForestKind::Baobab => &BAOBABS,
                                 ForestKind::Oak => &OAKS,
                                 ForestKind::Pine => &PINES,
                                 ForestKind::Birch => &BIRCHES,
