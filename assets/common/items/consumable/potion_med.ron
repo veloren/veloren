@@ -1,13 +1,13 @@
 ItemDef(
     name: "Medium Potion",
-    description: "Restores 70 Health",
+    description: "Restores 100 Health",
     kind: Consumable(
         kind: "PotionMed",
         effect: [
             Buff((
                 kind: Potion,
                 data: (
-                    strength: 700.0,
+                    strength: 1000.0,
                     duration: Some((
                             secs: 1,
                             nanos: 0,
