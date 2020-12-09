@@ -1,0 +1,8 @@
+ItemDef(
+    name: "Viscous Ooze",
+    description: "A measure of viscous ooze from a slimy creature.",
+    kind: Ingredient(
+        kind: "ViscousOoze",
+    ),
+    quality: Common,
+)

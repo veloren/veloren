@@ -1,0 +1,8 @@
+ItemDef(
+    name: "Venom Sac",
+    description: "A venomous sac from a poisonous creature.",
+    kind: Ingredient(
+        kind: "VenomSac",
+    ),
+    quality: Common,
+)

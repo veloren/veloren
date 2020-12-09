@@ -1,0 +1,21 @@
+ItemDef(
+    name: "Dandelion",
+    description: "Restores 10 Health over 20 seconds\n\nA small, yellow flower. Uses the wind to spread its seeds.",
+    kind: Consumable(
+        kind: "Dandelion",
+        effect: [
+            Buff((
+                kind: Saturation,
+                data: (
+                    strength: 5.0,
+                    duration: Some((
+                            secs: 20,
+                            nanos: 0,
+                        )),
+                    ),
+                cat_ids: [Natural],
+            )),
+        ]
+    ),
+    quality: Common,
+)

@@ -1,0 +1,8 @@
+ItemDef(
+    name: "Topaz",
+    description: "An outstanding orange gem.",
+    kind: Ingredient(
+        kind: "Topaz",
+    ),
+    quality: Common,
+)

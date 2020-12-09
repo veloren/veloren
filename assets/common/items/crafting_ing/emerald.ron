@@ -1,0 +1,8 @@
+ItemDef(
+    name: "Emerald",
+    description: "A vibrant viridian gem.",
+    kind: Ingredient(
+        kind: "Emerald",
+    ),
+    quality: Common,
+)

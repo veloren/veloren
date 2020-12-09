@@ -1,0 +1,8 @@
+ItemDef(
+    name: "Bloodsteel Ingot",
+    description: "An alloy of bloodstone and iron.",
+    kind: Ingredient(
+        kind: "BloodsteelIngot",
+    ),
+    quality: Common,
+)
