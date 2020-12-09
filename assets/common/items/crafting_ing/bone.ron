@@ -1,0 +1,8 @@
+ItemDef(
+    name: "Thick Bone",
+    description: "A bone sturdy enough to craft with.",
+    kind: Ingredient(
+        kind: "Bone",
+    ),
+    quality: Common,
+)

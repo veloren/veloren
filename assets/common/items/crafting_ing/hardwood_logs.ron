@@ -1,0 +1,8 @@
+ItemDef(
+    name: "Hardwood Logs",
+    description: "Extra thick and sturdy logs.",
+    kind: Ingredient(
+        kind: "HardwoodLogs",
+    ),
+    quality: Common,
+)
