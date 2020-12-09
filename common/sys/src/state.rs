@@ -2,6 +2,7 @@ use common::{
     comp,
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::{PhysicsMetrics, SysMetrics},
+    plugin::PluginMgr,
     region::RegionMap,
     resources::{DeltaTime, Time, TimeOfDay},
     span,
@@ -18,6 +19,7 @@ use specs::{
     Component, DispatcherBuilder, Entity as EcsEntity, WorldExt,
 };
 use std::{sync::Arc, time::Duration};
+use tracing::info;
 use vek::*;
 
 /// How much faster should an in-game day be compared to a real day?
@@ -175,6 +177,15 @@ impl State {
         ecs.insert(RegionMap::new());
         ecs.insert(SysMetrics::default());
         ecs.insert(PhysicsMetrics::default());
+
+        // Load plugins from asset directory
+        ecs.insert(match PluginMgr::from_assets() {
+            Ok(plugin_mgr) => plugin_mgr,
+            Err(_) => {
+                info!("Error occurred when loading plugins. Running without plugins instead.");
+                PluginMgr::default()
+            },
+        });
 
         ecs
     }

@@ -1,0 +1,10 @@
+[package]
+name = "veloren-plugin-api"
+version = "0.1.0"
+authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+common = { package = "veloren-common", path = "../common" }
+
+spin = "0.7"

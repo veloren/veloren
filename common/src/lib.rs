@@ -38,6 +38,7 @@ pub mod msg;
 pub mod npc;
 pub mod outcome;
 pub mod path;
+pub mod plugin;
 pub mod ray;
 pub mod recipe;
 pub mod region;
