@@ -1,8 +1,8 @@
 use crate::{column::ColumnSample, sim::SimChunk, IndexRef, CONFIG};
 use common::{
     comp::{
-        biped_large, bird_medium, quadruped_low, quadruped_medium, quadruped_small, theropod,
-        Alignment,
+        biped_large, bird_medium, fish_medium, fish_small, quadruped_low, quadruped_medium,
+        quadruped_small, theropod, Alignment,
     },
     generation::{ChunkSupplement, EntityInfo},
     terrain::Block,
@@ -50,10 +50,10 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                         1 => {
                             theropod::Body::random_with(rng, &theropod::Species::Snowraptor).into()
                         },
-                        _ => quadruped_medium::Body::random_with(
-                            rng,
-                            &quadruped_medium::Species::Roshwalr,
-                        )
+                        _ => quadruped_medium::Body {
+                            species: quadruped_medium::Species::Roshwalr,
+                            body_type: quadruped_medium::BodyType::Male,
+                        }
                         .into(),
                     })
                     .with_alignment(Alignment::Enemy)
@@ -697,7 +697,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                     * 0.2
             },
         },
-        // Desert river solitary wild
+        // Desert river solitary enemy
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
@@ -716,6 +716,28 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                     } else {
                         0.0
                     }
+            },
+        },
+        // Desert secret solitary enemy
+        Entry {
+            make_entity: |pos, _rng| {
+                EntityInfo::at(pos)
+                    .with_body(
+                        quadruped_medium::Body {
+                            species: quadruped_medium::Species::Roshwalr,
+                            body_type: quadruped_medium::BodyType::Female,
+                        }
+                        .into(),
+                    )
+                    .with_alignment(Alignment::Enemy)
+            },
+            group_size: 1..3,
+            is_underwater: false,
+            get_density: |c, _col| {
+                close(c.temp, CONFIG.desert_temp + 0.2, 0.3)
+                    * close(c.humidity, CONFIG.desert_hum, 0.5)
+                    * BASE_DENSITY
+                    * 0.01
             },
         },
         // Desert solitary wild
@@ -759,6 +781,24 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             is_underwater: false,
             get_density: |c, _col| {
                 close(c.temp, CONFIG.desert_temp + 0.2, 0.3) * BASE_DENSITY * 5.0
+            },
+        },
+        // Underwater
+        Entry {
+            make_entity: |pos, rng| {
+                EntityInfo::at(pos)
+                    .with_body(match rng.gen_range(0, 2) {
+                        0 => fish_medium::Body::random_with(rng, &fish_medium::Species::Marlin)
+                            .into(),
+                        _ => fish_small::Body::random_with(rng, &fish_small::Species::Clownfish)
+                            .into(),
+                    })
+                    .with_alignment(Alignment::Wild)
+            },
+            group_size: 3..5,
+            is_underwater: true,
+            get_density: |c, col| {
+                close(c.temp, CONFIG.temperate_temp, 1.0) * col.tree_density * BASE_DENSITY * 5.0
             },
         },
     ];

@@ -2179,35 +2179,25 @@ impl FigureMgr {
                         vel.0.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
                         physics.in_liquid.is_some(),                      // In water
                     ) {
-                        // Standing
-                        (true, false, false) => anim::fish_medium::IdleAnimation::update_skeleton(
+                        // Idle
+                        (_, false, _) => anim::fish_medium::IdleAnimation::update_skeleton(
                             &FishMediumSkeleton::default(),
-                            time,
+                            (vel.0, ori, state.last_ori, time, state.avg_vel),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
-                        // Running
-                        (true, true, false) => anim::fish_medium::RunAnimation::update_skeleton(
+                        // Swim
+                        (_, true, _) => anim::fish_medium::SwimAnimation::update_skeleton(
                             &FishMediumSkeleton::default(),
-                            (vel.0.magnitude(), time),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                        // In air
-                        (false, _, false) => anim::fish_medium::JumpAnimation::update_skeleton(
-                            &FishMediumSkeleton::default(),
-                            (vel.0.magnitude(), time),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-
-                        // TODO!
-                        _ => anim::fish_medium::IdleAnimation::update_skeleton(
-                            &FishMediumSkeleton::default(),
-                            time,
+                            (
+                                vel.0,
+                                ori,
+                                state.last_ori,
+                                time,
+                                state.avg_vel,
+                                state.acc_vel,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -2574,35 +2564,25 @@ impl FigureMgr {
                         vel.0.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
                         physics.in_liquid.is_some(),                      // In water
                     ) {
-                        // Standing
-                        (true, false, false) => anim::fish_small::IdleAnimation::update_skeleton(
+                        // Idle
+                        (_, false, _) => anim::fish_small::IdleAnimation::update_skeleton(
                             &FishSmallSkeleton::default(),
-                            time,
+                            (vel.0, ori, state.last_ori, time, state.avg_vel),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
-                        // Running
-                        (true, true, false) => anim::fish_small::RunAnimation::update_skeleton(
+                        // Swim
+                        (_, true, _) => anim::fish_small::SwimAnimation::update_skeleton(
                             &FishSmallSkeleton::default(),
-                            (vel.0.magnitude(), time),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                        // In air
-                        (false, _, false) => anim::fish_small::JumpAnimation::update_skeleton(
-                            &FishSmallSkeleton::default(),
-                            (vel.0.magnitude(), time),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-
-                        // TODO!
-                        _ => anim::fish_small::IdleAnimation::update_skeleton(
-                            &FishSmallSkeleton::default(),
-                            time,
+                            (
+                                vel.0,
+                                ori,
+                                state.last_ori,
+                                time,
+                                state.avg_vel,
+                                state.acc_vel,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -3761,6 +3741,7 @@ pub struct FigureStateMeta {
     avg_vel: anim::vek::Vec3<f32>,
     last_light: f32,
     last_glow: f32,
+    acc_vel: f32,
 }
 
 impl FigureStateMeta {
@@ -3807,6 +3788,7 @@ impl<S: Skeleton> FigureState<S> {
                 avg_vel: anim::vek::Vec3::zero(),
                 last_light: 1.0,
                 last_glow: 0.0,
+                acc_vel: 0.0,
             },
             skeleton,
         }
@@ -3935,6 +3917,13 @@ impl<S: Skeleton> FigureState<S> {
             self.avg_vel = (1.0 - smoothing) * self.avg_vel + smoothing * (pos - last_pos) / dt;
         }
         self.last_pos = Some(pos);
+
+        // Can potentially overflow
+        if self.avg_vel.magnitude_squared() != 0.0 {
+            self.acc_vel += self.avg_vel.magnitude() * dt;
+        } else {
+            self.acc_vel = 0.0;
+        }
     }
 
     pub fn locals(&self) -> &Consts<FigureLocals> { &self.locals }

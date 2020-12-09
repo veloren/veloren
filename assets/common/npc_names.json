@@ -686,7 +686,7 @@
         "species": {
             "reddragon": {
                 "keyword": "reddragon",
-                "generic": "Reddragon"
+                "generic": "Red Dragon"
             }
         }
     },
@@ -700,16 +700,30 @@
     "fish_small": {
         "body": {
             "keyword": "fish_small",
-            "names": []
+            "names": [
+                "Dagon"
+            ]
         },
-        "species": null
+        "species": {
+            "clownfish": {
+                "keyword": "clownfish",
+                "generic": "Clownfish"
+            }
+        }
     },
     "fish_medium": {
         "body": {
             "keyword": "fish_medium",
-            "names": []
+            "names": [
+                "Njord"
+            ]
         },
-        "species": null
+        "species": {
+            "marlin": {
+                "keyword": "marlin",
+                "generic": "Marlin"
+            }
+        }
     },
     "bird_small": {
         "body": {

@@ -1,0 +1,22 @@
+({
+    (Marlin, Male): (
+        fin_l: (
+            offset: (-3.0, -5.0, -4.0),
+            lateral: ("npc.marlin.male.fin_l"),
+        ),
+        fin_r: (
+            offset: (0.0, -5.0, -4.0),
+            lateral: ("npc.marlin.male.fin_r"),
+        ),
+    ),
+    (Marlin, Female): (
+        fin_l: (
+            offset: (-3.0, -5.0, -4.0),
+            lateral: ("npc.marlin.male.fin_l"),
+        ),
+        fin_r: (
+            offset: (0.0, -5.0, -4.0),
+            lateral: ("npc.marlin.male.fin_r"),
+        ),
+    ),
+})

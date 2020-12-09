@@ -1,0 +1,46 @@
+({
+    (Marlin, Male): (
+        head: (
+            offset: (-2.5, 0.0, -3.0),
+            central: ("npc.marlin.male.head"),
+        ),
+        jaw: (
+            offset: (-4.0, 0.0, -1.5),
+            central: ("armor.empty"),
+        ),
+        chest_front: (
+            offset: (-2.5, -5.0, -2.5),
+            central: ("npc.marlin.male.chest_front"),
+        ),
+        chest_back: (
+            offset: (-2.5, -7.0, -3.5),
+            central: ("npc.marlin.male.chest_back"),
+        ),
+		tail: (
+            offset: (-0.5, -11.0, -4.5),
+            central: ("npc.marlin.male.tail"),
+        ),
+    ),
+    (Marlin, Female): (
+        head: (
+            offset: (-2.5, 0.0, -3.0),
+            central: ("npc.marlin.male.head"),
+        ),
+        jaw: (
+            offset: (-4.0, 0.0, -1.5),
+            central: ("armor.empty"),
+        ),
+        chest_front: (
+            offset: (-2.5, -5.0, -2.5),
+            central: ("npc.marlin.male.chest_front"),
+        ),
+        chest_back: (
+            offset: (-2.5, -7.0, -3.5),
+            central: ("npc.marlin.male.chest_back"),
+        ),
+		tail: (
+            offset: (-0.5, -11.0, -4.5),
+            central: ("npc.marlin.male.tail"),
+        ),
+    ),
+})
