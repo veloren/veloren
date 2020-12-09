@@ -1,15 +1,15 @@
 ItemDef(
     name: "Dwarven Cheese",
-    description: "Restores 15 Health over 20 seconds\n\nAromatic and nutritious",
+    description: "Restores 15 Health over 10 seconds\n\nAromatic and nutritious",
     kind: Consumable(
         kind: "Cheese",
         effect: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 7.5,
+                    strength: 15.0,
                     duration: Some((
-                            secs: 20,
+                            secs: 10,
                             nanos: 0,
                         )),
                     ),
