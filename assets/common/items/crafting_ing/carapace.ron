@@ -1,0 +1,8 @@
+ItemDef(
+    name: "Hard Carapace",
+    description: "Tough, hard carapace.",
+    kind: Ingredient(
+        kind: "Carapace",
+    ),
+    quality: Common,
+)

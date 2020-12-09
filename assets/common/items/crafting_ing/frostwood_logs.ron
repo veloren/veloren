@@ -1,0 +1,8 @@
+ItemDef(
+    name: "Frostwood Logs",
+    description: "Chilly wood that comes from cold biomes. Cold to the touch.",
+    kind: Ingredient(
+        kind: "FrostwoodLogs",
+    ),
+    quality: Common,
+)
