@@ -1,6 +1,6 @@
 ItemDef(
     name: "Lettuce",
-    description: "Restores 10 Health over 20 seconds\n\nA vibrant green leafy vegetable. Lettuce make some salads!.",
+    description: "Restores 10 Health over 20 seconds\n\nA vibrant green leafy vegetable. Lettuce make some salads!",
     kind: Consumable(
         kind: "Lettuce",
         effect: [
