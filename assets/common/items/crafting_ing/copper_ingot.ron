@@ -1,0 +1,8 @@
+ItemDef(
+    name: "Copper Ingot",
+    description: "An ingot with a unique brown color.",
+    kind: Ingredient(
+        kind: "CopperIngot",
+    ),
+    quality: Common,
+)
