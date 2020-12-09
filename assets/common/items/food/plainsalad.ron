@@ -1,6 +1,6 @@
 ItemDef(
     name: Plain Salad",
-    description: "Restores 20 Health over 20 seconds\n\nLiterally just chopped lettuce. Does this even count as a salad?.",
+    description: "Restores 20 Health over 20 seconds\n\nLiterally just chopped lettuce. Does this even count as a salad?",
     kind: Consumable(
         kind: "PlainSalad",
         effect: [
