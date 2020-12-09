@@ -32,7 +32,7 @@
 	"adventure back": (("common.items.armor.back.leather_adventurer", 1),[("common.items.crafting_ing.leather_scraps", 4)]),
 	"adventure belt": (("common.items.armor.belt.leather_adventurer", 1),[("common.items.crafting_ing.leather_scraps", 2)]),
 	"adventure chest": (("common.items.armor.chest.leather_adventurer", 1),[("common.items.crafting_ing.leather_scraps", 12)]),
-	"adventure feet": (("common.items.armor.foot.leather_adventurer", 1),[("common.items.crafting_ing.leather_scraps", 6)]),
+	"adventure feet": (("common.items.armor.foot.leather_adventurer", 1),[("common.items.crafting_ing.leather_scraps", 3)]),
 	"adventure hands": (("common.items.armor.hand.leather_adventurer", 1),[("common.items.crafting_ing.leather_scraps", 4)]),
 	"adventure pants": (("common.items.armor.pants.leather_adventurer", 1),[("common.items.crafting_ing.leather_scraps", 8)]),
 	"adventure shoulder": (("common.items.armor.shoulder.leather_adventurer", 1),[("common.items.crafting_ing.leather_scraps", 12)]),
