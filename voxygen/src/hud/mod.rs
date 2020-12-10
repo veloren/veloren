@@ -2259,7 +2259,7 @@ impl Hud {
                 self.pulse,
                 &self.i18n,
                 &global_state,
-                tooltip_manager,                
+                tooltip_manager,
             )
             .set(self.ids.map, ui_widgets)
             {
