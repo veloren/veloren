@@ -3693,6 +3693,7 @@ impl FigureColLights {
         })
     }
 
+    #[allow(clippy::unnecessary_wraps)]
     fn make_atlas(renderer: &mut Renderer) -> Result<AtlasAllocator, RenderError> {
         let max_texture_size = renderer.max_texture_size();
         let atlas_size =

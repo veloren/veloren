@@ -8,16 +8,17 @@ use std::time::{Duration, Instant};
 
 #[test]
 fn maps_wield_while_equipping() {
-    let mut loadout = Loadout::default();
-
-    loadout.active_item = Some(ItemConfig {
-        item: Item::new_from_asset_expect("common.items.weapons.axe.starter_axe"),
-        ability1: None,
-        ability2: None,
-        ability3: None,
-        block_ability: None,
-        dodge_ability: None,
-    });
+    let loadout = Loadout {
+        active_item: Some(ItemConfig {
+            item: Item::new_from_asset_expect("common.items.weapons.axe.starter_axe"),
+            ability1: None,
+            ability2: None,
+            ability3: None,
+            block_ability: None,
+            dodge_ability: None,
+        }),
+        ..Default::default()
+    };
 
     let result = CombatEventMapper::map_event(
         &CharacterState::Equipping(states::equipping::Data {
@@ -39,16 +40,17 @@ fn maps_wield_while_equipping() {
 
 #[test]
 fn maps_unwield() {
-    let mut loadout = Loadout::default();
-
-    loadout.active_item = Some(ItemConfig {
-        item: Item::new_from_asset_expect("common.items.weapons.bow.starter_bow"),
-        ability1: None,
-        ability2: None,
-        ability3: None,
-        block_ability: None,
-        dodge_ability: None,
-    });
+    let loadout = Loadout {
+        active_item: Some(ItemConfig {
+            item: Item::new_from_asset_expect("common.items.weapons.bow.starter_bow"),
+            ability1: None,
+            ability2: None,
+            ability3: None,
+            block_ability: None,
+            dodge_ability: None,
+        }),
+        ..Default::default()
+    };
 
     let result = CombatEventMapper::map_event(
         &CharacterState::default(),
@@ -65,16 +67,17 @@ fn maps_unwield() {
 
 #[test]
 fn maps_basic_melee() {
-    let mut loadout = Loadout::default();
-
-    loadout.active_item = Some(ItemConfig {
-        item: Item::new_from_asset_expect("common.items.weapons.axe.starter_axe"),
-        ability1: None,
-        ability2: None,
-        ability3: None,
-        block_ability: None,
-        dodge_ability: None,
-    });
+    let loadout = Loadout {
+        active_item: Some(ItemConfig {
+            item: Item::new_from_asset_expect("common.items.weapons.axe.starter_axe"),
+            ability1: None,
+            ability2: None,
+            ability3: None,
+            block_ability: None,
+            dodge_ability: None,
+        }),
+        ..Default::default()
+    };
 
     let result = CombatEventMapper::map_event(
         &CharacterState::BasicMelee(states::basic_melee::Data {
@@ -108,16 +111,17 @@ fn maps_basic_melee() {
 
 #[test]
 fn matches_ability_stage() {
-    let mut loadout = Loadout::default();
-
-    loadout.active_item = Some(ItemConfig {
-        item: Item::new_from_asset_expect("common.items.weapons.sword.starter_sword"),
-        ability1: None,
-        ability2: None,
-        ability3: None,
-        block_ability: None,
-        dodge_ability: None,
-    });
+    let loadout = Loadout {
+        active_item: Some(ItemConfig {
+            item: Item::new_from_asset_expect("common.items.weapons.sword.starter_sword"),
+            ability1: None,
+            ability2: None,
+            ability3: None,
+            block_ability: None,
+            dodge_ability: None,
+        }),
+        ..Default::default()
+    };
 
     let result = CombatEventMapper::map_event(
         &CharacterState::ComboMelee(states::combo_melee::Data {
@@ -169,16 +173,17 @@ fn matches_ability_stage() {
 
 #[test]
 fn ignores_different_ability_stage() {
-    let mut loadout = Loadout::default();
-
-    loadout.active_item = Some(ItemConfig {
-        item: Item::new_from_asset_expect("common.items.weapons.sword.starter_sword"),
-        ability1: None,
-        ability2: None,
-        ability3: None,
-        block_ability: None,
-        dodge_ability: None,
-    });
+    let loadout = Loadout {
+        active_item: Some(ItemConfig {
+            item: Item::new_from_asset_expect("common.items.weapons.sword.starter_sword"),
+            ability1: None,
+            ability2: None,
+            ability3: None,
+            block_ability: None,
+            dodge_ability: None,
+        }),
+        ..Default::default()
+    };
 
     let result = CombatEventMapper::map_event(
         &CharacterState::ComboMelee(states::combo_melee::Data {

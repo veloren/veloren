@@ -391,8 +391,8 @@ impl<'a> Widget for Group<'a> {
                             // Health Text
                             let txt = format!(
                                 "{}/{}",
-                                health.current() / 10 as u32,
-                                health.maximum() / 10 as u32,
+                                health.current() / 10_u32,
+                                health.maximum() / 10_u32,
                             );
                             // Change font size depending on health amount
                             let font_size = match health.maximum() {

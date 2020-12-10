@@ -234,7 +234,7 @@ where
             let pos = Vec3::new(pos.z, pos.x, pos.y);
             let uv = Vec2::new(Vec3::unit_y(), Vec3::unit_z());
             let norm = Vec3::unit_x();
-            let atlas_pos = if let Some(atlas_pos) = add_to_atlas(
+            let atlas_pos = add_to_atlas(
                 atlas,
                 &mut todo_rects,
                 pos,
@@ -244,11 +244,7 @@ where
                 faces_forward,
                 max_size,
                 col_lights_size,
-            ) {
-                atlas_pos
-            } else {
-                return;
-            };
+            );
             create_quad_greedy(
                 pos,
                 dim,
@@ -279,7 +275,7 @@ where
             let pos = Vec3::new(pos.y, pos.z, pos.x);
             let uv = Vec2::new(Vec3::unit_z(), Vec3::unit_x());
             let norm = Vec3::unit_y();
-            let atlas_pos = if let Some(atlas_pos) = add_to_atlas(
+            let atlas_pos = add_to_atlas(
                 atlas,
                 &mut todo_rects,
                 pos,
@@ -289,11 +285,7 @@ where
                 faces_forward,
                 max_size,
                 col_lights_size,
-            ) {
-                atlas_pos
-            } else {
-                return;
-            };
+            );
             create_quad_greedy(
                 pos,
                 dim,
@@ -324,7 +316,7 @@ where
             let pos = Vec3::new(pos.x, pos.y, pos.z);
             let uv = Vec2::new(Vec3::unit_x(), Vec3::unit_y());
             let norm = Vec3::unit_z();
-            let atlas_pos = if let Some(atlas_pos) = add_to_atlas(
+            let atlas_pos = add_to_atlas(
                 atlas,
                 &mut todo_rects,
                 pos,
@@ -334,11 +326,7 @@ where
                 faces_forward,
                 max_size,
                 col_lights_size,
-            ) {
-                atlas_pos
-            } else {
-                return;
-            };
+            );
             create_quad_greedy(
                 pos,
                 dim,
@@ -444,7 +432,7 @@ fn add_to_atlas(
     faces_forward: bool,
     max_size: guillotiere::Size,
     cur_size: &mut Vec2<u16>,
-) -> Option<guillotiere::Rectangle> {
+) -> guillotiere::Rectangle {
     // TODO: Check this conversion.
     let atlas_rect;
     loop {
@@ -502,7 +490,7 @@ fn add_to_atlas(
         atlas_rect,
         if faces_forward { norm } else { -norm },
     ));
-    Some(atlas_rect)
+    atlas_rect
 }
 
 /// We deferred actually recording the colors within the rectangles in order to

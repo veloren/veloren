@@ -73,7 +73,7 @@ lazy_static! {
 impl FromStr for NpcKind {
     type Err = ();
 
-    fn from_str(s: &str) -> Result<Self, ()> {
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         let npc_names = &*NPC_NAMES;
         ALL_NPCS
             .iter()
@@ -126,13 +126,14 @@ impl FromStr for NpcBody {
     /// associated species, generate the species randomly within it; if an
     /// explicit species is found, generate a random member of the species;
     /// otherwise, return Err(()).
-    fn from_str(s: &str) -> Result<Self, ()> { Self::from_str_with(s, kind_to_body) }
+    fn from_str(s: &str) -> Result<Self, Self::Err> { Self::from_str_with(s, kind_to_body) }
 }
 
 impl NpcBody {
     /// If there is an exact name match for a body kind, call kind_to_body on
     /// it. Otherwise, if an explicit species is found, generate a random
     /// member of the species; otherwise, return Err(()).
+    #[allow(clippy::result_unit_err)]
     pub fn from_str_with(s: &str, kind_to_body: fn(NpcKind) -> Body) -> Result<Self, ()> {
         fn parse<
             'a,

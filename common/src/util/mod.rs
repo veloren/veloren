@@ -13,12 +13,12 @@ lazy_static::lazy_static! {
     static ref GIT_DATETIME: &'static str = GIT_VERSION.split('/').nth(1).expect("failed to retrieve git_datetime!");
     pub static ref GIT_DATE: String = GIT_DATETIME.split('-').take(3).collect::<Vec<&str>>().join("-");
     pub static ref GIT_TIME: &'static str = GIT_DATETIME.split('-').nth(3).expect("failed to retrieve git_time!");
-    pub static ref DISPLAY_VERSION: String = if GIT_TAG == "" {
+    pub static ref DISPLAY_VERSION: String = if GIT_TAG.is_empty() {
         format!("{}-{}", VELOREN_VERSION_STAGE, GIT_DATE.to_string())
     } else {
         format!("{}-{}", VELOREN_VERSION_STAGE, GIT_TAG.to_string())
     };
-    pub static ref DISPLAY_VERSION_LONG: String = if GIT_TAG == "" {
+    pub static ref DISPLAY_VERSION_LONG: String = if GIT_TAG.is_empty() {
         format!("{} ({})", DISPLAY_VERSION.as_str(), GIT_HASH.to_string())
     } else {
         format!("{} ({})", DISPLAY_VERSION.as_str(), GIT_VERSION.to_string())
