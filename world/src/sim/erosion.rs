@@ -995,14 +995,15 @@ fn erode(
 
     debug!("Computed stream power factors...");
 
-    let mut lake_water_volume = vec![0.0 as Compute; map_size_lg.chunks_len()].into_boxed_slice();
-    let mut elev = vec![0.0 as Compute; map_size_lg.chunks_len()].into_boxed_slice();
-    let mut h_p = vec![0.0 as Compute; map_size_lg.chunks_len()].into_boxed_slice();
-    let mut deltah = vec![0.0 as Compute; map_size_lg.chunks_len()].into_boxed_slice();
+    let mut lake_water_volume: Box<[Compute]> =
+        vec![0.0_f64; map_size_lg.chunks_len()].into_boxed_slice();
+    let mut elev: Box<[Compute]> = vec![0_f64; map_size_lg.chunks_len()].into_boxed_slice();
+    let mut h_p: Box<[Compute]> = vec![0_f64; map_size_lg.chunks_len()].into_boxed_slice();
+    let mut deltah: Box<[Compute]> = vec![0_f64; map_size_lg.chunks_len()].into_boxed_slice();
 
     // calculate the elevation / SPL, including sediment flux
-    let tol1 = 1.0e-4 as Compute * (maxh as Compute + 1.0);
-    let tol2 = 1.0e-3 as Compute * (max_uplift as Compute + 1.0);
+    let tol1: Compute = 1.0e-4_f64 * (maxh as Compute + 1.0);
+    let tol2: Compute = 1.0e-3_f64 * (max_uplift as Compute + 1.0);
     let tol = tol1.max(tol2);
     let mut err = 2.0 * tol;
 
@@ -1032,7 +1033,7 @@ fn erode(
 
     // Gauss-Seidel iteration
 
-    let mut lake_silt = vec![0.0 as Compute; map_size_lg.chunks_len()].into_boxed_slice();
+    let mut lake_silt: Box<[Compute]> = vec![0.0_f64; map_size_lg.chunks_len()].into_boxed_slice();
     let mut lake_sill = vec![-1isize; map_size_lg.chunks_len()].into_boxed_slice();
 
     let mut n_gs_stream_power_law = 0;
@@ -1219,7 +1220,7 @@ fn erode(
         let start_time = Instant::now();
         // TODO: Consider taking advantage of multi-receiver flow here.
         // Iterate in ascending height order.
-        let mut sum_err = 0.0 as Compute;
+        let mut sum_err: Compute = 0.0_f64;
         itertools::izip!(&*mstack, &*elev, &*b_stack, &*h_t_stack, &*dh_stack, &*h_p)
             .enumerate()
             .rev()

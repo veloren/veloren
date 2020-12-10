@@ -259,8 +259,8 @@ pub fn quadratic_nearest_point(
         // In the (unlikely?) case that distances are equal, prefer the earliest point along the
         // river.
         .min_by(|&(ap, _, a), &(bp, _, b)| {
-            (a, ap < 0.0 || ap > 1.0, ap)
-                .partial_cmp(&(b, bp < 0.0 || bp > 1.0, bp))
+            (a, !(0.0..=1.0).contains(&ap), ap)
+                .partial_cmp(&(b, !(0.0..=1.0).contains(&bp), bp))
                 .unwrap()
         });
     min_root

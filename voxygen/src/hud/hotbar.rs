@@ -80,17 +80,17 @@ impl State {
                         ItemKind,
                     };
                     if let ItemKind::Tool(kind) = kind {
-                        match &kind.kind {
-                            ToolKind::Staff => true,
-                            ToolKind::Debug => true,
-                            ToolKind::Sword => true,
-                            ToolKind::Hammer => true,
-                            ToolKind::Axe => true,
-                            ToolKind::Bow => true,
-                            ToolKind::Unique(UniqueKind::QuadMedQuick) => true,
-                            ToolKind::Unique(UniqueKind::QuadLowBreathe) => true,
-                            _ => false,
-                        }
+                        matches!(
+                            &kind.kind,
+                            ToolKind::Staff
+                                | ToolKind::Debug
+                                | ToolKind::Sword
+                                | ToolKind::Hammer
+                                | ToolKind::Axe
+                                | ToolKind::Bow
+                                | ToolKind::Unique(UniqueKind::QuadMedQuick)
+                                | ToolKind::Unique(UniqueKind::QuadLowBreathe)
+                        )
                     } else {
                         false
                     }

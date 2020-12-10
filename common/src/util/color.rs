@@ -81,7 +81,7 @@ pub fn hsv_to_rgb(hsv: Vec3<f32>) -> Rgb<f32> {
     let x = c * (1.0 - (h % 2.0 - 1.0).abs());
     let m = v - c;
 
-    let (r, g, b) = if h >= 0.0 && h <= 1.0 {
+    let (r, g, b) = if (0.0..=1.0).contains(&h) {
         (c, x, 0.0)
     } else if h <= 2.0 {
         (x, c, 0.0)

@@ -21,6 +21,7 @@ use common::{
 use std::panic;
 use tracing::{error, info, warn};
 
+#[allow(clippy::manual_unwrap_or)]
 fn main() {
     // Load the settings
     // Note: This won't log anything due to it being called before

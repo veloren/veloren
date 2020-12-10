@@ -49,13 +49,13 @@ impl Animation for DashAnimation {
         let legtwitch = (legtell * 6.0).sin() * pullback;
         let legswing = legtell * pullback;
         let short = (((1.0)
-            / (0.72 + 0.28 * ((anim_time as f32 * 16.0 as f32 + PI * 0.25).sin()).powi(2)))
+            / (0.72 + 0.28 * ((anim_time as f32 * 16.0_f32 + PI * 0.25).sin()).powi(2)))
         .sqrt())
-            * ((anim_time as f32 * 16.0 as f32 + PI * 0.25).sin())
+            * ((anim_time as f32 * 16.0_f32 + PI * 0.25).sin())
             * chargemovementbase
             * pullback;
         let shortalt =
-            (anim_time as f32 * 16.0 as f32 + PI * 0.25).sin() * chargemovementbase * pullback;
+            (anim_time as f32 * 16.0_f32 + PI * 0.25).sin() * chargemovementbase * pullback;
 
         next.head.orientation = Quaternion::rotation_x(movement1abs * -0.2 + movement2abs * 0.8)
             * Quaternion::rotation_z(short * -0.06 + twitch1 * 0.2);

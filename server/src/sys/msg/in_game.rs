@@ -38,7 +38,7 @@ impl Sys {
             None => {
                 debug!(?entity, "client is not in_game, ignoring msg");
                 trace!(?msg, "ignored msg content");
-                if matches!(msg, ClientGeneral::TerrainChunkRequest{ .. }) {
+                if matches!(msg, ClientGeneral::TerrainChunkRequest { .. }) {
                     network_metrics.chunks_request_dropped.inc();
                 }
                 return Ok(());

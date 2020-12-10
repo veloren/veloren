@@ -204,12 +204,14 @@ impl Tui {
 
                         let block = Block::default().borders(Borders::ALL);
 
-                        let mut wrap = Wrap::default();
-                        wrap.scroll_callback = Some(Box::new(|text_area, lines| {
-                            LOG.resize(text_area.height as usize);
-                            let len = lines.len() as u16;
-                            (len.saturating_sub(text_area.height), 0)
-                        }));
+                        let wrap = Wrap {
+                            scroll_callback: Some(Box::new(|text_area, lines| {
+                                LOG.resize(text_area.height as usize);
+                                let len = lines.len() as u16;
+                                (len.saturating_sub(text_area.height), 0)
+                            })),
+                            ..Default::default()
+                        };
 
                         let logger = Paragraph::new(LOG.inner.lock().unwrap().clone())
                             .block(block)

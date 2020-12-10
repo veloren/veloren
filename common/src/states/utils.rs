@@ -133,21 +133,13 @@ impl Body {
     }
 
     pub fn can_fly(&self) -> bool {
-        match self {
-            Body::BirdMedium(_) => true,
-            Body::Dragon(_) => true,
-            Body::BirdSmall(_) => true,
-            _ => false,
-        }
+        matches!(
+            self,
+            Body::BirdMedium(_) | Body::Dragon(_) | Body::BirdSmall(_)
+        )
     }
 
-    #[allow(clippy::match_like_matches_macro)]
-    pub fn can_climb(&self) -> bool {
-        match self {
-            Body::Humanoid(_) => true,
-            _ => false,
-        }
-    }
+    pub fn can_climb(&self) -> bool { matches!(self, Body::Humanoid(_)) }
 }
 
 /// Handles updating `Components` to move player based on state of `JoinData`

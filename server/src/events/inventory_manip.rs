@@ -572,6 +572,7 @@ mod tests {
     use vek::Vec3;
 
     // Helper function
+    #[allow(clippy::unnecessary_wraps)]
     fn test_cylinder(pos: comp::Pos) -> Option<Cylinder> {
         Some(Cylinder::from_components(pos.0, None, None, None))
     }

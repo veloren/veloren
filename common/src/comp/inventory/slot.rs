@@ -70,20 +70,20 @@ impl EquipSlot {
 impl ArmorSlot {
     fn can_hold(self, armor: &item::armor::ArmorKind) -> bool {
         use item::armor::ArmorKind;
-        match (self, armor) {
-            (Self::Head, ArmorKind::Head(_)) => true,
-            (Self::Neck, ArmorKind::Neck(_)) => true,
-            (Self::Shoulders, ArmorKind::Shoulder(_)) => true,
-            (Self::Chest, ArmorKind::Chest(_)) => true,
-            (Self::Hands, ArmorKind::Hand(_)) => true,
-            (Self::Ring, ArmorKind::Ring(_)) => true,
-            (Self::Back, ArmorKind::Back(_)) => true,
-            (Self::Belt, ArmorKind::Belt(_)) => true,
-            (Self::Legs, ArmorKind::Pants(_)) => true,
-            (Self::Feet, ArmorKind::Foot(_)) => true,
-            (Self::Tabard, ArmorKind::Tabard(_)) => true,
-            _ => false,
-        }
+        matches!(
+            (self, armor),
+            (Self::Head, ArmorKind::Head(_))
+                | (Self::Neck, ArmorKind::Neck(_))
+                | (Self::Shoulders, ArmorKind::Shoulder(_))
+                | (Self::Chest, ArmorKind::Chest(_))
+                | (Self::Hands, ArmorKind::Hand(_))
+                | (Self::Ring, ArmorKind::Ring(_))
+                | (Self::Back, ArmorKind::Back(_))
+                | (Self::Belt, ArmorKind::Belt(_))
+                | (Self::Legs, ArmorKind::Pants(_))
+                | (Self::Feet, ArmorKind::Foot(_))
+                | (Self::Tabard, ArmorKind::Tabard(_))
+        )
     }
 }
 

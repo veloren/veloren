@@ -144,10 +144,13 @@ impl PartialEq for ItemDef {
 
 impl ItemDef {
     pub fn is_stackable(&self) -> bool {
-        matches!(self.kind, ItemKind::Consumable { .. }
-            | ItemKind::Ingredient { .. }
-            | ItemKind::Throwable { .. }
-            | ItemKind::Utility { .. })
+        matches!(
+            self.kind,
+            ItemKind::Consumable { .. }
+                | ItemKind::Ingredient { .. }
+                | ItemKind::Throwable { .. }
+                | ItemKind::Utility { .. }
+        )
     }
 }
 

@@ -155,6 +155,7 @@ impl MapSizeLg {
     /// that these invariants indeed hold, safely opening up optimizations
     /// that might not otherwise be available at runtime.
     #[inline(always)]
+    #[allow(clippy::result_unit_err)]
     pub const fn new(map_size_lg: Vec2<u32>) -> Result<Self, ()> {
         // Assertion on dimensions: must be between
         // 0 and ([MAX_WORLD_BLOCKS_LG] - [TERRAIN_CHUNK_BLOCKS_LG])

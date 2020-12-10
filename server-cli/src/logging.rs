@@ -56,7 +56,9 @@ pub fn init(basic: bool) {
             .with_env_filter(filter);
 
         if basic {
-            subscriber.with_writer(|| StandardStream::stdout(ColorChoice::Auto)).init();
+            subscriber
+                .with_writer(|| StandardStream::stdout(ColorChoice::Auto))
+                .init();
         } else {
             subscriber.with_writer(|| LOG.clone()).init();
         }

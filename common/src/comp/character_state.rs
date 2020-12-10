@@ -82,20 +82,21 @@ pub enum CharacterState {
 
 impl CharacterState {
     pub fn is_wield(&self) -> bool {
-        matches!(self,
+        matches!(
+            self,
             CharacterState::Wielding
-            | CharacterState::BasicMelee(_)
-            | CharacterState::BasicRanged(_)
-            | CharacterState::DashMelee(_)
-            | CharacterState::ComboMelee(_)
-            | CharacterState::BasicBlock
-            | CharacterState::LeapMelee(_)
-            | CharacterState::SpinMelee(_)
-            | CharacterState::ChargedMelee(_)
-            | CharacterState::ChargedRanged(_)
-            | CharacterState::RepeaterRanged(_)
-            | CharacterState::Shockwave(_)
-            | CharacterState::BasicBeam(_)
+                | CharacterState::BasicMelee(_)
+                | CharacterState::BasicRanged(_)
+                | CharacterState::DashMelee(_)
+                | CharacterState::ComboMelee(_)
+                | CharacterState::BasicBlock
+                | CharacterState::LeapMelee(_)
+                | CharacterState::SpinMelee(_)
+                | CharacterState::ChargedMelee(_)
+                | CharacterState::ChargedRanged(_)
+                | CharacterState::RepeaterRanged(_)
+                | CharacterState::Shockwave(_)
+                | CharacterState::BasicBeam(_)
         )
     }
 
@@ -104,35 +105,37 @@ impl CharacterState {
     }
 
     pub fn is_attack(&self) -> bool {
-        matches!(self,
+        matches!(
+            self,
             CharacterState::BasicMelee(_)
-            | CharacterState::BasicRanged(_)
-            | CharacterState::DashMelee(_)
-            | CharacterState::ComboMelee(_)
-            | CharacterState::LeapMelee(_)
-            | CharacterState::SpinMelee(_)
-            | CharacterState::ChargedMelee(_)
-            | CharacterState::ChargedRanged(_)
-            | CharacterState::RepeaterRanged(_)
-            | CharacterState::Shockwave(_)
-            | CharacterState::BasicBeam(_)
+                | CharacterState::BasicRanged(_)
+                | CharacterState::DashMelee(_)
+                | CharacterState::ComboMelee(_)
+                | CharacterState::LeapMelee(_)
+                | CharacterState::SpinMelee(_)
+                | CharacterState::ChargedMelee(_)
+                | CharacterState::ChargedRanged(_)
+                | CharacterState::RepeaterRanged(_)
+                | CharacterState::Shockwave(_)
+                | CharacterState::BasicBeam(_)
         )
     }
 
     pub fn is_aimed(&self) -> bool {
-        matches!(self,
+        matches!(
+            self,
             CharacterState::BasicMelee(_)
-            | CharacterState::BasicRanged(_)
-            | CharacterState::DashMelee(_)
-            | CharacterState::ComboMelee(_)
-            | CharacterState::BasicBlock
-            | CharacterState::LeapMelee(_)
-            | CharacterState::ChargedMelee(_)
-            | CharacterState::ChargedRanged(_)
-            | CharacterState::RepeaterRanged(_)
-            | CharacterState::Shockwave(_)
-            | CharacterState::BasicBeam(_)
-            | CharacterState::Wielding
+                | CharacterState::BasicRanged(_)
+                | CharacterState::DashMelee(_)
+                | CharacterState::ComboMelee(_)
+                | CharacterState::BasicBlock
+                | CharacterState::LeapMelee(_)
+                | CharacterState::ChargedMelee(_)
+                | CharacterState::ChargedRanged(_)
+                | CharacterState::RepeaterRanged(_)
+                | CharacterState::Shockwave(_)
+                | CharacterState::BasicBeam(_)
+                | CharacterState::Wielding
         )
     }
 
