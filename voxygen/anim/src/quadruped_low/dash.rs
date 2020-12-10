@@ -44,13 +44,13 @@ impl Animation for DashAnimation {
         let movement1abs = movement1base * pullback;
         let movement2abs = movement2base * pullback;
         let short = (((1.0)
-            / (0.72 + 0.28 * ((anim_time as f32 * 16.0 as f32 + PI * 0.25).sin()).powi(2)))
+            / (0.72 + 0.28 * ((anim_time as f32 * 16.0_f32 + PI * 0.25).sin()).powi(2)))
         .sqrt())
-            * ((anim_time as f32 * 16.0 as f32 + PI * 0.25).sin())
+            * ((anim_time as f32 * 16.0_f32 + PI * 0.25).sin())
             * chargemovementbase
             * pullback;
         let shortalt =
-            (anim_time as f32 * 16.0 as f32 + PI * 0.25).sin() * chargemovementbase * pullback;
+            (anim_time as f32 * 16.0_f32 + PI * 0.25).sin() * chargemovementbase * pullback;
 
         next.head_upper.orientation =
             Quaternion::rotation_x(movement1abs * 0.4 + movement2abs * 0.3)

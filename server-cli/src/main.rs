@@ -25,6 +25,7 @@ use tracing::info;
 
 const TPS: u64 = 30;
 
+#[allow(clippy::unnecessary_wraps)]
 fn main() -> io::Result<()> {
     let matches = App::new("Veloren server cli")
         .version(common::util::DISPLAY_VERSION_LONG.as_str())

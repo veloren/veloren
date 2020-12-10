@@ -366,6 +366,7 @@ pub fn get_oceans<F: Float>(map_size_lg: MapSizeLg, oldh: impl Fn(usize) -> F + 
 }
 
 /// Finds the horizon map for sunlight for the given chunks.
+#[allow(clippy::result_unit_err)]
 pub fn get_horizon_map<F: Float + Sync, A: Send, H: Send>(
     map_size_lg: MapSizeLg,
     bounds: Aabr<i32>,

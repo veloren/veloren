@@ -224,13 +224,10 @@ pub enum Tile {
 
 impl Tile {
     fn is_passable(&self) -> bool {
-        match self {
-            Tile::UpStair(_) => true,
-            Tile::DownStair(_) => true,
-            Tile::Room(_) => true,
-            Tile::Tunnel => true,
-            _ => false,
-        }
+        matches!(
+            self,
+            Tile::UpStair(_) | Tile::DownStair(_) | Tile::Room(_) | Tile::Tunnel
+        )
     }
 }
 

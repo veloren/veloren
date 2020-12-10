@@ -433,7 +433,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                 max_texture_size,
                 gfx::texture::AaMode::Single,
             ),
-            1 as gfx::texture::Level,
+            1_u8,
             gfx::memory::Bind::SHADER_RESOURCE,
             gfx::memory::Usage::Dynamic,
             (0, 0),

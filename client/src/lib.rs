@@ -1338,6 +1338,7 @@ impl Client {
         Ok(())
     }
 
+    #[allow(clippy::unnecessary_wraps)]
     fn handle_server_in_game_msg(
         &mut self,
         frontend_events: &mut Vec<Event>,
@@ -1492,6 +1493,7 @@ impl Client {
         Ok(())
     }
 
+    #[allow(clippy::unnecessary_wraps)]
     fn handle_server_character_screen_msg(
         &mut self,
         events: &mut Vec<Event>,
@@ -1765,7 +1767,7 @@ impl Client {
             comp::ChatType::Online(uid) => {
                 // Default message formats if no localized message string is set by hud
                 // Needed for cli clients that don't set localization info
-                if message == "" {
+                if message.is_empty() {
                     format!("[{}] came online", alias_of_uid(uid))
                 } else {
                     message.replace("{name}", &alias_of_uid(uid))
@@ -1774,7 +1776,7 @@ impl Client {
             comp::ChatType::Offline(uid) => {
                 // Default message formats if no localized message string is set by hud
                 // Needed for cli clients that don't set localization info
-                if message == "" {
+                if message.is_empty() {
                     format!("[{}] went offline", alias_of_uid(uid))
                 } else {
                     message.replace("{name}", &alias_of_uid(uid))
@@ -1788,7 +1790,7 @@ impl Client {
             comp::ChatType::Kill(kill_source, victim) => {
                 // Default message formats if no localized message string is set by hud
                 // Needed for cli clients that don't set localization info
-                if message == "" {
+                if message.is_empty() {
                     match kill_source {
                         KillSource::Player(attacker_uid, KillType::Melee) => format!(
                             "[{}] killed [{}]",

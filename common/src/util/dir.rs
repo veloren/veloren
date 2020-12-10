@@ -119,7 +119,7 @@ fn slerp_normalized(from: vek::Vec3<f32>, to: vek::Vec3<f32>, factor: f32) -> ve
     {
         let unnormalized = {
             let len_sq = from.magnitude_squared();
-            len_sq < 0.999 || len_sq > 1.001
+            !(0.999..=1.001).contains(&len_sq)
         };
 
         if unnormalized {
@@ -132,7 +132,7 @@ fn slerp_normalized(from: vek::Vec3<f32>, to: vek::Vec3<f32>, factor: f32) -> ve
     {
         let unnormalized = {
             let len_sq = from.magnitude_squared();
-            len_sq < 0.999 || len_sq > 1.001
+            !(0.999..=1.001).contains(&len_sq)
         };
 
         if unnormalized {

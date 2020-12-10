@@ -294,10 +294,8 @@ impl Settlement {
         let mut origin = Vec2::new(ctx.rng.gen_range(-2, 3), ctx.rng.gen_range(-2, 3));
 
         for i in 0..PLOT_COUNT {
-            if let Some(base_tile) = self.land.find_tile_near(origin, |plot| match plot {
-                Some(Plot::Field { .. }) => true,
-                Some(Plot::Dirt) => true,
-                _ => false,
+            if let Some(base_tile) = self.land.find_tile_near(origin, |plot| {
+                matches!(plot, Some(Plot::Field { .. }) | Some(Plot::Dirt))
             }) {
                 // self.land
                 //     .plot_at_mut(base_tile)

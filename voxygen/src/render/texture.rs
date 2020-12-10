@@ -79,7 +79,7 @@ where
                 height,
                 gfx::texture::AaMode::Single,
             ),
-            1 as gfx::texture::Level,
+            1_u8,
             gfx::memory::Bind::SHADER_RESOURCE,
             gfx::memory::Usage::Dynamic,
             Some(<<F as gfx::format::Formatted>::Channel as gfx::format::ChannelTyped>::get_channel_type()),

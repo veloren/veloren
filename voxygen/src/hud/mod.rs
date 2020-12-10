@@ -2519,20 +2519,16 @@ impl Hud {
 
             // If not showing the ui don't allow keys that change the ui state but do listen for
             // hotbar keys
-            event if !self.show.ui => {
-                if let WinEvent::InputUpdate(key, state) = event {
-                    if let Some(slot) = try_hotbar_slot_from_input(key) {
-                        handle_slot(
-                            slot,
-                            state,
-                            &mut self.events,
-                            &mut self.slot_manager,
-                            &mut self.hotbar,
-                        );
-                        true
-                    } else {
-                        false
-                    }
+            WinEvent::InputUpdate(key, state) if !self.show.ui => {
+                if let Some(slot) = try_hotbar_slot_from_input(key) {
+                    handle_slot(
+                        slot,
+                        state,
+                        &mut self.events,
+                        &mut self.slot_manager,
+                        &mut self.hotbar,
+                    );
+                    true
                 } else {
                     false
                 }
@@ -2660,15 +2656,15 @@ impl Hud {
         // conrod eats tabs. Un-eat a tabstop so tab completion can work
         if self.ui.ui.global_input().events().any(|event| {
             use conrod_core::{event, input};
-            matches!(event,
-                /* event::Event::Raw(event::Input::Press(input::Button::Keyboard(input::Key::Tab))) | */
-                event::Event::Ui(event::Ui::Press(
-                    _,
-                    event::Press {
-                        button: event::Button::Keyboard(input::Key::Tab),
-                        ..
-                    },
-                )))
+            matches!(
+                event,
+                /* event::Event::Raw(event::Input::Press(input::Button::Keyboard(input::Key::
+                 * Tab))) | */
+                event::Event::Ui(event::Ui::Press(_, event::Press {
+                    button: event::Button::Keyboard(input::Key::Tab),
+                    ..
+                },))
+            )
         }) {
             self.ui
                 .ui

@@ -145,6 +145,7 @@ impl World {
 
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     #[allow(clippy::eval_order_dependence)]
+    #[allow(clippy::result_unit_err)]
     pub fn generate_chunk(
         &self,
         index: IndexRef,

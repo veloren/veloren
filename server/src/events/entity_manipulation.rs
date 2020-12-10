@@ -552,6 +552,7 @@ pub fn handle_respawn(server: &Server, entity: EcsEntity) {
     }
 }
 
+#[allow(clippy::blocks_in_if_conditions)]
 pub fn handle_explosion(
     server: &Server,
     pos: Vec3<f32>,
@@ -565,9 +566,18 @@ pub fn handle_explosion(
     // Add an outcome
     // Uses radius as outcome power, makes negative if explosion has healing effect
     let outcome_power = explosion.radius
-        * if explosion.effects.iter().any(
-            |e| matches!(e, RadiusEffect::Entity(_, Effect::Damage(Damage { source: DamageSource::Healing, .. })))
-        ) {
+        * if explosion.effects.iter().any(|e| {
+            matches!(
+                e,
+                RadiusEffect::Entity(
+                    _,
+                    Effect::Damage(Damage {
+                        source: DamageSource::Healing,
+                        ..
+                    })
+                )
+            )
+        }) {
             -1.0
         } else {
             1.0

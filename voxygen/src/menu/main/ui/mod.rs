@@ -263,7 +263,7 @@ impl Controls {
         .padding(3)
         .width(Length::Fill);
 
-        let bg_img = if matches!(&self.screen, Screen::Connecting {..}) {
+        let bg_img = if matches!(&self.screen, Screen::Connecting { .. }) {
             self.bg_img
         } else {
             self.imgs.bg
@@ -333,7 +333,7 @@ impl Controls {
                 };
             },
             Message::ShowServers => {
-                if matches!(&self.screen, Screen::Login {..}) {
+                if matches!(&self.screen, Screen::Login { .. }) {
                     self.selected_server_index =
                         servers.iter().position(|f| f == &self.login_info.server);
                     self.screen = Screen::Servers {
@@ -418,7 +418,7 @@ impl Controls {
 
     // Connection successful of failed
     fn exit_connect_screen(&mut self) {
-        if matches!(&self.screen, Screen::Connecting {..}) {
+        if matches!(&self.screen, Screen::Connecting { .. }) {
             self.screen = Screen::Login {
                 screen: login::Screen::new(),
                 error: None,
@@ -444,7 +444,7 @@ impl Controls {
     }
 
     fn connection_error(&mut self, error: String) {
-        if matches!(&self.screen, Screen::Connecting {..}) {
+        if matches!(&self.screen, Screen::Connecting { .. }) {
             self.screen = Screen::Login {
                 screen: login::Screen::new(),
                 error: Some(error),

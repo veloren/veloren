@@ -927,10 +927,8 @@ impl PlayState for SessionState {
                     HudEvent::DropSlot(x) => {
                         let mut client = self.client.borrow_mut();
                         client.drop_slot(x);
-                        if let comp::slot::Slot::Equip(equip_slot) = x {
-                            if let comp::slot::EquipSlot::Lantern = equip_slot {
-                                client.disable_lantern();
-                            }
+                        if let comp::slot::Slot::Equip(comp::slot::EquipSlot::Lantern) = x {
+                            client.disable_lantern();
                         }
                     },
                     HudEvent::ChangeHotbarState(state) => {
