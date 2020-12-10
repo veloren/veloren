@@ -55,7 +55,7 @@ impl<'a> System<'a> for Sys {
                                             value: 500.0,
                                         }),
                                         Effect::Poise(PoiseChange {
-                                            amount: -60,
+                                            amount: -80,
                                             source: PoiseSource::Explosion,
                                         }),
                                     ]),

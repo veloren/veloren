@@ -1,7 +1,8 @@
 use common::{
     comp::{
         skills::{GeneralSkill, Skill},
-        Body, CharacterState, Energy, EnergyChange, EnergySource, Health, Pos, Stats,
+        Body, CharacterState, Energy, EnergyChange, EnergySource, Health, Poise, PoiseChange,
+        PoiseSource, Pos, Stats,
     },
     event::{EventBus, ServerEvent},
     metrics::SysMetrics,
@@ -14,6 +15,7 @@ use hashbrown::HashSet;
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, Write, WriteStorage};
 
 const ENERGY_REGEN_ACCEL: f32 = 10.0;
+//const POISE_REGEN_ACCEL: f32 = 5.0;
 
 /// This system kills players, levels them up, and regenerates energy.
 pub struct Sys;
@@ -27,6 +29,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, CharacterState>,
         WriteStorage<'a, Stats>,
         WriteStorage<'a, Health>,
+        WriteStorage<'a, Poise>,
         WriteStorage<'a, Energy>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Pos>,
@@ -44,6 +47,7 @@ impl<'a> System<'a> for Sys {
             character_states,
             mut stats,
             mut healths,
+            mut poises,
             mut energies,
             uids,
             positions,
@@ -147,9 +151,13 @@ impl<'a> System<'a> for Sys {
             }
         }
 
-        // Update energies
-        for (character_state, mut energy) in
-            (&character_states, &mut energies.restrict_mut()).join()
+        // Update energies and poises
+        for (character_state, mut energy, mut poise) in (
+            &character_states,
+            &mut energies.restrict_mut(),
+            &mut poises.restrict_mut(),
+        )
+            .join()
         {
             match character_state {
                 // Accelerate recharging energy.
@@ -179,6 +187,23 @@ impl<'a> System<'a> for Sys {
                         energy.regen_rate =
                             (energy.regen_rate + ENERGY_REGEN_ACCEL * dt.0).min(100.0);
                     }
+
+                    //let res_poise = {
+                    //    let poise = poise.get_unchecked();
+                    //    poise.current() < poise.maximum()
+                    //};
+
+                    //if res_poise {
+                    //    let mut poise = poise.get_mut_unchecked();
+                    //    poise.change_by(PoiseChange {
+                    //        amount: (poise.regen_rate * dt.0
+                    //            + POISE_REGEN_ACCEL * dt.0.powi(2) / 2.0)
+                    //            as i32,
+                    //        source: PoiseSource::Regen,
+                    //    });
+                    //    poise.regen_rate = (poise.regen_rate +
+                    // POISE_REGEN_ACCEL * dt.0).min(100.0);
+                    //}
                 },
                 // Ability and glider use does not regen and sets the rate back to zero.
                 CharacterState::Glide { .. }
@@ -217,7 +242,10 @@ impl<'a> System<'a> for Sys {
                 CharacterState::Roll { .. }
                 | CharacterState::Climb { .. }
                 | CharacterState::Stunned { .. }
-                | CharacterState::Staggered { .. } => {},
+                | CharacterState::Staggered { .. } => {
+                    let poise = poise.get_unchecked();
+                    println!("Poise: {:?}", poise.current());
+                },
             }
         }
         sys_metrics.stats_ns.store(

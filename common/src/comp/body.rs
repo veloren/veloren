@@ -612,8 +612,8 @@ impl Body {
 
     pub fn base_poise_dmg(&self) -> u32 {
         match self {
-            Body::Humanoid(_) => 100,
-            _ => 50,
+            Body::Humanoid(_) => 5,
+            _ => 10,
         }
     }
 

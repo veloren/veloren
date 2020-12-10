@@ -39,6 +39,7 @@ pub enum ServerEvent {
     PoiseChange {
         entity: EcsEntity,
         change: comp::PoiseChange,
+        kb_dir: Vec3<f32>,
     },
     Delete(EcsEntity),
     Destroy {

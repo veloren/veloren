@@ -101,6 +101,9 @@ impl<'a> System<'a> for Sys {
                 // Check if entity is dodging
                 let is_dodge = char_state_b_maybe.map_or(false, |c_s| c_s.is_melee_dodge());
 
+                // Check if entity is stunned
+                let is_stunned = char_state_b_maybe.map_or(false, |c_s| c_s.is_stunned());
+
                 // Check if it is a hit
                 if entity != b
                     && !health_b.is_dead
@@ -123,7 +126,8 @@ impl<'a> System<'a> for Sys {
                     for (target, damage, poise_change) in attack.effects.iter() {
                         if let Some(target) = target {
                             if *target != target_group
-                                || (!matches!(target, GroupTarget::InGroup) && is_dodge)
+                                || (!matches!(target, GroupTarget::InGroup)
+                                    && (is_dodge || is_stunned))
                             {
                                 continue;
                             }
@@ -132,13 +136,7 @@ impl<'a> System<'a> for Sys {
                         let change = damage.modify_damage(inventories.get(b), Some(*uid));
                         //let poise_change =
                         //    poise_change.modify_poise_damage(loadouts.get(b), Some(*uid));
-                        println!("poise_change in melee: {:?}", poise_change);
-
                         server_emitter.emit(ServerEvent::Damage { entity: b, change });
-                        server_emitter.emit(ServerEvent::PoiseChange {
-                            entity: b,
-                            change: *poise_change,
-                        });
                         // Apply bleeding buff on melee hits with 10% chance
                         // TODO: Don't have buff uniformly applied on all melee attacks
                         if change.amount < 0 && thread_rng().gen::<f32>() < 0.1 {
@@ -161,6 +159,12 @@ impl<'a> System<'a> for Sys {
                         if !impulse.is_approx_zero() {
                             server_emitter.emit(ServerEvent::Knockback { entity: b, impulse });
                         }
+
+                        server_emitter.emit(ServerEvent::PoiseChange {
+                            entity: b,
+                            change: *poise_change,
+                            kb_dir: *kb_dir,
+                        });
 
                         attack.hit_count += 1;
                     }
