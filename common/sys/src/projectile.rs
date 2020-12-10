@@ -128,6 +128,7 @@ impl<'a> System<'a> for Sys {
                                 server_emitter.emit(ServerEvent::PoiseChange {
                                     entity: other_entity,
                                     change: poise_change,
+                                    kb_dir: *ori.0,
                                 });
                             }
                         },

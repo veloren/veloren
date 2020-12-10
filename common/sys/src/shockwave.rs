@@ -204,10 +204,6 @@ impl<'a> System<'a> for Sys {
                             poise_damage.modify_poise_damage(inventories.get(b), Some(owner_uid));
 
                         server_emitter.emit(ServerEvent::Damage { entity: b, change });
-                        server_emitter.emit(ServerEvent::PoiseChange {
-                            entity: b,
-                            change: poise_change,
-                        });
                         shockwave_hit_list.hit_entities.push(*uid_b);
 
                         let kb_dir = Dir::new((pos_b.0 - pos.0).try_normalized().unwrap_or(*ori.0));
@@ -215,6 +211,11 @@ impl<'a> System<'a> for Sys {
                         if !impulse.is_approx_zero() {
                             server_emitter.emit(ServerEvent::Knockback { entity: b, impulse });
                         }
+                        server_emitter.emit(ServerEvent::PoiseChange {
+                            entity: b,
+                            change: poise_change,
+                            kb_dir: *kb_dir,
+                        });
                     }
                 }
             }

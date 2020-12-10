@@ -6,6 +6,7 @@ use common::{
     event::{EventBus, ServerEvent},
     resources::{DeltaTime, Time},
     uid::{Uid, UidAllocator},
+    util::Dir,
     GroupTarget,
 };
 use specs::{saveload::MarkerAllocator, Entities, Join, Read, ReadStorage, System, WriteStorage};
@@ -170,6 +171,7 @@ impl<'a> System<'a> for Sys {
                         let poise_change = poise_damage
                             .modify_poise_damage(inventories.get(b), beam_segment.owner);
 
+                        let kb_dir = Dir::new((pos_b.0 - pos.0).try_normalized().unwrap_or(*ori.0));
                         match target {
                             Some(GroupTarget::OutOfGroup) => {
                                 server_emitter.emit(ServerEvent::Damage { entity: b, change });
@@ -188,6 +190,7 @@ impl<'a> System<'a> for Sys {
                                     server_emitter.emit(ServerEvent::PoiseChange {
                                         entity,
                                         change: poise_change,
+                                        kb_dir: *kb_dir,
                                     });
                                     server_emitter.emit(ServerEvent::EnergyChange {
                                         entity,

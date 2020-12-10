@@ -83,6 +83,7 @@ pub enum PoiseSource {
     Shockwave,
     Falling,
     Revive,
+    Regen,
     Other,
 }
 
@@ -95,6 +96,7 @@ pub struct Poise {
     pub is_stunned: bool,
     pub is_dazed: bool,
     pub is_knockeddown: bool,
+    pub regen_rate: f32,
 }
 
 impl Default for Poise {
@@ -107,6 +109,7 @@ impl Default for Poise {
             is_stunned: false,
             is_dazed: false,
             is_knockeddown: false,
+            regen_rate: 0.0,
         }
     }
 }

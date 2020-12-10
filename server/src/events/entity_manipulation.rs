@@ -36,7 +36,12 @@ use std::time::Duration;
 use tracing::error;
 use vek::Vec3;
 
-pub fn handle_poise(server: &Server, entity: EcsEntity, change: PoiseChange) {
+pub fn handle_poise(
+    server: &Server,
+    entity: EcsEntity,
+    change: PoiseChange,
+    knockback_dir: Vec3<f32>,
+) {
     let ecs = &server.state.ecs();
     if let Some(poise) = ecs.write_storage::<Poise>().get_mut(entity) {
         poise.change_by(change);
@@ -57,7 +62,7 @@ pub fn handle_poise(server: &Server, entity: EcsEntity, change: PoiseChange) {
                         static_data: common::states::stunned::StaticData {
                             buildup_duration: Duration::from_millis(250),
                             recover_duration: Duration::from_millis(250),
-                            knockback: Knockback::Away(0.0),
+                            knockback: Knockback::Away(20.0),
                         },
                         timer: Duration::default(),
                         stage_section: common::states::utils::StageSection::Buildup,
@@ -71,47 +76,50 @@ pub fn handle_poise(server: &Server, entity: EcsEntity, change: PoiseChange) {
                     entity,
                     comp::CharacterState::Stunned(common::states::stunned::Data {
                         static_data: common::states::stunned::StaticData {
-                            buildup_duration: Duration::from_millis(250),
-                            recover_duration: Duration::from_millis(250),
-                            knockback: Knockback::Away(0.0),
+                            buildup_duration: Duration::from_millis(500),
+                            recover_duration: Duration::from_millis(500),
+                            knockback: Knockback::Away(40.0),
                         },
                         timer: Duration::default(),
                         stage_section: common::states::utils::StageSection::Buildup,
                         was_wielded,
                     }),
                 );
+                handle_knockback(server, entity, 50.0 * knockback_dir);
             },
             PoiseState::Dazed => {
                 poise.reset();
                 let _ = ecs.write_storage::<comp::CharacterState>().insert(
                     entity,
-                    comp::CharacterState::Stunned(common::states::stunned::Data {
-                        static_data: common::states::stunned::StaticData {
-                            buildup_duration: Duration::from_millis(250),
-                            recover_duration: Duration::from_millis(250),
-                            knockback: Knockback::Away(0.0),
+                    comp::CharacterState::Staggered(common::states::staggered::Data {
+                        static_data: common::states::staggered::StaticData {
+                            buildup_duration: Duration::from_millis(1000),
+                            recover_duration: Duration::from_millis(1000),
+                            knockback: Knockback::Away(50.0),
                         },
                         timer: Duration::default(),
                         stage_section: common::states::utils::StageSection::Buildup,
                         was_wielded,
                     }),
                 );
+                handle_knockback(server, entity, 50.0 * knockback_dir);
             },
             PoiseState::KnockedDown => {
                 poise.reset();
                 let _ = ecs.write_storage::<comp::CharacterState>().insert(
                     entity,
-                    comp::CharacterState::Stunned(common::states::stunned::Data {
-                        static_data: common::states::stunned::StaticData {
-                            buildup_duration: Duration::from_millis(250),
+                    comp::CharacterState::Staggered(common::states::staggered::Data {
+                        static_data: common::states::staggered::StaticData {
+                            buildup_duration: Duration::from_millis(5000),
                             recover_duration: Duration::from_millis(250),
-                            knockback: Knockback::Away(0.0),
+                            knockback: Knockback::Away(200.0),
                         },
                         timer: Duration::default(),
                         stage_section: common::states::utils::StageSection::Buildup,
                         was_wielded,
                     }),
                 );
+                handle_knockback(server, entity, 100.0 * knockback_dir);
             },
         }
     }

@@ -108,10 +108,6 @@ impl CharacterState {
         matches!(self, CharacterState::Sneak | CharacterState::Roll(_))
     }
 
-    pub fn is_stunned(&self) -> bool {
-        matches!(self, CharacterState::Stunned { .. } | CharacterState::Staggered { .. })
-    }
-
     pub fn is_attack(&self) -> bool {
         matches!(
             self,
@@ -153,6 +149,13 @@ impl CharacterState {
 
     pub fn is_melee_dodge(&self) -> bool {
         matches!(self, CharacterState::Roll(d) if d.static_data.immune_melee)
+    }
+
+    pub fn is_stunned(&self) -> bool {
+        matches!(
+            self,
+            CharacterState::Stunned(_) | CharacterState::Staggered(_)
+        )
     }
 
     /// Compares for shallow equality (does not check internal struct equality)

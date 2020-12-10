@@ -83,7 +83,11 @@ impl Server {
                     handle_knockback(&self, entity, impulse)
                 },
                 ServerEvent::Damage { entity, change } => handle_damage(&self, entity, change),
-                ServerEvent::PoiseChange { entity, change } => handle_poise(&self, entity, change),
+                ServerEvent::PoiseChange {
+                    entity,
+                    change,
+                    kb_dir,
+                } => handle_poise(&self, entity, change, kb_dir),
                 ServerEvent::Delete(entity) => handle_delete(self, entity),
                 ServerEvent::Destroy { entity, cause } => handle_destroy(self, entity, cause),
                 ServerEvent::InventoryManip(entity, manip) => handle_inventory(self, entity, manip),

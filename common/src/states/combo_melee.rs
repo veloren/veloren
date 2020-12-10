@@ -170,7 +170,6 @@ impl CharacterBehavior for Data {
                             .min(self.combo / self.static_data.num_stages)
                             * self.static_data.stage_data[stage_index].damage_increase;
                     let poise_damage = self.static_data.stage_data[stage_index].base_poise_damage;
-                    println!("Combo melee poise damage: {:?}", poise_damage);
                     data.updater.insert(data.entity, Attacking {
                         effects: vec![(
                             Some(GroupTarget::OutOfGroup),
