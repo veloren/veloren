@@ -1,13 +1,13 @@
 ItemDef(
     name: "Large Potion",
-    description: "Restores 100 Health",
+    description: "Restores 200 Health",
     kind: Consumable(
         kind: "PotionLarge",
         effect: [
             Buff((
                 kind: Potion,
                 data: (
-                    strength: 1000.0,
+                    strength: 2000.0,
                     duration: Some((
                             secs: 1,
                             nanos: 0,

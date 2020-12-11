@@ -142,6 +142,8 @@ impl<'a> Widget for Group<'a> {
         let mut events = Vec::new();
         let localized_strings = self.localized_strings;
         let buff_ani = ((self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8) + 0.5; //Animation timer
+        let debug_on = self.global_state.settings.gameplay.toggle_debug;
+        let offset = if debug_on { 270.0 } else { 0.0 };
         let buffs_tooltip = Tooltip::new({
             // Edge images [t, b, r, l]
             // Corner images [tr, tl, br, bl]
@@ -328,11 +330,7 @@ impl<'a> Widget for Group<'a> {
             let uid_allocator = client_state
                 .ecs()
                 .read_resource::<common::sync::UidAllocator>();
-            let offset = if self.global_state.settings.gameplay.toggle_debug {
-                320.0
-            } else {
-                110.0
-            };
+
             // Keep track of the total number of widget ids we are using for buffs
             let mut total_buff_count = 0;
             for (i, &uid) in group_members.iter().copied().enumerate() {
@@ -350,13 +348,13 @@ impl<'a> Widget for Group<'a> {
                     if let Some(health) = health {
                         let health_perc = health.current() as f64 / health.maximum() as f64;
                         // change panel positions when debug info is shown
-                        let back = if i == 0 {
-                            Image::new(self.imgs.member_bg)
-                                .top_left_with_margins_on(ui.window, offset, 20.0)
-                        } else {
-                            Image::new(self.imgs.member_bg)
-                                .down_from(state.ids.member_panels_bg[i - 1], 45.0)
-                        };
+                        let x = if debug_on { i / 8 } else { i / 12 };
+                        let y = if debug_on { i % 8 } else { i % 12 };
+                        let back = Image::new(self.imgs.member_bg).top_left_with_margins_on(
+                            ui.window,
+                            50.0 + offset + y as f64 * 65.0,
+                            10.0 + x as f64 * 180.0,
+                        );
                         let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8; //Animation timer
                         let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
                         let health_col = match (health_perc * 100.0) as u8 {

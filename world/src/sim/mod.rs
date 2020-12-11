@@ -2238,7 +2238,13 @@ impl SimChunk {
                         (1.0, 2.0),
                     ),
                     (
-                        ForestKind::Savannah,
+                        ForestKind::Acacia,
+                        (0.0, 1.5),
+                        (CONFIG.tropical_temp, 1.5),
+                        (0.0, 1.0),
+                    ),
+                    (
+                        ForestKind::Baobab,
                         (0.0, 1.5),
                         (CONFIG.tropical_temp, 1.5),
                         (0.0, 1.0),

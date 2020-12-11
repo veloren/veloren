@@ -1,15 +1,15 @@
 ItemDef(
     name: "Mushroom Stick",
-    description: "Restores 20 Health over 20 seconds\n\nRoasted mushrooms on a stick for easy carrying",
+    description: "Restores 20 Health over 10 seconds\n\nRoasted mushrooms on a stick for easy carrying",
     kind: Consumable(
         kind: "MushroomStick",
         effect: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 10.0,
+                    strength: 20.0,
                     duration: Some((
-                            secs: 20,
+                            secs: 10,
                             nanos: 0,
                         )),
                     ),
