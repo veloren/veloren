@@ -102,15 +102,16 @@
         /// End Common section
 
 
+
+
         /// Start Main screen section
+        "main.username": "Benutzername",
+        "main.server": "Server",
+        "main.password": "Passwort",
         "main.connecting": "Verbinde ",
         "main.creating_world": "Erschaffe Welt ",
         "main.tip": "Tipp:",
-        "hud.settings.loading_tips": "Ladebildschirm-Tipps",
-        "hud.settings.ambiance": "Umgebungs Beleuchtung",
 
-
-        /// Start Main screen section
         /// Welcome notice that appears the first time Veloren is started
         "main.notice": r#"Willkommen zur Veloren Alpha!
 
@@ -154,6 +155,9 @@ https://veloren.net/account/.
         "main.login.not_on_whitelist": "Ihr braucht einen Whitelist Eintrag durch den Server Admin",
         "main.login.banned": "Ihr wurdet aus folgendem Grund gebannt",
         "main.login.kicked": "Ihr wurdet aus folgendem Grund gekickt",
+        "main.login.select_language": "Wählt eine Sprache",
+
+        "main.servers.select_server": "Wählt einen Server",
 
         /// End Main screen section
 
@@ -315,6 +319,11 @@ magischen Gegenstände ergattern?"#,
         "hud.settings.cloud_rendering_mode.medium": "Mittel",
         "hud.settings.cloud_rendering_mode.minimal": "Minimal",
         "hud.settings.cloud_rendering_mode.high": "Hoch",
+        "hud.settings.cloud_rendering_mode.ultra": "Ultra",
+        "hud.settings.loading_tips": "Ladebildschirm-Tipps",
+        "hud.settings.exposure": "Belichtung",
+        "hud.settings.ambiance": "Umgebungs Beleuchtung",
+        "hud.settings.upscale_factor": "Skalierungsfaktor",
 
         "hud.settings.pan_sensitivity": "Schwenk-Sensibilität",
         "hud.settings.zoom_sensitivity": "Zoom-Sensibilität",
