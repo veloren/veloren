@@ -45,6 +45,67 @@ nix-shell nix/shell.nix --arg nvidia true
 ```
 And you'll be able to use `nixGLNvidia` and `nixGLNvidiaBumblebee`.
 
+#### Using the flake
+
+Due to the nature of flakes' reliance on git and the way `git-lfs` is configured for this repo, you must already have `git-lfs` in your environment when running nix commands on a local checkout. Run this to enter a shell environment with `git-lfs` in your path:
+```shell
+nix shell nixpkgs#git-lfs
+```
+
+To enter a shell environment with the necessary tools:
+```shell
+nix develop
+```
+
+If you simply want to run the latest version without necessarily installing it, you can do so with
+```shell
+# Voxygen (the default):
+nix run gitlab:veloren/veloren
+# Server CLI:
+nix run gitlab:veloren/veloren#veloren-server-cli
+```
+
+To install (for example) the game client on your system, the configuration could look something like this:
+```nix
+{ description = "NixOS configuration with flakes";
+
+  inputs.veloren.url = gitlab:veloren/veloren;
+
+  outputs = { self, nixpkgs, veloren }: {
+    nixosConfigurations.<your-hostname> = nixpkgs.lib.nixosSystem rec {
+      system = <your-system-arch>;
+      # ...
+      modules = [
+        # add to your overlay so that the packages appear in pkgs
+        # for subsequent modules
+        ({...}: {
+          nixpkgs.overlays = [
+            # ...
+            (final: prev: {
+              inherit (veloren.packages."${system}") veloren-voxygen;
+            })
+          ];
+
+          # You can also add the flake to your registry
+          nix.registry.veloren.flake = veloren;
+          # with this, you can run latest master
+          # regardless of version installed like this:
+          # nix run veloren/master
+        })
+
+        # some module
+        ({ pkgs, ... }: {
+          environment.systemPackages = [
+            pkgs.veloren-voxygen
+          ];
+        })
+        # ...
+      ];
+    };
+  };
+}
+```
+
 ### Managing Cargo.nix
 
 Enter the development shell.
@@ -56,12 +117,25 @@ crate2nix generate -f ../Cargo.toml
 
 ### Managing dependencies
 
-We use [niv](https://github.com/nmattia/niv) to manage dependencies.
+#### Nix with flakes enabled
 
-To update the dependencies, run (from repository root):
+If a specific revision is specified in `flake.nix`, you will have to update that first, either by specifying a new desired revision or by removing it.
+
+You can update the dependencies individually or all at once from the root of the project:
 ```shell
-niv update
+# only nixpkgs
+nix flake update --update-input nixpkgs
+# everything
+nix flake update --recreate-lock-file
 ```
+
+See the [NixOS wiki](https://nixos.wiki/wiki/Flakes) for more information on how to use flakes.
+
+#### Legacy nix
+
+It is inadvised to update revisions without the use of `nix flake update` as it's both tedious and error-prone to attempt setting all fields to their correct values in both `flake.nix` and `flake.lock`, but if you need to do it for testing, `flake.lock` is where legacy nix commands get the input revisions from (through `flake-compat`), regardless of what is specified in `flake.nix` (see https://github.com/edolstra/flake-compat/issues/10). 
+
+Modify the relevant `rev` field in `flake.lock` to what you need - you can use `nix-prefetch-git` to find an up-to-date revision. Leave the `narHash` entry as is and attempt a rebuild to find out what its value should be.
 
 ### Formatting
 
@@ -69,5 +143,5 @@ Use [nixpkgs-fmt](https://github.com/nix-community/nixpkgs-fmt) to format files.
 
 To format every Nix file:
 ```shell
-nixpkgs-fmt nix/*.nix
+nixpkgs-fmt flake.nix nix/*.nix
 ```
