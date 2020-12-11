@@ -26,7 +26,7 @@ benchmarks:
     - echo "SET veloren.sha = \$${TAGUUID}\$${CI_COMMIT_SHA}\$${TAGUUID}\$;" >> upload.sql
     - find . -wholename "*new/*.csv" -exec echo '\copy benchmarks ("group", "function", "value", throughput_num, throughput_type, sample_measured_value, unit, iteration_count) from '"'{}' csv header" >> upload.sql \;
     - cat upload.sql
-    - PGPASSWORD="${CIDBPASSWORD}" PGSSLROOTCERT="./.gitlab/ci-db.crt" psql "sslmode=verify-ca host=mac94.de dbname=benchmarks" -U bsdrftsejrhdrjhgd -f upload.sql;
+    - PGPASSWORD="${CIDBPASSWORD}" PGSSLROOTCERT="./.gitlab/ci-db.crt" psql "sslmode=verify-ca host=auth.veloren.net dbname=benchmarks" -U bsdrftsejrhdrjhgd -f upload.sql;
   retry:
     max: 2
 
