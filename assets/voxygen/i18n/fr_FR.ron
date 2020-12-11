@@ -49,12 +49,24 @@
         "common.back": "Retour",
         "common.create": "Créer",
         "common.okay": "Compris",
+        "common.add": "Ajouter",
         "common.accept": "Accepter",
+        "common.decline": "Refuser",
         "common.disclaimer": "Avertissement",
         "common.cancel": "Annuler",
         "common.none": "Aucun",
         "common.error": "Erreur",
         "common.fatal_error": "Erreur Fatale",
+        "common.you": "Toi",
+        "common.automatic": "Auto",
+        "common.random": "Aléatoire",
+        // Settings Window title
+        "common.interface_settings": "Options de l'interface",
+        "common.gameplay_settings": "Options de gameplay",
+        "common.controls_settings": "Configuration clavier",
+        "common.video_settings": "Options Vidéo",
+        "common.sound_settings": "Options Audio",
+        "common.language_settings": "Langage",
 
         // Message when connection to the server is lost
         "common.connection_lost": r#"Connexion perdue !
@@ -74,10 +86,14 @@ Le client est-il à jour?"#,
         "common.weapons.staff": "Bâton",
         "common.weapons.bow": "Arc",
         "common.weapons.hammer": "Marteau",
-
+        "common.weapons.sceptre": "Sceptre de soin",
+        "common.rand_appearance": "Apparence et nom aléatoire",
 
 
         // Main screen texts
+        "main.username": "Nom d'utilisateur",
+        "main.server": "Serveur",
+        "main.password": "Mot de passe",
         "main.connecting": "Connexion",
         "main.creating_world": "Création du monde",
         "main.tip": "Astuce:",
@@ -122,6 +138,11 @@ https://veloren.net/account/."#,
         "main.login.invalid_character": "Le personnage sélectionné n'est pas valide",
         "main.login.client_crashed": "Le client a planté",
         "main.login.not_on_whitelist": "Vous devez être ajouté à la liste blanche par un Admin pour pouvoir entrer",
+        "main.login.banned": "Vous avez été banni pour la raison suivante",
+        "main.login.kicked": "Vous avez été exclus pour la raison suivante",    // <- need confirmation for "exclus"
+        "main.login.select_language": "Sélectionnez une langue",
+
+        "main.servers.select_server": "Sélectionnez un serveur",
 
         /// End Main screen section
 
@@ -133,7 +154,8 @@ https://veloren.net/account/."#,
         "hud.you_died": "Vous êtes mort",
         "hud.waypoint_saved": "Point de Repère Sauvegardé",
 
-        "hud.press_key_to_show_keybindings_fmt": "Appuyer sur {key} pour afficher les contrôles",
+        "hud.press_key_to_show_keybindings_fmt": "[{key}] Contrôles",
+        "hud.press_key_to_toggle_lantern_fmt": "[{key}] Lanterne",
         "hud.press_key_to_show_debug_info_fmt": "Appuyer sur {key} pour afficher les informations de debogage",
         "hud.press_key_to_toggle_keybindings_fmt": "Appuyer sur {key} pour afficher les contrôles",
         "hud.press_key_to_toggle_debug_info_fmt": "Appuyer sur {key} pour activer les informations de debogage",
@@ -141,6 +163,25 @@ https://veloren.net/account/."#,
         // Sorties Tchat
         "hud.chat.online_msg": "[{name}] est maintenant en ligne.",
         "hud.chat.offline_msg": "[{name}] s'est déconnecté.",
+
+        "hud.chat.default_death_msg": "[{name}] est mort",
+        "hud.chat.environmental_kill_msg": "[{name}] est mort dans {environment}",
+        "hud.chat.fall_kill_msg": "[{name}] est mort de dégâts de chute",
+        "hud.chat.suicide_msg": "[{name}] est mort des suites de ses propres blessures",
+
+        "hud.chat.pvp_melee_kill_msg": "[{attacker}] a tué [{victim}]",
+        "hud.chat.pvp_ranged_kill_msg": "[{attacker}] a tiré sur [{victim}]",
+        "hud.chat.pvp_explosion_kill_msg": "[{attacker}] a explosé [{victim}]",
+        "hud.chat.pvp_energy_kill_msg": "[{attacker}] a tué [{victim}] avec de la magie",
+        "hud.chat.pvp_buff_kill_msg": "[{attacker}] a tué [{victim}]",
+
+
+        "hud.chat.npc_melee_kill_msg": "{attacker} a tué [{victim}]",
+        "hud.chat.npc_ranged_kill_msg": "{attacker} a tiré sur [{victim}]",
+        "hud.chat.npc_explosion_kill_msg": "{attacker} a explosé [{victim}]",
+        "hud.chat.npc_energy_kill_msg": "[{attacker}] a tué [{victim}] avec de la magie",
+        "hud.chat.npc_other_kill_msg": "[{attacker}] a tué [{victim}]",
+
         "hud.chat.loot_msg": "Vous avez ramassé [{item}]",
         "hud.chat.loot_fail": "Votre inventaire est plein!",
         "hud.chat.goodbye": "Au revoir!",
@@ -213,6 +254,7 @@ objets magiques ?"#,
         "hud.bag.chest": "Torse",
         "hud.bag.hands": "Mains",
         "hud.bag.lantern": "Lanterne",
+        "hud.bag.glider": "Planeur",
         "hud.bag.belt": "Ceinture",
         "hud.bag.ring": "Bague",
         "hud.bag.back": "Dos",
@@ -241,6 +283,8 @@ objets magiques ?"#,
         "hud.settings.transparency": "Transparence",
         "hud.settings.hotbar": "Barre d'action",
         "hud.settings.toggle_shortcuts": "Activer les raccourcis",
+        "hud.settings.buffs_skillbar": "Effets sur la barre de compétences",    // <- need confirmation
+        "hud.settings.buffs_mmap": "Effets sur la minimap",
         "hud.settings.toggle_bar_experience": "Activer la barre d'expérience",
         "hud.settings.scrolling_combat_text": "Dégats de combat",
         "hud.settings.single_damage_number": "Dégats infligés",
@@ -273,13 +317,37 @@ objets magiques ?"#,
         "hud.settings.maximum_fps": "Limite FPS",
         "hud.settings.fov": "Champs de vision (degrés)",
         "hud.settings.gamma": "Gamma",
+        "hud.settings.exposure": "Exposition",
+        "hud.settings.ambiance": "Luminosité ambiante",
         "hud.settings.antialiasing_mode": "Mode anticrénelage",
+        "hud.settings.upscale_factor": "Facteur d'échelle",         // <- need confirmation, based on some game
         "hud.settings.cloud_rendering_mode": "Rendu des nuages",
         "hud.settings.fluid_rendering_mode": "Rendu des fluides",
         "hud.settings.fluid_rendering_mode.cheap": "Rapide",
         "hud.settings.fluid_rendering_mode.shiny": "Qualité",
-        "hud.settings.cloud_rendering_mode.regular": "Normal",
+        "hud.settings.cloud_rendering_mode.minimal": "Minimum",
+        "hud.settings.cloud_rendering_mode.low": "Bas",
+        "hud.settings.cloud_rendering_mode.medium": "Moyen",
+        "hud.settings.cloud_rendering_mode.high": "Élevé",
+        "hud.settings.cloud_rendering_mode.ultra": "Ultra",
         "hud.settings.fullscreen": "Plein écran",
+        "hud.settings.fullscreen_mode": "Mode de plein écran",
+        "hud.settings.fullscreen_mode.exclusive": "Exclusif",
+        "hud.settings.fullscreen_mode.borderless": "Sans bordure",
+        "hud.settings.particles": "Particules",
+        "hud.settings.resolution": "Résolution",
+        "hud.settings.bit_depth": "Profondeur de bits",
+        "hud.settings.refresh_rate": "Taux de rafraichissement",
+        "hud.settings.lighting_rendering_mode": "Mode de rendu des lumières",
+        "hud.settings.lighting_rendering_mode.ashikhmin": "Type A - Élevé",
+        "hud.settings.lighting_rendering_mode.blinnphong": "Type B - Moyen",
+        "hud.settings.lighting_rendering_mode.lambertian": "Type L - Rapide",
+        "hud.settings.shadow_rendering_mode": "Mode de rendu des ombres",
+        "hud.settings.shadow_rendering_mode.none": "Aucune",
+        "hud.settings.shadow_rendering_mode.cheap": "Rapide",
+        "hud.settings.shadow_rendering_mode.map": "Carte",
+        "hud.settings.shadow_rendering_mode.map.resolution": "Résolution",
+        "hud.settings.lod_detail": "Détail du LoD",
         "hud.settings.save_window_size": "Sauvegarder la taille de fenêtre",
 
         "hud.settings.music_volume": "Volume de la musique",
@@ -296,6 +364,10 @@ objets magiques ?"#,
         "hud.social.not_yet_available": "Pas encore disponible",
         "hud.social.faction": "Faction",
         "hud.social.play_online_fmt": "{nb_player} joueur(s) en ligne",
+        "hud.social.name": "Nom",
+        "hud.social.level": "Niveau",
+        "hud.social.zone": "Zone",
+        "hud.social.account": "Compte",
 
         "hud.crafting": "Fabrication",
         "hud.crafting.recipes": "Recettes",
@@ -303,10 +375,37 @@ objets magiques ?"#,
         "hud.crafting.craft": "Fabriquer",
         "hud.crafting.tool_cata": "Nécessite:",
 
+        "hud.group": "Groupe",
+        "hud.group.invite_to_join": "{name} vous a invité dans son groupe!",
+        "hud.group.invite": "Inviter",
+        "hud.group.kick": "Exclure",                // <- need confirmation
+        "hud.group.assign_leader": "Assigner Chef",
+        "hud.group.leave": "Quitter le Groupe",
+        "hud.group.dead" : "Mort",
+        "hud.group.out_of_range": "Hors de portée",
+        "hud.group.add_friend": "Ajouter aux Amis",
+        "hud.group.link_group": "Lier le Groupe",   // <- need confirmation
+        "hud.group.in_menu": "Au Menu",             // <- need confirmation
+        "hud.group.members": "Membres du groupe",
+
         "hud.spell": "Sorts",
 
-        "hud.free_look_indicator": "Vue libre active",
+        "hud.free_look_indicator": "Vue libre active, Pressez {key} pour la désactiver.",
         "hud.auto_walk_indicator": "Marche automatique active",
+
+        "hud.map.difficulty": "Difficulté",
+        "hud.map.towns": "Villes",
+        "hud.map.castles": "Chateaux",
+        "hud.map.dungeons": "Donjons",        
+        "hud.map.caves": "Cavernes",
+        "hud.map.cave": "Caverne",
+        "hud.map.town": "Ville",
+        "hud.map.castle": "Chateau",
+        "hud.map.dungeon": "Donjon",
+        "hud.map.difficulty_dungeon": "Difficulté\n\ndu Donjon: {difficulty}",
+        "hud.map.drag": "Déplacer",
+        "hud.map.zoom": "Zoomer",
+        "hud.map.recenter": "Recentrer",
 
         /// Fin Section Hud
 
@@ -345,7 +444,7 @@ objets magiques ?"#,
         "gameinput.wallleap": "Saut Mural",
         "gameinput.togglelantern": "Activer/Desactiver Lanterne",
         "gameinput.mount": "Monture",
-        "gameinput.enter": "Entrer",
+        "gameinput.chat": "Chat",
         "gameinput.command": "Commande",
         "gameinput.escape": "Menu principal/Fermer menu",
         "gameinput.map": "Carte",
@@ -360,7 +459,15 @@ objets magiques ?"#,
         "gameinput.interact": "Interagir",
         "gameinput.freelook": "Vue Libre",
         "gameinput.autowalk": "Marche Automatique",
-        "gameinput.dance": "Dancer",
+        "gameinput.dance": "Danser",
+        "gameinput.select": "Sélectionner une Entité",
+        "gameinput.acceptgroupinvite": "Accepter l'invitation de groupe",
+        "gameinput.declinegroupinvite": "Décliner l'invitation de groupe",
+        "gameinput.crafting": "Artisanat",
+        "gameinput.fly": "Voler",
+        "gameinput.sneak": "S'accroupir",
+        "gameinput.swimdown": "Nager vers le bas",
+        "gameinput.swimup": "Nager vers le haut",
 
         /// End GameInput section
 
@@ -391,6 +498,7 @@ objets magiques ?"#,
 
         /// Fin de la section Création du personnage
 
+
         /// Start character window section
         "character_window.character_name": "Personnage",
         // Character stats
@@ -408,8 +516,24 @@ Protection
         /// Start Escape Menu Section
         "esc_menu.logout": "Déconnexion",
         "esc_menu.quit_game": "Quitter le jeu",
-        /// End Escape Menu Section        
+        /// End Escape Menu Section    
 
+        /// Buffs and Debuffs
+        "buff.remove": "Cliquer pour retirer",
+        "buff.title.missing": "Titre Manquant",
+        "buff.desc.missing": "Description Manquante",
+        // Buffs
+        "buff.title.heal": "Soin",
+        "buff.desc.heal": "Regagne des points de vie avec le temps.",
+        "buff.title.potion": "Potion",
+        "buff.desc.potion": "Boit...",                                                              // <- this one is wrong, need correction
+        "buff.title.saturation": "Saturation",
+        "buff.desc.saturation": "Regagne des points de vie avec le temps grâce à la nourriture.",   // <- need confirmation
+        "buff.title.campfire_heal": "Soin autour d'un feu de camp",
+        "buff.desc.campfire_heal": "Se reposer à côté d'un feu de camp restaure 1% de santé par seconde.",
+        // Debuffs
+        "debuff.title.bleed": "Saignement",
+        "debuff.desc.bleed": "Inflige régulièrement des dommages.",
     },
 
 
