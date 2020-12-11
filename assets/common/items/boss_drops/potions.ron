@@ -5,7 +5,7 @@ ItemDef(
         kind: "Potion",
         effect: [
             Buff((
-                kind: Saturation,
+                kind: Potion,
                 data: (
                     strength: 1000.0,
                     duration: Some((

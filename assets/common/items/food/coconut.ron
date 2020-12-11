@@ -1,15 +1,15 @@
 ItemDef(
     name: "Coconut",
-    description: "Restores 20 health over 20 seconds\n\nReliable source of water and fat",
+    description: "Restores 20 health over 10 seconds\n\nReliable source of water and fat",
     kind: Consumable(
         kind: "Coconut",
         effect: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 10.0,
+                    strength: 20.0,
                     duration: Some((
-                            secs: 20,
+                            secs: 10,
                             nanos: 0,
                         )),
                     ),
