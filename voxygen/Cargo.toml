@@ -67,7 +67,6 @@ deunicode = "1.0"
 directories-next = "2.0"
 dot_vox = "4.0"
 enum-iterator = "0.6"
-failure = "0.1.6"
 glsl-include = "0.3.1"
 guillotiere = "0.5.2"
 hashbrown = {version = "0.7.2", features = ["rayon", "serde", "nightly"]}
