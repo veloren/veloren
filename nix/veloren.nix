@@ -37,13 +37,19 @@ let
   prettyRev = with sourceInfo;
     if sourceInfo ? rev && sourceInfo ? lastModified
     then builtins.substring 0 8 rev + "/" + utils.dateTimeFormat lastModified
-    else (utils.getGitInfo ../.git).gitHash;
+    else throw "Need revision + lastModified to determine version";
+
+  tag = with sourceInfo;
+    if sourceInfo ? tag
+    then sourceInfo.tag
+    else "";
+
   # If gitTag has a tag (meaning the commit we are on is a *release*), use
   # it as version, else: just use the prettified hash we have, if we don't
   # have it the build fails.
   # Must be in format f4987672/2020-12-10-12:00
   version =
-    if sourceInfo ? tag then sourceInfo.tag
+    if tag != "" then tag
     else if prettyRev != "" then prettyRev
     else throw "Need a tag or at least revision + lastModified in order to determine version";
   # Sanitize version string since it might contain illegal characters for a Nix store path
@@ -79,10 +85,7 @@ let
             DISABLE_GIT_LFS_CHECK = utils.isGitLfsSetup common.gitLfsCheckFile;
             # Declare env values here so that `common/build.rs` sees them
             NIX_GIT_HASH = prettyRev;
-            # if we have a tag (meaning the commit we are on is a *release*),
-            # use it as version, else use the prettified hash we have;
-            # if we don't have it the build fails
-            NIX_GIT_TAG = version;
+            NIX_GIT_TAG = tag;
           };
           veloren-server-cli = _: {
             name = "veloren-server-cli_${sanitizedVersion}";
