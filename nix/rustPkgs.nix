@@ -6,7 +6,7 @@ let
 
   channel = mozPkgs.rustChannelOf {
     rustToolchain = ../rust-toolchain;
-    sha256 = "sha256-P4FTKRe0nM1FRDV0Q+QY2WcC8M9IR7aPMMLWDfv+rEk=";
+    sha256 = "sha256-kDtMqYvrTbahqYHYFQOWyvT0+F5o4UVcqkMZt0c43kc=";
   };
 
 in
