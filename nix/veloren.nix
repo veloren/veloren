@@ -52,9 +52,6 @@ let
     if tag != "" then tag
     else if prettyRev != "" then prettyRev
     else throw "Need a tag or at least revision + lastModified in order to determine version";
-  # Sanitize version string since it might contain illegal characters for a Nix store path
-  # Used in the derivation(s) name
-  sanitizedVersion = pkgs.stdenv.lib.strings.sanitizeDerivationName version;
 
   veloren-assets = pkgs.runCommand "makeAssetsDir" { } ''
     mkdir $out
@@ -88,7 +85,7 @@ let
             NIX_GIT_TAG = tag;
           };
           veloren-server-cli = _: {
-            name = "veloren-server-cli_${sanitizedVersion}";
+            name = "veloren-server-cli";
             inherit version;
             VELOREN_USERDATA_STRATEGY = "system";
             nativeBuildInputs = [ makeWrapper ];
@@ -103,7 +100,7 @@ let
             };
           };
           veloren-voxygen = _: {
-            name = "veloren-voxygen_${sanitizedVersion}";
+            name = "veloren-voxygen";
             inherit version;
             VELOREN_USERDATA_STRATEGY = "system";
             inherit (crateDeps.veloren-voxygen) buildInputs;
