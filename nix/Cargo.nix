@@ -11693,6 +11693,31 @@ rec {
         ];
 
       };
+      "slotmap" = rec {
+        crateName = "slotmap";
+        version = "0.4.0";
+        edition = "2018";
+        sha256 = "1kajcjwbs1amxripbrp6ash4q5nf7rlq7mv4wib7j94gvf138sn4";
+        authors = [
+          "Orson Peters <orsonpeters@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "serde";
+            packageId = "serde";
+            optional = true;
+            features = [ "derive" ];
+          }
+        ];
+        devDependencies = [
+          {
+            name = "serde";
+            packageId = "serde";
+          }
+        ];
+        features = { };
+        resolvedDefaultFeatures = [ "serde" "unstable" ];
+      };
       "smallvec 0.6.13" = rec {
         crateName = "smallvec";
         version = "0.6.13";
@@ -12557,6 +12582,23 @@ rec {
           "default" = [ "xattr" ];
         };
         resolvedDefaultFeatures = [ "default" "xattr" ];
+      };
+      "termcolor" = rec {
+        crateName = "termcolor";
+        version = "1.1.2";
+        edition = "2018";
+        sha256 = "1x65i1ny4m6z1by62ra6wdcrd557p2ysm866x0pg60zby2cxizid";
+        authors = [
+          "Andrew Gallant <jamslam@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "winapi-util";
+            packageId = "winapi-util";
+            target = { target, features }: target."windows";
+          }
+        ];
+
       };
       "textwrap" = rec {
         crateName = "textwrap";
@@ -14494,6 +14536,11 @@ rec {
             packageId = "slab";
           }
           {
+            name = "slotmap";
+            packageId = "slotmap";
+            features = [ "serde" "unstable" ];
+          }
+          {
             name = "specs";
             packageId = "specs";
             features = [ "serde" "storage-event-control" ];
@@ -14741,6 +14788,10 @@ rec {
             packageId = "signal-hook";
           }
           {
+            name = "termcolor";
+            packageId = "termcolor";
+          }
+          {
             name = "tracing";
             packageId = "tracing";
             usesDefaultFeatures = false;
@@ -14969,6 +15020,10 @@ rec {
           {
             name = "specs-idvs";
             packageId = "specs-idvs";
+          }
+          {
+            name = "termcolor";
+            packageId = "termcolor";
           }
           {
             name = "tracing";

@@ -1,5 +1,8 @@
-watch_file nix/shell.nix
+watch_file flake.lock
+watch_file flake.nix
 watch_file nix/common.nix
-watch_file nix/sources.nix
-watch_file nix/sources.json
+watch_file nix/devShell.nix
+watch_file nix/rustPkgs.nix
+watch_file nix/shell.nix
+watch_file nix/utils.nix
 use nix nix/shell.nix --arg nvidia true
