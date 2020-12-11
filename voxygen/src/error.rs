@@ -10,8 +10,6 @@ pub enum Error {
     BackendError(Box<dyn Debug>),
     /// An error relating the rendering subsystem.
     RenderError(RenderError),
-    /// A miscellaneous error with an unknown or unspecified source.
-    Other(failure::Error),
 }
 
 impl From<RenderError> for Error {
