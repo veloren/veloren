@@ -747,7 +747,16 @@ impl Settlement {
                                         },
                                     );
                                 } else if z >= 0 {
-                                    if block.kind() != BlockKind::Water {
+                                    if [
+                                        BlockKind::Air,
+                                        BlockKind::Grass,
+                                        BlockKind::Earth,
+                                        BlockKind::Sand,
+                                        BlockKind::Snow,
+                                        BlockKind::Rock,
+                                    ]
+                                    .contains(&block.kind())
+                                    {
                                         let _ = vol.set(pos, Block::air(SpriteKind::Empty));
                                     }
                                 } else {
