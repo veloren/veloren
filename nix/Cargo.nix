@@ -4141,62 +4141,6 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" "std" ];
       };
-      "failure" = rec {
-        crateName = "failure";
-        version = "0.1.8";
-        edition = "2015";
-        sha256 = "11jg1wmbkijrs6bk9fqnbrm9zf0850whnqpgnxyswbn0dk8rnbnk";
-        authors = [
-          "Without Boats <boats@mozilla.com>"
-        ];
-        dependencies = [
-          {
-            name = "backtrace";
-            packageId = "backtrace";
-            optional = true;
-          }
-          {
-            name = "failure_derive";
-            packageId = "failure_derive";
-            optional = true;
-          }
-        ];
-        features = {
-          "default" = [ "std" "derive" ];
-          "derive" = [ "failure_derive" ];
-          "std" = [ "backtrace" ];
-        };
-        resolvedDefaultFeatures = [ "backtrace" "default" "derive" "failure_derive" "std" ];
-      };
-      "failure_derive" = rec {
-        crateName = "failure_derive";
-        version = "0.1.8";
-        edition = "2015";
-        sha256 = "1936adqqk080439kx2bjf1bds7h89sg6wcif4jw0syndcv3s6kda";
-        procMacro = true;
-        authors = [
-          "Without Boats <woboats@gmail.com>"
-        ];
-        dependencies = [
-          {
-            name = "proc-macro2";
-            packageId = "proc-macro2 1.0.23";
-          }
-          {
-            name = "quote";
-            packageId = "quote 1.0.7";
-          }
-          {
-            name = "syn";
-            packageId = "syn 1.0.42";
-          }
-          {
-            name = "synstructure";
-            packageId = "synstructure";
-          }
-        ];
-        features = { };
-      };
       "fehler" = rec {
         crateName = "fehler";
         version = "1.0.0";
@@ -12502,42 +12446,6 @@ rec {
         };
         resolvedDefaultFeatures = [ "clone-impls" "default" "derive" "extra-traits" "fold" "full" "parsing" "printing" "proc-macro" "quote" "visit" "visit-mut" ];
       };
-      "synstructure" = rec {
-        crateName = "synstructure";
-        version = "0.12.4";
-        edition = "2018";
-        sha256 = "00c72ij813xsilssgya6m6f73d0s5zzsld1y26bvhk3kdzbg4d5q";
-        authors = [
-          "Nika Layzell <nika@thelayzells.com>"
-        ];
-        dependencies = [
-          {
-            name = "proc-macro2";
-            packageId = "proc-macro2 1.0.23";
-            usesDefaultFeatures = false;
-          }
-          {
-            name = "quote";
-            packageId = "quote 1.0.7";
-            usesDefaultFeatures = false;
-          }
-          {
-            name = "syn";
-            packageId = "syn 1.0.42";
-            usesDefaultFeatures = false;
-            features = [ "derive" "parsing" "printing" "clone-impls" "visit" "extra-traits" ];
-          }
-          {
-            name = "unicode-xid";
-            packageId = "unicode-xid 0.2.1";
-          }
-        ];
-        features = {
-          "default" = [ "proc-macro" ];
-          "proc-macro" = [ "proc-macro2/proc-macro" "syn/proc-macro" "quote/proc-macro" ];
-        };
-        resolvedDefaultFeatures = [ "default" "proc-macro" ];
-      };
       "take_mut" = rec {
         crateName = "take_mut";
         version = "0.2.2";
@@ -14906,10 +14814,6 @@ rec {
           {
             name = "euc";
             packageId = "euc";
-          }
-          {
-            name = "failure";
-            packageId = "failure";
           }
           {
             name = "gfx";
