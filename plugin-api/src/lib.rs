@@ -1,36 +1,40 @@
 #![feature(const_fn)]
 
-pub mod api;
-pub mod raw_api;
-pub mod raw_hooks;
 
-use spin::Mutex;
+pub extern crate plugin_proc;
+pub extern crate common_api;
 
-#[derive(Copy, Clone, Debug)]
-pub enum Hook {
-    OnStart,
-    OnTick,
-    OnStop,
+pub use common_api::*;
+
+
+pub use plugin_proc::*;
+
+use serde::de::DeserializeOwned;
+use serde::Serialize;
+
+extern "C" {
+    fn send_action(ptr: *const u8, len: usize);
 }
 
-pub struct Plugin {
-    pub on_start: Mutex<Vec<Box<dyn Fn() + Send + Sync>>>,
-    pub on_tick: Mutex<Vec<Box<dyn Fn() + Send + Sync>>>,
-    pub on_stop: Mutex<Vec<Box<dyn Fn() + Send + Sync>>>,
-}
-
-impl Plugin {
-    pub const fn new() -> Self {
-        Self {
-            on_start: Mutex::new(Vec::new()),
-            on_tick: Mutex::new(Vec::new()),
-            on_stop: Mutex::new(Vec::new()),
-        }
-    }
-
-    pub fn on_start(&self, f: impl Fn() + Send + Sync + 'static) {
-        self.on_start.lock().push(Box::new(f));
+pub fn send_actions(action: Vec<Action>) {
+    let ret = bincode::serialize(&action).unwrap();
+    unsafe {
+        send_action(ret.as_ptr(), ret.len());
     }
 }
 
-pub static PLUGIN: Plugin = Plugin::new();
+pub fn read_input<T>(ptr: i32, len: u32) -> Result<T, &'static str> where T: DeserializeOwned{
+    let slice = unsafe { 
+        ::std::slice::from_raw_parts(ptr as _, len as _)
+    };
+    bincode::deserialize(slice).map_err(|_|"Failed to deserialize function input")
+}
+
+pub fn write_output(value: impl Serialize) -> i32 {
+    let ret = bincode::serialize(&value).unwrap();
+    let len = ret.len() as u32;
+    unsafe {
+        ::std::ptr::write(1 as _, len);
+    }
+    ret.as_ptr() as _
+}
