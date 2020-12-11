@@ -5,6 +5,9 @@ authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-common = { package = "veloren-common", path = "../common" }
+common-api = { path = "../common/common-api" }
+plugin_proc = { path = "./plugin_proc"}
+serde = {version = "1.0.118", features = ["derive"]}
+bincode = "1.3.1"
 
-spin = "0.7"
+# spin = "0.7"

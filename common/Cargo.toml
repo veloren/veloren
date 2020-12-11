@@ -63,6 +63,11 @@ structopt = { version = "0.3.13", optional = true }
 # Tracy
 tracy-client = { version = "0.9.0", optional = true }
 
+# Plugins
+wasmer-runtime = "0.17.1"
+bincode = "1.3.1"
+common-api = {path = "./common-api"}
+
 [dev-dependencies]
 #bench
 criterion = "0.3"

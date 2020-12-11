@@ -17,6 +17,8 @@
     option_zip
 )]
 
+pub extern crate common_api;
+
 pub mod assets;
 pub mod astar;
 pub mod character;
@@ -54,6 +56,7 @@ pub mod typed;
 pub mod util;
 pub mod vol;
 pub mod volumes;
+
 
 pub use combat::{Damage, DamageSource, GroupTarget, Knockback};
 pub use explosion::{Explosion, RadiusEffect};
