@@ -1,71 +1,52 @@
-## Important
+## Read this first!
 
-If you are going to call the derivations with a custom `nixpkgs` argument, make sure that the `nixpkgs` you pass is on at least the same commit or newer than it.
-Unexpected errors may pop up if you use an older version. Same goes for the `sources` argument.
+Since this repo uses a new Nix feature called "Flakes", it is recommended to enable it.
+It massively improves the `nix` CLI UX, and adds many useful features.
+We include instructions for Nix without flakes enabled, but using flakes is the recommended way.
 
-### How to use
+See the [NixOS wiki](https://nixos.wiki/wiki/Flakes) for information on how to enable and use flakes.
 
-To enter the development shell (which includes all tools mentioned in this readme + tools you'll need to develop Veloren), run:
+It is recommended to first setup the [Cachix](https://cachix.org) cache to save time with builds:
 ```shell
-nix-shell nix/shell.nix
-```
-It is recommended that you enter the dev shell before starting to build using `nix-build` or `nix-env` (anything which build stuff),
-since it will setup a Cachix cache for you. (you can configure this for your user's `nix.conf` by running `cachix use veloren-nix` once in the dev shell,
-which will make the cache available when you run commands outside of the dev shell).
-
-If you have [direnv](https://direnv.net) setup on your system, it is also recommended to copy the `envrc`
-(or `envrc-nvidia`, if you have an Nvidia GPU) file to the root of the repository as `.envrc`:
-```shell
-cp nix/envrc .envrc
-```
-This will make your env have the dev env setup automatically.
-
-To build and install Voxygen and the server CLI into user profile, run:
-```shell
-nix-env -f nix/default.nix -i
-```
-You can configure what to install by changing the `cratesToBuild` argument:
-```shell
-nix-env -f nix/default.nix --arg cratesToBuild '["veloren-voxygen"]'
-```
-For example, this will install Voxygen only.
-
-You can configure the crates to be built with debug mode (not recommended, equals to `opt-level = 0`):
-```shell
-nix-env -f nix/default.nix --arg release false
+nix shell nixpkgs#cachix -c cachix use veloren-nix
+# or if you don't have flakes:
+nix-shell -p cachix --run "cachix use veloren-nix"
 ```
 
-If you aren't on NixOS, you can run `veloren-voxygen` using the provided `nixGLIntel` in the dev shell:
+As this repository uses `git-lfs`, please make sure `git-lfs` is in your path.
+If you have a locally cloned repo, you can make sure it is setup with:
 ```shell
-nixGLIntel veloren-voxygen
+git lfs install --local && git lfs fetch && git lfs checkout
 ```
-If you have an Nvidia GPU, you can enter the dev shell like so:
-```shell
-nix-shell nix/shell.nix --arg nvidia true
-```
-And you'll be able to use `nixGLNvidia` and `nixGLNvidiaBumblebee`.
+This should be automatically done if you use the development shell.
 
-#### Using the flake
+## Usage for players
 
-Due to the nature of flakes' reliance on git and the way `git-lfs` is configured for this repo, you must already have `git-lfs` in your environment when running nix commands on a local checkout. Run this to enter a shell environment with `git-lfs` in your path:
-```shell
-nix shell nixpkgs#git-lfs
-```
+### With flakes
 
-To enter a shell environment with the necessary tools:
-```shell
-nix develop
-```
-
-If you simply want to run the latest version without necessarily installing it, you can do so with
+If you just want to run the game without installing it, you can do so with:
 ```shell
 # Voxygen (the default):
 nix run gitlab:veloren/veloren
 # Server CLI:
 nix run gitlab:veloren/veloren#veloren-server-cli
+# or if you have a local repo
+nix run .
+nix run .#veloren-server-cli
 ```
 
-To install (for example) the game client on your system, the configuration could look something like this:
+To install the game into your user profile:
+```shell
+# Voxygen:
+nix profile install gitlab:veloren/veloren
+# Server CLI:
+nix profile install giltab:veloren/veloren#veloren-server-cli
+# or if you have a local repo:
+nix profile install .
+nix profile install .#veloren-server-cli
+```
+
+To install (for example) Voxygen on your system, the NixOS configuration (if you use a flake based setup) could look something like this:
 ```nix
 { description = "NixOS configuration with flakes";
 
@@ -106,18 +87,64 @@ To install (for example) the game client on your system, the configuration could
 }
 ```
 
-### Managing Cargo.nix
+### Without flakes
 
-Enter the development shell.
-
-To update `Cargo.nix` (and `crate-hashes.json`) using latest `Cargo.lock`, run:
+You can do this to run the game without installing it (you will need a local clone of the repo though):
 ```shell
-crate2nix generate -f ../Cargo.toml
+# build the game
+nix-build nix/default.nix
+# run it
+./result/bin/veloren-voxygen
+# or for server cli
+./result-2/bin/veloren-server-cli
 ```
 
-### Managing dependencies
+To install Voxygen and server CLI into user profile:
+```shell
+nix-env -f nix/default.nix -i
+```
 
-#### Nix with flakes enabled
+### Notes for non-NixOS setups
+
+You'll need to use [nixGL](https://github.com/guibou/nixGL) to be able to run the game (after installing it):
+```shell
+# For Intel and AMD:
+nixGLIntel veloren-voxygen
+# For Nvidia:
+nixGLNvidia veloren-voxygen
+```
+
+## Usage for developers
+
+The development shell automatically setups the Cachix cache for you, so it is recommended to be in the dev shell always.
+If you have the Cachix cache setup in `~/.config/nix/nix.conf` (as described in the beginning of this document), then this isn't a necessity.
+
+### With flakes
+
+To enter a shell environment with the necessary tools:
+```shell
+nix develop
+```
+
+### Without flakes
+
+To enter the development shell:
+```shell
+nix-shell nix/shell.nix
+```
+
+### Direnv
+
+This only works if you have flakes. There is an issue with the git-lfs hook in `shellHook` erroring out with `use nix`, so you'll have to enable flakes if you want to use the `envrc` file included.
+
+If you have [direnv](https://direnv.net) and [nix-direnv](https://github.com/nix-community/nix-direnv) on your system, you can copy the `envrc` file to the root of the repository as `.envrc`:
+```shell
+cp nix/envrc .envrc
+```
+
+## Managing dependencies
+
+### With flakes
 
 If a specific revision is specified in `flake.nix`, you will have to update that first, either by specifying a new desired revision or by removing it.
 
@@ -129,19 +156,34 @@ nix flake update --update-input nixpkgs
 nix flake update --recreate-lock-file
 ```
 
-See the [NixOS wiki](https://nixos.wiki/wiki/Flakes) for more information on how to use flakes.
-
-#### Legacy nix
+### Without flakes
 
 It is inadvised to update revisions without the use of `nix flake update` as it's both tedious and error-prone to attempt setting all fields to their correct values in both `flake.nix` and `flake.lock`, but if you need to do it for testing, `flake.lock` is where legacy nix commands get the input revisions from (through `flake-compat`), regardless of what is specified in `flake.nix` (see https://github.com/edolstra/flake-compat/issues/10). 
 
 Modify the relevant `rev` field in `flake.lock` to what you need - you can use `nix-prefetch-git` to find an up-to-date revision. Leave the `narHash` entry as is and attempt a rebuild to find out what its value should be.
 
-### Formatting
+### Generating Cargo.nix
+
+Enter the development shell.
+
+To update `Cargo.nix` (and `crate-hashes.json`) using latest `Cargo.lock`, run:
+```shell
+crate2nix generate -f ../Cargo.toml
+```
+
+### Rust toolchain
+
+If the `rust-toolchain` file is updated, you will need to update the `sha256` hash in the `nix/rustPkgs.nix` file.
+
+Trying to build the derivation should give you the correct hash to put in.
+
+## Formatting
 
 Use [nixpkgs-fmt](https://github.com/nix-community/nixpkgs-fmt) to format files.
 
 To format every Nix file:
 ```shell
 nixpkgs-fmt flake.nix nix/*.nix
+# or
+nixpkgs-fmt **/**.nix
 ```

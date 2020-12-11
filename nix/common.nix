@@ -11,14 +11,13 @@ let
       (final: prev: {
         rustc = rustChannel.rust;
         crate2nix = prev.callPackage sources.crate2nix { pkgs = prev; };
-        nixGL = prev.callPackage sources.nixGL { pkgs = prev; };
       })
     ];
   };
-
 in
 with pkgs;
-let
+{
+  inherit pkgs;
   # deps that crates need (for compiling)
   crateDeps =
     let
@@ -30,19 +29,9 @@ let
       veloren-network = makeDeps [ openssl ] [ pkg-config ];
       veloren-voxygen = makeDeps [ xorg.libxcb ] [ ];
     };
-
   # deps that voxygen needs to function
   # FIXME: Wayland doesn't work (adding libxkbcommon, wayland and wayland-protocols results in a panic)
   voxygenNeededLibs = (with xorg; [ libX11 libXcursor libXrandr libXi ])
     ++ [ libGL ];
-
   gitLfsCheckFile = ../assets/voxygen/background/bg_main.png;
-in
-{
-  inherit
-    crateDeps
-    gitLfsCheckFile
-    pkgs
-    voxygenNeededLibs
-    ;
 }
