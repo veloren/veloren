@@ -28,3 +28,9 @@ specs = { git = "https://github.com/amethyst/specs.git", rev = "7a2e348ab2223818
 vek = { version = "0.12.0", features = ["serde"] }
 hashbrown = { version = "0.7.2", features = ["rayon", "serde", "nightly"] }
 authc = { git = "https://gitlab.com/veloren/auth.git", rev = "b943c85e4a38f5ec60cd18c34c73097640162bfe" }
+
+[dev-dependencies]
+tracing-subscriber = { version = "0.2.3", default-features = false, features = ["fmt", "chrono", "ansi", "smallvec"] }
+
+[[example]]
+name = "chat-cli"

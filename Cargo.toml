@@ -5,14 +5,12 @@ members = [
 	"common",
 	"common/sys",
 	"client",
-	"chat-cli",
 	"server",
 	"server-cli",
 	"voxygen",
 	"voxygen/anim",
 	"world",
 	"network",
-	"tools"
 ]
 
 # default profile for devs, fast to compile, okay enough to run, no debug information
@@ -33,8 +31,6 @@ opt-level = 2
 [profile.dev.package."veloren-common"]
 opt-level = 2
 [profile.dev.package."veloren-client"]
-opt-level = 2
-[profile.dev.package."veloren-chat-cli"]
 opt-level = 2
 [profile.dev.package."veloren-server"]
 opt-level = 2
