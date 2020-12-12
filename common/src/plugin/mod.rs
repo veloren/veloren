@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use std::{collections::{HashMap, HashSet}, fs, io::Read, path::{Path, PathBuf}};
 use tracing::{error, info};
 
-use common_api::Event;
+use plugin_api::Event;
 
 use self::{ errors::PluginError, module::{PluginModule, PreparedEventQuery}};
 

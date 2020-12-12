@@ -728,13 +728,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "common-api"
-version = "0.1.0"
-dependencies = [
- "serde",
-]
-
-[[package]]
 name = "conrod_core"
 version = "0.63.0"
 source = "git+https://gitlab.com/veloren/conrod.git?branch=copypasta_0.7#1ae5193588fb662a7189d81edd9f2d653c7f1da0"
@@ -3754,15 +3747,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "plugin-api-derive"
-version = "0.1.0"
-dependencies = [
- "proc-macro2 1.0.24",
- "quote 1.0.7",
- "syn 1.0.54",
-]
-
-[[package]]
 name = "png"
 version = "0.16.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5558,7 +5542,6 @@ dependencies = [
  "arraygen",
  "authc",
  "bincode",
- "common-api",
  "criterion",
  "crossbeam",
  "csv",
@@ -5593,6 +5576,7 @@ dependencies = [
  "tracing",
  "tracy-client",
  "vek 0.12.0",
+ "veloren-plugin-api",
  "wasmer-runtime",
 ]
 
@@ -5600,10 +5584,26 @@ dependencies = [
 name = "veloren-plugin-api"
 version = "0.1.0"
 dependencies = [
- "bincode",
- "common-api",
- "plugin-api-derive",
  "serde",
+]
+
+[[package]]
+name = "veloren-plugin-derive"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2 1.0.24",
+ "quote 1.0.7",
+ "syn 1.0.54",
+]
+
+[[package]]
+name = "veloren-plugin-rt"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "serde",
+ "veloren-plugin-api",
+ "veloren-plugin-derive",
 ]
 
 [[package]]
@@ -5787,6 +5787,7 @@ dependencies = [
  "tracy-client",
  "vek 0.12.0",
  "veloren-common",
+ "veloren-plugin-api",
 ]
 
 [[package]]

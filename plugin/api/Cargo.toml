@@ -1,5 +1,5 @@
 [package]
-name = "common-api"
+name = "veloren-plugin-api"
 version = "0.1.0"
 authors = ["ccgauche <gaucheron.laurent@gmail.com>"]
 edition = "2018"

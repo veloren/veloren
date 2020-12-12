@@ -17,26 +17,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "08c48aae112d48ed9f069b33538ea9e3e90aa263cfa3d1c24309612b1f7472de"
 
 [[package]]
-name = "common-api"
-version = "0.1.0"
-dependencies = [
- "serde",
-]
-
-[[package]]
 name = "hello"
 version = "0.1.0"
 dependencies = [
  "veloren-plugin-api",
-]
-
-[[package]]
-name = "plugin_proc"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
+ "veloren-plugin-rt",
 ]
 
 [[package]]
@@ -98,8 +83,24 @@ checksum = "f7fe0bb3479651439c9112f72b6c505038574c9fbb575ed1bf3b797fa39dd564"
 name = "veloren-plugin-api"
 version = "0.1.0"
 dependencies = [
- "bincode",
- "common-api",
- "plugin_proc",
  "serde",
+]
+
+[[package]]
+name = "veloren-plugin-derive"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "veloren-plugin-rt"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "serde",
+ "veloren-plugin-api",
+ "veloren-plugin-derive",
 ]

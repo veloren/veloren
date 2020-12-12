@@ -181,7 +181,7 @@ impl State {
         // Load plugins from asset directory
         ecs.insert(match PluginMgr::from_assets() {
             Ok(plugin_mgr) => {
-                if let Err(e) = plugin_mgr.execute_event("on_load", &common::common_api::events::PluginLoadEvent {}) {
+                if let Err(e) = plugin_mgr.execute_event("on_load", &plugin_api::events::PluginLoadEvent {}) {
                     tracing::error!(?e, "Failed to run plugin init");
                     info!("Error occurred when loading plugins. Running without plugins instead.");
                     PluginMgr::default()
