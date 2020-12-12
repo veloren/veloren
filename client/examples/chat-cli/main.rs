@@ -2,10 +2,10 @@
 #![allow(clippy::option_map_unit_fn)]
 #![deny(clippy::clone_on_ref_ptr)]
 
-use client::{Client, Event};
 use common::{clock::Clock, comp};
 use std::{io, net::ToSocketAddrs, sync::mpsc, thread, time::Duration};
 use tracing::{error, info};
+use veloren_client::{Client, Event};
 
 const TPS: u64 = 10; // Low value is okay, just reading messages.
 

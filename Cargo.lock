@@ -4930,15 +4930,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tools"
-version = "0.1.0"
-dependencies = [
- "csv",
- "structopt",
- "veloren-common",
-]
-
-[[package]]
 name = "tracing"
 version = "0.1.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5297,16 +5288,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "veloren-chat-cli"
-version = "0.8.0"
-dependencies = [
- "tracing",
- "tracing-subscriber",
- "veloren-client",
- "veloren-common",
-]
-
-[[package]]
 name = "veloren-client"
 version = "0.8.0"
 dependencies = [
@@ -5322,6 +5303,7 @@ dependencies = [
  "rayon",
  "specs",
  "tracing",
+ "tracing-subscriber",
  "uvth 3.1.1",
  "vek 0.12.0",
  "veloren-common",
@@ -5337,6 +5319,7 @@ dependencies = [
  "authc",
  "criterion",
  "crossbeam",
+ "csv",
  "directories-next",
  "dot_vox",
  "enum-iterator",
@@ -5361,6 +5344,7 @@ dependencies = [
  "specs",
  "specs-idvs",
  "spin_sleep",
+ "structopt",
  "sum_type",
  "tracing",
  "tracy-client",
