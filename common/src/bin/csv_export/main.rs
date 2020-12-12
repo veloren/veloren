@@ -3,12 +3,12 @@
 use std::error::Error;
 use structopt::StructOpt;
 
-use common::comp;
 use comp::item::{
     armor::{ArmorKind, Protection},
     tool::ToolKind,
     ItemKind,
 };
+use veloren_common::comp;
 
 #[derive(StructOpt)]
 struct Cli {
