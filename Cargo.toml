@@ -4,7 +4,9 @@ cargo-features = ["named-profiles","profile-overrides"]
 members = [
 	"common",
 	"common/sys",
-	"common/common-api",
+	"plugin/rt",
+	"plugin/api",
+	"plugin/derive",
 	"client",
 	"plugin-api",
 	"server",

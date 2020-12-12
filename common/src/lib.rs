@@ -17,8 +17,6 @@
     option_zip
 )]
 
-pub extern crate common_api;
-
 pub mod assets;
 pub mod astar;
 pub mod character;

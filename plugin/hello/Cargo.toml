@@ -8,6 +8,7 @@ edition = "2018"
 crate-type = ["cdylib"]
 
 [dependencies]
-plugin-api = { package = "veloren-plugin-api", path = ".." }
+plugin-rt = { package = "veloren-plugin-rt", path = "../rt" }
+plugin-api = { package = "veloren-plugin-api", path = "../api" }
 
 [workspace]

@@ -1,10 +1,12 @@
-use plugin_api::{*,events::*};
+pub extern crate plugin_rt;
+
+use plugin_rt::*;
+use plugin_api::{Action, events::*};
 
 #[export_function]
 pub fn on_load(load: PluginLoadEvent) -> () {
     send_actions(vec![Action::Print("This is a test".to_owned())]);
     println!("Hello world");
-    
 }
 
 #[export_function]

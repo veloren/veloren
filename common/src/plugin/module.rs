@@ -5,7 +5,7 @@ use parking_lot::Mutex;
 use wasmer_runtime::*;
 
 use super::errors::{PluginError, PluginModuleError};
-use common_api::{Action, Event};
+use plugin_api::{Action, Event};
 
 // This represent a WASM function interface
 pub type Function<'a> = Func<'a, (i32, u32), i32>;
@@ -26,7 +26,7 @@ impl PluginModule {
             .instantiate(&imports! {"env" => {
                 "send_action" => func!(read_action),
             }}).map_err(|e| PluginModuleError::Instantiate(e))?;
-        
+
         Ok(Self {
             events: instance.exports.into_iter().map(|(name, _)| name).collect(),
             wasm_instance: Arc::new(Mutex::new(instance)),

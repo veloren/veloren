@@ -1,6 +1,5 @@
 use serde::{Serialize, de::DeserializeOwned, Deserialize};
 
-
 #[derive(Deserialize,Serialize,Debug)]
 pub enum Action {
     ServerClose,
@@ -14,9 +13,9 @@ pub trait Event: Serialize + DeserializeOwned{
 }
 
 pub mod events {
-
     use super::Event;
     use serde::{Serialize,Deserialize};
+
     #[derive(Serialize, Deserialize, Debug)]
     pub struct PlayerJoinEvent {
         pub player_name: String,

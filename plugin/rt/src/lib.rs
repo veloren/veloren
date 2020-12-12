@@ -1,12 +1,7 @@
 #![feature(const_fn)]
 
-
-pub extern crate plugin_api_derive;
-pub extern crate common_api;
-
-pub use common_api::*;
-
-pub use plugin_api_derive::*;
+pub use plugin_api as api;
+pub use plugin_derive::*;
 
 use serde::de::DeserializeOwned;
 use serde::Serialize;
@@ -15,7 +10,7 @@ extern "C" {
     fn send_action(ptr: *const u8, len: usize);
 }
 
-pub fn send_actions(action: Vec<Action>) {
+pub fn send_actions(action: Vec<api::Action>) {
     let ret = bincode::serialize(&action).unwrap();
     unsafe {
         send_action(ret.as_ptr(), ret.len());
@@ -23,7 +18,7 @@ pub fn send_actions(action: Vec<Action>) {
 }
 
 pub fn read_input<T>(ptr: i32, len: u32) -> Result<T, &'static str> where T: DeserializeOwned{
-    let slice = unsafe { 
+    let slice = unsafe {
         ::std::slice::from_raw_parts(ptr as _, len as _)
     };
     bincode::deserialize(slice).map_err(|_|"Failed to deserialize function input")
