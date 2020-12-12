@@ -1,13 +1,12 @@
 #![feature(const_fn)]
 
 
-pub extern crate plugin_proc;
+pub extern crate plugin_api_derive;
 pub extern crate common_api;
 
 pub use common_api::*;
 
-
-pub use plugin_proc::*;
+pub use plugin_api_derive::*;
 
 use serde::de::DeserializeOwned;
 use serde::Serialize;

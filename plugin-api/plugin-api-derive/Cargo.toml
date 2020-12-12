@@ -1,5 +1,5 @@
 [package]
-name = "plugin_proc"
+name = "plugin-api-derive"
 version = "0.1.0"
 authors = ["ccgauche <gaucheron.laurent@gmail.com>"]
 edition = "2018"

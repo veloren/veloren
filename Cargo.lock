@@ -3754,7 +3754,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "plugin_proc"
+name = "plugin-api-derive"
 version = "0.1.0"
 dependencies = [
  "proc-macro2 1.0.24",
@@ -5602,7 +5602,7 @@ version = "0.1.0"
 dependencies = [
  "bincode",
  "common-api",
- "plugin_proc",
+ "plugin-api-derive",
  "serde",
 ]
 

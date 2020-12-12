@@ -4,12 +4,7 @@ pub mod module;
 
 use crate::assets::ASSETS_PATH;
 use serde::{Deserialize, Serialize};
-use std::{
-    collections::HashMap,
-    fs,
-    io::Read,
-    path::{Path, PathBuf},
-};
+use std::{collections::{HashMap, HashSet}, fs, io::Read, path::{Path, PathBuf}};
 use tracing::{error, info};
 
 use common_api::Event;
@@ -19,8 +14,8 @@ use self::{ errors::PluginError, module::{PluginModule, PreparedEventQuery}};
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PluginData {
     name: String,
-    modules: Vec<PathBuf>,
-    dependencies: Vec<String>,
+    modules: HashSet<PathBuf>,
+    dependencies: HashSet<String>,
 }
 
 #[derive(Clone)]
@@ -93,9 +88,12 @@ impl PluginMgr {
     }
 
     pub fn execute_prepared<T>(&self, event_name: &str,event: &PreparedEventQuery<T>) -> Result<Vec<T::Response>, PluginError> where T: Event {
-        Ok(self.plugins.iter().map(|plugin| {
-            plugin.execute_prepared(event_name, event)
-        }).collect::<Result<Vec<Vec<T::Response>>, _>>()?.into_iter().flatten().collect::<Vec<T::Response>>())
+        let mut out = Vec::new();
+        for plugin in &self.plugins {
+            let exe = plugin.execute_prepared(event_name, event)?;
+            out.extend(exe);
+        }
+        Ok(out)
     }
 
     pub fn execute_event<T>(&self, event_name: &str,event: &T) -> Result<Vec<T::Response>, PluginError> where T: Event {
