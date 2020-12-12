@@ -8,8 +8,8 @@ pub enum Action {
     KillEntity(usize)
 }
 
-pub trait Event: Serialize + DeserializeOwned{
-    type Response: Serialize + DeserializeOwned;
+pub trait Event: Serialize + DeserializeOwned + Send + Sync{
+    type Response: Serialize + DeserializeOwned + Send + Sync;
 }
 
 // TODO: Unify this with common/src/comp/uid.rs:Uid

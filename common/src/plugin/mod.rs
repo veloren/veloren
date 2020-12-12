@@ -11,6 +11,8 @@ use plugin_api::Event;
 
 use self::{ errors::PluginError, module::{PluginModule, PreparedEventQuery}};
 
+use rayon::prelude::*;
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PluginData {
     name: String,
@@ -88,12 +90,9 @@ impl PluginMgr {
     }
 
     pub fn execute_prepared<T>(&self, event_name: &str,event: &PreparedEventQuery<T>) -> Result<Vec<T::Response>, PluginError> where T: Event {
-        let mut out = Vec::new();
-        for plugin in &self.plugins {
-            let exe = plugin.execute_prepared(event_name, event)?;
-            out.extend(exe);
-        }
-        Ok(out)
+        Ok(self.plugins.par_iter().map(|plugin| {
+            plugin.execute_prepared(event_name, event)
+        }).collect::<Result<Vec<_>,_>>()?.into_iter().flatten().collect())
     }
 
     pub fn execute_event<T>(&self, event_name: &str,event: &T) -> Result<Vec<T::Response>, PluginError> where T: Event {
