@@ -73,9 +73,10 @@ use conrod_core::{
     widget::{self, Button, Image, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
+use hashbrown::HashMap;
 use specs::{Join, WorldExt};
 use std::{
-    collections::{HashMap, VecDeque},
+    collections::VecDeque,
     sync::Arc,
     time::{Duration, Instant},
 };
