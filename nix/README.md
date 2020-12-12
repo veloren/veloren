@@ -108,10 +108,18 @@ nix-env -f nix/default.nix -i
 
 You'll need to use [nixGL](https://github.com/guibou/nixGL) to be able to run the game (after installing it):
 ```shell
-# For Intel and AMD:
+## For Intel and AMD:
+# Install it (sadly no flake yet)
+nix-env -f https://github.com/guibou/nixGL/archive/master.tar.gz -iA nixGLIntel
 nixGLIntel veloren-voxygen
-# For Nvidia:
+## For Nvidia:
+# Install it
+nix-env -f https://github.com/guibou/nixGL/archive/master.tar.gz -iA nixGLNvidia
 nixGLNvidia veloren-voxygen
+## For Nvidia driver on hybrid hardware:
+# Install it
+nix-env -f https://github.com/guibou/nixGL/archive/master.tar.gz -iA nixGLNvidiaBumblebee
+nixGLNvidiaBumblebee veloren-voxygen
 ```
 
 ## Usage for developers
