@@ -11,3 +11,7 @@ crate-type = ["cdylib"]
 plugin-rt = { package = "veloren-plugin-rt", path = "../rt" }
 
 [workspace]
+
+[profile.dev]
+opt-level = "s"
+debug = false

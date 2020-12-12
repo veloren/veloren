@@ -996,10 +996,10 @@ impl Server {
             command.execute(self, entity, args);
         } else {
             let plugin_manager = self.state.ecs().read_resource::<PluginMgr>();
-            let rs = plugin_manager.execute_event(&format!("on_command_{}",&kwd), &common::plugin_api::events::ChatCommandEvent {
+            let rs = plugin_manager.execute_event(&format!("on_command_{}",&kwd), &common::plugin_api::event::ChatCommandEvent {
                 command: kwd.clone(),
                 command_args: args.split(" ").map(|x| x.to_owned()).collect(),
-                player: common::plugin_api::events::Player {
+                player: common::plugin_api::event::Player {
                     id: (*(self.state.ecs().read_storage::<Uid>().get(entity).expect("Can't get player UUID [This should never appen]"))).into()
                 },
             });
@@ -1049,7 +1049,7 @@ impl Server {
                     );
                 }
             }
-            
+
         }
     }
 

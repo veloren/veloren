@@ -9,13 +9,17 @@ use serde::de::DeserializeOwned;
 use serde::Serialize;
 
 extern "C" {
-    fn send_action(ptr: *const u8, len: usize);
+    fn raw_emit_actions(ptr: *const u8, len: usize);
 }
 
-pub fn send_actions(action: Vec<api::Action>) {
-    let ret = bincode::serialize(&action).unwrap();
+pub fn emit_action(action: api::Action) {
+    emit_actions(vec![action])
+}
+
+pub fn emit_actions(actions: Vec<api::Action>) {
+    let ret = bincode::serialize(&actions).unwrap();
     unsafe {
-        send_action(ret.as_ptr(), ret.len());
+        raw_emit_actions(ret.as_ptr(), ret.len());
     }
 }
 
