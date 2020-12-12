@@ -46,22 +46,9 @@ use crate::{
     state_ext::StateExt,
     sys::sentinel::{DeletedEntities, TrackedComps},
 };
-use common::{
-    assets::Asset,
-    cmd::ChatCommand,
-    comp::{self, ChatType},
-    event::{EventBus, ServerEvent},
-    msg::{
+use common::{assets::Asset, cmd::ChatCommand, comp::{self, ChatType}, event::{EventBus, ServerEvent}, msg::{
         ClientType, DisconnectReason, ServerGeneral, ServerInfo, ServerInit, ServerMsg, WorldMapMsg,
-    },
-    outcome::Outcome,
-    recipe::default_recipe_book,
-    resources::TimeOfDay,
-    rtsim::RtSimEntity,
-    sync::WorldSyncExt,
-    terrain::TerrainChunkSize,
-    vol::{ReadVol, RectVolSize},
-};
+    }, outcome::Outcome, plugin::PluginMgr, recipe::default_recipe_book, resources::TimeOfDay, rtsim::RtSimEntity, sync::{Uid, WorldSyncExt}, terrain::TerrainChunkSize, vol::{ReadVol, RectVolSize}};
 use common_sys::state::State;
 use futures_executor::block_on;
 use metrics::{PhysicsMetrics, ServerMetrics, StateTickMetrics, TickMetrics};
@@ -1008,13 +995,61 @@ impl Server {
         if let Ok(command) = kwd.parse::<ChatCommand>() {
             command.execute(self, entity, args);
         } else {
-            self.notify_client(
-                entity,
-                ChatType::CommandError.server_msg(format!(
-                    "Unknown command '/{}'.\nType '/help' for available commands",
-                    kwd
-                )),
-            );
+            let plugin_manager = self.state.ecs().read_resource::<PluginMgr>();
+            let rs = plugin_manager.execute_event(&format!("on_command_{}",&kwd), &common::plugin_api::events::ChatCommandEvent {
+                command: kwd.clone(),
+                command_args: args.split(" ").map(|x| x.to_owned()).collect(),
+                player: common::plugin_api::events::Player {
+                    id: (*(self.state.ecs().read_storage::<Uid>().get(entity).expect("Can't get player UUID [This should never appen]"))).into()
+                },
+            });
+            match rs {
+                Ok(e) => {
+                    if e.is_empty() {
+                        self.notify_client(
+                            entity,
+                            ChatType::CommandError.server_msg(format!(
+                                "Unknown command '/{}'.\nType '/help' for available commands",
+                                kwd
+                            ))
+                        );
+                    } else {
+                        e.into_iter().for_each(|e| {
+                            match e {
+                                Ok(e) => {
+                                    if !e.is_empty() {
+                                        self.notify_client(
+                                            entity,
+                                            ChatType::CommandInfo.server_msg(e.join("\n")),
+                                        );
+                                    }
+                                },
+                                Err(e) => {
+                                    self.notify_client(
+                                        entity,
+                                        ChatType::CommandError.server_msg(format!(
+                                            "Error occurred while executing command '/{}'.\n{}",
+                                            kwd,
+                                            e
+                                        )),
+                                    );
+                                }
+                            }
+                        });
+                    }
+                },
+                Err(e) => {
+                    error!(?e, "Can't execute command {} {}",kwd,args);
+                    self.notify_client(
+                        entity,
+                        ChatType::CommandError.server_msg(format!(
+                            "Internal error while executing '/{}'.\nContact the server administrator",
+                            kwd
+                        ))
+                    );
+                }
+            }
+            
         }
     }
 

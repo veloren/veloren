@@ -12,11 +12,34 @@ pub trait Event: Serialize + DeserializeOwned{
     type Response: Serialize + DeserializeOwned;
 }
 
+// TODO: Unify this with common/src/comp/uid.rs:Uid
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
+pub struct Uid(pub u64);
+
 pub mod events {
+
+    use crate::Uid;
+
     use super::Event;
     use serde::{Serialize,Deserialize};
 
-    #[derive(Serialize, Deserialize, Debug)]
+    #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
+    pub struct ChatCommandEvent {
+        pub command: String,
+        pub command_args: Vec<String>,
+        pub player: Player,
+    }
+
+    impl Event for ChatCommandEvent {
+        type Response = Result<Vec<String>, String>;
+    }
+
+    #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
+    pub struct Player {
+        pub id: Uid,
+    }
+
+    #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
     pub struct PlayerJoinEvent {
         pub player_name: String,
         pub player_id: usize
@@ -26,7 +49,7 @@ pub mod events {
         type Response = PlayerJoinResult;
     }
 
-    #[derive(Serialize, Deserialize, Debug)]
+    #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
     pub enum PlayerJoinResult {
         CloseConnection,
         None
@@ -38,7 +61,7 @@ pub mod events {
         }
     }
 
-    #[derive(Serialize, Deserialize, Debug)]
+    #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
     pub struct PluginLoadEvent;
 
     impl Event for PluginLoadEvent {
