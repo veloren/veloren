@@ -9,6 +9,5 @@ crate-type = ["cdylib"]
 
 [dependencies]
 plugin-rt = { package = "veloren-plugin-rt", path = "../rt" }
-plugin-api = { package = "veloren-plugin-api", path = "../api" }
 
 [workspace]

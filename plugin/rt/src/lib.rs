@@ -1,5 +1,7 @@
 #![feature(const_fn)]
 
+pub extern crate plugin_derive;
+
 pub use plugin_api as api;
 pub use plugin_derive::*;
 

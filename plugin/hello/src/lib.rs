@@ -1,12 +1,17 @@
-pub extern crate plugin_rt;
+extern crate plugin_rt;
 
 use plugin_rt::*;
-use plugin_api::{Action, events::*};
+use plugin_rt::api::{Action, events::*};
 
 #[event_handler]
 pub fn on_load(load: PluginLoadEvent) -> () {
     send_actions(vec![Action::Print("This is a test".to_owned())]);
     println!("Hello world");
+}
+
+#[event_handler]
+pub fn on_command_testplugin(command: ChatCommandEvent) -> Result<Vec<String>, String> {
+    Ok(vec![format!("Player of id {:?} sended command with args {:?}",command.player,command.command_args)])
 }
 
 #[event_handler]

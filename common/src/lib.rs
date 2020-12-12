@@ -17,6 +17,8 @@
     option_zip
 )]
 
+pub extern crate plugin_api;
+
 pub mod assets;
 pub mod astar;
 pub mod character;
