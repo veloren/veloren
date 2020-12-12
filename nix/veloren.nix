@@ -71,11 +71,8 @@ let
 
   veloren-crates = with pkgs;
     callPackage ./Cargo.nix {
-      defaultCrateOverrides = with common;
+      defaultCrateOverrides = with common; with crateDeps;
         defaultCrateOverrides // {
-          libudev-sys = _: crateDeps.libudev-sys;
-          alsa-sys = _: crateDeps.alsa-sys;
-          veloren-network = _: crateDeps.veloren-network;
           veloren-common = _: {
             # Disable `git-lfs` check here since we check it ourselves
             # We have to include the command output here, otherwise Nix won't run it
@@ -103,8 +100,8 @@ let
             name = "veloren-voxygen";
             inherit version;
             VELOREN_USERDATA_STRATEGY = "system";
-            inherit (crateDeps.veloren-voxygen) buildInputs;
-            nativeBuildInputs = crateDeps.veloren-voxygen.nativeBuildInputs
+            inherit (veloren-voxygen) buildInputs;
+            nativeBuildInputs = veloren-voxygen.nativeBuildInputs
             ++ [ makeWrapper copyDesktopItems ];
             desktopItems = [ velorenVoxygenDesktopFile ];
             postInstall = ''
@@ -121,6 +118,11 @@ let
               '';
             };
           };
+        } // {
+          xcb = _: xcb;
+          libudev-sys = _: libudev-sys;
+          alsa-sys = _: alsa-sys;
+          veloren-network = _: veloren-network;
         };
       inherit release pkgs;
     };
