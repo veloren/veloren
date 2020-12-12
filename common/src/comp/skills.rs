@@ -1,9 +1,7 @@
+use hashbrown::{HashMap, HashSet};
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
-use std::{
-    collections::{HashMap, HashSet},
-    hash::Hash,
-};
+use std::hash::Hash;
 use tracing::warn;
 
 lazy_static! {

@@ -9,8 +9,9 @@ use common::{
     terrain::{structure::Structure, Block, BlockKind},
     vol::ReadVol,
 };
+use hashbrown::HashMap;
 use lazy_static::lazy_static;
-use std::{collections::HashMap, f32, sync::Arc};
+use std::{f32, sync::Arc};
 use vek::*;
 
 lazy_static! {

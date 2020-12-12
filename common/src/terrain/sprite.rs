@@ -1,9 +1,10 @@
 use crate::make_case_elim;
 use enum_iterator::IntoEnumIterator;
+use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use num_derive::FromPrimitive;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, convert::TryFrom, fmt};
+use std::{convert::TryFrom, fmt};
 
 make_case_elim!(
     sprite_kind,
