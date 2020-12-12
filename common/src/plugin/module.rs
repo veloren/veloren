@@ -1,4 +1,4 @@
-use std::{collections::HashSet, marker::PhantomData, sync::Arc};
+use std::{cell::Cell, collections::HashSet, marker::PhantomData, sync::Arc};
 
 use error::RuntimeError;
 use parking_lot::Mutex;
@@ -84,7 +84,6 @@ impl<T: Event> PreparedEventQuery<T> {
 const MEMORY_POS: usize = 100000;
 
 // This function is not public because this function should not be used without an interface to limit unsafe behaviours
-#[allow(unsafe_code)]
 fn execute_raw(
     memory: &Memory,
     function: &Function,
@@ -101,10 +100,7 @@ fn execute_raw(
     let mut new_len_bytes = [0u8; 4];
     // TODO: It is probably better to dirrectly make the new_len_bytes
     for i in 0..4 {
-        // Since memory view is a more than 11500 elements array we can get the [1;4] without any bound checks
-        unsafe {
-            new_len_bytes[i] = view.get_unchecked(i + 1).get();
-        }
+        new_len_bytes[i] = view.get(i + 1).map(Cell::get).unwrap_or(0);
     }
     let new_len = u32::from_ne_bytes(new_len_bytes) as usize;
     Ok(view[start..start + new_len]
