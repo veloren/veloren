@@ -126,6 +126,20 @@ To enter a shell environment with the necessary tools:
 nix develop
 ```
 
+You can use the `bundle` subcommand to bundle the game into a single distro-agnostic executable file:
+```shell
+## bundling latest commit to master
+# Voxygen:
+nix bundle gitlab:veloren/veloren
+# Server CLI:
+nix bundle gitlab:veloren/veloren#veloren-server-cli
+## for local repo:
+# Voxygen:
+nix bundle .#veloren-voxygen
+# Server CLI:
+nix bundle .#veloren-server-cli
+```
+
 ### Without flakes
 
 To enter the development shell:
