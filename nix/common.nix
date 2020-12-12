@@ -28,6 +28,7 @@ with pkgs;
       alsa-sys = makeDeps [ alsaLib ] [ pkg-config ];
       veloren-network = makeDeps [ openssl ] [ pkg-config ];
       veloren-voxygen = makeDeps [ xorg.libxcb ] [ ];
+      xcb = makeDeps [ ] [ python3 ];
     };
   # deps that voxygen needs to function
   # FIXME: Wayland doesn't work (adding libxkbcommon, wayland and wayland-protocols results in a panic)
