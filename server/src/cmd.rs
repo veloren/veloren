@@ -777,7 +777,7 @@ fn handle_spawn(
                                 .state
                                 .create_npc(
                                     pos,
-                                    comp::Stats::new(get_npc_name(id).into(), body),
+                                    comp::Stats::new(get_npc_name(id), body),
                                     comp::Health::new(body, 1),
                                     loadout,
                                     body,

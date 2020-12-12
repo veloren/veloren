@@ -4,7 +4,7 @@ pub mod component;
 mod renderer;
 pub mod widget;
 
-pub use cache::{Font, FontId, RawFont};
+pub use cache::{Font, FontId, RawFont, load_font};
 pub use graphic::{Id, Rotation};
 pub use iced::Event;
 pub use iced_winit::conversion::window_event;

@@ -446,7 +446,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 .write_storage::<comp::Inventory>()
                 .get_mut(entity)
             {
-                let recipe_book = default_recipe_book();
+                let recipe_book = default_recipe_book().read();
                 let craft_result = recipe_book.get(&recipe).and_then(|r| r.perform(inv).ok());
 
                 // FIXME: We should really require the drop and write to be atomic!

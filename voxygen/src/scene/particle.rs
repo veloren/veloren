@@ -7,7 +7,7 @@ use crate::{
     },
 };
 use common::{
-    assets::Asset,
+    assets::{AssetExt, DotVoxAsset},
     comp::{item::Reagent, object, Body, CharacterState, Ori, Pos, Shockwave},
     figure::Segment,
     outcome::Outcome,
@@ -18,7 +18,6 @@ use common::{
     terrain::TerrainChunk,
     vol::{RectRasterableVol, SizedVol},
 };
-use dot_vox::DotVoxData;
 use hashbrown::HashMap;
 use rand::prelude::*;
 use specs::{Join, WorldExt};
@@ -686,7 +685,7 @@ fn default_cache(renderer: &mut Renderer) -> HashMap<&'static str, Model<Particl
     let mut model_cache = HashMap::new();
 
     model_cache.entry(DEFAULT_MODEL_KEY).or_insert_with(|| {
-        let vox = DotVoxData::load_expect(DEFAULT_MODEL_KEY);
+        let vox = DotVoxAsset::load_expect(DEFAULT_MODEL_KEY);
 
         // NOTE: If we add texturing we may eventually try to share it among all
         // particles in a single atlas.
@@ -695,7 +694,7 @@ fn default_cache(renderer: &mut Renderer) -> HashMap<&'static str, Model<Particl
             guillotiere::Size::new(i32::from(max_texture_size), i32::from(max_texture_size));
         let mut greedy = GreedyMesh::new(max_size);
 
-        let segment = Segment::from(vox.as_ref());
+        let segment = Segment::from(&vox.read().0);
         let segment_size = segment.size();
         let mut mesh =
             Meshable::<ParticlePipeline, &mut GreedyMesh>::generate_mesh(segment, &mut greedy).0;

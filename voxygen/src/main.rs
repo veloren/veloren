@@ -15,7 +15,7 @@ use veloren_voxygen::{
 };
 
 use common::{
-    assets::{watch, Asset},
+    assets::{self, AssetExt},
     clock::Clock,
 };
 use std::panic;
@@ -138,6 +138,8 @@ fn main() {
         default_hook(panic_info);
     }));
 
+    assets::start_hot_reloading();
+
     // Initialise watcher for animation hotreloading
     #[cfg(feature = "hot-anim")]
     anim::init();
@@ -155,10 +157,8 @@ fn main() {
     // Load the profile.
     let profile = Profile::load();
 
-    let mut localization_watcher = watch::ReloadIndicator::new();
-    let localized_strings = Localization::load_watched(
+    let i18n = Localization::load(
         &i18n_asset_key(&settings.language.selected_language),
-        &mut localization_watcher,
     )
     .unwrap_or_else(|error| {
         let selected_language = &settings.language.selected_language;
@@ -168,13 +168,9 @@ fn main() {
             "Impossible to load language: change to the default language (English) instead.",
         );
         settings.language.selected_language = i18n::REFERENCE_LANG.to_owned();
-        Localization::load_watched(
-            &i18n_asset_key(&settings.language.selected_language),
-            &mut localization_watcher,
-        )
-        .unwrap()
+        Localization::load_expect(&i18n_asset_key(&settings.language.selected_language))
     });
-    localized_strings.log_missing_entries();
+    i18n.read().log_missing_entries();
 
     // Create window
     let (window, event_loop) = Window::new(&settings).expect("Failed to create window!");
@@ -192,7 +188,7 @@ fn main() {
         info_message: None,
         #[cfg(feature = "singleplayer")]
         singleplayer: None,
-        localization_watcher,
+        i18n,
         clipboard,
     };
 

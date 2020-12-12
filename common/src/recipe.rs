@@ -1,10 +1,10 @@
 use crate::{
-    assets::{self, Asset},
+    assets::{self, AssetExt, AssetHandle},
     comp::{item::ItemDef, Inventory, Item},
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
-use std::{fs::File, io::BufReader, sync::Arc};
+use std::sync::Arc;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Recipe {
@@ -65,36 +65,40 @@ impl RecipeBook {
     }
 }
 
-impl Asset for RecipeBook {
-    const ENDINGS: &'static [&'static str] = &["ron"];
+#[derive(Deserialize)]
+#[serde(transparent)]
+struct RawRecipeBook(HashMap<String, ((String, u32), Vec<(String, u32)>)>);
 
-    fn parse(buf_reader: BufReader<File>, _specifier: &str) -> Result<Self, assets::Error> {
-        ron::de::from_reader::<
-            BufReader<File>,
-            HashMap<String, ((String, u32), Vec<(String, u32)>)>,
-        >(buf_reader)
-        .map_err(assets::Error::parse_error)
-        .and_then(|recipes| {
-            Ok(RecipeBook {
-                recipes: recipes
-                    .into_iter()
-                    .map::<Result<(String, Recipe), assets::Error>, _>(
-                        |(name, ((output, amount), inputs))| {
-                            Ok((name, Recipe {
-                                output: (ItemDef::load(&output)?, amount),
-                                inputs: inputs
-                                    .into_iter()
-                                    .map::<Result<(Arc<ItemDef>, u32), assets::Error>, _>(
-                                        |(name, amount)| Ok((ItemDef::load(&name)?, amount)),
-                                    )
-                                    .collect::<Result<_, _>>()?,
-                            }))
-                        },
-                    )
-                    .collect::<Result<_, _>>()?,
+impl assets::Asset for RawRecipeBook {
+    const EXTENSION: &'static str = "ron";
+    type Loader = assets::RonLoader;
+}
+
+impl assets::Compound for RecipeBook {
+
+    fn load<S: assets_manager::source::Source>(cache: &assets_manager::AssetCache<S>, specifier: &str) -> Result<Self, assets_manager::Error> {
+        #[inline]
+        fn load_item_def(spec: &(String, u32)) -> Result<(Arc<ItemDef>, u32), assets::Error> {
+            let def = Arc::<ItemDef>::load_cloned(&spec.0)?;
+            Ok((def, spec.1))
+        }
+
+        let raw = cache.load::<RawRecipeBook>(specifier)?.read();
+
+        let recipes = raw.0.iter()
+            .map(|(name, (output, inputs))| {
+                let inputs = inputs.iter()
+                    .map(load_item_def)
+                    .collect::<Result<_, _>>()?;
+                let output = load_item_def(output)?;
+                Ok((name.clone(), Recipe { inputs, output }))
             })
-        })
+            .collect::<Result<_, assets::Error>>()?;
+
+        Ok(RecipeBook { recipes })
     }
 }
 
-pub fn default_recipe_book() -> Arc<RecipeBook> { RecipeBook::load_expect("common.recipe_book") }
+pub fn default_recipe_book() -> AssetHandle<RecipeBook> {
+    RecipeBook::load_expect("common.recipe_book")
+}

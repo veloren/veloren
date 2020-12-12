@@ -1,6 +1,6 @@
 use crate::{site::Site, Colors};
 use common::{
-    assets::{watch::ReloadIndicator, Asset, Ron},
+    assets::{AssetExt, AssetHandle},
     store::Store,
 };
 use core::ops::Deref;
@@ -14,7 +14,6 @@ pub struct Index {
     pub time: f32,
     pub noise: Noise,
     pub sites: Store<Site>,
-    indicator: ReloadIndicator,
 }
 
 /// An owned reference to indexed data.
@@ -26,6 +25,10 @@ pub struct Index {
 pub struct IndexOwned {
     colors: Arc<Colors>,
     index: Arc<Index>,
+
+    /// Stored separatly so `colors` is only updated when `reload_colors_if_changed`
+    /// is called
+    colors_handle: AssetHandle<Arc<Colors>>,
 }
 
 impl Deref for IndexOwned {
@@ -51,10 +54,8 @@ impl<'a> Deref for IndexRef<'a> {
 
 impl Index {
     /// NOTE: Panics if the color manifest cannot be loaded.
-    pub fn new(seed: u32) -> (Self, Arc<Colors>) {
-        let mut indicator = ReloadIndicator::new();
-        let colors = Ron::<Colors>::load_watched(WORLD_COLORS_MANIFEST, &mut indicator)
-            .expect("Could not load world colors!");
+    pub fn new(seed: u32) -> (Self, AssetHandle<Arc<Colors>>) {
+        let colors = Arc::<Colors>::load_expect(WORLD_COLORS_MANIFEST);
 
         (
             Self {
@@ -62,7 +63,6 @@ impl Index {
                 time: 0.0,
                 noise: Noise::new(seed),
                 sites: Store::default(),
-                indicator,
             },
             colors,
         )
@@ -70,10 +70,11 @@ impl Index {
 }
 
 impl IndexOwned {
-    pub fn new(index: Index, colors: Arc<Colors>) -> Self {
+    pub fn new(index: Index, colors: AssetHandle<Arc<Colors>>) -> Self {
         Self {
             index: Arc::new(index),
-            colors,
+            colors: colors.cloned(),
+            colors_handle: colors,
         }
     }
 
@@ -88,9 +89,9 @@ impl IndexOwned {
         &mut self,
         reload: impl FnOnce(&mut Self) -> R,
     ) -> Option<R> {
-        self.indicator.reloaded().then(move || {
-            // We know the asset was loaded before, so load_expect should be fine.
-            self.colors = Ron::<Colors>::load_expect(WORLD_COLORS_MANIFEST);
+        self.colors_handle.reloaded().then(move || {
+            // Reload the color from the asse handle, which is updated automatically
+            self.colors = self.colors_handle.cloned();
             reload(self)
         })
     }

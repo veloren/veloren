@@ -151,8 +151,9 @@ lazy_static! {
         .iter()
         .map(|s| s.to_string())
         .collect();
+    /// TODO: Make this use hot-reloading
     static ref ENTITIES: Vec<String> = {
-        let npc_names = &*npc::NPC_NAMES;
+        let npc_names = &*npc::NPC_NAMES.read();
         npc::ALL_NPCS
             .iter()
             .map(|&npc| npc_names[npc].keyword.clone())

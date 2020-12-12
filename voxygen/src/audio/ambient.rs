@@ -4,7 +4,7 @@ use crate::{
     scene::Camera,
 };
 use client::Client;
-use common::{assets, vol::ReadVol};
+use common::{assets::{self, AssetExt, AssetHandle}, vol::ReadVol};
 use common_sys::state::State;
 use serde::Deserialize;
 use std::time::Instant;
@@ -27,7 +27,7 @@ pub struct AmbientItem {
 }
 
 pub struct AmbientMgr {
-    soundtrack: AmbientCollection,
+    soundtrack: AssetHandle<AmbientCollection>,
     began_playing: Instant,
     next_track_change: f32,
     volume: f32,
@@ -56,7 +56,7 @@ impl AmbientMgr {
         client: &Client,
         camera: &Camera,
     ) {
-        if audio.sfx_enabled() && !self.soundtrack.tracks.is_empty() {
+        if audio.sfx_enabled() && !self.soundtrack.read().tracks.is_empty() {
             let focus_off = camera.get_focus_pos().map(f32::trunc);
             let cam_pos = camera.dependents().cam_pos + focus_off;
 
@@ -107,8 +107,8 @@ impl AmbientMgr {
                 // Right now there is only wind non-positional sfx so it is always
                 // selected. Modify this variable assignment when adding other non-
                 // positional sfx
-                let track = &self
-                    .soundtrack
+                let soundtrack = self.soundtrack.read();
+                let track = &soundtrack
                     .tracks
                     .iter()
                     .find(|track| track.tag == AmbientChannelTag::Wind);
@@ -123,27 +123,21 @@ impl AmbientMgr {
         }
     }
 
-    fn load_soundtrack_items() -> AmbientCollection {
-        match assets::load_file("voxygen.audio.ambient", &["ron"]) {
-            Ok(file) => match ron::de::from_reader(file) {
-                Ok(config) => config,
-                Err(error) => {
-                    warn!(
-                        "Error parsing music config file, music will not be available: {}",
-                        format!("{:#?}", error)
-                    );
+    fn load_soundtrack_items() -> AssetHandle<AmbientCollection> {
+        // Cannot fail: A default value is always provided
+        AmbientCollection::load_expect("voxygen.audio.ambient")
+    }
+}
 
-                    AmbientCollection::default()
-                },
-            },
-            Err(error) => {
-                warn!(
-                    "Error reading music config file, music will not be available: {}",
-                    format!("{:#?}", error)
-                );
+impl assets::Asset for AmbientCollection {
+    const EXTENSION: &'static str = "ron";
+    type Loader = assets::RonLoader;
 
-                AmbientCollection::default()
-            },
-        }
+    fn default_value(_: &str, error: assets::Error) -> Result<Self, assets::Error> {
+        warn!(
+            "Error reading music config file, music will not be available: {:#?}", error
+        );
+
+        Ok(AmbientCollection::default())
     }
 }

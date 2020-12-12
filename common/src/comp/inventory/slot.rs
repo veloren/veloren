@@ -139,7 +139,7 @@ fn loadout_insert(
 ///
 /// ```
 /// use veloren_common::{
-///     assets::Asset,
+///     assets::AssetExt,
 ///     comp::{
 ///         item::tool::AbilityMap,
 ///         slot::{loadout_remove, EquipSlot},
@@ -263,7 +263,7 @@ pub fn swap(
 ///
 /// ```
 /// use veloren_common::{
-///     assets::Asset,
+///     assets::AssetExt,
 ///     comp::{
 ///         item::tool::AbilityMap,
 ///         slot::{equip, EquipSlot},
@@ -324,7 +324,7 @@ pub fn equip(slot: usize, inventory: &mut Inventory, loadout: &mut Loadout, map:
 ///
 /// ```
 /// use veloren_common::{
-///     assets::Asset,
+///     assets::AssetExt,
 ///     comp::{
 ///         item::tool::AbilityMap,
 ///         slot::{unequip, EquipSlot},
@@ -365,7 +365,7 @@ pub fn unequip(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{comp::Item, LoadoutBuilder};
+    use crate::{assets::AssetExt, comp::Item, LoadoutBuilder};
 
     #[test]
     fn test_unequip_items_both_hands() {
@@ -374,7 +374,6 @@ mod tests {
             amount: 0,
         };
 
-        use crate::assets::Asset;
         let map = AbilityMap::load_expect_cloned("common.abilities.weapon_ability_manifest");
 
         let sword = LoadoutBuilder::default_item_config_from_str(
@@ -419,7 +418,6 @@ mod tests {
 
         let mut loadout = LoadoutBuilder::new().defaults().build();
 
-        use crate::assets::Asset;
         let map = AbilityMap::load_expect_cloned("common.abilities.weapon_ability_manifest");
 
         // We should start with the starting sandles
@@ -444,7 +442,6 @@ mod tests {
             "common.items.armor.starter.sandals_0",
         ));
 
-        use crate::assets::Asset;
         let map = AbilityMap::load_expect_cloned("common.abilities.weapon_ability_manifest");
 
         let mut loadout = LoadoutBuilder::new().defaults().build();
@@ -469,7 +466,6 @@ mod tests {
 
     #[test]
     fn test_loadout_remove() {
-        use crate::assets::Asset;
         let map = AbilityMap::load_expect_cloned("common.abilities.weapon_ability_manifest");
 
         let sword = LoadoutBuilder::default_item_config_from_str(

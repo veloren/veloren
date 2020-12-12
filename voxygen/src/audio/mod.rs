@@ -10,12 +10,12 @@ pub mod soundcache;
 use channel::{AmbientChannel, AmbientChannelTag, MusicChannel, MusicChannelTag, SfxChannel};
 use fader::Fader;
 use sfx::{SfxEvent, SfxTriggerItem};
-use soundcache::SoundCache;
+use soundcache::{OggSound, WavSound};
 use std::time::Duration;
 use tracing::debug;
 
-use common::assets;
-use rodio::{source::Source, Decoder, OutputStream, OutputStreamHandle, StreamError};
+use common::assets::AssetExt;
+use rodio::{source::Source, OutputStream, OutputStreamHandle, StreamError};
 use vek::*;
 
 #[derive(Default, Clone)]
@@ -38,7 +38,6 @@ pub struct AudioFrontend {
     //pub audio_device: Option<Device>,
     pub stream: Option<rodio::OutputStream>,
     audio_stream: Option<rodio::OutputStreamHandle>,
-    sound_cache: SoundCache,
 
     music_channels: Vec<MusicChannel>,
     ambient_channels: Vec<AmbientChannel>,
@@ -76,7 +75,6 @@ impl AudioFrontend {
             //audio_device,
             stream,
             audio_stream,
-            sound_cache: SoundCache::default(),
             music_channels: Vec::new(),
             sfx_channels,
             ambient_channels: Vec::new(),
@@ -95,7 +93,6 @@ impl AudioFrontend {
             //audio_device: None,
             stream: None,
             audio_stream: None,
-            sound_cache: SoundCache::default(),
             music_channels: Vec::new(),
             sfx_channels: Vec::new(),
             ambient_channels: Vec::new(),
@@ -231,9 +228,9 @@ impl AudioFrontend {
     /// Play (once) an sfx file by file path at the give position and volume
     pub fn play_sfx(&mut self, sound: &str, pos: Vec3<f32>, vol: Option<f32>) {
         if self.audio_stream.is_some() {
-            let sound = self
-                .sound_cache
-                .load_sound(sound)
+            let sound = WavSound::load_expect(sound)
+                .cloned()
+                .decoder()
                 .amplify(vol.unwrap_or(1.0));
 
             let listener = self.listener.clone();
@@ -250,9 +247,9 @@ impl AudioFrontend {
     /// being underwater
     pub fn play_underwater_sfx(&mut self, sound: &str, pos: Vec3<f32>, vol: Option<f32>) {
         if self.audio_stream.is_some() {
-            let sound = self
-                .sound_cache
-                .load_sound(sound)
+            let sound = WavSound::load_expect(sound)
+                .cloned()
+                .decoder()
                 .amplify(vol.unwrap_or(1.0));
 
             let listener = self.listener.clone();
@@ -272,9 +269,7 @@ impl AudioFrontend {
     ) {
         if self.audio_stream.is_some() {
             if let Some(channel) = self.get_ambient_channel(channel_tag, volume_multiplier) {
-                let file = assets::load_file(&sound, &["ogg"]).expect("Failed to load sound");
-                let sound = Decoder::new(file).expect("Failed to decode sound");
-
+                let sound = OggSound::load_expect(sound).cloned().decoder();
                 channel.play(sound);
             }
         }
@@ -326,9 +321,7 @@ impl AudioFrontend {
     fn play_music(&mut self, sound: &str, channel_tag: MusicChannelTag) {
         if self.music_enabled() {
             if let Some(channel) = self.get_music_channel(channel_tag) {
-                let file = assets::load_file(&sound, &["ogg"]).expect("Failed to load sound");
-                let sound = Decoder::new(file).expect("Failed to decode sound");
-
+                let sound = OggSound::load_expect(sound).cloned().decoder();
                 channel.play(sound, channel_tag);
             }
         }

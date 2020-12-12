@@ -1,9 +1,10 @@
-use common::assets::{self, Asset};
+use common::assets::{self, AssetExt};
 use deunicode::deunicode;
-use hashbrown::{HashMap, HashSet};
-use ron::de::from_reader;
 use serde::{Deserialize, Serialize};
-use std::{fs::File, io::BufReader};
+use std::{
+    borrow::Cow,
+};
+use hashbrown::{HashMap, HashSet};
 use tracing::warn;
 
 /// The reference language, aka the more up-to-date localization data.
@@ -44,7 +45,7 @@ impl Font {
 pub type Fonts = HashMap<String, Font>;
 
 /// Store internationalization data
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Localization {
     /// A map storing the localized texts
     ///
@@ -92,9 +93,9 @@ impl Localization {
     }
 
     /// Return the missing keys compared to the reference language
-    pub fn list_missing_entries(&self) -> (HashSet<String>, HashSet<String>) {
+    fn list_missing_entries(&self) -> (HashSet<String>, HashSet<String>) {
         let reference_localization =
-            Localization::load_expect(i18n_asset_key(REFERENCE_LANG).as_ref());
+            Localization::load_expect(&i18n_asset_key(REFERENCE_LANG)).read();
 
         let reference_string_keys: HashSet<_> =
             reference_localization.string_map.keys().cloned().collect();
@@ -133,15 +134,15 @@ impl Localization {
     }
 }
 
-impl Asset for Localization {
-    const ENDINGS: &'static [&'static str] = &["ron"];
+impl assets::Asset for Localization {
+    const EXTENSION: &'static str = "ron";
+    type Loader = LocalizationLoader;
+}
 
-    /// Load the translations located in the input buffer and convert them
-    /// into a `Localization` object.
-    #[allow(clippy::into_iter_on_ref)] // TODO: Pending review in #587
-    fn parse(buf_reader: BufReader<File>, _specifier: &str) -> Result<Self, assets::Error> {
-        let mut asked_localization: Localization =
-            from_reader(buf_reader).map_err(assets::Error::parse_error)?;
+pub struct LocalizationLoader;
+impl assets::Loader<Localization> for LocalizationLoader {
+    fn load(content: Cow<[u8]>, ext: &str) -> Result<Localization, assets::BoxedError> {
+        let mut asked_localization: Localization = assets::RonLoader::load(content, ext)?;
 
         // Update the text if UTF-8 to ASCII conversion is enabled
         if asked_localization.convert_utf8_to_ascii {
@@ -162,9 +163,13 @@ impl Asset for Localization {
 
 /// Load all the available languages located in the voxygen asset directory
 pub fn list_localizations() -> Vec<LanguageMetadata> {
-    let voxygen_locales_assets = "voxygen.i18n.*";
-    let lang_list = Localization::load_glob(voxygen_locales_assets).unwrap();
-    lang_list.iter().map(|e| (*e).metadata.clone()).collect()
+    assets::load_dir::<Localization>("voxygen.i18n")
+        .unwrap()
+        .iter_all()
+        .filter_map(|(_, lang)| {
+            lang.ok().map(|e| e.read().metadata.clone())
+        })
+        .collect()
 }
 
 /// Return the asset associated with the language_id
