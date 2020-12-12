@@ -37,7 +37,7 @@ let
   prettyRev = with sourceInfo;
     if sourceInfo ? rev && sourceInfo ? lastModified
     then builtins.substring 0 8 rev + "/" + utils.dateTimeFormat lastModified
-    else throw "Need revision + lastModified to determine version";
+    else throw "Need revision + lastModified to determine pretty revision";
 
   tag = with sourceInfo;
     if sourceInfo ? tag
@@ -51,7 +51,7 @@ let
   version =
     if tag != "" then tag
     else if prettyRev != "" then prettyRev
-    else throw "Need a tag or at least revision + lastModified in order to determine version";
+    else throw "Need a tag or pretty revision in order to determine version";
 
   veloren-assets = pkgs.runCommand "makeAssetsDir" { } ''
     mkdir $out

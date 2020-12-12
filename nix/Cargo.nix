@@ -14287,7 +14287,7 @@ rec {
           {
             name = "csv";
             packageId = "csv";
-            optional = true;
+            # optional = true;
           }
           {
             name = "directories-next";
@@ -14396,7 +14396,7 @@ rec {
           {
             name = "structopt";
             packageId = "structopt";
-            optional = true;
+            # optional = true;
           }
           {
             name = "sum_type";
