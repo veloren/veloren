@@ -1,4 +1,4 @@
-use std::{marker::PhantomData, sync::Arc};
+use std::{collections::HashSet, marker::PhantomData, sync::Arc};
 
 use error::RuntimeError;
 use parking_lot::Mutex;
@@ -11,15 +11,15 @@ use common_api::{Action, Event};
 pub type Function<'a> = Func<'a, (i32, u32), i32>;
 
 #[derive(Clone)]
-// This tructure represent the WASM State of the plugin.
+// This structure represent the WASM State of the plugin.
 pub struct PluginModule {
     wasm_instance: Arc<Mutex<Instance>>,
-    events: Vec<String>,
+    events: HashSet<String>,
 }
 
 impl PluginModule {
 
-    // This function take bytes from a WASM File and compile them
+    // This function takes bytes from a WASM File and compile them
     pub fn new(wasm_data: &Vec<u8>) -> Result<Self,PluginModuleError> {
         let module = compile(&wasm_data).map_err(|e| PluginModuleError::Compile(e))?;
         let instance = module
@@ -33,7 +33,7 @@ impl PluginModule {
         })
     }
 
-    // This function try to execute an event for the current module will return None if the event doesn't exists
+    // This function tries to execute an event for the current module. Will return None if the event doesn't exists
     pub fn try_execute<T>(
         &self,
         event_name: &str,
@@ -42,7 +42,7 @@ impl PluginModule {
     where
         T: Event,
     {
-        if !self.events.iter().any(|x| x == event_name) {
+        if !self.events.contains(event_name) {
             return None;
         }
         let bytes = {
@@ -61,14 +61,14 @@ impl PluginModule {
     }
 }
 
-// This structure represent a Pre-encoded event object (Usefull to avoid reencoding for each module in every plugin)
+// This structure represent a Pre-encoded event object (Useful to avoid reencoding for each module in every plugin)
 pub struct PreparedEventQuery<T> {
     bytes: Vec<u8>,
     _phantom: PhantomData<T>,
 }
 
 impl<T: Event> PreparedEventQuery<T> {
-    // Create a prepared query from a event reference (Encode to bytes the struct)
+    // Create a prepared query from an event reference (Encode to bytes the struct)
     // This Prepared Query is used by the `try_execute` method in `PluginModule`
     pub fn new(event: &T) -> Result<Self, PluginError>
     where
