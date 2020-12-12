@@ -192,6 +192,7 @@ To update `Cargo.nix` (and `crate-hashes.json`) using latest `Cargo.lock`, run:
 ```shell
 crate2nix generate -f ../Cargo.toml
 ```
+Then follow the instructions in the `Cargo.nix_patches.md` file.
 
 ### Rust toolchain
 
