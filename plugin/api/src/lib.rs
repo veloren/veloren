@@ -12,15 +12,19 @@ pub trait Event: Serialize + DeserializeOwned + Send + Sync{
     type Response: Serialize + DeserializeOwned + Send + Sync;
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
+pub enum PluginMode {
+    Server,
+    Client,
+    Singleplayer, // To be used later when we no longer start up an entirely new server for singleplayer
+}
+
 // TODO: Unify this with common/src/comp/uid.rs:Uid
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub struct Uid(pub u64);
 
-pub mod events {
-
-    use crate::Uid;
-
-    use super::Event;
+pub mod event {
+    use super::*;
     use serde::{Serialize,Deserialize};
 
     #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
@@ -62,7 +66,9 @@ pub mod events {
     }
 
     #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
-    pub struct PluginLoadEvent;
+    pub struct PluginLoadEvent {
+        pub mode: PluginMode,
+    }
 
     impl Event for PluginLoadEvent {
         type Response = ();

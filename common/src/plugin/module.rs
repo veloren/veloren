@@ -24,7 +24,7 @@ impl PluginModule {
         let module = compile(&wasm_data).map_err(|e| PluginModuleError::Compile(e))?;
         let instance = module
             .instantiate(&imports! {"env" => {
-                "send_action" => func!(read_action),
+                "raw_emit_actions" => func!(read_action),
             }}).map_err(|e| PluginModuleError::Instantiate(e))?;
 
         Ok(Self {

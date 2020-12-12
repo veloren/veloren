@@ -17,8 +17,6 @@
     option_zip
 )]
 
-pub extern crate plugin_api;
-
 pub mod assets;
 pub mod astar;
 pub mod character;
@@ -61,3 +59,4 @@ pub mod volumes;
 pub use combat::{Damage, DamageSource, GroupTarget, Knockback};
 pub use explosion::{Explosion, RadiusEffect};
 pub use loadout_builder::LoadoutBuilder;
+pub use plugin_api;
