@@ -7,7 +7,7 @@ use crate::{
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
-use std::{fs::File, io::BufReader, time::Duration};
+use std::{time::Duration};
 use tracing::error;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -107,7 +107,7 @@ pub struct AbilitySet<T> {
 }
 
 impl AbilitySet<CharacterAbility> {
-    pub fn modified_by_tool(self, tool: &Tool) -> Self {
+    fn modified_by_tool(self, tool: &Tool) -> Self {
         self.map(|a| a.adjusted_by_stats(tool.base_power(), tool.base_speed()))
     }
 }
@@ -118,6 +118,14 @@ impl<T> AbilitySet<T> {
             primary: f(self.primary),
             secondary: f(self.secondary),
             skills: self.skills.into_iter().map(|x| f(x)).collect(),
+        }
+    }
+
+    pub fn map_ref<U, F: FnMut(&T) -> U>(&self, mut f: F) -> AbilitySet<U> {
+        AbilitySet {
+            primary: f(&self.primary),
+            secondary: f(&self.secondary),
+            skills: self.skills.iter().map(|x| f(x)).collect(),
         }
     }
 }
@@ -135,37 +143,28 @@ impl Default for AbilitySet<CharacterAbility> {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AbilityMap<T = CharacterAbility>(HashMap<ToolKind, AbilitySet<T>>);
 
-impl Asset for AbilityMap {
-    const ENDINGS: &'static [&'static str] = &["ron"];
+impl Asset for AbilityMap<String> {
+    const EXTENSION: &'static str = "ron";
+    type Loader = assets::RonLoader;
+}
 
-    fn parse(buf_reader: BufReader<File>, specifier: &str) -> Result<Self, assets::Error> {
-        ron::de::from_reader::<BufReader<File>, AbilityMap<String>>(buf_reader)
-            .map(|map| {
-                AbilityMap(
-                    map.0
-                        .into_iter()
-                        .map(|(kind, set)| {
-                            (
-                                kind,
-                                set.map(|s| match CharacterAbility::load(&s) {
-                                    Ok(ability) => ability.as_ref().clone(),
-                                    Err(err) => {
-                                        error!(
-                                            ?err,
-                                            "Error loading CharacterAbility: {} for the ability \
-                                             map: {} replacing with default",
-                                            s,
-                                            specifier
-                                        );
-                                        CharacterAbility::default()
-                                    },
-                                }),
-                            )
-                        })
-                        .collect(),
-                )
-            })
-            .map_err(assets::Error::parse_error)
+impl assets::Compound for AbilityMap {
+    fn load<S: assets_manager::source::Source>(cache: &assets_manager::AssetCache<S>, specifier: &str) -> Result<Self, assets::Error> {
+        let manifest = cache.load::<AbilityMap<String>>(specifier)?.read();
+
+        Ok(AbilityMap(
+            manifest.0
+                .iter()
+                .map(|(kind, set)| {
+                    (
+                        kind.clone(),
+                        // expect cannot fail because CharacterAbility always
+                        // provides a default value in case of failure
+                        set.map_ref(|s| cache.load_expect(&s).cloned())
+                    )
+                })
+                .collect()
+        ))
     }
 }
 

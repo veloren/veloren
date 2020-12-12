@@ -16,7 +16,8 @@ use arraygen::Arraygen;
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
-use std::{fs::File, io::BufReader, time::Duration};
+use tracing::error;
+use std::time::Duration;
 use vek::Vec3;
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug, Serialize, Deserialize)]
@@ -238,10 +239,18 @@ impl Default for CharacterAbility {
 }
 
 impl Asset for CharacterAbility {
-    const ENDINGS: &'static [&'static str] = &["ron"];
+    const EXTENSION: &'static str = "ron";
+    type Loader = assets::RonLoader;
 
-    fn parse(buf_reader: BufReader<File>, _specifier: &str) -> Result<Self, assets::Error> {
-        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
+    fn default_value(specifier: &str, err: assets::Error) -> Result<Self, assets::Error> {
+        error!(
+            ?err,
+            "Error loading CharacterAbility: {} for the ability \
+            map: replacing with default",
+            specifier
+        );
+
+        Ok(CharacterAbility::default())
     }
 }
 

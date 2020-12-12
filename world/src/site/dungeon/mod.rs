@@ -8,13 +8,13 @@ use crate::{
     IndexRef,
 };
 use common::{
-    assets::Asset,
+    assets::{AssetExt, AssetHandle},
     astar::Astar,
     comp::{self},
     generation::{ChunkSupplement, EntityInfo},
     lottery::Lottery,
     store::{Id, Store},
-    terrain::{Block, BlockKind, SpriteKind, Structure, TerrainChunkSize},
+    terrain::{Block, BlockKind, SpriteKind, Structure, StructuresGroup, TerrainChunkSize},
     vol::{BaseVol, ReadVol, RectSizedVol, RectVolSize, WriteVol},
 };
 use core::{f32, hash::BuildHasherDefault};
@@ -22,7 +22,6 @@ use fxhash::FxHasher64;
 use lazy_static::lazy_static;
 use rand::prelude::*;
 use serde::Deserialize;
-use std::sync::Arc;
 use vek::*;
 
 pub struct Dungeon {
@@ -111,11 +110,12 @@ impl Dungeon {
         vol: &mut (impl BaseVol<Vox = Block> + RectSizedVol + ReadVol + WriteVol),
     ) {
         lazy_static! {
-            pub static ref ENTRANCES: Vec<Arc<Structure>> =
+            pub static ref ENTRANCES: AssetHandle<StructuresGroup> =
                 Structure::load_group("dungeon_entrances");
         }
 
-        let entrance = &ENTRANCES[self.seed as usize % ENTRANCES.len()];
+        let entrances = ENTRANCES.read();
+        let entrance = &entrances[self.seed as usize % entrances.len()];
 
         for y in 0..vol.size_xy().y as i32 {
             for x in 0..vol.size_xy().x as i32 {
@@ -581,6 +581,7 @@ impl Floor {
                                 "common.loot_tables.loot_table_armor_misc",
                             ),
                         };
+                        let chosen = chosen.read();
                         let chosen = chosen.choose();
                         //let is_giant =
                         // RandomField::new(room.seed.wrapping_add(1)).chance(Vec3::from(tile_pos),
@@ -741,6 +742,7 @@ impl Floor {
                                     "common.loot_tables.loot_table_armor_misc",
                                 ),
                             };
+                            let chosen = chosen.read();
                             let chosen = chosen.choose();
                             let entity = match room.difficulty {
                                 0 => vec![
@@ -923,6 +925,7 @@ impl Floor {
                                     "common.loot_tables.loot_table_armor_misc",
                                 ),
                             };
+                            let chosen = chosen.read();
                             let chosen = chosen.choose();
                             let entity = match room.difficulty {
                                 0 => vec![

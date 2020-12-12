@@ -13,7 +13,7 @@ pub use self::{
     map::MapSizeLg,
     site::SitesKind,
     sprite::SpriteKind,
-    structure::Structure,
+    structure::{Structure, StructuresGroup},
 };
 use roots::find_roots_cubic;
 use serde::{Deserialize, Serialize};

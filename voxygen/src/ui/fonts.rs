@@ -1,5 +1,5 @@
-use crate::i18n;
-use common::assets::Asset;
+use crate::{i18n, ui::ice::RawFont};
+use common::assets::{self, AssetExt};
 
 pub struct Font {
     metadata: i18n::Font,
@@ -8,11 +8,13 @@ pub struct Font {
 
 impl Font {
     #[allow(clippy::needless_return)] // TODO: Pending review in #587
-    pub fn new(font: &i18n::Font, ui: &mut crate::ui::Ui) -> Self {
-        Self {
+    fn new(font: &i18n::Font, ui: &mut crate::ui::Ui) -> Result<Self, assets::Error> {
+        let raw_font = RawFont::load(&font.asset_key)?.cloned();
+
+        Ok(Self {
             metadata: font.clone(),
-            conrod_id: ui.new_font(crate::ui::ice::RawFont::load_expect(&font.asset_key)),
-        }
+            conrod_id: ui.new_font(raw_font),
+        })
     }
 
     /// Scale input size to final UI size
@@ -27,9 +29,9 @@ macro_rules! conrod_fonts {
             }
 
             impl Fonts {
-                pub fn load(fonts: &i18n::Fonts, ui: &mut crate::ui::Ui) -> Result<Self, common::assets::Error> {
+                pub fn load(fonts: &i18n::Fonts, ui: &mut crate::ui::Ui) -> Result<Self, assets::Error> {
                     Ok(Self {
-                        $( $name: Font::new(fonts.get(stringify!($name)).unwrap(), ui),)*
+                        $( $name: Font::new(fonts.get(stringify!($name)).unwrap(), ui)?, )*
                     })
                 }
             }
@@ -47,11 +49,13 @@ pub struct IcedFont {
 }
 
 impl IcedFont {
-    pub fn new(font: &i18n::Font, ui: &mut crate::ui::ice::IcedUi) -> Self {
-        Self {
+    fn new(font: &i18n::Font, ui: &mut crate::ui::ice::IcedUi) -> Result<Self, assets::Error> {
+        let raw_font = RawFont::load(&font.asset_key)?.cloned();
+
+        Ok(Self {
             metadata: font.clone(),
-            id: ui.add_font((*crate::ui::ice::RawFont::load_expect(&font.asset_key)).clone()),
-        }
+            id: ui.add_font(raw_font),
+        })
     }
 
     /// Scale input size to final UI size
@@ -67,9 +71,9 @@ macro_rules! iced_fonts {
             }
 
             impl IcedFonts {
-                pub fn load(fonts: &i18n::Fonts, ui: &mut crate::ui::ice::IcedUi) -> Result<Self, common::assets::Error> {
+                pub fn load(fonts: &i18n::Fonts, ui: &mut crate::ui::ice::IcedUi) -> Result<Self, assets::Error> {
                     Ok(Self {
-                        $( $name: IcedFont::new(fonts.get(stringify!($name)).unwrap(), ui),)*
+                        $( $name: IcedFont::new(fonts.get(stringify!($name)).unwrap(), ui)?, )*
                     })
                 }
             }

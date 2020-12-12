@@ -1,11 +1,11 @@
 use crate::{
-    assets::Asset,
+    assets::{AssetExt, AssetHandle},
     comp::{self, AllBodies, Body},
 };
 use lazy_static::lazy_static;
 use rand::seq::SliceRandom;
 use serde::Deserialize;
-use std::{str::FromStr, sync::Arc};
+use std::str::FromStr;
 
 #[derive(Clone, Copy, PartialEq)]
 pub enum NpcKind {
@@ -67,14 +67,14 @@ pub struct SpeciesNames {
 pub type NpcNames = AllBodies<BodyNames, SpeciesNames>;
 
 lazy_static! {
-    pub static ref NPC_NAMES: Arc<NpcNames> = NpcNames::load_expect("common.npc_names");
+    pub static ref NPC_NAMES: AssetHandle<NpcNames> = NpcNames::load_expect("common.npc_names");
 }
 
 impl FromStr for NpcKind {
     type Err = ();
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let npc_names = &*NPC_NAMES;
+    fn from_str(s: &str) -> Result<Self, ()> {
+        let npc_names = &*NPC_NAMES.read();
         ALL_NPCS
             .iter()
             .copied()
@@ -83,11 +83,12 @@ impl FromStr for NpcKind {
     }
 }
 
-pub fn get_npc_name(npc_type: NpcKind) -> &'static str {
-    let BodyNames { keyword, names } = &NPC_NAMES[npc_type];
+pub fn get_npc_name(npc_type: NpcKind) -> String {
+    let npc_names = NPC_NAMES.read();
+    let BodyNames { keyword, names } = &npc_names[npc_type];
 
     // If no pretty name is found, fall back to the keyword.
-    names.choose(&mut rand::thread_rng()).unwrap_or(keyword)
+    names.choose(&mut rand::thread_rng()).unwrap_or(keyword).clone()
 }
 
 /// Randomly generates a body associated with this NPC kind.
@@ -164,7 +165,7 @@ impl NpcBody {
                     )
                 })
         }
-        let npc_names = &NPC_NAMES;
+        let npc_names = &*NPC_NAMES.read();
         // First, parse npc kind names.
         NpcKind::from_str(s)
             .map(|kind| NpcBody(kind, Box::new(move || kind_to_body(kind))))

@@ -1,221 +1,58 @@
 //! Load assets (images or voxel data) from files
-pub mod watch;
 
-use core::{any::Any, fmt, marker::PhantomData};
 use dot_vox::DotVoxData;
-use hashbrown::HashMap;
 use image::DynamicImage;
 use lazy_static::lazy_static;
 use serde::Deserialize;
-use serde_json::Value;
-use std::{
-    fs::{self, File, ReadDir},
-    io::{BufReader, Read},
-    path::PathBuf,
-    sync::{Arc, RwLock},
+use std::{borrow::Cow, fs, io, path::{Path, PathBuf}, sync::Arc};
+
+pub use assets_manager::{
+    Asset, AssetCache, BoxedError, Compound, Error, source,
+    loader::{self, BytesLoader, BincodeLoader, Loader, JsonLoader, LoadFrom, RonLoader, StringLoader},
 };
-use tracing::{error, trace};
-
-/// The error returned by asset loading functions
-#[derive(Debug, Clone)]
-pub enum Error {
-    /// Parsing error occurred.
-    ParseError(Arc<dyn std::fmt::Debug>),
-    /// An asset of a different type has already been loaded with this
-    /// specifier.
-    InvalidType,
-    /// Asset does not exist.
-    NotFound(String),
-}
-
-impl Error {
-    pub fn parse_error<E: std::fmt::Debug + 'static>(err: E) -> Self {
-        Self::ParseError(Arc::new(err))
-    }
-}
-
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Error::ParseError(err) => write!(f, "{:?}", err),
-            Error::InvalidType => write!(
-                f,
-                "an asset of a different type has already been loaded with this specifier."
-            ),
-            Error::NotFound(s) => write!(f, "{}", s),
-        }
-    }
-}
-
-impl From<Arc<dyn Any + 'static + Sync + Send>> for Error {
-    fn from(_: Arc<dyn Any + 'static + Sync + Send>) -> Self { Error::InvalidType }
-}
-
-impl From<std::io::Error> for Error {
-    fn from(err: std::io::Error) -> Self { Error::NotFound(format!("{}", err)) }
-}
 
 lazy_static! {
     /// The HashMap where all loaded assets are stored in.
-    static ref ASSETS: RwLock<HashMap<String, Arc<dyn Any + 'static + Sync + Send>>> =
-        RwLock::new(HashMap::new());
+    static ref ASSETS: AssetCache = AssetCache::new(&*ASSETS_PATH).unwrap();
 }
 
-fn reload<A: Asset>(specifier: &str) -> Result<(), Error>
-where
-    A::Output: Send + Sync + 'static,
-{
-    let asset = Arc::new(A::parse(load_file(specifier, A::ENDINGS)?, specifier)?);
-    let mut assets_write = ASSETS.write().unwrap();
-    match assets_write.get_mut(specifier) {
-        Some(a) => *a = asset,
-        None => {
-            assets_write.insert(specifier.to_owned(), asset);
-        },
-    }
-
-    Ok(())
+pub fn start_hot_reloading() {
+    ASSETS.enhance_hot_reloading();
 }
+
+pub type AssetHandle<T> = assets_manager::Handle<'static, T>;
+pub type AssetDir<T> = assets_manager::DirReader<'static, T, source::FileSystem>;
 
 /// The Asset trait, which is implemented by all structures that have their data
 /// stored in the filesystem.
-pub trait Asset: Sized {
-    type Output = Self;
-
-    const ENDINGS: &'static [&'static str];
-    /// Parse the input file and return the correct Asset.
-    fn parse(buf_reader: BufReader<File>, specifier: &str) -> Result<Self::Output, Error>;
-
-    // TODO: Remove this function. It's only used in world/ in a really ugly way.To
-    // do this properly assets should have all their necessary data in one file. A
-    // ron file could be used to combine voxel data with positioning data for
-    // example.
-    /// Function used to load assets from the filesystem or the cache. Permits
-    /// manipulating the loaded asset with a mapping function. Example usage:
-    /// ```no_run
-    /// use vek::*;
-    /// use veloren_common::{assets::Asset, terrain::Structure};
-    ///
-    /// let my_tree_structure = Structure::load_map("world.tree.oak_green.1", |s: Structure| {
-    ///     s.with_center(Vec3::new(15, 18, 14))
-    /// })
-    /// .unwrap();
-    /// ```
-    fn load_map<F: FnOnce(Self::Output) -> Self::Output>(
-        specifier: &str,
-        f: F,
-    ) -> Result<Arc<Self::Output>, Error>
-    where
-        Self::Output: Send + Sync + 'static,
-    {
-        let assets_read = ASSETS.read().unwrap();
-        match assets_read.get(specifier) {
-            Some(asset) => Ok(Arc::clone(asset).downcast()?),
-            None => {
-                drop(assets_read); // Drop the asset hashmap to permit recursive loading
-                let asset = Arc::new(f(Self::parse(
-                    load_file(specifier, Self::ENDINGS)?,
-                    specifier,
-                )?));
-                let clone = Arc::clone(&asset);
-                ASSETS.write().unwrap().insert(specifier.to_owned(), clone);
-                Ok(asset)
-            },
-        }
-    }
-
-    fn load_glob(specifier: &str) -> Result<Arc<Vec<Arc<Self::Output>>>, Error>
-    where
-        Self::Output: Send + Sync + 'static,
-    {
-        if let Some(assets) = ASSETS.read().unwrap().get(specifier) {
-            return Ok(Arc::clone(assets).downcast()?);
-        }
-
-        match get_glob_matches(specifier) {
-            Ok(glob_matches) => {
-                let assets = Arc::new(
-                    glob_matches
-                        .into_iter()
-                        .filter_map(|name| {
-                            Self::load(&name)
-                                .map_err(|e| {
-                                    error!(
-                                        ?e,
-                                        "Failed to load \"{}\" as part of glob \"{}\"",
-                                        name,
-                                        specifier
-                                    )
-                                })
-                                .ok()
-                        })
-                        .collect::<Vec<_>>(),
-                );
-                let clone = Arc::clone(&assets);
-
-                let mut assets_write = ASSETS.write().unwrap();
-                assets_write.insert(specifier.to_owned(), clone);
-                Ok(assets)
-            },
-            Err(error) => Err(error),
-        }
-    }
-
-    fn load_glob_cloned(specifier: &str) -> Result<Vec<(Self::Output, String)>, Error>
-    where
-        Self::Output: Clone + Send + Sync + 'static,
-    {
-        match get_glob_matches(specifier) {
-            Ok(glob_matches) => Ok(glob_matches
-                .into_iter()
-                .map(|name| {
-                    let full_specifier = &specifier.replace("*", &name);
-                    (
-                        Self::load_expect_cloned(full_specifier),
-                        full_specifier.to_string(),
-                    )
-                })
-                .collect::<Vec<_>>()),
-            Err(error) => Err(error),
-        }
-    }
-
+pub trait AssetExt: Sized + Send + Sync + 'static {
     /// Function used to load assets from the filesystem or the cache.
     /// Example usage:
     /// ```no_run
-    /// use image::DynamicImage;
-    /// use veloren_common::assets::Asset;
+    /// use veloren_common::assets::{self, AssetExt};
     ///
-    /// let my_image = DynamicImage::load("core.ui.backgrounds.city").unwrap();
+    /// let my_image = assets::Image::load("core.ui.backgrounds.city").unwrap();
     /// ```
-    fn load(specifier: &str) -> Result<Arc<Self::Output>, Error>
-    where
-        Self::Output: Send + Sync + 'static,
-    {
-        Self::load_map(specifier, |x| x)
-    }
+    fn load(specifier: &str) -> Result<AssetHandle<Self>, Error>;
 
     /// Function used to load assets from the filesystem or the cache and return
     /// a clone.
-    fn load_cloned(specifier: &str) -> Result<Self::Output, Error>
+    fn load_cloned(specifier: &str) -> Result<Self, Error>
     where
-        Self::Output: Clone + Send + Sync + 'static,
+        Self: Clone,
     {
-        Self::load(specifier).map(|asset| (*asset).clone())
+        Self::load(specifier).map(AssetHandle::cloned)
     }
 
     /// Function used to load essential assets from the filesystem or the cache.
     /// It will panic if the asset is not found. Example usage:
     /// ```no_run
-    /// use image::DynamicImage;
-    /// use veloren_common::assets::Asset;
+    /// use veloren_common::assets::{self, AssetExt};
     ///
-    /// let my_image = DynamicImage::load_expect("core.ui.backgrounds.city");
+    /// let my_image = assets::Image::load_expect("core.ui.backgrounds.city");
     /// ```
-    fn load_expect(specifier: &str) -> Arc<Self::Output>
-    where
-        Self::Output: Send + Sync + 'static,
-    {
+    #[track_caller]
+    fn load_expect(specifier: &str) -> AssetHandle<Self> {
         Self::load(specifier).unwrap_or_else(|err| {
             panic!(
                 "Failed loading essential asset: {} (error={:?})",
@@ -226,121 +63,79 @@ pub trait Asset: Sized {
 
     /// Function used to load essential assets from the filesystem or the cache
     /// and return a clone. It will panic if the asset is not found.
-    fn load_expect_cloned(specifier: &str) -> Self::Output
+    #[track_caller]
+    fn load_expect_cloned(specifier: &str) -> Self
     where
-        Self::Output: Clone + Send + Sync + 'static,
+        Self: Clone,
     {
-        Self::load_expect(specifier).as_ref().clone()
+        Self::load_expect(specifier).cloned()
     }
 
-    /// Load an asset while registering it to be watched and reloaded when it
-    /// changes
-    fn load_watched(
-        specifier: &str,
-        indicator: &mut watch::ReloadIndicator,
-    ) -> Result<Arc<Self::Output>, Error>
-    where
-        Self::Output: Send + Sync + 'static,
-    {
-        let asset = Self::load(specifier)?;
+    fn load_owned(specifier: &str) -> Result<Self, Error>;
+}
 
-        // Determine path to watch
-        let path = unpack_specifier(specifier);
-        let mut path_with_extension = None;
-        for ending in Self::ENDINGS {
-            let mut path = path.clone();
-            path.set_extension(ending);
+pub fn load_dir<T: Asset>(specifier: &str) -> Result<AssetDir<T>, Error> {
+    Ok(ASSETS.load_dir(specifier)?)
+}
 
-            if path.exists() {
-                path_with_extension = Some(path);
-                break;
-            }
-        }
+impl<T: Compound> AssetExt for T {
+    fn load(specifier: &str) -> Result<AssetHandle<Self>, Error> {
+        ASSETS.load(specifier)
+    }
 
-        let owned_specifier = specifier.to_string();
-        indicator.add(
-            path_with_extension
-                .ok_or_else(|| Error::NotFound(path.to_string_lossy().into_owned()))?,
-            move || {
-                if let Err(e) = reload::<Self>(&owned_specifier) {
-                    error!(?e, ?owned_specifier, "Error reloading owned_specifier");
-                }
-            },
-        );
-
-        Ok(asset)
+    fn load_owned(specifier: &str) -> Result<Self, Error> {
+        ASSETS.load_owned(specifier)
     }
 }
 
-impl Asset for DynamicImage {
-    const ENDINGS: &'static [&'static str] = &["png", "jpg"];
+pub struct Image(pub Arc<DynamicImage>);
 
-    fn parse(mut buf_reader: BufReader<File>, _specifier: &str) -> Result<Self, Error> {
-        let mut buf = Vec::new();
-        buf_reader.read_to_end(&mut buf)?;
-        image::load_from_memory(&buf).map_err(Error::parse_error)
+impl Image {
+    pub fn to_image(&self) -> Arc<DynamicImage> {
+        self.0.clone()
     }
 }
 
-impl Asset for DotVoxData {
-    const ENDINGS: &'static [&'static str] = &["vox"];
-
-    fn parse(mut buf_reader: BufReader<File>, _specifier: &str) -> Result<Self, Error> {
-        let mut buf = Vec::new();
-        buf_reader.read_to_end(&mut buf)?;
-        dot_vox::load_bytes(&buf).map_err(Error::parse_error)
+pub struct ImageLoader;
+impl Loader<Image> for ImageLoader {
+    fn load(content: Cow<[u8]>, _: &str) -> Result<Image, BoxedError> {
+        let image = image::load_from_memory(&content)?;
+        Ok(Image(Arc::new(image)))
     }
 }
 
-// Read a JSON file
-impl Asset for Value {
-    const ENDINGS: &'static [&'static str] = &["json"];
+impl Asset for Image {
+    const EXTENSIONS: &'static [&'static str] = &["png", "jpg"];
+    type Loader = ImageLoader;
+}
 
-    fn parse(buf_reader: BufReader<File>, _specifier: &str) -> Result<Self, Error> {
-        serde_json::from_reader(buf_reader).map_err(Error::parse_error)
+pub struct DotVoxAsset(pub DotVoxData);
+
+pub struct DotVoxLoader;
+impl Loader<DotVoxAsset> for DotVoxLoader {
+    fn load(content: std::borrow::Cow<[u8]>, _: &str) -> Result<DotVoxAsset, BoxedError> {
+        let data = dot_vox::load_bytes(&content).map_err(|err| err.to_owned())?;
+        Ok(DotVoxAsset(data))
     }
 }
 
 /// Load from an arbitrary RON file.
-pub struct Ron<T>(pub PhantomData<T>);
+#[derive(Deserialize)]
+#[serde(transparent)]
+pub struct Ron<T>(pub T);
 
-impl<T: Send + Sync + for<'de> Deserialize<'de>> Asset for Ron<T> {
-    type Output = T;
-
-    const ENDINGS: &'static [&'static str] = &["ron"];
-
-    fn parse(buf_reader: BufReader<File>, _specifier: &str) -> Result<T, Error> {
-        ron::de::from_reader(buf_reader).map_err(Error::parse_error)
-    }
-}
-
-/// Load from a specific asset path.
-pub struct AssetWith<T: Asset, const ASSET_PATH: &'static str> {
-    pub asset: Arc<T::Output>,
-}
-
-impl<T: Asset, const ASSET_PATH: &'static str> Clone for AssetWith<T, ASSET_PATH> {
-    fn clone(&self) -> Self {
-        Self {
-            asset: Arc::clone(&self.asset),
-        }
-    }
-}
-
-impl<T: Asset, const ASSET_PATH: &'static str> AssetWith<T, ASSET_PATH>
+impl<T> Asset for Ron<T>
 where
-    T::Output: Send + Sync + 'static,
+    T: Send + Sync + for<'de> Deserialize<'de> + 'static,
 {
-    #[inline]
-    pub fn load_watched(indicator: &mut watch::ReloadIndicator) -> Result<Self, Error> {
-        T::load_watched(ASSET_PATH, indicator).map(|asset| Self { asset })
-    }
+    const EXTENSION: &'static str = "ron";
+    type Loader = RonLoader;
+}
 
-    #[inline]
-    pub fn reload(&mut self) -> Result<(), Error> {
-        self.asset = T::load(ASSET_PATH)?;
-        Ok(())
-    }
+
+impl Asset for DotVoxAsset {
+    const EXTENSION: &'static str = "vox";
+    type Loader = DotVoxLoader;
 }
 
 lazy_static! {
@@ -423,86 +218,42 @@ lazy_static! {
     };
 }
 
-/// Converts a specifier like "core.backgrounds.city" to
-/// ".../veloren/assets/core/backgrounds/city".
-fn unpack_specifier(specifier: &str) -> PathBuf {
-    let mut path = ASSETS_PATH.clone();
-    path.push(specifier.replace(".", "/"));
-    path
-}
+fn get_dir_files(files: &mut Vec<String>, path: &Path, specifier: &str) -> io::Result<()> {
+    for entry in fs::read_dir(path)? {
+        if let Ok(entry) = entry {
+            let path = entry.path();
+            let maybe_stem = path.file_stem().and_then(|stem| stem.to_str());
 
-/// Loads a file based on the specifier and possible extensions
-pub fn load_file(specifier: &str, endings: &[&str]) -> Result<BufReader<File>, Error> {
-    let path = unpack_specifier(specifier);
-    for ending in endings {
-        let mut path = path.clone();
-        path.set_extension(ending);
+            if let Some(stem) = maybe_stem {
+                let specifier = format!("{}.{}", specifier, stem);
 
-        trace!(?path, "Trying to access");
-        if let Ok(file) = File::open(path) {
-            return Ok(BufReader::new(file));
-        }
-    }
-
-    Err(Error::NotFound(path.to_string_lossy().into_owned()))
-}
-
-/// Loads a file based on the specifier and possible extensions
-pub fn load_file_glob(specifier: &str, endings: &[&str]) -> Result<BufReader<File>, Error> {
-    let path = unpack_specifier(specifier);
-    for ending in endings {
-        let mut path = path.clone();
-        path.set_extension(ending);
-
-        trace!(?path, "Trying to access");
-        if let Ok(file) = File::open(path) {
-            return Ok(BufReader::new(file));
-        }
-    }
-
-    Err(Error::NotFound(path.to_string_lossy().into_owned()))
-}
-
-/// Read directory from `veloren/assets/*`
-pub fn read_dir(specifier: &str) -> Result<ReadDir, Error> {
-    let dir_name = unpack_specifier(specifier);
-    if dir_name.exists() {
-        Ok(fs::read_dir(dir_name).expect("`read_dir` failed."))
-    } else {
-        Err(Error::NotFound(dir_name.to_string_lossy().into_owned()))
-    }
-}
-
-// Finds all files matching the provided glob specifier - includes files from
-// subdirectories
-fn get_glob_matches(specifier: &str) -> Result<Vec<String>, Error> {
-    let specifier = specifier.trim_end_matches(".*");
-    read_dir(specifier).map(|dir| {
-        dir.filter_map(|direntry| {
-            direntry.ok().and_then(|dir_entry| {
-                if dir_entry.path().is_dir() {
-                    let sub_dir_glob = format!(
-                        "{}.{}.*",
-                        specifier.to_string(),
-                        dir_entry.file_name().to_string_lossy()
-                    );
-                    Some(get_glob_matches(&sub_dir_glob).ok()?)
+                if path.is_dir() {
+                    get_dir_files(files, &path, &specifier)?;
                 } else {
-                    Some(vec![format!(
-                        "{}.{}",
-                        specifier,
-                        dir_entry
-                            .file_name()
-                            .to_string_lossy()
-                            .rsplitn(2, '.')
-                            .last()
-                            .map(|s| s.to_owned())
-                            .unwrap()
-                    )])
+                    files.push(specifier);
                 }
-            })
-        })
-        .flat_map(|x| x)
-        .collect::<Vec<_>>()
-    })
+            }
+        }
+    }
+
+    Ok(())
+}
+
+pub struct Directory(Vec<String>);
+
+impl Directory {
+    pub fn iter(&self) -> impl Iterator<Item=&String> {
+        self.0.iter()
+    }
+}
+
+impl Compound for Directory {
+    fn load<S: source::Source>(_: &AssetCache<S>, specifier: &str) -> Result<Self, Error> {
+        let root = ASSETS.source().path_of(specifier, "");
+        let mut files = Vec::new();
+
+        get_dir_files(&mut files, &root, specifier)?;
+
+        Ok(Directory(files))
+    }
 }

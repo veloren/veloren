@@ -1,6 +1,6 @@
 use crate::ui::{Graphic, SampleStrat, Transform, Ui};
 use common::{
-    assets::{self, watch::ReloadIndicator, Asset},
+    assets::{self, AssetExt, AssetHandle, DotVoxAsset},
     comp::item::{
         armor::{Armor, ArmorKind},
         Glider, ItemDesc, ItemKind, Lantern, Throwable, Utility,
@@ -8,11 +8,10 @@ use common::{
     figure::Segment,
 };
 use conrod_core::image::Id;
-use dot_vox::DotVoxData;
 use hashbrown::HashMap;
 use image::DynamicImage;
 use serde::{Deserialize, Serialize};
-use std::{fs::File, io::BufReader, sync::Arc};
+use std::sync::Arc;
 use tracing::{error, warn};
 use vek::*;
 
@@ -84,37 +83,34 @@ impl ImageSpec {
 }
 #[derive(Serialize, Deserialize)]
 struct ItemImagesSpec(HashMap<ItemKey, ImageSpec>);
-impl Asset for ItemImagesSpec {
-    const ENDINGS: &'static [&'static str] = &["ron"];
-
-    fn parse(buf_reader: BufReader<File>, _specifier: &str) -> Result<Self, assets::Error> {
-        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
-    }
+impl assets::Asset for ItemImagesSpec {
+    const EXTENSION: &'static str = "ron";
+    type Loader = assets::RonLoader;
 }
 
 // TODO: when there are more images don't load them all into memory
 pub struct ItemImgs {
     map: HashMap<ItemKey, Id>,
-    indicator: ReloadIndicator,
+    manifest: AssetHandle<ItemImagesSpec>,
     not_found: Id,
 }
+
 impl ItemImgs {
     pub fn new(ui: &mut Ui, not_found: Id) -> Self {
-        let mut indicator = ReloadIndicator::new();
-        Self {
-            map: ItemImagesSpec::load_watched(
-                "voxygen.item_image_manifest",
-                &mut indicator,
-            )
-            .expect("Unable to load item image manifest")
+        let manifest =  ItemImagesSpec::load_expect("voxygen.item_image_manifest");
+        let map = manifest
+            .read()
             .0
             .iter()
             // TODO: what if multiple kinds map to the same image, it would be nice to use the same
             // image id for both, although this does interfere with the current hot-reloading
             // strategy
             .map(|(kind, spec)| (kind.clone(), ui.add_graphic(spec.create_graphic())))
-            .collect(),
-            indicator,
+            .collect();
+
+        Self {
+            map,
+            manifest,
             not_found,
         }
     }
@@ -122,12 +118,8 @@ impl ItemImgs {
     /// Checks if the manifest has been changed and reloads the images if so
     /// Reuses img ids
     pub fn reload_if_changed(&mut self, ui: &mut Ui) {
-        if self.indicator.reloaded() {
-            for (kind, spec) in ItemImagesSpec::load("voxygen.item_image_manifest")
-                .expect("Unable to load item image manifest")
-                .0
-                .iter()
-            {
+        if self.manifest.reloaded() {
+            for (kind, spec) in self.manifest.read().0.iter() {
                 // Load new graphic
                 let graphic = spec.create_graphic();
                 // See if we already have an id we can use
@@ -163,30 +155,31 @@ impl ItemImgs {
 
 // Copied from figure/load.rs
 // TODO: remove code dup?
-fn graceful_load_vox(specifier: &str) -> Arc<DotVoxData> {
+fn graceful_load_vox(specifier: &str) -> AssetHandle<DotVoxAsset> {
     let full_specifier: String = ["voxygen.", specifier].concat();
-    match DotVoxData::load(full_specifier.as_str()) {
+    match DotVoxAsset::load(full_specifier.as_str()) {
         Ok(dot_vox) => dot_vox,
         Err(_) => {
             error!(?full_specifier, "Could not load vox file for item images",);
-            DotVoxData::load_expect("voxygen.voxel.not_found")
+            DotVoxAsset::load_expect("voxygen.voxel.not_found")
         },
     }
 }
 fn graceful_load_img(specifier: &str) -> Arc<DynamicImage> {
     let full_specifier: String = ["voxygen.", specifier].concat();
-    match DynamicImage::load(full_specifier.as_str()) {
+    let handle = match assets::Image::load(&full_specifier) {
         Ok(img) => img,
         Err(_) => {
             error!(?full_specifier, "Could not load image file for item images");
-            DynamicImage::load_expect("voxygen.element.not_found")
+            assets::Image::load_expect("voxygen.element.not_found")
         },
-    }
+    };
+    handle.read().to_image()
 }
 
 fn graceful_load_segment_no_skin(specifier: &str) -> Arc<Segment> {
     use common::figure::{mat_cell::MatCell, MatSegment};
-    let mat_seg = MatSegment::from(&*graceful_load_vox(specifier));
+    let mat_seg = MatSegment::from(&graceful_load_vox(specifier).read().0);
     let seg = mat_seg
         .map(|mat_cell| match mat_cell {
             MatCell::None => None,

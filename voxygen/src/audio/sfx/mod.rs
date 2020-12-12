@@ -89,7 +89,7 @@ use crate::{
 
 use client::Client;
 use common::{
-    assets,
+    assets::{self, AssetExt, AssetHandle},
     comp::{
         item::{ItemKind, ToolKind},
         object, Body, CharacterAbilityType, InventoryUpdateEvent,
@@ -237,7 +237,9 @@ impl SfxTriggers {
 }
 
 pub struct SfxMgr {
-    pub triggers: SfxTriggers,
+    /// This is an `AssetHandle` so it is reloaded automatically
+    /// when the manifest is edited.
+    pub triggers: AssetHandle<SfxTriggers>,
     event_mapper: SfxEventMapper,
 }
 
@@ -273,12 +275,14 @@ impl SfxMgr {
         // same direction as the camera
         audio.set_listener_pos(cam_pos, camera.dependents().cam_dir);
 
+        let triggers = self.triggers.read();
+
         self.event_mapper.maintain(
             audio,
             state,
             player_entity,
             camera,
-            &self.triggers,
+            &triggers,
             terrain,
             client,
         );
@@ -357,27 +361,21 @@ impl SfxMgr {
         }
     }
 
-    fn load_sfx_items() -> SfxTriggers {
-        match assets::load_file("voxygen.audio.sfx", &["ron"]) {
-            Ok(file) => match ron::de::from_reader(file) {
-                Ok(config) => config,
-                Err(error) => {
-                    warn!(
-                        "Error parsing sfx config file, sfx will not be available: {}",
-                        format!("{:#?}", error)
-                    );
+    fn load_sfx_items() -> AssetHandle<SfxTriggers> {
+        // Cannot fail: A default value is always provided
+        SfxTriggers::load_expect("voxygen.audio.sfx")
+    }
+}
 
-                    SfxTriggers::default()
-                },
-            },
-            Err(error) => {
-                warn!(
-                    "Error reading sfx config file, sfx will not be available: {}",
-                    format!("{:#?}", error)
-                );
+impl assets::Asset for SfxTriggers {
+    const EXTENSION: &'static str = "ron";
+    type Loader = assets::RonLoader;
 
-                SfxTriggers::default()
-            },
-        }
+    fn default_value(_: &str, error: assets::Error) -> Result<Self, assets::Error> {
+        warn!(
+            "Error reading sfx config file, sfx will not be available: {:#?}", error
+        );
+
+        Ok(SfxTriggers::default())
     }
 }

@@ -8,7 +8,7 @@ use crate::{
 };
 use anim::Skeleton;
 use common::{
-    assets::watch::ReloadIndicator,
+    assets::AssetHandle,
     comp::{
         item::{
             armor::{Armor, ArmorKind},
@@ -234,8 +234,7 @@ where
     Skel::Body: BodySpec,
 {
     models: HashMap<FigureKey<Skel::Body>, ((FigureModelEntryFuture<LOD_COUNT>, Skel::Attr), u64)>,
-    manifests: Arc<<Skel::Body as BodySpec>::Spec>,
-    manifest_indicator: ReloadIndicator,
+    manifests: AssetHandle<<Skel::Body as BodySpec>::Spec>,
 }
 
 impl<Skel: Skeleton> FigureModelCache<Skel>
@@ -244,15 +243,10 @@ where
 {
     #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> Self {
-        let mut manifest_indicator = ReloadIndicator::new();
         Self {
             models: HashMap::new(),
             // NOTE: It might be better to bubble this error up rather than panicking.
-            manifests: Arc::new(
-                <Skel::Body as BodySpec>::load_watched(&mut manifest_indicator)
-                    .expect("Could not load manifests for body type"),
-            ),
-            manifest_indicator,
+            manifests: <Skel::Body as BodySpec>::load_spec().unwrap(),
         }
     }
 
@@ -364,13 +358,13 @@ where
             Entry::Vacant(v) => {
                 let key = v.key().clone();
                 let slot = Arc::new(atomic::AtomicCell::new(None));
-                let manifests = Arc::clone(&self.manifests);
+                let manifests = self.manifests;
                 let slot_ = Arc::clone(&slot);
 
                 thread_pool.execute(move || {
                     // First, load all the base vertex data.
-                    let manifests = &*manifests;
-                    let meshes = <Skel::Body as BodySpec>::bone_meshes(&key, &*manifests);
+                    let manifests = &*manifests.read();
+                    let meshes = <Skel::Body as BodySpec>::bone_meshes(&key, manifests);
 
                     // Then, set up meshing context.
                     let mut greedy = FigureModel::make_greedy();
@@ -522,12 +516,9 @@ where
     {
         // Check for reloaded manifests
         // TODO: maybe do this in a different function, maintain?
-        if self.manifest_indicator.reloaded() {
+        if self.manifests.reloaded() {
             col_lights.atlas.clear();
             self.models.clear();
-            if let Err(err) = <Skel::Body as BodySpec>::reload(Arc::make_mut(&mut self.manifests)) {
-                tracing::warn!(?err, "Hot reload failed.");
-            }
         }
         // TODO: Don't hard-code this.
         if tick % 60 == 0 {

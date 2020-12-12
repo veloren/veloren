@@ -41,6 +41,7 @@ use crate::{
     util::{Grid, Sampler},
 };
 use common::{
+    assets,
     generation::{ChunkSupplement, EntityInfo},
     terrain::{Block, BlockKind, SpriteKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     vol::{ReadVol, RectVolSize, WriteVol},
@@ -68,6 +69,11 @@ pub struct Colors {
     pub column: column::Colors,
     pub layer: layer::Colors,
     pub site: site::Colors,
+}
+
+impl assets::Asset for Colors {
+    const EXTENSION: &'static str = "ron";
+    type Loader = assets::RonLoader;
 }
 
 impl World {

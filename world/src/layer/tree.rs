@@ -6,27 +6,28 @@ use crate::{
     Canvas, CONFIG,
 };
 use common::{
-    terrain::{structure::Structure, Block, BlockKind},
+    assets::AssetHandle,
+    terrain::{Structure, StructuresGroup, Block, BlockKind},
     vol::ReadVol,
 };
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
-use std::{f32, sync::Arc};
+use std::f32;
 use vek::*;
 
 lazy_static! {
-    pub static ref OAKS: Vec<Arc<Structure>> = Structure::load_group("oaks");
-    pub static ref OAK_STUMPS: Vec<Arc<Structure>> = Structure::load_group("oak_stumps");
-    pub static ref PINES: Vec<Arc<Structure>> = Structure::load_group("pines");
-    pub static ref PALMS: Vec<Arc<Structure>> = Structure::load_group("palms");
-    pub static ref ACACIAS: Vec<Arc<Structure>> = Structure::load_group("acacias");
-    pub static ref BAOBABS: Vec<Arc<Structure>> = Structure::load_group("baobabs");
-    pub static ref FRUIT_TREES: Vec<Arc<Structure>> = Structure::load_group("fruit_trees");
-    pub static ref BIRCHES: Vec<Arc<Structure>> = Structure::load_group("birch");
-    pub static ref MANGROVE_TREES: Vec<Arc<Structure>> = Structure::load_group("mangrove_trees");
-    pub static ref QUIRKY: Vec<Arc<Structure>> = Structure::load_group("quirky");
-    pub static ref QUIRKY_DRY: Vec<Arc<Structure>> = Structure::load_group("quirky_dry");
-    pub static ref SWAMP_TREES: Vec<Arc<Structure>> = Structure::load_group("swamp_trees");
+    static ref OAKS: AssetHandle<StructuresGroup> = Structure::load_group("oaks");
+    static ref OAK_STUMPS: AssetHandle<StructuresGroup> = Structure::load_group("oak_stumps");
+    static ref PINES: AssetHandle<StructuresGroup> = Structure::load_group("pines");
+    static ref PALMS: AssetHandle<StructuresGroup> = Structure::load_group("palms");
+    static ref ACACIAS: AssetHandle<StructuresGroup> = Structure::load_group("acacias");
+    static ref BAOBABS: AssetHandle<StructuresGroup> = Structure::load_group("baobabs");
+    static ref FRUIT_TREES: AssetHandle<StructuresGroup> = Structure::load_group("fruit_trees");
+    static ref BIRCHES: AssetHandle<StructuresGroup> = Structure::load_group("birch");
+    static ref MANGROVE_TREES: AssetHandle<StructuresGroup> = Structure::load_group("mangrove_trees");
+    static ref QUIRKY: AssetHandle<StructuresGroup> = Structure::load_group("quirky");
+    static ref QUIRKY_DRY: AssetHandle<StructuresGroup> = Structure::load_group("quirky_dry");
+    static ref SWAMP_TREES: AssetHandle<StructuresGroup> = Structure::load_group("swamp_trees");
 }
 
 static MODEL_RAND: RandomPerm = RandomPerm::new(0xDB21C052);
@@ -37,7 +38,7 @@ static QUIRKY_RAND: RandomPerm = RandomPerm::new(0xA634460F);
 pub fn apply_trees_to(canvas: &mut Canvas) {
     struct Tree {
         pos: Vec3<i32>,
-        model: Arc<Structure>,
+        model: Structure,
         seed: u32,
         units: (Vec2<i32>, Vec2<i32>),
     }
@@ -72,34 +73,34 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
                 Some(Tree {
                     pos: Vec3::new(tree_wpos.x, tree_wpos.y, col.alt as i32),
                     model: {
-                        let models: &'static [_] = if is_quirky {
+                        let models: AssetHandle<_> = if is_quirky {
                             if col.temp > CONFIG.desert_temp {
-                                &QUIRKY_DRY
+                                *QUIRKY_DRY
                             } else {
-                                &QUIRKY
+                                *QUIRKY
                             }
                         } else {
                             match col.forest_kind {
                                 ForestKind::Oak if QUIRKY_RAND.chance(seed + 1, 1.0 / 16.0) => {
-                                    &OAK_STUMPS
+                                    *OAK_STUMPS
                                 },
                                 ForestKind::Oak if QUIRKY_RAND.chance(seed + 2, 1.0 / 20.0) => {
-                                    &FRUIT_TREES
+                                    *FRUIT_TREES
                                 },
-                                ForestKind::Palm => &PALMS,
-                                ForestKind::Acacia => &ACACIAS,
-                                ForestKind::Baobab => &BAOBABS,
-                                ForestKind::Oak => &OAKS,
-                                ForestKind::Pine => &PINES,
-                                ForestKind::Birch => &BIRCHES,
-                                ForestKind::Mangrove => &MANGROVE_TREES,
-                                ForestKind::Swamp => &SWAMP_TREES,
+                                ForestKind::Palm => *PALMS,
+                                ForestKind::Acacia => *ACACIAS,
+                                ForestKind::Baobab => *BAOBABS,
+                                ForestKind::Oak => *OAKS,
+                                ForestKind::Pine => *PINES,
+                                ForestKind::Birch => *BIRCHES,
+                                ForestKind::Mangrove => *MANGROVE_TREES,
+                                ForestKind::Swamp => *SWAMP_TREES,
                             }
                         };
-                        Arc::clone(
-                            &models[(MODEL_RAND.get(seed.wrapping_mul(17)) / 13) as usize
-                                % models.len()],
-                        )
+
+                        let models = models.read();
+                        models[(MODEL_RAND.get(seed.wrapping_mul(17)) / 13) as usize % models.len()]
+                            .clone()
                     },
                     seed,
                     units: UNIT_CHOOSER.get(seed),

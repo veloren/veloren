@@ -12,7 +12,7 @@ use crate::{
     Direction, GlobalState, PlayState, PlayStateResult,
 };
 use client_init::{ClientInit, Error as InitError, Msg as InitMsg};
-use common::{assets::Asset, comp, span};
+use common::{assets::AssetExt, comp, span};
 use tracing::error;
 use ui::{Event as MainMenuEvent, MainMenuUi};
 
@@ -48,13 +48,7 @@ impl PlayState for MainMenuState {
         }
 
         // Updated localization in case the selected language was changed
-        let localized_strings = crate::i18n::Localization::load_expect(
-            &crate::i18n::i18n_asset_key(&global_state.settings.language.selected_language),
-        );
-        self.main_menu_ui.update_language(
-            std::sync::Arc::clone(&localized_strings),
-            &global_state.settings,
-        );
+        self.main_menu_ui.update_language(global_state.i18n, &global_state.settings);
         // Set scale mode in case it was change
         self.main_menu_ui
             .set_scale_mode(global_state.settings.gameplay.ui_scale);
@@ -63,9 +57,6 @@ impl PlayState for MainMenuState {
     #[allow(clippy::single_match)] // TODO: remove when event match has multiple arms
     fn tick(&mut self, global_state: &mut GlobalState, events: Vec<Event>) -> PlayStateResult {
         span!(_guard, "tick", "<MainMenuState as PlayState>::tick");
-        let mut localized_strings = crate::i18n::Localization::load_expect(
-            &crate::i18n::i18n_asset_key(&global_state.settings.language.selected_language),
-        );
 
         // Poll server creation
         #[cfg(feature = "singleplayer")]
@@ -121,6 +112,7 @@ impl PlayState for MainMenuState {
                 )));
             },
             Some(InitMsg::Done(Err(err))) => {
+                let localized_strings = global_state.i18n.read();
                 self.client_init = None;
                 global_state.info_message = Some({
                     let err = match err {
@@ -268,12 +260,12 @@ impl PlayState for MainMenuState {
                 MainMenuEvent::ChangeLanguage(new_language) => {
                     global_state.settings.language.selected_language =
                         new_language.language_identifier;
-                    localized_strings = Localization::load_expect(&i18n_asset_key(
+                    global_state.i18n = Localization::load_expect(&i18n_asset_key(
                         &global_state.settings.language.selected_language,
                     ));
-                    localized_strings.log_missing_entries();
+                    global_state.i18n.read().log_missing_entries();
                     self.main_menu_ui.update_language(
-                        std::sync::Arc::clone(&localized_strings),
+                        global_state.i18n,
                         &global_state.settings,
                     );
                 },

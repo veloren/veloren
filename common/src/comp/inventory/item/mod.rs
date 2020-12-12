@@ -5,7 +5,7 @@ pub mod tool;
 pub use tool::{AbilitySet, Hands, Tool, ToolKind, UniqueKind};
 
 use crate::{
-    assets::{self, Asset, Error},
+    assets::{self, AssetExt, Error},
     effect::Effect,
     lottery::Lottery,
     terrain::{Block, SpriteKind},
@@ -16,8 +16,6 @@ use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::{
-    fs::File,
-    io::BufReader,
     num::{NonZeroU32, NonZeroU64},
     sync::Arc,
 };
@@ -160,28 +158,37 @@ impl PartialEq for Item {
     }
 }
 
-impl Asset for ItemDef {
-    const ENDINGS: &'static [&'static str] = &["ron"];
+impl assets::Compound for ItemDef {
+    fn load<S: assets_manager::source::Source>(cache: &assets_manager::AssetCache<S>, specifier: &str) -> Result<Self, Error> {
+        let raw = cache.load_owned::<RawItemDef>(specifier)?;
 
-    fn parse(buf_reader: BufReader<File>, specifier: &str) -> Result<Self, assets::Error> {
-        let item: Result<Self, Error> =
-            ron::de::from_reader(buf_reader).map_err(Error::parse_error);
+        let RawItemDef { name, description, kind, quality} = raw;
+        let item_definition_id = specifier.replace('\\', ".");
 
-        // Some commands like /give_item provide the asset specifier separated with \
-        // instead of .
-        let specifier = specifier.replace('\\', ".");
-
-        item.map(|item| ItemDef {
-            item_definition_id: specifier,
-            ..item
-        })
+        Ok(ItemDef { item_definition_id, name, description, kind, quality })
     }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename = "ItemDef")]
+struct RawItemDef {
+    name: String,
+    description: String,
+    kind: ItemKind,
+    quality: Quality,
+}
+
+impl assets::Asset for RawItemDef {
+    const EXTENSION: &'static str = "ron";
+    type Loader = assets::RonLoader;
 }
 
 impl Item {
     // TODO: consider alternatives such as default abilities that can be added to a
     // loadout when no weapon is present
-    pub fn empty() -> Self { Item::new(ItemDef::load_expect("common.items.weapons.empty.empty")) }
+    pub fn empty() -> Self {
+        Item::new_from_asset_expect("common.items.weapons.empty.empty")
+    }
 
     pub fn new(inner_item: Arc<ItemDef>) -> Self {
         Item {
@@ -194,27 +201,36 @@ impl Item {
     /// Creates a new instance of an `Item` from the provided asset identifier
     /// Panics if the asset does not exist.
     pub fn new_from_asset_expect(asset_specifier: &str) -> Self {
-        let inner_item = ItemDef::load_expect(asset_specifier);
+        let inner_item = Arc::<ItemDef>::load_expect_cloned(asset_specifier);
         Item::new(inner_item)
     }
 
     /// Creates a Vec containing one of each item that matches the provided
     /// asset glob pattern
     pub fn new_from_asset_glob(asset_glob: &str) -> Result<Vec<Self>, Error> {
-        let items = ItemDef::load_glob(asset_glob)?;
+        //let items = ItemDef::load_glob(asset_glob)?;
 
+        let specifiers = assets::Directory::load(asset_glob)?;
+
+        specifiers.read()
+            .iter()
+            .map(|spec| Self::new_from_asset(&spec))
+            .collect()
+
+        /*
         let result = items
             .iter()
             .map(|item_def| Item::new(Arc::clone(item_def)))
             .collect::<Vec<_>>();
 
         Ok(result)
+        */
     }
 
     /// Creates a new instance of an `Item from the provided asset identifier if
     /// it exists
     pub fn new_from_asset(asset: &str) -> Result<Self, Error> {
-        let inner_item = ItemDef::load(asset)?;
+        let inner_item = Arc::<ItemDef>::load_cloned(asset)?;
         Ok(Item::new(inner_item))
     }
 
@@ -254,30 +270,30 @@ impl Item {
     /// up by another player.
     pub fn put_in_world(&mut self) { self.reset_item_id() }
 
-    pub fn increase_amount(&mut self, increase_by: u32) -> Result<(), assets::Error> {
+    pub fn increase_amount(&mut self, increase_by: u32) -> Result<(), ()> {
         let amount = u32::from(self.amount);
         self.amount = amount
             .checked_add(increase_by)
             .and_then(NonZeroU32::new)
-            .ok_or(assets::Error::InvalidType)?;
+            .ok_or(())?;
         Ok(())
     }
 
-    pub fn decrease_amount(&mut self, decrease_by: u32) -> Result<(), assets::Error> {
+    pub fn decrease_amount(&mut self, decrease_by: u32) -> Result<(), ()> {
         let amount = u32::from(self.amount);
         self.amount = amount
             .checked_sub(decrease_by)
             .and_then(NonZeroU32::new)
-            .ok_or(assets::Error::InvalidType)?;
+            .ok_or(())?;
         Ok(())
     }
 
-    pub fn set_amount(&mut self, give_amount: u32) -> Result<(), assets::Error> {
+    pub fn set_amount(&mut self, give_amount: u32) -> Result<(), ()> {
         if give_amount == 1 || self.item_def.is_stackable() {
-            self.amount = NonZeroU32::new(give_amount).ok_or(assets::Error::InvalidType)?;
+            self.amount = NonZeroU32::new(give_amount).ok_or(())?;
             Ok(())
         } else {
-            Err(assets::Error::InvalidType)
+            Err(())
         }
     }
 
@@ -327,7 +343,7 @@ impl Item {
                     3 => "common.loot_tables.loot_table_armor_cloth",
                     4 => "common.loot_tables.loot_table_armor_heavy",
                     _ => "common.loot_tables.loot_table_armor_misc",
-                });
+                }).read();
                 chosen.choose()
             },
             SpriteKind::ChestBurried => {
@@ -336,7 +352,7 @@ impl Item {
                     2 => "common.loot_tables.loot_table_armor_light",
                     3 => "common.loot_tables.loot_table_armor_cloth",
                     _ => "common.loot_tables.loot_table_armor_misc",
-                });
+                }).read();
                 chosen.choose()
             },
             SpriteKind::Mud => {
@@ -345,14 +361,14 @@ impl Item {
                     1 => "common.loot_tables.loot_table_weapon_common",
                     2 => "common.loot_tables.loot_table_armor_misc",
                     _ => "common.loot_tables.loot_table_rocks",
-                });
+                }).read();
                 chosen.choose()
             },
             SpriteKind::Crate => {
                 chosen = Lottery::<String>::load_expect(match rng.gen_range(0, 4) {
                     0 => "common.loot_tables.loot_table_crafting",
                     _ => "common.loot_tables.loot_table_food",
-                });
+                }).read();
                 chosen.choose()
             },
             SpriteKind::Beehive => "common.items.crafting_ing.honey",
