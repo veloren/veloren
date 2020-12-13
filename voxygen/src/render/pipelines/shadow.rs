@@ -161,10 +161,10 @@ impl ShadowFigurePipeline {
                 module: vs_module,
                 entry_point: "main",
             },
-            fragment_stage: Some(wgpu::ProgrammableStageDescriptor {
+            fragment_stage: /*Some(wgpu::ProgrammableStageDescriptor {
                 module: fs_module,
                 entry_point: "main",
-            }),
+            })*/None,
             rasterization_state: Some(wgpu::RasterizationStateDescriptor {
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: wgpu::CullMode::Front,
@@ -237,10 +237,10 @@ impl ShadowPipeline {
                 module: vs_module,
                 entry_point: "main",
             },
-            fragment_stage: Some(wgpu::ProgrammableStageDescriptor {
+            fragment_stage: /*Some(wgpu::ProgrammableStageDescriptor {
                 module: fs_module,
                 entry_point: "main",
-            }),
+            })*/None,
             rasterization_state: Some(wgpu::RasterizationStateDescriptor {
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: wgpu::CullMode::Front,
@@ -315,10 +315,10 @@ impl PointShadowPipeline {
                 module: vs_module,
                 entry_point: "main",
             },
-            fragment_stage: Some(wgpu::ProgrammableStageDescriptor {
+            fragment_stage: /*Some(wgpu::ProgrammableStageDescriptor {
                 module: fs_module,
                 entry_point: "main",
-            }),
+            })*/None,
             rasterization_state: Some(wgpu::RasterizationStateDescriptor {
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: wgpu::CullMode::Front,

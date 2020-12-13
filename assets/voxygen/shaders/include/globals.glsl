@@ -24,6 +24,7 @@ layout(std140, set = 0, binding = 0) uniform u_globals {
     // 1 - ThirdPerson
     uint cam_mode;
     float sprite_render_distance;
+    float gloabls_dummy; // Fix alignment.
 };
 
 // Specifies the pattern used in the player dithering

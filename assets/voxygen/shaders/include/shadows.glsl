@@ -44,7 +44,7 @@ float VectorToDepth (vec3 Vec)
     // float NormZComp = 1.0 - shadow_proj_factors.y / shadow_proj_factors.x / LocalZcomp;
     // -(1 + 2n/(f-n)) - 2(1 + n/(f-n)) * n/z
     // -(1 + n/(f-n)) - (1 + n/(f-n)) * n/z
-    // f/(f-n) - f
+    // f/(f-n) - fn/(f-n)/z
     float NormZComp = shadow_proj_factors.x - shadow_proj_factors.y / LocalZcomp;
     // NormZComp = -1000.0 / (NormZComp + 10000.0);
     // return (NormZComp + 1.0) * 0.5;
@@ -74,6 +74,8 @@ float ShadowCalculationPoint(uint lightIndex, vec3 fragToLight, vec3 fragNorm, /
 
     {
         float currentDepth = VectorToDepth(fragToLight);// + bias;
+
+        // currentDepth = -currentDepth * 0.5 + 0.5;
 
         float visibility = texture(samplerCubeShadow(t_point_shadow_maps, s_point_shadow_maps), vec4(fragToLight, currentDepth));// / (screen_res.w/* - screen_res.z*/)/*1.0 -bias*//*-(currentDepth - bias) / screen_res.w*//*-screen_res.w*/);
         /* if (visibility == 1.0 || visibility == 0.0) {
@@ -166,6 +168,8 @@ float ShadowCalculationDirected(in vec3 fragPos)//in vec4 /*light_pos[2]*/sun_po
     // vec3 fragPos = sun_pos.xyz;// / sun_pos.w;//light_pos[lightIndex].xyz;
     // sun_pos.z += sun_pos.w * bias;
     vec4 sun_pos = texture_mat/*shadowMatrices*/ * vec4(fragPos, 1.0);
+    // sun_pos.xy = 0.5 * sun_pos.w + sun_pos.xy * 0.5;
+    // sun_pos.xy = sun_pos.ww - sun_pos.xy;
     // sun_pos.xyz /= abs(sun_pos.w);
     // sun_pos.w = sign(sun_pos.w);
     // sun_pos.xy = (sun_pos.xy + 1.0) * 0.5;

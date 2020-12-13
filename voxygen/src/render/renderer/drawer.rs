@@ -172,7 +172,7 @@ impl<'a> Drawer<'a> {
                             label: Some("Point shadow cubemap face"),
                             format: None,
                             dimension: Some(wgpu::TextureViewDimension::D2),
-                            aspect: wgpu::TextureAspect::All,
+                            aspect: wgpu::TextureAspect::DepthOnly,
                             base_mip_level: 0,
                             level_count: None,
                             base_array_layer: face,

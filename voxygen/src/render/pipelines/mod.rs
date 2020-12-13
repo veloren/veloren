@@ -58,6 +58,8 @@ pub struct Globals {
     ambiance: f32,
     cam_mode: u32,
     sprite_render_distance: f32,
+    /// To keep 16-byte-aligned.
+    globals_dummy: f32,
 }
 
 #[repr(C)]
@@ -140,6 +142,7 @@ impl Globals {
             ambiance,
             cam_mode: cam_mode as u32,
             sprite_render_distance,
+            globals_dummy: 0.0,
         }
     }
 
@@ -417,7 +420,7 @@ impl GlobalsLayouts {
                     binding: 0,
                     visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
                     ty: wgpu::BindingType::Texture {
-                        sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                        sample_type: wgpu::TextureSampleType::Depth,
                         view_dimension: wgpu::TextureViewDimension::Cube,
                         multisampled: false,
                     },
@@ -437,7 +440,7 @@ impl GlobalsLayouts {
                     binding: 2,
                     visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
                     ty: wgpu::BindingType::Texture {
-                        sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                        sample_type: wgpu::TextureSampleType::Depth,
                         view_dimension: wgpu::TextureViewDimension::D2,
                         multisampled: false,
                     },

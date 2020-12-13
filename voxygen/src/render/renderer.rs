@@ -2106,7 +2106,7 @@ fn create_pipelines(
 
     let figure_vert_mod = create_shader("figure-vert", ShaderKind::Vertex)?;
 
-    let terrain_point_shadow_vert_mod = create_shader("point-light-shadows-vert", ShaderKind::Vertex)?;
+    // let terrain_point_shadow_vert_mod = create_shader("Point-light-shadows-vert", ShaderKind::Vertex)?;
 
     let terrain_directed_shadow_vert_mod =
         create_shader("light-shadows-directed-vert", ShaderKind::Vertex)?;
