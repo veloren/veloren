@@ -1,11 +1,9 @@
-extern crate plugin_rt;
-
-use plugin_rt::{
+use veloren_plugin_rt::{
     api::{event::*, Action, GameMode},
     *,
 };
 
-#[event_handler]
+#[veloren_plugin_rt::event_handler]
 pub fn on_load(load: PluginLoadEvent) {
     match load.game_mode {
         GameMode::Server => emit_action(Action::Print("Hello, server!".to_owned())),

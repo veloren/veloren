@@ -1,5 +1,3 @@
-#![allow(clippy::eval_order_dependence)]
-
 use crate::commands::{Command, FileInfo, LocalCommand, RemoteInfo};
 use async_std::{
     fs,
