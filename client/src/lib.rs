@@ -222,7 +222,7 @@ impl Client {
                 ability_map,
             } => {
                 // Initialize `State`
-                let mut state = State::default();
+                let mut state = State::client();
                 // Client-only components
                 state
                     .ecs_mut()

@@ -2,7 +2,7 @@
 pub mod errors;
 pub mod module;
 
-use crate::assets::ASSETS_PATH;
+use common::assets::ASSETS_PATH;
 use serde::{Deserialize, Serialize};
 use std::{collections::{HashMap, HashSet}, fs, io::Read, path::{Path, PathBuf}};
 use tracing::{error, info};

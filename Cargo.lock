@@ -5541,7 +5541,6 @@ version = "0.8.0"
 dependencies = [
  "arraygen",
  "authc",
- "bincode",
  "criterion",
  "crossbeam",
  "csv",
@@ -5556,7 +5555,6 @@ dependencies = [
  "num-derive",
  "num-traits 0.2.12",
  "ordered-float 2.0.0",
- "parking_lot 0.11.0",
  "rand 0.7.3",
  "rayon",
  "ron",
@@ -5571,13 +5569,9 @@ dependencies = [
  "spin_sleep",
  "structopt",
  "sum_type",
- "tar",
- "toml",
  "tracing",
  "tracy-client",
  "vek 0.12.0",
- "veloren-plugin-api",
- "wasmer-runtime",
 ]
 
 [[package]]
@@ -5585,6 +5579,7 @@ name = "veloren-plugin-api"
 version = "0.1.0"
 dependencies = [
  "serde",
+ "veloren-common",
 ]
 
 [[package]]
@@ -5639,6 +5634,7 @@ dependencies = [
  "uvth 3.1.1",
  "vek 0.12.0",
  "veloren-common",
+ "veloren-plugin-api",
  "veloren-world",
  "veloren_common_sys",
  "veloren_network",
@@ -5776,6 +5772,7 @@ dependencies = [
 name = "veloren_common_sys"
 version = "0.8.0"
 dependencies = [
+ "bincode",
  "hashbrown 0.7.2",
  "indexmap",
  "rand 0.7.3",
@@ -5783,11 +5780,14 @@ dependencies = [
  "serde",
  "slab",
  "specs",
+ "tar",
+ "toml",
  "tracing",
  "tracy-client",
  "vek 0.12.0",
  "veloren-common",
  "veloren-plugin-api",
+ "wasmer-runtime",
 ]
 
 [[package]]

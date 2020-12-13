@@ -4,7 +4,6 @@ version = "0.1.0"
 authors = ["ccgauche <gaucheron.laurent@gmail.com>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-serde = {version = "1.0.118", features = ["derive"]}
+common = { package = "veloren-common", path = "../../common", features = ["no-assets"] }
+serde = { version = "1.0.118", features = ["derive"] }

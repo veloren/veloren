@@ -1,12 +1,15 @@
 extern crate plugin_rt;
 
 use plugin_rt::*;
-use plugin_rt::api::{Action, event::*};
+use plugin_rt::api::{Action, GameMode, event::*};
 
 #[event_handler]
-pub fn on_load(load: PluginLoadEvent) -> () {
-    emit_action(Action::Print("This is a test".to_owned()));
-    println!("Hello world");
+pub fn on_load(load: PluginLoadEvent) {
+    match load.game_mode {
+        GameMode::Server => emit_action(Action::Print("Hello, server!".to_owned())),
+        GameMode::Client => emit_action(Action::Print("Hello, client!".to_owned())),
+        GameMode::Singleplayer => emit_action(Action::Print("Hello, singleplayer!".to_owned())),
+    }
 }
 
 #[event_handler]

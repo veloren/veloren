@@ -45,3 +45,6 @@ diesel = { version = "1.4.3", features = ["sqlite"] }
 diesel_migrations = "1.4.0"
 dotenv = "0.15.0"
 slab  = "0.4"
+
+# Plugins
+plugin-api = { package = "veloren-plugin-api", path = "../plugin/api"}
