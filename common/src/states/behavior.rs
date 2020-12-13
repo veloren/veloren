@@ -4,7 +4,7 @@ use crate::{
         Health, Loadout, Ori, PhysicsState, Pos, StateUpdate, Vel,
     },
     resources::DeltaTime,
-    sync::Uid,
+    uid::Uid,
 };
 use specs::{
     hibitset,

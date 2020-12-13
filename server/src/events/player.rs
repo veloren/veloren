@@ -6,10 +6,10 @@ use crate::{
 use common::{
     comp,
     comp::{group, Player},
-    msg::{PlayerListUpdate, PresenceKind, ServerGeneral},
     span,
-    sync::{Uid, UidAllocator},
+    uid::{Uid, UidAllocator},
 };
+use common_net::msg::{PlayerListUpdate, PresenceKind, ServerGeneral};
 use common_sys::state::State;
 use futures_executor::block_on;
 use specs::{saveload::MarkerAllocator, Builder, Entity as EcsEntity, WorldExt};
@@ -137,7 +137,7 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
         state.read_storage::<Uid>().get(entity),
         state.read_storage::<comp::Player>().get(entity),
     ) {
-        state.notify_players(comp::ChatType::Offline(*uid).server_msg(""));
+        state.notify_players(ServerGeneral::server_msg(comp::ChatType::Offline(*uid), ""));
 
         state.notify_players(ServerGeneral::PlayerListUpdate(PlayerListUpdate::Remove(
             *uid,

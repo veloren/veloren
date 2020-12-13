@@ -4,12 +4,12 @@ use crate::{
 };
 use common::{
     comp::{Admin, Player, Stats},
-    msg::{
-        CharacterInfo, ClientRegister, PlayerInfo, PlayerListUpdate, RegisterError, ServerGeneral,
-        ServerRegisterAnswer,
-    },
     span,
-    sync::Uid,
+    uid::Uid,
+};
+use common_net::msg::{
+    CharacterInfo, ClientRegister, PlayerInfo, PlayerListUpdate, RegisterError, ServerGeneral,
+    ServerRegisterAnswer,
 };
 use hashbrown::HashMap;
 use specs::{Entities, Join, ReadExpect, ReadStorage, System, Write, WriteExpect, WriteStorage};

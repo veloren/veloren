@@ -17,7 +17,6 @@ use common::{
     comp,
     comp::{ChatMsg, ChatType, InventoryUpdateEvent, Pos, Vel},
     consts::{MAX_MOUNT_RANGE, MAX_PICKUP_RANGE},
-    msg::PresenceKind,
     outcome::Outcome,
     span,
     terrain::{Block, BlockKind},
@@ -27,6 +26,7 @@ use common::{
     },
     vol::ReadVol,
 };
+use common_net::msg::PresenceKind;
 use ordered_float::OrderedFloat;
 use specs::{Join, WorldExt};
 use std::{cell::RefCell, rc::Rc, sync::Arc, time::Duration};

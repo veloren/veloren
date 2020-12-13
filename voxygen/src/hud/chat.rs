@@ -4,13 +4,11 @@ use super::{
 };
 use crate::{i18n::Localization, ui::fonts::Fonts, GlobalState};
 use client::{cmd, Client};
-use common::{
-    comp::{
-        chat::{KillSource, KillType},
-        ChatMsg, ChatType,
-    },
-    msg::validate_chat_msg,
+use common::comp::{
+    chat::{KillSource, KillType},
+    ChatMsg, ChatType,
 };
+use common_net::msg::validate_chat_msg;
 use conrod_core::{
     input::Key,
     position::Dimension,

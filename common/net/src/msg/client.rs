@@ -1,5 +1,5 @@
 use super::PingMsg;
-use crate::{
+use common::{
     character::CharacterId,
     comp,
     comp::{Skill, SkillGroupType},

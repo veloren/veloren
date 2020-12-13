@@ -8,7 +8,6 @@ members = [
 	"plugin/api",
 	"plugin/derive",
 	"client",
-	"plugin-api",
 	"server",
 	"server-cli",
 	"voxygen",

@@ -5,8 +5,10 @@ use common::{
         group::{self, Group, GroupManager, Invite, PendingInvites},
         ChatType, GroupManip,
     },
+    uid::Uid,
+};
+use common_net::{
     msg::{InviteAnswer, ServerGeneral},
-    sync,
     sync::WorldSyncExt,
 };
 use specs::world::WorldExt;
@@ -31,16 +33,16 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                 None => {
                     // Inform of failure
                     if let Some(client) = clients.get(entity) {
-                        client.send_fallible(
-                            ChatType::Meta
-                                .server_msg("Invite failed, target does not exist.".to_owned()),
-                        );
+                        client.send_fallible(ServerGeneral::server_msg(
+                            ChatType::Meta,
+                            "Invite failed, target does not exist.",
+                        ));
                     }
                     return;
                 },
             };
 
-            let uids = state.ecs().read_storage::<sync::Uid>();
+            let uids = state.ecs().read_storage::<Uid>();
 
             // Check if entity is trying to invite themselves to a group
             if uids
@@ -63,8 +65,9 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
             if already_in_same_group {
                 // Inform of failure
                 if let Some(client) = clients.get(entity) {
-                    client.send_fallible(ChatType::Meta.server_msg(
-                        "Invite failed, can't invite someone already in your group".to_owned(),
+                    client.send_fallible(ServerGeneral::server_msg(
+                        ChatType::Meta,
+                        "Invite failed, can't invite someone already in your group",
                     ));
                 }
                 return;
@@ -93,13 +96,12 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
             if group_size_limit_reached {
                 // Inform inviter that they have reached the group size limit
                 if let Some(client) = clients.get(entity) {
-                    client.send_fallible(
-                        ChatType::Meta.server_msg(
-                            "Invite failed, pending invites plus current group size have reached \
-                             the group size limit"
-                                .to_owned(),
-                        ),
-                    );
+                    client.send_fallible(ServerGeneral::server_msg(
+                        ChatType::Meta,
+                        "Invite failed, pending invites plus current group size have reached \
+                          the group size limit"
+                            .to_owned(),
+                    ));
                 }
                 return;
             }
@@ -110,10 +112,10 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
             if invites.contains(invitee) {
                 // Inform inviter that there is already an invite
                 if let Some(client) = clients.get(entity) {
-                    client.send_fallible(
-                        ChatType::Meta
-                            .server_msg("This player already has a pending invite.".to_owned()),
-                    );
+                    client.send_fallible(ServerGeneral::server_msg(
+                        ChatType::Meta,
+                        "This player already has a pending invite.",
+                    ));
                 }
                 return;
             }
@@ -162,9 +164,10 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
             } else if agents.contains(invitee) {
                 send_invite();
             } else if let Some(client) = clients.get(entity) {
-                client.send_fallible(
-                    ChatType::Meta.server_msg("Can't invite, not a player or npc".to_owned()),
-                );
+                client.send_fallible(ServerGeneral::server_msg(
+                    ChatType::Meta,
+                    "Can't invite, not a player or npc",
+                ));
             }
 
             // Notify inviter that the invite is pending
@@ -176,7 +179,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
         },
         GroupManip::Accept => {
             let clients = state.ecs().read_storage::<Client>();
-            let uids = state.ecs().read_storage::<sync::Uid>();
+            let uids = state.ecs().read_storage::<Uid>();
             let mut invites = state.ecs().write_storage::<Invite>();
             if let Some(inviter) = invites.remove(entity).and_then(|invite| {
                 let inviter = invite.0;
@@ -223,7 +226,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
         },
         GroupManip::Decline => {
             let clients = state.ecs().read_storage::<Client>();
-            let uids = state.ecs().read_storage::<sync::Uid>();
+            let uids = state.ecs().read_storage::<Uid>();
             let mut invites = state.ecs().write_storage::<Invite>();
             if let Some(inviter) = invites.remove(entity).and_then(|invite| {
                 let inviter = invite.0;
@@ -252,7 +255,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
         },
         GroupManip::Leave => {
             let clients = state.ecs().read_storage::<Client>();
-            let uids = state.ecs().read_storage::<sync::Uid>();
+            let uids = state.ecs().read_storage::<Uid>();
             let mut group_manager = state.ecs().write_resource::<GroupManager>();
             group_manager.leave_group(
                 entity,
@@ -274,7 +277,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
         },
         GroupManip::Kick(uid) => {
             let clients = state.ecs().read_storage::<Client>();
-            let uids = state.ecs().read_storage::<sync::Uid>();
+            let uids = state.ecs().read_storage::<Uid>();
             let alignments = state.ecs().read_storage::<comp::Alignment>();
 
             let target = match state.ecs().entity_from_uid(uid.into()) {
@@ -282,10 +285,10 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                 None => {
                     // Inform of failure
                     if let Some(client) = clients.get(entity) {
-                        client.send_fallible(
-                            ChatType::Meta
-                                .server_msg("Kick failed, target does not exist.".to_owned()),
-                        );
+                        client.send_fallible(ServerGeneral::server_msg(
+                            ChatType::Meta,
+                            "Kick failed, target does not exist.",
+                        ));
                     }
                     return;
                 },
@@ -295,19 +298,20 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
             if matches!(alignments.get(target), Some(comp::Alignment::Owned(owner)) if uids.get(target).map_or(true, |u| u != owner))
             {
                 if let Some(general_stream) = clients.get(entity) {
-                    general_stream.send_fallible(
-                        ChatType::Meta.server_msg("Kick failed, you can't kick pets.".to_owned()),
-                    );
+                    general_stream.send_fallible(ServerGeneral::server_msg(
+                        ChatType::Meta,
+                        "Kick failed, you can't kick pets.",
+                    ));
                 }
                 return;
             }
             // Can't kick yourself
             if uids.get(entity).map_or(false, |u| *u == uid) {
                 if let Some(client) = clients.get(entity) {
-                    client.send_fallible(
-                        ChatType::Meta
-                            .server_msg("Kick failed, you can't kick yourself.".to_owned()),
-                    );
+                    client.send_fallible(ServerGeneral::server_msg(
+                        ChatType::Meta,
+                        "Kick failed, you can't kick yourself.",
+                    ));
                 }
                 return;
             }
@@ -341,47 +345,50 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
 
                     // Tell them the have been kicked
                     if let Some(client) = clients.get(target) {
-                        client.send_fallible(
-                            ChatType::Meta
-                                .server_msg("You were removed from the group.".to_owned()),
-                        );
+                        client.send_fallible(ServerGeneral::server_msg(
+                            ChatType::Meta,
+                            "You were removed from the group.",
+                        ));
                     }
                     // Tell kicker that they were succesful
                     if let Some(client) = clients.get(entity) {
-                        client
-                            .send_fallible(ChatType::Meta.server_msg("Player kicked.".to_owned()));
+                        client.send_fallible(ServerGeneral::server_msg(
+                            ChatType::Meta,
+                            "Player kicked.",
+                        ));
                     }
                 },
                 Some(_) => {
                     // Inform kicker that they are not the leader
                     if let Some(client) = clients.get(entity) {
-                        client.send_fallible(ChatType::Meta.server_msg(
-                            "Kick failed: You are not the leader of the target's group.".to_owned(),
+                        client.send_fallible(ServerGeneral::server_msg(
+                            ChatType::Meta,
+                            "Kick failed: You are not the leader of the target's group.",
                         ));
                     }
                 },
                 None => {
                     // Inform kicker that the target is not in a group
                     if let Some(client) = clients.get(entity) {
-                        client.send_fallible(
-                            ChatType::Meta.server_msg(
-                                "Kick failed: Your target is not in a group.".to_owned(),
-                            ),
-                        );
+                        client.send_fallible(ServerGeneral::server_msg(
+                            ChatType::Meta,
+                            "Kick failed: Your target is not in a group.",
+                        ));
                     }
                 },
             }
         },
         GroupManip::AssignLeader(uid) => {
             let clients = state.ecs().read_storage::<Client>();
-            let uids = state.ecs().read_storage::<sync::Uid>();
+            let uids = state.ecs().read_storage::<Uid>();
             let target = match state.ecs().entity_from_uid(uid.into()) {
                 Some(t) => t,
                 None => {
                     // Inform of failure
                     if let Some(client) = clients.get(entity) {
-                        client.send_fallible(ChatType::Meta.server_msg(
-                            "Leadership transfer failed, target does not exist".to_owned(),
+                        client.send_fallible(ServerGeneral::server_msg(
+                            ChatType::Meta,
+                            "Leadership transfer failed, target does not exist",
                         ));
                     }
                     return;
@@ -415,34 +422,34 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                     );
                     // Tell them they are the leader
                     if let Some(client) = clients.get(target) {
-                        client.send_fallible(
-                            ChatType::Meta.server_msg("You are the group leader now.".to_owned()),
-                        );
+                        client.send_fallible(ServerGeneral::server_msg(
+                            ChatType::Meta,
+                            "You are the group leader now.",
+                        ));
                     }
                     // Tell the old leader that the transfer was succesful
                     if let Some(client) = clients.get(target) {
-                        client.send_fallible(
-                            ChatType::Meta
-                                .server_msg("You are no longer the group leader.".to_owned()),
-                        );
+                        client.send_fallible(ServerGeneral::server_msg(
+                            ChatType::Meta,
+                            "You are no longer the group leader.",
+                        ));
                     }
                 },
                 Some(_) => {
                     // Inform transferer that they are not the leader
                     if let Some(client) = clients.get(entity) {
-                        client.send_fallible(
-                            ChatType::Meta.server_msg(
-                                "Transfer failed: You are not the leader of the target's group."
-                                    .to_owned(),
-                            ),
-                        );
+                        client.send_fallible(ServerGeneral::server_msg(
+                            ChatType::Meta,
+                            "Transfer failed: You are not the leader of the target's group.",
+                        ));
                     }
                 },
                 None => {
                     // Inform transferer that the target is not in a group
                     if let Some(client) = clients.get(entity) {
-                        client.send_fallible(ChatType::Meta.server_msg(
-                            "Transfer failed: Your target is not in a group.".to_owned(),
+                        client.send_fallible(ServerGeneral::server_msg(
+                            ChatType::Meta,
+                            "Transfer failed: Your target is not in a group.",
                         ));
                     }
                 },

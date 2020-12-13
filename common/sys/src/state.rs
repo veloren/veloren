@@ -5,12 +5,12 @@ use common::{
     region::RegionMap,
     resources::{DeltaTime, Time, TimeOfDay},
     span,
-    sync::WorldSyncExt,
     terrain::{Block, TerrainChunk, TerrainGrid},
     time::DayPeriod,
     vol::{ReadVol, WriteVol},
     resources,
 };
+use common_net::sync::WorldSyncExt;
 use hashbrown::{HashMap, HashSet};
 use rayon::{ThreadPool, ThreadPoolBuilder};
 use specs::{

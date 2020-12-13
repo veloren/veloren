@@ -1,4 +1,4 @@
-use common::msg::{ClientType, ServerGeneral, ServerMsg};
+use common_net::msg::{ClientType, ServerGeneral, ServerMsg};
 use network::{Message, Participant, Stream, StreamError};
 use serde::{de::DeserializeOwned, Serialize};
 use specs::Component;

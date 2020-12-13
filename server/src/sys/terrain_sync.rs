@@ -1,6 +1,7 @@
 use super::SysTimer;
 use crate::{client::Client, presence::Presence};
-use common::{comp::Pos, msg::ServerGeneral, span, terrain::TerrainGrid};
+use common::{comp::Pos, span, terrain::TerrainGrid};
+use common_net::msg::ServerGeneral;
 use common_sys::state::TerrainChanges;
 use specs::{Join, Read, ReadExpect, ReadStorage, System, Write};
 

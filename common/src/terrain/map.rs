@@ -147,7 +147,7 @@ impl MapSizeLg {
     // not technically been stabilized yet, Clippy probably doesn't check for this
     // case yet.  When it can, or when is_some() is stabilized as a `const fn`,
     // we should deal with this.
-    #[allow(clippy::redundant_pattern_matching)]
+    #[allow(clippy::redundant_pattern_matching, clippy::result_unit_err)]
     /// Construct a new `MapSizeLg`, returning an error if the needed invariants
     /// do not hold and the vector otherwise.
     ///

@@ -9,7 +9,8 @@ use crate::{
     GlobalState,
 };
 use client::{self, Client};
-use common::{comp, msg::world_msg::SiteKind, terrain::TerrainChunkSize, vol::RectVolSize};
+use common::{comp, terrain::TerrainChunkSize, vol::RectVolSize};
+use common_net::msg::world_msg::SiteKind;
 use conrod_core::{
     color, position,
     widget::{self, Button, Image, Rectangle, Text},

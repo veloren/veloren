@@ -15,8 +15,9 @@ use crate::{
 use client::{self, Client};
 use common::{
     comp::{group::Role, BuffKind, Stats},
-    sync::{Uid, WorldSyncExt},
+    uid::{Uid, UidAllocator},
 };
+use common_net::sync::WorldSyncExt;
 use conrod_core::{
     color,
     position::{Place, Relative},
@@ -329,7 +330,7 @@ impl<'a> Widget for Group<'a> {
             let buffs = client_state.ecs().read_storage::<common::comp::Buffs>();
             let uid_allocator = client_state
                 .ecs()
-                .read_resource::<common::sync::UidAllocator>();
+                .read_resource::<UidAllocator>();
 
             // Keep track of the total number of widget ids we are using for buffs
             let mut total_buff_count = 0;

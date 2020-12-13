@@ -3,8 +3,8 @@ use super::{
         CompPacket, CompSyncPackage, CompUpdateKind, EntityPackage, EntitySyncPackage, StatePackage,
     },
     track::UpdateTracker,
-    uid::{Uid, UidAllocator},
 };
+use common::uid::{Uid, UidAllocator};
 use specs::{
     saveload::{MarkedBuilder, MarkerAllocator},
     world::Builder,

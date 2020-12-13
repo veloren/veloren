@@ -1,4 +1,4 @@
-use crate::{comp::Alignment, sync::Uid};
+use crate::{comp::Alignment, uid::Uid};
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use slab::Slab;

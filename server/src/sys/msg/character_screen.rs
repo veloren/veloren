@@ -6,10 +6,10 @@ use crate::{
 use common::{
     comp::{item::tool::AbilityMap, ChatType, Player, UnresolvedChatMsg},
     event::{EventBus, ServerEvent},
-    msg::{ClientGeneral, ServerGeneral},
     span,
-    sync::Uid,
+    uid::Uid,
 };
+use common_net::msg::{ClientGeneral, ServerGeneral};
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, Write};
 use std::sync::atomic::Ordering;
 use tracing::{debug, warn};
@@ -62,9 +62,10 @@ impl Sys {
 
                         // Give the player a welcome message
                         if !editable_settings.server_description.is_empty() {
-                            client.send(ChatType::CommandInfo.server_msg(String::from(
+                            client.send(ServerGeneral::server_msg(
+                                ChatType::CommandInfo,
                                 &*editable_settings.server_description,
-                            )))?;
+                            ))?;
                         }
 
                         if !client.login_msg_sent.load(Ordering::Relaxed) {

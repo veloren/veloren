@@ -1,7 +1,7 @@
 use crate::{
     comp::buff::{BuffCategory, BuffData, BuffKind},
     effect::{self, BuffEffect},
-    sync::Uid,
+    uid::Uid,
     Damage, DamageSource, Explosion, GroupTarget, Knockback, RadiusEffect,
 };
 use serde::{Deserialize, Serialize};

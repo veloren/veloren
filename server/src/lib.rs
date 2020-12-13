@@ -51,14 +51,17 @@ use common::{
     cmd::ChatCommand,
     comp::{self, ChatType},
     event::{EventBus, ServerEvent},
-    msg::{ClientType, DisconnectReason, ServerGeneral, ServerInfo, ServerInit, ServerMsg, WorldMapMsg},
     outcome::Outcome,
     recipe::default_recipe_book,
     resources::TimeOfDay,
     rtsim::RtSimEntity,
-    sync::{Uid, WorldSyncExt},
+    uid::Uid,
     terrain::TerrainChunkSize,
     vol::{ReadVol, RectVolSize},
+};
+use common_net::{
+    sync::WorldSyncExt,
+    msg::{ClientType, DisconnectReason, ServerGeneral, ServerInfo, ServerInit, ServerMsg, WorldMapMsg},
 };
 use common_sys::{
     state::State,
@@ -1022,7 +1025,7 @@ impl Server {
                     if e.is_empty() {
                         self.notify_client(
                             entity,
-                            ChatType::CommandError.server_msg(format!(
+                            ServerGeneral::server_msg(ChatType::CommandError, format!(
                                 "Unknown command '/{}'.\nType '/help' for available commands",
                                 kwd
                             ))
@@ -1034,14 +1037,14 @@ impl Server {
                                     if !e.is_empty() {
                                         self.notify_client(
                                             entity,
-                                            ChatType::CommandInfo.server_msg(e.join("\n")),
+                                            ServerGeneral::server_msg(ChatType::CommandInfo, e.join("\n")),
                                         );
                                     }
                                 },
                                 Err(e) => {
                                     self.notify_client(
                                         entity,
-                                        ChatType::CommandError.server_msg(format!(
+                                        ServerGeneral::server_msg(ChatType::CommandError, format!(
                                             "Error occurred while executing command '/{}'.\n{}",
                                             kwd,
                                             e
@@ -1056,7 +1059,7 @@ impl Server {
                     error!(?e, "Can't execute command {} {}",kwd,args);
                     self.notify_client(
                         entity,
-                        ChatType::CommandError.server_msg(format!(
+                        ServerGeneral::server_msg(ChatType::CommandError, format!(
                             "Internal error while executing '/{}'.\nContact the server administrator",
                             kwd
                         ))

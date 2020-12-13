@@ -10,8 +10,9 @@ simd = ["vek/platform_intrinsics"]
 default = ["simd"]
 
 [dependencies]
-bincode = "1.2.0"
 common = { package = "veloren-common", path = "../common" }
+common-net = { package = "veloren-common-net", path = "../common/net" }
+bincode = "1.2.0"
 bitvec = "0.17.4"
 fxhash = "0.2.1"
 image = { version = "0.23.8", default-features = false, features = ["png"] }

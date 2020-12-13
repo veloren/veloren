@@ -42,10 +42,10 @@ use crate::{
 };
 use common::{
     generation::{ChunkSupplement, EntityInfo},
-    msg::{world_msg, WorldMapMsg},
     terrain::{Block, BlockKind, SpriteKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     vol::{ReadVol, RectVolSize, WriteVol},
 };
+use common_net::msg::{world_msg, WorldMapMsg};
 use rand::Rng;
 use serde::Deserialize;
 use std::time::Duration;

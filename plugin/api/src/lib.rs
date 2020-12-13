@@ -1,5 +1,5 @@
 use serde::{Serialize, de::DeserializeOwned, Deserialize};
-use common::{sync, resources};
+use common::uid::Uid;
 
 #[derive(Deserialize,Serialize,Debug)]
 pub enum Action {
@@ -13,7 +13,7 @@ pub trait Event: Serialize + DeserializeOwned + Send + Sync{
     type Response: Serialize + DeserializeOwned + Send + Sync;
 }
 
-pub use resources::GameMode;
+pub use common::resources::GameMode;
 
 pub mod event {
     use super::*;
@@ -32,7 +32,7 @@ pub mod event {
 
     #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
     pub struct Player {
-        pub id: sync::Uid,
+        pub id: Uid,
     }
 
     #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]

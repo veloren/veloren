@@ -1,7 +1,5 @@
-use super::{
-    packet::{CompPacket, CompUpdateKind},
-    uid::Uid,
-};
+use super::packet::{CompPacket, CompUpdateKind};
+use common::uid::Uid;
 use specs::{BitSet, Component, Entity, Join, ReadStorage, World, WorldExt};
 use std::{
     convert::{TryFrom, TryInto},

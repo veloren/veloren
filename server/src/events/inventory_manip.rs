@@ -5,12 +5,12 @@ use common::{
         slot::{self, Slot},
     },
     consts::MAX_PICKUP_RANGE,
-    msg::ServerGeneral,
     recipe::default_recipe_book,
-    sync::{Uid, WorldSyncExt},
+    uid::Uid,
     util::find_dist::{self, FindDist},
     vol::ReadVol,
 };
+use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 use common_sys::state::State;
 use comp::LightEmitter;
 use rand::Rng;

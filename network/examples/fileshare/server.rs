@@ -1,3 +1,5 @@
+#![allow(clippy::eval_order_dependence)]
+
 use crate::commands::{Command, FileInfo, LocalCommand, RemoteInfo};
 use async_std::{
     fs,
@@ -58,22 +60,16 @@ impl Server {
         command_receiver
             .for_each_concurrent(None, async move |cmd| {
                 match cmd {
-                    LocalCommand::Shutdown => {
-                        println!("Shutting down service");
-                        return;
-                    },
+                    LocalCommand::Shutdown => println!("Shutting down service"),
                     LocalCommand::Disconnect => {
                         self.remotes.write().await.clear();
                         println!("Disconnecting all connections");
-                        return;
                     },
                     LocalCommand::Connect(addr) => {
                         println!("Trying to connect to: {:?}", &addr);
                         match self.network.connect(addr.clone()).await {
                             Ok(p) => self.loop_participant(p).await,
-                            Err(e) => {
-                                println!("Failed to connect to {:?}, err: {:?}", &addr, e);
-                            },
+                            Err(e) => println!("Failed to connect to {:?}, err: {:?}", &addr, e),
                         }
                     },
                     LocalCommand::Serve(fileinfo) => {
@@ -188,7 +184,7 @@ impl Server {
     }
 }
 
-fn print_fileinfos(infos: &Vec<FileInfo>) {
+fn print_fileinfos(infos: &[FileInfo]) {
     let mut i = 0;
     for info in infos {
         let bytes = info.size;

@@ -77,7 +77,7 @@ impl RemoteInfo {
         }
     }
 
-    pub fn get_info(&self, id: u32) -> Option<FileInfo> { self.infos.get(&id).map(|fi| fi.clone()) }
+    pub fn get_info(&self, id: u32) -> Option<FileInfo> { self.infos.get(&id).cloned() }
 
     pub fn insert_infos(&mut self, mut fi: Vec<FileInfo>) {
         for fi in fi.drain(..) {

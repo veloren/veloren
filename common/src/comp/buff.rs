@@ -1,4 +1,4 @@
-use crate::sync::Uid;
+use crate::uid::Uid;
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;

@@ -1,14 +1,14 @@
 use super::{ClientType, EcsCompPacket, PingMsg};
-use crate::{
-    character::CharacterItem,
+use common::{
+    character::{self, CharacterItem},
     comp,
     outcome::Outcome,
     recipe::RecipeBook,
     resources::TimeOfDay,
-    sync,
-    sync::Uid,
+    uid::Uid,
     terrain::{Block, TerrainChunk},
 };
+use crate::sync;
 use authc::AuthClientError;
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
@@ -55,7 +55,7 @@ pub enum ServerInit {
         client_timeout: Duration,
         world_map: crate::msg::world_msg::WorldMapMsg,
         recipe_book: RecipeBook,
-        ability_map: crate::comp::item::tool::AbilityMap,
+        ability_map: comp::item::tool::AbilityMap,
     },
 }
 
@@ -72,7 +72,7 @@ pub enum ServerGeneral {
     /// An error occurred while creating or deleting a character
     CharacterActionError(String),
     /// A new character was created
-    CharacterCreated(crate::character::CharacterId),
+    CharacterCreated(character::CharacterId),
     CharacterSuccess,
     //Ingame related
     GroupUpdate(comp::group::ChangeNotification<sync::Uid>),
@@ -119,6 +119,15 @@ pub enum ServerGeneral {
     Disconnect(DisconnectReason),
     /// Send a popup notification such as "Waypoint Saved"
     Notification(Notification),
+}
+
+impl ServerGeneral {
+    pub fn server_msg<S>(chat_type: comp::ChatType<String>, msg: S) -> Self
+    where
+        S: Into<String>,
+    {
+        ServerGeneral::ChatMsg(chat_type.chat_msg(msg))
+    }
 }
 
 /*
