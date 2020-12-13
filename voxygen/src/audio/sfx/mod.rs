@@ -368,12 +368,14 @@ impl SfxMgr {
 }
 
 impl assets::Asset for SfxTriggers {
-    const EXTENSION: &'static str = "ron";
     type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
 
     fn default_value(_: &str, error: assets::Error) -> Result<Self, assets::Error> {
         warn!(
-            "Error reading sfx config file, sfx will not be available: {:#?}", error
+            "Error reading sfx config file, sfx will not be available: {:#?}",
+            error
         );
 
         Ok(SfxTriggers::default())

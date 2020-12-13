@@ -246,8 +246,9 @@ pub enum WorldFile {
 }
 
 impl assets::Asset for WorldFile {
-    const EXTENSION: &'static str = "bin";
     type Loader = assets::BincodeLoader;
+
+    const EXTENSION: &'static str = "bin";
 }
 
 /// Data for the most recent map type.  Update this when you add a new map
@@ -413,22 +414,24 @@ impl WorldSim {
 
                     map.into_modern()
                 },
-                FileOpts::LoadAsset(ref specifier) => {
-                    match WorldFile::load_owned(&specifier) {
-                        Ok(map) => map.into_modern(),
-                        Err(err) => {
-                            match err {
-                                assets::Error::Io(e) =>  {
-                                    warn!(?e, ?specifier, "Couldn't read asset specifier for maps");
-                                }
-                                assets::Error::Conversion(e) =>  {
-                                    warn!(?e, "Couldn't parse modern map.  Maybe you meant to try a legacy load?");
-                                }
-                                assets::Error::NoDefaultValue => unreachable!(),
-                            }
-                            return None;
+                FileOpts::LoadAsset(ref specifier) => match WorldFile::load_owned(&specifier) {
+                    Ok(map) => map.into_modern(),
+                    Err(err) => {
+                        match err {
+                            assets::Error::Io(e) => {
+                                warn!(?e, ?specifier, "Couldn't read asset specifier for maps");
+                            },
+                            assets::Error::Conversion(e) => {
+                                warn!(
+                                    ?e,
+                                    "Couldn't parse modern map.  Maybe you meant to try a legacy \
+                                     load?"
+                                );
+                            },
+                            assets::Error::NoDefaultValue => unreachable!(),
                         }
-                    }
+                        return None;
+                    },
                 },
                 FileOpts::Generate | FileOpts::Save => return None,
             };

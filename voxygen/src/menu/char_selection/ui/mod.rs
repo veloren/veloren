@@ -263,11 +263,7 @@ enum Message {
 }
 
 impl Controls {
-    fn new(
-        fonts: Fonts,
-        imgs: Imgs,
-        selected: Option<CharacterId>,
-    ) -> Self {
+    fn new(fonts: Fonts, imgs: Imgs, selected: Option<CharacterId>) -> Self {
         let version = common::util::DISPLAY_VERSION_LONG.clone();
         let alpha = format!("Veloren {}", common::util::DISPLAY_VERSION.as_str());
 
@@ -1467,8 +1463,8 @@ impl CharSelectionUi {
         let font = ui::ice::load_font(&i18n.fonts.get("cyri").unwrap().asset_key);
 
         self.ui.clear_fonts(font);
-        self.controls.fonts = Fonts::load(&i18n.fonts, &mut self.ui)
-            .expect("Impossible to load fonts!");
+        self.controls.fonts =
+            Fonts::load(&i18n.fonts, &mut self.ui).expect("Impossible to load fonts!");
     }
 
     pub fn set_scale_mode(&mut self, scale_mode: ui::ScaleMode) {

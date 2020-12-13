@@ -159,13 +159,27 @@ impl PartialEq for Item {
 }
 
 impl assets::Compound for ItemDef {
-    fn load<S: assets_manager::source::Source>(cache: &assets_manager::AssetCache<S>, specifier: &str) -> Result<Self, Error> {
+    fn load<S: assets_manager::source::Source>(
+        cache: &assets_manager::AssetCache<S>,
+        specifier: &str,
+    ) -> Result<Self, Error> {
         let raw = cache.load_owned::<RawItemDef>(specifier)?;
 
-        let RawItemDef { name, description, kind, quality} = raw;
+        let RawItemDef {
+            name,
+            description,
+            kind,
+            quality,
+        } = raw;
         let item_definition_id = specifier.replace('\\', ".");
 
-        Ok(ItemDef { item_definition_id, name, description, kind, quality })
+        Ok(ItemDef {
+            item_definition_id,
+            name,
+            description,
+            kind,
+            quality,
+        })
     }
 }
 
@@ -179,16 +193,15 @@ struct RawItemDef {
 }
 
 impl assets::Asset for RawItemDef {
-    const EXTENSION: &'static str = "ron";
     type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
 }
 
 impl Item {
     // TODO: consider alternatives such as default abilities that can be added to a
     // loadout when no weapon is present
-    pub fn empty() -> Self {
-        Item::new_from_asset_expect("common.items.weapons.empty.empty")
-    }
+    pub fn empty() -> Self { Item::new_from_asset_expect("common.items.weapons.empty.empty") }
 
     pub fn new(inner_item: Arc<ItemDef>) -> Self {
         Item {
@@ -212,7 +225,8 @@ impl Item {
 
         let specifiers = assets::Directory::load(asset_glob)?;
 
-        specifiers.read()
+        specifiers
+            .read()
             .iter()
             .map(|spec| Self::new_from_asset(&spec))
             .collect()
@@ -334,7 +348,8 @@ impl Item {
                     3 => "common.loot_tables.loot_table_armor_cloth",
                     4 => "common.loot_tables.loot_table_armor_heavy",
                     _ => "common.loot_tables.loot_table_armor_misc",
-                }).read();
+                })
+                .read();
                 chosen.choose()
             },
             SpriteKind::ChestBurried => {
@@ -343,7 +358,8 @@ impl Item {
                     2 => "common.loot_tables.loot_table_armor_light",
                     3 => "common.loot_tables.loot_table_armor_cloth",
                     _ => "common.loot_tables.loot_table_armor_misc",
-                }).read();
+                })
+                .read();
                 chosen.choose()
             },
             SpriteKind::Mud => {
@@ -352,14 +368,16 @@ impl Item {
                     1 => "common.loot_tables.loot_table_weapon_common",
                     2 => "common.loot_tables.loot_table_armor_misc",
                     _ => "common.loot_tables.loot_table_rocks",
-                }).read();
+                })
+                .read();
                 chosen.choose()
             },
             SpriteKind::Crate => {
                 chosen = Lottery::<String>::load_expect(match rng.gen_range(0, 4) {
                     0 => "common.loot_tables.loot_table_crafting",
                     _ => "common.loot_tables.loot_table_food",
-                }).read();
+                })
+                .read();
                 chosen.choose()
             },
             SpriteKind::Beehive => "common.items.crafting_ing.honey",

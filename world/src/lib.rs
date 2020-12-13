@@ -72,8 +72,9 @@ pub struct Colors {
 }
 
 impl assets::Asset for Colors {
-    const EXTENSION: &'static str = "ron";
     type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
 }
 
 impl World {

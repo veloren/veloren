@@ -5,7 +5,10 @@ use crate::{
 };
 use common::assets::{self, AssetExt};
 use glyph_brush::GlyphBrushBuilder;
-use std::{borrow::Cow, cell::{RefCell, RefMut}};
+use std::{
+    borrow::Cow,
+    cell::{RefCell, RefMut},
+};
 use vek::*;
 
 // Multiplied by current window size
@@ -31,13 +34,12 @@ impl assets::Loader<FontAsset> for FontLoader {
 }
 
 impl assets::Asset for FontAsset {
-    const EXTENSION: &'static str = "ttf";
     type Loader = FontLoader;
+
+    const EXTENSION: &'static str = "ttf";
 }
 
-pub fn load_font(specifier: &str) -> Font {
-    FontAsset::load_expect(specifier).read().0.clone()
-}
+pub fn load_font(specifier: &str) -> Font { FontAsset::load_expect(specifier).read().0.clone() }
 
 #[derive(Clone, Copy, Default)]
 pub struct FontId(pub(super) glyph_brush::FontId);
@@ -142,12 +144,11 @@ impl Cache {
 pub struct RawFont(pub Vec<u8>);
 
 impl From<Vec<u8>> for RawFont {
-    fn from(raw: Vec<u8>) -> RawFont {
-        RawFont(raw)
-    }
+    fn from(raw: Vec<u8>) -> RawFont { RawFont(raw) }
 }
 
 impl assets::Asset for RawFont {
-    const EXTENSION: &'static str = "ttf";
     type Loader = assets::LoadFrom<Vec<u8>, assets::BytesLoader>;
+
+    const EXTENSION: &'static str = "ttf";
 }

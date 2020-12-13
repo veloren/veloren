@@ -88,7 +88,10 @@ pub fn get_npc_name(npc_type: NpcKind) -> String {
     let BodyNames { keyword, names } = &npc_names[npc_type];
 
     // If no pretty name is found, fall back to the keyword.
-    names.choose(&mut rand::thread_rng()).unwrap_or(keyword).clone()
+    names
+        .choose(&mut rand::thread_rng())
+        .unwrap_or(keyword)
+        .clone()
 }
 
 /// Randomly generates a body associated with this NPC kind.

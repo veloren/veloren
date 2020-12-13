@@ -102,14 +102,13 @@ pub type ColLightInfo = (
 pub struct Glsl(String);
 
 impl From<String> for Glsl {
-    fn from(s: String) -> Glsl {
-        Glsl(s)
-    }
+    fn from(s: String) -> Glsl { Glsl(s) }
 }
 
 impl assets::Asset for Glsl {
-    const EXTENSION: &'static str = "glsl";
     type Loader = assets::LoadFrom<String, assets::StringLoader>;
+
+    const EXTENSION: &'static str = "glsl";
 }
 
 struct Shaders {
@@ -164,7 +163,10 @@ struct Shaders {
 impl assets::Compound for Shaders {
     // TODO: Taking the specifier argument as a base for shaders specifiers
     // would allow to use several shaders groups easily
-    fn load<S: assets::source::Source>(_: &assets::AssetCache<S>, _: &str) -> Result<Shaders, assets::Error> {
+    fn load<S: assets::source::Source>(
+        _: &assets::AssetCache<S>,
+        _: &str,
+    ) -> Result<Shaders, assets::Error> {
         Ok(Shaders {
             constants: AssetExt::load("voxygen.shaders.include.constants")?,
             globals: AssetExt::load("voxygen.shaders.include.globals")?,
@@ -185,8 +187,12 @@ impl assets::Compound for Shaders {
             figure_vert: AssetExt::load("voxygen.shaders.figure-vert")?,
 
             terrain_point_shadow_vert: AssetExt::load("voxygen.shaders.light-shadows-vert")?,
-            terrain_directed_shadow_vert: AssetExt::load("voxygen.shaders.light-shadows-directed-vert")?,
-            figure_directed_shadow_vert: AssetExt::load("voxygen.shaders.light-shadows-figure-vert")?,
+            terrain_directed_shadow_vert: AssetExt::load(
+                "voxygen.shaders.light-shadows-directed-vert",
+            )?,
+            figure_directed_shadow_vert: AssetExt::load(
+                "voxygen.shaders.light-shadows-figure-vert",
+            )?,
             directed_shadow_frag: AssetExt::load("voxygen.shaders.light-shadows-directed-frag")?,
 
             skybox_vert: AssetExt::load("voxygen.shaders.skybox-vert")?,
@@ -323,12 +329,7 @@ impl Renderer {
             point_shadow_pipeline,
             terrain_directed_shadow_pipeline,
             figure_directed_shadow_pipeline,
-        ) = create_pipelines(
-            &mut factory,
-            &shaders.read(),
-            &mode,
-            shadow_views.is_some(),
-        )?;
+        ) = create_pipelines(&mut factory, &shaders.read(), &mode, shadow_views.is_some())?;
 
         let (
             tgt_color_view,
@@ -1994,7 +1995,9 @@ fn create_pipelines(
         &match mode.fluid {
             FluidMode::Cheap => shaders.fluid_frag_cheap,
             FluidMode::Shiny => shaders.fluid_frag_shiny,
-        }.read().0,
+        }
+        .read()
+        .0,
         &include_ctx,
         gfx::state::CullFace::Nothing,
     )?;

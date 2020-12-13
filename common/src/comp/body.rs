@@ -126,8 +126,9 @@ impl<
     SpeciesMeta: Send + Sync + for<'de> serde::Deserialize<'de> + 'static,
 > Asset for AllBodies<BodyMeta, SpeciesMeta>
 {
-    const EXTENSION: &'static str = "json";
     type Loader = assets::JsonLoader;
+
+    const EXTENSION: &'static str = "json";
 }
 
 impl Body {

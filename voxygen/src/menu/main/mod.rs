@@ -48,7 +48,8 @@ impl PlayState for MainMenuState {
         }
 
         // Updated localization in case the selected language was changed
-        self.main_menu_ui.update_language(global_state.i18n, &global_state.settings);
+        self.main_menu_ui
+            .update_language(global_state.i18n, &global_state.settings);
         // Set scale mode in case it was change
         self.main_menu_ui
             .set_scale_mode(global_state.settings.gameplay.ui_scale);
@@ -264,10 +265,8 @@ impl PlayState for MainMenuState {
                         &global_state.settings.language.selected_language,
                     ));
                     global_state.i18n.read().log_missing_entries();
-                    self.main_menu_ui.update_language(
-                        global_state.i18n,
-                        &global_state.settings,
-                    );
+                    self.main_menu_ui
+                        .update_language(global_state.i18n, &global_state.settings);
                 },
                 #[cfg(feature = "singleplayer")]
                 MainMenuEvent::StartSingleplayer => {

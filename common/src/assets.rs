@@ -4,11 +4,18 @@ use dot_vox::DotVoxData;
 use image::DynamicImage;
 use lazy_static::lazy_static;
 use serde::Deserialize;
-use std::{borrow::Cow, fs, io, path::{Path, PathBuf}, sync::Arc};
+use std::{
+    borrow::Cow,
+    fs, io,
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 
 pub use assets_manager::{
-    Asset, AssetCache, BoxedError, Compound, Error, source,
-    loader::{self, BytesLoader, BincodeLoader, Loader, JsonLoader, LoadFrom, RonLoader, StringLoader},
+    loader::{
+        self, BincodeLoader, BytesLoader, JsonLoader, LoadFrom, Loader, RonLoader, StringLoader,
+    },
+    source, Asset, AssetCache, BoxedError, Compound, Error,
 };
 
 lazy_static! {
@@ -16,9 +23,7 @@ lazy_static! {
     static ref ASSETS: AssetCache = AssetCache::new(&*ASSETS_PATH).unwrap();
 }
 
-pub fn start_hot_reloading() {
-    ASSETS.enhance_hot_reloading();
-}
+pub fn start_hot_reloading() { ASSETS.enhance_hot_reloading(); }
 
 pub type AssetHandle<T> = assets_manager::Handle<'static, T>;
 pub type AssetDir<T> = assets_manager::DirReader<'static, T, source::FileSystem>;
@@ -79,21 +84,15 @@ pub fn load_dir<T: Asset>(specifier: &str) -> Result<AssetDir<T>, Error> {
 }
 
 impl<T: Compound> AssetExt for T {
-    fn load(specifier: &str) -> Result<AssetHandle<Self>, Error> {
-        ASSETS.load(specifier)
-    }
+    fn load(specifier: &str) -> Result<AssetHandle<Self>, Error> { ASSETS.load(specifier) }
 
-    fn load_owned(specifier: &str) -> Result<Self, Error> {
-        ASSETS.load_owned(specifier)
-    }
+    fn load_owned(specifier: &str) -> Result<Self, Error> { ASSETS.load_owned(specifier) }
 }
 
 pub struct Image(pub Arc<DynamicImage>);
 
 impl Image {
-    pub fn to_image(&self) -> Arc<DynamicImage> {
-        self.0.clone()
-    }
+    pub fn to_image(&self) -> Arc<DynamicImage> { self.0.clone() }
 }
 
 pub struct ImageLoader;
@@ -105,8 +104,9 @@ impl Loader<Image> for ImageLoader {
 }
 
 impl Asset for Image {
-    const EXTENSIONS: &'static [&'static str] = &["png", "jpg"];
     type Loader = ImageLoader;
+
+    const EXTENSIONS: &'static [&'static str] = &["png", "jpg"];
 }
 
 pub struct DotVoxAsset(pub DotVoxData);
@@ -128,14 +128,15 @@ impl<T> Asset for Ron<T>
 where
     T: Send + Sync + for<'de> Deserialize<'de> + 'static,
 {
-    const EXTENSION: &'static str = "ron";
     type Loader = RonLoader;
+
+    const EXTENSION: &'static str = "ron";
 }
 
-
 impl Asset for DotVoxAsset {
-    const EXTENSION: &'static str = "vox";
     type Loader = DotVoxLoader;
+
+    const EXTENSION: &'static str = "vox";
 }
 
 lazy_static! {
@@ -242,9 +243,7 @@ fn get_dir_files(files: &mut Vec<String>, path: &Path, specifier: &str) -> io::R
 pub struct Directory(Vec<String>);
 
 impl Directory {
-    pub fn iter(&self) -> impl Iterator<Item=&String> {
-        self.0.iter()
-    }
+    pub fn iter(&self) -> impl Iterator<Item = &String> { self.0.iter() }
 }
 
 impl Compound for Directory {
