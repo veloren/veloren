@@ -328,9 +328,7 @@ impl<'a> Widget for Group<'a> {
             let healths = client_state.ecs().read_storage::<common::comp::Health>();
             let energy = client_state.ecs().read_storage::<common::comp::Energy>();
             let buffs = client_state.ecs().read_storage::<common::comp::Buffs>();
-            let uid_allocator = client_state
-                .ecs()
-                .read_resource::<UidAllocator>();
+            let uid_allocator = client_state.ecs().read_resource::<UidAllocator>();
 
             // Keep track of the total number of widget ids we are using for buffs
             let mut total_buff_count = 0;

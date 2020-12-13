@@ -139,9 +139,7 @@ impl Body {
         )
     }
 
-    pub fn can_climb(&self) -> bool {
-        matches!(self, Body::Humanoid(_))
-    }
+    pub fn can_climb(&self) -> bool { matches!(self, Body::Humanoid(_)) }
 }
 
 /// Handles updating `Components` to move player based on state of `JoinData`

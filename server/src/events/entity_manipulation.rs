@@ -16,8 +16,8 @@ use common::{
     lottery::Lottery,
     outcome::Outcome,
     rtsim::RtSimEntity,
-    uid::{Uid, UidAllocator},
     terrain::{Block, TerrainGrid},
+    uid::{Uid, UidAllocator},
     vol::ReadVol,
     Damage, DamageSource, Explosion, GroupTarget, RadiusEffect,
 };
@@ -227,8 +227,10 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                 | HealthSource::Heal { by: _ }
                 | HealthSource::Unknown => KillSource::Other,
             };
-            state
-                .notify_players(ServerGeneral::server_msg(comp::ChatType::Kill(kill_source, *uid), "".to_string()));
+            state.notify_players(ServerGeneral::server_msg(
+                comp::ChatType::Kill(kill_source, *uid),
+                "".to_string(),
+            ));
         }
     }
 

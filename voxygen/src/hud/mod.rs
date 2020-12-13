@@ -62,12 +62,12 @@ use common::{
         BuffKind,
     },
     span,
-    uid::Uid,
     terrain::TerrainChunk,
+    uid::Uid,
     util::srgba_to_linear,
     vol::RectRasterableVol,
 };
-use common_net::msg::{PresenceKind, Notification};
+use common_net::msg::{Notification, PresenceKind};
 use conrod_core::{
     text::cursor::Index,
     widget::{self, Button, Image, Text},
@@ -2439,9 +2439,7 @@ impl Hud {
 
     pub fn new_message(&mut self, msg: comp::ChatMsg) { self.new_messages.push_back(msg); }
 
-    pub fn new_notification(&mut self, msg: Notification) {
-        self.new_notifications.push_back(msg);
-    }
+    pub fn new_notification(&mut self, msg: Notification) { self.new_notifications.push_back(msg); }
 
     pub fn scale_change(&mut self, scale_change: ScaleChange) -> ScaleMode {
         let scale_mode = match scale_change {

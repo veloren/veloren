@@ -1,15 +1,15 @@
 use super::{ClientType, EcsCompPacket, PingMsg};
+use crate::sync;
+use authc::AuthClientError;
 use common::{
     character::{self, CharacterItem},
     comp,
     outcome::Outcome,
     recipe::RecipeBook,
     resources::TimeOfDay,
-    uid::Uid,
     terrain::{Block, TerrainChunk},
+    uid::Uid,
 };
-use crate::sync;
-use authc::AuthClientError;
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;

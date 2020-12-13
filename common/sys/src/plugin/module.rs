@@ -22,14 +22,14 @@ pub struct PluginModule {
 }
 
 impl PluginModule {
-
     // This function takes bytes from a WASM File and compile them
-    pub fn new(wasm_data: &Vec<u8>) -> Result<Self,PluginModuleError> {
-        let module = compile(&wasm_data).map_err(|e| PluginModuleError::Compile(e))?;
+    pub fn new(wasm_data: &[u8]) -> Result<Self, PluginModuleError> {
+        let module = compile(&wasm_data).map_err(PluginModuleError::Compile)?;
         let instance = module
             .instantiate(&imports! {"env" => {
                 "raw_emit_actions" => func!(read_action),
-            }}).map_err(|e| PluginModuleError::Instantiate(e))?;
+            }})
+            .map_err(PluginModuleError::Instantiate)?;
 
         Ok(Self {
             events: instance.exports.into_iter().map(|(name, _)| name).collect(),
@@ -37,12 +37,13 @@ impl PluginModule {
         })
     }
 
-    // This function tries to execute an event for the current module. Will return None if the event doesn't exists
+    // This function tries to execute an event for the current module. Will return
+    // None if the event doesn't exists
     pub fn try_execute<T>(
         &self,
         event_name: &str,
         request: &PreparedEventQuery<T>,
-    ) -> Option<Result<T::Response,PluginModuleError>>
+    ) -> Option<Result<T::Response, PluginModuleError>>
     where
         T: Event,
     {
@@ -51,21 +52,26 @@ impl PluginModule {
         }
         let bytes = {
             let instance = self.wasm_instance.lock().unwrap();
-            let func = match instance.exports.get(event_name).map_err(|e| PluginModuleError::FunctionGet(e)) {
+            let func = match instance
+                .exports
+                .get(event_name)
+                .map_err(PluginModuleError::FunctionGet)
+            {
                 Ok(e) => e,
-                Err(e) => return Some(Err(e))
+                Err(e) => return Some(Err(e)),
             };
             let mem = instance.context().memory(0);
-            match execute_raw(&mem, &func, &request.bytes).map_err(|e| PluginModuleError::RunFunction(e)) {
+            match execute_raw(&mem, &func, &request.bytes).map_err(PluginModuleError::RunFunction) {
                 Ok(e) => e,
-                Err(e) => return Some(Err(e))
+                Err(e) => return Some(Err(e)),
             }
         };
-        Some(bincode::deserialize(&bytes).map_err(|e| PluginModuleError::Encoding(e)))
+        Some(bincode::deserialize(&bytes).map_err(PluginModuleError::Encoding))
     }
 }
 
-// This structure represent a Pre-encoded event object (Useful to avoid reencoding for each module in every plugin)
+// This structure represent a Pre-encoded event object (Useful to avoid
+// reencoding for each module in every plugin)
 pub struct PreparedEventQuery<T> {
     bytes: Vec<u8>,
     _phantom: PhantomData<T>,
@@ -79,7 +85,8 @@ impl<T: Event> PreparedEventQuery<T> {
         T: Event,
     {
         Ok(Self {
-            bytes: bincode::serialize(&event).map_err(|e| PluginError::PluginModuleError(PluginModuleError::Encoding(e)))?,
+            bytes: bincode::serialize(&event)
+                .map_err(|e| PluginError::PluginModuleError(PluginModuleError::Encoding(e)))?,
             _phantom: PhantomData::default(),
         })
     }
@@ -87,7 +94,9 @@ impl<T: Event> PreparedEventQuery<T> {
 
 const MEMORY_POS: usize = 100000;
 
-// This function is not public because this function should not be used without an interface to limit unsafe behaviours
+// This function is not public because this function should not be used without
+// an interface to limit unsafe behaviours
+#[allow(clippy::needless_range_loop)]
 fn execute_raw(
     memory: &Memory,
     function: &Function,
@@ -98,8 +107,7 @@ fn execute_raw(
     for (cell, byte) in view[MEMORY_POS..len + MEMORY_POS].iter().zip(bytes.iter()) {
         cell.set(*byte)
     }
-    let start = function
-        .call(MEMORY_POS as i32, len as u32)? as usize;
+    let start = function.call(MEMORY_POS as i32, len as u32)? as usize;
     let view = memory.view::<u8>();
     let mut new_len_bytes = [0u8; 4];
     // TODO: It is probably better to dirrectly make the new_len_bytes
@@ -127,7 +135,7 @@ pub fn read_action(ctx: &mut Ctx, ptr: u32, len: u32) {
         Err(e) => {
             tracing::error!(?e, "Can't decode action");
             return;
-        }
+        },
     };
 
     for action in e {
@@ -135,16 +143,16 @@ pub fn read_action(ctx: &mut Ctx, ptr: u32, len: u32) {
             Action::ServerClose => {
                 tracing::info!("Server closed by plugin");
                 std::process::exit(-1);
-            }
+            },
             Action::Print(e) => {
-                tracing::info!("{}",e);
-            }
+                tracing::info!("{}", e);
+            },
             Action::PlayerSendMessage(a, b) => {
-                tracing::info!("SendMessage {} -> {}",a,b);
-            }
+                tracing::info!("SendMessage {} -> {}", a, b);
+            },
             Action::KillEntity(e) => {
-                tracing::info!("Kill Entity {}",e);
-            }
+                tracing::info!("Kill Entity {}", e);
+            },
         }
     }
 }

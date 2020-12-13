@@ -48,11 +48,10 @@ pub mod store;
 pub mod terrain;
 pub mod time;
 pub mod typed;
-pub mod util;
 pub mod uid;
+pub mod util;
 pub mod vol;
 pub mod volumes;
-
 
 pub use combat::{Damage, DamageSource, GroupTarget, Knockback};
 pub use explosion::{Explosion, RadiusEffect};

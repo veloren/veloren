@@ -13,8 +13,8 @@ use common::{
     region::{Event as RegionEvent, RegionMap},
     resources::TimeOfDay,
     span,
-    uid::Uid,
     terrain::TerrainChunkSize,
+    uid::Uid,
     vol::RectVolSize,
 };
 use common_net::{msg::ServerGeneral, sync::CompSyncPackage};

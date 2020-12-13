@@ -98,8 +98,8 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                 if let Some(client) = clients.get(entity) {
                     client.send_fallible(ServerGeneral::server_msg(
                         ChatType::Meta,
-                        "Invite failed, pending invites plus current group size have reached \
-                          the group size limit"
+                        "Invite failed, pending invites plus current group size have reached the \
+                         group size limit"
                             .to_owned(),
                     ));
                 }

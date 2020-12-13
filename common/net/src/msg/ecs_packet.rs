@@ -1,5 +1,5 @@
-use common::comp;
 use crate::sync;
+use common::comp;
 use serde::{Deserialize, Serialize};
 use std::marker::PhantomData;
 use sum_type::sum_type;

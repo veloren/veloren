@@ -5,10 +5,10 @@ mod sync_ext;
 mod track;
 
 // Reexports
+pub use common::uid::{Uid, UidAllocator};
 pub use packet::{
     handle_insert, handle_modify, handle_remove, CompPacket, CompSyncPackage, EntityPackage,
     EntitySyncPackage, StatePackage,
 };
 pub use sync_ext::WorldSyncExt;
 pub use track::UpdateTracker;
-pub use common::uid::{Uid, UidAllocator};

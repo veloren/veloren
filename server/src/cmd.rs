@@ -19,8 +19,8 @@ use common::{
     event::{EventBus, ServerEvent},
     npc::{self, get_npc_name},
     resources::TimeOfDay,
-    uid::Uid,
     terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
+    uid::Uid,
     util::Dir,
     vol::RectVolSize,
     Damage, DamageSource, Explosion, LoadoutBuilder, RadiusEffect,
@@ -48,10 +48,10 @@ impl ChatCommandExt for ChatCommand {
         if self.needs_admin() && !server.entity_is_admin(entity) {
             server.notify_client(
                 entity,
-                ServerGeneral::server_msg(ChatType::CommandError, format!(
-                    "You don't have permission to use '/{}'.",
-                    self.keyword()
-                )),
+                ServerGeneral::server_msg(
+                    ChatType::CommandError,
+                    format!("You don't have permission to use '/{}'.", self.keyword()),
+                ),
             );
             return;
         } else {
@@ -150,10 +150,13 @@ fn handle_give_item(
                         if inv.push(item).is_some() {
                             server.notify_client(
                                 client,
-                                ServerGeneral::server_msg(ChatType::CommandError, format!(
-                                    "Player inventory full. Gave 0 of {} items.",
-                                    give_amount
-                                )),
+                                ServerGeneral::server_msg(
+                                    ChatType::CommandError,
+                                    format!(
+                                        "Player inventory full. Gave 0 of {} items.",
+                                        give_amount
+                                    ),
+                                ),
                             );
                         }
                     });
@@ -169,10 +172,13 @@ fn handle_give_item(
                             if inv.push(item.duplicate()).is_some() {
                                 server.notify_client(
                                     client,
-                                    ServerGeneral::server_msg(ChatType::CommandError, format!(
-                                        "Player inventory full. Gave {} of {} items.",
-                                        i, give_amount
-                                    )),
+                                    ServerGeneral::server_msg(
+                                        ChatType::CommandError,
+                                        format!(
+                                            "Player inventory full. Gave {} of {} items.",
+                                            i, give_amount
+                                        ),
+                                    ),
                                 );
                                 break;
                             }
@@ -191,7 +197,10 @@ fn handle_give_item(
         } else {
             server.notify_client(
                 client,
-                ServerGeneral::server_msg(ChatType::CommandError, format!("Invalid item: {}", item_name)),
+                ServerGeneral::server_msg(
+                    ChatType::CommandError,
+                    format!("Invalid item: {}", item_name),
+                ),
             );
         }
     } else {
@@ -218,13 +227,19 @@ fn handle_make_block(
                 ),
                 None => server.notify_client(
                     client,
-                    ServerGeneral::server_msg(ChatType::CommandError, String::from("You have no position.")),
+                    ServerGeneral::server_msg(
+                        ChatType::CommandError,
+                        String::from("You have no position."),
+                    ),
                 ),
             }
         } else {
             server.notify_client(
                 client,
-                ServerGeneral::server_msg(ChatType::CommandError, format!("Invalid block kind: {}", block_name)),
+                ServerGeneral::server_msg(
+                    ChatType::CommandError,
+                    format!("Invalid block kind: {}", block_name),
+                ),
             );
         }
     } else {
@@ -257,13 +272,19 @@ fn handle_make_sprite(
                 },
                 None => server.notify_client(
                     client,
-                    ServerGeneral::server_msg(ChatType::CommandError, String::from("You have no position.")),
+                    ServerGeneral::server_msg(
+                        ChatType::CommandError,
+                        String::from("You have no position."),
+                    ),
                 ),
             }
         } else {
             server.notify_client(
                 client,
-                ServerGeneral::server_msg(ChatType::CommandError, format!("Invalid sprite kind: {}", sprite_name)),
+                ServerGeneral::server_msg(
+                    ChatType::CommandError,
+                    format!("Invalid sprite kind: {}", sprite_name),
+                ),
             );
         }
     } else {
@@ -283,7 +304,10 @@ fn handle_motd(
 ) {
     server.notify_client(
         client,
-        ServerGeneral::server_msg(ChatType::CommandError, (*server.editable_settings().server_description).clone()),
+        ServerGeneral::server_msg(
+            ChatType::CommandError,
+            (*server.editable_settings().server_description).clone(),
+        ),
     );
 }
 
@@ -303,7 +327,10 @@ fn handle_set_motd(
                 .edit(data_dir.as_ref(), |d| **d = msg.clone());
             server.notify_client(
                 client,
-                ServerGeneral::server_msg(ChatType::CommandError, format!("Server description set to \"{}\"", msg)),
+                ServerGeneral::server_msg(
+                    ChatType::CommandError,
+                    format!("Server description set to \"{}\"", msg),
+                ),
             );
         },
         Err(_) => {
@@ -313,7 +340,10 @@ fn handle_set_motd(
                 .edit(data_dir.as_ref(), |d| d.clear());
             server.notify_client(
                 client,
-                ServerGeneral::server_msg(ChatType::CommandError, "Removed server description".to_string()),
+                ServerGeneral::server_msg(
+                    ChatType::CommandError,
+                    "Removed server description".to_string(),
+                ),
             );
         },
     }
@@ -459,7 +489,10 @@ fn handle_time(
                     None => {
                         server.notify_client(
                             client,
-                            ServerGeneral::server_msg(ChatType::CommandError, format!("'{}' is not a valid time.", n)),
+                            ServerGeneral::server_msg(
+                                ChatType::CommandError,
+                                format!("'{}' is not a valid time.", n),
+                            ),
                         );
                         return;
                     },
@@ -518,7 +551,10 @@ fn handle_time(
                 Some(time) => format!("It is {}", time.format("%H:%M").to_string()),
                 None => String::from("Unknown Time"),
             };
-            server.notify_client(client, ServerGeneral::server_msg(ChatType::CommandInfo, msg));
+            server.notify_client(
+                client,
+                ServerGeneral::server_msg(ChatType::CommandInfo, msg),
+            );
             return;
         },
     };
@@ -530,10 +566,10 @@ fn handle_time(
     {
         server.notify_client(
             client,
-            ServerGeneral::server_msg(ChatType::CommandInfo, format!(
-                "Time changed to: {}",
-                new_time.format("%H:%M").to_string(),
-            )),
+            ServerGeneral::server_msg(
+                ChatType::CommandInfo,
+                format!("Time changed to: {}", new_time.format("%H:%M").to_string(),),
+            ),
         );
     }
 }
@@ -585,7 +621,10 @@ fn handle_alias(
     if let Ok(alias) = scan_fmt!(&args, &action.arg_fmt(), String) {
         if !comp::Player::alias_is_valid(&alias) {
             // Prevent silly aliases
-            server.notify_client(client, ServerGeneral::server_msg(ChatType::CommandError, "Invalid alias."));
+            server.notify_client(
+                client,
+                ServerGeneral::server_msg(ChatType::CommandError, "Invalid alias."),
+            );
             return;
         }
         let old_alias_optional = server
@@ -610,9 +649,10 @@ fn handle_alias(
 
             // Announce alias change if target has a Body.
             if ecs.read_storage::<comp::Body>().get(target).is_some() {
-                server.state.notify_players(
-                    ServerGeneral::server_msg(ChatType::CommandInfo, format!("{} is now known as {}.", old_alias, player.alias)),
-                );
+                server.state.notify_players(ServerGeneral::server_msg(
+                    ChatType::CommandInfo,
+                    format!("{} is now known as {}.", old_alias, player.alias),
+                ));
             }
         }
     } else {
@@ -657,7 +697,10 @@ fn handle_tp(
             } else {
                 server.notify_client(
                     client,
-                    ServerGeneral::server_msg(ChatType::CommandError, "Unable to teleport to player!"),
+                    ServerGeneral::server_msg(
+                        ChatType::CommandError,
+                        "Unable to teleport to player!",
+                    ),
                 );
             }
         } else {
@@ -792,13 +835,19 @@ fn handle_spawn(
                             if let Some(uid) = server.state.ecs().uid_from_entity(new_entity) {
                                 server.notify_client(
                                     client,
-                                    ServerGeneral::server_msg(ChatType::CommandInfo, format!("Spawned entity with ID: {}", uid)),
+                                    ServerGeneral::server_msg(
+                                        ChatType::CommandInfo,
+                                        format!("Spawned entity with ID: {}", uid),
+                                    ),
                                 );
                             }
                         }
                         server.notify_client(
                             client,
-                            ServerGeneral::server_msg(ChatType::CommandInfo, format!("Spawned {} entities", amount)),
+                            ServerGeneral::server_msg(
+                                ChatType::CommandInfo,
+                                format!("Spawned {} entities", amount),
+                            ),
                         );
                     },
                     None => server.notify_client(
@@ -920,18 +969,21 @@ fn handle_players(
 
     server.notify_client(
         client,
-        ServerGeneral::server_msg(ChatType::CommandInfo, entity_tuples.join().fold(
-            format!("{} online players:", entity_tuples.join().count()),
-            |s, (_, player, stat)| {
-                format!(
-                    "{}\n[{}]{} Lvl {}",
-                    s,
-                    player.alias,
-                    stat.name,
-                    stat.level.level()
-                )
-            },
-        )),
+        ServerGeneral::server_msg(
+            ChatType::CommandInfo,
+            entity_tuples.join().fold(
+                format!("{} online players:", entity_tuples.join().count()),
+                |s, (_, player, stat)| {
+                    format!(
+                        "{}\n[{}]{} Lvl {}",
+                        s,
+                        player.alias,
+                        stat.name,
+                        stat.level.level()
+                    )
+                },
+            ),
+        ),
     );
 }
 
@@ -978,7 +1030,10 @@ fn handle_help(
     action: &ChatCommand,
 ) {
     if let Some(cmd) = scan_fmt_some!(&args, &action.arg_fmt(), ChatCommand) {
-        server.notify_client(client, ServerGeneral::server_msg(ChatType::CommandInfo, cmd.help_string()));
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(ChatType::CommandInfo, cmd.help_string()),
+        );
     } else {
         let mut message = String::new();
         for cmd in CHAT_COMMANDS.iter() {
@@ -991,7 +1046,10 @@ fn handle_help(
         for (k, v) in CHAT_SHORTCUTS.iter() {
             message += &format!(" /{} => /{}", k, v.keyword());
         }
-        server.notify_client(client, ServerGeneral::server_msg(ChatType::CommandInfo, message));
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(ChatType::CommandInfo, message),
+        );
     }
 }
 
@@ -1025,7 +1083,10 @@ fn handle_kill_npcs(
     } else {
         "No NPCs on server.".to_string()
     };
-    server.notify_client(client, ServerGeneral::server_msg(ChatType::CommandInfo, text));
+    server.notify_client(
+        client,
+        ServerGeneral::server_msg(ChatType::CommandInfo, text),
+    );
 }
 
 #[allow(clippy::float_cmp)] // TODO: Pending review in #587
@@ -1079,10 +1140,10 @@ fn handle_object(
                 .build();
             server.notify_client(
                 client,
-                ServerGeneral::server_msg(ChatType::CommandInfo, format!(
-                    "Spawned: {}",
-                    obj_str_res.unwrap_or("<Unknown object>")
-                )),
+                ServerGeneral::server_msg(
+                    ChatType::CommandInfo,
+                    format!("Spawned: {}", obj_str_res.unwrap_or("<Unknown object>")),
+                ),
             );
         } else {
             return server.notify_client(
@@ -1116,7 +1177,10 @@ fn handle_light(
         if r < 0.0 || g < 0.0 || b < 0.0 {
             server.notify_client(
                 client,
-                ServerGeneral::server_msg(ChatType::CommandError, "cr, cg and cb values mustn't be negative."),
+                ServerGeneral::server_msg(
+                    ChatType::CommandError,
+                    "cr, cg and cb values mustn't be negative.",
+                ),
             );
             return;
         }
@@ -1155,7 +1219,10 @@ fn handle_light(
         } else {
             builder.build();
         }
-        server.notify_client(client, ServerGeneral::server_msg(ChatType::CommandInfo, "Spawned object."));
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(ChatType::CommandInfo, "Spawned object."),
+        );
     } else {
         server.notify_client(
             client,
@@ -1189,12 +1256,18 @@ fn handle_lantern(
                     .into();
                 server.notify_client(
                     client,
-                    ServerGeneral::server_msg(ChatType::CommandInfo, "You adjusted flame strength and color."),
+                    ServerGeneral::server_msg(
+                        ChatType::CommandInfo,
+                        "You adjusted flame strength and color.",
+                    ),
                 );
             } else {
                 server.notify_client(
                     client,
-                    ServerGeneral::server_msg(ChatType::CommandInfo, "You adjusted flame strength."),
+                    ServerGeneral::server_msg(
+                        ChatType::CommandInfo,
+                        "You adjusted flame strength.",
+                    ),
                 );
             }
         } else {
@@ -1223,13 +1296,19 @@ fn handle_explosion(
     if power > 512.0 {
         server.notify_client(
             client,
-            ServerGeneral::server_msg(ChatType::CommandError, "Explosion power mustn't be more than 512."),
+            ServerGeneral::server_msg(
+                ChatType::CommandError,
+                "Explosion power mustn't be more than 512.",
+            ),
         );
         return;
     } else if power <= 0.0 {
         server.notify_client(
             client,
-            ServerGeneral::server_msg(ChatType::CommandError, "Explosion power must be more than 0."),
+            ServerGeneral::server_msg(
+                ChatType::CommandError,
+                "Explosion power must be more than 0.",
+            ),
         );
         return;
     }
@@ -1281,7 +1360,10 @@ fn handle_waypoint(
                 .ecs()
                 .write_storage::<comp::Waypoint>()
                 .insert(target, comp::Waypoint::temp_new(pos.0, *time));
-            server.notify_client(client, ServerGeneral::server_msg(ChatType::CommandInfo, "Waypoint saved!"));
+            server.notify_client(
+                client,
+                ServerGeneral::server_msg(ChatType::CommandInfo, "Waypoint saved!"),
+            );
             server.notify_client(
                 client,
                 ServerGeneral::Notification(Notification::WaypointSaved),
@@ -1332,7 +1414,10 @@ fn handle_adminify(
             None => {
                 server.notify_client(
                     client,
-                    ServerGeneral::server_msg(ChatType::CommandError, format!("Player '{}' not found!", alias)),
+                    ServerGeneral::server_msg(
+                        ChatType::CommandError,
+                        format!("Player '{}' not found!", alias),
+                    ),
                 );
             },
         }
@@ -1394,7 +1479,10 @@ fn handle_tell(
         } else {
             server.notify_client(
                 client,
-                ServerGeneral::server_msg(ChatType::CommandError, format!("Player '{}' not found!", alias)),
+                ServerGeneral::server_msg(
+                    ChatType::CommandError,
+                    format!("Player '{}' not found!", alias),
+                ),
             );
         }
     } else {
@@ -1432,7 +1520,10 @@ fn handle_faction(
     } else {
         server.notify_client(
             client,
-            ServerGeneral::server_msg(ChatType::CommandError, "Please join a faction with /join_faction"),
+            ServerGeneral::server_msg(
+                ChatType::CommandError,
+                "Please join a faction with /join_faction",
+            ),
         );
     }
 }
@@ -1497,12 +1588,18 @@ fn handle_group_invite(
 
             server.notify_client(
                 client,
-                ServerGeneral::server_msg(ChatType::CommandInfo, format!("Invited {} to the group.", target_alias)),
+                ServerGeneral::server_msg(
+                    ChatType::CommandInfo,
+                    format!("Invited {} to the group.", target_alias),
+                ),
             );
         } else {
             server.notify_client(
                 client,
-                ServerGeneral::server_msg(ChatType::CommandError, format!("Player with alias {} not found", target_alias)),
+                ServerGeneral::server_msg(
+                    ChatType::CommandError,
+                    format!("Player with alias {} not found", target_alias),
+                ),
             )
         }
     } else {
@@ -1539,7 +1636,10 @@ fn handle_group_kick(
         } else {
             server.notify_client(
                 client,
-                ServerGeneral::server_msg(ChatType::CommandError, format!("Player with alias {} not found", target_alias)),
+                ServerGeneral::server_msg(
+                    ChatType::CommandError,
+                    format!("Player with alias {} not found", target_alias),
+                ),
             )
         }
     } else {
@@ -1593,7 +1693,10 @@ fn handle_group_promote(
         } else {
             server.notify_client(
                 client,
-                ServerGeneral::server_msg(ChatType::CommandError, format!("Player with alias {} not found", target_alias)),
+                ServerGeneral::server_msg(
+                    ChatType::CommandError,
+                    format!("Player with alias {} not found", target_alias),
+                ),
             )
         }
     } else {
@@ -1760,7 +1863,10 @@ fn handle_debug_column(
 ) {
     server.notify_client(
         client,
-        ServerGeneral::server_msg(ChatType::CommandError, "Unsupported without worldgen enabled"),
+        ServerGeneral::server_msg(
+            ChatType::CommandError,
+            "Unsupported without worldgen enabled",
+        ),
     );
 }
 
@@ -1782,7 +1888,10 @@ fn handle_debug_column(
             Some(pos) => wpos = pos.0.xy().map(|x| x as i32),
             None => server.notify_client(
                 client,
-                ServerGeneral::server_msg(ChatType::CommandError, String::from("You have no position.")),
+                ServerGeneral::server_msg(
+                    ChatType::CommandError,
+                    String::from("You have no position."),
+                ),
             ),
         }
     }
@@ -1858,7 +1967,10 @@ fn find_target(
             .find(|(_, player)| player.alias == alias)
             .map(|(entity, _)| entity)
             .ok_or_else(|| {
-                ServerGeneral::server_msg(ChatType::CommandError, format!("Player '{}' not found!", alias))
+                ServerGeneral::server_msg(
+                    ChatType::CommandError,
+                    format!("Player '{}' not found!", alias),
+                )
             })
     } else {
         Ok(fallback)
@@ -1885,7 +1997,10 @@ fn handle_give_exp(
                 if let Some(stats) = ecs.write_storage::<comp::Stats>().get_mut(player) {
                     stats.exp.change_by(exp);
                 } else {
-                    error_msg = Some(ServerGeneral::server_msg(ChatType::CommandError, "Player has no stats!"));
+                    error_msg = Some(ServerGeneral::server_msg(
+                        ChatType::CommandError,
+                        "Player has no stats!",
+                    ));
                 }
             },
             Err(e) => {
@@ -1936,7 +2051,10 @@ fn handle_set_level(
                     stats.level.set_level(lvl);
                     body_type = Some(stats.body_type);
                 } else {
-                    error_msg = Some(ServerGeneral::server_msg(ChatType::CommandError, "Player has no stats!"));
+                    error_msg = Some(ServerGeneral::server_msg(
+                        ChatType::CommandError,
+                        "Player has no stats!",
+                    ));
                     body_type = None;
                 }
 
@@ -1986,7 +2104,10 @@ fn handle_debug(
     } else {
         server.notify_client(
             client,
-            ServerGeneral::server_msg(ChatType::CommandError, "Debug items not found? Something is very broken."),
+            ServerGeneral::server_msg(
+                ChatType::CommandError,
+                "Debug items not found? Something is very broken.",
+            ),
         );
     }
 }
@@ -2070,7 +2191,10 @@ fn handle_sudo(
         } else {
             server.notify_client(
                 client,
-                ServerGeneral::server_msg(ChatType::CommandError, format!("Unknown command: /{}", cmd)),
+                ServerGeneral::server_msg(
+                    ChatType::CommandError,
+                    format!("Unknown command: /{}", cmd),
+                ),
             );
         }
     } else {
@@ -2090,11 +2214,14 @@ fn handle_version(
 ) {
     server.notify_client(
         client,
-        ServerGeneral::server_msg(ChatType::CommandInfo, format!(
-            "Server is running {}[{}]",
-            common::util::GIT_HASH.to_string(),
-            common::util::GIT_DATE.to_string(),
-        )),
+        ServerGeneral::server_msg(
+            ChatType::CommandInfo,
+            format!(
+                "Server is running {}[{}]",
+                common::util::GIT_HASH.to_string(),
+                common::util::GIT_DATE.to_string(),
+            ),
+        ),
     );
 }
 
@@ -2115,10 +2242,10 @@ fn handle_whitelist(
                 .map_err(|_| {
                     server.notify_client(
                         client,
-                        ServerGeneral::server_msg(ChatType::CommandError, format!(
-                            "Unable to determine UUID for username \"{}\"",
-                            &username
-                        )),
+                        ServerGeneral::server_msg(
+                            ChatType::CommandError,
+                            format!("Unable to determine UUID for username \"{}\"", &username),
+                        ),
                     )
                 })
                 .ok()
@@ -2132,7 +2259,10 @@ fn handle_whitelist(
                     .edit(server.data_dir().as_ref(), |w| w.insert(uuid));
                 server.notify_client(
                     client,
-                    ServerGeneral::server_msg(ChatType::CommandInfo, format!("\"{}\" added to whitelist", username)),
+                    ServerGeneral::server_msg(
+                        ChatType::CommandInfo,
+                        format!("\"{}\" added to whitelist", username),
+                    ),
                 );
             }
         } else if whitelist_action.eq_ignore_ascii_case("remove") {
@@ -2143,7 +2273,10 @@ fn handle_whitelist(
                     .edit(server.data_dir().as_ref(), |w| w.remove(&uuid));
                 server.notify_client(
                     client,
-                    ServerGeneral::server_msg(ChatType::CommandInfo, format!("\"{}\" removed from whitelist", username)),
+                    ServerGeneral::server_msg(
+                        ChatType::CommandInfo,
+                        format!("\"{}\" removed from whitelist", username),
+                    ),
                 );
             }
         } else {
@@ -2193,15 +2326,21 @@ fn handle_kick(
             kick_player(server, target_player, &reason);
             server.notify_client(
                 client,
-                ServerGeneral::server_msg(ChatType::CommandInfo, format!(
-                    "Kicked {} from the server with reason: {}",
-                    target_alias, reason
-                )),
+                ServerGeneral::server_msg(
+                    ChatType::CommandInfo,
+                    format!(
+                        "Kicked {} from the server with reason: {}",
+                        target_alias, reason
+                    ),
+                ),
             );
         } else {
             server.notify_client(
                 client,
-                ServerGeneral::server_msg(ChatType::CommandError, format!("Player with alias {} not found", target_alias)),
+                ServerGeneral::server_msg(
+                    ChatType::CommandError,
+                    format!("Player with alias {} not found", target_alias),
+                ),
             )
         }
     } else {
@@ -2233,7 +2372,10 @@ fn handle_ban(
             if server.editable_settings().banlist.contains_key(&uuid) {
                 server.notify_client(
                     client,
-                    ServerGeneral::server_msg(ChatType::CommandError, format!("{} is already on the banlist", target_alias)),
+                    ServerGeneral::server_msg(
+                        ChatType::CommandError,
+                        format!("{} is already on the banlist", target_alias),
+                    ),
                 )
             } else {
                 server
@@ -2247,10 +2389,13 @@ fn handle_ban(
                     });
                 server.notify_client(
                     client,
-                    ServerGeneral::server_msg(ChatType::CommandInfo, format!(
-                        "Added {} to the banlist with reason: {}",
-                        target_alias, reason
-                    )),
+                    ServerGeneral::server_msg(
+                        ChatType::CommandInfo,
+                        format!(
+                            "Added {} to the banlist with reason: {}",
+                            target_alias, reason
+                        ),
+                    ),
                 );
 
                 // If the player is online kick them
@@ -2266,10 +2411,10 @@ fn handle_ban(
         } else {
             server.notify_client(
                 client,
-                ServerGeneral::server_msg(ChatType::CommandError, format!(
-                    "Unable to determine UUID for username \"{}\"",
-                    target_alias
-                )),
+                ServerGeneral::server_msg(
+                    ChatType::CommandError,
+                    format!("Unable to determine UUID for username \"{}\"", target_alias),
+                ),
             )
         }
     } else {
@@ -2303,15 +2448,18 @@ fn handle_unban(
                 });
             server.notify_client(
                 client,
-                ServerGeneral::server_msg(ChatType::CommandInfo, format!("{} was successfully unbanned", username)),
+                ServerGeneral::server_msg(
+                    ChatType::CommandInfo,
+                    format!("{} was successfully unbanned", username),
+                ),
             );
         } else {
             server.notify_client(
                 client,
-                ServerGeneral::server_msg(ChatType::CommandError, format!(
-                    "Unable to determine UUID for username \"{}\"",
-                    username
-                )),
+                ServerGeneral::server_msg(
+                    ChatType::CommandError,
+                    format!("Unable to determine UUID for username \"{}\"", username),
+                ),
             )
         }
     } else {

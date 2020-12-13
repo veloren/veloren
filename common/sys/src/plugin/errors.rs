@@ -7,7 +7,7 @@ pub enum PluginError {
     Toml(toml::de::Error),
     NoConfig,
     NoSuchModule,
-    PluginModuleError(PluginModuleError)
+    PluginModuleError(PluginModuleError),
 }
 
 #[derive(Debug)]
