@@ -7,7 +7,9 @@ use common::{
     span,
     uid::Uid,
 };
-use common_net::msg::{validate_chat_msg, ChatMsgValidationError, ClientGeneral, MAX_BYTES_CHAT_MSG};
+use common_net::msg::{
+    validate_chat_msg, ChatMsgValidationError, ClientGeneral, MAX_BYTES_CHAT_MSG,
+};
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, Write};
 use std::sync::atomic::Ordering;
 use tracing::{debug, error, warn};

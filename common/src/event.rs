@@ -4,11 +4,7 @@ use comp::{
     Ori, Pos,
 };
 use specs::Entity as EcsEntity;
-use std::{
-    collections::VecDeque,
-    sync::Mutex,
-    ops::DerefMut,
-};
+use std::{collections::VecDeque, ops::DerefMut, sync::Mutex};
 use vek::*;
 
 pub enum LocalEvent {

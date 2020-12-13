@@ -1,15 +1,15 @@
-use serde::{Serialize, de::DeserializeOwned, Deserialize};
 use common::uid::Uid;
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
-#[derive(Deserialize,Serialize,Debug)]
+#[derive(Deserialize, Serialize, Debug)]
 pub enum Action {
     ServerClose,
     Print(String),
-    PlayerSendMessage(usize,String),
-    KillEntity(usize)
+    PlayerSendMessage(usize, String),
+    KillEntity(usize),
 }
 
-pub trait Event: Serialize + DeserializeOwned + Send + Sync{
+pub trait Event: Serialize + DeserializeOwned + Send + Sync {
     type Response: Serialize + DeserializeOwned + Send + Sync;
 }
 
@@ -17,7 +17,7 @@ pub use common::resources::GameMode;
 
 pub mod event {
     use super::*;
-    use serde::{Serialize,Deserialize};
+    use serde::{Deserialize, Serialize};
 
     #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
     pub struct ChatCommandEvent {
@@ -38,7 +38,7 @@ pub mod event {
     #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
     pub struct PlayerJoinEvent {
         pub player_name: String,
-        pub player_id: usize
+        pub player_id: usize,
     }
 
     impl Event for PlayerJoinEvent {
@@ -48,13 +48,11 @@ pub mod event {
     #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
     pub enum PlayerJoinResult {
         CloseConnection,
-        None
+        None,
     }
 
     impl Default for PlayerJoinResult {
-        fn default() -> Self {
-            Self::None
-        }
+        fn default() -> Self { Self::None }
     }
 
     #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]

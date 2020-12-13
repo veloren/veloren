@@ -10,8 +10,8 @@ use common::{
     comp::{Ori, Pos, Vel},
     region::{region_in_vd, regions_in_vd, Event as RegionEvent, RegionMap},
     span,
-    uid::Uid,
     terrain::TerrainChunkSize,
+    uid::Uid,
     vol::RectVolSize,
 };
 use common_net::msg::ServerGeneral;

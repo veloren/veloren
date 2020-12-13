@@ -1,14 +1,15 @@
+use crate::plugin::PluginMgr;
 use common::{
     comp,
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::{PhysicsMetrics, SysMetrics},
     region::RegionMap,
+    resources,
     resources::{DeltaTime, Time, TimeOfDay},
     span,
     terrain::{Block, TerrainChunk, TerrainGrid},
     time::DayPeriod,
     vol::{ReadVol, WriteVol},
-    resources,
 };
 use common_net::sync::WorldSyncExt;
 use hashbrown::{HashMap, HashSet};
@@ -21,7 +22,6 @@ use specs::{
 use std::{sync::Arc, time::Duration};
 use tracing::info;
 use vek::*;
-use crate::plugin::PluginMgr;
 
 /// How much faster should an in-game day be compared to a real day?
 // TODO: Don't hard-code this.
@@ -90,6 +90,7 @@ pub struct State {
 impl State {
     /// Create a new `State` in client mode.
     pub fn client() -> Self { Self::new(resources::GameMode::Client) }
+
     /// Create a new `State` in server mode.
     pub fn server() -> Self { Self::new(resources::GameMode::Server) }
 
@@ -192,9 +193,9 @@ impl State {
         // Load plugins from asset directory
         ecs.insert(match PluginMgr::from_assets() {
             Ok(plugin_mgr) => {
-                if let Err(e) = plugin_mgr.execute_event("on_load", &plugin_api::event::PluginLoadEvent {
-                    game_mode,
-                }) {
+                if let Err(e) = plugin_mgr
+                    .execute_event("on_load", &plugin_api::event::PluginLoadEvent { game_mode })
+                {
                     tracing::error!(?e, "Failed to run plugin init");
                     info!("Error occurred when loading plugins. Running without plugins instead.");
                     PluginMgr::default()

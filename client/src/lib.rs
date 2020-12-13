@@ -28,20 +28,20 @@ use common::{
     outcome::Outcome,
     recipe::RecipeBook,
     span,
-    uid::{Uid, UidAllocator},
     terrain::{block::Block, neighbors, BiomeKind, SitesKind, TerrainChunk, TerrainChunkSize},
+    uid::{Uid, UidAllocator},
     vol::RectVolSize,
 };
-use common_sys::state::State;
 use common_net::{
     msg::{
-        self, validate_chat_msg, world_msg::SiteInfo, ChatMsgValidationError, ClientGeneral, ClientMsg,
-        ClientRegister, ClientType, DisconnectReason, InviteAnswer, Notification, PingMsg,
-        PlayerInfo, PlayerListUpdate, PresenceKind, RegisterError, ServerGeneral, ServerInfo,
-        ServerInit, ServerRegisterAnswer, MAX_BYTES_CHAT_MSG,
+        self, validate_chat_msg, world_msg::SiteInfo, ChatMsgValidationError, ClientGeneral,
+        ClientMsg, ClientRegister, ClientType, DisconnectReason, InviteAnswer, Notification,
+        PingMsg, PlayerInfo, PlayerListUpdate, PresenceKind, RegisterError, ServerGeneral,
+        ServerInfo, ServerInit, ServerRegisterAnswer, MAX_BYTES_CHAT_MSG,
     },
     sync::WorldSyncExt,
 };
+use common_sys::state::State;
 use comp::BuffKind;
 use futures_executor::block_on;
 use futures_timer::Delay;

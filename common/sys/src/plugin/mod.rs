@@ -1,15 +1,22 @@
-
 pub mod errors;
 pub mod module;
 
 use common::assets::ASSETS_PATH;
 use serde::{Deserialize, Serialize};
-use std::{collections::{HashMap, HashSet}, fs, io::Read, path::{Path, PathBuf}};
+use std::{
+    collections::{HashMap, HashSet},
+    fs,
+    io::Read,
+    path::{Path, PathBuf},
+};
 use tracing::{error, info};
 
 use plugin_api::Event;
 
-use self::{ errors::PluginError, module::{PluginModule, PreparedEventQuery}};
+use self::{
+    errors::PluginError,
+    module::{PluginModule, PreparedEventQuery},
+};
 
 use rayon::prelude::*;
 
@@ -58,7 +65,7 @@ impl Plugin {
             .iter()
             .map(|path| {
                 let wasm_data = files.remove(path).ok_or(PluginError::NoSuchModule)?;
-                PluginModule::new(&wasm_data).map_err(|e| PluginError::PluginModuleError(e))
+                PluginModule::new(&wasm_data).map_err(PluginError::PluginModuleError)
             })
             .collect::<Result<_, _>>()?;
 
@@ -69,10 +76,22 @@ impl Plugin {
         })
     }
 
-    pub fn execute_prepared<T>(&self, event_name: &str, event: &PreparedEventQuery<T>) -> Result<Vec<T::Response>, PluginError> where T: Event {
-        self.modules.iter().flat_map(|module| {
-            module.try_execute(event_name, event).map(|x| x.map_err(|e| PluginError::PluginModuleError(e)))
-        }).collect::<Result<Vec<_>,_>>()
+    pub fn execute_prepared<T>(
+        &self,
+        event_name: &str,
+        event: &PreparedEventQuery<T>,
+    ) -> Result<Vec<T::Response>, PluginError>
+    where
+        T: Event,
+    {
+        self.modules
+            .iter()
+            .flat_map(|module| {
+                module
+                    .try_execute(event_name, event)
+                    .map(|x| x.map_err(PluginError::PluginModuleError))
+            })
+            .collect::<Result<Vec<_>, _>>()
     }
 }
 
@@ -89,13 +108,32 @@ impl PluginMgr {
         Self::from_dir(assets_path)
     }
 
-    pub fn execute_prepared<T>(&self, event_name: &str,event: &PreparedEventQuery<T>) -> Result<Vec<T::Response>, PluginError> where T: Event {
-        Ok(self.plugins.par_iter().map(|plugin| {
-            plugin.execute_prepared(event_name, event)
-        }).collect::<Result<Vec<_>,_>>()?.into_iter().flatten().collect())
+    pub fn execute_prepared<T>(
+        &self,
+        event_name: &str,
+        event: &PreparedEventQuery<T>,
+    ) -> Result<Vec<T::Response>, PluginError>
+    where
+        T: Event,
+    {
+        Ok(self
+            .plugins
+            .par_iter()
+            .map(|plugin| plugin.execute_prepared(event_name, event))
+            .collect::<Result<Vec<_>, _>>()?
+            .into_iter()
+            .flatten()
+            .collect())
     }
 
-    pub fn execute_event<T>(&self, event_name: &str,event: &T) -> Result<Vec<T::Response>, PluginError> where T: Event {
+    pub fn execute_event<T>(
+        &self,
+        event_name: &str,
+        event: &T,
+    ) -> Result<Vec<T::Response>, PluginError>
+    where
+        T: Event,
+    {
         self.execute_prepared(event_name, &PreparedEventQuery::new(event)?)
     }
 
