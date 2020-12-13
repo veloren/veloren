@@ -171,6 +171,11 @@ impl assets::Compound for ItemDef {
             kind,
             quality,
         } = raw;
+
+        // Some commands like /give_item provide the asset specifier separated with \
+        // instead of .
+        //
+        // TODO: This probably does not belong here
         let item_definition_id = specifier.replace('\\', ".");
 
         Ok(ItemDef {
