@@ -1,4 +1,4 @@
-#version 330 core
+#version 420 core
 // #extension ARB_texture_storage : enable
 
 #include <constants.glsl>
@@ -36,9 +36,10 @@ uniform u_light_shadows {
  *
  * */
 
-layout(location = 1) in uint v_pos_norm;
+layout(location = 0) in uint v_pos_norm;
 // in uint v_col_light;
 // in vec4 v_pos;
+// layout(location = 1) in uint v_atlas_pos;
 
 // Light projection matrices.
 layout (std140, set = 1,  binding = 0)

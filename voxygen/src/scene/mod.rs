@@ -695,7 +695,8 @@ impl Scene {
             // to transform it correctly into texture coordinates, as well as
             // OpenGL coordinates.  Note that the matrix for directional light
             // is *already* linear in the depth buffer.
-            let texture_mat = Mat4::scaling_3d(0.5f32) * Mat4::translation_3d(1.0f32);
+            let texture_mat = Mat4::<f32>::scaling_3d::<Vec3<f32>>(Vec3::new(0.5, 0.5, 1.0))
+                * Mat4::translation_3d(Vec3::new(1.0, 1.0, 0.0));
             // We need to compute these offset matrices to transform world space coordinates
             // to the translated ones we use when multiplying by the light space
             // matrix; this helps avoid precision loss during the
@@ -881,10 +882,10 @@ impl Scene {
                 );
                 let s_x = 2.0 / (xmax - xmin);
                 let s_y = 2.0 / (ymax - ymin);
-                let s_z = 2.0 / (zmax - zmin);
+                let s_z = 1.0 / (zmax - zmin);
                 let o_x = -(xmax + xmin) / (xmax - xmin);
                 let o_y = -(ymax + ymin) / (ymax - ymin);
-                let o_z = -(zmax + zmin) / (zmax - zmin);
+                let o_z = -zmin / (zmax - zmin);
                 let directed_proj_mat = Mat4::new(
                     s_x, 0.0, 0.0, o_x, 0.0, s_y, 0.0, o_y, 0.0, 0.0, s_z, o_z, 0.0, 0.0, 0.0, 1.0,
                 );
@@ -907,202 +908,7 @@ impl Scene {
             // Now, construct the full projection matrices in the first two directed light
             // slots.
             let mut shadow_mats = Vec::with_capacity(6 * (lights.len() + 1));
-            shadow_mats.extend(directed_shadow_mats.iter().enumerate().map(
-                move |(idx, &light_view_mat)| {
-                    if idx >= NUM_DIRECTED_LIGHTS {
-                        return PointLightMatrix::new(Mat4::identity());
-                    }
-
-                    let v_p_orig =
-                        math::Vec3::from(light_view_mat * math::Vec4::from_direction(new_dir));
-                    let mut v_p = v_p_orig.normalized();
-                    let cos_gamma = new_dir
-                        .map(f64::from)
-                        .dot(directed_light_dir.map(f64::from));
-                    let sin_gamma = (1.0 - cos_gamma * cos_gamma).sqrt();
-                    let gamma = sin_gamma.asin();
-                    let view_mat = math::Mat4::from_col_array(view_mat.into_col_array());
-                    let bounds1 = math::fit_psr(
-                        view_mat.map_cols(math::Vec4::from),
-                        visible_light_volume.iter().copied(),
-                        math::Vec4::homogenized,
-                    );
-                    let n_e = f64::from(-bounds1.max.z);
-                    let factor = compute_warping_parameter_perspective(
-                        gamma,
-                        n_e,
-                        f64::from(fov),
-                        f64::from(aspect_ratio),
-                    );
-
-                    v_p.z = 0.0;
-                    v_p.normalize();
-                    let l_r: math::Mat4<f32> = if factor > EPSILON_UPSILON {
-                        math::Mat4::look_at_rh(math::Vec3::zero(), -math::Vec3::unit_z(), v_p)
-                    } else {
-                        math::Mat4::identity()
-                    };
-                    let directed_proj_mat = math::Mat4::new(
-                        1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0,
-                        1.0,
-                    );
-
-                    let light_all_mat = l_r * directed_proj_mat * light_view_mat;
-                    let bounds0 = math::fit_psr(
-                        light_all_mat,
-                        visible_light_volume.iter().copied(),
-                        math::Vec4::homogenized,
-                    );
-                    // Vague idea: project z_n from the camera view to the light view (where it's
-                    // tilted by γ).
-                    let (z_0, z_1) = {
-                        let p_z = bounds1.max.z;
-                        let p_y = bounds0.min.y;
-                        let p_x = bounds0.center().x;
-                        let view_inv = view_mat.inverted();
-                        let light_all_inv = light_all_mat.inverted();
-
-                        let view_point = view_inv * math::Vec4::new(0.0, 0.0, p_z, 1.0);
-                        let view_plane =
-                            view_inv * math::Vec4::from_direction(math::Vec3::unit_z());
-
-                        let light_point = light_all_inv * math::Vec4::new(0.0, p_y, 0.0, 1.0);
-                        let light_plane =
-                            light_all_inv * math::Vec4::from_direction(math::Vec3::unit_y());
-
-                        let shadow_point = light_all_inv * math::Vec4::new(p_x, 0.0, 0.0, 1.0);
-                        let shadow_plane =
-                            light_all_inv * math::Vec4::from_direction(math::Vec3::unit_x());
-
-                        let solve_p0 = math::Mat4::new(
-                            view_plane.x,
-                            view_plane.y,
-                            view_plane.z,
-                            -view_plane.dot(view_point),
-                            light_plane.x,
-                            light_plane.y,
-                            light_plane.z,
-                            -light_plane.dot(light_point),
-                            shadow_plane.x,
-                            shadow_plane.y,
-                            shadow_plane.z,
-                            -shadow_plane.dot(shadow_point),
-                            0.0,
-                            0.0,
-                            0.0,
-                            1.0,
-                        );
-
-                        let p0_world = solve_p0.inverted() * math::Vec4::unit_w();
-                        let p0 = light_all_mat * p0_world;
-                        let mut p1 = p0;
-                        p1.y = bounds0.max.y;
-
-                        let view_from_light_mat = view_mat * light_all_inv;
-                        let z0 = view_from_light_mat * p0;
-                        let z1 = view_from_light_mat * p1;
-
-                        (f64::from(z0.z), f64::from(z1.z))
-                    };
-
-                    let mut light_focus_pos: math::Vec3<f32> = math::Vec3::zero();
-                    light_focus_pos.x = bounds0.center().x;
-                    light_focus_pos.y = bounds0.min.y;
-                    light_focus_pos.z = bounds0.center().z;
-
-                    let d = f64::from(bounds0.max.y - bounds0.min.y).abs();
-
-                    let w_l_y = d;
-
-                    // NOTE: See section 5.1.2.2 of Lloyd's thesis.
-                    let alpha = z_1 / z_0;
-                    let alpha_sqrt = alpha.sqrt();
-                    let directed_near_normal = if factor < 0.0 {
-                        // Standard shadow map to LiSPSM
-                        (1.0 + alpha_sqrt - factor * (alpha - 1.0))
-                            / ((alpha - 1.0) * (factor + 1.0))
-                    } else {
-                        // LiSPSM to PSM
-                        ((alpha_sqrt - 1.0) * (factor * alpha_sqrt + 1.0)).recip()
-                    };
-
-                    // Equation 5.14 - 5.16
-                    let y_ = |v: f64| w_l_y * (v + directed_near_normal).abs();
-                    let directed_near = y_(0.0) as f32;
-                    let directed_far = y_(1.0) as f32;
-                    light_focus_pos.y = if factor > EPSILON_UPSILON {
-                        light_focus_pos.y - directed_near
-                    } else {
-                        light_focus_pos.y
-                    };
-                    let w_v: math::Mat4<f32> = math::Mat4::translation_3d(-math::Vec3::new(
-                        light_focus_pos.x,
-                        light_focus_pos.y,
-                        light_focus_pos.z,
-                    ));
-                    let shadow_view_mat: math::Mat4<f32> = w_v * light_all_mat;
-                    let w_p: math::Mat4<f32> = {
-                        if factor > EPSILON_UPSILON {
-                            // Projection for y
-                            let near = directed_near;
-                            let far = directed_far;
-                            let left = -1.0;
-                            let right = 1.0;
-                            let bottom = -1.0;
-                            let top = 1.0;
-                            let s_x = 2.0 * near / (right - left);
-                            let o_x = (right + left) / (right - left);
-                            let s_z = 2.0 * near / (top - bottom);
-                            let o_z = (top + bottom) / (top - bottom);
-
-                            let s_y = (far + near) / (far - near);
-                            let o_y = -2.0 * far * near / (far - near);
-
-                            math::Mat4::new(
-                                s_x, o_x, 0.0, 0.0, 0.0, s_y, 0.0, o_y, 0.0, o_z, s_z, 0.0, 0.0,
-                                1.0, 0.0, 0.0,
-                            )
-                        } else {
-                            math::Mat4::identity()
-                        }
-                    };
-
-                    let shadow_all_mat: math::Mat4<f32> = w_p * shadow_view_mat;
-                    let math::Aabb::<f32> {
-                        min:
-                            math::Vec3 {
-                                x: xmin,
-                                y: ymin,
-                                z: zmin,
-                            },
-                        max:
-                            math::Vec3 {
-                                x: xmax,
-                                y: ymax,
-                                z: zmax,
-                            },
-                    } = math::fit_psr(
-                        shadow_all_mat,
-                        visible_light_volume.iter().copied(),
-                        math::Vec4::homogenized,
-                    );
-                    let s_x = 2.0 / (xmax - xmin);
-                    let s_y = 2.0 / (ymax - ymin);
-                    let s_z = 2.0 / (zmax - zmin);
-                    let o_x = -(xmax + xmin) / (xmax - xmin);
-                    let o_y = -(ymax + ymin) / (ymax - ymin);
-                    let o_z = -(zmax + zmin) / (zmax - zmin);
-                    let directed_proj_mat = Mat4::new(
-                        s_x, 0.0, 0.0, o_x, 0.0, s_y, 0.0, o_y, 0.0, 0.0, s_z, o_z, 0.0, 0.0, 0.0,
-                        1.0,
-                    );
-
-                    let shadow_all_mat: Mat4<f32> =
-                        Mat4::from_col_arrays(shadow_all_mat.into_col_arrays());
-
-                    PointLightMatrix::new(directed_proj_mat * shadow_all_mat)
-                },
-            ));
+            shadow_mats.resize_with(6, PointLightMatrix::default);
             // Now, we tackle point lights.
             // First, create a perspective projection matrix at 90 degrees (to cover a whole
             // face of the cube map we're using).

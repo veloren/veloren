@@ -141,7 +141,7 @@ impl ShadowFigurePipeline {
 
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                label: Some("Shadow figure pipeline layout"),
+                label: Some("Directed figure shadow pipeline layout"),
                 push_constant_ranges: &[],
                 bind_group_layouts: &[&global_layout.globals, &figure_layout.locals],
             });
@@ -155,7 +155,7 @@ impl ShadowFigurePipeline {
         };
 
         let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("Shadow figure pipeline"),
+            label: Some("Directed shadow figure pipeline"),
             layout: Some(&render_pipeline_layout),
             vertex_stage: wgpu::ProgrammableStageDescriptor {
                 module: vs_module,
@@ -167,7 +167,7 @@ impl ShadowFigurePipeline {
             }),
             rasterization_state: Some(wgpu::RasterizationStateDescriptor {
                 front_face: wgpu::FrontFace::Ccw,
-                cull_mode: wgpu::CullMode::Back,
+                cull_mode: wgpu::CullMode::Front,
                 polygon_mode: wgpu::PolygonMode::Fill,
                 clamp_depth: true,
                 depth_bias: 0,
@@ -217,7 +217,7 @@ impl ShadowPipeline {
     ) -> Self {
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                label: Some("Shadow pipeline layout"),
+                label: Some("Directed shadow pipeline layout"),
                 push_constant_ranges: &[],
                 bind_group_layouts: &[&global_layout.globals, &terrain_layout.locals],
             });
@@ -231,7 +231,7 @@ impl ShadowPipeline {
         };
 
         let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("Shadow pipeline"),
+            label: Some("Directed shadow pipeline"),
             layout: Some(&render_pipeline_layout),
             vertex_stage: wgpu::ProgrammableStageDescriptor {
                 module: vs_module,
@@ -243,7 +243,7 @@ impl ShadowPipeline {
             }),
             rasterization_state: Some(wgpu::RasterizationStateDescriptor {
                 front_face: wgpu::FrontFace::Ccw,
-                cull_mode: wgpu::CullMode::Back,
+                cull_mode: wgpu::CullMode::Front,
                 polygon_mode: wgpu::PolygonMode::Fill,
                 clamp_depth: true,
                 depth_bias: 0,
@@ -292,7 +292,7 @@ impl PointShadowPipeline {
     ) -> Self {
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                label: Some("Shadow pipeline layout"),
+                label: Some("Point shadow pipeline layout"),
                 push_constant_ranges: &[wgpu::PushConstantRange {
                     stages: wgpu::ShaderStage::all(),
                     range: 0..64,
@@ -309,7 +309,7 @@ impl PointShadowPipeline {
         };
 
         let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("Shadow pipeline"),
+            label: Some("Point shadow pipeline"),
             layout: Some(&render_pipeline_layout),
             vertex_stage: wgpu::ProgrammableStageDescriptor {
                 module: vs_module,
@@ -321,9 +321,9 @@ impl PointShadowPipeline {
             }),
             rasterization_state: Some(wgpu::RasterizationStateDescriptor {
                 front_face: wgpu::FrontFace::Ccw,
-                cull_mode: wgpu::CullMode::Back,
+                cull_mode: wgpu::CullMode::Front,
                 polygon_mode: wgpu::PolygonMode::Fill,
-                clamp_depth: true,
+                clamp_depth: false,
                 depth_bias: 0,
                 depth_bias_slope_scale: 0.0,
                 depth_bias_clamp: 0.0,

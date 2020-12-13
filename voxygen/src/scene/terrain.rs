@@ -1453,15 +1453,10 @@ impl<V: RectRasterableVol> Terrain<V> {
         // NOTE: We don't bother retaining chunks unless they cast sun shadows, so we
         // don't use `shadow_chunks` here.
         light_data.iter().take(1).for_each(|_light| {
-            chunk_iter.clone().for_each(|chunk| {
-                if chunk.can_shadow_point {
-                    drawer.draw_point_shadow(
-                        &chunk.opaque_model,
-                        &chunk.locals,
-                        &global.point_light_matrices,
-                    );
-                }
-            });
+            drawer.draw_point_shadow(
+                &global.point_light_matrices,
+                chunk_iter.clone().filter(|chunk| chunk.can_shadow_point).map(|chunk| (&chunk.opaque_model, &chunk.locals)),
+            );
         });
     }
 

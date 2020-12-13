@@ -1,4 +1,4 @@
-#version 330 core
+#version 420 core
 // #extension ARB_texture_storage : enable
 
 #include <constants.glsl>
@@ -43,7 +43,7 @@ uniform u_locals {
 const int EXTRA_NEG_Z = 32768;
 
 layout( push_constant ) uniform PointLightMatrix {
-  vec4 lightShadowMatrix;
+  mat4 lightShadowMatrix;
 };
 
 void main() {

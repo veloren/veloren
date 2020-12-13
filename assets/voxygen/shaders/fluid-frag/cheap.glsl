@@ -1,4 +1,4 @@
-#version 330 core
+#version 420 core
 
 #include <constants.glsl>
 
@@ -95,7 +95,7 @@ void main() {
 #endif
 
 #if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP)
-    vec4 f_shadow = textureBicubic(t_horizon, pos_to_tex(f_pos.xy));
+    vec4 f_shadow = textureBicubic(t_horizon, s_horizon, pos_to_tex(f_pos.xy));
     float sun_shade_frac = horizon_at2(f_shadow, f_alt, f_pos, sun_dir);
 #elif (SHADOW_MODE == SHADOW_MODE_NONE)
     float sun_shade_frac = 1.0;//horizon_at2(f_shadow, f_alt, f_pos, sun_dir);

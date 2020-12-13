@@ -2,7 +2,7 @@
 //
 // However, in the future we might apply some depth transforms here.
 
-#version 330 core
+#version 420 core
 // #extension ARB_texture_storage : enable
 
 #include <constants.glsl>

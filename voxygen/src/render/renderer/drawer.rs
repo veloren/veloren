@@ -11,7 +11,7 @@ use super::{
     },
     Renderer, ShadowMapRenderer,
 };
-use std::{ops::Range};
+use core::{num::NonZeroU32, ops::Range};
 use vek::Aabr;
 
 pub struct Drawer<'a> {
@@ -156,9 +156,8 @@ impl<'a> Drawer<'a> {
 
     pub fn draw_point_shadow<'b: 'a>(
         &mut self,
-        model: &'b Model<terrain::Vertex>,
-        locals: &'b terrain::BoundLocals,
         matrices: &[shadow::PointLightMatrix; 126],
+        chunks: impl Clone + Iterator<Item=(&'b Model<terrain::Vertex>, &'b terrain::BoundLocals)>,
     ) {
         if let Some(ref shadow_renderer) = self.renderer.shadow_map {
             const STRIDE: usize = std::mem::size_of::<shadow::PointLightMatrix>();
@@ -172,12 +171,12 @@ impl<'a> Drawer<'a> {
                         .create_view(&wgpu::TextureViewDescriptor {
                             label: Some("Point shadow cubemap face"),
                             format: None,
-                            dimension: Some(wgpu::TextureViewDimension::D2Array),
+                            dimension: Some(wgpu::TextureViewDimension::D2),
                             aspect: wgpu::TextureAspect::All,
                             base_mip_level: 0,
                             level_count: None,
                             base_array_layer: face,
-                            array_layer_count: None,
+                            array_layer_count: NonZeroU32::new(1),
                         });
 
                 let mut render_pass =
@@ -200,18 +199,20 @@ impl<'a> Drawer<'a> {
 
                 render_pass.set_pipeline(&shadow_renderer.point_pipeline.pipeline);
                 render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
-                render_pass.set_bind_group(1, &locals.bind_group, &[]);
-                render_pass.set_vertex_buffer(0, model.buf().slice(..));
 
-                for point_light in 0..20 {
+                (0../*20*/1).for_each(|point_light| {
                     render_pass.set_push_constants(
                         wgpu::ShaderStage::all(),
                         0,
                         &data[(6 * point_light * STRIDE + face as usize * STRIDE)
                             ..(6 * point_light * STRIDE + (face + 1) as usize * STRIDE)],
                     );
-                    render_pass.draw(0..model.len() as u32, 0..1);
-                }
+                    chunks.clone().for_each(|(model, locals)| {
+                        render_pass.set_bind_group(1, &locals.bind_group, &[]);
+                        render_pass.set_vertex_buffer(0, model.buf().slice(..));
+                        render_pass.draw(0..model.len() as u32, 0..1);
+                    });
+                });
             }
         }
     }

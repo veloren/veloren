@@ -126,8 +126,8 @@ impl Globals {
                 0,
             ],
             shadow_proj_factors: [
-                (shadow_planes.y + shadow_planes.x) / (shadow_planes.y - shadow_planes.x),
-                (2.0 * shadow_planes.y * shadow_planes.x) / (shadow_planes.y - shadow_planes.x),
+                shadow_planes.y / (shadow_planes.y - shadow_planes.x),
+                shadow_planes.y * shadow_planes.x / (shadow_planes.y - shadow_planes.x),
                 0.0,
                 0.0,
             ],
