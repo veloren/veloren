@@ -152,7 +152,7 @@ impl assets::Loader<Localization> for LocalizationLoader {
             }
 
             for value in asked_localization.vector_map.values_mut() {
-                *value = value.into_iter().map(|s| deunicode(s)).collect();
+                *value = value.iter().map(|s| deunicode(s)).collect();
             }
         }
         asked_localization.metadata.language_name =

@@ -67,6 +67,7 @@ impl RecipeBook {
 
 #[derive(Deserialize)]
 #[serde(transparent)]
+#[allow(clippy::type_complexity)]
 struct RawRecipeBook(HashMap<String, ((String, u32), Vec<(String, u32)>)>);
 
 impl assets::Asset for RawRecipeBook {
