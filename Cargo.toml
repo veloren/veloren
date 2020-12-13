@@ -3,11 +3,12 @@ cargo-features = ["named-profiles","profile-overrides"]
 [workspace]
 members = [
 	"common",
+	"common/net",
 	"common/sys",
-	"plugin/rt",
+	"client",
 	"plugin/api",
 	"plugin/derive",
-	"client",
+	"plugin/rt",
 	"server",
 	"server-cli",
 	"voxygen",

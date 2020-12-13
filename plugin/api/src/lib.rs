@@ -5,8 +5,8 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 pub enum Action {
     ServerClose,
     Print(String),
-    PlayerSendMessage(usize, String),
-    KillEntity(usize),
+    PlayerSendMessage(Uid, String),
+    KillEntity(Uid),
 }
 
 pub trait Event: Serialize + DeserializeOwned + Send + Sync {
@@ -38,7 +38,7 @@ pub mod event {
     #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
     pub struct PlayerJoinEvent {
         pub player_name: String,
-        pub player_id: usize,
+        pub player_id: Uid,
     }
 
     impl Event for PlayerJoinEvent {

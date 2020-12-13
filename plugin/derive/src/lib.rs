@@ -16,16 +16,16 @@ pub fn event_handler(_args: TokenStream, item: TokenStream) -> TokenStream {
     let out: proc_macro2::TokenStream = quote! {
         #[no_mangle]
         pub fn #fn_name(intern__ptr: i32, intern__len: u32) -> i32 {
-            let input = ::plugin_rt::read_input(intern__ptr,intern__len).unwrap();
+            let input = ::veloren_plugin_rt::read_input(intern__ptr,intern__len).unwrap();
             #[inline]
             fn inner(#fn_args) #fn_return {
                 #fn_body
             }
             // Artificially force the event handler to be type-correct
-            fn force_event<E: ::plugin_rt::api::Event>(event: E, inner: fn(E) -> E::Response) -> E::Response {
+            fn force_event<E: ::veloren_plugin_rt::api::Event>(event: E, inner: fn(E) -> E::Response) -> E::Response {
                 inner(event)
             }
-            ::plugin_rt::write_output(&force_event(input, inner))
+            ::veloren_plugin_rt::write_output(&force_event(input, inner))
         }
     };
     out.into()
