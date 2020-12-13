@@ -92,7 +92,7 @@ impl<T: Compound> AssetExt for T {
 pub struct Image(pub Arc<DynamicImage>);
 
 impl Image {
-    pub fn to_image(&self) -> Arc<DynamicImage> { self.0.clone() }
+    pub fn to_image(&self) -> Arc<DynamicImage> { Arc::clone(&self.0) }
 }
 
 pub struct ImageLoader;

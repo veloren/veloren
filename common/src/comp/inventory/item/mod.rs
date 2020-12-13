@@ -198,6 +198,9 @@ impl assets::Asset for RawItemDef {
     const EXTENSION: &'static str = "ron";
 }
 
+#[derive(Debug)]
+pub struct OperationFailure;
+
 impl Item {
     // TODO: consider alternatives such as default abilities that can be added to a
     // loadout when no weapon is present
@@ -275,30 +278,30 @@ impl Item {
     /// up by another player.
     pub fn put_in_world(&mut self) { self.reset_item_id() }
 
-    pub fn increase_amount(&mut self, increase_by: u32) -> Result<(), ()> {
+    pub fn increase_amount(&mut self, increase_by: u32) -> Result<(), OperationFailure> {
         let amount = u32::from(self.amount);
         self.amount = amount
             .checked_add(increase_by)
             .and_then(NonZeroU32::new)
-            .ok_or(())?;
+            .ok_or(OperationFailure)?;
         Ok(())
     }
 
-    pub fn decrease_amount(&mut self, decrease_by: u32) -> Result<(), ()> {
+    pub fn decrease_amount(&mut self, decrease_by: u32) -> Result<(), OperationFailure> {
         let amount = u32::from(self.amount);
         self.amount = amount
             .checked_sub(decrease_by)
             .and_then(NonZeroU32::new)
-            .ok_or(())?;
+            .ok_or(OperationFailure)?;
         Ok(())
     }
 
-    pub fn set_amount(&mut self, give_amount: u32) -> Result<(), ()> {
+    pub fn set_amount(&mut self, give_amount: u32) -> Result<(), OperationFailure> {
         if give_amount == 1 || self.item_def.is_stackable() {
-            self.amount = NonZeroU32::new(give_amount).ok_or(())?;
+            self.amount = NonZeroU32::new(give_amount).ok_or(OperationFailure)?;
             Ok(())
         } else {
-            Err(())
+            Err(OperationFailure)
         }
     }
 

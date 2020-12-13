@@ -162,7 +162,7 @@ impl assets::Compound for AbilityMap {
                 .iter()
                 .map(|(kind, set)| {
                     (
-                        kind.clone(),
+                        *kind,
                         // expect cannot fail because CharacterAbility always
                         // provides a default value in case of failure
                         set.map_ref(|s| cache.load_expect(&s).cloned()),
