@@ -46,10 +46,24 @@ use crate::{
     state_ext::StateExt,
     sys::sentinel::{DeletedEntities, TrackedComps},
 };
-use common::{assets::Asset, cmd::ChatCommand, comp::{self, ChatType}, event::{EventBus, ServerEvent}, msg::{
-        ClientType, DisconnectReason, ServerGeneral, ServerInfo, ServerInit, ServerMsg, WorldMapMsg,
-    }, outcome::Outcome, plugin::PluginMgr, recipe::default_recipe_book, resources::TimeOfDay, rtsim::RtSimEntity, sync::{Uid, WorldSyncExt}, terrain::TerrainChunkSize, vol::{ReadVol, RectVolSize}};
-use common_sys::state::State;
+use common::{
+    assets::Asset,
+    cmd::ChatCommand,
+    comp::{self, ChatType},
+    event::{EventBus, ServerEvent},
+    msg::{ClientType, DisconnectReason, ServerGeneral, ServerInfo, ServerInit, ServerMsg, WorldMapMsg},
+    outcome::Outcome,
+    recipe::default_recipe_book,
+    resources::TimeOfDay,
+    rtsim::RtSimEntity,
+    sync::{Uid, WorldSyncExt},
+    terrain::TerrainChunkSize,
+    vol::{ReadVol, RectVolSize},
+};
+use common_sys::{
+    state::State,
+    plugin::PluginMgr,
+};
 use futures_executor::block_on;
 use metrics::{PhysicsMetrics, ServerMetrics, StateTickMetrics, TickMetrics};
 use network::{Network, Pid, ProtocolAddr};
@@ -131,7 +145,7 @@ impl Server {
             metrics::NetworkRequestMetrics::new().unwrap();
         let (player_metrics, registry_player) = metrics::PlayerMetrics::new().unwrap();
 
-        let mut state = State::default();
+        let mut state = State::server();
         state.ecs_mut().insert(settings.clone());
         state.ecs_mut().insert(editable_settings);
         state.ecs_mut().insert(DataDir {
@@ -996,10 +1010,10 @@ impl Server {
             command.execute(self, entity, args);
         } else {
             let plugin_manager = self.state.ecs().read_resource::<PluginMgr>();
-            let rs = plugin_manager.execute_event(&format!("on_command_{}",&kwd), &common::plugin_api::event::ChatCommandEvent {
+            let rs = plugin_manager.execute_event(&format!("on_command_{}",&kwd), &plugin_api::event::ChatCommandEvent {
                 command: kwd.clone(),
                 command_args: args.split(" ").map(|x| x.to_owned()).collect(),
-                player: common::plugin_api::event::Player {
+                player: plugin_api::event::Player {
                     id: (*(self.state.ecs().read_storage::<Uid>().get(entity).expect("Can't get player UUID [This should never appen]"))).into()
                 },
             });

@@ -13,13 +13,6 @@ impl Into<u64> for Uid {
     fn into(self) -> u64 { self.0 }
 }
 
-
-impl Into<plugin_api::Uid> for Uid {
-    fn into(self) -> plugin_api::Uid { 
-        plugin_api::Uid(self.0)
-    }
-}
-
 impl From<u64> for Uid {
     fn from(uid: u64) -> Self { Self(uid) }
 }

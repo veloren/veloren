@@ -1,7 +1,11 @@
-use std::{cell::Cell, collections::HashSet, marker::PhantomData, sync::Arc};
+use std::{
+    cell::Cell,
+    collections::HashSet,
+    marker::PhantomData,
+    sync::{Arc, Mutex},
+};
 
 use error::RuntimeError;
-use parking_lot::Mutex;
 use wasmer_runtime::*;
 
 use super::errors::{PluginError, PluginModuleError};
@@ -46,7 +50,7 @@ impl PluginModule {
             return None;
         }
         let bytes = {
-            let instance = self.wasm_instance.lock();
+            let instance = self.wasm_instance.lock().unwrap();
             let func = match instance.exports.get(event_name).map_err(|e| PluginModuleError::FunctionGet(e)) {
                 Ok(e) => e,
                 Err(e) => return Some(Err(e))
