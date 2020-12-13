@@ -348,8 +348,7 @@ pub fn attempt_swap_loadout(data: &JoinData, update: &mut StateUpdate) {
 
 /// Checks that player can wield the glider and updates `CharacterState` if so
 pub fn attempt_glide_wield(data: &JoinData, update: &mut StateUpdate) {
-    if data.physics.on_ground
-        && data.loadout.glider.is_some()
+    if data.loadout.glider.is_some()
         && !data
             .physics
             .in_liquid
