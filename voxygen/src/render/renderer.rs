@@ -121,7 +121,7 @@ struct Shaders {
     random: AssetHandle<Glsl>,
     lod: AssetHandle<Glsl>,
     shadows: AssetHandle<Glsl>,
-    
+
     anti_alias_none: AssetHandle<Glsl>,
     anti_alias_fxaa: AssetHandle<Glsl>,
     anti_alias_msaa_x4: AssetHandle<Glsl>,
@@ -162,6 +162,8 @@ struct Shaders {
 }
 
 impl assets::Compound for Shaders {
+    // TODO: Taking the specifier argument as a base for shaders specifiers
+    // would allow to use several shaders groups easily
     fn load<S: assets::source::Source>(_: &assets::AssetCache<S>, _: &str) -> Result<Shaders, assets::Error> {
         Ok(Shaders {
             constants: AssetExt::load("voxygen.shaders.include.constants")?,
@@ -186,7 +188,7 @@ impl assets::Compound for Shaders {
             terrain_directed_shadow_vert: AssetExt::load("voxygen.shaders.light-shadows-directed-vert")?,
             figure_directed_shadow_vert: AssetExt::load("voxygen.shaders.light-shadows-figure-vert")?,
             directed_shadow_frag: AssetExt::load("voxygen.shaders.light-shadows-directed-frag")?,
-    
+
             skybox_vert: AssetExt::load("voxygen.shaders.skybox-vert")?,
             skybox_frag: AssetExt::load("voxygen.shaders.skybox-frag")?,
             figure_frag: AssetExt::load("voxygen.shaders.figure-frag")?,
@@ -210,7 +212,6 @@ impl assets::Compound for Shaders {
             player_shadow_frag: AssetExt::load("voxygen.shaders.player-shadow-frag")?,
             light_shadows_geom: AssetExt::load("voxygen.shaders.light-shadows-geom")?,
             light_shadows_frag: AssetExt::load("voxygen.shaders.light-shadows-frag")?,
-    
         })
     }
 }
