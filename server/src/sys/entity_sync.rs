@@ -9,15 +9,15 @@ use crate::{
 };
 use common::{
     comp::{ForceUpdate, Inventory, InventoryUpdate, Last, Ori, Pos, Vel},
-    msg::ServerGeneral,
     outcome::Outcome,
     region::{Event as RegionEvent, RegionMap},
     resources::TimeOfDay,
     span,
-    sync::{CompSyncPackage, Uid},
+    uid::Uid,
     terrain::TerrainChunkSize,
     vol::RectVolSize,
 };
+use common_net::{msg::ServerGeneral, sync::CompSyncPackage};
 use specs::{
     Entities, Entity as EcsEntity, Join, Read, ReadExpect, ReadStorage, System, Write, WriteStorage,
 };

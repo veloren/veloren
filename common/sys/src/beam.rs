@@ -5,7 +5,7 @@ use common::{
     },
     event::{EventBus, ServerEvent},
     resources::{DeltaTime, Time},
-    sync::{Uid, UidAllocator},
+    uid::{Uid, UidAllocator},
     GroupTarget,
 };
 use specs::{saveload::MarkerAllocator, Entities, Join, Read, ReadStorage, System, WriteStorage};

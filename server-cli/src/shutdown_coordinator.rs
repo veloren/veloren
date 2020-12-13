@@ -1,5 +1,6 @@
 use crate::settings::Settings;
 use common::comp::chat::ChatType;
+use common_net::msg::ServerGeneral;
 use server::Server;
 use std::{
     ops::Add,
@@ -155,7 +156,7 @@ impl ShutdownCoordinator {
     /// Logs and sends a message to all connected clients
     fn send_msg(server: &mut Server, msg: String) {
         info!("{}", &msg);
-        server.notify_players(ChatType::CommandError.server_msg(msg));
+        server.notify_players(ServerGeneral::server_msg(ChatType::CommandError, msg));
     }
 
     /// Converts a `Duration` into text in the format XsXm for example 1 minute

@@ -10,9 +10,9 @@ use common::{
         Pos,
     },
     consts::MAX_MOUNT_RANGE,
-    msg::ServerGeneral,
-    sync::{Uid, WorldSyncExt},
+    uid::Uid,
 };
+use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 use specs::{world::WorldExt, Entity as EcsEntity};
 use tracing::error;
 

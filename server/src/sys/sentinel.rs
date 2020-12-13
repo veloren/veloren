@@ -5,9 +5,12 @@ use common::{
         Group, Health, Item, LightEmitter, Loadout, Mass, MountState, Mounting, Ori, Player, Pos,
         Scale, Shockwave, Stats, Sticky, Vel,
     },
-    msg::EcsCompPacket,
     span,
-    sync::{CompSyncPackage, EntityPackage, EntitySyncPackage, Uid, UpdateTracker, WorldSyncExt},
+    uid::Uid,
+};
+use common_net::{
+    msg::EcsCompPacket,
+    sync::{CompSyncPackage, EntityPackage, EntitySyncPackage, UpdateTracker, WorldSyncExt},
 };
 use hashbrown::HashMap;
 use specs::{

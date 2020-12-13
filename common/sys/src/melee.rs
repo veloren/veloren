@@ -3,7 +3,7 @@ use common::{
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::SysMetrics,
     span,
-    sync::Uid,
+    uid::Uid,
     util::Dir,
     GroupTarget,
 };

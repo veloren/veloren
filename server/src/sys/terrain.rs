@@ -6,12 +6,12 @@ use common::{
     comp::{self, bird_medium, item::tool::AbilityMap, Alignment, Pos},
     event::{EventBus, ServerEvent},
     generation::get_npc_name,
-    msg::ServerGeneral,
     npc::NPC_NAMES,
     span,
     terrain::TerrainGrid,
     LoadoutBuilder,
 };
+use common_net::msg::ServerGeneral;
 use common_sys::state::TerrainChanges;
 use rand::Rng;
 use specs::{Join, Read, ReadExpect, ReadStorage, System, Write, WriteExpect};

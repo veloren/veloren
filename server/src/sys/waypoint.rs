@@ -2,10 +2,10 @@ use super::SysTimer;
 use crate::client::Client;
 use common::{
     comp::{Player, Pos, Waypoint, WaypointArea},
-    msg::{Notification, ServerGeneral},
     resources::Time,
     span,
 };
+use common_net::msg::{Notification, ServerGeneral};
 use specs::{Entities, Join, Read, ReadStorage, System, Write, WriteStorage};
 
 /// Cooldown time (in seconds) for "Waypoint Saved" notifications

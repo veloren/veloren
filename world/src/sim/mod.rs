@@ -37,7 +37,6 @@ use crate::{
 use common::{
     assets,
     grid::Grid,
-    msg::WorldMapMsg,
     store::Id,
     terrain::{
         map::MapConfig, uniform_idx_as_vec2, vec2_as_uniform_idx, BiomeKind, MapSizeLg,
@@ -45,6 +44,7 @@ use common::{
     },
     vol::RectVolSize,
 };
+use common_net::msg::WorldMapMsg;
 use noise::{
     BasicMulti, Billow, Fbm, HybridMulti, MultiFractal, NoiseFn, RangeFunction, RidgedMulti,
     Seedable, SuperSimplex, Worley,

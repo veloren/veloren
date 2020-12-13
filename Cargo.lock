@@ -5531,7 +5531,8 @@ dependencies = [
  "uvth 3.1.1",
  "vek 0.12.0",
  "veloren-common",
- "veloren_common_sys",
+ "veloren-common-net",
+ "veloren-common-sys",
  "veloren_network",
 ]
 
@@ -5540,7 +5541,6 @@ name = "veloren-common"
 version = "0.8.0"
 dependencies = [
  "arraygen",
- "authc",
  "criterion",
  "crossbeam",
  "csv",
@@ -5568,10 +5568,48 @@ dependencies = [
  "specs-idvs",
  "spin_sleep",
  "structopt",
+ "tracing",
+ "tracy-client",
+ "uuid",
+ "vek 0.12.0",
+]
+
+[[package]]
+name = "veloren-common-net"
+version = "0.8.0"
+dependencies = [
+ "authc",
+ "hashbrown 0.7.2",
+ "serde",
+ "specs",
  "sum_type",
  "tracing",
  "tracy-client",
  "vek 0.12.0",
+ "veloren-common",
+]
+
+[[package]]
+name = "veloren-common-sys"
+version = "0.8.0"
+dependencies = [
+ "bincode",
+ "hashbrown 0.7.2",
+ "indexmap",
+ "rand 0.7.3",
+ "rayon",
+ "serde",
+ "slab",
+ "specs",
+ "tar",
+ "toml",
+ "tracing",
+ "tracy-client",
+ "vek 0.12.0",
+ "veloren-common",
+ "veloren-common-net",
+ "veloren-plugin-api",
+ "wasmer-runtime",
 ]
 
 [[package]]
@@ -5634,9 +5672,10 @@ dependencies = [
  "uvth 3.1.1",
  "vek 0.12.0",
  "veloren-common",
+ "veloren-common-net",
+ "veloren-common-sys",
  "veloren-plugin-api",
  "veloren-world",
- "veloren_common_sys",
  "veloren_network",
 ]
 
@@ -5657,6 +5696,7 @@ dependencies = [
  "tracing-tracy",
  "tui",
  "veloren-common",
+ "veloren-common-net",
  "veloren-server",
 ]
 
@@ -5716,10 +5756,11 @@ dependencies = [
  "vek 0.12.0",
  "veloren-client",
  "veloren-common",
+ "veloren-common-net",
+ "veloren-common-sys",
  "veloren-server",
  "veloren-voxygen-anim",
  "veloren-world",
- "veloren_common_sys",
  "window_clipboard",
  "winit",
  "winres",
@@ -5766,28 +5807,7 @@ dependencies = [
  "tracing-subscriber",
  "vek 0.12.0",
  "veloren-common",
-]
-
-[[package]]
-name = "veloren_common_sys"
-version = "0.8.0"
-dependencies = [
- "bincode",
- "hashbrown 0.7.2",
- "indexmap",
- "rand 0.7.3",
- "rayon",
- "serde",
- "slab",
- "specs",
- "tar",
- "toml",
- "tracing",
- "tracy-client",
- "vek 0.12.0",
- "veloren-common",
- "veloren-plugin-api",
- "wasmer-runtime",
+ "veloren-common-net",
 ]
 
 [[package]]

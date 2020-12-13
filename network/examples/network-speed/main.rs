@@ -151,7 +151,7 @@ fn client(address: ProtocolAddr) {
     std::thread::spawn(f);
     metrics.run("0.0.0.0:59111".parse().unwrap()).unwrap();
 
-    let p1 = block_on(client.connect(address.clone())).unwrap(); //remote representation of p1
+    let p1 = block_on(client.connect(address)).unwrap(); //remote representation of p1
     let mut s1 = block_on(p1.open(16, Promises::ORDERED | Promises::CONSISTENCY)).unwrap(); //remote representation of s1
     let mut last = Instant::now();
     let mut id = 0u64;

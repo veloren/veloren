@@ -3,7 +3,6 @@
 mod packet;
 mod sync_ext;
 mod track;
-mod uid;
 
 // Reexports
 pub use packet::{
@@ -12,4 +11,4 @@ pub use packet::{
 };
 pub use sync_ext::WorldSyncExt;
 pub use track::UpdateTracker;
-pub use uid::{Uid, UidAllocator};
+pub use common::uid::{Uid, UidAllocator};

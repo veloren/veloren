@@ -1,7 +1,9 @@
 extern crate plugin_rt;
 
-use plugin_rt::*;
-use plugin_rt::api::{Action, GameMode, event::*};
+use plugin_rt::{
+    api::{event::*, Action, GameMode},
+    *,
+};
 
 #[event_handler]
 pub fn on_load(load: PluginLoadEvent) {
@@ -14,12 +16,18 @@ pub fn on_load(load: PluginLoadEvent) {
 
 #[event_handler]
 pub fn on_command_testplugin(command: ChatCommandEvent) -> Result<Vec<String>, String> {
-    Ok(vec![format!("Player of id {:?} sended command with args {:?}",command.player,command.command_args)])
+    Ok(vec![format!(
+        "Player of id {:?} sended command with args {:?}",
+        command.player, command.command_args
+    )])
 }
 
 #[event_handler]
 pub fn on_player_join(input: PlayerJoinEvent) -> PlayerJoinResult {
-    emit_action(Action::PlayerSendMessage(input.player_id,format!("Welcome {} on our server",input.player_name)));
+    emit_action(Action::PlayerSendMessage(
+        input.player_id,
+        format!("Welcome {} on our server", input.player_name),
+    ));
     if input.player_name == "Cheater123" {
         PlayerJoinResult::CloseConnection
     } else {

@@ -14,13 +14,16 @@ use common::{
     },
     effect::Effect,
     lottery::Lottery,
-    msg::{PlayerListUpdate, ServerGeneral},
     outcome::Outcome,
     rtsim::RtSimEntity,
-    sync::{Uid, UidAllocator, WorldSyncExt},
+    uid::{Uid, UidAllocator},
     terrain::{Block, TerrainGrid},
     vol::ReadVol,
     Damage, DamageSource, Explosion, GroupTarget, RadiusEffect,
+};
+use common_net::{
+    msg::{PlayerListUpdate, ServerGeneral},
+    sync::WorldSyncExt,
 };
 use common_sys::state::BlockChange;
 use comp::item::Reagent;
@@ -225,7 +228,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                 | HealthSource::Unknown => KillSource::Other,
             };
             state
-                .notify_players(comp::ChatType::Kill(kill_source, *uid).server_msg("".to_string()));
+                .notify_players(ServerGeneral::server_msg(comp::ChatType::Kill(kill_source, *uid), "".to_string()));
         }
     }
 

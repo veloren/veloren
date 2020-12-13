@@ -12,7 +12,8 @@ default = ["worldgen", "simd"]
 
 [dependencies]
 common = { package = "veloren-common", path = "../common" }
-common_sys = { package = "veloren_common_sys", path = "../common/sys" }
+common-sys = { package = "veloren-common-sys", path = "../common/sys" }
+common-net = { package = "veloren-common-net", path = "../common/net" }
 world = { package = "veloren-world", path = "../world" }
 network = { package = "veloren_network", path = "../network", features = ["metrics", "compression"], default-features = false }
 

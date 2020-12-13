@@ -21,7 +21,8 @@ default = ["gl", "singleplayer", "native-dialog", "simd"]
 [dependencies]
 client = {package = "veloren-client", path = "../client"}
 common = {package = "veloren-common", path = "../common"}
-common_sys = {package = "veloren_common_sys", path = "../common/sys"}
+common-net = {package = "veloren-common-net", path = "../common/net"}
+common-sys = {package = "veloren-common-sys", path = "../common/sys"}
 
 anim = {package = "veloren-voxygen-anim", path = "anim", default-features = false}
 

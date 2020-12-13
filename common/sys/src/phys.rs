@@ -8,7 +8,7 @@ use common::{
     metrics::{PhysicsMetrics, SysMetrics},
     resources::DeltaTime,
     span,
-    sync::Uid,
+    uid::Uid,
     terrain::{Block, TerrainGrid},
     vol::ReadVol,
 };

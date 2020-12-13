@@ -1,4 +1,4 @@
-use crate::{character::CharacterId, comp, rtsim::RtSimEntity, sync::Uid, util::Dir, Explosion};
+use crate::{character::CharacterId, comp, rtsim::RtSimEntity, uid::Uid, util::Dir, Explosion};
 use comp::{
     item::{Item, Reagent},
     Ori, Pos,

@@ -24,18 +24,15 @@ rand = "0.7"
 rayon = "1.3.0"
 roots = "0.0.6"
 spin_sleep = "1.0"
-sum_type = "0.2.0"
 tracing = { version = "0.1", default-features = false }
 vek = { version = "0.12.0", features = ["serde"] }
+uuid = { version = "0.8.1", default-features = false, features = ["serde", "v4"] }
 
 # Assets
 directories-next = "2.0"
 dot_vox = "4.0"
 image = { version = "0.23.8", default-features = false, features = ["png"] }
 notify = "5.0.0-pre.3"
-
-# Auth
-authc = { git = "https://gitlab.com/veloren/auth.git", rev = "b943c85e4a38f5ec60cd18c34c73097640162bfe" }
 
 # Data structures
 hashbrown = { version = "0.7.2", features = ["rayon", "serde", "nightly"] }
