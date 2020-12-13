@@ -100,7 +100,6 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::Sit { .. }
                 | CharacterState::Dance { .. }
                 | CharacterState::Sneak { .. }
-                | CharacterState::Glide { .. }
                 | CharacterState::GlideWield { .. }
                 | CharacterState::Wielding { .. }
                 | CharacterState::Equipping { .. }
@@ -123,8 +122,9 @@ impl<'a> System<'a> for Sys {
                             (energy.regen_rate + ENERGY_REGEN_ACCEL * dt.0).min(100.0);
                     }
                 },
-                // Ability use does not regen and sets the rate back to zero.
-                CharacterState::BasicMelee { .. }
+                // Ability and glider use does not regen and sets the rate back to zero.
+                CharacterState::Glide { .. }
+                | CharacterState::BasicMelee { .. }
                 | CharacterState::DashMelee { .. }
                 | CharacterState::LeapMelee { .. }
                 | CharacterState::SpinMelee { .. }
