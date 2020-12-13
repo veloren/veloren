@@ -1465,7 +1465,7 @@ impl CharSelectionUi {
     pub fn update_language(&mut self, i18n: AssetHandle<Localization>) {
         let i18n = i18n.read();
         let font = ui::ice::load_font(&i18n.fonts.get("cyri").unwrap().asset_key);
-        
+
         self.ui.clear_fonts(font);
         self.controls.fonts = Fonts::load(&i18n.fonts, &mut self.ui)
             .expect("Impossible to load fonts!");

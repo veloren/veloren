@@ -216,15 +216,6 @@ impl Item {
             .iter()
             .map(|spec| Self::new_from_asset(&spec))
             .collect()
-
-        /*
-        let result = items
-            .iter()
-            .map(|item_def| Item::new(Arc::clone(item_def)))
-            .collect::<Vec<_>>();
-
-        Ok(result)
-        */
     }
 
     /// Creates a new instance of an `Item from the provided asset identifier if
