@@ -33,26 +33,6 @@ rec {
   # You can override the features with
   # workspaceMembers."${crateName}".build.override { features = [ "default" "feature1" ... ]; }.
   workspaceMembers = {
-    "tools" = rec {
-      packageId = "tools";
-      build = internal.buildRustCrateWithFeatures {
-        packageId = "tools";
-      };
-
-      # Debug support which might change between releases.
-      # File a bug if you depend on any for non-debug work!
-      debug = internal.debugCrate { inherit packageId; };
-    };
-    "veloren-chat-cli" = rec {
-      packageId = "veloren-chat-cli";
-      build = internal.buildRustCrateWithFeatures {
-        packageId = "veloren-chat-cli";
-      };
-
-      # Debug support which might change between releases.
-      # File a bug if you depend on any for non-debug work!
-      debug = internal.debugCrate { inherit packageId; };
-    };
     "veloren-client" = rec {
       packageId = "veloren-client";
       build = internal.buildRustCrateWithFeatures {
@@ -4140,62 +4120,6 @@ rec {
           "std" = [ "num-traits/std" ];
         };
         resolvedDefaultFeatures = [ "default" "std" ];
-      };
-      "failure" = rec {
-        crateName = "failure";
-        version = "0.1.8";
-        edition = "2015";
-        sha256 = "11jg1wmbkijrs6bk9fqnbrm9zf0850whnqpgnxyswbn0dk8rnbnk";
-        authors = [
-          "Without Boats <boats@mozilla.com>"
-        ];
-        dependencies = [
-          {
-            name = "backtrace";
-            packageId = "backtrace";
-            optional = true;
-          }
-          {
-            name = "failure_derive";
-            packageId = "failure_derive";
-            optional = true;
-          }
-        ];
-        features = {
-          "default" = [ "std" "derive" ];
-          "derive" = [ "failure_derive" ];
-          "std" = [ "backtrace" ];
-        };
-        resolvedDefaultFeatures = [ "backtrace" "default" "derive" "failure_derive" "std" ];
-      };
-      "failure_derive" = rec {
-        crateName = "failure_derive";
-        version = "0.1.8";
-        edition = "2015";
-        sha256 = "1936adqqk080439kx2bjf1bds7h89sg6wcif4jw0syndcv3s6kda";
-        procMacro = true;
-        authors = [
-          "Without Boats <woboats@gmail.com>"
-        ];
-        dependencies = [
-          {
-            name = "proc-macro2";
-            packageId = "proc-macro2 1.0.23";
-          }
-          {
-            name = "quote";
-            packageId = "quote 1.0.7";
-          }
-          {
-            name = "syn";
-            packageId = "syn 1.0.42";
-          }
-          {
-            name = "synstructure";
-            packageId = "synstructure";
-          }
-        ];
-        features = { };
       };
       "fehler" = rec {
         crateName = "fehler";
@@ -12502,42 +12426,6 @@ rec {
         };
         resolvedDefaultFeatures = [ "clone-impls" "default" "derive" "extra-traits" "fold" "full" "parsing" "printing" "proc-macro" "quote" "visit" "visit-mut" ];
       };
-      "synstructure" = rec {
-        crateName = "synstructure";
-        version = "0.12.4";
-        edition = "2018";
-        sha256 = "00c72ij813xsilssgya6m6f73d0s5zzsld1y26bvhk3kdzbg4d5q";
-        authors = [
-          "Nika Layzell <nika@thelayzells.com>"
-        ];
-        dependencies = [
-          {
-            name = "proc-macro2";
-            packageId = "proc-macro2 1.0.23";
-            usesDefaultFeatures = false;
-          }
-          {
-            name = "quote";
-            packageId = "quote 1.0.7";
-            usesDefaultFeatures = false;
-          }
-          {
-            name = "syn";
-            packageId = "syn 1.0.42";
-            usesDefaultFeatures = false;
-            features = [ "derive" "parsing" "printing" "clone-impls" "visit" "extra-traits" ];
-          }
-          {
-            name = "unicode-xid";
-            packageId = "unicode-xid 0.2.1";
-          }
-        ];
-        features = {
-          "default" = [ "proc-macro" ];
-          "proc-macro" = [ "proc-macro2/proc-macro" "syn/proc-macro" "quote/proc-macro" ];
-        };
-        resolvedDefaultFeatures = [ "default" "proc-macro" ];
-      };
       "take_mut" = rec {
         crateName = "take_mut";
         version = "0.2.2";
@@ -13249,34 +13137,6 @@ rec {
           "preserve_order" = [ "indexmap" ];
         };
         resolvedDefaultFeatures = [ "default" ];
-      };
-      "tools" = rec {
-        crateName = "tools";
-        version = "0.1.0";
-        edition = "2018";
-        crateBin = [
-          { name = "tools"; path = "src/main.rs"; }
-        ];
-        src = lib.cleanSourceWith { filter = sourceFilter; src = ../tools; };
-        authors = [
-          "Sam <samuelkeiffer@gmail.com>"
-        ];
-        dependencies = [
-          {
-            name = "csv";
-            packageId = "csv";
-          }
-          {
-            name = "structopt";
-            packageId = "structopt";
-          }
-          {
-            name = "veloren-common";
-            packageId = "veloren-common";
-            rename = "common";
-          }
-        ];
-
       };
       "tracing" = rec {
         crateName = "tracing";
@@ -14294,42 +14154,6 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" "platform_intrinsics" "repr_simd" "rgb" "rgba" "serde" "std" ];
       };
-      "veloren-chat-cli" = rec {
-        crateName = "veloren-chat-cli";
-        version = "0.8.0";
-        edition = "2018";
-        crateBin = [
-          { name = "veloren-chat-cli"; path = "src/main.rs"; }
-        ];
-        src = lib.cleanSourceWith { filter = sourceFilter; src = ../chat-cli; };
-        authors = [
-          "Joshua Barretto <joshua.s.barretto@gmail.com>"
-        ];
-        dependencies = [
-          {
-            name = "tracing";
-            packageId = "tracing";
-            usesDefaultFeatures = false;
-          }
-          {
-            name = "tracing-subscriber";
-            packageId = "tracing-subscriber";
-            usesDefaultFeatures = false;
-            features = [ "fmt" "chrono" "ansi" "smallvec" ];
-          }
-          {
-            name = "veloren-client";
-            packageId = "veloren-client";
-            rename = "client";
-          }
-          {
-            name = "veloren-common";
-            packageId = "veloren-common";
-            rename = "common";
-          }
-        ];
-
-      };
       "veloren-client" = rec {
         crateName = "veloren-client";
         version = "0.8.0";
@@ -14420,6 +14244,14 @@ rec {
             features = [ "compression" ];
           }
         ];
+        devDependencies = [
+          {
+            name = "tracing-subscriber";
+            packageId = "tracing-subscriber";
+            usesDefaultFeatures = false;
+            features = [ "fmt" "chrono" "ansi" "smallvec" ];
+          }
+        ];
         features = {
           "default" = [ "simd" ];
           "simd" = [ "vek/platform_intrinsics" ];
@@ -14430,6 +14262,9 @@ rec {
         crateName = "veloren-common";
         version = "0.8.0";
         edition = "2018";
+        crateBin = [
+          { name = "csv_export"; path = "src/bin/csv_export/main.rs"; }
+        ];
         src = lib.cleanSourceWith { filter = sourceFilter; src = ../common; };
         authors = [
           "Joshua Barretto <joshua.s.barretto@gmail.com>"
@@ -14448,6 +14283,11 @@ rec {
           {
             name = "crossbeam";
             packageId = "crossbeam";
+          }
+          {
+            name = "csv";
+            packageId = "csv";
+            # optional = true;
           }
           {
             name = "directories-next";
@@ -14554,6 +14394,11 @@ rec {
             packageId = "spin_sleep";
           }
           {
+            name = "structopt";
+            packageId = "structopt";
+            # optional = true;
+          }
+          {
             name = "sum_type";
             packageId = "sum_type";
           }
@@ -14580,11 +14425,12 @@ rec {
           }
         ];
         features = {
+          "bin_csv_export" = [ "csv" "structopt" ];
           "default" = [ "simd" ];
           "simd" = [ "vek/platform_intrinsics" ];
           "tracy" = [ "tracy-client" ];
         };
-        resolvedDefaultFeatures = [ "default" "no-assets" "simd" "tracy" "tracy-client" ];
+        resolvedDefaultFeatures = [ "bin_csv_export" "csv" "default" "no-assets" "simd" "structopt" "tracy" "tracy-client" ];
       };
       "veloren-server" = rec {
         crateName = "veloren-server";
@@ -14906,10 +14752,6 @@ rec {
           {
             name = "euc";
             packageId = "euc";
-          }
-          {
-            name = "failure";
-            packageId = "failure";
           }
           {
             name = "gfx";

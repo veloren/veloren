@@ -1,4 +1,4 @@
-{ nixpkgs, sources, system, nvidia ? false }:
+{ nixpkgs, sources, system }:
 with import ./common.nix
 {
   inherit
@@ -9,22 +9,13 @@ with import ./common.nix
 };
 with pkgs;
 let
-  nixGLPackages = ((with nixGL; [ nixGLIntel ]) ++ (lib.optional nvidia
-    (with nixGL; [ nixGLNvidia nixGLNvidiaBumblebee ])));
-
   getAllCratesDeps = name:
     (lib.concatLists
       (map (attrset: attrset."${name}") (lib.attrValues crateDeps)));
-
-  bundleCrate = writeScriptBin "bundleCrate" ''
-    #!${stdenv.shell}
-    ${nix-bundle}/bin/nix-bundle "(pkgs.callPackage ./nix/veloren.nix { cratesToBuild = [ \"$1\" ]; }).$1" /bin/$1
-  '';
 in
 mkShell {
   name = "veloren-shell";
   nativeBuildInputs = [
-    bundleCrate
     cachix
     cargo
     clippy
@@ -34,7 +25,7 @@ mkShell {
     nixpkgs-fmt
     rustc
     rustfmt
-  ] ++ nixGLPackages ++ (getAllCratesDeps "nativeBuildInputs");
+  ] ++ (getAllCratesDeps "nativeBuildInputs");
   buildInputs = getAllCratesDeps "buildInputs";
   shellHook = ''
     # Setup our cachix "substituter"

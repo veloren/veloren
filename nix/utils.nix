@@ -1,5 +1,4 @@
 { pkgs }: {
-
   isGitLfsSetup = checkFile:
     let
       gitLfsCheckOutput =
@@ -44,32 +43,4 @@
       pad = s: if builtins.stringLength s < 2 then "0" + s else s;
     in
     "${toString y'}-${pad (toString m)}-${pad (toString d)}-${pad (toString hours)}:${pad (toString minutes)}";
-
-  getGitInfo = dotGitPath:
-    let
-      makeGitCommand = subcommands: name:
-        builtins.readFile (pkgs.runCommand name { } ''
-          cd ${
-          # Only copy the `.git` directory to nix store, anything else is a waste.
-            builtins.path {
-              path = ../.git;
-              # Nix store path names don't accept names that start with a dot.
-              name = "dotgit-dir";
-            }
-          }
-          (${pkgs.git}/bin/git ${subcommands}) > $out
-        '');
-
-    in
-    {
-      gitHash = makeGitCommand
-        "log -n 1 --pretty=format:%h/%cd --date=format:%Y-%m-%d-%H:%M --abbrev=8"
-        "getGitHash";
-
-      gitTag =
-        # If the git command errors out we feed an empty string
-        makeGitCommand "describe --exact-match --tags HEAD || printf ''"
-          "getGitTag";
-    };
-
 }
