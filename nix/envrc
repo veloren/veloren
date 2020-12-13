@@ -5,4 +5,5 @@ watch_file nix/devShell.nix
 watch_file nix/rustPkgs.nix
 watch_file nix/shell.nix
 watch_file nix/utils.nix
-use nix nix/shell.nix
+
+use flake

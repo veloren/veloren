@@ -11,22 +11,15 @@
       url = "github:mozilla/nixpkgs-mozilla";
       flake = false;
     };
-    nixGL = {
-      url = "github:guibou/nixGL?rev=7d6bc1b21316bab6cf4a6520c2639a11c25a220e";
-      flake = false;
-    };
     nixpkgs.url = "github:NixOS/nixpkgs?rev=c00959877fb06b09468562518b408acda886c79e";
   };
 
   outputs = inputs: with inputs;
     flake-utils.lib.eachSystem [ "x86_64-linux" ] (system:
       let
-        pkgs = inputs.nixpkgs.legacyPackages."${system}";
-
         sources = {
           inherit
             crate2nix
-            nixGL
             nixpkgs
             nixpkgsMoz
             ;

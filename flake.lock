@@ -32,23 +32,6 @@
         "type": "github"
       }
     },
-    "nixGL": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1604138361,
-        "narHash": "sha256-I9/myywtqh9xrxC94molYpwN4c92dw1jUmfS2+pHwws=",
-        "owner": "guibou",
-        "repo": "nixGL",
-        "rev": "7d6bc1b21316bab6cf4a6520c2639a11c25a220e",
-        "type": "github"
-      },
-      "original": {
-        "owner": "guibou",
-        "repo": "nixGL",
-        "rev": "7d6bc1b21316bab6cf4a6520c2639a11c25a220e",
-        "type": "github"
-      }
-    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1606744648,
@@ -85,7 +68,6 @@
       "inputs": {
         "crate2nix": "crate2nix",
         "flake-utils": "flake-utils",
-        "nixGL": "nixGL",
         "nixpkgs": "nixpkgs",
         "nixpkgsMoz": "nixpkgsMoz"
       }
