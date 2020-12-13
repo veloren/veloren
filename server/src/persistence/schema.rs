@@ -42,6 +42,24 @@ table! {
     }
 }
 
+table! {
+    skill (character_id, skill_type) {
+        character_id -> BigInt,
+        #[sql_name = "skill"]
+        skill_type -> Text,
+        level -> Nullable<Integer>,
+    }
+}
+
+table! {
+    skill_group (character_id, skill_group_type) {
+        character_id -> BigInt,
+        skill_group_type -> Text,
+        exp -> Integer,
+        available_sp -> Integer,
+    }
+}
+
 joinable!(character -> body (character_id));
 joinable!(character -> stats (character_id));
 

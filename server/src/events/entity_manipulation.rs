@@ -28,9 +28,9 @@ use common_net::{
 };
 use common_sys::state::BlockChange;
 use comp::item::Reagent;
+use hashbrown::HashSet;
 use rand::prelude::*;
 use specs::{join::Join, saveload::MarkerAllocator, Entity as EcsEntity, WorldExt};
-use std::collections::HashSet;
 use tracing::error;
 use vek::Vec3;
 

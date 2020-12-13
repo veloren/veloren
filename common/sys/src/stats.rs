@@ -7,8 +7,8 @@ use common::{
     resources::DeltaTime,
     span,
 };
+use hashbrown::HashSet;
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
-use std::collections::HashSet;
 
 const ENERGY_REGEN_ACCEL: f32 = 10.0;
 

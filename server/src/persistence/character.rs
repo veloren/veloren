@@ -15,6 +15,7 @@ use crate::{
             convert_body_from_database, convert_body_to_database_json,
             convert_character_from_database, convert_inventory_from_database_items,
             convert_items_to_database_items, convert_loadout_from_database_items,
+            convert_skill_groups_to_database, convert_skills_to_database,
             convert_stats_from_database, convert_stats_to_database,
             convert_waypoint_from_database_json,
         },
@@ -58,7 +59,9 @@ pub fn load_character_data(
     char_id: CharacterId,
     connection: VelorenTransaction,
 ) -> CharacterDataResult {
-    use schema::{body::dsl::*, character::dsl::*, item::dsl::*};
+    use schema::{
+        body::dsl::*, character::dsl::*, item::dsl::*, skill_group::dsl::*,
+    };
 
     let character_containers = get_pseudo_containers(connection, char_id)?;
 
@@ -100,9 +103,22 @@ pub fn load_character_data(
                 },
             });
 
+    let skill_data = schema::skill::dsl::skill
+        .filter(schema::skill::dsl::character_id.eq(char_id))
+        .load::<Skill>(&*connection)?;
+
+    let skill_group_data = skill_group
+        .filter(schema::skill_group::dsl::character_id.eq(char_id))
+        .load::<SkillGroup>(&*connection)?;
+
     Ok((
         convert_body_from_database(&char_body)?,
-        convert_stats_from_database(&stats_data, character_data.alias),
+        convert_stats_from_database(
+            &stats_data,
+            character_data.alias,
+            &skill_data,
+            &skill_group_data,
+        ),
         convert_inventory_from_database_items(&inventory_items, &loadout_items)?,
         char_waypoint,
     ))
@@ -172,7 +188,7 @@ pub fn create_character(
 
     check_character_limit(uuid, connection)?;
 
-    use schema::{body, character};
+    use schema::{body, character, skill_group};
 
     let (body, stats, inventory, waypoint) = persisted_components;
 
@@ -217,6 +233,8 @@ pub fn create_character(
             character_id, pseudo_container_count
         )));
     }
+
+    let skill_set = stats.skill_set.clone();
 
     // Insert stats record
     let db_stats = convert_stats_to_database(character_id, &stats, &waypoint)?;
@@ -266,6 +284,18 @@ pub fn create_character(
         )));
     }
 
+    let db_skill_groups = convert_skill_groups_to_database(character_id, skill_set.skill_groups);
+    let skill_groups_count = diesel::insert_into(skill_group::table)
+        .values(&db_skill_groups)
+        .execute(&*connection)?;
+
+    if skill_groups_count != 1 {
+        return Err(Error::OtherError(format!(
+            "Error inserting into skill_group table for char_id {}",
+            character_id
+        )));
+    }
+
     // Insert default inventory and loadout item records
     let mut inserts = Vec::new();
 
@@ -305,7 +335,9 @@ pub fn delete_character(
     char_id: CharacterId,
     connection: VelorenTransaction,
 ) -> CharacterListResult {
-    use schema::{body::dsl::*, character::dsl::*, stats::dsl::*};
+    use schema::{
+        body::dsl::*, character::dsl::*, skill::dsl::*, skill_group::dsl::*, stats::dsl::*,
+    };
 
     // Load the character to delete - ensures that the requesting player
     // owns the character
@@ -316,6 +348,13 @@ pub fn delete_character(
                 .and(player_uuid.eq(requesting_player_uuid)),
         )
         .first::<Character>(&*connection)?;
+
+    // Delete skills
+    diesel::delete(skill_group.filter(schema::skill_group::dsl::character_id.eq(char_id)))
+        .execute(&*connection)?;
+
+    diesel::delete(skill.filter(schema::skill::dsl::character_id.eq(char_id)))
+        .execute(&*connection)?;
 
     // Delete character
     let character_count = diesel::delete(
@@ -529,7 +568,7 @@ pub fn update(
     char_waypoint: Option<comp::Waypoint>,
     connection: VelorenTransaction,
 ) -> Result<Vec<Arc<common::comp::item::ItemId>>, Error> {
-    use super::schema::item::dsl::*;
+    use super::schema::{item::dsl::*, skill_group::dsl::*};
 
     let pseudo_containers = get_pseudo_containers(connection, char_id)?;
 
@@ -590,6 +629,20 @@ pub fn update(
             )));
         }
     }
+
+    let char_skill_set = char_stats.skill_set.clone();
+
+    let db_skill_groups = convert_skill_groups_to_database(char_id, char_skill_set.skill_groups);
+
+    diesel::replace_into(skill_group)
+        .values(&db_skill_groups)
+        .execute(&*connection)?;
+
+    let db_skills = convert_skills_to_database(char_id, char_skill_set.skills);
+
+    diesel::replace_into(schema::skill::dsl::skill)
+        .values(&db_skills)
+        .execute(&*connection)?;
 
     let db_stats = convert_stats_to_database(char_id, &char_stats, &char_waypoint)?;
     let stats_count =
