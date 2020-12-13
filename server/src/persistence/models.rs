@@ -1,6 +1,6 @@
 extern crate serde_json;
 
-use super::schema::{body, character, entity, item, stats};
+use super::schema::{body, character, entity, item, skill, skill_group, stats};
 
 #[derive(Debug, Insertable, PartialEq)]
 #[table_name = "entity"]
@@ -56,4 +56,23 @@ pub struct Body {
     pub body_id: i64,
     pub variant: String,
     pub body_data: String,
+}
+
+#[derive(Associations, Identifiable, Insertable, Queryable, Debug)]
+#[primary_key(character_id, skill_type)]
+#[table_name = "skill"]
+pub struct Skill {
+    pub character_id: i64,
+    pub skill_type: String,
+    pub level: Option<i32>,
+}
+
+#[derive(Associations, Identifiable, Insertable, Queryable, Debug)]
+#[primary_key(character_id, skill_group_type)]
+#[table_name = "skill_group"]
+pub struct SkillGroup {
+    pub character_id: i64,
+    pub skill_group_type: String,
+    pub exp: i32,
+    pub available_sp: i32,
 }

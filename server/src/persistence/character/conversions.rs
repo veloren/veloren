@@ -1,6 +1,6 @@
 use crate::persistence::{
     character::EntityId,
-    models::{Body, Character, Item, Stats},
+    models::{Body, Character, Item, Skill, SkillGroup, Stats},
 };
 
 use crate::persistence::{
@@ -15,11 +15,13 @@ use common::{
             loadout_builder::LoadoutBuilder,
             slot::InvSlotId,
         },
+        skills,
         Body as CompBody, Waypoint, *,
     },
     resources::Time,
 };
 use core::{convert::TryFrom, num::NonZeroU64};
+use hashbrown::HashMap;
 use itertools::{Either, Itertools};
 use std::sync::Arc;
 
@@ -342,7 +344,12 @@ pub fn convert_character_from_database(character: &Character) -> common::charact
     }
 }
 
-pub fn convert_stats_from_database(stats: &Stats, alias: String) -> common::comp::Stats {
+pub fn convert_stats_from_database(
+    stats: &Stats,
+    alias: String,
+    skills: &[Skill],
+    skill_groups: &[SkillGroup],
+) -> common::comp::Stats {
     let mut new_stats = common::comp::Stats::empty();
     new_stats.name = alias;
     new_stats.level.set_level(stats.level as u32);
@@ -356,6 +363,10 @@ pub fn convert_stats_from_database(stats: &Stats, alias: String) -> common::comp
     new_stats.endurance = stats.endurance as u32;
     new_stats.fitness = stats.fitness as u32;
     new_stats.willpower = stats.willpower as u32;
+    new_stats.skill_set = skills::SkillSet {
+        skill_groups: convert_skill_groups_from_database(skill_groups),
+        skills: convert_skills_from_database(skills),
+    };
 
     new_stats
 }
@@ -368,4 +379,73 @@ fn get_item_from_asset(item_definition_id: &str) -> Result<common::comp::Item, E
             err.to_string()
         ))
     })
+}
+
+fn convert_skill_groups_from_database(skill_groups: &[SkillGroup]) -> Vec<skills::SkillGroup> {
+    let mut new_skill_groups = Vec::new();
+    for skill_group in skill_groups.iter() {
+        let skill_group_type =
+            serde_json::de::from_str::<skills::SkillGroupType>(&skill_group.skill_group_type)
+                .map_err(|err| {
+                    Error::ConversionError(format!(
+                        "Error de-serializing skill group: {} err: {}",
+                        skill_group.skill_group_type, err
+                    ))
+                })
+                .unwrap();
+        let new_skill_group = skills::SkillGroup {
+            skill_group_type,
+            exp: skill_group.exp as u16,
+            available_sp: skill_group.available_sp as u16,
+        };
+        new_skill_groups.push(new_skill_group);
+    }
+    new_skill_groups
+}
+
+fn convert_skills_from_database(skills: &[Skill]) -> HashMap<skills::Skill, skills::Level> {
+    let mut new_skills = HashMap::new();
+    for skill in skills.iter() {
+        let new_skill = serde_json::de::from_str::<skills::Skill>(&skill.skill_type)
+            .map_err(|err| {
+                Error::ConversionError(format!(
+                    "Error de-serializing skill: {} err: {}",
+                    skill.skill_type, err
+                ))
+            })
+            .unwrap();
+        new_skills.insert(new_skill, skill.level.map(|l| l as u16));
+    }
+    new_skills
+}
+
+pub fn convert_skill_groups_to_database(
+    character_id: CharacterId,
+    skill_groups: Vec<skills::SkillGroup>,
+) -> Vec<SkillGroup> {
+    let db_skill_groups: Vec<_> = skill_groups
+        .into_iter()
+        .map(|sg| SkillGroup {
+            character_id,
+            skill_group_type: serde_json::to_string(&sg.skill_group_type).unwrap(),
+            exp: sg.exp as i32,
+            available_sp: sg.available_sp as i32,
+        })
+        .collect();
+    db_skill_groups
+}
+
+pub fn convert_skills_to_database(
+    character_id: CharacterId,
+    skills: HashMap<skills::Skill, skills::Level>,
+) -> Vec<Skill> {
+    let db_skills: Vec<_> = skills
+        .iter()
+        .map(|(s, l)| Skill {
+            character_id,
+            skill_type: serde_json::to_string(&s).unwrap(),
+            level: l.map(|l| l as i32),
+        })
+        .collect();
+    db_skills
 }
