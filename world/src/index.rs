@@ -26,8 +26,8 @@ pub struct IndexOwned {
     colors: Arc<Colors>,
     index: Arc<Index>,
 
-    /// Stored separatly so `colors` is only updated when `reload_colors_if_changed`
-    /// is called
+    /// Stored separatly so `colors` is only updated when
+    /// `reload_colors_if_changed` is called
     colors_handle: AssetHandle<Arc<Colors>>,
 }
 

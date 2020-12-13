@@ -7,7 +7,7 @@ use crate::{
 };
 use common::{
     assets::AssetHandle,
-    terrain::{Structure, StructuresGroup, Block, BlockKind},
+    terrain::{Block, BlockKind, Structure, StructuresGroup},
     vol::ReadVol,
 };
 use hashbrown::HashMap;
@@ -24,7 +24,8 @@ lazy_static! {
     static ref BAOBABS: AssetHandle<StructuresGroup> = Structure::load_group("baobabs");
     static ref FRUIT_TREES: AssetHandle<StructuresGroup> = Structure::load_group("fruit_trees");
     static ref BIRCHES: AssetHandle<StructuresGroup> = Structure::load_group("birch");
-    static ref MANGROVE_TREES: AssetHandle<StructuresGroup> = Structure::load_group("mangrove_trees");
+    static ref MANGROVE_TREES: AssetHandle<StructuresGroup> =
+        Structure::load_group("mangrove_trees");
     static ref QUIRKY: AssetHandle<StructuresGroup> = Structure::load_group("quirky");
     static ref QUIRKY_DRY: AssetHandle<StructuresGroup> = Structure::load_group("quirky_dry");
     static ref SWAMP_TREES: AssetHandle<StructuresGroup> = Structure::load_group("swamp_trees");

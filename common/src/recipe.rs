@@ -70,13 +70,16 @@ impl RecipeBook {
 struct RawRecipeBook(HashMap<String, ((String, u32), Vec<(String, u32)>)>);
 
 impl assets::Asset for RawRecipeBook {
-    const EXTENSION: &'static str = "ron";
     type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
 }
 
 impl assets::Compound for RecipeBook {
-
-    fn load<S: assets_manager::source::Source>(cache: &assets_manager::AssetCache<S>, specifier: &str) -> Result<Self, assets_manager::Error> {
+    fn load<S: assets_manager::source::Source>(
+        cache: &assets_manager::AssetCache<S>,
+        specifier: &str,
+    ) -> Result<Self, assets_manager::Error> {
         #[inline]
         fn load_item_def(spec: &(String, u32)) -> Result<(Arc<ItemDef>, u32), assets::Error> {
             let def = Arc::<ItemDef>::load_cloned(&spec.0)?;
@@ -85,11 +88,11 @@ impl assets::Compound for RecipeBook {
 
         let raw = cache.load::<RawRecipeBook>(specifier)?.read();
 
-        let recipes = raw.0.iter()
+        let recipes = raw
+            .0
+            .iter()
             .map(|(name, (output, inputs))| {
-                let inputs = inputs.iter()
-                    .map(load_item_def)
-                    .collect::<Result<_, _>>()?;
+                let inputs = inputs.iter().map(load_item_def).collect::<Result<_, _>>()?;
                 let output = load_item_def(output)?;
                 Ok((name.clone(), Recipe { inputs, output }))
             })

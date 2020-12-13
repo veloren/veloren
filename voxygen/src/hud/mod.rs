@@ -659,7 +659,8 @@ impl Hud {
         // Load item images.
         let item_imgs = ItemImgs::new(&mut ui, imgs.not_found);
         // Load fonts.
-        let fonts = Fonts::load(&global_state.i18n.read().fonts, &mut ui).expect("Impossible to load fonts!");
+        let fonts = Fonts::load(&global_state.i18n.read().fonts, &mut ui)
+            .expect("Impossible to load fonts!");
         // Get the server name.
         let server = &client.server_info().name;
         // Get the id, unwrap is safe because this CANNOT be None at this
@@ -2289,9 +2290,7 @@ impl Hud {
         }
 
         if self.show.esc_menu {
-            match EscMenu::new(&self.imgs, &self.fonts, i18n)
-                .set(self.ids.esc_menu, ui_widgets)
-            {
+            match EscMenu::new(&self.imgs, &self.fonts, i18n).set(self.ids.esc_menu, ui_widgets) {
                 Some(esc_menu::Event::OpenSettings(tab)) => {
                     self.show.open_setting_tab(tab);
                 },

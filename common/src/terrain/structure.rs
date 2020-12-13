@@ -53,17 +53,20 @@ pub struct StructuresGroup(Vec<Structure>);
 impl std::ops::Deref for StructuresGroup {
     type Target = [Structure];
 
-    fn deref(&self) -> &[Structure] {
-        &self.0
-    }
+    fn deref(&self) -> &[Structure] { &self.0 }
 }
 
 impl assets::Compound for StructuresGroup {
-    fn load<S: assets_manager::source::Source>(cache: &assets_manager::AssetCache<S>, specifier: &str) -> Result<Self, Error> {
+    fn load<S: assets_manager::source::Source>(
+        cache: &assets_manager::AssetCache<S>,
+        specifier: &str,
+    ) -> Result<Self, Error> {
         let specs = cache.load::<StructuresGroupSpec>(specifier)?.read();
 
         Ok(StructuresGroup(
-            specs.0.iter()
+            specs
+                .0
+                .iter()
                 .map(|sp| {
                     let base = cache.load::<Arc<BaseStructure>>(&sp.specifier)?.cloned();
                     Ok(Structure {
@@ -71,7 +74,7 @@ impl assets::Compound for StructuresGroup {
                         base,
                     })
                 })
-                .collect::<Result<_, Error>>()?
+                .collect::<Result<_, Error>>()?,
         ))
     }
 }
@@ -112,7 +115,10 @@ impl ReadVol for Structure {
 }
 
 impl assets::Compound for BaseStructure {
-    fn load<S: assets_manager::source::Source>(cache: &assets_manager::AssetCache<S>, specifier: &str) -> Result<Self, Error> {
+    fn load<S: assets_manager::source::Source>(
+        cache: &assets_manager::AssetCache<S>,
+        specifier: &str,
+    ) -> Result<Self, Error> {
         let dot_vox_data = cache.load::<DotVoxAsset>(specifier)?.read();
         let dot_vox_data = &dot_vox_data.0;
 
@@ -182,6 +188,7 @@ struct StructureSpec {
 struct StructuresGroupSpec(Vec<StructureSpec>);
 
 impl assets::Asset for StructuresGroupSpec {
-    const EXTENSION: &'static str = "ron";
     type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
 }

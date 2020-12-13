@@ -84,8 +84,9 @@ impl ImageSpec {
 #[derive(Serialize, Deserialize)]
 struct ItemImagesSpec(HashMap<ItemKey, ImageSpec>);
 impl assets::Asset for ItemImagesSpec {
-    const EXTENSION: &'static str = "ron";
     type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
 }
 
 // TODO: when there are more images don't load them all into memory
@@ -97,7 +98,7 @@ pub struct ItemImgs {
 
 impl ItemImgs {
     pub fn new(ui: &mut Ui, not_found: Id) -> Self {
-        let manifest =  ItemImagesSpec::load_expect("voxygen.item_image_manifest");
+        let manifest = ItemImagesSpec::load_expect("voxygen.item_image_manifest");
         let map = manifest
             .read()
             .0

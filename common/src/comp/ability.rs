@@ -16,8 +16,8 @@ use arraygen::Arraygen;
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
-use tracing::error;
 use std::time::Duration;
+use tracing::error;
 use vek::Vec3;
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug, Serialize, Deserialize)]
@@ -239,14 +239,14 @@ impl Default for CharacterAbility {
 }
 
 impl Asset for CharacterAbility {
-    const EXTENSION: &'static str = "ron";
     type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
 
     fn default_value(specifier: &str, err: assets::Error) -> Result<Self, assets::Error> {
         error!(
             ?err,
-            "Error loading CharacterAbility: {} for the ability \
-            map: replacing with default",
+            "Error loading CharacterAbility: {} for the ability map: replacing with default",
             specifier
         );
 

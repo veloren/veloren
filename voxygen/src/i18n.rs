@@ -135,8 +135,9 @@ impl Localization {
 }
 
 impl assets::Asset for Localization {
-    const EXTENSION: &'static str = "ron";
     type Loader = LocalizationLoader;
+
+    const EXTENSION: &'static str = "ron";
 }
 
 pub struct LocalizationLoader;
@@ -166,9 +167,7 @@ pub fn list_localizations() -> Vec<LanguageMetadata> {
     assets::load_dir::<Localization>("voxygen.i18n")
         .unwrap()
         .iter_all()
-        .filter_map(|(_, lang)| {
-            lang.ok().map(|e| e.read().metadata.clone())
-        })
+        .filter_map(|(_, lang)| lang.ok().map(|e| e.read().metadata.clone()))
         .collect()
 }
 

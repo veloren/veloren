@@ -157,19 +157,17 @@ fn main() {
     // Load the profile.
     let profile = Profile::load();
 
-    let i18n = Localization::load(
-        &i18n_asset_key(&settings.language.selected_language),
-    )
-    .unwrap_or_else(|error| {
-        let selected_language = &settings.language.selected_language;
-        warn!(
-            ?error,
-            ?selected_language,
-            "Impossible to load language: change to the default language (English) instead.",
-        );
-        settings.language.selected_language = i18n::REFERENCE_LANG.to_owned();
-        Localization::load_expect(&i18n_asset_key(&settings.language.selected_language))
-    });
+    let i18n = Localization::load(&i18n_asset_key(&settings.language.selected_language))
+        .unwrap_or_else(|error| {
+            let selected_language = &settings.language.selected_language;
+            warn!(
+                ?error,
+                ?selected_language,
+                "Impossible to load language: change to the default language (English) instead.",
+            );
+            settings.language.selected_language = i18n::REFERENCE_LANG.to_owned();
+            Localization::load_expect(&i18n_asset_key(&settings.language.selected_language))
+        });
     i18n.read().log_missing_entries();
 
     // Create window

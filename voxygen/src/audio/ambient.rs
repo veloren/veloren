@@ -4,7 +4,10 @@ use crate::{
     scene::Camera,
 };
 use client::Client;
-use common::{assets::{self, AssetExt, AssetHandle}, vol::ReadVol};
+use common::{
+    assets::{self, AssetExt, AssetHandle},
+    vol::ReadVol,
+};
 use common_sys::state::State;
 use serde::Deserialize;
 use std::time::Instant;
@@ -130,12 +133,14 @@ impl AmbientMgr {
 }
 
 impl assets::Asset for AmbientCollection {
-    const EXTENSION: &'static str = "ron";
     type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
 
     fn default_value(_: &str, error: assets::Error) -> Result<Self, assets::Error> {
         warn!(
-            "Error reading music config file, music will not be available: {:#?}", error
+            "Error reading music config file, music will not be available: {:#?}",
+            error
         );
 
         Ok(AmbientCollection::default())

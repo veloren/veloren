@@ -128,8 +128,9 @@ struct SpriteConfig<Model> {
 struct SpriteSpec(sprite::sprite_kind::PureCases<Option<SpriteConfig<String>>>);
 
 impl assets::Asset for SpriteSpec {
-    const EXTENSION: &'static str = "ron";
     type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
 }
 
 /// Function executed by worker threads dedicated to chunk meshing.
@@ -276,7 +277,8 @@ impl<V: RectRasterableVol> Terrain<V> {
     #[allow(clippy::float_cmp)] // TODO: Pending review in #587
     pub fn new(renderer: &mut Renderer) -> Self {
         // Load all the sprite config data.
-        let sprite_config = Arc::<SpriteSpec>::load_expect("voxygen.voxel.sprite_manifest").cloned();
+        let sprite_config =
+            Arc::<SpriteSpec>::load_expect("voxygen.voxel.sprite_manifest").cloned();
 
         // Create a new mpsc (Multiple Produced, Single Consumer) pair for communicating
         // with worker threads that are meshing chunks.

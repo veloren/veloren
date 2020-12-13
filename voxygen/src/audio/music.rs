@@ -232,12 +232,14 @@ impl MusicMgr {
 }
 
 impl assets::Asset for SoundtrackCollection {
-    const EXTENSION: &'static str = "ron";
     type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
 
     fn default_value(_: &str, error: assets::Error) -> Result<Self, assets::Error> {
         warn!(
-            "Error reading music config file, music will not be available: {:#?}", error
+            "Error reading music config file, music will not be available: {:#?}",
+            error
         );
 
         Ok(SoundtrackCollection::default())

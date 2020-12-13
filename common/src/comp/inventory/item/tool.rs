@@ -144,26 +144,31 @@ impl Default for AbilitySet<CharacterAbility> {
 pub struct AbilityMap<T = CharacterAbility>(HashMap<ToolKind, AbilitySet<T>>);
 
 impl Asset for AbilityMap<String> {
-    const EXTENSION: &'static str = "ron";
     type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
 }
 
 impl assets::Compound for AbilityMap {
-    fn load<S: assets_manager::source::Source>(cache: &assets_manager::AssetCache<S>, specifier: &str) -> Result<Self, assets::Error> {
+    fn load<S: assets_manager::source::Source>(
+        cache: &assets_manager::AssetCache<S>,
+        specifier: &str,
+    ) -> Result<Self, assets::Error> {
         let manifest = cache.load::<AbilityMap<String>>(specifier)?.read();
 
         Ok(AbilityMap(
-            manifest.0
+            manifest
+                .0
                 .iter()
                 .map(|(kind, set)| {
                     (
                         kind.clone(),
                         // expect cannot fail because CharacterAbility always
                         // provides a default value in case of failure
-                        set.map_ref(|s| cache.load_expect(&s).cloned())
+                        set.map_ref(|s| cache.load_expect(&s).cloned()),
                     )
                 })
-                .collect()
+                .collect(),
         ))
     }
 }

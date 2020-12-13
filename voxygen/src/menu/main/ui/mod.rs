@@ -10,7 +10,7 @@ use crate::{
     ui::{
         self,
         fonts::IcedFonts as Fonts,
-        ice::{style, widget, Element, IcedUi as Ui, load_font},
+        ice::{load_font, style, widget, Element, IcedUi as Ui},
         img_ids::{ImageGraphic, VoxelGraphic},
         Graphic,
     },
@@ -513,8 +513,8 @@ impl<'a> MainMenuUi {
         let i18n = &*i18n.read();
         let font = load_font(&i18n.fonts.get("cyri").unwrap().asset_key);
         self.ui.clear_fonts(font);
-        self.controls.fonts = Fonts::load(&i18n.fonts, &mut self.ui)
-            .expect("Impossible to load fonts!");
+        self.controls.fonts =
+            Fonts::load(&i18n.fonts, &mut self.ui).expect("Impossible to load fonts!");
         let language_metadatas = crate::i18n::list_localizations();
         self.controls.selected_language_index = language_metadatas
             .iter()

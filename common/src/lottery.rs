@@ -9,8 +9,9 @@ pub struct Lottery<T> {
 }
 
 impl<T: DeserializeOwned + Send + Sync + 'static> assets::Asset for Lottery<T> {
-    const EXTENSION: &'static str = "ron";
     type Loader = assets::LoadFrom<Vec<(f32, T)>, assets::RonLoader>;
+
+    const EXTENSION: &'static str = "ron";
 }
 
 impl<T> From<Vec<(f32, T)>> for Lottery<T> {

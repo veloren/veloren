@@ -23,8 +23,9 @@ impl assets::Loader<WavSound> for SoundLoader {
 }
 
 impl assets::Asset for WavSound {
-    const EXTENSION: &'static str = "wav";
     type Loader = SoundLoader;
+
+    const EXTENSION: &'static str = "wav";
 
     fn default_value(specifier: &str, error: assets::Error) -> Result<Self, assets::Error> {
         warn!(?specifier, ?error, "Failed to load sound");
@@ -40,9 +41,9 @@ impl WavSound {
         rodio::Decoder::new(cursor).unwrap()
     }
 
-    /// Returns a `WavSound` containing empty .wav data. This intentionally doesn't
-    /// load from the filesystem so we have a reliable fallback when there
-    /// is a failure to read a file.
+    /// Returns a `WavSound` containing empty .wav data. This intentionally
+    /// doesn't load from the filesystem so we have a reliable fallback when
+    /// there is a failure to read a file.
     ///
     /// The data below is the result of passing a very short, silent .wav file
     /// to `Sound::load()`.
@@ -69,8 +70,9 @@ impl assets::Loader<OggSound> for SoundLoader {
 }
 
 impl assets::Asset for OggSound {
-    const EXTENSION: &'static str = "ogg";
     type Loader = SoundLoader;
+
+    const EXTENSION: &'static str = "ogg";
 }
 
 /// Wrapper for decoded audio data
