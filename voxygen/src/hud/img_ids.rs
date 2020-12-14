@@ -179,6 +179,10 @@ image_ids! {
         map_frame_art: "voxygen.element.misc_bg.map_frame_art",
         indicator_mmap: "voxygen.element.buttons.indicator_mmap",
         indicator_map_overlay: "voxygen.element.buttons.indicator_mmap_small",
+        indicator_group: "voxygen.element.map.group_indicator",
+        indicator_group_hover: "voxygen.element.map.group_indicator_hover",
+        indicator_group_up: "voxygen.element.map.group_indicator_arrow_up",
+        indicator_group_down: "voxygen.element.map.group_indicator_arrow_down",
 
         // MiniMap
         mmap_frame: "voxygen.element.frames.mmap",
