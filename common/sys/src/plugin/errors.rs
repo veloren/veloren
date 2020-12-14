@@ -16,6 +16,13 @@ pub enum PluginModuleError {
     FunctionGet(ResolveError),
     Compile(wasmer_runtime::error::CompileError),
     Instantiate(wasmer_runtime::error::Error),
+    MemoryAllocation(MemoryAllocationError),
     RunFunction(RuntimeError),
     Encoding(Box<ErrorKind>),
+}
+
+#[derive(Debug)]
+pub enum MemoryAllocationError {
+    AllocatorNotFound(ResolveError),
+    CantAllocate(RuntimeError),
 }
