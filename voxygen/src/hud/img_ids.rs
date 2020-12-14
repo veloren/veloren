@@ -26,18 +26,6 @@ image_ids! {
         flower: "voxygen.element.icons.item_flower",
         grass: "voxygen.element.icons.item_grass",
 
-        // Checkboxes and Radio buttons
-        check: "voxygen.element.buttons.radio.inactive",
-        check_mo: "voxygen.element.buttons.radio.inactive_hover",
-        check_press: "voxygen.element.buttons.radio.press",
-        check_checked: "voxygen.element.buttons.radio.active",
-        check_checked_mo: "voxygen.element.buttons.radio.hover",
-        checkbox: "voxygen.element.buttons.checkbox.inactive",
-        checkbox_mo: "voxygen.element.buttons.checkbox.inactive_hover",
-        checkbox_press: "voxygen.element.buttons.checkbox.press",
-        checkbox_checked: "voxygen.element.buttons.checkbox.active",
-        checkbox_checked_mo: "voxygen.element.buttons.checkbox.hover",
-
         // Charwindow
         xp_charwindow: "voxygen.element.frames.xp_charwindow",
         divider: "voxygen.element.frames.divider_charwindow",
@@ -53,6 +41,19 @@ image_ids! {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
         <ImageGraphic>
+
+        // Checkboxes and Radio buttons
+        check: "voxygen.element.buttons.radio.inactive",
+        check_mo: "voxygen.element.buttons.radio.inactive_hover",
+        check_press: "voxygen.element.buttons.radio.press",
+        check_checked: "voxygen.element.buttons.radio.active",
+        check_checked_mo: "voxygen.element.buttons.radio.hover",
+        checkbox: "voxygen.element.buttons.checkbox.inactive",
+        checkbox_mo: "voxygen.element.buttons.checkbox.inactive_hover",
+        checkbox_press: "voxygen.element.buttons.checkbox.press",
+        checkbox_checked: "voxygen.element.buttons.checkbox.active",
+        checkbox_checked_mo: "voxygen.element.buttons.checkbox.hover",
+
         // Selection Frame
         selection: "voxygen.element.frames.selection",
         selection_hover: "voxygen.element.frames.selection_hover",
@@ -179,6 +180,9 @@ image_ids! {
         map_frame_art: "voxygen.element.misc_bg.map_frame_art",
         indicator_mmap: "voxygen.element.buttons.indicator_mmap",
         indicator_map_overlay: "voxygen.element.buttons.indicator_mmap_small",
+        indicator_group: "voxygen.element.map.group_indicator",
+        indicator_group_up: "voxygen.element.map.group_indicator_arrow_up",
+        indicator_group_down: "voxygen.element.map.group_indicator_arrow_down",
 
         // MiniMap
         mmap_frame: "voxygen.element.frames.mmap",
