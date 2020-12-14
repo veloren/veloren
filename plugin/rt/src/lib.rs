@@ -40,6 +40,8 @@ pub fn write_output(value: impl Serialize) -> i32 {
 static mut BUFFERS: Vec<u8> = Vec::new();
 
 /// Allocate buffer from wasm linear memory
+/// # Safety
+/// This function should never be used only intented to by used by the host
 #[no_mangle]
 pub unsafe fn wasm_prepare_buffer(size: i32) -> i32 {
     BUFFERS = Vec::<u8>::with_capacity(size as usize);
