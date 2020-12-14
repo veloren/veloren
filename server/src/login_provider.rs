@@ -1,6 +1,6 @@
 use crate::settings::BanRecord;
 use authc::{AuthClient, AuthClientError, AuthToken, Uuid};
-use common::msg::RegisterError;
+use common_net::msg::RegisterError;
 use hashbrown::{HashMap, HashSet};
 use std::str::FromStr;
 use tracing::{error, info};

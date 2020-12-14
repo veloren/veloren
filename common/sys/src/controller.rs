@@ -7,7 +7,7 @@ use common::{
     metrics::SysMetrics,
     resources::DeltaTime,
     span,
-    sync::{Uid, UidAllocator},
+    uid::{Uid, UidAllocator},
 };
 use specs::{
     saveload::{Marker, MarkerAllocator},

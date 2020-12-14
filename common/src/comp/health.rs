@@ -1,4 +1,4 @@
-use crate::{comp::Body, sync::Uid, DamageSource};
+use crate::{comp::Body, uid::Uid, DamageSource};
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;

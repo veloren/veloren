@@ -2,10 +2,10 @@ use super::super::SysTimer;
 use crate::{client::Client, metrics::PlayerMetrics, Settings};
 use common::{
     event::{EventBus, ServerEvent},
-    msg::PingMsg,
     resources::Time,
     span,
 };
+use common_net::msg::PingMsg;
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, Write};
 use std::sync::atomic::Ordering;
 use tracing::{debug, info};

@@ -8,7 +8,6 @@ use std::{
     },
     thread,
 };
-use tiny_http;
 use tracing::*;
 
 pub struct SimpleMetrics {
@@ -68,12 +67,11 @@ impl SimpleMetrics {
                 let response = tiny_http::Response::from_string(
                     String::from_utf8(buffer).expect("Failed to parse bytes as a string."),
                 );
-                match request.respond(response) {
-                    Err(e) => error!(
+                if let Err(e) = request.respond(response) {
+                    error!(
                         ?e,
                         "The metrics HTTP server had encountered and error with answering"
-                    ),
-                    _ => (),
+                    )
                 }
             }
             debug!("Stopping tiny_http server to serve metrics");

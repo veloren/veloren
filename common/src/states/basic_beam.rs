@@ -5,7 +5,7 @@ use crate::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
     },
-    sync::Uid,
+    uid::Uid,
     Damage, DamageSource, GroupTarget,
 };
 use serde::{Deserialize, Serialize};

@@ -3,10 +3,12 @@ use crate::{client::Client, metrics::PlayerMetrics};
 use common::{
     comp::{ChatMode, Player, UnresolvedChatMsg},
     event::{EventBus, ServerEvent},
-    msg::{validate_chat_msg, ChatMsgValidationError, ClientGeneral, MAX_BYTES_CHAT_MSG},
     resources::Time,
     span,
-    sync::Uid,
+    uid::Uid,
+};
+use common_net::msg::{
+    validate_chat_msg, ChatMsgValidationError, ClientGeneral, MAX_BYTES_CHAT_MSG,
 };
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, Write};
 use std::sync::atomic::Ordering;

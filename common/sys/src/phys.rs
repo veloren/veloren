@@ -8,8 +8,8 @@ use common::{
     metrics::{PhysicsMetrics, SysMetrics},
     resources::DeltaTime,
     span,
-    sync::Uid,
     terrain::{Block, TerrainGrid},
+    uid::Uid,
     vol::ReadVol,
 };
 use rayon::iter::ParallelIterator;

@@ -8,13 +8,13 @@ use crate::{
 };
 use common::{
     comp::{Ori, Pos, Vel},
-    msg::ServerGeneral,
     region::{region_in_vd, regions_in_vd, Event as RegionEvent, RegionMap},
     span,
-    sync::Uid,
     terrain::TerrainChunkSize,
+    uid::Uid,
     vol::RectVolSize,
 };
+use common_net::msg::ServerGeneral;
 use specs::{
     Entities, Join, ReadExpect, ReadStorage, System, SystemData, World, WorldExt, Write,
     WriteStorage,

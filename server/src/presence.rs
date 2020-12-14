@@ -1,4 +1,4 @@
-use common::msg::PresenceKind;
+use common_net::msg::PresenceKind;
 use hashbrown::HashSet;
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};

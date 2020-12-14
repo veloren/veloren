@@ -1,4 +1,4 @@
-use crate::{sync::Uid, Damage, GroupTarget};
+use crate::{uid::Uid, Damage, GroupTarget};
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;

@@ -1,7 +1,7 @@
-use authc::Uuid;
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage, NullStorage};
 use specs_idvs::IdvStorage;
+use uuid::Uuid;
 
 const MAX_ALIAS_LEN: usize = 32;
 

@@ -2,10 +2,10 @@ use super::SysTimer;
 use crate::client::Client;
 use common::{
     comp::group::{Invite, PendingInvites},
-    msg::{InviteAnswer, ServerGeneral},
     span,
-    sync::Uid,
+    uid::Uid,
 };
+use common_net::msg::{InviteAnswer, ServerGeneral};
 use specs::{Entities, Join, ReadStorage, System, Write, WriteStorage};
 
 /// This system removes timed out group invites

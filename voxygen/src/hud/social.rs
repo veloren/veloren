@@ -8,7 +8,7 @@ use crate::{
     ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
 };
 use client::{self, Client};
-use common::{comp::group, sync::Uid};
+use common::{comp::group, uid::Uid};
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Scrollbar, Text},

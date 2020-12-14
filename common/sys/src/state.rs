@@ -1,15 +1,17 @@
+use crate::plugin::PluginMgr;
 use common::{
     comp,
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::{PhysicsMetrics, SysMetrics},
     region::RegionMap,
+    resources,
     resources::{DeltaTime, Time, TimeOfDay},
     span,
-    sync::WorldSyncExt,
     terrain::{Block, TerrainChunk, TerrainGrid},
     time::DayPeriod,
     vol::{ReadVol, WriteVol},
 };
+use common_net::sync::WorldSyncExt;
 use hashbrown::{HashMap, HashSet};
 use rayon::{ThreadPool, ThreadPoolBuilder};
 use specs::{
@@ -18,6 +20,7 @@ use specs::{
     Component, DispatcherBuilder, Entity as EcsEntity, WorldExt,
 };
 use std::{sync::Arc, time::Duration};
+use tracing::info;
 use vek::*;
 
 /// How much faster should an in-game day be compared to a real day?
@@ -68,6 +71,13 @@ impl TerrainChanges {
     }
 }
 
+#[derive(Copy, Clone)]
+pub enum ExecMode {
+    Server,
+    Client,
+    Singleplayer,
+}
+
 /// A type used to represent game state stored on both the client and the
 /// server. This includes things like entity components, terrain data, and
 /// global states like weather, time of day, etc.
@@ -77,21 +87,24 @@ pub struct State {
     thread_pool: Arc<ThreadPool>,
 }
 
-impl Default for State {
-    /// Create a new `State`.
-    fn default() -> Self {
+impl State {
+    /// Create a new `State` in client mode.
+    pub fn client() -> Self { Self::new(resources::GameMode::Client) }
+
+    /// Create a new `State` in server mode.
+    pub fn server() -> Self { Self::new(resources::GameMode::Server) }
+
+    pub fn new(game_mode: resources::GameMode) -> Self {
         Self {
-            ecs: Self::setup_ecs_world(),
+            ecs: Self::setup_ecs_world(game_mode),
             thread_pool: Arc::new(ThreadPoolBuilder::new().build().unwrap()),
         }
     }
-}
 
-impl State {
     /// Creates ecs world and registers all the common components and resources
     // TODO: Split up registering into server and client (e.g. move
     // EventBus<ServerEvent> to the server)
-    fn setup_ecs_world() -> specs::World {
+    fn setup_ecs_world(game_mode: resources::GameMode) -> specs::World {
         let mut ecs = specs::World::new();
         // Uids for sync
         ecs.register_sync_marker();
@@ -169,12 +182,34 @@ impl State {
         ecs.insert(BlockChange::default());
         ecs.insert(TerrainChanges::default());
         ecs.insert(EventBus::<LocalEvent>::default());
+        ecs.insert(game_mode);
         // TODO: only register on the server
         ecs.insert(EventBus::<ServerEvent>::default());
         ecs.insert(comp::group::GroupManager::default());
         ecs.insert(RegionMap::new());
         ecs.insert(SysMetrics::default());
         ecs.insert(PhysicsMetrics::default());
+
+        // Load plugins from asset directory
+        ecs.insert(match PluginMgr::from_assets() {
+            Ok(plugin_mgr) => {
+                if let Err(e) = plugin_mgr
+                    .execute_event("on_load", &plugin_api::event::PluginLoadEvent { game_mode })
+                {
+                    tracing::error!(?e, "Failed to run plugin init");
+                    info!("Error occurred when loading plugins. Running without plugins instead.");
+                    PluginMgr::default()
+                } else {
+                    plugin_mgr
+                }
+            },
+            Err(_) => {
+                info!("Error occurred when loading plugins. Running without plugins instead.");
+                PluginMgr::default()
+            },
+        });
+
+        //manager.execute_event("on_load", &);
 
         ecs
     }

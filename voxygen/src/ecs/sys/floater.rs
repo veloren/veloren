@@ -5,7 +5,7 @@ use crate::ecs::{
 use common::{
     comp::{Health, HealthSource, Pos, Stats},
     resources::DeltaTime,
-    sync::Uid,
+    uid::Uid,
 };
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, Write, WriteStorage};
 

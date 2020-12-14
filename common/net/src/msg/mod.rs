@@ -13,7 +13,7 @@ pub use self::{
     },
     world_msg::WorldMapMsg,
 };
-use crate::character::CharacterId;
+use common::character::CharacterId;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]

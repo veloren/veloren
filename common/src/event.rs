@@ -1,11 +1,10 @@
-use crate::{character::CharacterId, comp, rtsim::RtSimEntity, sync::Uid, util::Dir, Explosion};
+use crate::{character::CharacterId, comp, rtsim::RtSimEntity, uid::Uid, util::Dir, Explosion};
 use comp::{
     item::{Item, Reagent},
     Ori, Pos,
 };
-use parking_lot::Mutex;
 use specs::Entity as EcsEntity;
-use std::{collections::VecDeque, ops::DerefMut};
+use std::{collections::VecDeque, ops::DerefMut, sync::Mutex};
 use vek::*;
 
 pub enum LocalEvent {
@@ -150,10 +149,10 @@ impl<E> EventBus<E> {
         }
     }
 
-    pub fn emit_now(&self, event: E) { self.queue.lock().push_back(event); }
+    pub fn emit_now(&self, event: E) { self.queue.lock().unwrap().push_back(event); }
 
     pub fn recv_all(&self) -> impl ExactSizeIterator<Item = E> {
-        std::mem::replace(self.queue.lock().deref_mut(), VecDeque::new()).into_iter()
+        std::mem::replace(self.queue.lock().unwrap().deref_mut(), VecDeque::new()).into_iter()
     }
 }
 
@@ -169,5 +168,5 @@ impl<'a, E> Emitter<'a, E> {
 }
 
 impl<'a, E> Drop for Emitter<'a, E> {
-    fn drop(&mut self) { self.bus.queue.lock().append(&mut self.events); }
+    fn drop(&mut self) { self.bus.queue.lock().unwrap().append(&mut self.events); }
 }

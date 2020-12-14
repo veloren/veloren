@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added chat commands for inviting, kicking, leaving, and promoting in groups
 - Aura system
 - Campfire resting heal
+- Initial support for game plugins, both server-side and client-side
 
 ### Changed
 

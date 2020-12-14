@@ -1,4 +1,5 @@
-use super::{track::UpdateTracker, uid::Uid};
+use super::track::UpdateTracker;
+use common::uid::Uid;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use specs::{Component, Entity, Join, ReadStorage, World, WorldExt};
 use std::{

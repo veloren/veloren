@@ -5,7 +5,7 @@ use common::{
     },
     event::{EventBus, LocalEvent, ServerEvent},
     resources::{DeltaTime, Time},
-    sync::{Uid, UidAllocator},
+    uid::{Uid, UidAllocator},
     util::Dir,
     GroupTarget,
 };

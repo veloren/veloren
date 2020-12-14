@@ -12,6 +12,7 @@ tracy = ["common/tracy", "tracing-tracy"]
 [dependencies]
 server = { package = "veloren-server", path = "../server", default-features = false }
 common = { package = "veloren-common", path = "../common" }
+common-net = { package = "veloren-common-net", path = "../common/net" }
 
 ansi-parser = "0.6"
 clap = "2.33"

@@ -1,6 +1,6 @@
 use crate::{
     comp::{inventory::slot::Slot, BuffKind},
-    sync::Uid,
+    uid::Uid,
     util::Dir,
 };
 use serde::{Deserialize, Serialize};
