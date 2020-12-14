@@ -1,6 +1,6 @@
 use crate::{
     comp::{HealthChange, HealthSource, Loadout},
-    sync::Uid,
+    uid::Uid,
     util::Dir,
 };
 use serde::{Deserialize, Serialize};

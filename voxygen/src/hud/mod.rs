@@ -61,13 +61,13 @@ use common::{
         item::{ItemDesc, Quality},
         BuffKind,
     },
-    msg::PresenceKind,
     span,
-    sync::Uid,
     terrain::TerrainChunk,
+    uid::Uid,
     util::srgba_to_linear,
     vol::RectRasterableVol,
 };
+use common_net::msg::{Notification, PresenceKind};
 use conrod_core::{
     text::cursor::Index,
     widget::{self, Button, Image, Text},
@@ -365,12 +365,12 @@ pub enum Event {
     ChangeAutoWalkBehavior(PressBehavior),
     ChangeStopAutoWalkOnInput(bool),
     CraftRecipe(String),
-    InviteMember(common::sync::Uid),
+    InviteMember(Uid),
     AcceptInvite,
     DeclineInvite,
-    KickMember(common::sync::Uid),
+    KickMember(Uid),
     LeaveGroup,
-    AssignLeader(common::sync::Uid),
+    AssignLeader(Uid),
     RemoveBuff(BuffKind),
 }
 
@@ -613,7 +613,7 @@ pub struct Hud {
     fonts: Fonts,
     rot_imgs: ImgsRot,
     new_messages: VecDeque<comp::ChatMsg>,
-    new_notifications: VecDeque<common::msg::Notification>,
+    new_notifications: VecDeque<Notification>,
     speech_bubbles: HashMap<Uid, comp::SpeechBubble>,
     show: Show,
     //never_show: bool,
@@ -767,7 +767,7 @@ impl Hud {
             let buffs = ecs.read_storage::<comp::Buffs>();
             let energy = ecs.read_storage::<comp::Energy>();
             let hp_floater_lists = ecs.read_storage::<vcomp::HpFloaterList>();
-            let uids = ecs.read_storage::<common::sync::Uid>();
+            let uids = ecs.read_storage::<Uid>();
             let interpolated = ecs.read_storage::<vcomp::Interpolated>();
             let scales = ecs.read_storage::<comp::Scale>();
             let bodies = ecs.read_storage::<comp::Body>();
@@ -2439,9 +2439,7 @@ impl Hud {
 
     pub fn new_message(&mut self, msg: comp::ChatMsg) { self.new_messages.push_back(msg); }
 
-    pub fn new_notification(&mut self, msg: common::msg::Notification) {
-        self.new_notifications.push_back(msg);
-    }
+    pub fn new_notification(&mut self, msg: Notification) { self.new_notifications.push_back(msg); }
 
     pub fn scale_change(&mut self, scale_change: ScaleChange) -> ScaleMode {
         let scale_mode = match scale_change {

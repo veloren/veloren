@@ -6,9 +6,12 @@ use common::{
     character::CharacterId,
     comp,
     effect::Effect,
-    msg::{CharacterInfo, PlayerListUpdate, PresenceKind, ServerGeneral},
-    sync::{Uid, UidAllocator, WorldSyncExt},
+    uid::{Uid, UidAllocator},
     util::Dir,
+};
+use common_net::{
+    msg::{CharacterInfo, PlayerListUpdate, PresenceKind, ServerGeneral},
+    sync::WorldSyncExt,
 };
 use common_sys::state::State;
 use rand::prelude::*;

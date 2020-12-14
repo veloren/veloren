@@ -8,7 +8,7 @@ use common::{
     metrics::SysMetrics,
     resources::DeltaTime,
     span,
-    sync::UidAllocator,
+    uid::UidAllocator,
     GroupTarget,
 };
 use rand::{thread_rng, Rng};

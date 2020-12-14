@@ -25,18 +25,21 @@ use common::{
     },
     event::{EventBus, LocalEvent},
     grid::Grid,
-    msg::{
-        validate_chat_msg, world_msg::SiteInfo, ChatMsgValidationError, ClientGeneral, ClientMsg,
-        ClientRegister, ClientType, DisconnectReason, InviteAnswer, Notification, PingMsg,
-        PlayerInfo, PlayerListUpdate, PresenceKind, RegisterError, ServerGeneral, ServerInfo,
-        ServerInit, ServerRegisterAnswer, MAX_BYTES_CHAT_MSG,
-    },
     outcome::Outcome,
     recipe::RecipeBook,
     span,
-    sync::{Uid, UidAllocator, WorldSyncExt},
     terrain::{block::Block, neighbors, BiomeKind, SitesKind, TerrainChunk, TerrainChunkSize},
+    uid::{Uid, UidAllocator},
     vol::RectVolSize,
+};
+use common_net::{
+    msg::{
+        self, validate_chat_msg, world_msg::SiteInfo, ChatMsgValidationError, ClientGeneral,
+        ClientMsg, ClientRegister, ClientType, DisconnectReason, InviteAnswer, Notification,
+        PingMsg, PlayerInfo, PlayerListUpdate, PresenceKind, RegisterError, ServerGeneral,
+        ServerInfo, ServerInit, ServerRegisterAnswer, MAX_BYTES_CHAT_MSG,
+    },
+    sync::WorldSyncExt,
 };
 use common_sys::state::State;
 use comp::BuffKind;
@@ -222,7 +225,7 @@ impl Client {
                 ability_map,
             } => {
                 // Initialize `State`
-                let mut state = State::default();
+                let mut state = State::client();
                 // Client-only components
                 state
                     .ecs_mut()
@@ -1247,7 +1250,7 @@ impl Client {
             ServerGeneral::PlayerListUpdate(PlayerListUpdate::LevelChange(uid, next_level)) => {
                 if let Some(player_info) = self.player_list.get_mut(&uid) {
                     player_info.character = match &player_info.character {
-                        Some(character) => Some(common::msg::CharacterInfo {
+                        Some(character) => Some(msg::CharacterInfo {
                             name: character.name.to_string(),
                             level: next_level,
                         }),

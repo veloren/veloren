@@ -12,7 +12,8 @@ default = ["worldgen", "simd"]
 
 [dependencies]
 common = { package = "veloren-common", path = "../common" }
-common_sys = { package = "veloren_common_sys", path = "../common/sys" }
+common-sys = { package = "veloren-common-sys", path = "../common/sys" }
+common-net = { package = "veloren-common-net", path = "../common/net" }
 world = { package = "veloren-world", path = "../world" }
 network = { package = "veloren_network", path = "../network", features = ["metrics", "compression"], default-features = false }
 
@@ -45,3 +46,6 @@ diesel = { version = "1.4.3", features = ["sqlite"] }
 diesel_migrations = "1.4.0"
 dotenv = "0.15.0"
 slab  = "0.4"
+
+# Plugins
+plugin-api = { package = "veloren-plugin-api", path = "../plugin/api"}

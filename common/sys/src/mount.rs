@@ -2,7 +2,7 @@ use common::{
     comp::{Controller, MountState, Mounting, Ori, Pos, Vel},
     metrics::SysMetrics,
     span,
-    sync::UidAllocator,
+    uid::UidAllocator,
 };
 use specs::{
     saveload::{Marker, MarkerAllocator},

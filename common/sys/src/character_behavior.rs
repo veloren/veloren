@@ -11,7 +11,7 @@ use common::{
         self,
         behavior::{CharacterBehavior, JoinData, JoinTuple},
     },
-    sync::{Uid, UidAllocator},
+    uid::{Uid, UidAllocator},
 };
 
 use specs::{Entities, Join, LazyUpdate, Read, ReadExpect, ReadStorage, System, WriteStorage};

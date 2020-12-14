@@ -5,9 +5,9 @@ use crate::{
 };
 use common::{
     comp::{Inventory, Loadout, Stats, Waypoint},
-    msg::PresenceKind,
     span,
 };
+use common_net::msg::PresenceKind;
 use specs::{Join, ReadExpect, ReadStorage, System, Write};
 
 pub struct Sys;

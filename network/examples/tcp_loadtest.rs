@@ -24,7 +24,7 @@ fn setup() -> Result<SocketAddr, u32> {
     }
     let a: SocketAddr = format!("{}:{}", args[1], args[2]).parse().unwrap();
     println!("You provided address: {}", &a);
-    return Ok(a);
+    Ok(a)
 }
 /// This example file is not running veloren-network at all,
 /// instead it's just trying to create 4 threads and pump as much bytes as

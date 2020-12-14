@@ -1,5 +1,5 @@
 use super::item::Reagent;
-use crate::sync::Uid;
+use crate::uid::Uid;
 use serde::{Deserialize, Serialize};
 use specs::Component;
 use specs_idvs::IdvStorage;

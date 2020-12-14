@@ -1,4 +1,4 @@
-use crate::grid::Grid;
+use common::grid::Grid;
 use serde::{Deserialize, Serialize};
 use vek::*;
 

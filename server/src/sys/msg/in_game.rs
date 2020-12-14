@@ -3,11 +3,11 @@ use crate::{client::Client, metrics::NetworkRequestMetrics, presence::Presence, 
 use common::{
     comp::{CanBuild, ControlEvent, Controller, ForceUpdate, Health, Ori, Pos, Stats, Vel},
     event::{EventBus, ServerEvent},
-    msg::{ClientGeneral, PresenceKind, ServerGeneral},
     span,
     terrain::{TerrainChunkSize, TerrainGrid},
     vol::{ReadVol, RectVolSize},
 };
+use common_net::msg::{ClientGeneral, PresenceKind, ServerGeneral};
 use common_sys::state::BlockChange;
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, Write, WriteStorage};
 use tracing::{debug, trace};

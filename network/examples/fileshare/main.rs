@@ -71,7 +71,7 @@ fn file_exists(file: String) -> Result<(), String> {
     if file.exists() {
         Ok(())
     } else {
-        Err(format!("File does not exist"))
+        Err("File does not exist".to_string())
     }
 }
 
@@ -203,7 +203,7 @@ async fn client(mut cmd_sender: mpsc::UnboundedSender<LocalCommand>) {
         // this 100 ms is because i am super lazy, and i want to appear the logs before
         // the next '==>' appears...
         thread::sleep(Duration::from_millis(100));
-        println!("");
+        println!();
     }
     thread::sleep(Duration::from_millis(30)); // TODO: still needed for correct shutdown
 }

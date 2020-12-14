@@ -1,0 +1,15 @@
+[package]
+name = "veloren-plugin-derive"
+version = "0.1.0"
+authors = ["ccgauche <gaucheron.laurent@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2 = "1.0.24"
+syn = { version = "1.0.54", features = ["full","extra-traits"]}
+quote = "1.0.7"

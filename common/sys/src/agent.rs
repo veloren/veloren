@@ -17,9 +17,9 @@ use common::{
     path::{Chaser, TraversalConfig},
     resources::{DeltaTime, Time, TimeOfDay},
     span,
-    sync::{Uid, UidAllocator},
     terrain::{Block, TerrainGrid},
     time::DayPeriod,
+    uid::{Uid, UidAllocator},
     util::Dir,
     vol::ReadVol,
 };
