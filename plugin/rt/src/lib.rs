@@ -41,9 +41,7 @@ static mut BUFFERS: Vec<u8> = Vec::new();
 
 /// Allocate buffer from wasm linear memory
 #[no_mangle]
-pub fn wasm_prepare_buffer(size: i32) -> i32 {
-    unsafe {
-        BUFFERS = Vec::<u8>::with_capacity(size as usize);
-        BUFFERS.as_ptr() as i32
-    }
+pub unsafe fn wasm_prepare_buffer(size: i32) -> i32 {
+    BUFFERS = Vec::<u8>::with_capacity(size as usize);
+    BUFFERS.as_ptr() as i32
 }
