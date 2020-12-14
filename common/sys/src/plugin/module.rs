@@ -60,7 +60,9 @@ impl PluginModule {
                 Ok(e) => e,
                 Err(e) => return Some(Err(e)),
             };
-            match execute_raw(&instance, &func, &request.bytes).map_err(PluginModuleError::RunFunction) {
+            match execute_raw(&instance, &func, &request.bytes)
+                .map_err(PluginModuleError::RunFunction)
+            {
                 Ok(e) => e,
                 Err(e) => return Some(Err(e)),
             }
@@ -102,15 +104,17 @@ fn execute_raw(
     // This reserves space for the buffer
     let len = bytes.len();
     let start = {
-        let memory_pos = reserve_wasm_memory_buffer(len,instance).expect("Fatal error while allocating memory for a plugin! Closing server...") as usize;
+        let memory_pos = reserve_wasm_memory_buffer(len, instance)
+            .expect("Fatal error while allocating memory for a plugin! Closing server...")
+            as usize;
         let memory = instance.context().memory(0);
         let view = memory.view::<u8>();
-        for (cell, byte) in view[memory_pos..memory_pos+len].iter().zip(bytes.iter()) {
+        for (cell, byte) in view[memory_pos..memory_pos + len].iter().zip(bytes.iter()) {
             cell.set(*byte)
         }
         function.call(memory_pos as i32, len as u32)? as usize
     };
-    
+
     let memory = instance.context().memory(0);
     let view = memory.view::<u8>();
     let mut new_len_bytes = [0u8; 4];
