@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Aura system
 - Campfire resting heal
 - Initial support for game plugins, both server-side and client-side
+- Reflective LoD water
 
 ### Changed
 
