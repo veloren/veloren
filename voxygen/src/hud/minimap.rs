@@ -5,7 +5,7 @@ use super::{
 };
 use crate::ui::{fonts::Fonts, img_ids};
 use client::{self, Client};
-use common::{comp, terrain::TerrainChunkSize, vol::RectVolSize};
+use common::{comp, comp::group::Role, terrain::TerrainChunkSize, vol::RectVolSize};
 use common_net::msg::world_msg::SiteKind;
 use conrod_core::{
     color, position,
@@ -13,7 +13,7 @@ use conrod_core::{
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
-use specs::WorldExt;
+use specs::{saveload::MarkerAllocator, WorldExt};
 use vek::*;
 
 widget_ids! {
@@ -33,6 +33,7 @@ widget_ids! {
         mmap_west,
         mmap_site_icons_bgs[],
         mmap_site_icons[],
+        member_indicators[],
     }
 }
 
@@ -295,12 +296,79 @@ impl<'a> Widget for MiniMap<'a> {
                 .set(state.ids.mmap_site_icons[i], ui);
             }
 
+            // Group member indicators
+            let client_state = self.client.state();
+            let member_pos = client_state.ecs().read_storage::<common::comp::Pos>();
+            let group_members = self
+                .client
+                .group_members()
+                .iter()
+                .filter_map(|(u, r)| match r {
+                    Role::Member => Some(u),
+                    Role::Pet => None,
+                })
+                .collect::<Vec<_>>();
+            let group_size = group_members.len();
+            //let in_group = !group_members.is_empty();
+            let uid_allocator = client_state
+                .ecs()
+                .read_resource::<common_net::sync::UidAllocator>();
+            if state.ids.member_indicators.len() < group_size {
+                state.update(|s| {
+                    s.ids
+                        .member_indicators
+                        .resize(group_size, &mut ui.widget_id_generator())
+                })
+            };
+            for (i, &uid) in group_members.iter().copied().enumerate() {
+                let entity = uid_allocator.retrieve_entity_internal(uid.into());
+                let member_pos = entity.and_then(|entity| member_pos.get(entity));
+
+                if let Some(member_pos) = member_pos {
+                    // Site pos in world coordinates relative to the player
+                    let rwpos = member_pos.0.xy().map(|e| e as f32) - player_pos;
+                    // Convert to chunk coordinates
+                    let rcpos = rwpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e / sz as f32);
+                    // Convert to fractional coordinates relative to the worldsize
+                    let rfpos = rcpos / max_zoom as f32;
+                    // Convert to unrotated pixel coordinates from the player location on the map
+                    // (the center)
+                    // Accounting for zooming
+                    let rpixpos = rfpos.map2(map_size, |e, sz| e * sz as f32 * zoom as f32);
+                    let rpos = Vec2::unit_x().rotated_z(self.ori.x) * rpixpos.x
+                        + Vec2::unit_y().rotated_z(self.ori.x) * rpixpos.y;
+
+                    if rpos
+                        .map2(map_size, |e, sz| e.abs() > sz as f32 / 2.0)
+                        .reduce_or()
+                    {
+                        continue;
+                    }
+                    let factor = 1.2;
+                    let z_comparison = (member_pos.0.z - player_pos.z) as i32;
+                    Button::image(match z_comparison {
+                        10..=i32::MAX => self.imgs.indicator_group_up,
+                        i32::MIN..=-10 => self.imgs.indicator_group_down,
+                        _ => self.imgs.indicator_group,
+                    })
+                    .x_y_position_relative_to(
+                        state.ids.grid,
+                        position::Relative::Scalar(rpos.x as f64),
+                        position::Relative::Scalar(rpos.y as f64),
+                    )
+                    .w_h(16.0 * factor, 16.0 * factor)
+                    .image_color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
+                    .set(state.ids.member_indicators[i], ui);
+                }
+            }
+
             // Indicator
             let ind_scale = 0.4;
             Image::new(self.rot_imgs.indicator_mmap_small.none)
                 .middle_of(state.ids.grid)
                 .w_h(32.0 * ind_scale, 37.0 * ind_scale)
                 .color(Some(UI_HIGHLIGHT_0))
+                .floating(true)
                 .set(state.ids.indicator, ui);
 
             // Compass directions
