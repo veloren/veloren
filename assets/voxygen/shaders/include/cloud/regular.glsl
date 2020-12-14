@@ -31,7 +31,7 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
     #endif
     mist_min_alt *= 250;
     const float MIST_FADE_HEIGHT = 500;
-    float mist = 0.005 * pow(clamp(1.0 - (pos.z - mist_min_alt) / MIST_FADE_HEIGHT, 0.0, 1), 4.0) / (1.0 + pow(1.0 + dist / 20000.0, 2.0));
+    float mist = 0.00125 * pow(clamp(1.0 - (pos.z - mist_min_alt) / MIST_FADE_HEIGHT, 0.0, 1), 4.0) / (1.0 + pow(1.0 + dist / 20000.0, 2.0));
 
     vec3 wind_pos = vec3(pos.xy + wind_offset, pos.z);
 
@@ -79,7 +79,7 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
             vec3 cloud_norm = vec3(
                 (cloud_tendency - cloud_tendency_x) * 4,
                 (cloud_tendency - cloud_tendency_y) * 4,
-                (pos.z - cloud_attr.x) / 250 + turb_noise + 0.25
+                (pos.z - cloud_attr.x) / 250 + turb_noise + 0.5
             );
             cloud_sun_access = mix(max(dot(-sun_dir.xyz, cloud_norm) + 0.0, 0.025), cloud_sun_access, 0.25);
             cloud_moon_access = mix(max(dot(-moon_dir.xyz, cloud_norm) + 0.35, 0.025), cloud_moon_access, 0.25);
