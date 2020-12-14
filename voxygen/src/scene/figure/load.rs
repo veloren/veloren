@@ -3744,12 +3744,30 @@ impl QuadrupedLowLateralSpec {
 }
 
 ////
+
+#[derive(Deserialize)]
+struct ObjectCentralSpec(HashMap<object::Body, SidedObjectCentralVoxSpec>);
+
+#[derive(Deserialize)]
+struct SidedObjectCentralVoxSpec {
+    bone0: ObjectCentralSubSpec,
+}
+#[derive(Deserialize)]
+struct ObjectCentralSubSpec {
+    offset: [f32; 3], // Should be relative to initial origin
+    central: VoxSimple,
+}
+
 make_vox_spec!(
     object::Body,
-    struct ObjectSpec {},
-    |FigureKey { body, .. }, _spec| {
+    struct ObjectSpec {
+        central: ObjectCentralSpec = "voxygen.voxel.object_manifest",
+    },
+    |FigureKey { body, .. }, spec| {
         [
-            Some(mesh_object(body)),
+            Some(spec.central.asset.mesh_bone0(
+                body,
+            )),
             None,
             None,
             None,
@@ -3769,97 +3787,17 @@ make_vox_spec!(
     },
 );
 
-fn mesh_object(obj: &object::Body) -> BoneMeshes {
-    use object::Body;
+impl ObjectCentralSpec {
+    fn mesh_bone0(&self, obj: &object::Body) -> BoneMeshes {
+        let spec = match self.0.get(&obj) {
+            Some(spec) => spec,
+            None => {
+                error!("No specification exists for {:?}", obj);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.bone0.central.0);
 
-    let (name, offset) = match obj {
-        Body::Arrow => (
-            "weapon.projectile.simple-arrow",
-            Vec3::new(-0.5, -6.0, -1.5),
-        ),
-        Body::Bomb => ("object.bomb", Vec3::new(-5.5, -5.5, 0.0)),
-        Body::FireworkBlue => (
-            "weapon.projectile.fireworks_blue-0",
-            Vec3::new(0.0, 0.0, 0.0),
-        ),
-        Body::FireworkGreen => (
-            "weapon.projectile.fireworks_green-0",
-            Vec3::new(0.0, 0.0, 0.0),
-        ),
-        Body::FireworkPurple => (
-            "weapon.projectile.fireworks_purple-0",
-            Vec3::new(0.0, 0.0, 0.0),
-        ),
-        Body::FireworkRed => (
-            "weapon.projectile.fireworks_red-0",
-            Vec3::new(0.0, 0.0, 0.0),
-        ),
-        Body::FireworkYellow => (
-            "weapon.projectile.fireworks_yellow-0",
-            Vec3::new(0.0, 0.0, 0.0),
-        ),
-        Body::Scarecrow => ("object.scarecrow", Vec3::new(-9.5, -4.0, 0.0)),
-        Body::Cauldron => ("object.cauldron", Vec3::new(-10.0, -10.0, 0.0)),
-        Body::ChestVines => ("object.chest_vines", Vec3::new(-7.5, -6.0, 0.0)),
-        Body::Chest => ("object.chest", Vec3::new(-7.5, -6.0, 0.0)),
-        Body::ChestDark => ("object.chest_dark", Vec3::new(-7.5, -6.0, 0.0)),
-        Body::ChestDemon => ("object.chest_demon", Vec3::new(-7.5, -6.0, 0.0)),
-        Body::ChestGold => ("object.chest_gold", Vec3::new(-7.5, -6.0, 0.0)),
-        Body::ChestLight => ("object.chest_light", Vec3::new(-7.5, -6.0, 0.0)),
-        Body::ChestOpen => ("object.chest_open", Vec3::new(-7.5, -6.0, 0.0)),
-        Body::ChestSkull => ("object.chest_skull", Vec3::new(-7.5, -6.0, 0.0)),
-        Body::Pumpkin => ("object.pumpkin", Vec3::new(-5.5, -4.0, 0.0)),
-        Body::Pumpkin2 => ("object.pumpkin_2", Vec3::new(-5.0, -4.0, 0.0)),
-        Body::Pumpkin3 => ("object.pumpkin_3", Vec3::new(-5.0, -4.0, 0.0)),
-        Body::Pumpkin4 => ("object.pumpkin_4", Vec3::new(-5.0, -4.0, 0.0)),
-        Body::Pumpkin5 => ("object.pumpkin_5", Vec3::new(-4.0, -5.0, 0.0)),
-        Body::Campfire => ("object.campfire", Vec3::new(-9.0, -10.0, 0.0)),
-        Body::CampfireLit => ("object.campfire_lit", Vec3::new(-9.0, -10.0, 0.0)),
-        Body::LanternGround => ("object.lantern_ground", Vec3::new(-3.5, -3.5, 0.0)),
-        Body::LanternGroundOpen => ("object.lantern_ground_open", Vec3::new(-3.5, -3.5, 0.0)),
-        Body::LanternStanding => ("object.lantern_standing", Vec3::new(-7.5, -3.5, 0.0)),
-        Body::LanternStanding2 => ("object.lantern_standing_2", Vec3::new(-11.5, -3.5, 0.0)),
-        Body::PotionRed => ("object.potion_red", Vec3::new(-2.0, -2.0, 0.0)),
-        Body::PotionBlue => ("object.potion_blue", Vec3::new(-2.0, -2.0, 0.0)),
-        Body::PotionGreen => ("object.potion_green", Vec3::new(-2.0, -2.0, 0.0)),
-        Body::Crate => ("object.crate", Vec3::new(-7.0, -7.0, 0.0)),
-        Body::Tent => ("object.tent", Vec3::new(-18.5, -19.5, 0.0)),
-        Body::WindowSpooky => ("object.window_spooky", Vec3::new(-15.0, -1.5, -1.0)),
-        Body::DoorSpooky => ("object.door_spooky", Vec3::new(-15.0, -4.5, 0.0)),
-        Body::Table => ("object.table", Vec3::new(-12.0, -8.0, 0.0)),
-        Body::Table2 => ("object.table_2", Vec3::new(-8.0, -8.0, 0.0)),
-        Body::Table3 => ("object.table_3", Vec3::new(-10.0, -10.0, 0.0)),
-        Body::Drawer => ("object.drawer", Vec3::new(-11.0, -7.5, 0.0)),
-        Body::BedBlue => ("object.bed_human_blue", Vec3::new(-11.0, -15.0, 0.0)),
-        Body::Anvil => ("object.anvil", Vec3::new(-3.0, -7.0, 0.0)),
-        Body::Gravestone => ("object.gravestone", Vec3::new(-5.0, -2.0, 0.0)),
-        Body::Gravestone2 => ("object.gravestone_2", Vec3::new(-8.5, -3.0, 0.0)),
-        Body::Chair => ("object.chair", Vec3::new(-5.0, -4.5, 0.0)),
-        Body::Chair2 => ("object.chair_2", Vec3::new(-5.0, -4.5, 0.0)),
-        Body::Chair3 => ("object.chair_3", Vec3::new(-5.0, -4.5, 0.0)),
-        Body::Bench => ("object.bench", Vec3::new(-8.8, -5.0, 0.0)),
-        Body::Carpet => ("object.carpet", Vec3::new(-14.0, -14.0, -0.5)),
-        Body::Bedroll => ("object.bedroll", Vec3::new(-11.0, -19.5, -0.5)),
-        Body::CarpetHumanRound => ("object.carpet_human_round", Vec3::new(-14.0, -14.0, -0.5)),
-        Body::CarpetHumanSquare => ("object.carpet_human_square", Vec3::new(-13.5, -14.0, -0.5)),
-        Body::CarpetHumanSquare2 => (
-            "object.carpet_human_square_2",
-            Vec3::new(-13.5, -14.0, -0.5),
-        ),
-        Body::CarpetHumanSquircle => (
-            "object.carpet_human_squircle",
-            Vec3::new(-21.0, -21.0, -0.5),
-        ),
-        Body::Pouch => ("object.pouch", Vec3::new(-5.5, -4.5, 0.0)),
-        Body::CraftingBench => ("object.crafting_bench", Vec3::new(-9.5, -7.0, 0.0)),
-        Body::ArrowSnake => ("weapon.projectile.snake-arrow", Vec3::new(-1.5, -6.5, 0.0)),
-        Body::BoltFire => ("weapon.projectile.fire-bolt-0", Vec3::new(-3.0, -5.5, -3.0)),
-        Body::BoltFireBig => ("weapon.projectile.fire-bolt-1", Vec3::new(-6.0, -6.0, -6.0)),
-        Body::TrainingDummy => ("object.training_dummy", Vec3::new(-7.0, -5.0, 0.0)),
-        Body::MultiArrow => ("weapon.projectile.multi-arrow", Vec3::new(-4.0, -9.5, -5.0)),
-        Body::BoltNature => ("weapon.projectile.nature-bolt", Vec3::new(-6.0, -6.0, -6.0)),
-        Body::MeatDrop => ("object.meat_drop", Vec3::new(-3.5, -8.0, 0.0)),
-        Body::Steak => ("object.steak", Vec3::new(-3.5, -6.0, 0.0)),
-    };
-    load_mesh(name, offset)
+        (central, Vec3::from(spec.bone0.offset))
+    }
 }
