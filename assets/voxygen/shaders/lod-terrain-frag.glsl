@@ -20,7 +20,7 @@
 #define HAS_LOD_FULL_INFO
 
 #include <globals.glsl>
-#include <sky.glsl>
+#include <cloud.glsl>
 #include <lod.glsl>
 
 in vec3 f_pos;
@@ -107,7 +107,7 @@ void main() {
     // mat4 invfoo = foo * inverse(foo * all_mat);
     // vec3 old_coord = all_mat * vec4(f_pos.xyz, 1.0);
     // vec4 new_f_pos = invfoo * (old_coord);//vec4(f_pos, 1.0);
-    vec3 f_col = mix(lod_col(f_pos.xy), vec3(0), clamp(pull_down / 10, 0, 1));
+    vec3 f_col_raw = mix(lod_col(f_pos.xy), vec3(0), clamp(pull_down / 10, 0, 1));
     // tgt_color = vec4(f_col, 1.0);
     // return;
     // vec3 f_col = srgb_to_linear(vec3(1.0));
@@ -478,7 +478,7 @@ void main() {
     const float W_2 = W_INV * W_INV;//pow(W_INV, 2.4);
     const float NOISE_FACTOR = 0.02;//pow(0.02, 1.2);
     float noise = hash(vec4(floor(hash_pos * 3.0 - voxel_norm * 0.5), 0));//0.005/* - 0.01*/;
-    vec3 noise_delta = (sqrt(f_col) * W_INV + noise * NOISE_FACTOR);
+    vec3 noise_delta = (sqrt(f_col_raw) * W_INV + noise * NOISE_FACTOR);
     // noise_delta = noise_delta * noise_delta * W_2 - f_col;
     // lum = W ⋅ col
     // lum + noise = W ⋅ (col + delta)
@@ -488,7 +488,7 @@ void main() {
     // vec3 col = (f_col + noise_delta);
     // vec3 col = noise_delta * noise_delta * W_2;
 
-    f_col = noise_delta * noise_delta * W_2;
+    vec3 f_col = noise_delta * noise_delta * W_2;
     // f_col = /*srgb_to_linear*/(f_col + hash(vec4(floor(hash_pos * 3.0 - voxel_norm * 0.5), 0)) * 0.01/* - 0.01*/); // Small-scale noise
 
     // f_ao = 1.0;
@@ -638,7 +638,30 @@ void main() {
     // get_sun_diffuse(f_norm, time_of_day.x, light, diffuse_light, ambient_light, 1.0);
     // vec3 surf_color = illuminate(f_col, light, diffuse_light, ambient_light);
     // f_col = f_col + (hash(vec4(floor(vec3(focus_pos.xy + splay(v_pos_orig), f_pos.z)) * 3.0 - round(f_norm) * 0.5, 0)) - 0.5) * 0.05; // Small-scale noise
-    vec3 surf_color = /*illuminate(emitted_light, reflected_light)*/illuminate(max_light, view_dir, f_col * emitted_light, f_col * reflected_light);
+    vec3 surf_color;
+    #if (FLUID_MODE == FLUID_MODE_SHINY)
+        if (f_col_raw.b > max(f_col_raw.r, f_col_raw.g) * 2.0 && dot(vec3(0, 0, 1), f_norm) > 0.9) {
+            vec3 water_color = (1.0 - MU_WATER) * MU_SCATTER;
+
+            vec3 reflect_ray = cam_to_frag * vec3(1, 1, -1);
+
+            float passthrough = dot(faceforward(f_norm, f_norm, cam_to_frag), -cam_to_frag);
+
+            vec3 reflect_color = get_sky_color(reflect_ray, time_of_day.x, f_pos, vec3(-100000), 0.125, true);
+            reflect_color = get_cloud_color(reflect_color, reflect_ray, cam_pos.xyz, time_of_day.x, 100000.0, 0.25);
+
+            const float REFLECTANCE = 0.5;
+            surf_color = illuminate(max_light, view_dir, f_col * emitted_light, reflect_color * REFLECTANCE + water_color * reflected_light);
+
+            const vec3 underwater_col = vec3(0.0);
+            float min_refl = min(emitted_light.r, min(emitted_light.g, emitted_light.b));
+            surf_color = mix(underwater_col, surf_color, (1.0 - passthrough) * 1.0 / (1.0 + min_refl));
+        } else {
+            surf_color = illuminate(max_light, view_dir, f_col * emitted_light, f_col * reflected_light);
+        }
+    #else
+        surf_color = illuminate(max_light, view_dir, f_col * emitted_light, f_col * reflected_light);
+    #endif
 
     // float mist_factor = max(1 - (f_pos.z + (texture(t_noise, f_pos.xy * 0.0005 + time_of_day.x * 0.0003).x - 0.5) * 128.0) / 400.0, 0.0);
     // //float mist_factor = f_norm.z * 2.0;
