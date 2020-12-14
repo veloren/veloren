@@ -695,8 +695,10 @@ impl Scene {
             // to transform it correctly into texture coordinates, as well as
             // OpenGL coordinates.  Note that the matrix for directional light
             // is *already* linear in the depth buffer.
-            let texture_mat = Mat4::<f32>::scaling_3d::<Vec3<f32>>(Vec3::new(0.5, 0.5, 1.0))
-                * Mat4::translation_3d(Vec3::new(1.0, 1.0, 0.0));
+            //
+            // Also, observe that we flip the texture sampling matrix in order to account for the
+            // fact that DirectX renders top-down.
+            let texture_mat = Mat4::<f32>::scaling_3d::<Vec3<f32>>(Vec3::new(0.5, -0.5, 1.0)) * Mat4::translation_3d(Vec3::new(1.0, -1.0, 0.0));
             // We need to compute these offset matrices to transform world space coordinates
             // to the translated ones we use when multiplying by the light space
             // matrix; this helps avoid precision loss during the
@@ -710,6 +712,7 @@ impl Scene {
             let up: math::Vec3<f32> = math::Vec3::unit_y();
             let light_view_mat = math::Mat4::look_at_rh(look_at, look_at + directed_light_dir, up);
             {
+                // NOTE: Light view space, right-handed.
                 let v_p_orig =
                     math::Vec3::from(light_view_mat * math::Vec4::from_direction(new_dir));
                 let mut v_p = v_p_orig.normalized();
@@ -719,6 +722,7 @@ impl Scene {
                 let sin_gamma = (1.0 - cos_gamma * cos_gamma).sqrt();
                 let gamma = sin_gamma.asin();
                 let view_mat = math::Mat4::from_col_array(view_mat.into_col_array());
+                // coordinates are transformed from world space (right-handed) to view space (right-handed).
                 let bounds1 = math::fit_psr(
                     view_mat.map_cols(math::Vec4::from),
                     visible_light_volume.iter().copied(),
@@ -735,15 +739,24 @@ impl Scene {
                 v_p.z = 0.0;
                 v_p.normalize();
                 let l_r: math::Mat4<f32> = if factor > EPSILON_UPSILON {
+<<<<<<< HEAD
                     math::Mat4::look_at_rh(math::Vec3::zero(), -math::Vec3::unit_z(), v_p)
+=======
+                    // NOTE: Our coordinates are now in left-handed space, but v_p isn't; however,
+                    // v_p has no z component, so we don't have to adjust it for left-handed
+                    // spaces.
+                    math::Mat4::look_at_lh(math::Vec3::zero(), math::Vec3::forward_lh(), v_p)
+>>>>>>> 00820cebc (Fix directed shadows, mostly.)
                 } else {
                     math::Mat4::identity()
                 };
+                // Convert from right-handed to left-handed coordinates.
                 let directed_proj_mat = math::Mat4::new(
                     1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 1.0,
                 );
 
                 let light_all_mat = l_r * directed_proj_mat * light_view_mat;
+                // coordinates are transformed from world space (right-handed) to rotated light space (left-handed).
                 let bounds0 = math::fit_psr(
                     light_all_mat,
                     visible_light_volume.iter().copied(),
@@ -751,24 +764,38 @@ impl Scene {
                 );
                 // Vague idea: project z_n from the camera view to the light view (where it's
                 // tilted by γ).
+                //
+                // NOTE: To transform a normal by M, we multiply by the transpose of the inverse of M.
+                // For the cases below, we are transforming by an already-inverted matrix, so the
+                // transpose of its inverse is just the transpose of the original matrix.
+                // normals as well as points, rather than taking the transpose of the matrix,
+                // is that our matrix is (for normals) a pure rotation matrix, which means it is d
                 let (z_0, z_1) = {
+                    // view space, right-handed coordinates.
                     let p_z = bounds1.max.z;
+                    // rotated light space, left-handed coordinates.
                     let p_y = bounds0.min.y;
                     let p_x = bounds0.center().x;
+                    // moves from view-space (right-handed) to world space (right-handed)
                     let view_inv = view_mat.inverted();
+                    // moves from rotated light space (left-handed) to world space (right-handed).
                     let light_all_inv = light_all_mat.inverted();
 
-                    let view_point = view_inv * math::Vec4::new(0.0, 0.0, p_z, 1.0);
-                    let view_plane = view_inv * math::Vec4::from_direction(math::Vec3::unit_z());
+                    // moves from view-space (right-handed) to world-space (right-handed).
+                    let view_point = view_inv * math::Vec4::from_point(math::Vec3::forward_rh() * p_z/* + math::Vec4::unit_w() */);
+                    let view_plane = view_mat.transposed() * math::Vec4::forward_rh();
 
-                    let light_point = light_all_inv * math::Vec4::new(0.0, p_y, 0.0, 1.0);
-                    let light_plane =
-                        light_all_inv * math::Vec4::from_direction(math::Vec3::unit_y());
+                    // moves from rotated light space (left-handed) to world space (right-handed).
+                    let light_point = light_all_inv * math::Vec4::from_point(math::Vec3::up() * p_y/* + math::Vec4::unit_w() */);
+                    let light_plane = light_all_mat.transposed() * math::Vec4::up();
 
-                    let shadow_point = light_all_inv * math::Vec4::new(p_x, 0.0, 0.0, 1.0);
-                    let shadow_plane =
-                        light_all_inv * math::Vec4::from_direction(math::Vec3::unit_x());
+                    // moves from rotated light space (left-handed) to world space (right-handed).
+                    let shadow_point = light_all_inv * math::Vec4::from_point(math::Vec3::right() * p_x/* + math::Vec4::unit_w() */);
+                    let shadow_plane = light_all_mat.transposed() * math::Vec4::right();
 
+                    // Find the point at the intersection of the three planes; note that since the
+                    // equations are already in right-handed world space, we don't need to negate
+                    // the z coordinates.
                     let solve_p0 = math::Mat4::new(
                         view_plane.x,
                         view_plane.y,
@@ -788,18 +815,29 @@ impl Scene {
                         1.0,
                     );
 
+                    // in world-space (right-handed).
                     let p0_world = solve_p0.inverted() * math::Vec4::unit_w();
+                    // in rotated light-space (left-handed).
                     let p0 = light_all_mat * p0_world;
                     let mut p1 = p0;
+                    // in rotated light-space (left-handed).
                     p1.y = bounds0.max.y;
 
+                    // transforms from rotated light-space (left-handed) to view space
+                    // (right-handed).
                     let view_from_light_mat = view_mat * light_all_inv;
+                    // z0 and z1 are in view space (right-handed).
                     let z0 = view_from_light_mat * p0;
                     let z1 = view_from_light_mat * p1;
 
-                    (f64::from(z0.z), f64::from(z1.z))
+                    // Extract the homogenized forward component (right-handed).
+                    //
+                    // NOTE: I don't think the w component should be anything but 1 here, but
+                    // better safe than sorry.
+                    (f64::from(z0.homogenized().dot(math::Vec4::forward_rh())), f64::from(z1.homogenized().dot(math::Vec4::forward_rh())))
                 };
 
+                // all of this is in rotated light-space (left-handed).
                 let mut light_focus_pos: math::Vec3<f32> = math::Vec3::zero();
                 light_focus_pos.x = bounds0.center().x;
                 light_focus_pos.y = bounds0.min.y;
@@ -810,6 +848,8 @@ impl Scene {
                 let w_l_y = d;
 
                 // NOTE: See section 5.1.2.2 of Lloyd's thesis.
+                // NOTE: Since z_1 and z_0 are in the same coordinate space, we don't have to worry
+                // about the handedness of their ratio.
                 let alpha = z_1 / z_0;
                 let alpha_sqrt = alpha.sqrt();
                 let directed_near_normal = if factor < 0.0 {
@@ -829,6 +869,7 @@ impl Scene {
                 } else {
                     light_focus_pos.y
                 };
+                // Left-handed translation.
                 let w_v: math::Mat4<f32> = math::Mat4::translation_3d(-math::Vec3::new(
                     light_focus_pos.x,
                     light_focus_pos.y,
@@ -862,6 +903,8 @@ impl Scene {
                 };
 
                 let shadow_all_mat: math::Mat4<f32> = w_p * shadow_view_mat;
+                // coordinates are transformed from world space (right-handed)
+                // to post-warp light space (left-handed), then homogenized.
                 let math::Aabb::<f32> {
                     min:
                         math::Vec3 {
@@ -912,7 +955,7 @@ impl Scene {
             // Now, we tackle point lights.
             // First, create a perspective projection matrix at 90 degrees (to cover a whole
             // face of the cube map we're using).
-            let shadow_proj = Mat4::perspective_rh_zo(
+            let shadow_proj = Mat4::perspective_lh_zo(
                 90.0f32.to_radians(),
                 point_shadow_aspect,
                 SHADOW_NEAR,
@@ -920,13 +963,22 @@ impl Scene {
             );
             // Next, construct the 6 orientations we'll use for the six faces, in terms of
             // their (forward, up) vectors.
-            let orientations = [
+            /* let orientations = [
                 (Vec3::new(1.0, 0.0, 0.0), Vec3::new(0.0, -1.0, 0.0)),
                 (Vec3::new(-1.0, 0.0, 0.0), Vec3::new(0.0, -1.0, 0.0)),
                 (Vec3::new(0.0, 1.0, 0.0), Vec3::new(0.0, 0.0, 1.0)),
                 (Vec3::new(0.0, -1.0, 0.0), Vec3::new(0.0, 0.0, -1.0)),
                 (Vec3::new(0.0, 0.0, 1.0), Vec3::new(0.0, -1.0, 0.0)),
                 (Vec3::new(0.0, 0.0, -1.0), Vec3::new(0.0, -1.0, 0.0)),
+            ]; */
+
+            let orientations = [
+                (Vec3::new(1.0, 0.0, 0.0), Vec3::new(0.0, 1.0, 0.0)),
+                (Vec3::new(-1.0, 0.0, 0.0), Vec3::new(0.0, 1.0, 0.0)),
+                (Vec3::new(0.0, 1.0, 0.0), Vec3::new(0.0, 0.0, -1.0)),
+                (Vec3::new(0.0, -1.0, 0.0), Vec3::new(0.0, 0.0, 1.0)),
+                (Vec3::new(0.0, 0.0, 1.0), Vec3::new(0.0, 1.0, 0.0)),
+                (Vec3::new(0.0, 0.0, -1.0), Vec3::new(0.0, 1.0, 0.0)),
             ];
             // NOTE: We could create the shadow map collection at the same time as the
             // lights, but then we'd have to sort them both, which wastes time.  Plus, we
@@ -934,11 +986,13 @@ impl Scene {
             shadow_mats.extend(lights.iter().flat_map(|light| {
                 // Now, construct the full projection matrix by making the light look at each
                 // cube face.
-                let eye = Vec3::new(light.pos[0], light.pos[1], light.pos[2]) - focus_off;
+                let mut eye = Vec3::new(light.pos[0], light.pos[1], light.pos[2]) - focus_off;
+                // Draw using left-handed coordinates.
+                eye.z = -eye.z;
                 orientations.iter().map(move |&(forward, up)| {
                     // NOTE: We don't currently try to linearize point lights or need a separate
                     // transform for them.
-                    PointLightMatrix::new(shadow_proj * Mat4::look_at_rh(eye, eye + forward, up))
+                    PointLightMatrix::new(shadow_proj * Mat4::look_at_lh(eye, eye + forward, up))
                 })
             }));
 
