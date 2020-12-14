@@ -168,7 +168,7 @@ fn reserve_wasm_memory_buffer<'a>(
     instance
         .exports
         .get::<Func<'a, i32, i32>>("wasm_prepare_buffer")
-        .map_err(|e| MemoryAllocationError::AllocatorNotFound(e))?
+        .map_err(MemoryAllocationError::AllocatorNotFound)?
         .call(value as i32)
-        .map_err(|e| MemoryAllocationError::CantAllocate(e))
+        .map_err(MemoryAllocationError::CantAllocate)
 }
