@@ -607,7 +607,7 @@ impl<'a> Widget for Skillbar<'a> {
             .fabricate(hotbar::Slot::Four, [40.0; 2])
             .filled_slot(self.imgs.inv_slot)
             .right_from(state.ids.slot3, 0.0);
-        if let Some((title, desc)) = tooltip_text(hotbar::Slot::Three) {
+        if let Some((title, desc)) = tooltip_text(hotbar::Slot::Four) {
             slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip, TEXT_COLOR)
                 .set(state.ids.slot4, ui);
         } else {
@@ -618,7 +618,7 @@ impl<'a> Widget for Skillbar<'a> {
             .fabricate(hotbar::Slot::Five, [40.0; 2])
             .filled_slot(self.imgs.inv_slot)
             .right_from(state.ids.slot4, 0.0);
-        if let Some((title, desc)) = tooltip_text(hotbar::Slot::Three) {
+        if let Some((title, desc)) = tooltip_text(hotbar::Slot::Five) {
             slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip, TEXT_COLOR)
                 .set(state.ids.slot5, ui);
         } else {

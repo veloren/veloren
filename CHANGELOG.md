@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Campfire resting heal
 - Initial support for game plugins, both server-side and client-side
 - Reflective LoD water
+- Map indicators for group members
 
 ### Changed
 
