@@ -8,7 +8,7 @@ use std::{
 use error::RuntimeError;
 use wasmer_runtime::*;
 
-use super::errors::{PluginError, PluginModuleError};
+use super::errors::{MemoryAllocationError, PluginError, PluginModuleError};
 use plugin_api::{Action, Event};
 
 // This represent a WASM function interface
@@ -17,7 +17,7 @@ pub type Function<'a> = Func<'a, (i32, u32), i32>;
 #[derive(Clone)]
 // This structure represent the WASM State of the plugin.
 pub struct PluginModule {
-    wasm_instance: Arc<Mutex<Instance>>,
+    wasm_state: Arc<Mutex<WasmState>>,
     events: HashSet<String>,
 }
 
@@ -30,10 +30,9 @@ impl PluginModule {
                 "raw_emit_actions" => func!(read_action),
             }})
             .map_err(PluginModuleError::Instantiate)?;
-
         Ok(Self {
             events: instance.exports.into_iter().map(|(name, _)| name).collect(),
-            wasm_instance: Arc::new(Mutex::new(instance)),
+            wasm_state: Arc::new(Mutex::new(WasmState::new(instance))),
         })
     }
 
@@ -51,22 +50,37 @@ impl PluginModule {
             return None;
         }
         let bytes = {
-            let instance = self.wasm_instance.lock().unwrap();
-            let func = match instance
-                .exports
-                .get(event_name)
-                .map_err(PluginModuleError::FunctionGet)
+            let mut state = self.wasm_state.lock().unwrap();
+            match execute_raw(&mut state, event_name, &request.bytes)
+                .map_err(PluginModuleError::RunFunction)
             {
-                Ok(e) => e,
-                Err(e) => return Some(Err(e)),
-            };
-            let mem = instance.context().memory(0);
-            match execute_raw(&mem, &func, &request.bytes).map_err(PluginModuleError::RunFunction) {
                 Ok(e) => e,
                 Err(e) => return Some(Err(e)),
             }
         };
         Some(bincode::deserialize(&bytes).map_err(PluginModuleError::Encoding))
+    }
+}
+
+pub struct WasmMemoryContext {
+    memory_buffer_size: usize,
+    memory_pointer: i32,
+}
+
+pub struct WasmState {
+    instance: Instance,
+    memory: WasmMemoryContext,
+}
+
+impl WasmState {
+    fn new(instance: Instance) -> Self {
+        Self {
+            instance,
+            memory: WasmMemoryContext {
+                memory_buffer_size: 0,
+                memory_pointer: 0,
+            },
+        }
     }
 }
 
@@ -92,22 +106,35 @@ impl<T: Event> PreparedEventQuery<T> {
     }
 }
 
-const MEMORY_POS: usize = 100000;
-
 // This function is not public because this function should not be used without
 // an interface to limit unsafe behaviours
 #[allow(clippy::needless_range_loop)]
 fn execute_raw(
-    memory: &Memory,
-    function: &Function,
+    context: &mut WasmState,
+    event_name: &str,
     bytes: &[u8],
 ) -> Result<Vec<u8>, RuntimeError> {
-    let view = memory.view::<u8>();
+    // This reserves space for the buffer
     let len = bytes.len();
-    for (cell, byte) in view[MEMORY_POS..len + MEMORY_POS].iter().zip(bytes.iter()) {
-        cell.set(*byte)
-    }
-    let start = function.call(MEMORY_POS as i32, len as u32)? as usize;
+    let start = {
+        let memory_pos = reserve_wasm_memory_buffer(len, &context.instance, &mut context.memory)
+            .expect("Fatal error while allocating memory for a plugin! Closing server...")
+            as usize;
+
+        let function: Func<(i32, u32), i32> = context
+            .instance
+            .exports
+            .get(event_name)
+            .expect("Function not found this should never happen");
+        let memory = context.instance.context().memory(0);
+        let view = memory.view::<u8>();
+        for (cell, byte) in view[memory_pos..memory_pos + len].iter().zip(bytes.iter()) {
+            cell.set(*byte)
+        }
+        function.call(memory_pos as i32, len as u32)? as usize
+    };
+
+    let memory = context.instance.context().memory(0);
     let view = memory.view::<u8>();
     let mut new_len_bytes = [0u8; 4];
     // TODO: It is probably better to dirrectly make the new_len_bytes
@@ -155,4 +182,23 @@ pub fn read_action(ctx: &mut Ctx, ptr: u32, len: u32) {
             },
         }
     }
+}
+
+fn reserve_wasm_memory_buffer<'a>(
+    value: usize,
+    instance: &'a Instance,
+    context: &mut WasmMemoryContext,
+) -> Result<i32, MemoryAllocationError> {
+    if context.memory_buffer_size >= value {
+        return Ok(context.memory_pointer);
+    }
+    let pointer = instance
+        .exports
+        .get::<Func<'a, i32, i32>>("wasm_prepare_buffer")
+        .map_err(MemoryAllocationError::AllocatorNotFound)?
+        .call(value as i32)
+        .map_err(MemoryAllocationError::CantAllocate)?;
+    context.memory_buffer_size = value;
+    context.memory_pointer = pointer;
+    Ok(pointer)
 }
