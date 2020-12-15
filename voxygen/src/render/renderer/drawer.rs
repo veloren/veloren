@@ -204,8 +204,8 @@ impl<'a> Drawer<'a> {
                     render_pass.set_push_constants(
                         wgpu::ShaderStage::all(),
                         0,
-                        &data[(6 * point_light * STRIDE + face as usize * STRIDE)
-                            ..(6 * point_light * STRIDE + (face + 1) as usize * STRIDE)],
+                        &data[(6 * (point_light + 1) * STRIDE + face as usize * STRIDE)
+                            ..(6 * (point_light + 1) * STRIDE + (face + 1) as usize * STRIDE)],
                     );
                     chunks.clone().for_each(|(model, locals)| {
                         render_pass.set_bind_group(1, &locals.bind_group, &[]);

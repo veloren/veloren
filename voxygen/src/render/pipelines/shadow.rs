@@ -321,7 +321,7 @@ impl PointShadowPipeline {
             })*/None,
             rasterization_state: Some(wgpu::RasterizationStateDescriptor {
                 front_face: wgpu::FrontFace::Ccw,
-                cull_mode: wgpu::CullMode::Front,
+                cull_mode: wgpu::CullMode::Back,
                 polygon_mode: wgpu::PolygonMode::Fill,
                 clamp_depth: false,
                 depth_bias: 0,

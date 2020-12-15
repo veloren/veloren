@@ -955,31 +955,28 @@ impl Scene {
             // Now, we tackle point lights.
             // First, create a perspective projection matrix at 90 degrees (to cover a whole
             // face of the cube map we're using).
-            let shadow_proj = Mat4::perspective_lh_zo(
+            let shadow_proj = Mat4::perspective_rh_zo(
                 90.0f32.to_radians(),
                 point_shadow_aspect,
                 SHADOW_NEAR,
                 SHADOW_FAR,
             );
+            // NOTE: We negate here to emulate a right-handed projection with a negative
+            // near plane, which produces the correct transformation to exactly match OpenGL's
+            // rendering behavior if we use a left-handed coordinate system everywhere else.
+            let shadow_proj = shadow_proj * Mat4::scaling_3d(-1.0);
+
             // Next, construct the 6 orientations we'll use for the six faces, in terms of
             // their (forward, up) vectors.
-            /* let orientations = [
+            let orientations = [
                 (Vec3::new(1.0, 0.0, 0.0), Vec3::new(0.0, -1.0, 0.0)),
                 (Vec3::new(-1.0, 0.0, 0.0), Vec3::new(0.0, -1.0, 0.0)),
                 (Vec3::new(0.0, 1.0, 0.0), Vec3::new(0.0, 0.0, 1.0)),
                 (Vec3::new(0.0, -1.0, 0.0), Vec3::new(0.0, 0.0, -1.0)),
                 (Vec3::new(0.0, 0.0, 1.0), Vec3::new(0.0, -1.0, 0.0)),
                 (Vec3::new(0.0, 0.0, -1.0), Vec3::new(0.0, -1.0, 0.0)),
-            ]; */
-
-            let orientations = [
-                (Vec3::new(1.0, 0.0, 0.0), Vec3::new(0.0, 1.0, 0.0)),
-                (Vec3::new(-1.0, 0.0, 0.0), Vec3::new(0.0, 1.0, 0.0)),
-                (Vec3::new(0.0, 1.0, 0.0), Vec3::new(0.0, 0.0, -1.0)),
-                (Vec3::new(0.0, -1.0, 0.0), Vec3::new(0.0, 0.0, 1.0)),
-                (Vec3::new(0.0, 0.0, 1.0), Vec3::new(0.0, 1.0, 0.0)),
-                (Vec3::new(0.0, 0.0, -1.0), Vec3::new(0.0, 1.0, 0.0)),
             ];
+
             // NOTE: We could create the shadow map collection at the same time as the
             // lights, but then we'd have to sort them both, which wastes time.  Plus, we
             // want to prepend our directed lights.
@@ -987,8 +984,6 @@ impl Scene {
                 // Now, construct the full projection matrix by making the light look at each
                 // cube face.
                 let mut eye = Vec3::new(light.pos[0], light.pos[1], light.pos[2]) - focus_off;
-                // Draw using left-handed coordinates.
-                eye.z = -eye.z;
                 orientations.iter().map(move |&(forward, up)| {
                     // NOTE: We don't currently try to linearize point lights or need a separate
                     // transform for them.
