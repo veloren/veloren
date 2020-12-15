@@ -436,7 +436,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             .unwrap_or(CONFIG.sea_level);
 
         let river_gouge = 0.5;
-        let (_in_water, water_dist, alt_, water_level, riverless_alt, warp_factor) = if let Some(
+        let (_in_water, water_dist, alt_, water_level, _riverless_alt, warp_factor) = if let Some(
             (max_border_river_pos, river_chunk, max_border_river, max_border_river_dist),
         ) =
             max_river
@@ -706,8 +706,8 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         // let warp_factor = 0.0;
 
         let riverless_alt_delta = Lerp::lerp(0.0, riverless_alt_delta, warp_factor);
+        let riverless_alt = alt + riverless_alt_delta; //riverless_alt + riverless_alt_delta;
         let alt = alt_ + riverless_alt_delta;
-        let riverless_alt = riverless_alt + riverless_alt_delta;
         let basement =
             alt + sim.get_interpolated_monotone(wpos, |chunk| chunk.basement.sub(chunk.alt))?;
 
