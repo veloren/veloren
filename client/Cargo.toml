@@ -6,6 +6,7 @@ edition = "2018"
 
 [features]
 simd = ["vek/platform_intrinsics"]
+plugins = ["common-sys/plugins"]
 
 default = ["simd"]
 
