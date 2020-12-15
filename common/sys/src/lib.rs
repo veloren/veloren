@@ -9,7 +9,7 @@ pub mod controller;
 pub mod melee;
 mod mount;
 pub mod phys;
-pub mod plugin;
+#[cfg(feature = "plugins")] pub mod plugin;
 mod projectile;
 mod shockwave;
 pub mod state;

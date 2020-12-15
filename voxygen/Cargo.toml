@@ -15,6 +15,7 @@ singleplayer = ["server"]
 tweak = ["const-tweaker"]
 simd = ["vek/platform_intrinsics"]
 tracy = ["tracing-tracy", "common/tracy"]
+plugins = ["client/plugins"]
 
 default = ["gl", "singleplayer", "native-dialog", "simd"]
 
