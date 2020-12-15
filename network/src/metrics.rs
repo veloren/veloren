@@ -1,6 +1,6 @@
 use crate::types::{Cid, Frame, Pid};
 use prometheus::{
-    core::{AtomicI64, GenericCounter},
+    core::{AtomicU64, GenericCounter},
     IntCounter, IntCounterVec, IntGauge, IntGaugeVec, Opts, Registry,
 };
 use std::error::Error;
@@ -281,7 +281,7 @@ pub(crate) struct PidCidFrameCache<T: MetricVecBuilder> {
 
 pub(crate) struct MultiCidFrameCache {
     metric: IntCounterVec,
-    cache: Vec<[Option<GenericCounter<AtomicI64>>; Frame::FRAMES_LEN as usize]>,
+    cache: Vec<[Option<GenericCounter<AtomicU64>>; Frame::FRAMES_LEN as usize]>,
 }
 
 impl MultiCidFrameCache {
@@ -307,7 +307,7 @@ impl MultiCidFrameCache {
         ]);
     }
 
-    pub fn with_label_values(&mut self, cid: Cid, frame: &Frame) -> &GenericCounter<AtomicI64> {
+    pub fn with_label_values(&mut self, cid: Cid, frame: &Frame) -> &GenericCounter<AtomicU64> {
         self.populate(cid);
         let frame_int = frame.get_int() as usize;
         let r = &mut self.cache[cid as usize][frame_int];
@@ -322,7 +322,7 @@ impl MultiCidFrameCache {
 }
 
 pub(crate) struct CidFrameCache {
-    cache: [GenericCounter<AtomicI64>; Frame::FRAMES_LEN as usize],
+    cache: [GenericCounter<AtomicU64>; Frame::FRAMES_LEN as usize],
 }
 
 impl CidFrameCache {
@@ -341,7 +341,7 @@ impl CidFrameCache {
         Self { cache }
     }
 
-    pub fn with_label_values(&mut self, frame: &Frame) -> &GenericCounter<AtomicI64> {
+    pub fn with_label_values(&mut self, frame: &Frame) -> &GenericCounter<AtomicU64> {
         &self.cache[frame.get_int() as usize]
     }
 }

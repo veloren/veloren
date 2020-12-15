@@ -121,7 +121,7 @@ impl<'a> System<'a> for Sys {
             }
         }
         sys_metrics.controller_ns.store(
-            start_time.elapsed().as_nanos() as i64,
+            start_time.elapsed().as_nanos() as u64,
             std::sync::atomic::Ordering::Relaxed,
         );
     }

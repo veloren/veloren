@@ -2,7 +2,6 @@ use crate::comp;
 use common::{character::CharacterId, comp::item::ItemId};
 
 use crate::persistence::{establish_connection, VelorenConnection};
-use crossbeam::channel;
 use std::{path::Path, sync::Arc};
 use tracing::{error, trace};
 
@@ -19,14 +18,14 @@ pub type CharacterUpdateData = (
 /// This is used to make updates to a character and their persisted components,
 /// such as inventory, loadout, etc...
 pub struct CharacterUpdater {
-    update_tx: Option<channel::Sender<Vec<(CharacterId, CharacterUpdateData)>>>,
+    update_tx: Option<crossbeam_channel::Sender<Vec<(CharacterId, CharacterUpdateData)>>>,
     handle: Option<std::thread::JoinHandle<()>>,
 }
 
 impl CharacterUpdater {
     pub fn new(db_dir: &Path) -> diesel::QueryResult<Self> {
         let (update_tx, update_rx) =
-            channel::unbounded::<Vec<(CharacterId, CharacterUpdateData)>>();
+            crossbeam_channel::unbounded::<Vec<(CharacterId, CharacterUpdateData)>>();
 
         let mut conn = establish_connection(db_dir)?;
 

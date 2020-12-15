@@ -2,7 +2,6 @@ use crate::metrics::ChunkGenMetrics;
 #[cfg(not(feature = "worldgen"))]
 use crate::test_world::{IndexOwned, World};
 use common::{generation::ChunkSupplement, terrain::TerrainChunk};
-use crossbeam::channel;
 use hashbrown::{hash_map::Entry, HashMap};
 use specs::Entity as EcsEntity;
 use std::sync::{
@@ -19,15 +18,15 @@ type ChunkGenResult = (
 );
 
 pub struct ChunkGenerator {
-    chunk_tx: channel::Sender<ChunkGenResult>,
-    chunk_rx: channel::Receiver<ChunkGenResult>,
+    chunk_tx: crossbeam_channel::Sender<ChunkGenResult>,
+    chunk_rx: crossbeam_channel::Receiver<ChunkGenResult>,
     pending_chunks: HashMap<Vec2<i32>, Arc<AtomicBool>>,
     metrics: Arc<ChunkGenMetrics>,
 }
 impl ChunkGenerator {
     #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new(metrics: ChunkGenMetrics) -> Self {
-        let (chunk_tx, chunk_rx) = channel::unbounded();
+        let (chunk_tx, chunk_rx) = crossbeam_channel::unbounded();
         Self {
             chunk_tx,
             chunk_rx,

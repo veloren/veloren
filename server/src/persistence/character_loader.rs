@@ -7,7 +7,7 @@ use common::{
     character::{CharacterId, CharacterItem},
     comp::item::tool::AbilityMap,
 };
-use crossbeam::{channel, channel::TryIter};
+use crossbeam_channel::{self, TryIter};
 use std::path::Path;
 use tracing::error;
 
@@ -65,14 +65,14 @@ pub struct CharacterLoaderResponse {
 /// Responses are polled on each server tick in the format
 /// [`CharacterLoaderResponse`]
 pub struct CharacterLoader {
-    update_rx: channel::Receiver<CharacterLoaderResponse>,
-    update_tx: channel::Sender<CharacterLoaderRequest>,
+    update_rx: crossbeam_channel::Receiver<CharacterLoaderResponse>,
+    update_tx: crossbeam_channel::Sender<CharacterLoaderRequest>,
 }
 
 impl CharacterLoader {
     pub fn new(db_dir: &Path, map: &AbilityMap) -> diesel::QueryResult<Self> {
-        let (update_tx, internal_rx) = channel::unbounded::<CharacterLoaderRequest>();
-        let (internal_tx, update_rx) = channel::unbounded::<CharacterLoaderResponse>();
+        let (update_tx, internal_rx) = crossbeam_channel::unbounded::<CharacterLoaderRequest>();
+        let (internal_tx, update_rx) = crossbeam_channel::unbounded::<CharacterLoaderResponse>();
 
         let mut conn = establish_connection(db_dir)?;
 
