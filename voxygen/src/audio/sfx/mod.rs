@@ -290,11 +290,16 @@ impl SfxMgr {
         }
 
         match outcome {
-            Outcome::Explosion { pos, power, .. } => {
-                let file_ref = if power.is_sign_positive() {
-                    "voxygen.audio.sfx.explosion"
-                } else {
+            Outcome::Explosion {
+                pos,
+                power,
+                is_attack,
+                ..
+            } => {
+                let file_ref = if *is_attack && *power < 0.0 {
                     "voxygen.audio.sfx.abilities.heal_bomb"
+                } else {
+                    "voxygen.audio.sfx.explosion"
                 };
 
                 audio.play_sfx(
