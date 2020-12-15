@@ -1,3 +1,4 @@
+#[cfg(feature = "plugins")]
 use crate::plugin::PluginMgr;
 use common::{
     comp,
@@ -20,7 +21,6 @@ use specs::{
     Component, DispatcherBuilder, Entity as EcsEntity, WorldExt,
 };
 use std::{sync::Arc, time::Duration};
-use tracing::info;
 use vek::*;
 
 /// How much faster should an in-game day be compared to a real day?
@@ -191,13 +191,16 @@ impl State {
         ecs.insert(PhysicsMetrics::default());
 
         // Load plugins from asset directory
+        #[cfg(feature = "plugins")]
         ecs.insert(match PluginMgr::from_assets() {
             Ok(plugin_mgr) => {
                 if let Err(e) = plugin_mgr
                     .execute_event("on_load", &plugin_api::event::PluginLoadEvent { game_mode })
                 {
                     tracing::error!(?e, "Failed to run plugin init");
-                    info!("Error occurred when loading plugins. Running without plugins instead.");
+                    tracing::info!(
+                        "Error occurred when loading plugins. Running without plugins instead."
+                    );
                     PluginMgr::default()
                 } else {
                     plugin_mgr
