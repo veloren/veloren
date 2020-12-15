@@ -14,7 +14,7 @@ extern "C" {
 pub fn emit_action(action: api::Action) { emit_actions(vec![action]) }
 
 pub fn emit_actions(actions: Vec<api::Action>) {
-    let ret = bincode::serialize(&actions).unwrap();
+    let ret = bincode::serialize(&actions).expect("Can't serialize action in emit");
     unsafe {
         raw_emit_actions(ret.as_ptr(), ret.len());
     }
@@ -29,10 +29,21 @@ where
 }
 
 pub fn write_output(value: impl Serialize) -> i32 {
-    let ret = bincode::serialize(&value).unwrap();
+    let ret = bincode::serialize(&value).expect("Can't serialize event output");
     let len = ret.len() as u32;
     unsafe {
         ::std::ptr::write(1 as _, len);
     }
     ret.as_ptr() as _
+}
+
+static mut BUFFERS: Vec<u8> = Vec::new();
+
+/// Allocate buffer from wasm linear memory
+/// # Safety
+/// This function should never be used only intented to by used by the host
+#[no_mangle]
+pub unsafe fn wasm_prepare_buffer(size: i32) -> i32 {
+    BUFFERS = vec![0u8; size as usize];
+    BUFFERS.as_ptr() as i32
 }
