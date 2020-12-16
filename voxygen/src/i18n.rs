@@ -1,10 +1,8 @@
 use common::assets::{self, AssetExt};
 use deunicode::deunicode;
-use serde::{Deserialize, Serialize};
-use std::{
-    borrow::Cow,
-};
 use hashbrown::{HashMap, HashSet};
+use serde::{Deserialize, Serialize};
+use std::borrow::Cow;
 use tracing::warn;
 
 /// The reference language, aka the more up-to-date localization data.

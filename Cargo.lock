@@ -243,9 +243,9 @@ checksum = "bbf56136a5198c7b01a49e3afcbef6cf84597273d298f54432926024107b0109"
 
 [[package]]
 name = "assets_manager"
-version = "0.4.1"
+version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8048fbc7e6314fa56e2c7faeb0e1c7be01d23c87bad301a7877afaa493ec3dbb"
+checksum = "3593b8ddb9708251c7a57b07c917c77ecc685e804b697366d26fb4af64c9b960"
 dependencies = [
  "ahash 0.6.2",
  "bincode",

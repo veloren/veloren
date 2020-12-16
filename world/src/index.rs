@@ -14,6 +14,7 @@ pub struct Index {
     pub time: f32,
     pub noise: Noise,
     pub sites: Store<Site>,
+    colors: AssetHandle<Arc<Colors>>,
 }
 
 /// An owned reference to indexed data.
@@ -25,10 +26,6 @@ pub struct Index {
 pub struct IndexOwned {
     colors: Arc<Colors>,
     index: Arc<Index>,
-
-    /// Stored separatly so `colors` is only updated when
-    /// `reload_colors_if_changed` is called
-    colors_handle: AssetHandle<Arc<Colors>>,
 }
 
 impl Deref for IndexOwned {
@@ -54,27 +51,28 @@ impl<'a> Deref for IndexRef<'a> {
 
 impl Index {
     /// NOTE: Panics if the color manifest cannot be loaded.
-    pub fn new(seed: u32) -> (Self, AssetHandle<Arc<Colors>>) {
+    pub fn new(seed: u32) -> Self {
         let colors = Arc::<Colors>::load_expect(WORLD_COLORS_MANIFEST);
 
-        (
-            Self {
-                seed,
-                time: 0.0,
-                noise: Noise::new(seed),
-                sites: Store::default(),
-            },
+        Self {
+            seed,
+            time: 0.0,
+            noise: Noise::new(seed),
+            sites: Store::default(),
             colors,
-        )
+        }
     }
+
+    pub fn colors(&self) -> AssetHandle<Arc<Colors>> { self.colors }
 }
 
 impl IndexOwned {
-    pub fn new(index: Index, colors: AssetHandle<Arc<Colors>>) -> Self {
+    pub fn new(index: Index) -> Self {
+        let colors = index.colors.cloned();
+
         Self {
             index: Arc::new(index),
-            colors: colors.cloned(),
-            colors_handle: colors,
+            colors,
         }
     }
 
@@ -89,9 +87,9 @@ impl IndexOwned {
         &mut self,
         reload: impl FnOnce(&mut Self) -> R,
     ) -> Option<R> {
-        self.colors_handle.reloaded().then(move || {
-            // Reload the color from the asse handle, which is updated automatically
-            self.colors = self.colors_handle.cloned();
+        self.index.colors.reloaded_global().then(move || {
+            // Reload the color from the asset handle, which is updated automatically
+            self.colors = self.index.colors.cloned();
             reload(self)
         })
     }
