@@ -47,6 +47,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "ahash"
+version = "0.4.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "739f4a8db6605981345c5654f3a85b056ce52f37a39d34da03f25bf2151ea16e"
+
+[[package]]
 name = "aho-corasick"
 version = "0.7.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1389,7 +1395,7 @@ version = "3.11.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0f260e2fc850179ef410018660006951c1b55b79e8087e87111a2c388994b9b5"
 dependencies = [
- "ahash",
+ "ahash 0.3.8",
  "cfg-if 0.1.10",
  "num_cpus",
 ]
@@ -2266,10 +2272,8 @@ version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "96282e96bfcd3da0d3aa9938bedf1e50df3269b6db08b4876d2da0bb1a0841cf"
 dependencies = [
- "ahash",
+ "ahash 0.3.8",
  "autocfg 1.0.1",
- "rayon",
- "serde",
 ]
 
 [[package]]
@@ -2277,6 +2281,11 @@ name = "hashbrown"
 version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d7afe4a420e3fe79967a00898cc1f4db7c8a49a9333a29f8a4bd76a253d5cd04"
+dependencies = [
+ "ahash 0.4.7",
+ "rayon",
+ "serde",
+]
 
 [[package]]
 name = "heapless"
@@ -4178,25 +4187,25 @@ dependencies = [
 
 [[package]]
 name = "rayon"
-version = "1.4.0"
+version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cfd016f0c045ad38b5251be2c9c0ab806917f82da4d36b2a327e5166adad9270"
+checksum = "8b0d8e0819fadc20c74ea8373106ead0600e3a67ef1fe8da56e39b9ae7275674"
 dependencies = [
  "autocfg 1.0.1",
- "crossbeam-deque 0.7.3",
+ "crossbeam-deque 0.8.0",
  "either",
  "rayon-core",
 ]
 
 [[package]]
 name = "rayon-core"
-version = "1.8.1"
+version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e8c4fec834fb6e6d2dd5eece3c7b432a52f0ba887cf40e595190c4107edc08bf"
+checksum = "9ab346ac5921dc62ffa9f89b7a773907511cdfa5490c572ae9be1be33e8afa4a"
 dependencies = [
- "crossbeam-channel 0.4.4",
- "crossbeam-deque 0.7.3",
- "crossbeam-utils 0.7.2",
+ "crossbeam-channel 0.5.0",
+ "crossbeam-deque 0.8.0",
+ "crossbeam-utils 0.8.1",
  "lazy_static",
  "num_cpus",
 ]
@@ -4797,10 +4806,10 @@ dependencies = [
 [[package]]
 name = "specs"
 version = "0.16.1"
-source = "git+https://github.com/amethyst/specs.git?rev=7a2e348ab2223818bad487695c66c43db88050a5#7a2e348ab2223818bad487695c66c43db88050a5"
+source = "git+https://github.com/amethyst/specs.git?rev=d4435bdf496cf322c74886ca09dd8795984919b4#d4435bdf496cf322c74886ca09dd8795984919b4"
 dependencies = [
- "crossbeam-queue 0.2.3",
- "hashbrown 0.7.2",
+ "crossbeam-queue 0.3.1",
+ "hashbrown 0.9.1",
  "hibitset",
  "log",
  "rayon",
@@ -4812,8 +4821,8 @@ dependencies = [
 
 [[package]]
 name = "specs-idvs"
-version = "0.1.0"
-source = "git+https://gitlab.com/veloren/specs-idvs.git?branch=specs-git#fcb0b2306b571f62f9f85d89e79e087454d95efd"
+version = "0.1.1"
+source = "git+https://gitlab.com/veloren/specs-idvs.git?rev=77048eefa5df750f44bbd1b9a13402a9f7a6cfc8#77048eefa5df750f44bbd1b9a13402a9f7a6cfc8"
 dependencies = [
  "specs",
 ]
@@ -5669,7 +5678,7 @@ dependencies = [
  "futures-executor",
  "futures-timer 3.0.2",
  "futures-util",
- "hashbrown 0.7.2",
+ "hashbrown 0.9.1",
  "image",
  "num 0.3.1",
  "num_cpus",
@@ -5697,7 +5706,7 @@ dependencies = [
  "directories-next",
  "dot_vox",
  "enum-iterator",
- "hashbrown 0.7.2",
+ "hashbrown 0.9.1",
  "image",
  "indexmap",
  "lazy_static",
@@ -5729,7 +5738,7 @@ name = "veloren-common-net"
 version = "0.8.0"
 dependencies = [
  "authc",
- "hashbrown 0.7.2",
+ "hashbrown 0.9.1",
  "serde",
  "specs",
  "sum_type",
@@ -5744,7 +5753,7 @@ name = "veloren-common-sys"
 version = "0.8.0"
 dependencies = [
  "bincode",
- "hashbrown 0.7.2",
+ "hashbrown 0.9.1",
  "indexmap",
  "rand 0.7.3",
  "rayon",
@@ -5803,7 +5812,7 @@ dependencies = [
  "futures-executor",
  "futures-timer 3.0.2",
  "futures-util",
- "hashbrown 0.7.2",
+ "hashbrown 0.9.1",
  "itertools",
  "lazy_static",
  "libsqlite3-sys",
@@ -5879,7 +5888,7 @@ dependencies = [
  "glutin",
  "glyph_brush",
  "guillotiere",
- "hashbrown 0.7.2",
+ "hashbrown 0.9.1",
  "iced_native",
  "iced_winit",
  "image",
@@ -5939,7 +5948,7 @@ dependencies = [
  "bitvec",
  "criterion",
  "fxhash",
- "hashbrown 0.7.2",
+ "hashbrown 0.9.1",
  "image",
  "itertools",
  "lazy_static",
