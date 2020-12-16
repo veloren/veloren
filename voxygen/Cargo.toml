@@ -74,7 +74,7 @@ guillotiere = "0.5.2"
 hashbrown = {version = "0.7.2", features = ["rayon", "serde", "nightly"]}
 image = {version = "0.23.8", default-features = false, features = ["ico", "png"]}
 native-dialog = { version = "0.4.2", default-features = false, optional = true }
-num = "0.2"
+num = "0.3.1"
 ordered-float = { version = "2.0.0", default-features = false }
 rand = "0.7"
 rodio = {version = "0.13", default-features = false, features = ["wav", "vorbis"]}

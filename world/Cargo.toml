@@ -13,13 +13,13 @@ default = ["simd"]
 common = { package = "veloren-common", path = "../common" }
 common-net = { package = "veloren-common-net", path = "../common/net" }
 bincode = "1.2.0"
-bitvec = "0.17.4"
+bitvec = "0.19.4"
 fxhash = "0.2.1"
 image = { version = "0.23.8", default-features = false, features = ["png"] }
 itertools = "0.9"
 vek = { version = "0.12.0", features = ["serde"] }
 noise = { version = "0.6.0", default-features = false }
-num = "0.2"
+num = "0.3.1"
 ordered-float = "2.0"
 hashbrown = { version = "0.7.2", features = ["rayon", "serde", "nightly"] }
 lazy_static = "1.4.0"
@@ -35,4 +35,4 @@ ron = { version = "0.6", default-features = false }
 [dev-dependencies]
 criterion = "0.3"
 tracing-subscriber = { version = "0.2.3", default-features = false, features = ["fmt", "chrono", "ansi", "smallvec"] }
-minifb = "0.14.0"
+minifb = "0.19.1"
