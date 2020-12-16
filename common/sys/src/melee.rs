@@ -126,16 +126,19 @@ impl<'a> System<'a> for Sys {
                     for (target, damage, poise_change) in attack.effects.iter() {
                         if let Some(target) = target {
                             if *target != target_group
-                                || (!matches!(target, GroupTarget::InGroup)
-                                    && (is_dodge || is_stunned))
+                                || (!matches!(target, GroupTarget::InGroup) && is_dodge)
                             {
                                 continue;
                             }
                         }
 
                         let change = damage.modify_damage(inventories.get(b), Some(*uid));
-                        //let poise_change =
-                        //    poise_change.modify_poise_damage(loadouts.get(b), Some(*uid));
+                        let poise_change = if is_stunned {
+                            poise_change.set_zero()
+                        } else {
+                            poise_change.modify_poise_damage(inventories.get(b))
+                        };
+
                         server_emitter.emit(ServerEvent::Damage { entity: b, change });
                         // Apply bleeding buff on melee hits with 10% chance
                         // TODO: Don't have buff uniformly applied on all melee attacks
@@ -162,8 +165,8 @@ impl<'a> System<'a> for Sys {
 
                         server_emitter.emit(ServerEvent::PoiseChange {
                             entity: b,
-                            change: *poise_change,
-                            kb_dir: *kb_dir,
+                            change: poise_change,
+                            kb_dir: *Dir::slerp(kb_dir, Dir::new(Vec3::unit_z()), 0.5),
                         });
 
                         attack.hit_count += 1;

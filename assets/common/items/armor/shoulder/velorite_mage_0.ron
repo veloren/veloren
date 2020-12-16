@@ -5,8 +5,9 @@ ItemDef(
         (
             kind: Shoulder("VeloriteMage0"),
             stats: (
-                protection: Normal(17.0)
-                ),            
+                protection: Normal(17.0),
+                poise_protection: Normal(17.0),
+            ),
         )
     ),
     quality: High,

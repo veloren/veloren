@@ -5,8 +5,9 @@ ItemDef(
         (
             kind: Belt("Twigsflowers"),
             stats: (
-                protection: Normal(2.0)
-                ),            
+                protection: Normal(2.0),
+                poise_protection: Normal(2.0),
+            ),
         )
     ),
     quality: Moderate,

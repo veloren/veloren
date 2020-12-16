@@ -5,8 +5,9 @@ ItemDef(
         (
             kind: Pants("VeloriteMage0"),
             stats: (
-                protection: Normal(23.0)
-                ),            
+                protection: Normal(23.0),
+                poise_protection: Normal(23.0),
+            ),
         )
     ),
     quality: High,

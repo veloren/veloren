@@ -22,6 +22,8 @@ pub struct Stage<T> {
     pub damage_increase: u32,
     /// Initial poise damage of stage
     pub base_poise_damage: u32,
+    /// Poise damage scaling per combo
+    pub poise_damage_increase: u32,
     /// Knockback of stage
     pub knockback: f32,
     /// Range of attack
@@ -46,6 +48,7 @@ impl Stage<u64> {
             base_damage: self.base_damage,
             damage_increase: self.damage_increase,
             base_poise_damage: self.base_poise_damage,
+            poise_damage_increase: self.poise_damage_increase,
             knockback: self.knockback,
             range: self.range,
             angle: self.angle,
@@ -56,9 +59,12 @@ impl Stage<u64> {
         }
     }
 
-    pub fn adjusted_by_stats(mut self, power: f32, speed: f32) -> Self {
+    pub fn adjusted_by_stats(mut self, power: f32, poise_reduction_power: f32, speed: f32) -> Self {
         self.base_damage = (self.base_damage as f32 * power) as u32;
         self.damage_increase = (self.damage_increase as f32 * power) as u32;
+        self.base_poise_damage = (self.base_poise_damage as f32 * poise_reduction_power) as u32;
+        self.poise_damage_increase =
+            (self.poise_damage_increase as f32 * poise_reduction_power) as u32;
         self.base_buildup_duration = (self.base_buildup_duration as f32 / speed) as u64;
         self.base_swing_duration = (self.base_swing_duration as f32 / speed) as u64;
         self.base_recover_duration = (self.base_recover_duration as f32 / speed) as u64;
@@ -169,7 +175,13 @@ impl CharacterBehavior for Data {
                             .scales_from_combo
                             .min(self.combo / self.static_data.num_stages)
                             * self.static_data.stage_data[stage_index].damage_increase;
-                    let poise_damage = self.static_data.stage_data[stage_index].base_poise_damage;
+
+                    let poise_damage = self.static_data.stage_data[stage_index].base_poise_damage
+                        + self
+                            .static_data
+                            .scales_from_combo
+                            .min(self.combo / self.static_data.num_stages)
+                            * self.static_data.stage_data[stage_index].poise_damage_increase;
                     data.updater.insert(data.entity, Attacking {
                         effects: vec![(
                             Some(GroupTarget::OutOfGroup),

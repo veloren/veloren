@@ -7,6 +7,7 @@ ItemDef(
             stats: (
                 equip_time_millis: 400,
                 power: 1.80,
+                poise_reduction_power: 1.80,
                 speed: 1.0
             ),            
         )

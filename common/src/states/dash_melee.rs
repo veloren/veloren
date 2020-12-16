@@ -22,6 +22,8 @@ pub struct StaticData {
     pub scaled_damage: u32,
     /// Initial poise damage
     pub base_poise_damage: u32,
+    /// How much the attac scales in poise damage
+    pub scaled_poise_damage: u32,
     /// How much the attack knocks the target back initially
     pub base_knockback: f32,
     /// How much the attack scales in knockback
@@ -135,8 +137,10 @@ impl CharacterBehavior for Data {
                                 value: self.static_data.base_damage as f32
                                     + charge_frac * self.static_data.scaled_damage as f32,
                             };
-                            let mut poise_damage = PoiseChange {
-                                amount: -(self.static_data.base_poise_damage as i32),
+                            let poise_damage = PoiseChange {
+                                amount: -(self.static_data.base_poise_damage as f32
+                                    + charge_frac * self.static_data.scaled_poise_damage as f32)
+                                    as i32,
                                 source: PoiseSource::Melee,
                             };
                             let knockback = self.static_data.base_knockback

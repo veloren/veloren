@@ -96,11 +96,13 @@ impl StateExt for State {
                     .get_mut(entity)
                     .map(|mut health| health.change_by(change));
             },
-            Effect::Poise(change) => {
+            Effect::PoiseChange(poise_damage) => {
+                let loadouts = self.ecs().read_storage::<comp::Loadout>();
+                let change = poise_damage.modify_poise_damage(loadouts.get(entity));
                 self.ecs()
                     .write_storage::<comp::Poise>()
                     .get_mut(entity)
-                    .map(|poise| poise.change_by(change));
+                    .map(|poise| poise.change_by(change, Vec3::zero()));
             },
             Effect::Buff(buff) => {
                 self.ecs()

@@ -5,7 +5,9 @@ ItemDef(
         (
             kind: Foot("Bonerattler"),
             stats: (
-                protection: Normal(5.0)),            
+                protection: Normal(5.0),
+                poise_protection: Normal(5.0),
+            ),
         )
     ),
     quality: High,

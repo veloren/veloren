@@ -11,5 +11,5 @@ pub struct Explosion {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum RadiusEffect {
     TerrainDestruction(f32),
-    Entity(Option<GroupTarget>, Vec<Effect>),
+    Entity(Option<GroupTarget>, Effect),
 }

@@ -43,7 +43,15 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
 
 fn weapon_stats() -> Result<(), Box<dyn Error>> {
     let mut wtr = csv::Writer::from_path("weaponstats.csv")?;
-    wtr.write_record(&["Path", "Kind", "Name", "Power", "Speed", "Equip Time (ms)"])?;
+    wtr.write_record(&[
+        "Path",
+        "Kind",
+        "Name",
+        "Power",
+        "Poise Reduction Power",
+        "Speed",
+        "Equip Time (ms)",
+    ])?;
 
     for item in comp::item::Item::new_from_asset_glob("common.items.weapons.*")
         .expect("Failed to iterate over item folders!")
@@ -51,6 +59,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
         match item.kind() {
             comp::item::ItemKind::Tool(tool) => {
                 let power = tool.base_power().to_string();
+                let poise_reduction_power = tool.base_poise_reduction_power().to_string();
                 let speed = tool.base_speed().to_string();
                 let equip_time = tool.equip_time().subsec_millis().to_string();
                 let kind = get_tool_kind(&tool.kind);
@@ -60,6 +69,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                     &kind,
                     item.name(),
                     &power,
+                    &poise_reduction_power,
                     &speed,
                     &equip_time,
                 ])?;

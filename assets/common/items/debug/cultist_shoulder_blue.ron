@@ -5,7 +5,9 @@ ItemDef(
         (
             kind: Shoulder("VeloriteMage0"),
             stats: (
-                protection: Invincible),            
+                protection: Invincible,
+                poise_protection: Invincible,
+            ),
         )
     ),
     quality: Debug,

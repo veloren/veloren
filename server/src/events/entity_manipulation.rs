@@ -13,9 +13,8 @@ use common::{
     comp::{
         self, aura, buff,
         chat::{KillSource, KillType},
-        object, poise, Alignment, Body, Energy, EnergyChange, Group, Health, HealthChange,
-        HealthSource, Inventory, Item, Player, Poise, PoiseChange, PoiseSource, PoiseState, Pos,
-        Stats,
+        object, Alignment, Body, Energy, EnergyChange, Group, Health, HealthChange, HealthSource,
+        Inventory, Item, Player, Poise, PoiseChange, PoiseSource, Pos, Stats,
     },
     effect::Effect,
     lottery::Lottery,
@@ -24,7 +23,7 @@ use common::{
     terrain::{Block, TerrainGrid},
     uid::{Uid, UidAllocator},
     vol::ReadVol,
-    Damage, DamageSource, Explosion, GroupTarget, Knockback, RadiusEffect,
+    Damage, DamageSource, Explosion, GroupTarget, RadiusEffect,
 };
 use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 use common_sys::state::BlockChange;
@@ -32,7 +31,6 @@ use comp::item::Reagent;
 use hashbrown::HashSet;
 use rand::prelude::*;
 use specs::{join::Join, saveload::MarkerAllocator, Entity as EcsEntity, WorldExt};
-use std::time::Duration;
 use tracing::error;
 use vek::Vec3;
 
@@ -44,86 +42,10 @@ pub fn handle_poise(
 ) {
     let ecs = &server.state.ecs();
     if let Some(poise) = ecs.write_storage::<Poise>().get_mut(entity) {
-        poise.change_by(change);
-        println!("poise: {:?}", change);
-        let was_wielded =
-            if let Some(character_state) = ecs.read_storage::<comp::CharacterState>().get(entity) {
-                character_state.is_wield()
-            } else {
-                false
-            };
-        match poise.poise_state() {
-            PoiseState::Normal => {},
-            PoiseState::Interrupted => {
-                poise.reset();
-                let _ = ecs.write_storage::<comp::CharacterState>().insert(
-                    entity,
-                    comp::CharacterState::Stunned(common::states::stunned::Data {
-                        static_data: common::states::stunned::StaticData {
-                            buildup_duration: Duration::from_millis(250),
-                            recover_duration: Duration::from_millis(250),
-                            knockback: Knockback::Away(20.0),
-                        },
-                        timer: Duration::default(),
-                        stage_section: common::states::utils::StageSection::Buildup,
-                        was_wielded,
-                    }),
-                );
-            },
-            PoiseState::Stunned => {
-                poise.reset();
-                let _ = ecs.write_storage::<comp::CharacterState>().insert(
-                    entity,
-                    comp::CharacterState::Stunned(common::states::stunned::Data {
-                        static_data: common::states::stunned::StaticData {
-                            buildup_duration: Duration::from_millis(500),
-                            recover_duration: Duration::from_millis(500),
-                            knockback: Knockback::Away(40.0),
-                        },
-                        timer: Duration::default(),
-                        stage_section: common::states::utils::StageSection::Buildup,
-                        was_wielded,
-                    }),
-                );
-                handle_knockback(server, entity, 50.0 * knockback_dir);
-            },
-            PoiseState::Dazed => {
-                poise.reset();
-                let _ = ecs.write_storage::<comp::CharacterState>().insert(
-                    entity,
-                    comp::CharacterState::Staggered(common::states::staggered::Data {
-                        static_data: common::states::staggered::StaticData {
-                            buildup_duration: Duration::from_millis(1000),
-                            recover_duration: Duration::from_millis(1000),
-                            knockback: Knockback::Away(50.0),
-                        },
-                        timer: Duration::default(),
-                        stage_section: common::states::utils::StageSection::Buildup,
-                        was_wielded,
-                    }),
-                );
-                handle_knockback(server, entity, 50.0 * knockback_dir);
-            },
-            PoiseState::KnockedDown => {
-                poise.reset();
-                let _ = ecs.write_storage::<comp::CharacterState>().insert(
-                    entity,
-                    comp::CharacterState::Staggered(common::states::staggered::Data {
-                        static_data: common::states::staggered::StaticData {
-                            buildup_duration: Duration::from_millis(5000),
-                            recover_duration: Duration::from_millis(250),
-                            knockback: Knockback::Away(200.0),
-                        },
-                        timer: Duration::default(),
-                        stage_section: common::states::utils::StageSection::Buildup,
-                        was_wielded,
-                    }),
-                );
-                handle_knockback(server, entity, 100.0 * knockback_dir);
-            },
-        }
+        poise.change_by(change, knockback_dir);
     }
 }
+
 pub fn handle_damage(server: &Server, entity: EcsEntity, change: HealthChange) {
     let ecs = &server.state.ecs();
     if let Some(health) = ecs.write_storage::<Health>().get_mut(entity) {
@@ -587,7 +509,7 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
                 let change = damage.modify_damage(inventories.get(entity), None);
                 let poise_change = poise_damage.modify_poise_damage(inventories.get(entity), None);
                 health.change_by(change);
-                poise.change_by(poise_change);
+                poise.change_by(poise_change, Vec3::zero());
             }
         }
     }
@@ -662,29 +584,15 @@ pub fn handle_explosion(
         } else {
             1.0
         };
-
     ecs.write_resource::<Vec<Outcome>>()
         .push(Outcome::Explosion {
             pos,
             power: outcome_power,
             radius: explosion.radius,
-            is_attack: true, //explosion
-            //.effects
-            //.iter()
-            ////.any(|e| matches!(e, RadiusEffect::Entity(_, Effect::Damage(_)))),
-            //.any(|e| match e {
-            //    RadiusEffect::Entity(_, effect_vec) => {
-            //        effect_vec.iter().any(|f| {
-            //        matches!(
-            //            f,
-            //            Effect::Damage(Damage {
-            //                source: DamageSource::Healing,
-            //                ..
-            //            })
-            //        )
-            //        })
-            //    },
-            //}),
+            is_attack: explosion
+                .effects
+                .iter()
+                .any(|e| matches!(e, RadiusEffect::Entity(_, Effect::Damage(_)))),
             reagent,
         });
     let owner_entity = owner.and_then(|uid| {
@@ -768,7 +676,7 @@ pub fn handle_explosion(
                         .cast();
                 }
             },
-            RadiusEffect::Entity(target, mut effects) => {
+            RadiusEffect::Entity(target, mut effect) => {
                 for (entity_b, pos_b) in (&ecs.entities(), &ecs.read_storage::<comp::Pos>()).join()
                 {
                     // See if entities are in the same group
@@ -802,19 +710,17 @@ pub fn handle_explosion(
                             .map_or(false, |h| !h.is_dead);
 
                         if is_alive {
-                            for effect in effects.iter_mut() {
-                                effect.modify_strength(strength);
-                                server.state().apply_effect(entity_b, effect.clone(), owner);
-                                // Apply energy change
-                                if let Some(owner) = owner_entity {
-                                    if let Some(mut energy) =
-                                        ecs.write_storage::<comp::Energy>().get_mut(owner)
-                                    {
-                                        energy.change_by(EnergyChange {
-                                            amount: explosion.energy_regen as i32,
-                                            source: comp::EnergySource::HitEnemy,
-                                        });
-                                    }
+                            effect.modify_strength(strength);
+                            server.state().apply_effect(entity_b, effect.clone(), owner);
+                            // Apply energy change
+                            if let Some(owner) = owner_entity {
+                                if let Some(energy) =
+                                    ecs.write_storage::<comp::Energy>().get_mut(owner)
+                                {
+                                    energy.change_by(EnergyChange {
+                                        amount: explosion.energy_regen as i32,
+                                        source: comp::EnergySource::HitEnemy,
+                                    });
                                 }
                             }
                         }

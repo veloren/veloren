@@ -5,7 +5,9 @@ ItemDef(
         (
             kind: Shoulder("Warlord"),
             stats: (
-                protection: Normal(22.0)),            
+                protection: Normal(22.0),
+                poise_protection: Normal(22.0),
+            ),
         )
     ),
     quality: Common,

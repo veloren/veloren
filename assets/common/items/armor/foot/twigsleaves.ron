@@ -5,8 +5,9 @@ ItemDef(
         (
             kind: Foot("Twigsleaves"),
             stats: (
-                protection: Normal(3.0)
-                ),            
+                protection: Normal(3.0),
+                poise_protection: Normal(3.0),
+            ),
         )
     ),
     quality: Moderate,

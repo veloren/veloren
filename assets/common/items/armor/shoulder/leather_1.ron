@@ -5,7 +5,9 @@ ItemDef(
         (
             kind: Shoulder("Leather1"),
             stats: (
-                protection: Normal(6.0)),            
+                protection: Normal(6.0),
+                poise_protection: Normal(6.0),
+            ),
         )
     ),
     quality: Common,

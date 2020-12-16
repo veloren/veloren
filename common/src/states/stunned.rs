@@ -2,7 +2,6 @@ use super::utils::*;
 use crate::{
     comp::{CharacterState, StateUpdate},
     states::behavior::{CharacterBehavior, JoinData},
-    Knockback,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -14,8 +13,6 @@ pub struct StaticData {
     pub buildup_duration: Duration,
     /// How long the state has until exiting
     pub recover_duration: Duration,
-    /// Knockback
-    pub knockback: Knockback,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]

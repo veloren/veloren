@@ -5,8 +5,9 @@ ItemDef(
         (
             kind: Foot("VeloriteMage0"),
             stats: (
-                protection: Normal(5.9)
-                ),            
+                protection: Normal(5.9),
+                poise_protection: Normal(5.9),
+            ),
         )
     ),
     quality: High,

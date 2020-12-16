@@ -14,7 +14,8 @@ use std::time::Duration;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Effect {
-    Damage(Option<GroupTarget>, Damage, PoiseChange),
+    Damage(Option<GroupTarget>, Damage),
+    PoiseChange(Option<GroupTarget>, PoiseChange),
     Knockback(Knockback),
     RewardEnergy(u32),
     Explode(Explosion),
@@ -48,11 +49,13 @@ impl Component for Projectile {
 pub enum ProjectileConstructor {
     Arrow {
         damage: f32,
+        poise_damage: i32,
         knockback: f32,
         energy_regen: u32,
     },
     Fireball {
         damage: f32,
+        poise_damage: i32,
         radius: f32,
         energy_regen: u32,
     },
@@ -62,6 +65,7 @@ pub enum ProjectileConstructor {
     },
     Heal {
         heal: f32,
+        poise_damage: i32,
         damage: f32,
         radius: f32,
     },
@@ -74,6 +78,7 @@ impl ProjectileConstructor {
         match self {
             Arrow {
                 damage,
+                poise_damage,
                 knockback,
                 energy_regen,
             } => {
@@ -88,17 +93,14 @@ impl ProjectileConstructor {
                 Projectile {
                     hit_solid: vec![Effect::Stick],
                     hit_entity: vec![
-                        Effect::Damage(
-                            Some(GroupTarget::OutOfGroup),
-                            Damage {
-                                source: DamageSource::Projectile,
-                                value: damage,
-                            },
-                            PoiseChange {
-                                amount: 0,
-                                source: PoiseSource::Projectile,
-                            },
-                        ),
+                        Effect::Damage(Some(GroupTarget::OutOfGroup), Damage {
+                            source: DamageSource::Projectile,
+                            value: damage,
+                        }),
+                        Effect::PoiseChange(Some(GroupTarget::OutOfGroup), PoiseChange {
+                            source: PoiseSource::Projectile,
+                            amount: -poise_damage,
+                        }),
                         Effect::Knockback(Knockback::Away(knockback)),
                         Effect::RewardEnergy(energy_regen),
                         Effect::Vanish,
@@ -114,18 +116,27 @@ impl ProjectileConstructor {
             },
             Fireball {
                 damage,
+                poise_damage,
                 radius,
                 energy_regen,
             } => Projectile {
                 hit_solid: vec![
                     Effect::Explode(Explosion {
                         effects: vec![
-                            RadiusEffect::Entity(Some(GroupTarget::OutOfGroup), vec![
+                            RadiusEffect::Entity(
+                                Some(GroupTarget::OutOfGroup),
                                 effect::Effect::Damage(Damage {
                                     source: DamageSource::Explosion,
                                     value: damage,
                                 }),
-                            ]),
+                            ),
+                            RadiusEffect::Entity(
+                                Some(GroupTarget::OutOfGroup),
+                                effect::Effect::PoiseChange(PoiseChange {
+                                    amount: -poise_damage,
+                                    source: PoiseSource::Explosion,
+                                }),
+                            ),
                             RadiusEffect::TerrainDestruction(2.0),
                         ],
                         radius,
@@ -135,12 +146,22 @@ impl ProjectileConstructor {
                 ],
                 hit_entity: vec![
                     Effect::Explode(Explosion {
-                        effects: vec![RadiusEffect::Entity(Some(GroupTarget::OutOfGroup), vec![
-                            effect::Effect::Damage(Damage {
-                                source: DamageSource::Explosion,
-                                value: damage,
-                            }),
-                        ])],
+                        effects: vec![
+                            RadiusEffect::Entity(
+                                Some(GroupTarget::OutOfGroup),
+                                effect::Effect::Damage(Damage {
+                                    source: DamageSource::Explosion,
+                                    value: damage,
+                                }),
+                            ),
+                            RadiusEffect::Entity(
+                                Some(GroupTarget::OutOfGroup),
+                                effect::Effect::PoiseChange(PoiseChange {
+                                    amount: -poise_damage,
+                                    source: PoiseSource::Explosion,
+                                }),
+                            ),
+                        ],
                         radius,
                         energy_regen,
                     }),
@@ -170,23 +191,33 @@ impl ProjectileConstructor {
             Heal {
                 heal,
                 damage,
+                poise_damage,
                 radius,
             } => Projectile {
                 hit_solid: vec![
                     Effect::Explode(Explosion {
                         effects: vec![
-                            RadiusEffect::Entity(Some(GroupTarget::OutOfGroup), vec![
+                            RadiusEffect::Entity(
+                                Some(GroupTarget::OutOfGroup),
                                 effect::Effect::Damage(Damage {
                                     source: DamageSource::Explosion,
                                     value: damage,
                                 }),
-                            ]),
-                            RadiusEffect::Entity(Some(GroupTarget::InGroup), vec![
+                            ),
+                            RadiusEffect::Entity(
+                                Some(GroupTarget::InGroup),
                                 effect::Effect::Damage(Damage {
                                     source: DamageSource::Healing,
                                     value: heal,
                                 }),
-                            ]),
+                            ),
+                            RadiusEffect::Entity(
+                                Some(GroupTarget::OutOfGroup),
+                                effect::Effect::PoiseChange(PoiseChange {
+                                    amount: -poise_damage,
+                                    source: PoiseSource::Explosion,
+                                }),
+                            ),
                         ],
                         radius,
                         energy_regen: 0,
@@ -196,18 +227,27 @@ impl ProjectileConstructor {
                 hit_entity: vec![
                     Effect::Explode(Explosion {
                         effects: vec![
-                            RadiusEffect::Entity(Some(GroupTarget::OutOfGroup), vec![
+                            RadiusEffect::Entity(
+                                Some(GroupTarget::OutOfGroup),
                                 effect::Effect::Damage(Damage {
                                     source: DamageSource::Explosion,
                                     value: damage,
                                 }),
-                            ]),
-                            RadiusEffect::Entity(Some(GroupTarget::InGroup), vec![
+                            ),
+                            RadiusEffect::Entity(
+                                Some(GroupTarget::InGroup),
                                 effect::Effect::Damage(Damage {
                                     source: DamageSource::Healing,
                                     value: heal,
                                 }),
-                            ]),
+                            ),
+                            RadiusEffect::Entity(
+                                Some(GroupTarget::OutOfGroup),
+                                effect::Effect::PoiseChange(PoiseChange {
+                                    amount: -poise_damage,
+                                    source: PoiseSource::Explosion,
+                                }),
+                            ),
                         ],
                         radius,
                         energy_regen: 0,

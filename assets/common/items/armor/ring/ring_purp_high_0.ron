@@ -5,7 +5,9 @@ ItemDef(
         (
             kind: Ring("RingSkull0"),
             stats: (
-                protection: Normal(3.0)),            
+                protection: Normal(3.0),
+                poise_protection: Normal(3.0),
+            ),
         )
     ),
     quality: High,

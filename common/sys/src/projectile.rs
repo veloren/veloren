@@ -102,7 +102,7 @@ impl<'a> System<'a> for Sys {
                 let projectile = &mut *projectile;
                 for effect in projectile.hit_entity.drain(..) {
                     match effect {
-                        projectile::Effect::Damage(target, damage, poise_damage) => {
+                        projectile::Effect::Damage(target, damage) => {
                             if Some(other) == projectile.owner {
                                 continue;
                             }
@@ -125,6 +125,25 @@ impl<'a> System<'a> for Sys {
                                     entity: other_entity,
                                     change,
                                 });
+                            }
+                        },
+                        projectile::Effect::PoiseChange(target, poise_damage) => {
+                            if Some(other) == projectile.owner {
+                                continue;
+                            }
+
+                            if let Some(target) = target {
+                                if target != target_group {
+                                    continue;
+                                }
+                            }
+
+                            if let Some(other_entity) =
+                                uid_allocator.retrieve_entity_internal(other.into())
+                            {
+                                let other_entity_loadout = loadouts.get(other_entity);
+                                let poise_change =
+                                    poise_damage.modify_poise_damage(other_entity_loadout);
                                 server_emitter.emit(ServerEvent::PoiseChange {
                                     entity: other_entity,
                                     change: poise_change,

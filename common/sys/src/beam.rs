@@ -168,8 +168,7 @@ impl<'a> System<'a> for Sys {
 
                         //  Modify damage
                         let change = damage.modify_damage(inventories.get(b), beam_segment.owner);
-                        let poise_change = poise_damage
-                            .modify_poise_damage(inventories.get(b), beam_segment.owner);
+                        let poise_change = poise_damage.modify_poise_damage(inventories.get(b));
 
                         let kb_dir = Dir::new((pos_b.0 - pos.0).try_normalized().unwrap_or(*ori.0));
                         match target {
