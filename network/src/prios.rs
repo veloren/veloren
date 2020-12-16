@@ -158,7 +158,7 @@ impl PrioManager {
                 self.metrics
                     .message_out_throughput
                     .with_label_values(&[&self.pid, &sid_string])
-                    .inc_by(msg.buffer.data.len() as i64);
+                    .inc_by(msg.buffer.data.len() as u64);
             }
 
             //trace!(?prio, ?sid_string, "tick");

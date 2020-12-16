@@ -206,7 +206,7 @@ impl<'a> System<'a> for Sys {
             incorporate_update(&mut tuple, state_update);
         }
         sys_metrics.character_behavior_ns.store(
-            start_time.elapsed().as_nanos() as i64,
+            start_time.elapsed().as_nanos() as u64,
             std::sync::atomic::Ordering::Relaxed,
         );
     }

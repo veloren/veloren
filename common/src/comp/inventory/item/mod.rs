@@ -10,7 +10,7 @@ use crate::{
     lottery::Lottery,
     terrain::{Block, SpriteKind},
 };
-use crossbeam::atomic::AtomicCell;
+use crossbeam_utils::atomic::AtomicCell;
 use rand::prelude::*;
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};

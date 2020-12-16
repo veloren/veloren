@@ -63,7 +63,7 @@ bincode = "1.2"
 chrono = "0.4.9"
 cpal = "0.13"
 copy_dir = "0.1.2"
-crossbeam = "=0.7.2"
+crossbeam = "0.8.0"
 deunicode = "1.0"
 # TODO: remove
 directories-next = "2.0"
@@ -74,7 +74,7 @@ guillotiere = "0.5.2"
 hashbrown = {version = "0.7.2", features = ["rayon", "serde", "nightly"]}
 image = {version = "0.23.8", default-features = false, features = ["ico", "png"]}
 native-dialog = { version = "0.4.2", default-features = false, optional = true }
-num = "0.2"
+num = "0.3.1"
 ordered-float = { version = "2.0.0", default-features = false }
 rand = "0.7"
 rodio = {version = "0.13", default-features = false, features = ["wav", "vorbis"]}
@@ -88,7 +88,7 @@ inline_tweak = "1.0.2"
 itertools = "0.9.0"
 
 # Tracy
-tracing-tracy = { version = "0.3.0", optional = true }
+tracing-tracy = { version = "0.4.0", optional = true }
 
 # Logging
 termcolor = "1.1"

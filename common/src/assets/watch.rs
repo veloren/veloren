@@ -1,4 +1,4 @@
-use crossbeam::channel::{select, unbounded, Receiver, Sender};
+use crossbeam_channel::{select, unbounded, Receiver, Sender};
 use lazy_static::lazy_static;
 use notify::{Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher as _};
 use std::{

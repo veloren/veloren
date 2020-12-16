@@ -233,7 +233,7 @@ impl<'a> System<'a> for Sys {
                 .unwrap_or_default();
         }
         sys_metrics.projectile_ns.store(
-            start_time.elapsed().as_nanos() as i64,
+            start_time.elapsed().as_nanos() as u64,
             std::sync::atomic::Ordering::Relaxed,
         );
     }

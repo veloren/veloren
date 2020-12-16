@@ -182,7 +182,7 @@ impl TcpProtocol {
                             ref data,
                         } = frame
                         {
-                            throughput_cache.inc_by(data.len() as i64);
+                            throughput_cache.inc_by(data.len() as u64);
                         }
                     }
                     w2c_cid_frame_s
@@ -291,7 +291,7 @@ impl TcpProtocol {
                     ref data,
                 } = frame
                 {
-                    throughput_cache.inc_by(data.len() as i64);
+                    throughput_cache.inc_by(data.len() as u64);
                 }
             }
             if let Err(e) = Self::write_frame(&mut stream, frame).await {
@@ -372,7 +372,7 @@ impl UdpProtocol {
                         Frame::gen_data(*<&[u8; 18]>::try_from(&bytes[1..19]).unwrap());
                     let mut data = vec![0; length as usize];
                     #[cfg(feature = "metrics")]
-                    throughput_cache.inc_by(length as i64);
+                    throughput_cache.inc_by(length as u64);
                     data.copy_from_slice(&bytes[19..]);
                     Frame::Data { mid, start, data }
                 },
@@ -459,7 +459,7 @@ impl UdpProtocol {
                     buffer[17..19].copy_from_slice(&(data.len() as u16).to_le_bytes());
                     buffer[19..(data.len() + 19)].clone_from_slice(&data[..]);
                     #[cfg(feature = "metrics")]
-                    throughput_cache.inc_by(data.len() as i64);
+                    throughput_cache.inc_by(data.len() as u64);
                     19 + data.len()
                 },
                 Frame::Raw(data) => {
