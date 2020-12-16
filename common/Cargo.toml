@@ -14,7 +14,8 @@ default = ["simd"]
 
 [dependencies]
 arraygen = "0.1.13"
-crossbeam = "0.8"
+crossbeam-utils = "0.8.1"
+crossbeam-channel = "0.5"
 enum-iterator = "0.6"
 lazy_static = "1.4.0"
 num-derive = "0.3"
