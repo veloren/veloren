@@ -5,7 +5,9 @@ ItemDef(
         (
             kind: Back("Admin"),
             stats: (
-                protection: Normal(0.0)),            
+                protection: Invincible,
+                poise_protection: Invincible,
+            ),
         )
     ),
     quality: Debug,

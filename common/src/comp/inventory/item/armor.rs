@@ -28,6 +28,7 @@ impl Armor {
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Stats {
     protection: Protection,
+    poise_protection: Protection,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -44,6 +45,8 @@ pub struct Armor {
 
 impl Armor {
     pub fn get_protection(&self) -> Protection { self.stats.protection }
+
+    pub fn get_poise_protection(&self) -> Protection { self.stats.poise_protection }
 
     #[cfg(test)]
     pub fn test_armor(kind: ArmorKind, protection: Protection) -> Armor {

@@ -5,7 +5,9 @@ ItemDef(
         (
             kind: Shoulder("LeatherStrips"),
             stats: (
-                protection: Normal(4.0)),            
+                protection: Normal(4.0),
+                poise_protection: Normal(4.0),
+            ),
         )
     ),
     quality: Low,

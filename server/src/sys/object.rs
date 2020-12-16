@@ -49,16 +49,20 @@ impl<'a> System<'a> for Sys {
                             pos: pos.0,
                             explosion: Explosion {
                                 effects: vec![
-                                    RadiusEffect::Entity(None, vec![
+                                    RadiusEffect::Entity(
+                                        None,
                                         Effect::Damage(Damage {
                                             source: DamageSource::Explosion,
                                             value: 500.0,
                                         }),
-                                        Effect::Poise(PoiseChange {
-                                            amount: -80,
+                                    ),
+                                    RadiusEffect::Entity(
+                                        None,
+                                        Effect::PoiseChange(PoiseChange {
                                             source: PoiseSource::Explosion,
+                                            amount: -100,
                                         }),
-                                    ]),
+                                    ),
                                     RadiusEffect::TerrainDestruction(4.0),
                                 ],
                                 radius: 12.0,
@@ -79,16 +83,20 @@ impl<'a> System<'a> for Sys {
                             pos: pos.0,
                             explosion: Explosion {
                                 effects: vec![
-                                    RadiusEffect::Entity(None, vec![
+                                    RadiusEffect::Entity(
+                                        None,
                                         Effect::Damage(Damage {
                                             source: DamageSource::Explosion,
                                             value: 50.0,
                                         }),
-                                        Effect::Poise(PoiseChange {
-                                            amount: -30,
+                                    ),
+                                    RadiusEffect::Entity(
+                                        None,
+                                        Effect::PoiseChange(PoiseChange {
                                             source: PoiseSource::Explosion,
+                                            amount: -40,
                                         }),
-                                    ]),
+                                    ),
                                     RadiusEffect::TerrainDestruction(4.0),
                                 ],
                                 radius: 12.0,

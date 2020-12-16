@@ -5,7 +5,9 @@ ItemDef(
         (
             kind: Chest("WorkerGreen1"),
             stats: (
-                protection: Normal(1.0)),            
+                protection: Normal(1.0),
+                poise_protection: Normal(1.0),
+            ),
         )
     ),
     quality: Low,

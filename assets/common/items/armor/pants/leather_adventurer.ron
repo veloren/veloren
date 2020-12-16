@@ -5,8 +5,9 @@ ItemDef(
         (
             kind: Pants("Leather2"),
             stats: (
-                protection: Normal(6.0)
-                ),            
+                protection: Normal(6.0),
+                poise_protection: Normal(6.0),
+            ),
         )
     ),
     quality: Moderate,

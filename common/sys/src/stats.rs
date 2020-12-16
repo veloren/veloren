@@ -2,7 +2,7 @@ use common::{
     comp::{
         skills::{GeneralSkill, Skill},
         Body, CharacterState, Energy, EnergyChange, EnergySource, Health, Poise, PoiseChange,
-        PoiseSource, Pos, Stats,
+        PoiseSource, PoiseState, Pos, Stats,
     },
     event::{EventBus, ServerEvent},
     metrics::SysMetrics,
@@ -13,9 +13,11 @@ use common::{
 };
 use hashbrown::HashSet;
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, Write, WriteStorage};
+use std::time::Duration;
+use vek::Vec3;
 
 const ENERGY_REGEN_ACCEL: f32 = 10.0;
-//const POISE_REGEN_ACCEL: f32 = 5.0;
+const POISE_REGEN_ACCEL: f32 = 2.0;
 
 /// This system kills players, levels them up, and regenerates energy.
 pub struct Sys;
@@ -26,7 +28,7 @@ impl<'a> System<'a> for Sys {
         Read<'a, DeltaTime>,
         Read<'a, EventBus<ServerEvent>>,
         ReadExpect<'a, SysMetrics>,
-        ReadStorage<'a, CharacterState>,
+        WriteStorage<'a, CharacterState>,
         WriteStorage<'a, Stats>,
         WriteStorage<'a, Health>,
         WriteStorage<'a, Poise>,
@@ -44,7 +46,7 @@ impl<'a> System<'a> for Sys {
             dt,
             server_event_bus,
             sys_metrics,
-            character_states,
+            mut character_states,
             mut stats,
             mut healths,
             mut poises,
@@ -61,17 +63,24 @@ impl<'a> System<'a> for Sys {
 
         // Increment last change timer
         healths.set_event_emission(false); // avoid unnecessary syncing
-        for mut health in (&mut healths).join() {
+        poises.set_event_emission(false); // avoid unnecessary syncing
+        for health in (&mut healths).join() {
             health.last_change.0 += f64::from(dt.0);
         }
+        for poise in (&mut poises).join() {
+            poise.last_change.0 += f64::from(dt.0);
+        }
         healths.set_event_emission(true);
+        poises.set_event_emission(true);
 
         // Update stats
-        for (entity, uid, mut stats, mut health, pos) in (
+        for (entity, uid, mut stats, mut health, mut poise, character_state, pos) in (
             &entities,
             &uids,
             &mut stats.restrict_mut(),
             &mut healths.restrict_mut(),
+            &mut poises.restrict_mut(),
+            &mut character_states,
             &positions,
         )
             .join()
@@ -149,6 +158,67 @@ impl<'a> System<'a> for Sys {
                 let mut stat = stats.get_mut_unchecked();
                 stat.skill_set.modify_energy = false;
             }
+
+            let was_wielded = character_state.is_wield();
+            let poise = poise.get_mut_unchecked();
+            match poise.poise_state() {
+                PoiseState::Normal => {},
+                PoiseState::Interrupted => {
+                    poise.reset();
+                    *character_state = CharacterState::Stunned(common::states::stunned::Data {
+                        static_data: common::states::stunned::StaticData {
+                            buildup_duration: Duration::from_millis(100),
+                            recover_duration: Duration::from_millis(100),
+                        },
+                        timer: Duration::default(),
+                        stage_section: common::states::utils::StageSection::Buildup,
+                        was_wielded,
+                    });
+                },
+                PoiseState::Stunned => {
+                    poise.reset();
+                    *character_state = CharacterState::Stunned(common::states::stunned::Data {
+                        static_data: common::states::stunned::StaticData {
+                            buildup_duration: Duration::from_millis(500),
+                            recover_duration: Duration::from_millis(500),
+                        },
+                        timer: Duration::default(),
+                        stage_section: common::states::utils::StageSection::Buildup,
+                        was_wielded,
+                    });
+                    server_event_emitter.emit(ServerEvent::Knockback {
+                        entity,
+                        impulse: 5.0 * poise.knockback(),
+                    });
+                    //handle_knockback(server, entity, 5.0 * knockback_dir);
+                },
+                PoiseState::Dazed => {
+                    poise.reset();
+                    *character_state = CharacterState::Staggered(common::states::staggered::Data {
+                        static_data: common::states::staggered::StaticData {
+                            buildup_duration: Duration::from_millis(1000),
+                            recover_duration: Duration::from_millis(1000),
+                        },
+                        timer: Duration::default(),
+                        stage_section: common::states::utils::StageSection::Buildup,
+                        was_wielded,
+                    });
+                    //handle_knockback(server, entity, 10.0 * knockback_dir);
+                },
+                PoiseState::KnockedDown => {
+                    poise.reset();
+                    *character_state = CharacterState::Staggered(common::states::staggered::Data {
+                        static_data: common::states::staggered::StaticData {
+                            buildup_duration: Duration::from_millis(5000),
+                            recover_duration: Duration::from_millis(250),
+                        },
+                        timer: Duration::default(),
+                        stage_section: common::states::utils::StageSection::Buildup,
+                        was_wielded,
+                    });
+                    //handle_knockback(server, entity, 10.0 * knockback_dir);
+                },
+            }
         }
 
         // Update energies and poises
@@ -188,22 +258,24 @@ impl<'a> System<'a> for Sys {
                             (energy.regen_rate + ENERGY_REGEN_ACCEL * dt.0).min(100.0);
                     }
 
-                    //let res_poise = {
-                    //    let poise = poise.get_unchecked();
-                    //    poise.current() < poise.maximum()
-                    //};
+                    let res_poise = {
+                        let poise = poise.get_unchecked();
+                        poise.current() < poise.maximum()
+                    };
 
-                    //if res_poise {
-                    //    let mut poise = poise.get_mut_unchecked();
-                    //    poise.change_by(PoiseChange {
-                    //        amount: (poise.regen_rate * dt.0
-                    //            + POISE_REGEN_ACCEL * dt.0.powi(2) / 2.0)
-                    //            as i32,
-                    //        source: PoiseSource::Regen,
-                    //    });
-                    //    poise.regen_rate = (poise.regen_rate +
-                    // POISE_REGEN_ACCEL * dt.0).min(100.0);
-                    //}
+                    if res_poise {
+                        let mut poise = poise.get_mut_unchecked();
+                        poise.change_by(
+                            PoiseChange {
+                                amount: (poise.regen_rate * dt.0
+                                    + POISE_REGEN_ACCEL * dt.0.powi(2) / 2.0)
+                                    as i32,
+                                source: PoiseSource::Regen,
+                            },
+                            Vec3::zero(),
+                        );
+                        poise.regen_rate = (poise.regen_rate + POISE_REGEN_ACCEL * dt.0).min(10.0);
+                    }
                 },
                 // Ability and glider use does not regen and sets the rate back to zero.
                 CharacterState::Glide { .. }
@@ -220,6 +292,9 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::BasicBeam { .. } => {
                     if energy.get_unchecked().regen_rate != 0.0 {
                         energy.get_mut_unchecked().regen_rate = 0.0
+                    }
+                    if poise.get_unchecked().regen_rate != 0.0 {
+                        poise.get_mut_unchecked().regen_rate = 0.0
                     }
                 },
                 // recover small amount of passive energy from blocking, and bonus energy from
@@ -242,10 +317,7 @@ impl<'a> System<'a> for Sys {
                 CharacterState::Roll { .. }
                 | CharacterState::Climb { .. }
                 | CharacterState::Stunned { .. }
-                | CharacterState::Staggered { .. } => {
-                    let poise = poise.get_unchecked();
-                    println!("Poise: {:?}", poise.current());
-                },
+                | CharacterState::Staggered { .. } => {},
             }
         }
         sys_metrics.stats_ns.store(

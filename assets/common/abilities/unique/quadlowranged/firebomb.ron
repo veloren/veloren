@@ -4,6 +4,7 @@ BasicRanged(
     recover_duration: 350,
     projectile: Fireball(
         damage: 100.0,
+        poise_damage: 10,
         radius: 5.0,
         energy_regen: 0,
     ),

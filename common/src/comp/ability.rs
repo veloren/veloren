@@ -100,6 +100,7 @@ pub enum CharacterAbility {
         base_damage: u32,
         scaled_damage: u32,
         base_poise_damage: u32,
+        scaled_poise_damage: u32,
         base_knockback: f32,
         scaled_knockback: f32,
         range: f32,
@@ -167,6 +168,7 @@ pub enum CharacterAbility {
         initial_damage: u32,
         scaled_damage: u32,
         initial_poise_damage: u32,
+        scaled_poise_damage: u32,
         initial_knockback: f32,
         scaled_knockback: f32,
         range: f32,
@@ -183,6 +185,7 @@ pub enum CharacterAbility {
         initial_damage: u32,
         scaled_damage: u32,
         initial_poise_damage: u32,
+        scaled_poise_damage: u32,
         initial_knockback: f32,
         scaled_knockback: f32,
         speed: f32,
@@ -321,7 +324,7 @@ impl CharacterAbility {
         }
     }
 
-    pub fn adjusted_by_stats(mut self, power: f32, speed: f32) -> Self {
+    pub fn adjusted_by_stats(mut self, power: f32, poise_reduction_power: f32, speed: f32) -> Self {
         use CharacterAbility::*;
         match self {
             BasicMelee {
@@ -329,12 +332,14 @@ impl CharacterAbility {
                 ref mut swing_duration,
                 ref mut recover_duration,
                 ref mut base_damage,
+                ref mut base_poise_damage,
                 ..
             } => {
                 *buildup_duration = (*buildup_duration as f32 / speed) as u64;
                 *swing_duration = (*swing_duration as f32 / speed) as u64;
                 *recover_duration = (*recover_duration as f32 / speed) as u64;
                 *base_damage = (*base_damage as f32 * power) as u32;
+                *base_poise_damage = (*base_poise_damage as f32 * poise_reduction_power) as u32;
             },
             BasicRanged {
                 ref mut buildup_duration,
@@ -369,6 +374,8 @@ impl CharacterAbility {
             DashMelee {
                 ref mut base_damage,
                 ref mut scaled_damage,
+                ref mut base_poise_damage,
+                ref mut scaled_poise_damage,
                 ref mut buildup_duration,
                 ref mut swing_duration,
                 ref mut recover_duration,
@@ -376,6 +383,8 @@ impl CharacterAbility {
             } => {
                 *base_damage = (*base_damage as f32 * power) as u32;
                 *scaled_damage = (*scaled_damage as f32 * power) as u32;
+                *base_poise_damage = (*base_damage as f32 * poise_reduction_power) as u32;
+                *scaled_poise_damage = (*scaled_poise_damage as f32 * poise_reduction_power) as u32;
                 *buildup_duration = (*buildup_duration as f32 / speed) as u64;
                 *swing_duration = (*swing_duration as f32 / speed) as u64;
                 *recover_duration = (*recover_duration as f32 / speed) as u64;
@@ -396,7 +405,7 @@ impl CharacterAbility {
             } => {
                 *stage_data = stage_data
                     .iter_mut()
-                    .map(|s| s.adjusted_by_stats(power, speed))
+                    .map(|s| s.adjusted_by_stats(power, poise_reduction_power, speed))
                     .collect();
             },
             LeapMelee {
@@ -405,6 +414,7 @@ impl CharacterAbility {
                 ref mut swing_duration,
                 ref mut recover_duration,
                 ref mut base_damage,
+                ref mut base_poise_damage,
                 ..
             } => {
                 *buildup_duration = (*buildup_duration as f32 / speed) as u64;
@@ -412,22 +422,27 @@ impl CharacterAbility {
                 *swing_duration = (*swing_duration as f32 / speed) as u64;
                 *recover_duration = (*recover_duration as f32 / speed) as u64;
                 *base_damage = (*base_damage as f32 * power) as u32;
+                *base_poise_damage = (*base_poise_damage as f32 * poise_reduction_power) as u32;
             },
             SpinMelee {
                 ref mut buildup_duration,
                 ref mut swing_duration,
                 ref mut recover_duration,
                 ref mut base_damage,
+                ref mut base_poise_damage,
                 ..
             } => {
                 *buildup_duration = (*buildup_duration as f32 / speed) as u64;
                 *swing_duration = (*swing_duration as f32 / speed) as u64;
                 *recover_duration = (*recover_duration as f32 / speed) as u64;
                 *base_damage = (*base_damage as f32 * power) as u32;
+                *base_poise_damage = (*base_poise_damage as f32 * poise_reduction_power) as u32;
             },
             ChargedMelee {
                 ref mut initial_damage,
                 ref mut scaled_damage,
+                ref mut initial_poise_damage,
+                ref mut scaled_poise_damage,
                 speed: ref mut ability_speed,
                 ref mut charge_duration,
                 ref mut swing_duration,
@@ -436,6 +451,9 @@ impl CharacterAbility {
             } => {
                 *initial_damage = (*initial_damage as f32 * power) as u32;
                 *scaled_damage = (*scaled_damage as f32 * power) as u32;
+                *initial_poise_damage =
+                    (*initial_poise_damage as f32 * poise_reduction_power) as u32;
+                *scaled_poise_damage = (*scaled_poise_damage as f32 * poise_reduction_power) as u32;
                 *ability_speed *= speed;
                 *charge_duration = (*charge_duration as f32 / speed) as u64;
                 *swing_duration = (*swing_duration as f32 / speed) as u64;
@@ -456,18 +474,21 @@ impl CharacterAbility {
                 *buildup_duration = (*buildup_duration as f32 / speed) as u64;
                 *charge_duration = (*charge_duration as f32 / speed) as u64;
                 *recover_duration = (*recover_duration as f32 / speed) as u64;
+                // TODO do projectile poise
             },
             Shockwave {
                 ref mut buildup_duration,
                 ref mut swing_duration,
                 ref mut recover_duration,
                 ref mut damage,
+                ref mut poise_damage,
                 ..
             } => {
                 *buildup_duration = (*buildup_duration as f32 / speed) as u64;
                 *swing_duration = (*swing_duration as f32 / speed) as u64;
                 *recover_duration = (*recover_duration as f32 / speed) as u64;
                 *damage = (*damage as f32 * power) as u32;
+                *poise_damage = (*poise_damage as f32 * poise_reduction_power) as u32;
             },
             BasicBeam {
                 ref mut buildup_duration,
@@ -1142,6 +1163,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                 base_damage,
                 scaled_damage,
                 base_poise_damage,
+                scaled_poise_damage,
                 base_knockback,
                 scaled_knockback,
                 range,
@@ -1159,6 +1181,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                     base_damage: *base_damage,
                     scaled_damage: *scaled_damage,
                     base_poise_damage: *base_poise_damage,
+                    scaled_poise_damage: *scaled_poise_damage,
                     base_knockback: *base_knockback,
                     scaled_knockback: *scaled_knockback,
                     range: *range,
@@ -1281,7 +1304,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                     swing_duration: Duration::from_millis(*swing_duration),
                     recover_duration: Duration::from_millis(*recover_duration),
                     base_damage: *base_damage,
-                    base_poise_damage: *base_damage,
+                    base_poise_damage: *base_poise_damage,
                     knockback: *knockback,
                     range: *range,
                     energy_cost: *energy_cost,
@@ -1303,6 +1326,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                 initial_damage,
                 scaled_damage,
                 initial_poise_damage,
+                scaled_poise_damage,
                 initial_knockback,
                 scaled_knockback,
                 speed,
@@ -1319,6 +1343,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                     initial_damage: *initial_damage,
                     scaled_damage: *scaled_damage,
                     initial_poise_damage: *initial_poise_damage,
+                    scaled_poise_damage: *scaled_poise_damage,
                     initial_knockback: *initial_knockback,
                     scaled_knockback: *scaled_knockback,
                     speed: *speed,
@@ -1341,6 +1366,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                 initial_damage,
                 scaled_damage,
                 initial_poise_damage,
+                scaled_poise_damage,
                 initial_knockback,
                 scaled_knockback,
                 speed,
@@ -1362,6 +1388,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                     initial_damage: *initial_damage,
                     scaled_damage: *scaled_damage,
                     initial_poise_damage: *initial_poise_damage,
+                    scaled_poise_damage: *scaled_poise_damage,
                     speed: *speed,
                     initial_knockback: *initial_knockback,
                     scaled_knockback: *scaled_knockback,

@@ -5,8 +5,9 @@ ItemDef(
         (
             kind: Hand("VeloriteMage0"),
             stats: (
-                protection: Normal(11.5)
-                ),            
+                protection: Normal(11.5),
+                poise_protection: Normal(11.5),
+            ),
         )
     ),
     quality: High,

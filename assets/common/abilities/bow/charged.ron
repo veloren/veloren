@@ -4,6 +4,7 @@ ChargedRanged(
     initial_damage: 10,
     scaled_damage: 190,
     initial_poise_damage: 10,
+    scaled_poise_damage: 60,
     initial_knockback: 10.0,
     scaled_knockback: 10.0,
     speed: 1.0,

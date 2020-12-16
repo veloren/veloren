@@ -1,11 +1,8 @@
-use crate::{
-    comp::{Body, Loadout},
-    sync::Uid,
-    DamageSource,
-};
+use crate::comp::{Body, Loadout};
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
+use vek::*;
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct PoiseChange {
@@ -14,16 +11,23 @@ pub struct PoiseChange {
 }
 
 impl PoiseChange {
-    pub fn modify_poise_damage(self, loadout: Option<&Loadout>, uid: Option<Uid>) -> PoiseChange {
-        println!("Pre modified: {:?}", self.amount);
-        let mut poise_damage = -self.amount as f32;
+    pub fn set_zero(self) -> Self {
+        Self {
+            amount: 0,
+            source: self.source,
+        }
+    }
+
+    pub fn modify_poise_damage(self, loadout: Option<&Loadout>) -> PoiseChange {
+        let mut poise_damage = self.amount as f32;
         match self.source {
             PoiseSource::Melee => {
                 // Armor
-                let damage_reduction = loadout.map_or(0.0, |l| l.get_poise_damage_reduction());
-                poise_damage *= 1.0 - damage_reduction;
+                let poise_damage_reduction =
+                    loadout.map_or(0.0, |l| l.get_poise_damage_reduction());
+                poise_damage *= 1.0 - poise_damage_reduction;
                 PoiseChange {
-                    amount: -poise_damage as i32,
+                    amount: poise_damage as i32,
                     source: PoiseSource::Melee,
                 }
             },
@@ -32,7 +36,7 @@ impl PoiseChange {
                 let damage_reduction = loadout.map_or(0.0, |l| l.get_poise_damage_reduction());
                 poise_damage *= 1.0 - damage_reduction;
                 PoiseChange {
-                    amount: -poise_damage as i32,
+                    amount: poise_damage as i32,
                     source: PoiseSource::Projectile,
                 }
             },
@@ -41,7 +45,7 @@ impl PoiseChange {
                 let damage_reduction = loadout.map_or(0.0, |l| l.get_poise_damage_reduction());
                 poise_damage *= 1.0 - damage_reduction;
                 PoiseChange {
-                    amount: -poise_damage as i32,
+                    amount: poise_damage as i32,
                     source: PoiseSource::Shockwave,
                 }
             },
@@ -50,7 +54,7 @@ impl PoiseChange {
                 let damage_reduction = loadout.map_or(0.0, |l| l.get_poise_damage_reduction());
                 poise_damage *= 1.0 - damage_reduction;
                 PoiseChange {
-                    amount: -poise_damage as i32,
+                    amount: poise_damage as i32,
                     source: PoiseSource::Explosion,
                 }
             },
@@ -61,7 +65,7 @@ impl PoiseChange {
                     poise_damage = 0.0;
                 }
                 PoiseChange {
-                    amount: -poise_damage as i32,
+                    amount: poise_damage as i32,
                     source: PoiseSource::Falling,
                 }
             },
@@ -92,6 +96,8 @@ pub struct Poise {
     base_max: u32,
     current: u32,
     maximum: u32,
+    knockback: Vec3<f32>,
+    pub last_change: (f64, PoiseChange),
     pub is_interrupted: bool,
     pub is_stunned: bool,
     pub is_dazed: bool,
@@ -105,6 +111,11 @@ impl Default for Poise {
             current: 0,
             maximum: 0,
             base_max: 0,
+            knockback: Vec3::zero(),
+            last_change: (0.0, PoiseChange {
+                amount: 0,
+                source: PoiseSource::Revive,
+            }),
             is_interrupted: false,
             is_stunned: false,
             is_dazed: false,
@@ -127,19 +138,21 @@ impl Poise {
     pub fn new(body: Body) -> Self {
         let mut poise = Poise::default();
         poise.update_max_poise(Some(body));
-        poise.set_to(poise.maximum());
+        poise.set_to(poise.maximum(), PoiseSource::Revive);
 
         poise
     }
 
+    pub fn knockback(&self) -> Vec3<f32> { self.knockback }
+
     pub fn poise_state(&self) -> PoiseState {
-        if self.current >= 5 * self.maximum / 10 {
+        if self.current >= 8 * self.maximum / 10 {
             PoiseState::Normal
-        } else if self.current >= 4 * self.maximum / 10 {
+        } else if self.current >= 7 * self.maximum / 10 {
             PoiseState::Interrupted
-        } else if self.current >= 3 * self.maximum / 10 {
+        } else if self.current >= 6 * self.maximum / 10 {
             PoiseState::Stunned
-        } else if self.current >= 2 * self.maximum / 10 {
+        } else if self.current >= 4 * self.maximum / 10 {
             PoiseState::Dazed
         } else {
             PoiseState::KnockedDown
@@ -150,13 +163,23 @@ impl Poise {
 
     pub fn maximum(&self) -> u32 { self.maximum }
 
-    pub fn set_to(&mut self, amount: u32) {
+    pub fn set_to(&mut self, amount: u32, cause: PoiseSource) {
         let amount = amount.min(self.maximum);
+        self.last_change = (0.0, PoiseChange {
+            amount: amount as i32 - self.current as i32,
+            source: cause,
+        });
         self.current = amount;
     }
 
-    pub fn change_by(&mut self, change: PoiseChange) {
+    pub fn change_by(&mut self, change: PoiseChange, impulse: Vec3<f32>) {
+        println!("Poise change: {:?}", change);
         self.current = ((self.current as i32 + change.amount).max(0) as u32).min(self.maximum);
+        self.knockback = impulse;
+        self.last_change = (0.0, PoiseChange {
+            amount: change.amount,
+            source: change.source,
+        });
     }
 
     pub fn reset(&mut self) { self.current = self.maximum; }

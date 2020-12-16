@@ -5,7 +5,9 @@ ItemDef(
         (
             kind: Chest("Bonerattler"),
             stats: (
-                protection: Normal(25.0)),            
+                protection: Normal(25.0),
+                poise_protection: Normal(25.0),
+            ),
         )
     ),
     quality: High,

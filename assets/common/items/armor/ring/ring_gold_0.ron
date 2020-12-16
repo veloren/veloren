@@ -5,7 +5,9 @@ ItemDef(
         (
             kind: Ring("RingGold0"),
             stats: (
-                protection: Normal(0.5)),            
+                protection: Normal(0.5),
+                poise_protection: Normal(0.5),
+            ),
         )
     ),
     quality: Moderate,

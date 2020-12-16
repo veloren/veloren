@@ -55,6 +55,7 @@ pub enum Hands {
 pub struct Stats {
     equip_time_millis: u32,
     power: f32,
+    poise_reduction_power: f32,
     speed: f32,
 }
 
@@ -73,12 +74,15 @@ impl Tool {
                 equip_time_millis: 0,
                 power: 1.00,
                 speed: 1.00,
+                poise_reduction_power: 1.00,
             },
         }
     }
 
     // Keep power between 0.5 and 2.00
     pub fn base_power(&self) -> f32 { self.stats.power }
+
+    pub fn base_poise_reduction_power(&self) -> f32 { self.stats.poise_reduction_power }
 
     pub fn base_speed(&self) -> f32 { self.stats.speed }
 
@@ -107,8 +111,14 @@ pub struct AbilitySet<T> {
 }
 
 impl AbilitySet<CharacterAbility> {
-    fn modified_by_tool(self, tool: &Tool) -> Self {
-        self.map(|a| a.adjusted_by_stats(tool.base_power(), tool.base_speed()))
+    pub fn modified_by_tool(self, tool: &Tool) -> Self {
+        self.map(|a| {
+            a.adjusted_by_stats(
+                tool.base_power(),
+                tool.base_poise_reduction_power(),
+                tool.base_speed(),
+            )
+        })
     }
 }
 

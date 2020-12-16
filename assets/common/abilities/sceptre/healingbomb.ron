@@ -5,6 +5,7 @@ BasicRanged(
     projectile: Heal(
         heal: 80.0,
         damage: 60.0,
+        poise_damage: 0,
         radius: 6.0,
     ),
     projectile_body: Object(BoltNature),

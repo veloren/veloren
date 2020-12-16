@@ -5,8 +5,9 @@ ItemDef(
         (
             kind: Pants("Warlock"),
             stats: (
-                protection: Normal(30.0)
-                ),            
+                protection: Normal(30.0),
+                poise_protection: Normal(30.0),
+            ),
         )
     ),
     quality: Moderate,
