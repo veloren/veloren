@@ -20,7 +20,7 @@ enum-iterator = "0.6"
 lazy_static = "1.4.0"
 num-derive = "0.3"
 num-traits = "0.2"
-ordered-float = { version = "2.0.0", default-features = false }
+ordered-float = { version = "2.0.1", default-features = false }
 rand = "0.7"
 rayon = "1.3.0"
 roots = "0.0.6"
@@ -32,7 +32,7 @@ uuid = { version = "0.8.1", default-features = false, features = ["serde", "v4"]
 # Assets
 directories-next = "2.0"
 dot_vox = "4.0"
-image = { version = "0.23.8", default-features = false, features = ["png"] }
+image = { version = "0.23.12", default-features = false, features = ["png"] }
 notify = "5.0.0-pre.3"
 
 # Data structures

@@ -201,7 +201,7 @@ pub fn draw_vox(
                 output_size.y as u32,
                 image::imageops::FilterType::Triangle,
             )
-            .to_rgba(),
+            .to_rgba8(),
         SampleStrat::PixelCoverage => super::pixel_art::resize_pixel_art(
             &rgba_img,
             output_size.x as u32,

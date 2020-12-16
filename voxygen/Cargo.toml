@@ -70,12 +70,12 @@ directories-next = "2.0"
 dot_vox = "4.0"
 enum-iterator = "0.6"
 glsl-include = "0.3.1"
-guillotiere = "0.5.2"
+guillotiere = "0.6"
 hashbrown = {version = "0.7.2", features = ["rayon", "serde", "nightly"]}
-image = {version = "0.23.8", default-features = false, features = ["ico", "png"]}
+image = {version = "0.23.12", default-features = false, features = ["ico", "png"]}
 native-dialog = { version = "0.4.2", default-features = false, optional = true }
 num = "0.3.1"
-ordered-float = { version = "2.0.0", default-features = false }
+ordered-float = { version = "2.0.1", default-features = false }
 rand = "0.7"
 rodio = {version = "0.13", default-features = false, features = ["wav", "vorbis"]}
 ron = {version = "0.6", default-features = false}
