@@ -119,7 +119,7 @@ impl<'a> GreedyMesh<'a> {
         let size = guillotiere::Size::new(32, 32).min(max_size);
         let atlas =
             guillotiere::SimpleAtlasAllocator::with_options(size, &guillotiere::AllocatorOptions {
-                snap_size: 1,
+                alignment: guillotiere::Size::default(),
                 small_size_threshold,
                 large_size_threshold,
             });

@@ -392,7 +392,7 @@ fn draw_graphic(
         // Render image at requested resolution
         // TODO: Use source aabr.
         Some(&Graphic::Image(ref image, border_color)) => Some((
-            resize_pixel_art(&image.to_rgba(), u32::from(dims.x), u32::from(dims.y)),
+            resize_pixel_art(&image.to_rgba8(), u32::from(dims.x), u32::from(dims.y)),
             border_color,
         )),
         Some(Graphic::Voxel(ref segment, trans, sample_strat)) => Some((
