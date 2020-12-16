@@ -50,14 +50,7 @@ impl Animation for WieldAnimation {
         );
 
         let foothoril = (anim_time as f32 * 16.0 * lab as f32 + PI * 1.45).sin();
-        let foothorir = (anim_time as f32 * 16.0 * lab as f32 + PI * (0.45)).sin();
-        let footstrafel = (anim_time as f32 * 16.0 * lab as f32 + PI * 1.45).sin();
-        let footstrafer = (anim_time as f32 * 16.0 * lab as f32 + PI * (0.95)).sin();
 
-        let footvertl = (anim_time as f32 * 16.0 * lab as f32).sin();
-        let footvertr = (anim_time as f32 * 16.0 * lab as f32 + PI).sin();
-        let footvertsl = (anim_time as f32 * 16.0 * lab as f32).sin();
-        let footvertsr = (anim_time as f32 * 16.0 * lab as f32 + PI * 0.5).sin();
         let beltstatic = (anim_time as f32 * 10.0 * lab as f32 + PI / 2.0).sin();
         let footvertlstatic = (anim_time as f32 * 10.0 * lab as f32).sin();
         let footvertrstatic = (anim_time as f32 * 10.0 * lab as f32 + PI).sin();
@@ -78,7 +71,6 @@ impl Animation for WieldAnimation {
                 * ((anim_time as f32 * lab as f32 * 16.0).sin());
         let direction = velocity.y * -0.098 * orientation.y + velocity.x * -0.098 * orientation.x;
         let side = velocity.x * -0.098 * orientation.y + velocity.y * 0.098 * orientation.x;
-        let strafeabs = (1.0 / (direction).abs() - 1.0).min(1.0);
         let strafe = -((1.0 / (direction).abs() - 1.0).min(1.0)).copysign(side);
 
         let ori: Vec2<f32> = Vec2::from(orientation);
@@ -109,35 +101,6 @@ impl Animation for WieldAnimation {
                 s_a.chest.0,
                 s_a.chest.1 + shortalt * -1.5,
             );
-            next.foot_l.position = Vec3::new(
-                -s_a.foot.0 + footstrafel * strafeabs * 3.0,
-                s_a.foot.1
-                    + (1.0 - strafeabs) * (-1.5 + foothoril * -7.5)
-                    + (direction * 5.0).max(0.0),
-                s_a.foot.2
-                    + (1.0 - strafeabs) * (2.0 + ((footvertl * -2.1).max(-1.0)))
-                    + strafe * ((footvertsl * 1.5).max(-1.0)),
-            );
-            next.foot_l.orientation = Quaternion::rotation_x(
-                (1.0 - strafeabs) * (-0.2 + foothoril * -2.0) + strafeabs * -0.5,
-            ) * Quaternion::rotation_y(
-                strafe * 0.3 + strafe * (foothoril * 0.3),
-            ) * Quaternion::rotation_z(strafe * 0.2);
-
-            next.foot_r.position = Vec3::new(
-                s_a.foot.0 + footstrafer * strafeabs * 3.0,
-                s_a.foot.1
-                    + (1.0 - strafeabs) * (-1.5 + foothorir * -7.5)
-                    + (direction * 5.0).max(0.0),
-                s_a.foot.2
-                    + (1.0 - strafeabs) * (2.0 + ((footvertr * -2.1).max(-1.0)))
-                    + strafe * ((footvertsr * -1.5).max(-1.0)),
-            );
-            next.foot_r.orientation = Quaternion::rotation_x(
-                (1.0 - strafeabs) * (-0.2 + foothorir * -2.0) + strafeabs * -0.5,
-            ) * Quaternion::rotation_y(
-                strafe * 0.3 + strafe * (foothorir * 0.3),
-            ) * Quaternion::rotation_z(strafe * 0.2);
         } else {
             next.head.position = Vec3::new(0.0, 0.0 + s_a.head.0, s_a.head.1 + u_slow * 0.1);
             next.head.orientation =
@@ -277,9 +240,9 @@ impl Animation for WieldAnimation {
             Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
                 if speed > 0.5 && velocity.z == 0.0 {
                     next.hand_r.position = Vec3::new(
-                        4.0 + s_a.hand.0 + foothoril * 1.3,
-                        s_a.hand.1 + foothoril * -6.5,
-                        5.0 + s_a.hand.2 - foothoril * 7.0,
+                        7.0 + s_a.hand.0 + foothoril * 1.3,
+                        -4.0 + s_a.hand.1 + foothoril * -7.0,
+                        1.0 + s_a.hand.2 - foothoril * 5.5,
                     );
                     next.hand_r.orientation = Quaternion::rotation_x(0.6 + footrotl * -1.2)
                         * Quaternion::rotation_y(footrotl * -0.4);

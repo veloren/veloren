@@ -161,7 +161,7 @@ impl Body {
             Body::QuadrupedSmall(_) => 0.4,
             Body::QuadrupedMedium(body) => match body.species {
                 quadruped_medium::Species::Grolgar => 1.9,
-                quadruped_medium::Species::Tarasque => 2.2,
+                quadruped_medium::Species::Tarasque => 1.8,
                 quadruped_medium::Species::Lion => 1.9,
                 quadruped_medium::Species::Saber => 1.8,
                 quadruped_medium::Species::Catoblepas => 1.7,
@@ -179,7 +179,7 @@ impl Body {
                 theropod::Species::Snowraptor => 0.5,
                 theropod::Species::Sandraptor => 0.5,
                 theropod::Species::Woodraptor => 0.5,
-                _ => 0.9,
+                _ => 1.8,
             },
             Body::BirdMedium(_) => 0.35,
             Body::FishMedium(_) => 0.35,
@@ -228,7 +228,12 @@ impl Body {
                 quadruped_low::Species::Maneater => 4.0,
                 _ => 1.3,
             },
-            Body::Theropod(_) => 3.0,
+            Body::Theropod(body) => match body.species {
+                theropod::Species::Snowraptor => 2.5,
+                theropod::Species::Sandraptor => 2.5,
+                theropod::Species::Woodraptor => 2.5,
+                _ => 8.0,
+            },
             Body::BirdMedium(body) => match body.species {
                 bird_medium::Species::Cockatrice => 1.8,
                 _ => 1.1,

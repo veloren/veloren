@@ -7,7 +7,7 @@ use std::{f32::consts::PI, ops::Mul};
 pub struct RunAnimation;
 
 impl Animation for RunAnimation {
-    type Dependency = (f32, Vec3<f32>, Vec3<f32>, f64, Vec3<f32>);
+    type Dependency = (f32, Vec3<f32>, Vec3<f32>, f64, Vec3<f32>, f32);
     type Skeleton = QuadrupedMediumSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -16,7 +16,7 @@ impl Animation for RunAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_medium_run")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (velocity, orientation, last_ori, global_time, avg_vel): Self::Dependency,
+        (velocity, orientation, last_ori, global_time, avg_vel, acc_vel): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -26,23 +26,21 @@ impl Animation for RunAnimation {
         *rate = 1.0;
         //let increasefreqtest = (((1.0/speed)*3.0).round()).min(5.0);
         let lab = 0.72; //0.72
-        let amplitude = (speed / 24.0).max(0.25);
-        let amplitude2 = (speed * 1.4 / 24.0).sqrt().max(0.6);
-        let amplitude3 = (speed / 24.0).sqrt().max(0.35);
+        let amplitude = (speed / 24.0).max(0.125);
+        let amplitude2 = (speed * 1.4 / 24.0).sqrt().max(0.3);
+        let amplitude3 = (speed / 24.0).sqrt().max(0.175);
         let speedmult = s_a.tempo;
         let canceler = (speed / 24.0).sqrt();
         let short = (((1.0)
             / (0.72
                 + 0.28
-                    * ((anim_time as f32 * (16.0) * lab as f32 * speedmult + PI * -0.15 - 0.5)
-                        .sin())
-                    .powi(2)))
+                    * ((acc_vel * (1.0) * lab as f32 * speedmult + PI * -0.15 - 0.5).sin())
+                        .powi(2)))
         .sqrt())
-            * ((anim_time as f32 * (16.0) * lab as f32 * speedmult + PI * -0.15 - 0.5).sin());
+            * ((acc_vel * (1.0) * lab as f32 * speedmult + PI * -0.15 - 0.5).sin());
 
         //
-        let shortalt =
-            (anim_time as f32 * (16.0) * lab as f32 * speedmult + PI * 3.0 / 8.0 - 0.5).sin();
+        let shortalt = (acc_vel * (1.0) * lab as f32 * speedmult + PI * 3.0 / 8.0 - 0.5).sin();
         let look = Vec2::new(
             ((global_time + anim_time) as f32 / 2.0)
                 .floor()
@@ -64,24 +62,20 @@ impl Animation for RunAnimation {
 
         //FL
         let foot1a =
-            (anim_time as f32 * (16.0) * lab as f32 * speedmult + 0.0 + canceler * 0.05 + shift1)
-                .sin(); //1.5
+            (acc_vel * (1.0) * lab as f32 * speedmult + 0.0 + canceler * 0.05 + shift1).sin(); //1.5
         let foot1b =
-            (anim_time as f32 * (16.0) * lab as f32 * speedmult + 1.1 + canceler * 0.05 + shift1)
-                .sin(); //1.9
+            (acc_vel * (1.0) * lab as f32 * speedmult + 1.1 + canceler * 0.05 + shift1).sin(); //1.9
         //FR
-        let foot2a = (anim_time as f32 * (16.0) * lab as f32 * speedmult + shift2).sin(); //1.2
-        let foot2b = (anim_time as f32 * (16.0) * lab as f32 * speedmult + 1.1 + shift2).sin(); //1.6
+        let foot2a = (acc_vel * (1.0) * lab as f32 * speedmult + shift2).sin(); //1.0
+        let foot2b = (acc_vel * (1.0) * lab as f32 * speedmult + 1.1 + shift2).sin(); //1.0
         //BL
-        let foot3a = (anim_time as f32 * (16.0) * lab as f32 * speedmult + shift3).sin(); //0.0
-        let foot3b = (anim_time as f32 * (16.0) * lab as f32 * speedmult + 1.57 + shift3).sin(); //0.4
+        let foot3a = (acc_vel * (1.0) * lab as f32 * speedmult + shift3).sin(); //0.0
+        let foot3b = (acc_vel * (1.0) * lab as f32 * speedmult + 1.57 + shift3).sin(); //0.4
         //BR
         let foot4a =
-            (anim_time as f32 * (16.0) * lab as f32 * speedmult + 0.0 + canceler * 0.05 + shift4)
-                .sin(); //0.3
+            (acc_vel * (1.0) * lab as f32 * speedmult + 0.0 + canceler * 0.05 + shift4).sin(); //0.3
         let foot4b =
-            (anim_time as f32 * (16.0) * lab as f32 * speedmult + 1.57 + canceler * 0.05 + shift4)
-                .sin(); //0.7
+            (acc_vel * (1.0) * lab as f32 * speedmult + 1.57 + canceler * 0.05 + shift4).sin(); //0.7
         //
         let ori: Vec2<f32> = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);
