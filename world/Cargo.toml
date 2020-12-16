@@ -21,14 +21,14 @@ vek = { version = "0.12.0", features = ["serde"] }
 noise = { version = "0.6.0", default-features = false }
 num = "0.3.1"
 ordered-float = "2.0.1"
-hashbrown = { version = "0.7.2", features = ["rayon", "serde", "nightly"] }
+hashbrown = { version = "0.9", features = ["rayon", "serde", "nightly"] }
 lazy_static = "1.4.0"
 tracing = { version = "0.1", default-features = false }
 rand = "0.7"
 rand_chacha = "0.2.1"
 arr_macro = "0.1.2"
 packed_simd = { version = "0.3.4", package = "packed_simd_2" }
-rayon = "^1.3.0"
+rayon = "1.5"
 serde = { version = "1.0.110", features = ["derive"] }
 ron = { version = "0.6", default-features = false }
 
