@@ -3,7 +3,6 @@
 use dot_vox::DotVoxData;
 use image::DynamicImage;
 use lazy_static::lazy_static;
-use serde::Deserialize;
 use std::{
     borrow::Cow,
     fs, io,
@@ -12,6 +11,7 @@ use std::{
 };
 
 pub use assets_manager::{
+    asset::Ron,
     loader::{
         self, BincodeLoader, BytesLoader, JsonLoader, LoadFrom, Loader, RonLoader, StringLoader,
     },
@@ -117,20 +117,6 @@ impl Loader<DotVoxAsset> for DotVoxLoader {
         let data = dot_vox::load_bytes(&content).map_err(|err| err.to_owned())?;
         Ok(DotVoxAsset(data))
     }
-}
-
-/// Load from an arbitrary RON file.
-#[derive(Deserialize)]
-#[serde(transparent)]
-pub struct Ron<T>(pub T);
-
-impl<T> Asset for Ron<T>
-where
-    T: Send + Sync + for<'de> Deserialize<'de> + 'static,
-{
-    type Loader = RonLoader;
-
-    const EXTENSION: &'static str = "ron";
 }
 
 impl Asset for DotVoxAsset {

@@ -81,13 +81,13 @@ impl World {
     pub fn generate(seed: u32, opts: sim::WorldOpts) -> (Self, IndexOwned) {
         // NOTE: Generating index first in order to quickly fail if the color manifest
         // is broken.
-        let (mut index, colors) = Index::new(seed);
+        let mut index = Index::new(seed);
         let mut sim = sim::WorldSim::generate(seed, opts);
         let civs = civ::Civs::generate(seed, &mut sim, &mut index);
 
         sim2::simulate(&mut index, &mut sim);
 
-        (Self { sim, civs }, IndexOwned::new(index, colors))
+        (Self { sim, civs }, IndexOwned::new(index))
     }
 
     pub fn sim(&self) -> &sim::WorldSim { &self.sim }
