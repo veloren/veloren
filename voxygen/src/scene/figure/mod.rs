@@ -757,6 +757,7 @@ impl FigureMgr {
                                 state.last_ori,
                                 time,
                                 state.avg_vel,
+                                state.acc_vel,
                             ),
                             state.state_time,
                             &mut state_animation_rate,
@@ -1530,7 +1531,14 @@ impl FigureMgr {
                         (true, true, false) => {
                             anim::quadruped_medium::RunAnimation::update_skeleton(
                                 &QuadrupedMediumSkeleton::default(),
-                                (vel.0.magnitude(), ori, state.last_ori, time, state.avg_vel),
+                                (
+                                    vel.0.magnitude(),
+                                    ori,
+                                    state.last_ori,
+                                    time,
+                                    state.avg_vel,
+                                    state.acc_vel,
+                                ),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1539,7 +1547,14 @@ impl FigureMgr {
                         //Swimming
                         (false, _, true) => anim::quadruped_medium::RunAnimation::update_skeleton(
                             &QuadrupedMediumSkeleton::default(),
-                            (vel.0.magnitude(), ori, state.last_ori, time, state.avg_vel),
+                            (
+                                vel.0.magnitude(),
+                                ori,
+                                state.last_ori,
+                                time,
+                                state.avg_vel,
+                                state.acc_vel,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
