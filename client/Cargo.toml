@@ -25,10 +25,10 @@ image = { version = "0.23.12", default-features = false, features = ["png"] }
 num = "0.3.1"
 num_cpus = "1.10.1"
 tracing = { version = "0.1", default-features = false }
-rayon = "^1.3.0"
-specs = { git = "https://github.com/amethyst/specs.git", rev = "7a2e348ab2223818bad487695c66c43db88050a5" }
+rayon = "1.5"
+specs = { git = "https://github.com/amethyst/specs.git", rev = "d4435bdf496cf322c74886ca09dd8795984919b4" }
 vek = { version = "0.12.0", features = ["serde"] }
-hashbrown = { version = "0.7.2", features = ["rayon", "serde", "nightly"] }
+hashbrown = { version = "0.9", features = ["rayon", "serde", "nightly"] }
 authc = { git = "https://gitlab.com/veloren/auth.git", rev = "b943c85e4a38f5ec60cd18c34c73097640162bfe" }
 
 [dev-dependencies]
