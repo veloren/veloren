@@ -1656,9 +1656,9 @@ dependencies = [
 
 [[package]]
 name = "euclid"
-version = "0.20.14"
+version = "0.22.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2bb7ef65b3777a325d1eeefefab5b6d4959da54747e33bd6258e789640f307ad"
+checksum = "5337024b8293bdce5265dc9570ef6e608a34bfacbbc87fe1a5dcb5f1dac2f4e2"
 dependencies = [
  "num-traits 0.2.14",
 ]
@@ -2219,9 +2219,9 @@ dependencies = [
 
 [[package]]
 name = "guillotiere"
-version = "0.5.2"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "47065d052e2f000066c4ffbea7051e55bff5c1532c400fc1e269492b2474ccc1"
+checksum = "bc7cccefbf418f663e11e9500326f46a44273dc598210bbedc8bbe95e696531f"
 dependencies = [
  "euclid",
  "svg_fmt",
