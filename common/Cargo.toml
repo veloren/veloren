@@ -22,7 +22,7 @@ num-derive = "0.3"
 num-traits = "0.2"
 ordered-float = { version = "2.0.1", default-features = false }
 rand = "0.7"
-rayon = "1.3.0"
+rayon = "1.5"
 roots = "0.0.6"
 spin_sleep = "1.0"
 tracing = { version = "0.1", default-features = false }
@@ -36,14 +36,14 @@ image = { version = "0.23.12", default-features = false, features = ["png"] }
 notify = "5.0.0-pre.3"
 
 # Data structures
-hashbrown = { version = "0.7.2", features = ["rayon", "serde", "nightly"] }
+hashbrown = { version = "0.9", features = ["rayon", "serde", "nightly"] }
 slotmap = { version = "0.4.0", features = ["serde", "unstable"] }
 indexmap = "1.3.0"
 slab = "0.4.2"
 
 # ECS
-specs = { git = "https://github.com/amethyst/specs.git", features = ["serde", "storage-event-control"], rev = "7a2e348ab2223818bad487695c66c43db88050a5" }
-specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", branch = "specs-git" }
+specs = { git = "https://github.com/amethyst/specs.git", features = ["serde", "storage-event-control"], rev = "d4435bdf496cf322c74886ca09dd8795984919b4" }
+specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", rev = "77048eefa5df750f44bbd1b9a13402a9f7a6cfc8" }
 
 # Serde
 ron = { version = "0.6", default-features = false }

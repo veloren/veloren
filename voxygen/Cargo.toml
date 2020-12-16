@@ -45,8 +45,8 @@ window_clipboard = "0.1.1"
 glyph_brush = "0.7.0"
 
 # ECS
-specs = {git = "https://github.com/amethyst/specs.git", rev = "7a2e348ab2223818bad487695c66c43db88050a5"}
-specs-idvs = {git = "https://gitlab.com/veloren/specs-idvs.git", branch = "specs-git"}
+specs = {git = "https://github.com/amethyst/specs.git", rev = "d4435bdf496cf322c74886ca09dd8795984919b4"}
+specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", rev = "77048eefa5df750f44bbd1b9a13402a9f7a6cfc8" }
 
 # Mathematics
 vek = {version = "0.12.0", features = ["serde"]}
@@ -71,7 +71,7 @@ dot_vox = "4.0"
 enum-iterator = "0.6"
 glsl-include = "0.3.1"
 guillotiere = "0.6"
-hashbrown = {version = "0.7.2", features = ["rayon", "serde", "nightly"]}
+hashbrown = {version = "0.9", features = ["rayon", "serde", "nightly"]}
 image = {version = "0.23.12", default-features = false, features = ["ico", "png"]}
 native-dialog = { version = "0.4.2", default-features = false, optional = true }
 num = "0.3.1"
