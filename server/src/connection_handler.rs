@@ -1,5 +1,5 @@
 use crate::{Client, ClientType, ServerInfo};
-use crossbeam::{bounded, unbounded, Receiver, Sender};
+use crossbeam_channel::{bounded, unbounded, Receiver, Sender};
 use futures_channel::oneshot;
 use futures_executor::block_on;
 use futures_timer::Delay;

@@ -761,7 +761,7 @@ impl<'a> System<'a> for Sys {
             event_emitter.emit(ServerEvent::LandOnGround { entity, vel: vel.0 });
         });
         sys_metrics.phys_ns.store(
-            start_time.elapsed().as_nanos() as i64,
+            start_time.elapsed().as_nanos() as u64,
             std::sync::atomic::Ordering::Relaxed,
         );
     }

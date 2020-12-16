@@ -57,6 +57,6 @@ fn main() {
             zoom /= 1.05;
         }
 
-        win.update_with_buffer_size(&buf, W, H).unwrap();
+        win.update_with_buffer(&buf, W, H).unwrap();
     }
 }
