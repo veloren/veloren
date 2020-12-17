@@ -145,11 +145,13 @@ impl<'a> System<'a> for Sys {
                 if entity.is_giant {
                     if rand::random::<f32>() < 0.65 && entity.alignment != Alignment::Enemy {
                         let body_new = comp::humanoid::Body::random();
+                        let npc_names = NPC_NAMES.read();
+
                         body = comp::Body::Humanoid(body_new);
                         stats = comp::Stats::new(
                             format!(
                                 "Gentle Giant {}",
-                                get_npc_name(&NPC_NAMES.humanoid, body_new.species)
+                                get_npc_name(&npc_names.humanoid, body_new.species)
                             ),
                             body,
                         );

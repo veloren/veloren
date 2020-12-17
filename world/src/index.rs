@@ -1,6 +1,6 @@
 use crate::{site::Site, Colors};
 use common::{
-    assets::{watch::ReloadIndicator, Asset, Ron},
+    assets::{AssetExt, AssetHandle},
     store::Store,
 };
 use core::ops::Deref;
@@ -14,7 +14,7 @@ pub struct Index {
     pub time: f32,
     pub noise: Noise,
     pub sites: Store<Site>,
-    indicator: ReloadIndicator,
+    colors: AssetHandle<Arc<Colors>>,
 }
 
 /// An owned reference to indexed data.
@@ -51,26 +51,25 @@ impl<'a> Deref for IndexRef<'a> {
 
 impl Index {
     /// NOTE: Panics if the color manifest cannot be loaded.
-    pub fn new(seed: u32) -> (Self, Arc<Colors>) {
-        let mut indicator = ReloadIndicator::new();
-        let colors = Ron::<Colors>::load_watched(WORLD_COLORS_MANIFEST, &mut indicator)
-            .expect("Could not load world colors!");
+    pub fn new(seed: u32) -> Self {
+        let colors = Arc::<Colors>::load_expect(WORLD_COLORS_MANIFEST);
 
-        (
-            Self {
-                seed,
-                time: 0.0,
-                noise: Noise::new(seed),
-                sites: Store::default(),
-                indicator,
-            },
+        Self {
+            seed,
+            time: 0.0,
+            noise: Noise::new(seed),
+            sites: Store::default(),
             colors,
-        )
+        }
     }
+
+    pub fn colors(&self) -> AssetHandle<Arc<Colors>> { self.colors }
 }
 
 impl IndexOwned {
-    pub fn new(index: Index, colors: Arc<Colors>) -> Self {
+    pub fn new(index: Index) -> Self {
+        let colors = index.colors.cloned();
+
         Self {
             index: Arc::new(index),
             colors,
@@ -88,9 +87,9 @@ impl IndexOwned {
         &mut self,
         reload: impl FnOnce(&mut Self) -> R,
     ) -> Option<R> {
-        self.indicator.reloaded().then(move || {
-            // We know the asset was loaded before, so load_expect should be fine.
-            self.colors = Ron::<Colors>::load_expect(WORLD_COLORS_MANIFEST);
+        self.index.colors.reloaded_global().then(move || {
+            // Reload the color from the asset handle, which is updated automatically
+            self.colors = self.index.colors.cloned();
             reload(self)
         })
     }

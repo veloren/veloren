@@ -47,7 +47,7 @@ use crate::{
     sys::sentinel::{DeletedEntities, TrackedComps},
 };
 use common::{
-    assets::Asset,
+    assets::AssetExt,
     cmd::ChatCommand,
     comp,
     event::{EventBus, ServerEvent},
@@ -939,7 +939,7 @@ impl Server {
                 max_group_size: self.settings().max_player_group_size,
                 client_timeout: self.settings().client_timeout,
                 world_map: self.map.clone(),
-                recipe_book: (&*default_recipe_book()).clone(),
+                recipe_book: default_recipe_book().cloned(),
                 ability_map: (&*self
                     .state
                     .ecs()

@@ -1,6 +1,6 @@
 use super::cache::FigureKey;
 use common::{
-    assets::{self, watch::ReloadIndicator, Asset, AssetWith, Ron},
+    assets::{self, AssetExt, AssetHandle, DotVoxAsset, Ron},
     comp::{
         biped_large::{self, BodyType as BLBodyType, Species as BLSpecies},
         bird_medium::{self, BodyType as BMBodyType, Species as BMSpecies},
@@ -18,10 +18,8 @@ use common::{
     },
     figure::{DynaUnionizer, MatSegment, Material, Segment},
 };
-use dot_vox::DotVoxData;
 use hashbrown::HashMap;
 use serde::Deserialize;
-use std::sync::Arc;
 use tracing::{error, warn};
 use vek::*;
 
@@ -29,29 +27,29 @@ pub type BoneMeshes = (Segment, Vec3<f32>);
 
 fn load_segment(mesh_name: &str) -> Segment {
     let full_specifier: String = ["voxygen.voxel.", mesh_name].concat();
-    Segment::from(DotVoxData::load_expect(full_specifier.as_str()).as_ref())
+    Segment::from(&DotVoxAsset::load_expect(&full_specifier).read().0)
 }
-fn graceful_load_vox(mesh_name: &str) -> Arc<DotVoxData> {
+fn graceful_load_vox(mesh_name: &str) -> AssetHandle<DotVoxAsset> {
     let full_specifier: String = ["voxygen.voxel.", mesh_name].concat();
-    match DotVoxData::load(full_specifier.as_str()) {
+    match DotVoxAsset::load(&full_specifier) {
         Ok(dot_vox) => dot_vox,
         Err(_) => {
             error!(?full_specifier, "Could not load vox file for figure");
-            DotVoxData::load_expect("voxygen.voxel.not_found")
+            DotVoxAsset::load_expect("voxygen.voxel.not_found")
         },
     }
 }
 fn graceful_load_segment(mesh_name: &str) -> Segment {
-    Segment::from(graceful_load_vox(mesh_name).as_ref())
+    Segment::from(&graceful_load_vox(mesh_name).read().0)
 }
 fn graceful_load_segment_flipped(mesh_name: &str) -> Segment {
-    Segment::from_vox(graceful_load_vox(mesh_name).as_ref(), true)
+    Segment::from_vox(&graceful_load_vox(mesh_name).read().0, true)
 }
 fn graceful_load_mat_segment(mesh_name: &str) -> MatSegment {
-    MatSegment::from(graceful_load_vox(mesh_name).as_ref())
+    MatSegment::from(&graceful_load_vox(mesh_name).read().0)
 }
 fn graceful_load_mat_segment_flipped(mesh_name: &str) -> MatSegment {
-    MatSegment::from_vox(graceful_load_vox(mesh_name).as_ref(), true)
+    MatSegment::from_vox(&graceful_load_vox(mesh_name).read().0, true)
 }
 
 pub fn load_mesh(mesh_name: &str, position: Vec3<f32>) -> BoneMeshes {
@@ -76,12 +74,8 @@ fn recolor_grey(rgb: Rgb<u8>, color: Rgb<u8>) -> Rgb<u8> {
 pub trait BodySpec: Sized {
     type Spec;
 
-    /// Initialize all the specifications for this Body and watch for changes.
-    fn load_watched(indicator: &mut ReloadIndicator) -> Result<Self::Spec, assets::Error>;
-
-    /// Reload all specifications for this Body (to be called if the reload
-    /// indicator is set).
-    fn reload(spec: &mut Self::Spec) -> Result<(), assets::Error>;
+    /// Initialize all the specifications for this Body.
+    fn load_spec() -> Result<AssetHandle<Self::Spec>, assets::Error>;
 
     /// Mesh bones using the given spec, character state, and mesh generation
     /// function.
@@ -104,23 +98,23 @@ macro_rules! make_vox_spec {
     ) => {
         #[derive(Clone)]
         pub struct $Spec {
-            $( $field: AssetWith<Ron<$ty>, $asset_path>, )*
+            $( $field: AssetHandle<Ron<$ty>>, )*
+        }
+
+        impl assets::Compound for $Spec {
+            fn load<S: assets::source::Source>(_: &assets::AssetCache<S>, _: &str) -> Result<Self, assets::Error> {
+                Ok($Spec {
+                    $( $field: AssetExt::load($asset_path)?, )*
+                })
+            }
         }
 
         impl BodySpec for $body {
             type Spec = $Spec;
 
             #[allow(unused_variables)]
-            fn load_watched(indicator: &mut ReloadIndicator) -> Result<Self::Spec, assets::Error> {
-                Ok(Self::Spec {
-                    $( $field: AssetWith::load_watched(indicator)?, )*
-                })
-            }
-
-            #[allow(unused_variables)]
-            fn reload(spec: &mut Self::Spec) -> Result<(), assets::Error> {
-                $( spec.$field.reload()?; )*
-                Ok(())
+            fn load_spec() -> Result<AssetHandle<Self::Spec>, assets::Error> {
+                Self::Spec::load("")
             }
 
             fn bone_meshes(
@@ -375,95 +369,97 @@ make_vox_spec!(
         let hand = loadout.hand.as_deref();
         let foot = loadout.foot.as_deref();
 
+        let color = &spec.color.read().0;
+
         [
             third_person.map(|_| {
-                spec.head.asset.mesh_head(
+                spec.head.read().0.mesh_head(
                     body,
-                    &spec.color.asset,
+                    color,
                 )
             }),
             third_person.map(|loadout| {
-                spec.armor_chest.asset.mesh_chest(
+                spec.armor_chest.read().0.mesh_chest(
                     body,
-                    &spec.color.asset,
+                    color,
                     loadout.chest.as_deref(),
                 )
             }),
             third_person.map(|loadout| {
-                spec.armor_belt.asset.mesh_belt(
+                spec.armor_belt.read().0.mesh_belt(
                     body,
-                    &spec.color.asset,
+                    color,
                     loadout.belt.as_deref(),
                 )
             }),
             third_person.map(|loadout| {
-                spec.armor_back.asset.mesh_back(
+                spec.armor_back.read().0.mesh_back(
                     body,
-                    &spec.color.asset,
+                    color,
                     loadout.back.as_deref(),
                 )
             }),
             third_person.map(|loadout| {
-                spec.armor_pants.asset.mesh_pants(
+                spec.armor_pants.read().0.mesh_pants(
                     body,
-                    &spec.color.asset,
+                    color,
                     loadout.pants.as_deref(),
                 )
             }),
-            Some(spec.armor_hand.asset.mesh_left_hand(
+            Some(spec.armor_hand.read().0.mesh_left_hand(
                 body,
-                &spec.color.asset,
+                color,
                 hand,
             )),
-            Some(spec.armor_hand.asset.mesh_right_hand(
+            Some(spec.armor_hand.read().0.mesh_right_hand(
                 body,
-                &spec.color.asset,
+                color,
                 hand,
             )),
-            Some(spec.armor_foot.asset.mesh_left_foot(
+            Some(spec.armor_foot.read().0.mesh_left_foot(
                 body,
-                &spec.color.asset,
+                color,
                 foot,
             )),
-            Some(spec.armor_foot.asset.mesh_right_foot(
+            Some(spec.armor_foot.read().0.mesh_right_foot(
                 body,
-                &spec.color.asset,
+                color,
                 foot,
             )),
             third_person.map(|loadout| {
-                spec.armor_shoulder.asset.mesh_left_shoulder(
+                spec.armor_shoulder.read().0.mesh_left_shoulder(
                     body,
-                    &spec.color.asset,
+                    color,
                     loadout.shoulder.as_deref(),
                 )
             }),
             third_person.map(|loadout| {
-                spec.armor_shoulder.asset.mesh_right_shoulder(
+                spec.armor_shoulder.read().0.mesh_right_shoulder(
                     body,
-                    &spec.color.asset,
+                    color,
                     loadout.shoulder.as_deref(),
                 )
             }),
-            Some(spec.armor_glider.asset.mesh_glider(
+            Some(spec.armor_glider.read().0.mesh_glider(
                 body,
-                &spec.color.asset,
+                color,
                 glider,
             )),
             tool.and_then(|tool| tool.active.as_ref()).map(|tool| {
-                spec.main_weapon.asset.mesh_main_weapon(
+                spec.main_weapon.read().0.mesh_main_weapon(
                     tool,
                     false,
                 )
             }),
             tool.and_then(|tool| tool.second.as_ref()).map(|tool| {
-                spec.main_weapon.asset.mesh_main_weapon(
+                spec.main_weapon.read().0.mesh_main_weapon(
                     tool,
                     true,
                 )
             }),
-            Some(spec.armor_lantern.asset.mesh_lantern(
+            Some(spec.armor_lantern.read().0.mesh_lantern(
                 body,
-                &spec.color.asset,
+                color,
                 lantern,
             )),
             Some(mesh_hold()),
@@ -1065,31 +1061,31 @@ make_vox_spec!(
     },
     |FigureKey { body, .. }, spec| {
         [
-            Some(spec.central.asset.mesh_head(
+            Some(spec.central.read().0.mesh_head(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_chest(
+            Some(spec.central.read().0.mesh_chest(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_foot_fl(
+            Some(spec.lateral.read().0.mesh_foot_fl(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_foot_fr(
+            Some(spec.lateral.read().0.mesh_foot_fr(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_foot_bl(
+            Some(spec.lateral.read().0.mesh_foot_bl(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_foot_br(
+            Some(spec.lateral.read().0.mesh_foot_br(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_tail(
+            Some(spec.central.read().0.mesh_tail(
                 body.species,
                 body.body_type,
             )),
@@ -1269,63 +1265,63 @@ make_vox_spec!(
     },
     |FigureKey { body, .. }, spec| {
         [
-            Some(spec.central.asset.mesh_head(
+            Some(spec.central.read().0.mesh_head(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_neck(
+            Some(spec.central.read().0.mesh_neck(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_jaw(
+            Some(spec.central.read().0.mesh_jaw(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_tail(
+            Some(spec.central.read().0.mesh_tail(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_torso_front(
+            Some(spec.central.read().0.mesh_torso_front(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_torso_back(
+            Some(spec.central.read().0.mesh_torso_back(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_ears(
+            Some(spec.central.read().0.mesh_ears(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_leg_fl(
+            Some(spec.lateral.read().0.mesh_leg_fl(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_leg_fr(
+            Some(spec.lateral.read().0.mesh_leg_fr(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_leg_bl(
+            Some(spec.lateral.read().0.mesh_leg_bl(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_leg_br(
+            Some(spec.lateral.read().0.mesh_leg_br(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_foot_fl(
+            Some(spec.lateral.read().0.mesh_foot_fl(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_foot_fr(
+            Some(spec.lateral.read().0.mesh_foot_fr(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_foot_bl(
+            Some(spec.lateral.read().0.mesh_foot_bl(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_foot_br(
+            Some(spec.lateral.read().0.mesh_foot_br(
                 body.species,
                 body.body_type,
             )),
@@ -1618,31 +1614,31 @@ make_vox_spec!(
     },
     |FigureKey { body, .. }, spec| {
         [
-            Some(spec.central.asset.mesh_head(
+            Some(spec.central.read().0.mesh_head(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_torso(
+            Some(spec.central.read().0.mesh_torso(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_tail(
+            Some(spec.central.read().0.mesh_tail(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_wing_l(
+            Some(spec.lateral.read().0.mesh_wing_l(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_wing_r(
+            Some(spec.lateral.read().0.mesh_wing_r(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_foot_l(
+            Some(spec.lateral.read().0.mesh_foot_l(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_foot_r(
+            Some(spec.lateral.read().0.mesh_foot_r(
                 body.species,
                 body.body_type,
             )),
@@ -1817,55 +1813,55 @@ make_vox_spec!(
     },
     |FigureKey { body, .. }, spec| {
         [
-            Some(spec.central.asset.mesh_head(
+            Some(spec.central.read().0.mesh_head(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_jaw(
+            Some(spec.central.read().0.mesh_jaw(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_neck(
+            Some(spec.central.read().0.mesh_neck(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_chest_front(
+            Some(spec.central.read().0.mesh_chest_front(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_chest_back(
+            Some(spec.central.read().0.mesh_chest_back(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_tail_front(
+            Some(spec.central.read().0.mesh_tail_front(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_tail_back(
+            Some(spec.central.read().0.mesh_tail_back(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_hand_l(
+            Some(spec.lateral.read().0.mesh_hand_l(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_hand_r(
+            Some(spec.lateral.read().0.mesh_hand_r(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_leg_l(
+            Some(spec.lateral.read().0.mesh_leg_l(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_leg_r(
+            Some(spec.lateral.read().0.mesh_leg_r(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_foot_l(
+            Some(spec.lateral.read().0.mesh_foot_l(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_foot_r(
+            Some(spec.lateral.read().0.mesh_foot_r(
                 body.species,
                 body.body_type,
             )),
@@ -2124,31 +2120,31 @@ make_vox_spec!(
     },
     |FigureKey { body, .. }, spec| {
         [
-            Some(spec.central.asset.mesh_head(
+            Some(spec.central.read().0.mesh_head(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_jaw(
+            Some(spec.central.read().0.mesh_jaw(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_chest_front(
+            Some(spec.central.read().0.mesh_chest_front(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_chest_back(
+            Some(spec.central.read().0.mesh_chest_back(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_tail(
+            Some(spec.central.read().0.mesh_tail(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_fin_l(
+            Some(spec.lateral.read().0.mesh_fin_l(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_fin_r(
+            Some(spec.lateral.read().0.mesh_fin_r(
                 body.species,
                 body.body_type,
             )),
@@ -2316,19 +2312,19 @@ make_vox_spec!(
     },
     |FigureKey { body, .. }, spec| {
         [
-            Some(spec.central.asset.mesh_chest(
+            Some(spec.central.read().0.mesh_chest(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_tail(
+            Some(spec.central.read().0.mesh_tail(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_fin_l(
+            Some(spec.lateral.read().0.mesh_fin_l(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_fin_r(
+            Some(spec.lateral.read().0.mesh_fin_r(
                 body.species,
                 body.body_type,
             )),
@@ -2465,63 +2461,63 @@ make_vox_spec!(
     },
     |FigureKey { body, .. }, spec| {
         [
-            Some(spec.central.asset.mesh_head_upper(
+            Some(spec.central.read().0.mesh_head_upper(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_head_lower(
+            Some(spec.central.read().0.mesh_head_lower(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_jaw(
+            Some(spec.central.read().0.mesh_jaw(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_chest_front(
+            Some(spec.central.read().0.mesh_chest_front(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_chest_rear(
+            Some(spec.central.read().0.mesh_chest_rear(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_tail_front(
+            Some(spec.central.read().0.mesh_tail_front(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_tail_rear(
+            Some(spec.central.read().0.mesh_tail_rear(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_wing_in_l(
+            Some(spec.lateral.read().0.mesh_wing_in_l(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_wing_in_r(
+            Some(spec.lateral.read().0.mesh_wing_in_r(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_wing_out_l(
+            Some(spec.lateral.read().0.mesh_wing_out_l(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_wing_out_r(
+            Some(spec.lateral.read().0.mesh_wing_out_r(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_foot_fl(
+            Some(spec.lateral.read().0.mesh_foot_fl(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_foot_fr(
+            Some(spec.lateral.read().0.mesh_foot_fr(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_foot_bl(
+            Some(spec.lateral.read().0.mesh_foot_bl(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_foot_br(
+            Some(spec.lateral.read().0.mesh_foot_br(
                 body.species,
                 body.body_type,
             )),
@@ -2883,63 +2879,63 @@ make_vox_spec!(
     },
     |FigureKey { body, .. }, spec| {
         [
-            Some(spec.central.asset.mesh_head(
+            Some(spec.central.read().0.mesh_head(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_jaw(
+            Some(spec.central.read().0.mesh_jaw(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_torso_upper(
+            Some(spec.central.read().0.mesh_torso_upper(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_torso_lower(
+            Some(spec.central.read().0.mesh_torso_lower(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_tail(
+            Some(spec.central.read().0.mesh_tail(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_main(
+            Some(spec.central.read().0.mesh_main(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_second(
+            Some(spec.central.read().0.mesh_second(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_shoulder_l(
+            Some(spec.lateral.read().0.mesh_shoulder_l(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_shoulder_r(
+            Some(spec.lateral.read().0.mesh_shoulder_r(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_hand_l(
+            Some(spec.lateral.read().0.mesh_hand_l(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_hand_r(
+            Some(spec.lateral.read().0.mesh_hand_r(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_leg_l(
+            Some(spec.lateral.read().0.mesh_leg_l(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_leg_r(
+            Some(spec.lateral.read().0.mesh_leg_r(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_foot_l(
+            Some(spec.lateral.read().0.mesh_foot_l(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_foot_r(
+            Some(spec.lateral.read().0.mesh_foot_r(
                 body.species,
                 body.body_type,
             )),
@@ -3235,51 +3231,51 @@ make_vox_spec!(
     },
     |FigureKey { body, .. }, spec| {
         [
-            Some(spec.central.asset.mesh_head(
+            Some(spec.central.read().0.mesh_head(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_jaw(
+            Some(spec.central.read().0.mesh_jaw(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_torso_upper(
+            Some(spec.central.read().0.mesh_torso_upper(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_torso_lower(
+            Some(spec.central.read().0.mesh_torso_lower(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_shoulder_l(
+            Some(spec.lateral.read().0.mesh_shoulder_l(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_shoulder_r(
+            Some(spec.lateral.read().0.mesh_shoulder_r(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_hand_l(
+            Some(spec.lateral.read().0.mesh_hand_l(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_hand_r(
+            Some(spec.lateral.read().0.mesh_hand_r(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_leg_l(
+            Some(spec.lateral.read().0.mesh_leg_l(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_leg_r(
+            Some(spec.lateral.read().0.mesh_leg_r(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_foot_l(
+            Some(spec.lateral.read().0.mesh_foot_l(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_foot_r(
+            Some(spec.lateral.read().0.mesh_foot_r(
                 body.species,
                 body.body_type,
             )),
@@ -3529,43 +3525,43 @@ make_vox_spec!(
     },
     |FigureKey { body, .. }, spec| {
         [
-            Some(spec.central.asset.mesh_head_upper(
+            Some(spec.central.read().0.mesh_head_upper(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_head_lower(
+            Some(spec.central.read().0.mesh_head_lower(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_jaw(
+            Some(spec.central.read().0.mesh_jaw(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_chest(
+            Some(spec.central.read().0.mesh_chest(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_tail_front(
+            Some(spec.central.read().0.mesh_tail_front(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_tail_rear(
+            Some(spec.central.read().0.mesh_tail_rear(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_foot_fl(
+            Some(spec.lateral.read().0.mesh_foot_fl(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_foot_fr(
+            Some(spec.lateral.read().0.mesh_foot_fr(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_foot_bl(
+            Some(spec.lateral.read().0.mesh_foot_bl(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.lateral.asset.mesh_foot_br(
+            Some(spec.lateral.read().0.mesh_foot_br(
                 body.species,
                 body.body_type,
             )),
@@ -3765,7 +3761,7 @@ make_vox_spec!(
     },
     |FigureKey { body, .. }, spec| {
         [
-            Some(spec.central.asset.mesh_bone0(
+            Some(spec.central.read().0.mesh_bone0(
                 body,
             )),
             None,

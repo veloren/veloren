@@ -1,13 +1,12 @@
 use super::BlockKind;
 use crate::{
-    assets::{self, Asset, Ron},
+    assets::{self, AssetExt, AssetHandle, DotVoxAsset, Error},
     make_case_elim,
     vol::{BaseVol, ReadVol, SizedVol, WriteVol},
     volumes::dyna::{Dyna, DynaError},
 };
-use dot_vox::DotVoxData;
 use serde::Deserialize;
-use std::{fs::File, io::BufReader, sync::Arc};
+use std::sync::Arc;
 use vek::*;
 
 make_case_elim!(
@@ -40,20 +39,49 @@ pub enum StructureError {}
 #[derive(Clone)]
 pub struct Structure {
     center: Vec3<i32>,
+    base: Arc<BaseStructure>,
+}
+
+struct BaseStructure {
     vol: Dyna<StructureBlock, ()>,
     empty: StructureBlock,
     default_kind: BlockKind,
 }
 
+pub struct StructuresGroup(Vec<Structure>);
+
+impl std::ops::Deref for StructuresGroup {
+    type Target = [Structure];
+
+    fn deref(&self) -> &[Structure] { &self.0 }
+}
+
+impl assets::Compound for StructuresGroup {
+    fn load<S: assets_manager::source::Source>(
+        cache: &assets_manager::AssetCache<S>,
+        specifier: &str,
+    ) -> Result<Self, Error> {
+        let specs = cache.load::<StructuresGroupSpec>(specifier)?.read();
+
+        Ok(StructuresGroup(
+            specs
+                .0
+                .iter()
+                .map(|sp| {
+                    let base = cache.load::<Arc<BaseStructure>>(&sp.specifier)?.cloned();
+                    Ok(Structure {
+                        center: Vec3::from(sp.center),
+                        base,
+                    })
+                })
+                .collect::<Result<_, Error>>()?,
+        ))
+    }
+}
+
 impl Structure {
-    pub fn load_group(specifier: &str) -> Vec<Arc<Structure>> {
-        let spec = StructuresSpec::load_expect(&["world.manifests.", specifier].concat());
-        spec.iter()
-            .map(|sp| {
-                Structure::load_map(&sp.specifier[..], |s| s.with_center(Vec3::from(sp.center)))
-                    .unwrap()
-            })
-            .collect()
+    pub fn load_group(specifier: &str) -> AssetHandle<StructuresGroup> {
+        StructuresGroup::load_expect(&["world.manifests.", specifier].concat())
     }
 
     pub fn with_center(mut self, center: Vec3<i32>) -> Self {
@@ -61,19 +89,14 @@ impl Structure {
         self
     }
 
-    pub fn with_default_kind(mut self, kind: BlockKind) -> Self {
-        self.default_kind = kind;
-        self
-    }
-
     pub fn get_bounds(&self) -> Aabb<i32> {
         Aabb {
             min: -self.center,
-            max: self.vol.size().map(|e| e as i32) - self.center,
+            max: self.base.vol.size().map(|e| e as i32) - self.center,
         }
     }
 
-    pub fn default_kind(&self) -> BlockKind { self.default_kind }
+    pub fn default_kind(&self) -> BlockKind { self.base.default_kind }
 }
 
 impl BaseVol for Structure {
@@ -84,18 +107,20 @@ impl BaseVol for Structure {
 impl ReadVol for Structure {
     #[inline(always)]
     fn get(&self, pos: Vec3<i32>) -> Result<&Self::Vox, StructureError> {
-        match self.vol.get(pos + self.center) {
+        match self.base.vol.get(pos + self.center) {
             Ok(block) => Ok(block),
-            Err(DynaError::OutOfBounds) => Ok(&self.empty),
+            Err(DynaError::OutOfBounds) => Ok(&self.base.empty),
         }
     }
 }
 
-impl Asset for Structure {
-    const ENDINGS: &'static [&'static str] = &["vox"];
-
-    fn parse(buf_reader: BufReader<File>, specifier: &str) -> Result<Self, assets::Error> {
-        let dot_vox_data = DotVoxData::parse(buf_reader, specifier)?;
+impl assets::Compound for BaseStructure {
+    fn load<S: assets_manager::source::Source>(
+        cache: &assets_manager::AssetCache<S>,
+        specifier: &str,
+    ) -> Result<Self, Error> {
+        let dot_vox_data = cache.load::<DotVoxAsset>(specifier)?.read();
+        let dot_vox_data = &dot_vox_data.0;
 
         if let Some(model) = dot_vox_data.models.get(0) {
             let palette = dot_vox_data
@@ -138,15 +163,13 @@ impl Asset for Structure {
                 let _ = vol.set(Vec3::new(voxel.x, voxel.y, voxel.z).map(i32::from), block);
             }
 
-            Ok(Structure {
-                center: Vec3::zero(),
+            Ok(BaseStructure {
                 vol,
                 empty: StructureBlock::None,
                 default_kind: BlockKind::Misc,
             })
         } else {
-            Ok(Self {
-                center: Vec3::zero(),
+            Ok(BaseStructure {
                 vol: Dyna::filled(Vec3::zero(), StructureBlock::None, ()),
                 empty: StructureBlock::None,
                 default_kind: BlockKind::Misc,
@@ -161,4 +184,11 @@ struct StructureSpec {
     center: [i32; 3],
 }
 
-type StructuresSpec = Ron<Vec<StructureSpec>>;
+#[derive(Deserialize)]
+struct StructuresGroupSpec(Vec<StructureSpec>);
+
+impl assets::Asset for StructuresGroupSpec {
+    type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
+}

@@ -30,10 +30,10 @@ vek = { version = "0.12.0", features = ["serde"] }
 uuid = { version = "0.8.1", default-features = false, features = ["serde", "v4"] }
 
 # Assets
+assets_manager = {version = "0.4.2", features = ["bincode", "ron", "json", "hot-reloading"]}
 directories-next = "2.0"
 dot_vox = "4.0"
 image = { version = "0.23.12", default-features = false, features = ["png"] }
-notify = "5.0.0-pre.3"
 
 # Data structures
 hashbrown = { version = "0.9", features = ["rayon", "serde", "nightly"] }

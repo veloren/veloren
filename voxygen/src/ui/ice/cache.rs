@@ -3,8 +3,12 @@ use crate::{
     render::{Renderer, Texture},
     Error,
 };
+use common::assets::{self, AssetExt};
 use glyph_brush::GlyphBrushBuilder;
-use std::cell::{RefCell, RefMut};
+use std::{
+    borrow::Cow,
+    cell::{RefCell, RefMut},
+};
 use vek::*;
 
 // Multiplied by current window size
@@ -19,6 +23,23 @@ type GlyphBrush = glyph_brush::GlyphBrush<(Aabr<f32>, Aabr<f32>), ()>;
 
 // TODO: might not need pub
 pub type Font = glyph_brush::ab_glyph::FontArc;
+
+struct FontAsset(Font);
+struct FontLoader;
+impl assets::Loader<FontAsset> for FontLoader {
+    fn load(data: Cow<[u8]>, _: &str) -> Result<FontAsset, assets::BoxedError> {
+        let font = Font::try_from_vec(data.into_owned())?;
+        Ok(FontAsset(font))
+    }
+}
+
+impl assets::Asset for FontAsset {
+    type Loader = FontLoader;
+
+    const EXTENSION: &'static str = "ttf";
+}
+
+pub fn load_font(specifier: &str) -> Font { FontAsset::load_expect(specifier).read().0.clone() }
 
 #[derive(Clone, Copy, Default)]
 pub struct FontId(pub(super) glyph_brush::FontId);
@@ -121,16 +142,13 @@ impl Cache {
 // TODO: use font type instead of raw vec once we convert to full iced
 #[derive(Clone)]
 pub struct RawFont(pub Vec<u8>);
-impl common::assets::Asset for RawFont {
-    const ENDINGS: &'static [&'static str] = &["ttf"];
 
-    fn parse(
-        mut buf_reader: std::io::BufReader<std::fs::File>,
-        _specifier: &str,
-    ) -> Result<Self, common::assets::Error> {
-        use std::io::Read;
-        let mut buf = Vec::new();
-        buf_reader.read_to_end(&mut buf)?;
-        Ok(Self(buf))
-    }
+impl From<Vec<u8>> for RawFont {
+    fn from(raw: Vec<u8>) -> RawFont { RawFont(raw) }
+}
+
+impl assets::Asset for RawFont {
+    type Loader = assets::LoadFrom<Vec<u8>, assets::BytesLoader>;
+
+    const EXTENSION: &'static str = "ttf";
 }

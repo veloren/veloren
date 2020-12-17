@@ -53,6 +53,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "739f4a8db6605981345c5654f3a85b056ce52f37a39d34da03f25bf2151ea16e"
 
 [[package]]
+name = "ahash"
+version = "0.6.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a75b7e6a93ecd6dbd2c225154d0fa7f86205574ecaa6c87429fb5f66ee677c44"
+dependencies = [
+ "getrandom 0.2.0",
+ "lazy_static",
+ "version_check 0.9.2",
+]
+
+[[package]]
 name = "aho-corasick"
 version = "0.7.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -229,6 +240,23 @@ name = "ascii"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bbf56136a5198c7b01a49e3afcbef6cf84597273d298f54432926024107b0109"
+
+[[package]]
+name = "assets_manager"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3593b8ddb9708251c7a57b07c917c77ecc685e804b697366d26fb4af64c9b960"
+dependencies = [
+ "ahash 0.6.2",
+ "bincode",
+ "crossbeam-channel 0.5.0",
+ "log",
+ "notify 4.0.15",
+ "parking_lot 0.11.0",
+ "ron",
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "async-std"
@@ -791,7 +819,7 @@ version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "25e4c606eb459dd29f7c57b2e0879f2b6f14ee130918c2b78ccb58a9624e6c7a"
 dependencies = [
- "getrandom",
+ "getrandom 0.1.15",
  "proc-macro-hack",
 ]
 
@@ -1747,12 +1775,31 @@ checksum = "00b0228411908ca8685dba7fc2cdd70ec9990a6e753e89b6ac91a84c40fbaf4b"
 
 [[package]]
 name = "fsevent"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5ab7d1bd1bd33cc98b0889831b72da23c0aa4df9cec7e0702f46ecea04b35db6"
+dependencies = [
+ "bitflags",
+ "fsevent-sys 2.0.1",
+]
+
+[[package]]
+name = "fsevent"
 version = "2.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97f347202c95c98805c216f9e1df210e8ebaec9fdb2365700a43c10797a35e63"
 dependencies = [
  "bitflags",
- "fsevent-sys",
+ "fsevent-sys 3.0.2",
+]
+
+[[package]]
+name = "fsevent-sys"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f41b048a94555da0f42f1d632e2e19510084fb8e303b0daa2816e733fb3644a0"
+dependencies = [
+ "libc",
 ]
 
 [[package]]
@@ -1966,6 +2013,17 @@ name = "getrandom"
 version = "0.1.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc587bc0ec293155d5bfa6b9891ec18a1e330c234f896ea47fbada4cadbe47e6"
+dependencies = [
+ "cfg-if 0.1.10",
+ "libc",
+ "wasi 0.9.0+wasi-snapshot-preview1",
+]
+
+[[package]]
+name = "getrandom"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ee8025cf36f917e6a52cce185b7c7177689b838b7ec138364e50cc2277a56cf4"
 dependencies = [
  "cfg-if 0.1.10",
  "libc",
@@ -2559,6 +2617,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7033e97b20277cc0d043226d1940fa7719ff08d2305d1fc7421e53066d00eb4b"
 dependencies = [
  "lazy_static",
+]
+
+[[package]]
+name = "inotify"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4816c66d2c8ae673df83366c18341538f234a26d65a9ecea5c348b453ac1d02f"
+dependencies = [
+ "bitflags",
+ "inotify-sys",
+ "libc",
 ]
 
 [[package]]
@@ -3251,6 +3320,24 @@ dependencies = [
 
 [[package]]
 name = "notify"
+version = "4.0.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "80ae4a7688d1fab81c5bf19c64fc8db920be8d519ce6336ed4e7efe024724dbd"
+dependencies = [
+ "bitflags",
+ "filetime",
+ "fsevent 0.4.0",
+ "fsevent-sys 2.0.1",
+ "inotify 0.7.1",
+ "libc",
+ "mio 0.6.22",
+ "mio-extras",
+ "walkdir 2.3.1",
+ "winapi 0.3.9",
+]
+
+[[package]]
+name = "notify"
 version = "5.0.0-pre.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77d03607cf88b4b160ba0e9ed425fff3cee3b55ac813f0c685b3a3772da37d0e"
@@ -3259,9 +3346,9 @@ dependencies = [
  "bitflags",
  "crossbeam-channel 0.4.4",
  "filetime",
- "fsevent",
- "fsevent-sys",
- "inotify",
+ "fsevent 2.0.2",
+ "fsevent-sys 3.0.2",
+ "inotify 0.8.3",
  "libc",
  "mio 0.6.22",
  "mio-extras",
@@ -4033,7 +4120,7 @@ version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6a6b1679d49b24bbfe0c803429aa1874472f50d9b363131f0e89fc356b544d03"
 dependencies = [
- "getrandom",
+ "getrandom 0.1.15",
  "libc",
  "rand_chacha 0.2.2",
  "rand_core 0.5.1",
@@ -4082,7 +4169,7 @@ version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "90bde5296fc891b0cef12a6d03ddccc162ce7b2aff54160af9338f8d40df6d19"
 dependencies = [
- "getrandom",
+ "getrandom 0.1.15",
 ]
 
 [[package]]
@@ -4231,7 +4318,7 @@ version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "de0737333e7a9502c789a36d7c7fa6092a49895d4faa31ca5df163857ded2e9d"
 dependencies = [
- "getrandom",
+ "getrandom 0.1.15",
  "redox_syscall",
  "rust-argon2",
 ]
@@ -5699,6 +5786,7 @@ name = "veloren-common"
 version = "0.8.0"
 dependencies = [
  "arraygen",
+ "assets_manager",
  "criterion",
  "crossbeam-channel 0.5.0",
  "crossbeam-utils 0.8.1",
@@ -5710,7 +5798,6 @@ dependencies = [
  "image",
  "indexmap",
  "lazy_static",
- "notify",
  "num-derive",
  "num-traits 0.2.14",
  "ordered-float 2.0.1",
@@ -5933,7 +6020,7 @@ dependencies = [
  "inline_tweak",
  "lazy_static",
  "libloading 0.6.3",
- "notify",
+ "notify 5.0.0-pre.3",
  "tracing",
  "vek 0.12.0",
  "veloren-common",

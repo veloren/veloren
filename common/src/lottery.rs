@@ -1,7 +1,6 @@
-use crate::assets::{self, Asset};
+use crate::assets;
 use rand::prelude::*;
 use serde::{de::DeserializeOwned, Deserialize};
-use std::{fs::File, io::BufReader};
 
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct Lottery<T> {
@@ -9,28 +8,26 @@ pub struct Lottery<T> {
     total: f32,
 }
 
-impl<T: DeserializeOwned + Send + Sync> Asset for Lottery<T> {
-    const ENDINGS: &'static [&'static str] = &["ron"];
+impl<T: DeserializeOwned + Send + Sync + 'static> assets::Asset for Lottery<T> {
+    type Loader = assets::LoadFrom<Vec<(f32, T)>, assets::RonLoader>;
 
-    fn parse(buf_reader: BufReader<File>, _specifier: &str) -> Result<Self, assets::Error> {
-        ron::de::from_reader::<BufReader<File>, Vec<(f32, T)>>(buf_reader)
-            .map(|items| Lottery::from_rates(items.into_iter()))
-            .map_err(assets::Error::parse_error)
+    const EXTENSION: &'static str = "ron";
+}
+
+impl<T> From<Vec<(f32, T)>> for Lottery<T> {
+    fn from(mut items: Vec<(f32, T)>) -> Lottery<T> {
+        let mut total = 0.0;
+
+        for (rate, _) in &mut items {
+            total += *rate;
+            *rate = total - *rate;
+        }
+
+        Self { items, total }
     }
 }
 
 impl<T> Lottery<T> {
-    pub fn from_rates(items: impl Iterator<Item = (f32, T)>) -> Self {
-        let mut total = 0.0;
-        let items = items
-            .map(|(rate, item)| {
-                total += rate;
-                (total - rate, item)
-            })
-            .collect();
-        Self { items, total }
-    }
-
     pub fn choose_seeded(&self, seed: u32) -> &T {
         let x = ((seed % 65536) as f32 / 65536.0) * self.total;
         &self.items[self
@@ -48,13 +45,13 @@ impl<T> Lottery<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{assets::Asset, comp::Item};
+    use crate::{assets::AssetExt, comp::Item};
 
     #[test]
     fn test_loot_table() {
         let test = Lottery::<String>::load_expect("common.loot_tables.loot_table");
 
-        for (_, item_asset_specifier) in test.iter() {
+        for (_, item_asset_specifier) in test.read().iter() {
             assert!(
                 Item::new_from_asset(item_asset_specifier).is_ok(),
                 "Invalid loot table item '{}'",

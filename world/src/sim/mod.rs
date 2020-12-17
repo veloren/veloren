@@ -35,7 +35,7 @@ use crate::{
     IndexRef, CONFIG,
 };
 use common::{
-    assets,
+    assets::{self, AssetExt},
     grid::Grid,
     store::Id,
     terrain::{
@@ -220,7 +220,7 @@ pub enum WorldFileError {
 /// invalidation or make sure that the map is synchronized with updates to
 /// noise-rs, changes to other parameters, etc.
 ///
-/// The map is verisoned to enable format detection between versions of Veloren,
+/// The map is versioned to enable format detection between versions of Veloren,
 /// so that when we update the map format we don't break existing maps (or at
 /// least, we will try hard not to break maps between versions; if we can't
 /// avoid it, we can at least give a reasonable error message).
@@ -243,6 +243,12 @@ pub enum WorldFileError {
 pub enum WorldFile {
     Veloren0_5_0(WorldMap_0_5_0) = 0,
     Veloren0_7_0(WorldMap_0_7_0) = 1,
+}
+
+impl assets::Asset for WorldFile {
+    type Loader = assets::BincodeLoader;
+
+    const EXTENSION: &'static str = "bin";
 }
 
 /// Data for the most recent map type.  Update this when you add a new map
@@ -408,27 +414,24 @@ impl WorldSim {
 
                     map.into_modern()
                 },
-                FileOpts::LoadAsset(ref specifier) => {
-                    let reader = match assets::load_file(specifier, &["bin"]) {
-                        Ok(reader) => reader,
-                        Err(e) => {
-                            warn!(?e, ?specifier, "Couldn't read asset specifier for maps",);
-                            return None;
-                        },
-                    };
-
-                    let map: WorldFile = match bincode::deserialize_from(reader) {
-                        Ok(map) => map,
-                        Err(e) => {
-                            warn!(
-                                ?e,
-                                "Couldn't parse modern map.  Maybe you meant to try a legacy load?"
-                            );
-                            return None;
-                        },
-                    };
-
-                    map.into_modern()
+                FileOpts::LoadAsset(ref specifier) => match WorldFile::load_owned(&specifier) {
+                    Ok(map) => map.into_modern(),
+                    Err(err) => {
+                        match err {
+                            assets::Error::Io(e) => {
+                                warn!(?e, ?specifier, "Couldn't read asset specifier for maps");
+                            },
+                            assets::Error::Conversion(e) => {
+                                warn!(
+                                    ?e,
+                                    "Couldn't parse modern map.  Maybe you meant to try a legacy \
+                                     load?"
+                                );
+                            },
+                            assets::Error::NoDefaultValue => unreachable!(),
+                        }
+                        return None;
+                    },
                 },
                 FileOpts::Generate | FileOpts::Save => return None,
             };
