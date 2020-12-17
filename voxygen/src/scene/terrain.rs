@@ -13,7 +13,7 @@ use crate::{
 
 use super::{math, LodData, SceneData};
 use common::{
-    assets::{Asset, Ron},
+    assets::{self, AssetExt, DotVoxAsset},
     figure::Segment,
     span,
     spiral::Spiral2d,
@@ -23,11 +23,9 @@ use common::{
 };
 use core::{f32, fmt::Debug, i32, marker::PhantomData, time::Duration};
 use crossbeam::channel;
-use dot_vox::DotVoxData;
 use enum_iterator::IntoEnumIterator;
 use guillotiere::AtlasAllocator;
 use hashbrown::HashMap;
-use image::DynamicImage;
 use serde::Deserialize;
 use std::sync::Arc;
 use tracing::warn;
@@ -125,7 +123,15 @@ struct SpriteConfig<Model> {
 /// Configuration data for all sprite models.
 ///
 /// NOTE: Model is an asset path to the appropriate sprite .vox model.
-type SpriteSpec = sprite::sprite_kind::PureCases<Option<SpriteConfig<String>>>;
+#[derive(Deserialize)]
+#[serde(transparent)]
+struct SpriteSpec(sprite::sprite_kind::PureCases<Option<SpriteConfig<String>>>);
+
+impl assets::Asset for SpriteSpec {
+    type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
+}
 
 /// Function executed by worker threads dedicated to chunk meshing.
 #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
@@ -177,7 +183,7 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug + '
                             continue;
                         };
 
-                        if let Some(cfg) = sprite.elim_case_pure(&sprite_config) {
+                        if let Some(cfg) = sprite.elim_case_pure(&sprite_config.0) {
                             let seed = wpos.x as u64 * 3
                                 + wpos.y as u64 * 7
                                 + wpos.x as u64 * wpos.y as u64; // Awful PRNG
@@ -227,6 +233,9 @@ struct SpriteData {
 
 pub struct Terrain<V: RectRasterableVol = TerrainChunk> {
     atlas: AtlasAllocator,
+    /// FIXME: This could possibly become an `AssetHandle<SpriteSpec>`, to get
+    /// hot-reloading for free, but I am not sure if sudden changes of this
+    /// value would break something
     sprite_config: Arc<SpriteSpec>,
     chunks: HashMap<Vec2<i32>, TerrainChunkData>,
     /// Temporary storage for dead chunks that might still be shadowing chunks
@@ -268,8 +277,8 @@ impl<V: RectRasterableVol> Terrain<V> {
     #[allow(clippy::float_cmp)] // TODO: Pending review in #587
     pub fn new(renderer: &mut Renderer) -> Self {
         // Load all the sprite config data.
-        let sprite_config = Ron::<SpriteSpec>::load("voxygen.voxel.sprite_manifest")
-            .expect("Failed to find sprite model data!");
+        let sprite_config =
+            Arc::<SpriteSpec>::load_expect("voxygen.voxel.sprite_manifest").cloned();
 
         // Create a new mpsc (Multiple Produced, Single Consumer) pair for communicating
         // with worker threads that are meshing chunks.
@@ -287,7 +296,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         // NOTE: Tracks the start vertex of the next model to be meshed.
 
         let sprite_data: HashMap<(SpriteKind, usize), _> = SpriteKind::into_enum_iter()
-            .filter_map(|kind| Some((kind, kind.elim_case_pure(&sprite_config_).as_ref()?)))
+            .filter_map(|kind| Some((kind, kind.elim_case_pure(&sprite_config_.0).as_ref()?)))
             .flat_map(|(kind, sprite_config)| {
                 let wind_sway = sprite_config.wind_sway;
                 sprite_config.variations.iter().enumerate().map(
@@ -302,9 +311,11 @@ impl<V: RectRasterableVol> Terrain<V> {
                         let scaled = [1.0, 0.8, 0.6, 0.4, 0.2];
                         let offset = Vec3::from(*offset);
                         let lod_axes = Vec3::from(*lod_axes);
-                        let model = DotVoxData::load_expect(model);
+                        let model = DotVoxAsset::load_expect(model);
                         let zero = Vec3::zero();
                         let model_size = model
+                            .read()
+                            .0
                             .models
                             .first()
                             .map(
@@ -344,7 +355,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                                         // interesting return value, but updates the mesh.
                                         let mut opaque_mesh = Mesh::new();
                                         Meshable::<SpritePipeline, &mut GreedyMesh>::generate_mesh(
-                                            Segment::from(model.as_ref()).scaled_by(lod_scale),
+                                            Segment::from(&model.read().0).scaled_by(lod_scale),
                                             (
                                                 greedy,
                                                 &mut opaque_mesh,
@@ -403,7 +414,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             sprite_col_lights,
             waves: renderer
                 .create_texture(
-                    &DynamicImage::load_expect("voxygen.texture.waves"),
+                    &assets::Image::load_expect("voxygen.texture.waves").read().0,
                     Some(gfx::texture::FilterMethod::Trilinear),
                     Some(gfx::texture::WrapMode::Tile),
                     None,
@@ -1154,7 +1165,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     for (kind, instances) in (&chunk.sprite_instances).into_iter() {
                         let SpriteData { model, locals, .. } = if kind
                             .0
-                            .elim_case_pure(&self.sprite_config)
+                            .elim_case_pure(&self.sprite_config.0)
                             .as_ref()
                             .map(|config| config.wind_sway >= 0.4)
                             .unwrap_or(false)

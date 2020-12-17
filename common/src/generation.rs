@@ -115,22 +115,23 @@ impl EntityInfo {
     }
 
     pub fn with_automatic_name(mut self) -> Self {
+        let npc_names = NPC_NAMES.read();
         self.name = match &self.body {
-            Body::Humanoid(body) => Some(get_npc_name(&NPC_NAMES.humanoid, body.species)),
+            Body::Humanoid(body) => Some(get_npc_name(&npc_names.humanoid, body.species)),
             Body::QuadrupedMedium(body) => {
-                Some(get_npc_name(&NPC_NAMES.quadruped_medium, body.species))
+                Some(get_npc_name(&npc_names.quadruped_medium, body.species))
             },
-            Body::BirdMedium(body) => Some(get_npc_name(&NPC_NAMES.bird_medium, body.species)),
-            Body::FishSmall(body) => Some(get_npc_name(&NPC_NAMES.fish_small, body.species)),
-            Body::FishMedium(body) => Some(get_npc_name(&NPC_NAMES.fish_medium, body.species)),
-            Body::Theropod(body) => Some(get_npc_name(&NPC_NAMES.theropod, body.species)),
+            Body::BirdMedium(body) => Some(get_npc_name(&npc_names.bird_medium, body.species)),
+            Body::FishSmall(body) => Some(get_npc_name(&npc_names.fish_small, body.species)),
+            Body::FishMedium(body) => Some(get_npc_name(&npc_names.fish_medium, body.species)),
+            Body::Theropod(body) => Some(get_npc_name(&npc_names.theropod, body.species)),
             Body::QuadrupedSmall(body) => {
-                Some(get_npc_name(&NPC_NAMES.quadruped_small, body.species))
+                Some(get_npc_name(&npc_names.quadruped_small, body.species))
             },
-            Body::Dragon(body) => Some(get_npc_name(&NPC_NAMES.dragon, body.species)),
-            Body::QuadrupedLow(body) => Some(get_npc_name(&NPC_NAMES.quadruped_low, body.species)),
-            Body::Golem(body) => Some(get_npc_name(&NPC_NAMES.golem, body.species)),
-            Body::BipedLarge(body) => Some(get_npc_name(&NPC_NAMES.biped_large, body.species)),
+            Body::Dragon(body) => Some(get_npc_name(&npc_names.dragon, body.species)),
+            Body::QuadrupedLow(body) => Some(get_npc_name(&npc_names.quadruped_low, body.species)),
+            Body::Golem(body) => Some(get_npc_name(&npc_names.golem, body.species)),
+            Body::BipedLarge(body) => Some(get_npc_name(&npc_names.biped_large, body.species)),
             _ => None,
         }
         .map(|s| {

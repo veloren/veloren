@@ -11,7 +11,7 @@ use rand::Rng;
 ///
 /// ```
 /// use veloren_common::{
-///     assets::Asset,
+///     assets::AssetExt,
 ///     comp::item::tool::AbilityMap,
 ///     LoadoutBuilder,
 /// };

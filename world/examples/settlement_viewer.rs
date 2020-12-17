@@ -8,7 +8,7 @@ const H: usize = 480;
 #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
 fn main() {
     let seed = 1337;
-    let (ref index, ref colors) = Index::new(seed);
+    let index = &Index::new(seed);
 
     let mut win =
         minifb::Window::new("Settlement Viewer", W, H, minifb::WindowOptions::default()).unwrap();
@@ -17,6 +17,7 @@ fn main() {
 
     let mut focus = Vec2::<f32>::zero();
     let mut zoom = 1.0;
+    let colors = &**index.colors().read();
     let index = IndexRef { colors, index };
 
     while win.is_open() {

@@ -34,12 +34,13 @@ pub use crate::error::Error;
 use crate::singleplayer::Singleplayer;
 use crate::{
     audio::AudioFrontend,
+    i18n::Localization,
     profile::Profile,
     render::Renderer,
     settings::Settings,
     window::{Event, Window},
 };
-use common::{assets::watch, clock::Clock, span};
+use common::{assets::AssetHandle, clock::Clock, span};
 
 /// A type used to store state that is shared between all play states.
 pub struct GlobalState {
@@ -52,7 +53,7 @@ pub struct GlobalState {
     #[cfg(feature = "singleplayer")]
     pub singleplayer: Option<Singleplayer>,
     // TODO: redo this so that the watcher doesn't have to exist for reloading to occur
-    pub localization_watcher: watch::ReloadIndicator,
+    pub i18n: AssetHandle<Localization>,
     pub clipboard: Option<iced_winit::Clipboard>,
 }
 

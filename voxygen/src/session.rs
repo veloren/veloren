@@ -13,7 +13,7 @@ use crate::{
 };
 use client::{self, Client};
 use common::{
-    assets::Asset,
+    assets::AssetExt,
     comp,
     comp::{ChatMsg, ChatType, InventoryUpdateEvent, Pos, Vel},
     consts::{MAX_MOUNT_RANGE, MAX_PICKUP_RANGE},
@@ -29,7 +29,7 @@ use common::{
 use common_net::msg::PresenceKind;
 use ordered_float::OrderedFloat;
 use specs::{Join, WorldExt};
-use std::{cell::RefCell, rc::Rc, sync::Arc, time::Duration};
+use std::{cell::RefCell, rc::Rc, time::Duration};
 use tracing::{error, info};
 use vek::*;
 
@@ -48,7 +48,6 @@ pub struct SessionState {
     key_state: KeyState,
     inputs: comp::ControllerInputs,
     selected_block: Block,
-    i18n: std::sync::Arc<Localization>,
     walk_forward_dir: Vec2<f32>,
     walk_right_dir: Vec2<f32>,
     freefly_vel: Vec3<f32>,
@@ -75,10 +74,6 @@ impl SessionState {
             .camera_mut()
             .set_fov_deg(global_state.settings.graphics.fov);
         let hud = Hud::new(global_state, &client.borrow());
-        let i18n = Localization::load_expect(&i18n_asset_key(
-            &global_state.settings.language.selected_language,
-        ));
-
         let walk_forward_dir = scene.camera().forward_xy();
         let walk_right_dir = scene.camera().right_xy();
 
@@ -89,7 +84,6 @@ impl SessionState {
             inputs: comp::ControllerInputs::default(),
             hud,
             selected_block: Block::new(BlockKind::Misc, Rgb::broadcast(255)),
-            i18n,
             walk_forward_dir,
             walk_right_dir,
             freefly_vel: Vec3::zero(),
@@ -125,24 +119,23 @@ impl SessionState {
                     self.hud.new_message(m);
                 },
                 client::Event::InventoryUpdated(inv_event) => {
-                    let sfx_trigger_item = self
-                        .scene
-                        .sfx_mgr
-                        .triggers
-                        .get_key_value(&SfxEvent::from(&inv_event));
+                    let sfx_triggers = self.scene.sfx_mgr.triggers.read();
+
+                    let sfx_trigger_item = sfx_triggers.get_key_value(&SfxEvent::from(&inv_event));
                     global_state.audio.emit_sfx_item(sfx_trigger_item);
+
+                    let i18n = global_state.i18n.read();
 
                     match inv_event {
                         InventoryUpdateEvent::CollectFailed => {
                             self.hud.new_message(ChatMsg {
-                                message: self.i18n.get("hud.chat.loot_fail").to_string(),
+                                message: i18n.get("hud.chat.loot_fail").to_string(),
                                 chat_type: ChatType::CommandError,
                             });
                         },
                         InventoryUpdateEvent::Collected(item) => {
                             self.hud.new_message(ChatMsg {
-                                message: self
-                                    .i18n
+                                message: i18n
                                     .get("hud.chat.loot_msg")
                                     .replace("{item}", item.name()),
                                 chat_type: ChatType::Loot,
@@ -153,10 +146,11 @@ impl SessionState {
                 },
                 client::Event::Disconnect => return Ok(TickAction::Disconnect),
                 client::Event::DisconnectionNotification(time) => {
+                    let i18n = global_state.i18n.read();
+
                     let message = match time {
-                        0 => String::from(self.i18n.get("hud.chat.goodbye")),
-                        _ => self
-                            .i18n
+                        0 => String::from(i18n.get("hud.chat.goodbye")),
+                        _ => i18n
                             .get("hud.chat.connection_lost")
                             .replace("{time}", time.to_string().as_str()),
                     };
@@ -169,7 +163,11 @@ impl SessionState {
                 client::Event::Kicked(reason) => {
                     global_state.info_message = Some(format!(
                         "{}: {}",
-                        self.i18n.get("main.login.kicked").to_string(),
+                        global_state
+                            .i18n
+                            .read()
+                            .get("main.login.kicked")
+                            .to_string(),
                         reason
                     ));
                     return Ok(TickAction::Disconnect);
@@ -212,10 +210,6 @@ impl PlayState for SessionState {
     fn tick(&mut self, global_state: &mut GlobalState, events: Vec<Event>) -> PlayStateResult {
         span!(_guard, "tick", "<Session as PlayState>::tick");
         // TODO: let mut client = self.client.borrow_mut();
-        // NOTE: Not strictly necessary, but useful for hotloading translation changes.
-        self.i18n = Localization::load_expect(&i18n_asset_key(
-            &global_state.settings.language.selected_language,
-        ));
 
         // TODO: can this be a method on the session or are there borrowcheck issues?
         let (client_presence, client_registered) = {
@@ -680,8 +674,13 @@ impl PlayState for SessionState {
                     Ok(TickAction::Continue) => {}, // Do nothing
                     Ok(TickAction::Disconnect) => return PlayStateResult::Pop, // Go to main menu
                     Err(err) => {
-                        global_state.info_message =
-                            Some(self.i18n.get("common.connection_lost").to_owned());
+                        global_state.info_message = Some(
+                            global_state
+                                .i18n
+                                .read()
+                                .get("common.connection_lost")
+                                .to_owned(),
+                        );
                         error!("[session] Failed to tick the scene: {:?}", err);
 
                         return PlayStateResult::Pop;
@@ -758,9 +757,9 @@ impl PlayState for SessionState {
             );
 
             // Look for changes in the localization files
-            if global_state.localization_watcher.reloaded() {
+            if global_state.i18n.reloaded() {
                 hud_events.push(HudEvent::ChangeLanguage(Box::new(
-                    self.i18n.metadata.clone(),
+                    global_state.i18n.read().metadata.clone(),
                 )));
             }
 
@@ -1016,13 +1015,11 @@ impl PlayState for SessionState {
                     HudEvent::ChangeLanguage(new_language) => {
                         global_state.settings.language.selected_language =
                             new_language.language_identifier;
-                        self.i18n = Localization::load_watched(
-                            &i18n_asset_key(&global_state.settings.language.selected_language),
-                            &mut global_state.localization_watcher,
-                        )
-                        .unwrap();
-                        self.i18n.log_missing_entries();
-                        self.hud.update_language(Arc::clone(&self.i18n));
+                        global_state.i18n = Localization::load_expect(&i18n_asset_key(
+                            &global_state.settings.language.selected_language,
+                        ));
+                        global_state.i18n.read().log_missing_entries();
+                        self.hud.update_fonts(&global_state.i18n.read());
                     },
                     HudEvent::ChangeFullscreenMode(new_fullscreen_settings) => {
                         global_state

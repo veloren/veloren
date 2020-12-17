@@ -45,7 +45,7 @@
 use crate::audio::{AudioFrontend, MusicChannelTag};
 use client::Client;
 use common::{
-    assets,
+    assets::{self, AssetExt, AssetHandle},
     terrain::{BiomeKind, SitesKind},
 };
 use common_sys::state::State;
@@ -103,7 +103,7 @@ enum PlayState {
 /// Provides methods to control music playback
 pub struct MusicMgr {
     /// Collection of all the tracks
-    soundtrack: SoundtrackCollection,
+    soundtrack: AssetHandle<SoundtrackCollection>,
     /// Instant at which the current track began playing
     began_playing: Instant,
     /// Time until the next track should be played
@@ -139,7 +139,7 @@ impl MusicMgr {
         //}
 
         if audio.music_enabled()
-            && !self.soundtrack.tracks.is_empty()
+            && !self.soundtrack.read().tracks.is_empty()
             && self.began_playing.elapsed().as_secs_f32() > self.next_track_change
         {
             self.play_random_track(audio, state, client);
@@ -158,8 +158,8 @@ impl MusicMgr {
         let current_site = client.current_site();
 
         // Filters out tracks not matching the timing, site, and biome
-        let maybe_tracks = self
-            .soundtrack
+        let soundtrack = self.soundtrack.read();
+        let maybe_tracks = soundtrack
             .tracks
             .iter()
             .filter(|track| {
@@ -225,27 +225,23 @@ impl MusicMgr {
         }
     }
 
-    fn load_soundtrack_items() -> SoundtrackCollection {
-        match assets::load_file("voxygen.audio.soundtrack", &["ron"]) {
-            Ok(file) => match ron::de::from_reader(file) {
-                Ok(config) => config,
-                Err(error) => {
-                    warn!(
-                        "Error parsing music config file, music will not be available: {}",
-                        format!("{:#?}", error)
-                    );
+    fn load_soundtrack_items() -> AssetHandle<SoundtrackCollection> {
+        // Cannot fail: A default value is always provided
+        SoundtrackCollection::load_expect("voxygen.audio.soundtrack")
+    }
+}
 
-                    SoundtrackCollection::default()
-                },
-            },
-            Err(error) => {
-                warn!(
-                    "Error reading music config file, music will not be available: {}",
-                    format!("{:#?}", error)
-                );
+impl assets::Asset for SoundtrackCollection {
+    type Loader = assets::RonLoader;
 
-                SoundtrackCollection::default()
-            },
-        }
+    const EXTENSION: &'static str = "ron";
+
+    fn default_value(_: &str, error: assets::Error) -> Result<Self, assets::Error> {
+        warn!(
+            "Error reading music config file, music will not be available: {:#?}",
+            error
+        );
+
+        Ok(SoundtrackCollection::default())
     }
 }

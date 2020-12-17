@@ -47,7 +47,7 @@ use conrod_core::{
 use core::{convert::TryInto, f32, f64, ops::Range};
 use graphic::TexId;
 use hashbrown::hash_map::Entry;
-use std::{sync::Arc, time::Duration};
+use std::time::Duration;
 use tracing::{error, warn};
 use vek::*;
 
@@ -215,8 +215,8 @@ impl Ui {
         self.image_map.replace(id, (graphic_id, Rotation::None));
     }
 
-    pub fn new_font(&mut self, font: Arc<crate::ui::ice::RawFont>) -> font::Id {
-        let font = text::Font::from_bytes(font.0.clone()).unwrap();
+    pub fn new_font(&mut self, font: crate::ui::ice::RawFont) -> font::Id {
+        let font = text::Font::from_bytes(font.0).unwrap();
         self.ui.fonts.insert(font)
     }
 

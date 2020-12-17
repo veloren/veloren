@@ -1,5 +1,5 @@
 use crate::{
-    i18n::{i18n_asset_key, Localization},
+    i18n::Localization,
     render::Renderer,
     ui::{
         self,
@@ -22,7 +22,7 @@ use crate::{
 };
 use client::Client;
 use common::{
-    assets::Asset,
+    assets::AssetHandle,
     character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER},
     comp::{self, humanoid, item::tool::AbilityMap},
     LoadoutBuilder,
@@ -220,7 +220,6 @@ enum InfoContent {
 struct Controls {
     fonts: Fonts,
     imgs: Imgs,
-    i18n: std::sync::Arc<Localization>,
     // Voxygen version
     version: String,
     // Alpha disclaimer
@@ -264,19 +263,13 @@ enum Message {
 }
 
 impl Controls {
-    fn new(
-        fonts: Fonts,
-        imgs: Imgs,
-        i18n: std::sync::Arc<Localization>,
-        selected: Option<CharacterId>,
-    ) -> Self {
+    fn new(fonts: Fonts, imgs: Imgs, selected: Option<CharacterId>) -> Self {
         let version = common::util::DISPLAY_VERSION_LONG.clone();
         let alpha = format!("Veloren {}", common::util::DISPLAY_VERSION.as_str());
 
         Self {
             fonts,
             imgs,
-            i18n,
             version,
             alpha,
 
@@ -287,12 +280,13 @@ impl Controls {
         }
     }
 
-    fn view(
-        &mut self,
+    fn view<'a>(
+        &'a mut self,
         _settings: &Settings,
         client: &Client,
         error: &Option<String>,
-    ) -> Element<Message> {
+        i18n: &'a Localization,
+    ) -> Element<'a, Message> {
         // TODO: use font scale thing for text size (use on button size for buttons with
         // text)
 
@@ -301,7 +295,6 @@ impl Controls {
 
         let imgs = &self.imgs;
         let fonts = &self.fonts;
-        let i18n = &self.i18n;
         let tooltip_manager = &self.tooltip_manager;
 
         let button_style = style::button::Style::new(imgs.button)
@@ -1298,7 +1291,7 @@ impl Controls {
                     body.skin = rng.gen_range(0, species.num_skin_colors());
                     body.eye_color = rng.gen_range(0, species.num_eye_colors());
                     body.eyes = rng.gen_range(0, species.num_eyes(body_type));
-                    *name = npc::get_npc_name(npc::NpcKind::Humanoid).to_string();
+                    *name = npc::get_npc_name(npc::NpcKind::Humanoid);
                 }
             },
             Message::ConfirmDeletion => {
@@ -1402,20 +1395,10 @@ impl CharSelectionUi {
         let selected_character = global_state.profile.get_selected_character(server_name);
 
         // Load language
-        let i18n = Localization::load_expect(&i18n_asset_key(
-            &global_state.settings.language.selected_language,
-        ));
+        let i18n = global_state.i18n.read();
 
         // TODO: don't add default font twice
-        let font = {
-            use std::io::Read;
-            let mut buf = Vec::new();
-            common::assets::load_file(&i18n.fonts.get("cyri").unwrap().asset_key, &["ttf"])
-                .unwrap()
-                .read_to_end(&mut buf)
-                .unwrap();
-            ui::ice::Font::try_from_vec(buf).unwrap()
-        };
+        let font = ui::ice::load_font(&i18n.fonts.get("cyri").unwrap().asset_key);
 
         let mut ui = Ui::new(
             &mut global_state.window,
@@ -1429,7 +1412,6 @@ impl CharSelectionUi {
         let controls = Controls::new(
             fonts,
             Imgs::load(&mut ui).expect("Failed to load images"),
-            i18n,
             selected_character,
         );
 
@@ -1476,20 +1458,13 @@ impl CharSelectionUi {
         }
     }
 
-    pub fn update_language(&mut self, i18n: std::sync::Arc<Localization>) {
-        let font = {
-            use std::io::Read;
-            let mut buf = Vec::new();
-            common::assets::load_file(&i18n.fonts.get("cyri").unwrap().asset_key, &["ttf"])
-                .unwrap()
-                .read_to_end(&mut buf)
-                .unwrap();
-            ui::ice::Font::try_from_vec(buf).unwrap()
-        };
-        self.controls.i18n = i18n;
+    pub fn update_language(&mut self, i18n: AssetHandle<Localization>) {
+        let i18n = i18n.read();
+        let font = ui::ice::load_font(&i18n.fonts.get("cyri").unwrap().asset_key);
+
         self.ui.clear_fonts(font);
-        self.controls.fonts = Fonts::load(&self.controls.i18n.fonts, &mut self.ui)
-            .expect("Impossible to load fonts!");
+        self.controls.fonts =
+            Fonts::load(&i18n.fonts, &mut self.ui).expect("Impossible to load fonts!");
     }
 
     pub fn set_scale_mode(&mut self, scale_mode: ui::ScaleMode) {
@@ -1503,10 +1478,11 @@ impl CharSelectionUi {
     // TODO: do we need whole client here or just character list?
     pub fn maintain(&mut self, global_state: &mut GlobalState, client: &Client) -> Vec<Event> {
         let mut events = Vec::new();
+        let i18n = global_state.i18n.read();
 
         let (mut messages, _) = self.ui.maintain(
             self.controls
-                .view(&global_state.settings, &client, &self.error),
+                .view(&global_state.settings, &client, &self.error, &i18n),
             global_state.window.renderer_mut(),
             global_state.clipboard.as_ref(),
         );

@@ -20,7 +20,6 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
-use std::{fs::File, io::BufReader};
 use vek::*;
 
 make_case_elim!(
@@ -123,15 +122,13 @@ impl<'a, BodyMeta, SpeciesMeta> core::ops::Index<&'a Body> for AllBodies<BodyMet
 }
 
 impl<
-    BodyMeta: Send + Sync + for<'de> serde::Deserialize<'de>,
-    SpeciesMeta: Send + Sync + for<'de> serde::Deserialize<'de>,
+    BodyMeta: Send + Sync + for<'de> serde::Deserialize<'de> + 'static,
+    SpeciesMeta: Send + Sync + for<'de> serde::Deserialize<'de> + 'static,
 > Asset for AllBodies<BodyMeta, SpeciesMeta>
 {
-    const ENDINGS: &'static [&'static str] = &["json"];
+    type Loader = assets::JsonLoader;
 
-    fn parse(buf_reader: BufReader<File>, _specifier: &str) -> Result<Self, assets::Error> {
-        serde_json::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
-    }
+    const EXTENSION: &'static str = "json";
 }
 
 impl Body {

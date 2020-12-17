@@ -10,7 +10,7 @@ use crate::{
     Canvas, IndexRef,
 };
 use common::{
-    assets::Asset,
+    assets::AssetExt,
     comp,
     generation::{ChunkSupplement, EntityInfo},
     lottery::Lottery,
@@ -182,7 +182,8 @@ pub fn apply_caves_to(canvas: &mut Canvas) {
                 .chance(wpos2d.into(), 0.001 * difficulty.powf(1.5))
                 && cave_base < surface_z as i32 - 25
             {
-                let kind = *Lottery::<SpriteKind>::load_expect("common.cave_scatter")
+                let lottery = Lottery::<SpriteKind>::load_expect("common.cave_scatter").read();
+                let kind = *lottery
                     .choose_seeded(RandomField::new(info.index().seed + 1).get(wpos2d.into()));
                 canvas.map(Vec3::new(wpos2d.x, wpos2d.y, cave_base), |block| {
                     block.with_sprite(kind)

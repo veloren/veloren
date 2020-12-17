@@ -1,7 +1,6 @@
 mod ui;
 
 use crate::{
-    i18n::{i18n_asset_key, Localization},
     render::Renderer,
     scene::simple::{self as scene, Scene},
     session::SessionState,
@@ -10,7 +9,7 @@ use crate::{
     Direction, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
-use common::{assets::Asset, comp, resources::DeltaTime, span};
+use common::{comp, resources::DeltaTime, span};
 use specs::WorldExt;
 use std::{cell::RefCell, rc::Rc};
 use tracing::error;
@@ -64,11 +63,7 @@ impl PlayState for CharSelectionState {
         self.client.borrow_mut().load_character_list();
 
         // Updated localization in case the selected language was changed
-        let localized_strings = crate::i18n::Localization::load_expect(
-            &crate::i18n::i18n_asset_key(&global_state.settings.language.selected_language),
-        );
-        self.char_selection_ui
-            .update_language(std::sync::Arc::clone(&localized_strings));
+        self.char_selection_ui.update_language(global_state.i18n);
         // Set scale mode in case it was change
         self.char_selection_ui
             .set_scale_mode(global_state.settings.gameplay.ui_scale);
@@ -167,9 +162,7 @@ impl PlayState for CharSelectionState {
             }
 
             // Tick the client (currently only to keep the connection alive).
-            let localized_strings = Localization::load_expect(&i18n_asset_key(
-                &global_state.settings.language.selected_language,
-            ));
+            let localized_strings = &*global_state.i18n.read();
 
             match self.client.borrow_mut().tick(
                 comp::ControllerInputs::default(),
