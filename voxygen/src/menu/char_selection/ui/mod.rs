@@ -115,8 +115,8 @@ image_ids_ice! {
         button_press: "voxygen.element.buttons.button_press",
 
         // Tooltips
-        tt_edge: "voxygen/element/frames/tooltip/edge",
-        tt_corner: "voxygen/element/frames/tooltip/corner",
+        tt_edge: "voxygen.element.frames.tooltip.edge",
+        tt_corner: "voxygen.element.frames.tooltip.corner",
     }
 }
 
