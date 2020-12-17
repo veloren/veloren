@@ -86,6 +86,27 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         return;
     }
 
+    let get_attacker_name = |cause_of_death: KillType, by: Uid| -> KillSource {
+        // Get attacker entity
+        if let Some(char_entity) = state.ecs().entity_from_uid(by.into()) {
+            // Check if attacker is another player or entity with stats (npc)
+            if state
+                .ecs()
+                .read_storage::<Player>()
+                .get(char_entity)
+                .is_some()
+            {
+                KillSource::Player(by, cause_of_death)
+            } else if let Some(stats) = state.ecs().read_storage::<Stats>().get(char_entity) {
+                KillSource::NonPlayer(stats.name.clone(), cause_of_death)
+            } else {
+                KillSource::NonPlayer("<?>".to_string(), cause_of_death)
+            }
+        } else {
+            KillSource::NonPlayer("<?>".to_string(), cause_of_death)
+        }
+    };
+
     // Chat message
     // If it was a player that died
     if let Some(_player) = state.ecs().read_storage::<Player>().get(entity) {
@@ -94,129 +115,26 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                 HealthSource::Damage {
                     kind: DamageSource::Melee,
                     by: Some(by),
-                } => {
-                    // Get attacker entity
-                    if let Some(char_entity) = state.ecs().entity_from_uid(by.into()) {
-                        // Check if attacker is another player or entity with stats (npc)
-                        if state
-                            .ecs()
-                            .read_storage::<Player>()
-                            .get(char_entity)
-                            .is_some()
-                        {
-                            KillSource::Player(by, KillType::Melee)
-                        } else if let Some(stats) =
-                            state.ecs().read_storage::<Stats>().get(char_entity)
-                        {
-                            KillSource::NonPlayer(stats.name.clone(), KillType::Melee)
-                        } else {
-                            KillSource::NonPlayer("<?>".to_string(), KillType::Melee)
-                        }
-                    } else {
-                        KillSource::NonPlayer("<?>".to_string(), KillType::Melee)
-                    }
-                },
+                } => get_attacker_name(KillType::Melee, by),
                 HealthSource::Damage {
                     kind: DamageSource::Projectile,
                     by: Some(by),
                 } => {
-                    // Get projectile owner entity TODO: add names to projectiles and send in
-                    // message
-                    if let Some(char_entity) = state.ecs().entity_from_uid(by.into()) {
-                        // Check if attacker is another player or entity with stats (npc)
-                        if state
-                            .ecs()
-                            .read_storage::<Player>()
-                            .get(char_entity)
-                            .is_some()
-                        {
-                            KillSource::Player(by, KillType::Projectile)
-                        } else if let Some(stats) =
-                            state.ecs().read_storage::<Stats>().get(char_entity)
-                        {
-                            KillSource::NonPlayer(stats.name.clone(), KillType::Projectile)
-                        } else {
-                            KillSource::NonPlayer("<?>".to_string(), KillType::Projectile)
-                        }
-                    } else {
-                        KillSource::NonPlayer("<?>".to_string(), KillType::Projectile)
-                    }
+                    // TODO: add names to projectiles and send in message
+                    get_attacker_name(KillType::Projectile, by)
                 },
                 HealthSource::Damage {
                     kind: DamageSource::Explosion,
                     by: Some(by),
-                } => {
-                    // Get explosion owner entity
-                    if let Some(char_entity) = state.ecs().entity_from_uid(by.into()) {
-                        // Check if attacker is another player or entity with stats (npc)
-                        if state
-                            .ecs()
-                            .read_storage::<Player>()
-                            .get(char_entity)
-                            .is_some()
-                        {
-                            KillSource::Player(by, KillType::Explosion)
-                        } else if let Some(stats) =
-                            state.ecs().read_storage::<Stats>().get(char_entity)
-                        {
-                            KillSource::NonPlayer(stats.name.clone(), KillType::Explosion)
-                        } else {
-                            KillSource::NonPlayer("<?>".to_string(), KillType::Explosion)
-                        }
-                    } else {
-                        KillSource::NonPlayer("<?>".to_string(), KillType::Explosion)
-                    }
-                },
+                } => get_attacker_name(KillType::Explosion, by),
                 HealthSource::Damage {
                     kind: DamageSource::Energy,
                     by: Some(by),
-                } => {
-                    // Get energy owner entity
-                    if let Some(char_entity) = state.ecs().entity_from_uid(by.into()) {
-                        // Check if attacker is another player or entity with stats (npc)
-                        if state
-                            .ecs()
-                            .read_storage::<Player>()
-                            .get(char_entity)
-                            .is_some()
-                        {
-                            KillSource::Player(by, KillType::Energy)
-                        } else if let Some(stats) =
-                            state.ecs().read_storage::<Stats>().get(char_entity)
-                        {
-                            KillSource::NonPlayer(stats.name.clone(), KillType::Energy)
-                        } else {
-                            KillSource::NonPlayer("<?>".to_string(), KillType::Energy)
-                        }
-                    } else {
-                        KillSource::NonPlayer("<?>".to_string(), KillType::Energy)
-                    }
-                },
+                } => get_attacker_name(KillType::Energy, by),
                 HealthSource::Damage {
                     kind: DamageSource::Other,
                     by: Some(by),
-                } => {
-                    // Get energy owner entity
-                    if let Some(char_entity) = state.ecs().entity_from_uid(by.into()) {
-                        // Check if attacker is another player or entity with stats (npc)
-                        if state
-                            .ecs()
-                            .read_storage::<Player>()
-                            .get(char_entity)
-                            .is_some()
-                        {
-                            KillSource::Player(by, KillType::Other)
-                        } else if let Some(stats) =
-                            state.ecs().read_storage::<Stats>().get(char_entity)
-                        {
-                            KillSource::NonPlayer(stats.name.clone(), KillType::Other)
-                        } else {
-                            KillSource::NonPlayer("<?>".to_string(), KillType::Other)
-                        }
-                    } else {
-                        KillSource::NonPlayer("<?>".to_string(), KillType::Other)
-                    }
-                },
+                } => get_attacker_name(KillType::Other, by),
                 HealthSource::World => KillSource::FallDamage,
                 HealthSource::Suicide => KillSource::Suicide,
                 HealthSource::Damage { .. }
