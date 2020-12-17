@@ -1,5 +1,5 @@
 ItemDef(
-    name: Plain Salad",
+    name: "Plain Salad",
     description: "Restores 20 Health over 20 seconds\n\nLiterally just chopped lettuce. Does this even count as a salad?",
     kind: Consumable(
         kind: "PlainSalad",
@@ -9,7 +9,7 @@ ItemDef(
                 data: (
                     strength: 10.0,
                     duration: Some((
-                            secs: 20,
+                            secs: 10,
                             nanos: 0,
                         )),
                     ),
