@@ -73,7 +73,16 @@ let
     callPackage ./Cargo.nix {
       defaultCrateOverrides = with common; with crateDeps;
         defaultCrateOverrides // {
-          veloren-common = _: {
+          veloren-common = oldAttrs: {
+            # see: https://github.com/kolloch/crate2nix/issues/129
+            dependencies =
+              map
+                (dep:
+                  if dep.name == "csv" || dep.name == "structopt"
+                  then builtins.removeAttrs dep [ "optional" ]
+                  else dep)
+                oldAttrs.dependencies;
+
             # Disable `git-lfs` check here since we check it ourselves
             # We have to include the command output here, otherwise Nix won't run it
             DISABLE_GIT_LFS_CHECK = utils.isGitLfsSetup common.gitLfsCheckFile;
