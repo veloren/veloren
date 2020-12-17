@@ -99,10 +99,19 @@ impl StateExt for State {
             Effect::PoiseChange(poise_damage) => {
                 let loadouts = self.ecs().read_storage::<comp::Loadout>();
                 let change = poise_damage.modify_poise_damage(loadouts.get(entity));
-                self.ecs()
-                    .write_storage::<comp::Poise>()
-                    .get_mut(entity)
-                    .map(|poise| poise.change_by(change, Vec3::zero()));
+                // Check to make sure the entity is not already stunned
+                if let Some(character_state) = self
+                    .ecs()
+                    .read_storage::<comp::CharacterState>()
+                    .get(entity)
+                {
+                    if !character_state.is_stunned() {
+                        self.ecs()
+                            .write_storage::<comp::Poise>()
+                            .get_mut(entity)
+                            .map(|poise| poise.change_by(change, Vec3::zero()));
+                    }
+                }
             },
             Effect::Buff(buff) => {
                 self.ecs()

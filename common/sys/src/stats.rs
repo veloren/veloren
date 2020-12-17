@@ -190,7 +190,6 @@ impl<'a> System<'a> for Sys {
                         entity,
                         impulse: 5.0 * poise.knockback(),
                     });
-                    //handle_knockback(server, entity, 5.0 * knockback_dir);
                 },
                 PoiseState::Dazed => {
                     poise.reset();
@@ -203,7 +202,10 @@ impl<'a> System<'a> for Sys {
                         stage_section: common::states::utils::StageSection::Buildup,
                         was_wielded,
                     });
-                    //handle_knockback(server, entity, 10.0 * knockback_dir);
+                    server_event_emitter.emit(ServerEvent::Knockback {
+                        entity,
+                        impulse: 10.0 * poise.knockback(),
+                    });
                 },
                 PoiseState::KnockedDown => {
                     poise.reset();
@@ -216,7 +218,10 @@ impl<'a> System<'a> for Sys {
                         stage_section: common::states::utils::StageSection::Buildup,
                         was_wielded,
                     });
-                    //handle_knockback(server, entity, 10.0 * knockback_dir);
+                    server_event_emitter.emit(ServerEvent::Knockback {
+                        entity,
+                        impulse: 10.0 * poise.knockback(),
+                    });
                 },
             }
         }

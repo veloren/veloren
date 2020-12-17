@@ -173,7 +173,6 @@ impl Poise {
     }
 
     pub fn change_by(&mut self, change: PoiseChange, impulse: Vec3<f32>) {
-        println!("Poise change: {:?}", change);
         self.current = ((self.current as i32 + change.amount).max(0) as u32).min(self.maximum);
         self.knockback = impulse;
         self.last_change = (0.0, PoiseChange {

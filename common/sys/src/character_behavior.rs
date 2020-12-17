@@ -120,7 +120,7 @@ impl<'a> System<'a> for Sys {
             &mut inventories.restrict_mut(),
             &mut controllers,
             &healths,
-            poises.maybe(),
+            &poises,
             &bodies,
             &physics_states,
             attacking_storage.maybe(),

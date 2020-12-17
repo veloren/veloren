@@ -108,6 +108,10 @@ impl<'a> TrackedComps<'a> {
             .get(entity)
             .cloned()
             .map(|c| comps.push(c.into()));
+        self.poise
+            .get(entity)
+            .cloned()
+            .map(|c| comps.push(c.into()));
         self.can_build
             .get(entity)
             .cloned()
@@ -214,6 +218,7 @@ impl<'a> ReadTrackers<'a> {
             .with_component(&comps.uid, &*self.auras, &comps.auras, filter)
             .with_component(&comps.uid, &*self.energy, &comps.energy, filter)
             .with_component(&comps.uid, &*self.health, &comps.health, filter)
+            .with_component(&comps.uid, &*self.poise, &comps.poise, filter)
             .with_component(&comps.uid, &*self.can_build, &comps.can_build, filter)
             .with_component(
                 &comps.uid,
@@ -282,6 +287,7 @@ fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
     trackers.auras.record_changes(&comps.auras);
     trackers.energy.record_changes(&comps.energy);
     trackers.health.record_changes(&comps.health);
+    trackers.poise.record_changes(&comps.poise);
     trackers.can_build.record_changes(&comps.can_build);
     trackers.light_emitter.record_changes(&comps.light_emitter);
     trackers.item.record_changes(&comps.item);
