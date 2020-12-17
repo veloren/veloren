@@ -1,11 +1,12 @@
 use super::SpriteKind;
 use crate::make_case_elim;
 use enum_iterator::IntoEnumIterator;
+use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, convert::TryFrom, fmt, ops::Deref};
+use std::{convert::TryFrom, fmt, ops::Deref};
 use vek::*;
 
 make_case_elim!(

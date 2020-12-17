@@ -1,12 +1,9 @@
 use common::assets::{self, Asset};
 use deunicode::deunicode;
+use hashbrown::{HashMap, HashSet};
 use ron::de::from_reader;
 use serde::{Deserialize, Serialize};
-use std::{
-    collections::{HashMap, HashSet},
-    fs::File,
-    io::BufReader,
-};
+use std::{fs::File, io::BufReader};
 use tracing::warn;
 
 /// The reference language, aka the more up-to-date localization data.
@@ -177,9 +174,9 @@ pub fn i18n_asset_key(language_id: &str) -> String { "voxygen.i18n.".to_string()
 mod tests {
     use super::Localization;
     use git2::Repository;
+    use hashbrown::{HashMap, HashSet};
     use ron::de::{from_bytes, from_reader};
     use std::{
-        collections::{HashMap, HashSet},
         fs,
         path::{Path, PathBuf},
     };

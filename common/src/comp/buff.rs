@@ -1,8 +1,9 @@
 use crate::uid::Uid;
+use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
-use std::{cmp::Ordering, collections::HashMap, time::Duration};
+use std::{cmp::Ordering, time::Duration};
 
 /// De/buff Kind.
 /// This is used to determine what effects a buff will have
