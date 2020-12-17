@@ -12,7 +12,7 @@ use common::{
     combat,
     comp::{
         self, aura, buff,
-        chat::{KillSource, KillType},
+        chat::{KillSource, KillType}, CharacterState,
         object, Alignment, Body, Energy, EnergyChange, Group, Health, HealthChange, HealthSource,
         Inventory, Item, Player, Poise, PoiseChange, PoiseSource, Pos, Stats,
     },
@@ -41,8 +41,12 @@ pub fn handle_poise(
     knockback_dir: Vec3<f32>,
 ) {
     let ecs = &server.state.ecs();
-    if let Some(poise) = ecs.write_storage::<Poise>().get_mut(entity) {
-        poise.change_by(change, knockback_dir);
+    if let Some(character_state) = ecs.read_storage::<CharacterState>().get(entity) {
+        if !character_state.is_stunned() {
+            if let Some(poise) = ecs.write_storage::<Poise>().get_mut(entity) {
+                poise.change_by(change, knockback_dir);
+            }
+        }
     }
 }
 
