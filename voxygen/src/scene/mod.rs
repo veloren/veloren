@@ -129,7 +129,7 @@ impl<'a> SceneData<'a> {
 /// W_e = 2 is the width of the image plane (for our projections, since they go
 /// from -1 to 1) n_e = near_plane is the near plane for the view frustum
 /// θ = (fov / 2) is the half-angle of the FOV (the one passed to
-/// Mat4::projection_rh_no).
+/// Mat4::projection_rh_zo).
 ///
 /// Although the widths for the x and y image planes are the same, they are
 /// different in this framework due to the introduction of an aspect ratio:
@@ -657,8 +657,7 @@ impl Scene {
             &scene_data,
             focus_pos,
             self.loaded_distance,
-            view_mat,
-            proj_mat,
+            &self.camera,
         );
 
         // Maintain the figures.
@@ -696,9 +695,10 @@ impl Scene {
             // OpenGL coordinates.  Note that the matrix for directional light
             // is *already* linear in the depth buffer.
             //
-            // Also, observe that we flip the texture sampling matrix in order to account for the
-            // fact that DirectX renders top-down.
-            let texture_mat = Mat4::<f32>::scaling_3d::<Vec3<f32>>(Vec3::new(0.5, -0.5, 1.0)) * Mat4::translation_3d(Vec3::new(1.0, -1.0, 0.0));
+            // Also, observe that we flip the texture sampling matrix in order to account
+            // for the fact that DirectX renders top-down.
+            let texture_mat = Mat4::<f32>::scaling_3d::<Vec3<f32>>(Vec3::new(0.5, -0.5, 1.0))
+                * Mat4::translation_3d(Vec3::new(1.0, -1.0, 0.0));
             // We need to compute these offset matrices to transform world space coordinates
             // to the translated ones we use when multiplying by the light space
             // matrix; this helps avoid precision loss during the
@@ -722,7 +722,8 @@ impl Scene {
                 let sin_gamma = (1.0 - cos_gamma * cos_gamma).sqrt();
                 let gamma = sin_gamma.asin();
                 let view_mat = math::Mat4::from_col_array(view_mat.into_col_array());
-                // coordinates are transformed from world space (right-handed) to view space (right-handed).
+                // coordinates are transformed from world space (right-handed) to view space
+                // (right-handed).
                 let bounds1 = math::fit_psr(
                     view_mat.map_cols(math::Vec4::from),
                     visible_light_volume.iter().copied(),
@@ -756,7 +757,8 @@ impl Scene {
                 );
 
                 let light_all_mat = l_r * directed_proj_mat * light_view_mat;
-                // coordinates are transformed from world space (right-handed) to rotated light space (left-handed).
+                // coordinates are transformed from world space (right-handed) to rotated light
+                // space (left-handed).
                 let bounds0 = math::fit_psr(
                     light_all_mat,
                     visible_light_volume.iter().copied(),
@@ -765,11 +767,13 @@ impl Scene {
                 // Vague idea: project z_n from the camera view to the light view (where it's
                 // tilted by γ).
                 //
-                // NOTE: To transform a normal by M, we multiply by the transpose of the inverse of M.
-                // For the cases below, we are transforming by an already-inverted matrix, so the
-                // transpose of its inverse is just the transpose of the original matrix.
-                // normals as well as points, rather than taking the transpose of the matrix,
-                // is that our matrix is (for normals) a pure rotation matrix, which means it is d
+                // NOTE: To transform a normal by M, we multiply by the transpose of the inverse
+                // of M. For the cases below, we are transforming by an
+                // already-inverted matrix, so the transpose of its inverse is
+                // just the transpose of the original matrix. normals as well as
+                // points, rather than taking the transpose of the matrix,
+                // is that our matrix is (for normals) a pure rotation matrix, which means it is
+                // d
                 let (z_0, z_1) = {
                     // view space, right-handed coordinates.
                     let p_z = bounds1.max.z;
@@ -782,15 +786,24 @@ impl Scene {
                     let light_all_inv = light_all_mat.inverted();
 
                     // moves from view-space (right-handed) to world-space (right-handed).
-                    let view_point = view_inv * math::Vec4::from_point(math::Vec3::forward_rh() * p_z/* + math::Vec4::unit_w() */);
+                    let view_point = view_inv
+                        * math::Vec4::from_point(
+                            math::Vec3::forward_rh() * p_z, /* + math::Vec4::unit_w() */
+                        );
                     let view_plane = view_mat.transposed() * math::Vec4::forward_rh();
 
                     // moves from rotated light space (left-handed) to world space (right-handed).
-                    let light_point = light_all_inv * math::Vec4::from_point(math::Vec3::up() * p_y/* + math::Vec4::unit_w() */);
+                    let light_point = light_all_inv
+                        * math::Vec4::from_point(
+                            math::Vec3::up() * p_y, /* + math::Vec4::unit_w() */
+                        );
                     let light_plane = light_all_mat.transposed() * math::Vec4::up();
 
                     // moves from rotated light space (left-handed) to world space (right-handed).
-                    let shadow_point = light_all_inv * math::Vec4::from_point(math::Vec3::right() * p_x/* + math::Vec4::unit_w() */);
+                    let shadow_point = light_all_inv
+                        * math::Vec4::from_point(
+                            math::Vec3::right() * p_x, /* + math::Vec4::unit_w() */
+                        );
                     let shadow_plane = light_all_mat.transposed() * math::Vec4::right();
 
                     // Find the point at the intersection of the three planes; note that since the
@@ -834,7 +847,10 @@ impl Scene {
                     //
                     // NOTE: I don't think the w component should be anything but 1 here, but
                     // better safe than sorry.
-                    (f64::from(z0.homogenized().dot(math::Vec4::forward_rh())), f64::from(z1.homogenized().dot(math::Vec4::forward_rh())))
+                    (
+                        f64::from(z0.homogenized().dot(math::Vec4::forward_rh())),
+                        f64::from(z1.homogenized().dot(math::Vec4::forward_rh())),
+                    )
                 };
 
                 // all of this is in rotated light-space (left-handed).
@@ -848,8 +864,8 @@ impl Scene {
                 let w_l_y = d;
 
                 // NOTE: See section 5.1.2.2 of Lloyd's thesis.
-                // NOTE: Since z_1 and z_0 are in the same coordinate space, we don't have to worry
-                // about the handedness of their ratio.
+                // NOTE: Since z_1 and z_0 are in the same coordinate space, we don't have to
+                // worry about the handedness of their ratio.
                 let alpha = z_1 / z_0;
                 let alpha_sqrt = alpha.sqrt();
                 let directed_near_normal = if factor < 0.0 {
@@ -954,16 +970,19 @@ impl Scene {
             shadow_mats.resize_with(6, PointLightMatrix::default);
             // Now, we tackle point lights.
             // First, create a perspective projection matrix at 90 degrees (to cover a whole
-            // face of the cube map we're using).
-            let shadow_proj = Mat4::perspective_rh_zo(
+            // face of the cube map we're using); we use a negative near plane to exactly
+            // match OpenGL's behavior if we use a left-handed coordinate system everywhere
+            // else.
+            let shadow_proj = camera::perspective_rh_zo_general(
                 90.0f32.to_radians(),
                 point_shadow_aspect,
-                SHADOW_NEAR,
-                SHADOW_FAR,
+                1.0 / SHADOW_NEAR,
+                1.0 / SHADOW_FAR,
             );
             // NOTE: We negate here to emulate a right-handed projection with a negative
-            // near plane, which produces the correct transformation to exactly match OpenGL's
-            // rendering behavior if we use a left-handed coordinate system everywhere else.
+            // near plane, which produces the correct transformation to exactly match
+            // OpenGL's rendering behavior if we use a left-handed coordinate
+            // system everywhere else.
             let shadow_proj = shadow_proj * Mat4::scaling_3d(-1.0);
 
             // Next, construct the 6 orientations we'll use for the six faces, in terms of

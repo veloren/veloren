@@ -655,12 +655,12 @@ impl Renderer {
             mip_level_count: levels,
             sample_count,
             dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Depth24Plus,
+            format: wgpu::TextureFormat::Depth32Float,
             usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::RENDER_ATTACHMENT,
         });
         let tgt_depth_view = tgt_depth_tex.create_view(&wgpu::TextureViewDescriptor {
             label: None,
-            format: Some(wgpu::TextureFormat::Depth24Plus),
+            format: Some(wgpu::TextureFormat::Depth32Float),
             dimension: Some(wgpu::TextureViewDimension::D2),
             aspect: wgpu::TextureAspect::DepthOnly,
             base_mip_level: 0,
@@ -679,12 +679,13 @@ impl Renderer {
             mip_level_count: levels,
             sample_count,
             dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Depth24Plus,
+            format: wgpu::TextureFormat::Depth32Float,
             usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
         });
+        // TODO: Consider no depth buffer for the final draw to the window?
         let win_depth_view = tgt_depth_tex.create_view(&wgpu::TextureViewDescriptor {
             label: None,
-            format: Some(wgpu::TextureFormat::Depth24Plus),
+            format: Some(wgpu::TextureFormat::Depth32Float),
             dimension: Some(wgpu::TextureViewDimension::D2),
             aspect: wgpu::TextureAspect::DepthOnly,
             base_mip_level: 0,
@@ -2106,7 +2107,8 @@ fn create_pipelines(
 
     let figure_vert_mod = create_shader("figure-vert", ShaderKind::Vertex)?;
 
-    // let terrain_point_shadow_vert_mod = create_shader("Point-light-shadows-vert", ShaderKind::Vertex)?;
+    // let terrain_point_shadow_vert_mod = create_shader("Point-light-shadows-vert",
+    // ShaderKind::Vertex)?;
 
     let terrain_directed_shadow_vert_mod =
         create_shader("light-shadows-directed-vert", ShaderKind::Vertex)?;

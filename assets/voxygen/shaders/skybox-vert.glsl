@@ -31,7 +31,7 @@ void main() {
         all_mat *
         vec4(v_pos + cam_pos.xyz, 1);
     // gl_Position = vec4(gl_Position.xy, sign(gl_Position.z) * gl_Position.w, gl_Position.w);
-    gl_Position.z = gl_Position.w;
+    gl_Position.z = 0;
     // gl_Position.z = gl_Position.w - 0.000001;//0.0;
     // gl_Position.z = 1.0;
     // gl_Position.z = -1.0;

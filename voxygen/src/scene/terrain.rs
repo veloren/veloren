@@ -15,7 +15,10 @@ use crate::{
     },
 };
 
-use super::{math, SceneData};
+use super::{
+    camera::{self, Camera},
+    math, SceneData,
+};
 use common::{
     assets::{self, AssetExt, DotVoxAsset},
     figure::Segment,
@@ -767,9 +770,14 @@ impl<V: RectRasterableVol> Terrain<V> {
         scene_data: &SceneData,
         focus_pos: Vec3<f32>,
         loaded_distance: f32,
-        view_mat: Mat4<f32>,
-        proj_mat: Mat4<f32>,
+        camera: &Camera,
     ) -> (Aabb<f32>, Vec<math::Vec3<f32>>, math::Aabr<f32>) {
+        let camera::Dependents {
+            view_mat,
+            proj_mat_treeculler,
+            ..
+        } = camera.dependents();
+
         // Remove any models for chunks that have been recently removed.
         // Note: Does this before adding to todo list just in case removed chunks were
         // replaced with new chunks (although this would probably be recorded as
@@ -1215,7 +1223,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         span!(guard, "Construct view frustum");
         let focus_off = focus_pos.map(|e| e.trunc());
         let frustum = Frustum::from_modelview_projection(
-            (proj_mat * view_mat * Mat4::translation_3d(-focus_off)).into_col_arrays(),
+            (proj_mat_treeculler * view_mat * Mat4::translation_3d(-focus_off)).into_col_arrays(),
         );
         drop(guard);
 
@@ -1292,10 +1300,13 @@ impl<V: RectRasterableVol> Terrain<V> {
             let focus_off = math::Vec3::from(focus_off);
             let visible_bounds_fine = visible_bounding_box.as_::<f64>();
             let inv_proj_view =
-                math::Mat4::from_col_arrays((proj_mat * view_mat).into_col_arrays())
+                math::Mat4::from_col_arrays((proj_mat_treeculler * view_mat).into_col_arrays())
                     .as_::<f64>()
                     .inverted();
             let ray_direction = math::Vec3::<f32>::from(ray_direction);
+            // NOTE: We use proj_mat_treeculler here because
+            // calc_focused_light_volume_points makes the assumption that the
+            // near plane lies before the far plane.
             let visible_light_volume = math::calc_focused_light_volume_points(
                 inv_proj_view,
                 ray_direction.as_::<f64>(),
@@ -1455,7 +1466,10 @@ impl<V: RectRasterableVol> Terrain<V> {
         light_data.iter().take(1).for_each(|_light| {
             drawer.draw_point_shadow(
                 &global.point_light_matrices,
-                chunk_iter.clone().filter(|chunk| chunk.can_shadow_point).map(|chunk| (&chunk.opaque_model, &chunk.locals)),
+                chunk_iter
+                    .clone()
+                    .filter(|chunk| chunk.can_shadow_point)
+                    .map(|chunk| (&chunk.opaque_model, &chunk.locals)),
             );
         });
     }

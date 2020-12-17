@@ -1,11 +1,12 @@
 use common::{terrain::TerrainGrid, vol::ReadVol};
 use common_base::span;
-use std::f32::consts::PI;
+use core::{f32::consts::PI, fmt::Debug};
+use num::traits::{real::Real, FloatConst};
 use treeculler::Frustum;
 use vek::*;
 
-pub const NEAR_PLANE: f32 = 0.25;
-pub const FAR_PLANE: f32 = 100000.0;
+pub const NEAR_PLANE: f32 = 0.0625;
+pub const FAR_PLANE: f32 = 524288.0625;
 
 const FIRST_PERSON_INTERP_TIME: f32 = 0.1;
 const THIRD_PERSON_INTERP_TIME: f32 = 0.1;
@@ -31,6 +32,9 @@ pub struct Dependents {
     pub view_mat_inv: Mat4<f32>,
     pub proj_mat: Mat4<f32>,
     pub proj_mat_inv: Mat4<f32>,
+    /// Specifically there for satisfying our treeculler dependency, which can't
+    /// handle inverted depth planes.
+    pub proj_mat_treeculler: Mat4<f32>,
     pub cam_pos: Vec3<f32>,
     pub cam_dir: Vec3<f32>,
 }
@@ -64,6 +68,249 @@ fn clamp_and_modulate(ori: Vec3<f32>) -> Vec3<f32> {
     }
 }
 
+/// Generalized method to construct a perspective projection with x ∈ [-1,1], y
+/// ∈ [-1,1], z ∈ [0,1] given fov_y_radians, aspect_ratio, 1/n, and 1/f.  Note
+/// that you pass in *1/n* and *1/f*, not n and f like you normally would for a
+/// perspective projection; this is done to enable uniform handling of both
+/// finite and infinite far planes.
+///
+/// The only requirements on n and f are: 1/n ≠ 1/f, and 0 ≤ 1/n * 1/f.
+///
+/// This ensures that the near and far plane are not identical (or else your
+/// projection would not covver any distance), and that they have the same sign
+/// (or else we cannot rely on clipping to properly fix your scene).  This also
+/// ensures that at least one of 1/n and 1/f is not 0, and by construction it
+/// guarantees that neither n nor f are 0; these are required in order to make
+/// sense of the definition of near and far planes, and avoid collapsing all
+/// depths to a single point.
+///
+/// For "typical" projections (matching perspective_lh_no), you would satisfy
+/// the stronger requirements.  We give the typical conditions for each bullet
+/// point, and then explain the consequences of not satisfying these conditions:
+///
+/// * 1/n < 1/f (0 to 1 depth planes, meaning n = near and f = far; if f < n,
+///   depth planes go from 1 to 0, meaning f = near and n = far, aka "reverse
+///   depth").
+///
+///     This is by far the most
+///     likely thing to want to change; inverted depth coordinates have *far*
+/// better accuracy for     DirectX / Metal / WGPU-like APIs, when using
+/// floating point depth, while not being *worse*     than the alternative
+/// (OpenGL-like depth, or when using fixed-point / integer depth).  For
+///     maximum benefit, make sure you are using Depth32F, as on most platforms
+/// this is the only     depth buffer size where floating point can be used.
+///
+///     It is a bit unintuitive to prove this, but it turns out that when using
+/// 1 to 0 depth planes,     the point where the depth buffer has its worst
+/// precision is not at the far plane (as with 0     to 1 depth planes) nor at
+/// the near plane, as you might expect, but exactly at far/2 (the
+///     near plane setting does not affect the point of minimum accuracy at
+/// all!).  However, don't     let this fool you into believing the point of
+/// worst precision has simply been moved     around--for *any* fixed Δz that is
+/// the minimum amount of depth precision you want over the     whole range, and
+/// any near plane, you can set the far plane farther (generally much much
+///     farther!) with reversed clip space than you can with standard clip space
+/// while still     getting at least that much depth precision in the worst
+/// case.  Nor is this a small     worst-case; for many desirable near and far
+/// plane combinations, more than half the visible     space will have
+/// completely unusable precision under 0 to 1 depth, while having much better
+///     than needed precision under 1 to 0 depth.
+///
+///     To compute the exact (at least "roughly exact") worst-case accuracy for
+/// floating     point depth and a given precision target Δz, for reverse clip
+/// planes (this can be computed     for the non-reversed case too, but it's
+/// painful and the values are horrible, so don't     bother), we compute
+/// (assuming a finite far plane--see below for details on the infinite
+///     case) the change in the integer representation of the mantissa at z=n/2:
+///
+///     ```ignore
+///     e = floor(ln(near/(far - near))/ln(2))
+///     db/dz = 2^(2-e) / ((1 / far - 1 / near) * (far)^2)
+///     ```
+///
+///     Then the maximum precision you can safely use to get a change in the
+/// integer representation     of the mantissa (assuming 32-bit floating points)
+/// is around:
+///
+///     ```ignore
+///     abs(2^(-23) / (db/dz)).
+///     ```
+///
+///     In particular, if your worst-case target accuracy over the depth range
+/// is Δz, you should     be okay if:
+///
+///     ```ignore
+///     abs(Δz * (db/dz)) * 2^(23) ≥ 1.
+///     ```
+///
+///     This only accounts for precision of the final floating-point value, so
+/// it's     possible that artifacts may be introduced elsewhere during the
+/// computation that reduce     precision further; the most famous example of
+/// this is that OpenGL wipes out most of the     precision gains by going from
+/// [-1,1] to [0,1] by letting
+///
+///     ```ignore
+///     clip space depth = depth * 0.5 + 0.5
+///     ```
+///
+///     which results in huge precision errors by removing nearly all the
+/// floating point values     with the most precision (those close to 0).
+/// Fortunately, most such artifacts are absent     under the wgpu/DirectX/Metal
+/// depth clip space model, so with any luck remaining depth     errors due to
+/// the perspective warp itself should be minimal.
+///
+/// * 0 ≠ 1/far (finite far plane).  When this is false, the far plane is at
+///   infinity; this removes the restriction of having a far plane at all, often
+///   with minimal reduction in accuracy for most values in the scene.  In fact,
+///   in almost all cases with non-reversed depth planes, it *improves* accuracy
+///   over the finite case for the vast majority of the range; however, you
+///   should be using reversed depth planes, and if you are then there is a
+///   quite natural accuracy vs. distance tradeoff in the infinite case.
+///
+///     When using an infinite far plane, the worst-case accuracy is *always* at
+/// infinity, and gets     progressively worse as you get farther away from the
+/// near plane.  However, there is a     second advantage that may not be
+/// immediately apparent: the perspective warp becomes much     simpler,
+/// potentially removing artifacts!  Specifically, in the 0 to 1 depth plane
+/// case, the     assigned depth value (after perspective division) becomes:
+///
+///     ```ignore
+///     depth = 1 - near/z
+///     ```
+///
+///     while in the 1 to 0 depth plane case (which you should be using), the
+/// equation is even     simpler:
+///
+///     ```ignore
+///     depth = near/z
+///     ```
+///
+///     In the 1 to 0 case, in particular, you can see that the depth value is
+/// *linear in z in     log space.*  This lets us compute, for any given target
+/// precision, a *very* simple     worst-case upper bound on the maximum
+/// absolute z value for which that precision can     be achieved (the upper
+/// bound is tight in some cases, but in others may be conservative):
+///
+///     ```ignore
+///     db/dz ≥ 1/z
+///     ```
+///
+///     Plugging that into our old formula, we find that we attain the required
+/// precision at least     in the range (again, this is for the 1 to 0 infinite
+/// case only!):
+///
+///     ```ignore
+///     abs(z) ≤ Δz * 2^23
+///     ```
+///
+///     One thing you may notice is that this worst-case bound *does not depend
+/// on the near plane.*     This means that (within reason) you can put the near
+/// plane as close as you like and still     attain this bound.  Of course, the
+/// bound is not completely tight, but it should not be off     by more than a
+/// factor of 2 or so (informally proven, not made rigorous yet), so for most
+///     practical purposes you can set the near plane as low as you like in this
+/// case.
+///
+/// * 0 < 1/near (positive near plane--best used when moving *to* left-handed
+///   spaces, as we normally do in OpenGL and DirectX).  A use case for *not*
+///   doing this is that it allows moving *from* a left-handed space *to* a
+///   right-handed space in WGPU / DirectX / Metal coordinates; this means that
+///   if matrices were already set up for OpenGL using functions like look_at_rh
+///   that assume right-handed coordinates, we can simply switch these to
+///   look_at_lh and use a right-handed perspective projection with a negative
+///   near plane, to get correct rendering behavior.  Details are out of scope
+///   for this comment.
+///
+/// Note that there is one final, very important thing that affects possible
+/// precision--the actual underlying precision of the floating point format at a
+/// particular value!  As your z values go up, their precision will shrink, so
+/// if at all possible try to shrink your z values down to the lowest range in
+/// which they can be.  Unfortunately, this cannot be part of the perspective
+/// projection itself, because by the time z gets to the projection it is
+/// usually too late for values to still be integers (or coarse-grained powers
+/// of 2).  Instead, try to scale down x, y, and z as soon as possible before
+/// submitting them to the GPU, ideally by as large as possible of a power of 2
+/// that works for your use case.  Not only will this improve depth precision
+/// and recall, it will also help address other artifacts caused by values far
+/// from z (such as improperly rounded rotations, or improper line equations due
+/// to greedy meshing).
+///
+/// TODO: Consider passing fractions rather than 1/n and 1/f directly, even
+/// though the logic for why it should be okay to pass them directly is probably
+/// sound (they are both valid z values in the range, so gl_FragCoord.w will be
+/// assigned to this, meaning if they are imprecise enough then the whole
+/// calculation will be similarly imprecies).
+///
+/// TODO: Since it's a bit confusing that n and f are not always near and far,
+/// and a negative near plane can (probably) be emulated with simple actions on
+/// the perspective matrix, consider removing this functionailty and replacing
+/// our assertion with a single condition: `(1/far) * (1/near) < (1/near)²`.
+pub fn perspective_lh_zo_general<T>(
+    fov_y_radians: T,
+    aspect_ratio: T,
+    inv_n: T,
+    inv_f: T,
+) -> Mat4<T>
+where
+    T: Real + FloatConst + Debug,
+{
+    // Per comments, we only need these two assertions to make sure our calculations
+    // make sense.
+    debug_assert_ne!(
+        inv_n, inv_f,
+        "The near and far plane distances cannot be equal, found: {:?} = {:?}",
+        inv_n, inv_f
+    );
+    debug_assert!(
+        T::zero() <= inv_n * inv_f,
+        "The near and far plane distances must have the same sign, found: {:?} * {:?} < 0",
+        inv_n,
+        inv_f
+    );
+
+    // TODO: Would be nice to separate out the aspect ratio computations.
+    let two = T::one() + T::one();
+    let tan_half_fovy = (fov_y_radians / two).tan();
+    let m00 = T::one() / (aspect_ratio * tan_half_fovy);
+    let m11 = T::one() / tan_half_fovy;
+    let m23 = -T::one() / (inv_n - inv_f);
+    let m22 = inv_n * (-m23);
+    Mat4::new(
+        m00,
+        T::zero(),
+        T::zero(),
+        T::zero(),
+        T::zero(),
+        m11,
+        T::zero(),
+        T::zero(),
+        T::zero(),
+        T::zero(),
+        m22,
+        m23,
+        T::zero(),
+        T::zero(),
+        T::one(),
+        T::zero(),
+    )
+}
+
+/// Same as perspective_lh_zo_general, but for right-handed source spaces.
+pub fn perspective_rh_zo_general<T>(
+    fov_y_radians: T,
+    aspect_ratio: T,
+    inv_n: T,
+    inv_f: T,
+) -> Mat4<T>
+where
+    T: Real + FloatConst + Debug,
+{
+    let mut m = perspective_lh_zo_general(fov_y_radians, aspect_ratio, inv_n, inv_f);
+    m[(2, 2)] = -m[(2, 2)];
+    m[(3, 2)] = -m[(3, 2)];
+    m
+}
+
 impl Camera {
     /// Create a new `Camera` with default parameters.
     pub fn new(aspect: f32, mode: CameraMode) -> Self {
@@ -89,6 +336,7 @@ impl Camera {
                 view_mat_inv: Mat4::identity(),
                 proj_mat: Mat4::identity(),
                 proj_mat_inv: Mat4::identity(),
+                proj_mat_treeculler: Mat4::identity(),
                 cam_pos: Vec3::zero(),
                 cam_dir: Vec3::unit_y(),
             },
@@ -135,14 +383,19 @@ impl Camera {
             * Mat4::translation_3d(-self.focus.map(|e| e.fract()));
         self.dependents.view_mat_inv = self.dependents.view_mat.inverted();
 
+        // NOTE: We reverse the far and near planes to produce an inverted depth
+        // buffer (1 to 0 z planes).
         self.dependents.proj_mat =
-            Mat4::perspective_rh_zo(self.fov, self.aspect, NEAR_PLANE, FAR_PLANE);
+            perspective_rh_zo_general(self.fov, self.aspect, 1.0 / FAR_PLANE, 1.0 / NEAR_PLANE);
+        // For treeculler, we also produce a version without inverted depth.
+        self.dependents.proj_mat_treeculler =
+            perspective_rh_zo_general(self.fov, self.aspect, 1.0 / NEAR_PLANE, 1.0 / FAR_PLANE);
         self.dependents.proj_mat_inv = self.dependents.proj_mat.inverted();
 
         // TODO: Make this more efficient.
         self.dependents.cam_pos = Vec3::from(self.dependents.view_mat_inv * Vec4::unit_w());
         self.frustum = Frustum::from_modelview_projection(
-            (self.dependents.proj_mat
+            (self.dependents.proj_mat_treeculler
                 * self.dependents.view_mat
                 * Mat4::translation_3d(-self.focus.map(|e| e.trunc())))
             .into_col_arrays(),

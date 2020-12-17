@@ -49,9 +49,9 @@ vec3 wpos_at(vec2 uv) {
     vec4 clip_space = vec4((uv * 2.0 - 1.0) * vec2(1, -1), buf_depth, 1.0);
     vec4 view_space = inv * clip_space;
     view_space /= view_space.w;
-    if (buf_depth == 1.0) {
+    if (buf_depth == 0.0) {
         vec3 direction = normalize(view_space.xyz);
-        return direction.xyz * 100000.0 + cam_pos.xyz;
+        return direction.xyz * 524288.0625 + cam_pos.xyz;
     } else {
         return view_space.xyz;
     }

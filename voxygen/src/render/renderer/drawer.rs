@@ -54,7 +54,7 @@ impl<'a> Drawer<'a> {
                         wgpu::RenderPassDepthStencilAttachmentDescriptor {
                             attachment: &self.renderer.tgt_depth_view,
                             depth_ops: Some(wgpu::Operations {
-                                load: wgpu::LoadOp::Clear(1.0),
+                                load: wgpu::LoadOp::Clear(0.0),
                                 store: true,
                             }),
                             stencil_ops: None,
@@ -157,7 +157,7 @@ impl<'a> Drawer<'a> {
     pub fn draw_point_shadow<'b: 'a>(
         &mut self,
         matrices: &[shadow::PointLightMatrix; 126],
-        chunks: impl Clone + Iterator<Item=(&'b Model<terrain::Vertex>, &'b terrain::BoundLocals)>,
+        chunks: impl Clone + Iterator<Item = (&'b Model<terrain::Vertex>, &'b terrain::BoundLocals)>,
     ) {
         if let Some(ref shadow_renderer) = self.renderer.shadow_map {
             const STRIDE: usize = std::mem::size_of::<shadow::PointLightMatrix>();
