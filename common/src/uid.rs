@@ -1,10 +1,11 @@
+use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use specs::{
     saveload::{Marker, MarkerAllocator},
     world::EntitiesRes,
     Component, Entity, FlaggedStorage, Join, ReadStorage, VecStorage,
 };
-use std::{collections::HashMap, fmt, u64};
+use std::{fmt, u64};
 
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub struct Uid(pub u64);

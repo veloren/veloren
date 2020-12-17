@@ -5,8 +5,9 @@ use crate::{
     assets::{self, Asset},
     comp::CharacterAbility,
 };
+use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, fs::File, io::BufReader, time::Duration};
+use std::{fs::File, io::BufReader, time::Duration};
 use tracing::error;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]

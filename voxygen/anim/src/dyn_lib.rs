@@ -1,3 +1,4 @@
+use hashbrown::HashSet;
 use lazy_static::lazy_static;
 use libloading::Library;
 use notify::{immediate_watcher, EventKind, RecursiveMode, Watcher};
@@ -147,7 +148,7 @@ pub fn init() {
     // "Debounces" events since I can't find the option to do this in the latest
     // `notify`
     thread::spawn(move || {
-        let mut modified_paths = std::collections::HashSet::new();
+        let mut modified_paths = HashSet::new();
 
         while let Ok(path) = reload_recv.recv() {
             modified_paths.insert(path);

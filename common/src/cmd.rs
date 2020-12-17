@@ -1,7 +1,7 @@
 use crate::{assets, comp, npc, terrain};
+use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use std::{
-    collections::HashMap,
     fmt::{self, Display},
     path::Path,
     str::FromStr,
