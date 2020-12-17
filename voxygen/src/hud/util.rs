@@ -34,6 +34,7 @@ pub fn item_text<'a>(item: &'a impl ItemDesc) -> (&'_ str, Cow<'a, str>) {
     (item.name(), desc)
 }
 
+// TODO: localization
 fn glider_desc(desc: &str) -> String { format!("Glider\n\n{}\n\n<Right-Click to use>", desc) }
 
 fn consumable_desc(desc: &str) -> String {
@@ -50,7 +51,6 @@ fn ingredient_desc(desc: &str) -> String { format!("Crafting Ingredient\n\n{}", 
 
 fn lantern_desc(desc: &str) -> String { format!("Lantern\n\n{}\n\n<Right-Click to use>", desc) }
 
-// Armor Description
 fn armor_desc(armor: &Armor, desc: &str) -> String {
     // TODO: localization
     let kind = match armor.kind {
@@ -80,9 +80,8 @@ fn armor_desc(armor: &Armor, desc: &str) -> String {
         format!("{}\n\nArmor: {}\n\n<Right-Click to use>", kind, armor)
     }
 }
-// Weapon/Tool Description
+
 fn tool_desc(tool: &Tool, desc: &str) -> String {
-    // TODO: localization
     let kind = match tool.kind {
         ToolKind::Sword => "Sword",
         ToolKind::Axe => "Axe",
@@ -117,21 +116,68 @@ fn tool_desc(tool: &Tool, desc: &str) -> String {
         )
     }
 }
-// Consumable Description
-/*fn consumable_desc(consumable: Consumable, desc: &str) -> String {
-    // TODO: localization
-    let kind = "Consumable";
-    if !desc.is_empty() {
-        format!("{}\n\n{}\n\n<Right-Click to use>", kind, desc)
-    } else {
-        format!("{}\n\n<Right-Click to use>", kind)
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_glider_desc() {
+        let item_description = "mushrooms";
+
+        assert_eq!(
+            "Glider\n\nmushrooms\n\n<Right-Click to use>",
+            glider_desc(item_description)
+        );
     }
-}*/
 
-// Throwable Description
+    #[test]
+    fn test_consumable_desc() {
+        let item_description = "mushrooms";
 
-// Utility Description
+        assert_eq!(
+            "Consumable\n\nmushrooms\n\n<Right-Click to use>",
+            consumable_desc(item_description)
+        );
+    }
 
-// Ingredient Description
+    #[test]
+    fn test_throwable_desc() {
+        let item_description = "mushrooms";
 
-// Lantern Description
+        assert_eq!(
+            "Can be thrown\n\nmushrooms\n\n<Right-Click to use>",
+            throwable_desc(item_description)
+        );
+    }
+
+    #[test]
+    fn test_utility_desc() {
+        let item_description = "mushrooms";
+
+        assert_eq!(
+            "mushrooms\n\n<Right-Click to use>",
+            utility_desc(item_description)
+        );
+    }
+
+    #[test]
+    fn test_ingredient_desc() {
+        let item_description = "mushrooms";
+
+        assert_eq!(
+            "Crafting Ingredient\n\nmushrooms",
+            ingredient_desc(item_description)
+        );
+    }
+
+    #[test]
+    fn test_lantern_desc() {
+        let item_description = "mushrooms";
+
+        assert_eq!(
+            "Lantern\n\nmushrooms\n\n<Right-Click to use>",
+            lantern_desc(item_description)
+        );
+    }
+}
