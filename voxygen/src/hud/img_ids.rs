@@ -8,8 +8,8 @@ rotation_image_ids! {
         <ImageGraphic>
         indicator_mmap_small: "voxygen.element.buttons.indicator_mmap",
          // Tooltip Test
-         tt_side: "voxygen/element/frames/tt_test_edge",
-         tt_corner: "voxygen/element/frames/tt_test_corner_tr",
+         tt_side: "voxygen.element.frames.tt_test_edge",
+         tt_corner: "voxygen.element.frames.tt_test_corner_tr",
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
         <VoxelPixArtGraphic>
