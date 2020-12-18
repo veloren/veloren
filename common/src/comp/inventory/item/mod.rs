@@ -206,6 +206,24 @@ impl assets::Asset for RawItemDef {
 #[derive(Debug)]
 pub struct OperationFailure;
 
+#[derive(Clone)]
+struct ItemList(Vec<Item>);
+impl assets::Compound for ItemList {
+    fn load<S: assets::source::Source>(
+        cache: &assets::AssetCache<S>,
+        specifier: &str,
+    ) -> Result<Self, Error> {
+        let list = cache
+            .load::<assets::Directory>(specifier)?
+            .read()
+            .iter()
+            .map(|spec| Item::new_from_asset(spec))
+            .collect::<Result<_, Error>>()?;
+
+        Ok(ItemList(list))
+    }
+}
+
 impl Item {
     // TODO: consider alternatives such as default abilities that can be added to a
     // loadout when no weapon is present
@@ -229,15 +247,7 @@ impl Item {
     /// Creates a Vec containing one of each item that matches the provided
     /// asset glob pattern
     pub fn new_from_asset_glob(asset_glob: &str) -> Result<Vec<Self>, Error> {
-        //let items = ItemDef::load_glob(asset_glob)?;
-
-        let specifiers = assets::Directory::load(asset_glob)?;
-
-        specifiers
-            .read()
-            .iter()
-            .map(|spec| Self::new_from_asset(&spec))
-            .collect()
+        Ok(ItemList::load_cloned(asset_glob)?.0)
     }
 
     /// Creates a new instance of an `Item from the provided asset identifier if
