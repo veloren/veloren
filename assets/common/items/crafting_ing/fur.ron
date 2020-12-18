@@ -1,0 +1,8 @@
+ItemDef(
+    name: "Soft Fur",
+    description: "Soft fur from an animal.",
+    kind: Ingredient(
+        kind: "Fur",
+    ),
+    quality: Common,
+)

@@ -1,0 +1,8 @@
+ItemDef(
+    name: "Amethyst",
+    description: "A precious purple gem.",
+    kind: Ingredient(
+        kind: "Amethyst",
+    ),
+    quality: Common,
+)

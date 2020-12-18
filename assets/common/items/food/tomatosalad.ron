@@ -1,0 +1,21 @@
+ItemDef(
+    name: "Tomato Salad",
+    description: "Restores 30 Health over 20 seconds\n\nLeafy salad with some chopped, juicy tomatoes mixed in.",
+    kind: Consumable(
+        kind: "TomatoSalad",
+        effect: [
+            Buff((
+                kind: Saturation,
+                data: (
+                    strength: 15.0,
+                    duration: Some((
+                            secs: 10,
+                            nanos: 0,
+                        )),
+                    ),
+                cat_ids: [Natural],
+            )),
+        ]
+    ),
+    quality: Common,
+)

@@ -1,0 +1,8 @@
+ItemDef(
+    name: "Plant Fiber",
+    description: "A length of raw plant material.",
+    kind: Ingredient(
+        kind: "PlantFiber",
+    ),
+    quality: Common,
+)

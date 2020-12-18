@@ -1,0 +1,8 @@
+ItemDef(
+    name: "Vine",
+    description: "A strong vine.",
+    kind: Ingredient(
+        kind: "Vine",
+    ),
+    quality: Common,
+)

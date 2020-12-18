@@ -1,0 +1,8 @@
+ItemDef(
+    name: "Ember",
+    description: "A flicking ember left by a fiery creature.",
+    kind: Ingredient(
+        kind: "Ember",
+    ),
+    quality: Common,
+)
