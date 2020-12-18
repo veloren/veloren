@@ -234,6 +234,7 @@ impl Directory {
 
 impl Compound for Directory {
     fn load<S: source::Source>(_: &AssetCache<S>, specifier: &str) -> Result<Self, Error> {
+        let specifier = specifier.strip_suffix(".*").unwrap_or(specifier);
         let root = ASSETS.source().path_of(specifier, "");
         let mut files = Vec::new();
 
