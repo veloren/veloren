@@ -1,0 +1,8 @@
+ItemDef(
+    name: "Ruby",
+    description: "A superbly scarlet gem.",
+    kind: Ingredient(
+        kind: "Ruby",
+    ),
+    quality: Common,
+)

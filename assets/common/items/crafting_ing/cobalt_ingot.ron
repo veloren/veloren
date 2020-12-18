@@ -1,0 +1,8 @@
+ItemDef(
+    name: "Cobalt Ingot",
+    description: "A strikingly blue ingot.",
+    kind: Ingredient(
+        kind: "CobaltIngot",
+    ),
+    quality: Common,
+)

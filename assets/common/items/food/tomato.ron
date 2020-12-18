@@ -1,0 +1,21 @@
+ItemDef(
+    name: "Tomato",
+    description: "Restores 10 Health over 20 seconds\n\nA red fruit. Not actually a vegetable.",
+    kind: Consumable(
+        kind: "Tomato",
+        effect: [
+            Buff((
+                kind: Saturation,
+                data: (
+                    strength: 5.0,
+                    duration: Some((
+                            secs: 10,
+                            nanos: 0,
+                        )),
+                    ),
+                cat_ids: [Natural],
+            )),
+        ]
+    ),
+    quality: Common,
+)

@@ -1,0 +1,8 @@
+ItemDef(
+    name: "Durable Plate",
+    description: "Durable plate from an armored animal.",
+    kind: Ingredient(
+        kind: "Plate",
+    ),
+    quality: Common,
+)

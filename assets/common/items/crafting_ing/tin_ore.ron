@@ -1,0 +1,8 @@
+ItemDef(
+    name: "Tin Ore",
+    description: "A silvery metal. One of the components of bronze.",
+    kind: Ingredient(
+        kind: "TinOre",
+    ),
+    quality: Common,
+)
