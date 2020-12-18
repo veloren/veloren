@@ -1,6 +1,6 @@
 use super::utils::handle_climb;
 use crate::{
-    comp::{CharacterState, StateUpdate},
+    comp::{CharacterState, EnergySource, StateUpdate},
     states::behavior::{CharacterBehavior, JoinData},
     util::Dir,
 };
@@ -48,19 +48,28 @@ impl CharacterBehavior for Data {
             };
 
         // Determine orientation vector from movement direction vector
-        let ori_dir = Vec2::from(update.vel.0);
-        update.ori.0 = Dir::slerp_to_vec3(update.ori.0, ori_dir.into(), 2.0 * data.dt.0);
+        let horiz_vel = Vec2::from(update.vel.0);
+        update.ori.0 = Dir::slerp_to_vec3(update.ori.0, horiz_vel.into(), 2.0 * data.dt.0);
 
         // Apply Glide antigrav lift
-        if Vec2::<f32>::from(update.vel.0).magnitude_squared() < GLIDE_SPEED.powi(2)
-            && update.vel.0.z < 0.0
-        {
-            let lift = GLIDE_ANTIGRAV + update.vel.0.z.abs().powi(2) * 0.15;
-            update.vel.0.z += data.dt.0
-                * lift
-                * (Vec2::<f32>::from(update.vel.0).magnitude() * 0.075)
-                    .min(1.0)
-                    .max(0.2);
+        let horiz_speed_sq = horiz_vel.magnitude_squared();
+        if horiz_speed_sq < GLIDE_SPEED.powi(2) && update.vel.0.z < 0.0 {
+            let lift = (GLIDE_ANTIGRAV + update.vel.0.z.powi(2) * 0.15)
+                * (horiz_speed_sq * f32::powf(0.075, 2.0)).clamp(0.2, 1.0)
+                * data.dt.0;
+
+            update.vel.0.z += lift;
+
+            // Expend energy during strenuous maneuvers.
+            // Cost increases with lift exceeding that of calmly gliding.
+            let energy_cost = (10.0 * (lift - GLIDE_ANTIGRAV * data.dt.0)).max(0.0) as i32;
+            if update
+                .energy
+                .try_change_by(-energy_cost, EnergySource::Glide)
+                .is_err()
+            {
+                update.character = CharacterState::Idle {};
+            }
         }
 
         update
