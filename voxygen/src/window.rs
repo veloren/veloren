@@ -311,6 +311,7 @@ pub type EventLoop = winit::event_loop::EventLoop<()>;
 pub enum KeyMouse {
     Key(winit::event::VirtualKeyCode),
     Mouse(winit::event::MouseButton),
+    ScanKey(winit::event::ScanCode),
 }
 
 impl fmt::Display for KeyMouse {
@@ -487,6 +488,7 @@ impl fmt::Display for KeyMouse {
             Mouse(MouseButton::Other(button)) =>
             // Additional mouse buttons after middle click start at 1
                 return write!(f, "M{}", button + 3),
+            ScanKey(_) => "Unknown",
         })
     }
 }
@@ -992,47 +994,48 @@ impl Window {
                     return;
                 }
 
-                if let Some(key) = input.virtual_keycode {
-                    if let Some(game_inputs) = Window::map_input(
-                        KeyMouse::Key(key),
-                        controls,
-                        &mut self.remapping_keybindings,
-                    ) {
-                        for game_input in game_inputs {
-                            match game_input {
-                                GameInput::Fullscreen => {
-                                    if input.state == winit::event::ElementState::Pressed
-                                        && !Self::is_pressed(
-                                            &mut self.keypress_map,
-                                            GameInput::Fullscreen,
-                                        )
-                                    {
-                                        self.toggle_fullscreen = !self.toggle_fullscreen;
-                                    }
-                                    Self::set_pressed(
+                let input_key = match input.virtual_keycode {
+                    Some(key) => KeyMouse::Key(key),
+                    None => KeyMouse::ScanKey(input.scancode),
+                };
+
+                if let Some(game_inputs) =
+                    Window::map_input(input_key, controls, &mut self.remapping_keybindings)
+                {
+                    for game_input in game_inputs {
+                        match game_input {
+                            GameInput::Fullscreen => {
+                                if input.state == winit::event::ElementState::Pressed
+                                    && !Self::is_pressed(
                                         &mut self.keypress_map,
                                         GameInput::Fullscreen,
-                                        input.state,
-                                    );
-                                },
-                                GameInput::Screenshot => {
-                                    self.take_screenshot = input.state
-                                        == winit::event::ElementState::Pressed
-                                        && !Self::is_pressed(
-                                            &mut self.keypress_map,
-                                            GameInput::Screenshot,
-                                        );
-                                    Self::set_pressed(
+                                    )
+                                {
+                                    self.toggle_fullscreen = !self.toggle_fullscreen;
+                                }
+                                Self::set_pressed(
+                                    &mut self.keypress_map,
+                                    GameInput::Fullscreen,
+                                    input.state,
+                                );
+                            },
+                            GameInput::Screenshot => {
+                                self.take_screenshot = input.state
+                                    == winit::event::ElementState::Pressed
+                                    && !Self::is_pressed(
                                         &mut self.keypress_map,
                                         GameInput::Screenshot,
-                                        input.state,
                                     );
-                                },
-                                _ => self.events.push(Event::InputUpdate(
-                                    *game_input,
-                                    input.state == winit::event::ElementState::Pressed,
-                                )),
-                            }
+                                Self::set_pressed(
+                                    &mut self.keypress_map,
+                                    GameInput::Screenshot,
+                                    input.state,
+                                );
+                            },
+                            _ => self.events.push(Event::InputUpdate(
+                                *game_input,
+                                input.state == winit::event::ElementState::Pressed,
+                            )),
                         }
                     }
                 }
