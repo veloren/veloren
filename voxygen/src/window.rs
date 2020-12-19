@@ -891,28 +891,6 @@ impl Window {
                     self.events.push(Event::CursorMove(delta));
                 }
             },
-            DeviceEvent::MouseWheel { delta, .. } if self.cursor_grabbed && self.focused => {
-                self.events.push(Event::Zoom({
-                    // Since scrolling apparently acts different depending on platform
-                    #[cfg(target_os = "windows")]
-                    const PLATFORM_FACTOR: f32 = -4.0;
-                    #[cfg(not(target_os = "windows"))]
-                    const PLATFORM_FACTOR: f32 = 1.0;
-
-                    let y = match delta {
-                        winit::event::MouseScrollDelta::LineDelta(_x, y) => y,
-                        // TODO: Check to see if there is a better way to find the "line
-                        // height" than just hardcoding 16.0 pixels.  Alternately we could
-                        // get rid of this and have the user set zoom sensitivity, since
-                        // it's unlikely people would expect a configuration file to work
-                        // across operating systems.
-                        winit::event::MouseScrollDelta::PixelDelta(pos) => (pos.y / 16.0) as f32,
-                    };
-                    y * (self.zoom_sensitivity as f32 / 100.0)
-                        * if self.zoom_inversion { -1.0 } else { 1.0 }
-                        * PLATFORM_FACTOR
-                }))
-            },
             _ => {},
         }
     }
@@ -1046,6 +1024,23 @@ impl Window {
             },
             WindowEvent::CursorMoved { position, .. } => {
                 self.cursor_position = position;
+            },
+            WindowEvent::MouseWheel { delta, .. } if self.cursor_grabbed && self.focused => {
+                const DIFFERENCE_FROM_DEVICE_EVENT_ON_X11: f32 = -15.0;
+                self.events.push(Event::Zoom({
+                    let y = match delta {
+                        winit::event::MouseScrollDelta::LineDelta(_x, y) => y,
+                        // TODO: Check to see if there is a better way to find the "line
+                        // height" than just hardcoding 16.0 pixels.  Alternately we could
+                        // get rid of this and have the user set zoom sensitivity, since
+                        // it's unlikely people would expect a configuration file to work
+                        // across operating systems.
+                        winit::event::MouseScrollDelta::PixelDelta(pos) => (pos.y / 16.0) as f32,
+                    };
+                    y * (self.zoom_sensitivity as f32 / 100.0)
+                        * if self.zoom_inversion { -1.0 } else { 1.0 }
+                        * DIFFERENCE_FROM_DEVICE_EVENT_ON_X11
+                }))
             },
             _ => {},
         }

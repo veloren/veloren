@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   a projectile in very specific circumstances
 - Fixed a bug where buff/debuff UI elements would flicker when you had more than
   one of them active at the same time
+- Made zooming work on wayland
 
 ## [0.8.0] - 2020-11-28
 
