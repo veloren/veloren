@@ -12,9 +12,9 @@ use common::{
     combat,
     comp::{
         self, aura, buff,
-        chat::{KillSource, KillType}, CharacterState,
-        object, Alignment, Body, Energy, EnergyChange, Group, Health, HealthChange, HealthSource,
-        Inventory, Item, Player, Poise, PoiseChange, PoiseSource, Pos, Stats,
+        chat::{KillSource, KillType},
+        object, Alignment, Body, CharacterState, Energy, EnergyChange, Group, Health, HealthChange,
+        HealthSource, Inventory, Item, Player, Poise, PoiseChange, PoiseSource, Pos, Stats,
     },
     effect::Effect,
     lottery::Lottery,
@@ -42,6 +42,7 @@ pub fn handle_poise(
 ) {
     let ecs = &server.state.ecs();
     if let Some(character_state) = ecs.read_storage::<CharacterState>().get(entity) {
+        // Entity is invincible to poise change during stunned/staggered character state
         if !character_state.is_stunned() {
             if let Some(poise) = ecs.write_storage::<Poise>().get_mut(entity) {
                 poise.change_by(change, knockback_dir);
@@ -74,7 +75,7 @@ pub fn handle_knockback(server: &Server, entity: EcsEntity, impulse: Vec3<f32>) 
         }
         let mut velocities = ecs.write_storage::<comp::Vel>();
         if let Some(vel) = velocities.get_mut(entity) {
-            vel.0 = impulse;
+            vel.0 += impulse;
         }
         if let Some(client) = clients.get(entity) {
             client.send_fallible(ServerGeneral::Knockback(impulse));
@@ -435,17 +436,26 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         };
 
         let pos = state.ecs().read_storage::<comp::Pos>().get(entity).cloned();
+        let vel = state.ecs().read_storage::<comp::Vel>().get(entity).cloned();
         if let Some(pos) = pos {
-            let _ = state
-                .create_object(comp::Pos(pos.0 + Vec3::unit_z() * 0.25), match old_body {
-                    Some(common::comp::Body::Humanoid(_)) => object::Body::Pouch,
-                    Some(common::comp::Body::Golem(_)) => object::Body::Chest,
-                    Some(common::comp::Body::BipedLarge(_))
-                    | Some(common::comp::Body::QuadrupedLow(_)) => object::Body::MeatDrop,
-                    _ => object::Body::Steak,
-                })
-                .with(item)
-                .build();
+            if let Some(vel) = vel {
+                let _ = state
+                    .create_object(comp::Pos(pos.0 + Vec3::unit_z() * 0.25), match old_body {
+                        Some(common::comp::Body::Humanoid(_)) => object::Body::Pouch,
+                        Some(common::comp::Body::Golem(_)) => object::Body::Chest,
+                        Some(common::comp::Body::BipedLarge(_))
+                        | Some(common::comp::Body::QuadrupedLow(_)) => object::Body::MeatDrop,
+                        _ => object::Body::Steak,
+                    })
+                    .with(vel)
+                    .with(item)
+                    .build();
+            } else {
+                error!(
+                    ?entity,
+                    "Entity doesn't have a velocity, no bag is being dropped"
+                )
+            }
         } else {
             error!(
                 ?entity,

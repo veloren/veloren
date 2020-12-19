@@ -167,8 +167,9 @@ impl<'a> System<'a> for Sys {
                     poise.reset();
                     *character_state = CharacterState::Stunned(common::states::stunned::Data {
                         static_data: common::states::stunned::StaticData {
-                            buildup_duration: Duration::from_millis(100),
-                            recover_duration: Duration::from_millis(100),
+                            buildup_duration: Duration::from_millis(150),
+                            recover_duration: Duration::from_millis(150),
+                            movement_speed: 0.3,
                         },
                         timer: Duration::default(),
                         stage_section: common::states::utils::StageSection::Buildup,
@@ -181,6 +182,7 @@ impl<'a> System<'a> for Sys {
                         static_data: common::states::stunned::StaticData {
                             buildup_duration: Duration::from_millis(500),
                             recover_duration: Duration::from_millis(500),
+                            movement_speed: 0.1,
                         },
                         timer: Duration::default(),
                         stage_section: common::states::utils::StageSection::Buildup,
@@ -211,8 +213,8 @@ impl<'a> System<'a> for Sys {
                     poise.reset();
                     *character_state = CharacterState::Staggered(common::states::staggered::Data {
                         static_data: common::states::staggered::StaticData {
-                            buildup_duration: Duration::from_millis(5000),
-                            recover_duration: Duration::from_millis(250),
+                            buildup_duration: Duration::from_millis(3000),
+                            recover_duration: Duration::from_millis(500),
                         },
                         timer: Duration::default(),
                         stage_section: common::states::utils::StageSection::Buildup,

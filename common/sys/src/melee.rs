@@ -101,9 +101,6 @@ impl<'a> System<'a> for Sys {
                 // Check if entity is dodging
                 let is_dodge = char_state_b_maybe.map_or(false, |c_s| c_s.is_melee_dodge());
 
-                // Check if entity is stunned
-                let is_stunned = char_state_b_maybe.map_or(false, |c_s| c_s.is_stunned());
-
                 // Check if it is a hit
                 if entity != b
                     && !health_b.is_dead
@@ -132,12 +129,8 @@ impl<'a> System<'a> for Sys {
                             }
                         }
 
-                        let change = damage.modify_damage(inventories.get(b), Some(*uid));
-                        let poise_change = if is_stunned {
-                            poise_change.set_zero()
-                        } else {
-                            poise_change.modify_poise_damage(inventories.get(b))
-                        };
+                        let change = damage.modify_damage(loadouts.get(b), Some(*uid));
+                        let poise_change = poise_change.modify_poise_damage(inventories.get(b));
 
                         server_emitter.emit(ServerEvent::Damage { entity: b, change });
                         // Apply bleeding buff on melee hits with 10% chance
@@ -166,7 +159,7 @@ impl<'a> System<'a> for Sys {
                         server_emitter.emit(ServerEvent::PoiseChange {
                             entity: b,
                             change: poise_change,
-                            kb_dir: *Dir::slerp(kb_dir, Dir::new(Vec3::unit_z()), 0.5),
+                            kb_dir: *kb_dir,
                         });
 
                         attack.hit_count += 1;
