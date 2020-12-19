@@ -100,7 +100,23 @@ pub enum SwordSkill {
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum AxeSkill {
-    UnlockLeap,
+    // Double strike upgrades
+    DsCombo,
+    DsDamage,
+    DsSpeed,
+    DsRegen,
+    // Spin upgrades
+    SInfinite,
+    SHelicopter,
+    SDamage,
+    SSpeed,
+    SCost,
+    // Leap upgrades
+    LUnlockLeap,
+    LDamage,
+    LKnockback,
+    LCost,
+    LDistance,
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]

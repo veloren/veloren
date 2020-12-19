@@ -615,6 +615,98 @@ impl CharacterAbility {
                         _ => {},
                     }
                 },
+                ToolKind::Axe => {
+                    use skills::AxeSkill::*;
+                    match self {
+                        ComboMelee {
+                            ref mut speed_increase,
+                            ref mut max_speed_increase,
+                            ref mut stage_data,
+                            ref mut max_energy_gain,
+                            ref mut scales_from_combo,
+                            ..
+                        } => {
+                            if !skills.contains_key(&Axe(DsCombo)) {
+                                stage_data.pop();
+                            }
+                            let speed_segments = Axe(DsSpeed).get_max_level().unwrap_or(1) as f32;
+                            let speed_level =
+                                skills.get(&Axe(DsSpeed)).copied().flatten().unwrap_or(0) as f32;
+                            {
+                                *speed_increase *= speed_level / speed_segments;
+                                *max_speed_increase *= speed_level / speed_segments;
+                            }
+                            let energy_level =
+                                if let Some(level) = skills.get(&Axe(DsRegen)).copied().flatten() {
+                                    level
+                                } else {
+                                    0
+                                };
+                            {
+                                *max_energy_gain = (*max_energy_gain as f32
+                                    * ((energy_level + 1) * stage_data.len() as u16 - 1) as f32
+                                    / ((Axe(DsRegen).get_max_level().unwrap() + 1)
+                                        * stage_data.len() as u16
+                                        - 1) as f32)
+                                    as u32;
+                            }
+                            *scales_from_combo = skills
+                                .get(&Axe(DsDamage))
+                                .copied()
+                                .flatten()
+                                .unwrap_or(0)
+                                .into();
+                        },
+                        SpinMelee {
+                            ref mut base_damage,
+                            ref mut swing_duration,
+                            ref mut energy_cost,
+                            ref mut is_infinite,
+                            ref mut is_helicopter,
+                            ..
+                        } => {
+                            *is_infinite = skills.contains_key(&Axe(SInfinite));
+                            *is_helicopter = skills.contains_key(&Axe(SHelicopter));
+                            if let Some(level) = skills.get(&Axe(SDamage)).copied().flatten() {
+                                *base_damage =
+                                    (*base_damage as f32 * 1.4_f32.powi(level.into())) as u32;
+                            }
+                            if let Some(level) = skills.get(&Axe(SSpeed)).copied().flatten() {
+                                *swing_duration =
+                                    (*swing_duration as f32 * 0.8_f32.powi(level.into())) as u64;
+                            }
+                            if let Some(level) = skills.get(&Axe(SCost)).copied().flatten() {
+                                *energy_cost =
+                                    (*energy_cost as f32 * 0.75_f32.powi(level.into())) as u32;
+                            }
+                        },
+                        LeapMelee {
+                            ref mut base_damage,
+                            ref mut knockback,
+                            ref mut energy_cost,
+                            ref mut forward_leap_strength,
+                            ref mut vertical_leap_strength,
+                            ..
+                        } => {
+                            if let Some(level) = skills.get(&Axe(LDamage)).copied().flatten() {
+                                *base_damage =
+                                    (*base_damage as f32 * 1.4_f32.powi(level.into())) as u32;
+                            }
+                            if let Some(level) = skills.get(&Axe(LKnockback)).copied().flatten() {
+                                *knockback *= 1.4_f32.powi(level.into());
+                            }
+                            if let Some(level) = skills.get(&Axe(LCost)).copied().flatten() {
+                                *energy_cost =
+                                    (*energy_cost as f32 * 0.75_f32.powi(level.into())) as u32;
+                            }
+                            if let Some(level) = skills.get(&Axe(LDistance)).copied().flatten() {
+                                *forward_leap_strength *= 1.4_f32.powi(level.into());
+                                *vertical_leap_strength *= 1.4_f32.powi(level.into());
+                            }
+                        },
+                        _ => {},
+                    }
+                },
                 _ => {},
             }
         }

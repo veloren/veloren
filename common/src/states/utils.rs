@@ -3,7 +3,7 @@ use crate::{
         inventory::slot::EquipSlot,
         item::{Hands, ItemKind, Tool, ToolKind},
         quadruped_low, quadruped_medium,
-        skills::{Skill, SwordSkill},
+        skills::{AxeSkill, Skill, SwordSkill},
         theropod, Body, CharacterState, StateUpdate,
     },
     consts::{FRIC_GROUND, GRAVITY},
@@ -491,6 +491,15 @@ pub fn handle_ability3_input(data: &JoinData, update: &mut StateUpdate) {
                                 .skill_set
                                 .skills
                                 .contains_key(&Skill::Sword(SwordSkill::SUnlockSpin)) =>
+                        {
+                            None
+                        },
+                        Some(ToolKind::Axe)
+                            if !&data
+                                .stats
+                                .skill_set
+                                .skills
+                                .contains_key(&Skill::Axe(AxeSkill::LUnlockLeap)) =>
                         {
                             None
                         },
