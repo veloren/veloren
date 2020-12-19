@@ -13,6 +13,8 @@ pub struct StaticData {
     pub buildup_duration: Duration,
     /// How long the state has until exiting
     pub recover_duration: Duration,
+    /// Fraction of normal movement speed allowed during the state
+    pub movement_speed: f32,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -30,8 +32,10 @@ pub struct Data {
 
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
-        println!("stunned");
         let mut update = StateUpdate::from(data);
+
+        handle_move(data, &mut update, self.static_data.movement_speed);
+
         match self.stage_section {
             StageSection::Buildup => {
                 if self.timer < self.static_data.buildup_duration {

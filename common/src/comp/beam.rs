@@ -1,8 +1,4 @@
-use crate::{
-    comp::{PoiseChange, PoiseSource},
-    uid::Uid,
-    Damage, GroupTarget,
-};
+use crate::{comp::PoiseChange, uid::Uid, Damage, GroupTarget};
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;

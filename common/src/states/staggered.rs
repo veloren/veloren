@@ -30,7 +30,7 @@ pub struct Data {
 
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
-        println!("staggered");
+        //println!("staggered");
         let mut update = StateUpdate::from(data);
         match self.stage_section {
             StageSection::Buildup => {
