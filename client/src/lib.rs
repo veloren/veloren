@@ -1042,6 +1042,70 @@ impl Client {
                                 SkillGroupType::Weapon(Axe),
                             )));
                         },
+                        "@unlock axe combo" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Axe(
+                                AxeSkill::DsCombo,
+                            )));
+                        },
+                        "@unlock axe combo damage" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Axe(
+                                AxeSkill::DsDamage,
+                            )));
+                        },
+                        "@unlock axe combo speed" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Axe(
+                                AxeSkill::DsCombo,
+                            )));
+                        },
+                        "@unlock axe combo regen" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Axe(
+                                AxeSkill::DsRegen,
+                            )));
+                        },
+                        "@unlock axe spin infinite" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Axe(
+                                AxeSkill::SInfinite,
+                            )));
+                        },
+                        "@unlock axe spin helicopter" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Axe(
+                                AxeSkill::SHelicopter,
+                            )));
+                        },
+                        "@unlock axe spin damage" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Axe(
+                                AxeSkill::SDamage,
+                            )));
+                        },
+                        "@unlock axe spin speed" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Axe(AxeSkill::SSpeed)));
+                        },
+                        "@unlock axe spin cost" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Axe(AxeSkill::SCost)));
+                        },
+                        "@unlock axe leap unlock" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Axe(
+                                AxeSkill::LUnlockLeap,
+                            )));
+                        },
+                        "@unlock axe leap damage" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Axe(
+                                AxeSkill::LDamage,
+                            )));
+                        },
+                        "@unlock axe leap knockback" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Axe(
+                                AxeSkill::LKnockback,
+                            )));
+                        },
+                        "@unlock axe leap cost" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Axe(AxeSkill::LCost)));
+                        },
+                        "@unlock axe leap distance" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Axe(
+                                AxeSkill::LDistance,
+                            )));
+                        },
                         "@unlock hammer" => {
                             self.send_msg(ClientGeneral::UnlockSkill(Skill::UnlockGroup(
                                 SkillGroupType::Weapon(Hammer),
