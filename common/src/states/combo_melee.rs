@@ -58,6 +58,11 @@ impl Stage<u64> {
         self.base_recover_duration = (self.base_recover_duration as f32 / speed) as u64;
         self
     }
+
+    pub fn modify_strike(mut self, knockback_mult: f32) -> Self {
+        self.knockback *= knockback_mult;
+        self
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

@@ -512,7 +512,7 @@ impl CharacterAbility {
                             ref mut is_interruptible,
                             ref mut speed_increase,
                             ref mut max_speed_increase,
-                            ref mut stage_data,
+                            ref stage_data,
                             ref mut max_energy_gain,
                             ref mut scales_from_combo,
                             ..
@@ -702,6 +702,109 @@ impl CharacterAbility {
                             if let Some(level) = skills.get(&Axe(LDistance)).copied().flatten() {
                                 *forward_leap_strength *= 1.4_f32.powi(level.into());
                                 *vertical_leap_strength *= 1.4_f32.powi(level.into());
+                            }
+                        },
+                        _ => {},
+                    }
+                },
+                ToolKind::Hammer => {
+                    use skills::HammerSkill::*;
+                    match self {
+                        ComboMelee {
+                            ref mut speed_increase,
+                            ref mut max_speed_increase,
+                            ref mut stage_data,
+                            ref mut max_energy_gain,
+                            ref mut scales_from_combo,
+                            ..
+                        } => {
+                            if let Some(level) = skills.get(&Hammer(SsKnockback)).copied().flatten()
+                            {
+                                *stage_data = (*stage_data)
+                                    .iter()
+                                    .map(|s| s.modify_strike(1.5_f32.powi(level.into())))
+                                    .collect::<Vec<combo_melee::Stage<u64>>>();
+                            }
+                            let speed_segments =
+                                Hammer(SsSpeed).get_max_level().unwrap_or(1) as f32;
+                            let speed_level =
+                                skills.get(&Hammer(SsSpeed)).copied().flatten().unwrap_or(0) as f32;
+                            {
+                                *speed_increase *= speed_level / speed_segments;
+                                *max_speed_increase *= speed_level / speed_segments;
+                            }
+                            let energy_level = if let Some(level) =
+                                skills.get(&Hammer(SsRegen)).copied().flatten()
+                            {
+                                level
+                            } else {
+                                0
+                            };
+                            {
+                                *max_energy_gain = (*max_energy_gain as f32
+                                    * ((energy_level + 1) * stage_data.len() as u16) as f32
+                                    / ((Hammer(SsRegen).get_max_level().unwrap() + 1)
+                                        * stage_data.len() as u16)
+                                        as f32)
+                                    as u32;
+                            }
+                            *scales_from_combo = skills
+                                .get(&Hammer(SsDamage))
+                                .copied()
+                                .flatten()
+                                .unwrap_or(0)
+                                .into();
+                        },
+                        ChargedMelee {
+                            ref mut scaled_damage,
+                            ref mut scaled_knockback,
+                            ref mut energy_drain,
+                            ref mut speed,
+                            ..
+                        } => {
+                            if let Some(level) = skills.get(&Hammer(CDamage)).copied().flatten() {
+                                *scaled_damage =
+                                    (*scaled_damage as f32 * 1.25_f32.powi(level.into())) as u32;
+                            }
+                            if let Some(level) = skills.get(&Hammer(CKnockback)).copied().flatten()
+                            {
+                                *scaled_knockback *= 1.5_f32.powi(level.into());
+                            }
+                            if let Some(level) = skills.get(&Hammer(CDrain)).copied().flatten() {
+                                *energy_drain =
+                                    (*energy_drain as f32 * 0.75_f32.powi(level.into())) as u32;
+                            }
+                            if let Some(level) = skills.get(&Hammer(CSpeed)).copied().flatten() {
+                                *speed *= 1.23_f32.powi(level.into());
+                            }
+                        },
+                        LeapMelee {
+                            ref mut base_damage,
+                            ref mut knockback,
+                            ref mut energy_cost,
+                            ref mut forward_leap_strength,
+                            ref mut vertical_leap_strength,
+                            ref mut range,
+                            ..
+                        } => {
+                            if let Some(level) = skills.get(&Hammer(LDamage)).copied().flatten() {
+                                *base_damage =
+                                    (*base_damage as f32 * 1.4_f32.powi(level.into())) as u32;
+                            }
+                            if let Some(level) = skills.get(&Hammer(LKnockback)).copied().flatten()
+                            {
+                                *knockback *= 1.4_f32.powi(level.into());
+                            }
+                            if let Some(level) = skills.get(&Hammer(LCost)).copied().flatten() {
+                                *energy_cost =
+                                    (*energy_cost as f32 * 0.75_f32.powi(level.into())) as u32;
+                            }
+                            if let Some(level) = skills.get(&Hammer(LDistance)).copied().flatten() {
+                                *forward_leap_strength *= 1.4_f32.powi(level.into());
+                                *vertical_leap_strength *= 1.4_f32.powi(level.into());
+                            }
+                            if let Some(level) = skills.get(&Hammer(LRange)).copied().flatten() {
+                                *range += 1.0 * level as f32;
                             }
                         },
                         _ => {},

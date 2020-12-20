@@ -1111,6 +1111,76 @@ impl Client {
                                 SkillGroupType::Weapon(Hammer),
                             )));
                         },
+                        "@unlock hammer combo" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Hammer(
+                                HammerSkill::SsKnockback,
+                            )));
+                        },
+                        "@unlock hammer combo damage" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Hammer(
+                                HammerSkill::SsDamage,
+                            )));
+                        },
+                        "@unlock hammer combo speed" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Hammer(
+                                HammerSkill::SsSpeed,
+                            )));
+                        },
+                        "@unlock hammer combo regen" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Hammer(
+                                HammerSkill::SsRegen,
+                            )));
+                        },
+                        "@unlock hammer charge knockback" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Hammer(
+                                HammerSkill::CKnockback,
+                            )));
+                        },
+                        "@unlock hammer charge damage" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Hammer(
+                                HammerSkill::CDamage,
+                            )));
+                        },
+                        "@unlock hammer charge drain" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Hammer(
+                                HammerSkill::CDrain,
+                            )));
+                        },
+                        "@unlock hammer charge speed" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Hammer(
+                                HammerSkill::CSpeed,
+                            )));
+                        },
+                        "@unlock hammer leap unlock" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Hammer(
+                                HammerSkill::LUnlockLeap,
+                            )));
+                        },
+                        "@unlock hammer leap damage" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Hammer(
+                                HammerSkill::LDamage,
+                            )));
+                        },
+                        "@unlock hammer leap cost" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Hammer(
+                                HammerSkill::LCost,
+                            )));
+                        },
+                        "@unlock hammer leap distance" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Hammer(
+                                HammerSkill::LDistance,
+                            )));
+                        },
+                        "@unlock hammer leap knockback" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Hammer(
+                                HammerSkill::LKnockback,
+                            )));
+                        },
+                        "@unlock hammer leap range" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Hammer(
+                                HammerSkill::LRange,
+                            )));
+                        },
                         "@unlock bow" => {
                             self.send_msg(ClientGeneral::UnlockSkill(Skill::UnlockGroup(
                                 SkillGroupType::Weapon(Bow),

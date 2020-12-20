@@ -121,7 +121,23 @@ pub enum AxeSkill {
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum HammerSkill {
-    UnlockLeap,
+    // Single strike upgrades
+    SsKnockback,
+    SsDamage,
+    SsSpeed,
+    SsRegen,
+    // Charged melee upgrades
+    CDamage,
+    CKnockback,
+    CDrain,
+    CSpeed,
+    // Leap upgrades
+    LUnlockLeap,
+    LDamage,
+    LCost,
+    LDistance,
+    LKnockback,
+    LRange,
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
