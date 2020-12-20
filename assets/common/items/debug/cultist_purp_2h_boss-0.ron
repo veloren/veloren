@@ -3,7 +3,7 @@ ItemDef(
     description: "Shouldn't this be a hammer?",
     kind: Tool(
        (
-            kind: Axe,    
+            kind: Hammer,    
             stats: (
                 equip_time_millis: 0,
                 power: 1000.0,

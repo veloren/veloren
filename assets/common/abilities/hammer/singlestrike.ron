@@ -3,7 +3,7 @@ ComboMelee(
         stage: 1,
         base_damage: 130,
         damage_increase: 10,
-        knockback: 0.0,
+        knockback: 10.0,
         range: 4.5,
         angle: 50.0,
         base_buildup_duration: 600,
