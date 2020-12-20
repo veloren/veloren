@@ -9,7 +9,7 @@ use super::{
             terrain, ui, ColLights, GlobalsBindGroup, Light, Shadow,
         },
     },
-    Renderer, ShadowMapRenderer,
+    Renderer, ShadowMap, ShadowMapRenderer,
 };
 use core::{num::NonZeroU32, ops::Range};
 use vek::Aabr;
@@ -63,7 +63,7 @@ impl<'a> Drawer<'a> {
                 });
 
         render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
-        render_pass.set_bind_group(1, &self.globals.shadow_textures, &[]);
+        render_pass.set_bind_group(1, &self.renderer.shadow_bind.bind_group, &[]);
 
         FirstPassDrawer {
             render_pass,
@@ -72,7 +72,7 @@ impl<'a> Drawer<'a> {
     }
 
     pub fn shadow_pass(&mut self) -> Option<ShadowDrawer> {
-        if let Some(ref shadow_renderer) = self.renderer.shadow_map {
+        if let ShadowMap::Enabled(ref shadow_renderer) = self.renderer.shadow_map {
             let mut render_pass =
                 self.encoder
                     .as_mut()
@@ -121,7 +121,7 @@ impl<'a> Drawer<'a> {
                 });
 
         render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
-        render_pass.set_bind_group(1, &self.globals.shadow_textures, &[]);
+        render_pass.set_bind_group(1, &self.renderer.shadow_bind.bind_group, &[]);
 
         SecondPassDrawer {
             render_pass,
@@ -159,7 +159,7 @@ impl<'a> Drawer<'a> {
         matrices: &[shadow::PointLightMatrix; 126],
         chunks: impl Clone + Iterator<Item = (&'b Model<terrain::Vertex>, &'b terrain::BoundLocals)>,
     ) {
-        if let Some(ref shadow_renderer) = self.renderer.shadow_map {
+        if let ShadowMap::Enabled(ref shadow_renderer) = self.renderer.shadow_map {
             const STRIDE: usize = std::mem::size_of::<shadow::PointLightMatrix>();
             let data = bytemuck::cast_slice(matrices);
 

@@ -15,19 +15,9 @@ impl Renderer {
         global_model: &GlobalModel,
         lod_data: &lod_terrain::LodData,
     ) -> GlobalsBindGroup {
-        let (point_shadow_map, directed_shadow_map) = match &self.shadow_map {
-            Some(shadow_map) => (&shadow_map.point_depth, &shadow_map.directed_depth),
-            None => (&self.dummy_shadow_cube_tex, &self.dummy_shadow_tex),
-        };
-
-        self.layouts.global.bind(
-            &self.device,
-            global_model,
-            lod_data,
-            &self.noise_tex,
-            point_shadow_map,
-            directed_shadow_map,
-        )
+        self.layouts
+            .global
+            .bind(&self.device, global_model, lod_data, &self.noise_tex)
     }
 
     pub fn create_ui_bound_locals(&mut self, vals: &[ui::Locals]) -> ui::BoundLocals {

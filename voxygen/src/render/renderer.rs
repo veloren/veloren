@@ -8,11 +8,11 @@ use super::{
     model::{DynamicModel, Model},
     pipelines::{
         clouds, figure, fluid, lod_terrain, particle, postprocess, shadow, skybox, sprite, terrain,
-        ui, GlobalsLayouts,
+        ui, GlobalsBindGroup, GlobalsLayouts, ShadowTexturesBindGroup,
     },
     texture::Texture,
-    AaMode, AddressMode, CloudMode, FilterMode, FluidMode, GlobalsBindGroup, LightingMode,
-    RenderError, RenderMode, ShadowMapMode, ShadowMode, Vertex,
+    AaMode, AddressMode, CloudMode, FilterMode, FluidMode, LightingMode, RenderError, RenderMode,
+    ShadowMapMode, ShadowMode, Vertex,
 };
 use common::assets::{self, AssetExt, AssetHandle};
 use common_base::span;
@@ -117,7 +117,7 @@ impl Shaders {
 
 /// A type that holds shadow map data.  Since shadow mapping may not be
 /// supported on all platforms, we try to keep it separate.
-pub struct ShadowMapRenderer {
+struct ShadowMapRenderer {
     // directed_encoder: gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
     // point_encoder: gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
     directed_depth: Texture,
@@ -128,6 +128,28 @@ pub struct ShadowMapRenderer {
     terrain_directed_pipeline: shadow::ShadowPipeline,
     figure_directed_pipeline: shadow::ShadowFigurePipeline,
     layout: shadow::ShadowLayout,
+}
+
+enum ShadowMap {
+    Enabled(ShadowMapRenderer),
+    Disabled {
+        dummy_point: Texture, // Cube texture
+        dummy_directed: Texture,
+    },
+}
+
+impl ShadowMap {
+    fn textures(&self) -> (&Texture, &Texture) {
+        match self {
+            Self::Enabled(renderer) => (&renderer.point_depth, &renderer.directed_depth),
+            Self::Disabled {
+                dummy_point,
+                dummy_directed,
+            } => (dummy_point, dummy_directed),
+        }
+    }
+
+    fn is_enabled(&self) -> bool { matches!(self, Self::Enabled(_)) }
 }
 
 /// A type that stores all the layouts associated with this renderer.
@@ -187,6 +209,8 @@ impl Locals {
         &mut self,
         device: &wgpu::Device,
         layouts: &Layouts,
+        // Call when these are recreated and need to be rebound
+        // e.g. resizing
         tgt_color_view: &wgpu::TextureView,
         tgt_depth_view: &wgpu::TextureView,
         tgt_color_pp_view: &wgpu::TextureView,
@@ -211,8 +235,6 @@ impl Locals {
 /// GPU, along with pipeline state objects (PSOs) needed to renderer different
 /// kinds of models to the screen.
 pub struct Renderer {
-    // TODO: why????
-    //window: &'a winit::window::Window,
     device: wgpu::Device,
     queue: wgpu::Queue,
     swap_chain: wgpu::SwapChain,
@@ -228,9 +250,8 @@ pub struct Renderer {
 
     sampler: wgpu::Sampler,
 
-    shadow_map: Option<ShadowMapRenderer>,
-    dummy_shadow_cube_tex: Texture,
-    dummy_shadow_tex: Texture,
+    shadow_map: ShadowMap,
+    shadow_bind: ShadowTexturesBindGroup,
 
     layouts: Layouts,
 
@@ -273,9 +294,7 @@ impl Renderer {
 
         let dims = window.inner_size();
 
-        let instance = wgpu::Instance::new(
-            wgpu::BackendBit::PRIMARY, /* | wgpu::BackendBit::SECONDARY */
-        );
+        let instance = wgpu::Instance::new(wgpu::BackendBit::PRIMARY | wgpu::BackendBit::SECONDARY);
 
         // This is unsafe because the window handle must be valid, if you find a way to
         // have an invalid winit::Window then you have bigger issues
@@ -290,19 +309,19 @@ impl Renderer {
         ))
         .ok_or(RenderError::CouldNotFindAdapter)?;
 
-        use wgpu::{Features, Limits};
-
-        let mut limits = Limits::default();
-        limits.max_bind_groups = 5;
-        limits.max_push_constant_size = 64;
+        let limits = wgpu::Limits {
+            max_bind_groups: 5,
+            max_push_constant_size: 64,
+            ..Default::default()
+        };
 
         let (device, queue) = futures::executor::block_on(adapter.request_device(
             &wgpu::DeviceDescriptor {
                 // TODO
                 label: None,
-                features: Features::DEPTH_CLAMPING
-                    | Features::ADDRESS_MODE_CLAMP_TO_BORDER
-                    | Features::PUSH_CONSTANTS,
+                features: wgpu::Features::DEPTH_CLAMPING
+                    | wgpu::Features::ADDRESS_MODE_CLAMP_TO_BORDER
+                    | wgpu::Features::PUSH_CONSTANTS,
                 limits,
                 shader_validation: true,
             },
@@ -340,9 +359,6 @@ impl Renderer {
         .ok();
 
         let shaders = Shaders::load_expect("");
-
-        let (dummy_shadow_cube_tex, dummy_shadow_tex) =
-            Self::create_dummy_shadow_tex(&device, &queue);
 
         let layouts = {
             let global = GlobalsLayouts::new(&device);
@@ -412,11 +428,10 @@ impl Renderer {
 
             let layout = shadow::ShadowLayout::new(&device);
 
-            Some(ShadowMapRenderer {
-                directed_depth,
-
+            ShadowMap::Enabled(ShadowMapRenderer {
                 // point_encoder: factory.create_command_buffer().into(),
                 // directed_encoder: factory.create_command_buffer().into(),
+                directed_depth,
                 point_depth,
 
                 point_pipeline,
@@ -426,7 +441,18 @@ impl Renderer {
                 layout,
             })
         } else {
-            None
+            let (dummy_point, dummy_directed) = Self::create_dummy_shadow_tex(&device, &queue);
+            ShadowMap::Disabled {
+                dummy_point,
+                dummy_directed,
+            }
+        };
+
+        let shadow_bind = {
+            let (point, directed) = shadow_map.textures();
+            layouts
+                .global
+                .bind_shadow_textures(&device, point, directed)
         };
 
         let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
@@ -449,16 +475,10 @@ impl Renderer {
             Some(wgpu::AddressMode::Repeat),
         )?;
 
-        let clouds_locals = {
-            let mut consts = Consts::new(&device, 1);
-            consts.update(&device, &queue, &[clouds::Locals::default()], 0);
-            consts
-        };
-        let postprocess_locals = {
-            let mut consts = Consts::new(&device, 1);
-            consts.update(&device, &queue, &[postprocess::Locals::default()], 0);
-            consts
-        };
+        let clouds_locals =
+            Self::create_consts_inner(&device, &queue, &[clouds::Locals::default()]);
+        let postprocess_locals =
+            Self::create_consts_inner(&device, &queue, &[postprocess::Locals::default()]);
 
         let locals = Locals::new(
             &device,
@@ -487,8 +507,7 @@ impl Renderer {
             sampler,
 
             shadow_map,
-            dummy_shadow_cube_tex,
-            dummy_shadow_tex,
+            shadow_bind,
 
             layouts,
 
@@ -569,14 +588,18 @@ impl Renderer {
                 &self.sampler,
             );
 
-            // TODO: rebind globals
-            if let (Some(shadow_map), ShadowMode::Map(mode)) =
-                (self.shadow_map.as_mut(), self.mode.shadow)
+            if let (ShadowMap::Enabled(shadow_map), ShadowMode::Map(mode)) =
+                (&mut self.shadow_map, self.mode.shadow)
             {
                 match Self::create_shadow_views(&mut self.device, (dims.x, dims.y), &mode) {
                     Ok((point_depth, directed_depth)) => {
                         shadow_map.point_depth = point_depth;
                         shadow_map.directed_depth = directed_depth;
+                        self.shadow_bind = self.layouts.global.bind_shadow_textures(
+                            &self.device,
+                            &shadow_map.point_depth,
+                            &shadow_map.directed_depth,
+                        );
                     },
                     Err(err) => {
                         warn!("Could not create shadow map views: {:?}", err);
@@ -909,7 +932,7 @@ impl Renderer {
 
     /// Get the resolution of the shadow render target.
     pub fn get_shadow_resolution(&self) -> (Vec2<u32>, Vec2<u32>) {
-        if let Some(shadow_map) = &self.shadow_map {
+        if let ShadowMap::Enabled(shadow_map) = &self.shadow_map {
             (
                 shadow_map.point_depth.get_dimensions().xy(),
                 shadow_map.directed_depth.get_dimensions().xy(),
@@ -1020,7 +1043,7 @@ impl Renderer {
             &self.shaders.read(),
             &self.mode,
             &self.sc_desc,
-            self.shadow_map.is_some(),
+            self.shadow_map.is_enabled(),
         ) {
             Ok((
                 skybox_pipeline,
@@ -1053,12 +1076,12 @@ impl Renderer {
                     Some(point_pipeline),
                     Some(terrain_directed_pipeline),
                     Some(figure_directed_pipeline),
-                    Some(shadow_map),
+                    ShadowMap::Enabled(shadow_map),
                 ) = (
                     point_shadow_pipeline,
                     terrain_directed_shadow_pipeline,
                     figure_directed_shadow_pipeline,
-                    self.shadow_map.as_mut(),
+                    &mut self.shadow_map,
                 ) {
                     shadow_map.point_pipeline = point_pipeline;
                     shadow_map.terrain_directed_pipeline = terrain_directed_pipeline;
@@ -1071,8 +1094,16 @@ impl Renderer {
 
     /// Create a new set of constants with the provided values.
     pub fn create_consts<T: Copy + bytemuck::Pod>(&mut self, vals: &[T]) -> Consts<T> {
-        let mut consts = Consts::new(&self.device, vals.len());
-        consts.update(&self.device, &self.queue, vals, 0);
+        Self::create_consts_inner(&self.device, &self.queue, vals)
+    }
+
+    pub fn create_consts_inner<T: Copy + bytemuck::Pod>(
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        vals: &[T],
+    ) -> Consts<T> {
+        let mut consts = Consts::new(device, vals.len());
+        consts.update(device, queue, vals, 0);
         consts
     }
 

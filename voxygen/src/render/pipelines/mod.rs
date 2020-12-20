@@ -16,7 +16,8 @@ use bytemuck::{Pod, Zeroable};
 use common::terrain::BlockKind;
 use vek::*;
 
-pub const MAX_POINT_LIGHT_COUNT: usize = 31;
+// TODO: auto insert these into shaders
+pub const MAX_POINT_LIGHT_COUNT: usize = 20;
 pub const MAX_FIGURE_SHADOW_COUNT: usize = 24;
 pub const MAX_DIRECTED_LIGHT_COUNT: usize = 6;
 
@@ -122,6 +123,7 @@ impl Globals {
                 shadow_planes.y,
             ],
             light_shadow_count: [
+                // TODO: why do we accept values greater than the max?
                 (light_count % (MAX_POINT_LIGHT_COUNT + 1)) as u32,
                 (shadow_count % (MAX_FIGURE_SHADOW_COUNT + 1)) as u32,
                 (directed_light_count % (MAX_DIRECTED_LIGHT_COUNT + 1)) as u32,
@@ -238,7 +240,10 @@ pub struct GlobalModel {
 
 pub struct GlobalsBindGroup {
     pub(super) bind_group: wgpu::BindGroup,
-    pub(super) shadow_textures: wgpu::BindGroup,
+}
+
+pub struct ShadowTexturesBindGroup {
+    pub(super) bind_group: wgpu::BindGroup,
 }
 
 pub struct GlobalsLayouts {
@@ -471,8 +476,6 @@ impl GlobalsLayouts {
         global_model: &GlobalModel,
         lod_data: &lod_terrain::LodData,
         noise: &Texture,
-        point_shadow_map: &Texture,
-        directed_shadow_map: &Texture,
     ) -> GlobalsBindGroup {
         let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: None,
@@ -537,7 +540,16 @@ impl GlobalsLayouts {
             ],
         });
 
-        let shadow_textures = device.create_bind_group(&wgpu::BindGroupDescriptor {
+        GlobalsBindGroup { bind_group }
+    }
+
+    pub fn bind_shadow_textures(
+        &self,
+        device: &wgpu::Device,
+        point_shadow_map: &Texture,
+        directed_shadow_map: &Texture,
+    ) -> ShadowTexturesBindGroup {
+        let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: None,
             layout: &self.shadow_textures,
             entries: &[
@@ -560,10 +572,7 @@ impl GlobalsLayouts {
             ],
         });
 
-        GlobalsBindGroup {
-            bind_group,
-            shadow_textures,
-        }
+        ShadowTexturesBindGroup { bind_group }
     }
 
     pub fn bind_col_light<Locals>(
