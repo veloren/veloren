@@ -160,7 +160,7 @@ impl<'a> Widget for BuffsBar<'a> {
             };
 
             // Create Buff Widgets
-            state
+            let mut buff_vec = state
                 .ids
                 .buffs
                 .iter()
@@ -172,6 +172,13 @@ impl<'a> Widget for BuffsBar<'a> {
                         .map(get_buff_info)
                         .filter(|info| info.is_buff),
                 )
+                .collect::<Vec<_>>();
+
+            // Sort the buffs by kind
+            buff_vec.sort_by_key(|((_id, _timer_id), buff)| std::cmp::Reverse(buff.kind));
+
+            buff_vec
+                .iter()
                 .enumerate()
                 .for_each(|(i, ((id, timer_id), buff))| {
                     let max_duration = buff.data.duration;
@@ -204,7 +211,7 @@ impl<'a> Widget for BuffsBar<'a> {
                                 Some(norm_col)
                             },
                         )
-                        .set(id, ui);
+                        .set(*id, ui);
                     // Create Buff tooltip
                     let title = match buff.kind {
                         BuffKind::Regeneration { .. } => localized_strings.get("buff.title.heal"),
@@ -248,7 +255,7 @@ impl<'a> Widget for BuffsBar<'a> {
                         _ => self.imgs.nothing,
                     })
                     .w_h(40.0, 40.0)
-                    .middle_of(id)
+                    .middle_of(*id)
                     .with_tooltip(
                         self.tooltip_manager,
                         title,
@@ -256,14 +263,15 @@ impl<'a> Widget for BuffsBar<'a> {
                         &buffs_tooltip,
                         BUFF_COLOR,
                     )
-                    .set(timer_id, ui)
+                    .set(*timer_id, ui)
                     .was_clicked()
                     {
                         event.push(Event::RemoveBuff(buff.kind));
                     };
                 });
+
             // Create Debuff Widgets
-            state
+            let mut debuff_vec = state
                 .ids
                 .debuffs
                 .iter()
@@ -275,6 +283,13 @@ impl<'a> Widget for BuffsBar<'a> {
                         .map(get_buff_info)
                         .filter(|info| !info.is_buff),
                 )
+                .collect::<Vec<_>>();
+
+            // Sort the debuffs by kind
+            debuff_vec.sort_by_key(|((_id, _timer_id), debuff)| debuff.kind);
+
+            debuff_vec
+                .iter()
                 .enumerate()
                 .for_each(|(i, ((id, timer_id), debuff))| {
                     let max_duration = debuff.data.duration;
@@ -306,7 +321,7 @@ impl<'a> Widget for BuffsBar<'a> {
                                 Some(norm_col)
                             },
                         )
-                        .set(id, ui);
+                        .set(*id, ui);
                     // Create Debuff tooltip
                     let title = match debuff.kind {
                         BuffKind::Bleeding { .. } => localized_strings.get("debuff.title.bleed"),
@@ -334,7 +349,7 @@ impl<'a> Widget for BuffsBar<'a> {
                         _ => self.imgs.nothing,
                     })
                     .w_h(40.0, 40.0)
-                    .middle_of(id)
+                    .middle_of(*id)
                     .with_tooltip(
                         self.tooltip_manager,
                         title,
@@ -342,7 +357,7 @@ impl<'a> Widget for BuffsBar<'a> {
                         &buffs_tooltip,
                         DEBUFF_COLOR,
                     )
-                    .set(timer_id, ui);
+                    .set(*timer_id, ui);
                 });
         }
 
@@ -369,7 +384,8 @@ impl<'a> Widget for BuffsBar<'a> {
             };
 
             // Create Buff Widgets
-            state
+
+            let mut buff_vec = state
                 .ids
                 .buffs
                 .iter()
@@ -377,6 +393,13 @@ impl<'a> Widget for BuffsBar<'a> {
                 .zip(state.ids.buff_timers.iter().copied())
                 .zip(state.ids.buff_txts.iter().copied())
                 .zip(buffs.iter_active().map(get_buff_info))
+                .collect::<Vec<_>>();
+
+            // Sort the buffs by kind
+            buff_vec.sort_by_key(|((_id, _timer_id), txt_id)| std::cmp::Reverse(txt_id.kind));
+
+            buff_vec
+                .iter()
                 .enumerate()
                 .for_each(|(i, (((id, timer_id), txt_id), buff))| {
                     let max_duration = buff.data.duration;
@@ -411,7 +434,7 @@ impl<'a> Widget for BuffsBar<'a> {
                                 Some(norm_col)
                             },
                         )
-                        .set(id, ui);
+                        .set(*id, ui);
                     // Create Buff tooltip
                     let title = match buff.kind {
                         BuffKind::Regeneration { .. } => localized_strings.get("buff.title.heal"),
@@ -461,7 +484,7 @@ impl<'a> Widget for BuffsBar<'a> {
                         _ => self.imgs.nothing,
                     })
                     .w_h(40.0, 40.0)
-                    .middle_of(id)
+                    .middle_of(*id)
                     .with_tooltip(
                         self.tooltip_manager,
                         title,
@@ -473,18 +496,18 @@ impl<'a> Widget for BuffsBar<'a> {
                             DEBUFF_COLOR
                         },
                     )
-                    .set(timer_id, ui)
+                    .set(*timer_id, ui)
                     .was_clicked()
                     {
                         event.push(Event::RemoveBuff(buff.kind));
                     }
                     Text::new(&remaining_time)
-                        .down_from(timer_id, 1.0)
+                        .down_from(*timer_id, 1.0)
                         .font_size(self.fonts.cyri.scale(10))
                         .font_id(self.fonts.cyri.conrod_id)
-                        .graphics_for(timer_id)
+                        .graphics_for(*timer_id)
                         .color(TEXT_COLOR)
-                        .set(txt_id, ui);
+                        .set(*txt_id, ui);
                 });
         }
         event

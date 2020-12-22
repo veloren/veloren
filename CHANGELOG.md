@@ -32,6 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed a bug that would cause a server crash when a player levelled up or fired
   a projectile in very specific circumstances
+- Fixed a bug where buff/debuff UI elements would flicker when you had more than
+  one of them active at the same time
 
 ## [0.8.0] - 2020-11-28
 
