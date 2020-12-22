@@ -294,7 +294,11 @@ impl Renderer {
 
         let dims = window.inner_size();
 
-        let instance = wgpu::Instance::new(wgpu::BackendBit::PRIMARY | wgpu::BackendBit::SECONDARY);
+        // TODO: fix panic on wayland with opengl?
+        // TODO: fix backend defaulting to opengl on wayland.
+        let instance = wgpu::Instance::new(
+            wgpu::BackendBit::PRIMARY, /* | wgpu::BackendBit::SECONDARY */
+        );
 
         // This is unsafe because the window handle must be valid, if you find a way to
         // have an invalid winit::Window then you have bigger issues
