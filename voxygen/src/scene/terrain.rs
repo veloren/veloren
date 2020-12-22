@@ -10,8 +10,8 @@ use crate::{
     render::{
         pipelines::{self, ColLights},
         ColLightInfo, Consts, Drawer, FirstPassDrawer, FluidVertex, FluidWaves, GlobalModel,
-        Instances, LodData, Mesh, Model, RenderError, Renderer, ShadowDrawer, SpriteInstance,
-        SpriteLocals, SpriteVertex, TerrainLocals, TerrainVertex, Texture,
+        Instances, LodData, Mesh, Model, RenderError, Renderer, SpriteInstance, SpriteLocals,
+        SpriteVertex, TerrainLocals, TerrainShadowDrawer, TerrainVertex, Texture,
     },
 };
 
@@ -1410,9 +1410,7 @@ impl<V: RectRasterableVol> Terrain<V> {
 
     pub fn render_shadows<'a>(
         &'a self,
-        drawer: &mut ShadowDrawer<'a>,
-        global: &GlobalModel,
-        (is_daylight, light_data): super::LightData,
+        drawer: &mut TerrainShadowDrawer<'_, 'a>,
         focus_pos: Vec3<f32>,
     ) {
         span!(_guard, "render_shadows", "Terrain::render_shadows");
@@ -1432,28 +1430,28 @@ impl<V: RectRasterableVol> Terrain<V> {
         // NOTE: We also render shadows for dead chunks that were found to still be
         // potential shadow casters, to avoid shadows suddenly disappearing at
         // very steep sun angles (e.g. sunrise / sunset).
-        if is_daylight {
-            chunk_iter
-                .clone()
-                .filter(|chunk| chunk.can_shadow_sun())
-                .chain(self.shadow_chunks.iter().map(|(_, chunk)| chunk))
-                .for_each(|chunk| drawer.draw_terrain_shadow(&chunk.opaque_model, &chunk.locals));
-        }
+        chunk_iter
+            .filter(|chunk| chunk.can_shadow_sun())
+            .chain(self.shadow_chunks.iter().map(|(_, chunk)| chunk))
+            .for_each(|chunk| drawer.draw(&chunk.opaque_model, &chunk.locals));
     }
 
-    pub fn render_point_shadows<'a>(
-        &'a self,
-        drawer: &mut Drawer<'a>,
-        global: &GlobalModel,
-        (is_daylight, light_data): super::LightData,
+    pub fn chunks_for_point_shadows(
+        &self,
         focus_pos: Vec3<f32>,
-    ) {
+    ) -> impl Clone
+    + Iterator<
+        Item = (
+            &Model<pipelines::terrain::Vertex>,
+            &pipelines::terrain::BoundLocals,
+        ),
+    > {
         let focus_chunk = Vec2::from(focus_pos).map2(TerrainChunk::RECT_SIZE, |e: f32, sz| {
             (e as i32).div_euclid(sz as i32)
         });
 
         let chunk_iter = Spiral2d::new()
-            .filter_map(|rpos| {
+            .filter_map(move |rpos| {
                 let pos = focus_chunk + rpos;
                 self.chunks.get(&pos)
             })
@@ -1463,35 +1461,27 @@ impl<V: RectRasterableVol> Terrain<V> {
         //
         // NOTE: We don't bother retaining chunks unless they cast sun shadows, so we
         // don't use `shadow_chunks` here.
-        light_data.iter().take(1).for_each(|_light| {
-            drawer.draw_point_shadow(
-                &global.point_light_matrices,
-                chunk_iter
-                    .clone()
-                    .filter(|chunk| chunk.can_shadow_point)
-                    .map(|chunk| (&chunk.opaque_model, &chunk.locals)),
-            );
-        });
+        chunk_iter
+            .filter(|chunk| chunk.can_shadow_point)
+            .map(|chunk| (&chunk.opaque_model, &chunk.locals))
     }
 
     pub fn render<'a>(&'a self, drawer: &mut FirstPassDrawer<'a>, focus_pos: Vec3<f32>) {
         span!(_guard, "render", "Terrain::render");
+        let mut drawer = drawer.draw_terrain(&self.col_lights);
+
         let focus_chunk = Vec2::from(focus_pos).map2(TerrainChunk::RECT_SIZE, |e: f32, sz| {
             (e as i32).div_euclid(sz as i32)
         });
 
-        let chunk_iter = Spiral2d::new()
+        Spiral2d::new()
             .filter_map(|rpos| {
                 let pos = focus_chunk + rpos;
-                self.chunks.get(&pos).map(|c| (pos, c))
+                self.chunks.get(&pos)
             })
-            .take(self.chunks.len());
-
-        for (_, chunk) in chunk_iter {
-            if chunk.visible.is_visible() {
-                drawer.draw_terrain(&chunk.opaque_model, &chunk.locals, &self.col_lights)
-            }
-        }
+            .take(self.chunks.len())
+            .filter(|chunk| chunk.visible.is_visible())
+            .for_each(|chunk| drawer.draw(&chunk.opaque_model, &chunk.locals));
     }
 
     pub fn render_translucent<'a>(
@@ -1519,8 +1509,11 @@ impl<V: RectRasterableVol> Terrain<V> {
         span!(guard, "Terrain sprites");
         let chunk_size = V::RECT_SIZE.map(|e| e as f32);
         let chunk_mag = (chunk_size * (f32::consts::SQRT_2 * 0.5)).magnitude_squared();
-        for (pos, chunk) in chunk_iter.clone() {
-            if chunk.visible.is_visible() {
+        let mut sprite_drawer = drawer.draw_sprites(&self.sprite_col_lights);
+        chunk_iter
+            .clone()
+            .filter(|(_, c)| c.visible.is_visible())
+            .for_each(|(pos, chunk)| {
                 let sprite_low_detail_distance = sprite_render_distance * 0.75;
                 let sprite_mid_detail_distance = sprite_render_distance * 0.5;
                 let sprite_hid_detail_distance = sprite_render_distance * 0.35;
@@ -1542,6 +1535,8 @@ impl<V: RectRasterableVol> Terrain<V> {
                             chunk_center + chunk_size.x * 0.5 - chunk_size.y * 0.5,
                         ));
                 if focus_dist_sqrd < sprite_render_distance.powi(2) {
+                    // TODO: skip if sprite_instances is empty
+                    let mut chunk_sprite_drawer = sprite_drawer.in_chunk(&chunk.locals);
                     for (kind, instances) in (&chunk.sprite_instances).into_iter() {
                         let SpriteData { model, locals, .. } = if kind
                             .0
@@ -1563,24 +1558,17 @@ impl<V: RectRasterableVol> Terrain<V> {
                             &self.sprite_data[&kind][4]
                         };
 
-                        drawer.draw_sprite(
-                            model,
-                            instances,
-                            &chunk.locals,
-                            locals,
-                            &self.sprite_col_lights,
-                        );
+                        chunk_sprite_drawer.draw(model, instances, locals);
                     }
                 }
-            }
-        }
+            });
+        drop(sprite_drawer);
         drop(guard);
 
         // Translucent
         span!(guard, "Fluid chunks");
         let mut fluid_drawer = drawer.draw_fluid(&self.waves);
         chunk_iter
-            .clone()
             .filter(|(_, chunk)| chunk.visible.is_visible())
             .filter_map(|(_, chunk)| {
                 chunk

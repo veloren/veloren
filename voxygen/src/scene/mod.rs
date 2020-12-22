@@ -18,7 +18,7 @@ use crate::{
     render::{
         create_skybox_mesh, CloudsLocals, Consts, Drawer, FirstPassDrawer, GlobalModel, Globals,
         GlobalsBindGroup, Light, Model, PointLightMatrix, PostProcessLocals, Renderer, Shadow,
-        ShadowDrawer, ShadowLocals, SkyboxVertex,
+        ShadowLocals, SkyboxVertex,
     },
     settings::Settings,
     window::{AnalogGameInput, Event},
@@ -1034,90 +1034,10 @@ impl Scene {
 
     pub fn global_bind_group(&self) -> &GlobalsBindGroup { &self.globals_bind_group }
 
-    pub fn render_terrain_shadows<'a>(
-        &'a self,
-        drawer: &mut ShadowDrawer<'a>,
-        state: &State,
-        player_entity: EcsEntity,
-        tick: u64,
-        scene_data: &SceneData,
-    ) {
-        let sun_dir = scene_data.get_sun_dir();
-        let is_daylight = sun_dir.z < 0.0;
-        let focus_pos = self.camera.get_focus_pos();
-        let cam_pos = self.camera.dependents().cam_pos + focus_pos.map(|e| e.trunc());
-
-        let global = &self.data;
-        let light_data = (is_daylight, &*self.light_data);
-        let camera_data = (&self.camera, scene_data.figure_lod_render_distance);
-
-        // would instead have this as an extension.
-        if drawer.renderer.render_mode().shadow.is_map()
-            && (is_daylight || !light_data.1.is_empty())
-        {
-            // Render terrain shadows.
-            self.terrain
-                .render_shadows(drawer, global, light_data, focus_pos);
-        }
-    }
-
-    pub fn render_point_shadows<'a>(
-        &'a self,
-        drawer: &mut Drawer<'a>,
-        state: &State,
-        player_entity: EcsEntity,
-        tick: u64,
-        scene_data: &SceneData,
-    ) {
-        let sun_dir = scene_data.get_sun_dir();
-        let is_daylight = sun_dir.z < 0.0;
-        let focus_pos = self.camera.get_focus_pos();
-        let cam_pos = self.camera.dependents().cam_pos + focus_pos.map(|e| e.trunc());
-
-        let global = &self.data;
-        let light_data = (is_daylight, &*self.light_data);
-        let camera_data = (&self.camera, scene_data.figure_lod_render_distance);
-
-        if drawer.renderer.render_mode().shadow.is_map()
-            && (is_daylight || !light_data.1.is_empty())
-        {
-            // Render terrain shadows.
-            self.terrain
-                .render_point_shadows(drawer, global, light_data, focus_pos);
-        }
-    }
-
-    pub fn render_figure_shadows<'a>(
-        &'a self,
-        drawer: &mut ShadowDrawer<'a>,
-        state: &State,
-        player_entity: EcsEntity,
-        tick: u64,
-        scene_data: &SceneData,
-    ) {
-        let sun_dir = scene_data.get_sun_dir();
-        let is_daylight = sun_dir.z < 0.0;
-        let focus_pos = self.camera.get_focus_pos();
-        let cam_pos = self.camera.dependents().cam_pos + focus_pos.map(|e| e.trunc());
-
-        let global = &self.data;
-        let light_data = (is_daylight, &*self.light_data);
-        let camera_data = (&self.camera, scene_data.figure_lod_render_distance);
-
-        // would instead have this as an extension.
-        if drawer.renderer.render_mode().shadow.is_map()
-            && (is_daylight || !light_data.1.is_empty())
-        {
-            // Render figure shadows.
-            self.figure_mgr
-                .render_shadows(drawer, state, tick, camera_data);
-        }
-    }
-
-    /// Render the scene using the provided `FirstPassDrawer`.
+    /// Render the scene using the provided `Drawer`.
     pub fn render<'a>(
         &'a self,
-        drawer: &mut FirstPassDrawer<'a>,
+        drawer: &mut Drawer<'a>,
         state: &State,
         player_entity: EcsEntity,
         tick: u64,
@@ -1129,26 +1049,63 @@ impl Scene {
         let focus_pos = self.camera.get_focus_pos();
         let cam_pos = self.camera.dependents().cam_pos + focus_pos.map(|e| e.trunc());
 
-        let global = &self.data;
         let camera_data = (&self.camera, scene_data.figure_lod_render_distance);
 
-        let lod = self.lod.get_data();
+        // would instead have this as an extension.
+        if drawer.renderer.render_mode().shadow.is_map()
+            && (is_daylight || !self.light_data.is_empty())
+        {
+            if is_daylight {
+                if let Some(mut shadow_pass) = drawer.shadow_pass() {
+                    // Render terrain directed shadows.
+                    self.terrain
+                        .render_shadows(&mut shadow_pass.draw_terrain_shadows(), focus_pos);
 
-        self.figure_mgr
-            .render_player(drawer, state, player_entity, tick, global, lod, camera_data);
+                    // Render figure directed shadows.
+                    self.figure_mgr.render_shadows(
+                        &mut shadow_pass.draw_figure_shadows(),
+                        state,
+                        tick,
+                        camera_data,
+                    );
+                }
+            }
 
-        self.terrain.render(drawer, focus_pos);
+            // Render terrain point light shadows.
+            drawer.draw_point_shadows(
+                &self.data.point_light_matrices,
+                self.terrain.chunks_for_point_shadows(focus_pos),
+            )
+        }
 
-        self.figure_mgr
-            .render(drawer, state, player_entity, tick, global, lod, camera_data);
+        let mut first_pass = drawer.first_pass();
 
-        self.lod.render(drawer);
+        self.figure_mgr.render_player(
+            &mut first_pass.draw_figures(),
+            state,
+            player_entity,
+            tick,
+            camera_data,
+        );
+
+        self.terrain.render(&mut first_pass, focus_pos);
+
+        self.figure_mgr.render(
+            &mut first_pass.draw_figures(),
+            state,
+            player_entity,
+            tick,
+            camera_data,
+        );
+
+        self.lod.render(&mut first_pass);
 
         // Render the skybox.
-        drawer.draw_skybox(&self.skybox.model);
+        first_pass.draw_skybox(&self.skybox.model);
 
+        // Draws translucent terrain and sprites
         self.terrain.render_translucent(
-            drawer,
+            &mut first_pass,
             focus_pos,
             cam_pos,
             scene_data.sprite_render_distance,
@@ -1156,6 +1113,6 @@ impl Scene {
 
         // Render particle effects.
         self.particle_mgr
-            .render(&mut drawer.draw_particles(), scene_data);
+            .render(&mut first_pass.draw_particles(), scene_data);
     }
 }

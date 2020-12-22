@@ -42,8 +42,9 @@ pub use self::{
     },
     renderer::{
         drawer::{
-            Drawer, FirstPassDrawer, ParticleDrawer, PreparedUiDrawer, SecondPassDrawer,
-            ShadowDrawer, ThirdPassDrawer, UiDrawer,
+            ChunkSpriteDrawer, Drawer, FigureDrawer, FigureShadowDrawer, FirstPassDrawer,
+            ParticleDrawer, PreparedUiDrawer, SecondPassDrawer, ShadowPassDrawer, SpriteDrawer,
+            TerrainDrawer, TerrainShadowDrawer, ThirdPassDrawer, UiDrawer,
         },
         ColLightInfo, Renderer,
     },

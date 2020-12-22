@@ -354,6 +354,7 @@ impl Scene {
         body: Option<humanoid::Body>,
         inventory: Option<&Inventory>,
     ) {
+        let mut figure_drawer = drawer.draw_figures();
         if let Some(body) = body {
             let model = &self.figure_model_cache.get_model(
                 &self.col_lights,
@@ -365,7 +366,7 @@ impl Scene {
             );
 
             if let Some(model) = model {
-                drawer.draw_figure(
+                figure_drawer.draw(
                     model.lod_model(0),
                     self.figure_state.bound(),
                     &self.col_lights.texture(model),
@@ -374,7 +375,7 @@ impl Scene {
         }
 
         if let Some((model, state)) = &self.backdrop {
-            drawer.draw_figure(
+            figure_drawer.draw(
                 model.lod_model(0),
                 state.bound(),
                 &self.col_lights.texture(model),

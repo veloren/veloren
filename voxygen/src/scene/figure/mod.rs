@@ -8,8 +8,9 @@ use crate::{
     ecs::comp::Interpolated,
     render::{
         pipelines::{self, ColLights},
-        ColLightInfo, FigureBoneData, FigureLocals, FigureModel, FirstPassDrawer, GlobalModel,
-        LodData, Mesh, RenderError, Renderer, ShadowDrawer, SubModel, TerrainVertex,
+        ColLightInfo, FigureBoneData, FigureDrawer, FigureLocals, FigureModel, FigureShadowDrawer,
+        FirstPassDrawer, GlobalModel, LodData, Mesh, RenderError, Renderer, SubModel,
+        TerrainVertex,
     },
     scene::{
         camera::{Camera, CameraMode, Dependents},
@@ -4708,7 +4709,7 @@ impl FigureMgr {
 
     pub fn render_shadows<'a>(
         &'a self,
-        drawer: &mut ShadowDrawer<'a>,
+        drawer: &mut FigureShadowDrawer<'_, 'a>,
         state: &State,
         tick: u64,
         (camera, figure_lod_render_distance): CameraData,
@@ -4741,7 +4742,7 @@ impl FigureMgr {
                     figure_lod_render_distance * scale.map_or(1.0, |s| s.0),
                     |state| state.can_shadow_sun(),
                 ) {
-                    drawer.draw_figure_shadow(model, bound);
+                    drawer.draw(model, bound);
                 }
             });
     }
@@ -4749,12 +4750,10 @@ impl FigureMgr {
     #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn render<'a>(
         &'a self,
-        drawer: &mut FirstPassDrawer<'a>,
+        drawer: &mut FigureDrawer<'_, 'a>,
         state: &State,
         player_entity: EcsEntity,
         tick: u64,
-        global: &GlobalModel,
-        lod: &LodData,
         (camera, figure_lod_render_distance): CameraData,
     ) {
         span!(_guard, "render", "FigureManager::render");
@@ -4763,36 +4762,33 @@ impl FigureMgr {
         let character_state_storage = state.read_storage::<common::comp::CharacterState>();
         let character_state = character_state_storage.get(player_entity);
 
-        for (entity, pos, _, body, _, inventory, scale) in (
+        for (entity, pos, body, _, inventory, scale) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
-            ecs.read_storage::<Ori>().maybe(),
             &ecs.read_storage::<Body>(),
             ecs.read_storage::<Health>().maybe(),
             ecs.read_storage::<Inventory>().maybe(),
-            ecs.read_storage::<Scale>().maybe(),
+            ecs.read_storage::<Scale>().maybe()
         )
             .join()
         // Don't render dead entities
-        .filter(|(_, _, _, _, health, _, _)| health.map_or(true, |h| !h.is_dead))
+        .filter(|(_, _, _, health, _)| health.map_or(true, |h| !h.is_dead))
+        // Don't render player 
+        .filter(|(entity, _, _, _, _)| *entity != player_entity)
         {
-            let is_player = entity == player_entity;
-
-            if !is_player {
-                if let Some((bound, model, col_lights)) = self.get_model_for_render(
-                    tick,
-                    camera,
-                    character_state,
-                    entity,
-                    body,
-                    inventory,
-                    false,
-                    pos.0,
-                    figure_lod_render_distance * scale.map_or(1.0, |s| s.0),
-                    |state| state.visible(),
-                ) {
-                    drawer.draw_figure(model, bound, col_lights);
-                }
+            if let Some((bound, model, col_lights)) = self.get_model_for_render(
+                tick,
+                camera,
+                character_state,
+                entity,
+                body,
+                inventory,
+                false,
+                pos.0,
+                figure_lod_render_distance * scale.map_or(1.0, |s| s.0),
+                |state| state.visible(),
+            ) {
+                drawer.draw(model, bound, col_lights);
             }
         }
     }
@@ -4800,12 +4796,10 @@ impl FigureMgr {
     #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn render_player<'a>(
         &'a self,
-        drawer: &mut FirstPassDrawer<'a>,
+        drawer: &mut FigureDrawer<'_, 'a>,
         state: &State,
         player_entity: EcsEntity,
         tick: u64,
-        global: &GlobalModel,
-        lod: &LodData,
         (camera, figure_lod_render_distance): CameraData,
     ) {
         span!(_guard, "render_player", "FigureManager::render_player");
@@ -4839,7 +4833,7 @@ impl FigureMgr {
                 figure_lod_render_distance,
                 |state| state.visible(),
             ) {
-                drawer.draw_figure(model, bound, col_lights);
+                drawer.draw(model, bound, col_lights);
                 /*renderer.render_player_shadow(
                     model,
                     &col_lights,

@@ -36,6 +36,38 @@ impl<'a> Drawer<'a> {
         }
     }
 
+    pub fn shadow_pass(&mut self) -> Option<ShadowPassDrawer> {
+        if let ShadowMap::Enabled(ref shadow_renderer) = self.renderer.shadow_map {
+            let mut render_pass =
+                self.encoder
+                    .as_mut()
+                    .unwrap()
+                    .begin_render_pass(&wgpu::RenderPassDescriptor {
+                        color_attachments: &[],
+                        depth_stencil_attachment: Some(
+                            wgpu::RenderPassDepthStencilAttachmentDescriptor {
+                                attachment: &shadow_renderer.directed_depth.view,
+                                depth_ops: Some(wgpu::Operations {
+                                    load: wgpu::LoadOp::Clear(1.0),
+                                    store: true,
+                                }),
+                                stencil_ops: None,
+                            },
+                        ),
+                    });
+
+            render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
+
+            Some(ShadowPassDrawer {
+                render_pass,
+                renderer: &self.renderer,
+                shadow_renderer,
+            })
+        } else {
+            None
+        }
+    }
+
     pub fn first_pass(&mut self) -> FirstPassDrawer {
         let mut render_pass =
             self.encoder
@@ -68,38 +100,6 @@ impl<'a> Drawer<'a> {
         FirstPassDrawer {
             render_pass,
             renderer: &self.renderer,
-        }
-    }
-
-    pub fn shadow_pass(&mut self) -> Option<ShadowDrawer> {
-        if let ShadowMap::Enabled(ref shadow_renderer) = self.renderer.shadow_map {
-            let mut render_pass =
-                self.encoder
-                    .as_mut()
-                    .unwrap()
-                    .begin_render_pass(&wgpu::RenderPassDescriptor {
-                        color_attachments: &[],
-                        depth_stencil_attachment: Some(
-                            wgpu::RenderPassDepthStencilAttachmentDescriptor {
-                                attachment: &shadow_renderer.directed_depth.view,
-                                depth_ops: Some(wgpu::Operations {
-                                    load: wgpu::LoadOp::Clear(1.0),
-                                    store: true,
-                                }),
-                                stencil_ops: None,
-                            },
-                        ),
-                    });
-
-            render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
-
-            Some(ShadowDrawer {
-                render_pass,
-                renderer: &self.renderer,
-                shadow_renderer,
-            })
-        } else {
-            None
         }
     }
 
@@ -154,10 +154,11 @@ impl<'a> Drawer<'a> {
         }
     }
 
-    pub fn draw_point_shadow<'b: 'a>(
+    pub fn draw_point_shadows<'data: 'a>(
         &mut self,
         matrices: &[shadow::PointLightMatrix; 126],
-        chunks: impl Clone + Iterator<Item = (&'b Model<terrain::Vertex>, &'b terrain::BoundLocals)>,
+        chunks: impl Clone
+        + Iterator<Item = (&'data Model<terrain::Vertex>, &'data terrain::BoundLocals)>,
     ) {
         if let ShadowMap::Enabled(ref shadow_renderer) = self.renderer.shadow_map {
             const STRIDE: usize = std::mem::size_of::<shadow::PointLightMatrix>();
@@ -228,57 +229,110 @@ impl<'a> Drop for Drawer<'a> {
     }
 }
 
-pub struct FirstPassDrawer<'a> {
-    pub(super) render_pass: wgpu::RenderPass<'a>,
-    pub renderer: &'a Renderer,
+// Shadow pass
+pub struct ShadowPassDrawer<'pass> {
+    render_pass: wgpu::RenderPass<'pass>,
+    pub renderer: &'pass Renderer,
+    shadow_renderer: &'pass ShadowMapRenderer,
 }
 
-impl<'a> FirstPassDrawer<'a> {
-    pub fn draw_skybox<'b: 'a>(&mut self, model: &'b Model<skybox::Vertex>) {
+impl<'pass> ShadowPassDrawer<'pass> {
+    pub fn draw_figure_shadows(&mut self) -> FigureShadowDrawer<'_, 'pass> {
+        self.render_pass
+            .set_pipeline(&self.shadow_renderer.figure_directed_pipeline.pipeline);
+
+        FigureShadowDrawer {
+            render_pass: &mut self.render_pass,
+        }
+    }
+
+    pub fn draw_terrain_shadows(&mut self) -> TerrainShadowDrawer<'_, 'pass> {
+        self.render_pass
+            .set_pipeline(&self.shadow_renderer.terrain_directed_pipeline.pipeline);
+
+        TerrainShadowDrawer {
+            render_pass: &mut self.render_pass,
+        }
+    }
+}
+
+pub struct FigureShadowDrawer<'pass_ref, 'pass: 'pass_ref> {
+    render_pass: &'pass_ref mut wgpu::RenderPass<'pass>,
+}
+
+impl<'pass_ref, 'pass: 'pass_ref> FigureShadowDrawer<'pass_ref, 'pass> {
+    pub fn draw<'data: 'pass>(
+        &mut self,
+        model: SubModel<'data, terrain::Vertex>,
+        locals: &'data figure::BoundLocals,
+    ) {
+        self.render_pass.set_bind_group(1, &locals.bind_group, &[]);
+        self.render_pass.set_vertex_buffer(0, model.buf());
+        self.render_pass.draw(0..model.len(), 0..1);
+    }
+}
+
+pub struct TerrainShadowDrawer<'pass_ref, 'pass: 'pass_ref> {
+    render_pass: &'pass_ref mut wgpu::RenderPass<'pass>,
+}
+
+impl<'pass_ref, 'pass: 'pass_ref> TerrainShadowDrawer<'pass_ref, 'pass> {
+    pub fn draw<'data: 'pass>(
+        &mut self,
+        model: &'data Model<terrain::Vertex>,
+        locals: &'data terrain::BoundLocals,
+    ) {
+        self.render_pass.set_bind_group(1, &locals.bind_group, &[]);
+        self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
+        self.render_pass.draw(0..model.len() as u32, 0..1);
+    }
+}
+
+// First pass
+pub struct FirstPassDrawer<'pass> {
+    pub(super) render_pass: wgpu::RenderPass<'pass>,
+    pub renderer: &'pass Renderer,
+}
+
+impl<'pass> FirstPassDrawer<'pass> {
+    pub fn draw_skybox<'data: 'pass>(&mut self, model: &'data Model<skybox::Vertex>) {
         self.render_pass
             .set_pipeline(&self.renderer.skybox_pipeline.pipeline);
         self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
         self.render_pass.draw(0..model.len() as u32, 0..1);
     }
 
-    pub fn draw_lod_terrain<'b: 'a>(&mut self, model: &'b Model<lod_terrain::Vertex>) {
+    pub fn draw_lod_terrain<'data: 'pass>(&mut self, model: &'data Model<lod_terrain::Vertex>) {
         self.render_pass
             .set_pipeline(&self.renderer.lod_terrain_pipeline.pipeline);
         self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
         self.render_pass.draw(0..model.len() as u32, 0..1);
     }
 
-    pub fn draw_figure<'b: 'a>(
-        &mut self,
-        model: SubModel<'b, terrain::Vertex>,
-        locals: &'b figure::BoundLocals,
-        col_lights: &'b ColLights<figure::Locals>,
-    ) {
+    pub fn draw_figures(&mut self) -> FigureDrawer<'_, 'pass> {
         self.render_pass
             .set_pipeline(&self.renderer.figure_pipeline.pipeline);
-        self.render_pass.set_bind_group(2, &locals.bind_group, &[]);
-        self.render_pass
-            .set_bind_group(3, &col_lights.bind_group, &[]);
-        self.render_pass.set_vertex_buffer(0, model.buf());
-        self.render_pass.draw(0..model.len(), 0..1);
+
+        FigureDrawer {
+            render_pass: &mut self.render_pass,
+        }
     }
 
-    pub fn draw_terrain<'b: 'a>(
+    pub fn draw_terrain<'data: 'pass>(
         &mut self,
-        model: &'b Model<terrain::Vertex>,
-        locals: &'b terrain::BoundLocals,
-        col_lights: &'b ColLights<terrain::Locals>,
-    ) {
+        col_lights: &'data ColLights<terrain::Locals>,
+    ) -> TerrainDrawer<'_, 'pass> {
         self.render_pass
             .set_pipeline(&self.renderer.terrain_pipeline.pipeline);
-        self.render_pass.set_bind_group(2, &locals.bind_group, &[]);
         self.render_pass
             .set_bind_group(3, &col_lights.bind_group, &[]);
-        self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
-        self.render_pass.draw(0..model.len() as u32, 0..1)
+
+        TerrainDrawer {
+            render_pass: &mut self.render_pass,
+        }
     }
 
-    pub fn draw_particles(&mut self) -> ParticleDrawer<'_, 'a> {
+    pub fn draw_particles(&mut self) -> ParticleDrawer<'_, 'pass> {
         self.render_pass
             .set_pipeline(&self.renderer.particle_pipeline.pipeline);
 
@@ -287,29 +341,24 @@ impl<'a> FirstPassDrawer<'a> {
         }
     }
 
-    pub fn draw_sprite<'b: 'a>(
+    pub fn draw_sprites<'data: 'pass>(
         &mut self,
-        model: &'b Model<sprite::Vertex>,
-        instances: &'b Instances<sprite::Instance>,
-        terrain_locals: &'b terrain::BoundLocals,
-        locals: &'b sprite::BoundLocals,
-        col_lights: &'b ColLights<sprite::Locals>,
-    ) {
+        col_lights: &'data ColLights<sprite::Locals>,
+    ) -> SpriteDrawer<'_, 'pass> {
         self.render_pass
             .set_pipeline(&self.renderer.sprite_pipeline.pipeline);
         self.render_pass
-            .set_bind_group(2, &terrain_locals.bind_group, &[]);
-        self.render_pass.set_bind_group(3, &locals.bind_group, &[]);
-        self.render_pass
             .set_bind_group(4, &col_lights.bind_group, &[]);
-        self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
-        self.render_pass
-            .set_vertex_buffer(1, instances.buf().slice(..));
-        self.render_pass
-            .draw(0..model.len() as u32, 0..instances.count() as u32);
+
+        SpriteDrawer {
+            render_pass: &mut self.render_pass,
+        }
     }
 
-    pub fn draw_fluid<'b: 'a>(&mut self, waves: &'b fluid::BindGroup) -> FluidDrawer<'_, 'a> {
+    pub fn draw_fluid<'data: 'pass>(
+        &mut self,
+        waves: &'data fluid::BindGroup,
+    ) -> FluidDrawer<'_, 'pass> {
         self.render_pass
             .set_pipeline(&self.renderer.fluid_pipeline.pipeline);
         self.render_pass.set_bind_group(2, &waves.bind_group, &[]);
@@ -317,6 +366,42 @@ impl<'a> FirstPassDrawer<'a> {
         FluidDrawer {
             render_pass: &mut self.render_pass,
         }
+    }
+}
+
+pub struct FigureDrawer<'pass_ref, 'pass: 'pass_ref> {
+    render_pass: &'pass_ref mut wgpu::RenderPass<'pass>,
+}
+
+impl<'pass_ref, 'pass: 'pass_ref> FigureDrawer<'pass_ref, 'pass> {
+    pub fn draw<'data: 'pass>(
+        &mut self,
+        model: SubModel<'data, terrain::Vertex>,
+        locals: &'data figure::BoundLocals,
+        // TODO: don't rebind this every time once they are shared between figures
+        col_lights: &'data ColLights<figure::Locals>,
+    ) {
+        self.render_pass.set_bind_group(2, &locals.bind_group, &[]);
+        self.render_pass
+            .set_bind_group(3, &col_lights.bind_group, &[]);
+        self.render_pass.set_vertex_buffer(0, model.buf());
+        self.render_pass.draw(0..model.len(), 0..1);
+    }
+}
+
+pub struct TerrainDrawer<'pass_ref, 'pass: 'pass_ref> {
+    render_pass: &'pass_ref mut wgpu::RenderPass<'pass>,
+}
+
+impl<'pass_ref, 'pass: 'pass_ref> TerrainDrawer<'pass_ref, 'pass> {
+    pub fn draw<'data: 'pass>(
+        &mut self,
+        model: &'data Model<terrain::Vertex>,
+        locals: &'data terrain::BoundLocals,
+    ) {
+        self.render_pass.set_bind_group(2, &locals.bind_group, &[]);
+        self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
+        self.render_pass.draw(0..model.len() as u32, 0..1)
     }
 }
 
@@ -341,35 +426,40 @@ impl<'pass_ref, 'pass: 'pass_ref> ParticleDrawer<'pass_ref, 'pass> {
     }
 }
 
-pub struct ShadowDrawer<'pass> {
-    render_pass: wgpu::RenderPass<'pass>,
-    pub renderer: &'pass Renderer,
-    shadow_renderer: &'pass ShadowMapRenderer,
+pub struct SpriteDrawer<'pass_ref, 'pass: 'pass_ref> {
+    render_pass: &'pass_ref mut wgpu::RenderPass<'pass>,
 }
 
-impl<'pass> ShadowDrawer<'pass> {
-    pub fn draw_figure_shadow<'b: 'pass>(
+impl<'pass_ref, 'pass: 'pass_ref> SpriteDrawer<'pass_ref, 'pass> {
+    pub fn in_chunk<'data: 'pass>(
         &mut self,
-        model: SubModel<'b, terrain::Vertex>,
-        locals: &'b figure::BoundLocals,
-    ) {
+        terrain_locals: &'data terrain::BoundLocals,
+    ) -> ChunkSpriteDrawer<'_, 'pass> {
         self.render_pass
-            .set_pipeline(&self.shadow_renderer.figure_directed_pipeline.pipeline);
-        self.render_pass.set_bind_group(1, &locals.bind_group, &[]);
-        self.render_pass.set_vertex_buffer(0, model.buf());
-        self.render_pass.draw(0..model.len(), 0..1);
-    }
+            .set_bind_group(2, &terrain_locals.bind_group, &[]);
 
-    pub fn draw_terrain_shadow<'b: 'pass>(
+        ChunkSpriteDrawer {
+            render_pass: &mut self.render_pass,
+        }
+    }
+}
+pub struct ChunkSpriteDrawer<'pass_ref, 'pass: 'pass_ref> {
+    render_pass: &'pass_ref mut wgpu::RenderPass<'pass>,
+}
+
+impl<'pass_ref, 'pass: 'pass_ref> ChunkSpriteDrawer<'pass_ref, 'pass> {
+    pub fn draw<'data: 'pass>(
         &mut self,
-        model: &'b Model<terrain::Vertex>,
-        locals: &'b terrain::BoundLocals,
+        model: &'data Model<sprite::Vertex>,
+        instances: &'data Instances<sprite::Instance>,
+        locals: &'data sprite::BoundLocals,
     ) {
-        self.render_pass
-            .set_pipeline(&self.shadow_renderer.terrain_directed_pipeline.pipeline);
-        self.render_pass.set_bind_group(1, &locals.bind_group, &[]);
         self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
-        self.render_pass.draw(0..model.len() as u32, 0..1);
+        self.render_pass
+            .set_vertex_buffer(1, instances.buf().slice(..));
+        self.render_pass.set_bind_group(3, &locals.bind_group, &[]);
+        self.render_pass
+            .draw(0..model.len() as u32, 0..instances.count() as u32);
     }
 }
 
@@ -389,13 +479,14 @@ impl<'pass_ref, 'pass: 'pass_ref> FluidDrawer<'pass_ref, 'pass> {
     }
 }
 
-pub struct SecondPassDrawer<'a> {
-    pub(super) render_pass: wgpu::RenderPass<'a>,
-    pub renderer: &'a Renderer,
+// Second pass: clouds
+pub struct SecondPassDrawer<'pass> {
+    pub(super) render_pass: wgpu::RenderPass<'pass>,
+    pub renderer: &'pass Renderer,
 }
 
-impl<'a> SecondPassDrawer<'a> {
-    pub fn draw_clouds<'b: 'a>(&mut self) {
+impl<'pass> SecondPassDrawer<'pass> {
+    pub fn draw_clouds(&mut self) {
         self.render_pass
             .set_pipeline(&self.renderer.clouds_pipeline.pipeline);
         self.render_pass
@@ -404,13 +495,14 @@ impl<'a> SecondPassDrawer<'a> {
     }
 }
 
-pub struct ThirdPassDrawer<'a> {
-    render_pass: wgpu::RenderPass<'a>,
-    renderer: &'a Renderer,
+// Third pass: postprocess + ui
+pub struct ThirdPassDrawer<'pass> {
+    render_pass: wgpu::RenderPass<'pass>,
+    renderer: &'pass Renderer,
 }
 
-impl<'a> ThirdPassDrawer<'a> {
-    pub fn draw_post_process<'b: 'a>(&mut self) {
+impl<'pass> ThirdPassDrawer<'pass> {
+    pub fn draw_post_process(&mut self) {
         self.render_pass
             .set_pipeline(&self.renderer.postprocess_pipeline.pipeline);
         self.render_pass
@@ -418,7 +510,7 @@ impl<'a> ThirdPassDrawer<'a> {
         self.render_pass.draw(0..3, 0..1);
     }
 
-    pub fn draw_ui(&mut self) -> UiDrawer<'_, 'a> {
+    pub fn draw_ui(&mut self) -> UiDrawer<'_, 'pass> {
         self.render_pass
             .set_pipeline(&self.renderer.ui_pipeline.pipeline);
 
@@ -443,7 +535,7 @@ impl<'pass_ref, 'pass: 'pass_ref> UiDrawer<'pass_ref, 'pass> {
     pub fn prepare<'data: 'pass>(
         &mut self,
         locals: &'data ui::BoundLocals,
-        //texture: &'b ui::TextureBindGroup,
+        //texture: &'data ui::TextureBindGroup,
         buf: &'data DynamicModel<ui::Vertex>,
         scissor: Aabr<u16>,
     ) -> PreparedUiDrawer<'_, 'pass> {
@@ -467,8 +559,9 @@ impl<'pass_ref, 'pass: 'pass_ref> PreparedUiDrawer<'pass_ref, 'pass> {
         self.render_pass.set_bind_group(1, &locals.bind_group, &[]);
     }
 
-    //pub fn set_texture<'b: 'a>(&mut self, texture: &'b ui::TextureBindGroup) {
-    //    self.render_pass.set_bind_group(1, &texture.bind_group, &[]);
+    //pub fn set_texture<'data: 'pass>(&mut self, texture: &'data
+    // ui::TextureBindGroup) {    self.render_pass.set_bind_group(1,
+    // &texture.bind_group, &[]);
     //}
 
     pub fn set_model<'data: 'pass>(&mut self, model: &'data DynamicModel<ui::Vertex>) {
