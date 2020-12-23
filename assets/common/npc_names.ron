@@ -1,0 +1,793 @@
+(
+    humanoid: (
+        body: (
+            keyword: "humanoid",
+            names: [
+                "Adon",
+                "Agro",
+                "Arlo",
+                "Azamarr",
+                "Baashar",
+                "Barak",
+                "Barton",
+                "Baske",
+                "Baxar",
+                "Blaiz",
+                "Caelan",
+                "Cassian",
+                "Clawsen",
+                "Colborn",
+                "Dagfinn",
+                "Dagrod",
+                "Digbod",
+                "Dimian",
+                "Domnhar",
+                "Ebraheim",
+                "Eldermar",
+                "Embre",
+                "Esdel",
+                "Eune",
+                "Fangar",
+                "Favroe",
+                "Feron",
+                "Feston",
+                "Fintis",
+                "Gatlen",
+                "Gatlin",
+                "Gentar",
+                "Gethrod",
+                "Graff",
+                "Gunnar",
+                "Hagalbar",
+                "Hawke",
+                "Hemm",
+                "Henndar",
+                "Hezra",
+                "Hodus",
+                "Ishmael",
+                "Jakrin",
+                "Jareth",
+                "Jaris",
+                "Jather",
+                "Jerrick",
+                "Jessop",
+                "Jinto",
+                "Joz",
+                "Kadric",
+                "Kagran",
+                "Kent",
+                "Khron",
+                "Kontas",
+                "Krinn",
+                "Lassrin",
+                "Lenox",
+                "Lothe",
+                "Lustros",
+                "Lydan",
+                "Mavrek",
+                "Moki",
+                "Monty",
+                "Nazim",
+                "Nesso",
+                "Ophni",
+                "Pakker",
+                "Paquin",
+                "Paskel",
+                "Pike",
+                "Ptorik",
+                "Quintis",
+                "Rankar",
+                "Renham",
+                "Revvyn",
+                "Riordan",
+                "Rivik",
+                "Rourke",
+                "Roux",
+                "Ryven",
+                "Sarkin",
+                "Sturp",
+                "Straus",
+                "Syrin",
+                "Talon",
+                "Tekren",
+                "Tez",
+                "Turrek",
+                "Tyvrik",
+                "Vadim",
+                "Vale",
+                "Varog",
+                "Verssek",
+                "Weston",
+                "Whit",
+                "Wulfe",
+                "Yorjan",
+                "Zaden",
+                "Zagaroth",
+                "Zenner"
+            ]
+        ),
+        species: (
+            danari: (
+                keyword: "danari",
+                generic: "Danari"
+            ),
+            dwarf: (
+                keyword: "dwarf",
+                generic: "Dwarf"
+            ),
+            elf: (
+                keyword: "elf",
+                generic: "Elf"
+            ),
+            human: (
+                keyword: "human",
+                generic: "Human"
+            ),
+            orc: (
+                keyword: "orc",
+                generic: "Orc"
+            ),
+            undead: (
+                keyword: "undead",
+                generic: "Undead"
+            )
+        )
+    ),
+    quadruped_medium: (
+        body: (
+            keyword: "quadruped_medium",
+            names: [
+                "Achak",
+                "Adalwolf",
+                "Akela",
+                "Alaska",
+                "Aleu",
+                "Amarok",
+                "Apisi",
+                "Archer",
+                "Ares",
+                "Arrax",
+                "Artic",
+                "Aspen",
+                "Aura",
+                "Axel",
+                "Balto",
+                "Barwolf",
+                "Basil",
+                "Beja",
+                "Beowulf",
+                "Borris",
+                "Brassa",
+                "Bruno",
+                "Chronos",
+                "Colt",
+                "Comet",
+                "Cronus",
+                "Czar",
+                "Dakota",
+                "Dash",
+                "Diego",
+                "Dire",
+                "Duke",
+                "Echo",
+                "Elda",
+                "Eskimo",
+                "Essos",
+                "Frey",
+                "Gabu",
+                "Ghost",
+                "Giro",
+                "Grey Wind",
+                "Gunner",
+                "Harou",
+                "Havoc",
+                "Hera",
+                "Hunter",
+                "Inuit",
+                "Jacob",
+                "Jenna",
+                "Juno",
+                "Kar",
+                "Khal",
+                "Kiba",
+                "Kimbra",
+                "Kodi",
+                "Lady",
+                "Lakota",
+                "Larka",
+                "Leah",
+                "Leto",
+                "Lobo",
+                "Loki",
+                "Lotus",
+                "Louve",
+                "Lupa",
+                "Major",
+                "Mathias",
+                "Moro",
+                "Murdock",
+                "Nomad",
+                "Okami",
+                "Orbit",
+                "Palla",
+                "Pyro",
+                "Radolf",
+                "Raven",
+                "Rhea",
+                "Rider",
+                "Rollo",
+                "Rune",
+                "Sable",
+                "Saga",
+                "Sarge",
+                "Shiro",
+                "Siku",
+                "Sky",
+                "Stark",
+                "Storm",
+                "Suki",
+                "Tala",
+                "Thor",
+                "Tiva",
+                "Tyr",
+                "Ubba",
+                "Ulva",
+                "Valor",
+                "Vechro",
+                "Wolf",
+                "Wolfgang",
+                "Yara",
+                "Zeus",
+                "Ziva",
+                "Zylo"
+            ]
+        ),
+        species: (
+            grolgar: (
+                keyword: "grolgar",
+                generic: "Grolgar"
+            ),
+            saber: (
+                keyword: "sabertooth",
+                generic: "Sabertooth Tiger"
+            ),
+            tuskram: (
+                keyword: "tuskram",
+                generic: "Tusk Ram"
+            ),
+            lion: (
+                keyword: "lion",
+                generic: "Lion"
+            ),
+            tarasque: (
+                keyword: "tarasque",
+                generic: "Tarasque"
+            ),
+            tiger: (
+                keyword: "tiger",
+                generic: "Tiger"
+            ),
+            wolf: (
+                keyword: "wolf",
+                generic: "Wolf"
+            ),
+            frostfang: (
+                keyword: "frostfang",
+                generic: "Frostfang"
+            ),
+            mouflon: (
+                keyword: "mouflon",
+                generic: "Mouflon"
+            ),
+            catoblepas: (
+                keyword: "catoblepas",
+                generic: "Catoblepas"
+            ),
+            bonerattler: (
+                keyword: "bonerattler",
+                generic: "Bonerattler"
+            ),
+            deer: (
+                keyword: "deer",
+                generic: "Deer"
+            ),
+            hirdrasil: (
+                keyword: "hirdrasil",
+                generic: "Hirdrasil"
+            ),
+            roshwalr: (
+                keyword: "roshwalr",
+                generic: "Roshwalr"
+            ),
+            donkey: (
+                keyword: "donkey",
+                generic: "Donkey"
+            ),
+            camel: (
+                keyword: "camel",
+                generic: "Camel"
+            ),
+            zebra: (
+                keyword: "zebra",
+                generic: "Zebra"
+            ),
+            antelope: (
+                keyword: "antelope",
+                generic: "Antelope"
+            ),
+            kelpie: (
+                keyword: "kelpie",
+                generic: "Kelpie"
+            ),
+            horse: (
+                keyword: "horse",
+                generic: "Horse"
+            )
+        )
+    ),
+    quadruped_small: (
+        body: (
+            keyword: "quadruped_small",
+            names: [
+                "Acorn",
+                "Adeline",
+                "Ajna",
+                "Athena",
+                "Avacado",
+                "Babe",
+                "Bella",
+                "Buddy",
+                "Buttons",
+                "Charlie",
+                "Charlotte",
+                "Chubbs",
+                "Cinnamon",
+                "Clarence",
+                "Clover",
+                "Cookie",
+                "Corky",
+                "Cupcake",
+                "Daisy",
+                "Dani",
+                "Delilah",
+                "Dexter",
+                "Dolly",
+                "Dottie",
+                "Dudley",
+                "Ellie",
+                "Erwin",
+                "Evie",
+                "Gertrude",
+                "Gilly",
+                "Ginger",
+                "Gizmo",
+                "Gwenivere",
+                "Hogrid",
+                "Hazel",
+                "Hector",
+                "Herman",
+                "Hermione",
+                "Hoover",
+                "Huck",
+                "Iggy",
+                "Jake",
+                "Josie",
+                "Leonardo",
+                "Lily",
+                "Lola",
+                "Lottie",
+                "Lucy",
+                "Lulu",
+                "Mabel",
+                "Madeline",
+                "Maisie",
+                "Millie",
+                "Mimzy",
+                "Nooch",
+                "Nutmeg",
+                "Oinkers",
+                "Okja",
+                "Oliver",
+                "Olivia",
+                "Panda",
+                "Pasley",
+                "Peanut",
+                "Penelope",
+                "Peppa",
+                "Petunia",
+                "Phoebe",
+                "Piggie Smalls",
+                "Piggles",
+                "Piglet",
+                "Pinto Bean",
+                "Piper",
+                "Poly",
+                "Popcorn",
+                "Poppy",
+                "Punky",
+                "Rey",
+                "Rooter",
+                "Rosie",
+                "Ruby",
+                "Sadie",
+                "Scouter",
+                "Skittles",
+                "Snowball",
+                "Snuffles",
+                "Sonny",
+                "Sprout",
+                "Squiggles",
+                "Sweetie Pie",
+                "Theo",
+                "Toffuti",
+                "Trixie",
+                "Violet",
+                "Vishnu",
+                "Wee Wee",
+                "Wilbur",
+                "Willow",
+                "Winnie",
+                "Wrinkles",
+                "Ziggy",
+                "Zoe",
+                "Zoinks"
+            ]
+        ),
+        species: (
+            pig: (
+                keyword: "pig",
+                generic: "Pig"
+            ),
+            fox: (
+                keyword: "fox",
+                generic: "Fox"
+            ),
+            sheep: (
+                keyword: "sheep",
+                generic: "Sheep"
+            ),
+            boar: (
+                keyword: "boar",
+                generic: "Boar"
+            ),
+            jackalope: (
+                keyword: "jackalope",
+                generic: "Jackalope"
+            ),
+            skunk: (
+                keyword: "skunk",
+                generic: "Skunk"
+            ),
+            cat: (
+                keyword: "cat",
+                generic: "Cat"
+            ),
+            batfox: (
+                keyword: "batfox",
+                generic: "Bat Fox"
+            ),
+            raccoon: (
+                keyword: "raccoon",
+                generic: "Raccoon"
+            ),
+            quokka: (
+                keyword: "quokka",
+                generic: "Quokka"
+            ),
+            dodarock: (
+                keyword: "dodarock",
+                generic: "Dodarock"
+            ),
+            holladon: (
+                keyword: "holladon",
+                generic: "Holladon"
+            ),
+            hyena: (
+                keyword: "hyena",
+                generic: "Hyena"
+            ),
+            rabbit: (
+                keyword: "rabbit",
+                generic: "Rabbit"
+            ),
+            truffler: (
+                keyword: "truffler",
+                generic: "Truffler"
+            ),
+            frog: (
+                keyword: "frog",
+                generic: "Frog"
+            ),
+            rat: (
+                keyword: "rat",
+                generic: "Rat"
+            ),
+            axolotl: (
+                keyword: "axolotl",
+                generic: "Axolotl"
+            ),
+            gecko: (
+                keyword: "gecko",
+                generic: "Gecko"
+            ),
+            turtle: (
+                keyword: "turtle",
+                generic: "Turtle"
+            ),
+            squirrel: (
+                keyword: "squirrel",
+                generic: "Squirrel"
+            ),
+            fungome: (
+                keyword: "fungome",
+                generic: "Fungome"
+            ),
+            porcupine: (
+                keyword: "porcupine",
+                generic: "Porcupine"
+            ),
+            beaver: (
+                keyword: "beaver",
+                generic: "Beaver"
+            ),
+            hare: (
+                keyword: "hare",
+                generic: "Hare"
+            )
+        )
+    ),
+    bird_medium: (
+        body: (
+            keyword: "bird_medium",
+            names: [
+                "Donald"
+            ]
+        ),
+        species: (
+            duck: (
+                keyword: "duck",
+                generic: "Duck"
+            ),
+            chicken: (
+                keyword: "chicken",
+                generic: "Chicken"
+            ),
+            goose: (
+                keyword: "goose",
+                generic: "Goose"
+            ),
+            peacock: (
+                keyword: "peacock",
+                generic: "Peacock"
+            ),
+            eagle: (
+                keyword: "eagle",
+                generic: "Eagle"
+            ),
+            snowyowl: (
+                keyword: "snowyowl",
+                generic: "Snowy Owl"
+            ),
+            parrot: (
+                keyword: "parrot",
+                generic: "Parrot"
+            ),
+            cockatrice: (
+                keyword: "cockatrice",
+                generic: "Cockatrice"
+            )
+        )
+    ),
+    biped_large: (
+        body: (
+            keyword: "biped_large",
+            names: [
+                "Tobermory"
+            ]
+        ),
+        species: (
+            ogre: (
+                keyword: "ogre",
+                generic: "Ogre"
+            ),
+            cyclops: (
+                keyword: "cyclops",
+                generic: "Cyclops"
+            ),
+            wendigo: (
+                keyword: "wendigo",
+                generic: "Wendigo"
+            ),
+            troll: (
+                keyword: "troll",
+                generic: "Troll"
+            ),
+            dullahan: (
+                keyword: "dullahan",
+                generic: "Dullahan"
+            ),
+            werewolf: (
+                keyword: "werewolf",
+                generic: "Werewolf"
+            ),
+            saurok_occult: (
+                keyword: "saurok_occult",
+                generic: "Occult Saurok"
+            ),
+            saurok_mighty: (
+                keyword: "saurok_mighty",
+                generic: "Mighty Saurok"
+            ),
+            saurok_sly: (
+                keyword: "saurok_sly",
+                generic: "Sly Saurok"
+            ),
+            mindflayer: (
+                keyword: "mindflayer",
+                generic: "Mindflayer"
+            )
+        )
+    ),
+    golem: (
+        body: (
+            keyword: "golem",
+            names: [
+                "phil"
+            ]
+        ),
+        species: (
+            stonegolem: (
+                keyword: "stonegolem",
+                generic: "StoneGolem"
+            ),
+            treant: (
+                keyword: "treant",
+                generic: "Treant"
+            )
+        )
+    ),
+    theropod: (
+        body: (
+            keyword: "theropod",
+            names: [
+                "Remy"
+            ]
+        ),
+        species: (
+            archaeos: (
+                keyword: "archaeos",
+                generic: "Archaeos"
+            ),
+            odonto: (
+                keyword: "odonto",
+                generic: "Odonto"
+            ),
+            raptor_sand: (
+                keyword: "raptor_sand",
+                generic: "Sand Raptor"
+            ),
+            raptor_snow: (
+                keyword: "raptor_snow",
+                generic: "Snow Raptor"
+            ),
+            raptor_wood: (
+                keyword: "raptor_wood",
+                generic: "Wood Raptor"
+            )
+        )
+    ),
+    dragon: (
+        body: (
+            keyword: "dragon",
+            names: [
+                "Smaug"
+            ]
+        ),
+        species: (
+            reddragon: (
+                keyword: "reddragon",
+                generic: "Red Dragon"
+            )
+        )
+    ),
+    object: (
+        body: (
+            keyword: "object",
+            names: []
+        ),
+        species: ()
+    ),
+    fish_small: (
+        body: (
+            keyword: "fish_small",
+            names: [
+                "Dagon"
+            ]
+        ),
+        species: (
+            clownfish: (
+                keyword: "clownfish",
+                generic: "Clownfish"
+            )
+        )
+    ),
+    fish_medium: (
+        body: (
+            keyword: "fish_medium",
+            names: [
+                "Njord"
+            ]
+        ),
+        species: (
+            marlin: (
+                keyword: "marlin",
+                generic: "Marlin"
+            )
+        )
+    ),
+    bird_small: (
+        body: (
+            keyword: "bird_small",
+            names: []
+        ),
+        species: ()
+    ),
+    quadruped_low: (
+        body: (
+            keyword: "quadruped_low",
+            names: [
+                "Sobek"
+            ]
+        ),
+        species: (
+            crocodile: (
+                keyword: "crocodile",
+                generic: "Crocodile"
+            ),
+            alligator: (
+                keyword: "alligator",
+                generic: "Alligator"
+            ),
+            salamander: (
+                keyword: "salamander",
+                generic: "Salamander"
+            ),
+            monitor: (
+                keyword: "monitor",
+                generic: "Monitor"
+            ),
+            asp: (
+                keyword: "asp",
+                generic: "Asp"
+            ),
+            tortoise: (
+                keyword: "tortoise",
+                generic: "Tortoise"
+            ),
+            rocksnapper: (
+                keyword: "rocksnapper",
+                generic: "Rock Snapper"
+            ),
+            pangolin: (
+                keyword: "pangolin",
+                generic: "Pangolin"
+            ),
+            maneater: (
+                keyword: "maneater",
+                generic: "Maneater"
+            ),
+            sandshark: (
+                keyword: "sandshark",
+                generic: "Sand Shark"
+            ),
+            hakulaq: (
+                keyword: "hakulaq",
+                generic: "Hakulaq"
+            ),
+            lavadrake: (
+                keyword: "lavadrake",
+                generic: "Lava Drake"
+            )
+        )
+    )
+)
