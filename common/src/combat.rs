@@ -87,9 +87,9 @@ impl Damage {
             },
             DamageSource::Projectile => {
                 // Critical hit
-                if rand::random() {
+                /*if rand::random() {
                     damage *= 1.2;
-                }
+                }*/
                 // Armor
                 damage *= 1.0 - damage_reduction;
 

@@ -1186,6 +1186,64 @@ impl Client {
                                 SkillGroupType::Weapon(Bow),
                             )));
                         },
+                        "@unlock bow proj speed" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Bow(
+                                BowSkill::ProjSpeed,
+                            )));
+                        },
+                        "@unlock bow basic damage" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Bow(
+                                BowSkill::BDamage,
+                            )));
+                        },
+                        "@unlock bow basic regen" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Bow(BowSkill::BRegen)));
+                        },
+                        "@unlock bow charged damage" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Bow(
+                                BowSkill::CDamage,
+                            )));
+                        },
+                        "@unlock bow charged knockback" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Bow(
+                                BowSkill::CKnockback,
+                            )));
+                        },
+                        "@unlock bow charged proj speed" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Bow(
+                                BowSkill::CProjSpeed,
+                            )));
+                        },
+                        "@unlock bow charged drain" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Bow(BowSkill::CDrain)));
+                        },
+                        "@unlock bow charged speed" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Bow(BowSkill::CSpeed)));
+                        },
+                        "@unlock bow charged move" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Bow(BowSkill::CMove)));
+                        },
+                        "@unlock bow repeater" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Bow(
+                                BowSkill::UnlockRepeater,
+                            )));
+                        },
+                        "@unlock bow repeater damage" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Bow(
+                                BowSkill::RDamage,
+                            )));
+                        },
+                        "@unlock bow repeater leap" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Bow(BowSkill::RLeap)));
+                        },
+                        "@unlock bow repeater arrows" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Bow(
+                                BowSkill::RArrows,
+                            )));
+                        },
+                        "@unlock bow repeater cost" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Bow(BowSkill::RCost)));
+                        },
                         "@unlock staff" => {
                             self.send_msg(ClientGeneral::UnlockSkill(Skill::UnlockGroup(
                                 SkillGroupType::Weapon(Staff),

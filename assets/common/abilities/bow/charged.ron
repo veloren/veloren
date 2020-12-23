@@ -14,4 +14,5 @@ ChargedRanged(
     projectile_gravity: Some(Gravity(0.2)),
     initial_projectile_speed: 100.0,
     scaled_projectile_speed: 400.0,
+    move_speed: 0.3,
 )

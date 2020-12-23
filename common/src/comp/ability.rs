@@ -189,6 +189,7 @@ pub enum CharacterAbility {
         projectile_gravity: Option<Gravity>,
         initial_projectile_speed: f32,
         scaled_projectile_speed: f32,
+        move_speed: f32,
     },
     Shockwave {
         energy_cost: u32,
@@ -335,7 +336,7 @@ impl CharacterAbility {
             } => {
                 *buildup_duration = (*buildup_duration as f32 / speed) as u64;
                 *recover_duration = (*recover_duration as f32 / speed) as u64;
-                *projectile = projectile.modified_projectile(power);
+                *projectile = projectile.modified_projectile(power, 1_f32);
             },
             RepeaterRanged {
                 ref mut movement_duration,
@@ -349,7 +350,7 @@ impl CharacterAbility {
                 *buildup_duration = (*buildup_duration as f32 / speed) as u64;
                 *shoot_duration = (*shoot_duration as f32 / speed) as u64;
                 *recover_duration = (*recover_duration as f32 / speed) as u64;
-                *projectile = projectile.modified_projectile(power);
+                *projectile = projectile.modified_projectile(power, 1_f32);
             },
             Boost {
                 ref mut movement_duration,
@@ -810,6 +811,90 @@ impl CharacterAbility {
                         _ => {},
                     }
                 },
+                ToolKind::Bow => {
+                    use skills::BowSkill::*;
+                    match self {
+                        BasicRanged {
+                            ref mut projectile,
+                            ref mut projectile_speed,
+                            ..
+                        } => {
+                            if let Some(level) = skills.get(&Bow(ProjSpeed)).copied().flatten() {
+                                *projectile_speed *= 1.5_f32.powi(level.into());
+                            }
+                            {
+                                let damage_level =
+                                    skills.get(&Bow(BDamage)).copied().flatten().unwrap_or(0);
+                                let regen_level =
+                                    skills.get(&Bow(BRegen)).copied().flatten().unwrap_or(0);
+                                let power = 1.3_f32.powi(damage_level.into());
+                                let regen = 1.5_f32.powi(regen_level.into());
+                                *projectile = projectile.modified_projectile(power, regen);
+                            }
+                        },
+                        ChargedRanged {
+                            ref mut scaled_damage,
+                            ref mut scaled_knockback,
+                            ref mut energy_drain,
+                            ref mut speed,
+                            ref mut initial_projectile_speed,
+                            ref mut scaled_projectile_speed,
+                            ref mut move_speed,
+                            ..
+                        } => {
+                            if let Some(level) = skills.get(&Bow(ProjSpeed)).copied().flatten() {
+                                *initial_projectile_speed *= 1.5_f32.powi(level.into());
+                            }
+                            if let Some(level) = skills.get(&Bow(CDamage)).copied().flatten() {
+                                *scaled_damage =
+                                    (*scaled_damage as f32 * 1.25_f32.powi(level.into())) as u32;
+                            }
+                            if let Some(level) = skills.get(&Bow(CKnockback)).copied().flatten() {
+                                *scaled_knockback *= 1.5_f32.powi(level.into());
+                            }
+                            if let Some(level) = skills.get(&Bow(CProjSpeed)).copied().flatten() {
+                                *scaled_projectile_speed *= 1.2_f32.powi(level.into());
+                            }
+                            if let Some(level) = skills.get(&Bow(CDrain)).copied().flatten() {
+                                *energy_drain =
+                                    (*energy_drain as f32 * 0.75_f32.powi(level.into())) as u32;
+                            }
+                            if let Some(level) = skills.get(&Bow(CSpeed)).copied().flatten() {
+                                *speed *= 1.25_f32.powi(level.into());
+                            }
+                            if let Some(level) = skills.get(&Bow(CMove)).copied().flatten() {
+                                *move_speed *= 1.25_f32.powi(level.into());
+                            }
+                        },
+                        RepeaterRanged {
+                            ref mut energy_cost,
+                            ref mut leap,
+                            ref mut projectile,
+                            ref mut reps_remaining,
+                            ref mut projectile_speed,
+                            ..
+                        } => {
+                            if let Some(level) = skills.get(&Bow(ProjSpeed)).copied().flatten() {
+                                *projectile_speed *= 1.5_f32.powi(level.into());
+                            }
+                            if let Some(level) = skills.get(&Bow(RDamage)).copied().flatten() {
+                                let power = 1.3_f32.powi(level.into());
+                                *projectile = projectile.modified_projectile(power, 1_f32);
+                            }
+                            if !skills.contains_key(&Bow(RLeap)) {
+                                *leap = None;
+                            }
+                            if let Some(level) = skills.get(&Bow(RArrows)).copied().flatten() {
+                                *reps_remaining += level as u32;
+                            }
+                            if let Some(level) = skills.get(&Bow(RCost)).copied().flatten() {
+                                *energy_cost =
+                                    (*energy_cost as f32 * 0.75_f32.powi(level.into())) as u32;
+                            }
+                        },
+                        _ => {},
+                    }
+                },
                 _ => {},
             }
         }
@@ -1085,6 +1170,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                 projectile_gravity,
                 initial_projectile_speed,
                 scaled_projectile_speed,
+                move_speed,
             } => CharacterState::ChargedRanged(charged_ranged::Data {
                 static_data: charged_ranged::StaticData {
                     buildup_duration: Duration::from_millis(*buildup_duration),
@@ -1101,6 +1187,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                     projectile_gravity: *projectile_gravity,
                     initial_projectile_speed: *initial_projectile_speed,
                     scaled_projectile_speed: *scaled_projectile_speed,
+                    move_speed: *move_speed,
                     ability_key: key,
                 },
                 timer: Duration::default(),
