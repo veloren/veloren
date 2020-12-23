@@ -142,7 +142,24 @@ pub enum HammerSkill {
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum BowSkill {
+    // Passives
+    ProjSpeed,
+    // Basic ranged upgrades
+    BDamage,
+    BRegen,
+    // Charged ranged upgrades
+    CDamage,
+    CKnockback,
+    CProjSpeed,
+    CDrain,
+    CSpeed,
+    CMove,
+    // Repeater upgrades
     UnlockRepeater,
+    RDamage,
+    RLeap,
+    RArrows,
+    RCost,
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]

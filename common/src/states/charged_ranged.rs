@@ -42,6 +42,8 @@ pub struct StaticData {
     pub projectile_gravity: Option<Gravity>,
     pub initial_projectile_speed: f32,
     pub scaled_projectile_speed: f32,
+    /// Move speed efficiency
+    pub move_speed: f32,
     /// What key is used to press ability
     pub ability_key: AbilityKey,
 }
@@ -63,7 +65,7 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        handle_move(data, &mut update, 0.3);
+        handle_move(data, &mut update, self.static_data.move_speed);
         handle_jump(data, &mut update);
         if !ability_key_is_pressed(data, self.static_data.ability_key) {
             handle_interrupt(data, &mut update, false);

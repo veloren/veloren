@@ -203,11 +203,16 @@ impl ProjectileConstructor {
         }
     }
 
-    pub fn modified_projectile(mut self, power: f32) -> Self {
+    pub fn modified_projectile(mut self, power: f32, regen: f32) -> Self {
         use ProjectileConstructor::*;
         match self {
-            Arrow { ref mut damage, .. } => {
+            Arrow {
+                ref mut damage,
+                ref mut energy_regen,
+                ..
+            } => {
                 *damage *= power;
+                *energy_regen = (*energy_regen as f32 * regen) as u32;
             },
             Fireball { ref mut damage, .. } => {
                 *damage *= power;
