@@ -3,6 +3,7 @@ use common::{
     assets::{self, AssetExt, AssetHandle, DotVoxAsset, Ron},
     comp::{
         biped_large::{self, BodyType as BLBodyType, Species as BLSpecies},
+        biped_small::{self, BodyType as BSBodyType, Species as BSSpecies},
         bird_medium::{self, BodyType as BMBodyType, Species as BMSpecies},
         bird_small,
         dragon::{self, BodyType as DBodyType, Species as DSpecies},
@@ -2466,6 +2467,241 @@ impl FishSmallLateralSpec {
     }
 }
 
+////
+
+#[derive(Deserialize)]
+struct BipedSmallCentralSpec(HashMap<(BSSpecies, BSBodyType), SidedBSCentralVoxSpec>);
+
+#[derive(Deserialize)]
+struct SidedBSCentralVoxSpec {
+    head: BipedSmallCentralSubSpec,
+    chest: BipedSmallCentralSubSpec,
+    shorts: BipedSmallCentralSubSpec,
+    tail: BipedSmallCentralSubSpec,
+    main: BipedSmallCentralSubSpec,
+}
+#[derive(Deserialize)]
+struct BipedSmallCentralSubSpec {
+    offset: [f32; 3], // Should be relative to initial origin
+    central: VoxSimple,
+}
+#[derive(Deserialize)]
+struct BipedSmallLateralSpec(HashMap<(BSSpecies, BSBodyType), SidedBSLateralVoxSpec>);
+#[derive(Deserialize)]
+struct SidedBSLateralVoxSpec {
+    hand_l: BipedSmallLateralSubSpec,
+    hand_r: BipedSmallLateralSubSpec,
+    foot_l: BipedSmallLateralSubSpec,
+    foot_r: BipedSmallLateralSubSpec,
+}
+#[derive(Deserialize)]
+struct BipedSmallLateralSubSpec {
+    offset: [f32; 3], // Should be relative to initial origin
+    lateral: VoxSimple,
+}
+
+make_vox_spec!(
+    biped_small::Body,
+    struct BipedSmallSpec {
+        central: BipedSmallCentralSpec = "voxygen.voxel.biped_small_central_manifest",
+        lateral: BipedSmallLateralSpec = "voxygen.voxel.biped_small_lateral_manifest",
+    },
+    |FigureKey { body, .. }, spec| {
+        [
+            Some(spec.central.read().0.mesh_head(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.central.read().0.mesh_chest(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.central.read().0.mesh_shorts(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.central.read().0.mesh_tail(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.central.read().0.mesh_main(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.read().0.mesh_hand_l(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.read().0.mesh_hand_r(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.read().0.mesh_foot_l(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.read().0.mesh_foot_r(
+                body.species,
+                body.body_type,
+            )),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+        ]
+    },
+);
+
+impl BipedSmallCentralSpec {
+    fn mesh_head(&self, species: BSSpecies, body_type: BSBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No head specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.head.central.0);
+
+        (central, Vec3::from(spec.head.offset))
+    }
+
+    fn mesh_chest(&self, species: BSSpecies, body_type: BSBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No chest specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.chest.central.0);
+
+        (central, Vec3::from(spec.chest.offset))
+    }
+
+    fn mesh_shorts(&self, species: BSSpecies, body_type: BSBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No shorts specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.shorts.central.0);
+
+        (central, Vec3::from(spec.shorts.offset))
+    }
+
+    fn mesh_tail(&self, species: BSSpecies, body_type: BSBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No tail specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.tail.central.0);
+
+        (central, Vec3::from(spec.tail.offset))
+    }
+
+    fn mesh_main(&self, species: BSSpecies, body_type: BSBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No main specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.main.central.0);
+
+        (central, Vec3::from(spec.main.offset))
+    }
+}
+
+impl BipedSmallLateralSpec {
+    fn mesh_hand_l(&self, species: BSSpecies, body_type: BSBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No hand specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.hand_l.lateral.0);
+
+        (lateral, Vec3::from(spec.hand_l.offset))
+    }
+
+    fn mesh_hand_r(&self, species: BSSpecies, body_type: BSBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No hand specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.hand_r.lateral.0);
+
+        (lateral, Vec3::from(spec.hand_r.offset))
+    }
+
+    fn mesh_foot_l(&self, species: BSSpecies, body_type: BSBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No foot specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.foot_l.lateral.0);
+
+        (lateral, Vec3::from(spec.foot_l.offset))
+    }
+
+    fn mesh_foot_r(&self, species: BSSpecies, body_type: BSBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No foot specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.foot_r.lateral.0);
+
+        (lateral, Vec3::from(spec.foot_r.offset))
+    }
+}
 ////
 
 #[derive(Deserialize)]

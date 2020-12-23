@@ -150,6 +150,7 @@ impl<'a> From<&'a Body> for Psyche {
                     quadruped_low::Species::Pangolin => 0.4,
                     _ => 0.6,
                 },
+                Body::BipedSmall(_) => 0.5,
                 Body::BirdMedium(_) => 0.5,
                 Body::BirdSmall(_) => 0.4,
                 Body::FishMedium(_) => 0.15,

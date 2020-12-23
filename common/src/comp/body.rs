@@ -1,4 +1,5 @@
 pub mod biped_large;
+pub mod biped_small;
 pub mod bird_medium;
 pub mod bird_small;
 pub mod dragon;
@@ -38,10 +39,11 @@ make_case_elim!(
         BirdSmall(body: bird_small::Body) = 6,
         FishSmall(body: fish_small::Body) = 7,
         BipedLarge(body: biped_large::Body)= 8,
-        Object(body: object::Body) = 9,
-        Golem(body: golem::Body) = 10,
-        Theropod(body: theropod::Body) = 11,
-        QuadrupedLow(body: quadruped_low::Body) = 12,
+        BipedSmall(body: biped_small::Body)= 9,
+        Object(body: object::Body) = 10,
+        Golem(body: golem::Body) = 11,
+        Theropod(body: theropod::Body) = 12,
+        QuadrupedLow(body: quadruped_low::Body) = 13,
     }
 );
 
@@ -71,6 +73,7 @@ pub struct AllBodies<BodyMeta, SpeciesMeta> {
     pub bird_small: BodyData<BodyMeta, ()>,
     pub fish_small: BodyData<BodyMeta, fish_small::AllSpecies<SpeciesMeta>>,
     pub biped_large: BodyData<BodyMeta, biped_large::AllSpecies<SpeciesMeta>>,
+    pub biped_small: BodyData<BodyMeta, biped_small::AllSpecies<SpeciesMeta>>,
     pub object: BodyData<BodyMeta, ()>,
     pub golem: BodyData<BodyMeta, golem::AllSpecies<SpeciesMeta>>,
     pub theropod: BodyData<BodyMeta, theropod::AllSpecies<SpeciesMeta>>,
@@ -91,6 +94,7 @@ impl<BodyMeta, SpeciesMeta> core::ops::Index<NpcKind> for AllBodies<BodyMeta, Sp
             NpcKind::Marlin => &self.fish_medium.body,
             NpcKind::Clownfish => &self.fish_small.body,
             NpcKind::Ogre => &self.biped_large.body,
+            NpcKind::Gremlin => &self.biped_small.body,
             NpcKind::StoneGolem => &self.golem.body,
             NpcKind::Archaeos => &self.theropod.body,
             NpcKind::Reddragon => &self.dragon.body,
@@ -115,6 +119,7 @@ impl<'a, BodyMeta, SpeciesMeta> core::ops::Index<&'a Body> for AllBodies<BodyMet
             Body::BirdSmall(_) => &self.bird_small.body,
             Body::FishSmall(_) => &self.fish_small.body,
             Body::BipedLarge(_) => &self.biped_large.body,
+            Body::BipedSmall(_) => &self.biped_small.body,
             Body::Object(_) => &self.object.body,
             Body::Golem(_) => &self.golem.body,
             Body::Theropod(_) => &self.theropod.body,
@@ -200,6 +205,7 @@ impl Body {
                 _ => 4.6,
             },
             Body::Golem(_) => 2.5,
+            Body::BipedSmall(_) => 0.75,
             Body::Object(_) => 0.4,
         }
     }
@@ -262,6 +268,7 @@ impl Body {
                 _ => 4.6,
             },
             Body::Golem(_) => 5.0,
+            Body::BipedSmall(_) => 1.5,
             Body::Object(object) => match object {
                 object::Body::Crossbow => 1.7,
                 _ => 1.0,
@@ -339,6 +346,7 @@ impl Body {
                 biped_large::Species::Mindflayer => 8000,
                 _ => 1000,
             },
+            Body::BipedSmall(_) => 10000,
             Body::Object(object) => match object {
                 object::Body::TrainingDummy => 10000,
                 object::Body::Crossbow => 800,
@@ -428,6 +436,7 @@ impl Body {
                 biped_large::Species::Mindflayer => 250,
                 _ => 100,
             },
+            Body::BipedSmall(_) => 10,
             Body::Object(_) => 10,
             Body::Golem(_) => 260,
             Body::Theropod(_) => 20,

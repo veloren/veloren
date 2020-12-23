@@ -881,6 +881,20 @@
         ),
         species: ()
     ),
+    biped_small: (
+        body: (
+            keyword: "biped_small",
+            names: [
+                "Harvey"
+            ]
+        ),
+        species: (
+            clownfish: (
+                keyword: "gremlin",
+                generic: "Gremlin"
+            )
+        )
+    ),
     fish_small: (
         body: (
             keyword: "fish_small",

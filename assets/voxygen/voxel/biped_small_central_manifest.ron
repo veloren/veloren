@@ -1,0 +1,46 @@
+({
+    (Gremlin, Male): (
+        head: (
+            offset: (-1.5, -7.5, -5.0),
+            central: ("npc.gremlin.male.chest"),
+        ),
+        chest: (
+            offset: (-1.5, -7.5, -5.0),
+            central: ("npc.gremlin.male.chest"),
+        ),
+        shorts: (
+            offset: (-1.5, -7.5, -5.0),
+            central: ("npc.gremlin.male.chest"),
+        ),
+        tail: (
+            offset: (-0.5, -5.0, -2.5),
+            central: ("npc.gremlin.male.tail"),
+        ),
+        main: (
+            offset: (-1.5, -7.5, -5.0),
+            central: ("npc.gremlin.male.chest"),
+        ),
+    ),
+    (Gremlin, Female): (
+        head: (
+            offset: (-1.5, -7.5, -5.0),
+            central: ("npc.gremlin.male.chest"),
+        ),
+        chest: (
+            offset: (-1.5, -7.5, -5.0),
+            central: ("npc.gremlin.male.chest"),
+        ),
+        shorts: (
+            offset: (-1.5, -7.5, -5.0),
+            central: ("npc.gremlin.male.chest"),
+        ),
+        tail: (
+            offset: (-0.5, -5.0, -2.5),
+            central: ("npc.gremlin.male.tail"),
+        ),
+        main: (
+            offset: (-1.5, -7.5, -5.0),
+            central: ("npc.gremlin.male.chest"),
+        ),
+    ),
+})

@@ -16,13 +16,14 @@ pub enum NpcKind {
     Clownfish,
     Marlin,
     Ogre,
+    Gremlin,
     Archaeos,
     StoneGolem,
     Reddragon,
     Crocodile,
 }
 
-pub const ALL_NPCS: [NpcKind; 11] = [
+pub const ALL_NPCS: [NpcKind; 12] = [
     NpcKind::Humanoid,
     NpcKind::Wolf,
     NpcKind::Pig,
@@ -30,6 +31,7 @@ pub const ALL_NPCS: [NpcKind; 11] = [
     NpcKind::Clownfish,
     NpcKind::Marlin,
     NpcKind::Ogre,
+    NpcKind::Gremlin,
     NpcKind::Archaeos,
     NpcKind::StoneGolem,
     NpcKind::Reddragon,
@@ -123,6 +125,7 @@ pub fn kind_to_body(kind: NpcKind) -> Body {
         NpcKind::Clownfish => comp::fish_small::Body::random().into(),
         NpcKind::Marlin => comp::fish_medium::Body::random().into(),
         NpcKind::Ogre => comp::biped_large::Body::random().into(),
+        NpcKind::Gremlin => comp::biped_small::Body::random().into(),
         NpcKind::Archaeos => comp::theropod::Body::random().into(),
         NpcKind::StoneGolem => comp::golem::Body::random().into(),
         NpcKind::Reddragon => comp::dragon::Body::random().into(),
@@ -247,6 +250,14 @@ impl NpcBody {
                     NpcKind::Ogre,
                     &npc_names.biped_large,
                     comp::biped_large::Body::random_with,
+                )
+            })
+            .or_else(|| {
+                parse(
+                    s,
+                    NpcKind::Gremlin,
+                    &npc_names.biped_small,
+                    comp::biped_small::Body::random_with,
                 )
             })
             .or_else(|| {

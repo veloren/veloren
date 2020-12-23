@@ -60,6 +60,7 @@ impl Body {
                 quadruped_medium::Species::Kelpie => 180.0,
                 quadruped_medium::Species::Horse => 180.0,
             },
+            Body::BipedSmall(_) => 100.0,
             Body::BirdMedium(_) => 80.0,
             Body::FishMedium(_) => 80.0,
             Body::Dragon(_) => 250.0,
@@ -116,6 +117,7 @@ impl Body {
             Body::BirdSmall(_) => 35.0,
             Body::FishSmall(_) => 10.0,
             Body::BipedLarge(_) => 12.0,
+            Body::BipedSmall(_) => 12.0,
             Body::Object(_) => 10.0,
             Body::Golem(_) => 8.0,
             Body::Theropod(theropod) => match theropod.species {
