@@ -11,6 +11,26 @@
         "Blue0": (
             vox_spec: ("glider.glider_blue", (-26.0, -26.0, -5.0)),
             color: None
+        ),
+        "ButterflyMorpho": (
+            vox_spec: ("glider.glider_butterfly1", (-26.0, -25.0, -5.0)),
+            color: None
+        ),
+        "ButterflyMonarch": (
+            vox_spec: ("glider.glider_butterfly2", (-26.0, -25.0, -5.0)),
+            color: None
+        ),        
+        "SandRaptor": (
+            vox_spec: ("glider.glider_sandraptor", (-26.0, -25.0, -5.0)),
+            color: None    
+        ),   
+        "SnowRaptor": (
+            vox_spec: ("glider.glider_snowraptor", (-26.0, -25.0, -5.0)),
+            color: None    
+        ),     
+        "WoodRaptor": (
+            vox_spec: ("glider.glider_woodraptor", (-26.0, -25.0, -5.0)),
+            color: None    
         ),   
         "Purple0": (
             vox_spec: ("glider.glider_cultists", (-26.0, -16.0, -5.0)),
