@@ -164,7 +164,22 @@ pub enum BowSkill {
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum StaffSkill {
+    // Basic ranged upgrades
+    BExplosion,
+    BDamage,
+    BRegen,
+    BRadius,
+    // Flamethrower upgrades
+    FDamage,
+    FRange,
+    FDrain,
+    FVelocity,
+    // Shockwave upgrades
     UnlockShockwave,
+    SDamage,
+    SKnockback,
+    SRange,
+    SCost,
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]

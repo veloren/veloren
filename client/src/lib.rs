@@ -1249,6 +1249,71 @@ impl Client {
                                 SkillGroupType::Weapon(Staff),
                             )));
                         },
+                        "@unlock staff fireball" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Staff(
+                                StaffSkill::BExplosion,
+                            )));
+                        },
+                        "@unlock staff fireball damage" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Staff(
+                                StaffSkill::BDamage,
+                            )));
+                        },
+                        "@unlock staff fireball regen" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Staff(
+                                StaffSkill::BRegen,
+                            )));
+                        },
+                        "@unlock staff fireball radius" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Staff(
+                                StaffSkill::BRadius,
+                            )));
+                        },
+                        "@unlock staff beam damage" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Staff(
+                                StaffSkill::FDamage,
+                            )));
+                        },
+                        "@unlock staff beam range" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Staff(
+                                StaffSkill::FRange,
+                            )));
+                        },
+                        "@unlock staff beam drain" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Staff(
+                                StaffSkill::FDrain,
+                            )));
+                        },
+                        "@unlock staff beam velocity" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Staff(
+                                StaffSkill::FVelocity,
+                            )));
+                        },
+                        "@unlock staff shockwave" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Staff(
+                                StaffSkill::UnlockShockwave,
+                            )));
+                        },
+                        "@unlock staff shockwave damage" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Staff(
+                                StaffSkill::SDamage,
+                            )));
+                        },
+                        "@unlock staff shockwave knockback" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Staff(
+                                StaffSkill::SKnockback,
+                            )));
+                        },
+                        "@unlock staff shockwave range" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Staff(
+                                StaffSkill::SRange,
+                            )));
+                        },
+                        "@unlock staff shockwave cost" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Staff(
+                                StaffSkill::SCost,
+                            )));
+                        },
                         "@unlock sceptre" => {
                             self.send_msg(ClientGeneral::UnlockSkill(Skill::UnlockGroup(
                                 SkillGroupType::Weapon(Sceptre),
