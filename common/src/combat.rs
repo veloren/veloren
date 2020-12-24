@@ -195,6 +195,16 @@ impl Knockback {
             },
         }
     }
+
+    pub fn modify_strength(mut self, power: f32) -> Self {
+        use Knockback::*;
+        match self {
+            Away(ref mut f) | Towards(ref mut f) | Up(ref mut f) | TowardsUp(ref mut f) => {
+                *f *= power;
+            },
+        }
+        self
+    }
 }
 
 pub fn get_weapons(inv: &Inventory) -> (Option<ToolKind>, Option<ToolKind>) {

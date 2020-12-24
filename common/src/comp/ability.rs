@@ -336,7 +336,7 @@ impl CharacterAbility {
             } => {
                 *buildup_duration = (*buildup_duration as f32 / speed) as u64;
                 *recover_duration = (*recover_duration as f32 / speed) as u64;
-                *projectile = projectile.modified_projectile(power, 1_f32);
+                *projectile = projectile.modified_projectile(power, 1_f32, 1_f32);
             },
             RepeaterRanged {
                 ref mut movement_duration,
@@ -350,7 +350,7 @@ impl CharacterAbility {
                 *buildup_duration = (*buildup_duration as f32 / speed) as u64;
                 *shoot_duration = (*shoot_duration as f32 / speed) as u64;
                 *recover_duration = (*recover_duration as f32 / speed) as u64;
-                *projectile = projectile.modified_projectile(power, 1_f32);
+                *projectile = projectile.modified_projectile(power, 1_f32, 1_f32);
             },
             Boost {
                 ref mut movement_duration,
@@ -493,7 +493,7 @@ impl CharacterAbility {
             | ChargedRanged { energy_cost, .. }
             | Shockwave { energy_cost, .. }
             | BasicBeam { energy_cost, .. } => *energy_cost,
-            _ => 0,
+            BasicBlock | Boost { .. } | ComboMelee { .. } => 0,
         }
     }
 
@@ -829,7 +829,7 @@ impl CharacterAbility {
                                     skills.get(&Bow(BRegen)).copied().flatten().unwrap_or(0);
                                 let power = 1.3_f32.powi(damage_level.into());
                                 let regen = 1.5_f32.powi(regen_level.into());
-                                *projectile = projectile.modified_projectile(power, regen);
+                                *projectile = projectile.modified_projectile(power, regen, 1_f32);
                             }
                         },
                         ChargedRanged {
@@ -879,7 +879,7 @@ impl CharacterAbility {
                             }
                             if let Some(level) = skills.get(&Bow(RDamage)).copied().flatten() {
                                 let power = 1.3_f32.powi(level.into());
-                                *projectile = projectile.modified_projectile(power, 1_f32);
+                                *projectile = projectile.modified_projectile(power, 1_f32, 1_f32);
                             }
                             if !skills.contains_key(&Bow(RLeap)) {
                                 *leap = None;
@@ -890,6 +890,80 @@ impl CharacterAbility {
                             if let Some(level) = skills.get(&Bow(RCost)).copied().flatten() {
                                 *energy_cost =
                                     (*energy_cost as f32 * 0.75_f32.powi(level.into())) as u32;
+                            }
+                        },
+                        _ => {},
+                    }
+                },
+                ToolKind::Staff => {
+                    use skills::StaffSkill::*;
+                    match self {
+                        BasicRanged {
+                            ref mut projectile, ..
+                        } => {
+                            if !skills.contains_key(&Staff(BExplosion)) {
+                                *projectile = projectile.fireball_to_firebolt();
+                            }
+                            {
+                                let damage_level =
+                                    skills.get(&Staff(BDamage)).copied().flatten().unwrap_or(0);
+                                let regen_level =
+                                    skills.get(&Staff(BRegen)).copied().flatten().unwrap_or(0);
+                                let range_level =
+                                    skills.get(&Staff(BRadius)).copied().flatten().unwrap_or(0);
+                                let power = 1.2_f32.powi(damage_level.into());
+                                let regen = 1.2_f32.powi(regen_level.into());
+                                let range = 1.1_f32.powi(range_level.into());
+                                *projectile = projectile.modified_projectile(power, regen, range);
+                            }
+                        },
+                        BasicBeam {
+                            ref mut base_dps,
+                            ref mut range,
+                            ref mut energy_drain,
+                            ref mut beam_duration,
+                            ..
+                        } => {
+                            if let Some(level) = skills.get(&Staff(FDamage)).copied().flatten() {
+                                *base_dps = (*base_dps as f32 * 1.3_f32.powi(level.into())) as u32;
+                            }
+                            if let Some(level) = skills.get(&Staff(FRange)).copied().flatten() {
+                                *range *= 1.25_f32.powi(level.into());
+                                // Duration modified to keep velocity constant
+                                *beam_duration =
+                                    (*beam_duration as f32 * 1.4_f32.powi(level.into())) as u64;
+                            }
+                            if let Some(level) = skills.get(&Staff(FDrain)).copied().flatten() {
+                                *energy_drain =
+                                    (*energy_drain as f32 * 0.8_f32.powi(level.into())) as u32;
+                            }
+                            if let Some(level) = skills.get(&Staff(FVelocity)).copied().flatten() {
+                                let velocity_increase = 1.25_f32.powi(level.into());
+                                let duration_mod = 1.0 / (1.0 + velocity_increase);
+                                *beam_duration = (*beam_duration as f32 * duration_mod) as u64;
+                            }
+                        },
+                        Shockwave {
+                            ref mut damage,
+                            ref mut knockback,
+                            ref mut shockwave_duration,
+                            ref mut energy_cost,
+                            ..
+                        } => {
+                            if let Some(level) = skills.get(&Staff(SDamage)).copied().flatten() {
+                                *damage = (*damage as f32 * 1.3_f32.powi(level.into())) as u32;
+                            }
+                            if let Some(level) = skills.get(&Staff(SKnockback)).copied().flatten() {
+                                *knockback = knockback.modify_strength(1.3_f32.powi(level.into()));
+                            }
+                            if let Some(level) = skills.get(&Staff(SRange)).copied().flatten() {
+                                *shockwave_duration = (*shockwave_duration as f32
+                                    * 1.2_f32.powi(level.into()))
+                                    as u64;
+                            }
+                            if let Some(level) = skills.get(&Staff(SCost)).copied().flatten() {
+                                *energy_cost =
+                                    (*energy_cost as f32 * 0.8_f32.powi(level.into())) as u32;
                             }
                         },
                         _ => {},
