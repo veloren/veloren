@@ -37,7 +37,7 @@ impl Skeleton for BipedSmallSkeleton {
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
     ) -> Vec3<f32> {
         let chest_mat = base_mat * Mat4::<f32>::from(self.chest);
-        let shorts_mat = chest_mat * Mat4::<f32>::from(self.chest);
+        let shorts_mat = chest_mat * Mat4::<f32>::from(self.shorts);
 
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
             make_bone(chest_mat * Mat4::<f32>::from(self.head)),
@@ -46,9 +46,9 @@ impl Skeleton for BipedSmallSkeleton {
             make_bone(shorts_mat * Mat4::<f32>::from(self.tail)),
             make_bone(chest_mat * Mat4::<f32>::from(self.main)),
             make_bone(chest_mat * Mat4::<f32>::from(self.hand_l)),
-            make_bone(chest_mat * Mat4::<f32>::from(self.hand_l)),
+            make_bone(chest_mat * Mat4::<f32>::from(self.hand_r)),
             make_bone(base_mat * Mat4::<f32>::from(self.foot_l)),
-            make_bone(base_mat * Mat4::<f32>::from(self.foot_l)),
+            make_bone(base_mat * Mat4::<f32>::from(self.foot_r)),
         ];
         Vec3::default()
     }
@@ -92,22 +92,22 @@ impl<'a> From<&'a Body> for SkeletonAttr {
         use comp::biped_small::Species::*;
         Self {
             head: match (body.species, body.body_type) {
-                (Gremlin, _) => (0.0, 5.0),
+                (Gnome, _) => (-1.0, 9.0),
             },
             chest: match (body.species, body.body_type) {
-                (Gremlin, _) => (0.0, 5.0),
+                (Gnome, _) => (0.0, 9.0),
             },
             shorts: match (body.species, body.body_type) {
-                (Gremlin, _) => (0.0, 5.0),
+                (Gnome, _) => (0.0, -3.0),
             },
             tail: match (body.species, body.body_type) {
-                (Gremlin, _) => (-7.5, -0.5),
+                (Gnome, _) => (0.0, 0.0),
             },
             hand: match (body.species, body.body_type) {
-                (Gremlin, _) => (2.0, 0.5, 1.0),
+                (Gnome, _) => (6.0, 0.5, -1.0),
             },
             foot: match (body.species, body.body_type) {
-                (Gremlin, _) => (2.0, 0.5, 1.0),
+                (Gnome, _) => (3.0, 0.0, 4.0),
             },
         }
     }

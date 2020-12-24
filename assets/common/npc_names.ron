@@ -889,9 +889,9 @@
             ]
         ),
         species: (
-            clownfish: (
-                keyword: "gremlin",
-                generic: "Gremlin"
+            gnome: (
+                keyword: "gnome",
+                generic: "Gnome"
             )
         )
     ),

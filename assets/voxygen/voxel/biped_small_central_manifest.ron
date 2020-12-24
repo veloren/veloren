@@ -1,46 +1,46 @@
 ({
-    (Gremlin, Male): (
+    (Gnome, Male): (
         head: (
-            offset: (-1.5, -7.5, -5.0),
-            central: ("npc.gremlin.male.chest"),
+            offset: (-8.0, -6.5, -12.0),
+            central: ("npc.gnome.male.head"),
         ),
         chest: (
-            offset: (-1.5, -7.5, -5.0),
-            central: ("npc.gremlin.male.chest"),
+            offset: (-5.0, -3.0, -2.5),
+            central: ("npc.gnome.male.chest"),
         ),
         shorts: (
-            offset: (-1.5, -7.5, -5.0),
-            central: ("npc.gremlin.male.chest"),
+            offset: (-4.0, -3.5, -2.5),
+            central: ("npc.gnome.male.shorts"),
         ),
         tail: (
             offset: (-0.5, -5.0, -2.5),
-            central: ("npc.gremlin.male.tail"),
+            central: ("armor.empty"),
         ),
         main: (
             offset: (-1.5, -7.5, -5.0),
-            central: ("npc.gremlin.male.chest"),
+            central: ("armor.empty"),
         ),
     ),
-    (Gremlin, Female): (
+    (Gnome, Female): (
         head: (
-            offset: (-1.5, -7.5, -5.0),
-            central: ("npc.gremlin.male.chest"),
+            offset: (-8.0, -6.5, -12.0),
+            central: ("npc.gnome.male.head"),
         ),
         chest: (
-            offset: (-1.5, -7.5, -5.0),
-            central: ("npc.gremlin.male.chest"),
+            offset: (-5.0, -3.0, -2.5),
+            central: ("npc.gnome.male.chest"),
         ),
         shorts: (
-            offset: (-1.5, -7.5, -5.0),
-            central: ("npc.gremlin.male.chest"),
+            offset: (-4.0, -3.5, -2.5),
+            central: ("npc.gnome.male.shorts"),
         ),
         tail: (
             offset: (-0.5, -5.0, -2.5),
-            central: ("npc.gremlin.male.tail"),
+            central: ("armor.empty"),
         ),
         main: (
             offset: (-1.5, -7.5, -5.0),
-            central: ("npc.gremlin.male.chest"),
+            central: ("armor.empty"),
         ),
     ),
 })

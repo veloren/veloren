@@ -175,7 +175,7 @@ impl Animation for RunAnimation {
                 + side * ((footvertsl * 1.5).max(-1.0)),
         );
         next.foot_l.orientation = Quaternion::rotation_x(
-            (1.0 - sideabs) * (-0.2 + foothoril * -1.3 * speednorm) + sideabs * -0.5,
+            (1.0 - sideabs) * (-0.2 + foothoril * -0.9 * speednorm) + sideabs * -0.5,
         ) * Quaternion::rotation_y(
             tilt * 2.0 + side * 0.3 + side * (foothoril * 0.3),
         ) * Quaternion::rotation_z(side * 0.2);
@@ -190,7 +190,7 @@ impl Animation for RunAnimation {
                 + side * ((footvertsr * -1.5).max(-1.0)),
         );
         next.foot_r.orientation = Quaternion::rotation_x(
-            (1.0 - sideabs) * (-0.2 + foothorir * -1.3 * speednorm) + sideabs * -0.5,
+            (1.0 - sideabs) * (-0.2 + foothorir * -0.9 * speednorm) + sideabs * -0.5,
         ) * Quaternion::rotation_y(
             tilt * 2.0 + side * 0.3 + side * (foothorir * 0.3),
         ) * Quaternion::rotation_z(side * 0.2);

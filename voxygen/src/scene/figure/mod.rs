@@ -2582,7 +2582,14 @@ impl FigureMgr {
                         // Run
                         (true, true, _) => anim::biped_small::RunAnimation::update_skeleton(
                             &BipedSmallSkeleton::default(),
-                            (vel.0, ori, state.last_ori, time, state.avg_vel),
+                            (
+                                vel.0,
+                                ori,
+                                state.last_ori,
+                                time,
+                                state.avg_vel,
+                                state.acc_vel,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -2590,7 +2597,14 @@ impl FigureMgr {
                         // Jump
                         (false, _, false) => anim::biped_small::RunAnimation::update_skeleton(
                             &BipedSmallSkeleton::default(),
-                            (vel.0, ori, state.last_ori, time, state.avg_vel),
+                            (
+                                vel.0,
+                                ori,
+                                state.last_ori,
+                                time,
+                                state.avg_vel,
+                                state.acc_vel,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -2598,14 +2612,28 @@ impl FigureMgr {
                         // Swim
                         (false, _, true) => anim::biped_small::RunAnimation::update_skeleton(
                             &BipedSmallSkeleton::default(),
-                            (vel.0, ori, state.last_ori, time, state.avg_vel),
+                            (
+                                vel.0,
+                                ori,
+                                state.last_ori,
+                                time,
+                                state.avg_vel,
+                                state.acc_vel,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
                         _ => anim::biped_small::RunAnimation::update_skeleton(
                             &BipedSmallSkeleton::default(),
-                            (vel.0, ori, state.last_ori, time, state.avg_vel),
+                            (
+                                vel.0,
+                                ori,
+                                state.last_ori,
+                                time,
+                                state.avg_vel,
+                                state.acc_vel,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
