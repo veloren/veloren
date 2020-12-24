@@ -183,6 +183,7 @@ impl<'a> Widget for Crafting<'a> {
             .set(ids.align_rec, ui);
         Rectangle::fill_with([274.0, 340.0], color::TRANSPARENT)
             .top_right_with_margins_on(ids.window, 74.0, 5.0)
+            .scroll_kids_vertically()
             .set(ids.align_ing, ui);
         let client = &self.client;
         // First available recipes, then unavailable ones
@@ -231,6 +232,7 @@ impl<'a> Widget for Crafting<'a> {
                     .label_font_id(self.fonts.cyri.conrod_id)
                     .image_color(can_perform.then_some(TEXT_COLOR).unwrap_or(TEXT_GRAY_COLOR))
                     .mid_bottom_with_margin_on(ids.align_ing, -31.0)
+                    .parent(ids.window_frame)
                     .set(ids.btn_craft, ui)
                     .was_clicked()
                 {

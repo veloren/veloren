@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    comp::{biped_large, quadruped_medium, quadruped_small, PhysicsState},
+    comp::{biped_large, quadruped_medium, quadruped_small, theropod, PhysicsState},
     rtsim::RtSim,
     Server, SpawnPoint, StateExt,
 };
@@ -338,8 +338,14 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                     7 => "common.loot_tables.loot_table_weapon_rare",
                     _ => "common.loot_tables.loot_table",
                 },
-                Some(common::comp::Body::Theropod(_)) => {
-                    "common.loot_tables.loot_table_animal_parts"
+                Some(common::comp::Body::Theropod(theropod)) => match theropod.species {
+                    theropod::Species::Sandraptor
+                    | theropod::Species::Snowraptor
+                    | theropod::Species::Woodraptor => match rng.gen_range(0, 3) {
+                        0 => "common.loot_tables.loot_table_raptor",
+                        _ => "common.loot_tables.loot_table_animal_parts",
+                    },
+                    _ => "common.loot_tables.loot_table_animal_parts",
                 },
                 Some(common::comp::Body::Dragon(_)) => "common.loot_tables.loot_table_weapon_rare",
                 Some(common::comp::Body::QuadrupedLow(_)) => match rng.gen_range(0, 3) {

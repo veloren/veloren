@@ -1,0 +1,10 @@
+ItemDef(
+    name: "Wood Raptor Wings",
+    description: "Take flight with the wings of a predator.",
+    kind: Glider(
+        (
+            kind: "WoodRaptor",
+        ),
+    ),
+    quality: High,
+)
