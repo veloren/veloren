@@ -90,6 +90,16 @@
         Staff(SCost),
     ],
     Weapon(Sceptre): [
-        Sceptre(Unlock404),
+        Sceptre(BHeal),
+        Sceptre(BDamage),
+        Sceptre(BRange),
+        Sceptre(BLifesteal),
+        Sceptre(BRegen),
+        Sceptre(BCost),
+        Sceptre(PHeal),
+        Sceptre(PDamage),
+        Sceptre(PRadius),
+        Sceptre(PCost),
+        Sceptre(PProjSpeed),
     ],
 })

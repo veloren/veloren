@@ -224,7 +224,13 @@ impl ProjectileConstructor {
         }
     }
 
-    pub fn modified_projectile(mut self, power: f32, regen: f32, range: f32) -> Self {
+    pub fn modified_projectile(
+        mut self,
+        power: f32,
+        regen: f32,
+        range: f32,
+        heal_power: f32,
+    ) -> Self {
         use ProjectileConstructor::*;
         match self {
             Arrow {
@@ -260,7 +266,7 @@ impl ProjectileConstructor {
                 ..
             } => {
                 *damage *= power;
-                *heal *= power;
+                *heal *= heal_power;
                 *radius *= range;
             },
             Possess => {},

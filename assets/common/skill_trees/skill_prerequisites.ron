@@ -59,4 +59,13 @@
     Staff(SKnockback): {Staff(UnlockShockwave): None},
     Staff(SRange): {Staff(UnlockShockwave): None},
     Staff(SCost): {Staff(UnlockShockwave): None},
+    Sceptre(BDamage): {Sceptre(BHeal): Some(1)},
+    Sceptre(BRange): {Sceptre(BHeal): Some(1)},
+    Sceptre(BLifesteal): {Sceptre(BHeal): Some(1)},
+    Sceptre(BRegen): {Sceptre(BHeal): Some(1)},
+    Sceptre(BCost): {Sceptre(BHeal): Some(1)},
+    Sceptre(PDamage): {Sceptre(PHeal): Some(1)},
+    Sceptre(PRadius): {Sceptre(PHeal): Some(1)},
+    Sceptre(PCost): {Sceptre(PHeal): Some(1)},
+    Sceptre(PProjSpeed): {Sceptre(PHeal): Some(1)},
 })

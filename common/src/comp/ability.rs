@@ -336,7 +336,7 @@ impl CharacterAbility {
             } => {
                 *buildup_duration = (*buildup_duration as f32 / speed) as u64;
                 *recover_duration = (*recover_duration as f32 / speed) as u64;
-                *projectile = projectile.modified_projectile(power, 1_f32, 1_f32);
+                *projectile = projectile.modified_projectile(power, 1_f32, 1_f32, power);
             },
             RepeaterRanged {
                 ref mut movement_duration,
@@ -350,7 +350,7 @@ impl CharacterAbility {
                 *buildup_duration = (*buildup_duration as f32 / speed) as u64;
                 *shoot_duration = (*shoot_duration as f32 / speed) as u64;
                 *recover_duration = (*recover_duration as f32 / speed) as u64;
-                *projectile = projectile.modified_projectile(power, 1_f32, 1_f32);
+                *projectile = projectile.modified_projectile(power, 1_f32, 1_f32, power);
             },
             Boost {
                 ref mut movement_duration,
@@ -829,7 +829,8 @@ impl CharacterAbility {
                                     skills.get(&Bow(BRegen)).copied().flatten().unwrap_or(0);
                                 let power = 1.3_f32.powi(damage_level.into());
                                 let regen = 1.5_f32.powi(regen_level.into());
-                                *projectile = projectile.modified_projectile(power, regen, 1_f32);
+                                *projectile =
+                                    projectile.modified_projectile(power, regen, 1_f32, 1_f32);
                             }
                         },
                         ChargedRanged {
@@ -879,7 +880,8 @@ impl CharacterAbility {
                             }
                             if let Some(level) = skills.get(&Bow(RDamage)).copied().flatten() {
                                 let power = 1.3_f32.powi(level.into());
-                                *projectile = projectile.modified_projectile(power, 1_f32, 1_f32);
+                                *projectile =
+                                    projectile.modified_projectile(power, 1_f32, 1_f32, 1_f32);
                             }
                             if !skills.contains_key(&Bow(RLeap)) {
                                 *leap = None;
@@ -914,7 +916,8 @@ impl CharacterAbility {
                                 let power = 1.2_f32.powi(damage_level.into());
                                 let regen = 1.2_f32.powi(regen_level.into());
                                 let range = 1.1_f32.powi(range_level.into());
-                                *projectile = projectile.modified_projectile(power, regen, range);
+                                *projectile =
+                                    projectile.modified_projectile(power, regen, range, 1_f32);
                             }
                         },
                         BasicBeam {
@@ -928,10 +931,10 @@ impl CharacterAbility {
                                 *base_dps = (*base_dps as f32 * 1.3_f32.powi(level.into())) as u32;
                             }
                             if let Some(level) = skills.get(&Staff(FRange)).copied().flatten() {
-                                *range *= 1.25_f32.powi(level.into());
+                                let range_mod = 1.25_f32.powi(level.into());
+                                *range *= range_mod;
                                 // Duration modified to keep velocity constant
-                                *beam_duration =
-                                    (*beam_duration as f32 * 1.4_f32.powi(level.into())) as u64;
+                                *beam_duration = (*beam_duration as f32 * range_mod) as u64;
                             }
                             if let Some(level) = skills.get(&Staff(FDrain)).copied().flatten() {
                                 *energy_drain =
@@ -964,6 +967,81 @@ impl CharacterAbility {
                             if let Some(level) = skills.get(&Staff(SCost)).copied().flatten() {
                                 *energy_cost =
                                     (*energy_cost as f32 * 0.8_f32.powi(level.into())) as u32;
+                            }
+                        },
+                        _ => {},
+                    }
+                },
+                ToolKind::Sceptre => {
+                    use skills::SceptreSkill::*;
+                    match self {
+                        BasicBeam {
+                            ref mut base_hps,
+                            ref mut base_dps,
+                            ref mut lifesteal_eff,
+                            ref mut range,
+                            ref mut energy_regen,
+                            ref mut energy_cost,
+                            ref mut beam_duration,
+                            ..
+                        } => {
+                            if let Some(level) = skills.get(&Sceptre(BHeal)).copied().flatten() {
+                                *base_hps = (*base_hps as f32 * 1.3_f32.powi(level.into())) as u32;
+                            }
+                            if let Some(level) = skills.get(&Sceptre(BDamage)).copied().flatten() {
+                                *base_dps = (*base_dps as f32 * 1.3_f32.powi(level.into())) as u32;
+                            }
+                            if let Some(level) = skills.get(&Sceptre(BRange)).copied().flatten() {
+                                let range_mod = 1.25_f32.powi(level.into());
+                                *range *= range_mod;
+                                // Duration modified to keep velocity constant
+                                *beam_duration = (*beam_duration as f32 * range_mod) as u64;
+                            }
+                            if let Some(level) = skills.get(&Sceptre(BLifesteal)).copied().flatten()
+                            {
+                                *lifesteal_eff *= 1.5_f32.powi(level.into());
+                            }
+                            if let Some(level) = skills.get(&Sceptre(BRegen)).copied().flatten() {
+                                *energy_regen =
+                                    (*energy_regen as f32 * 1.25_f32.powi(level.into())) as u32;
+                            }
+                            if let Some(level) = skills.get(&Sceptre(BCost)).copied().flatten() {
+                                *energy_cost =
+                                    (*energy_cost as f32 * 0.75_f32.powi(level.into())) as u32;
+                            }
+                        },
+                        BasicRanged {
+                            ref mut energy_cost,
+                            ref mut projectile,
+                            ref mut projectile_speed,
+                            ..
+                        } => {
+                            {
+                                let heal_level =
+                                    skills.get(&Sceptre(PHeal)).copied().flatten().unwrap_or(0);
+                                let damage_level = skills
+                                    .get(&Sceptre(PDamage))
+                                    .copied()
+                                    .flatten()
+                                    .unwrap_or(0);
+                                let range_level = skills
+                                    .get(&Sceptre(PRadius))
+                                    .copied()
+                                    .flatten()
+                                    .unwrap_or(0);
+                                let heal = 1.2_f32.powi(heal_level.into());
+                                let power = 1.2_f32.powi(damage_level.into());
+                                let range = 1.4_f32.powi(range_level.into());
+                                *projectile =
+                                    projectile.modified_projectile(power, 1_f32, range, heal);
+                            }
+                            if let Some(level) = skills.get(&Sceptre(PCost)).copied().flatten() {
+                                *energy_cost =
+                                    (*energy_cost as f32 * 0.8_f32.powi(level.into())) as u32;
+                            }
+                            if let Some(level) = skills.get(&Sceptre(PProjSpeed)).copied().flatten()
+                            {
+                                *projectile_speed *= 1.25_f32.powi(level.into());
                             }
                         },
                         _ => {},

@@ -1319,6 +1319,61 @@ impl Client {
                                 SkillGroupType::Weapon(Sceptre),
                             )));
                         },
+                        "@unlock sceptre beam heal" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Sceptre(
+                                SceptreSkill::BHeal,
+                            )));
+                        },
+                        "@unlock sceptre beam damage" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Sceptre(
+                                SceptreSkill::BDamage,
+                            )));
+                        },
+                        "@unlock sceptre beam range" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Sceptre(
+                                SceptreSkill::BRange,
+                            )));
+                        },
+                        "@unlock sceptre beam lifesteal" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Sceptre(
+                                SceptreSkill::BLifesteal,
+                            )));
+                        },
+                        "@unlock sceptre beam regen" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Sceptre(
+                                SceptreSkill::BRegen,
+                            )));
+                        },
+                        "@unlock sceptre beam cost" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Sceptre(
+                                SceptreSkill::BCost,
+                            )));
+                        },
+                        "@unlock sceptre proj heal" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Sceptre(
+                                SceptreSkill::PHeal,
+                            )));
+                        },
+                        "@unlock sceptre proj damage" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Sceptre(
+                                SceptreSkill::PDamage,
+                            )));
+                        },
+                        "@unlock sceptre proj radius" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Sceptre(
+                                SceptreSkill::PRadius,
+                            )));
+                        },
+                        "@unlock sceptre proj cost" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Sceptre(
+                                SceptreSkill::PCost,
+                            )));
+                        },
+                        "@unlock sceptre proj speed" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Sceptre(
+                                SceptreSkill::PProjSpeed,
+                            )));
+                        },
                         "@unlock health" => {
                             self.send_msg(ClientGeneral::UnlockSkill(Skill::General(
                                 GeneralSkill::HealthIncrease,
