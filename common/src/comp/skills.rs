@@ -184,7 +184,19 @@ pub enum StaffSkill {
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum SceptreSkill {
-    Unlock404,
+    // Beam  upgrades
+    BHeal,
+    BDamage,
+    BRange,
+    BLifesteal,
+    BRegen,
+    BCost,
+    // Projectile upgrades
+    PHeal,
+    PDamage,
+    PRadius,
+    PCost,
+    PProjSpeed,
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
