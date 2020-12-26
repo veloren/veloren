@@ -88,7 +88,8 @@ pub fn simulate(index: &mut Index, world: &mut WorldSim) {
 }
 
 pub fn tick(index: &mut Index, _world: &mut WorldSim, dt: f32) {
-    for site in index.sites.ids() {
+    let site_ids = index.sites.ids().collect::<Vec<_>>();
+    for site in site_ids {
         tick_site_economy(index, site, dt);
     }
 

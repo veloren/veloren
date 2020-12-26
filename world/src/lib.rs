@@ -24,6 +24,7 @@ pub mod pathfinding;
 pub mod sim;
 pub mod sim2;
 pub mod site;
+pub mod site2;
 pub mod util;
 
 // Reexports
