@@ -869,7 +869,7 @@ impl CharacterAbility {
                         },
                         RepeaterRanged {
                             ref mut energy_cost,
-                            ref mut leap,
+                            ref mut buildup_duration,
                             ref mut projectile,
                             ref mut reps_remaining,
                             ref mut projectile_speed,
@@ -883,8 +883,8 @@ impl CharacterAbility {
                                 *projectile =
                                     projectile.modified_projectile(power, 1_f32, 1_f32, 1_f32);
                             }
-                            if !skills.contains_key(&Bow(RLeap)) {
-                                *leap = None;
+                            if !skills.contains_key(&Bow(RGlide)) {
+                                *buildup_duration = 1;
                             }
                             if let Some(level) = skills.get(&Bow(RArrows)).copied().flatten() {
                                 *reps_remaining += level as u32;

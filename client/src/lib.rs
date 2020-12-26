@@ -1233,8 +1233,8 @@ impl Client {
                                 BowSkill::RDamage,
                             )));
                         },
-                        "@unlock bow repeater leap" => {
-                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Bow(BowSkill::RLeap)));
+                        "@unlock bow repeater glide" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Bow(BowSkill::RGlide)));
                         },
                         "@unlock bow repeater arrows" => {
                             self.send_msg(ClientGeneral::UnlockSkill(Skill::Bow(

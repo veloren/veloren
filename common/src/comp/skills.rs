@@ -157,7 +157,7 @@ pub enum BowSkill {
     // Repeater upgrades
     UnlockRepeater,
     RDamage,
-    RLeap,
+    RGlide,
     RArrows,
     RCost,
 }

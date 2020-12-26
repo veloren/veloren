@@ -43,7 +43,7 @@ use serde::{Deserialize, Serialize};
 use settings_window::{SettingsTab, SettingsWindow};
 use skillbar::Skillbar;
 use social::{Social, SocialTab};
-use spell::Spell;
+use spell::{SelectedSkillTree, Spell};
 
 use crate::{
     ecs::{comp as vcomp, comp::HpFloaterList},
@@ -462,6 +462,7 @@ pub struct Show {
     mini_map: bool,
     ingame: bool,
     settings_tab: SettingsTab,
+    skilltreetab: SelectedSkillTree,
     social_tab: SocialTab,
     want_grab: bool,
     stats: bool,
@@ -512,6 +513,8 @@ impl Show {
         if !self.esc_menu {
             self.social = false;
             self.crafting = false;
+            self.bag = false;
+            self.map = false;
             self.spell = open;
             self.want_grab = !open;
         }
@@ -614,6 +617,15 @@ impl Show {
 
     fn toggle_spell(&mut self) {
         self.spell = !self.spell;
+        self.bag = false;
+        self.crafting = false;
+        self.social = false;
+        self.map = false;
+        self.want_grab = !self.spell;
+    }
+
+    fn open_skill_tree(&mut self, tree_sel: SelectedSkillTree) {
+        self.skilltreetab = tree_sel;
         self.social = false;
     }
 }
@@ -743,6 +755,7 @@ impl Hud {
                 group_menu: false,
                 mini_map: true,
                 settings_tab: SettingsTab::Interface,
+                skilltreetab: SelectedSkillTree::Sword,
                 social_tab: SocialTab::Online,
                 want_grab: true,
                 ingame: true,
@@ -2293,15 +2306,17 @@ impl Hud {
 
         // Spellbook
         if self.show.spell {
-            match Spell::new(&self.show, client, &self.imgs, &self.fonts, i18n)
+            for event in Spell::new(&self.show, client, &self.imgs, &self.fonts, i18n)
                 .set(self.ids.spell, ui_widgets)
             {
-                Some(spell::Event::Close) => {
-                    self.show.spell(false);
-                    self.show.want_grab = true;
-                    self.force_ungrab = false;
-                },
-                None => {},
+                match event {
+                    spell::Event::Close => {
+                        self.show.spell(false);
+                        self.show.want_grab = true;
+                        self.force_ungrab = false;
+                    },
+                    spell::Event::ChangeWeaponTree(tree_sel) => self.show.open_skill_tree(tree_sel),
+                }
             }
         }
         // Map

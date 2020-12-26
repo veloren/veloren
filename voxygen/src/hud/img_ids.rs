@@ -61,6 +61,23 @@ image_ids! {
         prompt_bot: "voxygen.element.frames.prompt_dialog_bot",
         key_button: "voxygen.element.buttons.key_button",
         key_button_press: "voxygen.element.buttons.key_button_press",
+        
+        // Diary Window
+        diary_bg: "voxygen.element.misc_bg.diary_bg",
+        diary_frame: "voxygen.element.misc_bg.diary_frame",
+        sword_render: "voxygen.element.misc_bg.sword_render",
+
+        // Skill Trees
+        sceptre: "voxygen.element.icons.sceptre",
+        sword: "voxygen.element.icons.sword",
+        axe: "voxygen.element.icons.axe",
+        hammer: "voxygen.element.icons.hammer",
+        bow: "voxygen.element.icons.bow",
+        staff: "voxygen.element.icons.staff",
+        wpn_icon_border: "voxygen.element.buttons.border",
+        wpn_icon_border_mo: "voxygen.element.buttons.border_mo",
+        wpn_icon_border_press: "voxygen.element.buttons.border_press",
+        wpn_icon_border_pressed: "voxygen.element.buttons.border_pressed",
 
         // Social Window
         social_frame_on: "voxygen.element.misc_bg.social_frame",
