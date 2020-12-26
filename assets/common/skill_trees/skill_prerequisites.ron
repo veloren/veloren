@@ -46,7 +46,7 @@
     Bow(CSpeed): {Bow(CDamage): Some(1)},
     Bow(CMove): {Bow(CDamage): Some(1)},
     Bow(RDamage): {Bow(UnlockRepeater): None},
-    Bow(RLeap): {Bow(UnlockRepeater): None},
+    Bow(RGlide): {Bow(UnlockRepeater): None},
     Bow(RArrows): {Bow(UnlockRepeater): None},
     Bow(RCost): {Bow(UnlockRepeater): None},
     Staff(BDamage): {Staff(BExplosion): None},

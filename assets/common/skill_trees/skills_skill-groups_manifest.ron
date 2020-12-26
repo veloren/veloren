@@ -70,7 +70,7 @@
         Bow(CMove),
         Bow(UnlockRepeater),
         Bow(RDamage),
-        Bow(RLeap),
+        Bow(RGlide),
         Bow(RArrows),
         Bow(RCost),
     ],

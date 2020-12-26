@@ -65,10 +65,9 @@ impl Damage {
             DamageSource::Melee => {
                 // Critical hit
                 let mut critdamage = 0.0;
-                /* Disabled so I can actually test stuff
                 if rand::random() {
                     critdamage = damage * 0.3;
-                }*/
+                }
                 // Armor
                 damage *= 1.0 - damage_reduction;
 
@@ -87,9 +86,9 @@ impl Damage {
             },
             DamageSource::Projectile => {
                 // Critical hit
-                /*if rand::random() {
+                if rand::random() {
                     damage *= 1.2;
-                }*/
+                }
                 // Armor
                 damage *= 1.0 - damage_reduction;
 
