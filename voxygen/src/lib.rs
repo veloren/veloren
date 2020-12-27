@@ -53,7 +53,7 @@ pub struct GlobalState {
     #[cfg(feature = "singleplayer")]
     pub singleplayer: Option<Singleplayer>,
     // TODO: redo this so that the watcher doesn't have to exist for reloading to occur
-    pub i18n: AssetHandle<Localization>,
+    pub i18n: Localization,
     pub clipboard: Option<iced_winit::Clipboard>,
     // NOTE: This can be removed from GlobalState if client state behavior is refactored to not
     // enter the game before confirmation of successful character load
