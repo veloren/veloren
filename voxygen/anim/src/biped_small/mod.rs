@@ -93,21 +93,33 @@ impl<'a> From<&'a Body> for SkeletonAttr {
         Self {
             head: match (body.species, body.body_type) {
                 (Gnome, _) => (-1.0, 9.0),
+                (Sahagin, _) => (7.0, -3.5),
+                (Adlet, _) => (0.0, 7.0),
             },
             chest: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, 9.0),
+                (Sahagin, _) => (0.0, 15.0),
+                (Adlet, _) => (0.0, 11.0),
             },
             shorts: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, -3.0),
+                (Sahagin, _) => (0.5, -7.0),
+                (Adlet, _) => (0.0, -3.0),
             },
             tail: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, 0.0),
+                (Sahagin, _) => (-2.5, -2.0),
+                (Adlet, _) => (-4.5, -2.0),
             },
             hand: match (body.species, body.body_type) {
                 (Gnome, _) => (6.0, 0.5, -1.0),
+                (Sahagin, _) => (9.5, 3.5, -2.0),
+                (Adlet, _) => (6.0, -0.5, 0.0),
             },
             foot: match (body.species, body.body_type) {
                 (Gnome, _) => (3.0, 0.0, 4.0),
+                (Sahagin, _) => (3.0, 1.0, 8.0),
+                (Adlet, _) => (3.0, 0.5, 7.0),
             },
         }
     }

@@ -892,6 +892,14 @@
             gnome: (
                 keyword: "gnome",
                 generic: "Gnome"
+            ),
+            sahagin: (
+                keyword: "sahagin",
+                generic: "Sahagin"
+            ),
+            adlet: (
+                keyword: "adlet",
+                generic: "Adlet"
             )
         )
     ),

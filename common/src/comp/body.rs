@@ -268,7 +268,7 @@ impl Body {
                 _ => 4.6,
             },
             Body::Golem(_) => 5.0,
-            Body::BipedSmall(_) => 1.5,
+            Body::BipedSmall(_) => 1.4,
             Body::Object(object) => match object {
                 object::Body::Crossbow => 1.7,
                 _ => 1.0,

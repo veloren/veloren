@@ -32,32 +32,32 @@ impl Animation for RunAnimation {
 
         let lab = 1.0;
 
-        let footrotl = (((1.0)
-            / (0.5 + (0.5) * ((acc_vel * 1.6 * lab as f32 + PI * 1.4).sin()).powi(2)))
+        let footrotl = (((5.0)
+            / (0.5 + (5.5) * ((acc_vel * 1.4 * lab as f32 + PI * 1.4).sin()).powi(2)))
         .sqrt())
-            * ((acc_vel * 1.6 * lab as f32 + PI * 1.4).sin());
+            * ((acc_vel * 1.4 * lab as f32 + PI * 1.4).sin());
 
-        let footrotr = (((1.0)
-            / (0.5 + (0.5) * ((acc_vel * 1.6 * lab as f32 + PI * 0.4).sin()).powi(2)))
+        let footrotr = (((5.0)
+            / (0.5 + (5.5) * ((acc_vel * 1.4 * lab as f32 + PI * 0.4).sin()).powi(2)))
         .sqrt())
-            * ((acc_vel * 1.6 * lab as f32 + PI * 0.4).sin());
+            * ((acc_vel * 1.4 * lab as f32 + PI * 0.4).sin());
 
-        let shortalter = (acc_vel * lab as f32 * 1.6 + PI / -2.0).sin();
+        let shortalter = (acc_vel * lab as f32 * 1.4 + PI / -2.0).sin();
 
-        let foothoril = (acc_vel * 1.6 * lab as f32 + PI * 1.45).sin();
-        let foothorir = (acc_vel * 1.6 * lab as f32 + PI * (0.45)).sin();
-        let footstrafel = (acc_vel * 1.6 * lab as f32 + PI * 1.45).sin();
-        let footstrafer = (acc_vel * 1.6 * lab as f32 + PI * (0.95)).sin();
+        let foothoril = (acc_vel * 1.4 * lab as f32 + PI * 1.45).sin();
+        let foothorir = (acc_vel * 1.4 * lab as f32 + PI * (0.45)).sin();
+        let footstrafel = (acc_vel * 1.4 * lab as f32 + PI * 1.45).sin();
+        let footstrafer = (acc_vel * 1.4 * lab as f32 + PI * (0.95)).sin();
 
-        let footvertl = (acc_vel * 1.6 * lab as f32).sin();
-        let footvertr = (acc_vel * 1.6 * lab as f32 + PI).sin();
-        let footvertsl = (acc_vel * 1.6 * lab as f32).sin();
-        let footvertsr = (acc_vel * 1.6 * lab as f32 + PI * 0.5).sin();
+        let footvertl = (acc_vel * 1.4 * lab as f32).sin();
+        let footvertr = (acc_vel * 1.4 * lab as f32 + PI).sin();
+        let footvertsl = (acc_vel * 1.4 * lab as f32).sin();
+        let footvertsr = (acc_vel * 1.4 * lab as f32 + PI * 0.5).sin();
 
-        let shortalt = (acc_vel * lab as f32 * 1.6 + PI / 2.0).sin();
+        let shortalt = (acc_vel * lab as f32 * 1.4 + PI / 2.0).sin();
 
-        let short = (((5.0) / (1.5 + 3.5 * ((acc_vel * lab as f32 * 1.6).sin()).powi(2))).sqrt())
-            * ((acc_vel * lab as f32 * 1.6).sin());
+        let short = (((5.0) / (1.5 + 3.5 * ((acc_vel * lab as f32 * 1.4).sin()).powi(2))).sqrt())
+            * ((acc_vel * lab as f32 * 1.4).sin());
         let direction = velocity.y * -0.098 * orientation.y + velocity.x * -0.098 * orientation.x;
 
         let side =
@@ -115,18 +115,18 @@ impl Animation for RunAnimation {
             * Quaternion::rotation_y(tilt * 0.7);
 
         next.hand_l.position = Vec3::new(
-            -s_a.hand.0 + foothorir * -1.3 * speednorm,
-            1.0 * speednorm + s_a.hand.1 + foothorir * -3.5 * speednorm,
-            1.5 * speednorm + s_a.hand.2 - foothorir * 2.5 * speednorm,
+            -s_a.hand.0 + footrotr * -1.3 * speednorm,
+            1.0 * speednorm + s_a.hand.1 + footrotr * -3.5 * speednorm,
+            1.5 * speednorm + s_a.hand.2 - footrotr * 2.5 * speednorm,
         );
         next.hand_l.orientation =
             Quaternion::rotation_x(0.4 * speednorm + (footrotr * -1.2) * speednorm)
                 * Quaternion::rotation_y(footrotr * 0.4 * speednorm);
 
         next.hand_r.position = Vec3::new(
-            s_a.hand.0 + foothoril * 1.3 * speednorm,
-            1.0 * speednorm + s_a.hand.1 + foothoril * -3.5 * speednorm,
-            1.5 * speednorm + s_a.hand.2 - foothoril * 2.5 * speednorm,
+            s_a.hand.0 + footrotl * 1.3 * speednorm,
+            1.0 * speednorm + s_a.hand.1 + footrotl * -3.5 * speednorm,
+            1.5 * speednorm + s_a.hand.2 - footrotl * 2.5 * speednorm,
         );
         next.hand_r.orientation =
             Quaternion::rotation_x(0.4 * speednorm + (footrotl * -1.2) * speednorm)
@@ -136,7 +136,7 @@ impl Animation for RunAnimation {
         next.foot_l.position = Vec3::new(
             -s_a.foot.0 + footstrafel * sideabs * 3.0 + tilt * -2.0,
             s_a.foot.1
-                + (1.0 - sideabs) * (-1.0 * speednorm + foothoril * -7.5 * speednorm)
+                + (1.0 - sideabs) * (-1.0 * speednorm + footrotl * -7.5 * speednorm)
                 + (direction * 5.0).max(0.0),
             s_a.foot.2
                 + (1.0 - sideabs) * (2.0 * speednorm + ((footvertl * -2.1 * speednorm).max(-1.0)))
@@ -151,7 +151,7 @@ impl Animation for RunAnimation {
         next.foot_r.position = Vec3::new(
             s_a.foot.0 + footstrafer * sideabs * 3.0 + tilt * -2.0,
             s_a.foot.1
-                + (1.0 - sideabs) * (-1.0 * speednorm + foothorir * -7.5 * speednorm)
+                + (1.0 - sideabs) * (-1.0 * speednorm + footrotr * -7.5 * speednorm)
                 + (direction * 5.0).max(0.0),
             s_a.foot.2
                 + (1.0 - sideabs) * (2.0 * speednorm + ((footvertr * -2.1 * speednorm).max(-1.0)))
