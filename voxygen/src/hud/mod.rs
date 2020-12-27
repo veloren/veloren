@@ -659,7 +659,7 @@ impl Hud {
         // Load item images.
         let item_imgs = ItemImgs::new(&mut ui, imgs.not_found);
         // Load fonts.
-        let fonts = Fonts::load(&global_state.i18n.read().fonts, &mut ui)
+        let fonts = Fonts::load(&global_state.i18n.fonts, &mut ui)
             .expect("Impossible to load fonts!");
         // Get the server name.
         let server = &client.server_info().name;
@@ -751,7 +751,7 @@ impl Hud {
         // FPS
         let fps = global_state.clock.stats().average_tps;
         let version = common::util::DISPLAY_VERSION_LONG.clone();
-        let i18n = &*global_state.i18n.read();
+        let i18n = global_state.i18n.clone();
 
         if self.show.ingame {
             let ecs = client.state().ecs();
@@ -1260,7 +1260,7 @@ impl Hud {
                     in_group,
                     &global_state.settings.gameplay,
                     self.pulse,
-                    i18n,
+                    &i18n,
                     &self.imgs,
                     &self.fonts,
                 )
@@ -1788,7 +1788,7 @@ impl Hud {
                 global_state,
                 &self.rot_imgs,
                 tooltip_manager,
-                i18n,
+                &i18n,
                 &player_stats,
             )
             .set(self.ids.buttons, ui_widgets)
@@ -1810,7 +1810,7 @@ impl Hud {
                 &self.fonts,
                 &self.rot_imgs,
                 tooltip_manager,
-                i18n,
+                &i18n,
                 &player_buffs,
                 self.pulse,
                 &global_state,
@@ -1830,7 +1830,7 @@ impl Hud {
             &self.imgs,
             &self.rot_imgs,
             &self.fonts,
-            i18n,
+            &i18n,
             self.pulse,
             &global_state,
             tooltip_manager,
@@ -1847,7 +1847,7 @@ impl Hud {
         }
         // Popup (waypoint saved and similar notifications)
         Popup::new(
-            i18n,
+            &i18n,
             client,
             &self.new_notifications,
             &self.fonts,
@@ -1883,7 +1883,7 @@ impl Hud {
                     tooltip_manager,
                     &mut self.slot_manager,
                     self.pulse,
-                    i18n,
+                    &i18n,
                     &player_stats,
                     &self.show,
                 )
@@ -1951,7 +1951,7 @@ impl Hud {
                 &self.hotbar,
                 tooltip_manager,
                 &mut self.slot_manager,
-                i18n,
+                &i18n,
                 &self.show,
                 &ability_map,
             )
@@ -1966,7 +1966,7 @@ impl Hud {
                     client,
                     &self.imgs,
                     &self.fonts,
-                    i18n,
+                    &i18n,
                     &self.rot_imgs,
                     tooltip_manager,
                     &self.item_imgs,
@@ -2005,7 +2005,7 @@ impl Hud {
             global_state,
             &self.imgs,
             &self.fonts,
-            i18n,
+            &i18n,
         )
         .and_then(self.force_chat_input.take(), |c, input| c.input(input))
         .and_then(self.tab_complete.take(), |c, input| {
@@ -2042,7 +2042,7 @@ impl Hud {
                 &self.show,
                 &self.imgs,
                 &self.fonts,
-                i18n,
+                &i18n,
                 fps as f32,
             )
             .set(self.ids.settings_window, ui_widgets)
@@ -2198,7 +2198,7 @@ impl Hud {
                     client,
                     &self.imgs,
                     &self.fonts,
-                    i18n,
+                    &i18n,
                     info.selected_entity,
                     &self.rot_imgs,
                     tooltip_manager,
@@ -2226,7 +2226,7 @@ impl Hud {
 
         // Spellbook
         if self.show.spell {
-            match Spell::new(&self.show, client, &self.imgs, &self.fonts, i18n)
+            match Spell::new(&self.show, client, &self.imgs, &self.fonts, &i18n)
                 .set(self.ids.spell, ui_widgets)
             {
                 Some(spell::Event::Close) => {
@@ -2246,7 +2246,7 @@ impl Hud {
                 &self.world_map,
                 &self.fonts,
                 self.pulse,
-                i18n,
+                &i18n,
                 &global_state,
                 tooltip_manager,
             )
@@ -2290,7 +2290,7 @@ impl Hud {
         }
 
         if self.show.esc_menu {
-            match EscMenu::new(&self.imgs, &self.fonts, i18n).set(self.ids.esc_menu, ui_widgets) {
+            match EscMenu::new(&self.imgs, &self.fonts, &i18n).set(self.ids.esc_menu, ui_widgets) {
                 Some(esc_menu::Event::OpenSettings(tab)) => {
                     self.show.open_setting_tab(tab);
                 },

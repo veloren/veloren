@@ -63,7 +63,7 @@ impl PlayState for CharSelectionState {
         self.client.borrow_mut().load_character_list();
 
         // Updated localization in case the selected language was changed
-        self.char_selection_ui.update_language(global_state.i18n);
+        self.char_selection_ui.update_language(global_state.i18n.clone());
         // Set scale mode in case it was change
         self.char_selection_ui
             .set_scale_mode(global_state.settings.gameplay.ui_scale);
@@ -162,7 +162,7 @@ impl PlayState for CharSelectionState {
             }
 
             // Tick the client (currently only to keep the connection alive).
-            let localized_strings = &*global_state.i18n.read();
+            let localized_strings = &global_state.i18n;
 
             match self.client.borrow_mut().tick(
                 comp::ControllerInputs::default(),

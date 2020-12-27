@@ -2,7 +2,7 @@ use crate::{
     audio::sfx::SfxEvent,
     ecs::MyEntity,
     hud::{DebugInfo, Event as HudEvent, Hud, HudInfo, PressBehavior},
-    i18n::{i18n_asset_key, Localization},
+    i18n::{i18n_asset_key, init_localization, Localization},
     key_state::KeyState,
     menu::char_selection::CharSelectionState,
     render::Renderer,
@@ -124,7 +124,7 @@ impl SessionState {
                     let sfx_trigger_item = sfx_triggers.get_key_value(&SfxEvent::from(&inv_event));
                     global_state.audio.emit_sfx_item(sfx_trigger_item);
 
-                    let i18n = global_state.i18n.read();
+                    let i18n = &global_state.i18n;
 
                     match inv_event {
                         InventoryUpdateEvent::CollectFailed => {
@@ -146,7 +146,7 @@ impl SessionState {
                 },
                 client::Event::Disconnect => return Ok(TickAction::Disconnect),
                 client::Event::DisconnectionNotification(time) => {
-                    let i18n = global_state.i18n.read();
+                    let i18n = &global_state.i18n;
 
                     let message = match time {
                         0 => String::from(i18n.get("hud.chat.goodbye")),
@@ -165,7 +165,6 @@ impl SessionState {
                         "{}: {}",
                         global_state
                             .i18n
-                            .read()
                             .get("main.login.kicked")
                             .to_string(),
                         reason
@@ -679,7 +678,6 @@ impl PlayState for SessionState {
                         global_state.info_message = Some(
                             global_state
                                 .i18n
-                                .read()
                                 .get("common.connection_lost")
                                 .to_owned(),
                         );
@@ -759,11 +757,11 @@ impl PlayState for SessionState {
             );
 
             // Look for changes in the localization files
-            if global_state.i18n.reloaded() {
-                hud_events.push(HudEvent::ChangeLanguage(Box::new(
-                    global_state.i18n.read().metadata.clone(),
-                )));
-            }
+            // if global_state.i18n.reloaded() {
+            //     hud_events.push(HudEvent::ChangeLanguage(Box::new(
+            //         global_state.i18n.metadata.clone(),
+            //     )));
+            // }
 
             // Maintain the UI.
             for event in hud_events {
@@ -1017,11 +1015,9 @@ impl PlayState for SessionState {
                     HudEvent::ChangeLanguage(new_language) => {
                         global_state.settings.language.selected_language =
                             new_language.language_identifier;
-                        global_state.i18n = Localization::load_expect(&i18n_asset_key(
-                            &global_state.settings.language.selected_language,
-                        ));
-                        global_state.i18n.read().log_missing_entries();
-                        self.hud.update_fonts(&global_state.i18n.read());
+                        global_state.i18n = init_localization(&i18n_asset_key(&global_state.settings.language.selected_language)).unwrap();
+                        global_state.i18n.log_missing_entries();
+                        self.hud.update_fonts(&global_state.i18n);
                     },
                     HudEvent::ChangeFullscreenMode(new_fullscreen_settings) => {
                         global_state

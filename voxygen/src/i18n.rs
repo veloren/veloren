@@ -43,7 +43,7 @@ impl Font {
 pub type Fonts = HashMap<String, Font>;
 
 /// Store internationalization data
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Localization {
     /// A map storing the localized texts
     ///
@@ -93,7 +93,7 @@ impl Localization {
     /// Return the missing keys compared to the reference language
     fn list_missing_entries(&self) -> (HashSet<String>, HashSet<String>) {
         let reference_localization =
-            Localization::load_expect(&i18n_asset_key(REFERENCE_LANG)).read();
+            init_localization(&i18n_asset_key(REFERENCE_LANG)).unwrap();
 
         let reference_string_keys: HashSet<_> =
             reference_localization.string_map.keys().cloned().collect();
@@ -158,6 +158,24 @@ impl assets::Loader<Localization> for LocalizationLoader {
 
         Ok(asked_localization)
     }
+}
+
+pub fn init_localization(asset_key: &str) -> Result<Localization, assets::BoxedError> {
+    let mut asked_localization = Localization::load(&(asset_key.to_string() + "._self"))?.cloned();
+    for localization_asset in assets::load_dir::<Localization>(asset_key)?.iter_all() {
+        println!("{:?}", localization_asset.0);
+        // handle localization files
+        if let Ok(localization) = localization_asset.1 {
+            asked_localization.string_map.extend(localization.read().string_map.clone());
+            asked_localization.vector_map.extend(localization.read().vector_map.clone());
+        }
+    }
+    // handle folders
+    // if let Ok(sub_localization) = init_localization(localization_asset.0) {
+    //     asked_localization.string_map.extend(sub_localization.string_map.clone());
+    //     asked_localization.vector_map.extend(sub_localization.vector_map.clone());
+    // }
+    // Ok(asked_localization)
 }
 
 /// Load all the available languages located in the voxygen asset directory

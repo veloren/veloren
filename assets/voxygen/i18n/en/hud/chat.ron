@@ -1,0 +1,76 @@
+/// Translation document instructions
+///
+/// In order to keep localization documents readible please follow the following
+/// rules:
+/// - separate the string map sections using a commentary describing the purpose
+///   of the next section
+/// - prepend multi-line strings with a commentary
+/// - append one blank lines after a multi-line strings and two after sections
+///
+/// To add a new language in Veloren, just write an additional `.ron` file in
+/// `assets/voxygen/i18n` and that's it!
+///
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for "global" English
+(
+    metadata: (
+        language_name: "English",
+        language_identifier: "en",
+    ),
+    convert_utf8_to_ascii: false,
+    fonts: {
+        "opensans": Font (
+            asset_key: "voxygen.font.OpenSans-Regular",
+            scale_ratio: 1.0,
+        ),
+        "metamorph": Font (
+            asset_key: "voxygen.font.Metamorphous-Regular",
+            scale_ratio: 1.0,
+        ),
+        "alkhemi": Font (
+            asset_key: "voxygen.font.Alkhemikal",
+            scale_ratio: 1.0,
+        ),
+        "wizard": Font (
+            asset_key: "voxygen.font.wizard",
+            scale_ratio: 1.0,
+        ),
+        "cyri": Font (
+            asset_key: "voxygen.font.haxrcorp_4089_cyrillic_altgr_extended",
+            scale_ratio: 1.0,
+        ),
+    },
+    string_map: {
+        // Chat outputs
+        "hud.chat.online_msg": "[{name}] is online now",
+        "hud.chat.offline_msg": "{name} went offline",
+
+        "hud.chat.default_death_msg": "[{name}] died",
+        "hud.chat.environmental_kill_msg": "[{name}] died in {environment}",
+        "hud.chat.fall_kill_msg": "[{name}] died from fall damage",
+        "hud.chat.suicide_msg": "[{name}] died from self-inflicted wounds",
+
+        "hud.chat.pvp_melee_kill_msg": "[{attacker}] defeated [{victim}]",
+        "hud.chat.pvp_ranged_kill_msg": "[{attacker}] shot [{victim}]",
+        "hud.chat.pvp_explosion_kill_msg": "[{attacker}] blew up [{victim}]",
+        "hud.chat.pvp_energy_kill_msg": "[{attacker}] killed [{victim}] with magic",
+        "hud.chat.pvp_buff_kill_msg": "[{attacker}] killed [{victim}]",
+
+
+        "hud.chat.npc_melee_kill_msg": "{attacker} killed [{victim}]",
+        "hud.chat.npc_ranged_kill_msg": "{attacker} shot [{victim}]",
+        "hud.chat.npc_explosion_kill_msg": "{attacker} blew up [{victim}]",
+        "hud.chat.npc_energy_kill_msg": "[{attacker}] killed [{victim}] with magic",
+        "hud.chat.npc_other_kill_msg": "[{attacker}] killed [{victim}]",
+
+        "hud.chat.loot_msg": "You picked up [{item}]",
+        "hud.chat.loot_fail": "Your Inventory is full!",
+        "hud.chat.goodbye": "Goodbye!",
+        "hud.chat.connection_lost": "Connection lost. Kicking in {time} seconds.",
+    },
+
+
+    vector_map: {
+    }
+)
