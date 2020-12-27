@@ -42,7 +42,6 @@
         "common.controls": "Controles",
         "common.video": "Vídeo",
         "common.sound": "Som",
-        "common.languages": "Idiomas",
         "common.resume": "Continuar",
         "common.characters": "Personagens",
         "common.close": "Fechar",
@@ -51,7 +50,9 @@
         "common.back": "Voltar",
         "common.create": "Criar",
         "common.okay": "Okay",
+	"common.add": "Adicionar",
         "common.accept": "Aceitar",
+	"common.decline": "Recusar",
         "common.disclaimer": "Aviso",
         "common.cancel": "Cancelar",
         "common.none": "Nenhum",
@@ -86,11 +87,15 @@ O cliente está atualizado?"#,
         "common.weapons.staff": "Cajado",
         "common.weapons.bow": "Arco",
         "common.weapons.hammer": "Martelo",
+	"common.weapons.sceptre": "Cetro de Cura",
         "common.rand_appearance": "Aparência e nome aleatórios",
         /// End Common section
 
 
         /// Start Main screen section
+	"main.username": "Nome de Usuário",
+	"main.server": "Servidor",	
+	"main.password": "Senha",
         "main.connecting": "Conectando",
         "main.creating_world": "Criando o Mundo",
         "main.tip": "Dica:",
@@ -116,8 +121,6 @@ Obrigado pelo seu tempo gasto lendo este aviso, esperamos que você goste do jog
         // Login process description
         "main.login_process": r#"Informações sobre o login:
 
-Se tiver problemas ao logar:
-
 Note que é necessário uma conta
 para jogar em servidores com autenticação.
 
@@ -139,6 +142,9 @@ https://veloren.net/account/."#,
 	"main.login.not_on_whitelist": "Você precisa ser permitido por um Admin para ingressar",
         "main.login.banned": "Você foi banido pelo seguinte motivo",
         "main.login.kicked": "Você foi expulso pelo seguinte motivo",
+	"main.login.select_language": "Escolha um Idioma",
+
+	"main.servers.select_server": "Escolha um servidor",
 
         /// End Main screen section
 
@@ -150,10 +156,13 @@ https://veloren.net/account/."#,
         "hud.you_died": "Você Morreu",
         "hud.waypoint_saved": "Waypoint Salvo",
 
-        "hud.press_key_to_show_keybindings_fmt": "Pressione {key} para mostrar mapeamentos de teclas",
+        "hud.press_key_to_show_keybindings_fmt": "[{key}] mapeamentos de teclas",
+        "hud.press_key_to_toggle_lantern_fmt": "[{key}] lamparina",
         "hud.press_key_to_show_debug_info_fmt": "Pressione {key} para mostrar informações de depuração",
         "hud.press_key_to_toggle_keybindings_fmt": "Pressione {key} para mostrar/ocultar teclas mapeadas",
+
         "hud.press_key_to_toggle_debug_info_fmt": "Pressione {key} para mostrar/ocultar informações de depuração",
+
 
         // Chat outputs
         "hud.chat.online_msg": "[{name}] está online.", 
@@ -167,10 +176,15 @@ https://veloren.net/account/."#,
         "hud.chat.pvp_melee_kill_msg": "[{attacker}] derrotou [{victim}]",
         "hud.chat.pvp_ranged_kill_msg": "[{attacker}] acertou [{victim}]",
         "hud.chat.pvp_explosion_kill_msg": "[{attacker}] explodiu [{victim}]",
+        "hud.chat.pvp_energy_kill_msg": "[{attacker}] matou [{victim}] com magia",
+        "hud.chat.pvp_buff_kill_msg": "[{attacker}] matou [{victim}]",
+
 
         "hud.chat.npc_melee_kill_msg": "{attacker} matou [{victim}]",
         "hud.chat.npc_ranged_kill_msg": "{attacker} acertou [{victim}]",
         "hud.chat.npc_explosion_kill_msg": "{attacker} exoplodiu [{victim}]",
+        "hud.chat.npc_energy_kill_msg": "[{attacker}] matou [{victim}] com magia",
+        "hud.chat.npc_buff_kill_msg": "[{attacker}] matou [{victim}]",
 
         "hud.chat.loot_msg": "Você pegou [{item}]",
         "hud.chat.loot_fail": "Seu inventário está cheio!",
@@ -209,7 +223,7 @@ Jogue itens fora cliquando uma vez neles e depois outra fora do inventário
 
 As noites podem ser bastante escuras em Veloren.
 
-Equipe sua lanterna e acenda-a pressionando G.
+Equipe sua lamparina(lâmpada a óleo) e acenda-a pressionando G.
 
 
 Quer liberar o cursor do mouse para fechar esta janela? Pressione TAB!
@@ -243,7 +257,8 @@ itens magicamente modificados?"#,
         "hud.bag.shoulders": "Ombros",
         "hud.bag.chest": "Peito",
         "hud.bag.hands": "Mãos",
-        "hud.bag.lantern": "Lanterna",
+        "hud.bag.lantern": "Lamparina",
+        "hud.bag.glider": "Planador",
         "hud.bag.belt": "Cinto",
         "hud.bag.ring": "Anel",
         "hud.bag.back": "Costas",
@@ -272,6 +287,8 @@ itens magicamente modificados?"#,
         "hud.settings.transparency": "Transparência",
         "hud.settings.hotbar": "Hotbar",        
         "hud.settings.toggle_shortcuts": "Mostar/Ocultar atalhos",
+        "hud.settings.buffs_skillbar": "Buffs na Barra de Habilidades",
+        "hud.settings.buffs_mmap": "Buffs no Minimapa",
         "hud.settings.toggle_bar_experience": "Mostar/Ocultar barra de experiência",
         "hud.settings.scrolling_combat_text": "Texto de combate deslizante",
         "hud.settings.single_damage_number": "Números únicos de dano",
@@ -279,7 +296,7 @@ itens magicamente modificados?"#,
         "hud.settings.incoming_damage": "Dano Recebido",
         "hud.settings.cumulated_incoming_damage": "Dano Recebido Acumulado",
         "hud.settings.speech_bubble": "Balão de Fala",
-	    "hud.settings.speech_bubble_dark_mode": "Balão de Fala no modo escuro",
+        "hud.settings.speech_bubble_dark_mode": "Balão de Fala no modo escuro",
         "hud.settings.speech_bubble_icon": "Ícone do Balão de Fala",
         "hud.settings.energybar_numbers": "Números da Barra de energia",
         "hud.settings.values": "Valores",
@@ -304,13 +321,19 @@ itens magicamente modificados?"#,
         "hud.settings.maximum_fps": "FPS máximo",
         "hud.settings.fov": "Campo de visão(graus)",
         "hud.settings.gamma": "Gama",
+        "hud.settings.exposure": "Exposição",
         "hud.settings.ambiance": "Brilho do ambiente",
         "hud.settings.antialiasing_mode": "Modo de antialiasing",
+        "hud.settings.upscale_factor": "Fator de Melhoria ",
         "hud.settings.cloud_rendering_mode": "Modo de Renderização das Nuvens",
         "hud.settings.fluid_rendering_mode": "Modo de Renderização dos Fluidos",
         "hud.settings.fluid_rendering_mode.cheap": "Simples",
         "hud.settings.fluid_rendering_mode.shiny": "Brilhante",
-        "hud.settings.cloud_rendering_mode.regular": "Normal",
+        "hud.settings.cloud_rendering_mode.minimal": "Mínimo",
+        "hud.settings.cloud_rendering_mode.low": "Baixo",
+        "hud.settings.cloud_rendering_mode.medium": "Médio",
+        "hud.settings.cloud_rendering_mode.high": "Alto",
+        "hud.settings.cloud_rendering_mode.ultra": "Ultra",
         "hud.settings.fullscreen": "Tela Cheia",
         "hud.settings.fullscreen_mode": "Modos de tela cheia",
         "hud.settings.fullscreen_mode.exclusive": "Dedicado",
@@ -319,11 +342,10 @@ itens magicamente modificados?"#,
         "hud.settings.resolution": "Resolução",
         "hud.settings.bit_depth": "Intensidade de bit",
         "hud.settings.refresh_rate": "Taxa de atualização",
-        "hud.settings.save_window_size": "Salvar tamanho da janela",
         "hud.settings.lighting_rendering_mode": "Modo de renderização de luzes",
-        "hud.settings.lighting_rendering_mode.ashikhmin": "Tipo A",
-        "hud.settings.lighting_rendering_mode.blinnphong": "Tipo B",
-        "hud.settings.lighting_rendering_mode.lambertian": "Tipo L",
+        "hud.settings.lighting_rendering_mode.ashikhmin": "Tipo A - Alta    ",
+        "hud.settings.lighting_rendering_mode.blinnphong": "Tipo B - Média ",
+        "hud.settings.lighting_rendering_mode.lambertian": "Tipo L - Simples",
         "hud.settings.shadow_rendering_mode": "Modo de renderização de sombras",
         "hud.settings.shadow_rendering_mode.none": "Nenhum",
         "hud.settings.shadow_rendering_mode.cheap": "Simples",
@@ -332,11 +354,12 @@ itens magicamente modificados?"#,
         "hud.settings.lod_detail": "Detalhes",
         "hud.settings.save_window_size": "Salvar dimensões",
 
+
         "hud.settings.music_volume": "Volume da Música",
         "hud.settings.sound_effect_volume": "Volume dos Efeitos",
         "hud.settings.audio_device": "Dispositivo de Áudio",
 
-        "hud.settings.awaitingkey": "Pressione qualquer tecla...",
+        "hud.settings.awaitingkey": "Pressione uma tecla tecla...",
         "hud.settings.unbound": "Nenhum",
         "hud.settings.reset_keybinds": "Voltar para o padrão",
 
@@ -376,6 +399,20 @@ itens magicamente modificados?"#,
         "hud.free_look_indicator": "Câmera livre ativa.  Pressione {key} para desabilitar.",
         "hud.auto_walk_indicator": "Caminhar automático ativado",
 
+        "hud.map.difficulty": "Dificuldade",
+        "hud.map.towns": "Cidades",
+        "hud.map.castles": "Castelos",
+        "hud.map.dungeons": "Masmorras",        
+        "hud.map.caves": "Cavernas",
+        "hud.map.cave": "Caverna",
+        "hud.map.town": "Cidade",
+        "hud.map.castle": "Castelo",
+        "hud.map.dungeon": "Masmorra",
+        "hud.map.difficulty_dungeon": "Dificuldade da\n\nMasmorra: {difficulty}",
+        "hud.map.drag": "Drag",
+        "hud.map.zoom": "Zoom",
+        "hud.map.recenter": "Recentralizar",
+
         /// End HUD section
 
 
@@ -406,15 +443,15 @@ itens magicamente modificados?"#,
         "gameinput.moveright": "Mover para a Direita",
         "gameinput.moveback": "Mover para trás",
         "gameinput.jump": "Pular",
-        "gameinput.glide": "Planar",
+        "gameinput.glide": "Planador",
         "gameinput.roll": "Rolar",
         "gameinput.climb": "Escalar",
         "gameinput.climbdown": "Descer",
         "gameinput.wallleap": "Pular na Parede",
-        "gameinput.togglelantern": "Ligar/Desligar Lanterna",
+        "gameinput.togglelantern": "Ligar/Desligar Lamparina",
         "gameinput.mount": "Montar",
         "gameinput.chat": "Chat",
-        "gameinput.command": "Comando",
+        "gameinput.command": "Comandos",
         "gameinput.escape": "Esc",
         "gameinput.map": "Mapa",
         "gameinput.bag": "Mochila",
@@ -429,10 +466,11 @@ itens magicamente modificados?"#,
         "gameinput.freelook": "Câmera Livre",
         "gameinput.autowalk": "Caminhar Automático",
         "gameinput.dance": "Dançar",
-        "gameinput.select": "Selecionar",
+        "gameinput.select": "Escolher",
         "gameinput.acceptgroupinvite": "Aceitar Convite de Grupo",
         "gameinput.declinegroupinvite": "Negar Convite de Grupo",
         "gameinput.crafting": "Criação",
+        "gameinput.fly": "Voar",
         "gameinput.sneak": "Furtividade",
         "gameinput.swimdown": "Mergulhar",
         "gameinput.swimup": "Emergir",
@@ -478,19 +516,36 @@ Força de Vontade
 
 Proteção
 "#,
-        /// Start character window section
+        /// End character window section
 
 
         /// Start Escape Menu Section
         "esc_menu.logout": "Deslogar",
         "esc_menu.quit_game": "Sair do Jogo",
         /// End Escape Menu Section
+
+        /// Buffs and Debuffs
+        "buff.remove": "Clique Para Remover",
+        "buff.title.missing": "Título Ausente",
+        "buff.desc.missing": "Descrição Ausente",
+	// Buffs
+        "buff.title.heal": "Cura",
+        "buff.desc.heal": "Ganha vida no decorrer do tempo.",
+        "buff.title.potion": "Poção",
+        "buff.desc.potion": "Tomando...",
+        "buff.title.saturation": "Saturação",
+        "buff.desc.saturation": "Ganha vida no decorrer do tempo através de consumíveis.",
+        "buff.title.campfire_heal": "Cura de Acampamento",
+        "buff.desc.campfire_heal": "Descansar próximo a uma fogueira de acampamento cura 1% de vida por segundo.",
+        // Debuffs
+        "debuff.title.bleed": "Sangramento",
+        "debuff.desc.bleed": "Inflige Dano contínuo.",
     },
 
 
     vector_map: {     
         "loading.tips": [
-            "Pressione 'G' para acender sua lanterna.",
+            "Pressione 'G' para acender sua lâmpada.",
             "Pressione 'F1' para visualizar suas teclas de atalho.",
             "Você pode digitar /say ou /s para conversar apenas com jogadores próximos a você.",
             "Você pode digitar /region ou /r para conversar apenas com jogadores a poucas centenas de blocos de você.",
