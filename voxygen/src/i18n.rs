@@ -160,7 +160,7 @@ impl assets::Asset for Localization {
     const EXTENSION: &'static str = "ron";
 }
 impl assets::Asset for LocalizationFragment {
-    type Loader = LocalizationLoader;
+    type Loader = assets::RonLoader;
 
     const EXTENSION: &'static str = "ron";
 }
@@ -184,12 +184,6 @@ impl assets::Loader<Localization> for LocalizationLoader {
             deunicode(&asked_localization.metadata.language_name);
 
         Ok(asked_localization)
-    }
-}
-impl assets::Loader<LocalizationFragment> for LocalizationLoader {
-    fn load(content: Cow<[u8]>, ext: &str) -> Result<LocalizationFragment, assets::BoxedError> {
-        let asked_fragment: LocalizationFragment = assets::RonLoader::load(content, ext)?;
-        Ok(asked_fragment)
     }
 }
 
