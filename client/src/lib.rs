@@ -461,7 +461,7 @@ impl Client {
         let token_or_username = self.server_info.auth_provider.as_ref().map(|addr|
                 // Query whether this is a trusted auth server
                 if auth_trusted(&addr) {
-                    Ok(authc::AuthClient::new(addr)
+                    Ok(authc::AuthClient::new(addr)?
                         .sign_in(&username, &password)?
                         .serialize())
                 } else {
