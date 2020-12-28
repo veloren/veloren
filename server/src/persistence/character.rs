@@ -61,7 +61,7 @@ pub fn load_character_data(
     connection: VelorenTransaction,
     map: &AbilityMap,
 ) -> CharacterDataResult {
-    use schema::{body::dsl::*, character::dsl::*, item::dsl::*, stats::dsl::*};
+    use schema::{body::dsl::*, character::dsl::*, item::dsl::*};
 
     let character_containers = get_pseudo_containers(connection, char_id)?;
 
@@ -81,7 +81,7 @@ pub fn load_character_data(
                 .eq(char_id)
                 .and(player_uuid.eq(requesting_player_uuid)),
         )
-        .inner_join(stats)
+        .inner_join(schema::stats::dsl::stats)
         .first::<(Character, Stats)>(&*connection)?;
 
     let char_body = body
@@ -178,7 +178,7 @@ pub fn create_character(
 
     check_character_limit(uuid, connection)?;
 
-    use schema::{body, character, stats};
+    use schema::{body, character};
 
     let (body, stats, inventory, loadout, waypoint) = persisted_components;
 
@@ -226,7 +226,7 @@ pub fn create_character(
 
     // Insert stats record
     let db_stats = convert_stats_to_database(character_id, &stats, &waypoint)?;
-    let stats_count = diesel::insert_into(stats::table)
+    let stats_count = diesel::insert_into(schema::stats::table)
         .values(&db_stats)
         .execute(&*connection)?;
 
@@ -538,7 +538,7 @@ pub fn update(
     char_waypoint: Option<comp::Waypoint>,
     connection: VelorenTransaction,
 ) -> Result<Vec<Arc<common::comp::item::ItemId>>, Error> {
-    use super::schema::{item::dsl::*, stats::dsl::*};
+    use super::schema::item::dsl::*;
 
     let pseudo_containers = get_pseudo_containers(connection, char_id)?;
 
@@ -602,9 +602,10 @@ pub fn update(
     }
 
     let db_stats = convert_stats_to_database(char_id, &char_stats, &char_waypoint)?;
-    let stats_count = diesel::update(stats.filter(stats_id.eq(char_id)))
-        .set(db_stats)
-        .execute(&*connection)?;
+    let stats_count =
+        diesel::update(schema::stats::dsl::stats.filter(schema::stats::dsl::stats_id.eq(char_id)))
+            .set(db_stats)
+            .execute(&*connection)?;
 
     if stats_count != 1 {
         return Err(Error::OtherError(format!(
