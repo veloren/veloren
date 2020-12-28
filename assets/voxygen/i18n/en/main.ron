@@ -1,46 +1,7 @@
-/// Translation document instructions
-///
-/// In order to keep localization documents readible please follow the following
-/// rules:
-/// - separate the string map sections using a commentary describing the purpose
-///   of the next section
-/// - prepend multi-line strings with a commentary
-/// - append one blank lines after a multi-line strings and two after sections
-///
-/// To add a new language in Veloren, just write an additional `.ron` file in
-/// `assets/voxygen/i18n` and that's it!
-///
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
 /// Localization for "global" English
 (
-    metadata: (
-        language_name: "English",
-        language_identifier: "en",
-    ),
-    convert_utf8_to_ascii: false,
-    fonts: {
-        "opensans": Font (
-            asset_key: "voxygen.font.OpenSans-Regular",
-            scale_ratio: 1.0,
-        ),
-        "metamorph": Font (
-            asset_key: "voxygen.font.Metamorphous-Regular",
-            scale_ratio: 1.0,
-        ),
-        "alkhemi": Font (
-            asset_key: "voxygen.font.Alkhemikal",
-            scale_ratio: 1.0,
-        ),
-        "wizard": Font (
-            asset_key: "voxygen.font.wizard",
-            scale_ratio: 1.0,
-        ),
-        "cyri": Font (
-            asset_key: "voxygen.font.haxrcorp_4089_cyrillic_altgr_extended",
-            scale_ratio: 1.0,
-        ),
-    },
     string_map: {
         /// Start Main screen section
         "main.username": "Username",
@@ -96,7 +57,6 @@ https://veloren.net/account/."#,
         "main.login.select_language": "Select a language",
 
         "main.servers.select_server": "Select a server",
-
         /// End Main screen section
     },
 

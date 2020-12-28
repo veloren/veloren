@@ -1,46 +1,7 @@
-/// Translation document instructions
-///
-/// In order to keep localization documents readible please follow the following
-/// rules:
-/// - separate the string map sections using a commentary describing the purpose
-///   of the next section
-/// - prepend multi-line strings with a commentary
-/// - append one blank lines after a multi-line strings and two after sections
-///
-/// To add a new language in Veloren, just write an additional `.ron` file in
-/// `assets/voxygen/i18n` and that's it!
-///
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
 /// Localization for "global" English
 (
-    metadata: (
-        language_name: "English",
-        language_identifier: "en",
-    ),
-    convert_utf8_to_ascii: false,
-    fonts: {
-        "opensans": Font (
-            asset_key: "voxygen.font.OpenSans-Regular",
-            scale_ratio: 1.0,
-        ),
-        "metamorph": Font (
-            asset_key: "voxygen.font.Metamorphous-Regular",
-            scale_ratio: 1.0,
-        ),
-        "alkhemi": Font (
-            asset_key: "voxygen.font.Alkhemikal",
-            scale_ratio: 1.0,
-        ),
-        "wizard": Font (
-            asset_key: "voxygen.font.wizard",
-            scale_ratio: 1.0,
-        ),
-        "cyri": Font (
-            asset_key: "voxygen.font.haxrcorp_4089_cyrillic_altgr_extended",
-            scale_ratio: 1.0,
-        ),
-    },
     string_map: {
         "char_selection.loading_characters": "Loading characters...",
         "char_selection.delete_permanently": "Permanently delete this Character?",
@@ -51,7 +12,6 @@
         "char_selection.create_new_character": "Create New Character",
         "char_selection.creating_character": "Creating Character...",
         "char_selection.character_creation": "Character Creation",
-
         "char_selection.human_default": "Human Default",
         "char_selection.level_fmt": "Level {level_nb}",
         "char_selection.uncanny_valley": "Wilderness",
@@ -65,7 +25,6 @@
         "char_selection.accessories": "Accessories",
         "char_selection.create_info_name": "Your Character needs a name!",
     },
-
 
     vector_map: {
     }

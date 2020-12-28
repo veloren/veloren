@@ -45,6 +45,12 @@ pub type Fonts = HashMap<String, Font>;
 /// Store internationalization data
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Localization {
+
+    /// A list of subdirectories to lookup for localization files
+    /// 
+    /// 
+    pub sub_directories: Vec<String>,
+
     /// A map storing the localized texts
     ///
     /// Localized content can be accessed using a String key.
@@ -64,6 +70,22 @@ pub struct Localization {
 
     pub metadata: LanguageMetadata,
 }
+
+/// Store internationalization maps
+/// These structs are meant to be merged into a Localization
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct LocalizationFragment {
+    /// A map storing the localized texts
+    ///
+    /// Localized content can be accessed using a String key.
+    pub string_map: HashMap<String, String>,
+
+    /// A map for storing variations of localized texts, for example multiple
+    /// ways of saying "Help, I'm under attack". Used primarily for npc
+    /// dialogue.
+    pub vector_map: HashMap<String, Vec<String>>,
+}
+
 
 impl Localization {
     /// Get a localized text from the given key
@@ -137,6 +159,11 @@ impl assets::Asset for Localization {
 
     const EXTENSION: &'static str = "ron";
 }
+impl assets::Asset for LocalizationFragment {
+    type Loader = LocalizationLoader;
+
+    const EXTENSION: &'static str = "ron";
+}
 
 pub struct LocalizationLoader;
 impl assets::Loader<Localization> for LocalizationLoader {
@@ -159,19 +186,53 @@ impl assets::Loader<Localization> for LocalizationLoader {
         Ok(asked_localization)
     }
 }
+impl assets::Loader<LocalizationFragment> for LocalizationLoader {
+    fn load(content: Cow<[u8]>, ext: &str) -> Result<LocalizationFragment, assets::BoxedError> {
+        let mut asked_localization: LocalizationFragment = assets::RonLoader::load(content, ext)?;
+        Ok(asked_localization)
+    }
+}
 
 pub fn init_localization(asset_key: &str) -> Result<Localization, assets::BoxedError> {
+    // retrieve a Localization struct, clone it to allow writing
     let mut asked_localization = Localization::load(&(asset_key.to_string() + "._self"))?.cloned();
-    for localization_asset in assets::load_dir::<Localization>(asset_key)?.iter_all() {
-        println!("{:?}", localization_asset.0);
-        // handle localization files
-        if let Ok(localization) = localization_asset.1 {
-            asked_localization.string_map.extend(localization.read().string_map.clone());
-            asked_localization.vector_map.extend(localization.read().vector_map.clone());
+    // handle localization files
+    for localization_asset in assets::load_dir::<LocalizationFragment>(asset_key)?.iter() {
+        asked_localization.string_map.extend(localization_asset.read().string_map.clone());
+        asked_localization.vector_map.extend(localization_asset.read().vector_map.clone());
+    }
+    // handle localization sub directories
+    for sub_directory in asked_localization.sub_directories.iter() {
+        for localization_asset in assets::load_dir::<LocalizationFragment>(&(asset_key.to_string() + "." + &sub_directory))?.iter() {
+            asked_localization.string_map.extend(localization_asset.read().string_map.clone());
+            asked_localization.vector_map.extend(localization_asset.read().vector_map.clone());
         }
     }
-    // TODO: handle folders
+
+    // Update the text if UTF-8 to ASCII conversion is enabled
+    if asked_localization.convert_utf8_to_ascii {
+        for value in asked_localization.string_map.values_mut() {
+            *value = deunicode(value);
+        }
+
+        for value in asked_localization.vector_map.values_mut() {
+            *value = value.iter().map(|s| deunicode(s)).collect();
+        }
+    }
+    asked_localization.metadata.language_name =
+        deunicode(&asked_localization.metadata.language_name);
+
     Ok(asked_localization)
+}
+
+#[track_caller]
+pub fn init_localization_expect(asset_key: &str) -> Localization {
+    init_localization(asset_key).unwrap_or_else(|err| {
+        panic!(
+            "Failed loading essential asset: {} (error={:?})",
+            asset_key, err
+        )
+    })
 }
 
 /// Load all the available languages located in the voxygen asset directory

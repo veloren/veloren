@@ -41,10 +41,13 @@
             scale_ratio: 1.0,
         ),
     },
+    sub_directories: [
+        "hud"
+    ],
+
     string_map: {
 
     },
-
 
     vector_map: {
         "loading.tips": [
