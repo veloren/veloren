@@ -39,6 +39,7 @@
             scale_ratio: 1.0,
         ),
     },
+    sub_directories: [],
     string_map: {
         /// Start Common section
         /// Texts used in multiple locations with the same formatting

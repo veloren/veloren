@@ -27,6 +27,7 @@
             scale_ratio: 0.9,
         ),
     },
+    sub_directories: [],
     string_map: {
         // Common texts used in multiple locations
         "common.username": "pseudo",

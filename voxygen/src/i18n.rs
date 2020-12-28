@@ -242,11 +242,19 @@ pub fn init_localization_expect(asset_key: &str) -> Localization {
 
 /// Load all the available languages located in the voxygen asset directory
 pub fn list_localizations() -> Vec<LanguageMetadata> {
-    assets::load_dir::<Localization>("voxygen.i18n")
-        .unwrap()
-        .iter_all()
-        .filter_map(|(_, lang)| lang.ok().map(|e| e.read().metadata.clone()))
-        .collect()
+    let mut languages = vec![];
+    // list language directories
+    for l18n_directory in std::fs::read_dir("assets/voxygen/i18n").unwrap() {
+        if let Ok(l18n_entry) = l18n_directory {
+            if let Some(l18n_key) = l18n_entry.file_name().to_str() {
+                // load the root file of all the subdirectories
+                if let Ok(localization) = Localization::load(&("voxygen.i18n.".to_string() + l18n_key + "._root")) {
+                    languages.push(localization.read().metadata.clone());
+                }
+            }
+        }
+    }
+    languages
 }
 
 /// Return the asset associated with the language_id
