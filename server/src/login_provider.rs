@@ -24,7 +24,7 @@ pub struct LoginProvider {
 impl LoginProvider {
     pub fn new(auth_addr: Option<String>) -> Self {
         let auth_server = match auth_addr {
-            Some(addr) => Some(AuthClient::new(addr)),
+            Some(addr) => Some(AuthClient::new(&addr).unwrap()),
             None => None,
         };
 
