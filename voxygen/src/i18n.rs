@@ -188,20 +188,23 @@ impl assets::Loader<Localization> for LocalizationLoader {
 }
 impl assets::Loader<LocalizationFragment> for LocalizationLoader {
     fn load(content: Cow<[u8]>, ext: &str) -> Result<LocalizationFragment, assets::BoxedError> {
-        let mut asked_localization: LocalizationFragment = assets::RonLoader::load(content, ext)?;
-        Ok(asked_localization)
+        let asked_fragment: LocalizationFragment = assets::RonLoader::load(content, ext)?;
+        Ok(asked_fragment)
     }
 }
 
+/// Initializes and return a Localization with the given key
 pub fn init_localization(asset_key: &str) -> Result<Localization, assets::BoxedError> {
     // retrieve a Localization struct, clone it to allow writing
-    let mut asked_localization = Localization::load(&(asset_key.to_string() + "._self"))?.cloned();
-    // handle localization files
+    // for this, we load a special file called "_root.ron"
+    let mut asked_localization = Localization::load(&(asset_key.to_string() + "._root"))?.cloned();
+
+    // walk through files in the folder, collecting localization fragment to merge inside the asked_localization
     for localization_asset in assets::load_dir::<LocalizationFragment>(asset_key)?.iter() {
         asked_localization.string_map.extend(localization_asset.read().string_map.clone());
         asked_localization.vector_map.extend(localization_asset.read().vector_map.clone());
     }
-    // handle localization sub directories
+    // use the localization's subdirectory list to load fragments from there
     for sub_directory in asked_localization.sub_directories.iter() {
         for localization_asset in assets::load_dir::<LocalizationFragment>(&(asset_key.to_string() + "." + &sub_directory))?.iter() {
             asked_localization.string_map.extend(localization_asset.read().string_map.clone());
@@ -225,6 +228,8 @@ pub fn init_localization(asset_key: &str) -> Result<Localization, assets::BoxedE
     Ok(asked_localization)
 }
 
+/// Initializes and return a Localization with the given key
+/// Panics if the Localization cannot be found
 #[track_caller]
 pub fn init_localization_expect(asset_key: &str) -> Localization {
     init_localization(asset_key).unwrap_or_else(|err| {
