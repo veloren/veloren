@@ -170,12 +170,8 @@ pub fn init_localization(asset_key: &str) -> Result<Localization, assets::BoxedE
             asked_localization.vector_map.extend(localization.read().vector_map.clone());
         }
     }
-    // handle folders
-    // if let Ok(sub_localization) = init_localization(localization_asset.0) {
-    //     asked_localization.string_map.extend(sub_localization.string_map.clone());
-    //     asked_localization.vector_map.extend(sub_localization.vector_map.clone());
-    // }
-    // Ok(asked_localization)
+    // TODO: handle folders
+    Ok(asked_localization)
 }
 
 /// Load all the available languages located in the voxygen asset directory
