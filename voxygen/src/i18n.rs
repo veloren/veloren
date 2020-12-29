@@ -42,6 +42,19 @@ impl Font {
 /// Store font metadata
 pub type Fonts = HashMap<String, Font>;
 
+/// Raw localization data, expect the strings to not be loaded here
+/// However, metadata informations are correct
+/// See `Localization` for more info on each attributes
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+pub struct RawLocalization {
+    pub sub_directories: Vec<String>,
+    pub string_map: HashMap<String, String>,
+    pub vector_map: HashMap<String, Vec<String>>,
+    pub convert_utf8_to_ascii: bool,
+    pub fonts: Fonts,
+    pub metadata: LanguageMetadata,
+}
+
 /// Store internationalization data
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Localization {
@@ -115,7 +128,7 @@ impl Localization {
     /// Return the missing keys compared to the reference language
     fn list_missing_entries(&self) -> (HashSet<String>, HashSet<String>) {
         let reference_localization =
-            init_localization(&i18n_asset_key(REFERENCE_LANG)).unwrap();
+            Localization::load_expect(&i18n_asset_key(REFERENCE_LANG)).read();
 
         let reference_string_keys: HashSet<_> =
             reference_localization.string_map.keys().cloned().collect();
@@ -152,10 +165,34 @@ impl Localization {
             );
         }
     }
+
+    // Initializes and return a Localization with the given key
+    // Panics if the Localization cannot be found
+    // #[track_caller]
+    // pub fn load_expect(asset_key: &str) -> assets::AssetHandle<Localization> {
+    //     Self::load(asset_key).unwrap_or_else(|err| {
+    //         panic!(
+    //             "Failed loading essential asset: {} (error={:?})",
+    //             asset_key, err
+    //         )
+    //     })
+    // }
+}
+impl From<RawLocalization> for Localization {
+    fn from(raw: RawLocalization) -> Self {
+        Self {
+            sub_directories: raw.sub_directories,
+            string_map: raw.string_map,
+            vector_map: raw.vector_map,
+            convert_utf8_to_ascii: raw.convert_utf8_to_ascii,
+            fonts: raw.fonts,
+            metadata: raw.metadata
+        }
+    }
 }
 
-impl assets::Asset for Localization {
-    type Loader = LocalizationLoader;
+impl assets::Asset for RawLocalization {
+    type Loader = assets::RonLoader;
 
     const EXTENSION: &'static str = "ron";
 }
@@ -165,26 +202,39 @@ impl assets::Asset for LocalizationFragment {
     const EXTENSION: &'static str = "ron";
 }
 
-pub struct LocalizationLoader;
-impl assets::Loader<Localization> for LocalizationLoader {
-    fn load(content: Cow<[u8]>, ext: &str) -> Result<Localization, assets::BoxedError> {
-        let mut asked_localization: Localization = assets::RonLoader::load(content, ext)?;
+impl assets::Compound for Localization {
+    fn load<S: assets::source::Source>(cache: &assets::AssetCache<S>, asset_key: &str) -> Result<Self, assets::Error> {
+        let raw = cache.load::<RawLocalization>(&(asset_key.to_string()+"._root"))?.cloned();
+        let mut localization = Localization::from(raw);
+
+        // walk through files in the folder, collecting localization fragment to merge inside the asked_localization
+        for localization_asset in cache.load_dir::<LocalizationFragment>(asset_key)?.iter() {
+            localization.string_map.extend(localization_asset.read().string_map.clone());
+            localization.vector_map.extend(localization_asset.read().vector_map.clone());
+        }
+        // use the localization's subdirectory list to load fragments from there
+        for sub_directory in localization.sub_directories.iter() {
+            for localization_asset in cache.load_dir::<LocalizationFragment>(&(asset_key.to_string() + "." + &sub_directory))?.iter() {
+                localization.string_map.extend(localization_asset.read().string_map.clone());
+                localization.vector_map.extend(localization_asset.read().vector_map.clone());
+            }
+        }
 
         // Update the text if UTF-8 to ASCII conversion is enabled
-        if asked_localization.convert_utf8_to_ascii {
-            for value in asked_localization.string_map.values_mut() {
+        if localization.convert_utf8_to_ascii {
+            for value in localization.string_map.values_mut() {
                 *value = deunicode(value);
             }
 
-            for value in asked_localization.vector_map.values_mut() {
+            for value in localization.vector_map.values_mut() {
                 *value = value.iter().map(|s| deunicode(s)).collect();
             }
         }
-        asked_localization.metadata.language_name =
-            deunicode(&asked_localization.metadata.language_name);
+        localization.metadata.language_name =
+            deunicode(&localization.metadata.language_name);
 
-        Ok(asked_localization)
-    }
+        Ok(localization)
+    } 
 }
 
 /// Initializes and return a Localization with the given key
@@ -222,18 +272,6 @@ pub fn init_localization(asset_key: &str) -> Result<Localization, assets::BoxedE
     Ok(asked_localization)
 }
 
-/// Initializes and return a Localization with the given key
-/// Panics if the Localization cannot be found
-#[track_caller]
-pub fn init_localization_expect(asset_key: &str) -> Localization {
-    init_localization(asset_key).unwrap_or_else(|err| {
-        panic!(
-            "Failed loading essential asset: {} (error={:?})",
-            asset_key, err
-        )
-    })
-}
-
 /// Load all the available languages located in the voxygen asset directory
 pub fn list_localizations() -> Vec<LanguageMetadata> {
     let mut languages = vec![];
@@ -242,7 +280,7 @@ pub fn list_localizations() -> Vec<LanguageMetadata> {
         if let Ok(l18n_entry) = l18n_directory {
             if let Some(l18n_key) = l18n_entry.file_name().to_str() {
                 // load the root file of all the subdirectories
-                if let Ok(localization) = Localization::load(&("voxygen.i18n.".to_string() + l18n_key + "._root")) {
+                if let Ok(localization) = RawLocalization::load(&("voxygen.i18n.".to_string() + l18n_key + "._root")) {
                     languages.push(localization.read().metadata.clone());
                 }
             }

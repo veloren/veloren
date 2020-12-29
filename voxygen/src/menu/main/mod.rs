@@ -5,7 +5,7 @@ use super::char_selection::CharSelectionState;
 #[cfg(feature = "singleplayer")]
 use crate::singleplayer::Singleplayer;
 use crate::{
-    i18n::{i18n_asset_key, init_localization, Localization},
+    i18n::{i18n_asset_key, Localization},
     render::Renderer,
     settings::Settings,
     window::Event,
@@ -49,7 +49,7 @@ impl PlayState for MainMenuState {
 
         // Updated localization in case the selected language was changed
         self.main_menu_ui
-            .update_language(global_state.i18n.clone(), &global_state.settings);
+            .update_language(global_state.i18n, &global_state.settings);
         // Set scale mode in case it was change
         self.main_menu_ui
             .set_scale_mode(global_state.settings.gameplay.ui_scale);
@@ -113,7 +113,7 @@ impl PlayState for MainMenuState {
                 )));
             },
             Some(InitMsg::Done(Err(err))) => {
-                let localized_strings = &global_state.i18n;
+                let localized_strings = global_state.i18n.read();
                 self.client_init = None;
                 global_state.info_message = Some({
                     let err = match err {
@@ -261,10 +261,12 @@ impl PlayState for MainMenuState {
                 MainMenuEvent::ChangeLanguage(new_language) => {
                     global_state.settings.language.selected_language =
                         new_language.language_identifier;
-                    global_state.i18n = init_localization(&i18n_asset_key(&global_state.settings.language.selected_language)).unwrap();
-                    global_state.i18n.log_missing_entries();
+                    global_state.i18n = Localization::load_expect(
+                        &i18n_asset_key(&global_state.settings.language.selected_language)
+                    );
+                    global_state.i18n.read().log_missing_entries();
                     self.main_menu_ui
-                        .update_language(global_state.i18n.clone(), &global_state.settings);
+                        .update_language(global_state.i18n, &global_state.settings);
                 },
                 #[cfg(feature = "singleplayer")]
                 MainMenuEvent::StartSingleplayer => {

@@ -131,7 +131,7 @@ struct Controls {
     fonts: Fonts,
     imgs: Imgs,
     bg_img: widget::image::Handle,
-    i18n: Localization,
+    i18n: AssetHandle<Localization>,
     // Voxygen version
     version: String,
     // Alpha disclaimer
@@ -176,7 +176,7 @@ impl Controls {
         fonts: Fonts,
         imgs: Imgs,
         bg_img: widget::image::Handle,
-        i18n: Localization,
+        i18n: AssetHandle<Localization>,
         settings: &Settings,
     ) -> Self {
         let version = common::util::DISPLAY_VERSION_LONG.clone();
@@ -280,7 +280,7 @@ impl Controls {
                 &self.imgs,
                 &self.login_info,
                 error.as_deref(),
-                &self.i18n,
+                &self.i18n.read(),
                 self.is_selecting_language,
                 self.selected_language_index,
                 &language_metadatas,
@@ -292,7 +292,7 @@ impl Controls {
                 &self.imgs,
                 &settings.networking.servers,
                 self.selected_server_index,
-                &self.i18n,
+                &self.i18n.read(),
                 button_style,
             ),
             Screen::Connecting {
@@ -303,7 +303,7 @@ impl Controls {
                 &self.imgs,
                 &connection_state,
                 self.time,
-                &self.i18n,
+                &self.i18n.read(),
                 button_style,
                 settings.gameplay.loading_tips,
             ),
@@ -481,7 +481,7 @@ pub struct MainMenuUi {
 impl<'a> MainMenuUi {
     pub fn new(global_state: &mut GlobalState) -> Self {
         // Load language
-        let i18n = &global_state.i18n;
+        let i18n = &*global_state.i18n.read();
         // TODO: don't add default font twice
         let font = load_font(&i18n.fonts.get("cyri").unwrap().asset_key);
 
@@ -501,15 +501,16 @@ impl<'a> MainMenuUi {
             fonts,
             Imgs::load(&mut ui).expect("Failed to load images"),
             ui.add_graphic(Graphic::Image(bg_img, None)),
-            global_state.i18n.clone(),
+            global_state.i18n,
             &global_state.settings,
         );
 
         Self { ui, controls }
     }
 
-    pub fn update_language(&mut self, i18n: Localization, settings: &Settings) {
-        self.controls.i18n = i18n.clone();
+    pub fn update_language(&mut self, i18n: AssetHandle<Localization>, settings: &Settings) {
+        self.controls.i18n = i18n;
+        let i18n = &*i18n.read();
         let font = load_font(&i18n.fonts.get("cyri").unwrap().asset_key);
         self.ui.clear_fonts(font);
         self.controls.fonts =
