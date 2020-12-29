@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Doubled range of ScaleMode slider when set to Custom
 - Glider can now be deployed even when not on the ground
 - Gliding now has an energy cost for strenuous maneuvers based on lift
+- Translations are now folders with multiple files instead of a huge single file
 
 ### Removed
 
