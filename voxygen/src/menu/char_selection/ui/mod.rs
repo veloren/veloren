@@ -1395,7 +1395,7 @@ impl CharSelectionUi {
         let selected_character = global_state.profile.get_selected_character(server_name);
 
         // Load language
-        let i18n = &global_state.i18n.read();
+        let i18n = global_state.i18n.read();
 
         // TODO: don't add default font twice
         let font = ui::ice::load_font(&i18n.fonts.get("cyri").unwrap().asset_key);
@@ -1478,7 +1478,7 @@ impl CharSelectionUi {
     // TODO: do we need whole client here or just character list?
     pub fn maintain(&mut self, global_state: &mut GlobalState, client: &Client) -> Vec<Event> {
         let mut events = Vec::new();
-        let i18n = &global_state.i18n.read();
+        let i18n = global_state.i18n.read();
 
         let (mut messages, _) = self.ui.maintain(
             self.controls
