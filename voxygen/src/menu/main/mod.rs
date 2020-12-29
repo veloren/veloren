@@ -174,7 +174,7 @@ impl PlayState for MainMenuState {
                                 format!("{}: {}", localized_strings.get("common.error"), e)
                             },
                             client::Error::AuthClientError(e) => match e {
-                                client::AuthClientError::JsonError(e) => format!(
+                                client::AuthClientError::InvalidUrl(e) => format!(
                                     "{}: {}",
                                     localized_strings.get("common.fatal_error"),
                                     e
