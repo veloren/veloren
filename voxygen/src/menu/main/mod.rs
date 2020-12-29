@@ -261,9 +261,9 @@ impl PlayState for MainMenuState {
                 MainMenuEvent::ChangeLanguage(new_language) => {
                     global_state.settings.language.selected_language =
                         new_language.language_identifier;
-                    global_state.i18n = Localization::load_expect(
-                        &i18n_asset_key(&global_state.settings.language.selected_language)
-                    );
+                    global_state.i18n = Localization::load_expect(&i18n_asset_key(
+                        &global_state.settings.language.selected_language
+                    ));
                     global_state.i18n.read().log_missing_entries();
                     self.main_menu_ui
                         .update_language(global_state.i18n, &global_state.settings);

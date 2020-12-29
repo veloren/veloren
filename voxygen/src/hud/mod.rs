@@ -1883,7 +1883,7 @@ impl Hud {
                     tooltip_manager,
                     &mut self.slot_manager,
                     self.pulse,
-                    &i18n,
+                    i18n,
                     &player_stats,
                     &self.show,
                 )
@@ -1966,7 +1966,7 @@ impl Hud {
                     client,
                     &self.imgs,
                     &self.fonts,
-                    &i18n,
+                    i18n,
                     &self.rot_imgs,
                     tooltip_manager,
                     &self.item_imgs,
