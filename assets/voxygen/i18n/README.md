@@ -12,6 +12,6 @@ rules:
 
 To add a new language in Veloren, please follow these steps:
 - Create a new folder into the `assets/voxygen/i18n` directory
-- Copy the content of the `en` directory
-- Configure the language metadata in the `_root.ron` file
+- Copy the content of the `en` directory in your new folder
+- Configure the language metadata in the `_manifest.ron` file
 - From this point, you can start translating the files !
