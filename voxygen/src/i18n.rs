@@ -8,7 +8,7 @@ use tracing::warn;
 /// Also the default language at first startup.
 pub const REFERENCE_LANG: &str = "en";
 
-pub const LANG_MANIFEST_FILE: &str = "_root";
+pub const LANG_MANIFEST_FILE: &str = "_manifest";
 
 /// How a language can be described
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
