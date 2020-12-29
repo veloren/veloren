@@ -20,8 +20,10 @@ use common::{
     comp::{
         self,
         chat::{KillSource, KillType},
-        group, ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip,
-        InventoryManip, InventoryUpdateEvent,
+        group,
+        skills::Skill,
+        ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip, InventoryManip,
+        InventoryUpdateEvent,
     },
     event::{EventBus, LocalEvent},
     grid::Grid,
@@ -690,6 +692,10 @@ impl Client {
         self.send_msg(ClientGeneral::ControlEvent(ControlEvent::RemoveBuff(
             buff_id,
         )));
+    }
+
+    pub fn unlock_skill(&mut self, skill: Skill) {
+        self.send_msg(ClientGeneral::UnlockSkill(skill));
     }
 
     pub fn max_group_size(&self) -> u32 { self.max_group_size }

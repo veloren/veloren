@@ -3,6 +3,7 @@ mod buffs;
 mod buttons;
 mod chat;
 mod crafting;
+mod diary;
 mod esc_menu;
 mod group;
 mod hotbar;
@@ -18,7 +19,6 @@ mod settings_window;
 mod skillbar;
 mod slots;
 mod social;
-mod spell;
 mod util;
 
 pub use hotbar::{SlotContents as HotbarSlotContents, State as HotbarState};
@@ -31,6 +31,7 @@ use buttons::Buttons;
 use chat::Chat;
 use chrono::NaiveTime;
 use crafting::Crafting;
+use diary::{Diary, SelectedSkillTree};
 use esc_menu::EscMenu;
 use group::Group;
 use img_ids::Imgs;
@@ -43,7 +44,6 @@ use serde::{Deserialize, Serialize};
 use settings_window::{SettingsTab, SettingsWindow};
 use skillbar::Skillbar;
 use social::{Social, SocialTab};
-use spell::{SelectedSkillTree, Spell};
 
 use crate::{
     ecs::{comp as vcomp, comp::HpFloaterList},
@@ -60,6 +60,7 @@ use common::{
     comp,
     comp::{
         item::{ItemDesc, Quality},
+        skills::Skill,
         BuffKind,
     },
     span,
@@ -246,7 +247,7 @@ widget_ids! {
         bag,
         social,
         quest,
-        spell,
+        diary,
         skillbar,
         buttons,
         buffs,
@@ -384,6 +385,7 @@ pub enum Event {
     LeaveGroup,
     AssignLeader(Uid),
     RemoveBuff(BuffKind),
+    UnlockSkill(Skill),
 }
 
 // TODO: Are these the possible layouts we want?
@@ -453,7 +455,7 @@ pub struct Show {
     bag: bool,
     bag_inv: bool,
     social: bool,
-    spell: bool,
+    diary: bool,
     group: bool,
     group_menu: bool,
     esc_menu: bool,
@@ -487,7 +489,7 @@ impl Show {
             self.bag = false;
             self.crafting = false;
             self.social = false;
-            self.spell = false;
+            self.diary = false;
             self.want_grab = !open;
         }
     }
@@ -495,7 +497,7 @@ impl Show {
     fn social(&mut self, open: bool) {
         if !self.esc_menu {
             self.social = open;
-            self.spell = false;
+            self.diary = false;
             self.want_grab = !open;
         }
     }
@@ -509,13 +511,13 @@ impl Show {
         }
     }
 
-    fn spell(&mut self, open: bool) {
+    fn diary(&mut self, open: bool) {
         if !self.esc_menu {
             self.social = false;
             self.crafting = false;
             self.bag = false;
             self.map = false;
-            self.spell = open;
+            self.diary = open;
             self.want_grab = !open;
         }
     }
@@ -534,7 +536,7 @@ impl Show {
             self.bag = false;
             self.social = false;
             self.crafting = false;
-            self.spell = false;
+            self.diary = false;
             self.want_grab = !open;
         }
     }
@@ -566,7 +568,7 @@ impl Show {
             || self.map
             || self.social
             || self.crafting
-            || self.spell
+            || self.diary
             || self.help
             || self.intro
             || !matches!(self.open_windows, Windows::None)
@@ -577,7 +579,7 @@ impl Show {
             self.intro = false;
             self.map = false;
             self.social = false;
-            self.spell = false;
+            self.diary = false;
             self.crafting = false;
             self.open_windows = Windows::None;
             self.want_grab = true;
@@ -605,23 +607,23 @@ impl Show {
 
     fn toggle_social(&mut self) {
         self.social(!self.social);
-        self.spell = false;
+        self.diary = false;
     }
 
     fn toggle_crafting(&mut self) { self.crafting(!self.crafting) }
 
     fn open_social_tab(&mut self, social_tab: SocialTab) {
         self.social_tab = social_tab;
-        self.spell = false;
+        self.diary = false;
     }
 
     fn toggle_spell(&mut self) {
-        self.spell = !self.spell;
+        self.diary = !self.diary;
         self.bag = false;
         self.crafting = false;
         self.social = false;
         self.map = false;
-        self.want_grab = !self.spell;
+        self.want_grab = !self.diary;
     }
 
     fn open_skill_tree(&mut self, tree_sel: SelectedSkillTree) {
@@ -750,7 +752,7 @@ impl Hud {
                 crafting: false,
                 ui: true,
                 social: false,
-                spell: false,
+                diary: false,
                 group: false,
                 group_menu: false,
                 mini_map: true,
@@ -2304,18 +2306,27 @@ impl Hud {
             }
         }
 
-        // Spellbook
-        if self.show.spell {
-            for event in Spell::new(&self.show, client, &self.imgs, &self.fonts, i18n)
-                .set(self.ids.spell, ui_widgets)
+        // Diary
+        if self.show.diary {
+            for event in Diary::new(
+                &self.show,
+                client,
+                &self.imgs,
+                &self.fonts,
+                i18n,
+                &self.rot_imgs,
+                tooltip_manager,
+            )
+            .set(self.ids.diary, ui_widgets)
             {
                 match event {
-                    spell::Event::Close => {
-                        self.show.spell(false);
+                    diary::Event::Close => {
+                        self.show.diary(false);
                         self.show.want_grab = true;
                         self.force_ungrab = false;
                     },
-                    spell::Event::ChangeWeaponTree(tree_sel) => self.show.open_skill_tree(tree_sel),
+                    diary::Event::ChangeWeaponTree(tree_sel) => self.show.open_skill_tree(tree_sel),
+                    diary::Event::UnlockSkill(skill) => events.push(Event::UnlockSkill(skill)),
                 }
             }
         }
