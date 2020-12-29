@@ -165,18 +165,6 @@ impl Localization {
             );
         }
     }
-
-    // Initializes and return a Localization with the given key
-    // Panics if the Localization cannot be found
-    // #[track_caller]
-    // pub fn load_expect(asset_key: &str) -> assets::AssetHandle<Localization> {
-    //     Self::load(asset_key).unwrap_or_else(|err| {
-    //         panic!(
-    //             "Failed loading essential asset: {} (error={:?})",
-    //             asset_key, err
-    //         )
-    //     })
-    // }
 }
 impl From<RawLocalization> for Localization {
     fn from(raw: RawLocalization) -> Self {
