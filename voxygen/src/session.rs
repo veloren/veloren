@@ -926,6 +926,10 @@ impl PlayState for SessionState {
                         let mut client = self.client.borrow_mut();
                         client.remove_buff(buff_id);
                     },
+                    HudEvent::UnlockSkill(skill) => {
+                        let mut client = self.client.borrow_mut();
+                        client.unlock_skill(skill);
+                    },
                     HudEvent::UseSlot {
                         slot,
                         bypass_dialog,
