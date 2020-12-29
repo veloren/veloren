@@ -56,7 +56,7 @@ pub struct RawLocalization {
 }
 
 /// Store internationalization data
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Localization {
 
     /// A list of subdirectories to lookup for localization files
@@ -235,41 +235,6 @@ impl assets::Compound for Localization {
 
         Ok(localization)
     } 
-}
-
-/// Initializes and return a Localization with the given key
-pub fn init_localization(asset_key: &str) -> Result<Localization, assets::BoxedError> {
-    // retrieve a Localization struct, clone it to allow writing
-    // for this, we load a special file called "_root.ron"
-    let mut asked_localization = Localization::load(&(asset_key.to_string() + "._root"))?.cloned();
-
-    // walk through files in the folder, collecting localization fragment to merge inside the asked_localization
-    for localization_asset in assets::load_dir::<LocalizationFragment>(asset_key)?.iter() {
-        asked_localization.string_map.extend(localization_asset.read().string_map.clone());
-        asked_localization.vector_map.extend(localization_asset.read().vector_map.clone());
-    }
-    // use the localization's subdirectory list to load fragments from there
-    for sub_directory in asked_localization.sub_directories.iter() {
-        for localization_asset in assets::load_dir::<LocalizationFragment>(&(asset_key.to_string() + "." + &sub_directory))?.iter() {
-            asked_localization.string_map.extend(localization_asset.read().string_map.clone());
-            asked_localization.vector_map.extend(localization_asset.read().vector_map.clone());
-        }
-    }
-
-    // Update the text if UTF-8 to ASCII conversion is enabled
-    if asked_localization.convert_utf8_to_ascii {
-        for value in asked_localization.string_map.values_mut() {
-            *value = deunicode(value);
-        }
-
-        for value in asked_localization.vector_map.values_mut() {
-            *value = value.iter().map(|s| deunicode(s)).collect();
-        }
-    }
-    asked_localization.metadata.language_name =
-        deunicode(&asked_localization.metadata.language_name);
-
-    Ok(asked_localization)
 }
 
 /// Load all the available languages located in the voxygen asset directory

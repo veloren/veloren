@@ -162,7 +162,7 @@ impl PlayState for CharSelectionState {
             }
 
             // Tick the client (currently only to keep the connection alive).
-            let localized_strings = &global_state.i18n.read();
+            let localized_strings = &*global_state.i18n.read();
 
             match self.client.borrow_mut().tick(
                 comp::ControllerInputs::default(),

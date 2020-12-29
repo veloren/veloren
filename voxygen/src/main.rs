@@ -157,7 +157,6 @@ fn main() {
     // Load the profile.
     let profile = Profile::load();
 
-    
     let i18n = Localization::load(&i18n_asset_key(&settings.language.selected_language))
         .unwrap_or_else(|error| {
             let selected_language = &settings.language.selected_language;
