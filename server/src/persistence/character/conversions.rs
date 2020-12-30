@@ -212,7 +212,7 @@ pub fn convert_stats_to_database(
 pub fn convert_inventory_from_database_items(database_items: &[Item]) -> Result<Inventory, Error> {
     let mut inventory = Inventory::new_empty();
     for db_item in database_items.iter() {
-        let mut item = common::comp::Item::new_from_asset(db_item.item_definition_id.as_str())?;
+        let mut item = get_item_from_asset(db_item.item_definition_id.as_str())?;
 
         // NOTE: Since this is freshly loaded, the atomic is *unique.*
         let comp = item.get_item_id_for_database();
@@ -269,7 +269,7 @@ pub fn convert_loadout_from_database_items(
 ) -> Result<Loadout, Error> {
     let mut loadout = loadout_builder::LoadoutBuilder::new();
     for db_item in database_items.iter() {
-        let item = common::comp::Item::new_from_asset(db_item.item_definition_id.as_str())?;
+        let item = get_item_from_asset(db_item.item_definition_id.as_str())?;
         // NOTE: item id is currently *unique*, so we can store the ID safely.
         let comp = item.get_item_id_for_database();
         comp.store(Some(NonZeroU64::try_from(db_item.item_id as u64).map_err(
@@ -364,4 +364,14 @@ pub fn convert_stats_from_database(stats: &Stats, alias: String) -> common::comp
     new_stats.willpower = stats.willpower as u32;
 
     new_stats
+}
+
+fn get_item_from_asset(item_definition_id: &str) -> Result<common::comp::Item, Error> {
+    common::comp::Item::new_from_asset(item_definition_id).map_err(|err| {
+        Error::AssetError(format!(
+            "Error loading item asset: {} - {}",
+            item_definition_id,
+            err.to_string()
+        ))
+    })
 }

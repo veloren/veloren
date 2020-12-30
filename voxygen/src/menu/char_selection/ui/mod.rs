@@ -656,13 +656,13 @@ impl Controls {
                         },
                         InfoContent::CharacterError(error) => Column::with_children(vec![
                             Text::new(error).size(fonts.cyri.scale(24)).into(),
-                            Container::new(neat_button(
+                            Row::with_children(vec![neat_button(
                                 no_button,
                                 i18n.get("common.close"),
                                 FILL_FRAC_ONE,
                                 button_style,
                                 Some(Message::ClearCharacterListError),
-                            ))
+                            )])
                             .height(Length::Units(28))
                             .into(),
                         ])
@@ -679,11 +679,11 @@ impl Controls {
                                 (28, 28, 22, 255).into(),
                             ),
                         )
-                        .width(Length::Fill)
-                        .height(Length::Fill)
+                        .width(Length::Shrink)
+                        .height(Length::Shrink)
                         .max_width(400)
-                        .max_height(130)
-                        .padding(16)
+                        .max_height(500)
+                        .padding(24)
                         .center_x()
                         .center_y();
 
