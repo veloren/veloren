@@ -181,7 +181,9 @@ impl SessionState {
                 },
                 client::Event::Outcome(outcome) => outcomes.push(outcome),
                 client::Event::CharacterCreated(_) => {},
-                client::Event::CharacterError(_) => {},
+                client::Event::CharacterError(error) => {
+                    global_state.client_error = Some(error);
+                },
             }
         }
 

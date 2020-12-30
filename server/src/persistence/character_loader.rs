@@ -115,11 +115,19 @@ impl CharacterLoader {
                             CharacterLoaderRequestKind::LoadCharacterData {
                                 player_uuid,
                                 character_id,
-                            } => CharacterLoaderResponseKind::CharacterData(Box::new(
-                                conn.transaction(|txn| {
+                            } => {
+                                let result = conn.transaction(|txn| {
                                     load_character_data(player_uuid, character_id, txn, &map)
-                                }),
-                            )),
+                                });
+                                if result.is_err() {
+                                    error!(
+                                        ?result,
+                                        "Error loading character data for character_id: {}",
+                                        character_id
+                                    );
+                                }
+                                CharacterLoaderResponseKind::CharacterData(Box::new(result))
+                            },
                         },
                     })
                 {
