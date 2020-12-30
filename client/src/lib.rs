@@ -493,13 +493,18 @@ impl Client {
         {
             const C_TYPE: ClientType = ClientType::Game;
             let verified = msg.verify(C_TYPE, self.registered, self.presence);
-            assert!(
-                verified,
-                format!(
-                    "c_type: {:?}, registered: {}, presence: {:?}, msg: {:?}",
-                    C_TYPE, self.registered, self.presence, msg
-                )
-            );
+
+            // Due to the fact that character loading is performed asynchronously after
+            // initial connect it is possible to receive messages after a character load
+            // error while in the wrong state.
+            if !verified {
+                warn!(
+                    "Received ClientType::Game message when not in game (Registered: {} Presence: \
+                     {:?}), dropping message: {:?} ",
+                    self.registered, self.presence, msg
+                );
+                return Ok(());
+            }
         }
         match msg {
             ClientMsg::Type(msg) => self.register_stream.send(msg),

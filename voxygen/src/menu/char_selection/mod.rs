@@ -11,7 +11,7 @@ use crate::{
 use client::{self, Client};
 use common::{comp, resources::DeltaTime, span};
 use specs::WorldExt;
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, mem, rc::Rc};
 use tracing::error;
 use ui::CharSelectionUi;
 
@@ -188,7 +188,7 @@ impl PlayState for CharSelectionState {
                                 self.char_selection_ui.select_character(character_id);
                             },
                             client::Event::CharacterError(error) => {
-                                self.char_selection_ui.display_error(error);
+                                global_state.client_error = Some(error);
                             },
                             _ => {},
                         }
@@ -202,6 +202,10 @@ impl PlayState for CharSelectionState {
                 },
             }
 
+            if let Some(error) = mem::take(&mut global_state.client_error) {
+                self.char_selection_ui.display_error(error);
+            }
+
             // TODO: make sure rendering is not relying on cleaned up stuff
             self.client.borrow_mut().cleanup();
 
@@ -213,7 +217,7 @@ impl PlayState for CharSelectionState {
         }
     }
 
-    fn name(&self) -> &'static str { "Title" }
+    fn name(&self) -> &'static str { "Character Selection" }
 
     fn render(&mut self, renderer: &mut Renderer, _: &Settings) {
         let client = self.client.borrow();

@@ -188,6 +188,7 @@ fn main() {
         singleplayer: None,
         i18n,
         clipboard,
+        client_error: None,
     };
 
     run::run(global_state, event_loop);
