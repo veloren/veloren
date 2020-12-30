@@ -206,7 +206,7 @@ impl assets::Compound for Localization {
             .cloned();
         let mut localization = Localization::from(raw);
 
-        // walk through files in the folder, collecting localization fragment to merge
+        // Walk through files in the folder, collecting localization fragment to merge
         // inside the asked_localization
         for localization_asset in cache.load_dir::<LocalizationFragment>(asset_key)?.iter() {
             localization
@@ -216,7 +216,7 @@ impl assets::Compound for Localization {
                 .vector_map
                 .extend(localization_asset.read().vector_map.clone());
         }
-        // use the localization's subdirectory list to load fragments from there
+        // Use the localization's subdirectory list to load fragments from there
         for sub_directory in localization.sub_directories.iter() {
             for localization_asset in cache
                 .load_dir::<LocalizationFragment>(&(asset_key.to_string() + "." + &sub_directory))?
@@ -250,13 +250,13 @@ impl assets::Compound for Localization {
 /// Load all the available languages located in the voxygen asset directory
 pub fn list_localizations() -> Vec<LanguageMetadata> {
     let mut languages = vec![];
-    // list language directories
-    for l18n_directory in std::fs::read_dir("assets/voxygen/i18n").unwrap() {
-        if let Ok(l18n_entry) = l18n_directory {
-            if let Some(l18n_key) = l18n_entry.file_name().to_str() {
+    // List language directories
+    for i18n_directory in std::fs::read_dir("assets/voxygen/i18n").unwrap() {
+        if let Ok(i18n_entry) = i18n_directory {
+            if let Some(i18n_key) = i18n_entry.file_name().to_str() {
                 // load the root file of all the subdirectories
                 if let Ok(localization) = RawLocalization::load(
-                    &("voxygen.i18n.".to_string() + l18n_key + "." + LANG_MANIFEST_FILE),
+                    &("voxygen.i18n.".to_string() + i18n_key + "." + LANG_MANIFEST_FILE),
                 ) {
                     languages.push(localization.read().metadata.clone());
                 }
@@ -280,8 +280,8 @@ mod tests {
         path::{Path, PathBuf},
     };
 
-    /// List localization files as a PathBuf vector
-    fn i18n_files(i18n_dir: &Path) -> Vec<PathBuf> {
+    /// List localization directories as a PathBuf vector
+    fn i18n_directories(i18n_dir: &Path) -> Vec<PathBuf> {
         fs::read_dir(i18n_dir)
             .unwrap()
             .map(|res| res.map(|e| e.path()).unwrap())
@@ -418,7 +418,7 @@ mod tests {
     fn complete_key_versions<'a>(
         repo: &'a git2::Repository,
         head_ref: &git2::Reference,
-        l18n_key_versions: &mut HashMap<String, LocalizationEntryState>,
+        i18n_key_versions: &mut HashMap<String, LocalizationEntryState>,
         dir: &Path,
     ) {
         let root_dir = std::env::current_dir()
@@ -443,7 +443,7 @@ mod tests {
                                 continue;
                             },
                         };
-                        l18n_key_versions
+                        i18n_key_versions
                             .extend(generate_key_version(&repo, &i18n, &path, &i18n_blob));
                     }
                 }
@@ -470,17 +470,17 @@ mod tests {
             root_dir.join(&ref_i18n_path).is_file(),
             "Reference language manifest file doesn't exist, something is wrong!"
         );
-        let i18n_files = i18n_files(&root_dir.join(i18n_asset_path));
+        let i18n_directories = i18n_directories(&root_dir.join(i18n_asset_path));
         // This simple check  ONLY guarantees that an arbitrary minimum of translation
         // files exists. It's just to notice unintentional deletion of all
         // files, or modifying the paths. In case you want to delete all
         // language you have to adjust this number:
         assert!(
-            i18n_files.len() > 5,
+            i18n_directories.len() > 5,
             "have less than 5 translation folders, arbitrary minimum check failed. Maybe the i18n \
              folder is empty?"
         );
-        for path in i18n_files {
+        for path in i18n_directories {
             let path = path.join(LANG_MANIFEST_FILE.to_string() + ".ron");
             let f = fs::File::open(&path).expect("Failed opening file");
             let _: RawLocalization = match from_reader(f) {
@@ -547,9 +547,9 @@ mod tests {
         }
 
         // Compare to other reference files
-        let i18n_files = i18n_files(&i18n_path);
+        let i18n_directories = i18n_directories(&i18n_path);
         let mut i18n_entry_counts: HashMap<PathBuf, (usize, usize, usize, usize)> = HashMap::new();
-        for file in &i18n_files {
+        for file in &i18n_directories {
             let reldir = file.strip_prefix(&root_dir).unwrap();
             let relfile = reldir.join(&(LANG_MANIFEST_FILE.to_string() + ".ron"));
             if relfile == ref_i18n_path {
