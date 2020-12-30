@@ -2,7 +2,6 @@
 
 extern crate diesel;
 
-use common::assets::Error as AssetsError;
 use std::fmt;
 
 #[derive(Debug)]
@@ -38,10 +37,6 @@ impl fmt::Display for Error {
             Self::OtherError(error) => error.to_string(),
         })
     }
-}
-
-impl From<AssetsError> for Error {
-    fn from(error: AssetsError) -> Error { Error::AssetError(error.to_string()) }
 }
 
 impl From<diesel::result::Error> for Error {
