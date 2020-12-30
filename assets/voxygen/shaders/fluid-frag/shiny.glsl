@@ -136,7 +136,7 @@ void main() {
     // Possibility of div by zero when slope = 0,
     // however this only results in no water surface appearing
     // and is not likely to occur (could not find any occurrences)
-    float slope = abs(wave00 - wave10) * abs(wave00 - wave01);
+    float slope = abs((wave00 - wave10) * (wave00 - wave01)) + 0.001;
 
     vec3 nmap = vec3(
         -(wave10 - wave00) / 0.1,
