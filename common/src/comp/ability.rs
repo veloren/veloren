@@ -120,6 +120,7 @@ pub enum CharacterAbility {
         movement_duration: u64,
         recover_duration: u64,
         roll_strength: f32,
+        immune_melee: bool,
     },
     ComboMelee {
         stage_data: Vec<combo_melee::Stage<u64>>,
@@ -305,11 +306,12 @@ impl CharacterAbility {
 
     pub fn default_roll() -> CharacterAbility {
         CharacterAbility::Roll {
-            energy_cost: 100,
+            energy_cost: 150,
             buildup_duration: 100,
             movement_duration: 250,
             recover_duration: 150,
             roll_strength: 2.5,
+            immune_melee: false,
         }
     }
 
@@ -502,553 +504,562 @@ impl CharacterAbility {
         skills: &HashMap<skills::Skill, skills::Level>,
         tool: Option<ToolKind>,
     ) -> Self {
-        use skills::Skill::*;
+        use skills::Skill::{self, *};
         use CharacterAbility::*;
-        if let Some(tool) = tool {
-            match tool {
-                ToolKind::Sword => {
-                    use skills::SwordSkill::*;
-                    match self {
-                        ComboMelee {
-                            ref mut is_interruptible,
-                            ref mut speed_increase,
-                            ref mut max_speed_increase,
-                            ref stage_data,
-                            ref mut max_energy_gain,
-                            ref mut scales_from_combo,
-                            ..
-                        } => {
-                            *is_interruptible = skills.contains_key(&Sword(InterruptingAttacks));
-                            let speed_segments =
-                                Sword(TsSpeed).get_max_level().map_or(1, |l| l + 1) as f32;
-                            let speed_level = if skills.contains_key(&Sword(TsCombo)) {
-                                skills
-                                    .get(&Sword(TsSpeed))
-                                    .copied()
-                                    .flatten()
-                                    .map_or(1, |l| l + 1) as f32
-                            } else {
-                                0.0
-                            };
-                            {
-                                *speed_increase *= speed_level / speed_segments;
-                                *max_speed_increase *= speed_level / speed_segments;
-                            }
-                            let energy_level = if let Some(level) =
-                                skills.get(&Sword(TsRegen)).copied().flatten()
-                            {
+        match tool {
+            Some(ToolKind::Sword) => {
+                use skills::SwordSkill::*;
+                match self {
+                    ComboMelee {
+                        ref mut is_interruptible,
+                        ref mut speed_increase,
+                        ref mut max_speed_increase,
+                        ref stage_data,
+                        ref mut max_energy_gain,
+                        ref mut scales_from_combo,
+                        ..
+                    } => {
+                        *is_interruptible = skills.contains_key(&Sword(InterruptingAttacks));
+                        let speed_segments =
+                            Sword(TsSpeed).get_max_level().map_or(1, |l| l + 1) as f32;
+                        let speed_level = if skills.contains_key(&Sword(TsCombo)) {
+                            skills
+                                .get(&Sword(TsSpeed))
+                                .copied()
+                                .flatten()
+                                .map_or(1, |l| l + 1) as f32
+                        } else {
+                            0.0
+                        };
+                        {
+                            *speed_increase *= speed_level / speed_segments;
+                            *max_speed_increase *= speed_level / speed_segments;
+                        }
+                        let energy_level =
+                            if let Some(level) = skills.get(&Sword(TsRegen)).copied().flatten() {
                                 level
                             } else {
                                 0
                             };
-                            {
-                                *max_energy_gain = (*max_energy_gain as f32
-                                    * ((energy_level + 1) * stage_data.len() as u16 - 1) as f32
-                                    / ((Sword(TsRegen).get_max_level().unwrap() + 1)
-                                        * stage_data.len() as u16
-                                        - 1) as f32)
-                                    as u32;
-                            }
-                            *scales_from_combo = skills
-                                .get(&Sword(TsDamage))
-                                .copied()
-                                .flatten()
-                                .unwrap_or(0)
-                                .into();
-                        },
-                        DashMelee {
-                            ref mut is_interruptible,
-                            ref mut energy_cost,
-                            ref mut energy_drain,
-                            ref mut base_damage,
-                            ref mut scaled_damage,
-                            ref mut forward_speed,
-                            ref mut infinite_charge,
-                            ..
-                        } => {
-                            *is_interruptible = skills.contains_key(&Sword(InterruptingAttacks));
-                            if let Some(level) = skills.get(&Sword(DCost)).copied().flatten() {
-                                *energy_cost =
-                                    (*energy_cost as f32 * 0.75_f32.powi(level.into())) as u32;
-                            }
-                            if let Some(level) = skills.get(&Sword(DDrain)).copied().flatten() {
-                                *energy_drain =
-                                    (*energy_drain as f32 * 0.75_f32.powi(level.into())) as u32;
-                            }
-                            if let Some(level) = skills.get(&Sword(DDamage)).copied().flatten() {
-                                *base_damage =
-                                    (*base_damage as f32 * 1.2_f32.powi(level.into())) as u32;
-                            }
-                            if let Some(level) = skills.get(&Sword(DScaling)).copied().flatten() {
-                                *scaled_damage =
-                                    (*scaled_damage as f32 * 1.2_f32.powi(level.into())) as u32;
-                            }
-                            if skills.contains_key(&Sword(DSpeed)) {
-                                *forward_speed *= 1.5;
-                            }
-                            *infinite_charge = skills.contains_key(&Sword(DInfinite));
-                        },
-                        SpinMelee {
-                            ref mut is_interruptible,
-                            ref mut base_damage,
-                            ref mut swing_duration,
-                            ref mut energy_cost,
-                            ref mut num_spins,
-                            ..
-                        } => {
-                            *is_interruptible = skills.contains_key(&Sword(InterruptingAttacks));
-                            if let Some(level) = skills.get(&Sword(SDamage)).copied().flatten() {
-                                *base_damage =
-                                    (*base_damage as f32 * 1.4_f32.powi(level.into())) as u32;
-                            }
-                            if let Some(level) = skills.get(&Sword(SSpeed)).copied().flatten() {
-                                *swing_duration =
-                                    (*swing_duration as f32 * 0.8_f32.powi(level.into())) as u64;
-                            }
-                            if let Some(level) = skills.get(&Sword(SCost)).copied().flatten() {
-                                *energy_cost =
-                                    (*energy_cost as f32 * 0.75_f32.powi(level.into())) as u32;
-                            }
-                            *num_spins = skills.get(&Sword(SSpins)).copied().flatten().unwrap_or(0)
-                                as u32
-                                + 1;
-                        },
-                        _ => {},
-                    }
-                },
-                ToolKind::Axe => {
-                    use skills::AxeSkill::*;
-                    match self {
-                        ComboMelee {
-                            ref mut speed_increase,
-                            ref mut max_speed_increase,
-                            ref mut stage_data,
-                            ref mut max_energy_gain,
-                            ref mut scales_from_combo,
-                            ..
-                        } => {
-                            if !skills.contains_key(&Axe(DsCombo)) {
-                                stage_data.pop();
-                            }
-                            let speed_segments = Axe(DsSpeed).get_max_level().unwrap_or(1) as f32;
-                            let speed_level =
-                                skills.get(&Axe(DsSpeed)).copied().flatten().unwrap_or(0) as f32;
-                            {
-                                *speed_increase *= speed_level / speed_segments;
-                                *max_speed_increase *= speed_level / speed_segments;
-                            }
-                            let energy_level =
-                                if let Some(level) = skills.get(&Axe(DsRegen)).copied().flatten() {
-                                    level
-                                } else {
-                                    0
-                                };
-                            {
-                                *max_energy_gain = (*max_energy_gain as f32
-                                    * ((energy_level + 1) * stage_data.len() as u16 - 1) as f32
-                                    / ((Axe(DsRegen).get_max_level().unwrap() + 1)
-                                        * stage_data.len() as u16
-                                        - 1) as f32)
-                                    as u32;
-                            }
-                            *scales_from_combo = skills
-                                .get(&Axe(DsDamage))
-                                .copied()
-                                .flatten()
-                                .unwrap_or(0)
-                                .into();
-                        },
-                        SpinMelee {
-                            ref mut base_damage,
-                            ref mut swing_duration,
-                            ref mut energy_cost,
-                            ref mut is_infinite,
-                            ref mut is_helicopter,
-                            ..
-                        } => {
-                            *is_infinite = skills.contains_key(&Axe(SInfinite));
-                            *is_helicopter = skills.contains_key(&Axe(SHelicopter));
-                            if let Some(level) = skills.get(&Axe(SDamage)).copied().flatten() {
-                                *base_damage =
-                                    (*base_damage as f32 * 1.4_f32.powi(level.into())) as u32;
-                            }
-                            if let Some(level) = skills.get(&Axe(SSpeed)).copied().flatten() {
-                                *swing_duration =
-                                    (*swing_duration as f32 * 0.8_f32.powi(level.into())) as u64;
-                            }
-                            if let Some(level) = skills.get(&Axe(SCost)).copied().flatten() {
-                                *energy_cost =
-                                    (*energy_cost as f32 * 0.75_f32.powi(level.into())) as u32;
-                            }
-                        },
-                        LeapMelee {
-                            ref mut base_damage,
-                            ref mut knockback,
-                            ref mut energy_cost,
-                            ref mut forward_leap_strength,
-                            ref mut vertical_leap_strength,
-                            ..
-                        } => {
-                            if let Some(level) = skills.get(&Axe(LDamage)).copied().flatten() {
-                                *base_damage =
-                                    (*base_damage as f32 * 1.4_f32.powi(level.into())) as u32;
-                            }
-                            if let Some(level) = skills.get(&Axe(LKnockback)).copied().flatten() {
-                                *knockback *= 1.4_f32.powi(level.into());
-                            }
-                            if let Some(level) = skills.get(&Axe(LCost)).copied().flatten() {
-                                *energy_cost =
-                                    (*energy_cost as f32 * 0.75_f32.powi(level.into())) as u32;
-                            }
-                            if let Some(level) = skills.get(&Axe(LDistance)).copied().flatten() {
-                                *forward_leap_strength *= 1.4_f32.powi(level.into());
-                                *vertical_leap_strength *= 1.4_f32.powi(level.into());
-                            }
-                        },
-                        _ => {},
-                    }
-                },
-                ToolKind::Hammer => {
-                    use skills::HammerSkill::*;
-                    match self {
-                        ComboMelee {
-                            ref mut speed_increase,
-                            ref mut max_speed_increase,
-                            ref mut stage_data,
-                            ref mut max_energy_gain,
-                            ref mut scales_from_combo,
-                            ..
-                        } => {
-                            if let Some(level) = skills.get(&Hammer(SsKnockback)).copied().flatten()
-                            {
-                                *stage_data = (*stage_data)
-                                    .iter()
-                                    .map(|s| s.modify_strike(1.5_f32.powi(level.into())))
-                                    .collect::<Vec<combo_melee::Stage<u64>>>();
-                            }
-                            let speed_segments =
-                                Hammer(SsSpeed).get_max_level().unwrap_or(1) as f32;
-                            let speed_level =
-                                skills.get(&Hammer(SsSpeed)).copied().flatten().unwrap_or(0) as f32;
-                            {
-                                *speed_increase *= speed_level / speed_segments;
-                                *max_speed_increase *= speed_level / speed_segments;
-                            }
-                            let energy_level = if let Some(level) =
-                                skills.get(&Hammer(SsRegen)).copied().flatten()
-                            {
+                        {
+                            *max_energy_gain = (*max_energy_gain as f32
+                                * ((energy_level + 1) * stage_data.len() as u16 - 1) as f32
+                                / ((Sword(TsRegen).get_max_level().unwrap() + 1)
+                                    * stage_data.len() as u16
+                                    - 1) as f32)
+                                as u32;
+                        }
+                        *scales_from_combo = skills
+                            .get(&Sword(TsDamage))
+                            .copied()
+                            .flatten()
+                            .unwrap_or(0)
+                            .into();
+                    },
+                    DashMelee {
+                        ref mut is_interruptible,
+                        ref mut energy_cost,
+                        ref mut energy_drain,
+                        ref mut base_damage,
+                        ref mut scaled_damage,
+                        ref mut forward_speed,
+                        ref mut infinite_charge,
+                        ..
+                    } => {
+                        *is_interruptible = skills.contains_key(&Sword(InterruptingAttacks));
+                        if let Some(level) = skills.get(&Sword(DCost)).copied().flatten() {
+                            *energy_cost =
+                                (*energy_cost as f32 * 0.75_f32.powi(level.into())) as u32;
+                        }
+                        if let Some(level) = skills.get(&Sword(DDrain)).copied().flatten() {
+                            *energy_drain =
+                                (*energy_drain as f32 * 0.75_f32.powi(level.into())) as u32;
+                        }
+                        if let Some(level) = skills.get(&Sword(DDamage)).copied().flatten() {
+                            *base_damage =
+                                (*base_damage as f32 * 1.2_f32.powi(level.into())) as u32;
+                        }
+                        if let Some(level) = skills.get(&Sword(DScaling)).copied().flatten() {
+                            *scaled_damage =
+                                (*scaled_damage as f32 * 1.2_f32.powi(level.into())) as u32;
+                        }
+                        if skills.contains_key(&Sword(DSpeed)) {
+                            *forward_speed *= 1.5;
+                        }
+                        *infinite_charge = skills.contains_key(&Sword(DInfinite));
+                    },
+                    SpinMelee {
+                        ref mut is_interruptible,
+                        ref mut base_damage,
+                        ref mut swing_duration,
+                        ref mut energy_cost,
+                        ref mut num_spins,
+                        ..
+                    } => {
+                        *is_interruptible = skills.contains_key(&Sword(InterruptingAttacks));
+                        if let Some(level) = skills.get(&Sword(SDamage)).copied().flatten() {
+                            *base_damage =
+                                (*base_damage as f32 * 1.4_f32.powi(level.into())) as u32;
+                        }
+                        if let Some(level) = skills.get(&Sword(SSpeed)).copied().flatten() {
+                            *swing_duration =
+                                (*swing_duration as f32 * 0.8_f32.powi(level.into())) as u64;
+                        }
+                        if let Some(level) = skills.get(&Sword(SCost)).copied().flatten() {
+                            *energy_cost =
+                                (*energy_cost as f32 * 0.75_f32.powi(level.into())) as u32;
+                        }
+                        *num_spins =
+                            skills.get(&Sword(SSpins)).copied().flatten().unwrap_or(0) as u32 + 1;
+                    },
+                    _ => {},
+                }
+            },
+            Some(ToolKind::Axe) => {
+                use skills::AxeSkill::*;
+                match self {
+                    ComboMelee {
+                        ref mut speed_increase,
+                        ref mut max_speed_increase,
+                        ref mut stage_data,
+                        ref mut max_energy_gain,
+                        ref mut scales_from_combo,
+                        ..
+                    } => {
+                        if !skills.contains_key(&Axe(DsCombo)) {
+                            stage_data.pop();
+                        }
+                        let speed_segments = Axe(DsSpeed).get_max_level().unwrap_or(1) as f32;
+                        let speed_level =
+                            skills.get(&Axe(DsSpeed)).copied().flatten().unwrap_or(0) as f32;
+                        {
+                            *speed_increase *= speed_level / speed_segments;
+                            *max_speed_increase *= speed_level / speed_segments;
+                        }
+                        let energy_level =
+                            if let Some(level) = skills.get(&Axe(DsRegen)).copied().flatten() {
                                 level
                             } else {
                                 0
                             };
-                            {
-                                *max_energy_gain = (*max_energy_gain as f32
-                                    * ((energy_level + 1) * stage_data.len() as u16) as f32
-                                    / ((Hammer(SsRegen).get_max_level().unwrap() + 1)
-                                        * stage_data.len() as u16)
-                                        as f32)
-                                    as u32;
-                            }
-                            *scales_from_combo = skills
-                                .get(&Hammer(SsDamage))
+                        {
+                            *max_energy_gain = (*max_energy_gain as f32
+                                * ((energy_level + 1) * stage_data.len() as u16 - 1) as f32
+                                / ((Axe(DsRegen).get_max_level().unwrap() + 1)
+                                    * stage_data.len() as u16
+                                    - 1) as f32)
+                                as u32;
+                        }
+                        *scales_from_combo = skills
+                            .get(&Axe(DsDamage))
+                            .copied()
+                            .flatten()
+                            .unwrap_or(0)
+                            .into();
+                    },
+                    SpinMelee {
+                        ref mut base_damage,
+                        ref mut swing_duration,
+                        ref mut energy_cost,
+                        ref mut is_infinite,
+                        ref mut is_helicopter,
+                        ..
+                    } => {
+                        *is_infinite = skills.contains_key(&Axe(SInfinite));
+                        *is_helicopter = skills.contains_key(&Axe(SHelicopter));
+                        if let Some(level) = skills.get(&Axe(SDamage)).copied().flatten() {
+                            *base_damage =
+                                (*base_damage as f32 * 1.4_f32.powi(level.into())) as u32;
+                        }
+                        if let Some(level) = skills.get(&Axe(SSpeed)).copied().flatten() {
+                            *swing_duration =
+                                (*swing_duration as f32 * 0.8_f32.powi(level.into())) as u64;
+                        }
+                        if let Some(level) = skills.get(&Axe(SCost)).copied().flatten() {
+                            *energy_cost =
+                                (*energy_cost as f32 * 0.75_f32.powi(level.into())) as u32;
+                        }
+                    },
+                    LeapMelee {
+                        ref mut base_damage,
+                        ref mut knockback,
+                        ref mut energy_cost,
+                        ref mut forward_leap_strength,
+                        ref mut vertical_leap_strength,
+                        ..
+                    } => {
+                        if let Some(level) = skills.get(&Axe(LDamage)).copied().flatten() {
+                            *base_damage =
+                                (*base_damage as f32 * 1.4_f32.powi(level.into())) as u32;
+                        }
+                        if let Some(level) = skills.get(&Axe(LKnockback)).copied().flatten() {
+                            *knockback *= 1.4_f32.powi(level.into());
+                        }
+                        if let Some(level) = skills.get(&Axe(LCost)).copied().flatten() {
+                            *energy_cost =
+                                (*energy_cost as f32 * 0.75_f32.powi(level.into())) as u32;
+                        }
+                        if let Some(level) = skills.get(&Axe(LDistance)).copied().flatten() {
+                            *forward_leap_strength *= 1.4_f32.powi(level.into());
+                            *vertical_leap_strength *= 1.4_f32.powi(level.into());
+                        }
+                    },
+                    _ => {},
+                }
+            },
+            Some(ToolKind::Hammer) => {
+                use skills::HammerSkill::*;
+                match self {
+                    ComboMelee {
+                        ref mut speed_increase,
+                        ref mut max_speed_increase,
+                        ref mut stage_data,
+                        ref mut max_energy_gain,
+                        ref mut scales_from_combo,
+                        ..
+                    } => {
+                        if let Some(level) = skills.get(&Hammer(SsKnockback)).copied().flatten() {
+                            *stage_data = (*stage_data)
+                                .iter()
+                                .map(|s| s.modify_strike(1.5_f32.powi(level.into())))
+                                .collect::<Vec<combo_melee::Stage<u64>>>();
+                        }
+                        let speed_segments = Hammer(SsSpeed).get_max_level().unwrap_or(1) as f32;
+                        let speed_level =
+                            skills.get(&Hammer(SsSpeed)).copied().flatten().unwrap_or(0) as f32;
+                        {
+                            *speed_increase *= speed_level / speed_segments;
+                            *max_speed_increase *= speed_level / speed_segments;
+                        }
+                        let energy_level =
+                            if let Some(level) = skills.get(&Hammer(SsRegen)).copied().flatten() {
+                                level
+                            } else {
+                                0
+                            };
+                        {
+                            *max_energy_gain = (*max_energy_gain as f32
+                                * ((energy_level + 1) * stage_data.len() as u16) as f32
+                                / ((Hammer(SsRegen).get_max_level().unwrap() + 1)
+                                    * stage_data.len() as u16)
+                                    as f32) as u32;
+                        }
+                        *scales_from_combo = skills
+                            .get(&Hammer(SsDamage))
+                            .copied()
+                            .flatten()
+                            .unwrap_or(0)
+                            .into();
+                    },
+                    ChargedMelee {
+                        ref mut scaled_damage,
+                        ref mut scaled_knockback,
+                        ref mut energy_drain,
+                        ref mut speed,
+                        ..
+                    } => {
+                        if let Some(level) = skills.get(&Hammer(CDamage)).copied().flatten() {
+                            *scaled_damage =
+                                (*scaled_damage as f32 * 1.25_f32.powi(level.into())) as u32;
+                        }
+                        if let Some(level) = skills.get(&Hammer(CKnockback)).copied().flatten() {
+                            *scaled_knockback *= 1.5_f32.powi(level.into());
+                        }
+                        if let Some(level) = skills.get(&Hammer(CDrain)).copied().flatten() {
+                            *energy_drain =
+                                (*energy_drain as f32 * 0.75_f32.powi(level.into())) as u32;
+                        }
+                        if let Some(level) = skills.get(&Hammer(CSpeed)).copied().flatten() {
+                            *speed *= 1.23_f32.powi(level.into());
+                        }
+                    },
+                    LeapMelee {
+                        ref mut base_damage,
+                        ref mut knockback,
+                        ref mut energy_cost,
+                        ref mut forward_leap_strength,
+                        ref mut vertical_leap_strength,
+                        ref mut range,
+                        ..
+                    } => {
+                        if let Some(level) = skills.get(&Hammer(LDamage)).copied().flatten() {
+                            *base_damage =
+                                (*base_damage as f32 * 1.4_f32.powi(level.into())) as u32;
+                        }
+                        if let Some(level) = skills.get(&Hammer(LKnockback)).copied().flatten() {
+                            *knockback *= 1.4_f32.powi(level.into());
+                        }
+                        if let Some(level) = skills.get(&Hammer(LCost)).copied().flatten() {
+                            *energy_cost =
+                                (*energy_cost as f32 * 0.75_f32.powi(level.into())) as u32;
+                        }
+                        if let Some(level) = skills.get(&Hammer(LDistance)).copied().flatten() {
+                            *forward_leap_strength *= 1.4_f32.powi(level.into());
+                            *vertical_leap_strength *= 1.4_f32.powi(level.into());
+                        }
+                        if let Some(level) = skills.get(&Hammer(LRange)).copied().flatten() {
+                            *range += 1.0 * level as f32;
+                        }
+                    },
+                    _ => {},
+                }
+            },
+            Some(ToolKind::Bow) => {
+                use skills::BowSkill::*;
+                match self {
+                    BasicRanged {
+                        ref mut projectile,
+                        ref mut projectile_speed,
+                        ..
+                    } => {
+                        if let Some(level) = skills.get(&Bow(ProjSpeed)).copied().flatten() {
+                            *projectile_speed *= 1.5_f32.powi(level.into());
+                        }
+                        {
+                            let damage_level =
+                                skills.get(&Bow(BDamage)).copied().flatten().unwrap_or(0);
+                            let regen_level =
+                                skills.get(&Bow(BRegen)).copied().flatten().unwrap_or(0);
+                            let power = 1.3_f32.powi(damage_level.into());
+                            let regen = 1.5_f32.powi(regen_level.into());
+                            *projectile =
+                                projectile.modified_projectile(power, regen, 1_f32, 1_f32);
+                        }
+                    },
+                    ChargedRanged {
+                        ref mut scaled_damage,
+                        ref mut scaled_knockback,
+                        ref mut energy_drain,
+                        ref mut speed,
+                        ref mut initial_projectile_speed,
+                        ref mut scaled_projectile_speed,
+                        ref mut move_speed,
+                        ..
+                    } => {
+                        if let Some(level) = skills.get(&Bow(ProjSpeed)).copied().flatten() {
+                            *initial_projectile_speed *= 1.5_f32.powi(level.into());
+                        }
+                        if let Some(level) = skills.get(&Bow(CDamage)).copied().flatten() {
+                            *scaled_damage =
+                                (*scaled_damage as f32 * 1.25_f32.powi(level.into())) as u32;
+                        }
+                        if let Some(level) = skills.get(&Bow(CKnockback)).copied().flatten() {
+                            *scaled_knockback *= 1.5_f32.powi(level.into());
+                        }
+                        if let Some(level) = skills.get(&Bow(CProjSpeed)).copied().flatten() {
+                            *scaled_projectile_speed *= 1.2_f32.powi(level.into());
+                        }
+                        if let Some(level) = skills.get(&Bow(CDrain)).copied().flatten() {
+                            *energy_drain =
+                                (*energy_drain as f32 * 0.75_f32.powi(level.into())) as u32;
+                        }
+                        if let Some(level) = skills.get(&Bow(CSpeed)).copied().flatten() {
+                            *speed *= 1.25_f32.powi(level.into());
+                        }
+                        if let Some(level) = skills.get(&Bow(CMove)).copied().flatten() {
+                            *move_speed *= 1.25_f32.powi(level.into());
+                        }
+                    },
+                    RepeaterRanged {
+                        ref mut energy_cost,
+                        ref mut buildup_duration,
+                        ref mut projectile,
+                        ref mut reps_remaining,
+                        ref mut projectile_speed,
+                        ..
+                    } => {
+                        if let Some(level) = skills.get(&Bow(ProjSpeed)).copied().flatten() {
+                            *projectile_speed *= 1.5_f32.powi(level.into());
+                        }
+                        if let Some(level) = skills.get(&Bow(RDamage)).copied().flatten() {
+                            let power = 1.3_f32.powi(level.into());
+                            *projectile =
+                                projectile.modified_projectile(power, 1_f32, 1_f32, 1_f32);
+                        }
+                        if !skills.contains_key(&Bow(RGlide)) {
+                            *buildup_duration = 1;
+                        }
+                        if let Some(level) = skills.get(&Bow(RArrows)).copied().flatten() {
+                            *reps_remaining += level as u32;
+                        }
+                        if let Some(level) = skills.get(&Bow(RCost)).copied().flatten() {
+                            *energy_cost =
+                                (*energy_cost as f32 * 0.75_f32.powi(level.into())) as u32;
+                        }
+                    },
+                    _ => {},
+                }
+            },
+            Some(ToolKind::Staff) => {
+                use skills::StaffSkill::*;
+                match self {
+                    BasicRanged {
+                        ref mut projectile, ..
+                    } => {
+                        if !skills.contains_key(&Staff(BExplosion)) {
+                            *projectile = projectile.fireball_to_firebolt();
+                        }
+                        {
+                            let damage_level =
+                                skills.get(&Staff(BDamage)).copied().flatten().unwrap_or(0);
+                            let regen_level =
+                                skills.get(&Staff(BRegen)).copied().flatten().unwrap_or(0);
+                            let range_level =
+                                skills.get(&Staff(BRadius)).copied().flatten().unwrap_or(0);
+                            let power = 1.2_f32.powi(damage_level.into());
+                            let regen = 1.2_f32.powi(regen_level.into());
+                            let range = 1.1_f32.powi(range_level.into());
+                            *projectile =
+                                projectile.modified_projectile(power, regen, range, 1_f32);
+                        }
+                    },
+                    BasicBeam {
+                        ref mut base_dps,
+                        ref mut range,
+                        ref mut energy_drain,
+                        ref mut beam_duration,
+                        ..
+                    } => {
+                        if let Some(level) = skills.get(&Staff(FDamage)).copied().flatten() {
+                            *base_dps = (*base_dps as f32 * 1.3_f32.powi(level.into())) as u32;
+                        }
+                        if let Some(level) = skills.get(&Staff(FRange)).copied().flatten() {
+                            let range_mod = 1.25_f32.powi(level.into());
+                            *range *= range_mod;
+                            // Duration modified to keep velocity constant
+                            *beam_duration = (*beam_duration as f32 * range_mod) as u64;
+                        }
+                        if let Some(level) = skills.get(&Staff(FDrain)).copied().flatten() {
+                            *energy_drain =
+                                (*energy_drain as f32 * 0.8_f32.powi(level.into())) as u32;
+                        }
+                        if let Some(level) = skills.get(&Staff(FVelocity)).copied().flatten() {
+                            let velocity_increase = 1.25_f32.powi(level.into());
+                            let duration_mod = 1.0 / (1.0 + velocity_increase);
+                            *beam_duration = (*beam_duration as f32 * duration_mod) as u64;
+                        }
+                    },
+                    Shockwave {
+                        ref mut damage,
+                        ref mut knockback,
+                        ref mut shockwave_duration,
+                        ref mut energy_cost,
+                        ..
+                    } => {
+                        if let Some(level) = skills.get(&Staff(SDamage)).copied().flatten() {
+                            *damage = (*damage as f32 * 1.3_f32.powi(level.into())) as u32;
+                        }
+                        if let Some(level) = skills.get(&Staff(SKnockback)).copied().flatten() {
+                            *knockback = knockback.modify_strength(1.3_f32.powi(level.into()));
+                        }
+                        if let Some(level) = skills.get(&Staff(SRange)).copied().flatten() {
+                            *shockwave_duration =
+                                (*shockwave_duration as f32 * 1.2_f32.powi(level.into())) as u64;
+                        }
+                        if let Some(level) = skills.get(&Staff(SCost)).copied().flatten() {
+                            *energy_cost =
+                                (*energy_cost as f32 * 0.8_f32.powi(level.into())) as u32;
+                        }
+                    },
+                    _ => {},
+                }
+            },
+            Some(ToolKind::Sceptre) => {
+                use skills::SceptreSkill::*;
+                match self {
+                    BasicBeam {
+                        ref mut base_hps,
+                        ref mut base_dps,
+                        ref mut lifesteal_eff,
+                        ref mut range,
+                        ref mut energy_regen,
+                        ref mut energy_cost,
+                        ref mut beam_duration,
+                        ..
+                    } => {
+                        if let Some(level) = skills.get(&Sceptre(BHeal)).copied().flatten() {
+                            *base_hps = (*base_hps as f32 * 1.3_f32.powi(level.into())) as u32;
+                        }
+                        if let Some(level) = skills.get(&Sceptre(BDamage)).copied().flatten() {
+                            *base_dps = (*base_dps as f32 * 1.3_f32.powi(level.into())) as u32;
+                        }
+                        if let Some(level) = skills.get(&Sceptre(BRange)).copied().flatten() {
+                            let range_mod = 1.25_f32.powi(level.into());
+                            *range *= range_mod;
+                            // Duration modified to keep velocity constant
+                            *beam_duration = (*beam_duration as f32 * range_mod) as u64;
+                        }
+                        if let Some(level) = skills.get(&Sceptre(BLifesteal)).copied().flatten() {
+                            *lifesteal_eff *= 1.5_f32.powi(level.into());
+                        }
+                        if let Some(level) = skills.get(&Sceptre(BRegen)).copied().flatten() {
+                            *energy_regen =
+                                (*energy_regen as f32 * 1.25_f32.powi(level.into())) as u32;
+                        }
+                        if let Some(level) = skills.get(&Sceptre(BCost)).copied().flatten() {
+                            *energy_cost =
+                                (*energy_cost as f32 * 0.75_f32.powi(level.into())) as u32;
+                        }
+                    },
+                    BasicRanged {
+                        ref mut energy_cost,
+                        ref mut projectile,
+                        ref mut projectile_speed,
+                        ..
+                    } => {
+                        {
+                            let heal_level =
+                                skills.get(&Sceptre(PHeal)).copied().flatten().unwrap_or(0);
+                            let damage_level = skills
+                                .get(&Sceptre(PDamage))
                                 .copied()
                                 .flatten()
-                                .unwrap_or(0)
-                                .into();
-                        },
-                        ChargedMelee {
-                            ref mut scaled_damage,
-                            ref mut scaled_knockback,
-                            ref mut energy_drain,
-                            ref mut speed,
-                            ..
-                        } => {
-                            if let Some(level) = skills.get(&Hammer(CDamage)).copied().flatten() {
-                                *scaled_damage =
-                                    (*scaled_damage as f32 * 1.25_f32.powi(level.into())) as u32;
-                            }
-                            if let Some(level) = skills.get(&Hammer(CKnockback)).copied().flatten()
-                            {
-                                *scaled_knockback *= 1.5_f32.powi(level.into());
-                            }
-                            if let Some(level) = skills.get(&Hammer(CDrain)).copied().flatten() {
-                                *energy_drain =
-                                    (*energy_drain as f32 * 0.75_f32.powi(level.into())) as u32;
-                            }
-                            if let Some(level) = skills.get(&Hammer(CSpeed)).copied().flatten() {
-                                *speed *= 1.23_f32.powi(level.into());
-                            }
-                        },
-                        LeapMelee {
-                            ref mut base_damage,
-                            ref mut knockback,
-                            ref mut energy_cost,
-                            ref mut forward_leap_strength,
-                            ref mut vertical_leap_strength,
-                            ref mut range,
-                            ..
-                        } => {
-                            if let Some(level) = skills.get(&Hammer(LDamage)).copied().flatten() {
-                                *base_damage =
-                                    (*base_damage as f32 * 1.4_f32.powi(level.into())) as u32;
-                            }
-                            if let Some(level) = skills.get(&Hammer(LKnockback)).copied().flatten()
-                            {
-                                *knockback *= 1.4_f32.powi(level.into());
-                            }
-                            if let Some(level) = skills.get(&Hammer(LCost)).copied().flatten() {
-                                *energy_cost =
-                                    (*energy_cost as f32 * 0.75_f32.powi(level.into())) as u32;
-                            }
-                            if let Some(level) = skills.get(&Hammer(LDistance)).copied().flatten() {
-                                *forward_leap_strength *= 1.4_f32.powi(level.into());
-                                *vertical_leap_strength *= 1.4_f32.powi(level.into());
-                            }
-                            if let Some(level) = skills.get(&Hammer(LRange)).copied().flatten() {
-                                *range += 1.0 * level as f32;
-                            }
-                        },
-                        _ => {},
+                                .unwrap_or(0);
+                            let range_level = skills
+                                .get(&Sceptre(PRadius))
+                                .copied()
+                                .flatten()
+                                .unwrap_or(0);
+                            let heal = 1.2_f32.powi(heal_level.into());
+                            let power = 1.2_f32.powi(damage_level.into());
+                            let range = 1.4_f32.powi(range_level.into());
+                            *projectile = projectile.modified_projectile(power, 1_f32, range, heal);
+                        }
+                        if let Some(level) = skills.get(&Sceptre(PCost)).copied().flatten() {
+                            *energy_cost =
+                                (*energy_cost as f32 * 0.8_f32.powi(level.into())) as u32;
+                        }
+                        if let Some(level) = skills.get(&Sceptre(PProjSpeed)).copied().flatten() {
+                            *projectile_speed *= 1.25_f32.powi(level.into());
+                        }
+                    },
+                    _ => {},
+                }
+            },
+            None => {
+                use skills::RollSkill::*;
+                if let CharacterAbility::Roll {
+                    ref mut immune_melee,
+                    ref mut energy_cost,
+                    ref mut roll_strength,
+                    ref mut movement_duration,
+                    ..
+                } = self
+                {
+                    *immune_melee = skills.contains_key(&Skill::Roll(ImmuneMelee));
+                    if let Some(level) = skills.get(&Skill::Roll(Cost)).copied().flatten() {
+                        *energy_cost = (*energy_cost as f32 * 0.8_f32.powi(level.into())) as u32;
                     }
-                },
-                ToolKind::Bow => {
-                    use skills::BowSkill::*;
-                    match self {
-                        BasicRanged {
-                            ref mut projectile,
-                            ref mut projectile_speed,
-                            ..
-                        } => {
-                            if let Some(level) = skills.get(&Bow(ProjSpeed)).copied().flatten() {
-                                *projectile_speed *= 1.5_f32.powi(level.into());
-                            }
-                            {
-                                let damage_level =
-                                    skills.get(&Bow(BDamage)).copied().flatten().unwrap_or(0);
-                                let regen_level =
-                                    skills.get(&Bow(BRegen)).copied().flatten().unwrap_or(0);
-                                let power = 1.3_f32.powi(damage_level.into());
-                                let regen = 1.5_f32.powi(regen_level.into());
-                                *projectile =
-                                    projectile.modified_projectile(power, regen, 1_f32, 1_f32);
-                            }
-                        },
-                        ChargedRanged {
-                            ref mut scaled_damage,
-                            ref mut scaled_knockback,
-                            ref mut energy_drain,
-                            ref mut speed,
-                            ref mut initial_projectile_speed,
-                            ref mut scaled_projectile_speed,
-                            ref mut move_speed,
-                            ..
-                        } => {
-                            if let Some(level) = skills.get(&Bow(ProjSpeed)).copied().flatten() {
-                                *initial_projectile_speed *= 1.5_f32.powi(level.into());
-                            }
-                            if let Some(level) = skills.get(&Bow(CDamage)).copied().flatten() {
-                                *scaled_damage =
-                                    (*scaled_damage as f32 * 1.25_f32.powi(level.into())) as u32;
-                            }
-                            if let Some(level) = skills.get(&Bow(CKnockback)).copied().flatten() {
-                                *scaled_knockback *= 1.5_f32.powi(level.into());
-                            }
-                            if let Some(level) = skills.get(&Bow(CProjSpeed)).copied().flatten() {
-                                *scaled_projectile_speed *= 1.2_f32.powi(level.into());
-                            }
-                            if let Some(level) = skills.get(&Bow(CDrain)).copied().flatten() {
-                                *energy_drain =
-                                    (*energy_drain as f32 * 0.75_f32.powi(level.into())) as u32;
-                            }
-                            if let Some(level) = skills.get(&Bow(CSpeed)).copied().flatten() {
-                                *speed *= 1.25_f32.powi(level.into());
-                            }
-                            if let Some(level) = skills.get(&Bow(CMove)).copied().flatten() {
-                                *move_speed *= 1.25_f32.powi(level.into());
-                            }
-                        },
-                        RepeaterRanged {
-                            ref mut energy_cost,
-                            ref mut buildup_duration,
-                            ref mut projectile,
-                            ref mut reps_remaining,
-                            ref mut projectile_speed,
-                            ..
-                        } => {
-                            if let Some(level) = skills.get(&Bow(ProjSpeed)).copied().flatten() {
-                                *projectile_speed *= 1.5_f32.powi(level.into());
-                            }
-                            if let Some(level) = skills.get(&Bow(RDamage)).copied().flatten() {
-                                let power = 1.3_f32.powi(level.into());
-                                *projectile =
-                                    projectile.modified_projectile(power, 1_f32, 1_f32, 1_f32);
-                            }
-                            if !skills.contains_key(&Bow(RGlide)) {
-                                *buildup_duration = 1;
-                            }
-                            if let Some(level) = skills.get(&Bow(RArrows)).copied().flatten() {
-                                *reps_remaining += level as u32;
-                            }
-                            if let Some(level) = skills.get(&Bow(RCost)).copied().flatten() {
-                                *energy_cost =
-                                    (*energy_cost as f32 * 0.75_f32.powi(level.into())) as u32;
-                            }
-                        },
-                        _ => {},
+                    if let Some(level) = skills.get(&Skill::Roll(Strength)).copied().flatten() {
+                        *roll_strength *= 1.3_f32.powi(level.into());
                     }
-                },
-                ToolKind::Staff => {
-                    use skills::StaffSkill::*;
-                    match self {
-                        BasicRanged {
-                            ref mut projectile, ..
-                        } => {
-                            if !skills.contains_key(&Staff(BExplosion)) {
-                                *projectile = projectile.fireball_to_firebolt();
-                            }
-                            {
-                                let damage_level =
-                                    skills.get(&Staff(BDamage)).copied().flatten().unwrap_or(0);
-                                let regen_level =
-                                    skills.get(&Staff(BRegen)).copied().flatten().unwrap_or(0);
-                                let range_level =
-                                    skills.get(&Staff(BRadius)).copied().flatten().unwrap_or(0);
-                                let power = 1.2_f32.powi(damage_level.into());
-                                let regen = 1.2_f32.powi(regen_level.into());
-                                let range = 1.1_f32.powi(range_level.into());
-                                *projectile =
-                                    projectile.modified_projectile(power, regen, range, 1_f32);
-                            }
-                        },
-                        BasicBeam {
-                            ref mut base_dps,
-                            ref mut range,
-                            ref mut energy_drain,
-                            ref mut beam_duration,
-                            ..
-                        } => {
-                            if let Some(level) = skills.get(&Staff(FDamage)).copied().flatten() {
-                                *base_dps = (*base_dps as f32 * 1.3_f32.powi(level.into())) as u32;
-                            }
-                            if let Some(level) = skills.get(&Staff(FRange)).copied().flatten() {
-                                let range_mod = 1.25_f32.powi(level.into());
-                                *range *= range_mod;
-                                // Duration modified to keep velocity constant
-                                *beam_duration = (*beam_duration as f32 * range_mod) as u64;
-                            }
-                            if let Some(level) = skills.get(&Staff(FDrain)).copied().flatten() {
-                                *energy_drain =
-                                    (*energy_drain as f32 * 0.8_f32.powi(level.into())) as u32;
-                            }
-                            if let Some(level) = skills.get(&Staff(FVelocity)).copied().flatten() {
-                                let velocity_increase = 1.25_f32.powi(level.into());
-                                let duration_mod = 1.0 / (1.0 + velocity_increase);
-                                *beam_duration = (*beam_duration as f32 * duration_mod) as u64;
-                            }
-                        },
-                        Shockwave {
-                            ref mut damage,
-                            ref mut knockback,
-                            ref mut shockwave_duration,
-                            ref mut energy_cost,
-                            ..
-                        } => {
-                            if let Some(level) = skills.get(&Staff(SDamage)).copied().flatten() {
-                                *damage = (*damage as f32 * 1.3_f32.powi(level.into())) as u32;
-                            }
-                            if let Some(level) = skills.get(&Staff(SKnockback)).copied().flatten() {
-                                *knockback = knockback.modify_strength(1.3_f32.powi(level.into()));
-                            }
-                            if let Some(level) = skills.get(&Staff(SRange)).copied().flatten() {
-                                *shockwave_duration = (*shockwave_duration as f32
-                                    * 1.2_f32.powi(level.into()))
-                                    as u64;
-                            }
-                            if let Some(level) = skills.get(&Staff(SCost)).copied().flatten() {
-                                *energy_cost =
-                                    (*energy_cost as f32 * 0.8_f32.powi(level.into())) as u32;
-                            }
-                        },
-                        _ => {},
+                    if let Some(level) = skills.get(&Skill::Roll(Duration)).copied().flatten() {
+                        *movement_duration =
+                            (*movement_duration as f32 * 2_f32.powi(level.into())) as u64;
                     }
-                },
-                ToolKind::Sceptre => {
-                    use skills::SceptreSkill::*;
-                    match self {
-                        BasicBeam {
-                            ref mut base_hps,
-                            ref mut base_dps,
-                            ref mut lifesteal_eff,
-                            ref mut range,
-                            ref mut energy_regen,
-                            ref mut energy_cost,
-                            ref mut beam_duration,
-                            ..
-                        } => {
-                            if let Some(level) = skills.get(&Sceptre(BHeal)).copied().flatten() {
-                                *base_hps = (*base_hps as f32 * 1.3_f32.powi(level.into())) as u32;
-                            }
-                            if let Some(level) = skills.get(&Sceptre(BDamage)).copied().flatten() {
-                                *base_dps = (*base_dps as f32 * 1.3_f32.powi(level.into())) as u32;
-                            }
-                            if let Some(level) = skills.get(&Sceptre(BRange)).copied().flatten() {
-                                let range_mod = 1.25_f32.powi(level.into());
-                                *range *= range_mod;
-                                // Duration modified to keep velocity constant
-                                *beam_duration = (*beam_duration as f32 * range_mod) as u64;
-                            }
-                            if let Some(level) = skills.get(&Sceptre(BLifesteal)).copied().flatten()
-                            {
-                                *lifesteal_eff *= 1.5_f32.powi(level.into());
-                            }
-                            if let Some(level) = skills.get(&Sceptre(BRegen)).copied().flatten() {
-                                *energy_regen =
-                                    (*energy_regen as f32 * 1.25_f32.powi(level.into())) as u32;
-                            }
-                            if let Some(level) = skills.get(&Sceptre(BCost)).copied().flatten() {
-                                *energy_cost =
-                                    (*energy_cost as f32 * 0.75_f32.powi(level.into())) as u32;
-                            }
-                        },
-                        BasicRanged {
-                            ref mut energy_cost,
-                            ref mut projectile,
-                            ref mut projectile_speed,
-                            ..
-                        } => {
-                            {
-                                let heal_level =
-                                    skills.get(&Sceptre(PHeal)).copied().flatten().unwrap_or(0);
-                                let damage_level = skills
-                                    .get(&Sceptre(PDamage))
-                                    .copied()
-                                    .flatten()
-                                    .unwrap_or(0);
-                                let range_level = skills
-                                    .get(&Sceptre(PRadius))
-                                    .copied()
-                                    .flatten()
-                                    .unwrap_or(0);
-                                let heal = 1.2_f32.powi(heal_level.into());
-                                let power = 1.2_f32.powi(damage_level.into());
-                                let range = 1.4_f32.powi(range_level.into());
-                                *projectile =
-                                    projectile.modified_projectile(power, 1_f32, range, heal);
-                            }
-                            if let Some(level) = skills.get(&Sceptre(PCost)).copied().flatten() {
-                                *energy_cost =
-                                    (*energy_cost as f32 * 0.8_f32.powi(level.into())) as u32;
-                            }
-                            if let Some(level) = skills.get(&Sceptre(PProjSpeed)).copied().flatten()
-                            {
-                                *projectile_speed *= 1.25_f32.powi(level.into());
-                            }
-                        },
-                        _ => {},
-                    }
-                },
-                _ => {},
-            }
+                }
+            },
+            _ => {},
         }
         self
     }
@@ -1165,12 +1176,14 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                 movement_duration,
                 recover_duration,
                 roll_strength,
+                immune_melee,
             } => CharacterState::Roll(roll::Data {
                 static_data: roll::StaticData {
                     buildup_duration: Duration::from_millis(*buildup_duration),
                     movement_duration: Duration::from_millis(*movement_duration),
                     recover_duration: Duration::from_millis(*recover_duration),
                     roll_strength: *roll_strength,
+                    immune_melee: *immune_melee,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,

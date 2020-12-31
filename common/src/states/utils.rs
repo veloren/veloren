@@ -551,21 +551,26 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
         if let Some(ability) = data
             .inventory
             .equipped(EquipSlot::Mainhand)
-            .and_then(|i| i.item_config_expect().dodge_ability.as_ref())
+            .and_then(|i| {
+                i.item_config_expect().dodge_ability.as_ref().map(|a| {
+                    a.clone()
+                        .adjusted_by_skills(&data.stats.skill_set.skills, None)
+                })
+            })
             .filter(|ability| ability.requirements_paid(data, update))
         {
             if data.character.is_wield() {
-                update.character = (ability, AbilityKey::Dodge).into();
+                update.character = (&ability, AbilityKey::Dodge).into();
                 if let CharacterState::Roll(roll) = &mut update.character {
                     roll.was_wielded = true;
                 }
             } else if data.character.is_stealthy() {
-                update.character = (ability, AbilityKey::Dodge).into();
+                update.character = (&ability, AbilityKey::Dodge).into();
                 if let CharacterState::Roll(roll) = &mut update.character {
                     roll.was_sneak = true;
                 }
             } else {
-                update.character = (ability, AbilityKey::Dodge).into();
+                update.character = (&ability, AbilityKey::Dodge).into();
             }
         }
     }

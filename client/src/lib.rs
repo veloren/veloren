@@ -1385,6 +1385,29 @@ impl Client {
                                 GeneralSkill::HealthIncrease,
                             )));
                         },
+                        "@unlock energy" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::General(
+                                GeneralSkill::EnergyIncrease,
+                            )));
+                        },
+                        "@unlock roll melee" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Roll(
+                                RollSkill::ImmuneMelee,
+                            )));
+                        },
+                        "@unlock roll cost" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Roll(RollSkill::Cost)));
+                        },
+                        "@unlock roll strength" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Roll(
+                                RollSkill::Strength,
+                            )));
+                        },
+                        "@unlock roll duration" => {
+                            self.send_msg(ClientGeneral::UnlockSkill(Skill::Roll(
+                                RollSkill::Duration,
+                            )));
+                        },
                         _ => {},
                     }
                 } else {

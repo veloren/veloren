@@ -757,7 +757,7 @@ impl Hud {
                 group_menu: false,
                 mini_map: true,
                 settings_tab: SettingsTab::Interface,
-                skilltreetab: SelectedSkillTree::Sword,
+                skilltreetab: SelectedSkillTree::GeneralCombat,
                 social_tab: SocialTab::Online,
                 want_grab: true,
                 ingame: true,

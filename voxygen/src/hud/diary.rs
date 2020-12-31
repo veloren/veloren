@@ -14,7 +14,10 @@ use conrod_core::{
 };
 
 use client::{self, Client};
-use common::comp::skills::{self, Skill};
+use common::comp::{
+    item::tool::ToolKind,
+    skills::{self, Skill},
+};
 use inline_tweak::*;
 
 widget_ids! {
@@ -123,6 +126,19 @@ widget_ids! {
         skill_sceptre_bomb_2,
         skill_sceptre_bomb_3,
         skill_sceptre_bomb_4,
+        general_combat_render,
+        skill_general_stat_0,
+        skill_general_stat_1,
+        skill_general_tree_0,
+        skill_general_tree_1,
+        skill_general_tree_2,
+        skill_general_tree_3,
+        skill_general_tree_4,
+        skill_general_tree_5,
+        skill_general_roll_0,
+        skill_general_roll_1,
+        skill_general_roll_2,
+        skill_general_roll_3,
     }
 }
 
@@ -194,9 +210,18 @@ pub enum SelectedSkillTree {
     Sceptre,
     Bow,
     StaffFire,
+    GeneralCombat,
 }
 
-const WEAPONS: [&str; 6] = ["Sword", "Hammer", "Axe", "Sceptre", "Bow", "Fire Staff"];
+const WEAPONS: [&str; 7] = [
+    "General Combat",
+    "Sword",
+    "Hammer",
+    "Axe",
+    "Sceptre",
+    "Bow",
+    "Fire Staff",
+];
 
 pub enum Event {
     Close,
@@ -298,6 +323,7 @@ impl<'a> Widget for Diary<'a> {
         for i in WEAPONS.iter().copied().enumerate() {
             // Background weapon image
             let img = Image::new(match i.1 {
+                "General Combat" => self.imgs.not_found,
                 "Sword" => self.imgs.sword,
                 "Hammer" => self.imgs.hammer,
                 "Axe" => self.imgs.axe,
@@ -317,6 +343,10 @@ impl<'a> Widget for Diary<'a> {
                 .set(state.weapon_imgs[i.0], ui);
             // Weapon icons
             if Button::image(match i.1 {
+                "General Combat" => match sel_tab {
+                    SelectedSkillTree::GeneralCombat => self.imgs.wpn_icon_border_pressed,
+                    _ => self.imgs.wpn_icon_border,
+                },
                 "Sword" => match sel_tab {
                     SelectedSkillTree::Sword => self.imgs.wpn_icon_border_pressed,
                     _ => self.imgs.wpn_icon_border,
@@ -345,6 +375,10 @@ impl<'a> Widget for Diary<'a> {
             })
             .w_h(tweak!(50.0), tweak!(50.0))
             .hover_image(match i.1 {
+                "General Combat" => match sel_tab {
+                    SelectedSkillTree::GeneralCombat => self.imgs.wpn_icon_border_pressed,
+                    _ => self.imgs.wpn_icon_border_mo,
+                },
                 "Sword" => match sel_tab {
                     SelectedSkillTree::Sword => self.imgs.wpn_icon_border_pressed,
                     _ => self.imgs.wpn_icon_border_mo,
@@ -372,6 +406,10 @@ impl<'a> Widget for Diary<'a> {
                 _ => self.imgs.wpn_icon_border,
             })
             .press_image(match i.1 {
+                "General Combat" => match sel_tab {
+                    SelectedSkillTree::GeneralCombat => self.imgs.wpn_icon_border_pressed,
+                    _ => self.imgs.wpn_icon_border_press,
+                },
                 "Sword" => match sel_tab {
                     SelectedSkillTree::Sword => self.imgs.wpn_icon_border_pressed,
                     _ => self.imgs.wpn_icon_border_press,
@@ -403,6 +441,9 @@ impl<'a> Widget for Diary<'a> {
             .was_clicked()
             {
                 match i.1 {
+                    "General Combat" => {
+                        events.push(Event::ChangeWeaponTree(SelectedSkillTree::GeneralCombat))
+                    },
                     "Sword" => events.push(Event::ChangeWeaponTree(SelectedSkillTree::Sword)),
                     "Hammer" => events.push(Event::ChangeWeaponTree(SelectedSkillTree::Hammer)),
                     "Axe" => events.push(Event::ChangeWeaponTree(SelectedSkillTree::Axe)),
@@ -436,6 +477,7 @@ impl<'a> Widget for Diary<'a> {
         // Number of skills per rectangle per weapon, start counting at 0
         // Maximum of 9 skills/8 indices
         let skills_top_l = match sel_tab {
+            SelectedSkillTree::GeneralCombat => 2,
             SelectedSkillTree::Sword => 4,
             SelectedSkillTree::Axe => 4,
             SelectedSkillTree::Hammer => 4,
@@ -445,6 +487,7 @@ impl<'a> Widget for Diary<'a> {
             _ => 0,
         };
         let skills_top_r = match sel_tab {
+            SelectedSkillTree::GeneralCombat => 6,
             SelectedSkillTree::Sword => 6,
             SelectedSkillTree::Axe => 5,
             SelectedSkillTree::Hammer => 4,
@@ -454,6 +497,7 @@ impl<'a> Widget for Diary<'a> {
             _ => 0,
         };
         let skills_bot_l = match sel_tab {
+            SelectedSkillTree::GeneralCombat => 4,
             SelectedSkillTree::Sword => 5,
             SelectedSkillTree::Axe => 5,
             SelectedSkillTree::Hammer => 6,
@@ -565,14 +609,283 @@ impl<'a> Widget for Diary<'a> {
         }
         // Skill-Icons and Functionality
         // Art dimensions
-        let art_size = [tweak!(490.0), tweak!(490.0)];
+        let art_size = [tweak!(320.0), tweak!(320.0)];
         match sel_tab {
+            SelectedSkillTree::GeneralCombat => {
+                use skills::{GeneralSkill::*, RollSkill::*, SkillGroupType::*};
+                use ToolKind::*;
+                // General Combat
+                Image::new(self.imgs.not_found)
+                    .wh(art_size)
+                    .middle_of(state.content_align)
+                    .graphics_for(state.content_align)
+                    .color(Some(Color::Rgba(1.0, 1.0, 1.0, tweak!(1.0))))
+                    .set(state.general_combat_render, ui);
+                // Top Left skills
+                //        5 1 6
+                //        3 0 4
+                //        8 2 7
+                if Button::image(self.imgs.not_found)
+                    .w_h(tweak!(74.0), tweak!(74.0))
+                    .middle_of(state.skills_top_l[0])
+                    .label(&self.example_skill_count.to_string())
+                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
+                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
+                    .label_color(TEXT_COLOR)
+                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
+                    .label_font_id(self.fonts.cyri.conrod_id)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        "Increase Health",
+                        "Increases health",
+                        &diary_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.skill_general_stat_0, ui)
+                    .was_clicked()
+                {
+                    events.push(Event::UnlockSkill(Skill::General(HealthIncrease)));
+                };
+                if Button::image(self.imgs.not_found)
+                    .w_h(tweak!(74.0), tweak!(74.0))
+                    .middle_of(state.skills_top_l[1])
+                    .label(&self.example_skill_count.to_string())
+                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
+                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
+                    .label_color(TEXT_COLOR)
+                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
+                    .label_font_id(self.fonts.cyri.conrod_id)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        "Increase Energy",
+                        "Increases energy",
+                        &diary_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.skill_general_stat_1, ui)
+                    .was_clicked()
+                {
+                    events.push(Event::UnlockSkill(Skill::General(EnergyIncrease)));
+                };
+                // Top right skills
+                if Button::image(self.imgs.not_found)
+                    .w_h(tweak!(74.0), tweak!(74.0))
+                    .middle_of(state.skills_top_r[0])
+                    .label(&self.example_skill_count.to_string())
+                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
+                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
+                    .label_color(TEXT_COLOR)
+                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
+                    .label_font_id(self.fonts.cyri.conrod_id)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        "Unlock Sword",
+                        "Unlocks sword skill tree",
+                        &diary_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.skill_general_tree_0, ui)
+                    .was_clicked()
+                {
+                    events.push(Event::UnlockSkill(Skill::UnlockGroup(Weapon(Sword))));
+                };
+                if Button::image(self.imgs.not_found)
+                    .w_h(tweak!(74.0), tweak!(74.0))
+                    .middle_of(state.skills_top_r[1])
+                    .label(&self.example_skill_count.to_string())
+                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
+                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
+                    .label_color(TEXT_COLOR)
+                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
+                    .label_font_id(self.fonts.cyri.conrod_id)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        "Unlock Axe",
+                        "Unlocks axe skill tree",
+                        &diary_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.skill_general_tree_1, ui)
+                    .was_clicked()
+                {
+                    events.push(Event::UnlockSkill(Skill::UnlockGroup(Weapon(Axe))));
+                };
+                if Button::image(self.imgs.not_found)
+                    .w_h(tweak!(74.0), tweak!(74.0))
+                    .middle_of(state.skills_top_r[2])
+                    .label(&self.example_skill_count.to_string())
+                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
+                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
+                    .label_color(TEXT_COLOR)
+                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
+                    .label_font_id(self.fonts.cyri.conrod_id)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        "Unlock Hammer",
+                        "Unlocks hammer skill tree",
+                        &diary_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.skill_general_tree_2, ui)
+                    .was_clicked()
+                {
+                    events.push(Event::UnlockSkill(Skill::UnlockGroup(Weapon(Hammer))));
+                };
+                if Button::image(self.imgs.not_found)
+                    .w_h(tweak!(74.0), tweak!(74.0))
+                    .middle_of(state.skills_top_r[3])
+                    .label(&self.example_skill_count.to_string())
+                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
+                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
+                    .label_color(TEXT_COLOR)
+                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
+                    .label_font_id(self.fonts.cyri.conrod_id)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        "Unlock Bow",
+                        "Unlocks bow skill tree",
+                        &diary_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.skill_general_tree_3, ui)
+                    .was_clicked()
+                {
+                    events.push(Event::UnlockSkill(Skill::UnlockGroup(Weapon(Bow))));
+                };
+                if Button::image(self.imgs.not_found)
+                    .w_h(tweak!(74.0), tweak!(74.0))
+                    .middle_of(state.skills_top_r[4])
+                    .label(&self.example_skill_count.to_string())
+                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
+                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
+                    .label_color(TEXT_COLOR)
+                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
+                    .label_font_id(self.fonts.cyri.conrod_id)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        "Unlock Staff",
+                        "Unlocks staff skill tree",
+                        &diary_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.skill_general_tree_4, ui)
+                    .was_clicked()
+                {
+                    events.push(Event::UnlockSkill(Skill::UnlockGroup(Weapon(Staff))));
+                };
+                if Button::image(self.imgs.not_found)
+                    .w_h(tweak!(74.0), tweak!(74.0))
+                    .middle_of(state.skills_top_r[5])
+                    .label(&self.example_skill_count.to_string())
+                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
+                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
+                    .label_color(TEXT_COLOR)
+                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
+                    .label_font_id(self.fonts.cyri.conrod_id)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        "Unlock Sceptre",
+                        "Unlocks sceptre skill tree",
+                        &diary_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.skill_general_tree_5, ui)
+                    .was_clicked()
+                {
+                    events.push(Event::UnlockSkill(Skill::UnlockGroup(Weapon(Sceptre))));
+                };
+                // Bottom left skills
+                if Button::image(self.imgs.not_found)
+                    .w_h(tweak!(74.0), tweak!(74.0))
+                    .middle_of(state.skills_bot_l[0])
+                    .label(&self.example_skill_count.to_string())
+                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
+                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
+                    .label_color(TEXT_COLOR)
+                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
+                    .label_font_id(self.fonts.cyri.conrod_id)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        "Dodge",
+                        "Ground-yeeting dodges melee attacks",
+                        &diary_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.skill_general_roll_0, ui)
+                    .was_clicked()
+                {
+                    events.push(Event::UnlockSkill(Skill::Roll(ImmuneMelee)));
+                };
+                if Button::image(self.imgs.not_found)
+                    .w_h(tweak!(74.0), tweak!(74.0))
+                    .middle_of(state.skills_bot_l[1])
+                    .label(&self.example_skill_count.to_string())
+                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
+                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
+                    .label_color(TEXT_COLOR)
+                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
+                    .label_font_id(self.fonts.cyri.conrod_id)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        "Cost",
+                        "Decreases cost of ground-yeeting yourself",
+                        &diary_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.skill_general_roll_1, ui)
+                    .was_clicked()
+                {
+                    events.push(Event::UnlockSkill(Skill::Roll(Cost)));
+                };
+                if Button::image(self.imgs.not_found)
+                    .w_h(tweak!(74.0), tweak!(74.0))
+                    .middle_of(state.skills_bot_l[2])
+                    .label(&self.example_skill_count.to_string())
+                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
+                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
+                    .label_color(TEXT_COLOR)
+                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
+                    .label_font_id(self.fonts.cyri.conrod_id)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        "Strength",
+                        "Increases how far you ground-yeet yourself",
+                        &diary_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.skill_general_roll_2, ui)
+                    .was_clicked()
+                {
+                    events.push(Event::UnlockSkill(Skill::Roll(Strength)));
+                };
+                if Button::image(self.imgs.not_found)
+                    .w_h(tweak!(74.0), tweak!(74.0))
+                    .middle_of(state.skills_bot_l[3])
+                    .label(&self.example_skill_count.to_string())
+                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
+                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
+                    .label_color(TEXT_COLOR)
+                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
+                    .label_font_id(self.fonts.cyri.conrod_id)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        "Duration",
+                        "Increases for how long you ground-yeet yourself",
+                        &diary_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.skill_general_roll_3, ui)
+                    .was_clicked()
+                {
+                    events.push(Event::UnlockSkill(Skill::Roll(Duration)));
+                };
+            },
             SelectedSkillTree::Sword => {
                 use skills::SwordSkill::*;
                 // Sword
                 Image::new(
                     self.item_imgs
-                        .img_id_or_not_found_img(Tool("example_sword".to_string()).clone()),
+                        .img_id_or_not_found_img(Tool("example_sword".to_string())),
                 )
                 .wh(art_size)
                 .middle_of(state.content_align)
@@ -928,7 +1241,7 @@ impl<'a> Widget for Diary<'a> {
                 // Axe
                 Image::new(
                     self.item_imgs
-                        .img_id_or_not_found_img(Tool("example_axe".to_string()).clone()),
+                        .img_id_or_not_found_img(Tool("example_axe".to_string())),
                 )
                 .wh(art_size)
                 .middle_of(state.content_align)
@@ -1241,7 +1554,7 @@ impl<'a> Widget for Diary<'a> {
                 // Hammer
                 Image::new(
                     self.item_imgs
-                        .img_id_or_not_found_img(Tool("example_hammer".to_string()).clone()),
+                        .img_id_or_not_found_img(Tool("example_hammer".to_string())),
                 )
                 .wh(art_size)
                 .middle_of(state.content_align)
@@ -1554,7 +1867,7 @@ impl<'a> Widget for Diary<'a> {
                 // Bow
                 Image::new(
                     self.item_imgs
-                        .img_id_or_not_found_img(Tool("example_bow".to_string()).clone()),
+                        .img_id_or_not_found_img(Tool("example_bow".to_string())),
                 )
                 .wh(art_size)
                 .middle_of(state.content_align)
@@ -1867,7 +2180,7 @@ impl<'a> Widget for Diary<'a> {
                 // Staff
                 Image::new(
                     self.item_imgs
-                        .img_id_or_not_found_img(Tool("example_staff_fire".to_string()).clone()),
+                        .img_id_or_not_found_img(Tool("example_staff_fire".to_string())),
                 )
                 .wh(art_size)
                 .middle_of(state.content_align)
@@ -2159,7 +2472,7 @@ impl<'a> Widget for Diary<'a> {
                 // Sceptre
                 Image::new(
                     self.item_imgs
-                        .img_id_or_not_found_img(Tool("example_sceptre".to_string()).clone()),
+                        .img_id_or_not_found_img(Tool("example_sceptre".to_string())),
                 )
                 .wh(art_size)
                 .middle_of(state.content_align)

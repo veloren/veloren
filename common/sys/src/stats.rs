@@ -1,6 +1,7 @@
 use common::{
     comp::{
-        skills::SkillGroupType, CharacterState, Energy, EnergyChange, EnergySource, Health, Stats,
+        skills::{GeneralSkill, Skill, SkillGroupType},
+        CharacterState, Energy, EnergyChange, EnergySource, Health, Stats,
     },
     event::{EventBus, ServerEvent},
     metrics::SysMetrics,
@@ -90,6 +91,45 @@ impl<'a> System<'a> for Sys {
                     stat.skill_set.change_experience(skill_group, -300);
                     stat.skill_set.add_skill_points(skill_group, 1);
                 }
+            }
+        }
+
+        // Apply effects from leveling skills
+        for (mut stats, mut health, mut energy) in (
+            &mut stats.restrict_mut(),
+            &mut healths.restrict_mut(),
+            &mut energies.restrict_mut(),
+        )
+            .join()
+        {
+            let stat = stats.get_unchecked();
+            if stat.skill_set.modify_health {
+                let mut health = health.get_mut_unchecked();
+                let health_level = stat
+                    .skill_set
+                    .skills
+                    .get(&Skill::General(GeneralSkill::HealthIncrease))
+                    .copied()
+                    .flatten()
+                    .unwrap_or(0);
+                health.update_max_hp(Some(stat.body_type), health_level.into());
+                let mut stat = stats.get_mut_unchecked();
+                stat.skill_set.modify_health = false;
+            }
+            let stat = stats.get_unchecked();
+            if stat.skill_set.modify_energy {
+                let mut energy = energy.get_mut_unchecked();
+                let energy_level = stat
+                    .skill_set
+                    .skills
+                    .get(&Skill::General(GeneralSkill::EnergyIncrease))
+                    .copied()
+                    .flatten()
+                    .unwrap_or(0) as u32;
+                let energy_max = stat.body_type.base_energy() + 50 * energy_level;
+                energy.set_maximum(energy_max);
+                let mut stat = stats.get_mut_unchecked();
+                stat.skill_set.modify_energy = false;
             }
         }
 

@@ -1,10 +1,7 @@
 ({
-    UnlockGroup(Weapon(Sword)): {General(HealthIncrease): Some(1)},
-    UnlockGroup(Weapon(Axe)): {General(HealthIncrease): Some(1)},
-    UnlockGroup(Weapon(Hammer)): {General(HealthIncrease): Some(1)},
-    UnlockGroup(Weapon(Bow)): {General(HealthIncrease): Some(1)},
-    UnlockGroup(Weapon(Staff)): {General(HealthIncrease): Some(1)},
-    UnlockGroup(Weapon(Sceptre)): {General(HealthIncrease): Some(1)},
+    Roll(Cost): {Roll(ImmuneMelee): None},
+    Roll(Strength): {Roll(ImmuneMelee): None},
+    Roll(Duration): {Roll(ImmuneMelee): None},
     Sword(TsDamage): {Sword(TsCombo): None},
     Sword(TsRegen): {Sword(TsCombo): None},
     Sword(TsSpeed): {Sword(TsCombo): None},

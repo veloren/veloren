@@ -1,5 +1,6 @@
 ({
     General(HealthIncrease): Some(10),
+    General(EnergyIncrease): Some(5),
     Sword(TsDamage): Some(3),
     Sword(TsRegen): Some(2),
     Sword(TsSpeed): Some(3),
@@ -69,4 +70,7 @@
     Sceptre(PRadius): Some(2),
     Sceptre(PCost): Some(2),
     Sceptre(PProjSpeed): Some(2),
+    Roll(Cost): Some(2),
+    Roll(Strength): Some(2),
+    Roll(Duration): Some(2),
 })
