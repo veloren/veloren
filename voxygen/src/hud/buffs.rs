@@ -9,13 +9,12 @@ use crate::{
     GlobalState,
 };
 
-use common::comp::{BuffKind, Buffs};
+use common::comp::{BuffKind, Buffs, Energy, Health};
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-
 widget_ids! {
     struct Ids {
         align,
@@ -43,6 +42,8 @@ pub struct BuffsBar<'a> {
     buffs: &'a Buffs,
     pulse: f32,
     global_state: &'a GlobalState,
+    health: &'a Health,
+    energy: &'a Energy,
 }
 
 impl<'a> BuffsBar<'a> {
@@ -56,6 +57,8 @@ impl<'a> BuffsBar<'a> {
         buffs: &'a Buffs,
         pulse: f32,
         global_state: &'a GlobalState,
+        health: &'a Health,
+        energy: &'a Energy,
     ) -> Self {
         Self {
             imgs,
@@ -67,6 +70,8 @@ impl<'a> BuffsBar<'a> {
             buffs,
             pulse,
             global_state,
+            health,
+            energy,
         }
     }
 }
@@ -119,9 +124,26 @@ impl<'a> Widget for BuffsBar<'a> {
         .font_id(self.fonts.cyri.conrod_id)
         .desc_text_color(TEXT_COLOR);
         if let BuffPosition::Bar = buff_position {
+            let show_health = if self.health.current() != self.health.maximum() {
+                true
+            } else {
+                false
+            };
+            let show_stamina = if self.energy.current() != self.energy.maximum() {
+                true
+            } else {
+                false
+            };
+            let offset = if show_health && show_stamina {
+                140.0
+            } else if show_health || show_stamina {
+                95.0
+            } else {
+                55.0
+            };
             // Alignment
             Rectangle::fill_with([484.0, 100.0], color::TRANSPARENT)
-                .mid_bottom_with_margin_on(ui.window, 92.0)
+                .mid_bottom_with_margin_on(ui.window, offset)
                 .set(state.ids.align, ui);
             Rectangle::fill_with([484.0 / 2.0, 90.0], color::TRANSPARENT)
                 .bottom_left_with_margins_on(state.ids.align, 0.0, 0.0)
@@ -201,7 +223,7 @@ impl<'a> Widget for BuffsBar<'a> {
                     let buff_widget = buff_widget.bottom_left_with_margins_on(
                         state.ids.buffs_align,
                         0.0 + y as f64 * (41.0),
-                        0.0 + x as f64 * (41.0),
+                        1.5 + x as f64 * (43.0),
                     );
                     buff_widget
                         .color(
@@ -310,7 +332,7 @@ impl<'a> Widget for BuffsBar<'a> {
                     let debuff_widget = debuff_widget.bottom_right_with_margins_on(
                         state.ids.debuffs_align,
                         0.0 + y as f64 * (41.0),
-                        0.0 + x as f64 * (41.0),
+                        1.5 + x as f64 * (43.0),
                     );
 
                     debuff_widget

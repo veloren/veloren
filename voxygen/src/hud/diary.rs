@@ -1,5 +1,6 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
+    item_imgs::{ItemImgs, ItemKey::Tool},
     Show, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
@@ -131,6 +132,7 @@ pub struct Diary<'a> {
     _client: &'a Client,
 
     imgs: &'a Imgs,
+    item_imgs: &'a ItemImgs,
     fonts: &'a Fonts,
     localized_strings: &'a Localization,
     rot_imgs: &'a ImgsRot,
@@ -150,6 +152,7 @@ impl<'a> Diary<'a> {
         show: &'a Show,
         _client: &'a Client,
         imgs: &'a Imgs,
+        item_imgs: &'a ItemImgs,
         fonts: &'a Fonts,
         localized_strings: &'a Localization,
         rot_imgs: &'a ImgsRot,
@@ -159,6 +162,7 @@ impl<'a> Diary<'a> {
             show,
             _client,
             imgs,
+            item_imgs,
             fonts,
             localized_strings,
             rot_imgs,
@@ -561,27 +565,20 @@ impl<'a> Widget for Diary<'a> {
         }
         // Skill-Icons and Functionality
         // Art dimensions
-        let art_size = tweak!(0.6);
-        let sword_size = [265.0 * art_size, 818.0 * art_size];
-        let axe_size = [448.0 * art_size, 818.0 * art_size];
-        let hammer_size = [465.0 * art_size, 818.0 * art_size];
-        let bow_size = [205.0 * art_size, 818.0 * art_size];
-        let staff0_size = [177.0 * art_size, 818.0 * art_size];
-        let sceptre_size = [241.0 * art_size, 818.0 * art_size];
-        let general_comb_size = [762.0 * art_size, 818.0 * art_size];
-        let _shield_size = [757.0 * art_size, 818.0 * art_size];
-        let _dagger_size = [265.0 * art_size, 818.0 * art_size];
-
+        let art_size = [tweak!(490.0), tweak!(490.0)];
         match sel_tab {
             SelectedSkillTree::Sword => {
                 use skills::SwordSkill::*;
                 // Sword
-                Image::new(self.imgs.sword_render)
-                    .wh(sword_size)
-                    .middle_of(state.content_align)
-                    .graphics_for(state.content_align)
-                    .color(Some(Color::Rgba(1.0, 1.0, 1.0, tweak!(1.0))))
-                    .set(state.sword_render, ui);
+                Image::new(
+                    self.item_imgs
+                        .img_id_or_not_found_img(Tool("example_sword".to_string()).clone()),
+                )
+                .wh(art_size)
+                .middle_of(state.content_align)
+                .graphics_for(state.content_align)
+                .color(Some(Color::Rgba(1.0, 1.0, 1.0, tweak!(1.0))))
+                .set(state.sword_render, ui);
                 // Top Left skills
                 //        5 1 6
                 //        3 0 4
@@ -929,12 +926,15 @@ impl<'a> Widget for Diary<'a> {
             SelectedSkillTree::Axe => {
                 use skills::AxeSkill::*;
                 // Axe
-                Image::new(self.imgs.axe_render)
-                    .wh(axe_size)
-                    .middle_of(state.content_align)
-                    .graphics_for(state.content_align)
-                    .color(Some(Color::Rgba(1.0, 1.0, 1.0, tweak!(1.0))))
-                    .set(state.axe_render, ui);
+                Image::new(
+                    self.item_imgs
+                        .img_id_or_not_found_img(Tool("example_axe".to_string()).clone()),
+                )
+                .wh(art_size)
+                .middle_of(state.content_align)
+                .graphics_for(state.content_align)
+                .color(Some(Color::Rgba(1.0, 1.0, 1.0, tweak!(1.0))))
+                .set(state.axe_render, ui);
                 // Top Left skills
                 //        5 1 6
                 //        3 0 4
@@ -1239,12 +1239,15 @@ impl<'a> Widget for Diary<'a> {
             SelectedSkillTree::Hammer => {
                 use skills::HammerSkill::*;
                 // Hammer
-                Image::new(self.imgs.hammer_render)
-                    .wh(hammer_size)
-                    .middle_of(state.content_align)
-                    .graphics_for(state.content_align)
-                    .color(Some(Color::Rgba(1.0, 1.0, 1.0, tweak!(1.0))))
-                    .set(state.hammer_render, ui);
+                Image::new(
+                    self.item_imgs
+                        .img_id_or_not_found_img(Tool("example_hammer".to_string()).clone()),
+                )
+                .wh(art_size)
+                .middle_of(state.content_align)
+                .graphics_for(state.content_align)
+                .color(Some(Color::Rgba(1.0, 1.0, 1.0, tweak!(1.0))))
+                .set(state.hammer_render, ui);
                 // Top Left skills
                 //        5 1 6
                 //        3 0 4
@@ -1549,12 +1552,14 @@ impl<'a> Widget for Diary<'a> {
             SelectedSkillTree::Bow => {
                 use skills::BowSkill::*;
                 // Bow
-                Image::new(self.imgs.bow_render)
-                    .wh(bow_size)
-                    .middle_of(state.content_align)
-                    .graphics_for(state.content_align)
-                    .color(Some(Color::Rgba(1.0, 1.0, 1.0, tweak!(1.0))))
-                    .set(state.bow_render, ui);
+                Image::new(
+                    self.item_imgs
+                        .img_id_or_not_found_img(Tool("example_bow".to_string()).clone()),
+                )
+                .wh(art_size)
+                .middle_of(state.content_align)
+                .graphics_for(state.content_align)
+                .set(state.bow_render, ui);
                 // Top Left skills
                 //        5 1 6
                 //        3 0 4
@@ -1860,12 +1865,15 @@ impl<'a> Widget for Diary<'a> {
             SelectedSkillTree::StaffFire => {
                 use skills::StaffSkill::*;
                 // Staff
-                Image::new(self.imgs.staff0_render)
-                    .wh(staff0_size)
-                    .middle_of(state.content_align)
-                    .graphics_for(state.content_align)
-                    .color(Some(Color::Rgba(1.0, 1.0, 1.0, tweak!(1.0))))
-                    .set(state.staff_render, ui);
+                Image::new(
+                    self.item_imgs
+                        .img_id_or_not_found_img(Tool("example_staff_fire".to_string()).clone()),
+                )
+                .wh(art_size)
+                .middle_of(state.content_align)
+                .graphics_for(state.content_align)
+                .color(Some(Color::Rgba(1.0, 1.0, 1.0, tweak!(1.0))))
+                .set(state.staff_render, ui);
                 // Top Left skills
                 //        5 1 6
                 //        3 0 4
@@ -2149,12 +2157,15 @@ impl<'a> Widget for Diary<'a> {
             SelectedSkillTree::Sceptre => {
                 use skills::SceptreSkill::*;
                 // Sceptre
-                Image::new(self.imgs.sceptre_render)
-                    .wh(sceptre_size)
-                    .middle_of(state.content_align)
-                    .graphics_for(state.content_align)
-                    .color(Some(Color::Rgba(1.0, 1.0, 1.0, tweak!(1.0))))
-                    .set(state.sceptre_render, ui);
+                Image::new(
+                    self.item_imgs
+                        .img_id_or_not_found_img(Tool("example_sceptre".to_string()).clone()),
+                )
+                .wh(art_size)
+                .middle_of(state.content_align)
+                .graphics_for(state.content_align)
+                .color(Some(Color::Rgba(1.0, 1.0, 1.0, tweak!(1.0))))
+                .set(state.sceptre_render, ui);
                 // Top Left skills
                 //        5 1 6
                 //        3 0 4

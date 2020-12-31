@@ -1859,26 +1859,6 @@ impl Hud {
                 None => {},
             }
         }
-
-        // Buffs and Debuffs
-        if let Some(player_buffs) = buffs.get(client.entity()) {
-            for event in BuffsBar::new(
-                &self.imgs,
-                &self.fonts,
-                &self.rot_imgs,
-                tooltip_manager,
-                i18n,
-                &player_buffs,
-                self.pulse,
-                &global_state,
-            )
-            .set(self.ids.buffs, ui_widgets)
-            {
-                match event {
-                    buffs::Event::RemoveBuff(buff_id) => events.push(Event::RemoveBuff(buff_id)),
-                }
-            }
-        }
         // Group Window
         for event in Group::new(
             &mut self.show,
@@ -2039,7 +2019,35 @@ impl Hud {
             )
             .set(self.ids.skillbar, ui_widgets);
         }
-
+        // Buffs
+        let ecs = client.state().ecs();
+        let entity = client.entity();
+        let health = ecs.read_storage::<comp::Health>();
+        let energy = ecs.read_storage::<comp::Energy>();
+        if let (Some(player_buffs), Some(health), Some(energy)) = (
+            buffs.get(client.entity()),
+            health.get(entity),
+            energy.get(entity),
+        ) {
+            for event in BuffsBar::new(
+                &self.imgs,
+                &self.fonts,
+                &self.rot_imgs,
+                tooltip_manager,
+                i18n,
+                &player_buffs,
+                self.pulse,
+                &global_state,
+                &health,
+                &energy,
+            )
+            .set(self.ids.buffs, ui_widgets)
+            {
+                match event {
+                    buffs::Event::RemoveBuff(buff_id) => events.push(Event::RemoveBuff(buff_id)),
+                }
+            }
+        }
         // Crafting
         if self.show.crafting {
             if let Some(inventory) = inventories.get(entity) {
@@ -2312,6 +2320,7 @@ impl Hud {
                 &self.show,
                 client,
                 &self.imgs,
+                &self.item_imgs,
                 &self.fonts,
                 i18n,
                 &self.rot_imgs,
