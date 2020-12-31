@@ -95,7 +95,7 @@ impl<'a> System<'a> for Sys {
                 let rad_b = body_b.radius() * scale_b;
 
                 // Check if entity is dodging
-                let is_dodge = char_state_b_maybe.map_or(false, |c_s| c_s.is_dodge());
+                let is_dodge = char_state_b_maybe.map_or(false, |c_s| c_s.is_melee_dodge());
 
                 // Check if it is a hit
                 if entity != b

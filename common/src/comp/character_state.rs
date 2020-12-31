@@ -143,6 +143,10 @@ impl CharacterState {
 
     pub fn is_dodge(&self) -> bool { matches!(self, CharacterState::Roll(_)) }
 
+    pub fn is_melee_dodge(&self) -> bool {
+        matches!(self, CharacterState::Roll(d) if d.static_data.immune_melee)
+    }
+
     /// Compares for shallow equality (does not check internal struct equality)
     pub fn same_variant(&self, other: &Self) -> bool {
         // Check if state is the same without looking at the inner data

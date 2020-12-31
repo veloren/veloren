@@ -19,6 +19,8 @@ pub struct StaticData {
     pub recover_duration: Duration,
     /// Affects the speed and distance of the roll
     pub roll_strength: f32,
+    /// Affects whether you are immune to melee attacks while rolling
+    pub immune_melee: bool,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]

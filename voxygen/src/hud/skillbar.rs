@@ -351,16 +351,8 @@ impl<'a> Widget for Skillbar<'a> {
             .mid_bottom_with_margin_on(ui.window, 10.0)
             .set(state.ids.frame, ui);
         // Health and Stamina bar
-        let show_health = if self.health.current() != self.health.maximum() {
-            true
-        } else {
-            false
-        };
-        let show_stamina = if self.energy.current() != self.energy.maximum() {
-            true
-        } else {
-            false
-        };
+        let show_health = self.health.current() != self.health.maximum();
+        let show_stamina = self.energy.current() != self.energy.maximum();
 
         if show_health && !self.health.is_dead {
             let offset = if show_stamina {
@@ -424,7 +416,12 @@ impl<'a> Widget for Skillbar<'a> {
                                                              * living players */
                 (self.health.maximum() / 10) as u32
             );
-            let mut energy_txt = format!("{}", energy_percentage as u32);
+            let mut energy_txt = format!(
+                "{}/{}",
+                (self.energy.current() / 10) as u32,
+                (self.energy.maximum() / 10) as u32
+            );
+            //let mut energy_txt = format!("{}", energy_percentage as u32);
             if self.health.is_dead {
                 hp_txt = self.localized_strings.get("hud.group.dead").to_string();
                 energy_txt = self.localized_strings.get("hud.group.dead").to_string();

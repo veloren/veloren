@@ -124,16 +124,8 @@ impl<'a> Widget for BuffsBar<'a> {
         .font_id(self.fonts.cyri.conrod_id)
         .desc_text_color(TEXT_COLOR);
         if let BuffPosition::Bar = buff_position {
-            let show_health = if self.health.current() != self.health.maximum() {
-                true
-            } else {
-                false
-            };
-            let show_stamina = if self.energy.current() != self.energy.maximum() {
-                true
-            } else {
-                false
-            };
+            let show_health = self.health.current() != self.health.maximum();
+            let show_stamina = self.energy.current() != self.energy.maximum();
             let offset = if show_health && show_stamina {
                 140.0
             } else if show_health || show_stamina {

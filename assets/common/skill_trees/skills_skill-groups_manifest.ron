@@ -1,12 +1,17 @@
 ({
     General: [
         General(HealthIncrease),
+        General(EnergyIncrease),
         UnlockGroup(Weapon(Sword)),
         UnlockGroup(Weapon(Axe)),
         UnlockGroup(Weapon(Hammer)),
         UnlockGroup(Weapon(Bow)),
         UnlockGroup(Weapon(Staff)),
         UnlockGroup(Weapon(Sceptre)),
+        Roll(ImmuneMelee),
+        Roll(Cost),
+        Roll(Strength),
+        Roll(Duration),
     ],
     Weapon(Sword): [
         Sword(InterruptingAttacks),

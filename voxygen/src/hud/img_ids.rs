@@ -64,7 +64,7 @@ image_ids! {
         
         // Diary Window
         diary_bg: "voxygen.element.misc_bg.diary_bg",
-        diary_frame: "voxygen.element.misc_bg.diary_frame",        
+        diary_frame: "voxygen.element.misc_bg.diary_frame",
 
         // Skill Trees
         sceptre: "voxygen.element.icons.sceptre",

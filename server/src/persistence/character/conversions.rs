@@ -366,6 +366,8 @@ pub fn convert_stats_from_database(
     new_stats.skill_set = skills::SkillSet {
         skill_groups: convert_skill_groups_from_database(skill_groups),
         skills: convert_skills_from_database(skills),
+        modify_health: true,
+        modify_energy: true,
     };
 
     new_stats

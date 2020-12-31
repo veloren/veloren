@@ -72,6 +72,7 @@ pub enum Skill {
     Staff(StaffSkill),
     Sceptre(SceptreSkill),
     UnlockGroup(SkillGroupType),
+    Roll(RollSkill),
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
@@ -202,6 +203,15 @@ pub enum SceptreSkill {
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum GeneralSkill {
     HealthIncrease,
+    EnergyIncrease,
+}
+
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
+pub enum RollSkill {
+    ImmuneMelee,
+    Cost,
+    Strength,
+    Duration,
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
@@ -237,6 +247,8 @@ impl SkillGroup {
 pub struct SkillSet {
     pub skill_groups: Vec<SkillGroup>,
     pub skills: HashMap<Skill, Level>,
+    pub modify_health: bool,
+    pub modify_energy: bool,
 }
 
 pub type Level = Option<u16>;
@@ -249,6 +261,8 @@ impl Default for SkillSet {
         Self {
             skill_groups: vec![SkillGroup::new(SkillGroupType::General)],
             skills: HashMap::new(),
+            modify_health: false,
+            modify_energy: false,
         }
     }
 }
@@ -311,6 +325,12 @@ impl SkillSet {
                             skill_group.available_sp -= skill.skill_cost(next_level);
                             if let Skill::UnlockGroup(group) = skill {
                                 self.unlock_skill_group(group);
+                            }
+                            if matches!(skill, Skill::General(GeneralSkill::HealthIncrease)) {
+                                self.modify_health = true;
+                            }
+                            if matches!(skill, Skill::General(GeneralSkill::EnergyIncrease)) {
+                                self.modify_energy = true;
                             }
                             self.skills.insert(skill, next_level);
                         } else {
