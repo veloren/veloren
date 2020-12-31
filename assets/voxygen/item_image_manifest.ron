@@ -3,6 +3,47 @@
 //  VoxTrans(specifier, offset, (x_rot, y_rot, z_rot), zoom)
 ({
     // Weapons
+    // Diary Example Images
+    Tool("example_sword"): VoxTrans(
+        "voxel.weapon.sword.greatsword_2h_dullahan",
+        (0.0, 0.0, 0.0), (90.0, 80.0, 0.0), 1.0,
+    ),
+    Tool("example_axe"): VoxTrans(
+        "voxel.weapon.axe.2haxe_bloodsteel-0",
+       (0.0, 0.0, 0.0), (-90.0, 70.0, 0.0), 1.0,
+    ),
+    Tool("example_hammer"): VoxTrans(
+        "voxel.weapon.hammer.2hhammer_ramshead",
+        (-1.0, 0.0, 0.0), (-70.0, 55.0, 0.0), 1.0,
+    ),
+    Tool("example_bow"): VoxTrans(
+        "voxel.weapon.bow.longbow_ore_nature-0",
+        (-1.0, 0.0, 0.0), (90.0, 60.0, 0.0), 1.0,
+    ),
+    Tool("example_staff_fire"): VoxTrans(
+        "voxel.weapon.staff.firestaff_saurok",
+        (-1.0, 0.0, 0.0), (-100.0, -140.0, 0.0), 1.0,
+    ),
+    Tool("example_sceptre"): VoxTrans(
+        "voxel.weapon.sceptre.wood-nature",
+        (-1.0, 0.0, 0.0), (-90.0, 55.0, 0.0), 1.0,
+    ),
+    Tool("example_dagger"): VoxTrans(
+        "voxel.weapon.dagger.dagger_basic-0",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    Tool("example_shield"): VoxTrans(
+        "voxel.weapon.shield.wood-0",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    Tool("example_general_combat_left"): VoxTrans(
+        "voxel.weapon.shield.wood-0",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    Tool("example_general_combat_right"): VoxTrans(
+        "voxel.weapon.sword.long_2h_saurok",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
     // Bows
     Tool("common.items.weapons.bow.starter_bow"): VoxTrans(
         "voxel.weapon.bow.shortbow_starter",

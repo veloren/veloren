@@ -64,16 +64,7 @@ image_ids! {
         
         // Diary Window
         diary_bg: "voxygen.element.misc_bg.diary_bg",
-        diary_frame: "voxygen.element.misc_bg.diary_frame",
-        sword_render: "voxygen.element.misc_bg.sword_render",
-        axe_render: "voxygen.element.misc_bg.axe_render",
-        hammer_render: "voxygen.element.misc_bg.hammer_render",
-        bow_render: "voxygen.element.misc_bg.bow_render",
-        staff0_render: "voxygen.element.misc_bg.staff0_render",
-        sceptre_render: "voxygen.element.misc_bg.sceptre_render",
-        general_combat_render: "voxygen.element.misc_bg.general_combat_render",
-        shield_render: "voxygen.element.misc_bg.shield_render",
-        dagger_render: "voxygen.element.misc_bg.dagger_render",
+        diary_frame: "voxygen.element.misc_bg.diary_frame",        
 
         // Skill Trees
         sceptre: "voxygen.element.icons.sceptre",
@@ -180,10 +171,15 @@ image_ids! {
         bar_content: "voxygen.element.skillbar.bar_content",
         skillbar_bg: "voxygen.element.skillbar.bg",
         skillbar_frame: "voxygen.element.skillbar.frame",
+        health_bg: "voxygen.element.skillbar.health_bg",
+        health_frame: "voxygen.element.skillbar.health_frame",
+        stamina_bg: "voxygen.element.skillbar.stamina_bg",
+        stamina_frame: "voxygen.element.skillbar.stamina_frame",
         m1_ico: "voxygen.element.icons.m1",
         m2_ico: "voxygen.element.icons.m2",
         m_scroll_ico: "voxygen.element.icons.m_scroll",
         m_move_ico: "voxygen.element.icons.m_move",
+        skillbar_slot: "voxygen.element.skillbar.slot",
 
         // Other Icons/Art
         skull: "voxygen.element.icons.skull",

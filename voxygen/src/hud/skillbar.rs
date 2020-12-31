@@ -3,7 +3,7 @@ use super::{
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
     slots, BarNumbers, ShortcutNumbers, Show, BLACK, CRITICAL_HP_COLOR, HP_COLOR, LOW_HP_COLOR,
-    STAMINA_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN, XP_COLOR,
+    STAMINA_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0,
 };
 use crate::{
     i18n::Localization,
@@ -28,6 +28,7 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
+use inline_tweak::*;
 use std::time::{Duration, Instant};
 use vek::*;
 
@@ -51,6 +52,10 @@ widget_ids! {
         alignment,
         bg,
         frame,
+        bg_health,
+        frame_health,
+        bg_stamina,
+        frame_stamina,
         m1_ico,
         m2_ico,
         // Level
@@ -212,13 +217,13 @@ impl<'a> Widget for Skillbar<'a> {
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
 
-        let level = if self.stats.level.level() > 999 {
+        let _level = if self.stats.level.level() > 999 {
             "A".to_string()
         } else {
             (self.stats.level.level()).to_string()
         };
 
-        let exp_percentage = (self.stats.exp.current() as f64) / (self.stats.exp.maximum() as f64);
+        let _exp_percentage = (self.stats.exp.current() as f64) / (self.stats.exp.maximum() as f64);
 
         let mut hp_percentage = self.health.current() as f64 / self.health.maximum() as f64 * 100.0;
         let mut energy_percentage =
@@ -235,6 +240,8 @@ impl<'a> Widget for Skillbar<'a> {
         let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
 
         let localized_strings = self.localized_strings;
+
+        let slot_offset = tweak!(3.0);
 
         // Level Up Message
         if !self.show.intro {
@@ -339,65 +346,75 @@ impl<'a> Widget for Skillbar<'a> {
         }
         // Skillbar
         // Alignment and BG
-        Rectangle::fill_with([524.0, 80.0], color::TRANSPARENT)
+        let alignment_size = 40.0 * 12.0 + slot_offset * 11.0;
+        Rectangle::fill_with([alignment_size, 80.0], color::TRANSPARENT)
             .mid_bottom_with_margin_on(ui.window, 10.0)
-            .set(state.ids.alignment, ui);
-        Image::new(self.imgs.skillbar_bg)
-            .w_h(480.0, 80.0)
-            .color(Some(UI_MAIN))
-            .middle_of(state.ids.alignment)
-            .set(state.ids.bg, ui);
-        // Level
-        let lvl_size = match self.stats.level.level() {
-            11..=99 => 13,
-            100..=999 => 10,
-            _ => 14,
-        };
-        Text::new(&level)
-            .mid_top_with_margin_on(state.ids.bg, 3.0)
-            .font_size(self.fonts.cyri.scale(lvl_size))
-            .font_id(self.fonts.cyri.conrod_id)
-            .color(TEXT_COLOR)
-            .set(state.ids.level, ui);
-        // Exp-Bar
-        Rectangle::fill_with([476.0, 8.0], color::TRANSPARENT)
-            .mid_bottom_with_margin_on(state.ids.bg, 4.0)
-            .set(state.ids.exp_alignment, ui);
-        Image::new(self.imgs.bar_content)
-            .w_h(476.0 * exp_percentage, 8.0)
-            .color(Some(XP_COLOR))
-            .bottom_left_with_margins_on(state.ids.exp_alignment, 0.0, 0.0)
-            .set(state.ids.exp_filling, ui);
+            .set(state.ids.frame, ui);
         // Health and Stamina bar
-        // Alignment
-        Rectangle::fill_with([240.0, 17.0], color::TRANSPARENT)
-            .top_left_with_margins_on(state.ids.alignment, 0.0, 0.0)
-            .set(state.ids.hp_alignment, ui);
-        Rectangle::fill_with([240.0, 17.0], color::TRANSPARENT)
-            .top_right_with_margins_on(state.ids.alignment, 0.0, 0.0)
-            .set(state.ids.stamina_alignment, ui);
-        let health_col = match hp_percentage as u8 {
-            0..=20 => crit_hp_color,
-            21..=40 => LOW_HP_COLOR,
-            _ => HP_COLOR,
+        let show_health = if self.health.current() != self.health.maximum() {
+            true
+        } else {
+            false
         };
-        // Content
-        Image::new(self.imgs.bar_content)
-            .w_h(216.0 * hp_percentage / 100.0, 14.0)
-            .color(Some(health_col))
-            .top_right_with_margins_on(state.ids.hp_alignment, 4.0, 0.0)
-            .set(state.ids.hp_filling, ui);
-        Image::new(self.imgs.bar_content)
-            .w_h(216.0 * energy_percentage / 100.0, 14.0)
-            .color(Some(STAMINA_COLOR))
-            .top_left_with_margins_on(state.ids.stamina_alignment, 4.0, 0.0)
-            .set(state.ids.stamina_filling, ui);
-        Rectangle::fill_with([219.0, 14.0], color::TRANSPARENT)
-            .top_left_with_margins_on(state.ids.hp_alignment, 4.0, 20.0)
-            .set(state.ids.hp_txt_alignment, ui);
-        Rectangle::fill_with([219.0, 14.0], color::TRANSPARENT)
-            .top_right_with_margins_on(state.ids.stamina_alignment, 4.0, 20.0)
-            .set(state.ids.stamina_txt_alignment, ui);
+        let show_stamina = if self.energy.current() != self.energy.maximum() {
+            true
+        } else {
+            false
+        };
+
+        if show_health && !self.health.is_dead {
+            let offset = if show_stamina {
+                tweak!(1.0)
+            } else {
+                tweak!(1.0)
+            };
+            Image::new(self.imgs.health_bg)
+                .w_h(484.0, 24.0)
+                .mid_top_with_margin_on(state.ids.frame, -offset)
+                .set(state.ids.bg_health, ui);
+            Rectangle::fill_with([480.0, 18.0], color::TRANSPARENT)
+                .top_left_with_margins_on(state.ids.bg_health, 2.0, 2.0)
+                .set(state.ids.hp_alignment, ui);
+            let health_col = match hp_percentage as u8 {
+                0..=20 => crit_hp_color,
+                21..=40 => LOW_HP_COLOR,
+                _ => HP_COLOR,
+            };
+            Image::new(self.imgs.bar_content)
+                .w_h(480.0 * hp_percentage / 100.0, 18.0)
+                .color(Some(health_col))
+                .top_left_with_margins_on(state.ids.hp_alignment, 0.0, 0.0)
+                .set(state.ids.hp_filling, ui);
+            Image::new(self.imgs.health_frame)
+                .w_h(484.0, 24.0)
+                .color(Some(UI_HIGHLIGHT_0))
+                .middle_of(state.ids.bg_health)
+                .set(state.ids.frame_health, ui);
+        }
+        if show_stamina && !self.health.is_dead {
+            let offset = if show_health {
+                tweak!(34.0)
+            } else {
+                tweak!(1.0)
+            };
+            Image::new(self.imgs.stamina_bg)
+                .w_h(323.0, 16.0)
+                .mid_top_with_margin_on(state.ids.frame, -offset)
+                .set(state.ids.bg_stamina, ui);
+            Rectangle::fill_with([319.0, 10.0], color::TRANSPARENT)
+                .top_left_with_margins_on(state.ids.bg_stamina, 2.0, 2.0)
+                .set(state.ids.stamina_alignment, ui);
+            Image::new(self.imgs.bar_content)
+                .w_h(319.0 * energy_percentage / 100.0, 10.0)
+                .color(Some(STAMINA_COLOR))
+                .top_left_with_margins_on(state.ids.stamina_alignment, 0.0, 0.0)
+                .set(state.ids.stamina_filling, ui);
+            Image::new(self.imgs.stamina_frame)
+                .w_h(323.0, 16.0)
+                .color(Some(UI_HIGHLIGHT_0))
+                .middle_of(state.ids.bg_stamina)
+                .set(state.ids.frame_stamina, ui);
+        }
         // Bar Text
         // Values
         if let BarNumbers::Values = bar_values {
@@ -413,7 +430,7 @@ impl<'a> Widget for Skillbar<'a> {
                 energy_txt = self.localized_strings.get("hud.group.dead").to_string();
             };
             Text::new(&hp_txt)
-                .middle_of(state.ids.hp_txt_alignment)
+                .middle_of(state.ids.frame_health)
                 .font_size(self.fonts.cyri.scale(12))
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
@@ -425,7 +442,7 @@ impl<'a> Widget for Skillbar<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.hp_txt, ui);
             Text::new(&energy_txt)
-                .middle_of(state.ids.stamina_txt_alignment)
+                .middle_of(state.ids.frame_stamina)
                 .font_size(self.fonts.cyri.scale(12))
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
@@ -446,7 +463,7 @@ impl<'a> Widget for Skillbar<'a> {
                 energy_txt = self.localized_strings.get("hud.group.dead").to_string();
             };
             Text::new(&hp_txt)
-                .middle_of(state.ids.hp_txt_alignment)
+                .middle_of(state.ids.frame_health)
                 .font_size(self.fonts.cyri.scale(12))
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
@@ -458,7 +475,7 @@ impl<'a> Widget for Skillbar<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.hp_txt, ui);
             Text::new(&energy_txt)
-                .middle_of(state.ids.stamina_txt_alignment)
+                .middle_of(state.ids.frame_stamina)
                 .font_size(self.fonts.cyri.scale(12))
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
@@ -475,8 +492,8 @@ impl<'a> Widget for Skillbar<'a> {
         let image_source = (self.item_imgs, self.imgs);
         let mut slot_maker = SlotMaker {
             // TODO: is a separate image needed for the frame?
-            empty_slot: self.imgs.inv_slot,
-            filled_slot: self.imgs.inv_slot,
+            empty_slot: self.imgs.skillbar_slot,
+            filled_slot: self.imgs.skillbar_slot,
             selected_slot: self.imgs.inv_slot_sel,
             background_color: None,
             content_size: ContentSize {
@@ -559,12 +576,12 @@ impl<'a> Widget for Skillbar<'a> {
         };
         // Slot 1-5
         // Slot 1
-        slot_maker.empty_slot = self.imgs.inv_slot;
-        slot_maker.selected_slot = self.imgs.inv_slot;
+        slot_maker.empty_slot = self.imgs.skillbar_slot;
+        slot_maker.selected_slot = self.imgs.skillbar_slot;
         let slot = slot_maker
             .fabricate(hotbar::Slot::One, [40.0; 2])
-            .filled_slot(self.imgs.inv_slot)
-            .bottom_left_with_margins_on(state.ids.frame, 15.0, 22.0);
+            .filled_slot(self.imgs.skillbar_slot)
+            .bottom_left_with_margins_on(state.ids.frame, 0.0, 0.0);
         if let Some((title, desc)) = tooltip_text(hotbar::Slot::One) {
             slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip, TEXT_COLOR)
                 .set(state.ids.slot1, ui);
@@ -574,8 +591,8 @@ impl<'a> Widget for Skillbar<'a> {
         // Slot 2
         let slot = slot_maker
             .fabricate(hotbar::Slot::Two, [40.0; 2])
-            .filled_slot(self.imgs.inv_slot)
-            .right_from(state.ids.slot1, 0.0);
+            .filled_slot(self.imgs.skillbar_slot)
+            .right_from(state.ids.slot1, slot_offset);
         if let Some((title, desc)) = tooltip_text(hotbar::Slot::Two) {
             slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip, TEXT_COLOR)
                 .set(state.ids.slot2, ui);
@@ -585,8 +602,8 @@ impl<'a> Widget for Skillbar<'a> {
         // Slot 3
         let slot = slot_maker
             .fabricate(hotbar::Slot::Three, [40.0; 2])
-            .filled_slot(self.imgs.inv_slot)
-            .right_from(state.ids.slot2, 0.0);
+            .filled_slot(self.imgs.skillbar_slot)
+            .right_from(state.ids.slot2, slot_offset);
         if let Some((title, desc)) = tooltip_text(hotbar::Slot::Three) {
             slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip, TEXT_COLOR)
                 .set(state.ids.slot3, ui);
@@ -596,7 +613,7 @@ impl<'a> Widget for Skillbar<'a> {
         // Slot 4
         let slot = slot_maker
             .fabricate(hotbar::Slot::Four, [40.0; 2])
-            .filled_slot(self.imgs.inv_slot)
+            .filled_slot(self.imgs.skillbar_slot)
             .right_from(state.ids.slot3, 0.0);
         if let Some((title, desc)) = tooltip_text(hotbar::Slot::Four) {
             slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip, TEXT_COLOR)
@@ -607,7 +624,7 @@ impl<'a> Widget for Skillbar<'a> {
         // Slot 5
         let slot = slot_maker
             .fabricate(hotbar::Slot::Five, [40.0; 2])
-            .filled_slot(self.imgs.inv_slot)
+            .filled_slot(self.imgs.skillbar_slot)
             .right_from(state.ids.slot4, 0.0);
         if let Some((title, desc)) = tooltip_text(hotbar::Slot::Five) {
             slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip, TEXT_COLOR)
@@ -616,9 +633,9 @@ impl<'a> Widget for Skillbar<'a> {
             slot.set(state.ids.slot5, ui);
         }
         // Slot M1
-        Image::new(self.imgs.inv_slot)
+        Image::new(self.imgs.skillbar_slot)
             .w_h(40.0, 40.0)
-            .right_from(state.ids.slot5, 0.0)
+            .right_from(state.ids.slot5, slot_offset)
             .set(state.ids.m1_slot_bg, ui);
         Button::image(
             match self
@@ -645,9 +662,9 @@ impl<'a> Widget for Skillbar<'a> {
         .middle_of(state.ids.m1_slot_bg)
         .set(state.ids.m1_content, ui);
         // Slot M2
-        Image::new(self.imgs.inv_slot)
+        Image::new(self.imgs.skillbar_slot)
             .w_h(40.0, 40.0)
-            .right_from(state.ids.m1_slot_bg, 0.0)
+            .right_from(state.ids.m1_slot_bg, slot_offset)
             .set(state.ids.m2_slot, ui);
 
         fn get_tool(inventory: &Inventory, equip_slot: EquipSlot) -> Option<&Tool> {
@@ -669,7 +686,7 @@ impl<'a> Widget for Skillbar<'a> {
             (_, _) => None,
         };
 
-        Image::new(self.imgs.inv_slot)
+        Image::new(self.imgs.skillbar_slot)
             .w_h(40.0, 40.0)
             .middle_of(state.ids.m2_slot)
             .set(state.ids.m2_slot_bg, ui);
@@ -704,12 +721,12 @@ impl<'a> Widget for Skillbar<'a> {
         .set(state.ids.m2_content, ui);
         // Slot 6-10
         // Slot 6
-        slot_maker.empty_slot = self.imgs.inv_slot;
-        slot_maker.selected_slot = self.imgs.inv_slot;
+        slot_maker.empty_slot = self.imgs.skillbar_slot;
+        slot_maker.selected_slot = self.imgs.skillbar_slot;
         let slot = slot_maker
             .fabricate(hotbar::Slot::Six, [40.0; 2])
-            .filled_slot(self.imgs.inv_slot)
-            .right_from(state.ids.m2_slot_bg, 0.0);
+            .filled_slot(self.imgs.skillbar_slot)
+            .right_from(state.ids.m2_slot_bg, slot_offset);
         if let Some((title, desc)) = tooltip_text(hotbar::Slot::Six) {
             slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip, TEXT_COLOR)
                 .set(state.ids.slot6, ui);
@@ -719,8 +736,8 @@ impl<'a> Widget for Skillbar<'a> {
         // Slot 7
         let slot = slot_maker
             .fabricate(hotbar::Slot::Seven, [40.0; 2])
-            .filled_slot(self.imgs.inv_slot)
-            .right_from(state.ids.slot6, 0.0);
+            .filled_slot(self.imgs.skillbar_slot)
+            .right_from(state.ids.slot6, slot_offset);
         if let Some((title, desc)) = tooltip_text(hotbar::Slot::Seven) {
             slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip, TEXT_COLOR)
                 .set(state.ids.slot7, ui);
@@ -730,8 +747,8 @@ impl<'a> Widget for Skillbar<'a> {
         // Slot 8
         let slot = slot_maker
             .fabricate(hotbar::Slot::Eight, [40.0; 2])
-            .filled_slot(self.imgs.inv_slot)
-            .right_from(state.ids.slot7, 0.0);
+            .filled_slot(self.imgs.skillbar_slot)
+            .right_from(state.ids.slot7, slot_offset);
         if let Some((title, desc)) = tooltip_text(hotbar::Slot::Eight) {
             slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip, TEXT_COLOR)
                 .set(state.ids.slot8, ui);
@@ -741,8 +758,8 @@ impl<'a> Widget for Skillbar<'a> {
         // Slot 9
         let slot = slot_maker
             .fabricate(hotbar::Slot::Nine, [40.0; 2])
-            .filled_slot(self.imgs.inv_slot)
-            .right_from(state.ids.slot8, 0.0);
+            .filled_slot(self.imgs.skillbar_slot)
+            .right_from(state.ids.slot8, slot_offset);
         if let Some((title, desc)) = tooltip_text(hotbar::Slot::Nine) {
             slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip, TEXT_COLOR)
                 .set(state.ids.slot9, ui);
@@ -750,19 +767,18 @@ impl<'a> Widget for Skillbar<'a> {
             slot.set(state.ids.slot9, ui);
         }
         // Quickslot
-        slot_maker.empty_slot = self.imgs.inv_slot;
-        slot_maker.selected_slot = self.imgs.inv_slot;
+        slot_maker.empty_slot = self.imgs.skillbar_slot;
+        slot_maker.selected_slot = self.imgs.skillbar_slot;
         let slot = slot_maker
             .fabricate(hotbar::Slot::Ten, [40.0; 2])
-            .filled_slot(self.imgs.inv_slot)
-            .right_from(state.ids.slot9, 0.0);
+            .filled_slot(self.imgs.skillbar_slot)
+            .right_from(state.ids.slot9, slot_offset);
         if let Some((title, desc)) = tooltip_text(hotbar::Slot::Ten) {
             slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip, TEXT_COLOR)
                 .set(state.ids.slot10, ui);
         } else {
             slot.set(state.ids.slot10, ui);
         }
-
         // Shortcuts
         if let ShortcutNumbers::On = shortcuts {
             if let Some(slot1) = &self
@@ -860,44 +876,6 @@ impl<'a> Widget for Skillbar<'a> {
                     .color(TEXT_COLOR)
                     .set(state.ids.slot5_text, ui);
             }
-            /*if let Some(m1) = &self
-                .global_state
-                .settings
-                .controls
-                .get_binding(GameInput::Primary)
-            {
-                Text::new(m1.to_string().as_str())
-                    .top_left_with_margins_on(state.ids.m1_slot, 5.0, 5.0)
-                    .font_size(self.fonts.cyri.scale(8))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(BLACK)
-                    .set(state.ids.m1_text_bg, ui);
-                Text::new(m1.to_string().as_str())
-                    .bottom_right_with_margins_on(state.ids.m1_text_bg, 1.0, 1.0)
-                    .font_size(self.fonts.cyri.scale(8))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(TEXT_COLOR)
-                    .set(state.ids.m1_text, ui);
-            }
-            if let Some(m2) = &self
-                .global_state
-                .settings
-                .controls
-                .get_binding(GameInput::Secondary)
-            {
-                Text::new(m2.to_string().as_str())
-                    .top_right_with_margins_on(state.ids.m2_slot, 5.0, 5.0)
-                    .font_size(self.fonts.cyri.scale(8))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(BLACK)
-                    .set(state.ids.m2_text_bg, ui);
-                Text::new(m2.to_string().as_str())
-                    .bottom_left_with_margins_on(state.ids.m2_text_bg, 1.0, 1.0)
-                    .font_size(self.fonts.cyri.scale(8))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(TEXT_COLOR)
-                    .set(state.ids.m2_text, ui);
-            }*/
             if let Some(slot6) = &self
                 .global_state
                 .settings
@@ -994,15 +972,7 @@ impl<'a> Widget for Skillbar<'a> {
                     .set(state.ids.slot10_text, ui);
             }
         };
-        // Frame
-        Image::new(self.imgs.skillbar_frame)
-            .w_h(524.0, 80.0)
-            .color(Some(UI_HIGHLIGHT_0))
-            .middle_of(state.ids.bg)
-            .floating(true)
-            .set(state.ids.frame, ui);
         // M1 and M2 icons
-        // TODO Don't show this if key bindings are changed
         Image::new(self.imgs.m1_ico)
             .w_h(16.0, 18.0)
             .mid_bottom_with_margin_on(state.ids.m1_content, -11.0)
