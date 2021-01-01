@@ -178,7 +178,7 @@ impl FigurePipeline {
         layout: &FigureLayout,
         aa_mode: AaMode,
     ) -> Self {
-        common::span!(_guard, "FigurePipeline::new");
+        common_base::span!(_guard, "FigurePipeline::new");
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Figure pipeline layout"),

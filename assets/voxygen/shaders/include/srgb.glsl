@@ -648,6 +648,6 @@ vec3 greedy_extract_col_light_attr(texture2D t_col_light, sampler s_col_light, v
 
 vec3 greedy_extract_col_light_glow(texture2D t_col_light, sampler s_col_light, vec2 f_uv_pos, out float f_light, out float f_glow) {
     uint f_attr;
-    return greedy_extract_col_light_attr(t_col_light, f_uv_pos, f_light, f_glow, f_attr);
+    return greedy_extract_col_light_attr(t_col_light, s_col_light, f_uv_pos, f_light, f_glow, f_attr);
 }
 #endif

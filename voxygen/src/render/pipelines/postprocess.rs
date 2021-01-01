@@ -116,7 +116,7 @@ impl PostProcessPipeline {
         layout: &PostProcessLayout,
         aa_mode: AaMode,
     ) -> Self {
-        common::span!(_guard, "PostProcessPipeline::new");
+        common_base::span!(_guard, "PostProcessPipeline::new");
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Post process pipeline layout"),

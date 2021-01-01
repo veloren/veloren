@@ -740,14 +740,10 @@ impl Scene {
                 v_p.z = 0.0;
                 v_p.normalize();
                 let l_r: math::Mat4<f32> = if factor > EPSILON_UPSILON {
-<<<<<<< HEAD
-                    math::Mat4::look_at_rh(math::Vec3::zero(), -math::Vec3::unit_z(), v_p)
-=======
                     // NOTE: Our coordinates are now in left-handed space, but v_p isn't; however,
                     // v_p has no z component, so we don't have to adjust it for left-handed
                     // spaces.
-                    math::Mat4::look_at_lh(math::Vec3::zero(), math::Vec3::forward_lh(), v_p)
->>>>>>> 00820cebc (Fix directed shadows, mostly.)
+                    math::Mat4::look_at_lh(math::Vec3::zero(), math::Vec3::unit_z(), v_p)
                 } else {
                     math::Mat4::identity()
                 };
@@ -788,23 +784,23 @@ impl Scene {
                     // moves from view-space (right-handed) to world-space (right-handed).
                     let view_point = view_inv
                         * math::Vec4::from_point(
-                            math::Vec3::forward_rh() * p_z, /* + math::Vec4::unit_w() */
+                            -math::Vec3::unit_z() * p_z, /* + math::Vec4::unit_w() */
                         );
-                    let view_plane = view_mat.transposed() * math::Vec4::forward_rh();
+                    let view_plane = view_mat.transposed() * -math::Vec4::unit_z();
 
                     // moves from rotated light space (left-handed) to world space (right-handed).
                     let light_point = light_all_inv
                         * math::Vec4::from_point(
-                            math::Vec3::up() * p_y, /* + math::Vec4::unit_w() */
+                            math::Vec3::unit_y() * p_y, /* + math::Vec4::unit_w() */
                         );
-                    let light_plane = light_all_mat.transposed() * math::Vec4::up();
+                    let light_plane = light_all_mat.transposed() * math::Vec4::unit_y();
 
                     // moves from rotated light space (left-handed) to world space (right-handed).
                     let shadow_point = light_all_inv
                         * math::Vec4::from_point(
-                            math::Vec3::right() * p_x, /* + math::Vec4::unit_w() */
+                            math::Vec3::unit_x() * p_x, /* + math::Vec4::unit_w() */
                         );
-                    let shadow_plane = light_all_mat.transposed() * math::Vec4::right();
+                    let shadow_plane = light_all_mat.transposed() * math::Vec4::unit_x();
 
                     // Find the point at the intersection of the three planes; note that since the
                     // equations are already in right-handed world space, we don't need to negate
@@ -848,8 +844,8 @@ impl Scene {
                     // NOTE: I don't think the w component should be anything but 1 here, but
                     // better safe than sorry.
                     (
-                        f64::from(z0.homogenized().dot(math::Vec4::forward_rh())),
-                        f64::from(z1.homogenized().dot(math::Vec4::forward_rh())),
+                        f64::from(z0.homogenized().dot(-math::Vec4::unit_z())),
+                        f64::from(z1.homogenized().dot(-math::Vec4::unit_z())),
                     )
                 };
 

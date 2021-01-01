@@ -150,7 +150,7 @@ impl<'a> GreedyMesh<'a> {
         FO: for<'r> FnMut(&'r mut D, Vec3<i32>) -> bool + 'a,
         FS: for<'r> FnMut(&'r mut D, Vec3<i32>, Vec3<i32>, Vec2<Vec3<i32>>) -> Option<(bool, M)>,
         FP: FnMut(Vec2<u16>, Vec2<Vec2<u16>>, Vec3<f32>, Vec2<Vec3<f32>>, Vec3<f32>, &M),
-        FT: for<'r> FnMut(&'r mut D, Vec3<i32>, u8, u8) -> <<ColLightFmt as gfx::format::Formatted>::Surface as gfx::format::SurfaceTyped>::DataType + 'a,
+        FT: for<'r> FnMut(&'r mut D, Vec3<i32>, u8, u8) -> [u8; 4] + 'a,
     {
         span!(_guard, "push", "GreedyMesh::push");
         let cont = greedy_mesh(
@@ -211,7 +211,7 @@ where
     FO: for<'r> FnMut(&'r mut D, Vec3<i32>) -> bool + 'a,
     FS: for<'r> FnMut(&'r mut D, Vec3<i32>, Vec3<i32>, Vec2<Vec3<i32>>) -> Option<(bool, M)>,
     FP: FnMut(Vec2<u16>, Vec2<Vec2<u16>>, Vec3<f32>, Vec2<Vec3<f32>>, Vec3<f32>, &M),
-    FT: for<'r> FnMut(&'r mut D, Vec3<i32>, u8, u8) -> <<ColLightFmt as gfx::format::Formatted>::Surface as gfx::format::SurfaceTyped>::DataType + 'a,
+    FT: for<'r> FnMut(&'r mut D, Vec3<i32>, u8, u8) -> [u8; 4] + 'a,
 {
     span!(_guard, "greedy_mesh");
     // TODO: Collect information to see if we can choose a good value here.

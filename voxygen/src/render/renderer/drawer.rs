@@ -43,6 +43,7 @@ impl<'a> Drawer<'a> {
                     .as_mut()
                     .unwrap()
                     .begin_render_pass(&wgpu::RenderPassDescriptor {
+                        label: Some("shadow pass"),
                         color_attachments: &[],
                         depth_stencil_attachment: Some(
                             wgpu::RenderPassDepthStencilAttachmentDescriptor {
@@ -74,6 +75,7 @@ impl<'a> Drawer<'a> {
                 .as_mut()
                 .unwrap()
                 .begin_render_pass(&wgpu::RenderPassDescriptor {
+                    label: Some("first pass"),
                     color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
                         attachment: &self.renderer.tgt_color_view,
                         resolve_target: None,
@@ -109,6 +111,7 @@ impl<'a> Drawer<'a> {
                 .as_mut()
                 .unwrap()
                 .begin_render_pass(&wgpu::RenderPassDescriptor {
+                    label: Some("second pass (clouds)"),
                     color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
                         attachment: &self.renderer.tgt_color_pp_view,
                         resolve_target: None,
@@ -135,6 +138,7 @@ impl<'a> Drawer<'a> {
                 .as_mut()
                 .unwrap()
                 .begin_render_pass(&wgpu::RenderPassDescriptor {
+                    label: Some("third pass (postprocess + ui)"),
                     color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
                         attachment: &self.tex.view,
                         resolve_target: None,
@@ -180,11 +184,13 @@ impl<'a> Drawer<'a> {
                             array_layer_count: NonZeroU32::new(1),
                         });
 
+                let label = format!("point shadow face: {} pass", face);
                 let mut render_pass =
                     self.encoder
                         .as_mut()
                         .unwrap()
                         .begin_render_pass(&wgpu::RenderPassDescriptor {
+                            label: Some(&label),
                             color_attachments: &[],
                             depth_stencil_attachment: Some(
                                 wgpu::RenderPassDepthStencilAttachmentDescriptor {

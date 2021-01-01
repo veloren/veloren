@@ -113,8 +113,3 @@ nativeBuildInputs = ["pkg-config"]
 # macos CI fix isn't merged yet
 winit = { git = "https://gitlab.com/veloren/winit.git", branch = "macos-test-spiffed" }
 vek = { git = "https://gitlab.com/veloren/vek.git", branch = "fix_intrinsics2" }
-
-# Pending https://github.com/gfx-rs/wgpu/pull/1080
-[patch.'https://github.com/gfx-rs/wgpu']
-wgpu-core = { git="https://github.com/JCapucho/wgpu" }
-wgpu-types = { git="https://github.com/JCapucho/wgpu" }

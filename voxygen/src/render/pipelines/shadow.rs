@@ -137,7 +137,7 @@ impl ShadowFigurePipeline {
         figure_layout: &FigureLayout,
         aa_mode: AaMode,
     ) -> Self {
-        common::span!(_guard, "new");
+        common_base::span!(_guard, "new");
 
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {

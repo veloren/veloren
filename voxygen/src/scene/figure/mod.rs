@@ -4772,9 +4772,9 @@ impl FigureMgr {
         )
             .join()
         // Don't render dead entities
-        .filter(|(_, _, _, health, _)| health.map_or(true, |h| !h.is_dead))
+        .filter(|(_, _, _, health, _, _)| health.map_or(true, |h| !h.is_dead))
         // Don't render player 
-        .filter(|(entity, _, _, _, _)| *entity != player_entity)
+        .filter(|(entity, _, _, _, _, _)| *entity != player_entity)
         {
             if let Some((bound, model, col_lights)) = self.get_model_for_render(
                 tick,
