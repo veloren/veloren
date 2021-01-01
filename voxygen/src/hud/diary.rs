@@ -17,6 +17,7 @@ use client::{self, Client};
 use common::comp::{
     item::tool::ToolKind,
     skills::{self, Skill},
+    Stats,
 };
 use inline_tweak::*;
 
@@ -146,6 +147,7 @@ widget_ids! {
 pub struct Diary<'a> {
     show: &'a Show,
     _client: &'a Client,
+    stats: &'a Stats,
 
     imgs: &'a Imgs,
     item_imgs: &'a ItemImgs,
@@ -160,13 +162,13 @@ pub struct Diary<'a> {
     created_btns_top_r: usize,
     created_btns_bot_l: usize,
     created_btns_bot_r: usize,
-    example_skill_count: usize,
 }
 
 impl<'a> Diary<'a> {
     pub fn new(
         show: &'a Show,
         _client: &'a Client,
+        stats: &'a Stats,
         imgs: &'a Imgs,
         item_imgs: &'a ItemImgs,
         fonts: &'a Fonts,
@@ -177,6 +179,7 @@ impl<'a> Diary<'a> {
         Self {
             show,
             _client,
+            stats,
             imgs,
             item_imgs,
             fonts,
@@ -188,7 +191,6 @@ impl<'a> Diary<'a> {
             created_btns_top_r: 0,
             created_btns_bot_l: 0,
             created_btns_bot_r: 0,
-            example_skill_count: 0,
         }
     }
 }
@@ -610,6 +612,7 @@ impl<'a> Widget for Diary<'a> {
         // Skill-Icons and Functionality
         // Art dimensions
         let art_size = [tweak!(320.0), tweak!(320.0)];
+        let skills = &self.stats.skill_set.skills;
         match sel_tab {
             SelectedSkillTree::GeneralCombat => {
                 use skills::{GeneralSkill::*, RollSkill::*, SkillGroupType::*};
@@ -625,10 +628,15 @@ impl<'a> Widget for Diary<'a> {
                 //        5 1 6
                 //        3 0 4
                 //        8 2 7
+                let skill = Skill::General(HealthIncrease);
                 if Button::image(self.imgs.not_found)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_l[0])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -644,12 +652,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_general_stat_0, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::General(HealthIncrease)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::General(EnergyIncrease);
                 if Button::image(self.imgs.not_found)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_l[1])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -665,13 +678,18 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_general_stat_1, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::General(EnergyIncrease)));
+                    events.push(Event::UnlockSkill(skill));
                 };
                 // Top right skills
+                let skill = Skill::UnlockGroup(Weapon(Sword));
                 if Button::image(self.imgs.not_found)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[0])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -687,12 +705,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_general_tree_0, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::UnlockGroup(Weapon(Sword))));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::UnlockGroup(Weapon(Axe));
                 if Button::image(self.imgs.not_found)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[1])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -708,12 +731,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_general_tree_1, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::UnlockGroup(Weapon(Axe))));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::UnlockGroup(Weapon(Hammer));
                 if Button::image(self.imgs.not_found)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[2])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -729,12 +757,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_general_tree_2, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::UnlockGroup(Weapon(Hammer))));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::UnlockGroup(Weapon(Bow));
                 if Button::image(self.imgs.not_found)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[3])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -750,12 +783,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_general_tree_3, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::UnlockGroup(Weapon(Bow))));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::UnlockGroup(Weapon(Staff));
                 if Button::image(self.imgs.not_found)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[4])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -771,12 +809,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_general_tree_4, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::UnlockGroup(Weapon(Staff))));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::UnlockGroup(Weapon(Sceptre));
                 if Button::image(self.imgs.not_found)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[5])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -792,13 +835,18 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_general_tree_5, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::UnlockGroup(Weapon(Sceptre))));
+                    events.push(Event::UnlockSkill(skill));
                 };
                 // Bottom left skills
+                let skill = Skill::Roll(ImmuneMelee);
                 if Button::image(self.imgs.not_found)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_bot_l[0])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -814,12 +862,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_general_roll_0, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Roll(ImmuneMelee)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Roll(Cost);
                 if Button::image(self.imgs.not_found)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_bot_l[1])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -835,12 +888,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_general_roll_1, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Roll(Cost)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Roll(Strength);
                 if Button::image(self.imgs.not_found)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_bot_l[2])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -856,12 +914,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_general_roll_2, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Roll(Strength)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Roll(Duration);
                 if Button::image(self.imgs.not_found)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_bot_l[3])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -877,7 +940,7 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_general_roll_3, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Roll(Duration)));
+                    events.push(Event::UnlockSkill(skill));
                 };
             },
             SelectedSkillTree::Sword => {
@@ -896,10 +959,15 @@ impl<'a> Widget for Diary<'a> {
                 //        5 1 6
                 //        3 0 4
                 //        8 2 7
+                let skill = Skill::Sword(TsCombo);
                 if Button::image(self.imgs.sword_whirlwind)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_l[0])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -915,12 +983,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_sword_combo_0, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Sword(TsCombo)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Sword(TsDamage);
                 if Button::image(self.imgs.sword_whirlwind)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_l[1])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -936,12 +1009,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_sword_combo_1, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Sword(TsDamage)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Sword(TsSpeed);
                 if Button::image(self.imgs.sword_whirlwind)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_l[2])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -957,12 +1035,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_sword_combo_2, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Sword(TsSpeed)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Sword(TsRegen);
                 if Button::image(self.imgs.sword_whirlwind)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_l[3])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -978,13 +1061,18 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_sword_combo_3, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Sword(TsRegen)));
+                    events.push(Event::UnlockSkill(skill));
                 };
                 // Top right skills
+                let skill = Skill::Sword(DDamage);
                 if Button::image(self.imgs.sword_whirlwind)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[0])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1000,12 +1088,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_sword_dash_0, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Sword(DDamage)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Sword(DDrain);
                 if Button::image(self.imgs.sword_whirlwind)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[1])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1021,12 +1114,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_sword_dash_1, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Sword(DDrain)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Sword(DCost);
                 if Button::image(self.imgs.sword_whirlwind)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[2])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1042,12 +1140,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_sword_dash_2, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Sword(DCost)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Sword(DSpeed);
                 if Button::image(self.imgs.sword_whirlwind)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[3])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1063,12 +1166,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_sword_dash_3, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Sword(DSpeed)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Sword(DInfinite);
                 if Button::image(self.imgs.sword_whirlwind)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[4])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1084,12 +1192,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_sword_dash_4, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Sword(DInfinite)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Sword(DScaling);
                 if Button::image(self.imgs.sword_whirlwind)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[5])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1105,13 +1218,18 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_sword_dash_5, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Sword(DScaling)));
+                    events.push(Event::UnlockSkill(skill));
                 };
                 // Bottom left skills
+                let skill = Skill::Sword(SUnlockSpin);
                 if Button::image(self.imgs.sword_whirlwind)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_bot_l[0])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1127,12 +1245,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_sword_spin_0, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Sword(SUnlockSpin)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Sword(SDamage);
                 if Button::image(self.imgs.sword_whirlwind)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_bot_l[1])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1148,12 +1271,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_sword_spin_1, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Sword(SDamage)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Sword(SSpeed);
                 if Button::image(self.imgs.sword_whirlwind)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_bot_l[2])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1169,12 +1297,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_sword_spin_2, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Sword(SSpeed)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Sword(SCost);
                 if Button::image(self.imgs.sword_whirlwind)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_bot_l[3])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1190,12 +1323,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_sword_spin_3, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Sword(SCost)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Sword(SSpins);
                 if Button::image(self.imgs.sword_whirlwind)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_bot_l[4])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1211,13 +1349,18 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_sword_spin_4, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Sword(SSpins)));
+                    events.push(Event::UnlockSkill(skill));
                 };
                 // Bottom right skills
+                let skill = Skill::Sword(InterruptingAttacks);
                 if Button::image(self.imgs.sword_whirlwind)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_bot_r[0])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1233,7 +1376,7 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_sword_passive_0, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Sword(InterruptingAttacks)));
+                    events.push(Event::UnlockSkill(skill));
                 };
             },
             SelectedSkillTree::Axe => {
@@ -1252,10 +1395,15 @@ impl<'a> Widget for Diary<'a> {
                 //        5 1 6
                 //        3 0 4
                 //        8 2 7
+                let skill = Skill::Axe(DsCombo);
                 if Button::image(self.imgs.axespin)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_l[0])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1271,12 +1419,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_axe_combo_0, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Axe(DsCombo)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Axe(DsDamage);
                 if Button::image(self.imgs.axespin)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_l[1])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1292,12 +1445,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_axe_combo_1, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Axe(DsDamage)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Axe(DsSpeed);
                 if Button::image(self.imgs.axespin)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_l[2])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1313,12 +1471,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_axe_combo_2, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Axe(DsSpeed)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Axe(DsRegen);
                 if Button::image(self.imgs.axespin)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_l[3])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1334,13 +1497,18 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_axe_combo_3, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Axe(DsRegen)));
+                    events.push(Event::UnlockSkill(skill));
                 };
                 // Top right skills
+                let skill = Skill::Axe(SInfinite);
                 if Button::image(self.imgs.axespin)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[0])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1356,12 +1524,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_axe_spin_0, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Axe(SInfinite)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Axe(SDamage);
                 if Button::image(self.imgs.axespin)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[1])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1377,12 +1550,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_axe_spin_1, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Axe(SDamage)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Axe(SHelicopter);
                 if Button::image(self.imgs.axespin)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[2])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1398,12 +1576,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_axe_spin_2, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Axe(SHelicopter)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Axe(SSpeed);
                 if Button::image(self.imgs.axespin)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[3])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1419,12 +1602,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_axe_spin_3, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Axe(SSpeed)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Axe(SCost);
                 if Button::image(self.imgs.axespin)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[4])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1440,13 +1628,18 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_axe_spin_4, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Axe(SCost)));
+                    events.push(Event::UnlockSkill(skill));
                 };
                 // Bottom left skills
+                let skill = Skill::Axe(LUnlockLeap);
                 if Button::image(self.imgs.axespin)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_bot_l[0])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1462,12 +1655,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_axe_leap_0, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Axe(LUnlockLeap)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Axe(LDamage);
                 if Button::image(self.imgs.axespin)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_bot_l[1])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1483,12 +1681,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_axe_leap_1, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Axe(LDamage)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Axe(LKnockback);
                 if Button::image(self.imgs.axespin)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_bot_l[2])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1504,12 +1707,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_axe_leap_2, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Axe(LKnockback)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Axe(LCost);
                 if Button::image(self.imgs.axespin)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_bot_l[3])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1525,12 +1733,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_axe_leap_3, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Axe(LCost)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Axe(LDistance);
                 if Button::image(self.imgs.axespin)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_bot_l[4])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1546,7 +1759,7 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_axe_leap_4, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Axe(LDistance)));
+                    events.push(Event::UnlockSkill(skill));
                 };
             },
             SelectedSkillTree::Hammer => {
@@ -1565,10 +1778,15 @@ impl<'a> Widget for Diary<'a> {
                 //        5 1 6
                 //        3 0 4
                 //        8 2 7
+                let skill = Skill::Hammer(SsKnockback);
                 if Button::image(self.imgs.hammergolf)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_l[0])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1584,12 +1802,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_hammer_combo_0, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Hammer(SsKnockback)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Hammer(SsDamage);
                 if Button::image(self.imgs.hammergolf)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_l[1])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1605,12 +1828,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_hammer_combo_1, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Hammer(SsDamage)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Hammer(SsSpeed);
                 if Button::image(self.imgs.hammergolf)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_l[2])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1626,12 +1854,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_hammer_combo_2, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Hammer(SsSpeed)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Hammer(SsRegen);
                 if Button::image(self.imgs.hammergolf)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_l[3])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1647,13 +1880,18 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_hammer_combo_3, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Hammer(SsRegen)));
+                    events.push(Event::UnlockSkill(skill));
                 };
                 // Top right skills
+                let skill = Skill::Hammer(CKnockback);
                 if Button::image(self.imgs.hammergolf)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[0])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1669,12 +1907,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_hammer_charged_0, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Hammer(CKnockback)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Hammer(CDamage);
                 if Button::image(self.imgs.hammergolf)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[1])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1690,12 +1933,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_hammer_charged_1, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Hammer(CDamage)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Hammer(CDrain);
                 if Button::image(self.imgs.hammergolf)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[2])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1711,12 +1959,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_hammer_charged_2, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Hammer(CDrain)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Hammer(CSpeed);
                 if Button::image(self.imgs.hammergolf)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[3])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1732,13 +1985,18 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_hammer_charged_3, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Hammer(CSpeed)));
+                    events.push(Event::UnlockSkill(skill));
                 };
                 // Bottom left skills
+                let skill = Skill::Hammer(LUnlockLeap);
                 if Button::image(self.imgs.hammergolf)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_bot_l[0])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1754,12 +2012,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_hammer_leap_0, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Hammer(LUnlockLeap)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Hammer(LDamage);
                 if Button::image(self.imgs.hammergolf)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_bot_l[1])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1775,12 +2038,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_hammer_leap_1, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Hammer(LDamage)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Hammer(LKnockback);
                 if Button::image(self.imgs.hammergolf)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_bot_l[2])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1796,12 +2064,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_hammer_leap_2, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Hammer(LKnockback)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Hammer(LCost);
                 if Button::image(self.imgs.hammergolf)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_bot_l[3])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1817,12 +2090,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_hammer_leap_3, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Hammer(LCost)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Hammer(LDistance);
                 if Button::image(self.imgs.hammergolf)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_bot_l[4])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1838,12 +2116,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_hammer_leap_4, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Hammer(LDistance)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Hammer(LRange);
                 if Button::image(self.imgs.hammergolf)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_bot_l[5])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1859,7 +2142,7 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_hammer_leap_5, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Hammer(LRange)));
+                    events.push(Event::UnlockSkill(skill));
                 };
             },
             SelectedSkillTree::Bow => {
@@ -1877,10 +2160,15 @@ impl<'a> Widget for Diary<'a> {
                 //        5 1 6
                 //        3 0 4
                 //        8 2 7
+                let skill = Skill::Bow(BDamage);
                 if Button::image(self.imgs.bow_m1)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_l[0])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1896,12 +2184,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_bow_basic_0, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Bow(BDamage)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Bow(BRegen);
                 if Button::image(self.imgs.bow_m1)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_l[1])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1917,13 +2210,18 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_bow_basic_1, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Bow(BRegen)));
+                    events.push(Event::UnlockSkill(skill));
                 };
                 // Top right skills
+                let skill = Skill::Bow(CDamage);
                 if Button::image(self.imgs.bow_m1)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[0])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1939,12 +2237,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_bow_charged_0, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Bow(CDamage)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Bow(CDrain);
                 if Button::image(self.imgs.bow_m1)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[1])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1960,12 +2263,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_bow_charged_1, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Bow(CDrain)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Bow(CProjSpeed);
                 if Button::image(self.imgs.bow_m1)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[2])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -1981,12 +2289,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_bow_charged_2, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Bow(CProjSpeed)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Bow(CSpeed);
                 if Button::image(self.imgs.bow_m1)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[3])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -2002,12 +2315,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_bow_charged_3, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Bow(CSpeed)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Bow(CMove);
                 if Button::image(self.imgs.bow_m1)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[4])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -2023,12 +2341,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_bow_charged_4, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Bow(CMove)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Bow(CKnockback);
                 if Button::image(self.imgs.bow_m1)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[5])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -2044,13 +2367,18 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_bow_charged_5, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Bow(CKnockback)));
+                    events.push(Event::UnlockSkill(skill));
                 };
                 // Bottom left skills
+                let skill = Skill::Bow(UnlockRepeater);
                 if Button::image(self.imgs.bow_m1)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_bot_l[0])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -2066,12 +2394,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_bow_repeater_0, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Bow(UnlockRepeater)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Bow(RDamage);
                 if Button::image(self.imgs.bow_m1)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_bot_l[1])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -2087,12 +2420,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_bow_repeater_1, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Bow(RDamage)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Bow(RGlide);
                 if Button::image(self.imgs.bow_m1)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_bot_l[2])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -2108,12 +2446,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_bow_repeater_2, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Bow(RGlide)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Bow(RCost);
                 if Button::image(self.imgs.bow_m1)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_bot_l[3])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -2129,12 +2472,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_bow_repeater_3, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Bow(RCost)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Bow(RArrows);
                 if Button::image(self.imgs.bow_m1)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_bot_l[4])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -2150,13 +2498,18 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_bow_repeater_4, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Bow(RArrows)));
+                    events.push(Event::UnlockSkill(skill));
                 };
                 // Bottom right skills
+                let skill = Skill::Bow(ProjSpeed);
                 if Button::image(self.imgs.bow_m1)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_bot_r[0])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -2172,7 +2525,7 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_bow_passive_0, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Bow(ProjSpeed)));
+                    events.push(Event::UnlockSkill(skill));
                 };
             },
             SelectedSkillTree::StaffFire => {
@@ -2191,10 +2544,15 @@ impl<'a> Widget for Diary<'a> {
                 //        5 1 6
                 //        3 0 4
                 //        8 2 7
+                let skill = Skill::Staff(BExplosion);
                 if Button::image(self.imgs.fireball)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_l[0])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -2210,12 +2568,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_staff_basic_0, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Staff(BExplosion)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Staff(BDamage);
                 if Button::image(self.imgs.fireball)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_l[1])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -2231,12 +2594,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_staff_basic_1, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Staff(BDamage)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Staff(BRegen);
                 if Button::image(self.imgs.fireball)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_l[2])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -2252,12 +2620,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_staff_basic_2, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Staff(BRegen)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Staff(BRadius);
                 if Button::image(self.imgs.fireball)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_l[3])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -2273,13 +2646,18 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_staff_basic_3, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Staff(BRadius)));
+                    events.push(Event::UnlockSkill(skill));
                 };
                 // Top right skills
+                let skill = Skill::Staff(FDamage);
                 if Button::image(self.imgs.fireball)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[0])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -2295,12 +2673,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_staff_beam_0, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Staff(FDamage)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Staff(FDrain);
                 if Button::image(self.imgs.fireball)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[1])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -2316,12 +2699,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_staff_beam_1, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Staff(FDrain)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Staff(FRange);
                 if Button::image(self.imgs.fireball)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[2])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -2337,12 +2725,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_staff_beam_2, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Staff(FRange)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Staff(FVelocity);
                 if Button::image(self.imgs.fireball)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[3])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -2358,13 +2751,18 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_staff_beam_3, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Staff(FVelocity)));
+                    events.push(Event::UnlockSkill(skill));
                 };
                 // Bottom left skills
+                let skill = Skill::Staff(UnlockShockwave);
                 if Button::image(self.imgs.fireball)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_bot_l[0])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -2380,12 +2778,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_staff_shockwave_0, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Staff(UnlockShockwave)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Staff(SDamage);
                 if Button::image(self.imgs.fireball)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_bot_l[1])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -2401,12 +2804,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_staff_shockwave_1, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Staff(SDamage)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Staff(SKnockback);
                 if Button::image(self.imgs.fireball)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_bot_l[2])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -2422,12 +2830,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_staff_shockwave_2, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Staff(SKnockback)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Staff(SCost);
                 if Button::image(self.imgs.fireball)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_bot_l[3])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -2443,12 +2856,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_staff_shockwave_3, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Staff(SCost)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Staff(SRange);
                 if Button::image(self.imgs.fireball)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_bot_l[4])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -2464,7 +2882,7 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_staff_shockwave_4, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Staff(SRange)));
+                    events.push(Event::UnlockSkill(skill));
                 };
             },
             SelectedSkillTree::Sceptre => {
@@ -2483,10 +2901,15 @@ impl<'a> Widget for Diary<'a> {
                 //        5 1 6
                 //        3 0 4
                 //        8 2 7
+                let skill = Skill::Sceptre(BHeal);
                 if Button::image(self.imgs.heal_0)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_l[0])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -2502,12 +2925,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_sceptre_beam_0, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Sceptre(BHeal)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Sceptre(BDamage);
                 if Button::image(self.imgs.heal_0)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_l[1])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -2523,12 +2951,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_sceptre_beam_1, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Sceptre(BDamage)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Sceptre(BRegen);
                 if Button::image(self.imgs.heal_0)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_l[2])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -2544,12 +2977,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_sceptre_beam_2, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Sceptre(BRegen)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Sceptre(BRange);
                 if Button::image(self.imgs.heal_0)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_l[3])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -2565,12 +3003,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_sceptre_beam_3, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Sceptre(BRange)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Sceptre(BLifesteal);
                 if Button::image(self.imgs.heal_0)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_l[4])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -2586,12 +3029,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_sceptre_beam_4, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Sceptre(BLifesteal)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Sceptre(BCost);
                 if Button::image(self.imgs.heal_0)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_l[5])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -2607,13 +3055,18 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_sceptre_beam_5, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Sceptre(BCost)));
+                    events.push(Event::UnlockSkill(skill));
                 };
                 // Top right skills
+                let skill = Skill::Sceptre(PHeal);
                 if Button::image(self.imgs.heal_0)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[0])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -2629,12 +3082,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_sceptre_bomb_0, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Sceptre(PHeal)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Sceptre(PDamage);
                 if Button::image(self.imgs.heal_0)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[1])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -2650,12 +3108,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_sceptre_bomb_1, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Sceptre(PDamage)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Sceptre(PRadius);
                 if Button::image(self.imgs.heal_0)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[2])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -2671,12 +3134,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_sceptre_bomb_2, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Sceptre(PRadius)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Sceptre(PCost);
                 if Button::image(self.imgs.heal_0)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[3])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -2692,12 +3160,17 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_sceptre_bomb_3, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Sceptre(PCost)));
+                    events.push(Event::UnlockSkill(skill));
                 };
+                let skill = Skill::Sceptre(PProjSpeed);
                 if Button::image(self.imgs.heal_0)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[4])
-                    .label(&self.example_skill_count.to_string())
+                    .label(&format!(
+                        "{}/{}",
+                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                        skill.get_max_level().unwrap_or(1)
+                    ))
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
                     .label_color(TEXT_COLOR)
@@ -2713,7 +3186,7 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_sceptre_bomb_4, ui)
                     .was_clicked()
                 {
-                    events.push(Event::UnlockSkill(Skill::Sceptre(PProjSpeed)));
+                    events.push(Event::UnlockSkill(skill));
                 };
             },
             _ => {},
