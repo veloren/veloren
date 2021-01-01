@@ -60,7 +60,6 @@ pub struct RawLocalization {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Localization {
     /// A list of subdirectories to lookup for localization files
-    ///
     pub sub_directories: Vec<String>,
 
     /// A map storing the localized texts
@@ -454,14 +453,18 @@ mod tests {
 
     fn verify_localization_directory(directory_path: &Path) {
         let root_dir = std::env::current_dir()
-        .map(|p| p.parent().expect("").to_owned())
-        .unwrap();
+            .map(|p| p.parent().expect("").to_owned())
+            .unwrap();
         // Walk through each file in the directory
         for i18n_file in root_dir.join(&directory_path).read_dir().unwrap() {
             if let Ok(i18n_file) = i18n_file {
                 if let Ok(file_type) = i18n_file.file_type() {
-                    // Skip folders and the manifest file (which does not contain the same struct we want to load)
-                    if file_type.is_file() && i18n_file.file_name().to_string_lossy() != (LANG_MANIFEST_FILE.to_string() + ".ron") {
+                    // Skip folders and the manifest file (which does not contain the same struct we
+                    // want to load)
+                    if file_type.is_file()
+                        && i18n_file.file_name().to_string_lossy()
+                            != (LANG_MANIFEST_FILE.to_string() + ".ron")
+                    {
                         let full_path = i18n_file.path();
                         println!("-> {:?}", full_path.strip_prefix(&root_dir).unwrap());
                         let f = fs::File::open(&full_path).expect("Failed opening file");
@@ -513,7 +516,10 @@ mod tests {
         for i18n_directory in i18n_directories {
             // Attempt to load the manifest file
             let manifest_path = i18n_directory.join(LANG_MANIFEST_FILE.to_string() + ".ron");
-            println!("verifying {:?}", manifest_path.strip_prefix(&root_dir).unwrap());
+            println!(
+                "verifying {:?}",
+                manifest_path.strip_prefix(&root_dir).unwrap()
+            );
             let f = fs::File::open(&manifest_path).expect("Failed opening file");
             let raw_localization: RawLocalization = match from_reader(f) {
                 Ok(v) => v,
