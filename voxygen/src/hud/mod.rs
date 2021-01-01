@@ -2316,26 +2316,33 @@ impl Hud {
 
         // Diary
         if self.show.diary {
-            for event in Diary::new(
-                &self.show,
-                client,
-                &self.imgs,
-                &self.item_imgs,
-                &self.fonts,
-                i18n,
-                &self.rot_imgs,
-                tooltip_manager,
-            )
-            .set(self.ids.diary, ui_widgets)
-            {
-                match event {
-                    diary::Event::Close => {
-                        self.show.diary(false);
-                        self.show.want_grab = true;
-                        self.force_ungrab = false;
-                    },
-                    diary::Event::ChangeWeaponTree(tree_sel) => self.show.open_skill_tree(tree_sel),
-                    diary::Event::UnlockSkill(skill) => events.push(Event::UnlockSkill(skill)),
+            let entity = client.entity();
+            let stats = ecs.read_storage::<comp::Stats>();
+            if let Some(stats) = stats.get(entity) {
+                for event in Diary::new(
+                    &self.show,
+                    client,
+                    &stats,
+                    &self.imgs,
+                    &self.item_imgs,
+                    &self.fonts,
+                    i18n,
+                    &self.rot_imgs,
+                    tooltip_manager,
+                )
+                .set(self.ids.diary, ui_widgets)
+                {
+                    match event {
+                        diary::Event::Close => {
+                            self.show.diary(false);
+                            self.show.want_grab = true;
+                            self.force_ungrab = false;
+                        },
+                        diary::Event::ChangeWeaponTree(tree_sel) => {
+                            self.show.open_skill_tree(tree_sel)
+                        },
+                        diary::Event::UnlockSkill(skill) => events.push(Event::UnlockSkill(skill)),
+                    }
                 }
             }
         }
