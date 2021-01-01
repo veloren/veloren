@@ -8,7 +8,7 @@ use crate::{
     settings::GameplaySettings,
     ui::{fonts::Fonts, Ingameable},
 };
-use common::comp::{BuffKind, Buffs, Energy, Health, SpeechBubble, SpeechBubbleType, Stats};
+use common::comp::{BuffKind, Buffs, Energy, Health, SpeechBubble, SpeechBubbleType};
 use conrod_core::{
     color,
     position::Align,
@@ -57,7 +57,6 @@ widget_ids! {
 #[derive(Clone, Copy)]
 pub struct Info<'a> {
     pub name: &'a str,
-    pub stats: &'a Stats,
     pub health: &'a Health,
     pub buffs: &'a Buffs,
     pub energy: Option<&'a Energy>,
@@ -72,7 +71,6 @@ pub fn should_show_healthbar(health: &Health) -> bool { health.current() != heal
 pub struct Overhead<'a> {
     info: Option<Info<'a>>,
     bubble: Option<&'a SpeechBubble>,
-    own_level: u32,
     in_group: bool,
     settings: &'a GameplaySettings,
     pulse: f32,
@@ -89,7 +87,6 @@ impl<'a> Overhead<'a> {
     pub fn new(
         info: Option<Info<'a>>,
         bubble: Option<&'a SpeechBubble>,
-        own_level: u32,
         in_group: bool,
         settings: &'a GameplaySettings,
         pulse: f32,
@@ -100,7 +97,6 @@ impl<'a> Overhead<'a> {
         Self {
             info,
             bubble,
-            own_level,
             in_group,
             settings,
             pulse,
@@ -171,7 +167,6 @@ impl<'a> Widget for Overhead<'a> {
         const MANA_BAR_Y: f64 = MANA_BAR_HEIGHT / 2.0;
         if let Some(Info {
             name,
-            stats,
             health,
             buffs,
             energy,
@@ -180,13 +175,10 @@ impl<'a> Widget for Overhead<'a> {
             // Used to set healthbar colours based on hp_percentage
             let hp_percentage = health.current() as f64 / health.maximum() as f64 * 100.0;
             // Compare levels to decide if a skull is shown
-            let level_comp = stats.level.level() as i64 - self.own_level as i64;
             let health_current = (health.current() / 10) as f64;
             let health_max = (health.maximum() / 10) as f64;
             let name_y = if (health_current - health_max).abs() < 1e-6 {
                 MANA_BAR_Y + 20.0
-            } else if level_comp > 9 && !self.in_group {
-                MANA_BAR_Y + 38.0
             } else {
                 MANA_BAR_Y + 32.0
             };
@@ -373,51 +365,6 @@ impl<'a> Widget for Overhead<'a> {
                 .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.99)))
                 .parent(id)
                 .set(state.ids.health_bar_fg, ui);
-
-                // Level
-                const LOW: Color = Color::Rgba(0.54, 0.81, 0.94, 0.4);
-                const HIGH: Color = Color::Rgba(1.0, 0.0, 0.0, 1.0);
-                const EQUAL: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
-                // Change visuals of the level display depending on the player level/opponent
-                // level
-                let level_comp = stats.level.level() as i64 - self.own_level as i64;
-                // + 10 level above player -> skull
-                // + 5-10 levels above player -> high
-                // -5 - +5 levels around player level -> equal
-                // - 5 levels below player -> low
-                if level_comp > 9 && !self.in_group {
-                    let skull_ani = ((self.pulse * 0.7/* speed factor */).cos() * 0.5 + 0.5) * 10.0; //Animation timer
-                    Image::new(if skull_ani as i32 == 1 && rand::random::<f32>() < 0.9 {
-                        self.imgs.skull_2
-                    } else {
-                        self.imgs.skull
-                    })
-                    .w_h(18.0 * BARSIZE, 18.0 * BARSIZE)
-                    .x_y(-39.0 * BARSIZE, MANA_BAR_Y + 7.0)
-                    .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
-                    .parent(id)
-                    .set(state.ids.level_skull, ui);
-                } else {
-                    let fnt_size = match stats.level.level() {
-                        0..=9 => 15,
-                        10..=99 => 12,
-                        100..=999 => 9,
-                        _ => 2,
-                    };
-                    Text::new(&format!("{}", stats.level.level()))
-                        .font_id(self.fonts.cyri.conrod_id)
-                        .font_size(fnt_size)
-                        .color(if level_comp > 4 {
-                            HIGH
-                        } else if level_comp < -5 {
-                            LOW
-                        } else {
-                            EQUAL
-                        })
-                        .x_y(-37.0 * BARSIZE, MANA_BAR_Y + 9.0)
-                        .parent(id)
-                        .set(state.ids.level, ui);
-                }
             }
         }
 

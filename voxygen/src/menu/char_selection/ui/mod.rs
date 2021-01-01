@@ -448,13 +448,6 @@ impl Controls {
                                                 // are
                                                 // loaded
                                                 Text::new(
-                                                    i18n.get("char_selection.level_fmt").replace(
-                                                        "{level_nb}",
-                                                        &character.level.to_string(),
-                                                    ),
-                                                )
-                                                .into(),
-                                                Text::new(
                                                     i18n.get("char_selection.uncanny_valley"),
                                                 )
                                                 .into(),

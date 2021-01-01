@@ -4,7 +4,7 @@ ItemDef(
     kind: Consumable(
         kind: "VeloriteFrag",
         effect: [
-            Xp(10),
+            /*Xp(10),*/
         ]
     ),
     quality: Moderate,

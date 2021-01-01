@@ -84,12 +84,6 @@ impl StateExt for State {
                     .get_mut(entity)
                     .map(|mut health| health.change_by(change));
             },
-            Effect::Xp(xp) => {
-                self.ecs()
-                    .write_storage::<comp::Stats>()
-                    .get_mut(entity)
-                    .map(|mut stats| stats.exp.change_by(xp));
-            },
             Effect::Damage(damage) => {
                 let inventories = self.ecs().read_storage::<Inventory>();
                 let change = damage.modify_damage(inventories.get(entity), source);
@@ -266,7 +260,6 @@ impl StateExt for State {
             self.notify_players(ServerGeneral::PlayerListUpdate(
                 PlayerListUpdate::SelectedCharacter(player_uid, CharacterInfo {
                     name: String::from(&stats.name),
-                    level: stats.level.level(),
                 }),
             ));
 
@@ -278,7 +271,7 @@ impl StateExt for State {
             self.write_component(entity, body);
             self.write_component(
                 entity,
-                comp::Health::new(stats.body_type, stats.level.level()),
+                comp::Health::new(stats.body_type, 0), //Placeholder 0
             );
             self.write_component(entity, stats);
             self.write_component(entity, inventory);

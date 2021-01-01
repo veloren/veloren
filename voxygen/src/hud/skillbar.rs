@@ -2,7 +2,7 @@ use super::{
     hotbar,
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
-    slots, BarNumbers, ShortcutNumbers, Show, BLACK, CRITICAL_HP_COLOR, HP_COLOR, LOW_HP_COLOR,
+    slots, BarNumbers, ShortcutNumbers, BLACK, CRITICAL_HP_COLOR, HP_COLOR, LOW_HP_COLOR,
     STAMINA_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0,
 };
 use crate::{
@@ -21,7 +21,7 @@ use common::comp::{
         tool::{AbilityMap, Tool, ToolKind},
         Hands, ItemKind,
     },
-    Energy, Health, Inventory, Stats,
+    Energy, Health, Inventory,
 };
 use conrod_core::{
     color,
@@ -29,7 +29,6 @@ use conrod_core::{
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 use inline_tweak::*;
-use std::time::{Duration, Instant};
 use vek::*;
 
 widget_ids! {
@@ -129,7 +128,6 @@ pub struct Skillbar<'a> {
     item_imgs: &'a ItemImgs,
     fonts: &'a Fonts,
     rot_imgs: &'a ImgsRot,
-    stats: &'a Stats,
     health: &'a Health,
     inventory: &'a Inventory,
     energy: &'a Energy,
@@ -142,7 +140,6 @@ pub struct Skillbar<'a> {
     pulse: f32,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
-    show: &'a Show,
     ability_map: &'a AbilityMap,
 }
 
@@ -154,7 +151,6 @@ impl<'a> Skillbar<'a> {
         item_imgs: &'a ItemImgs,
         fonts: &'a Fonts,
         rot_imgs: &'a ImgsRot,
-        stats: &'a Stats,
         health: &'a Health,
         inventory: &'a Inventory,
         energy: &'a Energy,
@@ -165,7 +161,6 @@ impl<'a> Skillbar<'a> {
         tooltip_manager: &'a mut TooltipManager,
         slot_manager: &'a mut slots::SlotManager,
         localized_strings: &'a Localization,
-        show: &'a Show,
         ability_map: &'a AbilityMap,
     ) -> Self {
         Self {
@@ -174,7 +169,6 @@ impl<'a> Skillbar<'a> {
             item_imgs,
             fonts,
             rot_imgs,
-            stats,
             health,
             inventory,
             energy,
@@ -186,7 +180,6 @@ impl<'a> Skillbar<'a> {
             tooltip_manager,
             slot_manager,
             localized_strings,
-            show,
             ability_map,
         }
     }
@@ -194,8 +187,6 @@ impl<'a> Skillbar<'a> {
 
 pub struct State {
     ids: Ids,
-    last_level: u32,
-    last_update_level: Instant,
 }
 
 impl<'a> Widget for Skillbar<'a> {
@@ -206,8 +197,6 @@ impl<'a> Widget for Skillbar<'a> {
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
             ids: Ids::new(id_gen),
-            last_level: 1,
-            last_update_level: Instant::now(),
         }
     }
 
@@ -216,14 +205,6 @@ impl<'a> Widget for Skillbar<'a> {
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
-
-        let _level = if self.stats.level.level() > 999 {
-            "A".to_string()
-        } else {
-            (self.stats.level.level()).to_string()
-        };
-
-        let _exp_percentage = (self.stats.exp.current() as f64) / (self.stats.exp.maximum() as f64);
 
         let mut hp_percentage = self.health.current() as f64 / self.health.maximum() as f64 * 100.0;
         let mut energy_percentage =
@@ -243,65 +224,6 @@ impl<'a> Widget for Skillbar<'a> {
 
         let slot_offset = tweak!(3.0);
 
-        // Level Up Message
-        if !self.show.intro {
-            let current_level = self.stats.level.level();
-            const FADE_IN_LVL: f32 = 1.0;
-            const FADE_HOLD_LVL: f32 = 3.0;
-            const FADE_OUT_LVL: f32 = 2.0;
-            // Fade
-            // Check if no other popup is displayed and a new one is needed
-            if state.last_update_level.elapsed()
-                > Duration::from_secs_f32(FADE_IN_LVL + FADE_HOLD_LVL + FADE_OUT_LVL)
-                && state.last_level != current_level
-            {
-                // Update last_value
-                state.update(|s| s.last_level = current_level);
-                state.update(|s| s.last_update_level = Instant::now());
-            };
-
-            let seconds_level = state.last_update_level.elapsed().as_secs_f32();
-            let fade_level = if current_level == 1 {
-                0.0
-            } else if seconds_level < FADE_IN_LVL {
-                seconds_level / FADE_IN_LVL
-            } else if seconds_level < FADE_IN_LVL + FADE_HOLD_LVL {
-                1.0
-            } else {
-                (1.0 - (seconds_level - FADE_IN_LVL - FADE_HOLD_LVL) / FADE_OUT_LVL).max(0.0)
-            };
-            // Contents
-            Rectangle::fill_with([82.0 * 4.0, 40.0 * 4.0], color::TRANSPARENT)
-                .mid_top_with_margin_on(ui.window, 300.0)
-                .set(state.ids.level_align, ui);
-            let level_up_text = &localized_strings
-                .get("char_selection.level_fmt")
-                .replace("{level_nb}", &self.stats.level.level().to_string());
-            Text::new(&level_up_text)
-                .middle_of(state.ids.level_align)
-                .font_size(self.fonts.cyri.scale(30))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(Color::Rgba(0.0, 0.0, 0.0, fade_level))
-                .set(state.ids.level_message_bg, ui);
-            Text::new(&level_up_text)
-                .bottom_left_with_margins_on(state.ids.level_message_bg, 2.0, 2.0)
-                .font_size(self.fonts.cyri.scale(30))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(Color::Rgba(1.0, 1.0, 1.0, fade_level))
-                .set(state.ids.level_message, ui);
-            Image::new(self.imgs.level_up)
-                .w_h(82.0 * 4.0, 9.0 * 4.0)
-                .mid_top_with_margin_on(state.ids.level_align, 0.0)
-                .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade_level)))
-                .graphics_for(state.ids.level_align)
-                .set(state.ids.level_up, ui);
-            Image::new(self.imgs.level_down)
-                .w_h(82.0 * 4.0, 9.0 * 4.0)
-                .mid_bottom_with_margin_on(state.ids.level_align, 0.0)
-                .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade_level)))
-                .graphics_for(state.ids.level_align)
-                .set(state.ids.level_down, ui);
-        }
         // Death message
         if self.health.is_dead {
             if let Some(key) = self

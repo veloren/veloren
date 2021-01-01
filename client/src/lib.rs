@@ -1732,7 +1732,6 @@ impl Client {
                     player_info.character = match &player_info.character {
                         Some(character) => Some(msg::CharacterInfo {
                             name: character.name.to_string(),
-                            level: next_level,
                         }),
                         None => {
                             warn!(

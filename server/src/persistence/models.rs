@@ -1,6 +1,6 @@
 extern crate serde_json;
 
-use super::schema::{body, character, entity, item, skill, skill_group, stats};
+use super::schema::{body, character, entity, item, skill, skill_group};
 
 #[derive(Debug, Insertable, PartialEq)]
 #[table_name = "entity"]
@@ -14,6 +14,7 @@ pub struct NewCharacter<'a> {
     pub character_id: i64,
     pub player_uuid: &'a str,
     pub alias: &'a str,
+    pub waypoint: Option<String>,
 }
 
 #[derive(Identifiable, Queryable, Debug)]
@@ -23,6 +24,7 @@ pub struct Character {
     pub character_id: i64,
     pub player_uuid: String,
     pub alias: String,
+    pub waypoint: Option<String>,
 }
 
 #[primary_key(item_id)]
@@ -34,19 +36,6 @@ pub struct Item {
     pub item_definition_id: String,
     pub stack_size: i32,
     pub position: String,
-}
-
-#[derive(Associations, AsChangeset, Identifiable, Queryable, Debug, Insertable)]
-#[primary_key(stats_id)]
-#[table_name = "stats"]
-pub struct Stats {
-    pub stats_id: i64,
-    pub level: i32,
-    pub exp: i32,
-    pub endurance: i32,
-    pub fitness: i32,
-    pub willpower: i32,
-    pub waypoint: Option<String>,
 }
 
 #[derive(Associations, Identifiable, Insertable, Queryable, Debug)]

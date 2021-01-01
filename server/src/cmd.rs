@@ -86,7 +86,6 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::Dummy => handle_spawn_training_dummy,
         ChatCommand::Explosion => handle_explosion,
         ChatCommand::Faction => handle_faction,
-        ChatCommand::GiveExp => handle_give_exp,
         ChatCommand::GiveItem => handle_give_item,
         ChatCommand::Goto => handle_goto,
         ChatCommand::Group => handle_group,
@@ -112,7 +111,6 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::Region => handle_region,
         ChatCommand::RemoveLights => handle_remove_lights,
         ChatCommand::Say => handle_say,
-        ChatCommand::SetLevel => handle_set_level,
         ChatCommand::SetMotd => handle_set_motd,
         ChatCommand::Spawn => handle_spawn,
         ChatCommand::Sudo => handle_sudo,
@@ -927,10 +925,7 @@ fn handle_spawn_training_dummy(
 
             let body = comp::Body::Object(comp::object::Body::TrainingDummy);
 
-            let mut stats = comp::Stats::new("Training Dummy".to_string(), body);
-
-            // Level 0 will prevent exp gain from kill
-            stats.level.set_level(0);
+            let stats = comp::Stats::new("Training Dummy".to_string(), body);
 
             let health = comp::Health::new(body, 0);
 
@@ -1019,11 +1014,10 @@ fn handle_players(
                 format!("{} online players:", entity_tuples.join().count()),
                 |s, (_, player, stat)| {
                     format!(
-                        "{}\n[{}]{} Lvl {}",
+                        "{}\n[{}]{}",
                         s,
                         player.alias,
                         stat.name,
-                        stat.level.level()
                     )
                 },
             ),
@@ -1997,130 +1991,6 @@ spawn_rate {:?} "#,
             client,
             ServerGeneral::server_msg(ChatType::CommandError, "Not a pregenerated chunk."),
         );
-    }
-}
-
-fn find_target(
-    ecs: &specs::World,
-    opt_alias: Option<String>,
-    fallback: EcsEntity,
-) -> Result<EcsEntity, ServerGeneral> {
-    if let Some(alias) = opt_alias {
-        (&ecs.entities(), &ecs.read_storage::<comp::Player>())
-            .join()
-            .find(|(_, player)| player.alias == alias)
-            .map(|(entity, _)| entity)
-            .ok_or_else(|| {
-                ServerGeneral::server_msg(
-                    ChatType::CommandError,
-                    format!("Player '{}' not found!", alias),
-                )
-            })
-    } else {
-        Ok(fallback)
-    }
-}
-
-fn handle_give_exp(
-    server: &mut Server,
-    client: EcsEntity,
-    target: EcsEntity,
-    args: String,
-    action: &ChatCommand,
-) {
-    let (a_exp, a_alias) = scan_fmt_some!(&args, &action.arg_fmt(), i64, String);
-
-    if let Some(exp) = a_exp {
-        let ecs = server.state.ecs_mut();
-        let target = find_target(&ecs, a_alias, target);
-
-        let mut error_msg = None;
-
-        match target {
-            Ok(player) => {
-                if let Some(mut stats) = ecs.write_storage::<comp::Stats>().get_mut(player) {
-                    stats.exp.change_by(exp);
-                } else {
-                    error_msg = Some(ServerGeneral::server_msg(
-                        ChatType::CommandError,
-                        "Player has no stats!",
-                    ));
-                }
-            },
-            Err(e) => {
-                error_msg = Some(e);
-            },
-        }
-
-        if let Some(msg) = error_msg {
-            server.notify_client(client, msg);
-        }
-    }
-}
-
-fn handle_set_level(
-    server: &mut Server,
-    client: EcsEntity,
-    target: EcsEntity,
-    args: String,
-    action: &ChatCommand,
-) {
-    let (a_lvl, a_alias) = scan_fmt_some!(&args, &action.arg_fmt(), u32, String);
-
-    if let Some(lvl) = a_lvl {
-        let target = find_target(&server.state.ecs(), a_alias, target);
-
-        let mut error_msg = None;
-
-        match target {
-            Ok(player) => {
-                let uid = *server
-                    .state
-                    .ecs()
-                    .read_storage::<Uid>()
-                    .get(player)
-                    .expect("Failed to get uid for player");
-                server.state.notify_players(ServerGeneral::PlayerListUpdate(
-                    PlayerListUpdate::LevelChange(uid, lvl),
-                ));
-
-                let body_type: Option<comp::Body>;
-
-                if let Some(mut stats) = server
-                    .state
-                    .ecs_mut()
-                    .write_storage::<comp::Stats>()
-                    .get_mut(player)
-                {
-                    stats.level.set_level(lvl);
-                    body_type = Some(stats.body_type);
-                } else {
-                    error_msg = Some(ServerGeneral::server_msg(
-                        ChatType::CommandError,
-                        "Player has no stats!",
-                    ));
-                    body_type = None;
-                }
-
-                if let Some(mut health) = server
-                    .state
-                    .ecs_mut()
-                    .write_storage::<comp::Health>()
-                    .get_mut(player)
-                {
-                    let health = &mut *health;
-                    health.update_max_hp(body_type, lvl);
-                    health.set_to(health.maximum(), comp::HealthSource::LevelUp);
-                }
-            },
-            Err(e) => {
-                error_msg = Some(e);
-            },
-        }
-
-        if let Some(msg) = error_msg {
-            server.notify_client(client, msg);
-        }
     }
 }
 

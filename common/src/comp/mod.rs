@@ -68,5 +68,5 @@ pub use player::Player;
 pub use projectile::{Projectile, ProjectileConstructor};
 pub use shockwave::{Shockwave, ShockwaveHitEntities};
 pub use skills::{Skill, SkillGroup, SkillGroupType, SkillSet};
-pub use stats::{Exp, Level, Stats};
+pub use stats::Stats;
 pub use visual::{LightAnimation, LightEmitter};

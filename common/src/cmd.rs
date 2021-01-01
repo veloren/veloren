@@ -46,7 +46,6 @@ pub enum ChatCommand {
     Dummy,
     Explosion,
     Faction,
-    GiveExp,
     GiveItem,
     Goto,
     Group,
@@ -72,7 +71,6 @@ pub enum ChatCommand {
     Region,
     RemoveLights,
     Say,
-    SetLevel,
     SetMotd,
     Spawn,
     Sudo,
@@ -99,7 +97,6 @@ pub static CHAT_COMMANDS: &[ChatCommand] = &[
     ChatCommand::Dummy,
     ChatCommand::Explosion,
     ChatCommand::Faction,
-    ChatCommand::GiveExp,
     ChatCommand::GiveItem,
     ChatCommand::Goto,
     ChatCommand::Group,
@@ -125,7 +122,6 @@ pub static CHAT_COMMANDS: &[ChatCommand] = &[
     ChatCommand::Region,
     ChatCommand::RemoveLights,
     ChatCommand::Say,
-    ChatCommand::SetLevel,
     ChatCommand::SetMotd,
     ChatCommand::Spawn,
     ChatCommand::Sudo,
@@ -243,11 +239,6 @@ impl ChatCommand {
                 vec![Message(Optional)],
                 "Send messages to your faction",
                 NoAdmin,
-            ),
-            ChatCommand::GiveExp => cmd(
-                vec![Integer("amount", 50, Required)],
-                "Give experience to yourself",
-                Admin,
             ),
             ChatCommand::GiveItem => cmd(
                 vec![
@@ -378,11 +369,6 @@ impl ChatCommand {
                 "Send messages to everyone within shouting distance",
                 NoAdmin,
             ),
-            ChatCommand::SetLevel => cmd(
-                vec![Integer("level", 10, Required)],
-                "Set player Level",
-                Admin,
-            ),
             ChatCommand::SetMotd => {
                 cmd(vec![Message(Optional)], "Set the server description", Admin)
             },
@@ -452,7 +438,6 @@ impl ChatCommand {
             ChatCommand::Dummy => "dummy",
             ChatCommand::Explosion => "explosion",
             ChatCommand::Faction => "faction",
-            ChatCommand::GiveExp => "give_exp",
             ChatCommand::GiveItem => "give_item",
             ChatCommand::Goto => "goto",
             ChatCommand::Group => "group",
@@ -478,7 +463,6 @@ impl ChatCommand {
             ChatCommand::Region => "region",
             ChatCommand::RemoveLights => "remove_lights",
             ChatCommand::Say => "say",
-            ChatCommand::SetLevel => "set_level",
             ChatCommand::SetMotd => "set_motd",
             ChatCommand::Spawn => "spawn",
             ChatCommand::Sudo => "sudo",

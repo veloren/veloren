@@ -84,7 +84,6 @@ use std::{
 };
 use vek::*;
 
-const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
 const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
 const TEXT_GRAY_COLOR: Color = Color::Rgba(0.5, 0.5, 0.5, 1.0);
 const TEXT_DULL_RED_COLOR: Color = Color::Rgba(0.56, 0.2, 0.2, 1.0);
@@ -825,9 +824,6 @@ impl Hud {
             let items = ecs.read_storage::<comp::Item>();
             let entities = ecs.entities();
             let me = client.entity();
-            let own_level = stats
-                .get(client.entity())
-                .map_or(0, |stats| stats.level.level());
             //self.input = client.read_storage::<comp::ControllerInputs>();
             if let Some(health) = healths.get(me) {
                 // Hurt Frame
@@ -1061,111 +1057,6 @@ impl Hud {
                         }
                     }
                 }
-                // EXP Numbers
-                if let (Some(floaters), Some(stats)) = (
-                    Some(&*ecs.read_resource::<crate::ecs::MyExpFloaterList>())
-                        .map(|l| &l.floaters)
-                        .filter(|f| !f.is_empty()),
-                    stats.get(me),
-                ) {
-                    // TODO replace with setting
-                    let batched_sct = false;
-                    if batched_sct {
-                        let number_speed = 50.0; // Number Speed for Cumulated EXP
-                        let player_sct_bg_id = player_sct_bg_id_walker.next(
-                            &mut self.ids.player_sct_bgs,
-                            &mut ui_widgets.widget_id_generator(),
-                        );
-                        let player_sct_id = player_sct_id_walker.next(
-                            &mut self.ids.player_scts,
-                            &mut ui_widgets.widget_id_generator(),
-                        );
-                        // Sum xp change
-                        let exp_change = floaters.iter().fold(0, |acc, f| f.exp_change + acc);
-                        // Can't fail since we filtered out empty lists above
-                        let (timer, rand) = floaters
-                            .last()
-                            .map(|f| (f.timer, f.rand))
-                            .expect("Impossible");
-                        // Increase font size based on fraction of maximum health
-                        // "flashes" by having a larger size in the first 100ms
-                        let font_size_xp = 30
-                            + ((exp_change.abs() as f32 / stats.exp.maximum() as f32).min(1.0)
-                                * 50.0) as u32
-                            + if timer < 0.1 {
-                                FLASH_MAX * (((1.0 - timer / 0.1) * 10.0) as u32)
-                            } else {
-                                0
-                            };
-
-                        let y = timer as f64 * number_speed; // Timer sets the widget offset
-                        let fade = ((4.0 - timer as f32) * 0.25) + 0.2; // Timer sets text transparency
-
-                        Text::new(&format!("{} Exp", exp_change))
-                            .font_size(font_size_xp)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(Color::Rgba(0.0, 0.0, 0.0, fade))
-                            .x_y(
-                                ui_widgets.win_w * (0.5 * rand.0 as f64 - 0.25),
-                                ui_widgets.win_h * (0.15 * rand.1 as f64) + y - 3.0,
-                            )
-                            .set(player_sct_bg_id, ui_widgets);
-                        Text::new(&format!("{} Exp", exp_change))
-                            .font_size(font_size_xp)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(Color::Rgba(0.59, 0.41, 0.67, fade))
-                            .x_y(
-                                ui_widgets.win_w * (0.5 * rand.0 as f64 - 0.25),
-                                ui_widgets.win_h * (0.15 * rand.1 as f64) + y,
-                            )
-                            .set(player_sct_id, ui_widgets);
-                    } else {
-                        for floater in floaters {
-                            let number_speed = 50.0; // Number Speed for Single EXP
-                            let player_sct_bg_id = player_sct_bg_id_walker.next(
-                                &mut self.ids.player_sct_bgs,
-                                &mut ui_widgets.widget_id_generator(),
-                            );
-                            let player_sct_id = player_sct_id_walker.next(
-                                &mut self.ids.player_scts,
-                                &mut ui_widgets.widget_id_generator(),
-                            );
-                            // Increase font size based on fraction of maximum health
-                            // "flashes" by having a larger size in the first 100ms
-                            let font_size_xp = 30
-                                + ((floater.exp_change.abs() as f32 / stats.exp.maximum() as f32)
-                                    .min(1.0)
-                                    * 50.0) as u32
-                                + if floater.timer < 0.1 {
-                                    FLASH_MAX * (((1.0 - floater.timer / 0.1) * 10.0) as u32)
-                                } else {
-                                    0
-                                };
-
-                            let y = floater.timer as f64 * number_speed; // Timer sets the widget offset
-                            let fade = ((4.0 - floater.timer as f32) * 0.25) + 0.2; // Timer sets text transparency
-
-                            Text::new(&format!("{} Exp", floater.exp_change))
-                                .font_size(font_size_xp)
-                                .font_id(self.fonts.cyri.conrod_id)
-                                .color(Color::Rgba(0.0, 0.0, 0.0, fade))
-                                .x_y(
-                                    ui_widgets.win_w * (0.5 * floater.rand.0 as f64 - 0.25),
-                                    ui_widgets.win_h * (0.15 * floater.rand.1 as f64) + y - 3.0,
-                                )
-                                .set(player_sct_bg_id, ui_widgets);
-                            Text::new(&format!("{} Exp", floater.exp_change))
-                                .font_size(font_size_xp)
-                                .font_id(self.fonts.cyri.conrod_id)
-                                .color(Color::Rgba(0.59, 0.41, 0.67, fade))
-                                .x_y(
-                                    ui_widgets.win_w * (0.5 * floater.rand.0 as f64 - 0.25),
-                                    ui_widgets.win_h * (0.15 * floater.rand.1 as f64) + y,
-                                )
-                                .set(player_sct_id, ui_widgets);
-                        }
-                    }
-                }
             }
 
             // Pop speech bubbles
@@ -1273,7 +1164,6 @@ impl Hud {
 
                         let info = display_overhead_info.then(|| overhead::Info {
                             name: &stats.name,
-                            stats,
                             health,
                             buffs,
                             energy,
@@ -1313,7 +1203,6 @@ impl Hud {
                 overhead::Overhead::new(
                     info,
                     bubble,
-                    own_level,
                     in_group,
                     &global_state.settings.gameplay,
                     self.pulse,
@@ -1974,7 +1863,6 @@ impl Hud {
         // Get player stats
         let ecs = client.state().ecs();
         let entity = client.entity();
-        let stats = ecs.read_storage::<comp::Stats>();
         let healths = ecs.read_storage::<comp::Health>();
         let inventories = ecs.read_storage::<comp::Inventory>();
         let energies = ecs.read_storage::<comp::Energy>();
@@ -1983,14 +1871,12 @@ impl Hud {
         let ability_map = ecs.fetch::<comp::item::tool::AbilityMap>();
 
         if let (
-            Some(stats),
             Some(health),
             Some(inventory),
             Some(energy),
             Some(_character_state),
             Some(_controller),
         ) = (
-            stats.get(entity),
             healths.get(entity),
             inventories.get(entity),
             energies.get(entity),
@@ -2003,7 +1889,6 @@ impl Hud {
                 &self.item_imgs,
                 &self.fonts,
                 &self.rot_imgs,
-                &stats,
                 &health,
                 &inventory,
                 &energy,
@@ -2014,7 +1899,6 @@ impl Hud {
                 tooltip_manager,
                 &mut self.slot_manager,
                 i18n,
-                &self.show,
                 &ability_map,
             )
             .set(self.ids.skillbar, ui_widgets);
