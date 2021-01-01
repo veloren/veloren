@@ -13,7 +13,6 @@ use common::{
 };
 use common_net::msg::ServerGeneral;
 use common_sys::state::TerrainChanges;
-use rand::Rng;
 use specs::{Join, Read, ReadStorage, System, Write, WriteExpect};
 use std::sync::Arc;
 use vek::*;
@@ -131,14 +130,6 @@ impl<'a> System<'a> for Sys {
 
                 let mut scale = entity.scale;
 
-                // TODO: Remove this and implement scaling or level depending on stuff like
-                // species instead
-                stats.level.set_level(
-                    entity.level.unwrap_or_else(|| {
-                        (rand::thread_rng().gen_range(1, 9) as f32 * scale) as u32
-                    }),
-                );
-
                 // Replace stuff if it's a boss
                 if entity.is_giant {
                     if rand::random::<f32>() < 0.65 && entity.alignment != Alignment::Enemy {
@@ -154,7 +145,6 @@ impl<'a> System<'a> for Sys {
                             body,
                         );
                     }
-                    stats.level.set_level(rand::thread_rng().gen_range(25, 30));
                     scale = 2.0 + rand::random::<f32>();
                 }
 
@@ -162,7 +152,7 @@ impl<'a> System<'a> for Sys {
 
                 let loadout = LoadoutBuilder::build_loadout(body, main_tool, config).build();
 
-                let health = comp::Health::new(stats.body_type, stats.level.level());
+                let health = comp::Health::new(stats.body_type, 0); // Placeholder 0
 
                 let can_speak = match body {
                     comp::Body::Humanoid(_) => alignment == comp::Alignment::Npc,

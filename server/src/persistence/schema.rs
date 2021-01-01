@@ -11,6 +11,7 @@ table! {
         character_id -> BigInt,
         player_uuid -> Text,
         alias -> Text,
+        waypoint -> Nullable<Text>,
     }
 }
 
@@ -27,18 +28,6 @@ table! {
         item_definition_id -> Text,
         stack_size -> Integer,
         position -> Text,
-    }
-}
-
-table! {
-    stats (stats_id) {
-        stats_id -> BigInt,
-        level -> Integer,
-        exp -> Integer,
-        endurance -> Integer,
-        fitness -> Integer,
-        willpower -> Integer,
-        waypoint -> Nullable<Text>,
     }
 }
 
@@ -61,6 +50,5 @@ table! {
 }
 
 joinable!(character -> body (character_id));
-joinable!(character -> stats (character_id));
 
-allow_tables_to_appear_in_same_query!(body, character, entity, item, stats,);
+allow_tables_to_appear_in_same_query!(body, character, entity, item);

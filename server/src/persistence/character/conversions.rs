@@ -1,6 +1,6 @@
 use crate::persistence::{
     character::EntityId,
-    models::{Body, Character, Item, Skill, SkillGroup, Stats},
+    models::{Body, Character, Item, Skill, SkillGroup},
 };
 
 use crate::persistence::{
@@ -164,12 +164,22 @@ pub fn convert_body_to_database_json(body: &CompBody) -> Result<String, Error> {
     serde_json::to_string(&json_model).map_err(Error::SerializationError)
 }
 
-fn convert_waypoint_to_database_json(waypoint: &Waypoint) -> Result<String, Error> {
-    let charpos = CharacterPosition {
-        waypoint: waypoint.get_pos(),
-    };
-    serde_json::to_string(&charpos)
-        .map_err(|err| Error::ConversionError(format!("Error encoding waypoint: {:?}", err)))
+pub fn convert_waypoint_to_database_json(waypoint: Option<Waypoint>) -> Option<String> {
+    match waypoint {
+        Some(w) => {
+            let charpos = CharacterPosition {
+                waypoint: w.get_pos(),
+            };
+            Some(
+                serde_json::to_string(&charpos)
+                    .map_err(|err| {
+                        Error::ConversionError(format!("Error encoding waypoint: {:?}", err))
+                    })
+                    .ok()?,
+            )
+        },
+        None => None,
+    }
 }
 
 pub fn convert_waypoint_from_database_json(position: &str) -> Result<Waypoint, Error> {
@@ -181,27 +191,6 @@ pub fn convert_waypoint_from_database_json(position: &str) -> Result<Waypoint, E
             ))
         })?;
     Ok(Waypoint::new(character_position.waypoint, Time(0.0)))
-}
-
-pub fn convert_stats_to_database(
-    character_id: CharacterId,
-    stats: &common::comp::Stats,
-    waypoint: &Option<common::comp::Waypoint>,
-) -> Result<Stats, Error> {
-    let waypoint = match waypoint {
-        Some(w) => Some(convert_waypoint_to_database_json(&w)?),
-        None => None,
-    };
-
-    Ok(Stats {
-        stats_id: character_id,
-        level: stats.level.level() as i32,
-        exp: stats.exp.current() as i32,
-        endurance: stats.endurance as i32,
-        fitness: stats.fitness as i32,
-        willpower: stats.willpower as i32,
-        waypoint,
-    })
 }
 
 pub fn convert_inventory_from_database_items(
@@ -345,24 +334,17 @@ pub fn convert_character_from_database(character: &Character) -> common::charact
 }
 
 pub fn convert_stats_from_database(
-    stats: &Stats,
     alias: String,
     skills: &[Skill],
     skill_groups: &[SkillGroup],
 ) -> common::comp::Stats {
     let mut new_stats = common::comp::Stats::empty();
     new_stats.name = alias;
-    new_stats.level.set_level(stats.level as u32);
-    new_stats.exp.update_maximum(stats.level as u32);
-    new_stats.exp.set_current(stats.exp as u32);
     /*new_stats.update_max_hp(new_stats.body_type);
     new_stats.health.set_to(
         new_stats.health.maximum(),
         common::comp::HealthSource::Revive,
     );*/
-    new_stats.endurance = stats.endurance as u32;
-    new_stats.fitness = stats.fitness as u32;
-    new_stats.willpower = stats.willpower as u32;
     new_stats.skill_set = skills::SkillSet {
         skill_groups: convert_skill_groups_from_database(skill_groups),
         skills: convert_skills_from_database(skills),

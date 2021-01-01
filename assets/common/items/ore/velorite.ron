@@ -4,7 +4,7 @@ ItemDef(
     kind: Consumable(
         kind: "Velorite",
         effect: [
-            Xp(20),
+            /*Xp(20),*/
         ]
     ),
     quality: High,

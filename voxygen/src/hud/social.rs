@@ -401,16 +401,6 @@ impl<'a> Widget for Social<'a> {
                     },
                     None => alias.clone(), // character select or spectating
                 };
-                let level = match &player_info.character {
-                    Some(character) => {
-                        if character.level > 999 {
-                            "[A]".to_string() // Hide player levels that can't be obtained by normal means. As "infinte" levels are temporary this will avoid clipping.
-                        } else {
-                            character.level.to_string()
-                        }
-                    },
-                    None => "".to_string(), // character select or spectating
-                };
                 let zone_name = match &player_info.character {
                     None => self.localized_strings.get("hud.group.in_menu").to_string(), /* character select or spectating */
                     _ => format!("{} ", &zone),
@@ -456,21 +446,6 @@ impl<'a> Widget for Social<'a> {
                         TEXT_COLOR,
                     )
                     .set(state.ids.player_names[i], ui);
-                // Player Levels
-                Button::image(if !selected {
-                    self.imgs.nothing
-                } else {
-                    self.imgs.selection
-                })
-                .w_h(39.0, 20.0)
-                .right_from(state.ids.player_names[i], 2.0)
-                .label(&level)
-                .label_font_size(self.fonts.cyri.scale(14))
-                .label_font_id(self.fonts.cyri.conrod_id)
-                .label_color(TEXT_COLOR)
-                .label_y(conrod_core::position::Relative::Scalar(1.0))
-                .parent(state.ids.levels_align)
-                .set(state.ids.player_levels[i], ui);
                 // Player Zones
                 Button::image(if !selected {
                     self.imgs.nothing
