@@ -265,6 +265,8 @@ impl<'a> SettingsWindow<'a> {
 
 pub struct State {
     ids: Ids,
+    // Resolution, Bit Depth and Refresh Rate
+    video_modes: Vec<VideoMode>,
 }
 
 pub enum Event {
@@ -327,8 +329,18 @@ impl<'a> Widget for SettingsWindow<'a> {
     type Style = ();
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
+        let video_modes = self
+            .global_state
+            .window
+            .window()
+            .current_monitor()
+            .unwrap()
+            .video_modes()
+            .collect();
+
         State {
             ids: Ids::new(id_gen),
+            video_modes,
         }
     }
 
@@ -2401,18 +2413,9 @@ impl<'a> Widget for SettingsWindow<'a> {
                 events.push(Event::ToggleParticlesEnabled(particles_enabled));
             }
 
-            // Resolution, Bit Depth and Refresh Rate
-            let video_modes: Vec<VideoMode> = self
-                .global_state
-                .window
-                .window()
-                .current_monitor()
-                .unwrap()
-                .video_modes()
-                .collect();
-
             // Resolution
-            let resolutions: Vec<[u16; 2]> = video_modes
+            let resolutions: Vec<[u16; 2]> = state
+                .video_modes
                 .iter()
                 .sorted_by_key(|mode| mode.size().height)
                 .sorted_by_key(|mode| mode.size().width)
@@ -2451,8 +2454,9 @@ impl<'a> Widget for SettingsWindow<'a> {
             }
 
             // Bit Depth and Refresh Rate
-            let correct_res: Vec<VideoMode> = video_modes
-                .into_iter()
+            let correct_res: Vec<&VideoMode> = state
+                .video_modes
+                .iter()
                 .filter(|mode| {
                     mode.size().width
                         == self.global_state.settings.graphics.fullscreen.resolution[0] as u32
