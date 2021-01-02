@@ -99,6 +99,7 @@ const LOW_HP_COLOR: Color = Color::Rgba(0.93, 0.59, 0.03, 1.0);
 const CRITICAL_HP_COLOR: Color = Color::Rgba(0.79, 0.19, 0.17, 1.0);
 const STAMINA_COLOR: Color = Color::Rgba(0.29, 0.62, 0.75, 0.9);
 const ENEMY_HP_COLOR: Color = Color::Rgba(0.93, 0.1, 0.29, 1.0);
+const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
 //const TRANSPARENT: Color = Color::Rgba(0.0, 0.0, 0.0, 0.0);
 //const FOCUS_COLOR: Color = Color::Rgba(1.0, 0.56, 0.04, 1.0);
 //const RAGE_COLOR: Color = Color::Rgba(0.5, 0.04, 0.13, 1.0);
@@ -756,7 +757,7 @@ impl Hud {
                 group_menu: false,
                 mini_map: true,
                 settings_tab: SettingsTab::Interface,
-                skilltreetab: SelectedSkillTree::GeneralCombat,
+                skilltreetab: SelectedSkillTree::General,
                 social_tab: SocialTab::Online,
                 want_grab: true,
                 ingame: true,
@@ -1057,6 +1058,111 @@ impl Hud {
                         }
                     }
                 }
+                // EXP Numbers
+                /*if let (Some(floaters), Some(stats)) = (
+                    Some(&*ecs.read_resource::<crate::ecs::MyExpFloaterList>())
+                        .map(|l| &l.floaters)
+                        .filter(|f| !f.is_empty()),
+                    stats.get(me),
+                ) {
+                    // TODO replace with setting
+                    let batched_sct = false;
+                    if batched_sct {
+                        let number_speed = 50.0; // Number Speed for Cumulated EXP
+                        let player_sct_bg_id = player_sct_bg_id_walker.next(
+                            &mut self.ids.player_sct_bgs,
+                            &mut ui_widgets.widget_id_generator(),
+                        );
+                        let player_sct_id = player_sct_id_walker.next(
+                            &mut self.ids.player_scts,
+                            &mut ui_widgets.widget_id_generator(),
+                        );
+                        // Sum xp change
+                        let exp_change = floaters.iter().fold(0, |acc, f| f.exp_change + acc);
+                        // Can't fail since we filtered out empty lists above
+                        let (timer, rand) = floaters
+                            .last()
+                            .map(|f| (f.timer, f.rand))
+                            .expect("Impossible");
+                        // Increase font size based on fraction of maximum health
+                        // "flashes" by having a larger size in the first 100ms
+                        let font_size_xp = 30
+                            + ((exp_change.abs() as f32 / stats.exp.maximum() as f32).min(1.0)
+                                * 50.0) as u32
+                            + if timer < 0.1 {
+                                FLASH_MAX * (((1.0 - timer / 0.1) * 10.0) as u32)
+                            } else {
+                                0
+                            };
+
+                        let y = timer as f64 * number_speed; // Timer sets the widget offset
+                        let fade = ((4.0 - timer as f32) * 0.25) + 0.2; // Timer sets text transparency
+
+                        Text::new(&format!("{} Exp", exp_change))
+                            .font_size(font_size_xp)
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(Color::Rgba(0.0, 0.0, 0.0, fade))
+                            .x_y(
+                                ui_widgets.win_w * (0.5 * rand.0 as f64 - 0.25),
+                                ui_widgets.win_h * (0.15 * rand.1 as f64) + y - 3.0,
+                            )
+                            .set(player_sct_bg_id, ui_widgets);
+                        Text::new(&format!("{} Exp", exp_change))
+                            .font_size(font_size_xp)
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(Color::Rgba(0.59, 0.41, 0.67, fade))
+                            .x_y(
+                                ui_widgets.win_w * (0.5 * rand.0 as f64 - 0.25),
+                                ui_widgets.win_h * (0.15 * rand.1 as f64) + y,
+                            )
+                            .set(player_sct_id, ui_widgets);
+                    } else {
+                        for floater in floaters {
+                            let number_speed = 50.0; // Number Speed for Single EXP
+                            let player_sct_bg_id = player_sct_bg_id_walker.next(
+                                &mut self.ids.player_sct_bgs,
+                                &mut ui_widgets.widget_id_generator(),
+                            );
+                            let player_sct_id = player_sct_id_walker.next(
+                                &mut self.ids.player_scts,
+                                &mut ui_widgets.widget_id_generator(),
+                            );
+                            // Increase font size based on fraction of maximum health
+                            // "flashes" by having a larger size in the first 100ms
+                            let font_size_xp = 30
+                                + ((floater.exp_change.abs() as f32 / stats.exp.maximum() as f32)
+                                    .min(1.0)
+                                    * 50.0) as u32
+                                + if floater.timer < 0.1 {
+                                    FLASH_MAX * (((1.0 - floater.timer / 0.1) * 10.0) as u32)
+                                } else {
+                                    0
+                                };
+
+                            let y = floater.timer as f64 * number_speed; // Timer sets the widget offset
+                            let fade = ((4.0 - floater.timer as f32) * 0.25) + 0.2; // Timer sets text transparency
+
+                            Text::new(&format!("{} Exp", floater.exp_change))
+                                .font_size(font_size_xp)
+                                .font_id(self.fonts.cyri.conrod_id)
+                                .color(Color::Rgba(0.0, 0.0, 0.0, fade))
+                                .x_y(
+                                    ui_widgets.win_w * (0.5 * floater.rand.0 as f64 - 0.25),
+                                    ui_widgets.win_h * (0.15 * floater.rand.1 as f64) + y - 3.0,
+                                )
+                                .set(player_sct_bg_id, ui_widgets);
+                            Text::new(&format!("{} Exp", floater.exp_change))
+                                .font_size(font_size_xp)
+                                .font_id(self.fonts.cyri.conrod_id)
+                                .color(Color::Rgba(0.59, 0.41, 0.67, fade))
+                                .x_y(
+                                    ui_widgets.win_w * (0.5 * floater.rand.0 as f64 - 0.25),
+                                    ui_widgets.win_h * (0.15 * floater.rand.1 as f64) + y,
+                                )
+                                .set(player_sct_id, ui_widgets);
+                        }
+                    }
+                }*/
             }
 
             // Pop speech bubbles
@@ -2222,7 +2328,7 @@ impl Hud {
                             self.show.want_grab = true;
                             self.force_ungrab = false;
                         },
-                        diary::Event::ChangeWeaponTree(tree_sel) => {
+                        diary::Event::ChangeSkillTree(tree_sel) => {
                             self.show.open_skill_tree(tree_sel)
                         },
                         diary::Event::UnlockSkill(skill) => events.push(Event::UnlockSkill(skill)),

@@ -65,6 +65,8 @@ image_ids! {
         // Diary Window
         diary_bg: "voxygen.element.misc_bg.diary_bg",
         diary_frame: "voxygen.element.misc_bg.diary_frame",
+        diary_exp_bg: "voxygen.element.misc_bg.diary_exp_bg",
+        diary_exp_frame: "voxygen.element.misc_bg.diary_exp_frame",
 
         // Skill Trees
         sceptre: "voxygen.element.icons.sceptre",
@@ -184,6 +186,7 @@ image_ids! {
         // Other Icons/Art
         skull: "voxygen.element.icons.skull",
         skull_2: "voxygen.element.icons.skull_2",
+        indicator_bubble: "voxygen.element.icons.indicator_bubble",
         fireplace: "voxygen.element.misc_bg.fireplace",
 
         // Crosshair

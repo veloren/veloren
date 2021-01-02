@@ -64,4 +64,5 @@ pub struct SkillGroup {
     pub skill_group_type: String,
     pub exp: i32,
     pub available_sp: i32,
+    pub earned_sp: i32,
 }

@@ -220,6 +220,11 @@ pub enum SkillGroupType {
     Weapon(ToolKind),
 }
 
+impl SkillGroupType {
+    /// Gets the cost in experience of earning a skill point
+    pub fn skill_point_cost(self) -> u16 { 300 }
+}
+
 /// A group of skills that have been unlocked by a player. Each skill group has
 /// independent exp and skill points which are used to unlock skills in that
 /// skill group.
@@ -228,6 +233,7 @@ pub struct SkillGroup {
     pub skill_group_type: SkillGroupType,
     pub exp: u16,
     pub available_sp: u16,
+    pub earned_sp: u16,
 }
 
 impl SkillGroup {
@@ -236,6 +242,7 @@ impl SkillGroup {
             skill_group_type,
             exp: 0,
             available_sp: 0,
+            earned_sp: 0,
         }
     }
 }
@@ -433,6 +440,7 @@ impl SkillSet {
             .find(|x| x.skill_group_type == skill_group_type)
         {
             skill_group.available_sp += number_of_skill_points;
+            skill_group.earned_sp += number_of_skill_points;
         } else {
             warn!("Tried to add skill points to a skill group that player does not have");
         }
@@ -466,6 +474,33 @@ impl SkillSet {
         skill.prerequisite_skills(level).iter().all(|(s, l)| {
             self.skills.contains_key(s) && self.skills.get(s).map_or(false, |l_b| l_b >= l)
         })
+    }
+
+    /// Gets the available points for a particular skill group
+    pub fn get_available_sp(&self, skill_group: SkillGroupType) -> u16 {
+        let mut skill_groups = self
+            .skill_groups
+            .iter()
+            .filter(|s_g| s_g.skill_group_type == skill_group);
+        skill_groups.next().map_or(0, |s_g| s_g.available_sp)
+    }
+
+    /// Gets the total earned points for a particular skill group
+    pub fn get_earned_sp(&self, skill_group: SkillGroupType) -> u16 {
+        let mut skill_groups = self
+            .skill_groups
+            .iter()
+            .filter(|s_g| s_g.skill_group_type == skill_group);
+        skill_groups.next().map_or(0, |s_g| s_g.earned_sp)
+    }
+
+    /// Gets the available experience for a particular skill group
+    pub fn get_experience(&self, skill_group: SkillGroupType) -> u16 {
+        let mut skill_groups = self
+            .skill_groups
+            .iter()
+            .filter(|s_g| s_g.skill_group_type == skill_group);
+        skill_groups.next().map_or(0, |s_g| s_g.exp)
     }
 }
 

@@ -46,6 +46,7 @@ table! {
         skill_group_type -> Text,
         exp -> Integer,
         available_sp -> Integer,
+        earned_sp -> Integer,
     }
 }
 
