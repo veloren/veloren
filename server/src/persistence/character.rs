@@ -606,6 +606,21 @@ pub fn update(
 
     let db_skills = convert_skills_to_database(char_id, char_skill_set.skills);
 
+    let delete_count = diesel::delete(
+        schema::skill::dsl::skill.filter(
+            schema::skill::dsl::character_id.eq(char_id).and(
+                schema::skill::dsl::skill_type.ne_all(
+                    db_skills
+                        .iter()
+                        .map(|x| x.skill_type.clone())
+                        .collect::<Vec<_>>(),
+                ),
+            ),
+        ),
+    )
+    .execute(&*connection)?;
+    trace!("Deleted {} skills", delete_count);
+
     diesel::replace_into(schema::skill::dsl::skill)
         .values(&db_skills)
         .execute(&*connection)?;

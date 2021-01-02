@@ -23,7 +23,7 @@ use common::{
     Damage, DamageSource, Explosion, GroupTarget, RadiusEffect,
 };
 use common_net::{
-    msg::{PlayerListUpdate, ServerGeneral},
+    msg::ServerGeneral,
     sync::WorldSyncExt,
 };
 use common_sys::state::BlockChange;
@@ -218,12 +218,12 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                         num_not_pets_in_range += 1;
                     }
 
-                    entity
+                    (entity, uid)
                 })
                 .collect::<Vec<_>>();
             let exp = exp_reward / (num_not_pets_in_range as f32 + ATTACKER_EXP_WEIGHT);
             exp_reward = exp * ATTACKER_EXP_WEIGHT;
-            members_in_range.into_iter().for_each(|e| {
+            members_in_range.into_iter().for_each(|(e, uid)| {
                 let (main_tool_kind, second_tool_kind) =
                     if let Some(inventory) = state.ecs().read_storage::<comp::Inventory>().get(e) {
                         combat::get_weapons(inventory)
@@ -251,11 +251,14 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                         }
                     }
                     let num_pools = xp_pools.len() as f32;
+                    let exp = (exp / num_pools).ceil() as i32;
                     for pool in xp_pools.drain() {
-                        stats
-                            .skill_set
-                            .change_experience(pool, (exp / num_pools).ceil() as i32);
+                        stats.skill_set.change_experience(pool, exp);
                     }
+                    state
+                        .ecs()
+                        .write_resource::<Vec<Outcome>>()
+                        .push(Outcome::ExpChange { uid: *uid, exp });
                 }
             });
         }
@@ -266,7 +269,9 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
             } else {
                 (None, None)
             };
-        if let Some(mut attacker_stats) = stats.get_mut(attacker) {
+        if let (Some(mut attacker_stats), Some(attacker_uid)) =
+            (stats.get_mut(attacker), uids.get(attacker))
+        {
             // TODO: Discuss whether we should give EXP by Player
             // Killing or not.
             // attacker_stats.exp.change_by(exp_reward.ceil() as i64);
@@ -289,11 +294,17 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                 }
             }
             let num_pools = xp_pools.len() as f32;
+            let exp = (exp_reward / num_pools).ceil() as i32;
             for pool in xp_pools.drain() {
-                attacker_stats
-                    .skill_set
-                    .change_experience(pool, (exp_reward / num_pools).ceil() as i32);
+                attacker_stats.skill_set.change_experience(pool, exp);
             }
+            state
+                .ecs()
+                .write_resource::<Vec<Outcome>>()
+                .push(Outcome::ExpChange {
+                    uid: *attacker_uid,
+                    exp,
+                });
         }
     })();
 
@@ -734,22 +745,6 @@ pub fn handle_explosion(
                 }
             },
         }
-    }
-}
-
-pub fn handle_level_up(server: &mut Server, entity: EcsEntity, new_level: u32) {
-    let ecs = &server.state.ecs();
-    if let Some((uid, pos)) = ecs
-        .read_storage::<Uid>()
-        .get(entity)
-        .copied()
-        .zip(ecs.read_storage::<Pos>().get(entity).map(|p| p.0))
-    {
-        ecs.write_resource::<Vec<Outcome>>()
-            .push(Outcome::LevelUp { pos });
-        server.state.notify_players(ServerGeneral::PlayerListUpdate(
-            PlayerListUpdate::LevelChange(uid, new_level),
-        ));
     }
 }
 
