@@ -79,7 +79,7 @@ impl<'a> System<'a> for Sys {
             let stat = stats.get_unchecked();
             {
                 for skill_group in stat.skill_set.skill_groups.iter() {
-                    if skill_group.exp >= 300 {
+                    if skill_group.exp >= skill_group.skill_group_type.skill_point_cost() {
                         skills_to_level.insert(skill_group.skill_group_type);
                     }
                 }
@@ -88,7 +88,8 @@ impl<'a> System<'a> for Sys {
             if !skills_to_level.is_empty() {
                 let mut stat = stats.get_mut_unchecked();
                 for skill_group in skills_to_level.drain() {
-                    stat.skill_set.change_experience(skill_group, -300);
+                    stat.skill_set
+                        .change_experience(skill_group, -(skill_group.skill_point_cost() as i32));
                     stat.skill_set.add_skill_points(skill_group, 1);
                 }
             }

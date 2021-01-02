@@ -335,7 +335,7 @@ impl<'a> Widget for Buttons<'a> {
             .press_image(self.imgs.spellbook_press)
             .with_tooltip(
                 self.tooltip_manager,
-                &localized_strings.get("hud.spell"),
+                &localized_strings.get("hud.diary"),
                 "",
                 &button_tooltip,
                 TEXT_COLOR,

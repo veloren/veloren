@@ -1,6 +1,8 @@
 use super::{
-    img_ids::Imgs, DEFAULT_NPC, ENEMY_HP_COLOR, FACTION_COLOR, GROUP_COLOR, GROUP_MEMBER, HP_COLOR,
-    LOW_HP_COLOR, REGION_COLOR, SAY_COLOR, STAMINA_COLOR, TELL_COLOR, TEXT_BG, TEXT_COLOR,
+    img_ids::Imgs, DEFAULT_NPC, FACTION_COLOR, GROUP_COLOR, GROUP_MEMBER, HP_COLOR, LOW_HP_COLOR,
+    QUALITY_ARTIFACT, QUALITY_COMMON, QUALITY_DEBUG, QUALITY_EPIC, QUALITY_HIGH, QUALITY_LEGENDARY,
+    QUALITY_LOW, QUALITY_MODERATE, REGION_COLOR, SAY_COLOR, STAMINA_COLOR, TELL_COLOR, TEXT_BG,
+    TEXT_COLOR, XP_COLOR, ENEMY_HP_COLOR
 };
 use crate::{
     hud::get_buff_info,
@@ -16,6 +18,8 @@ use conrod_core::{
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 const MAX_BUBBLE_WIDTH: f64 = 250.0;
+
+use inline_tweak::*;
 
 widget_ids! {
     struct Ids {
@@ -119,7 +123,8 @@ impl<'a> Ingameable for Overhead<'a> {
         // - 2 Text::new for name
         //
         // If HP Info is shown:
-        // - 1 for level: either Text or Image
+        // - 1 for level: either Text or Image <-- Not used currently, will be replaced
+        //   by something else
         // - 3 for HP + fg + bg
         // - 1 for HP text
         // - If there's mana
@@ -365,9 +370,34 @@ impl<'a> Widget for Overhead<'a> {
                 .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.99)))
                 .parent(id)
                 .set(state.ids.health_bar_fg, ui);
+
+                // TODO: Add strength comparison here, this is just an example
+                // Factors to take into account:
+                // Maximum HP
+                // Protection
+                // Mainhand Weapon DPS
+                // "Boss Factor" (?)
+                // For players: Highest skilltree rank
+
+                let indicator_col = match health_max as u32 {
+                    0..=50 => QUALITY_LOW,
+                    51..=100 => QUALITY_COMMON,
+                    101..=150 => QUALITY_MODERATE,
+                    151..=200 => QUALITY_HIGH,
+                    201..=250 => QUALITY_EPIC,
+                    251..=300 => QUALITY_LEGENDARY,
+                    301..=350 => QUALITY_ARTIFACT,
+                    351..=9999 => QUALITY_DEBUG,
+                    _ => XP_COLOR,
+                };
+                Image::new(self.imgs.indicator_bubble)
+                    .w_h(5.0 * BARSIZE, 5.0 * BARSIZE)
+                    .x_y(tweak!(-37.0) * BARSIZE, MANA_BAR_Y + tweak!(7.5))
+                    .color(Some(indicator_col))
+                    .parent(id)
+                    .set(state.ids.level, ui);
             }
         }
-
         // Speech bubble
         if let Some(bubble) = self.bubble {
             let dark_mode = self.settings.speech_bubble_dark_mode;

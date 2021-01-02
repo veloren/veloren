@@ -5,7 +5,7 @@ CREATE TABLE "_character_new" (
 	"character_id"	INT NOT NULL,
 	"player_uuid"	TEXT NOT NULL,
 	"alias"	TEXT NOT NULL,
-	"waypoint" TEXT NOT NULL,
+	"waypoint" TEXT,
 	PRIMARY KEY("character_id"),
 	FOREIGN KEY("character_id") REFERENCES "body"("body_id"),
 	FOREIGN KEY("character_id") REFERENCES "item"("item_id")
@@ -37,6 +37,7 @@ CREATE TABLE skill_group (
 	skill_group_type	TEXT NOT NULL,
 	exp	INTEGER NOT NULL,
 	available_sp	INTEGER NOT NULL,
+	earned_sp		INTEGER NOT NULL,
 	FOREIGN KEY(character_id) REFERENCES character(character_id),
 	PRIMARY KEY(character_id,skill_group_type)
 );
@@ -52,5 +53,5 @@ CREATE TABLE skill (
 
 -- Inserts starting skill group for everyone
 INSERT INTO skill_group
-SELECT c.character_id, '"General"', 0, 0
+SELECT c.character_id, '"General"', 0, 0, 0
 FROM character c
