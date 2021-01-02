@@ -1,0 +1,66 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for "global" English
+(
+    string_map: {
+        /// Start Main screen section
+        "main.username": "Username",
+        "main.server": "Server",
+        "main.password": "Password",
+        "main.connecting": "Connecting",
+        "main.creating_world": "Creating world",
+        "main.tip": "Tip:",
+
+        // Welcome notice that appears the first time Veloren is started
+        "main.notice": r#"Welcome to the alpha version of Veloren!
+
+Before you dive into the fun, please keep a few things in mind:
+
+- This is a very early alpha. Expect bugs, extremely unfinished gameplay, unpolished mechanics, and missing features.
+
+- If you have constructive feedback or bug reports, you can contact us via Reddit, GitLab, or our community Discord server.
+
+- Veloren is licensed under the GPL 3 open-source licence. That means you're free to play, modify, and redistribute the game however
+ you wish (provided derived work is also under GPL 3).
+
+- Veloren is a non-profit community project, and everybody working on it is a volunteer.
+If you like what you see, you're welcome to join the development or art teams!
+
+Thanks for taking the time to read this notice, we hope you enjoy the game!
+
+~ The Veloren Devs"#,
+
+        // Login process description
+        "main.login_process": r#"Information on the Login Process:
+
+Please note that you now need an account
+to play on auth-enabled servers.
+
+You can create an account over at
+
+https://veloren.net/account/."#,
+        "main.login.server_not_found": "Server not found",
+        "main.login.authentication_error": "Auth error on server",
+        "main.login.server_full": "Server is full",
+        "main.login.untrusted_auth_server": "Auth server not trusted",
+        "main.login.outdated_client_or_server": "ServerWentMad: Probably versions are incompatible, check for updates.",
+        "main.login.timeout": "Timeout: Server did not respond in time. (Overloaded or network issues).",
+        "main.login.server_shut_down": "Server shut down",
+        "main.login.already_logged_in": "You are already logged into the server.",
+        "main.login.network_error": "Network error",
+        "main.login.failed_sending_request": "Request to Auth server failed",
+        "main.login.invalid_character": "The selected character is invalid",
+        "main.login.client_crashed": "Client crashed",
+        "main.login.not_on_whitelist": "You need a Whitelist entry by an Admin to join",
+        "main.login.banned": "You have been banned with the following reason",
+        "main.login.kicked": "You have been kicked with the following reason",
+        "main.login.select_language": "Select a language",
+
+        "main.servers.select_server": "Select a server",
+        /// End Main screen section
+    },
+
+
+    vector_map: {
+    }
+)

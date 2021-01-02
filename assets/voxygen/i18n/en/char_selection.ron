@@ -1,0 +1,31 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for "global" English
+(
+    string_map: {
+        "char_selection.loading_characters": "Loading characters...",
+        "char_selection.delete_permanently": "Permanently delete this Character?",
+        "char_selection.deleting_character": "Deleting Character...",
+        "char_selection.change_server": "Change Server",
+        "char_selection.enter_world": "Enter World",
+        "char_selection.logout": "Logout",
+        "char_selection.create_new_character": "Create New Character",
+        "char_selection.creating_character": "Creating Character...",
+        "char_selection.character_creation": "Character Creation",
+        "char_selection.human_default": "Human Default",
+        "char_selection.level_fmt": "Level {level_nb}",
+        "char_selection.uncanny_valley": "Wilderness",
+        "char_selection.plains_of_uncertainty": "Plains of Uncertainty",
+        "char_selection.beard": "Beard",
+        "char_selection.hair_style": "Hair Style",
+        "char_selection.hair_color": "Hair Color",
+        "char_selection.eye_color": "Eye Color",
+        "char_selection.skin": "Skin",
+        "char_selection.eyeshape": "Eye Details",
+        "char_selection.accessories": "Accessories",
+        "char_selection.create_info_name": "Your Character needs a name!",
+    },
+
+    vector_map: {
+    }
+)
