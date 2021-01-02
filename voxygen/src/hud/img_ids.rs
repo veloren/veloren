@@ -69,12 +69,14 @@ image_ids! {
         diary_exp_frame: "voxygen.element.misc_bg.diary_exp_frame",
 
         // Skill Trees
+        swords_crossed: "voxygen.element.icons.swords_crossed",
         sceptre: "voxygen.element.icons.sceptre",
         sword: "voxygen.element.icons.sword",
         axe: "voxygen.element.icons.axe",
         hammer: "voxygen.element.icons.hammer",
         bow: "voxygen.element.icons.bow",
         staff: "voxygen.element.icons.staff",
+        lock: "voxygen.element.icons.lock",
         wpn_icon_border: "voxygen.element.buttons.border",
         wpn_icon_border_mo: "voxygen.element.buttons.border_mo",
         wpn_icon_border_press: "voxygen.element.buttons.border_press",

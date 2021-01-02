@@ -443,7 +443,9 @@ impl Controls {
                                         Button::new(
                                             select_button,
                                             Column::with_children(vec![
-                                                Text::new(&character.character.alias).into(),
+                                                Text::new(&character.character.alias)
+                                                    .size(fonts.cyri.scale(30))
+                                                    .into(),
                                                 // TODO: only construct string once when characters
                                                 // are
                                                 // loaded

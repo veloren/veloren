@@ -1,4 +1,4 @@
-use crate::comp;
+use crate::{comp, uid::Uid};
 use comp::item::Reagent;
 use serde::{Deserialize, Serialize};
 use vek::*;
@@ -29,6 +29,10 @@ pub enum Outcome {
         pos: Vec3<f32>,
         heal: bool,
     },
+    ExpChange {
+        uid: Uid,
+        exp: i32,
+    },
 }
 
 impl Outcome {
@@ -38,6 +42,7 @@ impl Outcome {
             Outcome::ProjectileShot { pos, .. } => Some(*pos),
             Outcome::LevelUp { pos } => Some(*pos),
             Outcome::Beam { pos, .. } => Some(*pos),
+            Outcome::ExpChange { .. } => None,
         }
     }
 }
