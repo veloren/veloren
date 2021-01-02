@@ -1,0 +1,72 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for "global" English
+(
+    string_map: {
+        // Texts used in multiple locations with the same formatting
+        "common.username": "username",
+        "common.singleplayer": "Singleplayer",
+        "common.multiplayer": "Multiplayer",
+        "common.servers": "Servers",
+        "common.quit": "Quit",
+        "common.settings": "Settings",
+        "common.languages": "Languages",
+        "common.interface": "Interface",
+        "common.gameplay": "Gameplay",
+        "common.controls": "Controls",
+        "common.video": "Graphics",
+        "common.sound": "Sound",
+        "common.resume": "Resume",
+        "common.characters": "Characters",
+        "common.close": "Close",
+        "common.yes": "Yes",
+        "common.no": "No",
+        "common.back": "Back",
+        "common.create": "Create",
+        "common.okay": "Okay",
+        "common.add": "Add",
+        "common.accept": "Accept",
+        "common.decline": "Decline",
+        "common.disclaimer": "Disclaimer",
+        "common.cancel": "Cancel",
+        "common.none": "None",
+        "common.error": "Error",
+        "common.fatal_error": "Fatal Error",
+        "common.you": "You",
+        "common.automatic": "Auto",
+        "common.random": "Random",
+        
+        // Settings Window title
+        "common.interface_settings": "Interface Settings",
+        "common.gameplay_settings": "Gameplay Settings",
+        "common.controls_settings": "Controls Settings",
+        "common.video_settings": "Graphics Settings",
+        "common.sound_settings": "Sound Settings",
+        "common.language_settings": "Language Settings",
+
+        // Message when connection to the server is lost
+        "common.connection_lost": r#"Connection lost!
+Did the server restart?
+Is the client up to date?"#,
+
+
+        "common.species.orc": "Orc",
+        "common.species.human": "Human",
+        "common.species.dwarf": "Dwarf",
+        "common.species.elf": "Elf",
+        "common.species.undead": "Undead",
+        "common.species.danari": "Danari",
+
+        "common.weapons.axe": "Axe",
+        "common.weapons.sword": "Sword",
+        "common.weapons.staff": "Staff",
+        "common.weapons.bow": "Bow",
+        "common.weapons.hammer": "Hammer",
+        "common.weapons.sceptre": "Healing Sceptre",
+        "common.rand_appearance": "Random appearance and name",
+    },
+
+
+    vector_map: {
+    }
+)

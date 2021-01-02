@@ -1,0 +1,22 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for "global" English
+(
+    string_map: {
+        "buff.remove": "Click to remove",
+        "buff.title.missing": "Missing Title",
+        "buff.desc.missing": "Missing Description",
+        "buff.title.heal": "Heal",
+        "buff.desc.heal": "Gain health over time.",
+        "buff.title.potion": "Potion",
+        "buff.desc.potion": "Drinking...",
+        "buff.title.saturation": "Saturation",
+        "buff.desc.saturation": "Gain health over time from consumables.",
+        "buff.title.campfire_heal": "Campfire Heal",
+        "buff.desc.campfire_heal": "Resting at a campfire heals 1% per second.",
+    },
+
+
+    vector_map: {
+    }
+)

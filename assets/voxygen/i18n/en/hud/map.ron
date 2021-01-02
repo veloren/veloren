@@ -1,0 +1,27 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for "global" English
+(
+    string_map: {
+        // Map and Questlog
+        "hud.map.map_title": "Map",
+        "hud.map.qlog_title": "Quests",
+        "hud.map.difficulty": "Difficulty",
+        "hud.map.towns": "Towns",
+        "hud.map.castles": "Castles",
+        "hud.map.dungeons": "Dungeons",        
+        "hud.map.caves": "Caves",
+        "hud.map.cave": "Cave",
+        "hud.map.town": "Town",
+        "hud.map.castle": "Castle",
+        "hud.map.dungeon": "Dungeon",
+        "hud.map.difficulty_dungeon": "Dungeon\n\nDifficulty: {difficulty}",
+        "hud.map.drag": "Drag",
+        "hud.map.zoom": "Zoom",
+        "hud.map.recenter": "Recenter",
+    },
+
+
+    vector_map: {
+    }
+)

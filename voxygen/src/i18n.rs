@@ -2,12 +2,13 @@ use common::assets::{self, AssetExt};
 use deunicode::deunicode;
 use hashbrown::{HashMap, HashSet};
 use serde::{Deserialize, Serialize};
-use std::borrow::Cow;
 use tracing::warn;
 
 /// The reference language, aka the more up-to-date localization data.
 /// Also the default language at first startup.
 pub const REFERENCE_LANG: &str = "en";
+
+pub const LANG_MANIFEST_FILE: &str = "_manifest";
 
 /// How a language can be described
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -42,9 +43,25 @@ impl Font {
 /// Store font metadata
 pub type Fonts = HashMap<String, Font>;
 
+/// Raw localization data, expect the strings to not be loaded here
+/// However, metadata informations are correct
+/// See `Localization` for more info on each attributes
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+pub struct RawLocalization {
+    pub sub_directories: Vec<String>,
+    pub string_map: HashMap<String, String>,
+    pub vector_map: HashMap<String, Vec<String>>,
+    pub convert_utf8_to_ascii: bool,
+    pub fonts: Fonts,
+    pub metadata: LanguageMetadata,
+}
+
 /// Store internationalization data
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Localization {
+    /// A list of subdirectories to lookup for localization files
+    pub sub_directories: Vec<String>,
+
     /// A map storing the localized texts
     ///
     /// Localized content can be accessed using a String key.
@@ -63,6 +80,21 @@ pub struct Localization {
     pub fonts: Fonts,
 
     pub metadata: LanguageMetadata,
+}
+
+/// Store internationalization maps
+/// These structs are meant to be merged into a Localization
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct LocalizationFragment {
+    /// A map storing the localized texts
+    ///
+    /// Localized content can be accessed using a String key.
+    pub string_map: HashMap<String, String>,
+
+    /// A map for storing variations of localized texts, for example multiple
+    /// ways of saying "Help, I'm under attack". Used primarily for npc
+    /// dialogue.
+    pub vector_map: HashMap<String, Vec<String>>,
 }
 
 impl Localization {
@@ -131,42 +163,107 @@ impl Localization {
         }
     }
 }
+impl From<RawLocalization> for Localization {
+    fn from(raw: RawLocalization) -> Self {
+        Self {
+            sub_directories: raw.sub_directories,
+            string_map: raw.string_map,
+            vector_map: raw.vector_map,
+            convert_utf8_to_ascii: raw.convert_utf8_to_ascii,
+            fonts: raw.fonts,
+            metadata: raw.metadata,
+        }
+    }
+}
+impl From<RawLocalization> for LocalizationFragment {
+    fn from(raw: RawLocalization) -> Self {
+        Self {
+            string_map: raw.string_map,
+            vector_map: raw.vector_map,
+        }
+    }
+}
 
-impl assets::Asset for Localization {
-    type Loader = LocalizationLoader;
+impl assets::Asset for RawLocalization {
+    type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
+}
+impl assets::Asset for LocalizationFragment {
+    type Loader = assets::RonLoader;
 
     const EXTENSION: &'static str = "ron";
 }
 
-pub struct LocalizationLoader;
-impl assets::Loader<Localization> for LocalizationLoader {
-    fn load(content: Cow<[u8]>, ext: &str) -> Result<Localization, assets::BoxedError> {
-        let mut asked_localization: Localization = assets::RonLoader::load(content, ext)?;
+impl assets::Compound for Localization {
+    fn load<S: assets::source::Source>(
+        cache: &assets::AssetCache<S>,
+        asset_key: &str,
+    ) -> Result<Self, assets::Error> {
+        let raw = cache
+            .load::<RawLocalization>(&(asset_key.to_string() + "." + LANG_MANIFEST_FILE))?
+            .cloned();
+        let mut localization = Localization::from(raw);
+
+        // Walk through files in the folder, collecting localization fragment to merge
+        // inside the asked_localization
+        for localization_asset in cache.load_dir::<LocalizationFragment>(asset_key)?.iter() {
+            localization
+                .string_map
+                .extend(localization_asset.read().string_map.clone());
+            localization
+                .vector_map
+                .extend(localization_asset.read().vector_map.clone());
+        }
+
+        // Use the localization's subdirectory list to load fragments from there
+        for sub_directory in localization.sub_directories.iter() {
+            for localization_asset in cache
+                .load_dir::<LocalizationFragment>(&(asset_key.to_string() + "." + &sub_directory))?
+                .iter()
+            {
+                localization
+                    .string_map
+                    .extend(localization_asset.read().string_map.clone());
+                localization
+                    .vector_map
+                    .extend(localization_asset.read().vector_map.clone());
+            }
+        }
 
         // Update the text if UTF-8 to ASCII conversion is enabled
-        if asked_localization.convert_utf8_to_ascii {
-            for value in asked_localization.string_map.values_mut() {
+        if localization.convert_utf8_to_ascii {
+            for value in localization.string_map.values_mut() {
                 *value = deunicode(value);
             }
 
-            for value in asked_localization.vector_map.values_mut() {
+            for value in localization.vector_map.values_mut() {
                 *value = value.iter().map(|s| deunicode(s)).collect();
             }
         }
-        asked_localization.metadata.language_name =
-            deunicode(&asked_localization.metadata.language_name);
+        localization.metadata.language_name = deunicode(&localization.metadata.language_name);
 
-        Ok(asked_localization)
+        Ok(localization)
     }
 }
 
 /// Load all the available languages located in the voxygen asset directory
 pub fn list_localizations() -> Vec<LanguageMetadata> {
-    assets::load_dir::<Localization>("voxygen.i18n")
-        .unwrap()
-        .iter_all()
-        .filter_map(|(_, lang)| lang.ok().map(|e| e.read().metadata.clone()))
-        .collect()
+    let mut languages = vec![];
+    // List language directories
+    for i18n_directory in std::fs::read_dir("assets/voxygen/i18n").unwrap() {
+        if let Ok(i18n_entry) = i18n_directory {
+            if let Some(i18n_key) = i18n_entry.file_name().to_str() {
+                // load the root file of all the subdirectories
+                if let Ok(localization) = RawLocalization::load(
+                    &("voxygen.i18n.".to_string() + i18n_key + "." + LANG_MANIFEST_FILE),
+                ) {
+                    languages.push(localization.read().metadata.clone());
+                }
+            }
+        }
+    }
+    languages
 }
 
 /// Return the asset associated with the language_id
@@ -174,7 +271,7 @@ pub fn i18n_asset_key(language_id: &str) -> String { "voxygen.i18n.".to_string()
 
 #[cfg(test)]
 mod tests {
-    use super::Localization;
+    use super::{LocalizationFragment, RawLocalization, LANG_MANIFEST_FILE, REFERENCE_LANG};
     use git2::Repository;
     use hashbrown::{HashMap, HashSet};
     use ron::de::{from_bytes, from_reader};
@@ -183,15 +280,12 @@ mod tests {
         path::{Path, PathBuf},
     };
 
-    /// List localization files as a PathBuf vector
-    fn i18n_files(i18n_dir: &Path) -> Vec<PathBuf> {
+    /// List localization directories as a PathBuf vector
+    fn i18n_directories(i18n_dir: &Path) -> Vec<PathBuf> {
         fs::read_dir(i18n_dir)
             .unwrap()
             .map(|res| res.map(|e| e.path()).unwrap())
-            .filter(|e| match e.extension() {
-                Some(ext) => ext == "ron",
-                None => false,
-            })
+            .filter(|e| e.is_dir())
             .collect()
     }
 
@@ -247,7 +341,7 @@ mod tests {
 
     fn generate_key_version<'a>(
         repo: &'a git2::Repository,
-        localization: &Localization,
+        localization: &LocalizationFragment,
         path: &std::path::Path,
         file_blob: &git2::Blob,
     ) -> HashMap<String, LocalizationEntryState> {
@@ -321,42 +415,129 @@ mod tests {
         keys
     }
 
+    fn complete_key_versions<'a>(
+        repo: &'a git2::Repository,
+        head_ref: &git2::Reference,
+        i18n_key_versions: &mut HashMap<String, LocalizationEntryState>,
+        dir: &Path,
+    ) {
+        let root_dir = std::env::current_dir()
+            .map(|p| p.parent().expect("").to_owned())
+            .unwrap();
+        for i18n_file in root_dir.join(&dir).read_dir().unwrap() {
+            if let Ok(i18n_file) = i18n_file {
+                if let Ok(file_type) = i18n_file.file_type() {
+                    if file_type.is_file() {
+                        let full_path = i18n_file.path();
+                        let path = full_path.strip_prefix(&root_dir).unwrap();
+                        println!("-> {:?}", i18n_file.file_name());
+                        let i18n_blob = read_file_from_path(&repo, &head_ref, &path);
+                        let i18n: LocalizationFragment = match from_bytes(i18n_blob.content()) {
+                            Ok(v) => v,
+                            Err(e) => {
+                                eprintln!(
+                                    "Could not parse {} RON file, skipping: {}",
+                                    i18n_file.path().to_string_lossy(),
+                                    e
+                                );
+                                continue;
+                            },
+                        };
+                        i18n_key_versions
+                            .extend(generate_key_version(&repo, &i18n, &path, &i18n_blob));
+                    }
+                }
+            }
+        }
+    }
+
+    fn verify_localization_directory(directory_path: &Path) {
+        let root_dir = std::env::current_dir()
+            .map(|p| p.parent().expect("").to_owned())
+            .unwrap();
+        // Walk through each file in the directory
+        for i18n_file in root_dir.join(&directory_path).read_dir().unwrap() {
+            if let Ok(i18n_file) = i18n_file {
+                if let Ok(file_type) = i18n_file.file_type() {
+                    // Skip folders and the manifest file (which does not contain the same struct we
+                    // want to load)
+                    if file_type.is_file()
+                        && i18n_file.file_name().to_string_lossy()
+                            != (LANG_MANIFEST_FILE.to_string() + ".ron")
+                    {
+                        let full_path = i18n_file.path();
+                        println!("-> {:?}", full_path.strip_prefix(&root_dir).unwrap());
+                        let f = fs::File::open(&full_path).expect("Failed opening file");
+                        let _: LocalizationFragment = match from_reader(f) {
+                            Ok(v) => v,
+                            Err(e) => {
+                                panic!(
+                                    "Could not parse {} RON file, error: {}",
+                                    full_path.to_string_lossy(),
+                                    e
+                                );
+                            },
+                        };
+                    }
+                }
+            }
+        }
+    }
+
     // Test to verify all languages that they are VALID and loadable, without
     // need of git just on the local assets folder
     #[test]
     fn verify_all_localizations() {
         // Generate paths
         let i18n_asset_path = Path::new("assets/voxygen/i18n/");
-        let en_i18n_path = i18n_asset_path.join("en.ron");
+        let ref_i18n_dir_path = i18n_asset_path.join(REFERENCE_LANG);
+        let ref_i18n_path = ref_i18n_dir_path.join(LANG_MANIFEST_FILE.to_string() + ".ron");
         let root_dir = std::env::current_dir()
             .map(|p| p.parent().expect("").to_owned())
             .unwrap();
         assert!(
-            root_dir.join(&en_i18n_path).is_file(),
-            "en reference files doesn't exist, something is wrong!"
+            root_dir.join(&ref_i18n_dir_path).is_dir(),
+            "Reference language folder doesn't exist, something is wrong!"
         );
-        let i18n_files = i18n_files(&root_dir.join(i18n_asset_path));
+        assert!(
+            root_dir.join(&ref_i18n_path).is_file(),
+            "Reference language manifest file doesn't exist, something is wrong!"
+        );
+        let i18n_directories = i18n_directories(&root_dir.join(i18n_asset_path));
         // This simple check  ONLY guarantees that an arbitrary minimum of translation
         // files exists. It's just to notice unintentional deletion of all
         // files, or modifying the paths. In case you want to delete all
         // language you have to adjust this number:
         assert!(
-            i18n_files.len() > 5,
-            "have less than 5 translation files, arbitrary minimum check failed. Maybe the i18n \
+            i18n_directories.len() > 5,
+            "have less than 5 translation folders, arbitrary minimum check failed. Maybe the i18n \
              folder is empty?"
         );
-        for path in i18n_files {
-            let f = fs::File::open(&path).expect("Failed opening file");
-            let _: Localization = match from_reader(f) {
+        for i18n_directory in i18n_directories {
+            // Attempt to load the manifest file
+            let manifest_path = i18n_directory.join(LANG_MANIFEST_FILE.to_string() + ".ron");
+            println!(
+                "verifying {:?}",
+                manifest_path.strip_prefix(&root_dir).unwrap()
+            );
+            let f = fs::File::open(&manifest_path).expect("Failed opening file");
+            let raw_localization: RawLocalization = match from_reader(f) {
                 Ok(v) => v,
                 Err(e) => {
                     panic!(
                         "Could not parse {} RON file, error: {}",
-                        path.to_string_lossy(),
+                        i18n_directory.to_string_lossy(),
                         e
                     );
                 },
             };
+            // Walk through each files and try to load them
+            verify_localization_directory(&i18n_directory);
+            // Walk through each subdirectories and try to load files in them
+            for sub_directory in raw_localization.sub_directories.iter() {
+                let subdir_path = &i18n_directory.join(sub_directory);
+                verify_localization_directory(&subdir_path);
+            }
         }
     }
 
@@ -367,14 +548,21 @@ mod tests {
     fn test_all_localizations() {
         // Generate paths
         let i18n_asset_path = Path::new("assets/voxygen/i18n/");
-        let en_i18n_path = i18n_asset_path.join("en.ron");
+        let ref_i18n_dir_path = i18n_asset_path.join(REFERENCE_LANG);
+        let ref_i18n_path = ref_i18n_dir_path.join(LANG_MANIFEST_FILE.to_string() + ".ron");
         let root_dir = std::env::current_dir()
             .map(|p| p.parent().expect("").to_owned())
             .unwrap();
         let i18n_path = root_dir.join(i18n_asset_path);
 
-        if !root_dir.join(&en_i18n_path).is_file() {
-            panic!("Reference language file not found {:?}", &en_i18n_path)
+        if !root_dir.join(&ref_i18n_dir_path).is_dir() {
+            panic!(
+                "Reference language folder not found {:?}",
+                &ref_i18n_dir_path
+            )
+        }
+        if !root_dir.join(&ref_i18n_path).is_file() {
+            panic!("Reference language file not found {:?}", &ref_i18n_path)
         }
 
         // Initialize Git objects
@@ -385,18 +573,31 @@ mod tests {
         let head_ref = repo.head().expect("Impossible to get the HEAD reference");
 
         // Read HEAD for the reference language file
-        let i18n_en_blob = read_file_from_path(&repo, &head_ref, &en_i18n_path);
-        let loc: Localization = from_bytes(i18n_en_blob.content())
+        let i18n_ref_blob = read_file_from_path(&repo, &head_ref, &ref_i18n_path);
+        let loc: RawLocalization = from_bytes(i18n_ref_blob.content())
             .expect("Expect to parse reference i18n RON file, can't proceed without it");
-        let i18n_references: HashMap<String, LocalizationEntryState> =
-            generate_key_version(&repo, &loc, &en_i18n_path, &i18n_en_blob);
+        let mut i18n_references: HashMap<String, LocalizationEntryState> = generate_key_version(
+            &repo,
+            &LocalizationFragment::from(loc.clone()),
+            &ref_i18n_path,
+            &i18n_ref_blob,
+        );
+
+        // read HEAD for the fragment files
+        complete_key_versions(&repo, &head_ref, &mut i18n_references, &ref_i18n_dir_path);
+        // read HEAD for the subfolders
+        for sub_directory in loc.sub_directories.iter() {
+            let subdir_path = &ref_i18n_dir_path.join(sub_directory);
+            complete_key_versions(&repo, &head_ref, &mut i18n_references, &subdir_path);
+        }
 
         // Compare to other reference files
-        let i18n_files = i18n_files(&i18n_path);
+        let i18n_directories = i18n_directories(&i18n_path);
         let mut i18n_entry_counts: HashMap<PathBuf, (usize, usize, usize, usize)> = HashMap::new();
-        for file in &i18n_files {
-            let relfile = file.strip_prefix(&root_dir).unwrap();
-            if relfile == en_i18n_path {
+        for file in &i18n_directories {
+            let reldir = file.strip_prefix(&root_dir).unwrap();
+            let relfile = reldir.join(&(LANG_MANIFEST_FILE.to_string() + ".ron"));
+            if relfile == ref_i18n_path {
                 continue;
             }
             println!("\n-----------------------------------");
@@ -405,7 +606,7 @@ mod tests {
 
             // Find the localization entry state
             let current_blob = read_file_from_path(&repo, &head_ref, &relfile);
-            let current_loc: Localization = match from_bytes(current_blob.content()) {
+            let current_loc: RawLocalization = match from_bytes(current_blob.content()) {
                 Ok(v) => v,
                 Err(e) => {
                     eprintln!(
@@ -416,8 +617,20 @@ mod tests {
                     continue;
                 },
             };
-            let mut current_i18n =
-                generate_key_version(&repo, &current_loc, &relfile, &current_blob);
+            let mut current_i18n = generate_key_version(
+                &repo,
+                &LocalizationFragment::from(current_loc.clone()),
+                &relfile,
+                &current_blob,
+            );
+            // read HEAD for the fragment files
+            complete_key_versions(&repo, &head_ref, &mut current_i18n, &reldir);
+            // read HEAD for the subfolders
+            for sub_directory in current_loc.sub_directories.iter() {
+                let subdir_path = &reldir.join(sub_directory);
+                complete_key_versions(&repo, &head_ref, &mut current_i18n, &subdir_path);
+            }
+
             for (ref_key, ref_state) in i18n_references.iter() {
                 match current_i18n.get_mut(ref_key) {
                     Some(state) => {
@@ -478,7 +691,7 @@ mod tests {
                 "State",
                 "Key name",
                 relfile.to_str().unwrap(),
-                en_i18n_path.to_str().unwrap()
+                ref_i18n_path.to_str().unwrap()
             );
 
             let mut sorted_keys: Vec<&String> = current_i18n.keys().collect();

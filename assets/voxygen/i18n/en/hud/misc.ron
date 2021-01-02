@@ -1,0 +1,75 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for "global" English
+(
+    string_map: {
+        "hud.do_not_show_on_startup": "Don't show this on Startup",
+        "hud.show_tips": "Show Tips",
+        "hud.quests": "Quests",
+        "hud.you_died": "You Died",
+        "hud.waypoint_saved": "Waypoint Saved",
+
+        "hud.press_key_to_show_keybindings_fmt": "[{key}] Keybindings",
+        "hud.press_key_to_toggle_lantern_fmt": "[{key}] Lantern",
+        "hud.press_key_to_show_debug_info_fmt": "Press {key} to show debug info",
+        "hud.press_key_to_toggle_keybindings_fmt": "Press {key} to toggle keybindings",
+        "hud.press_key_to_toggle_debug_info_fmt": "Press {key} to toggle debug info",
+
+        // Respawn message
+        "hud.press_key_to_respawn": r#"Press {key} to respawn at the last campfire you visited."#,
+
+        // Welcome message
+        "hud.welcome": r#"Welcome to the Veloren Alpha!
+
+
+Some tips before you start:
+
+
+Press F1 to see the available key commands.
+
+Type /help into the chat to see chat commands
+
+
+There are chests and other objects randomly spawning in the World!
+
+Right-Click to collect them.
+
+To actually use whatever you loot from those chests open your inventory with 'B'.
+
+Double click the items in your bag to use or equip them.
+
+Throw them away by clicking them once and clicking outside of the bag
+
+
+Nights can get pretty dark in Veloren.
+
+Light your lantern by pressing 'G'
+
+
+Want to free your cursor to close this window? Press TAB!
+
+
+Enjoy your stay in the World of Veloren."#,
+
+"hud.temp_quest_headline": r#"Please, help us Traveller!"#,
+"hud.temp_quest_text": r#"Dungeons filled with evil cultists
+have emerged all around our peaceful towns!
+
+
+Gather some company, stack up on food
+and defeat their vile leaders and acolytes.
+
+
+Maybe you can even obtain one of their
+magically infused items?"#,
+
+        "hud.spell": "Spells",
+
+        "hud.free_look_indicator": "Free look active. Press {key} to disable.",
+        "hud.auto_walk_indicator": "Auto walk active",
+    },
+
+
+    vector_map: {
+    }
+)
