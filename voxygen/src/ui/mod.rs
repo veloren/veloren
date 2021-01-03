@@ -576,7 +576,7 @@ impl Ui {
         enum State {
             Image(TexId),
             Plain,
-        };
+        }
 
         let mut current_state = State::Plain;
         let mut start = 0;
@@ -590,7 +590,7 @@ impl Ui {
             Interface,
             // Number of primitives left to render ingame and visibility
             InWorld(usize, bool),
-        };
+        }
 
         let mut placement = Placement::Interface;
 

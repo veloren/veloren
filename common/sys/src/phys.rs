@@ -471,7 +471,7 @@ impl<'a> System<'a> for Sys {
 
                             None
                         })
-                    };
+                    }
 
                     let z_range = z_min..z_max;
                     // Function for determining whether the player at a specific position collides
@@ -486,7 +486,7 @@ impl<'a> System<'a> for Sys {
                     ) -> bool {
                         collision_iter(pos, terrain, &|block| block.is_solid() && hit(block), &Block::solid_height, near_iter, radius, z_range).count()
                             > 0
-                    };
+                    }
 
                     let was_on_ground = physics_state.on_ground;
                     physics_state.on_ground = false;
