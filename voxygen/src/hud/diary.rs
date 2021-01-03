@@ -1,7 +1,7 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
     item_imgs::{ItemImgs, ItemKey::Tool},
-    Show, QUALITY_LEGENDARY, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN, XP_COLOR,
+    Show, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN, XP_COLOR, HP_COLOR, CRITICAL_HP_COLOR,
 };
 use crate::{
     i18n::Localization,
@@ -165,6 +165,7 @@ pub struct Diary<'a> {
     localized_strings: &'a Localization,
     rot_imgs: &'a ImgsRot,
     tooltip_manager: &'a mut TooltipManager,
+    pulse: f32,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -186,6 +187,7 @@ impl<'a> Diary<'a> {
         localized_strings: &'a Localization,
         rot_imgs: &'a ImgsRot,
         tooltip_manager: &'a mut TooltipManager,
+        pulse: f32,
     ) -> Self {
         Self {
             show,
@@ -197,6 +199,7 @@ impl<'a> Diary<'a> {
             localized_strings,
             rot_imgs,
             tooltip_manager,
+            pulse,
             common: widget::CommonBuilder::default(),
             created_btns_top_l: 0,
             created_btns_top_r: 0,
@@ -268,6 +271,7 @@ impl<'a> Widget for Diary<'a> {
         .font_id(self.fonts.cyri.conrod_id)
         .desc_text_color(TEXT_COLOR);
         let sel_tab = &self.show.skilltreetab;
+        let frame_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8; //Animation timer
         // Frame
         Image::new(self.imgs.diary_bg)
             .w_h(1202.0, 886.0)
@@ -330,183 +334,68 @@ impl<'a> Widget for Diary<'a> {
                 .resize(TREES.len(), &mut ui.widget_id_generator())
         });
         for i in TREES.iter().copied().enumerate() {
-            let locked = match i.1 {
-                "General Combat" => false,
-                "Sword" => true,
-                "Hammer" => true,
-                "Axe" => true,
-                "Sceptre" => true,
-                "Bow" => true,
-                "Fire Staff" => true,
-                _ => false,
-            };
+            let locked = !skill_tree_from_str(i.1)
+                .map_or(false, |st| self.stats.skill_set.contains_skill_group(st));
 
             // Background weapon image
-            let img = Image::new(
-                match i.1 {
-                    "General Combat" => self.imgs.swords_crossed,
-                    "Sword" => self.imgs.sword,
-                    "Hammer" => self.imgs.hammer,
-                    "Axe" => self.imgs.axe,
-                    "Sceptre" => self.imgs.sceptre,
-                    "Bow" => self.imgs.bow,
-                    "Fire Staff" => self.imgs.staff,
-                    _ => self.imgs.nothing,
-                }
-           );          
+            let img = Image::new(match i.1 {
+                "General Combat" => self.imgs.swords_crossed,
+                "Sword" => self.imgs.sword,
+                "Hammer" => self.imgs.hammer,
+                "Axe" => self.imgs.axe,
+                "Sceptre" => self.imgs.sceptre,
+                "Bow" => self.imgs.bow,
+                "Fire Staff" => self.imgs.staff,
+                _ => self.imgs.nothing,
+            });
 
             let img = if i.0 == 0 {
                 img.top_left_with_margins_on(state.content_align, tweak!(10.0), tweak!(5.0))
             } else {
                 img.down_from(state.weapon_btns[i.0 - 1], tweak!(5.0))
             };
-            let tooltip_txt = if !locked {""} else {"Not yet unlocked"};
+            let tooltip_txt = if !locked { "" } else { "Not yet unlocked" };
             img.w_h(tweak!(50.0), tweak!(50.0))
                 .set(state.weapon_imgs[i.0], ui);
             // Lock Image
-            if locked {Image::new(self.imgs.lock)
-                .w_h(50.0, 50.0)
-                .middle_of(state.weapon_imgs[i.0])
-                .graphics_for(state.weapon_imgs[i.0])
-                .color(Some(Color::Rgba(1.0, 1.0, 1.0, tweak!(0.8))))
-                .set(state.lock_imgs[i.0], ui);}
+            if locked {
+                Image::new(self.imgs.lock)
+                    .w_h(50.0, 50.0)
+                    .middle_of(state.weapon_imgs[i.0])
+                    .graphics_for(state.weapon_imgs[i.0])
+                    .color(Some(Color::Rgba(1.0, 1.0, 1.0, tweak!(0.8))))
+                    .set(state.lock_imgs[i.0], ui);
+            }
             // Weapon icons
+            let available_pts = skill_tree_from_str(i.1)
+                .map_or(false, |st| self.stats.skill_set.get_available_sp(st) > 0);
+            self.stats.skill_set.get_available_sp(*sel_tab);
             if Button::image(
-                match i.1 {
-                    "General Combat" => match sel_tab {
-                        SelectedSkillTree::General => self.imgs.wpn_icon_border_pressed,
-                        _ => self.imgs.wpn_icon_border,
-                    },
-                    "Sword" => match sel_tab {
-                        SelectedSkillTree::Weapon(ToolKind::Sword) => {
-                            self.imgs.wpn_icon_border_pressed
-                        },
-                        _ => self.imgs.wpn_icon_border,
-                    },
-                    "Hammer" => match sel_tab {
-                        SelectedSkillTree::Weapon(ToolKind::Hammer) => {
-                            self.imgs.wpn_icon_border_pressed
-                        },
-                        _ => self.imgs.wpn_icon_border,
-                    },
-                    "Axe" => match sel_tab {
-                        SelectedSkillTree::Weapon(ToolKind::Axe) => {
-                            self.imgs.wpn_icon_border_pressed
-                        },
-                        _ => self.imgs.wpn_icon_border,
-                    },
-                    "Sceptre" => match sel_tab {
-                        SelectedSkillTree::Weapon(ToolKind::Sceptre) => {
-                            self.imgs.wpn_icon_border_pressed
-                        },
-                        _ => self.imgs.wpn_icon_border,
-                    },
-                    "Bow" => match sel_tab {
-                        SelectedSkillTree::Weapon(ToolKind::Bow) => {
-                            self.imgs.wpn_icon_border_pressed
-                        },
-                        _ => self.imgs.wpn_icon_border,
-                    },
-                    "Fire Staff" => match sel_tab {
-                        SelectedSkillTree::Weapon(ToolKind::Staff) => {
-                            self.imgs.wpn_icon_border_pressed
-                        },
-                        _ => self.imgs.wpn_icon_border,
-                    },
-                    _ => self.imgs.wpn_icon_border,
-                }
+                if skill_tree_from_str(i.1).map_or(false, |st| st == *sel_tab || available_pts) {
+                    self.imgs.wpn_icon_border_pressed
+                } else {
+                    self.imgs.wpn_icon_border
+                },
             )
             .w_h(tweak!(50.0), tweak!(50.0))
-            .hover_image(
-                match i.1 {
-                    "General Combat" => match sel_tab {
-                        SelectedSkillTree::General => self.imgs.wpn_icon_border_pressed,
-                        _ => self.imgs.wpn_icon_border_mo,
-                    },
-                    "Sword" => match sel_tab {
-                        SelectedSkillTree::Weapon(ToolKind::Sword) => {
-                            self.imgs.wpn_icon_border_pressed
-                        },
-                        _ => self.imgs.wpn_icon_border_mo,
-                    },
-                    "Hammer" => match sel_tab {
-                        SelectedSkillTree::Weapon(ToolKind::Hammer) => {
-                            self.imgs.wpn_icon_border_pressed
-                        },
-                        _ => self.imgs.wpn_icon_border_mo,
-                    },
-                    "Axe" => match sel_tab {
-                        SelectedSkillTree::Weapon(ToolKind::Axe) => {
-                            self.imgs.wpn_icon_border_pressed
-                        },
-                        _ => self.imgs.wpn_icon_border_mo,
-                    },
-                    "Sceptre" => match sel_tab {
-                        SelectedSkillTree::Weapon(ToolKind::Sceptre) => {
-                            self.imgs.wpn_icon_border_pressed
-                        },
-                        _ => self.imgs.wpn_icon_border_mo,
-                    },
-                    "Bow" => match sel_tab {
-                        SelectedSkillTree::Weapon(ToolKind::Bow) => {
-                            self.imgs.wpn_icon_border_pressed
-                        },
-                        _ => self.imgs.wpn_icon_border_mo,
-                    },
-                    "Fire Staff" => match sel_tab {
-                        SelectedSkillTree::Weapon(ToolKind::Staff) => {
-                            self.imgs.wpn_icon_border_pressed
-                        },
-                        _ => self.imgs.wpn_icon_border_mo,
-                    },
-                    _ => self.imgs.wpn_icon_border,
-                }            
-            )
-            .press_image(
-                match i.1 {
-                    "General Combat" => match sel_tab {
-                        SelectedSkillTree::General => self.imgs.wpn_icon_border_pressed,
-                        _ => self.imgs.wpn_icon_border_press,
-                    },
-                    "Sword" => match sel_tab {
-                        SelectedSkillTree::Weapon(ToolKind::Sword) => {
-                            self.imgs.wpn_icon_border_pressed
-                        },
-                        _ => self.imgs.wpn_icon_border_press,
-                    },
-                    "Hammer" => match sel_tab {
-                        SelectedSkillTree::Weapon(ToolKind::Hammer) => {
-                            self.imgs.wpn_icon_border_pressed
-                        },
-                        _ => self.imgs.wpn_icon_border_press,
-                    },
-                    "Axe" => match sel_tab {
-                        SelectedSkillTree::Weapon(ToolKind::Axe) => {
-                            self.imgs.wpn_icon_border_pressed
-                        },
-                        _ => self.imgs.wpn_icon_border_press,
-                    },
-                    "Sceptre" => match sel_tab {
-                        SelectedSkillTree::Weapon(ToolKind::Sceptre) => {
-                            self.imgs.wpn_icon_border_pressed
-                        },
-                        _ => self.imgs.wpn_icon_border_press,
-                    },
-                    "Bow" => match sel_tab {
-                        SelectedSkillTree::Weapon(ToolKind::Bow) => {
-                            self.imgs.wpn_icon_border_pressed
-                        },
-                        _ => self.imgs.wpn_icon_border_press,
-                    },
-                    "Fire Staff" => match sel_tab {
-                        SelectedSkillTree::Weapon(ToolKind::Staff) => {
-                            self.imgs.wpn_icon_border_pressed
-                        },
-                        _ => self.imgs.wpn_icon_border_press,
-                    },
-                    _ => self.imgs.wpn_icon_border,
-                }        )
+            .hover_image(match skill_tree_from_str(i.1).map(|st| st == *sel_tab) {
+                Some(true) => self.imgs.wpn_icon_border_pressed,
+                Some(false) => self.imgs.wpn_icon_border_mo,
+                None => self.imgs.wpn_icon_border,
+            })
+            .press_image(match skill_tree_from_str(i.1).map(|st| st == *sel_tab) {
+                Some(true) => self.imgs.wpn_icon_border_pressed,
+                Some(false) => self.imgs.wpn_icon_border_press,
+                None => self.imgs.wpn_icon_border,
+            })
             .middle_of(state.weapon_imgs[i.0])
+            .image_color(
+                if skill_tree_from_str(i.1).map_or(false, |st| st != *sel_tab && available_pts) {
+                    Color::Rgba(0.92, 0.76, 0.0, frame_ani)
+                } else {
+                    TEXT_COLOR
+                },
+            )
             .with_tooltip(
                 self.tooltip_manager,
                 i.1,
@@ -516,32 +405,8 @@ impl<'a> Widget for Diary<'a> {
             )
             .set(state.weapon_btns[i.0], ui)
             .was_clicked()
-            {                
-                    match i.1 {
-                        "General Combat" => {
-                            events.push(Event::ChangeSkillTree(SelectedSkillTree::General))
-                        },
-                        "Sword" => events.push(Event::ChangeSkillTree(SelectedSkillTree::Weapon(
-                            ToolKind::Sword,
-                        ))),
-                        "Hammer" => events.push(Event::ChangeSkillTree(SelectedSkillTree::Weapon(
-                            ToolKind::Hammer,
-                        ))),
-                        "Axe" => events.push(Event::ChangeSkillTree(SelectedSkillTree::Weapon(
-                            ToolKind::Axe,
-                        ))),
-                        "Sceptre" => events.push(Event::ChangeSkillTree(
-                            SelectedSkillTree::Weapon(ToolKind::Sceptre),
-                        )),
-                        "Bow" => events.push(Event::ChangeSkillTree(SelectedSkillTree::Weapon(
-                            ToolKind::Bow,
-                        ))),
-                        "Fire Staff" => events.push(Event::ChangeSkillTree(
-                            SelectedSkillTree::Weapon(ToolKind::Staff),
-                        )),
-                        _ => events.push(Event::Close),
-                    }
-                
+            {
+                events.push(skill_tree_from_str(i.1).map_or(Event::Close, Event::ChangeSkillTree))
             }
         }
         // Exp Bars and Rank Display
@@ -595,7 +460,7 @@ impl<'a> Widget for Diary<'a> {
                 .mid_top_with_margin_on(state.content_align, tweak!(42.0))
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(tweak!(28)))
-                .color(QUALITY_LEGENDARY)
+                .color(Color::Rgba(0.92, 0.76, 0.0, frame_ani))
                 .set(state.available_pts_txt, ui);
         }
         let tree_title = match sel_tab {
@@ -794,7 +659,7 @@ impl<'a> Widget for Diary<'a> {
                 //        3 0 4
                 //        8 2 7
                 let skill = Skill::General(HealthIncrease);
-                if Button::image(self.imgs.swords_crossed)
+                if Button::image(self.imgs.health_plus_skill)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_l[0])
                     .label(&format!(
@@ -820,7 +685,7 @@ impl<'a> Widget for Diary<'a> {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::General(EnergyIncrease);
-                if Button::image(self.imgs.swords_crossed)
+                if Button::image(self.imgs.stamina_plus_skill)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_l[1])
                     .label(&format!(
@@ -847,7 +712,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 // Top right skills
                 let skill = Skill::UnlockGroup(Weapon(Sword));
-                if Button::image(self.imgs.swords_crossed)
+                if Button::image(self.imgs.unlock_sword_skill)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[0])
                     .label(&format!(
@@ -873,7 +738,7 @@ impl<'a> Widget for Diary<'a> {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::UnlockGroup(Weapon(Axe));
-                if Button::image(self.imgs.swords_crossed)
+                if Button::image(self.imgs.unlock_axe_skill)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[1])
                     .label(&format!(
@@ -899,7 +764,7 @@ impl<'a> Widget for Diary<'a> {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::UnlockGroup(Weapon(Hammer));
-                if Button::image(self.imgs.swords_crossed)
+                if Button::image(self.imgs.unlock_hammer_skill)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[2])
                     .label(&format!(
@@ -925,7 +790,7 @@ impl<'a> Widget for Diary<'a> {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::UnlockGroup(Weapon(Bow));
-                if Button::image(self.imgs.swords_crossed)
+                if Button::image(self.imgs.unlock_bow_skill)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[3])
                     .label(&format!(
@@ -951,7 +816,7 @@ impl<'a> Widget for Diary<'a> {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::UnlockGroup(Weapon(Staff));
-                if Button::image(self.imgs.swords_crossed)
+                if Button::image(self.imgs.unlock_staff_skill0)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[4])
                     .label(&format!(
@@ -977,7 +842,7 @@ impl<'a> Widget for Diary<'a> {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::UnlockGroup(Weapon(Sceptre));
-                if Button::image(self.imgs.swords_crossed)
+                if Button::image(self.imgs.unlock_sceptre_skill)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[5])
                     .label(&format!(
@@ -1281,19 +1146,22 @@ impl<'a> Widget for Diary<'a> {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sword(DCost);
+                let prereqs_met = tweak!(true);
+                let suff_pts = tweak!(false);
+                let label_txt = &format!(      "{}/{}",
+                    skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
+                    skill.get_max_level().unwrap_or(1));
                 if Button::image(self.imgs.sword_whirlwind)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[2])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
+                    .label(if prereqs_met {&label_txt} else {""}
+                    )
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
+                    .label_color(if suff_pts {HP_COLOR} else {CRITICAL_HP_COLOR})
                     .label_font_size(self.fonts.cyri.scale(tweak!(16)))
                     .label_font_id(self.fonts.cyri.conrod_id)
+                    .image_color(if prereqs_met {TEXT_COLOR} else {Color::Rgba(0.41, 0.41, 0.41, tweak!(0.7))})
                     .with_tooltip(
                         self.tooltip_manager,
                         "Dash Cost",
@@ -3352,5 +3220,18 @@ impl<'a> Widget for Diary<'a> {
         }
 
         events
+    }
+}
+
+fn skill_tree_from_str(string: &str) -> Option<SelectedSkillTree> {
+    match string {
+        "General Combat" => Some(SelectedSkillTree::General),
+        "Sword" => Some(SelectedSkillTree::Weapon(ToolKind::Sword)),
+        "Hammer" => Some(SelectedSkillTree::Weapon(ToolKind::Hammer)),
+        "Axe" => Some(SelectedSkillTree::Weapon(ToolKind::Axe)),
+        "Sceptre" => Some(SelectedSkillTree::Weapon(ToolKind::Sceptre)),
+        "Bow" => Some(SelectedSkillTree::Weapon(ToolKind::Bow)),
+        "Fire Staff" => Some(SelectedSkillTree::Weapon(ToolKind::Staff)),
+        _ => None,
     }
 }
