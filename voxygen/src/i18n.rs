@@ -282,7 +282,11 @@ pub fn list_localizations() -> Vec<LanguageMetadata> {
 }
 
 /// Return the asset associated with the language_id
-pub fn i18n_asset_key(language_id: &str) -> String { "voxygen.i18n.".to_string() + language_id }
+pub fn i18n_asset_key(language_id: &str) -> String {
+    let prefix = "voxygen.i18n.";
+    let s = String::with_capacity(prefix.len() + language_id.len());
+    s + prefix + language_id
+}
 
 #[cfg(test)]
 mod tests {
