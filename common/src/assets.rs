@@ -205,6 +205,11 @@ lazy_static! {
     };
 }
 
+/// Returns the actual path of the specifier with the extension.
+///
+/// For directories, give `""` as extension.
+pub fn path_of(specifier: &str, ext: &str) -> PathBuf { ASSETS.source().path_of(specifier, ext) }
+
 fn get_dir_files(files: &mut Vec<String>, path: &Path, specifier: &str) -> io::Result<()> {
     for entry in fs::read_dir(path)? {
         if let Ok(entry) = entry {
