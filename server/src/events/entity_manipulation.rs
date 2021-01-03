@@ -1,6 +1,9 @@
 use crate::{
     client::Client,
-    comp::{biped_large, quadruped_low, quadruped_medium, quadruped_small, skills::SkillGroupType, theropod, PhysicsState},
+    comp::{
+        biped_large, quadruped_low, quadruped_medium, quadruped_small, skills::SkillGroupType, theropod,
+        PhysicsState,
+    },
     rtsim::RtSim,
     Server, SpawnPoint, StateExt,
 };
@@ -22,10 +25,7 @@ use common::{
     vol::ReadVol,
     Damage, DamageSource, Explosion, GroupTarget, RadiusEffect,
 };
-use common_net::{
-    msg::ServerGeneral,
-    sync::WorldSyncExt,
-};
+use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 use common_sys::state::BlockChange;
 use comp::item::Reagent;
 use hashbrown::HashSet;

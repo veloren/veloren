@@ -154,9 +154,7 @@ image_ids! {
         onehshield_m1: "voxygen.element.icons.swordshield",
         onehshield_m2: "voxygen.element.icons.character",
         twohhammer_m1: "voxygen.element.icons.2hhammer_m1",
-        twohhammer_m2: "voxygen.element.icons.2hhammer_m2",
         twohaxe_m1: "voxygen.element.icons.2haxe_m1",
-        twohaxe_m2: "voxygen.element.icons.2haxe_m2",
         bow_m1: "voxygen.element.icons.bow_m1",
         bow_m2: "voxygen.element.icons.bow_m2",
         staff_melee: "voxygen.element.icons.staff_m1",
@@ -168,6 +166,16 @@ image_ids! {
         axespin: "voxygen.element.icons.skill_axespin",
         fire_aoe: "voxygen.element.icons.skill_fire_aoe",
         flamethrower: "voxygen.element.icons.skill_flamethrower",
+
+        // Skilltree Icons
+        health_plus_skill: "voxygen.element.icons.skilltree.health_plus",
+        stamina_plus_skill: "voxygen.element.icons.skilltree.stamina_plus",
+        unlock_axe_skill: "voxygen.element.icons.skilltree.unlock_axe",
+        unlock_bow_skill: "voxygen.element.icons.skilltree.unlock_bow",
+        unlock_hammer_skill: "voxygen.element.icons.skilltree.unlock_hammer",
+        unlock_sceptre_skill: "voxygen.element.icons.skilltree.unlock_sceptre",
+        unlock_staff_skill0: "voxygen.element.icons.skilltree.unlock_staff-0",
+        unlock_sword_skill: "voxygen.element.icons.skilltree.unlock_sword",
 
         // Skillbar
         level_up: "voxygen.element.misc_bg.level_up",

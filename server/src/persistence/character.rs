@@ -59,9 +59,7 @@ pub fn load_character_data(
     char_id: CharacterId,
     connection: VelorenTransaction,
 ) -> CharacterDataResult {
-    use schema::{
-        body::dsl::*, character::dsl::*, item::dsl::*, skill_group::dsl::*,
-    };
+    use schema::{body::dsl::*, character::dsl::*, item::dsl::*, skill_group::dsl::*};
 
     let character_containers = get_pseudo_containers(connection, char_id)?;
 

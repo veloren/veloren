@@ -1091,7 +1091,7 @@ impl Hud {
                         // Increase font size based on fraction of maximum health
                         // "flashes" by having a larger size in the first 100ms
                         let font_size_xp = 30
-                            + ((*exp as f32 / 300.0 as f32).min(1.0) * 50.0) as u32
+                            + ((*exp as f32 / 300.0).min(1.0) * 50.0) as u32
                             + if timer < 0.1 {
                                 FLASH_MAX * (((1.0 - timer / 0.1) * 10.0) as u32)
                             } else {
@@ -2277,6 +2277,7 @@ impl Hud {
                     i18n,
                     &self.rot_imgs,
                     tooltip_manager,
+                    self.pulse,
                 )
                 .set(self.ids.diary, ui_widgets)
                 {

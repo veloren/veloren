@@ -1012,14 +1012,7 @@ fn handle_players(
             ChatType::CommandInfo,
             entity_tuples.join().fold(
                 format!("{} online players:", entity_tuples.join().count()),
-                |s, (_, player, stat)| {
-                    format!(
-                        "{}\n[{}]{}",
-                        s,
-                        player.alias,
-                        stat.name,
-                    )
-                },
+                |s, (_, player, stat)| format!("{}\n[{}]{}", s, player.alias, stat.name,),
             ),
         ),
     );
