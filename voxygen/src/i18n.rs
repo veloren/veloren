@@ -251,7 +251,8 @@ impl assets::Compound for Localization {
 pub fn list_localizations() -> Vec<LanguageMetadata> {
     let mut languages = vec![];
     // List language directories
-    for i18n_directory in std::fs::read_dir("assets/voxygen/i18n").unwrap() {
+    let i18n_root = assets::path_of("voxygen.i18n", "");
+    for i18n_directory in std::fs::read_dir(&i18n_root).unwrap() {
         if let Ok(i18n_entry) = i18n_directory {
             if let Some(i18n_key) = i18n_entry.file_name().to_str() {
                 // load the root file of all the subdirectories
