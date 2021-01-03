@@ -201,7 +201,7 @@ impl assets::Compound for Localization {
         asset_key: &str,
     ) -> Result<Self, assets::Error> {
         let raw = cache
-            .load::<RawLocalization>(&(asset_key.to_string() + "." + LANG_MANIFEST_FILE))?
+            .load::<RawLocalization>(&[asset_key, ".", LANG_MANIFEST_FILE].concat())?
             .cloned();
         let mut localization = Localization::from(raw);
 
@@ -219,7 +219,7 @@ impl assets::Compound for Localization {
         // Use the localization's subdirectory list to load fragments from there
         for sub_directory in localization.sub_directories.iter() {
             for localization_asset in cache
-                .load_dir::<LocalizationFragment>(&(asset_key.to_string() + "." + &sub_directory))?
+                .load_dir::<LocalizationFragment>(&[asset_key, ".", sub_directory].concat())?
                 .iter()
             {
                 localization
@@ -264,7 +264,7 @@ impl assets::Compound for LocalizationList {
                 if let Some(i18n_key) = i18n_entry.file_name().to_str() {
                     // load the root file of all the subdirectories
                     if let Ok(localization) = cache.load::<RawLocalization>(
-                        &(specifier.to_string() + "." + i18n_key + "." + LANG_MANIFEST_FILE),
+                        &[specifier, ".", i18n_key, ".", LANG_MANIFEST_FILE].concat(),
                     ) {
                         languages.push(localization.read().metadata.clone());
                     }
@@ -282,11 +282,7 @@ pub fn list_localizations() -> Vec<LanguageMetadata> {
 }
 
 /// Return the asset associated with the language_id
-pub fn i18n_asset_key(language_id: &str) -> String {
-    let prefix = "voxygen.i18n.";
-    let s = String::with_capacity(prefix.len() + language_id.len());
-    s + prefix + language_id
-}
+pub fn i18n_asset_key(language_id: &str) -> String { ["voxygen.i18n.", language_id].concat() }
 
 #[cfg(test)]
 mod tests {
