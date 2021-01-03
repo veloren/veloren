@@ -947,7 +947,7 @@ impl Controls {
                     ])
                     .align_items(Align::Center)
                     .into()
-                };
+                }
                 fn char_slider_greyable<'a>(
                     active: bool,
                     text: &str,
@@ -984,7 +984,7 @@ impl Controls {
                         .align_items(Align::Center)
                         .into()
                     }
-                };
+                }
 
                 let slider_options = Column::with_children(vec![
                     char_slider(
