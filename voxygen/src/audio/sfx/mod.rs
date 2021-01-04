@@ -358,7 +358,7 @@ impl SfxMgr {
                     audio.play_sfx(file_ref, *pos, None);
                 }
             },
-            Outcome::ExpChange { .. } => {},
+            _ => {},
         }
     }
 

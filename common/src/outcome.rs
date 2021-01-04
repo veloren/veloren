@@ -33,6 +33,11 @@ pub enum Outcome {
         uid: Uid,
         exp: i32,
     },
+    SkillPointGain {
+        uid: Uid,
+        skill_tree: comp::skills::SkillGroupType,
+        total_points: u16,
+    },
 }
 
 impl Outcome {
@@ -43,6 +48,7 @@ impl Outcome {
             Outcome::LevelUp { pos } => Some(*pos),
             Outcome::Beam { pos, .. } => Some(*pos),
             Outcome::ExpChange { .. } => None,
+            Outcome::SkillPointGain { .. } => None,
         }
     }
 }

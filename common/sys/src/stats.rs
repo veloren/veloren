@@ -5,11 +5,13 @@ use common::{
     },
     event::{EventBus, ServerEvent},
     metrics::SysMetrics,
+    outcome::Outcome,
     resources::DeltaTime,
     span,
+    uid::Uid,
 };
 use hashbrown::HashSet;
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, Write, WriteStorage};
 
 const ENERGY_REGEN_ACCEL: f32 = 10.0;
 
@@ -26,6 +28,8 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Stats>,
         WriteStorage<'a, Health>,
         WriteStorage<'a, Energy>,
+        ReadStorage<'a, Uid>,
+        Write<'a, Vec<Outcome>>,
     );
 
     fn run(
@@ -39,6 +43,8 @@ impl<'a> System<'a> for Sys {
             mut stats,
             mut healths,
             mut energies,
+            uids,
+            mut outcomes,
         ): Self::SystemData,
     ) {
         let start_time = std::time::Instant::now();
@@ -53,8 +59,9 @@ impl<'a> System<'a> for Sys {
         healths.set_event_emission(true);
 
         // Update stats
-        for (entity, mut stats, mut health) in (
+        for (entity, uid, mut stats, mut health) in (
             &entities,
+            &uids,
             &mut stats.restrict_mut(),
             &mut healths.restrict_mut(),
         )
@@ -91,6 +98,11 @@ impl<'a> System<'a> for Sys {
                     stat.skill_set
                         .change_experience(skill_group, -(skill_group.skill_point_cost() as i32));
                     stat.skill_set.add_skill_points(skill_group, 1);
+                    outcomes.push(Outcome::SkillPointGain {
+                        uid: *uid,
+                        skill_tree: skill_group,
+                        total_points: stat.skill_set.get_earned_sp(skill_group),
+                    });
                 }
             }
         }

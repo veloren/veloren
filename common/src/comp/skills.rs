@@ -544,11 +544,8 @@ impl Skill {
 
     /// Returns the cost in skill points of unlocking a particular skill
     pub fn skill_cost(self, level: Level) -> u16 {
-        use Skill::*;
-        match self {
-            General(GeneralSkill::HealthIncrease) => 1,
-            _ => level.unwrap_or(1),
-        }
+        // TODO: Better balance the costs later
+        level.unwrap_or(1)
     }
 
     /// Returns the maximum level a skill can reach, returns None if the skill
