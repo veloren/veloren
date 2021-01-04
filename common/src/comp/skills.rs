@@ -223,6 +223,24 @@ pub enum SkillGroupType {
 impl SkillGroupType {
     /// Gets the cost in experience of earning a skill point
     pub fn skill_point_cost(self) -> u16 { 300 }
+
+    /// Gets the total amount of skill points that can be spent in a particular
+    /// skill group
+    pub fn get_max_skill_points(self) -> u16 {
+        let mut cost = 0;
+        if let Some(skill_list) = SKILL_GROUP_DEFS.get(&self) {
+            for skill in skill_list {
+                if let Some(max_level) = skill.get_max_level() {
+                    for level in 1..=max_level {
+                        cost += skill.skill_cost(Some(level));
+                    }
+                } else {
+                    cost += skill.skill_cost(None);
+                }
+            }
+        }
+        cost
+    }
 }
 
 /// A group of skills that have been unlocked by a player. Each skill group has
