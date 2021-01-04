@@ -203,7 +203,7 @@ impl ProceduralTree {
         let mut branches = Vec::new();
 
         fn add_branches(branches: &mut Vec<Branch>, rng: &mut impl Rng, start: Vec3<f32>, dir: Vec3<f32>, depth: usize) {
-            let branch_dir = (dir + Vec3::<f32>::zero().map(|_| rng.gen_range(-1.0, 1.0)).cross(dir).normalized() * 0.45 * (depth as f32 + 0.5)).normalized(); // I wish `vek` had a `Vec3::from_fn`
+            let branch_dir = (dir + Vec3::<f32>::new(rng.gen_range(-1.0, 1.0),rng.gen_range(-1.0, 1.0),rng.gen_range(-0.3, 1.0)).cross(dir).normalized() * 0.45 * (depth as f32 + 0.5)).normalized(); // I wish `vek` had a `Vec3::from_fn`
             let branch_len = 12.0 / (depth as f32 * 0.25 + 1.0); // Zipf, I guess
 
             let end = start + branch_dir * branch_len;
@@ -226,7 +226,57 @@ impl ProceduralTree {
             }
         }
 
-        add_branches(&mut branches, rng, Vec3::zero(), Vec3::unit_z(), 0);
+        let height = rng.gen_range(13, 30) as f32;
+        let dx = rng.gen_range(-5, 5) as f32;
+        let dy = rng.gen_range(-5, 5) as f32;
+
+        // Generate the trunk
+        branches.push(Branch {
+            line: LineSegment3 { start: Vec3::zero(), end: Vec3::new(dx, dy, height)},
+            radius: 3.0,
+            health: 0.0,
+        });
+
+        // Generate branches
+        let branches_count = rng.gen_range(7, 10);
+
+        let angle_division = 360.0 / branches_count as f32;
+        let angle_padding = rng.gen_range(0, 360) as f32;
+
+        for i in 0..branches_count {
+            for _ in 0..2 {
+                let branch_size = height;
+
+                let subdivision = rng.gen_range(1, 2);
+
+                let branch_size = (0..subdivision).fold(branch_size, |x, _| x / 3.0 * 2.0);
+
+                let radians = ((angle_padding
+                    + angle_division * i as f32
+                    + rng.gen_range(15.0, angle_division - 15.0))
+                    % 360.0)
+                    .to_radians();
+
+                let branchendx = dx + branch_size * radians.cos();
+                let branchendy = dy + branch_size * radians.sin();
+
+                let height_dif = rng.gen_range(0.0, branch_size * 2.0);
+
+                let trunk_margin = rng.gen_range(0.0, height / 3.0);
+
+                add_branches(
+                    &mut branches,
+                    rng,
+                    Vec3::new(dx,  dy, height - trunk_margin),
+                    Vec3::new(branchendx,  branchendy, branch_size + height_dif).normalized(),
+                    1
+                );
+
+                if rng.gen_range(0, 4) != 2 {
+                    break;
+                }
+            }
+        }
 
         Self {
             branches,
