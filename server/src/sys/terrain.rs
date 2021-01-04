@@ -152,7 +152,7 @@ impl<'a> System<'a> for Sys {
 
                 let loadout = LoadoutBuilder::build_loadout(body, main_tool, config).build();
 
-                let health = comp::Health::new(stats.body_type, 0); // Placeholder 0
+                let health = comp::Health::new(stats.body_type, entity.level.unwrap_or(0));
 
                 let can_speak = match body {
                     comp::Body::Humanoid(_) => alignment == comp::Alignment::Npc,

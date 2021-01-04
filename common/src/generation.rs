@@ -20,7 +20,8 @@ pub struct EntityInfo {
     pub main_tool: Option<Item>,
     pub second_tool: Option<Item>,
     pub scale: f32,
-    pub level: Option<u32>,
+    // TODO: Properly give NPCs skills
+    pub level: Option<u16>,
     pub loot_drop: Option<Item>,
     pub config: Option<LoadoutConfig>,
     pub pet: Option<Box<EntityInfo>>,
@@ -103,7 +104,7 @@ impl EntityInfo {
         self
     }
 
-    pub fn with_level(mut self, level: u32) -> Self {
+    pub fn with_level(mut self, level: u16) -> Self {
         self.level = Some(level);
         self
     }

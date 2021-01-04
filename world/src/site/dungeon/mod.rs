@@ -604,7 +604,7 @@ impl Floor {
                         .with_level(dynamic_rng.gen_range(
                             (room.difficulty as f32).powf(1.25) + 3.0,
                             (room.difficulty as f32).powf(1.5) + 4.0,
-                        ).round() as u32);
+                        ).round() as u16);
                         let entity = match room.difficulty {
                             0 => entity
                                 .with_name("Outcast")
@@ -881,7 +881,7 @@ impl Floor {
                                                     (room.difficulty as f32).powf(1.5) + 4.0,
                                                 )
                                                 .round()
-                                                as u32
+                                                as u16
                                                 * 5,
                                         )
                                         .with_alignment(comp::Alignment::Enemy),
@@ -1050,7 +1050,7 @@ impl Floor {
                                                     (room.difficulty as f32).powf(1.5) + 4.0,
                                                 )
                                                 .round()
-                                                as u32
+                                                as u16
                                                 * 5,
                                         )
                                         .with_alignment(comp::Alignment::Enemy),
