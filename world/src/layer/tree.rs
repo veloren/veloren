@@ -203,7 +203,7 @@ impl ProceduralTree {
         let mut branches = Vec::new();
 
         fn add_branches(branches: &mut Vec<Branch>, rng: &mut impl Rng, start: Vec3<f32>, dir: Vec3<f32>, depth: usize) {
-            let branch_dir = (dir + Vec3::<f32>::zero().map(|_| rng.gen_range(-1.0, 1.0)).cross(dir).normalized() * 0.45 * (depth as f32 + 0.5)).normalized(); // I wish `vek` had a `Vec3::from_fn`
+            let branch_dir = (dir + Vec3::<f32>::new(rng.gen_range(-1.0, 1.0),rng.gen_range(-1.0, 1.0),rng.gen_range(-0.3, 1.0)).cross(dir).normalized() * 0.45 * (depth as f32 + 0.5)).normalized(); // I wish `vek` had a `Vec3::from_fn`
             let branch_len = 12.0 / (depth as f32 * 0.25 + 1.0); // Zipf, I guess
 
             let end = start + branch_dir * branch_len;
