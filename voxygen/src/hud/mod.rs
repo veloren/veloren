@@ -56,11 +56,12 @@ use crate::{
     GlobalState,
 };
 use client::Client;
+
 use common::{
     comp,
     comp::{
-        item::{ItemDesc, Quality},
-        skills::Skill,
+        item::{tool::ToolKind, ItemDesc, Quality},
+        skills::{Skill, SkillGroupType},
         BuffKind,
     },
     outcome::Outcome,
@@ -77,6 +78,7 @@ use conrod_core::{
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
 use hashbrown::HashMap;
+use inline_tweak::*;
 use rand::Rng;
 use specs::{Join, WorldExt};
 use std::{
@@ -177,6 +179,13 @@ widget_ids! {
         // SCT
         player_scts[],
         player_sct_bgs[],
+        player_rank_up,
+        player_rank_up_txt_number,
+        player_rank_up_txt_0,
+        player_rank_up_txt_0_bg,
+        player_rank_up_txt_1,
+        player_rank_up_txt_1_bg,
+        player_rank_up_icon,
         sct_exp_bgs[],
         sct_exps[],
         sct_lvl_bg,
@@ -291,6 +300,13 @@ pub struct ExpFloater {
     pub exp_change: i32,
     pub timer: f32,
     pub rand_offset: (f32, f32),
+}
+
+pub struct SkillPointGain {
+    pub owner: Uid,
+    pub skill_tree: SkillGroupType,
+    pub total_points: u16,
+    pub timer: f32,
 }
 
 pub struct DebugInfo {
@@ -690,6 +706,7 @@ pub struct Hud {
     events: Vec<Event>,
     crosshair_opacity: f32,
     exp_floaters: Vec<ExpFloater>,
+    skill_point_displays: Vec<SkillPointGain>,
 }
 
 impl Hud {
@@ -789,6 +806,7 @@ impl Hud {
             events: Vec::new(),
             crosshair_opacity: 0.0,
             exp_floaters: Vec::new(),
+            skill_point_displays: Vec::new(),
         }
     }
 
@@ -868,8 +886,7 @@ impl Hud {
                         .graphics_for(ui_widgets.window)
                         .color(Some(Color::Rgba(0.0, 0.0, 0.0, 1.0)))
                         .set(self.ids.death_bg, ui_widgets);
-                }
-                // Crosshair
+                } // Crosshair
                 let show_crosshair = (info.is_aiming || info.is_first_person) && !health.is_dead;
                 self.crosshair_opacity = Lerp::lerp(
                     self.crosshair_opacity,
@@ -1084,17 +1101,16 @@ impl Hud {
                         );
                         // Increase font size based on fraction of maximum health
                         // "flashes" by having a larger size in the first 100ms
-                        let font_size_xp = 30
-                            + ((floater.exp_change as f32 / 300.0).min(1.0) * 50.0) as u32
-                            + if floater.timer < 0.1 {
-                                FLASH_MAX * (((1.0 - floater.timer / 0.1) * 10.0) as u32)
-                            } else {
-                                0
-                            };
-
+                        let font_size_xp =
+                            30 + ((floater.exp_change as f32 / 300.0).min(1.0) * 50.0) as u32;
                         let y = floater.timer as f64 * number_speed; // Timer sets the widget offset
-                        let fade = ((4.0 - floater.timer as f32) * 0.25) + 0.2; // Timer sets text transparency
-
+                        //let fade = ((4.0 - floater.timer as f32) * 0.25) + 0.2; // Timer sets
+                        // text transparency
+                        let fade = if floater.timer < 1.0 {
+                            floater.timer as f32
+                        } else {
+                            1.0
+                        };
                         Text::new(&format!("{} Exp", floater.exp_change))
                             .font_size(font_size_xp)
                             .font_id(self.fonts.cyri.conrod_id)
@@ -1114,6 +1130,90 @@ impl Hud {
                             )
                             .set(player_sct_id, ui_widgets);
                         floater.timer -= dt.as_secs_f32();
+                    }
+                }
+                // Skill points
+                self.skill_point_displays.retain(|d| d.timer > 0_f32);
+                if let Some(uid) = uids.get(me) {
+                    if let Some(display) = self
+                        .skill_point_displays
+                        .iter_mut()
+                        .find(|d| d.owner == *uid)
+                    {
+                        let fade = if display.timer < 1.0 {
+                            display.timer as f32
+                        } else {
+                            1.0
+                        };
+                        // Background image
+                        Image::new(self.imgs.level_up)
+                            .w_h(328.0, 126.0)
+                            .mid_top_with_margin_on(ui_widgets.window, tweak!(300.0))
+                            .graphics_for(ui_widgets.window)
+                            .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade)))
+                            .set(self.ids.player_rank_up, ui_widgets);
+                        // Rank Number
+                        let rank = display.total_points;
+                        Text::new(&format!("{}", rank))
+                            .font_size(tweak!(20))
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(Color::Rgba(1.0, 1.0, 1.0, fade))
+                            .mid_top_with_margin_on(self.ids.player_rank_up, tweak!(8.0))
+                            .set(self.ids.player_rank_up_txt_number, ui_widgets);
+                        // Static "New Rank!" text
+                        Text::new(&i18n.get("hud.rank_up"))
+                            .font_size(tweak!(40))
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(Color::Rgba(0.0, 0.0, 0.0, fade))
+                            .mid_bottom_with_margin_on(self.ids.player_rank_up, tweak!(20.0))
+                            .set(self.ids.player_rank_up_txt_0_bg, ui_widgets);
+                        Text::new(&i18n.get("hud.rank_up"))
+                            .font_size(tweak!(40))
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(Color::Rgba(1.0, 1.0, 1.0, fade))
+                            .bottom_left_with_margins_on(self.ids.player_rank_up_txt_0_bg, 2.0, 2.0)
+                            .set(self.ids.player_rank_up_txt_0, ui_widgets);
+                        // Variable skilltree text
+                        let skill = match display.skill_tree {
+                            General => &i18n.get("common.weapons.general"),
+                            Weapon(ToolKind::Hammer) => &i18n.get("common.weapons.hammer"),
+                            Weapon(ToolKind::Axe) => &i18n.get("common.weapons.axe"),
+                            Weapon(ToolKind::Sword) => &i18n.get("common.weapons.sword"),
+                            Weapon(ToolKind::Sceptre) => &i18n.get("common.weapons.sceptre"),
+                            Weapon(ToolKind::Bow) => &i18n.get("common.weapons.bow"),
+                            Weapon(ToolKind::Staff) => &i18n.get("common.weapons.staff"),
+                            _ => "Unknown",
+                        };
+                        Text::new(skill)
+                            .font_size(tweak!(20))
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(Color::Rgba(0.0, 0.0, 0.0, fade))
+                            .mid_top_with_margin_on(self.ids.player_rank_up, tweak!(45.0))
+                            .set(self.ids.player_rank_up_txt_1_bg, ui_widgets);
+                        Text::new(skill)
+                            .font_size(tweak!(20))
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(Color::Rgba(1.0, 1.0, 1.0, fade))
+                            .bottom_left_with_margins_on(self.ids.player_rank_up_txt_1_bg, 2.0, 2.0)
+                            .set(self.ids.player_rank_up_txt_1, ui_widgets);
+                        // Variable skilltree icon
+                        use crate::hud::SkillGroupType::{General, Weapon};
+                        Image::new(match display.skill_tree {
+                            General => self.imgs.swords_crossed,
+                            Weapon(ToolKind::Hammer) => self.imgs.hammer,
+                            Weapon(ToolKind::Axe) => self.imgs.axe,
+                            Weapon(ToolKind::Sword) => self.imgs.sword,
+                            Weapon(ToolKind::Sceptre) => self.imgs.sceptre,
+                            Weapon(ToolKind::Bow) => self.imgs.bow,
+                            Weapon(ToolKind::Staff) => self.imgs.staff,
+                            _ => self.imgs.swords_crossed,
+                        })
+                        .w_h(tweak!(20.0), tweak!(20.0))
+                        .left_from(self.ids.player_rank_up_txt_1_bg, tweak!(5.0))
+                        .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade)))
+                        .set(self.ids.player_rank_up_icon, ui_widgets);
+
+                        display.timer -= dt.as_secs_f32();
                     }
                 }
             }
@@ -2781,6 +2881,16 @@ impl Hud {
                 exp_change: *exp,
                 timer: 4.0,
                 rand_offset: rand::thread_rng().gen::<(f32, f32)>(),
+            }),
+            Outcome::SkillPointGain {
+                uid,
+                skill_tree,
+                total_points,
+            } => self.skill_point_displays.push(SkillPointGain {
+                owner: *uid,
+                skill_tree: *skill_tree,
+                total_points: *total_points,
+                timer: 5.0,
             }),
             _ => {},
         }

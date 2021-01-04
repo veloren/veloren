@@ -69,6 +69,7 @@ image_ids! {
         diary_exp_frame: "voxygen.element.misc_bg.diary_exp_frame",
 
         // Skill Trees
+        slot_skills: "voxygen.element.buttons.slot_skilltree",
         swords_crossed: "voxygen.element.icons.swords_crossed",
         sceptre: "voxygen.element.icons.sceptre",
         sword: "voxygen.element.icons.sword",
@@ -179,7 +180,6 @@ image_ids! {
 
         // Skillbar
         level_up: "voxygen.element.misc_bg.level_up",
-        level_down:"voxygen.element.misc_bg.level_down",
         bar_content: "voxygen.element.skillbar.bar_content",
         skillbar_bg: "voxygen.element.skillbar.bg",
         skillbar_frame: "voxygen.element.skillbar.frame",
