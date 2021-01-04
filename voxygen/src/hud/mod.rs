@@ -77,6 +77,7 @@ use conrod_core::{
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
 use hashbrown::HashMap;
+use rand::Rng;
 use specs::{Join, WorldExt};
 use std::{
     collections::VecDeque,
@@ -283,6 +284,13 @@ pub struct BuffInfo {
     data: comp::BuffData,
     is_buff: bool,
     dur: Option<Duration>,
+}
+
+pub struct ExpFloater {
+    pub owner: Uid,
+    pub exp_change: i32,
+    pub timer: f32,
+    pub rand_offset: (f32, f32),
 }
 
 pub struct DebugInfo {
@@ -681,6 +689,7 @@ pub struct Hud {
     hotbar: hotbar::State,
     events: Vec<Event>,
     crosshair_opacity: f32,
+    exp_floaters: Vec<ExpFloater>,
 }
 
 impl Hud {
@@ -779,6 +788,7 @@ impl Hud {
             hotbar: hotbar_state,
             events: Vec::new(),
             crosshair_opacity: 0.0,
+            exp_floaters: Vec::new(),
         }
     }
 
@@ -1060,26 +1070,10 @@ impl Hud {
                     }
                 }
                 // EXP Numbers
+                self.exp_floaters.retain(|f| f.timer > 0_f32);
                 if let Some(uid) = uids.get(me) {
-                    for exp in ecs
-                        .read_resource::<Vec<Outcome>>()
-                        .iter()
-                        .filter(
-                            |o| matches!(o, Outcome::ExpChange { uid: uid_, .. } if uid == uid_ ),
-                        )
-                        .filter_map(|o| {
-                            if let Outcome::ExpChange { exp, .. } = o {
-                                Some(exp)
-                            } else {
-                                None
-                            }
-                        })
-                    {
-                        println!("{}", exp);
+                    for floater in self.exp_floaters.iter_mut().filter(|f| f.owner == *uid) {
                         let number_speed = 50.0; // Number Speed for Single EXP
-                        let timer = 100.0; // Fake number
-                        let rand1 = 0.5; // Fake number
-                        let rand2 = -0.1; // Fake number
                         let player_sct_bg_id = player_sct_bg_id_walker.next(
                             &mut self.ids.player_sct_bgs,
                             &mut ui_widgets.widget_id_generator(),
@@ -1091,34 +1085,35 @@ impl Hud {
                         // Increase font size based on fraction of maximum health
                         // "flashes" by having a larger size in the first 100ms
                         let font_size_xp = 30
-                            + ((*exp as f32 / 300.0).min(1.0) * 50.0) as u32
-                            + if timer < 0.1 {
-                                FLASH_MAX * (((1.0 - timer / 0.1) * 10.0) as u32)
+                            + ((floater.exp_change as f32 / 300.0).min(1.0) * 50.0) as u32
+                            + if floater.timer < 0.1 {
+                                FLASH_MAX * (((1.0 - floater.timer / 0.1) * 10.0) as u32)
                             } else {
                                 0
                             };
 
-                        let y = timer as f64 * number_speed; // Timer sets the widget offset
-                        let fade = ((4.0 - timer as f32) * 0.25) + 0.2; // Timer sets text transparency
+                        let y = floater.timer as f64 * number_speed; // Timer sets the widget offset
+                        let fade = ((4.0 - floater.timer as f32) * 0.25) + 0.2; // Timer sets text transparency
 
-                        Text::new(&format!("{} Exp", exp))
+                        Text::new(&format!("{} Exp", floater.exp_change))
                             .font_size(font_size_xp)
                             .font_id(self.fonts.cyri.conrod_id)
                             .color(Color::Rgba(0.0, 0.0, 0.0, fade))
                             .x_y(
-                                ui_widgets.win_w * (0.5 * rand1 as f64 - 0.25),
-                                ui_widgets.win_h * (0.15 * rand2 as f64) + y - 3.0,
+                                ui_widgets.win_w * (0.5 * floater.rand_offset.0 as f64 - 0.25),
+                                ui_widgets.win_h * (0.15 * floater.rand_offset.1 as f64) + y - 3.0,
                             )
                             .set(player_sct_bg_id, ui_widgets);
-                        Text::new(&format!("{} Exp", exp))
+                        Text::new(&format!("{} Exp", floater.exp_change))
                             .font_size(font_size_xp)
                             .font_id(self.fonts.cyri.conrod_id)
                             .color(Color::Rgba(0.59, 0.41, 0.67, fade))
                             .x_y(
-                                ui_widgets.win_w * (0.5 * rand1 as f64 - 0.25),
-                                ui_widgets.win_h * (0.15 * rand2 as f64) + y,
+                                ui_widgets.win_w * (0.5 * floater.rand_offset.0 as f64 - 0.25),
+                                ui_widgets.win_h * (0.15 * floater.rand_offset.1 as f64) + y,
                             )
                             .set(player_sct_id, ui_widgets);
+                        floater.timer -= dt.as_secs_f32();
                     }
                 }
             }
@@ -2778,6 +2773,18 @@ impl Hud {
     pub fn free_look(&mut self, free_look: bool) { self.show.free_look = free_look; }
 
     pub fn auto_walk(&mut self, auto_walk: bool) { self.show.auto_walk = auto_walk; }
+
+    pub fn handle_outcome(&mut self, outcome: &Outcome) {
+        match outcome {
+            Outcome::ExpChange { uid, exp } => self.exp_floaters.push(ExpFloater {
+                owner: *uid,
+                exp_change: *exp,
+                timer: 4.0,
+                rand_offset: rand::thread_rng().gen::<(f32, f32)>(),
+            }),
+            _ => {},
+        }
+    }
 }
 // Get item qualities of equipped items and assign a tooltip title/frame color
 pub fn get_quality_col<I: ItemDesc>(item: &I) -> Color {

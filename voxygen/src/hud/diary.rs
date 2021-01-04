@@ -1,7 +1,7 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
     item_imgs::{ItemImgs, ItemKey::Tool},
-    Show, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN, XP_COLOR, HP_COLOR, CRITICAL_HP_COLOR,
+    Show, CRITICAL_HP_COLOR, HP_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN, XP_COLOR,
 };
 use crate::{
     i18n::Localization,
@@ -1148,20 +1148,29 @@ impl<'a> Widget for Diary<'a> {
                 let skill = Skill::Sword(DCost);
                 let prereqs_met = tweak!(true);
                 let suff_pts = tweak!(false);
-                let label_txt = &format!(      "{}/{}",
+                let label_txt = &format!(
+                    "{}/{}",
                     skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                    skill.get_max_level().unwrap_or(1));
+                    skill.get_max_level().unwrap_or(1)
+                );
                 if Button::image(self.imgs.sword_whirlwind)
                     .w_h(tweak!(74.0), tweak!(74.0))
                     .middle_of(state.skills_top_r[2])
-                    .label(if prereqs_met {&label_txt} else {""}
-                    )
+                    .label(if prereqs_met { &label_txt } else { "" })
                     .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
                     .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(if suff_pts {HP_COLOR} else {CRITICAL_HP_COLOR})
+                    .label_color(if suff_pts {
+                        HP_COLOR
+                    } else {
+                        CRITICAL_HP_COLOR
+                    })
                     .label_font_size(self.fonts.cyri.scale(tweak!(16)))
                     .label_font_id(self.fonts.cyri.conrod_id)
-                    .image_color(if prereqs_met {TEXT_COLOR} else {Color::Rgba(0.41, 0.41, 0.41, tweak!(0.7))})
+                    .image_color(if prereqs_met {
+                        TEXT_COLOR
+                    } else {
+                        Color::Rgba(0.41, 0.41, 0.41, tweak!(0.7))
+                    })
                     .with_tooltip(
                         self.tooltip_manager,
                         "Dash Cost",

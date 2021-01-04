@@ -4,8 +4,11 @@ use crate::{
 };
 use common::{
     character::CharacterId,
-    comp,
-    comp::Inventory,
+    comp::{
+        self,
+        skills::{GeneralSkill, Skill},
+        Inventory,
+    },
     effect::Effect,
     uid::{Uid, UidAllocator},
     util::Dir,
@@ -139,7 +142,7 @@ impl StateExt for State {
             .with(stats)
             .with(health)
             .with(comp::Alignment::Npc)
-            .with(comp::Energy::new(body.base_energy()))
+            .with(comp::Energy::new(body, 0))
             .with(comp::Gravity(1.0))
             .with(comp::CharacterState::default())
             .with(inventory)
@@ -219,7 +222,6 @@ impl StateExt for State {
     fn initialize_character_data(&mut self, entity: EcsEntity, character_id: CharacterId) {
         let spawn_point = self.ecs().read_resource::<SpawnPoint>().0;
 
-        self.write_component(entity, comp::Energy::new(1000));
         self.write_component(entity, comp::Controller::default());
         self.write_component(entity, comp::Pos(spawn_point));
         self.write_component(entity, comp::Vel(Vec3::zero()));
@@ -269,10 +271,24 @@ impl StateExt for State {
                 z_max: body.height(),
             });
             self.write_component(entity, body);
-            self.write_component(
-                entity,
-                comp::Health::new(stats.body_type, 0), //Placeholder 0
+            let (health_level, energy_level) = (
+                stats
+                    .skill_set
+                    .skills
+                    .get(&Skill::General(GeneralSkill::HealthIncrease))
+                    .copied()
+                    .flatten()
+                    .unwrap_or(0),
+                stats
+                    .skill_set
+                    .skills
+                    .get(&Skill::General(GeneralSkill::EnergyIncrease))
+                    .copied()
+                    .flatten()
+                    .unwrap_or(0),
             );
+            self.write_component(entity, comp::Health::new(stats.body_type, health_level));
+            self.write_component(entity, comp::Energy::new(stats.body_type, energy_level));
             self.write_component(entity, stats);
             self.write_component(entity, inventory);
             self.write_component(
