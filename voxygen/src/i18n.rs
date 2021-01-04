@@ -201,7 +201,7 @@ impl assets::Compound for Localization {
         asset_key: &str,
     ) -> Result<Self, assets::Error> {
         let raw = cache
-            .load::<RawLocalization>(&(asset_key.to_string() + "." + LANG_MANIFEST_FILE))?
+            .load::<RawLocalization>(&[asset_key, ".", LANG_MANIFEST_FILE].concat())?
             .cloned();
         let mut localization = Localization::from(raw);
 
@@ -219,7 +219,7 @@ impl assets::Compound for Localization {
         // Use the localization's subdirectory list to load fragments from there
         for sub_directory in localization.sub_directories.iter() {
             for localization_asset in cache
-                .load_dir::<LocalizationFragment>(&(asset_key.to_string() + "." + &sub_directory))?
+                .load_dir::<LocalizationFragment>(&[asset_key, ".", sub_directory].concat())?
                 .iter()
             {
                 localization
@@ -247,28 +247,42 @@ impl assets::Compound for Localization {
     }
 }
 
-/// Load all the available languages located in the voxygen asset directory
-pub fn list_localizations() -> Vec<LanguageMetadata> {
-    let mut languages = vec![];
-    // List language directories
-    let i18n_root = assets::path_of("voxygen.i18n", "");
-    for i18n_directory in std::fs::read_dir(&i18n_root).unwrap() {
-        if let Ok(i18n_entry) = i18n_directory {
-            if let Some(i18n_key) = i18n_entry.file_name().to_str() {
-                // load the root file of all the subdirectories
-                if let Ok(localization) = RawLocalization::load(
-                    &("voxygen.i18n.".to_string() + i18n_key + "." + LANG_MANIFEST_FILE),
-                ) {
-                    languages.push(localization.read().metadata.clone());
+#[derive(Clone, Debug)]
+struct LocalizationList(Vec<LanguageMetadata>);
+
+impl assets::Compound for LocalizationList {
+    fn load<S: assets::source::Source>(
+        cache: &assets::AssetCache<S>,
+        specifier: &str,
+    ) -> Result<Self, assets::Error> {
+        // List language directories
+        let mut languages = vec![];
+
+        let i18n_root = assets::path_of(specifier, "");
+        for i18n_directory in std::fs::read_dir(&i18n_root)? {
+            if let Ok(i18n_entry) = i18n_directory {
+                if let Some(i18n_key) = i18n_entry.file_name().to_str() {
+                    // load the root file of all the subdirectories
+                    if let Ok(localization) = cache.load::<RawLocalization>(
+                        &[specifier, ".", i18n_key, ".", LANG_MANIFEST_FILE].concat(),
+                    ) {
+                        languages.push(localization.read().metadata.clone());
+                    }
                 }
             }
         }
+
+        Ok(LocalizationList(languages))
     }
-    languages
+}
+
+/// Load all the available languages located in the voxygen asset directory
+pub fn list_localizations() -> Vec<LanguageMetadata> {
+    LocalizationList::load_expect_cloned("voxygen.i18n").0
 }
 
 /// Return the asset associated with the language_id
-pub fn i18n_asset_key(language_id: &str) -> String { "voxygen.i18n.".to_string() + language_id }
+pub fn i18n_asset_key(language_id: &str) -> String { ["voxygen.i18n.", language_id].concat() }
 
 #[cfg(test)]
 mod tests {
