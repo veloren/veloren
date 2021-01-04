@@ -212,14 +212,14 @@ impl ProceduralTree {
                 line: LineSegment3 { start, end },
                 radius: 0.3 + 2.5 / (depth + 1) as f32,
                 health: if depth == 4 {
-                    2.0
+                    rng.gen_range(3.0, 5.0)
                 } else {
                     0.0
                 },
             });
 
             if depth < 4 {
-                for _ in 0..3 {
+                for _ in 0..rng.gen_range(2, 4) {
                     add_branches(branches, rng, end, branch_dir, depth + 1);
                 }
             }
@@ -252,12 +252,29 @@ impl ProceduralTree {
 
     pub fn is_branch_or_leaves_at(&self, pos: Vec3<f32>) -> (bool, bool) {
         let mut is_branch = false;
-        let mut health = 0.0;
+        let mut health = 0.0f32;
         for branch in &self.branches {
             let p_d2 = branch.line.projected_point(pos).distance_squared(pos);
 
+            #[allow(unsafe_code)]
+            fn finvsqrt(x: f32) -> f32 {
+                // Magic number based on Chris Lomont work:
+                // const MAGIC_U32: u32 = 0x5f375a86;
+                // The Original Magic Number:
+                // const MAGIC_32: u32 = 0x5f3759df;
+                const threehalfs: f32 = 1.5f32;
+                let x2: f32 = x * 0.5f32;
+                let mut i: u32 = unsafe { std::mem::transmute(x) };// evil floating point bit level hacking
+                i = 0x5f375a86 - (i >> 1); // what the fuck?
+                let y: f32 = unsafe { std::mem::transmute(i) };
+                let y  = y * ( threehalfs - ( x2 * y * y ) ); // 1st iteration
+                // let y = y * (threehalfs - (x2 * y * y)); // 2nd iteration, this can be removed
+
+                y
+            }
+
             is_branch |= p_d2 < branch.radius.powi(2);
-            health += branch.health / (p_d2 + 0.001);
+            health = health.max(branch.health * finvsqrt(p_d2));
         }
         (is_branch, health > 1.0)
     }
