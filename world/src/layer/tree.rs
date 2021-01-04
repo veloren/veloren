@@ -219,7 +219,8 @@ impl ProceduralTree {
             });
 
             if depth < 4 {
-                for _ in 0..rng.gen_range(2, 4) {
+                let sub_branches = if depth == 0 { 3 } else { rng.gen_range(2, 4) };
+                for _ in 0..sub_branches {
                     add_branches(branches, rng, end, branch_dir, depth + 1);
                 }
             }
