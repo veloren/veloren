@@ -34,7 +34,9 @@ make_case_elim!(
 );
 
 #[derive(Debug)]
-pub enum StructureError {}
+pub enum StructureError {
+    OutOfBounds,
+}
 
 #[derive(Clone)]
 pub struct Structure {
@@ -109,7 +111,7 @@ impl ReadVol for Structure {
     fn get(&self, pos: Vec3<i32>) -> Result<&Self::Vox, StructureError> {
         match self.base.vol.get(pos + self.center) {
             Ok(block) => Ok(block),
-            Err(DynaError::OutOfBounds) => Ok(&self.base.empty),
+            Err(DynaError::OutOfBounds) => Err(StructureError::OutOfBounds),
         }
     }
 }

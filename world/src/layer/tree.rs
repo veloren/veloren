@@ -128,12 +128,14 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
                 TreeModel::Procedural(t) => t.get_bounds().map(|e| e as i32),
             };
 
-            tracing::info!("{:?}", bounds);
-
-            // if !Aabr::from(bounds).contains_point(wpos2d - tree.pos.xy()) {
-            if bounds.min.x + tree.pos.x < wpos2d.x || bounds.min.y + tree.pos.y < wpos2d.y || bounds.max.x + tree.pos.x > wpos2d.x || bounds.max.y + tree.pos.y > wpos2d.y {
+            let rpos2d = (wpos2d - tree.pos.xy())
+                .map2(Vec2::new(tree.units.0, tree.units.1), |p, unit| {
+                    unit * p
+                })
+                .sum();
+            if !Aabr::from(bounds).contains_point(rpos2d) {
                 // Skip this column
-                break;
+                continue;
             }
 
             let mut is_top = true;
@@ -152,18 +154,15 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
                     info.index(),
                     if let Some(block) = match &tree.model {
                         TreeModel::Structure(s) => s.get(model_pos).ok().copied(),
-                        TreeModel::Procedural(t) => if t.is_branch_at(model_pos.map(|e| e as f32 + 0.5)) {
-                            Some(StructureBlock::Normal(Rgb::new(60, 30, 0)))
-                        } else if t.is_leaves_at(model_pos.map(|e| e as f32 + 0.5)) {
-                            Some(StructureBlock::TemperateLeaves)
-                        } else {
-                            Some(StructureBlock::None)
-                        },
+                        TreeModel::Procedural(t) => Some(match t.is_branch_or_leaves_at(model_pos.map(|e| e as f32 + 0.5)) {
+                            (true, _) => StructureBlock::Normal(Rgb::new(60, 30, 0)),
+                            (_, true) => StructureBlock::TemperateLeaves,
+                            (_, _) => StructureBlock::None,
+                        }),
                     } {
                         block
                     } else {
-                        //break;
-                        StructureBlock::None
+                        break
                     },
                     wpos,
                     tree.pos.xy(),
@@ -204,16 +203,16 @@ impl ProceduralTree {
         let mut branches = Vec::new();
 
         fn add_branches(branches: &mut Vec<Branch>, rng: &mut impl Rng, start: Vec3<f32>, dir: Vec3<f32>, depth: usize) {
-            let branch_dir = (dir + Vec3::<f32>::zero().map(|_| rng.gen_range(-1.0, 1.0)) * 0.65).normalized(); // I wish `vek` had a `Vec3::from_fn`
-            let branch_len = 15.0 / (depth as f32 * 0.25 + 1.0); // Zipf, I guess
+            let branch_dir = (dir + Vec3::<f32>::zero().map(|_| rng.gen_range(-1.0, 1.0)).cross(dir).normalized() * 0.45 * (depth as f32 + 0.5)).normalized(); // I wish `vek` had a `Vec3::from_fn`
+            let branch_len = 12.0 / (depth as f32 * 0.25 + 1.0); // Zipf, I guess
 
             let end = start + branch_dir * branch_len;
 
             branches.push(Branch {
                 line: LineSegment3 { start, end },
-                radius: 0.3 + 3.5 / (depth + 1) as f32,
-                health: if depth > 2 {
-                    1.5
+                radius: 0.3 + 2.5 / (depth + 1) as f32,
+                health: if depth == 4 {
+                    2.0
                 } else {
                     0.0
                 },
@@ -234,48 +233,33 @@ impl ProceduralTree {
     }
 
     pub fn get_bounds(&self) -> Aabb<f32> {
+        let bounds = self.branches
+            .iter()
+            .fold(Aabb::default(), |Aabb { min, max }, branch| Aabb {
+                min: Vec3::partial_min(min, Vec3::partial_min(branch.line.start, branch.line.end) - branch.radius - 8.0),
+                max: Vec3::partial_max(max, Vec3::partial_max(branch.line.start, branch.line.end) + branch.radius + 8.0),
+            });
+
         self.branches
             .iter()
-            .fold(
-                Aabb {
-                    min: Vec3::broadcast(f32::MAX),
-                    max: Vec3::broadcast(f32::MIN),
-                },
-                |Aabb { min, max }, branch| Aabb {
-                    min: Vec3::partial_min(min, Vec3::partial_min(branch.line.start, branch.line.end) - branch.radius - 8.0),
-                    max: Vec3::partial_max(max, Vec3::partial_max(branch.line.start, branch.line.end) + branch.radius + 8.0),
-                },
-            )
-        // Aabb {
-        //     min: Vec3::new(-32.0, -32.0, 0.0),
-        //     max: Vec3::new(32.0, 32.0, 64.0),
-        // }
+            .for_each(|branch| {
+                assert!(bounds.contains_point(branch.line.start));
+                assert!(bounds.contains_point(branch.line.end));
+            });
+
+        bounds
     }
 
-    pub fn is_branch_at(&self, pos: Vec3<f32>) -> bool {
-        // TODO: Something visually nicer than this
-        self.branches.iter().any(|branch| {
-            branch.line.projected_point(pos).distance_squared(pos) < branch.radius.powi(2)
-            // let mut a = branch.line.start;
-            // let mut b = branch.line.end;
-            // for _ in 0..10 {
-            //     if a.distance_squared(pos) < b.distance_squared(pos) {
-            //         b = (a + b) / 2.0;
-            //     } else {
-            //         a = (a + b) / 2.0;
-            //     }
-            // }
-            // let near = (a + b) / 2.0;
-            // near.distance(pos) < branch.radius
-        })
-    }
+    pub fn is_branch_or_leaves_at(&self, pos: Vec3<f32>) -> (bool, bool) {
+        let mut is_branch = false;
+        let mut health = 0.0;
+        for branch in &self.branches {
+            let p_d2 = branch.line.projected_point(pos).distance_squared(pos);
 
-    pub fn is_leaves_at(&self, pos: Vec3<f32>) -> bool {
-        self.branches.iter()
-            .map(|branch| {
-                branch.health / (branch.line.projected_point(pos).distance_squared(pos) + 0.001)
-            })
-            .sum::<f32>() > 1.0
+            is_branch |= p_d2 < branch.radius.powi(2);
+            health += branch.health / (p_d2 + 0.001);
+        }
+        (is_branch, health > 1.0)
     }
 }
 
