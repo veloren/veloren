@@ -251,14 +251,18 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                         }
                     }
                     let num_pools = xp_pools.len() as f32;
-                    let exp = (exp / num_pools).ceil() as i32;
                     for pool in xp_pools.drain() {
-                        stats.skill_set.change_experience(pool, exp);
+                        stats
+                            .skill_set
+                            .change_experience(pool, (exp / num_pools).ceil() as i32);
                     }
                     state
                         .ecs()
                         .write_resource::<Vec<Outcome>>()
-                        .push(Outcome::ExpChange { uid: *uid, exp });
+                        .push(Outcome::ExpChange {
+                            uid: *uid,
+                            exp: exp as i32,
+                        });
                 }
             });
         }
@@ -294,16 +298,17 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                 }
             }
             let num_pools = xp_pools.len() as f32;
-            let exp = (exp_reward / num_pools).ceil() as i32;
             for pool in xp_pools.drain() {
-                attacker_stats.skill_set.change_experience(pool, exp);
+                attacker_stats
+                    .skill_set
+                    .change_experience(pool, (exp_reward / num_pools).ceil() as i32);
             }
             state
                 .ecs()
                 .write_resource::<Vec<Outcome>>()
                 .push(Outcome::ExpChange {
                     uid: *attacker_uid,
-                    exp,
+                    exp: exp_reward as i32,
                 });
         }
     })();

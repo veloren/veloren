@@ -39,7 +39,7 @@ pub struct Health {
 }
 
 impl Health {
-    pub fn new(body: Body, level: u32) -> Self {
+    pub fn new(body: Body, level: u16) -> Self {
         let mut health = Health::empty();
 
         health.update_max_hp(Some(body), level);
@@ -103,10 +103,10 @@ impl Health {
     }
 
     // TODO: Delete this once stat points will be a thing
-    pub fn update_max_hp(&mut self, body: Option<Body>, level: u32) {
+    pub fn update_max_hp(&mut self, body: Option<Body>, level: u16) {
         if let Some(body) = body {
-            self.set_base_max(body.base_health() + body.base_health_increase() * level);
-            self.set_maximum(body.base_health() + body.base_health_increase() * level);
+            self.set_base_max(body.base_health() + body.base_health_increase() * level as u32);
+            self.set_maximum(body.base_health() + body.base_health_increase() * level as u32);
         }
     }
 

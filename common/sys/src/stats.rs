@@ -113,7 +113,7 @@ impl<'a> System<'a> for Sys {
                     .copied()
                     .flatten()
                     .unwrap_or(0);
-                health.update_max_hp(Some(stat.body_type), health_level.into());
+                health.update_max_hp(Some(stat.body_type), health_level);
                 let mut stat = stats.get_mut_unchecked();
                 stat.skill_set.modify_health = false;
             }
@@ -126,9 +126,8 @@ impl<'a> System<'a> for Sys {
                     .get(&Skill::General(GeneralSkill::EnergyIncrease))
                     .copied()
                     .flatten()
-                    .unwrap_or(0) as u32;
-                let energy_max = stat.body_type.base_energy() + 50 * energy_level;
-                energy.set_maximum(energy_max);
+                    .unwrap_or(0);
+                energy.update_max_energy(Some(stat.body_type), energy_level);
                 let mut stat = stats.get_mut_unchecked();
                 stat.skill_set.modify_energy = false;
             }
