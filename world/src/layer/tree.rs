@@ -208,7 +208,7 @@ impl ProceduralTree {
             let mut branch_dir = (dir + Vec3::<f32>::new(rng.gen_range(-1.0, 1.0),rng.gen_range(-1.0, 1.0),rng.gen_range(0.25, 1.0)).cross(dir).normalized() * 0.45 * (depth as f32 + 0.5)).normalized(); // I wish `vek` had a `Vec3::from_fn`
             
             if branch_dir.z < 0. {
-                branch_dir.z = (branch_dir.z) / 16.
+                branch_dir.z = (branch_dir.z) / 16.  + 0.2
             }
             
             let branch_len = 12.0 / (depth as f32 * 0.25 + 1.0); // Zipf, I guess
