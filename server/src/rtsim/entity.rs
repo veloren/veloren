@@ -20,15 +20,42 @@ const PERM_SPECIES: u32 = 0;
 const PERM_BODY: u32 = 1;
 const PERM_LOADOUT: u32 = 2;
 const PERM_LEVEL: u32 = 3;
+const PERM_GENUS: u32 = 4;
 
 impl Entity {
     pub fn rng(&self, perm: u32) -> impl Rng { RandomPerm::new(self.seed + perm) }
 
     pub fn get_body(&self) -> comp::Body {
-        let species = *(&comp::humanoid::ALL_SPECIES)
-            .choose(&mut self.rng(PERM_SPECIES))
-            .unwrap();
-        comp::humanoid::Body::random_with(&mut self.rng(PERM_BODY), &species).into()
+        match self.rng(PERM_GENUS).gen::<f32>() {
+            //we want 75% birds, 25% humans for now
+            x if x < 0.75 => {
+                let species = *(&comp::bird_medium::ALL_SPECIES)
+                    .choose(&mut self.rng(PERM_SPECIES))
+                    .unwrap();
+                comp::bird_medium::Body::random_with(&mut self.rng(PERM_BODY), &species).into()
+            },
+            _ => {
+                let species = *(&comp::humanoid::ALL_SPECIES)
+                    .choose(&mut self.rng(PERM_SPECIES))
+                    .unwrap();
+                comp::humanoid::Body::random_with(&mut self.rng(PERM_BODY), &species).into()
+            },
+        }
+    }
+
+    pub fn get_name(&self) -> String {
+        use common::{generation::get_npc_name, npc::NPC_NAMES};
+        let npc_names = NPC_NAMES.read();
+        match self.get_body() {
+            comp::Body::BirdMedium(b) => {
+                get_npc_name(&npc_names.bird_medium, b.species).to_string()
+            },
+            comp::Body::BirdSmall(_) => "Warbler".to_string(),
+            comp::Body::Dragon(b) => get_npc_name(&npc_names.dragon, b.species).to_string(),
+            comp::Body::Humanoid(b) => get_npc_name(&npc_names.humanoid, b.species).to_string(),
+            //TODO: finish match as necessary
+            _ => unimplemented!(),
+        }
     }
 
     pub fn get_level(&self) -> u32 {
@@ -102,6 +129,10 @@ impl Entity {
                 .civs()
                 .sites
                 .iter()
+                .filter(|s| match self.get_body() {
+                    comp::Body::Humanoid(_) => s.1.is_settlement() | s.1.is_castle(),
+                    _ => s.1.is_dungeon(),
+                })
                 .filter(|_| thread_rng().gen_range(0i32, 4) == 0)
                 .min_by_key(|(_, site)| {
                     let wpos = site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);

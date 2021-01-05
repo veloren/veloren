@@ -98,13 +98,23 @@ impl<'a> System<'a> for Sys {
             let body = entity.get_body();
             server_emitter.emit(ServerEvent::CreateNpc {
                 pos: comp::Pos(spawn_pos),
-                stats: comp::Stats::new("Traveller".to_string(), body)
-                    .with_level(entity.get_level()),
+                stats: comp::Stats::new(entity.get_name(), body).with_level(entity.get_level()),
                 health: comp::Health::new(body, 10),
-                loadout: entity.get_loadout(&ability_map),
+                loadout: match body {
+                    comp::Body::Humanoid(_) => entity.get_loadout(&ability_map),
+                    _ => comp::Loadout::default(),
+                },
                 body,
-                agent: Some(comp::Agent::new(None, true, &body, false)),
-                alignment: comp::Alignment::Npc,
+                agent: Some(comp::Agent::new(
+                    None,
+                    matches!(body, comp::Body::Humanoid(_)),
+                    &body,
+                    false,
+                )),
+                alignment: match body {
+                    comp::Body::Humanoid(_) => comp::Alignment::Npc,
+                    _ => comp::Alignment::Wild,
+                },
                 scale: comp::Scale(1.0),
                 drop_item: None,
                 home_chunk: None,
