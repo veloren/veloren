@@ -10,7 +10,7 @@ use common::{
 use tracing::{debug, error, warn};
 // use faster::*;
 use itertools::izip;
-use noise::{NoiseFn, Point3};
+use noise::NoiseFn;
 use num::{Float, Zero};
 use ordered_float::NotNan;
 use packed_simd::m32;
@@ -551,7 +551,7 @@ pub fn get_rivers<F: fmt::Debug + Float + Into<f64>, G: Float + Into<f64>>(
 fn get_max_slope(
     map_size_lg: MapSizeLg,
     h: &[Alt],
-    rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync),
+    rock_strength_nz: &(impl NoiseFn<[f64; 3]> + Sync),
     height_scale: impl Fn(usize) -> Alt + Sync,
 ) -> Box<[f64]> {
     let min_max_angle = (15.0 / 360.0 * 2.0 * f64::consts::PI).tan();
@@ -697,7 +697,7 @@ fn erode(
     max_g: f32,
     kdsed: f64,
     _seed: &RandomField,
-    rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync),
+    rock_strength_nz: &(impl NoiseFn<[f64; 3]> + Sync),
     uplift: impl Fn(usize) -> f32 + Sync,
     n_f: impl Fn(usize) -> f32 + Sync,
     m_f: impl Fn(usize) -> f32 + Sync,
@@ -2525,7 +2525,7 @@ pub fn do_erosion(
     _max_uplift: f32,
     n_steps: usize,
     seed: &RandomField,
-    rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync),
+    rock_strength_nz: &(impl NoiseFn<[f64; 3]> + Sync),
     oldh: impl Fn(usize) -> f32 + Sync,
     oldb: impl Fn(usize) -> f32 + Sync,
     is_ocean: impl Fn(usize) -> bool + Sync,
