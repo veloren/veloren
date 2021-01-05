@@ -147,6 +147,8 @@ image_ids! {
         group_icon_hover: "voxygen.element.buttons.group_hover",
         group_icon_press: "voxygen.element.buttons.group_press",
 
+        sp_indicator_arrow: "voxygen.element.buttons.arrow_down_gold",
+
         // Skill Icons
         twohsword_m1: "voxygen.element.icons.2hsword_m1",
         twohsword_m2: "voxygen.element.icons.2hsword_m2",

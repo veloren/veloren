@@ -9,7 +9,8 @@ use crate::{
 };
 use conrod_core::{
     color,
-    widget::{self, Button, Image, Rectangle, Text},
+    image::Id,
+    widget::{self, button, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
@@ -368,8 +369,16 @@ impl<'a> Widget for Diary<'a> {
             }
             // Weapon icons
             let available_pts = skill_tree_from_str(i.1)
-                .map_or(false, |st| self.stats.skill_set.get_available_sp(st) > 0);
-            self.stats.skill_set.get_available_sp(*sel_tab);
+                .map(|st| {
+                    (
+                        st,
+                        self.stats.skill_set.get_available_sp(st),
+                        self.stats.skill_set.get_earned_sp(st),
+                    )
+                })
+                .map_or(false, |(st, a_pts, e_pts)| {
+                    a_pts > 0 && (e_pts - a_pts) < st.get_max_skill_points()
+                });
             if Button::image(
                 if skill_tree_from_str(i.1).map_or(false, |st| st == *sel_tab || available_pts) {
                     self.imgs.wpn_icon_border_pressed
@@ -632,7 +641,6 @@ impl<'a> Widget for Diary<'a> {
         // Skill-Icons and Functionality
         // Art dimensions
         let art_size = [tweak!(320.0), tweak!(320.0)];
-        let skills = &self.stats.skill_set.skills;
         match sel_tab {
             SelectedSkillTree::General => {
                 use skills::{GeneralSkill::*, RollSkill::*, SkillGroupType::*};
@@ -659,316 +667,256 @@ impl<'a> Widget for Diary<'a> {
                 //        3 0 4
                 //        8 2 7
                 let skill = Skill::General(HealthIncrease);
-                if Button::image(self.imgs.health_plus_skill)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_l[0])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Increase Health",
-                        "Increases health",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_general_stat_0, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.health_plus_skill,
+                    state.skills_top_l[0],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Increase Health",
+                    "Increases health",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_general_stat_0, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::General(EnergyIncrease);
-                if Button::image(self.imgs.stamina_plus_skill)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_l[1])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Increase Energy",
-                        "Increases energy",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_general_stat_1, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.stamina_plus_skill,
+                    state.skills_top_l[1],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Increase Energy",
+                    "Increases energy",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_general_stat_1, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 // Top right skills
                 let skill = Skill::UnlockGroup(Weapon(Sword));
-                if Button::image(self.imgs.unlock_sword_skill)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[0])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Unlock Sword",
-                        "Unlocks sword skill tree",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_general_tree_0, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.unlock_sword_skill,
+                    state.skills_top_r[0],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Unlock Sword",
+                    "Unlocks sword skill tree",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_general_tree_0, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::UnlockGroup(Weapon(Axe));
-                if Button::image(self.imgs.unlock_axe_skill)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[1])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Unlock Axe",
-                        "Unlocks axe skill tree",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_general_tree_1, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.unlock_axe_skill,
+                    state.skills_top_r[1],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Unlock Axe",
+                    "Unlocks axe skill tree",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_general_tree_1, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::UnlockGroup(Weapon(Hammer));
-                if Button::image(self.imgs.unlock_hammer_skill)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[2])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Unlock Hammer",
-                        "Unlocks hammer skill tree",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_general_tree_2, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.unlock_hammer_skill,
+                    state.skills_top_r[2],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Unlock Hammer",
+                    "Unlocks hammer skill tree",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_general_tree_2, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::UnlockGroup(Weapon(Bow));
-                if Button::image(self.imgs.unlock_bow_skill)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[3])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Unlock Bow",
-                        "Unlocks bow skill tree",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_general_tree_3, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.unlock_bow_skill,
+                    state.skills_top_r[3],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Unlock Bow",
+                    "Unlocks bow skill tree",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_general_tree_3, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::UnlockGroup(Weapon(Staff));
-                if Button::image(self.imgs.unlock_staff_skill0)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[4])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Unlock Staff",
-                        "Unlocks staff skill tree",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_general_tree_4, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.unlock_staff_skill0,
+                    state.skills_top_r[4],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Unlock Staff",
+                    "Unlocks staff skill tree",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_general_tree_4, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::UnlockGroup(Weapon(Sceptre));
-                if Button::image(self.imgs.unlock_sceptre_skill)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[5])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Unlock Sceptre",
-                        "Unlocks sceptre skill tree",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_general_tree_5, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.unlock_sceptre_skill,
+                    state.skills_top_r[5],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Unlock Sceptre",
+                    "Unlocks sceptre skill tree",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_general_tree_5, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 // Bottom left skills
                 let skill = Skill::Roll(ImmuneMelee);
-                if Button::image(self.imgs.swords_crossed)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_bot_l[0])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Dodge",
-                        "Ground-yeeting dodges melee attacks",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_general_roll_0, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.swords_crossed,
+                    state.skills_bot_l[0],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Dodge",
+                    "Ground-yeeting dodges melee attacks",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_general_roll_0, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Roll(Cost);
-                if Button::image(self.imgs.swords_crossed)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_bot_l[1])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Cost",
-                        "Decreases cost of ground-yeeting yourself",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_general_roll_1, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.swords_crossed,
+                    state.skills_bot_l[1],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Cost",
+                    "Decreases cost of ground-yeeting yourself",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_general_roll_1, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Roll(Strength);
-                if Button::image(self.imgs.swords_crossed)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_bot_l[2])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Strength",
-                        "Increases how far you ground-yeet yourself",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_general_roll_2, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.swords_crossed,
+                    state.skills_bot_l[2],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Strength",
+                    "Increases how far you ground-yeet yourself",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_general_roll_2, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Roll(Duration);
-                if Button::image(self.imgs.swords_crossed)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_bot_l[3])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Duration",
-                        "Increases for how long you ground-yeet yourself",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_general_roll_3, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.swords_crossed,
+                    state.skills_bot_l[3],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Duration",
+                    "Increases for how long you ground-yeet yourself",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_general_roll_3, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
@@ -989,433 +937,341 @@ impl<'a> Widget for Diary<'a> {
                 //        3 0 4
                 //        8 2 7
                 let skill = Skill::Sword(TsCombo);
-                if Button::image(self.imgs.sword_whirlwind)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_l[0])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Triple Strike Combo",
-                        "Unlocks combo scaling on triple strike",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_sword_combo_0, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.sword_whirlwind,
+                    state.skills_top_l[0],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Triple Strike Combo",
+                    "Unlocks combo scaling on triple strike",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_sword_combo_0, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sword(TsDamage);
-                if Button::image(self.imgs.sword_whirlwind)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_l[1])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Triple Strike Damage",
-                        "Increases damage scaling on triple strike",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_sword_combo_1, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.sword_whirlwind,
+                    state.skills_top_l[1],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Triple Strike Damage",
+                    "Increases damage scaling on triple strike",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_sword_combo_1, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sword(TsSpeed);
-                if Button::image(self.imgs.sword_whirlwind)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_l[2])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Triple Strike Speed",
-                        "Increases attack speed scaling on triple strike",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_sword_combo_2, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.sword_whirlwind,
+                    state.skills_top_l[2],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Triple Strike Speed",
+                    "Increases attack speed scaling on triple strike",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_sword_combo_2, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sword(TsRegen);
-                if Button::image(self.imgs.sword_whirlwind)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_l[3])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Triple Strike Regen",
-                        "Increases enery regen scaling on triple strike",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_sword_combo_3, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.sword_whirlwind,
+                    state.skills_top_l[3],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Triple Strike Regen",
+                    "Increases enery regen scaling on triple strike",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_sword_combo_3, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 // Top right skills
                 let skill = Skill::Sword(DDamage);
-                if Button::image(self.imgs.sword_whirlwind)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[0])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Dash Damage",
-                        "Increases initial damage of the dash",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_sword_dash_0, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.sword_whirlwind,
+                    state.skills_top_r[0],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Dash Damage",
+                    "Increases initial damage of the dash",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_sword_dash_0, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sword(DDrain);
-                if Button::image(self.imgs.sword_whirlwind)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[1])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Dash Drain",
-                        "Decreases the rate energy is drained while dashing",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_sword_dash_1, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.sword_whirlwind,
+                    state.skills_top_r[1],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Dash Drain",
+                    "Decreases the rate energy is drained while dashing",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_sword_dash_1, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sword(DCost);
-                let prereqs_met = tweak!(true);
-                let suff_pts = tweak!(false);
-                let label_txt = &format!(
-                    "{}/{}",
-                    skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                    skill.get_max_level().unwrap_or(1)
-                );
-                if Button::image(self.imgs.sword_whirlwind)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[2])
-                    .label(if prereqs_met { &label_txt } else { "" })
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(if suff_pts {
-                        HP_COLOR
-                    } else {
-                        CRITICAL_HP_COLOR
-                    })
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .image_color(if prereqs_met {
-                        TEXT_COLOR
-                    } else {
-                        Color::Rgba(0.41, 0.41, 0.41, tweak!(0.7))
-                    })
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Dash Cost",
-                        "Decreases the initial cost of the dash",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_sword_dash_2, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.sword_whirlwind,
+                    state.skills_top_r[2],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Dash Cost",
+                    "Decreases the initial cost of the dash",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_sword_dash_2, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sword(DSpeed);
-                if Button::image(self.imgs.sword_whirlwind)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[3])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Dash Speed",
-                        "Increases how fast you go while dashing",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_sword_dash_3, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.sword_whirlwind,
+                    state.skills_top_r[3],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Dash Speed",
+                    "Increases how fast you go while dashing",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_sword_dash_3, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sword(DInfinite);
-                if Button::image(self.imgs.sword_whirlwind)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[4])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Dash Infinite",
-                        "Allows you to dash for as long as you have energy",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_sword_dash_4, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.sword_whirlwind,
+                    state.skills_top_r[4],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Dash Infinite",
+                    "Allows you to dash for as long as you have energy",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_sword_dash_4, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sword(DScaling);
-                if Button::image(self.imgs.sword_whirlwind)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[5])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Dash Scaling",
-                        "Increases how much the damage scales by over the course of the dash",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_sword_dash_5, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.sword_whirlwind,
+                    state.skills_top_r[5],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Dash Scaling",
+                    "Increases how much the damage scales by over the course of the dash",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_sword_dash_5, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 // Bottom left skills
                 let skill = Skill::Sword(SUnlockSpin);
-                if Button::image(self.imgs.sword_whirlwind)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_bot_l[0])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Spin Unlock",
-                        "Unlocks the sword spin",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_sword_spin_0, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.sword_whirlwind,
+                    state.skills_bot_l[0],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Spin Unlock",
+                    "Unlocks the sword spin",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_sword_spin_0, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sword(SDamage);
-                if Button::image(self.imgs.sword_whirlwind)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_bot_l[1])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Spin Damage",
-                        "Increases the damage done",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_sword_spin_1, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.sword_whirlwind,
+                    state.skills_bot_l[1],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Spin Damage",
+                    "Increases the damage done",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_sword_spin_1, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sword(SSpeed);
-                if Button::image(self.imgs.sword_whirlwind)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_bot_l[2])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Spin Speed",
-                        "Increase the speed at which you spin",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_sword_spin_2, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.sword_whirlwind,
+                    state.skills_bot_l[2],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Spin Speed",
+                    "Increase the speed at which you spin",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_sword_spin_2, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sword(SCost);
-                if Button::image(self.imgs.sword_whirlwind)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_bot_l[3])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Spin Cost",
-                        "Decreases the energy cost of each spin",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_sword_spin_3, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.sword_whirlwind,
+                    state.skills_bot_l[3],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Spin Cost",
+                    "Decreases the energy cost of each spin",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_sword_spin_3, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sword(SSpins);
-                if Button::image(self.imgs.sword_whirlwind)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_bot_l[4])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Spin Spins",
-                        "Increases the number of times you can spin",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_sword_spin_4, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.sword_whirlwind,
+                    state.skills_bot_l[4],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Spin Spins",
+                    "Increases the number of times you can spin",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_sword_spin_4, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 // Bottom right skills
                 let skill = Skill::Sword(InterruptingAttacks);
-                if Button::image(self.imgs.sword_whirlwind)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_bot_r[0])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Interrupting Attacks",
-                        "Allows you to immediately cancel an attack with another attack",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_sword_passive_0, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.sword_whirlwind,
+                    state.skills_bot_r[0],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Interrupting Attacks",
+                    "Allows you to immediately cancel an attack with another attack",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_sword_passive_0, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
@@ -1436,368 +1292,298 @@ impl<'a> Widget for Diary<'a> {
                 //        3 0 4
                 //        8 2 7
                 let skill = Skill::Axe(DsCombo);
-                if Button::image(self.imgs.axespin)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_l[0])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Double Strike Combo",
-                        "Unlocks a second strike",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_axe_combo_0, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.axespin,
+                    state.skills_top_l[0],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Double Strike Combo",
+                    "Unlocks a second strike",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_axe_combo_0, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Axe(DsDamage);
-                if Button::image(self.imgs.axespin)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_l[1])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Double Strike Damage",
-                        "Increases damage scaling in combo",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_axe_combo_1, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.axespin,
+                    state.skills_top_l[1],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Double Strike Damage",
+                    "Increases damage scaling in combo",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_axe_combo_1, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Axe(DsSpeed);
-                if Button::image(self.imgs.axespin)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_l[2])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Double Strike Speed",
-                        "Increases speed scaling in combo",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_axe_combo_2, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.axespin,
+                    state.skills_top_l[2],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Double Strike Speed",
+                    "Increases speed scaling in combo",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_axe_combo_2, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Axe(DsRegen);
-                if Button::image(self.imgs.axespin)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_l[3])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Double Strike Regen",
-                        "Increases energy regen scaling in combo",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_axe_combo_3, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.axespin,
+                    state.skills_top_l[3],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Double Strike Regen",
+                    "Increases energy regen scaling in combo",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_axe_combo_3, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 // Top right skills
                 let skill = Skill::Axe(SInfinite);
-                if Button::image(self.imgs.axespin)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[0])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Infinite Axe Spin",
-                        "Spin for as long as you have energy",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_axe_spin_0, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.axespin,
+                    state.skills_top_r[0],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Infinite Axe Spin",
+                    "Spin for as long as you have energy",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_axe_spin_0, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Axe(SDamage);
-                if Button::image(self.imgs.axespin)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[1])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Spin Damage",
-                        "Increases the daamge each spin does",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_axe_spin_1, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.axespin,
+                    state.skills_top_r[1],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Spin Damage",
+                    "Increases the daamge each spin does",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_axe_spin_1, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Axe(SHelicopter);
-                if Button::image(self.imgs.axespin)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[2])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Spin Helicopter",
-                        "You fall a little slower while spinning",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_axe_spin_2, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.axespin,
+                    state.skills_top_r[2],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Spin Helicopter",
+                    "You fall a little slower while spinning",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_axe_spin_2, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Axe(SSpeed);
-                if Button::image(self.imgs.axespin)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[3])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Spin Speed",
-                        "Increases your spins per minute",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_axe_spin_3, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.axespin,
+                    state.skills_top_r[3],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Spin Speed",
+                    "Increases your spins per minute",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_axe_spin_3, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Axe(SCost);
-                if Button::image(self.imgs.axespin)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[4])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Spin Cost",
-                        "Increases your spin per energy efficiency",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_axe_spin_4, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.axespin,
+                    state.skills_top_r[4],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Spin Cost",
+                    "Increases your spin per energy efficiency",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_axe_spin_4, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 // Bottom left skills
                 let skill = Skill::Axe(LUnlockLeap);
-                if Button::image(self.imgs.axespin)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_bot_l[0])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Unlock Leap",
-                        "Unlocks a leap spin",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_axe_leap_0, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.axespin,
+                    state.skills_bot_l[0],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Unlock Leap",
+                    "Unlocks a leap spin",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_axe_leap_0, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Axe(LDamage);
-                if Button::image(self.imgs.axespin)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_bot_l[1])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Leap Damage",
-                        "Increases damage of leap",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_axe_leap_1, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.axespin,
+                    state.skills_bot_l[1],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Leap Damage",
+                    "Increases damage of leap",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_axe_leap_1, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Axe(LKnockback);
-                if Button::image(self.imgs.axespin)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_bot_l[2])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Leap Knockback",
-                        "Increases knockback from leap",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_axe_leap_2, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.axespin,
+                    state.skills_bot_l[2],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Leap Knockback",
+                    "Increases knockback from leap",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_axe_leap_2, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Axe(LCost);
-                if Button::image(self.imgs.axespin)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_bot_l[3])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Leap Cost",
-                        "Decreases cost of leap",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_axe_leap_3, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.axespin,
+                    state.skills_bot_l[3],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Leap Cost",
+                    "Decreases cost of leap",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_axe_leap_3, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Axe(LDistance);
-                if Button::image(self.imgs.axespin)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_bot_l[4])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Leap Distance",
-                        "Increases distance of leap",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_axe_leap_4, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.axespin,
+                    state.skills_bot_l[4],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Leap Distance",
+                    "Increases distance of leap",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_axe_leap_4, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
@@ -1818,368 +1604,298 @@ impl<'a> Widget for Diary<'a> {
                 //        3 0 4
                 //        8 2 7
                 let skill = Skill::Hammer(SsKnockback);
-                if Button::image(self.imgs.hammergolf)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_l[0])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Single Strike Knockback",
-                        "Increaes yeet potential of swings",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_hammer_combo_0, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.hammergolf,
+                    state.skills_top_l[0],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Single Strike Knockback",
+                    "Increaes yeet potential of swings",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_hammer_combo_0, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Hammer(SsDamage);
-                if Button::image(self.imgs.hammergolf)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_l[1])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Single Strike Damage",
-                        "Increases damage scaling in combo",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_hammer_combo_1, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.hammergolf,
+                    state.skills_top_l[1],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Single Strike Damage",
+                    "Increases damage scaling in combo",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_hammer_combo_1, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Hammer(SsSpeed);
-                if Button::image(self.imgs.hammergolf)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_l[2])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Single Strike Speed",
-                        "Increases speed scaling in combo",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_hammer_combo_2, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.hammergolf,
+                    state.skills_top_l[2],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Single Strike Speed",
+                    "Increases speed scaling in combo",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_hammer_combo_2, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Hammer(SsRegen);
-                if Button::image(self.imgs.hammergolf)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_l[3])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Single Strike Regen",
-                        "Increases energy regen scaling in combo",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_hammer_combo_3, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.hammergolf,
+                    state.skills_top_l[3],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Single Strike Regen",
+                    "Increases energy regen scaling in combo",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_hammer_combo_3, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 // Top right skills
                 let skill = Skill::Hammer(CKnockback);
-                if Button::image(self.imgs.hammergolf)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[0])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Charged Melee Knockback",
-                        "Massively increases yeet potential of swing",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_hammer_charged_0, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.hammergolf,
+                    state.skills_top_r[0],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Charged Melee Knockback",
+                    "Massively increases yeet potential of swing",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_hammer_charged_0, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Hammer(CDamage);
-                if Button::image(self.imgs.hammergolf)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[1])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Charged Melee Damage",
-                        "Increases the daamge of the charged swing",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_hammer_charged_1, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.hammergolf,
+                    state.skills_top_r[1],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Charged Melee Damage",
+                    "Increases the daamge of the charged swing",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_hammer_charged_1, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Hammer(CDrain);
-                if Button::image(self.imgs.hammergolf)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[2])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Charged Melee Energy Drain",
-                        "Decreases the rate energy drains when charging",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_hammer_charged_2, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.hammergolf,
+                    state.skills_top_r[2],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Charged Melee Energy Drain",
+                    "Decreases the rate energy drains when charging",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_hammer_charged_2, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Hammer(CSpeed);
-                if Button::image(self.imgs.hammergolf)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[3])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Charge Rate",
-                        "Increases the rate that you charge the swing",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_hammer_charged_3, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.hammergolf,
+                    state.skills_top_r[3],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Charge Rate",
+                    "Increases the rate that you charge the swing",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_hammer_charged_3, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 // Bottom left skills
                 let skill = Skill::Hammer(LUnlockLeap);
-                if Button::image(self.imgs.hammergolf)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_bot_l[0])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Unlock Leap",
-                        "Unlocks a leap",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_hammer_leap_0, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.hammergolf,
+                    state.skills_bot_l[0],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Unlock Leap",
+                    "Unlocks a leap",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_hammer_leap_0, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Hammer(LDamage);
-                if Button::image(self.imgs.hammergolf)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_bot_l[1])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Leap Damage",
-                        "Increases damage of leap",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_hammer_leap_1, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.hammergolf,
+                    state.skills_bot_l[1],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Leap Damage",
+                    "Increases damage of leap",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_hammer_leap_1, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Hammer(LKnockback);
-                if Button::image(self.imgs.hammergolf)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_bot_l[2])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Leap Knockback",
-                        "Increases knockback from leap",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_hammer_leap_2, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.hammergolf,
+                    state.skills_bot_l[2],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Leap Knockback",
+                    "Increases knockback from leap",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_hammer_leap_2, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Hammer(LCost);
-                if Button::image(self.imgs.hammergolf)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_bot_l[3])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Leap Cost",
-                        "Decreases cost of leap",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_hammer_leap_3, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.hammergolf,
+                    state.skills_bot_l[3],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Leap Cost",
+                    "Decreases cost of leap",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_hammer_leap_3, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Hammer(LDistance);
-                if Button::image(self.imgs.hammergolf)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_bot_l[4])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Leap Distance",
-                        "Increases distance of leap",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_hammer_leap_4, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.hammergolf,
+                    state.skills_bot_l[4],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Leap Distance",
+                    "Increases distance of leap",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_hammer_leap_4, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Hammer(LRange);
-                if Button::image(self.imgs.hammergolf)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_bot_l[5])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Leap Radius",
-                        "Increases attack radius on ground slam",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_hammer_leap_5, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.hammergolf,
+                    state.skills_bot_l[5],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Leap Radius",
+                    "Increases attack radius on ground slam",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_hammer_leap_5, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
@@ -2199,369 +1915,299 @@ impl<'a> Widget for Diary<'a> {
                 //        3 0 4
                 //        8 2 7
                 let skill = Skill::Bow(BDamage);
-                if Button::image(self.imgs.bow_m1)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_l[0])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Damage",
-                        "Increases damage",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_bow_basic_0, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.bow_m1,
+                    state.skills_top_l[0],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Damage",
+                    "Increases damage",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_bow_basic_0, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Bow(BRegen);
-                if Button::image(self.imgs.bow_m1)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_l[1])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Energy Regen",
-                        "Increases energy regen",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_bow_basic_1, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.bow_m1,
+                    state.skills_top_l[1],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Energy Regen",
+                    "Increases energy regen",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_bow_basic_1, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 // Top right skills
                 let skill = Skill::Bow(CDamage);
-                if Button::image(self.imgs.bow_m1)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[0])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Charged Damage",
-                        "Increases how much damage scales by as it is charged",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_bow_charged_0, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.bow_m1,
+                    state.skills_top_r[0],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Charged Damage",
+                    "Increases how much damage scales by as it is charged",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_bow_charged_0, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Bow(CDrain);
-                if Button::image(self.imgs.bow_m1)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[1])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Charged Drain",
-                        "Decreases the rate energy is drained while charging",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_bow_charged_1, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.bow_m1,
+                    state.skills_top_r[1],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Charged Drain",
+                    "Decreases the rate energy is drained while charging",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_bow_charged_1, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Bow(CProjSpeed);
-                if Button::image(self.imgs.bow_m1)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[2])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Charged Projectile Speed",
-                        "Increases yeet potential applied to arrow while charging",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_bow_charged_2, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.bow_m1,
+                    state.skills_top_r[2],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Charged Projectile Speed",
+                    "Increases yeet potential applied to arrow while charging",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_bow_charged_2, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Bow(CSpeed);
-                if Button::image(self.imgs.bow_m1)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[3])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Charged Speed",
-                        "Increases the rate that you charge the attack",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_bow_charged_3, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.bow_m1,
+                    state.skills_top_r[3],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Charged Speed",
+                    "Increases the rate that you charge the attack",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_bow_charged_3, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Bow(CMove);
-                if Button::image(self.imgs.bow_m1)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[4])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Charged Move Speed",
-                        "Increases how fast you can shuffle while charging the attack",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_bow_charged_4, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.bow_m1,
+                    state.skills_top_r[4],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Charged Move Speed",
+                    "Increases how fast you can shuffle while charging the attack",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_bow_charged_4, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Bow(CKnockback);
-                if Button::image(self.imgs.bow_m1)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[5])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Charged Knockback",
-                        "Yeet enemies further",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_bow_charged_5, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.bow_m1,
+                    state.skills_top_r[5],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Charged Knockback",
+                    "Yeet enemies further",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_bow_charged_5, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 // Bottom left skills
                 let skill = Skill::Bow(UnlockRepeater);
-                if Button::image(self.imgs.bow_m1)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_bot_l[0])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Repeater Unlock",
-                        "Unlocks the ability to leap in the arrow",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_bow_repeater_0, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.bow_m1,
+                    state.skills_bot_l[0],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Repeater Unlock",
+                    "Unlocks the ability to leap in the arrow",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_bow_repeater_0, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Bow(RDamage);
-                if Button::image(self.imgs.bow_m1)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_bot_l[1])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Repeater Damage",
-                        "Increases the damage done",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_bow_repeater_1, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.bow_m1,
+                    state.skills_bot_l[1],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Repeater Damage",
+                    "Increases the damage done",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_bow_repeater_1, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Bow(RGlide);
-                if Button::image(self.imgs.bow_m1)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_bot_l[2])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Repeater Glide",
-                        "Glide further while repeatering",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_bow_repeater_2, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.bow_m1,
+                    state.skills_bot_l[2],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Repeater Glide",
+                    "Glide further while repeatering",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_bow_repeater_2, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Bow(RCost);
-                if Button::image(self.imgs.bow_m1)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_bot_l[3])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Repeater Cost",
-                        "Decreases the energy cost to become a gliding repeater",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_bow_repeater_3, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.bow_m1,
+                    state.skills_bot_l[3],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Repeater Cost",
+                    "Decreases the energy cost to become a gliding repeater",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_bow_repeater_3, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Bow(RArrows);
-                if Button::image(self.imgs.bow_m1)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_bot_l[4])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Arrow Count",
-                        "Yeet more arrows when you leap",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_bow_repeater_4, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.bow_m1,
+                    state.skills_bot_l[4],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Arrow Count",
+                    "Yeet more arrows when you leap",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_bow_repeater_4, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 // Bottom right skills
                 let skill = Skill::Bow(ProjSpeed);
-                if Button::image(self.imgs.bow_m1)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_bot_r[0])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Projectile Speed",
-                        "Allows you to yeet arrows further, faster",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_bow_passive_0, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.bow_m1,
+                    state.skills_bot_r[0],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Projectile Speed",
+                    "Allows you to yeet arrows further, faster",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_bow_passive_0, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
@@ -2582,342 +2228,277 @@ impl<'a> Widget for Diary<'a> {
                 //        3 0 4
                 //        8 2 7
                 let skill = Skill::Staff(BExplosion);
-                if Button::image(self.imgs.fireball)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_l[0])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Explosion",
-                        "When fire just isn't enough",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_staff_basic_0, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.fireball,
+                    state.skills_top_l[0],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Explosion",
+                    "When fire just isn't enough",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_staff_basic_0, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Staff(BDamage);
-                if Button::image(self.imgs.fireball)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_l[1])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Damage",
-                        "Increases damage",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_staff_basic_1, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.fireball,
+                    state.skills_top_l[1],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Damage",
+                    "Increases damage",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_staff_basic_1, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Staff(BRegen);
-                if Button::image(self.imgs.fireball)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_l[2])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Energy Regen",
-                        "Increases energy regen",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_staff_basic_2, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.fireball,
+                    state.skills_top_l[2],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Energy Regen",
+                    "Increases energy regen",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_staff_basic_2, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Staff(BRadius);
-                if Button::image(self.imgs.fireball)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_l[3])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Explosion Radius",
-                        "Bigger is better",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_staff_basic_3, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.fireball,
+                    state.skills_top_l[3],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Explosion Radius",
+                    "Bigger is better",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_staff_basic_3, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 // Top right skills
                 let skill = Skill::Staff(FDamage);
-                if Button::image(self.imgs.fireball)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[0])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Flamethrower Damage",
-                        "Increases damage",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_staff_beam_0, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.fireball,
+                    state.skills_top_r[0],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Flamethrower Damage",
+                    "Increases damage",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_staff_beam_0, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Staff(FDrain);
-                if Button::image(self.imgs.fireball)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[1])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Energy Drain",
-                        "Decreases the rate energy is drained",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_staff_beam_1, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.fireball,
+                    state.skills_top_r[1],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Energy Drain",
+                    "Decreases the rate energy is drained",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_staff_beam_1, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Staff(FRange);
-                if Button::image(self.imgs.fireball)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[2])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Flamethrower Range",
-                        "For when the flames just won't reach",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_staff_beam_2, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.fireball,
+                    state.skills_top_r[2],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Flamethrower Range",
+                    "For when the flames just won't reach",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_staff_beam_2, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Staff(FVelocity);
-                if Button::image(self.imgs.fireball)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[3])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Flame Velocity",
-                        "Gets the fire there faster",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_staff_beam_3, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.fireball,
+                    state.skills_top_r[3],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Flame Velocity",
+                    "Gets the fire there faster",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_staff_beam_3, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 // Bottom left skills
                 let skill = Skill::Staff(UnlockShockwave);
-                if Button::image(self.imgs.fireball)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_bot_l[0])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Shockwave Unlock",
-                        "Unlocks the ability to yeet enemies away using fire",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_staff_shockwave_0, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.fireball,
+                    state.skills_bot_l[0],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Shockwave Unlock",
+                    "Unlocks the ability to yeet enemies away using fire",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_staff_shockwave_0, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Staff(SDamage);
-                if Button::image(self.imgs.fireball)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_bot_l[1])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Shockwave Damage",
-                        "Increases the damage done",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_staff_shockwave_1, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.fireball,
+                    state.skills_bot_l[1],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Shockwave Damage",
+                    "Increases the damage done",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_staff_shockwave_1, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Staff(SKnockback);
-                if Button::image(self.imgs.fireball)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_bot_l[2])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Shockwave Knockback",
-                        "Increases yeet potential",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_staff_shockwave_2, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.fireball,
+                    state.skills_bot_l[2],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Shockwave Knockback",
+                    "Increases yeet potential",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_staff_shockwave_2, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Staff(SCost);
-                if Button::image(self.imgs.fireball)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_bot_l[3])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Shockwave Cost",
-                        "Decreases the energy cost to yeet helpless villagers",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_staff_shockwave_3, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.fireball,
+                    state.skills_bot_l[3],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Shockwave Cost",
+                    "Decreases the energy cost to yeet helpless villagers",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_staff_shockwave_3, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Staff(SRange);
-                if Button::image(self.imgs.fireball)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_bot_l[4])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Shockwave Range",
-                        "Yeet things that used to be out of reach",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_staff_shockwave_4, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.fireball,
+                    state.skills_bot_l[4],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Shockwave Range",
+                    "Yeet things that used to be out of reach",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_staff_shockwave_4, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
@@ -2938,289 +2519,234 @@ impl<'a> Widget for Diary<'a> {
                 //        3 0 4
                 //        8 2 7
                 let skill = Skill::Sceptre(BHeal);
-                if Button::image(self.imgs.heal_0)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_l[0])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Beam Heal",
-                        "Increased healing from the beam",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_sceptre_beam_0, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.heal_0,
+                    state.skills_top_l[0],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Beam Heal",
+                    "Increased healing from the beam",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_sceptre_beam_0, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sceptre(BDamage);
-                if Button::image(self.imgs.heal_0)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_l[1])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Damage",
-                        "Increases damage",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_sceptre_beam_1, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.heal_0,
+                    state.skills_top_l[1],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Damage",
+                    "Increases damage",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_sceptre_beam_1, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sceptre(BRegen);
-                if Button::image(self.imgs.heal_0)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_l[2])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Energy Regen",
-                        "Increases energy regen from damage",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_sceptre_beam_2, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.heal_0,
+                    state.skills_top_l[2],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Energy Regen",
+                    "Increases energy regen from damage",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_sceptre_beam_2, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sceptre(BRange);
-                if Button::image(self.imgs.heal_0)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_l[3])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Range",
-                        "Longer beam",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_sceptre_beam_3, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.heal_0,
+                    state.skills_top_l[3],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Range",
+                    "Longer beam",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_sceptre_beam_3, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sceptre(BLifesteal);
-                if Button::image(self.imgs.heal_0)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_l[4])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Lifesteal Efficiency",
-                        "Thieve more health",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_sceptre_beam_4, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.heal_0,
+                    state.skills_top_l[4],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Lifesteal Efficiency",
+                    "Thieve more health",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_sceptre_beam_4, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sceptre(BCost);
-                if Button::image(self.imgs.heal_0)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_l[5])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Heal Cost",
-                        "Use less energy when healing",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_sceptre_beam_5, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.heal_0,
+                    state.skills_top_l[5],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Heal Cost",
+                    "Use less energy when healing",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_sceptre_beam_5, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 // Top right skills
                 let skill = Skill::Sceptre(PHeal);
-                if Button::image(self.imgs.heal_0)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[0])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Heal",
-                        "Increases healing",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_sceptre_bomb_0, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.heal_0,
+                    state.skills_top_r[0],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Heal",
+                    "Increases healing",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_sceptre_bomb_0, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sceptre(PDamage);
-                if Button::image(self.imgs.heal_0)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[1])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Damage",
-                        "Increases damage",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_sceptre_bomb_1, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.heal_0,
+                    state.skills_top_r[1],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Damage",
+                    "Increases damage",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_sceptre_bomb_1, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sceptre(PRadius);
-                if Button::image(self.imgs.heal_0)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[2])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Radius",
-                        "Increases radius",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_sceptre_bomb_2, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.heal_0,
+                    state.skills_top_r[2],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Radius",
+                    "Increases radius",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_sceptre_bomb_2, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sceptre(PCost);
-                if Button::image(self.imgs.heal_0)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[3])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Energy Cost",
-                        "Decreases energy cost of bomb",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_sceptre_bomb_3, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.heal_0,
+                    state.skills_top_r[3],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Energy Cost",
+                    "Decreases energy cost of bomb",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_sceptre_bomb_3, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sceptre(PProjSpeed);
-                if Button::image(self.imgs.heal_0)
-                    .w_h(tweak!(74.0), tweak!(74.0))
-                    .middle_of(state.skills_top_r[4])
-                    .label(&format!(
-                        "{}/{}",
-                        skills.get(&skill).copied().map_or(0, |l| l.unwrap_or(1)),
-                        skill.get_max_level().unwrap_or(1)
-                    ))
-                    .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-                    .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(tweak!(16)))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        "Projectile Speed",
-                        "Yeets it faster",
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_sceptre_bomb_4, ui)
-                    .was_clicked()
+                if create_skill_button(
+                    self.imgs.heal_0,
+                    state.skills_top_r[4],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Projectile Speed",
+                    "Yeets it faster",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_sceptre_bomb_4, ui)
+                .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
@@ -3229,6 +2755,51 @@ impl<'a> Widget for Diary<'a> {
         }
 
         events
+    }
+}
+
+fn create_skill_button<'a>(
+    image: Id,
+    state: widget::Id,
+    skill_set: &'a skills::SkillSet,
+    skill: Skill,
+    fonts: &'a Fonts,
+    label: &'a str,
+) -> Button<'a, button::Image> {
+    Button::image(image)
+        .w_h(tweak!(74.0), tweak!(74.0))
+        .middle_of(state)
+        .label(label)
+        .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
+        .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
+        .label_color(if skill_set.sufficient_skill_points(skill) {
+            HP_COLOR
+        } else {
+            CRITICAL_HP_COLOR
+        })
+        .label_color(TEXT_COLOR)
+        .label_font_size(fonts.cyri.scale(tweak!(16)))
+        .label_font_id(fonts.cyri.conrod_id)
+        .image_color(if skill_set.prerequisites_met(skill) {
+            TEXT_COLOR
+        } else {
+            Color::Rgba(0.41, 0.41, 0.41, tweak!(0.7))
+        })
+}
+
+fn get_skill_label(skill: Skill, skill_set: &skills::SkillSet) -> String {
+    if skill_set.prerequisites_met(skill) {
+        format!(
+            "{}/{}",
+            skill_set
+                .skills
+                .get(&skill)
+                .copied()
+                .map_or(0, |l| l.unwrap_or(1)),
+            skill.get_max_level().unwrap_or(1)
+        )
+    } else {
+        "".to_string()
     }
 }
 

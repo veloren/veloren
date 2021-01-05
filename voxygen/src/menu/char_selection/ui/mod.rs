@@ -37,6 +37,8 @@ use iced::{
 };
 use vek::Rgba;
 
+use inline_tweak::*;
+
 pub const TEXT_COLOR: iced::Color = iced::Color::from_rgb(1.0, 1.0, 1.0);
 pub const DISABLED_TEXT_COLOR: iced::Color = iced::Color::from_rgba(1.0, 1.0, 1.0, 0.2);
 pub const TOOLTIP_BACK_COLOR: Rgba<u8> = Rgba::new(20, 18, 10, 255);
@@ -444,7 +446,7 @@ impl Controls {
                                             select_button,
                                             Column::with_children(vec![
                                                 Text::new(&character.character.alias)
-                                                    .size(fonts.cyri.scale(30))
+                                                    .size(fonts.cyri.scale(tweak!(26)))
                                                     .into(),
                                                 // TODO: only construct string once when characters
                                                 // are

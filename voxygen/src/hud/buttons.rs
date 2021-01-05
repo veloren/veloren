@@ -1,6 +1,6 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
-    BLACK, CRITICAL_HP_COLOR, LOW_HP_COLOR, TEXT_COLOR,
+    BLACK, CRITICAL_HP_COLOR, LOW_HP_COLOR, QUALITY_LEGENDARY, TEXT_COLOR,
 };
 use crate::{
     i18n::Localization,
@@ -11,10 +11,10 @@ use crate::{
 use client::Client;
 use common::comp::Stats;
 use conrod_core::{
-    widget::{self, Button, Text},
+    widget::{self, Button, Image, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-
+use inline_tweak::*;
 widget_ids! {
     struct Ids {
         bag,
@@ -42,6 +42,9 @@ widget_ids! {
         crafting_text,
         crafting_text_bg,
         group_button,
+        sp_arrow,
+        sp_arrow_txt_bg,
+        sp_arrow_txt,
     }
 }
 #[derive(WidgetCommon)]
@@ -57,6 +60,7 @@ pub struct Buttons<'a> {
     tooltip_manager: &'a mut TooltipManager,
     localized_strings: &'a Localization,
     stats: &'a Stats,
+    pulse: f32,
 }
 
 impl<'a> Buttons<'a> {
@@ -71,6 +75,7 @@ impl<'a> Buttons<'a> {
         tooltip_manager: &'a mut TooltipManager,
         localized_strings: &'a Localization,
         stats: &'a Stats,
+        pulse: f32,
     ) -> Self {
         Self {
             client,
@@ -83,6 +88,7 @@ impl<'a> Buttons<'a> {
             tooltip_manager,
             localized_strings,
             stats,
+            pulse,
         }
     }
 }
@@ -122,6 +128,9 @@ impl<'a> Widget for Buttons<'a> {
             None => return None,
         };
         let localized_strings = self.localized_strings;
+        let arrow_ani =
+            (self.pulse * tweak!(4.0)/* speed factor */).cos() * tweak!(0.5) + tweak!(0.8); //Animation timer
+
         let button_tooltip = Tooltip::new({
             // Edge images [t, b, r, l]
             // Corner images [tr, tl, br, bl]
@@ -326,22 +335,26 @@ impl<'a> Widget for Buttons<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.map_text, ui);
         }
-
-        // Spellbook
-        if Button::image(self.imgs.spellbook_button)
-            .w_h(28.0, 25.0)
-            .left_from(state.ids.map_button, 10.0)
-            .hover_image(self.imgs.spellbook_hover)
-            .press_image(self.imgs.spellbook_press)
-            .with_tooltip(
-                self.tooltip_manager,
-                &localized_strings.get("hud.diary"),
-                "",
-                &button_tooltip,
-                TEXT_COLOR,
-            )
-            .set(state.ids.spellbook_button, ui)
-            .was_clicked()
+        // Diary
+        let unspent_sp = self.stats.skill_set.has_available_sp();
+        if Button::image(if !unspent_sp {
+            self.imgs.spellbook_button
+        } else {
+            self.imgs.spellbook_hover
+        })
+        .w_h(28.0, 25.0)
+        .left_from(state.ids.map_button, 10.0)
+        .hover_image(self.imgs.spellbook_hover)
+        .press_image(self.imgs.spellbook_press)
+        .with_tooltip(
+            self.tooltip_manager,
+            &localized_strings.get("hud.diary"),
+            "",
+            &button_tooltip,
+            TEXT_COLOR,
+        )
+        .set(state.ids.spellbook_button, ui)
+        .was_clicked()
         {
             return Some(Event::ToggleSpell);
         }
@@ -364,7 +377,32 @@ impl<'a> Widget for Buttons<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.spellbook_text, ui);
         }
-
+        // Unspent SP indicator
+        if unspent_sp {
+            Image::new(self.imgs.sp_indicator_arrow)
+                .w_h(20.0, 11.0)
+                .graphics_for(state.ids.spellbook_button)
+                .mid_top_with_margin_on(
+                    state.ids.spellbook_button,
+                    tweak!(-12.0) + arrow_ani as f64,
+                )
+                .color(Some(QUALITY_LEGENDARY))
+                .set(state.ids.sp_arrow, ui);
+            Text::new(&localized_strings.get("hud.sp_arrow_txt"))
+                .mid_top_with_margin_on(state.ids.sp_arrow, tweak!(-18.0))
+                .graphics_for(state.ids.spellbook_button)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(tweak!(14)))
+                .color(BLACK)
+                .set(state.ids.sp_arrow_txt_bg, ui);
+            Text::new(&localized_strings.get("hud.sp_arrow_txt"))
+                .graphics_for(state.ids.spellbook_button)
+                .bottom_right_with_margins_on(state.ids.sp_arrow_txt_bg, 1.0, 1.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(tweak!(14)))
+                .color(QUALITY_LEGENDARY)
+                .set(state.ids.sp_arrow_txt, ui);
+        }
         // Crafting
         if Button::image(self.imgs.crafting_icon)
             .w_h(25.0, 25.0)
