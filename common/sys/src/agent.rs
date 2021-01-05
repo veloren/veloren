@@ -212,6 +212,7 @@ impl<'a> System<'a> for Sys {
                     in_liquid: physics_state.in_liquid.is_some(),
                     min_tgt_dist: 1.0,
                     can_climb: body.map(|b| b.can_climb()).unwrap_or(false),
+                    can_fly: body.map(|b| b.can_fly()).unwrap_or(false),
                 };
 
                 let mut do_idle = false;
@@ -221,6 +222,8 @@ impl<'a> System<'a> for Sys {
                     match &mut agent.activity {
                         Activity::Idle { bearing, chaser } => {
                             if let Some(travel_to) = agent.rtsim_controller.travel_to {
+                                //if it has an rtsim destination and can fly then it should
+                                inputs.fly.set_state(traversal_config.can_fly);
                                 if let Some((bearing, speed)) =
                                     chaser.chase(&*terrain, pos.0, vel.0, travel_to, TraversalConfig {
                                         min_tgt_dist: 1.25,
@@ -230,10 +233,31 @@ impl<'a> System<'a> for Sys {
                                     inputs.move_dir =
                                         bearing.xy().try_normalized().unwrap_or(Vec2::zero())
                                             * speed.min(agent.rtsim_controller.speed_factor);
-                                    inputs.jump.set_state(bearing.z > 1.5);
+                                    inputs.jump.set_state(bearing.z > 1.5 || traversal_config.can_fly && traversal_config.on_ground);
                                     inputs.climb = Some(comp::Climb::Up);
                                     //.filter(|_| bearing.z > 0.1 || physics_state.in_liquid.is_some());
-                                    inputs.move_z = bearing.z + 0.05;
+
+                                    inputs.move_z = bearing.z + if traversal_config.can_fly {
+                                        if terrain
+                                            .ray(
+                                                pos.0 + Vec3::unit_z(),
+                                                pos.0
+                                                    + bearing
+                                                    .try_normalized()
+                                                    .unwrap_or(Vec3::unit_y())
+                                                    * 60.0
+                                                    + Vec3::unit_z(),
+                                            )
+                                            .until(Block::is_solid)
+                                            .cast()
+                                            .1
+                                            .map_or(true, |b| b.is_some())
+                                        {
+                                            1.0 //fly up when approaching obstacles
+                                        } else { -0.1 } //flying things should slowly come down from the stratosphere
+                                    } else {
+                                        0.05 //normal land traveller offset
+                                    };
                                 }
                             } else {
                                 *bearing += Vec2::new(
