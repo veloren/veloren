@@ -71,6 +71,8 @@ pub struct TraversalConfig {
     pub min_tgt_dist: f32,
     /// Whether the agent can climb.
     pub can_climb: bool,
+    /// Whether the agent can fly.
+    pub can_fly: bool,
 }
 
 const DIAGONALS: [Vec2<i32>; 8] = [
@@ -427,7 +429,7 @@ impl Chaser {
                 .unwrap_or(false)
             });
 
-            if !walking_towards_edge {
+            if !walking_towards_edge || traversal_cfg.can_fly {
                 Some(((tgt - pos) * Vec3::new(1.0, 1.0, 0.0), 1.0))
             } else {
                 None
@@ -545,14 +547,14 @@ where
                     .filter(|_| {
                         vol.get(pos).map(|b| !b.is_liquid()).unwrap_or(true)
                             || traversal_cfg.can_climb
+                            || traversal_cfg.can_fly
                     })
                     .into_iter()
                     .flatten(),
             )
             .map(move |dir| (pos, dir))
             .filter(move |(pos, dir)| {
-                is_walkable(pos)
-                    && is_walkable(&(*pos + **dir))
+                (traversal_cfg.can_fly || is_walkable(pos) && is_walkable(&(*pos + **dir)))
                     && ((dir.z < 1
                         || vol
                             .get(pos + Vec3::unit_z() * 2)

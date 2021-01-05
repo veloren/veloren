@@ -1071,6 +1071,12 @@ impl Site {
         };
         self.population += years * self.population * (birth_rate - DEATH_RATE);
     }
+
+    pub fn is_dungeon(&self) -> bool { matches!(self.kind, SiteKind::Dungeon) }
+
+    pub fn is_settlement(&self) -> bool { matches!(self.kind, SiteKind::Settlement) }
+
+    pub fn is_castle(&self) -> bool { matches!(self.kind, SiteKind::Castle) }
 }
 
 #[repr(u8)]
