@@ -3,7 +3,7 @@ use common::{
     terrain::{neighbors, uniform_idx_as_vec2, vec2_as_uniform_idx, MapSizeLg, TerrainChunkSize},
     vol::RectVolSize,
 };
-use noise::{MultiFractal, NoiseFn, Perlin, Point2, Point3, Point4, Seedable};
+use noise::{MultiFractal, NoiseFn, Perlin, Seedable};
 use num::Float;
 use rayon::prelude::*;
 use std::{f32, f64, ops::Mul, u32};
@@ -652,8 +652,8 @@ impl Seedable for HybridMulti {
 }
 
 /// 2-dimensional `HybridMulti` noise
-impl NoiseFn<Point2<f64>> for HybridMulti {
-    fn get(&self, mut point: Point2<f64>) -> f64 {
+impl NoiseFn<[f64; 2]> for HybridMulti {
+    fn get(&self, mut point: [f64; 2]) -> f64 {
         // First unscaled octave of function; later octaves are scaled.
         point = mul2(point, self.frequency);
         // Offset and bias to scale into [offset - 1.0, 1.0 + offset] range.
@@ -692,8 +692,8 @@ impl NoiseFn<Point2<f64>> for HybridMulti {
 }
 
 /// 3-dimensional `HybridMulti` noise
-impl NoiseFn<Point3<f64>> for HybridMulti {
-    fn get(&self, mut point: Point3<f64>) -> f64 {
+impl NoiseFn<[f64; 3]> for HybridMulti {
+    fn get(&self, mut point: [f64; 3]) -> f64 {
         // First unscaled octave of function; later octaves are scaled.
         point = mul3(point, self.frequency);
         // Offset and bias to scale into [offset - 1.0, 1.0 + offset] range.
@@ -732,8 +732,8 @@ impl NoiseFn<Point3<f64>> for HybridMulti {
 }
 
 /// 4-dimensional `HybridMulti` noise
-impl NoiseFn<Point4<f64>> for HybridMulti {
-    fn get(&self, mut point: Point4<f64>) -> f64 {
+impl NoiseFn<[f64; 4]> for HybridMulti {
+    fn get(&self, mut point: [f64; 4]) -> f64 {
         // First unscaled octave of function; later octaves are scaled.
         point = mul4(point, self.frequency);
         // Offset and bias to scale into [offset - 1.0, 1.0 + offset] range.
