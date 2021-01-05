@@ -213,15 +213,11 @@ impl ProceduralTree {
 
             let end = start + branch_dir * branch_len;
 
-            branches.push(Branch {
-                line: LineSegment3 { start, end },
-                radius: 0.3 + 2.5 / (depth + 1) as f32,
-                health: if depth == 4 {
+            branches.push(Branch::new(LineSegment3 { start, end },0.3 + 2.5 / (depth + 1) as f32,if depth == 4 {
                     rng.gen_range(3.0, 5.0)
                 } else {
                     0.0
-                },
-            });
+                }));
 
             if depth < 4 {
                 let sub_branches = if depth == 0 { 3 } else { rng.gen_range(2, 4) };
@@ -236,11 +232,7 @@ impl ProceduralTree {
         let dy = rng.gen_range(-5, 5) as f32;
 
         // Generate the trunk
-        branches.push(Branch {
-            line: LineSegment3 { start: Vec3::zero(), end: Vec3::new(dx, dy, height)},
-            radius: 3.0,
-            health: 0.0,
-        });
+        branches.push(Branch::new(LineSegment3 { start: Vec3::zero(), end: Vec3::new(dx, dy, height)},3.0,0.0));
 
         // Generate branches
 
@@ -288,37 +280,53 @@ impl ProceduralTree {
     }
 
     pub fn is_branch_or_leaves_at(&self, pos: Vec3<f32>) -> (bool, bool) {
-        let mut is_branch = false;
-        let mut health = 0.0f32;
+        let mut is_leave = false;
         for branch in &self.branches {
             let p_d2 = branch.line.projected_point(pos).distance_squared(pos);
 
-            #[allow(unsafe_code)]
-            fn finvsqrt(x: f32) -> f32 {
-                // Magic number based on Chris Lomont work:
-                // const MAGIC_U32: u32 = 0x5f375a86;
-                // The Original Magic Number:
-                // const MAGIC_32: u32 = 0x5f3759df;
-                const THREEHALFS: f32 = 1.5f32;
-                let x2: f32 = x * 0.5f32;
-                let mut i: u32 = unsafe { std::mem::transmute(x) };// evil floating point bit level hacking
-                i = 0x5f375a86 - (i >> 1); // what the fuck?
-                let y: f32 = unsafe { std::mem::transmute(i) };
-                let y  = y * ( THREEHALFS - ( x2 * y * y ) ); // 1st iteration
-                // let y = y * (threehalfs - (x2 * y * y)); // 2nd iteration, this can be removed
-
-                y
+            if !is_leave {
+                #[allow(unsafe_code)]
+                fn finvsqrt(x: f32) -> f32 {
+                    // Magic number based on Chris Lomont work:
+                    // const MAGIC_U32: u32 = 0x5f375a86;
+                    // The Original Magic Number:
+                    // const MAGIC_32: u32 = 0x5f3759df;
+                    const THREEHALFS: f32 = 1.5f32;
+                    let x2: f32 = x * 0.5f32;
+                    let mut i: u32 = unsafe { std::mem::transmute(x) };// evil floating point bit level hacking
+                    i = 0x5f375a86 - (i >> 1); // what the fuck?
+                    let y: f32 = unsafe { std::mem::transmute(i) };
+                    let y  = y * ( THREEHALFS - ( x2 * y * y ) ); // 1st iteration
+                    // let y = y * (threehalfs - (x2 * y * y)); // 2nd iteration, this can be removed
+    
+                    y
+                }
+                if branch.health * finvsqrt(p_d2) > 1.0 {
+                    is_leave = true;
+                }
             }
-
-            is_branch |= p_d2 < branch.radius.powi(2);
-            health = health.max(branch.health * finvsqrt(p_d2));
+            if p_d2 < branch.squared_radius {
+                return (true,false);
+            }
         }
-        (is_branch, health > 1.0)
+        (false, is_leave)
     }
 }
 
 struct Branch {
     line: LineSegment3<f32>,
     radius: f32,
+    squared_radius: f32,
     health: f32,
+}
+
+impl Branch {
+    fn new(line: LineSegment3<f32>,radius: f32,health: f32) -> Self {
+        Self {
+            line,
+            squared_radius: radius.powi(2),
+            radius,
+            health,
+        }
+    }
 }
