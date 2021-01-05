@@ -1895,6 +1895,7 @@ impl Hud {
                 tooltip_manager,
                 i18n,
                 &player_stats,
+                self.pulse,
             )
             .set(self.ids.buttons, ui_widgets)
             {

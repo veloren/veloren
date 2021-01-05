@@ -6,7 +6,7 @@ use hashbrown::{HashMap, HashSet};
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use std::hash::Hash;
-use tracing::warn;
+use tracing::{trace, warn};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SkillTreeMap(HashMap<SkillGroupType, HashSet<Skill>>);
@@ -338,8 +338,8 @@ impl SkillSet {
             } else {
                 skill.get_max_level().map(|_| 1)
             };
-            let prerequisites_met = self.prerequisites_met(skill, next_level);
-            if !matches!(self.skills.get(&skill), Some(&None)) {
+            let prerequisites_met = self.prerequisites_met(skill);
+            if !matches!(self.skills.get(&skill), Some(level) if *level == skill.get_max_level()) {
                 if let Some(mut skill_group) = self
                     .skill_groups
                     .iter_mut()
@@ -359,16 +359,16 @@ impl SkillSet {
                             }
                             self.skills.insert(skill, next_level);
                         } else {
-                            warn!("Tried to unlock skill for skill group with insufficient SP");
+                            trace!("Tried to unlock skill for skill group with insufficient SP");
                         }
                     } else {
-                        warn!("Tried to unlock skill without meeting prerequisite skills");
+                        trace!("Tried to unlock skill without meeting prerequisite skills");
                     }
                 } else {
-                    warn!("Tried to unlock skill for a skill group that player does not have");
+                    trace!("Tried to unlock skill for a skill group that player does not have");
                 }
             } else {
-                warn!("Tried to unlock skill the player already has")
+                trace!("Tried to unlock skill the player already has")
             }
         } else {
             warn!(
@@ -488,8 +488,13 @@ impl SkillSet {
 
     /// Checks that the skill set contains all prerequisite skills for a
     /// particular skill
-    pub fn prerequisites_met(&self, skill: Skill, level: Level) -> bool {
-        skill.prerequisite_skills(level).iter().all(|(s, l)| {
+    pub fn prerequisites_met(&self, skill: Skill) -> bool {
+        let next_level = if self.skills.contains_key(&skill) {
+            self.skills.get(&skill).copied().flatten().map(|l| l + 1)
+        } else {
+            skill.get_max_level().map(|_| 1)
+        };
+        skill.prerequisite_skills(next_level).iter().all(|(s, l)| {
             self.skills.contains_key(s) && self.skills.get(s).map_or(false, |l_b| l_b >= l)
         })
     }
@@ -520,6 +525,37 @@ impl SkillSet {
             .filter(|s_g| s_g.skill_group_type == skill_group);
         skill_groups.next().map_or(0, |s_g| s_g.exp)
     }
+
+    /// Checks if player has sufficient skill points to purchase a skill
+    pub fn sufficient_skill_points(&self, skill: Skill) -> bool {
+        if let Some(skill_group_type) = SkillSet::get_skill_group_type_for_skill(&skill) {
+            if let Some(skill_group) = self
+                .skill_groups
+                .iter()
+                .find(|x| x.skill_group_type == skill_group_type)
+            {
+                let next_level = if self.skills.contains_key(&skill) {
+                    self.skills.get(&skill).copied().flatten().map(|l| l + 1)
+                } else {
+                    skill.get_max_level().map(|_| 1)
+                };
+                let needed_sp = skill.skill_cost(next_level);
+                skill_group.available_sp > needed_sp
+            } else {
+                false
+            }
+        } else {
+            false
+        }
+    }
+
+    /// Checks if the player has available SP to spend
+    pub fn has_available_sp(&self) -> bool {
+        self.skill_groups.iter().any(|sg| {
+            sg.available_sp > 0
+                && (sg.earned_sp - sg.available_sp) < sg.skill_group_type.get_max_skill_points()
+        })
+    }
 }
 
 impl Skill {
@@ -528,10 +564,7 @@ impl Skill {
     pub fn prerequisite_skills(self, level: Level) -> HashMap<Skill, Level> {
         let mut prerequisites = HashMap::new();
         if let Some(level) = level {
-            if level > self.get_max_level().unwrap_or(0) {
-                // Sets a prerequisite of itself for skills beyond the max level
-                prerequisites.insert(self, Some(level));
-            } else if level > 1 {
+            if level > 1 {
                 // For skills above level 1, sets prerequisite of skill of lower level
                 prerequisites.insert(self, Some(level - 1));
             }

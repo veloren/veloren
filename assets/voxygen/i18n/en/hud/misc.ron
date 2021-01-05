@@ -8,6 +8,7 @@
         "hud.quests": "Quests",
         "hud.you_died": "You Died",
         "hud.waypoint_saved": "Waypoint Saved",
+        "hud.sp_arrow_txt": "SP",
 
         "hud.press_key_to_show_keybindings_fmt": "[{key}] Keybindings",
         "hud.press_key_to_toggle_lantern_fmt": "[{key}] Lantern",
@@ -64,6 +65,8 @@ Maybe you can even obtain one of their
 magically infused items?"#,
 
         "hud.spell": "Spells",
+        // Diary
+        "hud.diary": "Diary",
 
         "hud.free_look_indicator": "Free look active. Press {key} to disable.",
         "hud.auto_walk_indicator": "Auto walk active",

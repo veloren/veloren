@@ -280,11 +280,7 @@ magically infused items?"#,
         "hud.bag.feet": "Feet",
         "hud.bag.mainhand": "Mainhand",
         "hud.bag.offhand": "Offhand",
-
-        // Diary
-        "hud.diary": "Diary",
-
-
+        
         // Map and Questlog
         "hud.map.map_title": "Map",
         "hud.map.qlog_title": "Quests",
@@ -397,7 +393,7 @@ magically infused items?"#,
         "hud.crafting.recipes": "Recipes",
         "hud.crafting.ingredients": "Ingredients:",
         "hud.crafting.craft": "Craft",
-        "hud.crafting.tool_cata": "Requires:",
+        "hud.crafting.tool_cata": "Requires:",        
 
         "hud.group": "Group",
         "hud.group.invite_to_join": "{name} invited you to their group!",

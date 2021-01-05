@@ -71,27 +71,47 @@ impl State {
         use specs::WorldExt;
         let inventories = client.state().ecs().read_storage::<Inventory>();
         let inventory = inventories.get(client.entity());
-        let should_be_present = if let Some(inventory) = inventory {
+        let stats = client.state().ecs().read_storage::<common::comp::Stats>();
+        let stat = stats.get(client.entity());
+        let should_be_present = if let (Some(inventory), Some(stat)) = (inventory, stat) {
             inventory
                 .equipped(EquipSlot::Mainhand)
                 .map(|i| i.kind())
                 .filter(|kind| {
-                    use common::comp::item::{
-                        tool::{ToolKind, UniqueKind},
-                        ItemKind,
+                    use common::comp::{
+                        item::{
+                            tool::{ToolKind, UniqueKind},
+                            ItemKind,
+                        },
+                        skills::{self, Skill},
                     };
-                    if let ItemKind::Tool(kind) = kind {
-                        matches!(
-                            &kind.kind,
-                            ToolKind::Staff
-                                | ToolKind::Debug
-                                | ToolKind::Sword
-                                | ToolKind::Hammer
-                                | ToolKind::Axe
-                                | ToolKind::Bow
-                                | ToolKind::Unique(UniqueKind::QuadMedQuick)
-                                | ToolKind::Unique(UniqueKind::QuadLowBreathe)
-                        )
+                    if let ItemKind::Tool(tool) = kind {
+                        match tool.kind {
+                            ToolKind::Sword => stat
+                                .skill_set
+                                .skills
+                                .contains_key(&Skill::Sword(skills::SwordSkill::SUnlockSpin)),
+                            ToolKind::Axe => stat
+                                .skill_set
+                                .skills
+                                .contains_key(&Skill::Axe(skills::AxeSkill::LUnlockLeap)),
+                            ToolKind::Hammer => stat
+                                .skill_set
+                                .skills
+                                .contains_key(&Skill::Hammer(skills::HammerSkill::LUnlockLeap)),
+                            ToolKind::Bow => stat
+                                .skill_set
+                                .skills
+                                .contains_key(&Skill::Bow(skills::BowSkill::UnlockRepeater)),
+                            ToolKind::Staff => stat
+                                .skill_set
+                                .skills
+                                .contains_key(&Skill::Staff(skills::StaffSkill::UnlockShockwave)),
+                            ToolKind::Debug
+                            | ToolKind::Unique(UniqueKind::QuadMedQuick)
+                            | ToolKind::Unique(UniqueKind::QuadLowBreathe) => true,
+                            _ => false,
+                        }
                     } else {
                         false
                     }
