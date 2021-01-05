@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Map indicators for group members
 - Hot-reloading for i18n, sounds, loot lotteries, and more
 - Initial support for alternate style keyboards
+- Flying birds travel the world
 
 ### Changed
 
