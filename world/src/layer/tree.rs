@@ -202,8 +202,13 @@ impl ProceduralTree {
     pub fn generate(rng: &mut impl Rng) -> Self {
         let mut branches = Vec::new();
 
-        fn add_branches(branches: &mut Vec<Branch>, rng: &mut impl Rng, start: Vec3<f32>, dir: Vec3<f32>, depth: usize) {
-            let branch_dir = (dir + Vec3::<f32>::new(rng.gen_range(-1.0, 1.0),rng.gen_range(-1.0, 1.0),rng.gen_range(-0.3, 1.0)).cross(dir).normalized() * 0.45 * (depth as f32 + 0.5)).normalized(); // I wish `vek` had a `Vec3::from_fn`
+        fn add_branches(branches: &mut Vec<Branch>, start: Vec3<f32>, dir: Vec3<f32>, depth: usize, rng: &mut impl Rng) {
+            let mut branch_dir = (dir + Vec3::<f32>::new(rng.gen_range(-1.0, 1.0),rng.gen_range(-1.0, 1.0),rng.gen_range(0.25, 1.0)).cross(dir).normalized() * 0.45 * (depth as f32 + 0.5)).normalized(); // I wish `vek` had a `Vec3::from_fn`
+            
+            if branch_dir.z < 0. {
+                branch_dir.z = (branch_dir.z) / 16.
+            }
+            
             let branch_len = 12.0 / (depth as f32 * 0.25 + 1.0); // Zipf, I guess
 
             let end = start + branch_dir * branch_len;
@@ -221,7 +226,7 @@ impl ProceduralTree {
             if depth < 4 {
                 let sub_branches = if depth == 0 { 3 } else { rng.gen_range(2, 4) };
                 for _ in 0..sub_branches {
-                    add_branches(branches, rng, end, branch_dir, depth + 1);
+                    add_branches(branches, end, branch_dir, depth + 1, rng);
                 }
             }
         }
@@ -238,44 +243,25 @@ impl ProceduralTree {
         });
 
         // Generate branches
-        let branches_count = rng.gen_range(7, 10);
 
-        let angle_division = 360.0 / branches_count as f32;
-        let angle_padding = rng.gen_range(0, 360) as f32;
+        const TEN_DEGREES: f32 = f32::consts::TAU / 36.;
 
-        for i in 0..branches_count {
-            for _ in 0..2 {
-                let branch_size = height;
-
-                let subdivision = rng.gen_range(1, 2);
-
-                let branch_size = (0..subdivision).fold(branch_size, |x, _| x / 3.0 * 2.0);
-
-                let radians = ((angle_padding
-                    + angle_division * i as f32
-                    + rng.gen_range(15.0, angle_division - 15.0))
-                    % 360.0)
-                    .to_radians();
-
-                let branchendx = dx + branch_size * radians.cos();
-                let branchendy = dy + branch_size * radians.sin();
-
-                let height_dif = rng.gen_range(0.0, branch_size * 2.0);
-
-                let trunk_margin = rng.gen_range(0.0, height / 3.0);
-
+        let mut current_angle = 0.;
+        while current_angle < f32::consts::TAU {
+            for i in 1..3 {
+                let current_angle = current_angle + rng.gen_range(-TEN_DEGREES / 2., TEN_DEGREES / 2.);
                 add_branches(
                     &mut branches,
-                    rng,
-                    Vec3::new(dx,  dy, height - trunk_margin),
-                    Vec3::new(branchendx,  branchendy, branch_size + height_dif).normalized(),
-                    1
+                    Vec3::new(dx,  dy, height - rng.gen_range(0.0, height / 3.0)),
+                    Vec3::new(current_angle.cos(),  current_angle.sin(), rng.gen_range(0.2 * i as f32, 0.7 * i as f32)).normalized(),
+                    1,
+                    rng
                 );
-
                 if rng.gen_range(0, 4) != 2 {
                     break;
                 }
             }
+            current_angle += rng.gen_range(TEN_DEGREES, TEN_DEGREES * 5.);
         }
 
         Self {
@@ -313,12 +299,12 @@ impl ProceduralTree {
                 // const MAGIC_U32: u32 = 0x5f375a86;
                 // The Original Magic Number:
                 // const MAGIC_32: u32 = 0x5f3759df;
-                const threehalfs: f32 = 1.5f32;
+                const THREEHALFS: f32 = 1.5f32;
                 let x2: f32 = x * 0.5f32;
                 let mut i: u32 = unsafe { std::mem::transmute(x) };// evil floating point bit level hacking
                 i = 0x5f375a86 - (i >> 1); // what the fuck?
                 let y: f32 = unsafe { std::mem::transmute(i) };
-                let y  = y * ( threehalfs - ( x2 * y * y ) ); // 1st iteration
+                let y  = y * ( THREEHALFS - ( x2 * y * y ) ); // 1st iteration
                 // let y = y * (threehalfs - (x2 * y * y)); // 2nd iteration, this can be removed
 
                 y
