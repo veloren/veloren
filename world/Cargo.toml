@@ -37,3 +37,7 @@ criterion = "0.3"
 tracing-subscriber = { version = "0.2.3", default-features = false, features = ["fmt", "chrono", "ansi", "smallvec"] }
 minifb = "0.19.1"
 simple = "0.3"
+
+[[bench]]
+harness = false
+name = "tree"

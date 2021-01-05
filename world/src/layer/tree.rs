@@ -100,8 +100,7 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
                                 ForestKind::Baobab => *BAOBABS,
                                 // ForestKind::Oak => *OAKS,
                                 ForestKind::Oak => {
-                                    let mut rng = RandomPerm::new(seed);
-                                    break 'model TreeModel::Procedural(ProceduralTree::generate(&mut rng));
+                                    break 'model TreeModel::Procedural(ProceduralTree::generate(seed));
                                 },
                                 ForestKind::Pine => *PINES,
                                 ForestKind::Birch => *BIRCHES,
@@ -194,23 +193,24 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
 }
 
 // TODO: Rename this to `Tree` when the name conflict is gone
-struct ProceduralTree {
+pub struct ProceduralTree {
     branches: Vec<Branch>,
 }
 
 impl ProceduralTree {
-    pub fn generate(rng: &mut impl Rng) -> Self {
+    pub fn generate(seed: u32) -> Self {
+        let mut rng = RandomPerm::new(seed);
         let mut branches = Vec::new();
 
         const ITERATIONS: usize = 4;
 
         fn add_branches(branches: &mut Vec<Branch>, start: Vec3<f32>, dir: Vec3<f32>, depth: usize, rng: &mut impl Rng) {
             let mut branch_dir = (dir + Vec3::<f32>::new(rng.gen_range(-1.0, 1.0),rng.gen_range(-1.0, 1.0),rng.gen_range(0.25, 1.0)).cross(dir).normalized() * 0.45 * (depth as f32 + 0.5)).normalized(); // I wish `vek` had a `Vec3::from_fn`
-            
+
             if branch_dir.z < 0. {
                 branch_dir.z = (branch_dir.z) / 16.  + 0.2
             }
-            
+
             let branch_len = 12.0 / (depth as f32 * 0.25 + 1.0); // Zipf, I guess
 
             let end = start + branch_dir * branch_len;
@@ -249,7 +249,7 @@ impl ProceduralTree {
                     Vec3::new(dx,  dy, height - rng.gen_range(0.0, height / 3.0)),
                     Vec3::new(current_angle.cos(),  current_angle.sin(), rng.gen_range(0.2 * i as f32, 0.7 * i as f32)).normalized(),
                     1,
-                    rng
+                    &mut rng,
                 );
                 if rng.gen_range(0, 4) != 2 {
                     break;
