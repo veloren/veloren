@@ -287,19 +287,8 @@ impl ProceduralTree {
             if !is_leave {
                 #[allow(unsafe_code)]
                 fn finvsqrt(x: f32) -> f32 {
-                    // Magic number based on Chris Lomont work:
-                    // const MAGIC_U32: u32 = 0x5f375a86;
-                    // The Original Magic Number:
-                    // const MAGIC_32: u32 = 0x5f3759df;
-                    const THREEHALFS: f32 = 1.5f32;
-                    let x2: f32 = x * 0.5f32;
-                    let mut i: u32 = unsafe { std::mem::transmute(x) };// evil floating point bit level hacking
-                    i = 0x5f375a86 - (i >> 1); // what the fuck?
-                    let y: f32 = unsafe { std::mem::transmute(i) };
-                    let y  = y * ( THREEHALFS - ( x2 * y * y ) ); // 1st iteration
-                    // let y = y * (threehalfs - (x2 * y * y)); // 2nd iteration, this can be removed
-    
-                    y
+                    let y = f32::from_bits(0x5f375a86 - (x.to_bits() >> 1));
+                    y * (1.5 - ( x * 0.5 * y * y ))
                 }
                 if branch.health * finvsqrt(p_d2) > 1.0 {
                     is_leave = true;
