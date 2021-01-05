@@ -202,6 +202,8 @@ impl ProceduralTree {
     pub fn generate(rng: &mut impl Rng) -> Self {
         let mut branches = Vec::new();
 
+        const ITERATIONS: usize = 4;
+
         fn add_branches(branches: &mut Vec<Branch>, start: Vec3<f32>, dir: Vec3<f32>, depth: usize, rng: &mut impl Rng) {
             let mut branch_dir = (dir + Vec3::<f32>::new(rng.gen_range(-1.0, 1.0),rng.gen_range(-1.0, 1.0),rng.gen_range(0.25, 1.0)).cross(dir).normalized() * 0.45 * (depth as f32 + 0.5)).normalized(); // I wish `vek` had a `Vec3::from_fn`
             
@@ -213,13 +215,13 @@ impl ProceduralTree {
 
             let end = start + branch_dir * branch_len;
 
-            branches.push(Branch::new(LineSegment3 { start, end },0.3 + 2.5 / (depth + 1) as f32,if depth == 4 {
+            branches.push(Branch::new(LineSegment3 { start, end },0.3 + 2.5 / (depth + 1) as f32,if depth == ITERATIONS {
                     rng.gen_range(3.0, 5.0)
                 } else {
                     0.0
                 }));
 
-            if depth < 4 {
+            if depth < ITERATIONS {
                 let sub_branches = if depth == 0 { 3 } else { rng.gen_range(2, 4) };
                 for _ in 0..sub_branches {
                     add_branches(branches, end, branch_dir, depth + 1, rng);
@@ -256,6 +258,14 @@ impl ProceduralTree {
             current_angle += rng.gen_range(TEN_DEGREES, TEN_DEGREES * 5.);
         }
 
+        add_branches(
+            &mut branches,
+            Vec3::new(dx,  dy, height - rng.gen_range(0.0, height / 3.0)),
+            Vec3::new(rng.gen_range(-0.2, 0.2),  rng.gen_range(-0.2, 0.2), 1.).normalized(),
+            2,
+            rng
+        );
+
         Self {
             branches,
         }
@@ -285,7 +295,6 @@ impl ProceduralTree {
             let p_d2 = branch.line.projected_point(pos).distance_squared(pos);
 
             if !is_leave {
-                #[allow(unsafe_code)]
                 fn finvsqrt(x: f32) -> f32 {
                     let y = f32::from_bits(0x5f375a86 - (x.to_bits() >> 1));
                     y * (1.5 - ( x * 0.5 * y * y ))
