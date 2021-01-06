@@ -194,6 +194,16 @@ impl Block {
     }
 
     #[inline]
+    pub fn get_max_sunlight(&self) -> Option<u8> {
+        match self.kind() {
+            BlockKind::Water => Some(2),
+            BlockKind::Leaves => Some(4),
+            _ if self.is_opaque() => Some(0),
+            _ => None,
+        }
+    }
+
+    #[inline]
     pub fn is_solid(&self) -> bool {
         self.get_sprite()
             .map(|s| s.solid_height().is_some())

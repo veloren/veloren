@@ -9,7 +9,7 @@ pub mod unit_chooser;
 
 // Reexports
 pub use self::{
-    fast_noise::FastNoise,
+    fast_noise::{FastNoise, FastNoise2d},
     map_vec::MapVec,
     random::{RandomField, RandomPerm},
     sampler::{Sampler, SamplerMut},
