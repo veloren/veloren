@@ -54,7 +54,6 @@
     Staff(FDamage): Some(3),
     Staff(FDrain): Some(2),
     Staff(FVelocity): Some(2),
-    Staff(UnlockShockwave): Some(2),
     Staff(SDamage): Some(2),
     Staff(SKnockback): Some(2),
     Staff(SRange): Some(2),

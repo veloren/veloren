@@ -584,7 +584,7 @@ impl CharacterAbility {
                                 (*scaled_damage as f32 * 1.2_f32.powi(level.into())) as u32;
                         }
                         if skills.contains_key(&Sword(DSpeed)) {
-                            *forward_speed *= 1.5;
+                            *forward_speed *= 1.3;
                         }
                         *infinite_charge = skills.contains_key(&Sword(DInfinite));
                     },
@@ -669,7 +669,7 @@ impl CharacterAbility {
                         *is_helicopter = skills.contains_key(&Axe(SHelicopter));
                         if let Some(level) = skills.get(&Axe(SDamage)).copied().flatten() {
                             *base_damage =
-                                (*base_damage as f32 * 1.4_f32.powi(level.into())) as u32;
+                                (*base_damage as f32 * 1.3_f32.powi(level.into())) as u32;
                         }
                         if let Some(level) = skills.get(&Axe(SSpeed)).copied().flatten() {
                             *swing_duration =
@@ -690,7 +690,7 @@ impl CharacterAbility {
                     } => {
                         if let Some(level) = skills.get(&Axe(LDamage)).copied().flatten() {
                             *base_damage =
-                                (*base_damage as f32 * 1.4_f32.powi(level.into())) as u32;
+                                (*base_damage as f32 * 1.35_f32.powi(level.into())) as u32;
                         }
                         if let Some(level) = skills.get(&Axe(LKnockback)).copied().flatten() {
                             *knockback *= 1.4_f32.powi(level.into());
@@ -700,8 +700,8 @@ impl CharacterAbility {
                                 (*energy_cost as f32 * 0.75_f32.powi(level.into())) as u32;
                         }
                         if let Some(level) = skills.get(&Axe(LDistance)).copied().flatten() {
-                            *forward_leap_strength *= 1.4_f32.powi(level.into());
-                            *vertical_leap_strength *= 1.4_f32.powi(level.into());
+                            *forward_leap_strength *= 1.2_f32.powi(level.into());
+                            *vertical_leap_strength *= 1.2_f32.powi(level.into());
                         }
                     },
                     _ => {},
@@ -770,7 +770,7 @@ impl CharacterAbility {
                                 (*energy_drain as f32 * 0.75_f32.powi(level.into())) as u32;
                         }
                         if let Some(level) = skills.get(&Hammer(CSpeed)).copied().flatten() {
-                            *speed *= 1.23_f32.powi(level.into());
+                            *speed *= 1.25_f32.powi(level.into());
                         }
                     },
                     LeapMelee {
@@ -787,15 +787,15 @@ impl CharacterAbility {
                                 (*base_damage as f32 * 1.4_f32.powi(level.into())) as u32;
                         }
                         if let Some(level) = skills.get(&Hammer(LKnockback)).copied().flatten() {
-                            *knockback *= 1.4_f32.powi(level.into());
+                            *knockback *= 1.5_f32.powi(level.into());
                         }
                         if let Some(level) = skills.get(&Hammer(LCost)).copied().flatten() {
                             *energy_cost =
                                 (*energy_cost as f32 * 0.75_f32.powi(level.into())) as u32;
                         }
                         if let Some(level) = skills.get(&Hammer(LDistance)).copied().flatten() {
-                            *forward_leap_strength *= 1.4_f32.powi(level.into());
-                            *vertical_leap_strength *= 1.4_f32.powi(level.into());
+                            *forward_leap_strength *= 1.25_f32.powi(level.into());
+                            *vertical_leap_strength *= 1.25_f32.powi(level.into());
                         }
                         if let Some(level) = skills.get(&Hammer(LRange)).copied().flatten() {
                             *range += 1.0 * level as f32;
@@ -978,7 +978,7 @@ impl CharacterAbility {
                         ..
                     } => {
                         if let Some(level) = skills.get(&Sceptre(BHeal)).copied().flatten() {
-                            *base_hps = (*base_hps as f32 * 1.3_f32.powi(level.into())) as u32;
+                            *base_hps = (*base_hps as f32 * 1.2_f32.powi(level.into())) as u32;
                         }
                         if let Some(level) = skills.get(&Sceptre(BDamage)).copied().flatten() {
                             *base_dps = (*base_dps as f32 * 1.3_f32.powi(level.into())) as u32;
@@ -994,11 +994,11 @@ impl CharacterAbility {
                         }
                         if let Some(level) = skills.get(&Sceptre(BRegen)).copied().flatten() {
                             *energy_regen =
-                                (*energy_regen as f32 * 1.25_f32.powi(level.into())) as u32;
+                                (*energy_regen as f32 * 1.1_f32.powi(level.into())) as u32;
                         }
                         if let Some(level) = skills.get(&Sceptre(BCost)).copied().flatten() {
                             *energy_cost =
-                                (*energy_cost as f32 * 0.75_f32.powi(level.into())) as u32;
+                                (*energy_cost as f32 * 0.9_f32.powi(level.into())) as u32;
                         }
                     },
                     BasicRanged {
@@ -1055,7 +1055,7 @@ impl CharacterAbility {
                     }
                     if let Some(level) = skills.get(&Skill::Roll(Duration)).copied().flatten() {
                         *movement_duration =
-                            (*movement_duration as f32 * 2_f32.powi(level.into())) as u64;
+                            (*movement_duration as f32 * 1.2_f32.powi(level.into())) as u64;
                     }
                 }
             },
