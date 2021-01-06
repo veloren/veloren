@@ -41,7 +41,7 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
     // TODO: Get rid of this
     enum TreeModel {
         Structure(Structure),
-        Procedural(ProceduralTree),
+        Procedural(ProceduralTree, StructureBlock),
     }
 
     struct Tree {
@@ -99,10 +99,15 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
                                 ForestKind::Acacia => *ACACIAS,
                                 ForestKind::Baobab => *BAOBABS,
                                 // ForestKind::Oak => *OAKS,
-                                ForestKind::Oak => {
-                                    break 'model TreeModel::Procedural(ProceduralTree::generate(TreeConfig::OAK, seed));
-                                },
-                                ForestKind::Pine => *PINES,
+                                ForestKind::Oak => break 'model TreeModel::Procedural(
+                                    ProceduralTree::generate(TreeConfig::OAK, seed),
+                                    StructureBlock::TemperateLeaves,
+                                ),
+                                //ForestKind::Pine => *PINES,
+                                ForestKind::Pine => break 'model TreeModel::Procedural(
+                                    ProceduralTree::generate(TreeConfig::PINE, seed),
+                                    StructureBlock::PineLeaves,
+                                ),
                                 ForestKind::Birch => *BIRCHES,
                                 ForestKind::Mangrove => *MANGROVE_TREES,
                                 ForestKind::Swamp => *SWAMP_TREES,
@@ -124,7 +129,7 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
 
             let bounds = match &tree.model {
                 TreeModel::Structure(s) => s.get_bounds(),
-                TreeModel::Procedural(t) => t.get_bounds().map(|e| e as i32),
+                TreeModel::Procedural(t, _) => t.get_bounds().map(|e| e as i32),
             };
 
             let rpos2d = (wpos2d - tree.pos.xy())
@@ -153,9 +158,9 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
                     info.index(),
                     if let Some(block) = match &tree.model {
                         TreeModel::Structure(s) => s.get(model_pos).ok().copied(),
-                        TreeModel::Procedural(t) => Some(match t.is_branch_or_leaves_at(model_pos.map(|e| e as f32 + 0.5)) {
+                        TreeModel::Procedural(t, leaf_block) => Some(match t.is_branch_or_leaves_at(model_pos.map(|e| e as f32 + 0.5)) {
                             (true, _) => StructureBlock::Normal(Rgb::new(60, 30, 0)),
-                            (_, true) => StructureBlock::TemperateLeaves,
+                            (_, true) => *leaf_block,
                             (_, _) => StructureBlock::None,
                         }),
                     } {
@@ -198,10 +203,12 @@ pub struct TreeConfig {
     pub trunk_len: f32,
     /// Radius of trunk, also scales other branches.
     pub trunk_radius: f32,
-    // The scale that child branch lengths should be compared to their parents
+    // The scale that child branch lengths should be compared to their parents.
     pub branch_child_len: f32,
-    // The scale that child branch radii should be compared to their parents
+    // The scale that child branch radii should be compared to their parents.
     pub branch_child_radius: f32,
+    /// The range of radii that leaf-emitting branches might have.
+    pub leaf_radius: Range<f32>,
     /// 0 - 1 (0 = chaotic, 1 = straight).
     pub straightness: f32,
     /// Maximum number of branch layers (not including trunk).
@@ -211,6 +218,11 @@ pub struct TreeConfig {
     /// The range of proportions along a branch at which a split into another branch might occur.
     /// This value is clamped between 0 and 1, but a wider range may bias the results towards branch ends.
     pub split_range: Range<f32>,
+    /// The bias applied to the length of branches based on the proportion along their parent that they eminate from.
+    /// -1.0 = negative bias (branches at ends are longer, branches at the start are shorter)
+    /// 0.0 = no bias (branches do not change their length with regard to parent branch proportion)
+    /// 1.0 = positive bias (branches at ends are shorter, branches at the start are longer)
+    pub branch_len_bias: f32,
 }
 
 impl TreeConfig {
@@ -219,10 +231,25 @@ impl TreeConfig {
         trunk_radius: 3.0,
         branch_child_len: 0.8,
         branch_child_radius: 0.6,
+        leaf_radius: 3.0..5.0,
         straightness: 0.5,
         max_depth: 4,
         splits: 3,
         split_range: 0.5..1.5,
+        branch_len_bias: 0.0,
+    };
+
+    pub const PINE: Self = Self {
+        trunk_len: 32.0,
+        trunk_radius: 1.5,
+        branch_child_len: 0.3,
+        branch_child_radius: 0.0,
+        leaf_radius: 1.0..1.25,
+        straightness: 0.0,
+        max_depth: 1,
+        splits: 128,
+        split_range: 0.2..1.1,
+        branch_len_bias: 0.8,
     };
 }
 
@@ -277,7 +304,11 @@ impl ProceduralTree {
         let end = start + dir * branch_len;
         let line = LineSegment3 { start, end };
         let wood_radius = branch_radius;
-        let leaf_radius = if depth == config.max_depth { rng.gen_range(3.0, 5.0) } else { 0.0 };
+        let leaf_radius = if depth == config.max_depth {
+            rng.gen_range(config.leaf_radius.start, config.leaf_radius.end)
+        } else {
+            0.0
+        };
 
         // The AABB that covers this branch, along with wood and leaves that eminate from it
         let mut aabb = Aabb {
@@ -290,10 +321,11 @@ impl ProceduralTree {
         if depth < config.max_depth {
             for _ in 0..config.splits {
                 // Choose a point close to the branch to act as the target direction for the branch to grow in
+                let split_factor = rng.gen_range(config.split_range.start, config.split_range.end).clamped(0.0, 1.0);
                 let tgt = Lerp::lerp(
                     start,
                     end,
-                    rng.gen_range(config.split_range.start, config.split_range.end).clamped(0.0, 1.0),
+                    split_factor,
                 ) + Vec3::<f32>::zero().map(|_| rng.gen_range(-1.0, 1.0));
                 // Start the branch at the closest point to the target
                 let branch_start = line.projected_point(tgt);
@@ -304,7 +336,9 @@ impl ProceduralTree {
                     config,
                     branch_start,
                     branch_dir,
-                    branch_len * config.branch_child_len,
+                    branch_len
+                        * config.branch_child_len
+                        * (1.0 - (split_factor - 0.5) * 2.0 * config.branch_len_bias.clamped(-1.0, 1.0)),
                     branch_radius * config.branch_child_radius,
                     depth + 1,
                     child_idx,
