@@ -112,6 +112,7 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::RemoveLights => handle_remove_lights,
         ChatCommand::Say => handle_say,
         ChatCommand::SetMotd => handle_set_motd,
+        ChatCommand::SkillPoint => handle_skill_point,
         ChatCommand::Spawn => handle_spawn,
         ChatCommand::Sudo => handle_sudo,
         ChatCommand::Tell => handle_tell,
@@ -1984,6 +1985,85 @@ spawn_rate {:?} "#,
             client,
             ServerGeneral::server_msg(ChatType::CommandError, "Not a pregenerated chunk."),
         );
+    }
+}
+
+fn find_target(
+    ecs: &specs::World,
+    opt_alias: Option<String>,
+    fallback: EcsEntity,
+) -> Result<EcsEntity, ServerGeneral> {
+    if let Some(alias) = opt_alias {
+        (&ecs.entities(), &ecs.read_storage::<comp::Player>())
+            .join()
+            .find(|(_, player)| player.alias == alias)
+            .map(|(entity, _)| entity)
+            .ok_or_else(|| {
+                ServerGeneral::server_msg(
+                    ChatType::CommandError,
+                    format!("Player '{}' not found!", alias),
+                )
+            })
+    } else {
+        Ok(fallback)
+    }
+}
+
+fn handle_skill_point(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    args: String,
+    action: &ChatCommand,
+) {
+    let (a_skill_tree, a_sp, a_alias) =
+        scan_fmt_some!(&args, &action.arg_fmt(), String, u16, String);
+
+    if let (Some(skill_tree), Some(sp)) = (a_skill_tree, a_sp) {
+        let target = find_target(&server.state.ecs(), a_alias, target);
+
+        let mut error_msg = None;
+
+        match target {
+            Ok(player) => {
+                if let Some(skill_tree) = parse_skill_tree(&skill_tree) {
+                    if let Some(mut stats) = server
+                        .state
+                        .ecs_mut()
+                        .write_storage::<comp::Stats>()
+                        .get_mut(player)
+                    {
+                        stats.skill_set.add_skill_points(skill_tree, sp);
+                    } else {
+                        error_msg = Some(ServerGeneral::server_msg(
+                            ChatType::CommandError,
+                            "Player has no stats!",
+                        ));
+                    }
+                }
+            },
+            Err(e) => {
+                error_msg = Some(e);
+            },
+        }
+
+        if let Some(msg) = error_msg {
+            server.notify_client(client, msg);
+        }
+    }
+}
+
+fn parse_skill_tree(skill_tree: &str) -> Option<comp::skills::SkillGroupType> {
+    use comp::{item::tool::ToolKind, skills::SkillGroupType};
+    match skill_tree {
+        "general" => Some(SkillGroupType::General),
+        "sword" => Some(SkillGroupType::Weapon(ToolKind::Sword)),
+        "axe" => Some(SkillGroupType::Weapon(ToolKind::Axe)),
+        "hammer" => Some(SkillGroupType::Weapon(ToolKind::Hammer)),
+        "bow" => Some(SkillGroupType::Weapon(ToolKind::Bow)),
+        "staff" => Some(SkillGroupType::Weapon(ToolKind::Staff)),
+        "sceptre" => Some(SkillGroupType::Weapon(ToolKind::Sceptre)),
+        _ => None,
     }
 }
 
