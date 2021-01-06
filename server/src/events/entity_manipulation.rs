@@ -161,6 +161,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
     // Give EXP to the killer if entity had stats
     (|| {
         let mut stats = state.ecs().write_storage::<Stats>();
+        let healths = state.ecs().read_storage::<Health>();
         let by = if let HealthSource::Damage { by: Some(by), .. } = cause {
             by
         } else {
@@ -171,8 +172,8 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         } else {
             return;
         };
-        let entity_stats = if let Some(entity_stats) = stats.get(entity) {
-            entity_stats
+        let (entity_stats, entity_health) = if let (Some(entity_stats), Some(entity_health)) = (stats.get(entity), healths.get(entity)) {
+            (entity_stats, entity_health)
         } else {
             return;
         };
@@ -189,7 +190,8 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         const MAX_EXP_DIST: f32 = 150.0;
         // Attacker gets same as exp of everyone else
         const ATTACKER_EXP_WEIGHT: f32 = 1.0;
-        let mut exp_reward = entity_stats.body_type.base_exp() as f32;
+        // TODO: Scale xp from skillset rather than health, when NPCs have their own skillsets
+        let mut exp_reward = entity_stats.body_type.base_exp() as f32 * (entity_health.maximum() as f32 / entity_stats.body_type.base_health() as f32);
 
         // Distribute EXP to group
         let positions = state.ecs().read_storage::<Pos>();
@@ -231,7 +233,6 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                         (None, None)
                     };
                 if let Some(mut stats) = stats.get_mut(e) {
-                    // stats.exp.change_by(exp.ceil() as i64);
                     let mut xp_pools = HashSet::<SkillGroupType>::new();
                     xp_pools.insert(SkillGroupType::General);
                     if let Some(w) = main_tool_kind {
