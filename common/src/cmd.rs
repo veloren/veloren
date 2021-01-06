@@ -72,6 +72,7 @@ pub enum ChatCommand {
     RemoveLights,
     Say,
     SetMotd,
+    SkillPoint,
     Spawn,
     Sudo,
     Tell,
@@ -123,6 +124,7 @@ pub static CHAT_COMMANDS: &[ChatCommand] = &[
     ChatCommand::RemoveLights,
     ChatCommand::Say,
     ChatCommand::SetMotd,
+    ChatCommand::SkillPoint,
     ChatCommand::Spawn,
     ChatCommand::Sudo,
     ChatCommand::Tell,
@@ -146,6 +148,10 @@ lazy_static! {
     ].iter().cloned().collect();
 
     static ref ALIGNMENTS: Vec<String> = vec!["wild", "enemy", "npc", "pet"]
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
+    static ref SKILL_TREES: Vec<String> = vec!["general", "sword", "axe", "hammer", "bow", "staff", "sceptre"]
         .iter()
         .map(|s| s.to_string())
         .collect();
@@ -372,6 +378,14 @@ impl ChatCommand {
             ChatCommand::SetMotd => {
                 cmd(vec![Message(Optional)], "Set the server description", Admin)
             },
+            ChatCommand::SkillPoint => cmd(
+                vec![
+                    Enum("skill tree", SKILL_TREES.clone(), Required),
+                    Integer("amount", 1, Optional),
+                ],
+                "Give yourself skill points for a particular skill tree",
+                Admin,
+            ),
             ChatCommand::Spawn => cmd(
                 vec![
                     Enum("alignment", ALIGNMENTS.clone(), Required),
@@ -464,6 +478,7 @@ impl ChatCommand {
             ChatCommand::RemoveLights => "remove_lights",
             ChatCommand::Say => "say",
             ChatCommand::SetMotd => "set_motd",
+            ChatCommand::SkillPoint => "skill_point",
             ChatCommand::Spawn => "spawn",
             ChatCommand::Sudo => "sudo",
             ChatCommand::Tell => "tell",

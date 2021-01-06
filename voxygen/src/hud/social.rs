@@ -303,7 +303,7 @@ impl<'a> Widget for Social<'a> {
             //
             if Button::image(self.imgs.nothing)
                 .w_h(133.0, 18.0)
-                .top_left_with_margins_on(state.ids.frame, 52.0, 7.0)
+                .mid_top_with_margin_on(state.ids.frame, 52.0)
                 .label(&self.localized_strings.get("hud.social.name"))
                 .label_font_size(self.fonts.cyri.scale(14))
                 .label_y(conrod_core::position::Relative::Scalar(0.0))
@@ -317,7 +317,7 @@ impl<'a> Widget for Social<'a> {
             if Button::image(self.imgs.nothing)
                 .w_h(39.0, 18.0)
                 .right_from(state.ids.name_txt, 2.0)
-                .label(&self.localized_strings.get("hud.social.level"))
+                .label("")
                 .label_font_size(self.fonts.cyri.scale(14))
                 .label_y(conrod_core::position::Relative::Scalar(0.0))
                 .label_font_id(self.fonts.cyri.conrod_id)
@@ -330,7 +330,7 @@ impl<'a> Widget for Social<'a> {
             if Button::image(self.imgs.nothing)
                 .w_h(93.0, 18.0)
                 .right_from(state.ids.level_txt, 2.0)
-                .label(&self.localized_strings.get("hud.social.zone"))
+                .label("") // TODO: Enable zone here later
                 .label_font_size(self.fonts.cyri.scale(14))
                 .label_y(conrod_core::position::Relative::Scalar(0.0))
                 .label_font_id(self.fonts.cyri.conrod_id)
@@ -412,7 +412,7 @@ impl<'a> Widget for Social<'a> {
                     self.imgs.selection
                 });
                 let button = if i == 0 {
-                    button.mid_top_with_margin_on(state.ids.names_align, 1.0)
+                    button.mid_top_with_margin_on(state.ids.online_align, 1.0)
                 } else {
                     button.down_from(state.ids.player_names[i - 1], 1.0)
                 };
@@ -422,7 +422,7 @@ impl<'a> Widget for Social<'a> {
                     alias
                 );
                 button
-                    .w_h(133.0, 20.0)
+                    .w_h(260.0, 20.0)
                     .hover_image(if selected {
                         self.imgs.selection
                     } else {

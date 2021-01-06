@@ -969,7 +969,7 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Triple Strike Damage",
-                    "Increases damage scaling on triple strike",
+                    "Increases the damage each successive strike does",
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -990,7 +990,7 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Triple Strike Speed",
-                    "Increases attack speed scaling on triple strike",
+                    "Increases attack speed gained by each successive strike",
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1011,7 +1011,7 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Triple Strike Regen",
-                    "Increases enery regen scaling on triple strike",
+                    "Increases stamina gain on each successive strike",
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1324,7 +1324,7 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Double Strike Damage",
-                    "Increases damage scaling in combo",
+                    "Increases the damage dealt in each successive strike",
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1345,7 +1345,7 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Double Strike Speed",
-                    "Increases speed scaling in combo",
+                    "Increases the attack speed with each successive strike",
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1366,7 +1366,7 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Double Strike Regen",
-                    "Increases energy regen scaling in combo",
+                    "Increases stamina gain with each successive strike",
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1636,7 +1636,7 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Single Strike Damage",
-                    "Increases damage scaling in combo",
+                    "Increases the damage with each successive strike",
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1657,7 +1657,7 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Single Strike Speed",
-                    "Increases speed scaling in combo",
+                    "Increases the attack speed with each successive strike",
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1678,7 +1678,7 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Single Strike Regen",
-                    "Increases energy regen scaling in combo",
+                    "Increases stamina gain with each successive strike",
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
