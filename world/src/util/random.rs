@@ -64,9 +64,7 @@ impl Sampler<'static> for RandomPerm {
 // `RandomPerm` is not high-quality but it is at least fast and deterministic.
 impl RngCore for RandomPerm {
     fn next_u32(&mut self) -> u32 {
-        self.seed = self.get(self.seed) ^ 0xA7537839;
-        self.seed = self.get(self.seed) ^ 0x12314112;
-        self.seed = self.get(self.seed) ^ 0x78892832;
+        self.seed = self.get(self.seed) ^ 0xA7535839;
         self.seed
     }
 

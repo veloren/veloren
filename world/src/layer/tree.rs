@@ -195,7 +195,13 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
 /// A type that specifies the generation properties of a tree.
 pub struct TreeConfig {
     /// Length of trunk, also scales other branches.
-    pub branch_scale: f32,
+    pub trunk_len: f32,
+    /// Radius of trunk, also scales other branches.
+    pub trunk_radius: f32,
+    // The scale that child branch lengths should be compared to their parents
+    pub branch_child_len: f32,
+    // The scale that child branch radii should be compared to their parents
+    pub branch_child_radius: f32,
     /// 0 - 1 (0 = chaotic, 1 = straight).
     pub straightness: f32,
     /// Maximum number of branch layers (not including trunk).
@@ -209,7 +215,10 @@ pub struct TreeConfig {
 
 impl TreeConfig {
     pub const OAK: Self = Self {
-        branch_scale: 12.0,
+        trunk_len: 12.0,
+        trunk_radius: 3.0,
+        branch_child_len: 0.8,
+        branch_child_radius: 0.6,
         straightness: 0.5,
         max_depth: 4,
         splits: 3,
@@ -240,6 +249,8 @@ impl ProceduralTree {
             Vec3::zero(),
             // ...and has a roughly upward direction
             Vec3::new(rng.gen_range(-1.0, 1.0), rng.gen_range(-1.0, 1.0), 5.0).normalized(),
+            config.trunk_len,
+            config.trunk_radius,
             0,
             None,
             &mut rng,
@@ -257,14 +268,15 @@ impl ProceduralTree {
         config: &TreeConfig,
         start: Vec3<f32>,
         dir: Vec3<f32>,
+        branch_len: f32,
+        branch_radius: f32,
         depth: usize,
         sibling_idx: Option<usize>,
         rng: &mut impl Rng,
     ) -> (usize, Aabb<f32>) {
-        let len = config.branch_scale / (depth as f32 * 0.25 + 1.0); // Zipf, I guess
-        let end = start + dir * len;
+        let end = start + dir * branch_len;
         let line = LineSegment3 { start, end };
-        let wood_radius = 0.3 + 2.5 / (depth + 1) as f32;
+        let wood_radius = branch_radius;
         let leaf_radius = if depth == config.max_depth { rng.gen_range(3.0, 5.0) } else { 0.0 };
 
         // The AABB that covers this branch, along with wood and leaves that eminate from it
@@ -288,7 +300,16 @@ impl ProceduralTree {
                 // Now, interpolate between the target direction and the parent branch's direction to find a direction
                 let branch_dir = Lerp::lerp(tgt - branch_start, dir, config.straightness).normalized();
 
-                let (branch_idx, branch_aabb) = self.add_branch(config, branch_start, branch_dir, depth + 1, child_idx, rng);
+                let (branch_idx, branch_aabb) = self.add_branch(
+                    config,
+                    branch_start,
+                    branch_dir,
+                    branch_len * config.branch_child_len,
+                    branch_radius * config.branch_child_radius,
+                    depth + 1,
+                    child_idx,
+                    rng,
+                );
                 child_idx = Some(branch_idx);
                 // Parent branches AABBs include the AABBs of child branches to allow for culling during sampling
                 aabb.expand_to_contain(branch_aabb);
