@@ -12,7 +12,7 @@ use common::{
 };
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
-use std::f32;
+use std::{f32, ops::Range};
 use vek::*;
 use rand::prelude::*;
 
@@ -100,7 +100,7 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
                                 ForestKind::Baobab => *BAOBABS,
                                 // ForestKind::Oak => *OAKS,
                                 ForestKind::Oak => {
-                                    break 'model TreeModel::Procedural(ProceduralTree::generate(seed));
+                                    break 'model TreeModel::Procedural(ProceduralTree::generate(TreeConfig::OAK, seed));
                                 },
                                 ForestKind::Pine => *PINES,
                                 ForestKind::Birch => *BIRCHES,
@@ -192,139 +192,185 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
     });
 }
 
+/// A type that specifies the generation properties of a tree.
+pub struct TreeConfig {
+    /// Length of trunk, also scales other branches.
+    pub branch_scale: f32,
+    /// 0 - 1 (0 = chaotic, 1 = straight).
+    pub straightness: f32,
+    /// Maximum number of branch layers (not including trunk).
+    pub max_depth: usize,
+    /// The number of branches that form from each branch.
+    pub splits: usize,
+    /// The range of proportions along a branch at which a split into another branch might occur.
+    /// This value is clamped between 0 and 1, but a wider range may bias the results towards branch ends.
+    pub split_range: Range<f32>,
+}
+
+impl TreeConfig {
+    pub const OAK: Self = Self {
+        branch_scale: 12.0,
+        straightness: 0.5,
+        max_depth: 4,
+        splits: 3,
+        split_range: 0.5..1.5,
+    };
+}
+
 // TODO: Rename this to `Tree` when the name conflict is gone
 pub struct ProceduralTree {
     branches: Vec<Branch>,
+    trunk_idx: usize,
 }
 
 impl ProceduralTree {
-    pub fn generate(seed: u32) -> Self {
+    /// Generate a new tree using the given configuration and seed.
+    pub fn generate(config: TreeConfig, seed: u32) -> Self {
         let mut rng = RandomPerm::new(seed);
-        let mut branches = Vec::new();
 
-        const ITERATIONS: usize = 4;
+        let mut this = Self {
+            branches: Vec::new(),
+            trunk_idx: 0, // Gets replaced later
+        };
 
-        fn add_branches(branches: &mut Vec<Branch>, start: Vec3<f32>, dir: Vec3<f32>, depth: usize, rng: &mut impl Rng) {
-            let mut branch_dir = (dir + Vec3::<f32>::new(rng.gen_range(-1.0, 1.0),rng.gen_range(-1.0, 1.0),rng.gen_range(0.25, 1.0)).cross(dir).normalized() * 0.45 * (depth as f32 + 0.5)).normalized(); // I wish `vek` had a `Vec3::from_fn`
-
-            if branch_dir.z < 0. {
-                branch_dir.z = (branch_dir.z) / 16.  + 0.2
-            }
-
-            let branch_len = 12.0 / (depth as f32 * 0.25 + 1.0); // Zipf, I guess
-
-            let end = start + branch_dir * branch_len;
-
-            branches.push(Branch::new(LineSegment3 { start, end },0.3 + 2.5 / (depth + 1) as f32,if depth == ITERATIONS {
-                    rng.gen_range(3.0, 5.0)
-                } else {
-                    0.0
-                }));
-
-            if depth < ITERATIONS {
-                let sub_branches = if depth == 0 { 3 } else { rng.gen_range(2, 4) };
-                for _ in 0..sub_branches {
-                    add_branches(branches, end, branch_dir, depth + 1, rng);
-                }
-            }
-        }
-
-        let height = rng.gen_range(13, 30) as f32;
-        let dx = rng.gen_range(-5, 5) as f32;
-        let dy = rng.gen_range(-5, 5) as f32;
-
-        // Generate the trunk
-        branches.push(Branch::new(LineSegment3 { start: Vec3::zero(), end: Vec3::new(dx, dy, height)},3.0,0.0));
-
-        // Generate branches
-
-        const TEN_DEGREES: f32 = f32::consts::TAU / 36.;
-
-        let mut current_angle = 0.;
-        while current_angle < f32::consts::TAU {
-            for i in 1..3 {
-                let current_angle = current_angle + rng.gen_range(-TEN_DEGREES / 2., TEN_DEGREES / 2.);
-                add_branches(
-                    &mut branches,
-                    Vec3::new(dx,  dy, height - rng.gen_range(0.0, height / 3.0)),
-                    Vec3::new(current_angle.cos(),  current_angle.sin(), rng.gen_range(0.2 * i as f32, 0.7 * i as f32)).normalized(),
-                    1,
-                    &mut rng,
-                );
-                if rng.gen_range(0, 4) != 2 {
-                    break;
-                }
-            }
-            current_angle += rng.gen_range(TEN_DEGREES, TEN_DEGREES * 5.);
-        }
-
-        add_branches(
-            &mut branches,
-            Vec3::new(dx,  dy, height - rng.gen_range(0.0, height / 3.0)),
-            Vec3::new(rng.gen_range(-0.2, 0.2),  rng.gen_range(-0.2, 0.2), 1.).normalized(),
-            2,
-            rng
+        // Add the tree trunk (and sub-branches) recursively
+        let (trunk_idx, _) = this.add_branch(
+            &config,
+            // Our trunk starts at the origin...
+            Vec3::zero(),
+            // ...and has a roughly upward direction
+            Vec3::new(rng.gen_range(-1.0, 1.0), rng.gen_range(-1.0, 1.0), 5.0).normalized(),
+            0,
+            None,
+            &mut rng,
         );
+        this.trunk_idx = trunk_idx;
 
-        Self {
-            branches,
-        }
+        this
     }
 
+    // Recursively add a branch (with sub-branches) to the tree's branch graph, returning the index and AABB of the
+    // branch. This AABB gets propagated down to the parent and is used later during sampling to cull the branches to
+    // be sampled.
+    fn add_branch(
+        &mut self,
+        config: &TreeConfig,
+        start: Vec3<f32>,
+        dir: Vec3<f32>,
+        depth: usize,
+        sibling_idx: Option<usize>,
+        rng: &mut impl Rng,
+    ) -> (usize, Aabb<f32>) {
+        let len = config.branch_scale / (depth as f32 * 0.25 + 1.0); // Zipf, I guess
+        let end = start + dir * len;
+        let line = LineSegment3 { start, end };
+        let wood_radius = 0.3 + 2.5 / (depth + 1) as f32;
+        let leaf_radius = if depth == config.max_depth { rng.gen_range(3.0, 5.0) } else { 0.0 };
+
+        // The AABB that covers this branch, along with wood and leaves that eminate from it
+        let mut aabb = Aabb {
+            min: Vec3::partial_min(start, end) - wood_radius.max(leaf_radius),
+            max: Vec3::partial_max(start, end) + wood_radius.max(leaf_radius),
+        };
+
+        let mut child_idx = None;
+        // Don't add child branches if we're already enough layers into the tree
+        if depth < config.max_depth {
+            for _ in 0..config.splits {
+                // Choose a point close to the branch to act as the target direction for the branch to grow in
+                let tgt = Lerp::lerp(
+                    start,
+                    end,
+                    rng.gen_range(config.split_range.start, config.split_range.end).clamped(0.0, 1.0),
+                ) + Vec3::<f32>::zero().map(|_| rng.gen_range(-1.0, 1.0));
+                // Start the branch at the closest point to the target
+                let branch_start = line.projected_point(tgt);
+                // Now, interpolate between the target direction and the parent branch's direction to find a direction
+                let branch_dir = Lerp::lerp(tgt - branch_start, dir, config.straightness).normalized();
+
+                let (branch_idx, branch_aabb) = self.add_branch(config, branch_start, branch_dir, depth + 1, child_idx, rng);
+                child_idx = Some(branch_idx);
+                // Parent branches AABBs include the AABBs of child branches to allow for culling during sampling
+                aabb.expand_to_contain(branch_aabb);
+            }
+        }
+
+        let idx = self.branches.len(); // Compute the index that this branch is going to have
+        self.branches.push(Branch {
+            line,
+            wood_radius,
+            leaf_radius,
+            aabb,
+            sibling_idx,
+            child_idx,
+        });
+
+        (idx, aabb)
+    }
+
+    /// Get the bounding box that covers the tree (all branches and leaves)
     pub fn get_bounds(&self) -> Aabb<f32> {
-        let bounds = self.branches
-            .iter()
-            .fold(Aabb::default(), |Aabb { min, max }, branch| Aabb {
-                min: Vec3::partial_min(min, Vec3::partial_min(branch.line.start, branch.line.end) - branch.radius - 8.0),
-                max: Vec3::partial_max(max, Vec3::partial_max(branch.line.start, branch.line.end) + branch.radius + 8.0),
-            });
-
-        self.branches
-            .iter()
-            .for_each(|branch| {
-                assert!(bounds.contains_point(branch.line.start));
-                assert!(bounds.contains_point(branch.line.end));
-            });
-
-        bounds
+        self.branches[self.trunk_idx].aabb
     }
 
-    pub fn is_branch_or_leaves_at(&self, pos: Vec3<f32>) -> (bool, bool) {
-        let mut is_leave = false;
-        for branch in &self.branches {
-            let p_d2 = branch.line.projected_point(pos).distance_squared(pos);
+    // Recursively search for branches or leaves by walking the tree's branch graph.
+    fn is_branch_or_leaves_at_inner(&self, pos: Vec3<f32>, branch_idx: usize) -> (bool, bool) {
+        let branch = &self.branches[branch_idx];
+        // Always probe the sibling branch, since our AABB doesn't include its bounds (it's not one of our children)
+        let branch_or_leaves = branch.sibling_idx
+            .map(|idx| Vec2::from(self.is_branch_or_leaves_at_inner(pos, idx)))
+            .unwrap_or_default();
 
-            if !is_leave {
-                fn finvsqrt(x: f32) -> f32 {
-                    let y = f32::from_bits(0x5f375a86 - (x.to_bits() >> 1));
-                    y * (1.5 - ( x * 0.5 * y * y ))
-                }
-                if branch.health * finvsqrt(p_d2) > 1.0 {
-                    is_leave = true;
-                }
-            }
-            if p_d2 < branch.squared_radius {
-                return (true,false);
-            }
+        // Only continue probing this sub-graph of the tree if the sample position falls within its AABB
+        if branch.aabb.contains_point(pos) {
+            (branch_or_leaves
+                // Probe this branch
+                | Vec2::from(branch.is_branch_or_leaves_at(pos))
+                // Probe the children of this branch
+                | branch.child_idx
+                    .map(|idx| Vec2::from(self.is_branch_or_leaves_at_inner(pos, idx)))
+                    .unwrap_or_default())
+                .into_tuple()
+        } else {
+            branch_or_leaves.into_tuple()
         }
-        (false, is_leave)
+    }
+
+    /// Determine whether there are either branches or leaves at the given position in the tree.
+    #[inline(always)]
+    pub fn is_branch_or_leaves_at(&self, pos: Vec3<f32>) -> (bool, bool) {
+        self.is_branch_or_leaves_at_inner(pos, self.trunk_idx)
     }
 }
 
+// Branches are arranged in a graph shape. Each branch points to both its first child (if any) and also to the next
+// branch in the list of child branches associated with the parent. This means that the entire tree is laid out in a
+// walkable graph where each branch refers only to two other branches. As a result, walking the tree is simply a case
+// of performing double recursion.
 struct Branch {
     line: LineSegment3<f32>,
-    radius: f32,
-    squared_radius: f32,
-    health: f32,
+    wood_radius: f32,
+    leaf_radius: f32,
+    aabb: Aabb<f32>,
+
+    sibling_idx: Option<usize>,
+    child_idx: Option<usize>,
 }
 
 impl Branch {
-    fn new(line: LineSegment3<f32>,radius: f32,health: f32) -> Self {
-        Self {
-            line,
-            squared_radius: radius.powi(2),
-            radius,
-            health,
+    /// Determine whether there are either branches or leaves at the given position in the branch.
+    pub fn is_branch_or_leaves_at(&self, pos: Vec3<f32>) -> (bool, bool) {
+        // fn finvsqrt(x: f32) -> f32 {
+        //     let y = f32::from_bits(0x5f375a86 - (x.to_bits() >> 1));
+        //     y * (1.5 - ( x * 0.5 * y * y ))
+        // }
+
+        let p_d2 = self.line.projected_point(pos).distance_squared(pos);
+
+        if p_d2 < self.wood_radius.powi(2) {
+            (true, false)
+        } else {
+            (false, p_d2 < self.leaf_radius.powi(2))
         }
     }
 }
