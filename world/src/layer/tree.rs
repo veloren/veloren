@@ -223,6 +223,10 @@ pub struct TreeConfig {
     /// 0.0 = no bias (branches do not change their length with regard to parent branch proportion)
     /// 1.0 = positive bias (branches at ends are shorter, branches at the start are longer)
     pub branch_len_bias: f32,
+    /// The scale of leaves in the vertical plane. Less than 1.0 implies a flattening of the leaves.
+    pub leaf_vertical_scale: f32,
+    /// How evenly spaced (vs random) sub-branches are along their parent.
+    pub proportionality: f32,
 }
 
 impl TreeConfig {
@@ -237,6 +241,8 @@ impl TreeConfig {
         splits: 3,
         split_range: 0.5..1.5,
         branch_len_bias: 0.0,
+        leaf_vertical_scale: 1.0,
+        proportionality: 0.0,
     };
 
     pub const PINE: Self = Self {
@@ -244,12 +250,14 @@ impl TreeConfig {
         trunk_radius: 1.5,
         branch_child_len: 0.3,
         branch_child_radius: 0.0,
-        leaf_radius: 1.0..1.25,
+        leaf_radius: 2.0..2.5,
         straightness: 0.0,
         max_depth: 1,
-        splits: 128,
-        split_range: 0.2..1.1,
-        branch_len_bias: 0.8,
+        splits: 56,
+        split_range: 0.2..1.2,
+        branch_len_bias: 0.75,
+        leaf_vertical_scale: 0.3,
+        proportionality: 1.0,
     };
 }
 
@@ -319,14 +327,27 @@ impl ProceduralTree {
         let mut child_idx = None;
         // Don't add child branches if we're already enough layers into the tree
         if depth < config.max_depth {
-            for _ in 0..config.splits {
+            let x_axis = dir.cross(Vec3::<f32>::zero().map(|_| rng.gen_range(-1.0, 1.0))).normalized();
+            let y_axis = dir.cross(x_axis).normalized();
+            let screw_shift = rng.gen_range(0.0, f32::consts::TAU);
+
+            for i in 0..config.splits {
+                let dist = Lerp::lerp(i as f32 / (config.splits - 1) as f32, rng.gen_range(0.0, 1.0), config.proportionality);
+
+                const PHI: f32 = 0.618;
+                const RAD_PER_BRANCH: f32 = f32::consts::TAU * PHI;
+                let screw =
+                    (screw_shift + dist * config.splits as f32 * RAD_PER_BRANCH).sin() * x_axis +
+                    (screw_shift + dist * config.splits as f32 * RAD_PER_BRANCH).cos() * y_axis;
+
                 // Choose a point close to the branch to act as the target direction for the branch to grow in
-                let split_factor = rng.gen_range(config.split_range.start, config.split_range.end).clamped(0.0, 1.0);
-                let tgt = Lerp::lerp(
+                // let split_factor = rng.gen_range(config.split_range.start, config.split_range.end).clamped(0.0, 1.0);
+                let split_factor = Lerp::lerp(config.split_range.start, config.split_range.end, dist);
+                let tgt = Lerp::lerp_unclamped(
                     start,
                     end,
                     split_factor,
-                ) + Vec3::<f32>::zero().map(|_| rng.gen_range(-1.0, 1.0));
+                ) + Lerp::lerp(Vec3::<f32>::zero().map(|_| rng.gen_range(-1.0, 1.0)), screw, config.proportionality);
                 // Start the branch at the closest point to the target
                 let branch_start = line.projected_point(tgt);
                 // Now, interpolate between the target direction and the parent branch's direction to find a direction
@@ -355,6 +376,7 @@ impl ProceduralTree {
             line,
             wood_radius,
             leaf_radius,
+            leaf_vertical_scale: config.leaf_vertical_scale,
             aabb,
             sibling_idx,
             child_idx,
@@ -406,6 +428,7 @@ struct Branch {
     line: LineSegment3<f32>,
     wood_radius: f32,
     leaf_radius: f32,
+    leaf_vertical_scale: f32,
     aabb: Aabb<f32>,
 
     sibling_idx: Option<usize>,
@@ -420,12 +443,15 @@ impl Branch {
         //     y * (1.5 - ( x * 0.5 * y * y ))
         // }
 
-        let p_d2 = self.line.projected_point(pos).distance_squared(pos);
+        let p = self.line.projected_point(pos);
+        let p_d2 = p.distance_squared(pos);
 
         if p_d2 < self.wood_radius.powi(2) {
             (true, false)
         } else {
-            (false, p_d2 < self.leaf_radius.powi(2))
+            let diff = (p - pos) / Vec3::new(1.0, 1.0, self.leaf_vertical_scale);
+
+            (false, diff.magnitude_squared() < self.leaf_radius.powi(2))
         }
     }
 }
