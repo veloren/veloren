@@ -304,7 +304,7 @@ impl<'a> Widget for Social<'a> {
             if Button::image(self.imgs.nothing)
                 .w_h(133.0, 18.0)
                 .mid_top_with_margin_on(state.ids.frame, 52.0)
-                .label(&self.localized_strings.get("hud.social.name"))
+                .label(&self.localized_strings.get(""))
                 .label_font_size(self.fonts.cyri.scale(14))
                 .label_y(conrod_core::position::Relative::Scalar(0.0))
                 .label_font_id(self.fonts.cyri.conrod_id)
