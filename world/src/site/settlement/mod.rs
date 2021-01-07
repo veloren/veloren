@@ -934,7 +934,7 @@ impl Settlement {
                                     ))
                                     .with_name("Guard")
                                     .with_level(dynamic_rng.gen_range(10, 15))
-                                    .with_config(loadout_builder::LoadoutConfig::Guard),
+                                    .with_loadout_config(loadout_builder::LoadoutConfig::Guard),
                                 _ => entity
                                     .with_main_tool(Item::new_from_asset_expect(
                                         match dynamic_rng.gen_range(0, 7) {
@@ -948,7 +948,7 @@ impl Settlement {
                                     //_ => "common.items.npc_weapons.bow.starter_bow", TODO: Re-Add this when we have a better way of distributing npc_weapons here
                                 },
                                     ))
-                                    .with_config(loadout_builder::LoadoutConfig::Villager),
+                                    .with_loadout_config(loadout_builder::LoadoutConfig::Villager),
                             }
                         });
 

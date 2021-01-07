@@ -9,7 +9,7 @@ use common::{
     npc::NPC_NAMES,
     span,
     terrain::TerrainGrid,
-    LoadoutBuilder,
+    LoadoutBuilder, SkillSetBuilder,
 };
 use common_net::msg::ServerGeneral;
 use common_sys::state::TerrainChanges;
@@ -148,9 +148,13 @@ impl<'a> System<'a> for Sys {
                     scale = 2.0 + rand::random::<f32>();
                 }
 
-                let config = entity.config;
+                let loadout_config = entity.loadout_config;
+                let skillset_config = entity.skillset_config;
 
-                let loadout = LoadoutBuilder::build_loadout(body, main_tool, config).build();
+                let loadout = LoadoutBuilder::build_loadout(body, main_tool, loadout_config).build();
+                if let Some(config) = skillset_config {
+                    stats.skill_set = SkillSetBuilder::build_skillset(config).build();
+                }
 
                 let health = comp::Health::new(stats.body_type, entity.level.unwrap_or(0));
 
@@ -184,7 +188,7 @@ impl<'a> System<'a> for Sys {
                             can_speak,
                             &body,
                             matches!(
-                                config,
+                                loadout_config,
                                 Some(comp::inventory::loadout_builder::LoadoutConfig::Guard)
                             ),
                         ))
