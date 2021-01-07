@@ -58,8 +58,9 @@ use crate::{
 use client::Client;
 
 use common::{
-    comp,
+    combat,
     comp::{
+        self,
         item::{tool::ToolKind, ItemDesc, Quality},
         skills::{Skill, SkillGroupType},
         BuffKind,
@@ -852,6 +853,7 @@ impl Hud {
             let scales = ecs.read_storage::<comp::Scale>();
             let bodies = ecs.read_storage::<comp::Body>();
             let items = ecs.read_storage::<comp::Item>();
+            let loadouts = ecs.read_storage::<comp::Loadout>();
             let entities = ecs.entities();
             let me = client.entity();
             //self.input = client.read_storage::<comp::ControllerInputs>();
@@ -1274,6 +1276,7 @@ impl Hud {
                 &bodies,
                 &hp_floater_lists,
                 &uids,
+                &loadouts,
             )
                 .join()
                 .filter(|t| {
@@ -1294,6 +1297,7 @@ impl Hud {
                         body,
                         hpfl,
                         uid,
+                        loadout,
                     )| {
                         // Use interpolated position if available
                         let pos = interpolated.map_or(pos.0, |i| i.pos);
@@ -1326,6 +1330,7 @@ impl Hud {
                             health,
                             buffs,
                             energy,
+                            combat_rating: combat::combat_rating(loadout, health, &stats.body_type),
                         });
                         let bubble = if dist_sqr < SPEECH_BUBBLE_RANGE.powi(2) {
                             speech_bubbles.get(uid)

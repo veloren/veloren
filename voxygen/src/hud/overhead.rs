@@ -64,6 +64,7 @@ pub struct Info<'a> {
     pub health: &'a Health,
     pub buffs: &'a Buffs,
     pub energy: Option<&'a Energy>,
+    pub combat_rating: f32,
 }
 
 /// Determines whether to show the healthbar
@@ -175,6 +176,7 @@ impl<'a> Widget for Overhead<'a> {
             health,
             buffs,
             energy,
+            combat_rating,
         }) = self.info
         {
             // Used to set healthbar colours based on hp_percentage
@@ -379,15 +381,15 @@ impl<'a> Widget for Overhead<'a> {
                 // "Boss Factor" (?)
                 // For players: Highest skilltree rank
 
-                let indicator_col = match health_max as u32 {
-                    0..=50 => QUALITY_LOW,
-                    51..=100 => QUALITY_COMMON,
-                    101..=150 => QUALITY_MODERATE,
-                    151..=200 => QUALITY_HIGH,
-                    201..=250 => QUALITY_EPIC,
-                    251..=300 => QUALITY_LEGENDARY,
-                    301..=350 => QUALITY_ARTIFACT,
-                    351..=9999 => QUALITY_DEBUG,
+                let indicator_col = match combat_rating {
+                    x if (0.0..0.5).contains(&x) => QUALITY_LOW,
+                    x if (0.5..1.0).contains(&x) => QUALITY_COMMON,
+                    x if (1.0..1.5).contains(&x) => QUALITY_MODERATE,
+                    x if (1.5..2.0).contains(&x) => QUALITY_HIGH,
+                    x if (2.0..2.5).contains(&x) => QUALITY_EPIC,
+                    x if (2.5..3.0).contains(&x) => QUALITY_LEGENDARY,
+                    x if (2.0..3.5).contains(&x) => QUALITY_ARTIFACT,
+                    x if x >= 3.5 => QUALITY_DEBUG,
                     _ => XP_COLOR,
                 };
                 Image::new(self.imgs.indicator_bubble)

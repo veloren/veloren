@@ -107,6 +107,10 @@ impl Health {
         if let Some(body) = body {
             self.set_base_max(body.base_health() + body.base_health_increase() * level as u32);
             self.set_maximum(body.base_health() + body.base_health_increase() * level as u32);
+            self.change_by(HealthChange {
+                amount: body.base_health_increase() as i32,
+                cause: HealthSource::LevelUp,
+            });
         }
     }
 
