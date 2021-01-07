@@ -49,6 +49,7 @@ diesel_migrations = "1.4.0"
 dotenv = "0.15.0"
 slab  = "0.4"
 const-tweaker = {version = "0.3.1", optional = true}
+inline_tweak = "1.0.2"
 
 # Plugins
 plugin-api = { package = "veloren-plugin-api", path = "../plugin/api"}

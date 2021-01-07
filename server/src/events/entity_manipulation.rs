@@ -29,6 +29,7 @@ use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 use common_sys::state::BlockChange;
 use comp::item::Reagent;
 use hashbrown::HashSet;
+use inline_tweak::*;
 use rand::prelude::*;
 use specs::{join::Join, saveload::MarkerAllocator, Entity as EcsEntity, WorldExt};
 use tracing::error;
@@ -162,6 +163,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
     (|| {
         let mut stats = state.ecs().write_storage::<Stats>();
         let healths = state.ecs().read_storage::<Health>();
+        let inventories = state.ecs().read_storage::<Inventory>();
         let by = if let HealthSource::Damage { by: Some(by), .. } = cause {
             by
         } else {
@@ -172,13 +174,14 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         } else {
             return;
         };
-        let (entity_stats, entity_health) = if let (Some(entity_stats), Some(entity_health)) =
-            (stats.get(entity), healths.get(entity))
-        {
-            (entity_stats, entity_health)
-        } else {
-            return;
-        };
+        let (entity_stats, entity_health, entity_inventory) =
+            if let (Some(entity_stats), Some(entity_health), Some(entity_inventory)) =
+                (stats.get(entity), healths.get(entity), inventories.get(entity))
+            {
+                (entity_stats, entity_health, entity_inventory)
+            } else {
+                return;
+            };
 
         let groups = state.ecs().read_storage::<Group>();
         let attacker_group = groups.get(attacker);
@@ -194,8 +197,12 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         const ATTACKER_EXP_WEIGHT: f32 = 1.0;
         // TODO: Scale xp from skillset rather than health, when NPCs have their own
         // skillsets
-        let mut exp_reward = entity_stats.body_type.base_exp() as f32
-            * (entity_health.maximum() as f32 / entity_stats.body_type.base_health() as f32);
+        /*let mut exp_reward = entity_stats.body_type.base_exp() as f32
+         * (entity_health.maximum() as f32 / entity_stats.body_type.base_health() as
+         * f32); */
+        let mut exp_reward =
+            combat::combat_rating(entity_inventory, entity_health, &entity_stats.body_type)
+                * tweak!(2.5);
 
         // Distribute EXP to group
         let positions = state.ecs().read_storage::<Pos>();
