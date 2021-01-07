@@ -1,11 +1,12 @@
 use crate::{
     comp::{
         inventory::{item::{armor::Protection, tool::ToolKind, ItemKind}, slot::EquipSlot},
-        BuffKind, HealthChange, HealthSource, Inventory,
+        Body, BuffKind, Health, HealthChange, HealthSource, Inventory,
     },
     uid::Uid,
     util::Dir,
 };
+use inline_tweak::*;
 use serde::{Deserialize, Serialize};
 use vek::*;
 
@@ -224,4 +225,37 @@ pub fn get_weapons(inv: &Inventory) -> (Option<ToolKind>, Option<ToolKind>) {
         }),
 
     )
+}
+
+
+pub fn get_weapon_damage(inv: &Inventory) -> f32 {
+    let active_power = inv.equipped(EquipSlot::Mainhand).map_or(0.0, |i| {
+        if let ItemKind::Tool(tool) = &i.kind() {
+            tool.base_power() * tool.base_speed()
+        } else {
+            0.0
+        }
+    });
+    let second_power = inv.equipped(EquipSlot::Offhand).map_or(0.0, |i| {
+        if let ItemKind::Tool(tool) = &i.kind() {
+            tool.base_power() * tool.base_speed()
+        } else {
+            0.0
+        }
+    });
+    active_power.max(second_power).max(0.1)
+}
+
+pub fn combat_rating(inventory: &Inventory, health: &Health, body: &Body) -> f32 {
+    let defensive_weighting = tweak!(1.0);
+    let offensive_weighting = tweak!(1.0);
+    let defensive_rating = health.maximum() as f32 / (1.0 - Damage::compute_damage_reduction(inventory)) / 100.0;
+    let offensive_rating = get_weapon_damage(inventory);
+    //let combined_rating = 2.0 / ((1.0 / offensive_rating) + (1.0 /
+    // defensive_rating)); let combined_rating = offensive_rating *
+    // defensive_rating / (offensive_rating + defensive_rating);
+    let combined_rating = (offensive_rating * offensive_weighting
+        + defensive_rating * defensive_weighting)
+        / (2.0 * offensive_weighting.max(defensive_weighting));
+    combined_rating * body.combat_multiplier()
 }
