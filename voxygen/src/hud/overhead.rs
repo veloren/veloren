@@ -283,15 +283,17 @@ impl<'a> Widget for Overhead<'a> {
                         .set(timer_id, ui);
                     });
             }
-            // Name
-            Text::new(name)
+            // Name                    
+                // Text::new(name)    
+                Text::new(&format!("{} [{:?}]", name, combat_rating)) // <- Uncomment to debug combat ratings
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(font_size)
                 .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
                 .x_y(-1.0, name_y)
                 .parent(id)
                 .set(state.ids.name_bg, ui);
-            Text::new(name)
+                // Text::new(name)    
+                Text::new(&format!("{} [{:?}]", name, combat_rating)) // <- Uncomment to debug combat ratings
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(font_size)
                 .color(if self.in_group {
@@ -373,31 +375,35 @@ impl<'a> Widget for Overhead<'a> {
                 .parent(id)
                 .set(state.ids.health_bar_fg, ui);
 
-                // TODO: Add strength comparison here, this is just an example
-                // Factors to take into account:
-                // Maximum HP
-                // Protection
-                // Mainhand Weapon DPS
-                // "Boss Factor" (?)
-                // For players: Highest skilltree rank
+                // TODO: Add strength comparison here, this is just an example        
+
+                // Thresholds (lower)
+                let common = tweak!(4.3);
+                let moderate = tweak!(6.0);
+                let high = tweak!(10.8);
+                let epic = tweak!(14.1);
+                let legendary = tweak!(79.0);
+                let artifact = tweak!(122.0);
+                let debug = tweak!(200.0);
 
                 let indicator_col = match combat_rating {
-                    x if (0.0..0.5).contains(&x) => QUALITY_LOW,
-                    x if (0.5..1.0).contains(&x) => QUALITY_COMMON,
-                    x if (1.0..1.5).contains(&x) => QUALITY_MODERATE,
-                    x if (1.5..2.0).contains(&x) => QUALITY_HIGH,
-                    x if (2.0..2.5).contains(&x) => QUALITY_EPIC,
-                    x if (2.5..3.0).contains(&x) => QUALITY_LEGENDARY,
-                    x if (2.0..3.5).contains(&x) => QUALITY_ARTIFACT,
-                    x if x >= 3.5 => QUALITY_DEBUG,
+                    x if (0.0..common).contains(&x) => QUALITY_LOW,
+                    x if (common..moderate).contains(&x) => QUALITY_COMMON,
+                    x if (moderate..high).contains(&x) => QUALITY_MODERATE,
+                    x if (high..epic).contains(&x) => QUALITY_HIGH,
+                    x if (epic..legendary).contains(&x) => QUALITY_EPIC,
+                    x if (legendary..artifact).contains(&x) => QUALITY_LEGENDARY,
+                    x if (artifact..debug).contains(&x) => QUALITY_ARTIFACT,
+                    x if x >= debug => QUALITY_DEBUG,
                     _ => XP_COLOR,
-                };
+                };               
+
                 Image::new(self.imgs.indicator_bubble)
                     .w_h(5.0 * BARSIZE, 5.0 * BARSIZE)
                     .x_y(tweak!(-37.0) * BARSIZE, MANA_BAR_Y + tweak!(7.5))
                     .color(Some(indicator_col))
                     .parent(id)
-                    .set(state.ids.level, ui);
+                    .set(state.ids.level, ui);                    
             }
         }
         // Speech bubble

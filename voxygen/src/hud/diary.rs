@@ -355,7 +355,7 @@ impl<'a> Widget for Diary<'a> {
             } else {
                 img.down_from(state.weapon_btns[i.0 - 1], tweak!(5.0))
             };
-            let tooltip_txt = if !locked { "" } else { "Not yet unlocked" };
+            let tooltip_txt = if !locked { "" } else { &self.localized_strings.get("hud.skills.not_unlocked") };
             img.w_h(tweak!(50.0), tweak!(50.0))
                 .set(state.weapon_imgs[i.0], ui);
             // Lock Image
@@ -420,13 +420,13 @@ impl<'a> Widget for Diary<'a> {
         }
         // Exp Bars and Rank Display
         let current_exp = self.stats.skill_set.get_experience(*sel_tab) as f64;
-        let max_exp = sel_tab.skill_point_cost() as f64;
+        let max_exp = self.stats.skill_set.get_skill_point_cost(*sel_tab) as f64;
         let exp_percentage = current_exp / max_exp;
         let rank = self.stats.skill_set.get_earned_sp(*sel_tab);
         let rank_txt = format!("{}", rank);
         let exp_txt = format!("{}/{}", current_exp, max_exp);
         let available_pts = self.stats.skill_set.get_available_sp(*sel_tab);
-        let available_pts_txt = format!("{} SP available!", available_pts);
+        let available_pts_txt = format!("{}", available_pts);
         Image::new(self.imgs.diary_exp_bg)
             .w_h(480.0, 76.0)
             .mid_bottom_with_margin_on(state.content_align, tweak!(10.0))
@@ -465,8 +465,8 @@ impl<'a> Widget for Diary<'a> {
             .color(TEXT_COLOR)
             .set(state.exp_bar_rank, ui);
         if available_pts > 0 {
-            Text::new(&available_pts_txt)
-                .mid_top_with_margin_on(state.content_align, tweak!(42.0))
+            Text::new(&self.localized_strings.get("hud.skills.sp_available").replace("{number}", &available_pts_txt))
+                .mid_top_with_margin_on(state.content_align, tweak!(700.0))
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(tweak!(28)))
                 .color(Color::Rgba(0.92, 0.76, 0.0, frame_ani))
@@ -677,9 +677,9 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Increase Health",
+                    &self.localized_strings.get("hud.skills.inc_health_title"),
                     &add_sp_cost_tooltip(
-                        "Increases max health by 5{}",
+                        &self.localized_strings.get("hud.skills.inc_health"),
                         skill,
                         &self.stats.skill_set,
                     ),
@@ -702,9 +702,9 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Increase Stamina",
+                    &self.localized_strings.get("hud.skills.inc_stam_title"),
                     &add_sp_cost_tooltip(
-                        "Increases max stamina by 5{}",
+                        &self.localized_strings.get("hud.skills.inc_stam"),
                         skill,
                         &self.stats.skill_set,
                     ),
@@ -728,9 +728,9 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Unlock Sword",
+                    &self.localized_strings.get("hud.skills.unlck_sword_title"),
                     &add_sp_cost_tooltip(
-                        "Unlocks sword skill tree{}",
+                        &self.localized_strings.get("hud.skills.unlck_sword"),
                         skill,
                         &self.stats.skill_set,
                     ),
@@ -753,8 +753,8 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Unlock Axe",
-                    &add_sp_cost_tooltip("Unlocks axe skill tree{}", skill, &self.stats.skill_set),
+                    &self.localized_strings.get("hud.skills.unlck_axe_title"),
+                    &add_sp_cost_tooltip(&self.localized_strings.get("hud.skills.unlck_axe"), skill, &self.stats.skill_set),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -774,9 +774,9 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Unlock Hammer",
+                    &self.localized_strings.get("hud.skills.unlck_hammer_title"),
                     &add_sp_cost_tooltip(
-                        "Unlocks hammer skill tree{}",
+                        &self.localized_strings.get("hud.skills.unlck_hammer"),
                         skill,
                         &self.stats.skill_set,
                     ),
@@ -799,8 +799,8 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Unlock Bow",
-                    &add_sp_cost_tooltip("Unlocks bow skill tree{}", skill, &self.stats.skill_set),
+                    &self.localized_strings.get("hud.skills.unlck_bow_title"),
+                    &add_sp_cost_tooltip(&self.localized_strings.get("hud.skills.unlck_bow"), skill, &self.stats.skill_set),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -820,9 +820,9 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Unlock Staff",
+                    &self.localized_strings.get("hud.skills.unlck_staff_title"),
                     &add_sp_cost_tooltip(
-                        "Unlocks staff skill tree{}",
+                        &self.localized_strings.get("hud.skills.unlck_staff"),
                         skill,
                         &self.stats.skill_set,
                     ),
@@ -845,9 +845,9 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Unlock Sceptre",
+                    &self.localized_strings.get("hud.skills.unlck_sceptre_title"),
                     &add_sp_cost_tooltip(
-                        "Unlocks sceptre skill tree{}",
+                        &self.localized_strings.get("hud.skills.unlck_sceptre"),
                         skill,
                         &self.stats.skill_set,
                     ),
@@ -871,9 +871,9 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Dodge",
+                    &self.localized_strings.get("hud.skills.dodge_title"),
                     &add_sp_cost_tooltip(
-                        "While rolling, you dodge all melee attacks{}",
+                        &self.localized_strings.get("hud.skills.dodge"),
                         skill,
                         &self.stats.skill_set,
                     ),
@@ -3081,7 +3081,6 @@ fn create_skill_button<'a>(
         } else {
             CRITICAL_HP_COLOR
         })
-        .label_color(TEXT_COLOR)
         .label_font_size(fonts.cyri.scale(tweak!(16)))
         .label_font_id(fonts.cyri.conrod_id)
         .image_color(if skill_set.prerequisites_met(skill) {

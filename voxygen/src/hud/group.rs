@@ -25,6 +25,7 @@ use conrod_core::{
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 use specs::{saveload::MarkerAllocator, WorldExt};
+
 widget_ids! {
     pub struct Ids {
         group_button,
@@ -351,7 +352,7 @@ impl<'a> Widget for Group<'a> {
                         let y = if debug_on { i % 8 } else { i % 12 };
                         let back = Image::new(self.imgs.member_bg).top_left_with_margins_on(
                             ui.window,
-                            50.0 + offset + y as f64 * 65.0,
+                            50.0 + offset + y as f64 * 77.0,
                             10.0 + x as f64 * 180.0,
                         );
                         let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8; //Animation timer

@@ -222,7 +222,9 @@ pub enum SkillGroupType {
 
 impl SkillGroupType {
     /// Gets the cost in experience of earning a skill point
-    pub fn skill_point_cost(self) -> u16 { 200 }
+    pub fn skill_point_cost(self, level: u16) -> u16 {
+        10 * (35.0 * (0.8 * level as f32 - 1.5).atan() + 50.0).floor() as u16
+    }
 
     /// Gets the total amount of skill points that can be spent in a particular
     /// skill group
@@ -548,6 +550,20 @@ impl SkillSet {
             sg.available_sp > 0
                 && (sg.earned_sp - sg.available_sp) < sg.skill_group_type.get_max_skill_points()
         })
+    }
+
+    /// Checks how much experience is needed for the next skill point in a tree
+    pub fn get_skill_point_cost(&self, skill_group: SkillGroupType) -> u16 {
+        if let Some(level) = self
+            .skill_groups
+            .iter()
+            .find(|sg| sg.skill_group_type == skill_group)
+            .map(|sg| sg.earned_sp)
+        {
+            skill_group.skill_point_cost(level)
+        } else {
+            skill_group.skill_point_cost(0)
+        }
     }
 }
 

@@ -1,0 +1,36 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for "global" English
+(
+    string_map: {
+        "hud.rank_up": "New Skillpoint",
+        "hud.skills.sp_available": "{number} Skillpoints available",
+        "hud.skills.not_unlocked": "Not yet unlocked",
+        //  Skills
+        // General Tree
+        "hud.skills.inc_health_title": "Increase Health",
+        "hud.skills.inc_health": "Increases max health by 5{}",
+        "hud.skills.inc_stam_title": "Increase Stamina",
+        "hud.skills.inc_stam": "Increases max stamina by 5{}",
+        "hud.skills.unlck_sword_title": "Unlock Sword",
+        "hud.skills.unlck_sword": "Unlocks sword skill tree{}",
+        "hud.skills.unlck_axe_title": "Unlock Axe",
+        "hud.skills.unlck_axe": "Unlocks axe skill tree{}",
+        "hud.skills.unlck_hammer_title": "Unlock Hammer",
+        "hud.skills.unlck_hammer": "Unlocks hammer skill tree{}",
+        "hud.skills.unlck_bow_title": "Unlock Bow",
+        "hud.skills.unlck_bow": "Unlocks bow skill tree{}",
+        "hud.skills.unlck_staff_title": "Unlock Staff",
+        "hud.skills.unlck_staff": "Unlocks staff skill tree{}",
+        "hud.skills.unlck_sceptre_title": "Unlock Sceptre",
+        "hud.skills.unlck_sceptre": "Unlocks sceptre skill tree{}",
+        "hud.skills.dodge_title": "Dodge",
+        "hud.skills.dodge": "Dodging avoids melee attacks{}",
+        "hud.skills.dodge_title": "Roll Stamina Cost",
+        "hud.skills.dodge": "Rolling uses 20% less stamina{}",
+    },
+
+
+    vector_map: {
+    }
+)
