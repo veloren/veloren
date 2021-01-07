@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use specs::{Component, FlaggedStorage};
+use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 use vek::*;
 
@@ -23,7 +23,7 @@ impl Default for LightEmitter {
 }
 
 impl Component for LightEmitter {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -44,5 +44,5 @@ impl Default for LightAnimation {
 }
 
 impl Component for LightAnimation {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = IdvStorage<Self>;
 }

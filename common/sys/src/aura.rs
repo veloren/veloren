@@ -30,7 +30,7 @@ impl<'a> System<'a> for Sys {
         auras.set_event_emission(false);
 
         // Iterate through all entities with an aura
-        for (entity, pos, auras_comp) in (&entities, &positions, &mut auras).join() {
+        for (entity, pos, mut auras_comp) in (&entities, &positions, &mut auras).join() {
             let mut expired_auras = Vec::<AuraKey>::new();
             // Iterate through the auras attached to this entity
             for (key, aura) in auras_comp.auras.iter_mut() {

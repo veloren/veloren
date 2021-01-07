@@ -456,7 +456,7 @@ fn handle_kill(
         .ecs_mut()
         .write_storage::<comp::Health>()
         .get_mut(target)
-        .map(|h| h.set_to(0, reason));
+        .map(|mut h| h.set_to(0, reason));
 }
 
 fn handle_time(
@@ -582,7 +582,7 @@ fn handle_health(
     action: &ChatCommand,
 ) {
     if let Ok(hp) = scan_fmt!(&args, &action.arg_fmt(), u32) {
-        if let Some(health) = server
+        if let Some(mut health) = server
             .state
             .ecs()
             .write_storage::<comp::Health>()
@@ -632,7 +632,7 @@ fn handle_alias(
             .ecs_mut()
             .write_storage::<comp::Player>()
             .get_mut(target)
-            .map(|player| std::mem::replace(&mut player.alias, alias));
+            .map(|mut player| std::mem::replace(&mut player.alias, alias));
 
         // Update name on client player lists
         let ecs = server.state.ecs();
@@ -1074,7 +1074,7 @@ fn handle_kill_npcs(
     let mut healths = ecs.write_storage::<comp::Health>();
     let players = ecs.read_storage::<comp::Player>();
     let mut count = 0;
-    for (health, ()) in (&mut healths, !&players).join() {
+    for (mut health, ()) in (&mut healths, !&players).join() {
         count += 1;
         health.set_to(0, comp::HealthSource::Command);
     }
@@ -1240,7 +1240,7 @@ fn handle_lantern(
     action: &ChatCommand,
 ) {
     if let (Some(s), r, g, b) = scan_fmt_some!(&args, &action.arg_fmt(), f32, f32, f32, f32) {
-        if let Some(light) = server
+        if let Some(mut light) = server
             .state
             .ecs()
             .write_storage::<comp::LightEmitter>()
@@ -1994,7 +1994,7 @@ fn handle_give_exp(
 
         match target {
             Ok(player) => {
-                if let Some(stats) = ecs.write_storage::<comp::Stats>().get_mut(player) {
+                if let Some(mut stats) = ecs.write_storage::<comp::Stats>().get_mut(player) {
                     stats.exp.change_by(exp);
                 } else {
                     error_msg = Some(ServerGeneral::server_msg(
@@ -2042,7 +2042,7 @@ fn handle_set_level(
 
                 let body_type: Option<comp::Body>;
 
-                if let Some(stats) = server
+                if let Some(mut stats) = server
                     .state
                     .ecs_mut()
                     .write_storage::<comp::Stats>()
@@ -2058,12 +2058,13 @@ fn handle_set_level(
                     body_type = None;
                 }
 
-                if let Some(health) = server
+                if let Some(mut health) = server
                     .state
                     .ecs_mut()
                     .write_storage::<comp::Health>()
                     .get_mut(player)
                 {
+                    let health = &mut *health;
                     health.update_max_hp(body_type, lvl);
                     health.set_to(health.maximum(), comp::HealthSource::LevelUp);
                 }

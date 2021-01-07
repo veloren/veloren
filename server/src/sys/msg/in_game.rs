@@ -146,17 +146,17 @@ impl Sys {
             ClientGeneral::UnlockSkill(skill) => {
                 stats
                     .get_mut(entity)
-                    .map(|s| s.skill_set.unlock_skill(skill));
+                    .map(|mut s| s.skill_set.unlock_skill(skill));
             },
             ClientGeneral::RefundSkill(skill) => {
                 stats
                     .get_mut(entity)
-                    .map(|s| s.skill_set.refund_skill(skill));
+                    .map(|mut s| s.skill_set.refund_skill(skill));
             },
             ClientGeneral::UnlockSkillGroup(skill_group_type) => {
                 stats
                     .get_mut(entity)
-                    .map(|s| s.skill_set.unlock_skill_group(skill_group_type));
+                    .map(|mut s| s.skill_set.unlock_skill_group(skill_group_type));
             },
             _ => unreachable!("not a client_in_game msg"),
         }
@@ -223,7 +223,7 @@ impl<'a> System<'a> for Sys {
                     &mut server_emitter,
                     entity,
                     client,
-                    &mut maybe_presence,
+                    &mut maybe_presence.as_deref_mut(),
                     &terrain,
                     &network_metrics,
                     &can_build,

@@ -1,7 +1,7 @@
 use crate::comp::buff::{BuffCategory, BuffData, BuffKind, BuffSource};
 use serde::{Deserialize, Serialize};
 use slotmap::{new_key_type, SlotMap};
-use specs::{Component, FlaggedStorage};
+use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::time::Duration;
 
@@ -79,5 +79,5 @@ impl Auras {
 }
 
 impl Component for Auras {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }

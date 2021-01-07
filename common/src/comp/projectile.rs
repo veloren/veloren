@@ -5,7 +5,7 @@ use crate::{
     Damage, DamageSource, Explosion, GroupTarget, Knockback, RadiusEffect,
 };
 use serde::{Deserialize, Serialize};
-use specs::{Component, FlaggedStorage};
+use specs::Component;
 use specs_idvs::IdvStorage;
 use std::time::Duration;
 
@@ -38,7 +38,7 @@ pub struct Projectile {
 }
 
 impl Component for Projectile {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = IdvStorage<Self>;
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]

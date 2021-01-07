@@ -5,7 +5,7 @@ use crate::{comp::inventory::item::ItemDef, recipe::Recipe};
 use core::ops::Not;
 use item::Item;
 use serde::{Deserialize, Serialize};
-use specs::{Component, FlaggedStorage, HashMapStorage};
+use specs::{Component, HashMapStorage};
 use specs_idvs::IdvStorage;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -304,7 +304,7 @@ impl InventoryUpdate {
 }
 
 impl Component for InventoryUpdate {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = IdvStorage<Self>;
 }
 
 #[cfg(test)] mod test;

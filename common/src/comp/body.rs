@@ -18,7 +18,7 @@ use crate::{
     npc::NpcKind,
 };
 use serde::{Deserialize, Serialize};
-use specs::{Component, FlaggedStorage};
+use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 use vek::*;
 
@@ -615,5 +615,5 @@ impl Body {
 }
 
 impl Component for Body {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }
