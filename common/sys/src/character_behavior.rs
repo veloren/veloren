@@ -29,7 +29,8 @@ fn incorporate_update(tuple: &mut JoinTuple, state_update: StateUpdate) {
         *tuple.6.get_mut_unchecked() = state_update.energy
     };
     if state_update.swap_loadout {
-        let loadout = tuple.7.get_mut_unchecked();
+        let mut loadout = tuple.7.get_mut_unchecked();
+        let loadout = &mut *loadout;
         std::mem::swap(&mut loadout.active_item, &mut loadout.second_item);
     }
 }

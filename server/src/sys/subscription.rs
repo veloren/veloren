@@ -74,7 +74,7 @@ impl<'a> System<'a> for Sys {
         // 7. Determine list of regions that are in range and iterate through it
         //    - check if in hashset (hash calc) if not add it
         let mut regions_to_remove = Vec::new();
-        for (subscription, pos, presence, client_entity, client) in (
+        for (mut subscription, pos, presence, client_entity, client) in (
             &mut subscriptions,
             &positions,
             &presences,

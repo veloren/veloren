@@ -14,7 +14,7 @@ use crate::{
 };
 use arraygen::Arraygen;
 use serde::{Deserialize, Serialize};
-use specs::{Component, FlaggedStorage};
+use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::time::Duration;
 use vek::Vec3;
@@ -977,5 +977,5 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
 }
 
 impl Component for Loadout {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }

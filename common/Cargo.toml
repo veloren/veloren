@@ -42,9 +42,8 @@ indexmap = "1.3.0"
 slab = "0.4.2"
 
 # ECS
-specs = { git = "https://github.com/amethyst/specs.git", features = ["serde", "storage-event-control"], rev = "d4435bdf496cf322c74886ca09dd8795984919b4" }
-specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", rev = "77048eefa5df750f44bbd1b9a13402a9f7a6cfc8" }
-
+specs = { git = "https://github.com/amethyst/specs.git", features = ["serde", "storage-event-control", "nightly"], rev = "d4435bdf496cf322c74886ca09dd8795984919b4" }
+specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", rev = "9fab7b396acd6454585486e50ae4bfe2069858a9" }
 # Serde
 ron = { version = "0.6", default-features = false }
 serde = { version = "1.0.110", features = ["derive", "rc"] }

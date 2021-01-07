@@ -1,6 +1,6 @@
 use crate::{comp::Body, uid::Uid, DamageSource};
 use serde::{Deserialize, Serialize};
-use specs::{Component, FlaggedStorage};
+use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 
 /// Specifies what and how much changed current health
@@ -118,7 +118,7 @@ impl Health {
 }
 
 impl Component for Health {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
