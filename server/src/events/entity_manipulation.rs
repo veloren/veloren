@@ -172,7 +172,9 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         } else {
             return;
         };
-        let (entity_stats, entity_health) = if let (Some(entity_stats), Some(entity_health)) = (stats.get(entity), healths.get(entity)) {
+        let (entity_stats, entity_health) = if let (Some(entity_stats), Some(entity_health)) =
+            (stats.get(entity), healths.get(entity))
+        {
             (entity_stats, entity_health)
         } else {
             return;
@@ -190,8 +192,10 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         const MAX_EXP_DIST: f32 = 150.0;
         // Attacker gets same as exp of everyone else
         const ATTACKER_EXP_WEIGHT: f32 = 1.0;
-        // TODO: Scale xp from skillset rather than health, when NPCs have their own skillsets
-        let mut exp_reward = entity_stats.body_type.base_exp() as f32 * (entity_health.maximum() as f32 / entity_stats.body_type.base_health() as f32);
+        // TODO: Scale xp from skillset rather than health, when NPCs have their own
+        // skillsets
+        let mut exp_reward = entity_stats.body_type.base_exp() as f32
+            * (entity_health.maximum() as f32 / entity_stats.body_type.base_health() as f32);
 
         // Distribute EXP to group
         let positions = state.ecs().read_storage::<Pos>();

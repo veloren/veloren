@@ -678,7 +678,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Increase Health",
-                    "Increases max health by 5",
+                    &add_sp_cost_tooltip(
+                        "Increases max health by 5{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -699,7 +703,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Increase Stamina",
-                    "Increases max stamina by 5",
+                    &add_sp_cost_tooltip(
+                        "Increases max stamina by 5{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -721,7 +729,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Unlock Sword",
-                    "Unlocks sword skill tree",
+                    &add_sp_cost_tooltip(
+                        "Unlocks sword skill tree{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -742,7 +754,7 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Unlock Axe",
-                    "Unlocks axe skill tree",
+                    &add_sp_cost_tooltip("Unlocks axe skill tree{}", skill, &self.stats.skill_set),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -763,7 +775,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Unlock Hammer",
-                    "Unlocks hammer skill tree",
+                    &add_sp_cost_tooltip(
+                        "Unlocks hammer skill tree{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -784,7 +800,7 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Unlock Bow",
-                    "Unlocks bow skill tree",
+                    &add_sp_cost_tooltip("Unlocks bow skill tree{}", skill, &self.stats.skill_set),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -805,7 +821,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Unlock Staff",
-                    "Unlocks staff skill tree",
+                    &add_sp_cost_tooltip(
+                        "Unlocks staff skill tree{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -826,7 +846,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Unlock Sceptre",
-                    "Unlocks sceptre skill tree",
+                    &add_sp_cost_tooltip(
+                        "Unlocks sceptre skill tree{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -848,7 +872,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Dodge",
-                    "While rolling, you dodge all melee attacks",
+                    &add_sp_cost_tooltip(
+                        "While rolling, you dodge all melee attacks{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -869,7 +897,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Roll Stamina Cost",
-                    "Rolling uses 20% less stamina",
+                    &add_sp_cost_tooltip(
+                        "Rolling uses 20% less stamina{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -890,7 +922,7 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Rolling Speed",
-                    "Roll 30% faster",
+                    &add_sp_cost_tooltip("Roll 30% faster{}", skill, &self.stats.skill_set),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -911,7 +943,7 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Rolling Duration",
-                    "Roll for 20% more time",
+                    &add_sp_cost_tooltip("Roll for 20% more time{}", skill, &self.stats.skill_set),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -948,7 +980,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Triple Strike Combo",
-                    "Unlocks combo scaling on triple strike",
+                    &add_sp_cost_tooltip(
+                        "Unlocks combo scaling on triple strike{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -969,7 +1005,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Triple Strike Damage",
-                    "Increases the damage each successive strike does",
+                    &add_sp_cost_tooltip(
+                        "Increases the damage each successive strike does{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -990,7 +1030,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Triple Strike Speed",
-                    "Increases attack speed gained by each successive strike",
+                    &add_sp_cost_tooltip(
+                        "Increases attack speed gained by each successive strike{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1011,7 +1055,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Triple Strike Regen",
-                    "Increases stamina gain on each successive strike",
+                    &add_sp_cost_tooltip(
+                        "Increases stamina gain on each successive strike{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1033,7 +1081,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Dash Damage",
-                    "Increases initial damage of the dash by 20%",
+                    &add_sp_cost_tooltip(
+                        "Increases initial damage of the dash by 20%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1054,7 +1106,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Dash Drain",
-                    "Decreases the rate energy is drained while dashing by 25%",
+                    &add_sp_cost_tooltip(
+                        "Decreases the rate energy is drained while dashing by 25%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1075,7 +1131,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Dash Cost",
-                    "Decreases the initial cost of the dash by 25%",
+                    &add_sp_cost_tooltip(
+                        "Decreases the initial cost of the dash by 25%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1096,7 +1156,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Dash Speed",
-                    "Increases how fast you go while dashing by 30%",
+                    &add_sp_cost_tooltip(
+                        "Increases how fast you go while dashing by 30%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1117,7 +1181,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Dash Infinite",
-                    "Allows you to dash for as long as you have energy",
+                    &add_sp_cost_tooltip(
+                        "Allows you to dash for as long as you have energy{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1138,7 +1206,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Dash Scaling Damage",
-                    "Increases the damage scaling from the dash by 20%",
+                    &add_sp_cost_tooltip(
+                        "Increases the damage scaling from the dash by 20%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1160,7 +1232,7 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Spin Unlock",
-                    "Unlocks the sword spin",
+                    &add_sp_cost_tooltip("Unlocks the sword spin{}", skill, &self.stats.skill_set),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1181,7 +1253,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Spin Damage",
-                    "Increases the damage done by 40%",
+                    &add_sp_cost_tooltip(
+                        "Increases the damage done by 40%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1202,7 +1278,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Spin Speed",
-                    "Increase the speed at which you spin by 25%",
+                    &add_sp_cost_tooltip(
+                        "Increase the speed at which you spin by 25%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1223,7 +1303,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Spin Cost",
-                    "Decreases the energy cost of each spin by 25%",
+                    &add_sp_cost_tooltip(
+                        "Decreases the energy cost of each spin by 25%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1244,7 +1328,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Spin Spins",
-                    "Increases the number of times you can spin",
+                    &add_sp_cost_tooltip(
+                        "Increases the number of times you can spin{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1266,7 +1354,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Interrupting Attacks",
-                    "Allows you to immediately cancel an attack with another attack",
+                    &add_sp_cost_tooltip(
+                        "Allows you to immediately cancel an attack with another attack{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1303,7 +1395,7 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Double Strike Combo",
-                    "Unlocks a second strike",
+                    &add_sp_cost_tooltip("Unlocks a second strike{}", skill, &self.stats.skill_set),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1324,7 +1416,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Double Strike Damage",
-                    "Increases the damage dealt in each successive strike",
+                    &add_sp_cost_tooltip(
+                        "Increases the damage dealt in each successive strike{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1345,7 +1441,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Double Strike Speed",
-                    "Increases the attack speed with each successive strike",
+                    &add_sp_cost_tooltip(
+                        "Increases the attack speed with each successive strike{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1366,7 +1466,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Double Strike Regen",
-                    "Increases stamina gain with each successive strike",
+                    &add_sp_cost_tooltip(
+                        "Increases stamina gain with each successive strike{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1388,7 +1492,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Infinite Axe Spin",
-                    "Spin for as long as you have energy",
+                    &add_sp_cost_tooltip(
+                        "Spin for as long as you have energy{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1409,7 +1517,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Spin Damage",
-                    "Increases the daamge each spin does by 30%",
+                    &add_sp_cost_tooltip(
+                        "Increases the daamge each spin does by 30%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1430,7 +1542,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Spin Helicopter",
-                    "You fall a little slower while spinning",
+                    &add_sp_cost_tooltip(
+                        "You fall a little slower while spinning{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1451,7 +1567,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Spin Speed",
-                    "Increases your spin speed by 25%",
+                    &add_sp_cost_tooltip(
+                        "Increases your spin speed by 25%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1472,7 +1592,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Spin Cost",
-                    "Decreases stamina cost of spinning by 25%",
+                    &add_sp_cost_tooltip(
+                        "Decreases stamina cost of spinning by 25%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1494,7 +1618,7 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Unlock Leap",
-                    "Unlocks a leap spin",
+                    &add_sp_cost_tooltip("Unlocks a leap spin{}", skill, &self.stats.skill_set),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1515,7 +1639,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Leap Damage",
-                    "Increases damage of leap by 35%",
+                    &add_sp_cost_tooltip(
+                        "Increases damage of leap by 35%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1536,7 +1664,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Leap Knockback",
-                    "Increases knockback from leap by 40%",
+                    &add_sp_cost_tooltip(
+                        "Increases knockback from leap by 40%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1557,7 +1689,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Leap Cost",
-                    "Decreases cost of leap by 25%",
+                    &add_sp_cost_tooltip(
+                        "Decreases cost of leap by 25%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1578,7 +1714,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Leap Distance",
-                    "Increases distance of leap by 20%",
+                    &add_sp_cost_tooltip(
+                        "Increases distance of leap by 20%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1615,7 +1755,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Single Strike Knockback",
-                    "Increaes yeet potential of swings by 50%",
+                    &add_sp_cost_tooltip(
+                        "Increaes yeet potential of swings by 50%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1636,7 +1780,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Single Strike Damage",
-                    "Increases the damage with each successive strike",
+                    &add_sp_cost_tooltip(
+                        "Increases the damage with each successive strike{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1657,7 +1805,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Single Strike Speed",
-                    "Increases the attack speed with each successive strike",
+                    &add_sp_cost_tooltip(
+                        "Increases the attack speed with each successive strike{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1678,7 +1830,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Single Strike Regen",
-                    "Increases stamina gain with each successive strike",
+                    &add_sp_cost_tooltip(
+                        "Increases stamina gain with each successive strike{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1700,7 +1856,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Charged Melee Knockback",
-                    "Massively increases yeet potential of swing by 50%",
+                    &add_sp_cost_tooltip(
+                        "Massively increases yeet potential of swing by 50%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1721,7 +1881,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Charged Melee Damage",
-                    "Increases the daamge of the charged swing by 25%",
+                    &add_sp_cost_tooltip(
+                        "Increases the daamge of the charged swing by 25%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1742,7 +1906,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Charged Melee Energy Drain",
-                    "Decreases the rate energy drains when charging by 25%",
+                    &add_sp_cost_tooltip(
+                        "Decreases the rate energy drains when charging by 25%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1763,7 +1931,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Charge Rate",
-                    "Increases the rate that you charge the swing by 25%",
+                    &add_sp_cost_tooltip(
+                        "Increases the rate that you charge the swing by 25%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1785,7 +1957,7 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Unlock Leap",
-                    "Unlocks a leap",
+                    &add_sp_cost_tooltip("Unlocks a leap{}", skill, &self.stats.skill_set),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1806,7 +1978,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Leap Damage",
-                    "Increases damage of leap by 40%",
+                    &add_sp_cost_tooltip(
+                        "Increases damage of leap by 40%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1827,7 +2003,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Leap Knockback",
-                    "Increases knockback from leap by 50^",
+                    &add_sp_cost_tooltip(
+                        "Increases knockback from leap by 50%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1848,7 +2028,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Leap Cost",
-                    "Decreases cost of leap by 25%",
+                    &add_sp_cost_tooltip(
+                        "Decreases cost of leap by 25%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1869,7 +2053,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Leap Distance",
-                    "Increases distance of leap by 25%",
+                    &add_sp_cost_tooltip(
+                        "Increases distance of leap by 25%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1890,7 +2078,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Leap Radius",
-                    "Increases attack radius on ground slam by 1 meter",
+                    &add_sp_cost_tooltip(
+                        "Increases attack radius on ground slam by 1 meter{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1926,7 +2118,7 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Damage",
-                    "Increases damage by 30%",
+                    &add_sp_cost_tooltip("Increases damage by 30%{}", skill, &self.stats.skill_set),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1947,7 +2139,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Energy Regen",
-                    "Increases stamina gain by 50%",
+                    &add_sp_cost_tooltip(
+                        "Increases stamina gain by 50%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1969,7 +2165,7 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Charged Damage",
-                    "Increases damage by 25%",
+                    &add_sp_cost_tooltip("Increases damage by 25%{}", skill, &self.stats.skill_set),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1990,7 +2186,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Charged Drain",
-                    "Decreases the rate of stamina drain by 25%",
+                    &add_sp_cost_tooltip(
+                        "Decreases the rate of stamina drain by 25%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2011,7 +2211,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Charged Projectile Speed",
-                    "Increases yeet potential applied to arrow while charging by 20%",
+                    &add_sp_cost_tooltip(
+                        "Increases yeet potential applied to arrow while charging by 20%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2032,7 +2236,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Charged Speed",
-                    "Increases the rate that you charge the attack by 25%",
+                    &add_sp_cost_tooltip(
+                        "Increases the rate that you charge the attack by 25%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2053,7 +2261,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Charged Move Speed",
-                    "Increases how fast you can shuffle while charging the attack by 25%",
+                    &add_sp_cost_tooltip(
+                        "Increases how fast you can shuffle while charging the attack by 25%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2074,7 +2286,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Charged Knockback",
-                    "Yeet enemies further by 50%",
+                    &add_sp_cost_tooltip(
+                        "Yeet enemies further by 50%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2096,7 +2312,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Repeater Unlock",
-                    "Unlocks the ability to leap in the air and shoot a barrage of arrows",
+                    &add_sp_cost_tooltip(
+                        "Unlocks the ability to leap in the air and shoot a barrage of arrows{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2117,7 +2337,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Repeater Damage",
-                    "Increases the damage done by 30%",
+                    &add_sp_cost_tooltip(
+                        "Increases the damage done by 30%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2138,7 +2362,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Repeater Glide",
-                    "Glide further while repeatering",
+                    &add_sp_cost_tooltip(
+                        "Glide further while repeatering{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2159,7 +2387,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Repeater Cost",
-                    "Decreases the energy cost to become a gliding repeater by 25%",
+                    &add_sp_cost_tooltip(
+                        "Decreases the energy cost to become a gliding repeater by 25%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2180,7 +2412,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Arrow Count",
-                    "Yeet an additional arrow when you leap",
+                    &add_sp_cost_tooltip(
+                        "Yeet an additional arrow when you leap{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2202,7 +2438,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Projectile Speed",
-                    "Allows you to yeet arrows further, faster, by 50%",
+                    &add_sp_cost_tooltip(
+                        "Allows you to yeet arrows further, faster, by 50%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2239,7 +2479,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Explosion",
-                    "When fire just isn't enough",
+                    &add_sp_cost_tooltip(
+                        "When fire just isn't enough{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2260,7 +2504,7 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Damage",
-                    "Increases damage by 20%",
+                    &add_sp_cost_tooltip("Increases damage by 20%{}", skill, &self.stats.skill_set),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2281,7 +2525,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Stamina Regen",
-                    "Increases stamina gain by 20%",
+                    &add_sp_cost_tooltip(
+                        "Increases stamina gain by 20%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2302,7 +2550,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Explosion Radius",
-                    "Bigger is better, icnreases explosion radius by 10%",
+                    &add_sp_cost_tooltip(
+                        "Bigger is better, icnreases explosion radius by 10%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2324,7 +2576,7 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Flamethrower Damage",
-                    "Increases damage by 30%",
+                    &add_sp_cost_tooltip("Increases damage by 30%{}", skill, &self.stats.skill_set),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2345,7 +2597,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Energy Drain",
-                    "Decreases the rate energy is drained by 20%",
+                    &add_sp_cost_tooltip(
+                        "Decreases the rate energy is drained by 20%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2366,7 +2622,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Flamethrower Range",
-                    "For when the flames just won't reach, they go 25% further",
+                    &add_sp_cost_tooltip(
+                        "For when the flames just won't reach, they go 25% further{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2387,7 +2647,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Flame Velocity",
-                    "Gets the fire there faster, 25% faster",
+                    &add_sp_cost_tooltip(
+                        "Gets the fire there faster, 25% faster{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2409,7 +2673,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Shockwave Unlock",
-                    "Unlocks the ability to yeet enemies away using fire",
+                    &add_sp_cost_tooltip(
+                        "Unlocks the ability to yeet enemies away using fire{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2430,7 +2698,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Shockwave Damage",
-                    "Increases the damage done by 30%",
+                    &add_sp_cost_tooltip(
+                        "Increases the damage done by 30%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2451,7 +2723,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Shockwave Knockback",
-                    "Increases yeet potential by 30%",
+                    &add_sp_cost_tooltip(
+                        "Increases yeet potential by 30%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2472,7 +2748,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Shockwave Cost",
-                    "Decreases the energy cost to yeet helpless villagers by 20%",
+                    &add_sp_cost_tooltip(
+                        "Decreases the energy cost to yeet helpless villagers by 20%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2493,7 +2773,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Shockwave Range",
-                    "Yeet things that used to be out of reach, range increased 20%",
+                    &add_sp_cost_tooltip(
+                        "Yeet things that used to be out of reach, range increased 20%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2530,7 +2814,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Beam Heal",
-                    "Increased healing from the beam by 20%",
+                    &add_sp_cost_tooltip(
+                        "Increased healing from the beam by 20%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2551,7 +2839,7 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Damage",
-                    "Increases damage by 30%",
+                    &add_sp_cost_tooltip("Increases damage by 30%{}", skill, &self.stats.skill_set),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2572,7 +2860,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Energy Regen",
-                    "Increases energy regen from dealing damage by 10%",
+                    &add_sp_cost_tooltip(
+                        "Increases energy regen from dealing damage by 10%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2593,7 +2885,7 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Range",
-                    "Longer beam, by 25%",
+                    &add_sp_cost_tooltip("Longer beam, by 25%{}", skill, &self.stats.skill_set),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2614,7 +2906,7 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Lifesteal Efficiency",
-                    "Thieve 50% more health",
+                    &add_sp_cost_tooltip("Thieve 50% more health{}", skill, &self.stats.skill_set),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2635,7 +2927,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Heal Cost",
-                    "Use 10% less energy when healing",
+                    &add_sp_cost_tooltip(
+                        "Use 10% less energy when healing{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2657,7 +2953,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Heal",
-                    "Increases healing by 20%",
+                    &add_sp_cost_tooltip(
+                        "Increases healing by 20%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2678,7 +2978,7 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Damage",
-                    "Increases damage by 20%",
+                    &add_sp_cost_tooltip("Increases damage by 20%{}", skill, &self.stats.skill_set),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2699,7 +2999,7 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Radius",
-                    "Increases radius by 40%",
+                    &add_sp_cost_tooltip("Increases radius by 40%{}", skill, &self.stats.skill_set),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2720,7 +3020,11 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Energy Cost",
-                    "Decreases energy cost of bomb by 20%",
+                    &add_sp_cost_tooltip(
+                        "Decreases energy cost of bomb by 20%{}",
+                        skill,
+                        &self.stats.skill_set,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2741,7 +3045,7 @@ impl<'a> Widget for Diary<'a> {
                 .with_tooltip(
                     self.tooltip_manager,
                     "Projectile Speed",
-                    "Yeets it 25% faster",
+                    &add_sp_cost_tooltip("Yeets it 25% faster{}", skill, &self.stats.skill_set),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2813,5 +3117,22 @@ fn skill_tree_from_str(string: &str) -> Option<SelectedSkillTree> {
         "Bow" => Some(SelectedSkillTree::Weapon(ToolKind::Bow)),
         "Fire Staff" => Some(SelectedSkillTree::Weapon(ToolKind::Staff)),
         _ => None,
+    }
+}
+
+fn add_sp_cost_tooltip<'a>(
+    tooltip: &'a str,
+    skill: Skill,
+    skill_set: &'a skills::SkillSet,
+) -> String {
+    match skill_set.skills.get(&skill).copied() {
+        Some(level) if level == skill.get_max_level() => tooltip.replace("{}", ""),
+        _ => tooltip.replace(
+            "{}",
+            &format!(
+                "\n\nRequires {} skill points",
+                skill_set.skill_point_cost(skill)
+            ),
+        ),
     }
 }

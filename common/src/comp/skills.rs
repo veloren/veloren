@@ -222,7 +222,7 @@ pub enum SkillGroupType {
 
 impl SkillGroupType {
     /// Gets the cost in experience of earning a skill point
-    pub fn skill_point_cost(self) -> u16 { 300 }
+    pub fn skill_point_cost(self) -> u16 { 200 }
 
     /// Gets the total amount of skill points that can be spent in a particular
     /// skill group
@@ -526,6 +526,16 @@ impl SkillSet {
         skill_groups.next().map_or(0, |s_g| s_g.exp)
     }
 
+    /// Gets skill point cost to purchase skill of next level
+    pub fn skill_point_cost(&self, skill: Skill) -> u16 {
+        let next_level = if self.skills.contains_key(&skill) {
+            self.skills.get(&skill).copied().flatten().map(|l| l + 1)
+        } else {
+            skill.get_max_level().map(|_| 1)
+        };
+        skill.skill_cost(next_level)
+    }
+
     /// Checks if player has sufficient skill points to purchase a skill
     pub fn sufficient_skill_points(&self, skill: Skill) -> bool {
         if let Some(skill_group_type) = SkillSet::get_skill_group_type_for_skill(&skill) {
@@ -534,12 +544,7 @@ impl SkillSet {
                 .iter()
                 .find(|x| x.skill_group_type == skill_group_type)
             {
-                let next_level = if self.skills.contains_key(&skill) {
-                    self.skills.get(&skill).copied().flatten().map(|l| l + 1)
-                } else {
-                    skill.get_max_level().map(|_| 1)
-                };
-                let needed_sp = skill.skill_cost(next_level);
+                let needed_sp = self.skill_point_cost(skill);
                 skill_group.available_sp > needed_sp
             } else {
                 false
