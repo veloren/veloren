@@ -332,7 +332,7 @@ impl SkillSet {
     /// assert_eq!(skillset.skills.len(), 1);
     /// ```
     pub fn unlock_skill(&mut self, skill: Skill) {
-        if let Some(skill_group_type) = SkillSet::get_skill_group_type_for_skill(&skill) {
+        if let Some(skill_group_type) = skill.get_skill_group_type() {
             let next_level = if self.skills.contains_key(&skill) {
                 self.skills.get(&skill).copied().flatten().map(|l| l + 1)
             } else {
@@ -395,7 +395,7 @@ impl SkillSet {
     /// ```
     pub fn refund_skill(&mut self, skill: Skill) {
         if self.skills.contains_key(&skill) {
-            if let Some(skill_group_type) = SkillSet::get_skill_group_type_for_skill(&skill) {
+            if let Some(skill_group_type) = skill.get_skill_group_type() {
                 if let Some(mut skill_group) = self
                     .skill_groups
                     .iter_mut()
@@ -421,18 +421,6 @@ impl SkillSet {
         } else {
             warn!("Tried to refund skill that has not been unlocked");
         }
-    }
-
-    /// Returns the skill group type for a skill from the static skill group
-    /// definitions.
-    fn get_skill_group_type_for_skill(skill: &Skill) -> Option<SkillGroupType> {
-        SKILL_GROUP_DEFS.iter().find_map(|(key, val)| {
-            if val.contains(&skill) {
-                Some(*key)
-            } else {
-                None
-            }
-        })
     }
 
     /// Adds skill points to a skill group as long as the player has that skill
@@ -538,7 +526,7 @@ impl SkillSet {
 
     /// Checks if player has sufficient skill points to purchase a skill
     pub fn sufficient_skill_points(&self, skill: Skill) -> bool {
-        if let Some(skill_group_type) = SkillSet::get_skill_group_type_for_skill(&skill) {
+        if let Some(skill_group_type) = skill.get_skill_group_type() {
             if let Some(skill_group) = self
                 .skill_groups
                 .iter()
@@ -589,6 +577,18 @@ impl Skill {
     /// Returns the maximum level a skill can reach, returns None if the skill
     /// doesn't level
     pub fn get_max_level(self) -> Option<u16> { SKILL_MAX_LEVEL.get(&self).copied().flatten() }
+
+    /// Returns the skill group type for a skill from the static skill group
+    /// definitions.
+    pub fn get_skill_group_type(self) -> Option<SkillGroupType> {
+        SKILL_GROUP_DEFS.iter().find_map(|(key, val)| {
+            if val.contains(&self) {
+                Some(*key)
+            } else {
+                None
+            }
+        })
+    }
 }
 
 #[cfg(test)]
