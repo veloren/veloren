@@ -1,6 +1,6 @@
 use crate::{uid::Uid, util::Dir};
 use serde::{Deserialize, Serialize};
-use specs::{Component, FlaggedStorage, NullStorage};
+use specs::{Component, DerefFlaggedStorage, NullStorage};
 use specs_idvs::IdvStorage;
 use vek::*;
 
@@ -47,7 +47,7 @@ impl Component for PreviousVelDtCache {
 pub struct Scale(pub f32);
 
 impl Component for Scale {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 // Mass
@@ -55,7 +55,7 @@ impl Component for Scale {
 pub struct Mass(pub f32);
 
 impl Component for Mass {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 // Mass
@@ -82,21 +82,21 @@ impl Collider {
 }
 
 impl Component for Collider {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 #[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Gravity(pub f32);
 
 impl Component for Gravity {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 #[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Sticky;
 
 impl Component for Sticky {
-    type Storage = FlaggedStorage<Self, NullStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, NullStorage<Self>>;
 }
 
 // PhysicsState

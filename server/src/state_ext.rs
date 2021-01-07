@@ -81,13 +81,13 @@ impl StateExt for State {
                 self.ecs()
                     .write_storage::<comp::Health>()
                     .get_mut(entity)
-                    .map(|health| health.change_by(change));
+                    .map(|mut health| health.change_by(change));
             },
             Effect::Xp(xp) => {
                 self.ecs()
                     .write_storage::<comp::Stats>()
                     .get_mut(entity)
-                    .map(|stats| stats.exp.change_by(xp));
+                    .map(|mut stats| stats.exp.change_by(xp));
             },
             Effect::Damage(damage) => {
                 let loadouts = self.ecs().read_storage::<comp::Loadout>();
@@ -95,13 +95,13 @@ impl StateExt for State {
                 self.ecs()
                     .write_storage::<comp::Health>()
                     .get_mut(entity)
-                    .map(|health| health.change_by(change));
+                    .map(|mut health| health.change_by(change));
             },
             Effect::Buff(buff) => {
                 self.ecs()
                     .write_storage::<comp::Buffs>()
                     .get_mut(entity)
-                    .map(|buffs| {
+                    .map(|mut buffs| {
                         buffs.insert(comp::Buff::new(
                             buff.kind,
                             buff.data,

@@ -3,7 +3,7 @@ use crate::{
     comp::{body::humanoid::Species, skills::SkillSet, Body},
 };
 use serde::{Deserialize, Serialize};
-use specs::{Component, FlaggedStorage};
+use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::{error::Error, fmt};
 
@@ -141,5 +141,5 @@ impl Stats {
 }
 
 impl Component for Stats {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }

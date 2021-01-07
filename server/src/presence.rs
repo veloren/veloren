@@ -1,7 +1,7 @@
 use common_net::msg::PresenceKind;
 use hashbrown::HashSet;
 use serde::{Deserialize, Serialize};
-use specs::{Component, FlaggedStorage};
+use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 use vek::*;
 
@@ -21,7 +21,7 @@ impl Presence {
 }
 
 impl Component for Presence {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 // Distance from fuzzy_chunk before snapping to current chunk
@@ -36,5 +36,5 @@ pub struct RegionSubscription {
 }
 
 impl Component for RegionSubscription {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }

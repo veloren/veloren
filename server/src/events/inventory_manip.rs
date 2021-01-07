@@ -23,7 +23,7 @@ pub fn swap_lantern(
     entity: EcsEntity,
     lantern: &item::Lantern,
 ) {
-    if let Some(light) = storage.get_mut(entity) {
+    if let Some(mut light) = storage.get_mut(entity) {
         light.strength = lantern.strength();
         light.col = lantern.color();
     }
@@ -224,12 +224,14 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                 _ => (false, None),
                             });
                     if is_equippable {
-                        if let Some(loadout) = state.ecs().write_storage().get_mut(entity) {
+                        if let Some(mut loadout) =
+                            state.ecs().write_storage::<comp::Loadout>().get_mut(entity)
+                        {
                             if let Some(lantern) = lantern_opt {
                                 swap_lantern(&mut state.ecs().write_storage(), entity, &lantern);
                             }
                             let ability_map = state.ability_map();
-                            slot::equip(slot, inventory, loadout, &ability_map);
+                            slot::equip(slot, inventory, &mut loadout, &ability_map);
                             Some(comp::InventoryUpdateEvent::Used)
                         } else {
                             None
@@ -359,12 +361,14 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     }
                 },
                 Slot::Equip(slot) => {
-                    if let Some(loadout) = state.ecs().write_storage().get_mut(entity) {
+                    if let Some(mut loadout) =
+                        state.ecs().write_storage::<comp::Loadout>().get_mut(entity)
+                    {
                         if slot == slot::EquipSlot::Lantern {
                             snuff_lantern(&mut state.ecs().write_storage(), entity);
                         }
                         let ability_map = state.ability_map();
-                        slot::unequip(slot, inventory, loadout, &ability_map);
+                        slot::unequip(slot, inventory, &mut loadout, &ability_map);
                         Some(comp::InventoryUpdateEvent::Used)
                     } else {
                         error!(?entity, "Entity doesn't have a loadout, can't unequip...");
@@ -386,13 +390,15 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
 
         comp::InventoryManip::Swap(a, b) => {
             let ecs = state.ecs();
-            let mut inventories = ecs.write_storage();
-            let mut loadouts = ecs.write_storage();
+            let mut inventories = ecs.write_storage::<comp::Inventory>();
+            let mut loadouts = ecs.write_storage::<comp::Loadout>();
             let inventory = inventories.get_mut(entity);
-            let loadout = loadouts.get_mut(entity);
+            let mut loadout = loadouts.get_mut(entity);
             let ability_map = state.ability_map();
 
-            slot::swap(a, b, inventory, loadout, &ability_map);
+            slot::swap(a, b, inventory, loadout.as_deref_mut(), &ability_map);
+            // slot::swap(a, b, inventory, loadout.as_mut().map(|x| &mut **x),
+            // &ability_map);
 
             // :/
             drop(loadouts);
@@ -415,9 +421,9 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     .and_then(|inv| inv.remove(slot)),
                 Slot::Equip(slot) => state
                     .ecs()
-                    .write_storage()
+                    .write_storage::<comp::Loadout>()
                     .get_mut(entity)
-                    .and_then(|ldt| slot::loadout_remove(slot, ldt, &ability_map)),
+                    .and_then(|mut ldt| slot::loadout_remove(slot, &mut ldt, &ability_map)),
             };
             drop(ability_map);
 

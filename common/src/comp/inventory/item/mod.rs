@@ -13,7 +13,7 @@ use crate::{
 use crossbeam_utils::atomic::AtomicCell;
 use rand::prelude::*;
 use serde::{Deserialize, Serialize};
-use specs::{Component, FlaggedStorage};
+use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::{
     num::{NonZeroU32, NonZeroU64},
@@ -444,12 +444,12 @@ impl ItemDesc for ItemDef {
 }
 
 impl Component for Item {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ItemDrop(pub Item);
 
 impl Component for ItemDrop {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = IdvStorage<Self>;
 }

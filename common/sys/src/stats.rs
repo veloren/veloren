@@ -43,7 +43,7 @@ impl<'a> System<'a> for Sys {
 
         // Increment last change timer
         healths.set_event_emission(false); // avoid unnecessary syncing
-        for health in (&mut healths).join() {
+        for mut health in (&mut healths).join() {
             health.last_change.0 += f64::from(dt.0);
         }
         healths.set_event_emission(true);
@@ -66,7 +66,7 @@ impl<'a> System<'a> for Sys {
             };
 
             if set_dead {
-                let health = health.get_mut_unchecked();
+                let mut health = health.get_mut_unchecked();
                 server_event_emitter.emit(ServerEvent::Destroy {
                     entity,
                     cause: health.last_change.1.cause,
@@ -76,7 +76,8 @@ impl<'a> System<'a> for Sys {
             }
 
             if level_up {
-                let stat = stats.get_mut_unchecked();
+                let mut stat = stats.get_mut_unchecked();
+                let stat = &mut *stat;
                 while stat.exp.current() >= stat.exp.maximum() {
                     stat.exp.change_by(-(stat.exp.maximum() as i64));
                     stat.level.change_by(1);
@@ -84,7 +85,8 @@ impl<'a> System<'a> for Sys {
                     server_event_emitter.emit(ServerEvent::LevelUp(entity, stat.level.level()));
                 }
 
-                let health = health.get_mut_unchecked();
+                let mut health = health.get_mut_unchecked();
+                let health = &mut *health;
                 health.update_max_hp(Some(stat.body_type), stat.level.level());
                 health.set_to(health.maximum(), HealthSource::LevelUp);
             }
@@ -111,6 +113,7 @@ impl<'a> System<'a> for Sys {
 
                     if res {
                         let mut energy = energy.get_mut_unchecked();
+                        let energy = &mut *energy;
                         // Have to account for Calc I differential equations due to acceleration
                         energy.change_by(EnergyChange {
                             amount: (energy.regen_rate * dt.0

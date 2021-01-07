@@ -52,7 +52,7 @@ impl<'a> System<'a> for Sys {
         span!(_guard, "run", "controller::Sys::run");
         let mut server_emitter = server_bus.emitter();
 
-        for (entity, _uid, controller, character_state) in
+        for (entity, _uid, controller, mut character_state) in
             (&entities, &uids, &mut controllers, &mut character_states).join()
         {
             let mut inputs = &mut controller.inputs;

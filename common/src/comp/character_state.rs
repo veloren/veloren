@@ -5,7 +5,7 @@ use crate::{
     Damage, GroupTarget, Knockback,
 };
 use serde::{Deserialize, Serialize};
-use specs::{Component, FlaggedStorage, VecStorage};
+use specs::{Component, DerefFlaggedStorage, VecStorage};
 use specs_idvs::IdvStorage;
 use std::collections::VecDeque;
 
@@ -155,7 +155,7 @@ impl Default for CharacterState {
 }
 
 impl Component for CharacterState {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

@@ -1,7 +1,7 @@
 use crate::uid::Uid;
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
-use specs::{Component, FlaggedStorage};
+use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::{cmp::Ordering, time::Duration};
 
@@ -312,5 +312,5 @@ impl Buffs {
 pub type BuffId = u64;
 
 impl Component for Buffs {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }

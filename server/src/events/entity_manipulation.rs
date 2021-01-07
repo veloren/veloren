@@ -34,7 +34,7 @@ use vek::Vec3;
 
 pub fn handle_damage(server: &Server, entity: EcsEntity, change: HealthChange) {
     let ecs = &server.state.ecs();
-    if let Some(health) = ecs.write_storage::<Health>().get_mut(entity) {
+    if let Some(mut health) = ecs.write_storage::<Health>().get_mut(entity) {
         health.change_by(change);
     }
 }
@@ -219,13 +219,13 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
             let exp = exp_reward / (num_not_pets_in_range as f32 + ATTACKER_EXP_WEIGHT);
             exp_reward = exp * ATTACKER_EXP_WEIGHT;
             members_in_range.into_iter().for_each(|e| {
-                if let Some(stats) = stats.get_mut(e) {
+                if let Some(mut stats) = stats.get_mut(e) {
                     stats.exp.change_by(exp.ceil() as i64);
                 }
             });
         }
 
-        if let Some(attacker_stats) = stats.get_mut(attacker) {
+        if let Some(mut attacker_stats) = stats.get_mut(attacker) {
             // TODO: Discuss whether we should give EXP by Player
             // Killing or not.
             attacker_stats.exp.change_by(exp_reward.ceil() as i64);
@@ -258,7 +258,10 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
             .ecs()
             .write_storage::<comp::Energy>()
             .get_mut(entity)
-            .map(|energy| energy.set_to(energy.maximum(), comp::EnergySource::Revive));
+            .map(|mut energy| {
+                let energy = &mut *energy;
+                energy.set_to(energy.maximum(), comp::EnergySource::Revive)
+            });
         let _ = state
             .ecs()
             .write_storage::<comp::CharacterState>()
@@ -429,7 +432,7 @@ pub fn handle_delete(server: &mut Server, entity: EcsEntity) {
 pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>) {
     let state = &server.state;
     if vel.z <= -30.0 {
-        if let Some(health) = state.ecs().write_storage::<comp::Health>().get_mut(entity) {
+        if let Some(mut health) = state.ecs().write_storage::<comp::Health>().get_mut(entity) {
             let falldmg = (vel.z.powi(2) / 20.0 - 40.0) * 10.0;
             let damage = Damage {
                 source: DamageSource::Falling,
@@ -461,7 +464,7 @@ pub fn handle_respawn(server: &Server, entity: EcsEntity) {
             .ecs()
             .write_storage::<comp::Health>()
             .get_mut(entity)
-            .map(|health| health.revive());
+            .map(|mut health| health.revive());
         state
             .ecs()
             .write_storage::<comp::Pos>()
@@ -641,7 +644,7 @@ pub fn handle_explosion(
                             server.state().apply_effect(entity_b, effect.clone(), owner);
                             // Apply energy change
                             if let Some(owner) = owner_entity {
-                                if let Some(energy) =
+                                if let Some(mut energy) =
                                     ecs.write_storage::<comp::Energy>().get_mut(owner)
                                 {
                                     energy.change_by(EnergyChange {
@@ -677,7 +680,7 @@ pub fn handle_level_up(server: &mut Server, entity: EcsEntity, new_level: u32) {
 pub fn handle_aura(server: &mut Server, entity: EcsEntity, aura_change: aura::AuraChange) {
     let ecs = &server.state.ecs();
     let mut auras_all = ecs.write_storage::<comp::Auras>();
-    if let Some(auras) = auras_all.get_mut(entity) {
+    if let Some(mut auras) = auras_all.get_mut(entity) {
         use aura::AuraChange;
         match aura_change {
             AuraChange::Add(new_aura) => {
@@ -695,7 +698,7 @@ pub fn handle_aura(server: &mut Server, entity: EcsEntity, aura_change: aura::Au
 pub fn handle_buff(server: &mut Server, entity: EcsEntity, buff_change: buff::BuffChange) {
     let ecs = &server.state.ecs();
     let mut buffs_all = ecs.write_storage::<comp::Buffs>();
-    if let Some(buffs) = buffs_all.get_mut(entity) {
+    if let Some(mut buffs) = buffs_all.get_mut(entity) {
         use buff::BuffChange;
         match buff_change {
             BuffChange::Add(new_buff) => {
@@ -756,7 +759,7 @@ pub fn handle_buff(server: &mut Server, entity: EcsEntity, buff_change: buff::Bu
 
 pub fn handle_energy_change(server: &Server, entity: EcsEntity, change: EnergyChange) {
     let ecs = &server.state.ecs();
-    if let Some(energy) = ecs.write_storage::<Energy>().get_mut(entity) {
+    if let Some(mut energy) = ecs.write_storage::<Energy>().get_mut(entity) {
         energy.change_by(change);
     }
 }

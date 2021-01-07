@@ -58,7 +58,7 @@ impl<'a> System<'a> for Sys {
         let mut server_emitter = server_bus.emitter();
 
         // Attacks
-        for (entity, pos, physics, ori, projectile) in (
+        for (entity, pos, physics, ori, mut projectile) in (
             &entities,
             &positions,
             &physics_states,
@@ -99,6 +99,7 @@ impl<'a> System<'a> for Sys {
                     continue;
                 }
 
+                let projectile = &mut *projectile;
                 for effect in projectile.hit_entity.drain(..) {
                     match effect {
                         projectile::Effect::Damage(target, damage) => {
@@ -197,6 +198,7 @@ impl<'a> System<'a> for Sys {
 
             // Hit something solid
             if physics.on_wall.is_some() || physics.on_ground || physics.on_ceiling {
+                let projectile = &mut *projectile;
                 for effect in projectile.hit_solid.drain(..) {
                     match effect {
                         projectile::Effect::Explode(e) => {
