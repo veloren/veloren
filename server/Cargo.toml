@@ -19,7 +19,7 @@ world = { package = "veloren-world", path = "../world" }
 network = { package = "veloren_network", path = "../network", features = ["metrics", "compression"], default-features = false }
 
 specs = { git = "https://github.com/amethyst/specs.git", features = ["shred-derive"], rev = "d4435bdf496cf322c74886ca09dd8795984919b4" }
-specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", rev = "77048eefa5df750f44bbd1b9a13402a9f7a6cfc8" }
+specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", rev = "9fab7b396acd6454585486e50ae4bfe2069858a9" }
 
 tracing = "0.1"
 vek = { version = "0.12.0", features = ["serde"] }

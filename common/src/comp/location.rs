@@ -1,6 +1,6 @@
 use crate::resources::Time;
 use serde::{Deserialize, Serialize};
-use specs::{Component, FlaggedStorage};
+use specs::Component;
 use specs_idvs::IdvStorage;
 use vek::*;
 
@@ -28,7 +28,7 @@ impl Waypoint {
 }
 
 impl Component for Waypoint {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = IdvStorage<Self>;
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -39,7 +39,7 @@ impl WaypointArea {
 }
 
 impl Component for WaypointArea {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = IdvStorage<Self>;
 }
 
 impl Default for WaypointArea {

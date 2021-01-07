@@ -233,7 +233,7 @@ impl<'a> System<'a> for Sys {
         // Set start time on new beams
         // This change doesn't need to be recorded as it is not sent to the client
         beam_segments.set_event_emission(false);
-        (&mut beam_segments).join().for_each(|beam_segment| {
+        (&mut beam_segments).join().for_each(|mut beam_segment| {
             if beam_segment.creation.is_none() {
                 beam_segment.creation = Some(time);
             }

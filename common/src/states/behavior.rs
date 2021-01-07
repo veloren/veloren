@@ -9,7 +9,7 @@ use crate::{
 use specs::{
     hibitset,
     storage::{PairedStorage, SequentialRestriction},
-    Entity, FlaggedStorage, LazyUpdate,
+    DerefFlaggedStorage, Entity, LazyUpdate,
 };
 use specs_idvs::IdvStorage;
 
@@ -63,7 +63,7 @@ type RestrictedMut<'a, C> = PairedStorage<
     'a,
     'a,
     C,
-    &'a mut FlaggedStorage<C, IdvStorage<C>>,
+    &'a mut DerefFlaggedStorage<C, IdvStorage<C>>,
     &'a hibitset::BitSet,
     SequentialRestriction,
 >;

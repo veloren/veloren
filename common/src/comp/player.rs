@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use specs::{Component, FlaggedStorage, NullStorage};
+use specs::{Component, DerefFlaggedStorage, NullStorage};
 use specs_idvs::IdvStorage;
 use uuid::Uuid;
 
@@ -30,7 +30,7 @@ impl Player {
 }
 
 impl Component for Player {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]

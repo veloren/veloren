@@ -217,7 +217,7 @@ impl<'a> System<'a> for Sys {
         // Set start time on new shockwaves
         // This change doesn't need to be recorded as it is not sent to the client
         shockwaves.set_event_emission(false);
-        (&mut shockwaves).join().for_each(|shockwave| {
+        (&mut shockwaves).join().for_each(|mut shockwave| {
             if shockwave.creation.is_none() {
                 shockwave.creation = Some(time);
             }

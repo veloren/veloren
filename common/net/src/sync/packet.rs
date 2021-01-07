@@ -28,7 +28,7 @@ pub fn handle_insert<C: Component>(comp: C, entity: Entity, world: &World) {
 }
 /// Useful for implementing CompPacket trait
 pub fn handle_modify<C: Component + Debug>(comp: C, entity: Entity, world: &World) {
-    if let Some(c) = world.write_storage::<C>().get_mut(entity) {
+    if let Some(mut c) = world.write_storage::<C>().get_mut(entity) {
         *c = comp
     } else {
         error!(

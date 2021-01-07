@@ -2,7 +2,7 @@ use crate::{comp::Alignment, uid::Uid};
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use slab::Slab;
-use specs::{Component, FlaggedStorage, Join};
+use specs::{Component, DerefFlaggedStorage, Join};
 use specs_idvs::IdvStorage;
 use tracing::{error, warn};
 
@@ -25,7 +25,7 @@ pub const ENEMY: Group = Group(u32::MAX);
 pub const NPC: Group = Group(u32::MAX - 1);
 
 impl Component for Group {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 pub struct Invite(pub specs::Entity);

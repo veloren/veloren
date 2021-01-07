@@ -30,7 +30,7 @@ impl<'a> System<'a> for Sys {
         // Set to false to avoid spamming server
         buffs.set_event_emission(false);
         healths.set_event_emission(false);
-        for (entity, buff_comp, health) in (&entities, &mut buffs, &mut healths).join() {
+        for (entity, mut buff_comp, mut health) in (&entities, &mut buffs, &mut healths).join() {
             let mut expired_buffs = Vec::<BuffId>::new();
             for (id, buff) in buff_comp.buffs.iter_mut() {
                 // Tick the buff and subtract delta from it
@@ -66,6 +66,7 @@ impl<'a> System<'a> for Sys {
             health.reset_max();
 
             // Iterator over the lists of buffs by kind
+            let buff_comp = &mut *buff_comp;
             for buff_ids in buff_comp.kinds.values() {
                 // Get the strongest of this buff kind
                 if let Some(buff) = buff_comp.buffs.get_mut(&buff_ids[0]) {
@@ -113,9 +114,13 @@ impl<'a> System<'a> for Sys {
                             },
                             BuffEffect::MaxHealthModifier { value, kind } => match kind {
                                 ModifierKind::Additive => {
-                                    health.set_maximum((health.maximum() as f32 + *value) as u32);
+                                    let health = &mut *health;
+                                    let buffed_health_max =
+                                        (health.maximum() as f32 + *value) as u32;
+                                    health.set_maximum(buffed_health_max);
                                 },
                                 ModifierKind::Fractional => {
+                                    let health = &mut *health;
                                     health.set_maximum((health.maximum() as f32 * *value) as u32);
                                 },
                             },

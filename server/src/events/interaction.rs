@@ -100,7 +100,7 @@ pub fn handle_unmount(server: &mut Server, mounter: EcsEntity) {
             .ecs()
             .write_storage::<comp::MountState>()
             .get_mut(mountee_entity)
-            .map(|ms| *ms = comp::MountState::Unmounted);
+            .map(|mut ms| *ms = comp::MountState::Unmounted);
     }
     state.delete_component::<comp::Mounting>(mounter);
 }
@@ -174,7 +174,7 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
 
         // Put possess item into loadout
         let mut loadouts = ecs.write_storage::<comp::Loadout>();
-        let loadout = loadouts
+        let mut loadout = loadouts
             .entry(possesse)
             .expect("Could not read loadouts component while possessing")
             .or_insert(comp::Loadout::default());
@@ -182,6 +182,7 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
         let item = comp::Item::new_from_asset_expect("common.items.debug.possess");
         if let item::ItemKind::Tool(_) = item.kind() {
             let debug_item = comp::ItemConfig::from((item, &*ability_map));
+            let loadout = &mut *loadout;
             std::mem::swap(&mut loadout.active_item, &mut loadout.second_item);
             loadout.active_item = Some(debug_item);
         }
