@@ -443,6 +443,10 @@ impl Inventory {
     /// containing items aren't inserted into the inventory as this is not
     /// currently supported.
     pub fn pickup_item(&mut self, mut item: Item) -> Result<(), Item> {
+        if item.is_stackable() {
+            return self.push(item).map_or(Ok(()), Err);
+        }
+
         if self.free_slots() < item.populated_slots() + 1 {
             return Err(item);
         }
