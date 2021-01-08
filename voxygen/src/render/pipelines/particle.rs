@@ -139,7 +139,7 @@ impl Instance {
         }
     }
 
-    pub fn new_beam(
+    pub fn new_directed(
         inst_time: f64,
         lifespan: f32,
         inst_mode: ParticleMode,
