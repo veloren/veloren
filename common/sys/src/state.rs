@@ -207,12 +207,12 @@ impl State {
                 }
             },
             Err(_) => {
-                info!("Error occurred when loading plugins. Running without plugins instead.");
+                tracing::info!(
+                    "Error occurred when loading plugins. Running without plugins instead."
+                );
                 PluginMgr::default()
             },
         });
-
-        //manager.execute_event("on_load", &);
 
         ecs
     }
