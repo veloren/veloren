@@ -65,7 +65,9 @@ impl Plugin {
             .iter()
             .map(|path| {
                 let wasm_data = files.remove(path).ok_or(PluginError::NoSuchModule)?;
-                PluginModule::new(&wasm_data).map_err(PluginError::PluginModuleError)
+                PluginModule::new(data.name.to_owned(), &wasm_data).map_err(|e| {
+                    PluginError::PluginModuleError(data.name.to_owned(), "<init>".to_owned(), e)
+                })
             })
             .collect::<Result<_, _>>()?;
 
@@ -87,9 +89,15 @@ impl Plugin {
         self.modules
             .iter()
             .flat_map(|module| {
-                module
-                    .try_execute(event_name, event)
-                    .map(|x| x.map_err(PluginError::PluginModuleError))
+                module.try_execute(event_name, event).map(|x| {
+                    x.map_err(|e| {
+                        PluginError::PluginModuleError(
+                            self.data.name.to_owned(),
+                            event_name.to_owned(),
+                            e,
+                        )
+                    })
+                })
             })
             .collect::<Result<Vec<_>, _>>()
     }

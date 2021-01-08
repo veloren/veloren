@@ -1052,7 +1052,7 @@ impl Server {
                                         self.notify_client(
                                             entity,
                                             ServerGeneral::server_msg(
-                                                ChatType::CommandInfo,
+                                                comp::ChatType::CommandInfo,
                                                 e.join("\n"),
                                             ),
                                         );
