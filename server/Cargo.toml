@@ -9,7 +9,7 @@ worldgen = []
 simd = ["vek/platform_intrinsics"]
 plugins = ["common-sys/plugins"]
 
-default = ["worldgen", "simd"]
+default = ["worldgen", "plugins", "simd"]
 
 [dependencies]
 common = { package = "veloren-common", path = "../common" }

@@ -1,28 +1,30 @@
 use bincode::ErrorKind;
-use wasmer_runtime::error::{ResolveError, RuntimeError};
+use wasmer::{ExportError, InstantiationError, RuntimeError};
 
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug)]
 pub enum PluginError {
     Io(std::io::Error),
     Toml(toml::de::Error),
     NoConfig,
     NoSuchModule,
-    PluginModuleError(PluginModuleError),
+    Encoding(Box<ErrorKind>),
+    PluginModuleError(String, String, PluginModuleError),
 }
 
 #[derive(Debug)]
 pub enum PluginModuleError {
-    FindFunction(String),
-    FunctionGet(ResolveError),
-    Compile(wasmer_runtime::error::CompileError),
-    Instantiate(wasmer_runtime::error::Error),
+    InstantiationError(InstantiationError),
     MemoryAllocation(MemoryAllocationError),
+    MemoryUninit(ExportError),
+    FindFunction(ExportError),
     RunFunction(RuntimeError),
+    InvalidArgumentType(),
     Encoding(Box<ErrorKind>),
 }
 
 #[derive(Debug)]
 pub enum MemoryAllocationError {
-    AllocatorNotFound(ResolveError),
+    AllocatorNotFound(ExportError),
     CantAllocate(RuntimeError),
 }
