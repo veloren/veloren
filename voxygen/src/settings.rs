@@ -532,7 +532,7 @@ impl Default for GameplaySettings {
             zoom_sensitivity: 100,
             zoom_inversion: false,
             mouse_y_inversion: false,
-            smooth_pan_enable: true,
+            smooth_pan_enable: false,
             toggle_debug: false,
             sct: true,
             sct_player_batch: false,

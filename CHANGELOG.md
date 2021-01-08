@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Translations are now folders with multiple files instead of a huge single file
 - Default inventory slots reduced to 18 - existing characters given 3x 6-slot bags as compensation
 - Protection rating was moved to the top left of the loadout view 
+- Changed camera smoothing to be off by default.
 
 ### Removed
 
