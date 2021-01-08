@@ -223,7 +223,7 @@ pub enum SkillGroupType {
 impl SkillGroupType {
     /// Gets the cost in experience of earning a skill point
     pub fn skill_point_cost(self, level: u16) -> u16 {
-        10 * (35.0 * (0.8 * level as f32 - 1.5).atan() + 50.0).floor() as u16
+        10 * (35.0 * (0.08 * level as f32 - 1.5).atan() + 50.0).floor() as u16
     }
 
     /// Gets the total amount of skill points that can be spent in a particular
@@ -447,8 +447,8 @@ impl SkillSet {
             .iter_mut()
             .find(|x| x.skill_group_type == skill_group_type)
         {
-            skill_group.available_sp += number_of_skill_points;
-            skill_group.earned_sp += number_of_skill_points;
+            skill_group.available_sp = skill_group.available_sp.saturating_add(number_of_skill_points);
+            skill_group.earned_sp = skill_group.earned_sp.saturating_add(number_of_skill_points);
         } else {
             warn!("Tried to add skill points to a skill group that player does not have");
         }
@@ -535,7 +535,7 @@ impl SkillSet {
                 .find(|x| x.skill_group_type == skill_group_type)
             {
                 let needed_sp = self.skill_point_cost(skill);
-                skill_group.available_sp > needed_sp
+                skill_group.available_sp >= needed_sp
             } else {
                 false
             }
