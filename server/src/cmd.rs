@@ -13,7 +13,7 @@ use common::{
         self,
         aura::{Aura, AuraKind},
         buff::{BuffCategory, BuffData, BuffKind, BuffSource},
-        ChatType, Item, LightEmitter, WaypointArea,
+        ChatType, Inventory, Item, LightEmitter, WaypointArea,
     },
     effect::Effect,
     event::{EventBus, ServerEvent},
@@ -82,6 +82,7 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::Campfire => handle_spawn_campfire,
         ChatCommand::Debug => handle_debug,
         ChatCommand::DebugColumn => handle_debug_column,
+        ChatCommand::DropAll => handle_drop_all,
         ChatCommand::Dummy => handle_spawn_training_dummy,
         ChatCommand::Explosion => handle_explosion,
         ChatCommand::Faction => handle_faction,
@@ -126,6 +127,50 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
     }
 }
 
+fn handle_drop_all(
+    server: &mut Server,
+    client: EcsEntity,
+    _target: EcsEntity,
+    _args: String,
+    _action: &ChatCommand,
+) {
+    let pos = server
+        .state
+        .ecs()
+        .read_storage::<comp::Pos>()
+        .get(client)
+        .cloned();
+
+    let mut items = Vec::new();
+    if let Some(mut inventory) = server
+        .state
+        .ecs()
+        .write_storage::<comp::Inventory>()
+        .get_mut(client)
+    {
+        items = inventory.drain().collect();
+    }
+
+    let mut rng = rand::thread_rng();
+
+    let pos = pos.expect("expected pos for entity using dropall command");
+    for item in items {
+        let vel = Vec3::new(rng.gen_range(-0.1, 0.1), rng.gen_range(-0.1, 0.1), 0.5);
+
+        server
+            .state
+            .create_object(Default::default(), comp::object::Body::Pouch)
+            .with(comp::Pos(Vec3::new(
+                pos.0.x + rng.gen_range(5.0, 10.0),
+                pos.0.y + rng.gen_range(5.0, 10.0),
+                pos.0.z + 5.0,
+            )))
+            .with(item)
+            .with(comp::Vel(vel))
+            .build();
+    }
+}
+
 #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
 fn handle_give_item(
     server: &mut Server,
@@ -146,7 +191,7 @@ fn handle_give_item(
                     .ecs()
                     .write_storage::<comp::Inventory>()
                     .get_mut(target)
-                    .map(|inv| {
+                    .map(|mut inv| {
                         if inv.push(item).is_some() {
                             server.notify_client(
                                 client,
@@ -167,7 +212,7 @@ fn handle_give_item(
                     .ecs()
                     .write_storage::<comp::Inventory>()
                     .get_mut(target)
-                    .map(|inv| {
+                    .map(|mut inv| {
                         for i in 0..give_amount {
                             if inv.push(item.duplicate()).is_some() {
                                 server.notify_client(
@@ -768,10 +813,9 @@ fn handle_spawn(
 
                             let body = body();
 
-                            let map = server.state().ability_map();
-                            let loadout =
-                                LoadoutBuilder::build_loadout(body, None, &map, None).build();
-                            drop(map);
+                            let loadout = LoadoutBuilder::build_loadout(body, None, None).build();
+
+                            let inventory = Inventory::new_with_loadout(loadout);
 
                             let mut entity_base = server
                                 .state
@@ -779,7 +823,7 @@ fn handle_spawn(
                                     pos,
                                     comp::Stats::new(get_npc_name(id), body),
                                     comp::Health::new(body, 1),
-                                    loadout,
+                                    inventory,
                                     body,
                                 )
                                 .with(comp::Vel(vel))
@@ -892,7 +936,7 @@ fn handle_spawn_training_dummy(
 
             server
                 .state
-                .create_npc(pos, stats, health, comp::Loadout::default(), body)
+                .create_npc(pos, stats, health, Inventory::new_empty(), body)
                 .with(comp::Vel(vel))
                 .with(comp::MountState::Unmounted)
                 .build();
@@ -2093,7 +2137,7 @@ fn handle_debug(
             .ecs()
             .write_storage::<comp::Inventory>()
             .get_mut(target)
-            .map(|inv| inv.push_all_unique(items.into_iter()));
+            .map(|mut inv| inv.push_all_unique(items.into_iter()));
         let _ = server
             .state
             .ecs()

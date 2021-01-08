@@ -9,13 +9,14 @@ use common::comp::{
         tool::{AbilityMap, ToolKind},
         ItemKind,
     },
-    Energy, Inventory, Loadout,
+    slot::InvSlotId,
+    Energy, Inventory,
 };
 use conrod_core::{image, Color};
 
 pub use common::comp::slot::{ArmorSlot, EquipSlot};
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum SlotKind {
     Inventory(InventorySlot),
     Equip(EquipSlot),
@@ -25,8 +26,8 @@ pub enum SlotKind {
 
 pub type SlotManager = slot::SlotManager<SlotKind>;
 
-#[derive(Clone, Copy, PartialEq)]
-pub struct InventorySlot(pub usize);
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct InventorySlot(pub InvSlotId);
 
 impl SlotKey<Inventory, ItemImgs> for InventorySlot {
     type ImageKey = ItemKey;
@@ -47,32 +48,15 @@ impl SlotKey<Inventory, ItemImgs> for InventorySlot {
     }
 }
 
-impl SlotKey<Loadout, ItemImgs> for EquipSlot {
+impl SlotKey<Inventory, ItemImgs> for EquipSlot {
     type ImageKey = ItemKey;
 
-    fn image_key(&self, source: &Loadout) -> Option<(Self::ImageKey, Option<Color>)> {
-        let item = match self {
-            EquipSlot::Armor(ArmorSlot::Shoulders) => source.shoulder.as_ref(),
-            EquipSlot::Armor(ArmorSlot::Chest) => source.chest.as_ref(),
-            EquipSlot::Armor(ArmorSlot::Belt) => source.belt.as_ref(),
-            EquipSlot::Armor(ArmorSlot::Hands) => source.hand.as_ref(),
-            EquipSlot::Armor(ArmorSlot::Legs) => source.pants.as_ref(),
-            EquipSlot::Armor(ArmorSlot::Feet) => source.foot.as_ref(),
-            EquipSlot::Armor(ArmorSlot::Back) => source.back.as_ref(),
-            EquipSlot::Armor(ArmorSlot::Ring) => source.ring.as_ref(),
-            EquipSlot::Armor(ArmorSlot::Neck) => source.neck.as_ref(),
-            EquipSlot::Armor(ArmorSlot::Head) => source.head.as_ref(),
-            EquipSlot::Armor(ArmorSlot::Tabard) => source.tabard.as_ref(),
-            EquipSlot::Mainhand => source.active_item.as_ref().map(|i| &i.item),
-            EquipSlot::Offhand => source.second_item.as_ref().map(|i| &i.item),
-            EquipSlot::Lantern => source.lantern.as_ref(),
-            EquipSlot::Glider => source.glider.as_ref(),
-        };
-
+    fn image_key(&self, source: &Inventory) -> Option<(Self::ImageKey, Option<Color>)> {
+        let item = source.equipped(*self);
         item.map(|i| (i.into(), None))
     }
 
-    fn amount(&self, _: &Loadout) -> Option<u32> { None }
+    fn amount(&self, _: &Inventory) -> Option<u32> { None }
 
     fn image_id(key: &Self::ImageKey, source: &ItemImgs) -> image::Id {
         source.img_id_or_not_found_img(key.clone())
@@ -90,13 +74,7 @@ pub enum HotbarImage {
     BowJumpBurst,
 }
 
-type HotbarSource<'a> = (
-    &'a hotbar::State,
-    &'a Inventory,
-    &'a Loadout,
-    &'a Energy,
-    &'a AbilityMap,
-);
+type HotbarSource<'a> = (&'a hotbar::State, &'a Inventory, &'a Energy, &'a AbilityMap);
 type HotbarImageSource<'a> = (&'a ItemImgs, &'a img_ids::Imgs);
 
 impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
@@ -104,7 +82,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
 
     fn image_key(
         &self,
-        (hotbar, inventory, loadout, energy, ability_map): &HotbarSource<'a>,
+        (hotbar, inventory, energy, ability_map): &HotbarSource<'a>,
     ) -> Option<(Self::ImageKey, Option<Color>)> {
         hotbar.get(*self).and_then(|contents| match contents {
             hotbar::SlotContents::Inventory(idx) => inventory
@@ -112,7 +90,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                 .map(|item| HotbarImage::Item(item.into()))
                 .map(|i| (i, None)),
             hotbar::SlotContents::Ability3 => {
-                let tool = match loadout.active_item.as_ref().map(|i| i.item.kind()) {
+                let tool = match inventory.equipped(EquipSlot::Mainhand).map(|i| i.kind()) {
                     Some(ItemKind::Tool(tool)) => Some(tool),
                     _ => None,
                 };
@@ -146,7 +124,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
         })
     }
 
-    fn amount(&self, (hotbar, inventory, _, _, _): &HotbarSource<'a>) -> Option<u32> {
+    fn amount(&self, (hotbar, inventory, _, _): &HotbarSource<'a>) -> Option<u32> {
         hotbar
             .get(*self)
             .and_then(|content| match content {

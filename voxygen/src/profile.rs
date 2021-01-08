@@ -1,5 +1,5 @@
 use crate::{hud, settings};
-use common::character::CharacterId;
+use common::{character::CharacterId, comp::slot::InvSlotId};
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use std::{fs, io::Write, path::PathBuf};
@@ -13,23 +13,25 @@ pub struct CharacterProfile {
     pub hotbar_slots: [Option<hud::HotbarSlotContents>; 10],
 }
 
-const DEFAULT_SLOTS: [Option<hud::HotbarSlotContents>; 10] = [
-    None,
-    None,
-    None,
-    None,
-    None,
-    Some(hud::HotbarSlotContents::Inventory(0)),
-    Some(hud::HotbarSlotContents::Inventory(1)),
-    None,
-    None,
-    None,
-];
+const fn default_slots() -> [Option<hud::HotbarSlotContents>; 10] {
+    [
+        None,
+        None,
+        None,
+        None,
+        None,
+        Some(hud::HotbarSlotContents::Inventory(InvSlotId::new(0, 0))),
+        Some(hud::HotbarSlotContents::Inventory(InvSlotId::new(0, 1))),
+        None,
+        None,
+        None,
+    ]
+}
 
 impl Default for CharacterProfile {
     fn default() -> Self {
         CharacterProfile {
-            hotbar_slots: DEFAULT_SLOTS,
+            hotbar_slots: default_slots(),
         }
     }
 }
@@ -127,7 +129,7 @@ impl Profile {
             .get(server)
             .and_then(|s| s.characters.get(&character_id))
             .map(|c| c.hotbar_slots)
-            .unwrap_or(DEFAULT_SLOTS)
+            .unwrap_or_else(default_slots)
     }
 
     /// Set the hotbar_slots for the requested character_id.
@@ -222,6 +224,7 @@ impl Profile {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use common::comp::inventory::slot::InvSlotId;
 
     #[test]
     fn test_get_slots_with_empty_profile() {
@@ -233,8 +236,8 @@ mod tests {
             None,
             None,
             None,
-            Some(hud::HotbarSlotContents::Inventory(0)),
-            Some(hud::HotbarSlotContents::Inventory(1)),
+            Some(hud::HotbarSlotContents::Inventory(InvSlotId::new(0, 0))),
+            Some(hud::HotbarSlotContents::Inventory(InvSlotId::new(0, 1))),
             None,
             None,
             None,
@@ -250,8 +253,8 @@ mod tests {
             None,
             None,
             None,
-            Some(hud::HotbarSlotContents::Inventory(0)),
-            Some(hud::HotbarSlotContents::Inventory(1)),
+            Some(hud::HotbarSlotContents::Inventory(InvSlotId::new(0, 0))),
+            Some(hud::HotbarSlotContents::Inventory(InvSlotId::new(0, 1))),
             None,
             None,
             None,

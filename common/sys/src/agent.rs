@@ -4,12 +4,13 @@ use common::{
         agent::Activity,
         group,
         group::Invite,
+        inventory::slot::EquipSlot,
         item::{
             tool::{ToolKind, UniqueKind},
             ItemKind,
         },
         Agent, Alignment, Body, CharacterState, ControlAction, ControlEvent, Controller, Energy,
-        GroupManip, Health, LightEmitter, Loadout, MountState, Ori, PhysicsState, Pos, Scale,
+        GroupManip, Health, Inventory, LightEmitter, MountState, Ori, PhysicsState, Pos, Scale,
         UnresolvedChatMsg, Vel,
     },
     event::{EventBus, ServerEvent},
@@ -52,7 +53,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Ori>,
         ReadStorage<'a, Scale>,
         ReadStorage<'a, Health>,
-        ReadStorage<'a, Loadout>,
+        ReadStorage<'a, Inventory>,
         ReadStorage<'a, PhysicsState>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, group::Group>,
@@ -82,7 +83,7 @@ impl<'a> System<'a> for Sys {
             orientations,
             scales,
             healths,
-            loadouts,
+            inventories,
             physics_states,
             uids,
             groups,
@@ -108,7 +109,7 @@ impl<'a> System<'a> for Sys {
             &velocities,
             &orientations,
             alignments.maybe(),
-            &loadouts,
+            &inventories,
             &physics_states,
             bodies.maybe(),
             &uids,
@@ -130,7 +131,7 @@ impl<'a> System<'a> for Sys {
                 vel,
                 ori,
                 alignment,
-                loadout,
+                inventory,
                 physics_state,
                 body,
                 uid,
@@ -157,7 +158,7 @@ impl<'a> System<'a> for Sys {
                 let mut event_emitter = event_bus.emitter();
                 // Light lanterns at night
                 // TODO Add a method to turn on NPC lanterns underground
-                let lantern_equipped = loadout.lantern.as_ref().map_or(false, |item| {
+                let lantern_equipped = inventory.equipped(EquipSlot::Lantern).as_ref().map_or(false, |item| {
                     matches!(item.kind(), comp::item::ItemKind::Lantern(_))
                 });
                 let lantern_turned_on = light_emitter.is_some();
@@ -370,8 +371,8 @@ impl<'a> System<'a> for Sys {
                                 Theropod,
                             }
 
-                            let tactic = match loadout.active_item.as_ref().and_then(|ic| {
-                                if let ItemKind::Tool(tool) = &ic.item.kind() {
+                            let tactic = match inventory.equipped(EquipSlot::Mainhand).as_ref().and_then(|item| {
+                                if let ItemKind::Tool(tool) = &item.kind() {
                                     Some(&tool.kind)
                                 } else {
                                     None

@@ -2,7 +2,7 @@ use super::SysTimer;
 use common::{
     comp::{
         Auras, BeamSegment, Body, Buffs, CanBuild, CharacterState, Collider, Energy, Gravity,
-        Group, Health, Item, LightEmitter, Loadout, Mass, MountState, Mounting, Ori, Player, Pos,
+        Group, Health, Inventory, Item, LightEmitter, Mass, MountState, Mounting, Ori, Player, Pos,
         Scale, Shockwave, Stats, Sticky, Vel,
     },
     span,
@@ -62,7 +62,7 @@ pub struct TrackedComps<'a> {
     pub collider: ReadStorage<'a, Collider>,
     pub sticky: ReadStorage<'a, Sticky>,
     pub gravity: ReadStorage<'a, Gravity>,
-    pub loadout: ReadStorage<'a, Loadout>,
+    pub inventory: ReadStorage<'a, Inventory>,
     pub character_state: ReadStorage<'a, CharacterState>,
     pub shockwave: ReadStorage<'a, Shockwave>,
     pub beam_segment: ReadStorage<'a, BeamSegment>,
@@ -145,7 +145,7 @@ impl<'a> TrackedComps<'a> {
             .get(entity)
             .copied()
             .map(|c| comps.push(c.into()));
-        self.loadout
+        self.inventory
             .get(entity)
             .cloned()
             .map(|c| comps.push(c.into()));
@@ -181,6 +181,7 @@ pub struct ReadTrackers<'a> {
     pub health: ReadExpect<'a, UpdateTracker<Health>>,
     pub can_build: ReadExpect<'a, UpdateTracker<CanBuild>>,
     pub light_emitter: ReadExpect<'a, UpdateTracker<LightEmitter>>,
+    pub inventory: ReadExpect<'a, UpdateTracker<Inventory>>,
     pub item: ReadExpect<'a, UpdateTracker<Item>>,
     pub scale: ReadExpect<'a, UpdateTracker<Scale>>,
     pub mounting: ReadExpect<'a, UpdateTracker<Mounting>>,
@@ -190,7 +191,6 @@ pub struct ReadTrackers<'a> {
     pub collider: ReadExpect<'a, UpdateTracker<Collider>>,
     pub sticky: ReadExpect<'a, UpdateTracker<Sticky>>,
     pub gravity: ReadExpect<'a, UpdateTracker<Gravity>>,
-    pub loadout: ReadExpect<'a, UpdateTracker<Loadout>>,
     pub character_state: ReadExpect<'a, UpdateTracker<CharacterState>>,
     pub shockwave: ReadExpect<'a, UpdateTracker<Shockwave>>,
     pub beam_segment: ReadExpect<'a, UpdateTracker<BeamSegment>>,
@@ -228,7 +228,7 @@ impl<'a> ReadTrackers<'a> {
             .with_component(&comps.uid, &*self.collider, &comps.collider, filter)
             .with_component(&comps.uid, &*self.sticky, &comps.sticky, filter)
             .with_component(&comps.uid, &*self.gravity, &comps.gravity, filter)
-            .with_component(&comps.uid, &*self.loadout, &comps.loadout, filter)
+            .with_component(&comps.uid, &*self.inventory, &comps.inventory, filter)
             .with_component(
                 &comps.uid,
                 &*self.character_state,
@@ -263,7 +263,7 @@ pub struct WriteTrackers<'a> {
     collider: WriteExpect<'a, UpdateTracker<Collider>>,
     sticky: WriteExpect<'a, UpdateTracker<Sticky>>,
     gravity: WriteExpect<'a, UpdateTracker<Gravity>>,
-    loadout: WriteExpect<'a, UpdateTracker<Loadout>>,
+    inventory: WriteExpect<'a, UpdateTracker<Inventory>>,
     character_state: WriteExpect<'a, UpdateTracker<CharacterState>>,
     shockwave: WriteExpect<'a, UpdateTracker<Shockwave>>,
     beam: WriteExpect<'a, UpdateTracker<BeamSegment>>,
@@ -290,7 +290,7 @@ fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
     trackers.collider.record_changes(&comps.collider);
     trackers.sticky.record_changes(&comps.sticky);
     trackers.gravity.record_changes(&comps.gravity);
-    trackers.loadout.record_changes(&comps.loadout);
+    trackers.inventory.record_changes(&comps.inventory);
     trackers
         .character_state
         .record_changes(&comps.character_state);
@@ -355,7 +355,7 @@ pub fn register_trackers(world: &mut World) {
     world.register_tracker::<Collider>();
     world.register_tracker::<Sticky>();
     world.register_tracker::<Gravity>();
-    world.register_tracker::<Loadout>();
+    world.register_tracker::<Inventory>();
     world.register_tracker::<CharacterState>();
     world.register_tracker::<Shockwave>();
     world.register_tracker::<BeamSegment>();

@@ -1,7 +1,7 @@
 #![deny(unsafe_code)]
 #![allow(clippy::option_map_unit_fn)]
 #![deny(clippy::clone_on_ref_ptr)]
-#![feature(bool_to_option, drain_filter, option_zip)]
+#![feature(bool_to_option, drain_filter, option_unwrap_none, option_zip)]
 #![cfg_attr(not(feature = "worldgen"), feature(const_panic))]
 
 pub mod alias_validator;
@@ -46,10 +46,13 @@ use crate::{
     state_ext::StateExt,
     sys::sentinel::{DeletedEntities, TrackedComps},
 };
+#[cfg(not(feature = "worldgen"))]
+use common::grid::Grid;
 use common::{
     assets::AssetExt,
     cmd::ChatCommand,
     comp,
+    comp::CharacterAbility,
     event::{EventBus, ServerEvent},
     outcome::Outcome,
     recipe::default_recipe_book,
@@ -86,6 +89,7 @@ use test_world::{IndexOwned, World};
 use tracing::{debug, error, info, trace};
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
+
 #[cfg(feature = "worldgen")]
 use world::{
     sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP},
@@ -168,13 +172,13 @@ impl Server {
             .ecs_mut()
             .insert(CharacterUpdater::new(&persistence_db_dir)?);
 
-        let ability_map = comp::item::tool::AbilityMap::load_expect_cloned(
+        let ability_map = comp::item::tool::AbilityMap::<CharacterAbility>::load_expect_cloned(
             "common.abilities.weapon_ability_manifest",
         );
+        state.ecs_mut().insert(ability_map);
         state
             .ecs_mut()
-            .insert(CharacterLoader::new(&persistence_db_dir, &ability_map)?);
-        state.ecs_mut().insert(ability_map);
+            .insert(CharacterLoader::new(&persistence_db_dir)?);
         state.ecs_mut().insert(Vec::<Outcome>::new());
 
         // System timers for performance monitoring
@@ -256,10 +260,10 @@ impl Server {
         let map = WorldMapMsg {
             dimensions_lg: Vec2::zero(),
             max_height: 1.0,
-            rgba: vec![0],
+            rgba: Grid::new(Vec2::new(1, 1), 1),
             horizons: [(vec![0], vec![0]), (vec![0], vec![0])],
             sea_level: 0.0,
-            alt: vec![30],
+            alt: Grid::new(Vec2::new(1, 1), 1),
             sites: Vec::new(),
         };
 

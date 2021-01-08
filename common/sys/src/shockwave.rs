@@ -1,7 +1,7 @@
 use common::{
     comp::{
-        group, Body, Health, HealthSource, Last, Loadout, Ori, PhysicsState, Pos, Scale, Shockwave,
-        ShockwaveHitEntities,
+        group, Body, Health, HealthSource, Inventory, Last, Ori, PhysicsState, Pos, Scale,
+        Shockwave, ShockwaveHitEntities,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     resources::{DeltaTime, Time},
@@ -31,7 +31,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Scale>,
         ReadStorage<'a, Body>,
         ReadStorage<'a, Health>,
-        ReadStorage<'a, Loadout>,
+        ReadStorage<'a, Inventory>,
         ReadStorage<'a, group::Group>,
         ReadStorage<'a, PhysicsState>,
         WriteStorage<'a, Shockwave>,
@@ -54,7 +54,7 @@ impl<'a> System<'a> for Sys {
             scales,
             bodies,
             healths,
-            loadouts,
+            inventories,
             groups,
             physics_states,
             mut shockwaves,
@@ -199,7 +199,7 @@ impl<'a> System<'a> for Sys {
                         }
 
                         let owner_uid = shockwave.owner.unwrap_or(*uid);
-                        let change = damage.modify_damage(loadouts.get(b), Some(owner_uid));
+                        let change = damage.modify_damage(inventories.get(b), Some(owner_uid));
 
                         server_emitter.emit(ServerEvent::Damage { entity: b, change });
                         shockwave_hit_list.hit_entities.push(*uid_b);

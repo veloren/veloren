@@ -9,6 +9,7 @@ extern crate diesel;
 use super::{error::Error, models::*, schema, VelorenTransaction};
 use crate::{
     comp,
+    comp::Inventory,
     persistence::{
         character::conversions::{
             convert_body_from_database, convert_body_to_database_json,
@@ -22,10 +23,7 @@ use crate::{
         PersistedComponents,
     },
 };
-use common::{
-    character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER},
-    comp::item::tool::AbilityMap,
-};
+use common::character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER};
 use core::ops::Range;
 use diesel::{prelude::*, sql_query, sql_types::BigInt};
 use std::sync::Arc;
@@ -59,7 +57,6 @@ pub fn load_character_data(
     requesting_player_uuid: String,
     char_id: CharacterId,
     connection: VelorenTransaction,
-    map: &AbilityMap,
 ) -> CharacterDataResult {
     use schema::{body::dsl::*, character::dsl::*, item::dsl::*};
 
@@ -106,8 +103,7 @@ pub fn load_character_data(
     Ok((
         convert_body_from_database(&char_body)?,
         convert_stats_from_database(&stats_data, character_data.alias),
-        convert_inventory_from_database_items(&inventory_items)?,
-        convert_loadout_from_database_items(&loadout_items, map)?,
+        convert_inventory_from_database_items(&inventory_items, &loadout_items)?,
         char_waypoint,
     ))
 }
@@ -122,7 +118,6 @@ pub fn load_character_data(
 pub fn load_character_list(
     player_uuid_: &str,
     connection: VelorenTransaction,
-    map: &AbilityMap,
 ) -> CharacterListResult {
     use schema::{body::dsl::*, character::dsl::*, item::dsl::*, stats::dsl::*};
 
@@ -155,13 +150,13 @@ pub fn load_character_list(
                 .filter(parent_container_item_id.eq(loadout_container_id))
                 .load::<Item>(&*connection)?;
 
-            let loadout = convert_loadout_from_database_items(&loadout_items, map)?;
+            let loadout = convert_loadout_from_database_items(&loadout_items)?;
 
             Ok(CharacterItem {
                 character: char,
                 body: char_body,
                 level: char_stats.level as usize,
-                loadout,
+                inventory: Inventory::new_with_loadout(loadout),
             })
         })
         .collect()
@@ -172,7 +167,6 @@ pub fn create_character(
     character_alias: &str,
     persisted_components: PersistedComponents,
     connection: VelorenTransaction,
-    map: &AbilityMap,
 ) -> CharacterCreationResult {
     use schema::item::dsl::*;
 
@@ -180,7 +174,7 @@ pub fn create_character(
 
     use schema::{body, character};
 
-    let (body, stats, inventory, loadout, waypoint) = persisted_components;
+    let (body, stats, inventory, waypoint) = persisted_components;
 
     // Fetch new entity IDs for character, inventory and loadout
     let mut new_entity_ids = get_new_entity_ids(connection, |next_id| next_id + 3)?;
@@ -277,7 +271,6 @@ pub fn create_character(
 
     get_new_entity_ids(connection, |mut next_id| {
         let (inserts_, _deletes) = convert_items_to_database_items(
-            &loadout,
             loadout_container_id,
             &inventory,
             inventory_container_id,
@@ -303,7 +296,7 @@ pub fn create_character(
         )));
     }
 
-    load_character_list(uuid, connection, map).map(|list| (character_id, list))
+    load_character_list(uuid, connection).map(|list| (character_id, list))
 }
 
 /// Delete a character. Returns the updated character list.
@@ -311,7 +304,6 @@ pub fn delete_character(
     requesting_player_uuid: &str,
     char_id: CharacterId,
     connection: VelorenTransaction,
-    map: &AbilityMap,
 ) -> CharacterListResult {
     use schema::{body::dsl::*, character::dsl::*, stats::dsl::*};
 
@@ -392,7 +384,7 @@ pub fn delete_character(
         )));
     }
 
-    load_character_list(requesting_player_uuid, connection, map)
+    load_character_list(requesting_player_uuid, connection)
 }
 
 /// Before creating a character, we ensure that the limit on the number of
@@ -534,7 +526,6 @@ pub fn update(
     char_id: CharacterId,
     char_stats: comp::Stats,
     inventory: comp::Inventory,
-    loadout: comp::Loadout,
     char_waypoint: Option<comp::Waypoint>,
     connection: VelorenTransaction,
 ) -> Result<Vec<Arc<common::comp::item::ItemId>>, Error> {
@@ -548,7 +539,6 @@ pub fn update(
     // upsert and which ones to delete.
     get_new_entity_ids(connection, |mut next_id| {
         let (upserts_, _deletes) = convert_items_to_database_items(
-            &loadout,
             pseudo_containers.loadout_container_id,
             &inventory,
             pseudo_containers.inventory_container_id,

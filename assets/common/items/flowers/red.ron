@@ -1,8 +1,8 @@
 ItemDef(
     name: "Red Flower",
-    description: "Roses are red...",
+    description: "Can be used as a dying ingredient.",
     kind: Ingredient(
-        kind: "Flower",
+        kind: "FlowerRed",
     ),
     quality: Common,
 )

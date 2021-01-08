@@ -73,6 +73,7 @@ glsl-include = "0.3.1"
 guillotiere = "0.6"
 hashbrown = {version = "0.9", features = ["rayon", "serde", "nightly"]}
 image = {version = "0.23.12", default-features = false, features = ["ico", "png"]}
+lazy_static = "1.4.0"
 native-dialog = { version = "0.4.2", default-features = false, optional = true }
 num = "0.3.1"
 ordered-float = { version = "2.0.1", default-features = false }

@@ -1,6 +1,6 @@
 //! Structs representing a playable Character
 
-use crate::comp;
+use crate::{comp, comp::inventory::Inventory};
 use serde::{Deserialize, Serialize};
 
 /// The limit on how many characters that a player can have
@@ -21,5 +21,5 @@ pub struct CharacterItem {
     pub character: Character,
     pub body: comp::Body,
     pub level: usize,
-    pub loadout: comp::Loadout,
+    pub inventory: Inventory,
 }

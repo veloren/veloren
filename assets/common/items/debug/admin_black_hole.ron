@@ -1,0 +1,12 @@
+ItemDef(
+    name: "Admin's Black Hole",
+    description: "It just works.",
+    kind: Armor(
+        (
+            kind: Bag("BrownFace"),
+            stats: (protection: Normal(0.0)),            
+        )
+    ),
+    quality: Artifact,
+    slots: 900,
+)

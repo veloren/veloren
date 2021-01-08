@@ -4,7 +4,7 @@
     (110, Stones),
     (150, ShortGrass),
     (120, CaveMushroom),
-    (2, ShinyGem),
-    (2, Chest),
+    (4, ShinyGem),
+    (5, Chest),
     (15, Crate),
 ]

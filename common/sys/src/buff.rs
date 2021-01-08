@@ -1,11 +1,11 @@
 use common::{
     comp::{
         BuffCategory, BuffChange, BuffEffect, BuffId, BuffSource, Buffs, Health, HealthChange,
-        HealthSource, Loadout, ModifierKind,
+        HealthSource, Inventory, ModifierKind,
     },
     event::{EventBus, ServerEvent},
     resources::DeltaTime,
-    DamageSource,
+    Damage, DamageSource,
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 use std::time::Duration;
@@ -17,14 +17,14 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         Read<'a, DeltaTime>,
         Read<'a, EventBus<ServerEvent>>,
-        ReadStorage<'a, Loadout>,
+        ReadStorage<'a, Inventory>,
         WriteStorage<'a, Health>,
         WriteStorage<'a, Buffs>,
     );
 
     fn run(
         &mut self,
-        (entities, dt, server_bus, loadouts, mut healths, mut buffs): Self::SystemData,
+        (entities, dt, server_bus, inventories, mut healths, mut buffs): Self::SystemData,
     ) {
         let mut server_emitter = server_bus.emitter();
         // Set to false to avoid spamming server
@@ -51,8 +51,8 @@ impl<'a> System<'a> for Sys {
                 }
             }
 
-            if let Some(loadout) = loadouts.get(entity) {
-                let damage_reduction = loadout.get_damage_reduction();
+            if let Some(inventory) = inventories.get(entity) {
+                let damage_reduction = Damage::compute_damage_reduction(inventory);
                 if (damage_reduction - 1.0).abs() < f32::EPSILON {
                     for (id, buff) in buff_comp.buffs.iter() {
                         if !buff.kind.is_buff() {

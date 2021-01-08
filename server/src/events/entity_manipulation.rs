@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    comp::{biped_large, quadruped_medium, quadruped_small, theropod, PhysicsState},
+    comp::{biped_large, quadruped_low, quadruped_medium, quadruped_small, theropod, PhysicsState},
     rtsim::RtSim,
     Server, SpawnPoint, StateExt,
 };
@@ -10,7 +10,7 @@ use common::{
         self, aura, buff,
         chat::{KillSource, KillType},
         object, Alignment, Body, Energy, EnergyChange, Group, Health, HealthChange, HealthSource,
-        Item, Player, Pos, Stats,
+        Inventory, Item, Player, Pos, Stats,
     },
     effect::Effect,
     lottery::Lottery,
@@ -323,7 +323,18 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                         6 => "common.loot_tables.loot_table_weapon_rare",
                         _ => "common.loot_tables.loot_table_cave_large",
                     },
-                    _ => match rng.gen_range(0, 8) {
+                    biped_large::Species::Troll => match rng.gen_range(0, 10) {
+                        0 => "common.loot_tables.loot_table_food",
+                        1 => "common.loot_tables.loot_table_cave_large",
+                        3 => "common.loot_tables.loot_table_armor_heavy",
+                        5 => "common.loot_tables.loot_table_weapon_uncommon",
+                        6 => "common.loot_tables.loot_table_weapon_rare",
+                        _ => "common.loot_tables.loot_table_troll",
+                    },
+                    biped_large::Species::Occultsaurok
+                    | biped_large::Species::Mightysaurok
+                    | biped_large::Species::Slysaurok => "common.loot_tables.loot_table_saurok",
+                    _ => match rng.gen_range(0, 10) {
                         0 => "common.loot_tables.loot_table_food",
                         1 => "common.loot_tables.loot_table_armor_nature",
                         3 => "common.loot_tables.loot_table_armor_heavy",
@@ -351,10 +362,17 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                     _ => "common.loot_tables.loot_table_animal_parts",
                 },
                 Some(common::comp::Body::Dragon(_)) => "common.loot_tables.loot_table_weapon_rare",
-                Some(common::comp::Body::QuadrupedLow(_)) => match rng.gen_range(0, 3) {
-                    0 => "common.loot_tables.loot_table_food",
-                    1 => "common.loot_tables.loot_table_animal_parts",
-                    _ => "common.loot_tables.loot_table",
+                Some(common::comp::Body::QuadrupedLow(quadruped_low)) => {
+                    match quadruped_low.species {
+                        quadruped_low::Species::Maneater => {
+                            "common.loot_tables.loot_table_maneater"
+                        },
+                        _ => match rng.gen_range(0, 3) {
+                            0 => "common.loot_tables.loot_table_food",
+                            1 => "common.loot_tables.loot_table_animal_parts",
+                            _ => "common.loot_tables.loot_table",
+                        },
+                    }
                 },
                 _ => "common.loot_tables.loot_table",
             })
@@ -438,8 +456,8 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
                 source: DamageSource::Falling,
                 value: falldmg,
             };
-            let loadouts = state.ecs().read_storage::<comp::Loadout>();
-            let change = damage.modify_damage(loadouts.get(entity), None);
+            let inventories = state.ecs().read_storage::<Inventory>();
+            let change = damage.modify_damage(inventories.get(entity), None);
             health.change_by(change);
         }
     }

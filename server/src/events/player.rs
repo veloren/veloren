@@ -162,11 +162,10 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
 }
 
 fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity {
-    if let (Some(presences), Some(stats), Some(inventory), Some(loadout), updater) = (
+    if let (Some(presences), Some(stats), Some(inventory), updater) = (
         state.read_storage::<Presence>().get(entity),
         state.read_storage::<comp::Stats>().get(entity),
         state.read_storage::<comp::Inventory>().get(entity),
-        state.read_storage::<comp::Loadout>().get(entity),
         state
             .ecs()
             .read_resource::<persistence::character_updater::CharacterUpdater>(),
@@ -174,7 +173,7 @@ fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity {
         if let PresenceKind::Character(character_id) = presences.kind {
             let waypoint_read = state.read_storage::<comp::Waypoint>();
             let waypoint = waypoint_read.get(entity);
-            updater.update(character_id, stats, inventory, loadout, waypoint);
+            updater.update(character_id, stats, inventory, waypoint);
         }
     }
 

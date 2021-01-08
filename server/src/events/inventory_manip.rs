@@ -1,4 +1,8 @@
-use crate::{client::Client, Server, StateExt};
+use rand::Rng;
+use specs::{join::Join, world::WorldExt, Builder, Entity as EcsEntity, WriteStorage};
+use tracing::{debug, error};
+use vek::{Rgb, Vec3};
+
 use common::{
     comp::{
         self, item,
@@ -13,10 +17,8 @@ use common::{
 use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 use common_sys::state::State;
 use comp::LightEmitter;
-use rand::Rng;
-use specs::{join::Join, world::WorldExt, Builder, Entity as EcsEntity, WriteStorage};
-use tracing::{debug, error};
-use vek::{Rgb, Vec3};
+
+use crate::{client::Client, Server, StateExt};
 
 pub fn swap_lantern(
     storage: &mut WriteStorage<comp::LightEmitter>,
@@ -60,7 +62,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
     match manip {
         comp::InventoryManip::Pickup(uid) => {
             let picked_up_item: Option<comp::Item>;
-            let item_entity = if let (Some((item, item_entity)), Some(inv)) = (
+            let item_entity = if let (Some((item, item_entity)), Some(mut inv)) = (
                 state
                     .ecs()
                     .entity_from_uid(uid.into())
@@ -96,10 +98,16 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     }
                 }
 
-                // Attempt to add the item to the entity's inventory
-                match inv.push(item) {
-                    None => Some(item_entity),
-                    Some(_) => None, // Inventory was full
+                // First try to equip the picked up item
+                if let Err(returned_item) = inv.try_equip(item) {
+                    // If we couldn't equip it (no empty slot for it or unequippable) then attempt
+                    // to add the item to the entity's inventory
+                    match inv.pickup_item(returned_item) {
+                        Ok(_) => Some(item_entity),
+                        Err(_) => None, // Inventory was full
+                    }
+                } else {
+                    Some(item_entity)
                 }
             } else {
                 // Item entity/component could not be found - most likely because the entity
@@ -146,7 +154,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     };
 
                     if let Some(item) = comp::Item::try_reclaim_from_block(block) {
-                        let (event, item_was_added) = if let Some(inv) = state
+                        let (event, item_was_added) = if let Some(mut inv) = state
                             .ecs()
                             .write_storage::<comp::Inventory>()
                             .get_mut(entity)
@@ -198,7 +206,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
 
         comp::InventoryManip::Use(slot) => {
             let mut inventories = state.ecs().write_storage::<comp::Inventory>();
-            let inventory = if let Some(inventory) = inventories.get_mut(entity) {
+            let mut inventory = if let Some(inventory) = inventories.get_mut(entity) {
                 inventory
             } else {
                 error!(
@@ -213,29 +221,32 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             let event = match slot {
                 Slot::Inventory(slot) => {
                     use item::ItemKind;
+
                     let (is_equippable, lantern_opt) =
-                        inventory
-                            .get(slot)
-                            .map_or((false, None), |i| match i.kind() {
-                                ItemKind::Tool(_)
-                                | ItemKind::Armor { .. }
-                                | ItemKind::Glider(_) => (true, None),
-                                ItemKind::Lantern(lantern) => (true, Some(lantern)),
-                                _ => (false, None),
-                            });
+                        inventory.get(slot).map_or((false, None), |i| {
+                            (i.kind().is_equippable(), match i.kind() {
+                                ItemKind::Lantern(lantern) => Some(lantern),
+                                _ => None,
+                            })
+                        });
                     if is_equippable {
-                        if let Some(mut loadout) =
-                            state.ecs().write_storage::<comp::Loadout>().get_mut(entity)
-                        {
-                            if let Some(lantern) = lantern_opt {
-                                swap_lantern(&mut state.ecs().write_storage(), entity, &lantern);
-                            }
-                            let ability_map = state.ability_map();
-                            slot::equip(slot, inventory, &mut loadout, &ability_map);
-                            Some(comp::InventoryUpdateEvent::Used)
-                        } else {
-                            None
+                        if let Some(lantern) = lantern_opt {
+                            swap_lantern(&mut state.ecs().write_storage(), entity, &lantern);
                         }
+                        if let Some(pos) = state.ecs().read_storage::<comp::Pos>().get(entity) {
+                            if let Some(leftover_items) = inventory.equip(slot) {
+                                dropped_items.extend(leftover_items.into_iter().map(|x| {
+                                    (
+                                        *pos,
+                                        state
+                                            .read_component_copied::<comp::Ori>(entity)
+                                            .unwrap_or_default(),
+                                        x,
+                                    )
+                                }));
+                            }
+                        }
+                        Some(comp::InventoryUpdateEvent::Used)
                     } else if let Some(item) = inventory.take(slot) {
                         match item.kind() {
                             ItemKind::Consumable { kind, effect, .. } => {
@@ -346,13 +357,13 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                 };
 
                                 if reinsert {
-                                    let _ = inventory.insert_or_stack(slot, item);
+                                    let _ = inventory.insert_or_stack_at(slot, item);
                                 }
 
                                 Some(comp::InventoryUpdateEvent::Used)
                             },
                             _ => {
-                                inventory.insert_or_stack(slot, item).unwrap();
+                                inventory.insert_or_stack_at(slot, item).unwrap();
                                 None
                             },
                         }
@@ -361,23 +372,31 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     }
                 },
                 Slot::Equip(slot) => {
-                    if let Some(mut loadout) =
-                        state.ecs().write_storage::<comp::Loadout>().get_mut(entity)
-                    {
-                        if slot == slot::EquipSlot::Lantern {
-                            snuff_lantern(&mut state.ecs().write_storage(), entity);
-                        }
-                        let ability_map = state.ability_map();
-                        slot::unequip(slot, inventory, &mut loadout, &ability_map);
-                        Some(comp::InventoryUpdateEvent::Used)
-                    } else {
-                        error!(?entity, "Entity doesn't have a loadout, can't unequip...");
-                        None
+                    if slot == slot::EquipSlot::Lantern {
+                        snuff_lantern(&mut state.ecs().write_storage(), entity);
                     }
+
+                    if let Some(pos) = state.ecs().read_storage::<comp::Pos>().get(entity) {
+                        // Unequip the item, any items that no longer fit within the inventory (due
+                        // to unequipping a bag for example) will be dropped on the floor
+                        if let Ok(Some(leftover_items)) = inventory.unequip(slot) {
+                            dropped_items.extend(leftover_items.into_iter().map(|x| {
+                                (
+                                    *pos,
+                                    state
+                                        .read_component_copied::<comp::Ori>(entity)
+                                        .unwrap_or_default(),
+                                    x,
+                                )
+                            }));
+                        }
+                    }
+                    Some(comp::InventoryUpdateEvent::Used)
                 },
             };
 
             drop(inventories);
+
             if let Some(effects) = maybe_effect {
                 for effect in effects {
                     state.apply_effect(entity, effect, None);
@@ -390,20 +409,23 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
 
         comp::InventoryManip::Swap(a, b) => {
             let ecs = state.ecs();
-            let mut inventories = ecs.write_storage::<comp::Inventory>();
-            let mut loadouts = ecs.write_storage::<comp::Loadout>();
-            let inventory = inventories.get_mut(entity);
-            let mut loadout = loadouts.get_mut(entity);
-            let ability_map = state.ability_map();
 
-            slot::swap(a, b, inventory, loadout.as_deref_mut(), &ability_map);
-            // slot::swap(a, b, inventory, loadout.as_mut().map(|x| &mut **x),
-            // &ability_map);
-
-            // :/
-            drop(loadouts);
-            drop(inventories);
-            drop(ability_map);
+            if let Some(pos) = ecs.read_storage::<comp::Pos>().get(entity) {
+                if let Some(mut inventory) = ecs.write_storage::<comp::Inventory>().get_mut(entity)
+                {
+                    if let Some(leftover_items) = inventory.swap(a, b) {
+                        dropped_items.extend(leftover_items.into_iter().map(|x| {
+                            (
+                                *pos,
+                                state
+                                    .read_component_copied::<comp::Ori>(entity)
+                                    .unwrap_or_default(),
+                                x,
+                            )
+                        }));
+                    }
+                }
+            }
 
             state.write_component(
                 entity,
@@ -412,20 +434,18 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
         },
 
         comp::InventoryManip::Drop(slot) => {
-            let ability_map = state.ability_map();
             let item = match slot {
                 Slot::Inventory(slot) => state
                     .ecs()
                     .write_storage::<comp::Inventory>()
                     .get_mut(entity)
-                    .and_then(|inv| inv.remove(slot)),
+                    .and_then(|mut inv| inv.remove(slot)),
                 Slot::Equip(slot) => state
                     .ecs()
-                    .write_storage::<comp::Loadout>()
+                    .write_storage::<comp::Inventory>()
                     .get_mut(entity)
-                    .and_then(|mut ldt| slot::loadout_remove(slot, &mut ldt, &ability_map)),
+                    .and_then(|mut inv| inv.replace_loadout_item(slot, None)),
             };
-            drop(ability_map);
 
             // FIXME: We should really require the drop and write to be atomic!
             if let (Some(mut item), Some(pos)) =
@@ -447,13 +467,15 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
         },
 
         comp::InventoryManip::CraftRecipe(recipe) => {
-            if let Some(inv) = state
+            if let Some(mut inv) = state
                 .ecs()
                 .write_storage::<comp::Inventory>()
                 .get_mut(entity)
             {
                 let recipe_book = default_recipe_book().read();
-                let craft_result = recipe_book.get(&recipe).and_then(|r| r.perform(inv).ok());
+                let craft_result = recipe_book
+                    .get(&recipe)
+                    .and_then(|r| r.perform(&mut inv).ok());
 
                 // FIXME: We should really require the drop and write to be atomic!
                 if craft_result.is_some() {
@@ -483,15 +505,11 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
 
     // Drop items
     for (pos, ori, item) in dropped_items {
-        let vel = *ori.0 * 5.0
-            + Vec3::unit_z() * 10.0
-            + Vec3::<f32>::zero().map(|_| rand::thread_rng().gen::<f32>() - 0.5) * 4.0;
-
         state
             .create_object(Default::default(), comp::object::Body::Pouch)
-            .with(comp::Pos(pos.0 + Vec3::unit_z() * 0.25))
+            .with(comp::Pos(pos.0 + *ori.0 + Vec3::unit_z()))
             .with(item)
-            .with(comp::Vel(vel))
+            .with(comp::Vel(Vec3::zero()))
             .build();
     }
 
@@ -572,10 +590,12 @@ fn within_pickup_range<S: FindDist<find_dist::Cylinder>>(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use vek::Vec3;
+
     use common::comp::Pos;
     use find_dist::*;
-    use vek::Vec3;
+
+    use super::*;
 
     // Helper function
     #[allow(clippy::unnecessary_wraps)]

@@ -1,5 +1,6 @@
 use crate::{
     comp::{
+        inventory::slot::EquipSlot,
         item::{Hands, ItemKind, Tool},
         quadruped_low, quadruped_medium, theropod, Body, CharacterState, StateUpdate,
     },
@@ -290,7 +291,11 @@ pub fn handle_wield(data: &JoinData, update: &mut StateUpdate) {
 
 /// If a tool is equipped, goes into Equipping state, otherwise goes to Idle
 pub fn attempt_wield(data: &JoinData, update: &mut StateUpdate) {
-    if let Some(ItemKind::Tool(tool)) = data.loadout.active_item.as_ref().map(|i| i.item.kind()) {
+    if let Some(ItemKind::Tool(tool)) = data
+        .inventory
+        .equipped(EquipSlot::Mainhand)
+        .map(|i| i.kind())
+    {
         update.character = CharacterState::Equipping(equipping::Data {
             static_data: equipping::StaticData {
                 buildup_duration: tool.equip_time(),
@@ -341,14 +346,14 @@ pub fn handle_climb(data: &JoinData, update: &mut StateUpdate) {
 
 /// Checks that player can Swap Weapons and updates `Loadout` if so
 pub fn attempt_swap_loadout(data: &JoinData, update: &mut StateUpdate) {
-    if data.loadout.second_item.is_some() {
+    if data.inventory.equipped(EquipSlot::Offhand).is_some() {
         update.swap_loadout = true;
     }
 }
 
 /// Checks that player can wield the glider and updates `CharacterState` if so
 pub fn attempt_glide_wield(data: &JoinData, update: &mut StateUpdate) {
-    if data.loadout.glider.is_some()
+    if data.inventory.equipped(EquipSlot::Glider).is_some()
         && !data
             .physics
             .in_liquid
@@ -376,14 +381,12 @@ pub fn handle_jump(data: &JoinData, update: &mut StateUpdate) {
     }
 }
 
-/// Will attempt to go into `loadout.active_item.ability1`
 pub fn handle_ability1_input(data: &JoinData, update: &mut StateUpdate) {
     if data.inputs.primary.is_pressed() {
         if let Some(ability) = data
-            .loadout
-            .active_item
-            .as_ref()
-            .and_then(|i| i.ability1.as_ref())
+            .inventory
+            .equipped(EquipSlot::Mainhand)
+            .and_then(|i| i.item_config_expect().ability1.as_ref())
             .filter(|ability| ability.requirements_paid(data, update))
         {
             update.character = (ability, AbilityKey::Mouse1).into();
@@ -391,15 +394,22 @@ pub fn handle_ability1_input(data: &JoinData, update: &mut StateUpdate) {
     }
 }
 
-/// Will attempt to go into `loadout.active_item.ability2`
 pub fn handle_ability2_input(data: &JoinData, update: &mut StateUpdate) {
     if data.inputs.secondary.is_pressed() {
-        let active_tool_kind = match data.loadout.active_item.as_ref().map(|i| i.item.kind()) {
+        let active_tool_kind = match data
+            .inventory
+            .equipped(EquipSlot::Mainhand)
+            .map(|i| i.kind())
+        {
             Some(ItemKind::Tool(Tool { kind, .. })) => Some(kind),
             _ => None,
         };
 
-        let second_tool_kind = match data.loadout.second_item.as_ref().map(|i| i.item.kind()) {
+        let second_tool_kind = match data
+            .inventory
+            .equipped(EquipSlot::Offhand)
+            .map(|i| i.kind())
+        {
             Some(ItemKind::Tool(Tool { kind, .. })) => Some(kind),
             _ => None,
         };
@@ -410,10 +420,9 @@ pub fn handle_ability2_input(data: &JoinData, update: &mut StateUpdate) {
         ) {
             (Some(Hands::TwoHand), _) => {
                 if let Some(ability) = data
-                    .loadout
-                    .active_item
-                    .as_ref()
-                    .and_then(|i| i.ability2.as_ref())
+                    .inventory
+                    .equipped(EquipSlot::Mainhand)
+                    .and_then(|i| i.item_config_expect().ability2.as_ref())
                     .filter(|ability| ability.requirements_paid(data, update))
                 {
                     update.character = (ability, AbilityKey::Mouse2).into();
@@ -421,10 +430,9 @@ pub fn handle_ability2_input(data: &JoinData, update: &mut StateUpdate) {
             },
             (_, Some(Hands::OneHand)) => {
                 if let Some(ability) = data
-                    .loadout
-                    .second_item
-                    .as_ref()
-                    .and_then(|i| i.ability2.as_ref())
+                    .inventory
+                    .equipped(EquipSlot::Offhand)
+                    .and_then(|i| i.item_config_expect().ability2.as_ref())
                     .filter(|ability| ability.requirements_paid(data, update))
                 {
                     update.character = (ability, AbilityKey::Mouse2).into();
@@ -435,14 +443,12 @@ pub fn handle_ability2_input(data: &JoinData, update: &mut StateUpdate) {
     }
 }
 
-/// Will attempt to go into `loadout.active_item.ability3`
 pub fn handle_ability3_input(data: &JoinData, update: &mut StateUpdate) {
     if data.inputs.ability3.is_pressed() {
         if let Some(ability) = data
-            .loadout
-            .active_item
-            .as_ref()
-            .and_then(|i| i.ability3.as_ref())
+            .inventory
+            .equipped(EquipSlot::Mainhand)
+            .and_then(|i| i.item_config_expect().ability3.as_ref())
             .filter(|ability| ability.requirements_paid(data, update))
         {
             update.character = (ability, AbilityKey::Skill1).into();
@@ -451,14 +457,13 @@ pub fn handle_ability3_input(data: &JoinData, update: &mut StateUpdate) {
 }
 
 /// Checks that player can perform a dodge, then
-/// attempts to go into `loadout.active_item.dodge_ability`
+/// attempts to perform their dodge ability
 pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
     if data.inputs.roll.is_pressed() && data.body.is_humanoid() {
         if let Some(ability) = data
-            .loadout
-            .active_item
-            .as_ref()
-            .and_then(|i| i.dodge_ability.as_ref())
+            .inventory
+            .equipped(EquipSlot::Mainhand)
+            .and_then(|i| i.item_config_expect().dodge_ability.as_ref())
             .filter(|ability| ability.requirements_paid(data, update))
         {
             if data.character.is_wield() {
@@ -479,8 +484,12 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
 }
 
 pub fn unwrap_tool_data<'a>(data: &'a JoinData) -> Option<&'a Tool> {
-    if let Some(ItemKind::Tool(tool)) = data.loadout.active_item.as_ref().map(|i| i.item.kind()) {
-        Some(tool)
+    if let Some(ItemKind::Tool(tool)) = data
+        .inventory
+        .equipped(EquipSlot::Mainhand)
+        .map(|i| i.kind())
+    {
+        Some(&tool)
     } else {
         None
     }
