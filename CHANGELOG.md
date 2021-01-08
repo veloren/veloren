@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Hot-reloading for i18n, sounds, loot lotteries, and more
 - Initial support for alternate style keyboards
 - Flying birds travel the world
+- Plugin system now based on Wasmer 1.0.0
 
 ### Changed
 
