@@ -3,10 +3,7 @@ use crate::persistence::{
     error::Error,
     establish_connection, PersistedComponents,
 };
-use common::{
-    character::{CharacterId, CharacterItem},
-    comp::item::tool::AbilityMap,
-};
+use common::character::{CharacterId, CharacterItem};
 use crossbeam_channel::{self, TryIter};
 use std::path::Path;
 use tracing::error;
@@ -70,13 +67,11 @@ pub struct CharacterLoader {
 }
 
 impl CharacterLoader {
-    pub fn new(db_dir: &Path, map: &AbilityMap) -> diesel::QueryResult<Self> {
+    pub fn new(db_dir: &Path) -> diesel::QueryResult<Self> {
         let (update_tx, internal_rx) = crossbeam_channel::unbounded::<CharacterLoaderRequest>();
         let (internal_tx, update_rx) = crossbeam_channel::unbounded::<CharacterLoaderResponse>();
 
         let mut conn = establish_connection(db_dir)?;
-
-        let map = map.clone();
 
         std::thread::spawn(move || {
             for request in internal_rx {
@@ -97,7 +92,6 @@ impl CharacterLoader {
                                         &character_alias,
                                         persisted_components,
                                         txn,
-                                        &map,
                                     )
                                 },
                             )),
@@ -105,19 +99,19 @@ impl CharacterLoader {
                                 player_uuid,
                                 character_id,
                             } => CharacterLoaderResponseKind::CharacterList(conn.transaction(
-                                |txn| delete_character(&player_uuid, character_id, txn, &map),
+                                |txn| delete_character(&player_uuid, character_id, txn),
                             )),
                             CharacterLoaderRequestKind::LoadCharacterList { player_uuid } => {
-                                CharacterLoaderResponseKind::CharacterList(conn.transaction(
-                                    |txn| load_character_list(&player_uuid, txn, &map),
-                                ))
+                                CharacterLoaderResponseKind::CharacterList(
+                                    conn.transaction(|txn| load_character_list(&player_uuid, txn)),
+                                )
                             },
                             CharacterLoaderRequestKind::LoadCharacterData {
                                 player_uuid,
                                 character_id,
                             } => {
                                 let result = conn.transaction(|txn| {
-                                    load_character_data(player_uuid, character_id, txn, &map)
+                                    load_character_data(player_uuid, character_id, txn)
                                 });
                                 if result.is_err() {
                                     error!(

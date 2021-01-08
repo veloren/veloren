@@ -1,9 +1,8 @@
 use crate::{
     assets::{self, Asset},
     comp::{
-        item::{armor::Protection, tool::AbilityMap, Item, ItemKind},
-        projectile::ProjectileConstructor,
-        Body, CharacterState, EnergySource, Gravity, LightEmitter, StateUpdate,
+        projectile::ProjectileConstructor, Body, CharacterState, EnergySource, Gravity,
+        LightEmitter, StateUpdate,
     },
     states::{
         behavior::JoinData,
@@ -12,10 +11,7 @@ use crate::{
     },
     Knockback,
 };
-use arraygen::Arraygen;
 use serde::{Deserialize, Serialize};
-use specs::{Component, DerefFlaggedStorage};
-use specs_idvs::IdvStorage;
 use std::time::Duration;
 use vek::Vec3;
 
@@ -304,7 +300,7 @@ impl CharacterAbility {
         }
     }
 
-    fn default_roll() -> CharacterAbility {
+    pub fn default_roll() -> CharacterAbility {
         CharacterAbility::Roll {
             energy_cost: 100,
             buildup_duration: 100,
@@ -495,93 +491,6 @@ impl CharacterAbility {
             | Shockwave { energy_cost, .. }
             | BasicBeam { energy_cost, .. } => *energy_cost,
             _ => 0,
-        }
-    }
-}
-
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
-pub struct ItemConfig {
-    pub item: Item,
-    pub ability1: Option<CharacterAbility>,
-    pub ability2: Option<CharacterAbility>,
-    pub ability3: Option<CharacterAbility>,
-    pub block_ability: Option<CharacterAbility>,
-    pub dodge_ability: Option<CharacterAbility>,
-}
-
-impl From<(Item, &AbilityMap)> for ItemConfig {
-    fn from((item, map): (Item, &AbilityMap)) -> Self {
-        if let ItemKind::Tool(tool) = &item.kind() {
-            let abilities = tool.get_abilities(map);
-
-            return ItemConfig {
-                item,
-                ability1: Some(abilities.primary),
-                ability2: Some(abilities.secondary),
-                ability3: abilities.skills.get(0).cloned(),
-                block_ability: None,
-                dodge_ability: Some(CharacterAbility::default_roll()),
-            };
-        }
-
-        unimplemented!("ItemConfig is currently only supported for Tools")
-    }
-}
-
-#[derive(Arraygen, Clone, PartialEq, Default, Debug, Serialize, Deserialize)]
-#[gen_array(pub fn get_armor: &Option<Item>)]
-pub struct Loadout {
-    pub active_item: Option<ItemConfig>,
-    pub second_item: Option<ItemConfig>,
-
-    pub lantern: Option<Item>,
-    pub glider: Option<Item>,
-
-    #[in_array(get_armor)]
-    pub shoulder: Option<Item>,
-    #[in_array(get_armor)]
-    pub chest: Option<Item>,
-    #[in_array(get_armor)]
-    pub belt: Option<Item>,
-    #[in_array(get_armor)]
-    pub hand: Option<Item>,
-    #[in_array(get_armor)]
-    pub pants: Option<Item>,
-    #[in_array(get_armor)]
-    pub foot: Option<Item>,
-    #[in_array(get_armor)]
-    pub back: Option<Item>,
-    #[in_array(get_armor)]
-    pub ring: Option<Item>,
-    #[in_array(get_armor)]
-    pub neck: Option<Item>,
-    #[in_array(get_armor)]
-    pub head: Option<Item>,
-    #[in_array(get_armor)]
-    pub tabard: Option<Item>,
-}
-
-impl Loadout {
-    pub fn get_damage_reduction(&self) -> f32 {
-        let protection = self
-            .get_armor()
-            .iter()
-            .flat_map(|armor| armor.as_ref())
-            .filter_map(|item| {
-                if let ItemKind::Armor(armor) = &item.kind() {
-                    Some(armor.get_protection())
-                } else {
-                    None
-                }
-            })
-            .map(|protection| match protection {
-                Protection::Normal(protection) => Some(protection),
-                Protection::Invincible => None,
-            })
-            .sum::<Option<f32>>();
-        match protection {
-            Some(dr) => dr / (60.0 + dr.abs()),
-            None => 1.0,
         }
     }
 }
@@ -974,8 +883,4 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
             }),
         }
     }
-}
-
-impl Component for Loadout {
-    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }

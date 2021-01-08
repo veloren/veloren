@@ -1,6 +1,6 @@
 use super::utils::*;
 use crate::{
-    comp::{CharacterState, StateUpdate},
+    comp::{slot::EquipSlot, CharacterState, StateUpdate},
     states::behavior::{CharacterBehavior, JoinData},
 };
 
@@ -27,7 +27,7 @@ impl CharacterBehavior for Data {
         {
             update.character = CharacterState::Idle;
         }
-        if data.loadout.glider.is_none() {
+        if data.inventory.equipped(EquipSlot::Glider).is_none() {
             update.character = CharacterState::Idle
         };
 

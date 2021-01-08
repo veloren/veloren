@@ -13,7 +13,7 @@ pub mod group;
 mod health;
 pub mod home_chunk;
 mod inputs;
-mod inventory;
+pub mod inventory;
 mod last;
 mod location;
 mod misc;
@@ -26,7 +26,7 @@ mod stats;
 pub mod visual;
 
 // Reexports
-pub use ability::{CharacterAbility, CharacterAbilityType, ItemConfig, Loadout};
+pub use ability::{CharacterAbility, CharacterAbilityType};
 pub use admin::Admin;
 pub use agent::{Agent, Alignment};
 pub use aura::{Aura, AuraChange, AuraKind, Auras};
@@ -54,7 +54,7 @@ pub use home_chunk::HomeChunk;
 pub use inputs::CanBuild;
 pub use inventory::{
     item,
-    item::{Item, ItemDrop},
+    item::{Item, ItemConfig, ItemDrop},
     slot, Inventory, InventoryUpdate, InventoryUpdateEvent,
 };
 pub use last::Last;

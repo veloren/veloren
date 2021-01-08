@@ -2,7 +2,7 @@
     // Crafting Ingredients
     (2, "common.items.crafting_ing.empty_vial"),
     (0.10, "common.items.crafting_ing.shiny_gem"), 
-    (2, "common.items.crafting_ing.cloth_scraps"),   
+    (4, "common.items.crafting_ing.cloth_scraps"),   
     // Consumables
     (0.2, "common.items.consumable.potion_minor"),
     // Ring

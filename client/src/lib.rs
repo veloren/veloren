@@ -933,8 +933,6 @@ impl Client {
 
     pub fn inventories(&self) -> ReadStorage<comp::Inventory> { self.state.read_storage() }
 
-    pub fn loadouts(&self) -> ReadStorage<comp::Loadout> { self.state.read_storage() }
-
     /// Send a chat message to the server.
     pub fn send_chat(&mut self, message: String) {
         match validate_chat_msg(&message) {
@@ -1455,11 +1453,10 @@ impl Client {
                 self.presence = None;
                 self.clean_state();
             },
-            ServerGeneral::InventoryUpdate(mut inventory, event) => {
+            ServerGeneral::InventoryUpdate(inventory, event) => {
                 match event {
                     InventoryUpdateEvent::CollectFailed => {},
                     _ => {
-                        inventory.recount_items();
                         // Push the updated inventory component to the client
                         self.state.write_component(self.entity, inventory);
                     },

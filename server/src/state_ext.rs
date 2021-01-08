@@ -5,6 +5,7 @@ use crate::{
 use common::{
     character::CharacterId,
     comp,
+    comp::Inventory,
     effect::Effect,
     uid::{Uid, UidAllocator},
     util::Dir,
@@ -31,7 +32,7 @@ pub trait StateExt {
         pos: comp::Pos,
         stats: comp::Stats,
         health: comp::Health,
-        loadout: comp::Loadout,
+        inventory: comp::Inventory,
         body: comp::Body,
     ) -> EcsEntityBuilder;
     /// Build a static object entity
@@ -90,8 +91,8 @@ impl StateExt for State {
                     .map(|mut stats| stats.exp.change_by(xp));
             },
             Effect::Damage(damage) => {
-                let loadouts = self.ecs().read_storage::<comp::Loadout>();
-                let change = damage.modify_damage(loadouts.get(entity), source);
+                let inventories = self.ecs().read_storage::<Inventory>();
+                let change = damage.modify_damage(inventories.get(entity), source);
                 self.ecs()
                     .write_storage::<comp::Health>()
                     .get_mut(entity)
@@ -118,7 +119,7 @@ impl StateExt for State {
         pos: comp::Pos,
         stats: comp::Stats,
         health: comp::Health,
-        loadout: comp::Loadout,
+        inventory: comp::Inventory,
         body: comp::Body,
     ) -> EcsEntityBuilder {
         self.ecs_mut()
@@ -147,7 +148,7 @@ impl StateExt for State {
             .with(comp::Energy::new(body.base_energy()))
             .with(comp::Gravity(1.0))
             .with(comp::CharacterState::default())
-            .with(loadout)
+            .with(inventory)
             .with(comp::Buffs::default())
     }
 
@@ -258,7 +259,7 @@ impl StateExt for State {
     }
 
     fn update_character_data(&mut self, entity: EcsEntity, components: PersistedComponents) {
-        let (body, stats, inventory, loadout, waypoint) = components;
+        let (body, stats, inventory, waypoint) = components;
 
         if let Some(player_uid) = self.read_component_copied::<Uid>(entity) {
             // Notify clients of a player list update
@@ -281,7 +282,6 @@ impl StateExt for State {
             );
             self.write_component(entity, stats);
             self.write_component(entity, inventory);
-            self.write_component(entity, loadout);
             self.write_component(
                 entity,
                 comp::InventoryUpdate::new(comp::InventoryUpdateEvent::default()),

@@ -1,7 +1,7 @@
 use common::{
     comp::{
         buff::{Buff, BuffChange, BuffSource},
-        projectile, EnergyChange, EnergySource, Group, HealthSource, Loadout, Ori, PhysicsState,
+        projectile, EnergyChange, EnergySource, Group, HealthSource, Inventory, Ori, PhysicsState,
         Pos, Projectile, Vel,
     },
     event::{EventBus, ServerEvent},
@@ -32,7 +32,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
         WriteStorage<'a, Projectile>,
-        ReadStorage<'a, Loadout>,
+        ReadStorage<'a, Inventory>,
         ReadStorage<'a, Group>,
     );
 
@@ -49,7 +49,7 @@ impl<'a> System<'a> for Sys {
             velocities,
             mut orientations,
             mut projectiles,
-            loadouts,
+            inventories,
             groups,
         ): Self::SystemData,
     ) {
@@ -116,9 +116,9 @@ impl<'a> System<'a> for Sys {
                             if let Some(other_entity) =
                                 uid_allocator.retrieve_entity_internal(other.into())
                             {
-                                let other_entity_loadout = loadouts.get(other_entity);
+                                let other_entity_inventory = inventories.get(other_entity);
                                 let change =
-                                    damage.modify_damage(other_entity_loadout, projectile.owner);
+                                    damage.modify_damage(other_entity_inventory, projectile.owner);
                                 server_emitter.emit(ServerEvent::Damage {
                                     entity: other_entity,
                                     change,

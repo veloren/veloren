@@ -9,4 +9,5 @@ ItemDef(
         )
     ),
     quality: High,
+    slots: 18,
 )

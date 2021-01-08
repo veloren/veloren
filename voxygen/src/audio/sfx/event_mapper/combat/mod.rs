@@ -10,7 +10,10 @@ use super::EventMapper;
 
 use client::Client;
 use common::{
-    comp::{item::ItemKind, CharacterAbilityType, CharacterState, Loadout, Pos},
+    comp::{
+        inventory::slot::EquipSlot, item::ItemKind, CharacterAbilityType, CharacterState,
+        Inventory, Pos,
+    },
     terrain::TerrainChunk,
     vol::ReadVol,
 };
@@ -56,10 +59,10 @@ impl EventMapper for CombatEventMapper {
         let focus_off = camera.get_focus_pos().map(f32::trunc);
         let cam_pos = camera.dependents().cam_pos + focus_off;
 
-        for (entity, pos, loadout, character) in (
+        for (entity, pos, inventory, character) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
-            ecs.read_storage::<Loadout>().maybe(),
+            ecs.read_storage::<Inventory>().maybe(),
             ecs.read_storage::<CharacterState>().maybe(),
         )
             .join()
@@ -68,7 +71,9 @@ impl EventMapper for CombatEventMapper {
             if let Some(character) = character {
                 let sfx_state = self.event_history.entry(entity).or_default();
 
-                let mapped_event = Self::map_event(character, sfx_state, loadout);
+                let mapped_event = inventory.map_or(SfxEvent::Idle, |inv| {
+                    Self::map_event(character, sfx_state, &inv)
+                });
 
                 // Check for SFX config entry for this movement
                 if Self::should_emit(sfx_state, triggers.get_key_value(&mapped_event)) {
@@ -138,30 +143,28 @@ impl CombatEventMapper {
     fn map_event(
         character_state: &CharacterState,
         previous_state: &PreviousEntityState,
-        loadout: Option<&Loadout>,
+        inventory: &Inventory,
     ) -> SfxEvent {
-        if let Some(active_loadout) = loadout {
-            if let Some(item_config) = &active_loadout.active_item {
-                if let ItemKind::Tool(data) = item_config.item.kind() {
-                    if character_state.is_attack() {
-                        return SfxEvent::Attack(
-                            CharacterAbilityType::from(character_state),
-                            data.kind,
-                        );
-                    } else if let Some(wield_event) = match (
-                        previous_state.weapon_drawn,
-                        character_state.is_dodge(),
-                        Self::weapon_drawn(character_state),
-                    ) {
-                        (false, false, true) => Some(SfxEvent::Wield(data.kind)),
-                        (true, false, false) => Some(SfxEvent::Unwield(data.kind)),
-                        _ => None,
-                    } {
-                        return wield_event;
-                    }
+        if let Some(item) = inventory.equipped(EquipSlot::Mainhand) {
+            if let ItemKind::Tool(data) = item.kind() {
+                if character_state.is_attack() {
+                    return SfxEvent::Attack(
+                        CharacterAbilityType::from(character_state),
+                        data.kind,
+                    );
+                } else if let Some(wield_event) = match (
+                    previous_state.weapon_drawn,
+                    character_state.is_dodge(),
+                    Self::weapon_drawn(character_state),
+                ) {
+                    (false, false, true) => Some(SfxEvent::Wield(data.kind)),
+                    (true, false, false) => Some(SfxEvent::Unwield(data.kind)),
+                    _ => None,
+                } {
+                    return wield_event;
                 }
-                // Check for attacking states
             }
+            // Check for attacking states
         }
 
         SfxEvent::Idle

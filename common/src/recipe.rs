@@ -22,15 +22,14 @@ impl Recipe {
         // Get ingredient cells from inventory,
         inv.contains_ingredients(self)?
             .into_iter()
-            .enumerate()
-            .for_each(|(i, n)| {
+            .for_each(|(pos, n)| {
                 (0..n).for_each(|_| {
-                    inv.take(i).expect("Expected item to exist in inventory");
+                    inv.take(pos).expect("Expected item to exist in inventory");
                 })
             });
 
         for i in 0..self.output.1 {
-            let crafted_item = Item::new(Arc::clone(&self.output.0));
+            let crafted_item = Item::new_from_item_def(Arc::clone(&self.output.0));
             if let Some(item) = inv.push(crafted_item) {
                 return Ok(Some((item, self.output.1 - i)));
             }

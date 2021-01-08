@@ -1,6 +1,5 @@
 use crate::{
-    comp::{self, humanoid, Alignment, Body, Item},
-    loadout_builder::LoadoutConfig,
+    comp::{self, humanoid, inventory::loadout_builder::LoadoutConfig, Alignment, Body, Item},
     npc::{self, NPC_NAMES},
 };
 use vek::*;

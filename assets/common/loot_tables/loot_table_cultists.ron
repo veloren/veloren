@@ -5,7 +5,7 @@
     (3, "common.items.food.apple"),
     (3, "common.items.food.mushroom"),
     (3, "common.items.food.coconut"),
-    (3, "common.items.crafting_ing.cloth_scraps"),    
+    (5, "common.items.crafting_ing.cloth_scraps"),    
     // crafted
     (0.5, "common.items.food.apple_mushroom_curry"),
     (0.5, "common.items.food.apple_stick"),
@@ -65,6 +65,9 @@
     //gloves
     (0.50, "common.items.armor.hand.leather_0"),
     (0.50, "common.items.armor.hand.leather_2"),    
+    //backpack
+    (0.001, "common.items.armor.back.backpack_0"),
+    (0.1, "common.items.armor.bag.heavy_seabag"),
     // Common Weapons
     // swords    
     (0.4, "common.items.weapons.sword.wood_sword"),

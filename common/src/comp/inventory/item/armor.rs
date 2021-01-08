@@ -13,6 +13,7 @@ pub enum ArmorKind {
     Neck(String),
     Head(String),
     Tabard(String),
+    Bag(String),
 }
 
 impl Armor {
@@ -43,4 +44,12 @@ pub struct Armor {
 
 impl Armor {
     pub fn get_protection(&self) -> Protection { self.stats.protection }
+
+    #[cfg(test)]
+    pub fn test_armor(kind: ArmorKind, protection: Protection) -> Armor {
+        Armor {
+            kind,
+            stats: Stats { protection },
+        }
+    }
 }

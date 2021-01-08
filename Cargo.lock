@@ -6089,6 +6089,7 @@ version = "0.8.0"
 dependencies = [
  "authc",
  "chrono",
+ "const-tweaker",
  "crossbeam-channel 0.5.0",
  "diesel",
  "diesel_migrations",
@@ -6179,6 +6180,7 @@ dependencies = [
  "image",
  "inline_tweak",
  "itertools",
+ "lazy_static",
  "native-dialog",
  "num 0.3.1",
  "old_school_gfx_glutin_ext",

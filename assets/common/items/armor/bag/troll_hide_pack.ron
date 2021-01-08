@@ -1,0 +1,12 @@
+ItemDef(
+    name: "Trollhide Pack",
+    description: "Trolls were definitely hurt\nin the making of this.",
+    kind: Armor(
+        (
+            kind: Bag("GreenLarge"),
+            stats: (protection: Normal(0.0)),            
+        )
+    ),
+    quality: High,
+    slots: 18,
+)

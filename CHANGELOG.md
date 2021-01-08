@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial support for alternate style keyboards
 - Flying birds travel the world
 - Plugin system now based on Wasmer 1.0.0
+- Added 4x Bag loadout slots, used for upgrading inventory space
+- Added an additional Ring loadout slot
+- The inventory can now be expanded to fill the whole window
+- Added /dropall admin command (drops all inventory items on the ground)
 
 ### Changed
 
@@ -26,10 +30,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Glider can now be deployed even when not on the ground
 - Gliding now has an energy cost for strenuous maneuvers based on lift
 - Translations are now folders with multiple files instead of a huge single file
+- Default inventory slots reduced to 18 - existing characters given 3x 6-slot bags as compensation
+- Protection rating was moved to the top left of the loadout view 
 
 ### Removed
 
 - SSAAx4 option
+- The Stats button and associated screen were removed
 
 ### Fixed
 

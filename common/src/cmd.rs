@@ -42,6 +42,7 @@ pub enum ChatCommand {
     Campfire,
     Debug,
     DebugColumn,
+    DropAll,
     Dummy,
     Explosion,
     Faction,
@@ -94,6 +95,7 @@ pub static CHAT_COMMANDS: &[ChatCommand] = &[
     ChatCommand::Campfire,
     ChatCommand::Debug,
     ChatCommand::DebugColumn,
+    ChatCommand::DropAll,
     ChatCommand::Dummy,
     ChatCommand::Explosion,
     ChatCommand::Faction,
@@ -230,6 +232,7 @@ impl ChatCommand {
                 "Prints some debug information about a column",
                 NoAdmin,
             ),
+            ChatCommand::DropAll => cmd(vec![], "Drops all your items on the ground", Admin),
             ChatCommand::Dummy => cmd(vec![], "Spawns a training dummy", Admin),
             ChatCommand::Explosion => cmd(
                 vec![Float("radius", 5.0, Required)],
@@ -445,6 +448,7 @@ impl ChatCommand {
             ChatCommand::Campfire => "campfire",
             ChatCommand::Debug => "debug",
             ChatCommand::DebugColumn => "debug_column",
+            ChatCommand::DropAll => "dropall",
             ChatCommand::Dummy => "dummy",
             ChatCommand::Explosion => "explosion",
             ChatCommand::Faction => "faction",
@@ -533,12 +537,11 @@ impl Display for ChatCommand {
 impl FromStr for ChatCommand {
     type Err = ();
 
-    #[allow(clippy::manual_strip)]
     fn from_str(keyword: &str) -> Result<ChatCommand, ()> {
-        let kwd = if keyword.starts_with('/') {
-            &keyword[1..]
+        let kwd = if let Some(stripped) = keyword.strip_prefix('/') {
+            stripped
         } else {
-            &keyword[..]
+            &keyword
         };
         if keyword.len() == 1 {
             if let Some(c) = keyword

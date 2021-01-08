@@ -1,0 +1,8 @@
+ItemDef(
+    name: "Red Cloth Scraps",
+    description: "Dyed red with flower pigments.",
+    kind: Ingredient(
+        kind: "ClothScrapsRed",
+    ),
+    quality: Common,
+)
