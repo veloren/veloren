@@ -355,7 +355,11 @@ impl<'a> Widget for Diary<'a> {
             } else {
                 img.down_from(state.weapon_btns[i.0 - 1], tweak!(5.0))
             };
-            let tooltip_txt = if !locked { "" } else { &self.localized_strings.get("hud.skills.not_unlocked") };
+            let tooltip_txt = if !locked {
+                ""
+            } else {
+                &self.localized_strings.get("hud.skill.not_unlocked")
+            };
             img.w_h(tweak!(50.0), tweak!(50.0))
                 .set(state.weapon_imgs[i.0], ui);
             // Lock Image
@@ -465,12 +469,17 @@ impl<'a> Widget for Diary<'a> {
             .color(TEXT_COLOR)
             .set(state.exp_bar_rank, ui);
         if available_pts > 0 {
-            Text::new(&self.localized_strings.get("hud.skills.sp_available").replace("{number}", &available_pts_txt))
-                .mid_top_with_margin_on(state.content_align, tweak!(700.0))
-                .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(tweak!(28)))
-                .color(Color::Rgba(0.92, 0.76, 0.0, frame_ani))
-                .set(state.available_pts_txt, ui);
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.skill.sp_available")
+                    .replace("{number}", &available_pts_txt),
+            )
+            .mid_top_with_margin_on(state.content_align, tweak!(700.0))
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(tweak!(28)))
+            .color(Color::Rgba(0.92, 0.76, 0.0, frame_ani))
+            .set(state.available_pts_txt, ui);
         }
         let tree_title = match sel_tab {
             SelectedSkillTree::General => "General Combat",
@@ -677,11 +686,12 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    &self.localized_strings.get("hud.skills.inc_health_title"),
+                    &self.localized_strings.get("hud.skill.inc_health_title"),
                     &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skills.inc_health"),
+                        &self.localized_strings.get("hud.skill.inc_health"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -702,11 +712,12 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    &self.localized_strings.get("hud.skills.inc_stam_title"),
+                    &self.localized_strings.get("hud.skill.inc_stam_title"),
                     &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skills.inc_stam"),
+                        &self.localized_strings.get("hud.skill.inc_stam"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -728,11 +739,12 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    &self.localized_strings.get("hud.skills.unlck_sword_title"),
+                    &self.localized_strings.get("hud.skill.unlck_sword_title"),
                     &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skills.unlck_sword"),
+                        &self.localized_strings.get("hud.skill.unlck_sword"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -753,8 +765,13 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    &self.localized_strings.get("hud.skills.unlck_axe_title"),
-                    &add_sp_cost_tooltip(&self.localized_strings.get("hud.skills.unlck_axe"), skill, &self.stats.skill_set),
+                    &self.localized_strings.get("hud.skill.unlck_axe_title"),
+                    &add_sp_cost_tooltip(
+                        &self.localized_strings.get("hud.skill.unlck_axe"),
+                        skill,
+                        &self.stats.skill_set,
+                        &self.localized_strings,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -774,11 +791,12 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    &self.localized_strings.get("hud.skills.unlck_hammer_title"),
+                    &self.localized_strings.get("hud.skill.unlck_hammer_title"),
                     &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skills.unlck_hammer"),
+                        &self.localized_strings.get("hud.skill.unlck_hammer"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -799,8 +817,13 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    &self.localized_strings.get("hud.skills.unlck_bow_title"),
-                    &add_sp_cost_tooltip(&self.localized_strings.get("hud.skills.unlck_bow"), skill, &self.stats.skill_set),
+                    &self.localized_strings.get("hud.skill.unlck_bow_title"),
+                    &add_sp_cost_tooltip(
+                        &self.localized_strings.get("hud.skill.unlck_bow"),
+                        skill,
+                        &self.stats.skill_set,
+                        &self.localized_strings,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -820,11 +843,12 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    &self.localized_strings.get("hud.skills.unlck_staff_title"),
+                    &self.localized_strings.get("hud.skill.unlck_staff_title"),
                     &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skills.unlck_staff"),
+                        &self.localized_strings.get("hud.skill.unlck_staff"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -845,11 +869,12 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    &self.localized_strings.get("hud.skills.unlck_sceptre_title"),
+                    &self.localized_strings.get("hud.skill.unlck_sceptre_title"),
                     &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skills.unlck_sceptre"),
+                        &self.localized_strings.get("hud.skill.unlck_sceptre"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -871,11 +896,12 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    &self.localized_strings.get("hud.skills.dodge_title"),
+                    &self.localized_strings.get("hud.skill.dodge_title"),
                     &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skills.dodge"),
+                        &self.localized_strings.get("hud.skill.dodge"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -896,11 +922,12 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Roll Stamina Cost",
+                    &self.localized_strings.get("hud.skill.roll_stamina_title"),
                     &add_sp_cost_tooltip(
-                        "Rolling uses 20% less stamina{}",
+                        &self.localized_strings.get("hud.skill.roll_stamina"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -921,8 +948,13 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Rolling Speed",
-                    &add_sp_cost_tooltip("Roll 30% faster{}", skill, &self.stats.skill_set),
+                    &self.localized_strings.get("hud.skill.roll_speed_title"),
+                    &add_sp_cost_tooltip(
+                        &self.localized_strings.get("hud.skill.roll_speed"),
+                        skill,
+                        &self.stats.skill_set,
+                        &self.localized_strings,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -942,8 +974,13 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Rolling Duration",
-                    &add_sp_cost_tooltip("Roll for 20% more time{}", skill, &self.stats.skill_set),
+                    &self.localized_strings.get("hud.skill.roll_dur_title"),
+                    &add_sp_cost_tooltip(
+                        &self.localized_strings.get("hud.skill.roll_dur"),
+                        skill,
+                        &self.stats.skill_set,
+                        &self.localized_strings,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -979,11 +1016,16 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Triple Strike Combo",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.sw_trip_str_combo_title"),
                     &add_sp_cost_tooltip(
-                        "Unlocks combo scaling on triple strike{}",
+                        &self
+                            .localized_strings
+                            .get("hud.skill.sw_trip_str_combo_title"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1004,11 +1046,14 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Triple Strike Damage",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.sw_trip_str_dmg_title"),
                     &add_sp_cost_tooltip(
-                        "Increases the damage each successive strike does{}",
+                        &self.localized_strings.get("hud.skill.sw_trip_str_dmg"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1029,11 +1074,12 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Triple Strike Speed",
+                    &self.localized_strings.get("hud.skill.sw_trip_str_sp_title"),
                     &add_sp_cost_tooltip(
-                        "Increases attack speed gained by each successive strike{}",
+                        &self.localized_strings.get("hud.skill.sw_trip_str_sp"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1054,11 +1100,14 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Triple Strike Regen",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.sw_trip_str_reg_title"),
                     &add_sp_cost_tooltip(
-                        "Increases stamina gain on each successive strike{}",
+                        &self.localized_strings.get("hud.skill.sw_trip_str_reg"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1080,11 +1129,12 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Dash Damage",
+                    &self.localized_strings.get("hud.skill.sw_dash_dmg_title"),
                     &add_sp_cost_tooltip(
-                        "Increases initial damage of the dash by 20%{}",
+                        &self.localized_strings.get("hud.skill.sw_dash_dmg"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1105,11 +1155,12 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Dash Drain",
+                    &self.localized_strings.get("hud.skill.sw_dash_drain_title"),
                     &add_sp_cost_tooltip(
-                        "Decreases the rate energy is drained while dashing by 25%{}",
+                        &self.localized_strings.get("hud.skill.sw_dash_drain"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1130,11 +1181,12 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Dash Cost",
+                    &self.localized_strings.get("hud.skill.sw_dash_cost_title"),
                     &add_sp_cost_tooltip(
-                        "Decreases the initial cost of the dash by 25%{}",
+                        &self.localized_strings.get("hud.skill.sw_dash_cost"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1155,11 +1207,12 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Dash Speed",
+                    &self.localized_strings.get("hud.skill.sw_dash_speed_title"),
                     &add_sp_cost_tooltip(
-                        "Increases how fast you go while dashing by 30%{}",
+                        &self.localized_strings.get("hud.skill.sw_dash_speed"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1180,11 +1233,12 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Dash Infinite",
+                    &self.localized_strings.get("hud.skill.sw_dash_inf_title"),
                     &add_sp_cost_tooltip(
-                        "Allows you to dash for as long as you have energy{}",
+                        &self.localized_strings.get("hud.skill.sw_dash_inf"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1205,11 +1259,12 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Dash Scaling Damage",
+                    &self.localized_strings.get("hud.skill.sw_dash_scale_title"),
                     &add_sp_cost_tooltip(
-                        "Increases the damage scaling from the dash by 20%{}",
+                        &self.localized_strings.get("hud.skill.sw_dash_scale"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1231,8 +1286,13 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Spin Unlock",
-                    &add_sp_cost_tooltip("Unlocks the sword spin{}", skill, &self.stats.skill_set),
+                    &self.localized_strings.get("hud.skill.sw_spin_title"),
+                    &add_sp_cost_tooltip(
+                        &self.localized_strings.get("hud.skill.sw_spin"),
+                        skill,
+                        &self.stats.skill_set,
+                        &self.localized_strings,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1252,11 +1312,12 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Spin Damage",
+                    &self.localized_strings.get("hud.skill.sw_spin_dmg_title"),
                     &add_sp_cost_tooltip(
-                        "Increases the damage done by 40%{}",
+                        &self.localized_strings.get("hud.skill.sw_spin_dmg"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1277,11 +1338,12 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Spin Speed",
+                    &self.localized_strings.get("hud.skill.sw_spin_dmg_title"),
                     &add_sp_cost_tooltip(
-                        "Increase the speed at which you spin by 25%{}",
+                        &self.localized_strings.get("hud.skill.sw_spin_dmg"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1302,11 +1364,12 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Spin Cost",
+                    &self.localized_strings.get("hud.skill.sw_spin_cost_title"),
                     &add_sp_cost_tooltip(
-                        "Decreases the energy cost of each spin by 25%{}",
+                        &self.localized_strings.get("hud.skill.sw_spin_cost"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1327,11 +1390,12 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Spin Spins",
+                    &self.localized_strings.get("hud.skill.sw_spin_spins_title"),
                     &add_sp_cost_tooltip(
-                        "Increases the number of times you can spin{}",
+                        &self.localized_strings.get("hud.skill.sw_spin_spins"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1353,11 +1417,12 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Interrupting Attacks",
+                    &self.localized_strings.get("hud.skill.sw_interrupt_title"),
                     &add_sp_cost_tooltip(
-                        "Allows you to immediately cancel an attack with another attack{}",
+                        &self.localized_strings.get("hud.skill.sw_interrupt"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1394,8 +1459,17 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Double Strike Combo",
-                    &add_sp_cost_tooltip("Unlocks a second strike{}", skill, &self.stats.skill_set),
+                    &self
+                        .localized_strings
+                        .get("hud.skill.axe_double_strike_combo_title"),
+                    &add_sp_cost_tooltip(
+                        &self
+                            .localized_strings
+                            .get("hud.skill.axe_double_strike_combo"),
+                        skill,
+                        &self.stats.skill_set,
+                        &self.localized_strings,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1415,11 +1489,16 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Double Strike Damage",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.axe_double_strike_damage_title"),
                     &add_sp_cost_tooltip(
-                        "Increases the damage dealt in each successive strike{}",
+                        &self
+                            .localized_strings
+                            .get("hud.skill.axe_double_strike_damage"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1440,11 +1519,16 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Double Strike Speed",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.axe_double_strike_speed_title"),
                     &add_sp_cost_tooltip(
-                        "Increases the attack speed with each successive strike{}",
+                        &self
+                            .localized_strings
+                            .get("hud.skill.axe_double_strike_speed"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1465,11 +1549,16 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Double Strike Regen",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.axe_double_strike_speed_title"),
                     &add_sp_cost_tooltip(
-                        "Increases stamina gain with each successive strike{}",
+                        &self
+                            .localized_strings
+                            .get("hud.skill.axe_double_strike_speed"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1491,11 +1580,16 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Infinite Axe Spin",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.axe_infinite_axe_spin_title"),
                     &add_sp_cost_tooltip(
-                        "Spin for as long as you have energy{}",
+                        &self
+                            .localized_strings
+                            .get("hud.skill.axe_infinite_axe_spin"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1516,11 +1610,14 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Spin Damage",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.axe_spin_damage_title"),
                     &add_sp_cost_tooltip(
-                        "Increases the daamge each spin does by 30%{}",
+                        &self.localized_strings.get("hud.skill.axe_spin_damage"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1541,11 +1638,14 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Spin Helicopter",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.axe_spin_helicopter_title"),
                     &add_sp_cost_tooltip(
-                        "You fall a little slower while spinning{}",
+                        &self.localized_strings.get("hud.skill.axe_spin_helicopter"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1566,11 +1666,12 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Spin Speed",
+                    &self.localized_strings.get("hud.skill.axe_spin_speed_title"),
                     &add_sp_cost_tooltip(
-                        "Increases your spin speed by 25%{}",
+                        &self.localized_strings.get("hud.skill.axe_spin_speed"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1591,11 +1692,12 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Spin Cost",
+                    &self.localized_strings.get("hud.skill.axe_spin_cost_title"),
                     &add_sp_cost_tooltip(
-                        "Decreases stamina cost of spinning by 25%{}",
+                        &self.localized_strings.get("hud.skill.axe_spin_cost"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1617,8 +1719,15 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Unlock Leap",
-                    &add_sp_cost_tooltip("Unlocks a leap spin{}", skill, &self.stats.skill_set),
+                    &self
+                        .localized_strings
+                        .get("hud.skill.axe_unlock_leap_title"),
+                    &add_sp_cost_tooltip(
+                        &self.localized_strings.get("hud.skill.axe_unlock_leap"),
+                        skill,
+                        &self.stats.skill_set,
+                        &self.localized_strings,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1638,11 +1747,14 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Leap Damage",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.axe_leap_damage_title"),
                     &add_sp_cost_tooltip(
-                        "Increases damage of leap by 35%{}",
+                        &self.localized_strings.get("hud.skill.axe_leap_damage"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1663,11 +1775,14 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Leap Knockback",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.axe_leap_knockback_title"),
                     &add_sp_cost_tooltip(
-                        "Increases knockback from leap by 40%{}",
+                        &self.localized_strings.get("hud.skill.axe_leap_knockback"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1688,11 +1803,12 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Leap Cost",
+                    &self.localized_strings.get("hud.skill.axe_leap_cost_title"),
                     &add_sp_cost_tooltip(
-                        "Decreases cost of leap by 25%{}",
+                        &self.localized_strings.get("hud.skill.axe_leap_cost"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1713,11 +1829,14 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Leap Distance",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.axe_leap_distance_title"),
                     &add_sp_cost_tooltip(
-                        "Increases distance of leap by 20%{}",
+                        &self.localized_strings.get("hud.skill.axe_leap_distance"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1754,11 +1873,16 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Single Strike Knockback",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.hmr_single_strike_knockback_title"),
                     &add_sp_cost_tooltip(
-                        "Increaes yeet potential of swings by 50%{}",
+                        &self
+                            .localized_strings
+                            .get("hud.skill.hmr_single_strike_knockback"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1779,11 +1903,16 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Single Strike Damage",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.hmr_single_strike_damage_title"),
                     &add_sp_cost_tooltip(
-                        "Increases the damage with each successive strike{}",
+                        &self
+                            .localized_strings
+                            .get("hud.skill.hmr_single_strike_damage"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1804,11 +1933,16 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Single Strike Speed",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.hmr_single_strike_speed_title"),
                     &add_sp_cost_tooltip(
-                        "Increases the attack speed with each successive strike{}",
+                        &self
+                            .localized_strings
+                            .get("hud.skill.hmr_single_strike_speed"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1829,11 +1963,16 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Single Strike Regen",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.hmr_single_strike_regen_title"),
                     &add_sp_cost_tooltip(
-                        "Increases stamina gain with each successive strike{}",
+                        &self
+                            .localized_strings
+                            .get("hud.skill.hmr_single_strike_regen"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1855,11 +1994,16 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Charged Melee Knockback",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.hmr_charged_melee_knockback_title"),
                     &add_sp_cost_tooltip(
-                        "Massively increases yeet potential of swing by 50%{}",
+                        &self
+                            .localized_strings
+                            .get("hud.skill.hmr_charged_melee_knockback"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1880,11 +2024,16 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Charged Melee Damage",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.hmr_charged_melee_damage_title"),
                     &add_sp_cost_tooltip(
-                        "Increases the daamge of the charged swing by 25%{}",
+                        &self
+                            .localized_strings
+                            .get("hud.skill.hmr_charged_melee_damage"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1905,11 +2054,16 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Charged Melee Energy Drain",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.hmr_charged_melee_nrg_drain_title"),
                     &add_sp_cost_tooltip(
-                        "Decreases the rate energy drains when charging by 25%{}",
+                        &self
+                            .localized_strings
+                            .get("hud.skill.hmr_charged_melee_nrg_drain"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1930,11 +2084,14 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Charge Rate",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.hmr_charged_rate_title"),
                     &add_sp_cost_tooltip(
-                        "Increases the rate that you charge the swing by 25%{}",
+                        &self.localized_strings.get("hud.skill.hmr_charged_rate"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -1956,8 +2113,15 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Unlock Leap",
-                    &add_sp_cost_tooltip("Unlocks a leap{}", skill, &self.stats.skill_set),
+                    &self
+                        .localized_strings
+                        .get("hud.skill.hmr_unlock_leap_title"),
+                    &add_sp_cost_tooltip(
+                        &self.localized_strings.get("hud.skill.hmr_unlock_leap"),
+                        skill,
+                        &self.stats.skill_set,
+                        &self.localized_strings,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -1977,11 +2141,14 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Leap Damage",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.hmr_leap_damage_title"),
                     &add_sp_cost_tooltip(
-                        "Increases damage of leap by 40%{}",
+                        &self.localized_strings.get("hud.skill.hmr_leap_damage"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -2002,11 +2169,14 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Leap Knockback",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.hmr_leap_knockback_title"),
                     &add_sp_cost_tooltip(
-                        "Increases knockback from leap by 50%{}",
+                        &self.localized_strings.get("hud.skill.hmr_leap_knockback"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -2027,11 +2197,12 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Leap Cost",
+                    &self.localized_strings.get("hud.skill.hmr_leap_cost_title"),
                     &add_sp_cost_tooltip(
-                        "Decreases cost of leap by 25%{}",
+                        &self.localized_strings.get("hud.skill.hmr_leap_cost"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -2052,11 +2223,14 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Leap Distance",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.hmr_leap_distance_title"),
                     &add_sp_cost_tooltip(
-                        "Increases distance of leap by 25%{}",
+                        &self.localized_strings.get("hud.skill.hmr_leap_distance"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -2077,11 +2251,14 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Leap Radius",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.hmr_leap_radius_title"),
                     &add_sp_cost_tooltip(
-                        "Increases attack radius on ground slam by 1 meter{}",
+                        &self.localized_strings.get("hud.skill.hmr_leap_radius"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -2117,8 +2294,13 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Damage",
-                    &add_sp_cost_tooltip("Increases damage by 30%{}", skill, &self.stats.skill_set),
+                    &self.localized_strings.get("hud.skill.bow_damage_title"),
+                    &add_sp_cost_tooltip(
+                        &self.localized_strings.get("hud.skill.bow_damage"),
+                        skill,
+                        &self.stats.skill_set,
+                        &self.localized_strings,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2138,11 +2320,14 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Energy Regen",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.bow_energy_regen_title"),
                     &add_sp_cost_tooltip(
-                        "Increases stamina gain by 50%{}",
+                        &self.localized_strings.get("hud.skill.bow_energy_regen"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -2164,8 +2349,15 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Charged Damage",
-                    &add_sp_cost_tooltip("Increases damage by 25%{}", skill, &self.stats.skill_set),
+                    &self
+                        .localized_strings
+                        .get("hud.skill.bow_charged_damage_title"),
+                    &add_sp_cost_tooltip(
+                        &self.localized_strings.get("hud.skill.bow_charged_damage"),
+                        skill,
+                        &self.stats.skill_set,
+                        &self.localized_strings,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2185,11 +2377,14 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Charged Drain",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.bow_charged_drain_title"),
                     &add_sp_cost_tooltip(
-                        "Decreases the rate of stamina drain by 25%{}",
+                        &self.localized_strings.get("hud.skill.bow_charged_drain"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -2210,11 +2405,16 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Charged Projectile Speed",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.bow_charged_projectile_speed_title"),
                     &add_sp_cost_tooltip(
-                        "Increases yeet potential applied to arrow while charging by 20%{}",
+                        &self
+                            .localized_strings
+                            .get("hud.skill.bow_charged_projectile_speed"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -2235,11 +2435,14 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Charged Speed",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.bow_charged_speed_title"),
                     &add_sp_cost_tooltip(
-                        "Increases the rate that you charge the attack by 25%{}",
+                        &self.localized_strings.get("hud.skill.bow_charged_speed"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -2260,11 +2463,16 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Charged Move Speed",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.bow_charged_move_speed_title"),
                     &add_sp_cost_tooltip(
-                        "Increases how fast you can shuffle while charging the attack by 25%{}",
+                        &self
+                            .localized_strings
+                            .get("hud.skill.bow_charged_move_speed"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -2285,11 +2493,16 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Charged Knockback",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.bow_charged_knockback_title"),
                     &add_sp_cost_tooltip(
-                        "Yeet enemies further by 50%{}",
+                        &self
+                            .localized_strings
+                            .get("hud.skill.bow_charged_knockback"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -2311,11 +2524,14 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Repeater Unlock",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.bow_repeater_unlock_title"),
                     &add_sp_cost_tooltip(
-                        "Unlocks the ability to leap in the air and shoot a barrage of arrows{}",
+                        &self.localized_strings.get("hud.skill.bow_repeater_unlock"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -2336,11 +2552,14 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Repeater Damage",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.bow_repeater_damage_title"),
                     &add_sp_cost_tooltip(
-                        "Increases the damage done by 30%{}",
+                        &self.localized_strings.get("hud.skill.bow_repeater_damage"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -2361,11 +2580,14 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Repeater Glide",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.bow_repeater_glide_title"),
                     &add_sp_cost_tooltip(
-                        "Glide further while repeatering{}",
+                        &self.localized_strings.get("hud.skill.bow_repeater_glide"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -2386,11 +2608,14 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Repeater Cost",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.bow_repeater_cost_title"),
                     &add_sp_cost_tooltip(
-                        "Decreases the energy cost to become a gliding repeater by 25%{}",
+                        &self.localized_strings.get("hud.skill.bow_repeater_cost"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -2411,11 +2636,14 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Arrow Count",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.bow_arrow_count_title"),
                     &add_sp_cost_tooltip(
-                        "Yeet an additional arrow when you leap{}",
+                        &self.localized_strings.get("hud.skill.bow_arrow_count"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -2437,11 +2665,14 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Projectile Speed",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.bow_projectile_speed_title"),
                     &add_sp_cost_tooltip(
-                        "Allows you to yeet arrows further, faster, by 50%{}",
+                        &self.localized_strings.get("hud.skill.bow_projectile_speed"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -2478,11 +2709,12 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Explosion",
+                    &self.localized_strings.get("hud.skill.st_explosion_title"),
                     &add_sp_cost_tooltip(
-                        "When fire just isn't enough{}",
+                        &self.localized_strings.get("hud.skill.st_explosion"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -2503,8 +2735,13 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Damage",
-                    &add_sp_cost_tooltip("Increases damage by 20%{}", skill, &self.stats.skill_set),
+                    &self.localized_strings.get("hud.skill.st_damage_title"),
+                    &add_sp_cost_tooltip(
+                        &self.localized_strings.get("hud.skill.st_damage"),
+                        skill,
+                        &self.stats.skill_set,
+                        &self.localized_strings,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2524,11 +2761,14 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Stamina Regen",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.st_stamina_regen_title"),
                     &add_sp_cost_tooltip(
-                        "Increases stamina gain by 20%{}",
+                        &self.localized_strings.get("hud.skill.st_stamina_regen"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -2549,11 +2789,14 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Explosion Radius",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.st_explosion_radius_title"),
                     &add_sp_cost_tooltip(
-                        "Bigger is better, icnreases explosion radius by 10%{}",
+                        &self.localized_strings.get("hud.skill.st_explosion_radius"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -2575,8 +2818,17 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Flamethrower Damage",
-                    &add_sp_cost_tooltip("Increases damage by 30%{}", skill, &self.stats.skill_set),
+                    &self
+                        .localized_strings
+                        .get("hud.skill.st_flamethrower_damage_title"),
+                    &add_sp_cost_tooltip(
+                        &self
+                            .localized_strings
+                            .get("hud.skill.st_flamethrower_damage"),
+                        skill,
+                        &self.stats.skill_set,
+                        &self.localized_strings,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2596,11 +2848,14 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Energy Drain",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.st_energy_drain_title"),
                     &add_sp_cost_tooltip(
-                        "Decreases the rate energy is drained by 20%{}",
+                        &self.localized_strings.get("hud.skill.st_energy_drain"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -2621,11 +2876,14 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Flamethrower Range",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.st_flame_velocity_title"),
                     &add_sp_cost_tooltip(
-                        "For when the flames just won't reach, they go 25% further{}",
+                        &self.localized_strings.get("hud.skill.st_flame_velocity"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -2646,11 +2904,14 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Flame Velocity",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.st_flame_velocity_title"),
                     &add_sp_cost_tooltip(
-                        "Gets the fire there faster, 25% faster{}",
+                        &self.localized_strings.get("hud.skill.st_flame_velocity"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -2672,11 +2933,14 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Shockwave Unlock",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.st_shockwave_unlock_title"),
                     &add_sp_cost_tooltip(
-                        "Unlocks the ability to yeet enemies away using fire{}",
+                        &self.localized_strings.get("hud.skill.st_shockwave_unlock"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -2697,11 +2961,14 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Shockwave Damage",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.st_shockwave_damage_title"),
                     &add_sp_cost_tooltip(
-                        "Increases the damage done by 30%{}",
+                        &self.localized_strings.get("hud.skill.st_shockwave_damage"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -2722,11 +2989,16 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Shockwave Knockback",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.st_shockwave_knockback_title"),
                     &add_sp_cost_tooltip(
-                        "Increases yeet potential by 30%{}",
+                        &self
+                            .localized_strings
+                            .get("hud.skill.st_shockwave_knockback"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -2747,11 +3019,14 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Shockwave Cost",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.st_shockwave_cost_title"),
                     &add_sp_cost_tooltip(
-                        "Decreases the energy cost to yeet helpless villagers by 20%{}",
+                        &self.localized_strings.get("hud.skill.st_shockwave_cost"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -2772,11 +3047,14 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Shockwave Range",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.st_shockwave_range_title"),
                     &add_sp_cost_tooltip(
-                        "Yeet things that used to be out of reach, range increased 20%{}",
+                        &self.localized_strings.get("hud.skill.st_shockwave_range"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -2813,11 +3091,12 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Beam Heal",
+                    &self.localized_strings.get("hud.skill.sc_beam_heal_title"),
                     &add_sp_cost_tooltip(
-                        "Increased healing from the beam by 20%{}",
+                        &self.localized_strings.get("hud.skill.sc_beam_heal"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -2838,8 +3117,13 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Damage",
-                    &add_sp_cost_tooltip("Increases damage by 30%{}", skill, &self.stats.skill_set),
+                    &self.localized_strings.get("hud.skill.sc_damage_title"),
+                    &add_sp_cost_tooltip(
+                        &self.localized_strings.get("hud.skill.sc_damage"),
+                        skill,
+                        &self.stats.skill_set,
+                        &self.localized_strings,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2859,11 +3143,14 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Energy Regen",
+                    &self
+                        .localized_strings
+                        .get("hud.skill.sc_energy_regen_title"),
                     &add_sp_cost_tooltip(
-                        "Increases energy regen from dealing damage by 10%{}",
+                        &self.localized_strings.get("hud.skill.sc_energy_regen"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -2884,8 +3171,13 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Range",
-                    &add_sp_cost_tooltip("Longer beam, by 25%{}", skill, &self.stats.skill_set),
+                    &self.localized_strings.get("hud.skill.sc_range_title"),
+                    &add_sp_cost_tooltip(
+                        &self.localized_strings.get("hud.skill.sc_range"),
+                        skill,
+                        &self.stats.skill_set,
+                        &self.localized_strings,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2905,8 +3197,17 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Lifesteal Efficiency",
-                    &add_sp_cost_tooltip("Thieve 50% more health{}", skill, &self.stats.skill_set),
+                    &self
+                        .localized_strings
+                        .get("hud.skill.sc_lifesteal_efficiency_title"),
+                    &add_sp_cost_tooltip(
+                        &self
+                            .localized_strings
+                            .get("hud.skill.sc_lifesteal_efficiency"),
+                        skill,
+                        &self.stats.skill_set,
+                        &self.localized_strings,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2926,11 +3227,12 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Heal Cost",
+                    &self.localized_strings.get("hud.skill.sc_heal_cost_title"),
                     &add_sp_cost_tooltip(
-                        "Use 10% less energy when healing{}",
+                        &self.localized_strings.get("hud.skill.sc_heal_cost"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -2952,11 +3254,12 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Heal",
+                    &self.localized_strings.get("hud.skill.sc_heal_title"),
                     &add_sp_cost_tooltip(
-                        "Increases healing by 20%{}",
+                        &self.localized_strings.get("hud.skill.sc_heal"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -2977,8 +3280,13 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Damage",
-                    &add_sp_cost_tooltip("Increases damage by 20%{}", skill, &self.stats.skill_set),
+                    &self.localized_strings.get("hud.skill.sc_damage_title"),
+                    &add_sp_cost_tooltip(
+                        &self.localized_strings.get("hud.skill.sc_damage"),
+                        skill,
+                        &self.stats.skill_set,
+                        &self.localized_strings,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -2998,8 +3306,13 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Radius",
-                    &add_sp_cost_tooltip("Increases radius by 40%{}", skill, &self.stats.skill_set),
+                    &self.localized_strings.get("hud.skill.sc_radius_title"),
+                    &add_sp_cost_tooltip(
+                        &self.localized_strings.get("hud.skill.sc_radius"),
+                        skill,
+                        &self.stats.skill_set,
+                        &self.localized_strings,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -3019,11 +3332,12 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Energy Cost",
+                    &self.localized_strings.get("hud.skill.sc_energy_cost_title"),
                     &add_sp_cost_tooltip(
-                        "Decreases energy cost of bomb by 20%{}",
+                        &self.localized_strings.get("hud.skill.sc_energy_cost"),
                         skill,
                         &self.stats.skill_set,
+                        &self.localized_strings,
                     ),
                     &diary_tooltip,
                     TEXT_COLOR,
@@ -3044,8 +3358,15 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    "Projectile Speed",
-                    &add_sp_cost_tooltip("Yeets it 25% faster{}", skill, &self.stats.skill_set),
+                    &self
+                        .localized_strings
+                        .get("hud.skill.sc_projectile_speed_title"),
+                    &add_sp_cost_tooltip(
+                        &self.localized_strings.get("hud.skill.sc_projectile_speed"),
+                        skill,
+                        &self.stats.skill_set,
+                        &self.localized_strings,
+                    ),
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -3123,14 +3444,15 @@ fn add_sp_cost_tooltip<'a>(
     tooltip: &'a str,
     skill: Skill,
     skill_set: &'a skills::SkillSet,
+    localized_strings: &'a Localization,
 ) -> String {
     match skill_set.skills.get(&skill).copied() {
         Some(level) if level == skill.get_max_level() => tooltip.replace("{}", ""),
         _ => tooltip.replace(
             "{}",
-            &format!(
-                "\n\nRequires {} skill points",
-                skill_set.skill_point_cost(skill)
+            &localized_strings.get("hud.skill.req_sp").replace(
+                "{number}",
+                &format!("{}", skill_set.skill_point_cost(skill)),
             ),
         ),
     }

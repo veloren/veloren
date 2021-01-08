@@ -1424,7 +1424,7 @@
         "voxel.object.potion_red",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.9,
     ),
-    Consumable("PotionExp"): VoxTrans(
+    Ingredient("PotionExp"): VoxTrans(
         "voxel.object.potion_turq",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
@@ -1439,11 +1439,11 @@
         "voxel.sprite.mushrooms.mushroom-10",
         (0.0, 0.0, 0.0), (-50.0, 70.0, 40.0), 1.0,
     ),
-    Consumable("Velorite"): VoxTrans(
+    Ingredient("Velorite"): VoxTrans(
         "voxel.sprite.velorite.velorite_ore",
         (0.0, -1.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
-    Consumable("VeloriteFrag"): VoxTrans(
+    Ingredient("VeloriteFrag"): VoxTrans(
         "voxel.sprite.velorite.velorite_1",
         (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),

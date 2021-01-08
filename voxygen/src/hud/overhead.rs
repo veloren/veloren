@@ -284,16 +284,16 @@ impl<'a> Widget for Overhead<'a> {
                     });
             }
             // Name                    
-                // Text::new(name)    
-                Text::new(&format!("{} [{:?}]", name, combat_rating)) // <- Uncomment to debug combat ratings
+                Text::new(name)    
+                //Text::new(&format!("{} [{:?}]", name, combat_rating)) // <- Uncomment to debug combat ratings
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(font_size)
                 .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
                 .x_y(-1.0, name_y)
                 .parent(id)
                 .set(state.ids.name_bg, ui);
-                // Text::new(name)    
-                Text::new(&format!("{} [{:?}]", name, combat_rating)) // <- Uncomment to debug combat ratings
+                Text::new(name)    
+                //Text::new(&format!("{} [{:?}]", name, combat_rating)) // <- Uncomment to debug combat ratings
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(font_size)
                 .color(if self.in_group {
