@@ -99,11 +99,7 @@ impl<'a> System<'a> for Sys {
             if !skills_to_level.is_empty() {
                 let mut stat = stats.get_mut_unchecked();
                 for skill_group in skills_to_level.drain() {
-                    stat.skill_set.change_experience(
-                        skill_group,
-                        -(stat.skill_set.get_skill_point_cost(skill_group) as i32),
-                    );
-                    stat.skill_set.add_skill_points(skill_group, 1);
+                    stat.skill_set.earn_skill_point(skill_group);
                     outcomes.push(Outcome::SkillPointGain {
                         uid: *uid,
                         skill_tree: skill_group,

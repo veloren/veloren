@@ -1330,7 +1330,11 @@ impl Hud {
                             health,
                             buffs,
                             energy,
-                            combat_rating: combat::combat_rating(inventory, health, &stats.body_type),
+                            combat_rating: combat::combat_rating(
+                                inventory,
+                                health,
+                                &stats.body_type,
+                            ),
                         });
                         let bubble = if dist_sqr < SPEECH_BUBBLE_RANGE.powi(2) {
                             speech_bubbles.get(uid)

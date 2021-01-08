@@ -1,6 +1,9 @@
 use crate::{
     comp::{
-        inventory::{item::{armor::Protection, tool::ToolKind, ItemKind}, slot::EquipSlot},
+        inventory::{
+            item::{armor::Protection, tool::ToolKind, ItemKind},
+            slot::EquipSlot,
+        },
         Body, BuffKind, Health, HealthChange, HealthSource, Inventory,
     },
     uid::Uid,
@@ -223,10 +226,8 @@ pub fn get_weapons(inv: &Inventory) -> (Option<ToolKind>, Option<ToolKind>) {
                 None
             }
         }),
-
     )
 }
-
 
 pub fn get_weapon_damage(inv: &Inventory) -> f32 {
     let active_power = inv.equipped(EquipSlot::Mainhand).map_or(0.0, |i| {
@@ -249,7 +250,8 @@ pub fn get_weapon_damage(inv: &Inventory) -> f32 {
 pub fn combat_rating(inventory: &Inventory, health: &Health, body: &Body) -> f32 {
     let defensive_weighting = tweak!(1.0);
     let offensive_weighting = tweak!(1.0);
-    let defensive_rating = health.maximum() as f32 / (1.0 - Damage::compute_damage_reduction(inventory)) / 100.0;
+    let defensive_rating =
+        health.maximum() as f32 / (1.0 - Damage::compute_damage_reduction(inventory)) / 100.0;
     let offensive_rating = get_weapon_damage(inventory);
     //let combined_rating = 2.0 / ((1.0 / offensive_rating) + (1.0 /
     // defensive_rating)); let combined_rating = offensive_rating *

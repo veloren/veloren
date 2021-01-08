@@ -1,9 +1,8 @@
 use crate::{
     assets::{self, Asset},
     comp::{
-        inventory::item::tool::ToolKind,
-        projectile::ProjectileConstructor,
-        skills, Body, CharacterState, EnergySource, Gravity, LightEmitter, StateUpdate,
+        inventory::item::tool::ToolKind, projectile::ProjectileConstructor, skills, Body,
+        CharacterState, EnergySource, Gravity, LightEmitter, StateUpdate,
     },
     states::{
         behavior::JoinData,

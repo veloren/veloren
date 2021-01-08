@@ -1571,7 +1571,7 @@ impl<'a> Widget for Diary<'a> {
                 // Top right skills
                 let skill = Skill::Axe(SInfinite);
                 if create_skill_button(
-                    self.imgs.axespin,
+                    self.imgs.spin_infinite_skill,
                     state.skills_top_r[0],
                     &self.stats.skill_set,
                     skill,
@@ -1601,7 +1601,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Axe(SDamage);
                 if create_skill_button(
-                    self.imgs.axespin,
+                    self.imgs.spin_damage_skill,
                     state.skills_top_r[1],
                     &self.stats.skill_set,
                     skill,
@@ -1629,7 +1629,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Axe(SHelicopter);
                 if create_skill_button(
-                    self.imgs.axespin,
+                    self.imgs.spin_helicopter_skill,
                     state.skills_top_r[2],
                     &self.stats.skill_set,
                     skill,
@@ -1657,7 +1657,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Axe(SSpeed);
                 if create_skill_button(
-                    self.imgs.axespin,
+                    self.imgs.spin_speed_skill,
                     state.skills_top_r[3],
                     &self.stats.skill_set,
                     skill,
@@ -1683,7 +1683,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Axe(SCost);
                 if create_skill_button(
-                    self.imgs.axespin,
+                    self.imgs.spin_cost_skill,
                     state.skills_top_r[4],
                     &self.stats.skill_set,
                     skill,
@@ -1738,7 +1738,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Axe(LDamage);
                 if create_skill_button(
-                    self.imgs.axespin,
+                    self.imgs.leap_damage_skill,
                     state.skills_bot_l[1],
                     &self.stats.skill_set,
                     skill,
@@ -1766,7 +1766,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Axe(LKnockback);
                 if create_skill_button(
-                    self.imgs.axespin,
+                    self.imgs.leap_knockback_skill,
                     state.skills_bot_l[2],
                     &self.stats.skill_set,
                     skill,
@@ -1794,7 +1794,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Axe(LCost);
                 if create_skill_button(
-                    self.imgs.axespin,
+                    self.imgs.leap_cost_skill,
                     state.skills_bot_l[3],
                     &self.stats.skill_set,
                     skill,
@@ -1820,7 +1820,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Axe(LDistance);
                 if create_skill_button(
-                    self.imgs.axespin,
+                    self.imgs.leap_distance_skill,
                     state.skills_bot_l[4],
                     &self.stats.skill_set,
                     skill,
@@ -2242,7 +2242,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Hammer(LRange);
                 if create_skill_button(
-                    self.imgs.hammergolf,
+                    self.imgs.hammer_leap_radius_skill,
                     state.skills_bot_l[5],
                     &self.stats.skill_set,
                     skill,

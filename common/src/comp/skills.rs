@@ -447,11 +447,20 @@ impl SkillSet {
             .iter_mut()
             .find(|x| x.skill_group_type == skill_group_type)
         {
-            skill_group.available_sp = skill_group.available_sp.saturating_add(number_of_skill_points);
+            skill_group.available_sp = skill_group
+                .available_sp
+                .saturating_add(number_of_skill_points);
             skill_group.earned_sp = skill_group.earned_sp.saturating_add(number_of_skill_points);
         } else {
             warn!("Tried to add skill points to a skill group that player does not have");
         }
+    }
+
+    /// Adds a skill point while subtracting the necessary amount of experience
+    pub fn earn_skill_point(&mut self, skill_group_type: SkillGroupType) {
+        let sp_cost = self.get_skill_point_cost(skill_group_type) as i32;
+        self.change_experience(skill_group_type, -sp_cost);
+        self.add_skill_points(skill_group_type, 1);
     }
 
     /// Checks if the skill set of an entity contains a particular skill group
