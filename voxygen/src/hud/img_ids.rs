@@ -26,10 +26,6 @@ image_ids! {
         flower: "voxygen.element.icons.item_flower",
         grass: "voxygen.element.icons.item_grass",
 
-        // Charwindow
-        xp_charwindow: "voxygen.element.frames.xp_charwindow",
-        divider: "voxygen.element.frames.divider_charwindow",
-
         // Items
         potion_red: "voxygen.voxel.object.potion_red",
         potion_green: "voxygen.voxel.object.potion_green",
@@ -58,6 +54,13 @@ image_ids! {
         selection: "voxygen.element.frames.selection",
         selection_hover: "voxygen.element.frames.selection_hover",
         selection_press: "voxygen.element.frames.selection_press",
+
+        // Prompt Dialog
+        prompt_top: "voxygen.element.frames.prompt_dialog_top",
+        prompt_mid: "voxygen.element.frames.prompt_dialog_mid",
+        prompt_bot: "voxygen.element.frames.prompt_dialog_bot",
+        key_button: "voxygen.element.buttons.key_button",
+        key_button_press: "voxygen.element.buttons.key_button_press",
 
         // Social Window
         social_frame_on: "voxygen.element.misc_bg.social_frame",
@@ -235,10 +238,18 @@ image_ids! {
         close_button_press: "voxygen.element.buttons.close_btn_press",
 
         // Inventory
+        collapse_btn: "voxygen.element.buttons.inv_collapse",
+        collapse_btn_hover: "voxygen.element.buttons.inv_collapse_hover",
+        collapse_btn_press: "voxygen.element.buttons.inv_collapse_press",
+        expand_btn: "voxygen.element.buttons.inv_expand",
+        expand_btn_hover: "voxygen.element.buttons.inv_expand_hover",
+        expand_btn_press: "voxygen.element.buttons.inv_expand_press",
         coin_ico: "voxygen.element.icons.coin",
         inv_bg_armor: "voxygen.element.misc_bg.inv_bg_0",
         inv_bg_stats: "voxygen.element.misc_bg.inv_bg_1",
         inv_frame: "voxygen.element.misc_bg.inv_frame",
+        inv_frame_bag: "voxygen.element.misc_bg.inv_frame_bag",
+        inv_bg_bag: "voxygen.element.misc_bg.inv_bg_bag",
         char_art: "voxygen.element.icons.character",
         inv_slot: "voxygen.element.buttons.inv_slot",
         inv_slot_grey: "voxygen.element.buttons.inv_slot_grey",
@@ -250,12 +261,11 @@ image_ids! {
         inv_slot_red: "voxygen.element.buttons.inv_slot_red",
         inv_slot_sel: "voxygen.element.buttons.inv_slot_sel",
         scrollbar_bg: "voxygen.element.slider.scrollbar",
+        scrollbar_bg_big: "voxygen.element.slider.scrollbar_1",
         inv_tab_active: "voxygen.element.buttons.inv_tab_active",
         inv_tab_inactive: "voxygen.element.buttons.inv_tab_inactive",
         inv_tab_inactive_hover: "voxygen.element.buttons.inv_tab_inactive",
         inv_tab_inactive_press: "voxygen.element.buttons.inv_tab_inactive",
-        inv_slots: "voxygen.element.misc_bg.inv_slots",
-        inv_runes: "voxygen.element.misc_bg.inv_runes",
         armor_slot: "voxygen.element.buttons.armor_slot",
         armor_slot_sel: "voxygen.element.buttons.armor_slot_selected",
         armor_slot_empty: "voxygen.element.buttons.armor_slot_empty",
@@ -273,6 +283,7 @@ image_ids! {
         lantern_bg: "voxygen.element.icons.lantern",
         necklace_bg: "voxygen.element.icons.necklace",
         mainhand_bg: "voxygen.element.icons.mainhand",
+        bag_bg: "voxygen.element.icons.bag",
         offhand_bg: "voxygen.element.icons.offhand",
         willpower_ico: "voxygen.element.icons.willpower",
         endurance_ico: "voxygen.element.icons.endurance",
@@ -289,7 +300,6 @@ image_ids! {
         banner_top: "voxygen.element.frames.banner_top",
 
         // Icons
-        fire_spell_1: "voxygen.element.icons.fire_spell_0",
         snake_arrow_0: "voxygen.element.icons.snake",
         heal_0: "voxygen.element.icons.heal_0",
         sword_whirlwind: "voxygen.element.icons.sword_whirlwind",

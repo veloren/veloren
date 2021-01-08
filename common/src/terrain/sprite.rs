@@ -177,7 +177,7 @@ impl SpriteKind {
             SpriteKind::BlueFlower => false,
             SpriteKind::PinkFlower => false,
             SpriteKind::PurpleFlower => false,
-            SpriteKind::RedFlower => false,
+            SpriteKind::RedFlower => true,
             SpriteKind::WhiteFlower => false,
             SpriteKind::YellowFlower => false,
             SpriteKind::Sunflower => true,

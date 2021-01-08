@@ -3,7 +3,7 @@ use common::comp::item::{
     tool::{Tool, ToolKind},
     ItemDesc, ItemKind,
 };
-use std::borrow::Cow;
+use std::{borrow::Cow, fmt::Write};
 
 pub fn loadout_slot_text<'a>(
     item: Option<&'a impl ItemDesc>,
@@ -20,7 +20,9 @@ pub fn loadout_slot_text<'a>(
 
 pub fn item_text<'a>(item: &'a impl ItemDesc) -> (&'_ str, Cow<'a, str>) {
     let desc: Cow<str> = match item.kind() {
-        ItemKind::Armor(armor) => Cow::Owned(armor_desc(&armor, item.description())),
+        ItemKind::Armor(armor) => {
+            Cow::Owned(armor_desc(armor, item.description(), item.num_slots()))
+        },
         ItemKind::Tool(tool) => Cow::Owned(tool_desc(&tool, item.description())),
         ItemKind::Glider(_glider) => Cow::Owned(glider_desc(item.description())),
         ItemKind::Consumable { .. } => Cow::Owned(consumable_desc(item.description())),
@@ -51,7 +53,7 @@ fn ingredient_desc(desc: &str) -> String { format!("Crafting Ingredient\n\n{}", 
 
 fn lantern_desc(desc: &str) -> String { format!("Lantern\n\n{}\n\n<Right-Click to use>", desc) }
 
-fn armor_desc(armor: &Armor, desc: &str) -> String {
+fn armor_desc(armor: &Armor, desc: &str, slots: u16) -> String {
     // TODO: localization
     let kind = match armor.kind {
         ArmorKind::Shoulder(_) => "Shoulders",
@@ -65,20 +67,26 @@ fn armor_desc(armor: &Armor, desc: &str) -> String {
         ArmorKind::Neck(_) => "Neck",
         ArmorKind::Head(_) => "Head",
         ArmorKind::Tabard(_) => "Tabard",
+        ArmorKind::Bag(_) => "Bag",
     };
-    let armor = match armor.get_protection() {
+
+    let protection = match armor.get_protection() {
         Protection::Normal(a) => a.to_string(),
         Protection::Invincible => "Inf".to_string(),
     };
 
+    let mut description = format!("{}\n\nArmor: {}", kind, protection);
+
     if !desc.is_empty() {
-        format!(
-            "{}\n\nArmor: {}\n\n{}\n\n<Right-Click to use>",
-            kind, armor, desc
-        )
-    } else {
-        format!("{}\n\nArmor: {}\n\n<Right-Click to use>", kind, armor)
+        write!(&mut description, "\n\n{}", desc).unwrap();
     }
+
+    if slots > 0 {
+        write!(&mut description, "\n\nSlots: {}", slots).unwrap();
+    }
+
+    write!(&mut description, "\n\n<Right-Click to use>").unwrap();
+    description
 }
 
 fn tool_desc(tool: &Tool, desc: &str) -> String {

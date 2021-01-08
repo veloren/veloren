@@ -13,6 +13,7 @@ mod minimap;
 mod overhead;
 mod overitem;
 mod popup;
+mod prompt_dialog;
 mod settings_window;
 mod skillbar;
 mod slots;
@@ -37,6 +38,7 @@ use item_imgs::ItemImgs;
 use map::Map;
 use minimap::MiniMap;
 use popup::Popup;
+use prompt_dialog::PromptDialog;
 use serde::{Deserialize, Serialize};
 use settings_window::{SettingsTab, SettingsWindow};
 use skillbar::Skillbar;
@@ -45,7 +47,7 @@ use spell::Spell;
 
 use crate::{
     ecs::{comp as vcomp, comp::HpFloaterList},
-    hud::img_ids::ImgsRot,
+    hud::{img_ids::ImgsRot, prompt_dialog::DialogOutcomeEvent},
     i18n::{LanguageMetadata, Localization},
     render::{Consts, Globals, RenderMode, Renderer},
     scene::camera::{self, Camera},
@@ -239,6 +241,7 @@ widget_ids! {
         character_window,
         popup,
         minimap,
+        prompt_dialog,
         bag,
         social,
         quest,
@@ -303,6 +306,7 @@ pub struct HudInfo {
     pub selected_entity: Option<(specs::Entity, std::time::Instant)>,
 }
 
+#[derive(Clone)]
 pub enum Event {
     ToggleTips(bool),
     SendMessage(String),
@@ -350,8 +354,15 @@ pub enum Event {
     ToggleDebug(bool),
     UiScale(ScaleChange),
     CharacterSelection,
-    UseSlot(comp::slot::Slot),
-    SwapSlots(comp::slot::Slot, comp::slot::Slot),
+    UseSlot {
+        slot: comp::slot::Slot,
+        bypass_dialog: bool,
+    },
+    SwapSlots {
+        slot_a: comp::slot::Slot,
+        slot_b: comp::slot::Slot,
+        bypass_dialog: bool,
+    },
     DropSlot(comp::slot::Slot),
     ChangeHotbarState(Box<HotbarState>),
     Ability3(bool),
@@ -439,6 +450,7 @@ pub struct Show {
     crafting: bool,
     debug: bool,
     bag: bool,
+    bag_inv: bool,
     social: bool,
     spell: bool,
     group: bool,
@@ -454,6 +466,7 @@ pub struct Show {
     stats: bool,
     free_look: bool,
     auto_walk: bool,
+    prompt_dialog: Option<PromptDialogSettings>,
 }
 impl Show {
     fn bag(&mut self, open: bool) {
@@ -604,6 +617,28 @@ impl Show {
     }
 }
 
+pub struct PromptDialogSettings {
+    message: String,
+    affirmative_event: Event,
+    negative_event: Option<Event>,
+    outcome_via_keypress: Option<bool>,
+}
+
+impl PromptDialogSettings {
+    pub fn new(message: String, affirmative_event: Event, negative_event: Option<Event>) -> Self {
+        Self {
+            message,
+            affirmative_event,
+            negative_event,
+            outcome_via_keypress: None,
+        }
+    }
+
+    pub fn set_outcome_via_keypress(&mut self, outcome: bool) {
+        self.outcome_via_keypress = Some(outcome);
+    }
+}
+
 pub struct Hud {
     ui: Ui,
     ids: Ids,
@@ -695,6 +730,7 @@ impl Hud {
                 intro: true,
                 debug: false,
                 bag: false,
+                bag_inv: false,
                 esc_menu: false,
                 open_windows: Windows::None,
                 map: false,
@@ -712,6 +748,7 @@ impl Hud {
                 stats: false,
                 free_look: false,
                 auto_walk: false,
+                prompt_dialog: None,
             },
             to_focus: None,
             //never_show: false,
@@ -726,6 +763,10 @@ impl Hud {
             events: Vec::new(),
             crosshair_opacity: 0.0,
         }
+    }
+
+    pub fn set_prompt_dialog(&mut self, prompt_dialog: PromptDialogSettings) {
+        self.show.prompt_dialog = Some(prompt_dialog);
     }
 
     pub fn update_fonts(&mut self, i18n: &Localization) {
@@ -1871,6 +1912,34 @@ impl Hud {
             None => {},
         }
 
+        if let Some(prompt_dialog_settings) = &self.show.prompt_dialog {
+            // Prompt Dialog
+            match PromptDialog::new(
+                &self.imgs,
+                &self.fonts,
+                &global_state.i18n,
+                &global_state.settings,
+                &prompt_dialog_settings,
+            )
+            .set(self.ids.prompt_dialog, ui_widgets)
+            {
+                Some(dialog_outcome_event) => {
+                    match dialog_outcome_event {
+                        DialogOutcomeEvent::Affirmative(event) => events.push(event),
+                        DialogOutcomeEvent::Negative(event) => {
+                            if let Some(event) = event {
+                                events.push(event);
+                            };
+                        },
+                    };
+
+                    // Close the prompt dialog once an option has been chosen
+                    self.show.prompt_dialog = None;
+                },
+                None => {},
+            }
+        }
+
         // Bag contents
         if self.show.bag {
             if let Some(player_stats) = stats.get(client.entity()) {
@@ -1889,7 +1958,7 @@ impl Hud {
                 )
                 .set(self.ids.bag, ui_widgets)
                 {
-                    Some(bag::Event::Stats) => self.show.stats = !self.show.stats,
+                    Some(bag::Event::BagExpand) => self.show.bag_inv = !self.show.bag_inv,
                     Some(bag::Event::Close) => {
                         self.show.stats = false;
                         self.show.bag(false);
@@ -1911,28 +1980,26 @@ impl Hud {
         let entity = client.entity();
         let stats = ecs.read_storage::<comp::Stats>();
         let healths = ecs.read_storage::<comp::Health>();
-        let loadouts = ecs.read_storage::<comp::Loadout>();
+        let inventories = ecs.read_storage::<comp::Inventory>();
         let energies = ecs.read_storage::<comp::Energy>();
         let character_states = ecs.read_storage::<comp::CharacterState>();
         let controllers = ecs.read_storage::<comp::Controller>();
-        let inventories = ecs.read_storage::<comp::Inventory>();
         let ability_map = ecs.fetch::<comp::item::tool::AbilityMap>();
+
         if let (
             Some(stats),
             Some(health),
-            Some(loadout),
+            Some(inventory),
             Some(energy),
             Some(_character_state),
             Some(_controller),
-            Some(inventory),
         ) = (
             stats.get(entity),
             healths.get(entity),
-            loadouts.get(entity),
+            inventories.get(entity),
             energies.get(entity),
             character_states.get(entity),
             controllers.get(entity).map(|c| &c.inputs),
-            inventories.get(entity),
         ) {
             Skillbar::new(
                 global_state,
@@ -1942,12 +2009,11 @@ impl Hud {
                 &self.rot_imgs,
                 &stats,
                 &health,
-                &loadout,
+                &inventory,
                 &energy,
                 //&character_state,
                 self.pulse,
                 //&controller,
-                &inventory,
                 &self.hotbar,
                 tooltip_manager,
                 &mut self.slot_manager,
@@ -2381,7 +2447,11 @@ impl Hud {
                 slot::Event::Dragged(a, b) => {
                     // Swap between slots
                     if let (Some(a), Some(b)) = (to_slot(a), to_slot(b)) {
-                        events.push(Event::SwapSlots(a, b));
+                        events.push(Event::SwapSlots {
+                            slot_a: a,
+                            slot_b: b,
+                            bypass_dialog: false,
+                        });
                     } else if let (Inventory(i), Hotbar(h)) = (a, b) {
                         self.hotbar.add_inventory_link(h, i.0);
                         events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
@@ -2402,12 +2472,19 @@ impl Hud {
                 slot::Event::Used(from) => {
                     // Item used (selected and then clicked again)
                     if let Some(from) = to_slot(from) {
-                        events.push(Event::UseSlot(from));
+                        events.push(Event::UseSlot {
+                            slot: from,
+                            bypass_dialog: false,
+                        });
                     } else if let Hotbar(h) = from {
+                        // Used from hotbar
                         self.hotbar.get(h).map(|s| {
                             match s {
                                 hotbar::SlotContents::Inventory(i) => {
-                                    events.push(Event::UseSlot(comp::slot::Slot::Inventory(i)));
+                                    events.push(Event::UseSlot {
+                                        slot: comp::slot::Slot::Inventory(i),
+                                        bypass_dialog: false,
+                                    });
                                 },
                                 hotbar::SlotContents::Ability3 => {}, /* Event::Ability3(true),
                                                                        * sticks */
@@ -2469,7 +2546,10 @@ impl Hud {
                 hotbar.get(slot).map(|s| match s {
                     hotbar::SlotContents::Inventory(i) => {
                         if just_pressed {
-                            events.push(Event::UseSlot(comp::slot::Slot::Inventory(i)));
+                            events.push(Event::UseSlot {
+                                slot: comp::slot::Slot::Inventory(i),
+                                bypass_dialog: false,
+                            });
                         }
                     },
                     hotbar::SlotContents::Ability3 => events.push(Event::Ability3(state)),
@@ -2498,6 +2578,22 @@ impl Hud {
             WinEvent::InputUpdate(GameInput::ToggleCursor, true) if !self.typing() => {
                 self.force_ungrab = !self.force_ungrab;
                 true
+            },
+            WinEvent::InputUpdate(GameInput::AcceptGroupInvite, true) if !self.typing() => {
+                if let Some(prompt_dialog) = &mut self.show.prompt_dialog {
+                    prompt_dialog.set_outcome_via_keypress(true);
+                    true
+                } else {
+                    false
+                }
+            },
+            WinEvent::InputUpdate(GameInput::DeclineGroupInvite, true) if !self.typing() => {
+                if let Some(prompt_dialog) = &mut self.show.prompt_dialog {
+                    prompt_dialog.set_outcome_via_keypress(false);
+                    true
+                } else {
+                    false
+                }
             },
 
             // If not showing the ui don't allow keys that change the ui state but do listen for

@@ -27,8 +27,9 @@ use anim::{
 };
 use common::{
     comp::{
+        inventory::slot::EquipSlot,
         item::{ItemKind, ToolKind},
-        Body, CharacterState, Health, Item, Last, LightAnimation, LightEmitter, Loadout, Ori,
+        Body, CharacterState, Health, Inventory, Item, Last, LightAnimation, LightEmitter, Ori,
         PhysicsState, Pos, Scale, Vel,
     },
     resources::DeltaTime,
@@ -550,7 +551,7 @@ impl FigureMgr {
                 last_character,
                 physics,
                 health,
-                loadout,
+                inventory,
                 item,
             ),
         ) in (
@@ -564,7 +565,7 @@ impl FigureMgr {
             ecs.read_storage::<Last<CharacterState>>().maybe(),
             &ecs.read_storage::<PhysicsState>(),
             ecs.read_storage::<Health>().maybe(),
-            ecs.read_storage::<Loadout>().maybe(),
+            ecs.read_storage::<Inventory>().maybe(),
             ecs.read_storage::<Item>().maybe(),
         )
             .join()
@@ -685,18 +686,18 @@ impl FigureMgr {
 
             let mut state_animation_rate = 1.0;
 
-            let active_item_kind = loadout
-                .and_then(|l| l.active_item.as_ref())
-                .map(|i| i.item.kind());
+            let active_item_kind = inventory
+                .and_then(|i| i.equipped(EquipSlot::Mainhand))
+                .map(|i| i.kind());
             let active_tool_kind = if let Some(ItemKind::Tool(tool)) = active_item_kind {
                 Some(tool.kind)
             } else {
                 None
             };
 
-            let second_item_kind = loadout
-                .and_then(|l| l.second_item.as_ref())
-                .map(|i| i.item.kind());
+            let second_item_kind = inventory
+                .and_then(|i| i.equipped(EquipSlot::Offhand))
+                .map(|i| i.kind());
 
             let second_tool_kind = if let Some(ItemKind::Tool(tool)) = second_item_kind {
                 Some(tool.kind)
@@ -710,7 +711,7 @@ impl FigureMgr {
                         renderer,
                         &mut self.col_lights,
                         *body,
-                        loadout,
+                        inventory,
                         tick,
                         player_camera_mode,
                         player_character_state,
@@ -1338,7 +1339,7 @@ impl FigureMgr {
                             renderer,
                             &mut self.col_lights,
                             *body,
-                            loadout,
+                            inventory,
                             tick,
                             player_camera_mode,
                             player_character_state,
@@ -1488,7 +1489,7 @@ impl FigureMgr {
                             renderer,
                             &mut self.col_lights,
                             *body,
-                            loadout,
+                            inventory,
                             tick,
                             player_camera_mode,
                             player_character_state,
@@ -1765,7 +1766,7 @@ impl FigureMgr {
                             renderer,
                             &mut self.col_lights,
                             *body,
-                            loadout,
+                            inventory,
                             tick,
                             player_camera_mode,
                             player_character_state,
@@ -2059,7 +2060,7 @@ impl FigureMgr {
                         renderer,
                         &mut self.col_lights,
                         *body,
-                        loadout,
+                        inventory,
                         tick,
                         player_camera_mode,
                         player_character_state,
@@ -2165,7 +2166,7 @@ impl FigureMgr {
                         renderer,
                         &mut self.col_lights,
                         *body,
-                        loadout,
+                        inventory,
                         tick,
                         player_camera_mode,
                         player_character_state,
@@ -2242,7 +2243,7 @@ impl FigureMgr {
                         renderer,
                         &mut self.col_lights,
                         *body,
-                        loadout,
+                        inventory,
                         tick,
                         player_camera_mode,
                         player_character_state,
@@ -2325,7 +2326,7 @@ impl FigureMgr {
                         renderer,
                         &mut self.col_lights,
                         *body,
-                        loadout,
+                        inventory,
                         tick,
                         player_camera_mode,
                         player_character_state,
@@ -2463,7 +2464,7 @@ impl FigureMgr {
                         renderer,
                         &mut self.col_lights,
                         *body,
-                        loadout,
+                        inventory,
                         tick,
                         player_camera_mode,
                         player_character_state,
@@ -2550,7 +2551,7 @@ impl FigureMgr {
                         renderer,
                         &mut self.col_lights,
                         *body,
-                        loadout,
+                        inventory,
                         tick,
                         player_camera_mode,
                         player_character_state,
@@ -2627,7 +2628,7 @@ impl FigureMgr {
                         renderer,
                         &mut self.col_lights,
                         *body,
-                        loadout,
+                        inventory,
                         tick,
                         player_camera_mode,
                         player_character_state,
@@ -3034,7 +3035,7 @@ impl FigureMgr {
                         renderer,
                         &mut self.col_lights,
                         *body,
-                        loadout,
+                        inventory,
                         tick,
                         player_camera_mode,
                         player_character_state,
@@ -3139,7 +3140,7 @@ impl FigureMgr {
                         renderer,
                         &mut self.col_lights,
                         *body,
-                        loadout,
+                        inventory,
                         tick,
                         player_camera_mode,
                         player_character_state,
@@ -3200,20 +3201,20 @@ impl FigureMgr {
                 ecs.read_storage::<Ori>().maybe(),
                 &ecs.read_storage::<Body>(),
                 ecs.read_storage::<Health>().maybe(),
-                ecs.read_storage::<Loadout>().maybe(),
+                ecs.read_storage::<Inventory>().maybe(),
                 ecs.read_storage::<Scale>().maybe(),
             )
             .join()
             // Don't render dead entities
             .filter(|(_, _, _, _, health, _, _)| health.map_or(true, |h| !h.is_dead))
-            .for_each(|(entity, pos, _, body, _, loadout, _)| {
+            .for_each(|(entity, pos, _, body, _, inventory, _)| {
                 if let Some((locals, bone_consts, model, _)) = self.get_model_for_render(
                     tick,
                     camera,
                     None,
                     entity,
                     body,
-                    loadout,
+                    inventory,
                     false,
                     pos.0,
                     figure_lod_render_distance,
@@ -3248,13 +3249,13 @@ impl FigureMgr {
         let character_state_storage = state.read_storage::<common::comp::CharacterState>();
         let character_state = character_state_storage.get(player_entity);
 
-        for (entity, pos, _, body, _, loadout, _) in (
+        for (entity, pos, _, body, _, inventory, _) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
             ecs.read_storage::<Ori>().maybe(),
             &ecs.read_storage::<Body>(),
             ecs.read_storage::<Health>().maybe(),
-            ecs.read_storage::<Loadout>().maybe(),
+            ecs.read_storage::<Inventory>().maybe(),
             ecs.read_storage::<Scale>().maybe(),
         )
             .join()
@@ -3270,7 +3271,7 @@ impl FigureMgr {
                     character_state,
                     entity,
                     body,
-                    loadout,
+                    inventory,
                     false,
                     pos.0,
                     figure_lod_render_distance,
@@ -3309,8 +3310,8 @@ impl FigureMgr {
                 return;
             }
 
-            let loadout_storage = ecs.read_storage::<Loadout>();
-            let loadout = loadout_storage.get(player_entity);
+            let inventory_storage = ecs.read_storage::<Inventory>();
+            let inventory = inventory_storage.get(player_entity);
 
             if let Some((locals, bone_consts, model, col_lights)) = self.get_model_for_render(
                 tick,
@@ -3318,7 +3319,7 @@ impl FigureMgr {
                 character_state,
                 player_entity,
                 body,
-                loadout,
+                inventory,
                 true,
                 pos.0,
                 figure_lod_render_distance,
@@ -3345,7 +3346,7 @@ impl FigureMgr {
         character_state: Option<&CharacterState>,
         entity: EcsEntity,
         body: &Body,
-        loadout: Option<&Loadout>,
+        inventory: Option<&Inventory>,
         is_player: bool,
         pos: vek::Vec3<f32>,
         figure_lod_render_distance: f32,
@@ -3404,7 +3405,7 @@ impl FigureMgr {
                         model_cache.get_model(
                             col_lights,
                             *body,
-                            loadout,
+                            inventory,
                             tick,
                             player_camera_mode,
                             character_state,
@@ -3421,7 +3422,7 @@ impl FigureMgr {
                         quadruped_small_model_cache.get_model(
                             col_lights,
                             *body,
-                            loadout,
+                            inventory,
                             tick,
                             player_camera_mode,
                             character_state,
@@ -3438,7 +3439,7 @@ impl FigureMgr {
                         quadruped_medium_model_cache.get_model(
                             col_lights,
                             *body,
-                            loadout,
+                            inventory,
                             tick,
                             player_camera_mode,
                             character_state,
@@ -3455,7 +3456,7 @@ impl FigureMgr {
                         quadruped_low_model_cache.get_model(
                             col_lights,
                             *body,
-                            loadout,
+                            inventory,
                             tick,
                             player_camera_mode,
                             character_state,
@@ -3472,7 +3473,7 @@ impl FigureMgr {
                         bird_medium_model_cache.get_model(
                             col_lights,
                             *body,
-                            loadout,
+                            inventory,
                             tick,
                             player_camera_mode,
                             character_state,
@@ -3489,7 +3490,7 @@ impl FigureMgr {
                         fish_medium_model_cache.get_model(
                             col_lights,
                             *body,
-                            loadout,
+                            inventory,
                             tick,
                             player_camera_mode,
                             character_state,
@@ -3506,7 +3507,7 @@ impl FigureMgr {
                         theropod_model_cache.get_model(
                             col_lights,
                             *body,
-                            loadout,
+                            inventory,
                             tick,
                             player_camera_mode,
                             character_state,
@@ -3523,7 +3524,7 @@ impl FigureMgr {
                         dragon_model_cache.get_model(
                             col_lights,
                             *body,
-                            loadout,
+                            inventory,
                             tick,
                             player_camera_mode,
                             character_state,
@@ -3540,7 +3541,7 @@ impl FigureMgr {
                         bird_small_model_cache.get_model(
                             col_lights,
                             *body,
-                            loadout,
+                            inventory,
                             tick,
                             player_camera_mode,
                             character_state,
@@ -3557,7 +3558,7 @@ impl FigureMgr {
                         fish_small_model_cache.get_model(
                             col_lights,
                             *body,
-                            loadout,
+                            inventory,
                             tick,
                             player_camera_mode,
                             character_state,
@@ -3574,7 +3575,7 @@ impl FigureMgr {
                         biped_large_model_cache.get_model(
                             col_lights,
                             *body,
-                            loadout,
+                            inventory,
                             tick,
                             player_camera_mode,
                             character_state,
@@ -3591,7 +3592,7 @@ impl FigureMgr {
                         golem_model_cache.get_model(
                             col_lights,
                             *body,
-                            loadout,
+                            inventory,
                             tick,
                             player_camera_mode,
                             character_state,
@@ -3608,7 +3609,7 @@ impl FigureMgr {
                         object_model_cache.get_model(
                             col_lights,
                             *body,
-                            loadout,
+                            inventory,
                             tick,
                             player_camera_mode,
                             character_state,

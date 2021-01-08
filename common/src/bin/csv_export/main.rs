@@ -102,6 +102,7 @@ fn get_armor_kind(kind: &ArmorKind) -> String {
         ArmorKind::Neck(_) => "Neck".to_string(),
         ArmorKind::Head(_) => "Head".to_string(),
         ArmorKind::Tabard(_) => "Tabard".to_string(),
+        ArmorKind::Bag(_) => "Bag".to_string(),
     }
 }
 
@@ -118,6 +119,7 @@ fn get_armor_kind_kind(kind: &ArmorKind) -> String {
         ArmorKind::Neck(x) => x.clone(),
         ArmorKind::Head(x) => x.clone(),
         ArmorKind::Tabard(x) => x.clone(),
+        ArmorKind::Bag(x) => x.clone(),
     }
 }
 

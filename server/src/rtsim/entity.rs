@@ -1,5 +1,5 @@
 use super::*;
-use common::{comp::item::tool::AbilityMap, store::Id, terrain::TerrainGrid, LoadoutBuilder};
+use common::{comp::inventory::loadout_builder::LoadoutBuilder, store::Id, terrain::TerrainGrid};
 use world::{
     civ::{Site, Track},
     util::RandomPerm,
@@ -62,7 +62,7 @@ impl Entity {
         (self.rng(PERM_LEVEL).gen::<f32>().powi(2) * 15.0).ceil() as u32
     }
 
-    pub fn get_loadout(&self, ability_map: &AbilityMap) -> comp::Loadout {
+    pub fn get_loadout(&self) -> comp::inventory::loadout::Loadout {
         let mut rng = self.rng(PERM_LOADOUT);
         let main_tool = comp::Item::new_from_asset_expect(
             (&[
@@ -114,7 +114,7 @@ impl Entity {
             "common.items.armor.shoulder.leather_0",
         ));
 
-        LoadoutBuilder::build_loadout(self.get_body(), Some(main_tool), ability_map, None)
+        LoadoutBuilder::build_loadout(self.get_body(), Some(main_tool), None)
             .back(back)
             .lantern(lantern)
             .chest(chest)

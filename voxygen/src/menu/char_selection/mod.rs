@@ -38,19 +38,22 @@ impl CharSelectionState {
         }
     }
 
-    fn get_humanoid_body_loadout<'a>(
+    fn get_humanoid_body_inventory<'a>(
         char_selection_ui: &'a CharSelectionUi,
         client: &'a Client,
-    ) -> (Option<comp::humanoid::Body>, Option<&'a comp::Loadout>) {
+    ) -> (
+        Option<comp::humanoid::Body>,
+        Option<&'a comp::inventory::Inventory>,
+    ) {
         char_selection_ui
-            .display_body_loadout(&client.character_list().characters)
-            .map(|(body, loadout)| {
+            .display_body_inventory(&client.character_list().characters)
+            .map(|(body, inventory)| {
                 (
                     match body {
                         comp::Body::Humanoid(body) => Some(body),
                         _ => None,
                     },
-                    Some(loadout),
+                    Some(inventory),
                 )
             })
             .unwrap_or_default()
@@ -137,7 +140,7 @@ impl PlayState for CharSelectionState {
             {
                 let client = self.client.borrow();
                 let (humanoid_body, loadout) =
-                    Self::get_humanoid_body_loadout(&self.char_selection_ui, &client);
+                    Self::get_humanoid_body_inventory(&self.char_selection_ui, &client);
 
                 // Maintain the scene.
                 let scene_data = scene::SceneData {
@@ -222,7 +225,7 @@ impl PlayState for CharSelectionState {
     fn render(&mut self, renderer: &mut Renderer, _: &Settings) {
         let client = self.client.borrow();
         let (humanoid_body, loadout) =
-            Self::get_humanoid_body_loadout(&self.char_selection_ui, &client);
+            Self::get_humanoid_body_inventory(&self.char_selection_ui, &client);
 
         // Render the scene.
         self.scene

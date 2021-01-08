@@ -20,7 +20,11 @@ use anim::{
 };
 use client::Client;
 use common::{
-    comp::{humanoid, item::ItemKind, Loadout},
+    comp::{
+        humanoid,
+        inventory::{slot::EquipSlot, Inventory},
+        item::ItemKind,
+    },
     figure::Segment,
     terrain::BlockKind,
     vol::{BaseVol, ReadVol},
@@ -247,7 +251,7 @@ impl Scene {
         &mut self,
         renderer: &mut Renderer,
         scene_data: SceneData,
-        loadout: Option<&Loadout>,
+        inventory: Option<&Inventory>,
     ) {
         self.camera.update(
             scene_data.time,
@@ -297,9 +301,9 @@ impl Scene {
         self.figure_model_cache
             .clean(&mut self.col_lights, scene_data.tick);
 
-        let active_item_kind = loadout
-            .and_then(|l| l.active_item.as_ref())
-            .map(|i| i.item.kind());
+        let active_item_kind = inventory
+            .and_then(|inv| inv.equipped(EquipSlot::Mainhand))
+            .map(|i| i.kind());
 
         let active_tool_kind = if let Some(ItemKind::Tool(tool)) = active_item_kind {
             Some(tool.kind)
@@ -307,9 +311,9 @@ impl Scene {
             None
         };
 
-        let second_item_kind = loadout
-            .and_then(|l| l.second_item.as_ref())
-            .map(|i| i.item.kind());
+        let second_item_kind = inventory
+            .and_then(|inv| inv.equipped(EquipSlot::Offhand))
+            .map(|i| i.kind());
 
         let second_tool_kind = if let Some(ItemKind::Tool(tool)) = second_item_kind {
             Some(tool.kind)
@@ -335,7 +339,7 @@ impl Scene {
                     renderer,
                     &mut self.col_lights,
                     body,
-                    loadout,
+                    inventory,
                     scene_data.tick,
                     CameraMode::default(),
                     None,
@@ -367,7 +371,7 @@ impl Scene {
         renderer: &mut Renderer,
         tick: u64,
         body: Option<humanoid::Body>,
-        loadout: Option<&Loadout>,
+        inventory: Option<&Inventory>,
     ) {
         renderer.render_skybox(
             &self.skybox.model,
@@ -380,7 +384,7 @@ impl Scene {
             let model = &self.figure_model_cache.get_model(
                 &self.col_lights,
                 body,
-                loadout,
+                inventory,
                 tick,
                 CameraMode::default(),
                 None,

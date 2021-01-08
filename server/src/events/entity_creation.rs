@@ -6,8 +6,10 @@ use common::{
         aura::{Aura, AuraKind},
         beam,
         buff::{BuffCategory, BuffData, BuffKind, BuffSource},
-        group, shockwave, Agent, Alignment, Body, Gravity, Health, HomeChunk, Item, ItemDrop,
-        LightEmitter, Loadout, Ori, Pos, Projectile, Scale, Stats, Vel, WaypointArea,
+        group,
+        inventory::loadout::Loadout,
+        shockwave, Agent, Alignment, Body, Gravity, Health, HomeChunk, Inventory, Item, ItemDrop,
+        LightEmitter, Ori, Pos, Projectile, Scale, Stats, Vel, WaypointArea,
     },
     outcome::Outcome,
     rtsim::RtSimEntity,
@@ -32,7 +34,6 @@ pub fn handle_loaded_character_data(
         comp::Body,
         comp::Stats,
         comp::Inventory,
-        comp::Loadout,
         Option<comp::Waypoint>,
     ),
 ) {
@@ -66,9 +67,11 @@ pub fn handle_create_npc(
         Alignment::Owned(_) => None,
     };
 
+    let inventory = Inventory::new_with_loadout(loadout);
+
     let entity = server
         .state
-        .create_npc(pos, stats, health, loadout, body)
+        .create_npc(pos, stats, health, inventory, body)
         .with(scale)
         .with(alignment);
 

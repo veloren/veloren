@@ -1,7 +1,7 @@
 use common::{
     comp::{
         group, Beam, BeamSegment, Body, Energy, EnergyChange, EnergySource, Health, HealthChange,
-        HealthSource, Last, Loadout, Ori, Pos, Scale,
+        HealthSource, Inventory, Last, Ori, Pos, Scale,
     },
     event::{EventBus, ServerEvent},
     resources::{DeltaTime, Time},
@@ -29,7 +29,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Scale>,
         ReadStorage<'a, Body>,
         ReadStorage<'a, Health>,
-        ReadStorage<'a, Loadout>,
+        ReadStorage<'a, Inventory>,
         ReadStorage<'a, group::Group>,
         ReadStorage<'a, Energy>,
         WriteStorage<'a, BeamSegment>,
@@ -51,7 +51,7 @@ impl<'a> System<'a> for Sys {
             scales,
             bodies,
             healths,
-            loadouts,
+            inventories,
             groups,
             energies,
             mut beam_segments,
@@ -166,7 +166,7 @@ impl<'a> System<'a> for Sys {
                         }
 
                         //  Modify damage
-                        let change = damage.modify_damage(loadouts.get(b), beam_segment.owner);
+                        let change = damage.modify_damage(inventories.get(b), beam_segment.owner);
 
                         match target {
                             Some(GroupTarget::OutOfGroup) => {

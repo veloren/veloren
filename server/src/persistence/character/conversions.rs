@@ -9,8 +9,14 @@ use crate::persistence::{
 };
 use common::{
     character::CharacterId,
-    comp::{item::tool::AbilityMap, Body as CompBody, Waypoint, *},
-    loadout_builder,
+    comp::{
+        inventory::{
+            loadout::{Loadout, LoadoutError},
+            loadout_builder::LoadoutBuilder,
+            slot::InvSlotId,
+        },
+        Body as CompBody, Waypoint, *,
+    },
     resources::Time,
 };
 use core::{convert::TryFrom, num::NonZeroU64};
@@ -24,42 +30,29 @@ pub struct ItemModelPair {
 
 /// The left vector contains all item rows to upsert; the right-hand vector
 /// contains all item rows to delete (by parent ID and position).
+///
+/// NOTE: This method does not yet handle persisting nested items within
+/// inventories. Although loadout items do store items inside them this does
+/// not currently utilise `parent_container_id` - all loadout items have the
+/// loadout pseudo-container as their parent.
 pub fn convert_items_to_database_items(
-    loadout: &Loadout,
     loadout_container_id: EntityId,
     inventory: &Inventory,
     inventory_container_id: EntityId,
     next_id: &mut i64,
 ) -> (Vec<ItemModelPair>, Vec<(EntityId, String)>) {
-    // Loadout slots.
-    let loadout = [
-        ("active_item", loadout.active_item.as_ref().map(|x| &x.item)),
-        ("second_item", loadout.second_item.as_ref().map(|x| &x.item)),
-        ("lantern", loadout.lantern.as_ref()),
-        ("shoulder", loadout.shoulder.as_ref()),
-        ("chest", loadout.chest.as_ref()),
-        ("belt", loadout.belt.as_ref()),
-        ("hand", loadout.hand.as_ref()),
-        ("pants", loadout.pants.as_ref()),
-        ("foot", loadout.foot.as_ref()),
-        ("back", loadout.back.as_ref()),
-        ("ring", loadout.ring.as_ref()),
-        ("neck", loadout.neck.as_ref()),
-        ("head", loadout.head.as_ref()),
-        ("tabard", loadout.tabard.as_ref()),
-        ("glider", loadout.glider.as_ref()),
-    ];
-
-    let loadout = loadout
-        .iter()
-        .map(|&(slot, item)| (slot.to_string(), item, loadout_container_id));
+    let loadout = inventory
+        .loadout_items_with_persistence_key()
+        .map(|(slot, item)| (slot.to_string(), item, loadout_container_id));
 
     // Inventory slots.
-    let inventory = inventory
-        .slots()
-        .iter()
-        .enumerate()
-        .map(|(slot, item)| (slot.to_string(), item.as_ref(), inventory_container_id));
+    let inventory = inventory.slots_with_id().map(|(pos, item)| {
+        (
+            serde_json::to_string(&pos).expect("failed to serialize InventorySlotPos"),
+            item.as_ref(),
+            inventory_container_id,
+        )
+    });
 
     // Construct new items.
     inventory.chain(loadout)
@@ -209,9 +202,23 @@ pub fn convert_stats_to_database(
     })
 }
 
-pub fn convert_inventory_from_database_items(database_items: &[Item]) -> Result<Inventory, Error> {
-    let mut inventory = Inventory::new_empty();
-    for db_item in database_items.iter() {
+pub fn convert_inventory_from_database_items(
+    inventory_items: &[Item],
+    loadout_items: &[Item],
+) -> Result<Inventory, Error> {
+    // Loadout items must be loaded before inventory items since loadout items
+    // provide inventory slots. Since items stored inside loadout items actually
+    // have their parent_container_item_id as the loadout pseudo-container we rely
+    // on populating the loadout items first, and then inserting the items into the
+    // inventory at the correct position. When we want to support items inside the
+    // player's inventory containing other items (such as "right click to
+    // unwrap" gifts perhaps) then we will need to refactor inventory/loadout
+    // persistence to traverse the tree of items and load them from the root
+    // down.
+    let loadout = convert_loadout_from_database_items(loadout_items)?;
+    let mut inventory = Inventory::new_with_loadout(loadout);
+
+    for db_item in inventory_items.iter() {
         let mut item = get_item_from_asset(db_item.item_definition_id.as_str())?;
 
         // NOTE: Since this is freshly loaded, the atomic is *unique.*
@@ -237,17 +244,20 @@ pub fn convert_inventory_from_database_items(database_items: &[Item]) -> Result<
         // Insert item into inventory
 
         // Slot position
-        let slot = &db_item.position.parse::<usize>().map_err(|_| {
+        let slot: InvSlotId = serde_json::from_str(&db_item.position).map_err(|_| {
             Error::ConversionError(format!(
-                "Failed to parse item position: {}",
+                "Failed to parse item position: {:?}",
                 &db_item.position
             ))
         })?;
 
-        let insert_res = inventory.insert(*slot, item).map_err(|_| {
+        let insert_res = inventory.insert_at(slot, item).map_err(|_| {
             // If this happens there were too many items in the database for the current
             // inventory size
-            Error::ConversionError("Error inserting item into inventory".to_string())
+            Error::ConversionError(format!(
+                "Error inserting item into inventory, position: {:?}",
+                slot
+            ))
         })?;
 
         if insert_res.is_some() {
@@ -263,11 +273,10 @@ pub fn convert_inventory_from_database_items(database_items: &[Item]) -> Result<
     Ok(inventory)
 }
 
-pub fn convert_loadout_from_database_items(
-    database_items: &[Item],
-    map: &AbilityMap,
-) -> Result<Loadout, Error> {
-    let mut loadout = loadout_builder::LoadoutBuilder::new();
+pub fn convert_loadout_from_database_items(database_items: &[Item]) -> Result<Loadout, Error> {
+    let loadout_builder = LoadoutBuilder::new();
+    let mut loadout = loadout_builder.build();
+
     for db_item in database_items.iter() {
         let item = get_item_from_asset(db_item.item_definition_id.as_str())?;
         // NOTE: item id is currently *unique*, so we can store the ID safely.
@@ -276,32 +285,17 @@ pub fn convert_loadout_from_database_items(
             |_| Error::ConversionError("Item with zero item_id".to_owned()),
         )?));
 
-        match db_item.position.as_str() {
-            "active_item" => loadout = loadout.active_item(Some(ItemConfig::from((item, map)))),
-            "second_item" => loadout = loadout.second_item(Some(ItemConfig::from((item, map)))),
-            "lantern" => loadout = loadout.lantern(Some(item)),
-            "shoulder" => loadout = loadout.shoulder(Some(item)),
-            "chest" => loadout = loadout.chest(Some(item)),
-            "belt" => loadout = loadout.belt(Some(item)),
-            "hand" => loadout = loadout.hand(Some(item)),
-            "pants" => loadout = loadout.pants(Some(item)),
-            "foot" => loadout = loadout.foot(Some(item)),
-            "back" => loadout = loadout.back(Some(item)),
-            "ring" => loadout = loadout.ring(Some(item)),
-            "neck" => loadout = loadout.neck(Some(item)),
-            "head" => loadout = loadout.head(Some(item)),
-            "tabard" => loadout = loadout.tabard(Some(item)),
-            "glider" => loadout = loadout.glider(Some(item)),
-            _ => {
-                return Err(Error::ConversionError(format!(
-                    "Unknown loadout position on item: {}",
-                    db_item.position.as_str()
-                )));
-            },
-        }
+        loadout
+            .set_item_at_slot_using_persistence_key(&db_item.position, item)
+            .map_err(|err| match err {
+                LoadoutError::InvalidPersistenceKey => Error::ConversionError(format!(
+                    "Invalid persistence key: {}",
+                    &db_item.position
+                )),
+            })?;
     }
 
-    Ok(loadout.build())
+    Ok(loadout)
 }
 
 pub fn convert_body_from_database(body: &Body) -> Result<CompBody, Error> {

@@ -1,24 +1,22 @@
 use super::*;
 use crate::audio::sfx::SfxEvent;
 use common::{
-    comp::{item::tool::ToolKind, CharacterAbilityType, CharacterState, Item, ItemConfig, Loadout},
+    comp::{
+        inventory::loadout_builder::LoadoutBuilder, item::tool::ToolKind, CharacterAbilityType,
+        CharacterState, Item,
+    },
     states,
 };
 use std::time::{Duration, Instant};
 
 #[test]
 fn maps_wield_while_equipping() {
-    let loadout = Loadout {
-        active_item: Some(ItemConfig {
-            item: Item::new_from_asset_expect("common.items.weapons.axe.starter_axe"),
-            ability1: None,
-            ability2: None,
-            ability3: None,
-            block_ability: None,
-            dodge_ability: None,
-        }),
-        ..Default::default()
-    };
+    let loadout = LoadoutBuilder::new()
+        .active_item(Some(Item::new_from_asset_expect(
+            "common.items.weapons.axe.starter_axe",
+        )))
+        .build();
+    let inventory = Inventory::new_with_loadout(loadout);
 
     let result = CombatEventMapper::map_event(
         &CharacterState::Equipping(states::equipping::Data {
@@ -32,7 +30,7 @@ fn maps_wield_while_equipping() {
             time: Instant::now(),
             weapon_drawn: false,
         },
-        Some(&loadout),
+        &inventory,
     );
 
     assert_eq!(result, SfxEvent::Wield(ToolKind::Axe));
@@ -40,17 +38,12 @@ fn maps_wield_while_equipping() {
 
 #[test]
 fn maps_unwield() {
-    let loadout = Loadout {
-        active_item: Some(ItemConfig {
-            item: Item::new_from_asset_expect("common.items.weapons.bow.starter_bow"),
-            ability1: None,
-            ability2: None,
-            ability3: None,
-            block_ability: None,
-            dodge_ability: None,
-        }),
-        ..Default::default()
-    };
+    let loadout = LoadoutBuilder::new()
+        .active_item(Some(Item::new_from_asset_expect(
+            "common.items.weapons.bow.starter_bow",
+        )))
+        .build();
+    let inventory = Inventory::new_with_loadout(loadout);
 
     let result = CombatEventMapper::map_event(
         &CharacterState::default(),
@@ -59,7 +52,7 @@ fn maps_unwield() {
             time: Instant::now(),
             weapon_drawn: true,
         },
-        Some(&loadout),
+        &inventory,
     );
 
     assert_eq!(result, SfxEvent::Unwield(ToolKind::Bow));
@@ -67,17 +60,12 @@ fn maps_unwield() {
 
 #[test]
 fn maps_basic_melee() {
-    let loadout = Loadout {
-        active_item: Some(ItemConfig {
-            item: Item::new_from_asset_expect("common.items.weapons.axe.starter_axe"),
-            ability1: None,
-            ability2: None,
-            ability3: None,
-            block_ability: None,
-            dodge_ability: None,
-        }),
-        ..Default::default()
-    };
+    let loadout = LoadoutBuilder::new()
+        .active_item(Some(Item::new_from_asset_expect(
+            "common.items.weapons.axe.starter_axe",
+        )))
+        .build();
+    let inventory = Inventory::new_with_loadout(loadout);
 
     let result = CombatEventMapper::map_event(
         &CharacterState::BasicMelee(states::basic_melee::Data {
@@ -100,7 +88,7 @@ fn maps_basic_melee() {
             time: Instant::now(),
             weapon_drawn: true,
         },
-        Some(&loadout),
+        &inventory,
     );
 
     assert_eq!(
@@ -111,17 +99,12 @@ fn maps_basic_melee() {
 
 #[test]
 fn matches_ability_stage() {
-    let loadout = Loadout {
-        active_item: Some(ItemConfig {
-            item: Item::new_from_asset_expect("common.items.weapons.sword.starter_sword"),
-            ability1: None,
-            ability2: None,
-            ability3: None,
-            block_ability: None,
-            dodge_ability: None,
-        }),
-        ..Default::default()
-    };
+    let loadout = LoadoutBuilder::new()
+        .active_item(Some(Item::new_from_asset_expect(
+            "common.items.weapons.sword.starter_sword",
+        )))
+        .build();
+    let inventory = Inventory::new_with_loadout(loadout);
 
     let result = CombatEventMapper::map_event(
         &CharacterState::ComboMelee(states::combo_melee::Data {
@@ -159,7 +142,7 @@ fn matches_ability_stage() {
             time: Instant::now(),
             weapon_drawn: true,
         },
-        Some(&loadout),
+        &inventory,
     );
 
     assert_eq!(
@@ -173,17 +156,12 @@ fn matches_ability_stage() {
 
 #[test]
 fn ignores_different_ability_stage() {
-    let loadout = Loadout {
-        active_item: Some(ItemConfig {
-            item: Item::new_from_asset_expect("common.items.weapons.sword.starter_sword"),
-            ability1: None,
-            ability2: None,
-            ability3: None,
-            block_ability: None,
-            dodge_ability: None,
-        }),
-        ..Default::default()
-    };
+    let loadout = LoadoutBuilder::new()
+        .active_item(Some(Item::new_from_asset_expect(
+            "common.items.weapons.axe.starter_axe",
+        )))
+        .build();
+    let inventory = Inventory::new_with_loadout(loadout);
 
     let result = CombatEventMapper::map_event(
         &CharacterState::ComboMelee(states::combo_melee::Data {
@@ -221,7 +199,7 @@ fn ignores_different_ability_stage() {
             time: Instant::now(),
             weapon_drawn: true,
         },
-        Some(&loadout),
+        &inventory,
     );
 
     assert_ne!(

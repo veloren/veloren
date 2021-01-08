@@ -3,6 +3,7 @@
 use super::*;
 use common::{
     comp,
+    comp::inventory::loadout_builder::LoadoutBuilder,
     event::{EventBus, ServerEvent},
     resources::DeltaTime,
     terrain::TerrainGrid,
@@ -25,7 +26,6 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, comp::Pos>,
         ReadStorage<'a, RtSimEntity>,
         WriteStorage<'a, comp::Agent>,
-        ReadExpect<'a, comp::item::tool::AbilityMap>,
     );
 
     fn run(
@@ -40,7 +40,6 @@ impl<'a> System<'a> for Sys {
             positions,
             rtsim_entities,
             mut agents,
-            ability_map,
         ): Self::SystemData,
     ) {
         let rtsim = &mut *rtsim;
@@ -101,8 +100,8 @@ impl<'a> System<'a> for Sys {
                 stats: comp::Stats::new(entity.get_name(), body).with_level(entity.get_level()),
                 health: comp::Health::new(body, 10),
                 loadout: match body {
-                    comp::Body::Humanoid(_) => entity.get_loadout(&ability_map),
-                    _ => comp::Loadout::default(),
+                    comp::Body::Humanoid(_) => entity.get_loadout(),
+                    _ => LoadoutBuilder::new().build(),
                 },
                 body,
                 agent: Some(comp::Agent::new(

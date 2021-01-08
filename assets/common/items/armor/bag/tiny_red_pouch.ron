@@ -1,0 +1,12 @@
+ItemDef(
+    name: "Tiny Red Pouch",
+    description: "Made from a single patch of dyed cloth.",
+    kind: Armor(
+        (
+            kind: Bag("RedTiny"),
+            stats: (protection: Normal(0.0)),            
+        )
+    ),
+    quality: Common,
+    slots: 3,
+)

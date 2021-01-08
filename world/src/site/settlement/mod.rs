@@ -15,7 +15,9 @@ use crate::{
 };
 use common::{
     astar::Astar,
-    comp::{self, bird_medium, humanoid, object, quadruped_small, Item},
+    comp::{
+        self, bird_medium, humanoid, inventory::loadout_builder, object, quadruped_small, Item,
+    },
     generation::{ChunkSupplement, EntityInfo},
     path::Path,
     spiral::Spiral2d,
@@ -932,7 +934,7 @@ impl Settlement {
                                     ))
                                     .with_name("Guard")
                                     .with_level(dynamic_rng.gen_range(10, 15))
-                                    .with_config(common::loadout_builder::LoadoutConfig::Guard),
+                                    .with_config(loadout_builder::LoadoutConfig::Guard),
                                 _ => entity
                                     .with_main_tool(Item::new_from_asset_expect(
                                         match dynamic_rng.gen_range(0, 7) {
@@ -946,7 +948,7 @@ impl Settlement {
                                     //_ => "common.items.npc_weapons.bow.starter_bow", TODO: Re-Add this when we have a better way of distributing npc_weapons here
                                 },
                                     ))
-                                    .with_config(common::loadout_builder::LoadoutConfig::Villager),
+                                    .with_config(loadout_builder::LoadoutConfig::Villager),
                             }
                         });
 

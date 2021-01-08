@@ -109,7 +109,6 @@ impl State {
         // Uids for sync
         ecs.register_sync_marker();
         // Register server -> all clients synced components.
-        ecs.register::<comp::Loadout>();
         ecs.register::<comp::Body>();
         ecs.register::<comp::Player>();
         ecs.register::<comp::Stats>();
@@ -279,9 +278,6 @@ impl State {
 
     /// Get the current delta time.
     pub fn get_delta_time(&self) -> f32 { self.ecs.read_resource::<DeltaTime>().0 }
-
-    /// Get a reference to this state's ability map.
-    pub fn ability_map(&self) -> Fetch<comp::item::tool::AbilityMap> { self.ecs.read_resource() }
 
     /// Get a reference to this state's terrain.
     pub fn terrain(&self) -> Fetch<TerrainGrid> { self.ecs.read_resource() }
