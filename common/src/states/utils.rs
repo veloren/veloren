@@ -482,7 +482,8 @@ pub fn handle_ability3_input(data: &JoinData, update: &mut StateUpdate) {
                     ItemKind::Tool(tool) => Some(tool.kind),
                     _ => None,
                 };
-                i.item_config_expect().ability3
+                i.item_config_expect()
+                    .ability3
                     .as_ref()
                     .and_then(|s| match tool {
                         Some(ToolKind::Sword)

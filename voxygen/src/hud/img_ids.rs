@@ -61,7 +61,7 @@ image_ids! {
         prompt_bot: "voxygen.element.frames.prompt_dialog_bot",
         key_button: "voxygen.element.buttons.key_button",
         key_button_press: "voxygen.element.buttons.key_button_press",
-        
+
         // Diary Window
         diary_bg: "voxygen.element.misc_bg.diary_bg",
         diary_frame: "voxygen.element.misc_bg.diary_frame",
@@ -179,6 +179,19 @@ image_ids! {
         unlock_sceptre_skill: "voxygen.element.icons.skilltree.unlock_sceptre",
         unlock_staff_skill0: "voxygen.element.icons.skilltree.unlock_staff-0",
         unlock_sword_skill: "voxygen.element.icons.skilltree.unlock_sword",
+
+        spin_infinite_skill: "voxygen.element.icons.skilltree.spin_infinite",
+        spin_damage_skill: "voxygen.element.icons.skilltree.spin_damage",
+        spin_helicopter_skill: "voxygen.element.icons.skilltree.spin_helicopter",
+        spin_speed_skill: "voxygen.element.icons.skilltree.spin_speed",
+        spin_cost_skill: "voxygen.element.icons.skilltree.spin_cost",
+        leap_damage_skill: "voxygen.element.icons.skilltree.leap_damage",
+        leap_knockback_skill: "voxygen.element.icons.skilltree.leap_knockback",
+        leap_cost_skill: "voxygen.element.icons.skilltree.leap_cost",
+        leap_distance_skill: "voxygen.element.icons.skilltree.leap_distance",
+        hammer_leap_radius_skill: "voxygen.element.icons.skilltree.leap_radius",
+
+        axe_spin_amount_skill: "voxygen.element.icons.skilltree.spin_amount",
 
         // Skillbar
         level_up: "voxygen.element.misc_bg.level_up",

@@ -3,8 +3,8 @@ use specs::{Entities, Join, LazyUpdate, Read, ReadExpect, ReadStorage, System, W
 use common::{
     comp::{
         inventory::slot::{EquipSlot, Slot},
-        Attacking, Beam, Body, CharacterState, Controller, Energy, Health, Inventory, Mounting, Ori,
-        PhysicsState, Pos, StateUpdate, Stats, Vel,
+        Attacking, Beam, Body, CharacterState, Controller, Energy, Health, Inventory, Mounting,
+        Ori, PhysicsState, Pos, StateUpdate, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::SysMetrics,

@@ -283,8 +283,8 @@ impl<'a> Widget for Overhead<'a> {
                         .set(timer_id, ui);
                     });
             }
-            // Name                    
-                Text::new(name)    
+            // Name
+            Text::new(name)
                 //Text::new(&format!("{} [{:?}]", name, combat_rating)) // <- Uncomment to debug combat ratings
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(font_size)
@@ -292,7 +292,7 @@ impl<'a> Widget for Overhead<'a> {
                 .x_y(-1.0, name_y)
                 .parent(id)
                 .set(state.ids.name_bg, ui);
-                Text::new(name)    
+            Text::new(name)
                 //Text::new(&format!("{} [{:?}]", name, combat_rating)) // <- Uncomment to debug combat ratings
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(font_size)
@@ -375,7 +375,7 @@ impl<'a> Widget for Overhead<'a> {
                 .parent(id)
                 .set(state.ids.health_bar_fg, ui);
 
-                // TODO: Add strength comparison here, this is just an example        
+                // TODO: Add strength comparison here, this is just an example
 
                 // Thresholds (lower)
                 let common = tweak!(4.3);
@@ -396,14 +396,14 @@ impl<'a> Widget for Overhead<'a> {
                     x if (artifact..debug).contains(&x) => QUALITY_ARTIFACT,
                     x if x >= debug => QUALITY_DEBUG,
                     _ => XP_COLOR,
-                };               
+                };
 
                 Image::new(self.imgs.indicator_bubble)
                     .w_h(5.0 * BARSIZE, 5.0 * BARSIZE)
                     .x_y(tweak!(-37.0) * BARSIZE, MANA_BAR_Y + tweak!(7.5))
                     .color(Some(indicator_col))
                     .parent(id)
-                    .set(state.ids.level, ui);                    
+                    .set(state.ids.level, ui);
             }
         }
         // Speech bubble

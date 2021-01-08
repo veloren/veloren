@@ -151,10 +151,10 @@ impl<'a> System<'a> for Sys {
                 let loadout_config = entity.loadout_config;
                 let skillset_config = entity.skillset_config;
 
-                let loadout = LoadoutBuilder::build_loadout(body, main_tool, loadout_config).build();
-                if let Some(config) = skillset_config {
-                    stats.skill_set = SkillSetBuilder::build_skillset(config).build();
-                }
+                stats.skill_set =
+                    SkillSetBuilder::build_skillset(&main_tool, skillset_config).build();
+                let loadout =
+                    LoadoutBuilder::build_loadout(body, main_tool, loadout_config).build();
 
                 let health = comp::Health::new(stats.body_type, entity.level.unwrap_or(0));
 

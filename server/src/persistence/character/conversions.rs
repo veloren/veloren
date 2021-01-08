@@ -15,8 +15,7 @@ use common::{
             loadout_builder::LoadoutBuilder,
             slot::InvSlotId,
         },
-        skills,
-        Body as CompBody, Waypoint, *,
+        skills, Body as CompBody, Waypoint, *,
     },
     resources::Time,
 };

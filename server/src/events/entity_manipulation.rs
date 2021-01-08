@@ -1,8 +1,8 @@
 use crate::{
     client::Client,
     comp::{
-        biped_large, quadruped_low, quadruped_medium, quadruped_small, skills::SkillGroupType, theropod,
-        PhysicsState,
+        biped_large, quadruped_low, quadruped_medium, quadruped_small, skills::SkillGroupType,
+        theropod, PhysicsState,
     },
     rtsim::RtSim,
     Server, SpawnPoint, StateExt,
@@ -175,9 +175,11 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
             return;
         };
         let (entity_stats, entity_health, entity_inventory) =
-            if let (Some(entity_stats), Some(entity_health), Some(entity_inventory)) =
-                (stats.get(entity), healths.get(entity), inventories.get(entity))
-            {
+            if let (Some(entity_stats), Some(entity_health), Some(entity_inventory)) = (
+                stats.get(entity),
+                healths.get(entity),
+                inventories.get(entity),
+            ) {
                 (entity_stats, entity_health, entity_inventory)
             } else {
                 return;
