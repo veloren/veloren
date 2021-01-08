@@ -1,15 +1,3 @@
-unittests:
-  extends: .recompile-branch
-  stage: build
-  variables:
-    GIT_DEPTH: 9999999999999
-  script:
-    - ln -s /dockercache/cache-all target
-    - cargo test --package veloren-voxygen --lib test_all_localizations -- --nocapture --ignored
-    - cargo test
-  retry:
-    max: 2
-
 benchmarks:
   extends: .recompile-branch
   stage: build
