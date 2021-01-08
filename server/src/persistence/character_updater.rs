@@ -5,12 +5,7 @@ use crate::persistence::{establish_connection, VelorenConnection};
 use std::{path::Path, sync::Arc};
 use tracing::{error, trace};
 
-pub type CharacterUpdateData = (
-    comp::Stats,
-    comp::Inventory,
-    comp::Loadout,
-    Option<comp::Waypoint>,
-);
+pub type CharacterUpdateData = (comp::Stats, comp::Inventory, Option<comp::Waypoint>);
 
 /// A unidirectional messaging resource for saving characters in a
 /// background thread.
@@ -51,21 +46,15 @@ impl CharacterUpdater {
                 CharacterId,
                 &'a comp::Stats,
                 &'a comp::Inventory,
-                &'a comp::Loadout,
                 Option<&'a comp::Waypoint>,
             ),
         >,
     ) {
         let updates = updates
-            .map(|(character_id, stats, inventory, loadout, waypoint)| {
+            .map(|(character_id, stats, inventory, waypoint)| {
                 (
                     character_id,
-                    (
-                        stats.clone(),
-                        inventory.clone(),
-                        loadout.clone(),
-                        waypoint.cloned(),
-                    ),
+                    (stats.clone(), inventory.clone(), waypoint.cloned()),
                 )
             })
             .collect::<Vec<_>>();
@@ -81,16 +70,9 @@ impl CharacterUpdater {
         character_id: CharacterId,
         stats: &comp::Stats,
         inventory: &comp::Inventory,
-        loadout: &comp::Loadout,
         waypoint: Option<&comp::Waypoint>,
     ) {
-        self.batch_update(std::iter::once((
-            character_id,
-            stats,
-            inventory,
-            loadout,
-            waypoint,
-        )));
+        self.batch_update(std::iter::once((character_id, stats, inventory, waypoint)));
     }
 }
 
@@ -101,12 +83,11 @@ fn execute_batch_update(
     let mut inserted_items = Vec::<Arc<ItemId>>::new();
 
     if let Err(e) = connection.transaction::<_, super::error::Error, _>(|txn| {
-        for (character_id, (stats, inventory, loadout, waypoint)) in updates {
+        for (character_id, (stats, inventory, waypoint)) in updates {
             inserted_items.append(&mut super::character::update(
                 character_id,
                 stats,
                 inventory,
-                loadout,
                 waypoint,
                 txn,
             )?);

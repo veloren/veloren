@@ -1,4 +1,4 @@
-#![feature(label_break_value, bool_to_option)]
+#![feature(label_break_value, bool_to_option, option_unwrap_none)]
 
 pub mod agent;
 mod aura;

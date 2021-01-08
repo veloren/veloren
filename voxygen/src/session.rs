@@ -1,21 +1,15 @@
-use crate::{
-    audio::sfx::SfxEvent,
-    ecs::MyEntity,
-    hud::{DebugInfo, Event as HudEvent, Hud, HudInfo, PressBehavior},
-    i18n::{i18n_asset_key, Localization},
-    key_state::KeyState,
-    menu::char_selection::CharSelectionState,
-    render::Renderer,
-    scene::{camera, CameraMode, Scene, SceneData},
-    settings::{ControlSettings, Settings},
-    window::{AnalogGameInput, Event, GameInput},
-    Direction, Error, GlobalState, PlayState, PlayStateResult,
-};
+use std::{cell::RefCell, rc::Rc, time::Duration};
+
+use ordered_float::OrderedFloat;
+use specs::{Join, WorldExt};
+use tracing::{error, info};
+use vek::*;
+
 use client::{self, Client};
 use common::{
     assets::AssetExt,
     comp,
-    comp::{ChatMsg, ChatType, InventoryUpdateEvent, Pos, Vel},
+    comp::{inventory::slot::Slot, ChatMsg, ChatType, InventoryUpdateEvent, Pos, Vel},
     consts::{MAX_MOUNT_RANGE, MAX_PICKUP_RANGE},
     outcome::Outcome,
     span,
@@ -27,11 +21,20 @@ use common::{
     vol::ReadVol,
 };
 use common_net::msg::PresenceKind;
-use ordered_float::OrderedFloat;
-use specs::{Join, WorldExt};
-use std::{cell::RefCell, rc::Rc, time::Duration};
-use tracing::{error, info};
-use vek::*;
+
+use crate::{
+    audio::sfx::SfxEvent,
+    ecs::MyEntity,
+    hud::{DebugInfo, Event as HudEvent, Hud, HudInfo, PressBehavior, PromptDialogSettings},
+    i18n::{i18n_asset_key, Localization},
+    key_state::KeyState,
+    menu::char_selection::CharSelectionState,
+    render::Renderer,
+    scene::{camera, CameraMode, Scene, SceneData},
+    settings::{ControlSettings, Settings},
+    window::{AnalogGameInput, Event, GameInput},
+    Direction, Error, GlobalState, PlayState, PlayStateResult,
+};
 
 /// The action to perform after a tick
 enum TickAction {
@@ -923,8 +926,133 @@ impl PlayState for SessionState {
                         let mut client = self.client.borrow_mut();
                         client.remove_buff(buff_id);
                     },
-                    HudEvent::UseSlot(x) => self.client.borrow_mut().use_slot(x),
-                    HudEvent::SwapSlots(a, b) => self.client.borrow_mut().swap_slots(a, b),
+                    HudEvent::UseSlot {
+                        slot,
+                        bypass_dialog,
+                    } => {
+                        let mut move_allowed = true;
+
+                        if !bypass_dialog {
+                            if let Some(inventory) = self
+                                .client
+                                .borrow()
+                                .state()
+                                .ecs()
+                                .read_storage::<comp::Inventory>()
+                                .get(self.client.borrow().entity())
+                            {
+                                match slot {
+                                    comp::slot::Slot::Inventory(inv_slot) => {
+                                        let slot_deficit = inventory.free_after_equip(inv_slot);
+                                        if slot_deficit < 0 {
+                                            self.hud.set_prompt_dialog(PromptDialogSettings::new(
+                                                format!(
+                                                    "Equipping this item will result in \
+                                                     insufficient inventory space to hold the \
+                                                     items in your inventory and {} items will \
+                                                     drop on the floor. Do you wish to continue?",
+                                                    slot_deficit.abs()
+                                                ),
+                                                HudEvent::UseSlot {
+                                                    slot,
+                                                    bypass_dialog: true,
+                                                },
+                                                None,
+                                            ));
+                                            move_allowed = false;
+                                        }
+                                    },
+                                    comp::slot::Slot::Equip(equip_slot) => {
+                                        // Ensure there is a free slot that is not provided by the
+                                        // item being unequipped
+                                        let free_slots =
+                                            inventory.free_slots_minus_equipped_item(equip_slot);
+                                        if free_slots > 0 {
+                                            let slot_deficit =
+                                                inventory.free_after_unequip(equip_slot);
+                                            if slot_deficit < 0 {
+                                                self.hud.set_prompt_dialog(
+                                                    PromptDialogSettings::new(
+                                                        format!(
+                                                            "Unequipping this item  will result \
+                                                             in insufficient inventory space to \
+                                                             hold the items in your inventory and \
+                                                             {} items will drop on the floor. Do \
+                                                             you wish to continue?",
+                                                            slot_deficit.abs()
+                                                        ),
+                                                        HudEvent::UseSlot {
+                                                            slot,
+                                                            bypass_dialog: true,
+                                                        },
+                                                        None,
+                                                    ),
+                                                );
+                                                move_allowed = false;
+                                            }
+                                        } else {
+                                            move_allowed = false;
+                                        }
+                                    },
+                                }
+                            };
+                        }
+
+                        if move_allowed {
+                            self.client.borrow_mut().use_slot(slot);
+                        }
+                    },
+                    HudEvent::SwapSlots {
+                        slot_a,
+                        slot_b,
+                        bypass_dialog,
+                    } => {
+                        let mut move_allowed = true;
+                        if !bypass_dialog {
+                            if let Some(inventory) = self
+                                .client
+                                .borrow()
+                                .state()
+                                .ecs()
+                                .read_storage::<comp::Inventory>()
+                                .get(self.client.borrow().entity())
+                            {
+                                match (slot_a, slot_b) {
+                                    (Slot::Inventory(inv_slot), Slot::Equip(equip_slot))
+                                    | (Slot::Equip(equip_slot), Slot::Inventory(inv_slot)) => {
+                                        if !inventory.can_swap(inv_slot, equip_slot) {
+                                            move_allowed = false;
+                                        } else {
+                                            let slot_deficit =
+                                                inventory.free_after_swap(equip_slot, inv_slot);
+                                            if slot_deficit < 0 {
+                                                self.hud.set_prompt_dialog(
+                                                    PromptDialogSettings::new(
+                                                        format!(
+                                                            "This will result in dropping {} \
+                                                             item(s) on the ground. Are you sure?",
+                                                            slot_deficit.abs()
+                                                        ),
+                                                        HudEvent::SwapSlots {
+                                                            slot_a,
+                                                            slot_b,
+                                                            bypass_dialog: true,
+                                                        },
+                                                        None,
+                                                    ),
+                                                );
+                                                move_allowed = false;
+                                            }
+                                        }
+                                    },
+                                    _ => {},
+                                }
+                            }
+                        }
+                        if move_allowed {
+                            self.client.borrow_mut().swap_slots(slot_a, slot_b);
+                        }
+                    },
                     HudEvent::DropSlot(x) => {
                         let mut client = self.client.borrow_mut();
                         client.drop_slot(x);

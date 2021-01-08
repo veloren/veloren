@@ -6,15 +6,17 @@
 #![feature(
     arbitrary_enum_discriminant,
     associated_type_defaults,
+    bool_to_option,
     const_checked_int_methods,
     const_generics,
     fundamental,
-    option_unwrap_none,
-    bool_to_option,
+    iter_map_while,
     label_break_value,
+    option_expect_none,
+    option_unwrap_none,
+    option_zip,
     trait_alias,
-    type_alias_impl_trait,
-    option_zip
+    type_alias_impl_trait
 )]
 
 pub mod assets;
@@ -31,7 +33,6 @@ pub mod explosion;
 pub mod figure;
 pub mod generation;
 pub mod grid;
-pub mod loadout_builder;
 pub mod lottery;
 pub mod metrics;
 pub mod npc;
@@ -54,5 +55,5 @@ pub mod vol;
 pub mod volumes;
 
 pub use combat::{Damage, DamageSource, GroupTarget, Knockback};
+pub use comp::inventory::loadout_builder::LoadoutBuilder;
 pub use explosion::{Explosion, RadiusEffect};
-pub use loadout_builder::LoadoutBuilder;

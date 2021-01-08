@@ -59,6 +59,7 @@
             "You can toggle showing your amount of health on the healthbar in the settings.",
             "In order to see your stats click the 'Stats' button in the inventory.",
             "Sit near a campfire (with the 'K' key) to rest - receiving a slow heal-over-time.",
+            "Need more bags or better armor to continue your journey? Press 'C' to open the crafting menu!",
         ],
         "npc.speech.villager_under_attack": [
             "Help, I'm under attack!",

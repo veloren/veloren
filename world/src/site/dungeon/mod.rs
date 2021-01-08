@@ -10,7 +10,10 @@ use crate::{
 use common::{
     assets::{AssetExt, AssetHandle},
     astar::Astar,
-    comp::{self},
+    comp::{
+        inventory::loadout_builder,
+        {self},
+    },
     generation::{ChunkSupplement, EntityInfo},
     lottery::Lottery,
     store::{Id, Store},
@@ -596,7 +599,7 @@ impl Floor {
                         //.do_if(is_giant, |e| e.into_giant())
                         .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
                         .with_alignment(comp::Alignment::Enemy)
-                        .with_config(common::loadout_builder::LoadoutConfig::CultistAcolyte)
+                        .with_config(loadout_builder::LoadoutConfig::CultistAcolyte)
                         .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                         .with_level(dynamic_rng.gen_range(
                             (room.difficulty as f32).powf(1.25) + 3.0,
@@ -605,7 +608,7 @@ impl Floor {
                         let entity = match room.difficulty {
                             0 => entity
                                 .with_name("Outcast")
-                                .with_config(common::loadout_builder::LoadoutConfig::Outcast)
+                                .with_config(loadout_builder::LoadoutConfig::Outcast)
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                 .with_main_tool(comp::Item::new_from_asset_expect(
                                     match dynamic_rng.gen_range(0, 6) {
@@ -619,7 +622,7 @@ impl Floor {
                                 )),
                             1 => entity
                                 .with_name("Highwayman")
-                                .with_config(common::loadout_builder::LoadoutConfig::Highwayman)
+                                .with_config(loadout_builder::LoadoutConfig::Highwayman)
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                 .with_main_tool(comp::Item::new_from_asset_expect(
                                     match dynamic_rng.gen_range(0, 6) {
@@ -633,7 +636,7 @@ impl Floor {
                                 )),
                             2 => entity
                                 .with_name("Bandit")
-                                .with_config(common::loadout_builder::LoadoutConfig::Bandit)
+                                .with_config(loadout_builder::LoadoutConfig::Bandit)
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                 .with_main_tool(comp::Item::new_from_asset_expect(
                                     match dynamic_rng.gen_range(0, 6) {
@@ -647,7 +650,7 @@ impl Floor {
                                 )),
                             3 => entity
                                 .with_name("Cultist Novice")
-                                .with_config(common::loadout_builder::LoadoutConfig::CultistNovice)
+                                .with_config(loadout_builder::LoadoutConfig::CultistNovice)
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                 .with_main_tool(comp::Item::new_from_asset_expect(
                                     match dynamic_rng.gen_range(0, 6) {
@@ -661,7 +664,7 @@ impl Floor {
                                 )),
                             4 => entity
                                 .with_name("Cultist Acolyte")
-                                .with_config(common::loadout_builder::LoadoutConfig::CultistAcolyte)
+                                .with_config(loadout_builder::LoadoutConfig::CultistAcolyte)
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                 .with_main_tool(comp::Item::new_from_asset_expect(
                                     match dynamic_rng.gen_range(0, 6) {
@@ -676,14 +679,14 @@ impl Floor {
                             5 => match dynamic_rng.gen_range(0, 6) {
                                 0 => entity
                                     .with_name("Cultist Warlock")
-                                    .with_config(common::loadout_builder::LoadoutConfig::Warlock)
+                                    .with_config(loadout_builder::LoadoutConfig::Warlock)
                                     .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                     .with_main_tool(comp::Item::new_from_asset_expect(
                                         "common.items.npc_weapons.staff.cultist_staff",
                                     )),
                                 _ => entity
                                     .with_name("Cultist Warlord")
-                                    .with_config(common::loadout_builder::LoadoutConfig::Warlord)
+                                    .with_config(loadout_builder::LoadoutConfig::Warlord)
                                     .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                     .with_main_tool(comp::Item::new_from_asset_expect(
                                         match dynamic_rng.gen_range(0, 5) {
@@ -752,9 +755,7 @@ impl Floor {
                                         ))
                                         .with_name("Outcast Leader".to_string())
                                         .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
-                                        .with_config(
-                                            common::loadout_builder::LoadoutConfig::Outcast,
-                                        )
+                                        .with_config(loadout_builder::LoadoutConfig::Outcast)
                                         .with_scale(2.0)
                                         .with_main_tool(comp::Item::new_from_asset_expect(
                                             match dynamic_rng.gen_range(0, 6) {
@@ -800,7 +801,7 @@ impl Floor {
                                         ))
                                         .with_name("Bandit Captain".to_string())
                                         .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
-                                        .with_config(common::loadout_builder::LoadoutConfig::Bandit)
+                                        .with_config(loadout_builder::LoadoutConfig::Bandit)
                                         .with_scale(2.0)
                                         .with_main_tool(comp::Item::new_from_asset_expect(
                                             match dynamic_rng.gen_range(0, 6) {
@@ -814,27 +815,28 @@ impl Floor {
                                         ),);
                                     2
                                 ],
-                                3 => {
-                                    vec![ EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
-                                .with_name("Cultist Acolyte".to_string())
-                                .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
-                                .with_config(common::loadout_builder::LoadoutConfig::CultistAcolyte)
-                                .with_scale(2.0)
-                                .with_main_tool(
-                                    comp::Item::new_from_asset_expect(
-                                        match dynamic_rng.gen_range(0, 6) {
-                                            0 => "common.items.weapons.axe.malachite_axe-0",
-                                            1 => "common.items.weapons.sword.cultist_purp_2h-0",
-                                            2 => "common.items.weapons.sword.cultist_purp_2h-0",
-                                            3 => "common.items.weapons.hammer.cultist_purp_2h-0",
-                                            4 => "common.items.weapons.staff.cultist_staff",
-                                            _ => "common.items.weapons.bow.horn_longbow-0",
-                                        },
-                                    ),
-                                )
-                                ; 2]
-                                },
+                                3 => vec![
+                                    EntityInfo::at(tile_wcenter.map(|e| e as f32))
+                                        .with_body(comp::Body::Humanoid(
+                                            comp::humanoid::Body::random()
+                                        ))
+                                        .with_name("Cultist Acolyte".to_string())
+                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
+                                        .with_config(loadout_builder::LoadoutConfig::CultistAcolyte)
+                                        .with_scale(2.0)
+                                        .with_main_tool(comp::Item::new_from_asset_expect(
+                                            match dynamic_rng.gen_range(0, 6) {
+                                                0 => "common.items.weapons.axe.malachite_axe-0",
+                                                1 => "common.items.weapons.sword.cultist_purp_2h-0",
+                                                2 => "common.items.weapons.sword.cultist_purp_2h-0",
+                                                3 =>
+                                                    "common.items.weapons.hammer.cultist_purp_2h-0",
+                                                4 => "common.items.weapons.staff.cultist_staff",
+                                                _ => "common.items.weapons.bow.horn_longbow-0",
+                                            },
+                                        ),);
+                                    2
+                                ],
                                 4 => vec![
                                     EntityInfo::at(tile_wcenter.map(|e| e as f32))
                                         .with_body(comp::Body::Golem(
@@ -971,9 +973,7 @@ impl Floor {
                                         ))
                                         .with_name("Animal Trainer".to_string())
                                         .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
-                                        .with_config(
-                                            common::loadout_builder::LoadoutConfig::CultistAcolyte,
-                                        )
+                                        .with_config(loadout_builder::LoadoutConfig::CultistAcolyte)
                                         .with_scale(2.0)
                                         .with_main_tool(comp::Item::new_from_asset_expect(
                                             match dynamic_rng.gen_range(0, 6) {

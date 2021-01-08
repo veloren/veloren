@@ -25,7 +25,6 @@ pub type PersistedComponents = (
     comp::Body,
     comp::Stats,
     comp::Inventory,
-    comp::Loadout,
     Option<comp::Waypoint>,
 );
 

@@ -1,0 +1,12 @@
+ItemDef(
+    name: "Woven Red Bag",
+    description: "Made from some patches of dyed cloth.",
+    kind: Armor(
+        (
+            kind: Bag("RedMed"),
+            stats: (protection: Normal(0.0)),            
+        )
+    ),
+    quality: Moderate,
+    slots: 15,
+)

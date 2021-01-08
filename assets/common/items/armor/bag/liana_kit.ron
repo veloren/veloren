@@ -1,0 +1,12 @@
+ItemDef(
+    name: "Liana Kit",
+    description: "Woven from dried lianas.",
+    kind: Armor(
+        (
+            kind: Bag("GreenMid"),
+            stats: (protection: Normal(0.0)),            
+        )
+    ),
+    quality: Moderate,
+    slots: 12,
+)

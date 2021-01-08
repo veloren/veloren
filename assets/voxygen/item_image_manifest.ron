@@ -1324,6 +1324,46 @@
         "voxel.armor.head.assa_mask-0",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
     ),
+    // Bags    
+    Armor(Bag("RedFace")): Png (
+        "element.icons.item_bag_red_face",
+    ),
+    Armor(Bag("BrownFace")): Png (
+        "element.icons.item_bag_brown_face",
+    ),
+    Armor(Bag("BlueFace")): Png (
+        "element.icons.item_bag_blue_face",
+    ),
+    Armor(Bag("PurpleSkull")): Png (
+        "element.icons.item_bag_skull",
+    ),
+    Armor(Bag("GreenLarge")): Png (
+        "element.icons.item_bag_green_large",
+    ),
+    Armor(Bag("LeatherLarge")): Png (
+        "element.icons.item_bag_leather_large",
+    ),
+    Armor(Bag("GreenMid")): Png (
+        "element.icons.item_bag_green_mid",
+    ),
+    Armor(Bag("LeatherSmall")): Png (
+        "element.icons.item_bag_leather_small",
+    ),
+    Armor(Bag("RedLarge")): Png (
+        "element.icons.item_bag_large",
+    ),
+    Armor(Bag("RedMed")): Png (
+        "element.icons.item_bag_med",
+    ),
+    Armor(Bag("RedSmall")): Png (
+        "element.icons.item_bag_small",
+    ),
+    Armor(Bag("RedTiny")): Png (
+        "element.icons.item_bag_tiny",
+    ),
+    Armor(Bag("BluePouch")): Png (
+        "element.icons.item_bag_blue",
+    ),
     // Consumables
     Consumable("Apple"): Png(
         "element.icons.item_apple",
@@ -1419,6 +1459,10 @@
         "voxel.sprite.flowers.sunflower_1",
         (-2.0, -0.5, -1.0), (-60.0, 40.0, 20.0), 1.1,
     ),
+    Ingredient("FlowerRed"): VoxTrans(
+        "voxel.sprite.flowers.flower_red-4",
+        (0.0, 0.5, 0.0), (-70.0, 10.0, 0.0), 0.8,
+    ),
     Ingredient("Sunflower"): VoxTrans(
         "voxel.sprite.flowers.sunflower_1",
         (0.0, -1.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
@@ -1434,6 +1478,9 @@
     Ingredient("IcyShard"): Png(
         "element.icons.item_ice_shard",
     ),
+    Ingredient("FlayerBagDamaged"): Png(
+        "element.icons.item_flayer_soul",
+    ),
     Ingredient("RaptorFeather"): Png(
         "element.icons.item_raptor_feather",
     ),
@@ -1447,8 +1494,14 @@
     Ingredient("LeatherScraps"): Png(
         "element.icons.item_leather0",
     ),
+    Ingredient("TrollLeather"): Png(
+        "element.icons.item_leather_green",
+    ),
     Ingredient("ClothScraps"): Png(
         "element.icons.item_cloth0",
+    ),
+    Ingredient("ClothScrapsRed"): Png(
+        "element.icons.item_cloth_red",
     ),
     Ingredient("ShinyGem"): Png(
         "element.icons.gem",
@@ -1479,15 +1532,15 @@
     ),
     Glider("SandRaptor"): VoxTrans(
         "voxel.glider.glider_sandraptor",
-        (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,     
+        (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
     ),
     Glider("SnowRaptor"): VoxTrans(
         "voxel.glider.glider_snowraptor",
-        (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,     
+        (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
     ),
     Glider("WoodRaptor"): VoxTrans(
         "voxel.glider.glider_woodraptor",
-        (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,                
+        (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
     ),
     Glider("Purple0"): VoxTrans(
         "voxel.glider.glider_cultists",

@@ -10,11 +10,15 @@ use anim::Skeleton;
 use common::{
     assets::AssetHandle,
     comp::{
+        inventory::{
+            slot::{ArmorSlot, EquipSlot},
+            Inventory,
+        },
         item::{
             armor::{Armor, ArmorKind},
             ItemKind,
         },
-        CharacterState, Loadout,
+        CharacterState,
     },
     figure::Segment,
     vol::BaseVol,
@@ -106,7 +110,7 @@ pub(super) struct CharacterCacheKey {
 }
 
 impl CharacterCacheKey {
-    fn from(cs: Option<&CharacterState>, camera_mode: CameraMode, loadout: &Loadout) -> Self {
+    fn from(cs: Option<&CharacterState>, camera_mode: CameraMode, inventory: &Inventory) -> Self {
         let is_first_person = match camera_mode {
             CameraMode::FirstPerson => true,
             CameraMode::ThirdPerson | CameraMode::Freefly => false,
@@ -133,7 +137,9 @@ impl CharacterCacheKey {
                     shoulder: if let Some(ItemKind::Armor(Armor {
                         kind: ArmorKind::Shoulder(armor),
                         ..
-                    })) = loadout.shoulder.as_ref().map(|i| i.kind())
+                    })) = inventory
+                        .equipped(EquipSlot::Armor(ArmorSlot::Shoulders))
+                        .map(|i| i.kind())
                     {
                         Some(armor.clone())
                     } else {
@@ -142,7 +148,9 @@ impl CharacterCacheKey {
                     chest: if let Some(ItemKind::Armor(Armor {
                         kind: ArmorKind::Chest(armor),
                         ..
-                    })) = loadout.chest.as_ref().map(|i| i.kind())
+                    })) = inventory
+                        .equipped(EquipSlot::Armor(ArmorSlot::Chest))
+                        .map(|i| i.kind())
                     {
                         Some(armor.clone())
                     } else {
@@ -151,7 +159,9 @@ impl CharacterCacheKey {
                     belt: if let Some(ItemKind::Armor(Armor {
                         kind: ArmorKind::Belt(armor),
                         ..
-                    })) = loadout.belt.as_ref().map(|i| i.kind())
+                    })) = inventory
+                        .equipped(EquipSlot::Armor(ArmorSlot::Belt))
+                        .map(|i| i.kind())
                     {
                         Some(armor.clone())
                     } else {
@@ -160,7 +170,9 @@ impl CharacterCacheKey {
                     back: if let Some(ItemKind::Armor(Armor {
                         kind: ArmorKind::Back(armor),
                         ..
-                    })) = loadout.back.as_ref().map(|i| i.kind())
+                    })) = inventory
+                        .equipped(EquipSlot::Armor(ArmorSlot::Back))
+                        .map(|i| i.kind())
                     {
                         Some(armor.clone())
                     } else {
@@ -169,7 +181,9 @@ impl CharacterCacheKey {
                     pants: if let Some(ItemKind::Armor(Armor {
                         kind: ArmorKind::Pants(armor),
                         ..
-                    })) = loadout.pants.as_ref().map(|i| i.kind())
+                    })) = inventory
+                        .equipped(EquipSlot::Armor(ArmorSlot::Legs))
+                        .map(|i| i.kind())
                     {
                         Some(armor.clone())
                     } else {
@@ -179,27 +193,25 @@ impl CharacterCacheKey {
             },
             tool: if are_tools_visible {
                 Some(CharacterToolKey {
-                    active: loadout
-                        .active_item
-                        .as_ref()
-                        .map(|i| i.item.item_definition_id().to_owned()),
-                    second: loadout
-                        .second_item
-                        .as_ref()
-                        .map(|i| i.item.item_definition_id().to_owned()),
+                    active: inventory
+                        .equipped(EquipSlot::Mainhand)
+                        .map(|i| i.item_definition_id().to_owned()),
+                    second: inventory
+                        .equipped(EquipSlot::Offhand)
+                        .map(|i| i.item_definition_id().to_owned()),
                 })
             } else {
                 None
             },
             lantern: if let Some(ItemKind::Lantern(lantern)) =
-                loadout.lantern.as_ref().map(|i| i.kind())
+                inventory.equipped(EquipSlot::Lantern).map(|i| i.kind())
             {
                 Some(lantern.kind.clone())
             } else {
                 None
             },
             glider: if let Some(ItemKind::Glider(glider)) =
-                loadout.glider.as_ref().map(|i| i.kind())
+                inventory.equipped(EquipSlot::Glider).map(|i| i.kind())
             {
                 Some(glider.kind.clone())
             } else {
@@ -208,7 +220,9 @@ impl CharacterCacheKey {
             hand: if let Some(ItemKind::Armor(Armor {
                 kind: ArmorKind::Hand(armor),
                 ..
-            })) = loadout.hand.as_ref().map(|i| i.kind())
+            })) = inventory
+                .equipped(EquipSlot::Armor(ArmorSlot::Hands))
+                .map(|i| i.kind())
             {
                 Some(armor.clone())
             } else {
@@ -217,7 +231,9 @@ impl CharacterCacheKey {
             foot: if let Some(ItemKind::Armor(Armor {
                 kind: ArmorKind::Foot(armor),
                 ..
-            })) = loadout.foot.as_ref().map(|i| i.kind())
+            })) = inventory
+                .equipped(EquipSlot::Armor(ArmorSlot::Feet))
+                .map(|i| i.kind())
             {
                 Some(armor.clone())
             } else {
@@ -261,7 +277,7 @@ where
         // TODO: If we ever convert to using an atlas here, use this.
         _col_lights: &super::FigureColLights,
         body: Skel::Body,
-        loadout: Option<&Loadout>,
+        inventory: Option<&Inventory>,
         // TODO: Consider updating the tick by putting it in a Cell.
         _tick: u64,
         camera_mode: CameraMode,
@@ -270,11 +286,11 @@ where
         // TODO: Use raw entries to avoid lots of allocation (among other things).
         let key = FigureKey {
             body,
-            extra: loadout.map(|loadout| {
+            extra: inventory.map(|inventory| {
                 Arc::new(CharacterCacheKey::from(
                     character_state,
                     camera_mode,
-                    loadout,
+                    inventory,
                 ))
             }),
         };
@@ -291,7 +307,7 @@ where
         renderer: &mut Renderer,
         col_lights: &mut super::FigureColLights,
         body: Skel::Body,
-        loadout: Option<&Loadout>,
+        inventory: Option<&Inventory>,
         tick: u64,
         camera_mode: CameraMode,
         character_state: Option<&CharacterState>,
@@ -305,11 +321,11 @@ where
         let skeleton_attr = (&body).into();
         let key = FigureKey {
             body,
-            extra: loadout.map(|loadout| {
+            extra: inventory.map(|inventory| {
                 Arc::new(CharacterCacheKey::from(
                     character_state,
                     camera_mode,
-                    loadout,
+                    inventory,
                 ))
             }),
         };

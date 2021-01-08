@@ -16,11 +16,12 @@ use crate::{
     GlobalState,
 };
 use common::comp::{
+    inventory::slot::EquipSlot,
     item::{
         tool::{AbilityMap, Tool, ToolKind},
         Hands, ItemKind,
     },
-    Energy, Health, Inventory, Loadout, Stats,
+    Energy, Health, Inventory, Stats,
 };
 use conrod_core::{
     color,
@@ -125,11 +126,10 @@ pub struct Skillbar<'a> {
     rot_imgs: &'a ImgsRot,
     stats: &'a Stats,
     health: &'a Health,
-    loadout: &'a Loadout,
+    inventory: &'a Inventory,
     energy: &'a Energy,
     // character_state: &'a CharacterState,
     // controller: &'a ControllerInputs,
-    inventory: &'a Inventory,
     hotbar: &'a hotbar::State,
     tooltip_manager: &'a mut TooltipManager,
     slot_manager: &'a mut slots::SlotManager,
@@ -151,12 +151,11 @@ impl<'a> Skillbar<'a> {
         rot_imgs: &'a ImgsRot,
         stats: &'a Stats,
         health: &'a Health,
-        loadout: &'a Loadout,
+        inventory: &'a Inventory,
         energy: &'a Energy,
         // character_state: &'a CharacterState,
         pulse: f32,
         // controller: &'a ControllerInputs,
-        inventory: &'a Inventory,
         hotbar: &'a hotbar::State,
         tooltip_manager: &'a mut TooltipManager,
         slot_manager: &'a mut slots::SlotManager,
@@ -172,13 +171,12 @@ impl<'a> Skillbar<'a> {
             rot_imgs,
             stats,
             health,
-            loadout,
+            inventory,
             energy,
             common: widget::CommonBuilder::default(),
             // character_state,
             pulse,
             // controller,
-            inventory,
             hotbar,
             tooltip_manager,
             slot_manager,
@@ -473,13 +471,7 @@ impl<'a> Widget for Skillbar<'a> {
                 .set(state.ids.stamina_txt, ui);
         }
         // Slots
-        let content_source = (
-            self.hotbar,
-            self.inventory,
-            self.loadout,
-            self.energy,
-            self.ability_map,
-        ); // TODO: avoid this
+        let content_source = (self.hotbar, self.inventory, self.energy, self.ability_map); // TODO: avoid this
         let image_source = (self.item_imgs, self.imgs);
         let mut slot_maker = SlotMaker {
             // TODO: is a separate image needed for the frame?
@@ -529,10 +521,9 @@ impl<'a> Widget for Skillbar<'a> {
                         .get(i)
                         .map(|item| (item.name(), item.description())),
                     hotbar::SlotContents::Ability3 => content_source
-                        .2
-                        .active_item
-                        .as_ref()
-                        .map(|i| i.item.kind())
+                        .1
+                        .equipped(EquipSlot::Mainhand)
+                        .map(|i| i.kind())
                         .and_then(|kind| match kind {
                             ItemKind::Tool(Tool { kind, .. }) => match kind {
                                 ToolKind::Hammer => Some((
@@ -630,7 +621,11 @@ impl<'a> Widget for Skillbar<'a> {
             .right_from(state.ids.slot5, 0.0)
             .set(state.ids.m1_slot_bg, ui);
         Button::image(
-            match self.loadout.active_item.as_ref().map(|i| i.item.kind()) {
+            match self
+                .inventory
+                .equipped(EquipSlot::Mainhand)
+                .map(|i| i.kind())
+            {
                 Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
                     ToolKind::Sword => self.imgs.twohsword_m1,
                     ToolKind::Dagger => self.imgs.onehdagger_m1,
@@ -655,19 +650,19 @@ impl<'a> Widget for Skillbar<'a> {
             .right_from(state.ids.m1_slot_bg, 0.0)
             .set(state.ids.m2_slot, ui);
 
-        let active_tool = match self.loadout.active_item.as_ref().map(|i| i.item.kind()) {
-            Some(ItemKind::Tool(tool)) => Some(tool),
-            _ => None,
-        };
+        fn get_tool(inventory: &Inventory, equip_slot: EquipSlot) -> Option<&Tool> {
+            match inventory.equipped(equip_slot).map(|i| i.kind()) {
+                Some(ItemKind::Tool(tool)) => Some(tool),
+                _ => None,
+            }
+        }
 
-        let second_tool = match self.loadout.second_item.as_ref().map(|i| i.item.kind()) {
-            Some(ItemKind::Tool(tool)) => Some(tool),
-            _ => None,
-        };
+        let active_tool = get_tool(self.inventory, EquipSlot::Mainhand);
+        let second_tool = get_tool(self.inventory, EquipSlot::Offhand);
 
         let tool = match (
-            active_tool.map(|t| t.kind.hands()),
-            second_tool.map(|t| t.kind.hands()),
+            active_tool.map(|x| x.kind.hands()),
+            second_tool.map(|x| x.kind.hands()),
         ) {
             (Some(Hands::TwoHand), _) => active_tool,
             (_, Some(Hands::OneHand)) => second_tool,

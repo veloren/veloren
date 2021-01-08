@@ -24,7 +24,7 @@ use client::Client;
 use common::{
     assets::AssetHandle,
     character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER},
-    comp::{self, humanoid, item::tool::AbilityMap},
+    comp::{self, humanoid, inventory::slot::EquipSlot, Inventory, Item},
     LoadoutBuilder,
 };
 //ImageFrame, Tooltip,
@@ -148,7 +148,7 @@ enum Mode {
     Create {
         name: String, // TODO: default to username
         body: humanoid::Body,
-        loadout: Box<comp::Loadout>,
+        inventory: Box<comp::inventory::Inventory>,
         tool: &'static str,
 
         body_type_buttons: [button::State; 2],
@@ -177,24 +177,21 @@ impl Mode {
         }
     }
 
-    pub fn create(name: String, map: &AbilityMap) -> Self {
+    pub fn create(name: String) -> Self {
         let tool = STARTER_SWORD;
 
         let loadout = LoadoutBuilder::new()
             .defaults()
-            .active_item(Some(LoadoutBuilder::default_item_config_from_str(
-                tool, map,
-            )))
+            .active_item(Some(Item::new_from_asset_expect(tool)))
             .build();
 
-        let loadout = Box::new(loadout);
+        let inventory = Box::new(Inventory::new_with_loadout(loadout));
 
         Self::Create {
             name,
             body: humanoid::Body::random(),
-            loadout,
+            inventory,
             tool,
-
             body_type_buttons: Default::default(),
             species_buttons: Default::default(),
             tool_buttons: Default::default(),
@@ -700,7 +697,7 @@ impl Controls {
             Mode::Create {
                 name,
                 body,
-                loadout: _,
+                inventory: _,
                 tool,
                 ref mut scroll,
                 ref mut body_type_buttons,
@@ -1203,13 +1200,7 @@ impl Controls {
         .into()
     }
 
-    fn update(
-        &mut self,
-        message: Message,
-        events: &mut Vec<Event>,
-        characters: &[CharacterItem],
-        map: &AbilityMap,
-    ) {
+    fn update(&mut self, message: Message, events: &mut Vec<Event>, characters: &[CharacterItem]) {
         match message {
             Message::Back => {
                 if matches!(&self.mode, Mode::Create { .. }) {
@@ -1237,7 +1228,7 @@ impl Controls {
             },
             Message::NewCharacter => {
                 if matches!(&self.mode, Mode::Select { .. }) {
-                    self.mode = Mode::create(String::new(), map);
+                    self.mode = Mode::create(String::new());
                 }
             },
             Message::CreateCharacter => {
@@ -1271,10 +1262,15 @@ impl Controls {
                 }
             },
             Message::Tool(value) => {
-                if let Mode::Create { tool, loadout, .. } = &mut self.mode {
+                if let Mode::Create {
+                    tool, inventory, ..
+                } = &mut self.mode
+                {
                     *tool = value;
-                    loadout.active_item =
-                        Some(LoadoutBuilder::default_item_config_from_str(*tool, map));
+                    inventory.replace_loadout_item(
+                        EquipSlot::Mainhand,
+                        Some(Item::new_from_asset_expect(*tool)),
+                    );
                 }
             },
             Message::RandomizeCharacter => {
@@ -1366,16 +1362,18 @@ impl Controls {
     }
 
     /// Get the character to display
-    pub fn display_body_loadout<'a>(
+    pub fn display_body_inventory<'a>(
         &'a self,
         characters: &'a [CharacterItem],
-    ) -> Option<(comp::Body, &'a comp::Loadout)> {
+    ) -> Option<(comp::Body, &'a comp::inventory::Inventory)> {
         match &self.mode {
             Mode::Select { .. } => self
                 .selected
                 .and_then(|id| characters.iter().find(|i| i.character.id == Some(id)))
-                .map(|i| (i.body, &i.loadout)),
-            Mode::Create { loadout, body, .. } => Some((comp::Body::Humanoid(*body), loadout)),
+                .map(|i| (i.body, &i.inventory)),
+            Mode::Create {
+                inventory, body, ..
+            } => Some((comp::Body::Humanoid(*body), inventory)),
         }
     }
 }
@@ -1424,11 +1422,11 @@ impl CharSelectionUi {
         }
     }
 
-    pub fn display_body_loadout<'a>(
+    pub fn display_body_inventory<'a>(
         &'a self,
         characters: &'a [CharacterItem],
-    ) -> Option<(comp::Body, &'a comp::Loadout)> {
-        self.controls.display_body_loadout(characters)
+    ) -> Option<(comp::Body, &'a comp::inventory::Inventory)> {
+        self.controls.display_body_inventory(characters)
     }
 
     pub fn handle_event(&mut self, event: window::Event) -> bool {
@@ -1497,12 +1495,8 @@ impl CharSelectionUi {
         }
 
         messages.into_iter().for_each(|message| {
-            self.controls.update(
-                message,
-                &mut events,
-                &client.character_list().characters,
-                &*client.state().ability_map(),
-            )
+            self.controls
+                .update(message, &mut events, &client.character_list().characters)
         });
 
         events

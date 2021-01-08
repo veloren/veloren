@@ -57,14 +57,14 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
         }),
         (RedFlower, false, |c, col| {
             (
-                close(c.temp, CONFIG.tropical_temp, 0.6).min(close(
+                close(c.temp, CONFIG.tropical_temp, 0.7).min(close(
                     c.humidity,
                     CONFIG.jungle_hum,
-                    0.3,
+                    0.4,
                 )) * col.tree_density
                     * MUSH_FACT
                     * 350.0,
-                Some((100.0, 0.05)),
+                Some((100.0, 0.1)),
             )
         }),
         (WhiteFlower, false, |c, col| {

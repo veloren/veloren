@@ -1,20 +1,18 @@
+use specs::{world::WorldExt, Entity as EcsEntity};
+use tracing::error;
+
+use common::{
+    comp::{self, inventory::slot::EquipSlot, item, slot::Slot, Inventory, Pos},
+    consts::MAX_MOUNT_RANGE,
+    uid::Uid,
+};
+use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
+
 use crate::{
     client::Client,
     presence::{Presence, RegionSubscription},
     Server,
 };
-use common::{
-    comp::{
-        self,
-        item::{self, tool::AbilityMap},
-        Pos,
-    },
-    consts::MAX_MOUNT_RANGE,
-    uid::Uid,
-};
-use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
-use specs::{world::WorldExt, Entity as EcsEntity};
-use tracing::error;
 
 pub fn handle_lantern(server: &mut Server, entity: EcsEntity, enable: bool) {
     let ecs = server.state_mut().ecs();
@@ -32,10 +30,10 @@ pub fn handle_lantern(server: &mut Server, entity: EcsEntity, enable: bool) {
                 .write_storage::<comp::LightEmitter>()
                 .remove(entity);
         } else {
-            let loadout_storage = ecs.read_storage::<comp::Loadout>();
-            let lantern_opt = loadout_storage
+            let inventory_storage = ecs.read_storage::<Inventory>();
+            let lantern_opt = inventory_storage
                 .get(entity)
-                .and_then(|loadout| loadout.lantern.as_ref())
+                .and_then(|inventory| inventory.equipped(EquipSlot::Lantern))
                 .and_then(|item| {
                     if let comp::item::ItemKind::Lantern(l) = item.kind() {
                         Some(l)
@@ -108,7 +106,6 @@ pub fn handle_unmount(server: &mut Server, mounter: EcsEntity) {
 #[allow(clippy::nonminimal_bool)] // TODO: Pending review in #587
 pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
     let ecs = &server.state.ecs();
-    let ability_map = ecs.fetch::<AbilityMap>();
     if let (Some(possessor), Some(possesse)) = (
         ecs.entity_from_uid(possessor_uid.into()),
         ecs.entity_from_uid(possesse_uid.into()),
@@ -173,18 +170,22 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
             .map(|c| c.send_fallible(ServerGeneral::SetPlayerEntity(possesse_uid)));
 
         // Put possess item into loadout
-        let mut loadouts = ecs.write_storage::<comp::Loadout>();
-        let mut loadout = loadouts
+        let mut inventories = ecs.write_storage::<Inventory>();
+        let mut inventory = inventories
             .entry(possesse)
-            .expect("Could not read loadouts component while possessing")
-            .or_insert(comp::Loadout::default());
+            .expect("Could not read inventory component while possessing")
+            .or_insert(Inventory::new_empty());
 
-        let item = comp::Item::new_from_asset_expect("common.items.debug.possess");
-        if let item::ItemKind::Tool(_) = item.kind() {
-            let debug_item = comp::ItemConfig::from((item, &*ability_map));
-            let loadout = &mut *loadout;
-            std::mem::swap(&mut loadout.active_item, &mut loadout.second_item);
-            loadout.active_item = Some(debug_item);
+        let debug_item = comp::Item::new_from_asset_expect("common.items.debug.possess");
+        if let item::ItemKind::Tool(_) = debug_item.kind() {
+            inventory
+                .swap(
+                    Slot::Equip(EquipSlot::Mainhand),
+                    Slot::Equip(EquipSlot::Offhand),
+                )
+                .unwrap_none(); // Swapping main and offhand never results in leftover items
+
+            inventory.replace_loadout_item(EquipSlot::Mainhand, Some(debug_item));
         }
 
         // Remove will of the entity

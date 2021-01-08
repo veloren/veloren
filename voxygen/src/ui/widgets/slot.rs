@@ -123,6 +123,7 @@ pub struct SlotManager<S: SumSlot> {
     // Size to display dragged content
     // Note: could potentially be specialized for each slot if needed
     drag_img_size: Vec2<f32>,
+    pub mouse_over_slot: Option<S>,
 }
 
 impl<S> SlotManager<S>
@@ -137,6 +138,7 @@ where
             events: Vec::new(),
             drag_id: gen.next(),
             drag_img_size,
+            mouse_over_slot: None,
         }
     }
 
@@ -153,11 +155,16 @@ where
             }
         }
 
+        let input = &ui.global_input().current;
+        self.mouse_over_slot = input
+            .widget_under_mouse
+            .and_then(|x| slot_ids.iter().position(|slot_id| *slot_id == x))
+            .map(|x| slots[x]);
+
         // If dragging and mouse is released check if there is a slot widget under the
         // mouse
         if let ManagerState::Dragging(_, slot, content_img) = &self.state {
             let content_img = *content_img;
-            let input = &ui.global_input().current;
             if let mouse::ButtonPosition::Up = input.mouse.buttons.left() {
                 // Get widget under the mouse
                 if let Some(id) = input.widget_under_mouse {
@@ -430,7 +437,7 @@ where
     #[allow(clippy::unused_unit)] // TODO: Pending review in #587
     fn style(&self) -> Self::Style { () }
 
-    /// Update the state of the Slider.
+    /// Update the state of the Slot.
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs {
             id,
@@ -439,6 +446,7 @@ where
             ui,
             ..
         } = args;
+
         let Slot {
             slot_key,
             empty_slot,

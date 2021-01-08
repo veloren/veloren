@@ -317,6 +317,7 @@ pub enum Event {
     ChangeStopAutoWalkOnInput(bool),
 }
 
+#[derive(Clone)]
 pub enum ScaleChange {
     ToAbsolute,
     ToRelative,

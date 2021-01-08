@@ -1,7 +1,10 @@
+use specs::{Entities, Join, LazyUpdate, Read, ReadExpect, ReadStorage, System, WriteStorage};
+
 use common::{
     comp::{
-        Attacking, Beam, Body, CharacterState, Controller, Energy, Health, Loadout, Mounting, Ori,
-        PhysicsState, Pos, StateUpdate, Vel,
+        inventory::slot::{EquipSlot, Slot},
+        Attacking, Beam, Body, CharacterState, Controller, Energy, Health, Inventory, Mounting,
+        Ori, PhysicsState, Pos, StateUpdate, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::SysMetrics,
@@ -13,8 +16,6 @@ use common::{
     },
     uid::{Uid, UidAllocator},
 };
-
-use specs::{Entities, Join, LazyUpdate, Read, ReadExpect, ReadStorage, System, WriteStorage};
 
 fn incorporate_update(tuple: &mut JoinTuple, state_update: StateUpdate) {
     // TODO: if checking equality is expensive use optional field in StateUpdate
@@ -29,9 +30,14 @@ fn incorporate_update(tuple: &mut JoinTuple, state_update: StateUpdate) {
         *tuple.6.get_mut_unchecked() = state_update.energy
     };
     if state_update.swap_loadout {
-        let mut loadout = tuple.7.get_mut_unchecked();
-        let loadout = &mut *loadout;
-        std::mem::swap(&mut loadout.active_item, &mut loadout.second_item);
+        let mut inventory = tuple.7.get_mut_unchecked();
+        let inventory = &mut *inventory;
+        inventory
+            .swap(
+                Slot::Equip(EquipSlot::Mainhand),
+                Slot::Equip(EquipSlot::Offhand),
+            )
+            .unwrap_none(); // Swapping main and offhand never results in leftover items
     }
 }
 
@@ -55,7 +61,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
         WriteStorage<'a, Energy>,
-        WriteStorage<'a, Loadout>,
+        WriteStorage<'a, Inventory>,
         WriteStorage<'a, Controller>,
         ReadStorage<'a, Health>,
         ReadStorage<'a, Body>,
@@ -82,7 +88,7 @@ impl<'a> System<'a> for Sys {
             mut velocities,
             mut orientations,
             mut energies,
-            mut loadouts,
+            mut inventories,
             mut controllers,
             healths,
             bodies,
@@ -106,7 +112,7 @@ impl<'a> System<'a> for Sys {
             &mut velocities,
             &mut orientations,
             &mut energies.restrict_mut(),
-            &mut loadouts.restrict_mut(),
+            &mut inventories.restrict_mut(),
             &mut controllers,
             &healths,
             &bodies,

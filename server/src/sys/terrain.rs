@@ -3,7 +3,7 @@ use crate::{
     chunk_generator::ChunkGenerator, client::Client, presence::Presence, rtsim::RtSim, Tick,
 };
 use common::{
-    comp::{self, bird_medium, item::tool::AbilityMap, Alignment, Pos},
+    comp::{self, bird_medium, Alignment, Pos},
     event::{EventBus, ServerEvent},
     generation::get_npc_name,
     npc::NPC_NAMES,
@@ -14,7 +14,7 @@ use common::{
 use common_net::msg::ServerGeneral;
 use common_sys::state::TerrainChanges;
 use rand::Rng;
-use specs::{Join, Read, ReadExpect, ReadStorage, System, Write, WriteExpect};
+use specs::{Join, Read, ReadStorage, System, Write, WriteExpect};
 use std::sync::Arc;
 use vek::*;
 
@@ -38,7 +38,6 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Presence>,
         ReadStorage<'a, Client>,
-        ReadExpect<'a, AbilityMap>,
     );
 
     fn run(
@@ -54,7 +53,6 @@ impl<'a> System<'a> for Sys {
             positions,
             presences,
             clients,
-            map,
         ): Self::SystemData,
     ) {
         span!(_guard, "run", "terrain::Sys::run");
@@ -162,7 +160,7 @@ impl<'a> System<'a> for Sys {
 
                 let config = entity.config;
 
-                let loadout = LoadoutBuilder::build_loadout(body, main_tool, &map, config).build();
+                let loadout = LoadoutBuilder::build_loadout(body, main_tool, config).build();
 
                 let health = comp::Health::new(stats.body_type, stats.level.level());
 
@@ -195,7 +193,10 @@ impl<'a> System<'a> for Sys {
                             Some(entity.pos),
                             can_speak,
                             &body,
-                            matches!(config, Some(common::loadout_builder::LoadoutConfig::Guard)),
+                            matches!(
+                                config,
+                                Some(comp::inventory::loadout_builder::LoadoutConfig::Guard)
+                            ),
                         ))
                     } else {
                         None

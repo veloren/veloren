@@ -1,5 +1,8 @@
 use crate::{
-    comp::{HealthChange, HealthSource, Loadout},
+    comp::{
+        inventory::item::{armor::Protection, ItemKind},
+        HealthChange, HealthSource, Inventory,
+    },
     uid::Uid,
     util::Dir,
 };
@@ -31,8 +34,32 @@ pub struct Damage {
 }
 
 impl Damage {
-    pub fn modify_damage(self, loadout: Option<&Loadout>, uid: Option<Uid>) -> HealthChange {
+    /// Returns the total damage reduction provided by all equipped items
+    pub fn compute_damage_reduction(inventory: &Inventory) -> f32 {
+        let protection = inventory
+            .equipped_items()
+            .filter_map(|item| {
+                if let ItemKind::Armor(armor) = &item.kind() {
+                    Some(armor.get_protection())
+                } else {
+                    None
+                }
+            })
+            .map(|protection| match protection {
+                Protection::Normal(protection) => Some(protection),
+                Protection::Invincible => None,
+            })
+            .sum::<Option<f32>>();
+        match protection {
+            Some(dr) => dr / (60.0 + dr.abs()),
+            None => 1.0,
+        }
+    }
+
+    pub fn modify_damage(self, inventory: Option<&Inventory>, uid: Option<Uid>) -> HealthChange {
         let mut damage = self.value;
+        let damage_reduction = inventory.map_or(0.0, |inv| Damage::compute_damage_reduction(inv));
+
         match self.source {
             DamageSource::Melee => {
                 // Critical hit
@@ -41,7 +68,6 @@ impl Damage {
                     critdamage = damage * 0.3;
                 }
                 // Armor
-                let damage_reduction = loadout.map_or(0.0, |l| l.get_damage_reduction());
                 damage *= 1.0 - damage_reduction;
 
                 // Critical damage applies after armor for melee
@@ -63,7 +89,6 @@ impl Damage {
                     damage *= 1.2;
                 }
                 // Armor
-                let damage_reduction = loadout.map_or(0.0, |l| l.get_damage_reduction());
                 damage *= 1.0 - damage_reduction;
 
                 HealthChange {
@@ -76,7 +101,6 @@ impl Damage {
             },
             DamageSource::Explosion => {
                 // Armor
-                let damage_reduction = loadout.map_or(0.0, |l| l.get_damage_reduction());
                 damage *= 1.0 - damage_reduction;
 
                 HealthChange {
@@ -89,7 +113,6 @@ impl Damage {
             },
             DamageSource::Shockwave => {
                 // Armor
-                let damage_reduction = loadout.map_or(0.0, |l| l.get_damage_reduction());
                 damage *= 1.0 - damage_reduction;
 
                 HealthChange {
@@ -102,7 +125,6 @@ impl Damage {
             },
             DamageSource::Energy => {
                 // Armor
-                let damage_reduction = loadout.map_or(0.0, |l| l.get_damage_reduction());
                 damage *= 1.0 - damage_reduction;
 
                 HealthChange {
@@ -119,7 +141,6 @@ impl Damage {
             },
             DamageSource::Falling => {
                 // Armor
-                let damage_reduction = loadout.map_or(0.0, |l| l.get_damage_reduction());
                 if (damage_reduction - 1.0).abs() < f32::EPSILON {
                     damage = 0.0;
                 }

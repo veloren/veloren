@@ -1,7 +1,7 @@
 [
     // Misc
     (0.25, "common.items.armor.neck.neck_1"),
-    (0.2, "common.items.crafting_ing.cloth_scraps"),
+    (0.5, "common.items.crafting_ing.cloth_scraps"),
     (1.0, "common.items.crafting_ing.empty_vial"),  
     (0.1, "common.items.glider.glider_blue"),
     (0.1, "common.items.glider.glider_morpho"),
@@ -41,7 +41,7 @@
     // staves
     (1.00, "common.items.weapons.staff.bone_staff"),
     (1.00, "common.items.weapons.staff.amethyst_staff"),
-    (0.1, "common.items.weapons.sceptre.sceptre_velorite_0"),
+    (0.05, "common.items.weapons.sceptre.sceptre_velorite_0"),
     // hammers
     (0.30, "common.items.weapons.hammer.cobalt_hammer-0"),
     (0.30, "common.items.weapons.hammer.cobalt_hammer-1"),
@@ -56,7 +56,7 @@
     (0.05, "common.items.weapons.hammer.steel_hammer-4"),
     (0.05, "common.items.weapons.hammer.steel_hammer-5"),
     // bows    
-    (0.1, "common.items.weapons.bow.nature_ore_longbow-0"),
+    (0.05, "common.items.weapons.bow.nature_ore_longbow-0"),
 
 
 ]

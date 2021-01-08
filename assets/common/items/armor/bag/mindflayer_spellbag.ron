@@ -1,0 +1,12 @@
+ItemDef(
+    name: "Mindflayer Spellbag",
+    description: "You can almost feel the Mindflayer's\nevil presence flowing through the fabric.",
+    kind: Armor(
+        (
+            kind: Bag("PurpleSkull"),
+            stats: (protection: Normal(0.0)),            
+        )
+    ),
+    quality: Epic,
+    slots: 27,
+)

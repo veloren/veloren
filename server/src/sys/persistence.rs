@@ -4,7 +4,7 @@ use crate::{
     sys::{SysScheduler, SysTimer},
 };
 use common::{
-    comp::{Inventory, Loadout, Stats, Waypoint},
+    comp::{Inventory, Stats, Waypoint},
     span,
 };
 use common_net::msg::PresenceKind;
@@ -18,7 +18,6 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Presence>,
         ReadStorage<'a, Stats>,
         ReadStorage<'a, Inventory>,
-        ReadStorage<'a, Loadout>,
         ReadStorage<'a, Waypoint>,
         ReadExpect<'a, character_updater::CharacterUpdater>,
         Write<'a, SysScheduler<Self>>,
@@ -31,7 +30,6 @@ impl<'a> System<'a> for Sys {
             presences,
             player_stats,
             player_inventories,
-            player_loadouts,
             player_waypoint,
             updater,
             mut scheduler,
@@ -46,15 +44,12 @@ impl<'a> System<'a> for Sys {
                     &presences,
                     &player_stats,
                     &player_inventories,
-                    &player_loadouts,
                     player_waypoint.maybe(),
                 )
                     .join()
                     .filter_map(
-                        |(presence, stats, inventory, loadout, waypoint)| match presence.kind {
-                            PresenceKind::Character(id) => {
-                                Some((id, stats, inventory, loadout, waypoint))
-                            },
+                        |(presence, stats, inventory, waypoint)| match presence.kind {
+                            PresenceKind::Character(id) => Some((id, stats, inventory, waypoint)),
                             PresenceKind::Spectator => None,
                         },
                     ),

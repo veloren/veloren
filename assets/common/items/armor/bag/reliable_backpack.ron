@@ -1,0 +1,12 @@
+ItemDef(
+    name: "Reliable Backpack",
+    description: "It will never give you up.",
+    kind: Armor(
+        (
+            kind: Bag("LeatherLarge"),
+            stats: (protection: Normal(0.0)),            
+        )
+    ),
+    quality: High,
+    slots: 16,
+)

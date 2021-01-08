@@ -8,6 +8,7 @@ edition = "2018"
 worldgen = []
 simd = ["vek/platform_intrinsics"]
 plugins = ["common-sys/plugins"]
+tweak = ["const-tweaker"]
 
 default = ["worldgen", "plugins", "simd"]
 
@@ -47,6 +48,7 @@ diesel = { version = "1.4.3", features = ["sqlite"] }
 diesel_migrations = "1.4.0"
 dotenv = "0.15.0"
 slab  = "0.4"
+const-tweaker = {version = "0.3.1", optional = true}
 
 # Plugins
 plugin-api = { package = "veloren-plugin-api", path = "../plugin/api"}

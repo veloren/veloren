@@ -1,11 +1,12 @@
 use super::utils::handle_climb;
 use crate::{
-    comp::{CharacterState, EnergySource, StateUpdate},
+    comp::{inventory::slot::EquipSlot, CharacterState, EnergySource, StateUpdate},
     states::behavior::{CharacterBehavior, JoinData},
     util::Dir,
 };
 use serde::{Deserialize, Serialize};
 use vek::Vec2;
+
 // Gravity is 9.81 * 4, so this makes gravity equal to .15
 const GLIDE_ANTIGRAV: f32 = crate::consts::GRAVITY * 0.90;
 const GLIDE_ACCEL: f32 = 12.0;
@@ -31,7 +32,7 @@ impl CharacterBehavior for Data {
         {
             update.character = CharacterState::Idle;
         }
-        if data.loadout.glider.is_none() {
+        if data.inventory.equipped(EquipSlot::Glider).is_none() {
             update.character = CharacterState::Idle
         };
         // If there is a wall in front of character and they are trying to climb go to

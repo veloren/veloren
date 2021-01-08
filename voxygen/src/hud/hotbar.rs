@@ -1,6 +1,8 @@
+use crate::hud::slots::EquipSlot;
+use common::comp::{slot::InvSlotId, Inventory};
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Slot {
     One = 0,
     Two = 1,
@@ -16,7 +18,7 @@ pub enum Slot {
 
 #[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
 pub enum SlotContents {
-    Inventory(usize),
+    Inventory(InvSlotId),
     Ability3,
 }
 
@@ -57,8 +59,8 @@ impl State {
 
     pub fn clear_slot(&mut self, slot: Slot) { self.slots[slot as usize] = None; }
 
-    pub fn add_inventory_link(&mut self, slot: Slot, inventory_index: usize) {
-        self.slots[slot as usize] = Some(SlotContents::Inventory(inventory_index));
+    pub fn add_inventory_link(&mut self, slot: Slot, inventory_pos: InvSlotId) {
+        self.slots[slot as usize] = Some(SlotContents::Inventory(inventory_pos));
     }
 
     // TODO: remove
@@ -67,13 +69,12 @@ impl State {
     #[allow(clippy::unnested_or_patterns)] // TODO: Pending review in #587
     pub fn maintain_ability3(&mut self, client: &client::Client) {
         use specs::WorldExt;
-        let loadouts = client.state().ecs().read_storage::<common::comp::Loadout>();
-        let loadout = loadouts.get(client.entity());
-        let should_be_present = if let Some(loadout) = loadout {
-            loadout
-                .active_item
-                .as_ref()
-                .map(|i| i.item.kind())
+        let inventories = client.state().ecs().read_storage::<Inventory>();
+        let inventory = inventories.get(client.entity());
+        let should_be_present = if let Some(inventory) = inventory {
+            inventory
+                .equipped(EquipSlot::Mainhand)
+                .map(|i| i.kind())
                 .filter(|kind| {
                     use common::comp::item::{
                         tool::{ToolKind, UniqueKind},

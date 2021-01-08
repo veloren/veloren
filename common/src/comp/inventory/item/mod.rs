@@ -6,10 +6,15 @@ pub use tool::{AbilitySet, Hands, Tool, ToolKind, UniqueKind};
 
 use crate::{
     assets::{self, AssetExt, Error},
+    comp::{
+        inventory::{item::tool::AbilityMap, InvSlot},
+        Body, CharacterAbility,
+    },
     effect::Effect,
     lottery::Lottery,
     terrain::{Block, SpriteKind},
 };
+use core::mem;
 use crossbeam_utils::atomic::AtomicCell;
 use rand::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -94,6 +99,15 @@ pub enum ItemKind {
     },
 }
 
+impl ItemKind {
+    pub fn is_equippable(&self) -> bool {
+        matches!(
+            self,
+            ItemKind::Tool(_) | ItemKind::Armor { .. } | ItemKind::Glider(_) | ItemKind::Lantern(_)
+        )
+    }
+}
+
 pub type ItemId = AtomicCell<Option<NonZeroU64>>;
 
 /* /// The only way to access an item id outside this module is to mutably, atomically update it using
@@ -101,11 +115,7 @@ pub type ItemId = AtomicCell<Option<NonZeroU64>>;
 /// only if it's not already set.
 pub struct CreateDatabaseItemId {
     item_id: Arc<ItemId>,
-}
-
-pub struct CreateDatabaseItemId {
-    item_id: Arc<ItemId>,
-} */
+}*/
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Item {
@@ -124,20 +134,52 @@ pub struct Item {
     /// amount is hidden because it needs to maintain the invariant that only
     /// stackable items can have > 1 amounts.
     amount: NonZeroU32,
+    /// The slots for items that this item has
+    slots: Vec<InvSlot>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ItemDef {
     #[serde(default)]
     item_definition_id: String,
+    pub item_config: Option<ItemConfig>,
     pub name: String,
     pub description: String,
     pub kind: ItemKind,
     pub quality: Quality,
+    #[serde(default)]
+    pub slots: u16,
 }
 
 impl PartialEq for ItemDef {
     fn eq(&self, other: &Self) -> bool { self.item_definition_id == other.item_definition_id }
+}
+
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub struct ItemConfig {
+    pub ability1: Option<CharacterAbility>,
+    pub ability2: Option<CharacterAbility>,
+    pub ability3: Option<CharacterAbility>,
+    pub block_ability: Option<CharacterAbility>,
+    pub dodge_ability: Option<CharacterAbility>,
+}
+
+impl From<(&ItemKind, &AbilityMap)> for ItemConfig {
+    fn from((item_kind, map): (&ItemKind, &AbilityMap)) -> Self {
+        if let ItemKind::Tool(tool) = item_kind {
+            let abilities = tool.get_abilities(map);
+
+            return ItemConfig {
+                ability1: Some(abilities.primary),
+                ability2: Some(abilities.secondary),
+                ability3: abilities.skills.get(0).cloned(),
+                block_ability: None,
+                dodge_ability: Some(CharacterAbility::default_roll()),
+            };
+        }
+
+        unimplemented!("ItemConfig is currently only supported for Tools")
+    }
 }
 
 impl ItemDef {
@@ -149,6 +191,25 @@ impl ItemDef {
                 | ItemKind::Throwable { .. }
                 | ItemKind::Utility { .. }
         )
+    }
+
+    #[cfg(test)]
+    pub fn new_test(
+        item_definition_id: String,
+        item_config: Option<ItemConfig>,
+        kind: ItemKind,
+        quality: Quality,
+        slots: u16,
+    ) -> Self {
+        Self {
+            item_definition_id,
+            item_config,
+            name: "test item name".to_owned(),
+            description: "test item description".to_owned(),
+            kind,
+            quality,
+            slots,
+        }
     }
 }
 
@@ -170,7 +231,18 @@ impl assets::Compound for ItemDef {
             description,
             kind,
             quality,
+            slots,
         } = raw;
+
+        let item_config = if let ItemKind::Tool(_) = kind {
+            let ability_map_handle =
+                cache.load::<AbilityMap>("common.abilities.weapon_ability_manifest")?;
+            let ability_map = &*ability_map_handle.read();
+
+            Some(ItemConfig::from((&kind, ability_map)))
+        } else {
+            None
+        };
 
         // Some commands like /give_item provide the asset specifier separated with \
         // instead of .
@@ -180,10 +252,12 @@ impl assets::Compound for ItemDef {
 
         Ok(ItemDef {
             item_definition_id,
+            item_config,
             name,
             description,
             kind,
             quality,
+            slots,
         })
     }
 }
@@ -195,6 +269,8 @@ struct RawItemDef {
     description: String,
     kind: ItemKind,
     quality: Quality,
+    #[serde(default)]
+    slots: u16,
 }
 
 impl assets::Asset for RawItemDef {
@@ -229,11 +305,12 @@ impl Item {
     // loadout when no weapon is present
     pub fn empty() -> Self { Item::new_from_asset_expect("common.items.weapons.empty.empty") }
 
-    pub fn new(inner_item: Arc<ItemDef>) -> Self {
+    pub fn new_from_item_def(inner_item: Arc<ItemDef>) -> Self {
         Item {
             item_id: Arc::new(AtomicCell::new(None)),
-            item_def: inner_item,
             amount: NonZeroU32::new(1).unwrap(),
+            slots: vec![None; inner_item.slots as usize],
+            item_def: inner_item,
         }
     }
 
@@ -241,7 +318,7 @@ impl Item {
     /// Panics if the asset does not exist.
     pub fn new_from_asset_expect(asset_specifier: &str) -> Self {
         let inner_item = Arc::<ItemDef>::load_expect_cloned(asset_specifier);
-        Item::new(inner_item)
+        Item::new_from_item_def(inner_item)
     }
 
     /// Creates a Vec containing one of each item that matches the provided
@@ -254,11 +331,43 @@ impl Item {
     /// it exists
     pub fn new_from_asset(asset: &str) -> Result<Self, Error> {
         let inner_item = Arc::<ItemDef>::load_cloned(asset)?;
-        Ok(Item::new(inner_item))
+        Ok(Item::new_from_item_def(inner_item))
+    }
+
+    pub fn new_default_for_body(body: &Body) -> Self {
+        let mut item = Item::new_from_asset_expect("common.items.weapons.empty.empty");
+
+        let empty_def = &*item.item_def;
+        item.item_def = Arc::new(ItemDef {
+            slots: empty_def.slots,
+            name: empty_def.name.clone(),
+            kind: empty_def.kind.clone(),
+            description: empty_def.description.clone(),
+            item_definition_id: empty_def.item_definition_id.clone(),
+            quality: empty_def.quality,
+            item_config: Some(ItemConfig {
+                ability1: Some(CharacterAbility::BasicMelee {
+                    energy_cost: 10,
+                    buildup_duration: 500,
+                    swing_duration: 100,
+                    recover_duration: 100,
+                    base_damage: body.base_dmg(),
+                    knockback: 0.0,
+                    range: body.base_range(),
+                    max_angle: 20.0,
+                }),
+                ability2: None,
+                ability3: None,
+                block_ability: None,
+                dodge_ability: None,
+            }),
+        });
+
+        item
     }
 
     /// Duplicates an item, creating an exact copy but with a new item ID
-    pub fn duplicate(&self) -> Self { Item::new(Arc::clone(&self.item_def)) }
+    pub fn duplicate(&self) -> Self { Item::new_from_item_def(Arc::clone(&self.item_def)) }
 
     /// FIXME: HACK: In order to set the entity ID asynchronously, we currently
     /// start it at None, and then atomically set it when it's saved for the
@@ -320,6 +429,11 @@ impl Item {
         }
     }
 
+    /// Returns an iterator that drains items contained within the item's slots
+    pub fn drain(&mut self) -> impl Iterator<Item = Item> + '_ {
+        self.slots.iter_mut().filter_map(|x| mem::take(x))
+    }
+
     pub fn item_definition_id(&self) -> &str { &self.item_def.item_definition_id }
 
     pub fn is_same_item_def(&self, item_def: &ItemDef) -> bool {
@@ -337,6 +451,26 @@ impl Item {
     pub fn amount(&self) -> u32 { u32::from(self.amount) }
 
     pub fn quality(&self) -> Quality { self.item_def.quality }
+
+    pub fn slots(&self) -> &[InvSlot] { &self.slots }
+
+    pub fn slots_mut(&mut self) -> &mut [InvSlot] { &mut self.slots }
+
+    pub fn item_config_expect(&self) -> &ItemConfig {
+        &self
+            .item_def
+            .item_config
+            .as_ref()
+            .expect("Item was expected to have an ItemConfig")
+    }
+
+    pub fn free_slots(&self) -> usize { self.slots.iter().filter(|x| x.is_none()).count() }
+
+    pub fn populated_slots(&self) -> usize { self.slots().len().saturating_sub(self.free_slots()) }
+
+    pub fn slot(&self, slot: usize) -> Option<&InvSlot> { self.slots.get(slot) }
+
+    pub fn slot_mut(&mut self, slot: usize) -> Option<&mut InvSlot> { self.slots.get_mut(slot) }
 
     pub fn try_reclaim_from_block(block: Block) -> Option<Self> {
         let chosen;
@@ -416,6 +550,7 @@ pub trait ItemDesc {
     fn name(&self) -> &str;
     fn kind(&self) -> &ItemKind;
     fn quality(&self) -> &Quality;
+    fn num_slots(&self) -> u16;
     fn item_definition_id(&self) -> &str;
 }
 
@@ -428,6 +563,8 @@ impl ItemDesc for Item {
 
     fn quality(&self) -> &Quality { &self.item_def.quality }
 
+    fn num_slots(&self) -> u16 { self.item_def.slots }
+
     fn item_definition_id(&self) -> &str { &self.item_def.item_definition_id }
 }
 
@@ -439,6 +576,8 @@ impl ItemDesc for ItemDef {
     fn kind(&self) -> &ItemKind { &self.kind }
 
     fn quality(&self) -> &Quality { &self.quality }
+
+    fn num_slots(&self) -> u16 { self.slots }
 
     fn item_definition_id(&self) -> &str { &self.item_definition_id }
 }

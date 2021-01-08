@@ -1,0 +1,8 @@
+ItemDef(
+    name: "Glowing Remains",
+    description: "Looted from an evil being.\n\nWith some additional work it can surely be\nbrought back to it's former glory...",
+    kind: Ingredient(
+        kind: "FlayerBagDamaged",
+    ),
+    quality: Epic,
+)

@@ -1,5 +1,5 @@
 use common::{
-    comp::{buff, group, Attacking, Body, CharacterState, Health, Loadout, Ori, Pos, Scale},
+    comp::{buff, group, Attacking, Body, CharacterState, Health, Inventory, Ori, Pos, Scale},
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::SysMetrics,
     span,
@@ -28,7 +28,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Scale>,
         ReadStorage<'a, Body>,
         ReadStorage<'a, Health>,
-        ReadStorage<'a, Loadout>,
+        ReadStorage<'a, Inventory>,
         ReadStorage<'a, group::Group>,
         WriteStorage<'a, Attacking>,
         ReadStorage<'a, CharacterState>,
@@ -47,7 +47,7 @@ impl<'a> System<'a> for Sys {
             scales,
             bodies,
             healths,
-            loadouts,
+            inventories,
             groups,
             mut attacking_storage,
             char_states,
@@ -125,7 +125,7 @@ impl<'a> System<'a> for Sys {
                             }
                         }
 
-                        let change = damage.modify_damage(loadouts.get(b), Some(*uid));
+                        let change = damage.modify_damage(inventories.get(b), Some(*uid));
 
                         server_emitter.emit(ServerEvent::Damage { entity: b, change });
                         // Apply bleeding buff on melee hits with 10% chance
