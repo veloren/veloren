@@ -22,9 +22,6 @@ pub enum Outcome {
         body: comp::Body,
         vel: Vec3<f32>,
     },
-    LevelUp {
-        pos: Vec3<f32>,
-    },
     Beam {
         pos: Vec3<f32>,
         heal: bool,
@@ -37,6 +34,7 @@ pub enum Outcome {
         uid: Uid,
         skill_tree: comp::skills::SkillGroupType,
         total_points: u16,
+        pos: Vec3<f32>,
     },
 }
 
@@ -45,10 +43,9 @@ impl Outcome {
         match self {
             Outcome::Explosion { pos, .. } => Some(*pos),
             Outcome::ProjectileShot { pos, .. } => Some(*pos),
-            Outcome::LevelUp { pos } => Some(*pos),
             Outcome::Beam { pos, .. } => Some(*pos),
             Outcome::ExpChange { .. } => None,
-            Outcome::SkillPointGain { .. } => None,
+            Outcome::SkillPointGain { pos, .. } => Some(*pos),
         }
     }
 }
