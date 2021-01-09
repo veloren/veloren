@@ -1,6 +1,6 @@
 use super::{
-    img_ids::Imgs, DEFAULT_NPC, FACTION_COLOR, GROUP_COLOR, GROUP_MEMBER, HP_COLOR, LOW_HP_COLOR,
-    REGION_COLOR, SAY_COLOR, STAMINA_COLOR, TELL_COLOR, TEXT_BG, TEXT_COLOR,
+    img_ids::Imgs, DEFAULT_NPC, ENEMY_HP_COLOR, FACTION_COLOR, GROUP_COLOR, GROUP_MEMBER, HP_COLOR,
+    LOW_HP_COLOR, REGION_COLOR, SAY_COLOR, STAMINA_COLOR, TELL_COLOR, TEXT_BG, TEXT_COLOR,
 };
 use crate::{
     hud::get_buff_info,
@@ -309,7 +309,7 @@ impl<'a> Widget for Overhead<'a> {
             if should_show_healthbar(health) {
                 // Show HP Bar
                 let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 1.0; //Animation timer
-                let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
+                let crit_hp_color: Color = Color::Rgba(0.93, 0.59, 0.03, hp_ani);
 
                 // Background
                 Image::new(self.imgs.enemy_health_bg)
@@ -326,13 +326,16 @@ impl<'a> Widget for Overhead<'a> {
                         (4.5 + (hp_percentage / 100.0 * 36.45 - 36.45)) * BARSIZE,
                         MANA_BAR_Y + 7.5,
                     )
-                    .color(Some(if hp_percentage <= 25.0 {
-                        crit_hp_color
-                    } else if hp_percentage <= 50.0 {
-                        LOW_HP_COLOR
+                    .color(if self.in_group {
+                        // Different HP bar colors only for group members
+                        Some(match hp_percentage {
+                            x if (0.0..25.0).contains(&x) => crit_hp_color,
+                            x if (25.0..50.0).contains(&x) => LOW_HP_COLOR,
+                            _ => HP_COLOR,
+                        })
                     } else {
-                        HP_COLOR
-                    }))
+                        Some(ENEMY_HP_COLOR)
+                    })
                     .parent(id)
                     .set(state.ids.health_bar, ui);
                 let mut txt = format!("{}/{}", health_cur_txt, health_max_txt);
