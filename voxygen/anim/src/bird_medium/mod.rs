@@ -140,14 +140,12 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Cockatrice, _) => (4.0, -3.5, 12.0),
             },
             feed: match (body.species, body.body_type) {
-                (Duck, _) => 1.0,
-                (Chicken, _) => 1.0,
                 (Goose, _) => 1.4,
                 (Peacock, _) => 1.6,
                 (Eagle, _) => 1.2,
-                (Snowyowl, _) => 1.0,
                 (Parrot, _) => 1.2,
                 (Cockatrice, _) => 1.3,
+                _ => 1.0,
             },
         }
     }

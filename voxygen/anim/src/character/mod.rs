@@ -243,73 +243,73 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Danari, Female) => (-1.5, 7.0),
             },
             chest: match (body.species, body.body_type) {
-                (_, _) => (0.0, 8.0),
+                _ => (0.0, 8.0),
             },
             belt: match (body.species, body.body_type) {
-                (_, _) => (0.0, -2.0),
+                _ => (0.0, -2.0),
             },
             back: match (body.species, body.body_type) {
-                (_, _) => (-3.1, 7.25),
+                _ => (-3.1, 7.25),
             },
             shorts: match (body.species, body.body_type) {
-                (_, _) => (0.0, -5.0),
+                _ => (0.0, -5.0),
             },
             hand: match (body.species, body.body_type) {
-                (_, _) => (7.0, -0.25, 0.5),
+                _ => (7.0, -0.25, 0.5),
             },
             foot: match (body.species, body.body_type) {
-                (_, _) => (3.4, 0.5, 2.0),
+                _ => (3.4, 0.5, 2.0),
             },
             shoulder: match (body.species, body.body_type) {
-                (_, _) => (5.0, 0.0, 5.0),
+                _ => (5.0, 0.0, 5.0),
             },
             lantern: match (body.species, body.body_type) {
-                (_, _) => (5.0, 2.5, 5.5),
+                _ => (5.0, 2.5, 5.5),
             },
             shl: match (body.species, body.body_type) {
-                (_, _) => (-0.75, -1.0, 0.5, 1.47, -0.2, 0.0),
+                _ => (-0.75, -1.0, 0.5, 1.47, -0.2, 0.0),
             },
             shr: match (body.species, body.body_type) {
-                (_, _) => (0.75, -1.5, -2.5, 1.47, 0.3, 0.0),
+                _ => (0.75, -1.5, -2.5, 1.47, 0.3, 0.0),
             },
             sc: match (body.species, body.body_type) {
-                (_, _) => (-7.0, 7.0, 2.0, -0.1, 0.0, 0.0),
+                _ => (-7.0, 7.0, 2.0, -0.1, 0.0, 0.0),
             },
             hhl: match (body.species, body.body_type) {
-                (_, _) => (-0.5, -1.0, 10.0, 4.71, 0.0, 0.0),
+                _ => (-0.5, -1.0, 10.0, 4.71, 0.0, 0.0),
             },
             hhr: match (body.species, body.body_type) {
-                (_, _) => (0.0, 0.0, 0.0, 4.71, 0.0, 0.0),
+                _ => (0.0, 0.0, 0.0, 4.71, 0.0, 0.0),
             },
             hc: match (body.species, body.body_type) {
-                (_, _) => (6.0, 7.0, 1.0, -0.3, -1.57, 3.64),
+                _ => (6.0, 7.0, 1.0, -0.3, -1.57, 3.64),
             },
             sthl: match (body.species, body.body_type) {
-                (_, _) => (0.0, 0.0, 6.0, 1.97, 0.0, 0.0),
+                _ => (0.0, 0.0, 6.0, 1.97, 0.0, 0.0),
             },
             sthr: match (body.species, body.body_type) {
-                (_, _) => (0.0, 0.0, 0.0, 1.27, 0.2, 0.0),
+                _ => (0.0, 0.0, 0.0, 1.27, 0.2, 0.0),
             },
             stc: match (body.species, body.body_type) {
-                (_, _) => (-5.0, 7.0, -2.0, -0.3, 0.15, 0.0),
+                _ => (-5.0, 7.0, -2.0, -0.3, 0.15, 0.0),
             },
             ahl: match (body.species, body.body_type) {
-                (_, _) => (-0.5, -1.0, 7.0, 1.17, PI, 0.0),
+                _ => (-0.5, -1.0, 7.0, 1.17, PI, 0.0),
             },
             ahr: match (body.species, body.body_type) {
-                (_, _) => (0.0, -1.0, 1.0, -2.0, 0.0, PI),
+                _ => (0.0, -1.0, 1.0, -2.0, 0.0, PI),
             },
             ac: match (body.species, body.body_type) {
-                (_, _) => (-8.0, 11.0, 3.0, 2.0, 0.0, 0.0),
+                _ => (-8.0, 11.0, 3.0, 2.0, 0.0, 0.0),
             },
             bhl: match (body.species, body.body_type) {
-                (_, _) => (0.0, -4.0, 1.0, 1.57, 0.0, 0.0),
+                _ => (0.0, -4.0, 1.0, 1.57, 0.0, 0.0),
             },
             bhr: match (body.species, body.body_type) {
-                (_, _) => (1.0, 2.0, -2.0, 1.57, 0.0, 0.0),
+                _ => (1.0, 2.0, -2.0, 1.57, 0.0, 0.0),
             },
             bc: match (body.species, body.body_type) {
-                (_, _) => (-5.0, 9.0, 1.0, 0.0, 1.2, -0.6),
+                _ => (-5.0, 9.0, 1.0, 0.0, 1.2, -0.6),
             },
         }
     }
