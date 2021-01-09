@@ -318,28 +318,21 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                     biped_large::Species::Wendigo => match rng.gen_range(0, 7) {
                         0 => "common.loot_tables.loot_table_food",
                         1 => "common.loot_tables.loot_table_wendigo",
-                        3 => "common.loot_tables.loot_table_armor_heavy",
-                        5 => "common.loot_tables.loot_table_weapon_uncommon",
-                        6 => "common.loot_tables.loot_table_weapon_rare",
+                        2 => "common.loot_tables.loot_table_weapon_uncommon",
                         _ => "common.loot_tables.loot_table_cave_large",
                     },
                     biped_large::Species::Troll => match rng.gen_range(0, 10) {
                         0 => "common.loot_tables.loot_table_food",
                         1 => "common.loot_tables.loot_table_cave_large",
-                        3 => "common.loot_tables.loot_table_armor_heavy",
-                        5 => "common.loot_tables.loot_table_weapon_uncommon",
-                        6 => "common.loot_tables.loot_table_weapon_rare",
+                        2 => "common.loot_tables.loot_table_weapon_uncommon",
                         _ => "common.loot_tables.loot_table_troll",
                     },
                     biped_large::Species::Occultsaurok
                     | biped_large::Species::Mightysaurok
                     | biped_large::Species::Slysaurok => "common.loot_tables.loot_table_saurok",
-                    _ => match rng.gen_range(0, 10) {
+                    _ => match rng.gen_range(0, 4) {
                         0 => "common.loot_tables.loot_table_food",
                         1 => "common.loot_tables.loot_table_armor_nature",
-                        3 => "common.loot_tables.loot_table_armor_heavy",
-                        5 => "common.loot_tables.loot_table_weapon_uncommon",
-                        6 => "common.loot_tables.loot_table_weapon_rare",
                         _ => "common.loot_tables.loot_table_cave_large",
                     },
                 },
