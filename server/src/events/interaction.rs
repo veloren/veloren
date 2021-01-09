@@ -183,6 +183,7 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
                     Slot::Equip(EquipSlot::Mainhand),
                     Slot::Equip(EquipSlot::Offhand),
                 )
+                .first()
                 .unwrap_none(); // Swapping main and offhand never results in leftover items
 
             inventory.replace_loadout_item(EquipSlot::Mainhand, Some(debug_item));

@@ -167,7 +167,7 @@ fn can_swap_equipped_bag_into_only_empty_slot_provided_by_itself_should_return_f
 
     let result = inv.can_swap(InvSlotId::new(15, 17), EquipSlot::Armor(ArmorSlot::Bag1));
 
-    assert_eq!(false, result);
+    assert!(!result);
 }
 
 #[test]
@@ -211,7 +211,7 @@ fn equip_replace_already_equipped_item() {
     inv.push(boots.clone());
     inv.replace_loadout_item(EquipSlot::Armor(ArmorSlot::Feet), starting_sandles.clone());
 
-    inv.equip(InvSlotId::new(0, 0)).unwrap_none();
+    let _ = inv.equip(InvSlotId::new(0, 0));
 
     // We should now have the testing boots equipped
     assert_eq!(
@@ -253,7 +253,7 @@ fn equip_equipping_smaller_bag_from_last_slot_of_big_bag() {
         inv.get(InvSlotId::new(0, 0)).unwrap().item_definition_id(),
         LARGE_BAG_ID
     );
-    assert_eq!(result, None);
+    assert!(result.is_empty());
 }
 
 #[test]
@@ -268,8 +268,9 @@ fn unequip_unequipping_bag_into_its_own_slot_with_no_other_free_slots() {
     // Fill all inventory built-in slots
     fill_inv_slots(&mut inv, 18);
 
-    inv.swap_inventory_loadout(InvSlotId::new(15, 0), EquipSlot::Armor(ArmorSlot::Bag1))
-        .unwrap_none();
+    let result =
+        inv.swap_inventory_loadout(InvSlotId::new(15, 0), EquipSlot::Armor(ArmorSlot::Bag1));
+    assert!(result.is_empty())
 }
 
 #[test]
@@ -283,12 +284,9 @@ fn equip_one_bag_equipped_equip_second_bag() {
 
     inv.push(bag);
 
-    inv.equip(InvSlotId::new(0, 0)).unwrap_none();
+    let _ = inv.equip(InvSlotId::new(0, 0));
 
-    assert_eq!(
-        true,
-        inv.equipped(EquipSlot::Armor(ArmorSlot::Bag2)).is_some()
-    );
+    assert!(inv.equipped(EquipSlot::Armor(ArmorSlot::Bag2)).is_some());
 }
 
 #[test]
