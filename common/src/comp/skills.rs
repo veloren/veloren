@@ -622,69 +622,76 @@ mod tests {
 
     #[test]
     fn test_refund_skill() {
-        let mut skillset = SkillSet::new();
-        skillset.unlock_skill_group(SkillGroupType::Axes);
-        skillset.add_skill_points(SkillGroupType::Axes, 1);
-        skillset.unlock_skill(Skill::TestAxeSkill2);
+        let mut skillset = SkillSet::default();
+        skillset.unlock_skill_group(SkillGroupType::Weapon(ToolKind::Axe));
+        skillset.add_skill_points(SkillGroupType::Weapon(ToolKind::Axe), 1);
+        skillset.unlock_skill(Skill::Axe(AxeSkill::LUnlockLeap));
 
-        assert_eq!(skillset.skill_groups[0].available_sp, 0);
+        assert_eq!(skillset.skill_groups[1].available_sp, 0);
         assert_eq!(skillset.skills.len(), 1);
         assert_eq!(
-            skillset.skills.get(&Skill::TestAxeSkill2),
-            Some(&Skill::TestAxeSkill2)
+            skillset
+                .skills
+                .contains_key(&Skill::Axe(AxeSkill::LUnlockLeap)),
+            true
         );
 
-        skillset.refund_skill(Skill::TestAxeSkill2);
+        skillset.refund_skill(Skill::Axe(AxeSkill::LUnlockLeap));
 
-        assert_eq!(skillset.skill_groups[0].available_sp, 1);
-        assert_eq!(skillset.skills.get(&Skill::TestAxeSkill2), None);
+        assert_eq!(skillset.skill_groups[1].available_sp, 1);
+        assert_eq!(
+            skillset.skills.get(&Skill::Axe(AxeSkill::LUnlockLeap)),
+            None
+        );
     }
 
     #[test]
     fn test_unlock_skillgroup() {
-        let mut skillset = SkillSet::new();
-        skillset.unlock_skill_group(SkillGroupType::Axes);
+        let mut skillset = SkillSet::default();
+        skillset.unlock_skill_group(SkillGroupType::Weapon(ToolKind::Axe));
 
-        assert_eq!(skillset.skill_groups.len(), 1);
+        assert_eq!(skillset.skill_groups.len(), 2);
         assert_eq!(
-            skillset.skill_groups[0],
-            SkillGroup::new(SkillGroupType::Axes)
+            skillset.skill_groups[1],
+            SkillGroup::new(SkillGroupType::Weapon(ToolKind::Axe))
         );
     }
 
     #[test]
     fn test_unlock_skill() {
-        let mut skillset = SkillSet::new();
+        let mut skillset = SkillSet::default();
 
-        skillset.unlock_skill_group(SkillGroupType::Axes);
-        skillset.add_skill_points(SkillGroupType::Axes, 1);
+        skillset.unlock_skill_group(SkillGroupType::Weapon(ToolKind::Axe));
+        skillset.add_skill_points(SkillGroupType::Weapon(ToolKind::Axe), 1);
 
-        assert_eq!(skillset.skill_groups[0].available_sp, 1);
+        assert_eq!(skillset.skill_groups[1].available_sp, 1);
         assert_eq!(skillset.skills.len(), 0);
 
         // Try unlocking a skill with enough skill points
-        skillset.unlock_skill(Skill::TestAxeSkill2);
+        skillset.unlock_skill(Skill::Axe(AxeSkill::LUnlockLeap));
 
-        assert_eq!(skillset.skill_groups[0].available_sp, 0);
+        assert_eq!(skillset.skill_groups[1].available_sp, 0);
         assert_eq!(skillset.skills.len(), 1);
         assert_eq!(
-            skillset.skills.get(&Skill::TestAxeSkill2),
-            Some(&Skill::TestAxeSkill2)
+            skillset
+                .skills
+                .contains_key(&Skill::Axe(AxeSkill::LUnlockLeap)),
+            true
         );
 
         // Try unlocking a skill without enough skill points
-        skillset.unlock_skill(Skill::TestAxeSkill1);
+        skillset.unlock_skill(Skill::Axe(AxeSkill::DsCombo));
 
         assert_eq!(skillset.skills.len(), 1);
-        assert_eq!(skillset.skills.get(&Skill::TestAxeSkill1), None);
+        assert_eq!(skillset.skills.get(&Skill::Axe(AxeSkill::DsCombo)), None);
     }
 
     #[test]
     fn test_add_skill_points() {
-        let mut skillset = SkillSet::new();
-        skillset.unlock_skill_group(SkillGroupType::Axes);
-        skillset.add_skill_points(SkillGroupType::Axes, 1);
+        let mut skillset = SkillSet::default();
+        skillset.unlock_skill_group(SkillGroupType::Weapon(ToolKind::Axe));
+        skillset.add_skill_points(SkillGroupType::Weapon(ToolKind::Axe), 1);
 
-        assert_eq!(skillset.skill_groups[0].available_sp, 1);
+        assert_eq!(skillset.skill_groups[1].available_sp, 1);
     }
 }

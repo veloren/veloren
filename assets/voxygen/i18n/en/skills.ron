@@ -27,8 +27,6 @@
         "hud.skill.unlck_sceptre": "Unlocks sceptre skill tree{}",
         "hud.skill.dodge_title": "Dodge",
         "hud.skill.dodge": "Dodging avoids melee attacks{}",
-        "hud.skill.dodge_title": "Roll Stamina Cost",
-        "hud.skill.dodge": "Rolling uses 20% less stamina{}",
         "hud.skill.roll_stamina_title": "Roll Stamina Cost",
         "hud.skill.roll_stamina": "Rolling uses 20% less stamina{}",
         "hud.skill.roll_speed_title": "Rolling Speed",

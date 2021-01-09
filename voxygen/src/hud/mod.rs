@@ -2896,6 +2896,7 @@ impl Hud {
                 uid,
                 skill_tree,
                 total_points,
+                ..
             } => self.skill_point_displays.push(SkillPointGain {
                 owner: *uid,
                 skill_tree: *skill_tree,

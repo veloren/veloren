@@ -1,7 +1,7 @@
 use common::{
     comp::{
         skills::{GeneralSkill, Skill, SkillGroupType},
-        CharacterState, Energy, EnergyChange, EnergySource, Health, Stats,
+        CharacterState, Energy, EnergyChange, EnergySource, Health, Pos, Stats,
     },
     event::{EventBus, ServerEvent},
     metrics::SysMetrics,
@@ -29,6 +29,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Health>,
         WriteStorage<'a, Energy>,
         ReadStorage<'a, Uid>,
+        ReadStorage<'a, Pos>,
         Write<'a, Vec<Outcome>>,
     );
 
@@ -44,6 +45,7 @@ impl<'a> System<'a> for Sys {
             mut healths,
             mut energies,
             uids,
+            positions,
             mut outcomes,
         ): Self::SystemData,
     ) {
@@ -59,11 +61,12 @@ impl<'a> System<'a> for Sys {
         healths.set_event_emission(true);
 
         // Update stats
-        for (entity, uid, mut stats, mut health) in (
+        for (entity, uid, mut stats, mut health, pos) in (
             &entities,
             &uids,
             &mut stats.restrict_mut(),
             &mut healths.restrict_mut(),
+            &positions,
         )
             .join()
         {
@@ -104,6 +107,7 @@ impl<'a> System<'a> for Sys {
                         uid: *uid,
                         skill_tree: skill_group,
                         total_points: stat.skill_set.get_earned_sp(skill_group),
+                        pos: pos.0,
                     });
                 }
             }
