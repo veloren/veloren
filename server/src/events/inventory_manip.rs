@@ -234,17 +234,15 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                             swap_lantern(&mut state.ecs().write_storage(), entity, &lantern);
                         }
                         if let Some(pos) = state.ecs().read_storage::<comp::Pos>().get(entity) {
-                            if let Some(leftover_items) = inventory.equip(slot) {
-                                dropped_items.extend(leftover_items.into_iter().map(|x| {
-                                    (
-                                        *pos,
-                                        state
-                                            .read_component_copied::<comp::Ori>(entity)
-                                            .unwrap_or_default(),
-                                        x,
-                                    )
-                                }));
-                            }
+                            dropped_items.extend(inventory.equip(slot).into_iter().map(|x| {
+                                (
+                                    *pos,
+                                    state
+                                        .read_component_copied::<comp::Ori>(entity)
+                                        .unwrap_or_default(),
+                                    x,
+                                )
+                            }));
                         }
                         Some(comp::InventoryUpdateEvent::Used)
                     } else if let Some(item) = inventory.take(slot) {
@@ -413,17 +411,15 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             if let Some(pos) = ecs.read_storage::<comp::Pos>().get(entity) {
                 if let Some(mut inventory) = ecs.write_storage::<comp::Inventory>().get_mut(entity)
                 {
-                    if let Some(leftover_items) = inventory.swap(a, b) {
-                        dropped_items.extend(leftover_items.into_iter().map(|x| {
-                            (
-                                *pos,
-                                state
-                                    .read_component_copied::<comp::Ori>(entity)
-                                    .unwrap_or_default(),
-                                x,
-                            )
-                        }));
-                    }
+                    dropped_items.extend(inventory.swap(a, b).into_iter().map(|x| {
+                        (
+                            *pos,
+                            state
+                                .read_component_copied::<comp::Ori>(entity)
+                                .unwrap_or_default(),
+                            x,
+                        )
+                    }));
                 }
             }
 

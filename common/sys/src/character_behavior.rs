@@ -37,6 +37,7 @@ fn incorporate_update(tuple: &mut JoinTuple, state_update: StateUpdate) {
                 Slot::Equip(EquipSlot::Mainhand),
                 Slot::Equip(EquipSlot::Offhand),
             )
+            .first()
             .unwrap_none(); // Swapping main and offhand never results in leftover items
     }
 }
