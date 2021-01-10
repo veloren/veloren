@@ -16,11 +16,6 @@ pub fn init(basic: bool) {
     let base_exceptions = |env: EnvFilter| {
         env.add_directive("veloren_world::sim=info".parse().unwrap())
             .add_directive("veloren_world::civ=info".parse().unwrap())
-            .add_directive(
-                "veloren_common::comp::inventory::slot=info"
-                    .parse()
-                    .unwrap(),
-            )
             .add_directive("uvth=warn".parse().unwrap())
             .add_directive("tiny_http=warn".parse().unwrap())
             .add_directive("mio::sys::windows=debug".parse().unwrap())
