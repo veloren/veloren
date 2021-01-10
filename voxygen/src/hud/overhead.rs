@@ -380,8 +380,8 @@ impl<'a> Widget for Overhead<'a> {
                 // Thresholds (lower)
                 let common = tweak!(4.3);
                 let moderate = tweak!(6.0);
-                let high = tweak!(10.8);
-                let epic = tweak!(14.1);
+                let high = tweak!(8.0);
+                let epic = tweak!(10.0);
                 let legendary = tweak!(79.0);
                 let artifact = tweak!(122.0);
                 let debug = tweak!(200.0);

@@ -3,7 +3,9 @@ use super::{
     item_imgs::ItemImgs,
     slots::{ArmorSlot, EquipSlot, InventorySlot, SlotManager},
     util::loadout_slot_text,
-    Show, CRITICAL_HP_COLOR, LOW_HP_COLOR, QUALITY_COMMON, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
+    Show, CRITICAL_HP_COLOR, LOW_HP_COLOR, QUALITY_ARTIFACT, QUALITY_COMMON, QUALITY_DEBUG,
+    QUALITY_EPIC, QUALITY_HIGH, QUALITY_LEGENDARY, QUALITY_LOW, QUALITY_MODERATE, TEXT_COLOR,
+    UI_HIGHLIGHT_0, UI_MAIN, XP_COLOR,
 };
 use crate::{
     hud::get_quality_col,
@@ -16,16 +18,17 @@ use crate::{
 };
 use client::Client;
 use common::{
-    combat::Damage,
-    comp::{item::Quality, Stats},
+    combat::{combat_rating, Damage},
+    comp::{item::Quality, Energy, Health, Stats},
 };
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Scrollbar, Text},
-    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
 use crate::hud::slots::SlotKind;
+use inline_tweak::*;
 use vek::Vec2;
 
 widget_ids! {
@@ -49,22 +52,11 @@ widget_ids! {
         inventory_title_bg,
         scrollbar_bg,
         scrollbar_slots,
-        stats_button,
         tab_1,
         tab_2,
         tab_3,
         tab_4,
         bag_expand_btn,
-        // Stats
-        stats_alignment,
-        level,
-        exp_rectangle,
-        exp_progress_rectangle,
-        expbar,
-        exp,
-        divider,
-        statnames,
-        stats,
         // Armor Slots
         slots_bg,
         head_slot,
@@ -87,11 +79,9 @@ widget_ids! {
         bag2_slot,
         bag3_slot,
         bag4_slot,
-        // ???
-        end_ico,
-        fit_ico,
-        wp_ico,
-        prot_ico,
+        // Stats
+        stat_icons[],
+        stat_txts[],
     }
 }
 
@@ -108,8 +98,9 @@ pub struct Bag<'a> {
     slot_manager: &'a mut SlotManager,
     _pulse: f32,
     localized_strings: &'a Localization,
-
     stats: &'a Stats,
+    health: &'a Health,
+    energy: &'a Energy,
     show: &'a Show,
 }
 
@@ -126,6 +117,8 @@ impl<'a> Bag<'a> {
         pulse: f32,
         localized_strings: &'a Localization,
         stats: &'a Stats,
+        health: &'a Health,
+        energy: &'a Energy,
         show: &'a Show,
     ) -> Self {
         Self {
@@ -140,10 +133,13 @@ impl<'a> Bag<'a> {
             _pulse: pulse,
             localized_strings,
             stats,
+            energy,
+            health,
             show,
         }
     }
 }
+const STATS: [&str; 4] = ["Health", "Stamina", "Protection", "Combat Rating"];
 
 pub struct State {
     ids: Ids,
@@ -422,25 +418,103 @@ impl<'a> Widget for Bag<'a> {
         let i18n = &self.localized_strings;
         let filled_slot = self.imgs.armor_slot;
         if !self.show.bag_inv {
-            let damage_reduction = (100.0 * Damage::compute_damage_reduction(inventory)) as i32;
-            Button::image(self.imgs.protection_ico)
+            // Stat icons and text
+            state.update(|s| {
+                s.ids
+                    .stat_icons
+                    .resize(STATS.len(), &mut ui.widget_id_generator())
+            });
+            state.update(|s| {
+                s.ids
+                    .stat_txts
+                    .resize(STATS.len(), &mut ui.widget_id_generator())
+            });
+            // Thresholds (lower)
+            let common = tweak!(4.3);
+            let moderate = tweak!(6.0);
+            let high = tweak!(8.0);
+            let epic = tweak!(10.0);
+            let legendary = tweak!(79.0);
+            let artifact = tweak!(122.0);
+            let debug = tweak!(200.0);
+            // Stats
+            let combat_rating =
+                combat_rating(inventory, self.health, &self.stats.body_type).min(999.9);
+            let indicator_col = match combat_rating {
+                x if (0.0..common).contains(&x) => QUALITY_LOW,
+                x if (common..moderate).contains(&x) => QUALITY_COMMON,
+                x if (moderate..high).contains(&x) => QUALITY_MODERATE,
+                x if (high..epic).contains(&x) => QUALITY_HIGH,
+                x if (epic..legendary).contains(&x) => QUALITY_EPIC,
+                x if (legendary..artifact).contains(&x) => QUALITY_LEGENDARY,
+                x if (artifact..debug).contains(&x) => QUALITY_ARTIFACT,
+                x if x >= debug => QUALITY_DEBUG,
+                _ => XP_COLOR,
+            };
+            for i in STATS.iter().copied().enumerate() {
+                let btn = Button::image(match i.1 {
+                    "Health" => self.imgs.health_ico,
+                    "Stamina" => self.imgs.stamina_ico,
+                    "Combat Rating" => self.imgs.combat_rating_ico,
+                    "Protection" => self.imgs.protection_ico,
+                    _ => self.imgs.nothing,
+                })
                 .w_h(20.0, 20.0)
-                .top_left_with_margins_on(state.ids.bg_frame, 51.0, 5.0)
-                .color(UI_HIGHLIGHT_0)
-                .label(&format!("{}%", damage_reduction))
-                .label_y(conrod_core::position::Relative::Scalar(2.0))
-                .label_x(conrod_core::position::Relative::Scalar(25.0))
-                .label_color(TEXT_COLOR)
-                .label_font_size(self.fonts.cyri.scale(12))
-                .label_font_id(self.fonts.cyri.conrod_id)
-                .with_tooltip(
+                .image_color(if i.1 == "Combat Rating" {
+                    indicator_col
+                } else {
+                    TEXT_COLOR
+                });
+                let protection_txt = format!(
+                    "{}%",
+                    (100.0 * Damage::compute_damage_reduction(inventory)) as i32
+                );
+                let health_txt = format!("{}", (self.health.maximum() as f32 / 10.0) as usize);
+                let stamina_txt = format!("{}", (self.energy.maximum() as f32 / 10.0) as usize);
+                let combat_rating_txt = format!("{}", (combat_rating * 10.0) as usize);
+
+                let btn = if i.0 == 0 {
+                    btn.top_left_with_margins_on(state.ids.bg_frame, tweak!(55.0), tweak!(10.0))
+                } else {
+                    btn.down_from(state.ids.stat_icons[i.0 - 1], tweak!(7.0))
+                };
+                // TODO: Translation
+                let tooltip_head = match i.1 {
+                    "Health" => "Health",
+                    "Stamina" => "Stamina",
+                    "Combat Rating" => "Combat Rating",
+                    "Protection" => "Protection",
+                    _ => "",
+                };
+                // TODO: Translation
+                let tooltip_txt = match i.1 {
+                    "Combat Rating" => "Calculated from your\nequipment and health.",
+                    "Protection" => "Damage reduction through armor",
+                    _ => "",
+                };
+                btn.with_tooltip(
                     self.tooltip_manager,
-                    "Protection",
-                    "Damage reduction through armor",
+                    &tooltip_head,
+                    &tooltip_txt,
                     &bag_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.ids.prot_ico, ui);
+                .set(state.ids.stat_icons[i.0], ui);
+                Text::new(match i.1 {
+                    "Health" => &health_txt,
+                    "Stamina" => &stamina_txt,
+                    "Combat Rating" => &combat_rating_txt,
+                    "Protection" => &protection_txt,
+                    _ => "",
+                })
+                .right_from(state.ids.stat_icons[i.0], tweak!(10.0))
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(tweak!(14)))
+                .color(TEXT_COLOR)
+                .graphics_for(state.ids.stat_icons[i.0])
+                .set(state.ids.stat_txts[i.0], ui);
+            }
+            // Loadout Slots
             //  Head
             let (title, desc) = loadout_slot_text(
                 inventory.equipped(EquipSlot::Armor(ArmorSlot::Head)),

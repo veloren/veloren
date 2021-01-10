@@ -540,14 +540,11 @@ impl CharacterAbility {
                             } else {
                                 0
                             };
-                        {
-                            *max_energy_gain = (*max_energy_gain as f32
-                                * ((energy_level + 1) * stage_data.len() as u16 - 1) as f32
-                                / ((Sword(TsRegen).get_max_level().unwrap() + 1)
-                                    * stage_data.len() as u16
-                                    - 1) as f32)
-                                as u32;
-                        }
+                        *max_energy_gain = (*max_energy_gain as f32
+                            * ((energy_level + 1) * stage_data.len() as u16 - 1) as f32
+                            / ((Sword(TsRegen).get_max_level().unwrap() + 1)
+                                * stage_data.len() as u16
+                                - 1) as f32) as u32;
                         *scales_from_combo = skills
                             .get(&Sword(TsDamage))
                             .copied()
@@ -641,14 +638,11 @@ impl CharacterAbility {
                             } else {
                                 0
                             };
-                        {
-                            *max_energy_gain = (*max_energy_gain as f32
-                                * ((energy_level + 1) * stage_data.len() as u16 - 1) as f32
-                                / ((Axe(DsRegen).get_max_level().unwrap() + 1)
-                                    * stage_data.len() as u16
-                                    - 1) as f32)
-                                as u32;
-                        }
+                        *max_energy_gain = (*max_energy_gain as f32
+                            * ((energy_level + 1) * stage_data.len() as u16 - 1) as f32
+                            / ((Axe(DsRegen).get_max_level().unwrap() + 1)
+                                * stage_data.len() as u16
+                                - 1) as f32) as u32;
                         *scales_from_combo = skills
                             .get(&Axe(DsDamage))
                             .copied()
@@ -736,13 +730,11 @@ impl CharacterAbility {
                             } else {
                                 0
                             };
-                        {
-                            *max_energy_gain = (*max_energy_gain as f32
-                                * ((energy_level + 1) * stage_data.len() as u16) as f32
-                                / ((Hammer(SsRegen).get_max_level().unwrap() + 1)
-                                    * stage_data.len() as u16)
-                                    as f32) as u32;
-                        }
+                        *max_energy_gain = (*max_energy_gain as f32
+                            * ((energy_level + 1) * stage_data.len() as u16) as f32
+                            / ((Hammer(SsRegen).get_max_level().unwrap() + 1)
+                                * stage_data.len() as u16) as f32)
+                            as u32;
                         *scales_from_combo = skills
                             .get(&Hammer(SsDamage))
                             .copied()
@@ -814,16 +806,12 @@ impl CharacterAbility {
                         if let Some(level) = skills.get(&Bow(ProjSpeed)).copied().flatten() {
                             *projectile_speed *= 1.5_f32.powi(level.into());
                         }
-                        {
-                            let damage_level =
-                                skills.get(&Bow(BDamage)).copied().flatten().unwrap_or(0);
-                            let regen_level =
-                                skills.get(&Bow(BRegen)).copied().flatten().unwrap_or(0);
-                            let power = 1.3_f32.powi(damage_level.into());
-                            let regen = 1.5_f32.powi(regen_level.into());
-                            *projectile =
-                                projectile.modified_projectile(power, regen, 1_f32, 1_f32);
-                        }
+                        let damage_level =
+                            skills.get(&Bow(BDamage)).copied().flatten().unwrap_or(0);
+                        let regen_level = skills.get(&Bow(BRegen)).copied().flatten().unwrap_or(0);
+                        let power = 1.3_f32.powi(damage_level.into());
+                        let regen = 1.5_f32.powi(regen_level.into());
+                        *projectile = projectile.modified_projectile(power, regen, 1_f32, 1_f32);
                     },
                     ChargedRanged {
                         ref mut scaled_damage,
@@ -898,19 +886,16 @@ impl CharacterAbility {
                         if !skills.contains_key(&Staff(BExplosion)) {
                             *projectile = projectile.fireball_to_firebolt();
                         }
-                        {
-                            let damage_level =
-                                skills.get(&Staff(BDamage)).copied().flatten().unwrap_or(0);
-                            let regen_level =
-                                skills.get(&Staff(BRegen)).copied().flatten().unwrap_or(0);
-                            let range_level =
-                                skills.get(&Staff(BRadius)).copied().flatten().unwrap_or(0);
-                            let power = 1.2_f32.powi(damage_level.into());
-                            let regen = 1.2_f32.powi(regen_level.into());
-                            let range = 1.1_f32.powi(range_level.into());
-                            *projectile =
-                                projectile.modified_projectile(power, regen, range, 1_f32);
-                        }
+                        let damage_level =
+                            skills.get(&Staff(BDamage)).copied().flatten().unwrap_or(0);
+                        let regen_level =
+                            skills.get(&Staff(BRegen)).copied().flatten().unwrap_or(0);
+                        let range_level =
+                            skills.get(&Staff(BRadius)).copied().flatten().unwrap_or(0);
+                        let power = 1.2_f32.powi(damage_level.into());
+                        let regen = 1.2_f32.powi(regen_level.into());
+                        let range = 1.1_f32.powi(range_level.into());
+                        *projectile = projectile.modified_projectile(power, regen, range, 1_f32);
                     },
                     BasicBeam {
                         ref mut base_dps,
@@ -1058,7 +1043,7 @@ impl CharacterAbility {
                     }
                 }
             },
-            _ => {},
+            Some(_) => {},
         }
         self
     }

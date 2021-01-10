@@ -565,12 +565,12 @@ Liana: Some((
     variations: [
         (
             model: "voxygen.voxel.sprite.lianas.liana-0",
-            offset: (-1.5, -0.5, -88.0),
+            offset: (-4.0, -4.0, -88.0),
             lod_axes: (0.0, 0.0, 0.5),
         ),
         (
             model: "voxygen.voxel.sprite.lianas.liana-1",
-            offset: (-1.0, -0.5, -55.0),
+            offset: (-4.0, -4.0, -55.0),
             lod_axes: (0.0, 0.0, 0.5),
         ),
     ],
