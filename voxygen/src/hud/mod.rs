@@ -1994,40 +1994,6 @@ impl Hud {
             }
         }
 
-        // Bag contents
-        if self.show.bag {
-            if let Some(player_stats) = stats.get(client.entity()) {
-                match Bag::new(
-                    client,
-                    &self.imgs,
-                    &self.item_imgs,
-                    &self.fonts,
-                    &self.rot_imgs,
-                    tooltip_manager,
-                    &mut self.slot_manager,
-                    self.pulse,
-                    i18n,
-                    &player_stats,
-                    &self.show,
-                )
-                .set(self.ids.bag, ui_widgets)
-                {
-                    Some(bag::Event::BagExpand) => self.show.bag_inv = !self.show.bag_inv,
-                    Some(bag::Event::Close) => {
-                        self.show.stats = false;
-                        self.show.bag(false);
-                        self.show.crafting(false);
-                        if !self.show.social {
-                            self.show.want_grab = true;
-                            self.force_ungrab = false;
-                        } else {
-                            self.force_ungrab = true
-                        };
-                    },
-                    None => {},
-                }
-            }
-        }
         // Skillbar
         // Get player stats
         let ecs = client.state().ecs();
@@ -2071,6 +2037,46 @@ impl Hud {
                 &ability_map,
             )
             .set(self.ids.skillbar, ui_widgets);
+        }
+        // Bag contents
+        if self.show.bag {
+            if let (Some(player_stats), Some(health), Some(energy)) = (
+                stats.get(client.entity()),
+                healths.get(entity),
+                energies.get(entity),
+            ) {
+                match Bag::new(
+                    client,
+                    &self.imgs,
+                    &self.item_imgs,
+                    &self.fonts,
+                    &self.rot_imgs,
+                    tooltip_manager,
+                    &mut self.slot_manager,
+                    self.pulse,
+                    i18n,
+                    &player_stats,
+                    &health,
+                    &energy,
+                    &self.show,
+                )
+                .set(self.ids.bag, ui_widgets)
+                {
+                    Some(bag::Event::BagExpand) => self.show.bag_inv = !self.show.bag_inv,
+                    Some(bag::Event::Close) => {
+                        self.show.stats = false;
+                        self.show.bag(false);
+                        self.show.crafting(false);
+                        if !self.show.social {
+                            self.show.want_grab = true;
+                            self.force_ungrab = false;
+                        } else {
+                            self.force_ungrab = true
+                        };
+                    },
+                    None => {},
+                }
+            }
         }
         // Buffs
         let ecs = client.state().ecs();

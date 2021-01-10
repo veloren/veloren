@@ -334,10 +334,10 @@ image_ids! {
         mainhand_bg: "voxygen.element.icons.mainhand",
         bag_bg: "voxygen.element.icons.bag",
         offhand_bg: "voxygen.element.icons.offhand",
-        willpower_ico: "voxygen.element.icons.willpower",
-        endurance_ico: "voxygen.element.icons.endurance",
-        fitness_ico: "voxygen.element.icons.fitness",
+        stamina_ico: "voxygen.element.icons.stamina",
+        health_ico: "voxygen.element.icons.health",
         protection_ico: "voxygen.element.icons.protection",
+        combat_rating_ico: "voxygen.element.icons.combat_rating",
 
         not_found: "voxygen.element.not_found",
 
