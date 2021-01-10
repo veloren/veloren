@@ -7,16 +7,20 @@ pub use plugin_derive::*;
 
 use serde::{de::DeserializeOwned, Serialize};
 
+#[cfg(target_arch = "wasm32")]
 extern "C" {
     fn raw_emit_actions(ptr: *const u8, len: usize);
 }
 
 pub fn emit_action(action: api::Action) { emit_actions(vec![action]) }
 
-pub fn emit_actions(actions: Vec<api::Action>) {
-    let ret = bincode::serialize(&actions).expect("Can't serialize action in emit");
-    unsafe {
-        raw_emit_actions(ret.as_ptr(), ret.len());
+pub fn emit_actions(_actions: Vec<api::Action>) {
+    #[cfg(target_arch = "wasm32")]
+    {
+        let ret = bincode::serialize(&_actions).expect("Can't serialize action in emit");
+        unsafe {
+            raw_emit_actions(ret.as_ptr(), ret.len());
+        }
     }
 }
 
