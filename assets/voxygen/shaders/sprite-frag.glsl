@@ -19,29 +19,13 @@
 layout(location = 0) in vec3 f_pos;
 layout(location = 1) flat in vec3 f_norm;
 layout(location = 2) flat in float f_select;
-// flat in vec3 f_pos_norm;
 layout(location = 3) in vec2 f_uv_pos;
 layout(location = 4) in vec2 f_inst_light;
-// flat in uint f_atlas_pos;
-// in vec3 f_col;
-// in float f_ao;
-// in float f_light;
-// in vec4 light_pos[2];
 
 layout(set = 4, binding = 0)
 uniform texture2D t_col_light;
 layout(set = 4, binding = 1)
 uniform sampler s_col_light;
-
-//struct ShadowLocals {
-//    mat4 shadowMatrices;
-//    mat4 texture_mat;
-//};
-//
-//layout (std140)
-//uniform u_light_shadows {
-//    ShadowLocals shadowMats[/*MAX_LAYER_FACES*/192];
-//};
 
 layout(location = 0) out vec4 tgt_color;
 
@@ -52,49 +36,14 @@ layout(location = 0) out vec4 tgt_color;
 const float FADE_DIST = 32.0;
 
 void main() {
-    /* if (f_uv_pos.x < 757) {
-        discard;
-    } */
-    // vec2 f_uv_pos = vec2(768,1) + 0.5;
-    // vec2 f_uv_pos = vec2(760, 380);// + 0.5;
-    // vec2 f_uv_pos = vec2((uvec2(f_atlas_pos) >> uvec2(0, 16)) & uvec2(0xFFFFu, 0xFFFFu)) + 0.5;
-    /* if (f_uv_pos.x < 757) {
-        discard;
-    } */
-    // vec3 du = dFdx(f_pos);
-    // vec3 dv = dFdy(f_pos);
-    // vec3 f_norm = normalize(cross(du, dv));
-
     float f_ao, f_glow;
     vec3 f_col = greedy_extract_col_light_glow(t_col_light, s_col_light, f_uv_pos, f_ao, f_glow);
 
-    // vec3 my_chunk_pos = f_pos_norm;
-    // tgt_color = vec4(hash(floor(vec4(my_chunk_pos.x, 0, 0, 0))), hash(floor(vec4(0, my_chunk_pos.y, 0, 1))), hash(floor(vec4(0, 0, my_chunk_pos.z, 2))), 1.0);
-    // tgt_color = vec4(f_uv_pos / texSize, 0.0, 1.0);
-    // tgt_color = vec4(f_col.rgb, 1.0);
-    // return;
-    // vec4 light_pos[2];
-//#if (SHADOW_MODE == SHADOW_MODE_MAP)
-//    // for (uint i = 0u; i < light_shadow_count.z; ++i) {
-//    //     light_pos[i] = /*vec3(*/shadowMats[i].texture_mat * vec4(f_pos, 1.0)/*)*/;
-//    // }
-//    vec4 sun_pos = /*vec3(*/shadowMats[0].texture_mat * vec4(f_pos, 1.0)/*)*/;
-//#elif (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_NONE)
-//    vec4 sun_pos = vec4(0.0);
-//#endif
     vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
-    // vec4 vert_pos4 = view_mat * vec4(f_pos, 1.0);
-    // vec3 view_dir = normalize(-vec3(vert_pos4)/* / vert_pos4.w*/);
     vec3 view_dir = -cam_to_frag;
-
-    /* vec3 sun_dir = get_sun_dir(time_of_day.x);
-    vec3 moon_dir = get_moon_dir(time_of_day.x); */
-    // float sun_light = get_sun_brightness(sun_dir);
-    // float moon_light = get_moon_brightness(moon_dir);
 
 #if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP || FLUID_MODE == FLUID_MODE_SHINY)
     float f_alt = alt_at(f_pos.xy);
-    // float f_alt = f_pos.z;
 #elif (SHADOW_MODE == SHADOW_MODE_NONE || FLUID_MODE == FLUID_MODE_CHEAP)
     float f_alt = f_pos.z;
 #endif
@@ -102,27 +51,16 @@ void main() {
 #if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP)
     vec4 f_shadow = textureBicubic(t_horizon, s_horizon, pos_to_tex(f_pos.xy));
     float sun_shade_frac = horizon_at2(f_shadow, f_alt, f_pos, sun_dir);
-    // float sun_shade_frac = 1.0;//horizon_at2(f_shadow, f_alt, f_pos, sun_dir);
 #elif (SHADOW_MODE == SHADOW_MODE_NONE)
-    float sun_shade_frac = 1.0;//horizon_at2(f_shadow, f_alt, f_pos, sun_dir);
+    float sun_shade_frac = 1.0;
 #endif
-    float moon_shade_frac = 1.0;//horizon_at2(f_shadow, f_alt, f_pos, moon_dir);
-    // float sun_shade_frac = horizon_at(f_pos, sun_dir);
-    // float moon_shade_frac = horizon_at(f_pos, moon_dir);
-    // Globbal illumination "estimate" used to light the faces of voxels which are parallel to the sun or moon (which is a very common occurrence).
-    // Will be attenuated by k_d, which is assumed to carry any additional ambient occlusion information (e.g. about shadowing).
-    // float ambient_sides = clamp(mix(0.5, 0.0, abs(dot(-f_norm, sun_dir)) * 10000.0), 0.0, 0.5);
-    // NOTE: current assumption is that moon and sun shouldn't be out at the sae time.
-    // This assumption is (or can at least easily be) wrong, but if we pretend it's true we avoids having to explicitly pass in a separate shadow
-    // for the sun and moon (since they have different brightnesses / colors so the shadows shouldn't attenuate equally).
-    // float shade_frac = sun_shade_frac + moon_shade_frac;
+    float moon_shade_frac = 1.0;
 
-    // DirectionalLight sun_info = get_sun_info(sun_dir, sun_shade_frac, light_pos);
     float point_shadow = shadow_at(f_pos, f_norm);
-    DirectionalLight sun_info = get_sun_info(sun_dir, point_shadow * sun_shade_frac, /*sun_pos*/f_pos);
-    DirectionalLight moon_info = get_moon_info(moon_dir, point_shadow * moon_shade_frac/*, light_pos*/);
+    DirectionalLight sun_info = get_sun_info(sun_dir, point_shadow * sun_shade_frac, f_pos);
+    DirectionalLight moon_info = get_moon_info(moon_dir, point_shadow * moon_shade_frac);
 
-    vec3 surf_color = /*srgb_to_linear*//*linear_to_srgb*/(f_col);
+    vec3 surf_color = f_col;
     float alpha = 1.0;
     const float n2 = 1.5;
     const float R_s2s0 = pow((1.0 - n2) / (1.0 + n2), 2);
@@ -141,42 +79,11 @@ void main() {
     sun_info.block = f_inst_light.x;
     moon_info.block = f_inst_light.x;
 
-    // To account for prior saturation.
-    // float vert_light = pow(f_light, 1.5);
-    // vec3 light_frac = light_reflection_factor(f_norm/*vec3(0, 0, 1.0)*/, view_dir, vec3(0, 0, -1.0), vec3(1.0), vec3(R_s), alpha);
-    /* light_frac += light_reflection_factor(f_norm, view_dir, vec3(1.0, 0, 0.0), vec3(1.0), vec3(1.0), 2.0);
-    light_frac += light_reflection_factor(f_norm, view_dir, vec3(-1.0, 0, 0.0), vec3(1.0), vec3(1.0), 2.0);
-    light_frac += light_reflection_factor(f_norm, view_dir, vec3(0.0, -1.0, 0.0), vec3(1.0), vec3(1.0), 2.0);
-    light_frac += light_reflection_factor(f_norm, view_dir, vec3(0.0, 1.0, 0.0), vec3(1.0), vec3(1.0), 2.0); */
-
-    // vec3 light, diffuse_light, ambient_light;
-    // vec3 emitted_light, reflected_light;
-    // float point_shadow = shadow_at(f_pos,f_norm);
-    // vec3 point_light = light_at(f_pos, f_norm);
-    // vec3 surf_color = srgb_to_linear(vec3(0.2, 0.5, 1.0));
-    // vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
     float max_light = 0.0;
-    max_light += get_sun_diffuse2(sun_info, moon_info, f_norm, /*time_of_day.x, *//*cam_to_frag*/view_dir, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, k_d, k_s, alpha, emitted_light, reflected_light);
-    // reflected_light *= /*vert_light * */point_shadow * shade_frac;
-    // emitted_light *= /*vert_light * */point_shadow * max(shade_frac, MIN_SHADOW);
-    // max_light *= /*vert_light * */point_shadow * shade_frac;
-    // emitted_light *= point_shadow;
-    // reflected_light *= point_shadow;
-    // max_light *= point_shadow;
-    // get_sun_diffuse(f_norm, time_of_day.x, light, diffuse_light, ambient_light, 1.0);
-    // float point_shadow = shadow_at(f_pos, f_norm);
-    // diffuse_light *= f_light * point_shadow;
-    // ambient_light *= f_light * point_shadow;
-    // light += point_light;
-    // diffuse_light += point_light;
-    // reflected_light += point_light;
+    max_light += get_sun_diffuse2(sun_info, moon_info, f_norm, view_dir, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
 
     max_light += lights_at(f_pos, f_norm, view_dir, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
-    /* vec3 point_light = light_at(f_pos, f_norm);
-    emitted_light += point_light;
-    reflected_light += point_light; */
 
-    // float ao = /*pow(f_ao, 0.5)*/f_ao * 0.85 + 0.15;
     vec3 glow = pow(f_inst_light.y, 3) * 4 * glow_light(f_pos);
     emitted_light += glow;
 
@@ -185,10 +92,8 @@ void main() {
     reflected_light *= ao;
 
     surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light);
-    // vec3 surf_color = illuminate(f_col, light, diffuse_light, ambient_light);
 
     surf_color += f_select * (surf_color + 0.1) * vec3(0.15, 0.15, 0.15);
 
-    // tgt_color = vec4(color, 1.0);
     tgt_color = vec4(surf_color, 1.0 - clamp((distance(focus_pos.xy, f_pos.xy) - (sprite_render_distance - FADE_DIST)) / FADE_DIST, 0, 1));
 }
