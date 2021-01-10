@@ -1,5 +1,5 @@
 use core::ops::Not;
-use std::{collections::HashMap, convert::TryFrom, iter::once, mem, ops::Range};
+use std::{collections::HashMap, convert::TryFrom, mem, ops::Range};
 
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
@@ -392,25 +392,19 @@ impl Inventory {
     /// go into inventory. If the item is going to mainhand, put mainhand in
     /// offhand and place offhand into inventory.
     #[must_use = "Returned items will be lost if not used"]
-    pub fn equip(&mut self, inv_slot: InvSlotId) -> Option<Vec<Item>> {
-        let mut leftover_items = None;
+    pub fn equip(&mut self, inv_slot: InvSlotId) -> Vec<Item> {
         self.get(inv_slot)
-            .map(|x| x.kind().clone())
-            .map(|item_kind| {
-                self.loadout
-                    .get_slot_to_equip_into(&item_kind)
-                    .map(|equip_slot| {
-                        // Special case when equipping into main hand - swap with offhand first
-                        if equip_slot == EquipSlot::Mainhand {
-                            self.loadout
-                                .swap_slots(EquipSlot::Mainhand, EquipSlot::Offhand);
-                        }
+            .and_then(|item| self.loadout.get_slot_to_equip_into(item.kind()))
+            .map(|equip_slot| {
+                // Special case when equipping into main hand - swap with offhand first
+                if equip_slot == EquipSlot::Mainhand {
+                    self.loadout
+                        .swap_slots(EquipSlot::Mainhand, EquipSlot::Offhand);
+                }
 
-                        leftover_items = self.swap_inventory_loadout(inv_slot, equip_slot);
-                    })
-            });
-
-        leftover_items
+                self.swap_inventory_loadout(inv_slot, equip_slot)
+            })
+            .unwrap_or_else(Vec::new)
     }
 
     /// Determines how many free inventory slots will be left after equipping an
@@ -419,8 +413,7 @@ impl Inventory {
     pub fn free_after_equip(&self, inv_slot: InvSlotId) -> i32 {
         let (inv_slot_for_equipped, slots_from_equipped) = self
             .get(inv_slot)
-            .map(|x| x.kind().clone())
-            .and_then(|item_kind| self.loadout.get_slot_to_equip_into(&item_kind))
+            .and_then(|item| self.loadout.get_slot_to_equip_into(item.kind()))
             .and_then(|equip_slot| self.equipped(equip_slot))
             .map_or((1, 0), |item| (0, item.slots().len()));
 
@@ -454,13 +447,10 @@ impl Inventory {
         // Unload any items contained within the item, and push those items and the item
         // itself into the inventory. We already know that there are enough free slots
         // so push will never give us an item back.
-        item.drain()
-            .collect::<Vec<Item>>()
-            .into_iter()
-            .chain(once(item))
-            .for_each(|item| {
-                self.push(item).unwrap_none();
-            });
+        item.drain().for_each(|item| {
+            self.push(item).unwrap_none();
+        });
+        self.push(item).unwrap_none();
 
         Ok(())
     }
@@ -486,7 +476,7 @@ impl Inventory {
                 // any that don't fit to be to be dropped on the floor by the caller
                 match self.push_all(unloaded_items.into_iter()) {
                     Err(Error::Full(leftovers)) => Some(leftovers),
-                    Ok(_) => None,
+                    Ok(()) => None,
                 }
             }))
     }
@@ -509,11 +499,11 @@ impl Inventory {
     /// Swaps items from two slots, regardless of if either is inventory or
     /// loadout.
     #[must_use = "Returned items will be lost if not used"]
-    pub fn swap(&mut self, slot_a: Slot, slot_b: Slot) -> Option<Vec<Item>> {
+    pub fn swap(&mut self, slot_a: Slot, slot_b: Slot) -> Vec<Item> {
         match (slot_a, slot_b) {
             (Slot::Inventory(slot_a), Slot::Inventory(slot_b)) => {
                 self.swap_slots(slot_a, slot_b);
-                None
+                Vec::new()
             },
             (Slot::Inventory(inv_slot), Slot::Equip(equip_slot))
             | (Slot::Equip(equip_slot), Slot::Inventory(inv_slot)) => {
@@ -521,7 +511,7 @@ impl Inventory {
             },
             (Slot::Equip(slot_a), Slot::Equip(slot_b)) => {
                 self.loadout.swap_slots(slot_a, slot_b);
-                None
+                Vec::new()
             },
         }
     }
@@ -556,47 +546,42 @@ impl Inventory {
         &mut self,
         inv_slot_id: InvSlotId,
         equip_slot: EquipSlot,
-    ) -> Option<Vec<Item>> {
+    ) -> Vec<Item> {
         if !self.can_swap(inv_slot_id, equip_slot) {
-            return None;
+            return Vec::new();
         }
-
-        let mut unloaded_items = None;
 
         // Take the item from the inventory
         let from_inv = self.remove(inv_slot_id);
 
         // Swap the equipped item for the item from the inventory
         let from_equip = self.loadout.swap(equip_slot, from_inv);
-        if let Some(mut from_equip) = from_equip {
-            // Unload any items held inside the previously equipped item
-            let items: Vec<Item> = from_equip.drain().collect();
-            if items.iter().len() > 0 {
-                unloaded_items = Some(items);
-            }
 
-            // Attempt to put the unequipped item in the same slot that the inventory item
-            // was in - if that slot no longer exists (because a large container was
-            // swapped for a smaller one) then push the item to the first free
-            // inventory slot instead.
-            if let Err(returned) = self.insert_at(inv_slot_id, from_equip) {
-                self.push(returned)
-                    .expect_none("Unable to push to inventory, no slots (bug in can_swap()?)");
-            }
-        }
+        let unloaded_items = from_equip
+            .map(|mut from_equip| {
+                // Unload any items held inside the previously equipped item
+                let items: Vec<Item> = from_equip.drain().collect();
+
+                // Attempt to put the unequipped item in the same slot that the inventory item
+                // was in - if that slot no longer exists (because a large container was
+                // swapped for a smaller one) then push the item to the first free
+                // inventory slot instead.
+                if let Err(returned) = self.insert_at(inv_slot_id, from_equip) {
+                    self.push(returned)
+                        .expect_none("Unable to push to inventory, no slots (bug in can_swap()?)");
+                }
+
+                items
+            })
+            .unwrap_or_default();
 
         // Attempt to put any items unloaded from the unequipped item into empty
         // inventory slots and return any that don't fit to the caller where they
         // will be dropped on the ground
-        if let Some(unloaded_items) = unloaded_items {
-            let leftovers = match self.push_all(unloaded_items.into_iter()) {
-                Err(Error::Full(leftovers)) => leftovers,
-                Ok(_) => vec![],
-            };
-            return Some(leftovers);
+        match self.push_all(unloaded_items.into_iter()) {
+            Err(Error::Full(leftovers)) => leftovers,
+            Ok(()) => Vec::new(),
         }
-
-        None
     }
 
     /// Determines if an inventory and loadout slot can be swapped, taking into
