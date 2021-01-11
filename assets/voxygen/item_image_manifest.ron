@@ -1636,6 +1636,10 @@
         "voxel.glider.glider_butterfly2",
         (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
     ),
+    Glider("MothLuna"): VoxTrans(
+        "voxel.glider.glider_moth",
+        (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
+    ),
     Glider("SandRaptor"): VoxTrans(
         "voxel.glider.glider_sandraptor",
         (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,

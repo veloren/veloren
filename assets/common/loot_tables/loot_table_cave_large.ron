@@ -6,6 +6,7 @@
     (0.1, "common.items.glider.glider_blue"),
     (0.1, "common.items.glider.glider_morpho"),
     (0.1, "common.items.glider.glider_monarch"),
+    (0.1, "common.items.glider.glider_moth"),
     (0.05, "common.items.armor.ring.ring_gold_0"),   
     // swords
     (0.07, "common.items.weapons.sword.greatsword_2h_fine-1"),
