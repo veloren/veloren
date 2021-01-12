@@ -506,6 +506,34 @@
             horse: (
                 keyword: "horse",
                 generic: "Horse"
+            ),
+            barghest: (
+                keyword: "barghest",
+                generic: "Barghest"
+            ),
+            cattle: (
+                keyword: "cattle",
+                generic: "Cattle"
+            ),
+            darkhound: (
+                keyword: "darkhound",
+                generic: "Darkhound"
+            ),
+            highland: (
+                keyword: "highland",
+                generic: "Highland"
+            ),
+            yak: (
+                keyword: "yak",
+                generic: "Yak"
+            ),
+            panda: (
+                keyword: "panda",
+                generic: "Panda"
+            ),
+            bear: (
+                keyword: "bear",
+                generic: "Bear"
             )
         )
     ),

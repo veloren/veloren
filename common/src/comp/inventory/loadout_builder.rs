@@ -89,7 +89,8 @@ impl LoadoutBuilder {
                     quadruped_medium::Species::Wolf
                     | quadruped_medium::Species::Grolgar
                     | quadruped_medium::Species::Lion
-                    | quadruped_medium::Species::Bonerattler => {
+                    | quadruped_medium::Species::Bonerattler
+                    | quadruped_medium::Species::Darkhound => {
                         main_tool = Some(Item::new_from_asset_expect(
                             "common.items.npc_weapons.unique.quadmedquick",
                         ));
@@ -110,7 +111,11 @@ impl LoadoutBuilder {
                             "common.items.npc_weapons.unique.quadmedjump",
                         ));
                     },
-                    quadruped_medium::Species::Tuskram | quadruped_medium::Species::Roshwalr => {
+                    quadruped_medium::Species::Tuskram
+                    | quadruped_medium::Species::Roshwalr
+                    | quadruped_medium::Species::Highland
+                    | quadruped_medium::Species::Yak
+                    | quadruped_medium::Species::Cattle => {
                         main_tool = Some(Item::new_from_asset_expect(
                             "common.items.npc_weapons.unique.quadmedcharge",
                         ));

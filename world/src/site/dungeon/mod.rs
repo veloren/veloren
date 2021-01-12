@@ -1017,19 +1017,19 @@ impl Floor {
                                         .with_body(comp::Body::QuadrupedMedium(
                                             comp::quadruped_medium::Body::random_with(
                                                 dynamic_rng,
-                                                &comp::quadruped_medium::Species::Wolf,
+                                                &comp::quadruped_medium::Species::Darkhound,
                                             ),
                                         ))
-                                        .with_name("Tamed Wolf".to_string())
+                                        .with_name("Tamed Darkhound".to_string())
                                         .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
                                     EntityInfo::at(tile_wcenter.map(|e| e as f32))
                                         .with_body(comp::Body::QuadrupedMedium(
                                             comp::quadruped_medium::Body::random_with(
                                                 dynamic_rng,
-                                                &comp::quadruped_medium::Species::Wolf,
+                                                &comp::quadruped_medium::Species::Darkhound,
                                             ),
                                         ))
-                                        .with_name("Tamed Wolf".to_string())
+                                        .with_name("Tamed Darkhound".to_string())
                                         .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
                                 ],
                                 4 => vec![
