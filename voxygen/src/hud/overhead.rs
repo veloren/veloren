@@ -398,12 +398,26 @@ impl<'a> Widget for Overhead<'a> {
                     _ => XP_COLOR,
                 };
 
-                Image::new(self.imgs.indicator_bubble)
-                    .w_h(5.0 * BARSIZE, 5.0 * BARSIZE)
-                    .x_y(tweak!(-37.0) * BARSIZE, MANA_BAR_Y + tweak!(7.5))
-                    .color(Some(indicator_col))
+                if combat_rating > artifact && !self.in_group {
+                    let skull_ani = ((self.pulse * 0.7/* speed factor */).cos() * 0.5 + 0.5) * 10.0; //Animation timer
+                    Image::new(if skull_ani as i32 == 1 && rand::random::<f32>() < 0.9 {
+                        self.imgs.skull_2
+                    } else {
+                        self.imgs.skull
+                    })
+                    .w_h(18.0 * BARSIZE, 18.0 * BARSIZE)
+                    .x_y(-39.0 * BARSIZE, MANA_BAR_Y + 7.0)
+                    .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
                     .parent(id)
-                    .set(state.ids.level, ui);
+                    .set(state.ids.level_skull, ui);
+                } else {
+                    Image::new(self.imgs.indicator_bubble)
+                        .w_h(5.0 * BARSIZE, 5.0 * BARSIZE)
+                        .x_y(tweak!(-37.0) * BARSIZE, MANA_BAR_Y + tweak!(7.5))
+                        .color(Some(indicator_col))
+                        .parent(id)
+                        .set(state.ids.level, ui);
+                }
             }
         }
         // Speech bubble

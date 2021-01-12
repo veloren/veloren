@@ -33,22 +33,22 @@ DROP TABLE stats;
 
 -- Creates new table for skill groups
 CREATE TABLE skill_group (
-	character_id	INTEGER NOT NULL,
+	entity_id	INTEGER NOT NULL,
 	skill_group_type	TEXT NOT NULL,
 	exp	INTEGER NOT NULL,
 	available_sp	INTEGER NOT NULL,
-	earned_sp		INTEGER NOT NULL,
-	FOREIGN KEY(character_id) REFERENCES character(character_id),
-	PRIMARY KEY(character_id,skill_group_type)
+	earned_sp	INTEGER NOT NULL,
+	FOREIGN KEY(entity_id) REFERENCES entity(entity_id),
+	PRIMARY KEY(entity_id,skill_group_type)
 );
 
 -- Creates new table for skills
 CREATE TABLE skill (
-    character_id    INTEGER NOT NULL,
-    skill    TEXT NOT NULL,
-    level    INTEGER,
-    FOREIGN KEY(character_id) REFERENCES character(character_id),
-    PRIMARY KEY(character_id,skill)
+	entity_id	INTEGER NOT NULL,
+	skill	TEXT NOT NULL,
+	level	INTEGER,
+	FOREIGN KEY(entity_id) REFERENCES entity(entity_id),
+	PRIMARY KEY(entity_id,skill)
 );
 
 -- Inserts starting skill group for everyone

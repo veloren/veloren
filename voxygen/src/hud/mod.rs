@@ -1148,9 +1148,14 @@ impl Hud {
                             1.0
                         };
                         // Background image
+                        let offset = if display.timer < tweak!(2.0) {
+                            300.0 - (display.timer as f64 - tweak!(2.0)) * tweak!(-300.0)
+                        } else {
+                            300.0
+                        };                        
                         Image::new(self.imgs.level_up)
                             .w_h(328.0, 126.0)
-                            .mid_top_with_margin_on(ui_widgets.window, tweak!(300.0))
+                            .mid_top_with_margin_on(ui_widgets.window, offset)
                             .graphics_for(ui_widgets.window)
                             .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade)))
                             .set(self.ids.player_rank_up, ui_widgets);
