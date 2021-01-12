@@ -3,8 +3,8 @@ check:
   stage: check
   script:
     - ln -s /dockercache/cache-all target
-    - RUSTFLAGS="-D warnings" cargo check --locked
-    - RUSTFLAGS="-D warnings" cargo check --examples --locked
+    - cargo check --locked
+    - cargo check --examples --locked
 
 code-quality:
   extends: .recompile-branch
