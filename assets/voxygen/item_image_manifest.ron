@@ -1624,6 +1624,14 @@
         "voxel.glider.glider_starter",
         (-2.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.9,
     ),
+    Glider("PlainCloth"): VoxTrans(
+        "voxel.glider.glider_basic_white",
+        (-2.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.9,
+    ),
+    Glider("RedCloth"): VoxTrans(
+        "voxel.glider.glider_basic_red",
+        (-2.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.9,
+    ),
     Glider("Blue0"): VoxTrans(
         "voxel.glider.glider_blue",
         (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,

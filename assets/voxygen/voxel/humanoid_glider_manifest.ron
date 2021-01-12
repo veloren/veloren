@@ -8,6 +8,14 @@
             vox_spec: ("glider.glider_starter", (-15.0, -5.0, -5.0)),
             color: None
         ),   
+        "PlainCloth": (
+            vox_spec: ("glider.glider_basic_white", (-25.0, -20.0, -5.0)),
+            color: None
+        ),   
+        "RedCloth": (
+            vox_spec: ("glider.glider_basic_red", (-25.0, -20.0, -5.0)),
+            color: None
+        ),   
         "Blue0": (
             vox_spec: ("glider.glider_blue", (-26.0, -26.0, -5.0)),
             color: None

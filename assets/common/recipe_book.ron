@@ -154,6 +154,26 @@
             ("common.items.crafting_ing.honey", 1),
         ],
     ),
+    "Plain Cloth Glider": (
+        ("common.items.glider.glider_basic_white", 1),
+        [
+            ("common.items.crafting_ing.twigs", 5),
+            ("common.items.crafting_ing.cloth_scraps", 10),
+            ("common.items.ore.velorite", 3),
+            ("common.items.crafting_tools.craftsman_hammer", 0),
+            ("common.items.crafting_tools.sewing_set", 0),
+        ],
+    ),
+    "Red Cloth Glider": (
+        ("common.items.glider.glider_basic_red", 1),
+        [
+            ("common.items.crafting_ing.twigs", 5),
+            ("common.items.crafting_ing.cloth_scraps_red", 10),
+            ("common.items.ore.velorite", 3),
+            ("common.items.crafting_tools.craftsman_hammer", 0),
+            ("common.items.crafting_tools.sewing_set", 0),
+        ],
+    ),
     "Leaves Glider": (
         ("common.items.glider.glider_leaves", 1),
         [

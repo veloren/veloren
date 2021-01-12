@@ -1,0 +1,10 @@
+ItemDef(
+    name: "Red Cloth Glider",
+    description: "Simple, but classy.",
+    kind: Glider(
+        (
+            kind: "RedCloth",
+        ),
+    ),
+    quality: Moderate,
+)
