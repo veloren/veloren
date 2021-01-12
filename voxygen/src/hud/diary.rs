@@ -1551,11 +1551,11 @@ impl<'a> Widget for Diary<'a> {
                     self.tooltip_manager,
                     &self
                         .localized_strings
-                        .get("hud.skill.axe_double_strike_speed_title"),
+                        .get("hud.skill.axe_double_strike_regen_title"),
                     &add_sp_cost_tooltip(
                         &self
                             .localized_strings
-                            .get("hud.skill.axe_double_strike_speed"),
+                            .get("hud.skill.axe_double_strike_regen"),
                         skill,
                         &self.stats.skill_set,
                         &self.localized_strings,
@@ -3449,7 +3449,7 @@ fn add_sp_cost_tooltip<'a>(
     match skill_set.skills.get(&skill).copied() {
         Some(level) if level == skill.get_max_level() => tooltip.replace("{}", ""),
         _ => tooltip.replace(
-            "{}",
+            "{SP}",
             &localized_strings.get("hud.skill.req_sp").replace(
                 "{number}",
                 &format!("{}", skill_set.skill_point_cost(skill)),
