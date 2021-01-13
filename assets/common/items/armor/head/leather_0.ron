@@ -1,14 +1,12 @@
 ItemDef(
     name: "Swift Leather Cap",
     description: "Swift like the wind.",
-    kind: Armor(
-        (
-            kind: Head("Leather0"),
-            stats: (
-                protection: Normal(0.0),
-                poise_protection: Normal(0.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Head("Leather0"),
+        stats: (
+            protection: Normal(0.0),
+            poise_protection: Normal(0.0),
+        ),
+    )),
     quality: Common,
 )

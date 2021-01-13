@@ -1,14 +1,12 @@
 ItemDef(
     name: "Warlock",
     description: "Belong to a mighty warlock.",
-    kind: Armor(
-        (
-            kind: Head("Warlock"),
-            stats: (
-                protection: Normal(10.0),
-                poise_protection: Normal(10.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Head("Warlock"),
+        stats: (
+            protection: Normal(10.0),
+            poise_protection: Normal(10.0),
+        ),
+    )),
     quality: Common,
 )

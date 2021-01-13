@@ -1,14 +1,12 @@
 ItemDef(
     name: "Swift Chest",
     description: "Swift like the wind.",
-    kind: Armor(
-        (
-            kind: Chest("Leather0"),
-            stats: (
-                protection: Normal(10.0),
-                poise_protection: Normal(10.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Chest("Leather0"),
+        stats: (
+            protection: Normal(10.0),
+            poise_protection: Normal(7.0),
+        ),
+    )),
     quality: Moderate,
 )

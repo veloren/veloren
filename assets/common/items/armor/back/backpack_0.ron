@@ -1,15 +1,12 @@
 ItemDef(
-    name: "Traveler's Backpack",
+    name: "Traveler\'s Backpack",
     description: "Comfort and capacity united.",
-    kind: Armor(
-        (
-            kind: Back("Backpack0"),
-            stats: (
-                protection: Normal(0.0),            
-                poise_protection: Normal(0.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Back("Backpack0"),
+        stats: (
+            protection: Normal(0.0),
+            poise_protection: Normal(0.0),
+        ),
+    )),
     quality: High,
-    slots: 18,
 )

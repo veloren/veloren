@@ -1,7 +1,5 @@
 use common::{
-    comp::{
-        buff, group, Attacking, Body, CharacterState, Health, Inventory, Ori, Poise, Pos, Scale,
-    },
+    comp::{buff, group, Attacking, Body, CharacterState, Health, Inventory, Ori, Pos, Scale},
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::SysMetrics,
     span,
@@ -129,7 +127,7 @@ impl<'a> System<'a> for Sys {
                             }
                         }
 
-                        let change = damage.modify_damage(loadouts.get(b), Some(*uid));
+                        let change = damage.modify_damage(inventories.get(b), Some(*uid));
                         let poise_change = poise_change.modify_poise_damage(inventories.get(b));
 
                         server_emitter.emit(ServerEvent::Damage { entity: b, change });

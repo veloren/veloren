@@ -1,14 +1,12 @@
 ItemDef(
     name: "Twig Shirt",
     description: "Small sticks magically imbued to hold together to form a shirt.",
-    kind: Armor(
-        (
-            kind: Chest("Twig"),
-            stats: (
-                protection: Normal(15.0),
-                poise_protection: Normal(15.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Chest("Twig"),
+        stats: (
+            protection: Normal(15.0),
+            poise_protection: Normal(10.0),
+        ),
+    )),
     quality: Moderate,
 )

@@ -18,22 +18,46 @@ struct Cli {
 
 fn armor_stats() -> Result<(), Box<dyn Error>> {
     let mut wtr = csv::Writer::from_path("armorstats.csv")?;
-    wtr.write_record(&["Path", "Kind", "Name", "Protection"])?;
+    wtr.write_record(&[
+        "Path",
+        "Kind",
+        "Name",
+        "Quality",
+        "Protection",
+        "Poise Protection",
+        "Description",
+    ])?;
 
     for item in comp::item::Item::new_from_asset_glob("common.items.armor.*")
         .expect("Failed to iterate over item folders!")
     {
         match item.kind() {
             comp::item::ItemKind::Armor(armor) => {
+                let kind = get_armor_kind(&armor.kind);
+                if kind == "Bag".to_string() {
+                    continue;
+                }
+
                 let protection = match armor.get_protection() {
                     Protection::Invincible => "Invincible".to_string(),
                     Protection::Normal(value) => value.to_string(),
                 };
-                let kind = get_armor_kind(&armor.kind);
+                let poise_protection = match armor.get_poise_protection() {
+                    Protection::Invincible => "Invincible".to_string(),
+                    Protection::Normal(value) => value.to_string(),
+                };
 
-                wtr.write_record(&[item.item_definition_id(), &kind, item.name(), &protection])?;
+                wtr.write_record(&[
+                    item.item_definition_id(),
+                    &kind,
+                    item.name(),
+                    &format!("{:?}", item.quality()),
+                    &protection,
+                    &poise_protection,
+                    item.description(),
+                ])?;
             },
-            _ => println!("Skipping non-armor item: {:?}", item),
+            _ => println!("Skipping non-armor item: {:?}\n", item),
         }
     }
 
@@ -47,10 +71,12 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
         "Path",
         "Kind",
         "Name",
+        "Quality",
         "Power",
-        "Poise Reduction Power",
+        "Poise Power",
         "Speed",
         "Equip Time (ms)",
+        "Description",
     ])?;
 
     for item in comp::item::Item::new_from_asset_glob("common.items.weapons.*")
@@ -59,7 +85,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
         match item.kind() {
             comp::item::ItemKind::Tool(tool) => {
                 let power = tool.base_power().to_string();
-                let poise_reduction_power = tool.base_poise_reduction_power().to_string();
+                let poise_power = tool.base_poise_power().to_string();
                 let speed = tool.base_speed().to_string();
                 let equip_time = tool.equip_time().subsec_millis().to_string();
                 let kind = get_tool_kind(&tool.kind);
@@ -68,13 +94,15 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                     item.item_definition_id(),
                     &kind,
                     item.name(),
+                    &format!("{:?}", item.quality()),
                     &power,
-                    &poise_reduction_power,
+                    &poise_power,
                     &speed,
                     &equip_time,
+                    item.description(),
                 ])?;
             },
-            _ => println!("Skipping non-weapon item: {:?}", item),
+            _ => println!("Skipping non-weapon item: {:?}\n", item),
         }
     }
 
@@ -157,15 +185,15 @@ fn main() {
     let args = Cli::from_args();
     if args.function.eq_ignore_ascii_case("armor_stats") {
         if let Err(e) = armor_stats() {
-            println!("Error: {}", e)
+            println!("Error: {}\n", e)
         }
     } else if args.function.eq_ignore_ascii_case("weapon_stats") {
         if let Err(e) = weapon_stats() {
-            println!("Error: {}", e)
+            println!("Error: {}\n", e)
         }
     } else if args.function.eq_ignore_ascii_case("all_items") {
         if let Err(e) = all_items() {
-            println!("Error: {}", e)
+            println!("Error: {}\n", e)
         }
     } else {
         println!(

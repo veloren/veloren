@@ -1,14 +1,12 @@
 ItemDef(
     name: "Druid Shoulders",
     description: "Forged for protectors of the wild.",
-    kind: Armor(
-        (
-            kind: Shoulder("DruidShoulder"),
-            stats: (
-                protection: Normal(3.0),
-                poise_protection: Normal(3.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Shoulder("DruidShoulder"),
+        stats: (
+            protection: Normal(3.0),
+            poise_protection: Normal(6.0),
+        ),
+    )),
     quality: Common,
 )

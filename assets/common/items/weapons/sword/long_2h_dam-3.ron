@@ -1,16 +1,14 @@
 ItemDef(
     name: "Damaged Longsword",
-    description: "It's slightly cracked.",
-    kind: Tool(
-       (
-            kind: Sword,    
-            stats: (
-                equip_time_millis: 500,
-                power: 0.60,
-                poise_reduction_power: 0.60,
-                speed: 1.0
-            ),            
-        )
-    ),
+    description: "It\'s slightly cracked.",
+    kind: Tool((
+        kind: Sword,
+        stats: (
+            equip_time_millis: 500,
+            power: 0.6,
+            poise_power: 0.5,
+            speed: 1.0,
+        ),
+    )),
     quality: Low,
 )

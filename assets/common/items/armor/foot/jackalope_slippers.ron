@@ -1,14 +1,12 @@
 ItemDef(
     name: "Fluffy Jackalope Slippers",
     description: "So warm and cozy!",
-    kind: Armor(
-        (
-            kind: Foot("JackalopeSlips"),
-            stats: (
-                protection: Normal(0.0),
-                poise_protection: Normal(0.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Foot("JackalopeSlips"),
+        stats: (
+            protection: Normal(0.0),
+            poise_protection: Normal(10.0),
+        ),
+    )),
     quality: High,
 )

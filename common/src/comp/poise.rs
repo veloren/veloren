@@ -1,4 +1,7 @@
-use crate::comp::{Body, Loadout};
+use crate::comp::{
+    inventory::item::{armor::Protection, ItemKind},
+    Body, Inventory,
+};
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
@@ -17,13 +20,13 @@ pub struct PoiseChange {
 
 impl PoiseChange {
     /// Alters poise damage as a result of armor poise damage reduction
-    pub fn modify_poise_damage(self, loadout: Option<&Loadout>) -> PoiseChange {
+    pub fn modify_poise_damage(self, inventory: Option<&Inventory>) -> PoiseChange {
         let mut poise_damage = self.amount as f32;
+        let poise_damage_reduction =
+            inventory.map_or(0.0, |inv| Poise::compute_poise_damage_reduction(inv));
         match self.source {
             PoiseSource::Melee => {
                 // Armor
-                let poise_damage_reduction =
-                    loadout.map_or(0.0, |l| l.get_poise_damage_reduction());
                 poise_damage *= 1.0 - poise_damage_reduction;
                 PoiseChange {
                     amount: poise_damage as i32,
@@ -32,8 +35,7 @@ impl PoiseChange {
             },
             PoiseSource::Projectile => {
                 // Armor
-                let damage_reduction = loadout.map_or(0.0, |l| l.get_poise_damage_reduction());
-                poise_damage *= 1.0 - damage_reduction;
+                poise_damage *= 1.0 - poise_damage_reduction;
                 PoiseChange {
                     amount: poise_damage as i32,
                     source: PoiseSource::Projectile,
@@ -41,8 +43,7 @@ impl PoiseChange {
             },
             PoiseSource::Shockwave => {
                 // Armor
-                let damage_reduction = loadout.map_or(0.0, |l| l.get_poise_damage_reduction());
-                poise_damage *= 1.0 - damage_reduction;
+                poise_damage *= 1.0 - poise_damage_reduction;
                 PoiseChange {
                     amount: poise_damage as i32,
                     source: PoiseSource::Shockwave,
@@ -50,17 +51,14 @@ impl PoiseChange {
             },
             PoiseSource::Explosion => {
                 // Armor
-                let damage_reduction = loadout.map_or(0.0, |l| l.get_poise_damage_reduction());
-                poise_damage *= 1.0 - damage_reduction;
+                poise_damage *= 1.0 - poise_damage_reduction;
                 PoiseChange {
                     amount: poise_damage as i32,
                     source: PoiseSource::Explosion,
                 }
             },
             PoiseSource::Falling => {
-                // Armor
-                let damage_reduction = loadout.map_or(0.0, |l| l.get_poise_damage_reduction());
-                if (damage_reduction - 1.0).abs() < f32::EPSILON {
+                if (poise_damage_reduction - 1.0).abs() < f32::EPSILON {
                     poise_damage = 0.0;
                 }
                 PoiseChange {
@@ -222,6 +220,28 @@ impl Poise {
     pub fn update_base_max(&mut self, body: Option<Body>) {
         if let Some(body) = body {
             self.set_base_max(body.base_poise());
+        }
+    }
+
+    /// Returns the total poise damage reduction provided by all equipped items
+    pub fn compute_poise_damage_reduction(inventory: &Inventory) -> f32 {
+        let protection = inventory
+            .equipped_items()
+            .filter_map(|item| {
+                if let ItemKind::Armor(armor) = &item.kind() {
+                    Some(armor.get_poise_protection())
+                } else {
+                    None
+                }
+            })
+            .map(|protection| match protection {
+                Protection::Normal(protection) => Some(protection),
+                Protection::Invincible => None,
+            })
+            .sum::<Option<f32>>();
+        match protection {
+            Some(dr) => dr / (60.0 + dr.abs()),
+            None => 1.0,
         }
     }
 }

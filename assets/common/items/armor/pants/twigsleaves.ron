@@ -1,14 +1,12 @@
 ItemDef(
     name: "Leafy Pants",
     description: "Leaves cover the magically imbued chainmail twigs, providing protection from the elements.",
-    kind: Armor(
-        (
-            kind: Pants("Twigsleaves"),
-            stats: (
-                protection: Normal(12.0),
-                poise_protection: Normal(12.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Pants("Twigsleaves"),
+        stats: (
+            protection: Normal(12.0),
+            poise_protection: Normal(8.0),
+        ),
+    )),
     quality: Moderate,
 )

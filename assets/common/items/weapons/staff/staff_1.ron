@@ -1,16 +1,14 @@
 ItemDef(
     name: "Humble Stick",
     description: "Walking stick with a sharpened end.",
-    kind: Tool(
-        (
-            kind: Staff,
-            stats: (
-                equip_time_millis: 200,
-                power: 0.50,
-                poise_reduction_power: 0.50,
-                speed: 1.0
-            ),            
-        )
-    ),
+    kind: Tool((
+        kind: Staff,
+        stats: (
+            equip_time_millis: 200,
+            power: 0.5,
+            poise_power: 1.0,
+            speed: 1.0,
+        ),
+    )),
     quality: Low,
 )

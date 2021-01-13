@@ -1,16 +1,14 @@
 ItemDef(
     name: "Cultist Staff",
     description: "The fire gives off no heat.",
-    kind: Tool(
-        (
-            kind: Staff,    
-            stats: (
-                equip_time_millis: 300,
-                power: 2.00,
-                poise_reduction_power: 2.00,
-                speed: 1.0
-            ),            
-        )
-    ),
+    kind: Tool((
+        kind: Staff,
+        stats: (
+            equip_time_millis: 300,
+            power: 2.0,
+            poise_power: 1.5,
+            speed: 1.0,
+        ),
+    )),
     quality: Epic,
 )

@@ -1,14 +1,12 @@
 ItemDef(
     name: "Cultist Belt",
     description: "Ceremonial attire used by members.",
-    kind: Armor(
-        (
-            kind: Belt("Cultist"),
-            stats: (
-                protection: Normal(6.0),
-                poise_protection: Normal(6.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Belt("Cultist"),
+        stats: (
+            protection: Normal(6.0),
+            poise_protection: Normal(5.0),
+        ),
+    )),
     quality: Epic,
 )

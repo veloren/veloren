@@ -1,14 +1,12 @@
 ItemDef(
     name: "Cultist Boots",
     description: "Ceremonial attire used by members.",
-    kind: Armor(
-        (
-            kind: Foot("Cultist"),
-            stats: (
-                protection: Normal(6.0),
-                poise_protection: Normal(6.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Foot("Cultist"),
+        stats: (
+            protection: Normal(6.0),
+            poise_protection: Normal(3.0),
+        ),
+    )),
     quality: Epic,
 )

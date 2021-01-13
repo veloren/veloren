@@ -1,16 +1,14 @@
 ItemDef(
     name: "Crude Mallet",
     description: "Breaks bones like sticks and stones.",
-    kind: Tool(
-        (
-            kind: Hammer,    
-            stats: (
-                equip_time_millis: 500,
-                power: 0.50,
-                poise_reduction_power: 0.50,
-                speed: 1.0
-            ),
-            quality: Low,
-        )
-    )
+    kind: Tool((
+        kind: Hammer,
+        stats: (
+            equip_time_millis: 500,
+            power: 0.5,
+            poise_power: 0.8,
+            speed: 1.0,
+        ),
+    )),
+    quality: Low,
 )

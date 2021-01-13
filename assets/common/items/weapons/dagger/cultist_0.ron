@@ -1,16 +1,14 @@
 ItemDef(
     name: "Magical Cultist Dagger",
     description: "This belonged to an evil Cult Leader.",
-    kind: Tool(
-        (
-            kind: Dagger,
-            stats: (
-                equip_time_millis: 0,
-                power: 2.00,
-                poise_reduction_power: 2.00,
-                speed: 1.0
-                ),            
-        )
-    ),
+    kind: Tool((
+        kind: Dagger,
+        stats: (
+            equip_time_millis: 0,
+            power: 2.0,
+            poise_power: 1.0,
+            speed: 1.0,
+        ),
+    )),
     quality: Epic,
 )

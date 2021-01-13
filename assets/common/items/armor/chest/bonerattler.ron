@@ -1,14 +1,12 @@
 ItemDef(
     name: "Bonerattler Cuirass",
     description: "The spiny back and hide of a bonerattler fastened together into a protective cuirass.",
-    kind: Armor(
-        (
-            kind: Chest("Bonerattler"),
-            stats: (
-                protection: Normal(25.0),
-                poise_protection: Normal(25.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Chest("Bonerattler"),
+        stats: (
+            protection: Normal(25.0),
+            poise_protection: Normal(35.0),
+        ),
+    )),
     quality: High,
 )

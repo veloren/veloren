@@ -1,16 +1,14 @@
 ItemDef(
     name: "Rusty Dagger",
     description: "Easily concealed.",
-    kind: Tool(
-        (
-            kind: Dagger,    
-            stats: (
-                equip_time_millis: 300,
-                power: 1.00,
-                poise_reduction_power: 1.00,
-                speed: 1.0
-                ),            
-        )
-    ),
+    kind: Tool((
+        kind: Dagger,
+        stats: (
+            equip_time_millis: 300,
+            power: 1.0,
+            poise_power: 0.5,
+            speed: 1.0,
+        ),
+    )),
     quality: Moderate,
 )

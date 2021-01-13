@@ -1,14 +1,12 @@
 ItemDef(
     name: "Green Blanket",
     description: "Keeps your shoulders warm.",
-    kind: Armor(
-        (
-            kind: Back("Short1"),
-            stats: (
-                protection: Normal(0.1),
-                poise_protection: Normal(0.1),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Back("Short1"),
+        stats: (
+            protection: Normal(0.1),
+            poise_protection: Normal(0.2),
+        ),
+    )),
     quality: Common,
 )

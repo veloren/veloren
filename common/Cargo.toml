@@ -8,7 +8,7 @@ edition = "2018"
 no-assets = []
 tracy = ["tracy-client"]
 simd = ["vek/platform_intrinsics"]
-bin_csv_export = ["csv", "structopt"]
+bin_csv = ["csv", "structopt"]
 
 default = ["simd"]
 
@@ -71,4 +71,8 @@ harness = false
 
 [[bin]]
 name = "csv_export"
-required-features = ["bin_csv_export"]
+required-features = ["bin_csv"]
+
+[[bin]]
+name = "csv_import"
+required-features = ["bin_csv"]

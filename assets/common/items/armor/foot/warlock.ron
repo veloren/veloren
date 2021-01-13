@@ -1,14 +1,12 @@
 ItemDef(
     name: "Warlock Slippers",
     description: "Belong to a mighty warlock.",
-    kind: Armor(
-        (
-            kind: Foot("Warlock"),
-            stats: (
-                protection: Normal(8.0),
-                poise_protection: Normal(8.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Foot("Warlock"),
+        stats: (
+            protection: Normal(8.0),
+            poise_protection: Normal(5.0),
+        ),
+    )),
     quality: Moderate,
 )

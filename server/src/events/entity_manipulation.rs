@@ -53,7 +53,7 @@ pub fn handle_poise(
 
 pub fn handle_damage(server: &Server, entity: EcsEntity, change: HealthChange) {
     let ecs = &server.state.ecs();
-    if let Some(health) = ecs.write_storage::<Health>().get_mut(entity) {
+    if let Some(mut health) = ecs.write_storage::<Health>().get_mut(entity) {
         health.change_by(change);
     }
 }
@@ -521,9 +521,9 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
                 };
                 let inventories = state.ecs().read_storage::<Inventory>();
                 let change = damage.modify_damage(inventories.get(entity), None);
-                let poise_change = poise_damage.modify_poise_damage(inventories.get(entity), None);
+                let poise_change = poise_damage.modify_poise_damage(inventories.get(entity));
                 health.change_by(change);
-                poise.change_by(poise_change, Vec3::zero());
+                poise.change_by(poise_change, Vec3::unit_z());
             }
         }
     }
@@ -728,7 +728,7 @@ pub fn handle_explosion(
                             server.state().apply_effect(entity_b, effect.clone(), owner);
                             // Apply energy change
                             if let Some(owner) = owner_entity {
-                                if let Some(energy) =
+                                if let Some(mut energy) =
                                     ecs.write_storage::<comp::Energy>().get_mut(owner)
                                 {
                                     energy.change_by(EnergyChange {

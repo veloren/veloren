@@ -1,14 +1,12 @@
 ItemDef(
     name: "Bonerattler Gauntlets",
     description: "The hide and bone from a bonerattler provide strong protection for the wearer.",
-    kind: Armor(
-        (
-            kind: Hand("Bonerattler"),
-            stats: (
-                protection: Normal(10.0),
-                poise_protection: Normal(10.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Hand("Bonerattler"),
+        stats: (
+            protection: Normal(10.0),
+            poise_protection: Normal(12.0),
+        ),
+    )),
     quality: High,
 )

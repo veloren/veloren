@@ -1,14 +1,12 @@
 ItemDef(
     name: "Iron Feet",
     description: "Quickly shaped iron plates, forming boots that are uncomfortable but durable.",
-    kind: Armor(
-        (
-            kind: Foot("Plate0"),
-            stats: (
-                protection: Normal(4.0),
-                poise_protection: Normal(4.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Foot("Plate0"),
+        stats: (
+            protection: Normal(4.0),
+            poise_protection: Normal(8.0),
+        ),
+    )),
     quality: Moderate,
 )

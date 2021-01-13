@@ -1,14 +1,12 @@
 ItemDef(
     name: "Cultist Signet Ring ",
     description: "Once belonged to a cultist.",
-    kind: Armor(
-        (
-            kind: Ring("RingSkull0"),
-            stats: (
-                protection: Normal(3.0),
-                poise_protection: Normal(3.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Ring("RingSkull0"),
+        stats: (
+            protection: Normal(3.0),
+            poise_protection: Normal(1.0),
+        ),
+    )),
     quality: High,
 )

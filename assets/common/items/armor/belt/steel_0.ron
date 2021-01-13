@@ -1,14 +1,12 @@
 ItemDef(
     name: "Steel Belt",
     description: "Metal alloy interlocking plates to improve protection.",
-    kind: Armor(
-        (
-            kind: Belt("Steel0"),
-            stats: (
-                protection: Normal(4.0),
-                poise_protection: Normal(4.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Belt("Steel0"),
+        stats: (
+            protection: Normal(4.0),
+            poise_protection: Normal(8.0),
+        ),
+    )),
     quality: Moderate,
 )

@@ -1,14 +1,12 @@
 ItemDef(
     name: "Twiggy Shoulders",
     description: "Spaulders made from tightly tied twigs.",
-    kind: Armor(
-        (
-            kind: Shoulder("TwiggyShoulder"),
-            stats: (
-                protection: Normal(9.0),
-                poise_protection: Normal(9.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Shoulder("TwiggyShoulder"),
+        stats: (
+            protection: Normal(9.0),
+            poise_protection: Normal(14.0),
+        ),
+    )),
     quality: Common,
 )

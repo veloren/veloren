@@ -1,16 +1,14 @@
 ItemDef(
     name: "Fine Greatsword",
-    description: "It's been polished and sharpened recently.",
-    kind: Tool(
-       (
-            kind: Sword,    
-            stats: (
-                equip_time_millis: 500,
-                power: 1.40,
-                poise_reduction_power: 1.40,
-                speed: 1.0
-                ),            
-        )
-    ),
+    description: "It\'s been polished and sharpened recently.",
+    kind: Tool((
+        kind: Sword,
+        stats: (
+            equip_time_millis: 500,
+            power: 1.4,
+            poise_power: 1.7,
+            speed: 1.0,
+        ),
+    )),
     quality: Moderate,
 )

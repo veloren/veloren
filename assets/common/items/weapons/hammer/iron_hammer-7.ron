@@ -1,16 +1,14 @@
 ItemDef(
-    name: "Giant's Fist",
+    name: "Giant\'s Fist",
     description: "This iron forged hammer is roughly shaped into the shape of a fist holding the hammer head.",
-    kind: Tool(
-        (
-            kind: Hammer,    
-            stats: (
-                equip_time_millis: 500,
-                power: 1.20,
-                poise_reduction_power: 1.20,
-                speed: 1.0
-            ),            
-        )
-    ),
+    kind: Tool((
+        kind: Hammer,
+        stats: (
+            equip_time_millis: 500,
+            power: 1.2,
+            poise_power: 1.1,
+            speed: 1.0,
+        ),
+    )),
     quality: Common,
 )

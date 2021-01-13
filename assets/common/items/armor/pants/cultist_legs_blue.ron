@@ -1,14 +1,12 @@
 ItemDef(
     name: "Velorite Skirt",
     description: "Ceremonial attire used by members.",
-    kind: Armor(
-        (
-            kind: Pants("VeloriteMage0"),
-            stats: (
-                protection: Normal(24.0),
-                poise_protection: Normal(24.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Pants("VeloriteMage0"),
+        stats: (
+            protection: Normal(24.0),
+            poise_protection: Normal(10.0),
+        ),
+    )),
     quality: Epic,
 )

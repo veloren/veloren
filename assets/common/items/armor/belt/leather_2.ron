@@ -1,14 +1,12 @@
 ItemDef(
     name: "Leather Belt",
     description: "A belt made from simple leather.",
-    kind: Armor(
-        (
-            kind: Belt("Leather2"),
-            stats: (
-                protection: Normal(1.0),
-                poise_protection: Normal(1.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Belt("Leather2"),
+        stats: (
+            protection: Normal(1.0),
+            poise_protection: Normal(1.0),
+        ),
+    )),
     quality: Common,
 )

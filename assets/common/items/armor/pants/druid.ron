@@ -1,14 +1,12 @@
 ItemDef(
-    name: "Druid's Kilt",
+    name: "Druid\'s Kilt",
     description: "Feel the breeze!",
-    kind: Armor(
-        (
-            kind: Pants("Druid"),
-            stats: (
-                protection: Normal(4.0),
-                poise_protection: Normal(4.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Pants("Druid"),
+        stats: (
+            protection: Normal(4.0),
+            poise_protection: Normal(2.0),
+        ),
+    )),
     quality: Moderate,
 )

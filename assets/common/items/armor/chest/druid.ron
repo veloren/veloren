@@ -1,14 +1,12 @@
 ItemDef(
-    name: "Druid's Vest",
+    name: "Druid\'s Vest",
     description: "Vines and leaves formed into a tunic.",
-    kind: Armor(
-        (
-            kind: Chest("Druid"),
-            stats: (
-                protection: Normal(6.0),
-                poise_protection: Normal(6.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Chest("Druid"),
+        stats: (
+            protection: Normal(6.0),
+            poise_protection: Normal(4.0),
+        ),
+    )),
     quality: Moderate,
 )

@@ -1,14 +1,12 @@
 ItemDef(
     name: "Flowery Wraps",
     description: "Wrapped and intertwined twigs held together with magic and flowers with their stems, providing peace and protection for the wearer.",
-    kind: Armor(
-        (
-            kind: Hand("Twigsflowers"),
-            stats: (
-                protection: Normal(6.0),
-                poise_protection: Normal(6.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Hand("Twigsflowers"),
+        stats: (
+            protection: Normal(6.0),
+            poise_protection: Normal(4.0),
+        ),
+    )),
     quality: Moderate,
 )

@@ -1,16 +1,14 @@
 ItemDef(
     name: "Hardwood Mallet",
     description: "Hardened wood, subjected to many different elements to provide a enough strength to be a weapon.",
-    kind: Tool(
-        (
-            kind: Hammer,    
-            stats: (
-                equip_time_millis: 500,
-                power: 0.60,
-                poise_reduction_power: 0.60,
-                speed: 1.0
-            ),            
-        )
-    ),
+    kind: Tool((
+        kind: Hammer,
+        stats: (
+            equip_time_millis: 500,
+            power: 0.6,
+            poise_power: 0.8,
+            speed: 1.0,
+        ),
+    )),
     quality: Low,
 )

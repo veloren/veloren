@@ -4,7 +4,10 @@ ItemDef(
     kind: Armor(
         (
             kind: Bag("BlueFace"),
-            stats: (protection: Normal(0.0)),            
+            stats: (
+                protection: Normal(0.0),
+                poise_protection: Normal(0.0),
+            ),            
         )
     ),
     quality: Legendary,

@@ -1,14 +1,12 @@
 ItemDef(
-    name: "Druid's Slippers",
+    name: "Druid\'s Slippers",
     description: "For treading softly through the woods.",
-    kind: Armor(
-        (
-            kind: Foot("Druid"),
-            stats: (
-                protection: Normal(1.0),
-                poise_protection: Normal(1.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Foot("Druid"),
+        stats: (
+            protection: Normal(1.0),
+            poise_protection: Normal(1.0),
+        ),
+    )),
     quality: Moderate,
 )

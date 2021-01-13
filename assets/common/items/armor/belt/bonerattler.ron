@@ -1,14 +1,12 @@
 ItemDef(
     name: "Bonerattler Belt",
     description: "Sections of vertebrae fastened together with hide and a bonerattler eye for the buckle.",
-    kind: Armor(
-        (
-            kind: Belt("Bonerattler"),
-            stats: (
-                protection: Normal(3.0),
-                poise_protection: Normal(3.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Belt("Bonerattler"),
+        stats: (
+            protection: Normal(3.0),
+            poise_protection: Normal(5.0),
+        ),
+    )),
     quality: High,
 )

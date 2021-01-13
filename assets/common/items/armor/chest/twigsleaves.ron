@@ -1,14 +1,12 @@
 ItemDef(
     name: "Leafy Shirt",
     description: "Leaves cover the magically imbued twig shirt, providing a more natural appearance.",
-    kind: Armor(
-        (
-            kind: Chest("Twigsleaves"),
-            stats: (
-                protection: Normal(15.0),
-                poise_protection: Normal(15.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Chest("Twigsleaves"),
+        stats: (
+            protection: Normal(15.0),
+            poise_protection: Normal(10.0),
+        ),
+    )),
     quality: Moderate,
 )

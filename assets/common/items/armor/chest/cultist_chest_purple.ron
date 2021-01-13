@@ -1,14 +1,12 @@
 ItemDef(
     name: "Purple Cultist Chest",
     description: "Ceremonial attire used by members.",
-    kind: Armor(
-        (
-            kind: Chest("CultistPurple"),
-            stats: (
-                protection: Normal(30.0),
-                poise_protection: Normal(30.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Chest("CultistPurple"),
+        stats: (
+            protection: Normal(30.0),
+            poise_protection: Normal(15.0),
+        ),
+    )),
     quality: Epic,
 )

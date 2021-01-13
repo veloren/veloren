@@ -1,16 +1,14 @@
 ItemDef(
     name: "Battle Mace",
     description: "A heavy, spiked steel ball tip provides a great smashing weapon.",
-    kind: Tool(
-        (
-            kind: Hammer,    
-            stats: (
-                equip_time_millis: 500,
-                power: 1.40,
-                poise_reduction_power: 1.40,
-                speed: 1.0
-                ),            
-        )
-    ),
+    kind: Tool((
+        kind: Hammer,
+        stats: (
+            equip_time_millis: 500,
+            power: 1.4,
+            poise_power: 1.7,
+            speed: 1.0,
+        ),
+    )),
     quality: Moderate,
 )

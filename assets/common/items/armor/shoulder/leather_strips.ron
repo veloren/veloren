@@ -1,14 +1,12 @@
 ItemDef(
     name: "Leather Strips",
     description: "Tanned animal hide strips formed into loose shoulder pads.",
-    kind: Armor(
-        (
-            kind: Shoulder("LeatherStrips"),
-            stats: (
-                protection: Normal(4.0),
-                poise_protection: Normal(4.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Shoulder("LeatherStrips"),
+        stats: (
+            protection: Normal(4.0),
+            poise_protection: Normal(1.0),
+        ),
+    )),
     quality: Low,
 )

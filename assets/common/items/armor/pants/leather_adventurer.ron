@@ -1,14 +1,12 @@
 ItemDef(
     name: "Agile Pantalons",
-    description: "'Tightly packed pieces of leather to endure all weather.'",
-    kind: Armor(
-        (
-            kind: Pants("Leather2"),
-            stats: (
-                protection: Normal(6.0),
-                poise_protection: Normal(6.0),
-            ),
-        )
-    ),
+    description: "\'Tightly packed pieces of leather to endure all weather.\'",
+    kind: Armor((
+        kind: Pants("Leather2"),
+        stats: (
+            protection: Normal(6.0),
+            poise_protection: Normal(3.0),
+        ),
+    )),
     quality: Moderate,
 )

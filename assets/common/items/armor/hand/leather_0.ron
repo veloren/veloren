@@ -1,14 +1,12 @@
 ItemDef(
     name: "Swift Gloves",
     description: "Swift like the wind.",
-    kind: Armor(
-        (
-            kind: Hand("Leather0"),
-            stats: (
-                protection: Normal(4.0),
-                poise_protection: Normal(4.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Hand("Leather0"),
+        stats: (
+            protection: Normal(4.0),
+            poise_protection: Normal(3.0),
+        ),
+    )),
     quality: Common,
 )
