@@ -74,6 +74,7 @@ fn maps_basic_melee() {
                 swing_duration: Duration::default(),
                 recover_duration: Duration::default(),
                 base_damage: 10,
+                base_poise_damage: 10,
                 knockback: 0.0,
                 range: 1.0,
                 max_angle: 1.0,
@@ -113,7 +114,9 @@ fn matches_ability_stage() {
                 stage_data: vec![states::combo_melee::Stage {
                     stage: 1,
                     base_damage: 100,
+                    base_poise_damage: 100,
                     damage_increase: 10,
+                    poise_damage_increase: 10,
                     knockback: 10.0,
                     range: 4.0,
                     angle: 30.0,
@@ -170,7 +173,9 @@ fn ignores_different_ability_stage() {
                 stage_data: vec![states::combo_melee::Stage {
                     stage: 1,
                     base_damage: 100,
+                    base_poise_damage: 100,
                     damage_increase: 10,
+                    poise_damage_increase: 10,
                     knockback: 10.0,
                     range: 4.0,
                     angle: 30.0,

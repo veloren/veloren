@@ -1,16 +1,14 @@
 ItemDef(
     name: "Steel Greathammer",
     description: "The lighter attributes of the metal alloy are barely noticed when forged into such a wide hammer head.",
-    kind: Tool(
-        (
-            kind: Hammer,    
-            stats: (
-                equip_time_millis: 500,
-                power: 1.40,
-                poise_reduction_power: 1.40,
-                speed: 1.0
-                ),            
-        )
-    ),
+    kind: Tool((
+        kind: Hammer,
+        stats: (
+            equip_time_millis: 500,
+            power: 1.4,
+            poise_power: 1.3,
+            speed: 1.0,
+        ),
+    )),
     quality: Moderate,
 )

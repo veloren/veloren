@@ -1,16 +1,14 @@
 ItemDef(
     name: "Runic Hammer",
     description: "There are strange runes inscribed into it.",
-    kind: Tool(
-        (
-            kind: Hammer,    
-            stats: (
-                equip_time_millis: 500,
-                power: 1.80,
-                poise_reduction_power: 1.80,
-                speed: 1.0
-            ),            
-        )
-    ),
+    kind: Tool((
+        kind: Hammer,
+        stats: (
+            equip_time_millis: 500,
+            power: 1.8,
+            poise_power: 1.8,
+            speed: 1.0,
+        ),
+    )),
     quality: High,
 )

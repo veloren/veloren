@@ -1,16 +1,14 @@
 ItemDef(
     name: "Bronze Club",
     description: "The entire head of this club is forged from bronze alloy.",
-    kind: Tool(
-        (
-            kind: Hammer,    
-            stats: (
-                equip_time_millis: 500,
-                power: 1.00,
-                poise_reduction_power: 1.00,
-                speed: 1.0
-            ),            
-        )
-    ),
+    kind: Tool((
+        kind: Hammer,
+        stats: (
+            equip_time_millis: 500,
+            power: 1.0,
+            poise_power: 1.0,
+            speed: 1.0,
+        ),
+    )),
     quality: Common,
 )

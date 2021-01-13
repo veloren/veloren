@@ -1,16 +1,14 @@
 ItemDef(
     name: "Cobalt Mace",
     description: "The decorative hooked head of this mace is formed from a bluish gray metal.",
-    kind: Tool(
-        (
-            kind: Hammer,    
-            stats: (
-                equip_time_millis: 500,
-                power: 1.60,
-                poise_reduction_power: 1.60,
-                speed: 1.0
-                ),            
-        )
-    ),
+    kind: Tool((
+        kind: Hammer,
+        stats: (
+            equip_time_millis: 500,
+            power: 1.6,
+            poise_power: 1.4,
+            speed: 1.0,
+        ),
+    )),
     quality: Moderate,
 )

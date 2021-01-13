@@ -1,14 +1,12 @@
 ItemDef(
     name: "Warlock Belt",
     description: "Belong to a mighty warlock.",
-    kind: Armor(
-        (
-            kind: Belt("Warlock"),
-            stats: (
-                protection: Normal(8.0),
-                poise_protection: Normal(8.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Belt("Warlock"),
+        stats: (
+            protection: Normal(8.0),
+            poise_protection: Normal(7.0),
+        ),
+    )),
     quality: Moderate,
 )

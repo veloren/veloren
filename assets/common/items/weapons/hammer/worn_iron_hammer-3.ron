@@ -1,16 +1,14 @@
 ItemDef(
     name: "Worn Orcish Hammer",
     description: "A heavy orc crafted hammer, missing chunks from heavy use.",
-    kind: Tool(
-        (
-            kind: Hammer,    
-            stats: (
-                equip_time_millis: 500,
-                power: 0.85,
-                poise_reduction_power: 0.85,
-                speed: 1.0
-            ),            
-        )
-    ),
+    kind: Tool((
+        kind: Hammer,
+        stats: (
+            equip_time_millis: 500,
+            power: 0.85,
+            poise_power: 1.1,
+            speed: 1.0,
+        ),
+    )),
     quality: Common,
 )

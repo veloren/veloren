@@ -1,14 +1,12 @@
 ItemDef(
-    name: "Admin's Cape",
+    name: "Admin\'s Cape",
     description: "With great power comes\ngreat responsibility.",
-    kind: Armor(
-        (
-            kind: Back("Admin"),
-            stats: (
-                protection: Invincible,
-                poise_protection: Invincible,
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Back("Admin"),
+        stats: (
+            protection: Invincible,
+            poise_protection: Invincible,
+        ),
+    )),
     quality: Debug,
 )

@@ -119,8 +119,6 @@ impl<'a> System<'a> for Sys {
                                 let other_entity_inventory = inventories.get(other_entity);
                                 let change =
                                     damage.modify_damage(other_entity_inventory, projectile.owner);
-                                let poise_change = poise_damage
-                                    .modify_poise_damage(other_entity_inventory, projectile.owner);
                                 server_emitter.emit(ServerEvent::Damage {
                                     entity: other_entity,
                                     change,
@@ -141,9 +139,9 @@ impl<'a> System<'a> for Sys {
                             if let Some(other_entity) =
                                 uid_allocator.retrieve_entity_internal(other.into())
                             {
-                                let other_entity_loadout = loadouts.get(other_entity);
+                                let other_entity_inventory = inventories.get(other_entity);
                                 let poise_change =
-                                    poise_damage.modify_poise_damage(other_entity_loadout);
+                                    poise_damage.modify_poise_damage(other_entity_inventory);
                                 server_emitter.emit(ServerEvent::PoiseChange {
                                     entity: other_entity,
                                     change: poise_change,

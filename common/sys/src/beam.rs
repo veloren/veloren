@@ -1,7 +1,7 @@
 use common::{
     comp::{
         group, Beam, BeamSegment, Body, Energy, EnergyChange, EnergySource, Health, HealthChange,
-        HealthSource, Inventory, Last, Ori, PoiseChange, PoiseSource, Pos, Scale,
+        HealthSource, Inventory, Last, Ori, Pos, Scale,
     },
     event::{EventBus, ServerEvent},
     resources::{DeltaTime, Time},

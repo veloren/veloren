@@ -1,16 +1,14 @@
 ItemDef(
     name: "Simple Greatsword",
-    description: "It's been well used.",
-    kind: Tool(
-       (
-            kind: Sword,    
-            stats: (
-                equip_time_millis: 500,
-                power: 1.10,
-                poise_reduction_power: 1.10,
-                speed: 1.0
-            ),            
-        )
-    ),
+    description: "It\'s been well used.",
+    kind: Tool((
+        kind: Sword,
+        stats: (
+            equip_time_millis: 500,
+            power: 1.1,
+            poise_power: 1.5,
+            speed: 1.0,
+        ),
+    )),
     quality: Common,
 )

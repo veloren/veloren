@@ -1,14 +1,12 @@
 ItemDef(
     name: "Flowery Boots",
     description: "Woven and magically imbued, these boots of twigs and flowers provide simple protection and peace to the wearer.",
-    kind: Armor(
-        (
-            kind: Foot("Twigsflowers"),
-            stats: (
-                protection: Normal(3.0),
-                poise_protection: Normal(3.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Foot("Twigsflowers"),
+        stats: (
+            protection: Normal(3.0),
+            poise_protection: Normal(2.0),
+        ),
+    )),
     quality: Moderate,
 )

@@ -1,16 +1,14 @@
 ItemDef(
     name: "Rocky Maul",
     description: "A rock tied to a stick, still good for smashing, but not very strong.",
-    kind: Tool(
-        (
-            kind: Hammer,    
-            stats: (
-                equip_time_millis: 500,
-                power: 0.70,
-                poise_reduction_power: 0.70,
-                speed: 1.0
-            ),            
-        )
-    ),
+    kind: Tool((
+        kind: Hammer,
+        stats: (
+            equip_time_millis: 500,
+            power: 0.7,
+            poise_power: 1.0,
+            speed: 1.0,
+        ),
+    )),
     quality: Low,
 )

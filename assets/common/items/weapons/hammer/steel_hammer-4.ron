@@ -1,16 +1,14 @@
 ItemDef(
-    name: "Brute's Hammer",
+    name: "Brute\'s Hammer",
     description: "This destructive hammer was likely wielded by a vicious killer.",
-    kind: Tool(
-        (
-            kind: Hammer,    
-            stats: (
-                equip_time_millis: 500,
-                power: 1.40,
-                poise_reduction_power: 1.40,
-                speed: 1.0
-                ),            
-        )
-    ),
+    kind: Tool((
+        kind: Hammer,
+        stats: (
+            equip_time_millis: 500,
+            power: 1.4,
+            poise_power: 1.5,
+            speed: 1.0,
+        ),
+    )),
     quality: Moderate,
 )

@@ -1,16 +1,14 @@
 ItemDef(
     name: "Ornamented Longsword",
-    description: "It's probably the weapon of some noble.",
-    kind: Tool(
-       (
-            kind: Sword,    
-            stats: (
-                equip_time_millis: 500,
-                power: 1.50,
-                poise_reduction_power: 1.50,
-                speed: 1.0
-                ),            
-        )
-    ),
+    description: "It\'s probably the weapon of some noble.",
+    kind: Tool((
+        kind: Sword,
+        stats: (
+            equip_time_millis: 500,
+            power: 1.5,
+            poise_power: 1.1,
+            speed: 1.0,
+        ),
+    )),
     quality: Moderate,
 )

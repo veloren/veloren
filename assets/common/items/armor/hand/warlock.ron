@@ -1,14 +1,12 @@
 ItemDef(
     name: "Warlock Gloves",
     description: "Belong to a mighty warlock.",
-    kind: Armor(
-        (
-            kind: Hand("Warlock"),
-            stats: (
-                protection: Normal(15.0),
-                poise_protection: Normal(15.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Hand("Warlock"),
+        stats: (
+            protection: Normal(15.0),
+            poise_protection: Normal(16.0),
+        ),
+    )),
     quality: Common,
 )

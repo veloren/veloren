@@ -35,8 +35,8 @@ pub trait StateExt {
         pos: comp::Pos,
         stats: comp::Stats,
         health: comp::Health,
-        inventory: comp::Inventory,
         poise: comp::Poise,
+        inventory: comp::Inventory,
         body: comp::Body,
     ) -> EcsEntityBuilder;
     /// Build a static object entity
@@ -97,8 +97,8 @@ impl StateExt for State {
                     .map(|mut health| health.change_by(change));
             },
             Effect::PoiseChange(poise_damage) => {
-                let loadouts = self.ecs().read_storage::<comp::Loadout>();
-                let change = poise_damage.modify_poise_damage(loadouts.get(entity));
+                let inventories = self.ecs().read_storage::<Inventory>();
+                let change = poise_damage.modify_poise_damage(inventories.get(entity));
                 // Check to make sure the entity is not already stunned
                 if let Some(character_state) = self
                     .ecs()
@@ -134,8 +134,8 @@ impl StateExt for State {
         pos: comp::Pos,
         stats: comp::Stats,
         health: comp::Health,
-        inventory: comp::Inventory,
         poise: comp::Poise,
+        inventory: comp::Inventory,
         body: comp::Body,
     ) -> EcsEntityBuilder {
         self.ecs_mut()

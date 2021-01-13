@@ -324,7 +324,7 @@ impl CharacterAbility {
         }
     }
 
-    pub fn adjusted_by_stats(mut self, power: f32, poise_reduction_power: f32, speed: f32) -> Self {
+    pub fn adjusted_by_stats(mut self, power: f32, poise_power: f32, speed: f32) -> Self {
         use CharacterAbility::*;
         match self {
             BasicMelee {
@@ -339,7 +339,7 @@ impl CharacterAbility {
                 *swing_duration = (*swing_duration as f32 / speed) as u64;
                 *recover_duration = (*recover_duration as f32 / speed) as u64;
                 *base_damage = (*base_damage as f32 * power) as u32;
-                *base_poise_damage = (*base_poise_damage as f32 * poise_reduction_power) as u32;
+                *base_poise_damage = (*base_poise_damage as f32 * poise_power) as u32;
             },
             BasicRanged {
                 ref mut buildup_duration,
@@ -383,8 +383,8 @@ impl CharacterAbility {
             } => {
                 *base_damage = (*base_damage as f32 * power) as u32;
                 *scaled_damage = (*scaled_damage as f32 * power) as u32;
-                *base_poise_damage = (*base_damage as f32 * poise_reduction_power) as u32;
-                *scaled_poise_damage = (*scaled_poise_damage as f32 * poise_reduction_power) as u32;
+                *base_poise_damage = (*base_damage as f32 * poise_power) as u32;
+                *scaled_poise_damage = (*scaled_poise_damage as f32 * poise_power) as u32;
                 *buildup_duration = (*buildup_duration as f32 / speed) as u64;
                 *swing_duration = (*swing_duration as f32 / speed) as u64;
                 *recover_duration = (*recover_duration as f32 / speed) as u64;
@@ -405,7 +405,7 @@ impl CharacterAbility {
             } => {
                 *stage_data = stage_data
                     .iter_mut()
-                    .map(|s| s.adjusted_by_stats(power, poise_reduction_power, speed))
+                    .map(|s| s.adjusted_by_stats(power, poise_power, speed))
                     .collect();
             },
             LeapMelee {
@@ -422,7 +422,7 @@ impl CharacterAbility {
                 *swing_duration = (*swing_duration as f32 / speed) as u64;
                 *recover_duration = (*recover_duration as f32 / speed) as u64;
                 *base_damage = (*base_damage as f32 * power) as u32;
-                *base_poise_damage = (*base_poise_damage as f32 * poise_reduction_power) as u32;
+                *base_poise_damage = (*base_poise_damage as f32 * poise_power) as u32;
             },
             SpinMelee {
                 ref mut buildup_duration,
@@ -436,7 +436,7 @@ impl CharacterAbility {
                 *swing_duration = (*swing_duration as f32 / speed) as u64;
                 *recover_duration = (*recover_duration as f32 / speed) as u64;
                 *base_damage = (*base_damage as f32 * power) as u32;
-                *base_poise_damage = (*base_poise_damage as f32 * poise_reduction_power) as u32;
+                *base_poise_damage = (*base_poise_damage as f32 * poise_power) as u32;
             },
             ChargedMelee {
                 ref mut initial_damage,
@@ -451,9 +451,8 @@ impl CharacterAbility {
             } => {
                 *initial_damage = (*initial_damage as f32 * power) as u32;
                 *scaled_damage = (*scaled_damage as f32 * power) as u32;
-                *initial_poise_damage =
-                    (*initial_poise_damage as f32 * poise_reduction_power) as u32;
-                *scaled_poise_damage = (*scaled_poise_damage as f32 * poise_reduction_power) as u32;
+                *initial_poise_damage = (*initial_poise_damage as f32 * poise_power) as u32;
+                *scaled_poise_damage = (*scaled_poise_damage as f32 * poise_power) as u32;
                 *ability_speed *= speed;
                 *charge_duration = (*charge_duration as f32 / speed) as u64;
                 *swing_duration = (*swing_duration as f32 / speed) as u64;
@@ -488,7 +487,7 @@ impl CharacterAbility {
                 *swing_duration = (*swing_duration as f32 / speed) as u64;
                 *recover_duration = (*recover_duration as f32 / speed) as u64;
                 *damage = (*damage as f32 * power) as u32;
-                *poise_damage = (*poise_damage as f32 * poise_reduction_power) as u32;
+                *poise_damage = (*poise_damage as f32 * poise_power) as u32;
             },
             BasicBeam {
                 ref mut buildup_duration,

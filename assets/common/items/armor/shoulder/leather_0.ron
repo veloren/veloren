@@ -1,14 +1,12 @@
 ItemDef(
     name: "Leather Pauldrons",
     description: "Animal hide tanned and formed into shoulder pads.",
-    kind: Armor(
-        (
-            kind: Shoulder("Leather0"),
-            stats: (
-                protection: Normal(6.0),
-                poise_protection: Normal(6.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Shoulder("Leather0"),
+        stats: (
+            protection: Normal(6.0),
+            poise_protection: Normal(3.0),
+        ),
+    )),
     quality: Common,
 )

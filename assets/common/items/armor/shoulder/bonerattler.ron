@@ -1,14 +1,12 @@
 ItemDef(
     name: "Bonerattler Shoulder Pad",
     description: "Roughly formed bonerattler hide provide some strong protection.",
-    kind: Armor(
-        (
-            kind: Shoulder("Bonerattler"),
-            stats: (
-                protection: Normal(15.0),
-                poise_protection: Normal(15.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Shoulder("Bonerattler"),
+        stats: (
+            protection: Normal(15.0),
+            poise_protection: Normal(17.0),
+        ),
+    )),
     quality: High,
 )

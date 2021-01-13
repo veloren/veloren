@@ -59,12 +59,11 @@ impl Stage<u64> {
         }
     }
 
-    pub fn adjusted_by_stats(mut self, power: f32, poise_reduction_power: f32, speed: f32) -> Self {
+    pub fn adjusted_by_stats(mut self, power: f32, poise_power: f32, speed: f32) -> Self {
         self.base_damage = (self.base_damage as f32 * power) as u32;
         self.damage_increase = (self.damage_increase as f32 * power) as u32;
-        self.base_poise_damage = (self.base_poise_damage as f32 * poise_reduction_power) as u32;
-        self.poise_damage_increase =
-            (self.poise_damage_increase as f32 * poise_reduction_power) as u32;
+        self.base_poise_damage = (self.base_poise_damage as f32 * poise_power) as u32;
+        self.poise_damage_increase = (self.poise_damage_increase as f32 * poise_power) as u32;
         self.base_buildup_duration = (self.base_buildup_duration as f32 / speed) as u64;
         self.base_swing_duration = (self.base_swing_duration as f32 / speed) as u64;
         self.base_recover_duration = (self.base_recover_duration as f32 / speed) as u64;

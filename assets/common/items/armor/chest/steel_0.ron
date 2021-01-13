@@ -1,14 +1,12 @@
 ItemDef(
     name: "Steel Cuirass",
     description: "The metal alloy provides a somewhat lighter and stronger cuirass.",
-    kind: Armor(
-        (
-            kind: Chest("Steel0"),
-            stats: (
-                protection: Normal(25.0),
-                poise_protection: Normal(25.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Chest("Steel0"),
+        stats: (
+            protection: Normal(25.0),
+            poise_protection: Normal(40.0),
+        ),
+    )),
     quality: High,
 )

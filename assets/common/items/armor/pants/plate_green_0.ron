@@ -1,14 +1,12 @@
 ItemDef(
     name: "Iron Legguards",
     description: "Heavy iron plate formed into protective greaves, decorated with rough green fabric.",
-    kind: Armor(
-        (
-            kind: Pants("PlateGreen0"),
-            stats: (
-                protection: Normal(16.0),
-                poise_protection: Normal(16.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Pants("PlateGreen0"),
+        stats: (
+            protection: Normal(16.0),
+            poise_protection: Normal(14.0),
+        ),
+    )),
     quality: Moderate,
 )

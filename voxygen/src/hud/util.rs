@@ -69,13 +69,19 @@ fn armor_desc(armor: &Armor, desc: &str, slots: u16) -> String {
         ArmorKind::Tabard(_) => "Tabard",
         ArmorKind::Bag(_) => "Bag",
     };
-
-    let protection = match armor.get_protection() {
+    let armor_protection = match armor.get_protection() {
+        Protection::Normal(a) => a.to_string(),
+        Protection::Invincible => "Inf".to_string(),
+    };
+    let armor_poise_protection = match armor.get_poise_protection() {
         Protection::Normal(a) => a.to_string(),
         Protection::Invincible => "Inf".to_string(),
     };
 
-    let mut description = format!("{}\n\nArmor: {}", kind, protection);
+    let mut description = format!(
+        "{}\n\nArmor: {}\n\nPoise Protection: {}",
+        kind, armor_protection, armor_poise_protection
+    );
 
     if !desc.is_empty() {
         write!(&mut description, "\n\n{}", desc).unwrap();
@@ -104,24 +110,31 @@ fn tool_desc(tool: &Tool, desc: &str) -> String {
         ToolKind::Farming => "Farming Tool",
         ToolKind::Empty => "Empty",
     };
+
+    // Get tool stats
     let power = tool.base_power();
+    let poise_power = tool.base_poise_power();
     let speed = tool.base_speed();
 
     if !desc.is_empty() {
         format!(
-            "{}\n\nDPS: {:0.1}\n\nPower: {:0.1}\n\nSpeed: {:0.1}\n\n{}\n\n<Right-Click to use>",
+            "{}\n\nDPS: {:0.1}\n\nPower: {:0.1}\n\nPoise Power: {:0.1}\n\nSpeed: \
+             {:0.1}\n\n{}\n\n<Right-Click to use>",
             kind,
             speed * power * 10.0, // Damage per second
             power * 10.0,
+            poise_power * 10.0,
             speed,
             desc
         )
     } else {
         format!(
-            "{}\n\nDPS: {:0.1}\n\nPower: {:0.1}\n\nSpeed: {:0.1}\n\n<Right-Click to use>",
+            "{}\n\nDPS: {:0.1}\n\nPower: {:0.1}\n\nPoise Power: {:0.1}\n\nSpeed: \
+             {:0.1}\n\n<Right-Click to use>",
             kind,
             speed * power * 10.0, // Damage per second
             power * 10.0,
+            poise_power * 10.0,
             speed
         )
     }

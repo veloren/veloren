@@ -1,16 +1,14 @@
 ItemDef(
     name: "Magical Cultist Greatsword",
     description: "This belonged to an evil Cult Leader.",
-    kind: Tool(
-       (
-            kind: Sword,    
-            stats: (
-                equip_time_millis: 500,
-                power: 2.00,
-                poise_reduction_power: 2.00,
-                speed: 1.0
-            ),            
-        )
-    ),
+    kind: Tool((
+        kind: Sword,
+        stats: (
+            equip_time_millis: 500,
+            power: 2.0,
+            poise_power: 1.5,
+            speed: 1.0,
+        ),
+    )),
     quality: Epic,
 )

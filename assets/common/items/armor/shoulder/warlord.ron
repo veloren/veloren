@@ -1,14 +1,12 @@
 ItemDef(
     name: "Warlord Shoulderguards",
     description: "Belong to a mighty warlord.",
-    kind: Armor(
-        (
-            kind: Shoulder("Warlord"),
-            stats: (
-                protection: Normal(22.0),
-                poise_protection: Normal(22.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Shoulder("Warlord"),
+        stats: (
+            protection: Normal(22.0),
+            poise_protection: Normal(14.0),
+        ),
+    )),
     quality: Common,
 )

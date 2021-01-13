@@ -1,14 +1,12 @@
 ItemDef(
-    name: "Druid's Belt",
+    name: "Druid\'s Belt",
     description: "Twisted vines to keep everything secure.",
-    kind: Armor(
-        (
-            kind: Belt("Druid"),
-            stats: (
-                protection: Normal(2.0),
-                poise_protection: Normal(2.0),
-            ),            
-        )
-    ),
+    kind: Armor((
+        kind: Belt("Druid"),
+        stats: (
+            protection: Normal(2.0),
+            poise_protection: Normal(2.0),
+        ),
+    )),
     quality: Moderate,
 )

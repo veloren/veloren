@@ -1,14 +1,12 @@
 ItemDef(
     name: "Leather Gloves",
     description: "Gloves made of simple leather.",
-    kind: Armor(
-        (
-            kind: Hand("Leather2"),
-            stats: (
-                protection: Normal(4.0),
-                poise_protection: Normal(4.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Hand("Leather2"),
+        stats: (
+            protection: Normal(4.0),
+            poise_protection: Normal(5.0),
+        ),
+    )),
     quality: Common,
 )

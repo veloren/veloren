@@ -1,14 +1,12 @@
 ItemDef(
     name: "Agile Guards",
-    description: "'Tightly packed pieces of leather to endure all weather.'",
-    kind: Armor(
-        (
-            kind: Shoulder("Leather2"),
-            stats: (
-                protection: Normal(8.0),
-                poise_protection: Normal(8.0),
-            ),
-        )
-    ),
+    description: "Tightly packed pieces of leather to endure all weather.",
+    kind: Armor((
+        kind: Shoulder("Leather2"),
+        stats: (
+            protection: Normal(8.0),
+            poise_protection: Normal(4.0),
+        ),
+    )),
     quality: Moderate,
 )

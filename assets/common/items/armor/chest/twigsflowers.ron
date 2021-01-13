@@ -1,14 +1,12 @@
 ItemDef(
     name: "Flowery Shirt",
     description: "Magically imbued twigs decorated with flowers and their stems, letting others know your intentions of peace and love.",
-    kind: Armor(
-        (
-            kind: Chest("Twigsflowers"),
-            stats: (
-                protection: Normal(15.0),
-                poise_protection: Normal(15.0),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Chest("Twigsflowers"),
+        stats: (
+            protection: Normal(15.0),
+            poise_protection: Normal(8.0),
+        ),
+    )),
     quality: Moderate,
 )

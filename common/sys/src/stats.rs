@@ -64,7 +64,7 @@ impl<'a> System<'a> for Sys {
         // Increment last change timer
         healths.set_event_emission(false); // avoid unnecessary syncing
         poises.set_event_emission(false); // avoid unnecessary syncing
-        for health in (&mut healths).join() {
+        for mut health in (&mut healths).join() {
             health.last_change.0 += f64::from(dt.0);
         }
         for poise in (&mut poises).join() {
