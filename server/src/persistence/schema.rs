@@ -32,8 +32,8 @@ table! {
 }
 
 table! {
-    skill (character_id, skill_type) {
-        character_id -> BigInt,
+    skill (entity_id, skill_type) {
+        entity_id -> BigInt,
         #[sql_name = "skill"]
         skill_type -> Text,
         level -> Nullable<Integer>,
@@ -41,8 +41,8 @@ table! {
 }
 
 table! {
-    skill_group (character_id, skill_group_type) {
-        character_id -> BigInt,
+    skill_group (entity_id, skill_group_type) {
+        entity_id -> BigInt,
         skill_group_type -> Text,
         exp -> Integer,
         available_sp -> Integer,

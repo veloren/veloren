@@ -99,11 +99,11 @@ pub fn load_character_data(
     });
 
     let skill_data = schema::skill::dsl::skill
-        .filter(schema::skill::dsl::character_id.eq(char_id))
+        .filter(schema::skill::dsl::entity_id.eq(char_id))
         .load::<Skill>(&*connection)?;
 
     let skill_group_data = skill_group
-        .filter(schema::skill_group::dsl::character_id.eq(char_id))
+        .filter(schema::skill_group::dsl::entity_id.eq(char_id))
         .load::<SkillGroup>(&*connection)?;
 
     Ok((
@@ -324,10 +324,10 @@ pub fn delete_character(
         .first::<Character>(&*connection)?;
 
     // Delete skills
-    diesel::delete(skill_group.filter(schema::skill_group::dsl::character_id.eq(char_id)))
+    diesel::delete(skill_group.filter(schema::skill_group::dsl::entity_id.eq(char_id)))
         .execute(&*connection)?;
 
-    diesel::delete(skill.filter(schema::skill::dsl::character_id.eq(char_id)))
+    diesel::delete(skill.filter(schema::skill::dsl::entity_id.eq(char_id)))
         .execute(&*connection)?;
 
     // Delete character
@@ -606,7 +606,7 @@ pub fn update(
 
     let delete_count = diesel::delete(
         schema::skill::dsl::skill.filter(
-            schema::skill::dsl::character_id.eq(char_id).and(
+            schema::skill::dsl::entity_id.eq(char_id).and(
                 schema::skill::dsl::skill_type.ne_all(
                     db_skills
                         .iter()

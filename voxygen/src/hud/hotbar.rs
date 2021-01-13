@@ -90,15 +90,15 @@ impl State {
                             ToolKind::Sword => stat
                                 .skill_set
                                 .skills
-                                .contains_key(&Skill::Sword(skills::SwordSkill::SUnlockSpin)),
+                                .contains_key(&Skill::Sword(skills::SwordSkill::UnlockSpin)),
                             ToolKind::Axe => stat
                                 .skill_set
                                 .skills
-                                .contains_key(&Skill::Axe(skills::AxeSkill::LUnlockLeap)),
+                                .contains_key(&Skill::Axe(skills::AxeSkill::UnlockLeap)),
                             ToolKind::Hammer => stat
                                 .skill_set
                                 .skills
-                                .contains_key(&Skill::Hammer(skills::HammerSkill::LUnlockLeap)),
+                                .contains_key(&Skill::Hammer(skills::HammerSkill::UnlockLeap)),
                             ToolKind::Bow => stat
                                 .skill_set
                                 .skills

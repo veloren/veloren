@@ -27,7 +27,6 @@ impl Default for SkillSetBuilder {
 
 impl SkillSetBuilder {
     pub fn build_skillset(main_tool: &Option<Item>, config: Option<SkillSetConfig>) -> Self {
-        let mut skillset = Self::default();
         let active_item = main_tool.as_ref().and_then(|ic| {
             if let ItemKind::Tool(tool) = &ic.kind() {
                 Some(tool.kind)
@@ -41,543 +40,558 @@ impl SkillSetBuilder {
             Some(Guard) => {
                 if let Some(ToolKind::Sword) = active_item {
                     // Sword
-                    skillset = skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Sword));
-                    skillset = skillset.with_skill(Skill::Sword(SwordSkill::TsCombo));
-                    skillset = skillset.with_skill(Skill::Sword(SwordSkill::TsDamage));
-                    skillset = skillset.with_skill(Skill::Sword(SwordSkill::TsRegen));
-                    skillset = skillset.with_skill(Skill::Sword(SwordSkill::TsSpeed));
-                    skillset = skillset.with_skill(Skill::Sword(SwordSkill::DDamage));
-                    skillset = skillset.with_skill(Skill::Sword(SwordSkill::DCost));
-                    skillset = skillset.with_skill(Skill::Sword(SwordSkill::DDrain));
-                    skillset = skillset.with_skill(Skill::Sword(SwordSkill::DScaling));
-                    skillset = skillset.with_skill(Skill::Sword(SwordSkill::DSpeed));
-                    skillset = skillset.with_skill(Skill::Sword(SwordSkill::DInfinite));
-                    skillset = skillset.with_skill(Skill::Sword(SwordSkill::SUnlockSpin));
-                    skillset = skillset.with_skill(Skill::Sword(SwordSkill::SDamage));
-                    skillset = skillset.with_skill(Skill::Sword(SwordSkill::SSpeed));
-                    skillset = skillset.with_skill(Skill::Sword(SwordSkill::SSpins));
-                    skillset = skillset.with_skill(Skill::Sword(SwordSkill::SCost));
+                    Self::default()
+                        .with_skill_group(SkillGroupType::Weapon(ToolKind::Sword))
+                        .with_skill(Skill::Sword(SwordSkill::TsCombo))
+                        .with_skill(Skill::Sword(SwordSkill::TsDamage))
+                        .with_skill(Skill::Sword(SwordSkill::TsRegen))
+                        .with_skill(Skill::Sword(SwordSkill::TsSpeed))
+                        .with_skill(Skill::Sword(SwordSkill::DDamage))
+                        .with_skill(Skill::Sword(SwordSkill::DCost))
+                        .with_skill(Skill::Sword(SwordSkill::DDrain))
+                        .with_skill(Skill::Sword(SwordSkill::DScaling))
+                        .with_skill(Skill::Sword(SwordSkill::DSpeed))
+                        .with_skill(Skill::Sword(SwordSkill::DInfinite))
+                        .with_skill(Skill::Sword(SwordSkill::UnlockSpin))
+                        .with_skill(Skill::Sword(SwordSkill::SDamage))
+                        .with_skill(Skill::Sword(SwordSkill::SSpeed))
+                        .with_skill(Skill::Sword(SwordSkill::SSpins))
+                        .with_skill(Skill::Sword(SwordSkill::SCost))
+                } else {
+                    Self::default()
                 }
             },
             Some(Outcast) => {
                 match active_item {
                     Some(ToolKind::Sword) => {
                         // Sword
-                        skillset =
-                            skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Sword));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::TsCombo));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::DDamage));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::DCost));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Sword))
+                            .with_skill(Skill::Sword(SwordSkill::TsCombo))
+                            .with_skill(Skill::Sword(SwordSkill::DDamage))
+                            .with_skill(Skill::Sword(SwordSkill::DCost))
                     },
                     Some(ToolKind::Axe) => {
                         // Axe
-                        skillset = skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Axe));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::DsCombo));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::SInfinite));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::SSpeed));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::SCost));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Axe))
+                            .with_skill(Skill::Axe(AxeSkill::DsCombo))
+                            .with_skill(Skill::Axe(AxeSkill::SInfinite))
+                            .with_skill(Skill::Axe(AxeSkill::SSpeed))
+                            .with_skill(Skill::Axe(AxeSkill::SCost))
                     },
                     Some(ToolKind::Hammer) => {
                         // Hammer
-                        skillset =
-                            skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Hammer));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::SsKnockback));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::SsSpeed));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::CKnockback));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::CSpeed));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Hammer))
+                            .with_skill(Skill::Hammer(HammerSkill::SsKnockback))
+                            .with_skill(Skill::Hammer(HammerSkill::SsSpeed))
+                            .with_skill(Skill::Hammer(HammerSkill::CKnockback))
+                            .with_skill(Skill::Hammer(HammerSkill::CSpeed))
                     },
                     Some(ToolKind::Bow) => {
                         // Bow
-                        skillset = skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Bow));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::BDamage));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::ProjSpeed));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::CDamage));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::CKnockback));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::CProjSpeed));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Bow))
+                            .with_skill(Skill::Bow(BowSkill::BDamage))
+                            .with_skill(Skill::Bow(BowSkill::ProjSpeed))
+                            .with_skill(Skill::Bow(BowSkill::CDamage))
+                            .with_skill(Skill::Bow(BowSkill::CKnockback))
+                            .with_skill(Skill::Bow(BowSkill::CProjSpeed))
                     },
                     Some(ToolKind::Staff) => {
                         // Staff
-                        skillset =
-                            skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Staff));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::FDamage));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::FDrain));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::FVelocity));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Staff))
+                            .with_skill(Skill::Staff(StaffSkill::FDamage))
+                            .with_skill(Skill::Staff(StaffSkill::FDrain))
+                            .with_skill(Skill::Staff(StaffSkill::FVelocity))
                     },
-                    _ => {},
+                    _ => Self::default(),
                 }
             },
             Some(Highwayman) => {
                 match active_item {
                     Some(ToolKind::Sword) => {
                         // Sword
-                        skillset =
-                            skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Sword));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::TsCombo));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::TsDamage));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::DDamage));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::SUnlockSpin));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::SSpins));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::SCost));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Sword))
+                            .with_skill(Skill::Sword(SwordSkill::TsCombo))
+                            .with_skill(Skill::Sword(SwordSkill::TsDamage))
+                            .with_skill(Skill::Sword(SwordSkill::DDamage))
+                            .with_skill(Skill::Sword(SwordSkill::UnlockSpin))
+                            .with_skill(Skill::Sword(SwordSkill::SSpins))
+                            .with_skill(Skill::Sword(SwordSkill::SCost))
                     },
                     Some(ToolKind::Axe) => {
                         // Axe
-                        skillset = skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Axe));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::DsCombo));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::DsDamage));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::SInfinite));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::SDamage));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::SSpeed));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::SCost));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::LUnlockLeap));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Axe))
+                            .with_skill(Skill::Axe(AxeSkill::DsCombo))
+                            .with_skill(Skill::Axe(AxeSkill::DsDamage))
+                            .with_skill(Skill::Axe(AxeSkill::SInfinite))
+                            .with_skill(Skill::Axe(AxeSkill::SDamage))
+                            .with_skill(Skill::Axe(AxeSkill::SSpeed))
+                            .with_skill(Skill::Axe(AxeSkill::SCost))
+                            .with_skill(Skill::Axe(AxeSkill::UnlockLeap))
                     },
                     Some(ToolKind::Hammer) => {
                         // Hammer
-                        skillset =
-                            skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Hammer));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::SsKnockback));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::SsDamage));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::SsSpeed));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::CKnockback));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::LUnlockLeap));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::LKnockback));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::LRange));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Hammer))
+                            .with_skill(Skill::Hammer(HammerSkill::SsKnockback))
+                            .with_skill(Skill::Hammer(HammerSkill::SsDamage))
+                            .with_skill(Skill::Hammer(HammerSkill::SsSpeed))
+                            .with_skill(Skill::Hammer(HammerSkill::CKnockback))
+                            .with_skill(Skill::Hammer(HammerSkill::UnlockLeap))
+                            .with_skill(Skill::Hammer(HammerSkill::LKnockback))
+                            .with_skill(Skill::Hammer(HammerSkill::LRange))
                     },
                     Some(ToolKind::Bow) => {
                         // Bow
-                        skillset = skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Bow));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::BDamage));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::CDamage));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::CKnockback));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::CSpeed));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::CMove));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::UnlockRepeater));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::RArrows));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Bow))
+                            .with_skill(Skill::Bow(BowSkill::BDamage))
+                            .with_skill(Skill::Bow(BowSkill::CDamage))
+                            .with_skill(Skill::Bow(BowSkill::CKnockback))
+                            .with_skill(Skill::Bow(BowSkill::CSpeed))
+                            .with_skill(Skill::Bow(BowSkill::CMove))
+                            .with_skill(Skill::Bow(BowSkill::UnlockRepeater))
+                            .with_skill(Skill::Bow(BowSkill::RArrows))
                     },
                     Some(ToolKind::Staff) => {
                         // Staff
-                        skillset =
-                            skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Staff));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::BExplosion));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::BRegen));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::BRadius));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::FDamage));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::FRange));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::FVelocity));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::UnlockShockwave));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Staff))
+                            .with_skill(Skill::Staff(StaffSkill::BExplosion))
+                            .with_skill(Skill::Staff(StaffSkill::BRegen))
+                            .with_skill(Skill::Staff(StaffSkill::BRadius))
+                            .with_skill(Skill::Staff(StaffSkill::FDamage))
+                            .with_skill(Skill::Staff(StaffSkill::FRange))
+                            .with_skill(Skill::Staff(StaffSkill::FVelocity))
+                            .with_skill(Skill::Staff(StaffSkill::UnlockShockwave))
                     },
-                    _ => {},
+                    _ => Self::default(),
                 }
             },
             Some(Bandit) => {
                 match active_item {
                     Some(ToolKind::Sword) => {
                         // Sword
-                        skillset =
-                            skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Sword));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::TsCombo));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::TsDamage));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::DDamage));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::DCost));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::SUnlockSpin));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::SDamage));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::SSpins));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::SCost));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Sword))
+                            .with_skill(Skill::Sword(SwordSkill::TsCombo))
+                            .with_skill(Skill::Sword(SwordSkill::TsDamage))
+                            .with_skill(Skill::Sword(SwordSkill::DDamage))
+                            .with_skill(Skill::Sword(SwordSkill::DCost))
+                            .with_skill(Skill::Sword(SwordSkill::UnlockSpin))
+                            .with_skill(Skill::Sword(SwordSkill::SDamage))
+                            .with_skill(Skill::Sword(SwordSkill::SSpins))
+                            .with_skill(Skill::Sword(SwordSkill::SCost))
                     },
                     Some(ToolKind::Axe) => {
                         // Axe
-                        skillset = skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Axe));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::DsCombo));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::DsSpeed));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::DsRegen));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::SInfinite));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::SDamage));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::LUnlockLeap));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::LKnockback));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::LCost));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::LDistance));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Axe))
+                            .with_skill(Skill::Axe(AxeSkill::DsCombo))
+                            .with_skill(Skill::Axe(AxeSkill::DsSpeed))
+                            .with_skill(Skill::Axe(AxeSkill::DsRegen))
+                            .with_skill(Skill::Axe(AxeSkill::SInfinite))
+                            .with_skill(Skill::Axe(AxeSkill::SDamage))
+                            .with_skill(Skill::Axe(AxeSkill::UnlockLeap))
+                            .with_skill(Skill::Axe(AxeSkill::LKnockback))
+                            .with_skill(Skill::Axe(AxeSkill::LCost))
+                            .with_skill(Skill::Axe(AxeSkill::LDistance))
                     },
                     Some(ToolKind::Hammer) => {
                         // Hammer
-                        skillset =
-                            skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Hammer));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::SsKnockback));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::SsDamage));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::SsRegen));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::CKnockback));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::CDamage));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::LUnlockLeap));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::LDamage));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::LCost));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::LDistance));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Hammer))
+                            .with_skill(Skill::Hammer(HammerSkill::SsKnockback))
+                            .with_skill(Skill::Hammer(HammerSkill::SsDamage))
+                            .with_skill(Skill::Hammer(HammerSkill::SsRegen))
+                            .with_skill(Skill::Hammer(HammerSkill::CKnockback))
+                            .with_skill(Skill::Hammer(HammerSkill::CDamage))
+                            .with_skill(Skill::Hammer(HammerSkill::UnlockLeap))
+                            .with_skill(Skill::Hammer(HammerSkill::LDamage))
+                            .with_skill(Skill::Hammer(HammerSkill::LCost))
+                            .with_skill(Skill::Hammer(HammerSkill::LDistance))
                     },
                     Some(ToolKind::Bow) => {
                         // Bow
-                        skillset = skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Bow));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::BDamage));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::ProjSpeed));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::BRegen));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::CDamage));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::CDrain));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::CSpeed));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::UnlockRepeater));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::RGlide));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::RCost));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Bow))
+                            .with_skill(Skill::Bow(BowSkill::BDamage))
+                            .with_skill(Skill::Bow(BowSkill::ProjSpeed))
+                            .with_skill(Skill::Bow(BowSkill::BRegen))
+                            .with_skill(Skill::Bow(BowSkill::CDamage))
+                            .with_skill(Skill::Bow(BowSkill::CDrain))
+                            .with_skill(Skill::Bow(BowSkill::CSpeed))
+                            .with_skill(Skill::Bow(BowSkill::UnlockRepeater))
+                            .with_skill(Skill::Bow(BowSkill::RGlide))
+                            .with_skill(Skill::Bow(BowSkill::RCost))
                     },
                     Some(ToolKind::Staff) => {
                         // Staff
-                        skillset =
-                            skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Staff));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::BExplosion));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::FDamage));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::FRange));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::FDrain));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::UnlockShockwave));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::SDamage));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::SRange));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Staff))
+                            .with_skill(Skill::Staff(StaffSkill::BExplosion))
+                            .with_skill(Skill::Staff(StaffSkill::FDamage))
+                            .with_skill(Skill::Staff(StaffSkill::FRange))
+                            .with_skill(Skill::Staff(StaffSkill::FDrain))
+                            .with_skill(Skill::Staff(StaffSkill::UnlockShockwave))
+                            .with_skill(Skill::Staff(StaffSkill::SDamage))
+                            .with_skill(Skill::Staff(StaffSkill::SRange))
                     },
-                    _ => {},
+                    _ => Self::default(),
                 }
             },
             Some(CultistNovice) => {
                 match active_item {
                     Some(ToolKind::Sword) => {
                         // Sword
-                        skillset =
-                            skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Sword));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::TsCombo));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::TsRegen));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::TsSpeed));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::DDamage));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::DCost));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::DDrain));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::DScaling));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::SUnlockSpin));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::SSpeed));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::SSpins));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::SCost));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Sword))
+                            .with_skill(Skill::Sword(SwordSkill::TsCombo))
+                            .with_skill(Skill::Sword(SwordSkill::TsRegen))
+                            .with_skill(Skill::Sword(SwordSkill::TsSpeed))
+                            .with_skill(Skill::Sword(SwordSkill::DDamage))
+                            .with_skill(Skill::Sword(SwordSkill::DCost))
+                            .with_skill(Skill::Sword(SwordSkill::DDrain))
+                            .with_skill(Skill::Sword(SwordSkill::DScaling))
+                            .with_skill(Skill::Sword(SwordSkill::UnlockSpin))
+                            .with_skill(Skill::Sword(SwordSkill::SSpeed))
+                            .with_skill(Skill::Sword(SwordSkill::SSpins))
+                            .with_skill(Skill::Sword(SwordSkill::SCost))
                     },
                     Some(ToolKind::Axe) => {
                         // Axe
-                        skillset = skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Axe));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::DsCombo));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::SInfinite));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::SHelicopter));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::SDamage));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::LUnlockLeap));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::LKnockback));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::LDistance));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Axe))
+                            .with_skill(Skill::Axe(AxeSkill::DsCombo))
+                            .with_skill(Skill::Axe(AxeSkill::SInfinite))
+                            .with_skill(Skill::Axe(AxeSkill::SHelicopter))
+                            .with_skill(Skill::Axe(AxeSkill::SDamage))
+                            .with_skill(Skill::Axe(AxeSkill::UnlockLeap))
+                            .with_skill(Skill::Axe(AxeSkill::LKnockback))
+                            .with_skill(Skill::Axe(AxeSkill::LDistance))
                     },
                     Some(ToolKind::Hammer) => {
                         // Hammer
-                        skillset =
-                            skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Hammer));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::SsKnockback));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::SsSpeed));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::SsRegen));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::CKnockback));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::CDamage));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::CDrain));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::CSpeed));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::LUnlockLeap));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::LDamage));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::LKnockback));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Hammer))
+                            .with_skill(Skill::Hammer(HammerSkill::SsKnockback))
+                            .with_skill(Skill::Hammer(HammerSkill::SsSpeed))
+                            .with_skill(Skill::Hammer(HammerSkill::SsRegen))
+                            .with_skill(Skill::Hammer(HammerSkill::CKnockback))
+                            .with_skill(Skill::Hammer(HammerSkill::CDamage))
+                            .with_skill(Skill::Hammer(HammerSkill::CDrain))
+                            .with_skill(Skill::Hammer(HammerSkill::CSpeed))
+                            .with_skill(Skill::Hammer(HammerSkill::UnlockLeap))
+                            .with_skill(Skill::Hammer(HammerSkill::LDamage))
+                            .with_skill(Skill::Hammer(HammerSkill::LKnockback))
                     },
                     Some(ToolKind::Bow) => {
                         // Bow
-                        skillset = skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Bow));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::BDamage));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::ProjSpeed));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::CDamage));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::CKnockback));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::CProjSpeed));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::CDrain));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::UnlockRepeater));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::RDamage));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::RGlide));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::RArrows));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Bow))
+                            .with_skill(Skill::Bow(BowSkill::BDamage))
+                            .with_skill(Skill::Bow(BowSkill::ProjSpeed))
+                            .with_skill(Skill::Bow(BowSkill::CDamage))
+                            .with_skill(Skill::Bow(BowSkill::CKnockback))
+                            .with_skill(Skill::Bow(BowSkill::CProjSpeed))
+                            .with_skill(Skill::Bow(BowSkill::CDrain))
+                            .with_skill(Skill::Bow(BowSkill::UnlockRepeater))
+                            .with_skill(Skill::Bow(BowSkill::RDamage))
+                            .with_skill(Skill::Bow(BowSkill::RGlide))
+                            .with_skill(Skill::Bow(BowSkill::RArrows))
                     },
                     Some(ToolKind::Staff) => {
                         // Staff
-                        skillset =
-                            skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Staff));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::BExplosion));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::BDamage));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::BRadius));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::FDamage));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::FRange));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::FDrain));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::FVelocity));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::UnlockShockwave));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::SDamage));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::SRange));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Staff))
+                            .with_skill(Skill::Staff(StaffSkill::BExplosion))
+                            .with_skill(Skill::Staff(StaffSkill::BDamage))
+                            .with_skill(Skill::Staff(StaffSkill::BRadius))
+                            .with_skill(Skill::Staff(StaffSkill::FDamage))
+                            .with_skill(Skill::Staff(StaffSkill::FRange))
+                            .with_skill(Skill::Staff(StaffSkill::FDrain))
+                            .with_skill(Skill::Staff(StaffSkill::FVelocity))
+                            .with_skill(Skill::Staff(StaffSkill::UnlockShockwave))
+                            .with_skill(Skill::Staff(StaffSkill::SDamage))
+                            .with_skill(Skill::Staff(StaffSkill::SRange))
                     },
-                    _ => {},
+                    _ => Self::default(),
                 }
             },
             Some(CultistAcolyte) => {
                 match active_item {
                     Some(ToolKind::Sword) => {
                         // Sword
-                        skillset =
-                            skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Sword));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::TsCombo));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::TsDamage));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::TsSpeed));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::DDamage));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::DScaling));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::SUnlockSpin));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::SDamage));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::SSpeed));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::SSpins));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Sword))
+                            .with_skill(Skill::Sword(SwordSkill::TsCombo))
+                            .with_skill(Skill::Sword(SwordSkill::TsDamage))
+                            .with_skill(Skill::Sword(SwordSkill::TsSpeed))
+                            .with_skill(Skill::Sword(SwordSkill::DDamage))
+                            .with_skill(Skill::Sword(SwordSkill::DScaling))
+                            .with_skill(Skill::Sword(SwordSkill::UnlockSpin))
+                            .with_skill(Skill::Sword(SwordSkill::SDamage))
+                            .with_skill(Skill::Sword(SwordSkill::SSpeed))
+                            .with_skill(Skill::Sword(SwordSkill::SSpins))
                     },
                     Some(ToolKind::Axe) => {
                         // Axe
-                        skillset = skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Axe));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::DsCombo));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::DsDamage));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::SInfinite));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::SDamage));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::SCost));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::LUnlockLeap));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::LDamage));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::LKnockback));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::LCost));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::LDistance));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Axe))
+                            .with_skill(Skill::Axe(AxeSkill::DsCombo))
+                            .with_skill(Skill::Axe(AxeSkill::DsDamage))
+                            .with_skill(Skill::Axe(AxeSkill::SInfinite))
+                            .with_skill(Skill::Axe(AxeSkill::SDamage))
+                            .with_skill(Skill::Axe(AxeSkill::SCost))
+                            .with_skill(Skill::Axe(AxeSkill::UnlockLeap))
+                            .with_skill(Skill::Axe(AxeSkill::LDamage))
+                            .with_skill(Skill::Axe(AxeSkill::LKnockback))
+                            .with_skill(Skill::Axe(AxeSkill::LCost))
+                            .with_skill(Skill::Axe(AxeSkill::LDistance))
                     },
                     Some(ToolKind::Hammer) => {
                         // Hammer
-                        skillset =
-                            skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Hammer));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::SsKnockback));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::SsDamage));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::SsRegen));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::CKnockback));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::CDamage));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::CDrain));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::LUnlockLeap));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::LDamage));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::LRange));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Hammer))
+                            .with_skill(Skill::Hammer(HammerSkill::SsKnockback))
+                            .with_skill(Skill::Hammer(HammerSkill::SsDamage))
+                            .with_skill(Skill::Hammer(HammerSkill::SsRegen))
+                            .with_skill(Skill::Hammer(HammerSkill::CKnockback))
+                            .with_skill(Skill::Hammer(HammerSkill::CDamage))
+                            .with_skill(Skill::Hammer(HammerSkill::CDrain))
+                            .with_skill(Skill::Hammer(HammerSkill::UnlockLeap))
+                            .with_skill(Skill::Hammer(HammerSkill::LDamage))
+                            .with_skill(Skill::Hammer(HammerSkill::LRange))
                     },
                     Some(ToolKind::Bow) => {
                         // Bow
-                        skillset = skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Bow));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::BDamage));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::CDamage));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::CKnockback));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::CProjSpeed));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::CDrain));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::UnlockRepeater));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::RDamage));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::RGlide));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::RArrows));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::RCost));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Bow))
+                            .with_skill(Skill::Bow(BowSkill::BDamage))
+                            .with_skill(Skill::Bow(BowSkill::CDamage))
+                            .with_skill(Skill::Bow(BowSkill::CKnockback))
+                            .with_skill(Skill::Bow(BowSkill::CProjSpeed))
+                            .with_skill(Skill::Bow(BowSkill::CDrain))
+                            .with_skill(Skill::Bow(BowSkill::UnlockRepeater))
+                            .with_skill(Skill::Bow(BowSkill::RDamage))
+                            .with_skill(Skill::Bow(BowSkill::RGlide))
+                            .with_skill(Skill::Bow(BowSkill::RArrows))
+                            .with_skill(Skill::Bow(BowSkill::RCost))
                     },
                     Some(ToolKind::Staff) => {
                         // Staff
-                        skillset =
-                            skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Staff));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::BExplosion));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::BDamage));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::BRadius));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::FDamage));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::FRange));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::FVelocity));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::UnlockShockwave));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::SDamage));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::SKnockback));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::SRange));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Staff))
+                            .with_skill(Skill::Staff(StaffSkill::BExplosion))
+                            .with_skill(Skill::Staff(StaffSkill::BDamage))
+                            .with_skill(Skill::Staff(StaffSkill::BRadius))
+                            .with_skill(Skill::Staff(StaffSkill::FDamage))
+                            .with_skill(Skill::Staff(StaffSkill::FRange))
+                            .with_skill(Skill::Staff(StaffSkill::FVelocity))
+                            .with_skill(Skill::Staff(StaffSkill::UnlockShockwave))
+                            .with_skill(Skill::Staff(StaffSkill::SDamage))
+                            .with_skill(Skill::Staff(StaffSkill::SKnockback))
+                            .with_skill(Skill::Staff(StaffSkill::SRange))
                     },
-                    _ => {},
+                    _ => Self::default(),
                 }
             },
             Some(Warlord) => {
                 match active_item {
                     Some(ToolKind::Sword) => {
                         // Sword
-                        skillset =
-                            skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Sword));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::TsCombo));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::TsDamage));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::TsRegen));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::DDamage));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::DCost));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::DDrain));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::SUnlockSpin));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::SDamage));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::SSpins));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::SSpins));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::SCost));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Sword))
+                            .with_skill(Skill::Sword(SwordSkill::TsCombo))
+                            .with_skill(Skill::Sword(SwordSkill::TsDamage))
+                            .with_skill(Skill::Sword(SwordSkill::TsRegen))
+                            .with_skill(Skill::Sword(SwordSkill::DDamage))
+                            .with_skill(Skill::Sword(SwordSkill::DCost))
+                            .with_skill(Skill::Sword(SwordSkill::DDrain))
+                            .with_skill(Skill::Sword(SwordSkill::UnlockSpin))
+                            .with_skill(Skill::Sword(SwordSkill::SDamage))
+                            .with_skill(Skill::Sword(SwordSkill::SSpins))
+                            .with_skill(Skill::Sword(SwordSkill::SSpins))
+                            .with_skill(Skill::Sword(SwordSkill::SCost))
                     },
                     Some(ToolKind::Axe) => {
                         // Axe
-                        skillset = skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Axe));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::DsCombo));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::DsDamage));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::DsSpeed));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::DsRegen));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::SInfinite));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::SHelicopter));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::SDamage));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::SSpeed));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::LUnlockLeap));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::LDamage));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::LKnockback));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::LDistance));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Axe))
+                            .with_skill(Skill::Axe(AxeSkill::DsCombo))
+                            .with_skill(Skill::Axe(AxeSkill::DsDamage))
+                            .with_skill(Skill::Axe(AxeSkill::DsSpeed))
+                            .with_skill(Skill::Axe(AxeSkill::DsRegen))
+                            .with_skill(Skill::Axe(AxeSkill::SInfinite))
+                            .with_skill(Skill::Axe(AxeSkill::SHelicopter))
+                            .with_skill(Skill::Axe(AxeSkill::SDamage))
+                            .with_skill(Skill::Axe(AxeSkill::SSpeed))
+                            .with_skill(Skill::Axe(AxeSkill::UnlockLeap))
+                            .with_skill(Skill::Axe(AxeSkill::LDamage))
+                            .with_skill(Skill::Axe(AxeSkill::LKnockback))
+                            .with_skill(Skill::Axe(AxeSkill::LDistance))
                     },
                     Some(ToolKind::Hammer) => {
                         // Hammer
-                        skillset =
-                            skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Hammer));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::SsKnockback));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::SsDamage));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::SsSpeed));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::SsRegen));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::CKnockback));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::CDamage));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::CDrain));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::LUnlockLeap));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::LDamage));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::LDistance));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::LKnockback));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::LRange));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Hammer))
+                            .with_skill(Skill::Hammer(HammerSkill::SsKnockback))
+                            .with_skill(Skill::Hammer(HammerSkill::SsDamage))
+                            .with_skill(Skill::Hammer(HammerSkill::SsSpeed))
+                            .with_skill(Skill::Hammer(HammerSkill::SsRegen))
+                            .with_skill(Skill::Hammer(HammerSkill::CKnockback))
+                            .with_skill(Skill::Hammer(HammerSkill::CDamage))
+                            .with_skill(Skill::Hammer(HammerSkill::CDrain))
+                            .with_skill(Skill::Hammer(HammerSkill::UnlockLeap))
+                            .with_skill(Skill::Hammer(HammerSkill::LDamage))
+                            .with_skill(Skill::Hammer(HammerSkill::LDistance))
+                            .with_skill(Skill::Hammer(HammerSkill::LKnockback))
+                            .with_skill(Skill::Hammer(HammerSkill::LRange))
                     },
                     Some(ToolKind::Bow) => {
                         // Bow
-                        skillset = skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Bow));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::BDamage));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::BRegen));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::CDamage));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::CKnockback));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::CProjSpeed));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::CSpeed));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::CMove));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::UnlockRepeater));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::RDamage));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::RGlide));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::RArrows));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::RCost));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Bow))
+                            .with_skill(Skill::Bow(BowSkill::BDamage))
+                            .with_skill(Skill::Bow(BowSkill::BRegen))
+                            .with_skill(Skill::Bow(BowSkill::CDamage))
+                            .with_skill(Skill::Bow(BowSkill::CKnockback))
+                            .with_skill(Skill::Bow(BowSkill::CProjSpeed))
+                            .with_skill(Skill::Bow(BowSkill::CSpeed))
+                            .with_skill(Skill::Bow(BowSkill::CMove))
+                            .with_skill(Skill::Bow(BowSkill::UnlockRepeater))
+                            .with_skill(Skill::Bow(BowSkill::RDamage))
+                            .with_skill(Skill::Bow(BowSkill::RGlide))
+                            .with_skill(Skill::Bow(BowSkill::RArrows))
+                            .with_skill(Skill::Bow(BowSkill::RCost))
                     },
                     Some(ToolKind::Staff) => {
                         // Staff
-                        skillset =
-                            skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Staff));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::BExplosion));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::BDamage));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::BRegen));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::BRadius));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::FDamage));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::FDrain));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::FVelocity));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::UnlockShockwave));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::SDamage));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::SKnockback));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::SCost));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Staff))
+                            .with_skill(Skill::Staff(StaffSkill::BExplosion))
+                            .with_skill(Skill::Staff(StaffSkill::BDamage))
+                            .with_skill(Skill::Staff(StaffSkill::BRegen))
+                            .with_skill(Skill::Staff(StaffSkill::BRadius))
+                            .with_skill(Skill::Staff(StaffSkill::FDamage))
+                            .with_skill(Skill::Staff(StaffSkill::FDrain))
+                            .with_skill(Skill::Staff(StaffSkill::FVelocity))
+                            .with_skill(Skill::Staff(StaffSkill::UnlockShockwave))
+                            .with_skill(Skill::Staff(StaffSkill::SDamage))
+                            .with_skill(Skill::Staff(StaffSkill::SKnockback))
+                            .with_skill(Skill::Staff(StaffSkill::SCost))
                     },
-                    _ => {},
+                    _ => Self::default(),
                 }
             },
             Some(Warlock) => {
                 match active_item {
                     Some(ToolKind::Sword) => {
                         // Sword
-                        skillset =
-                            skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Sword));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::TsCombo));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::TsDamage));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::TsRegen));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::TsSpeed));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::DDamage));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::DDamage));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::DCost));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::DDrain));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::DScaling));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::SUnlockSpin));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::SDamage));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::SSpeed));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::SSpins));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::SSpins));
-                        skillset = skillset.with_skill(Skill::Sword(SwordSkill::SCost));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Sword))
+                            .with_skill(Skill::Sword(SwordSkill::TsCombo))
+                            .with_skill(Skill::Sword(SwordSkill::TsDamage))
+                            .with_skill(Skill::Sword(SwordSkill::TsRegen))
+                            .with_skill(Skill::Sword(SwordSkill::TsSpeed))
+                            .with_skill(Skill::Sword(SwordSkill::DDamage))
+                            .with_skill(Skill::Sword(SwordSkill::DDamage))
+                            .with_skill(Skill::Sword(SwordSkill::DCost))
+                            .with_skill(Skill::Sword(SwordSkill::DDrain))
+                            .with_skill(Skill::Sword(SwordSkill::DScaling))
+                            .with_skill(Skill::Sword(SwordSkill::UnlockSpin))
+                            .with_skill(Skill::Sword(SwordSkill::SDamage))
+                            .with_skill(Skill::Sword(SwordSkill::SSpeed))
+                            .with_skill(Skill::Sword(SwordSkill::SSpins))
+                            .with_skill(Skill::Sword(SwordSkill::SSpins))
+                            .with_skill(Skill::Sword(SwordSkill::SCost))
                     },
                     Some(ToolKind::Axe) => {
                         // Axe
-                        skillset = skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Axe));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::DsCombo));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::DsDamage));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::DsSpeed));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::DsRegen));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::SInfinite));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::SHelicopter));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::SDamage));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::SSpeed));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::SCost));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::LUnlockLeap));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::LDamage));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::LKnockback));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::LCost));
-                        skillset = skillset.with_skill(Skill::Axe(AxeSkill::LDistance));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Axe))
+                            .with_skill(Skill::Axe(AxeSkill::DsCombo))
+                            .with_skill(Skill::Axe(AxeSkill::DsDamage))
+                            .with_skill(Skill::Axe(AxeSkill::DsSpeed))
+                            .with_skill(Skill::Axe(AxeSkill::DsRegen))
+                            .with_skill(Skill::Axe(AxeSkill::SInfinite))
+                            .with_skill(Skill::Axe(AxeSkill::SHelicopter))
+                            .with_skill(Skill::Axe(AxeSkill::SDamage))
+                            .with_skill(Skill::Axe(AxeSkill::SSpeed))
+                            .with_skill(Skill::Axe(AxeSkill::SCost))
+                            .with_skill(Skill::Axe(AxeSkill::UnlockLeap))
+                            .with_skill(Skill::Axe(AxeSkill::LDamage))
+                            .with_skill(Skill::Axe(AxeSkill::LKnockback))
+                            .with_skill(Skill::Axe(AxeSkill::LCost))
+                            .with_skill(Skill::Axe(AxeSkill::LDistance))
                     },
                     Some(ToolKind::Hammer) => {
                         // Hammer
-                        skillset =
-                            skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Hammer));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::SsKnockback));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::SsDamage));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::SsSpeed));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::SsRegen));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::CKnockback));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::CDamage));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::CDrain));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::CSpeed));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::LUnlockLeap));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::LDamage));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::LCost));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::LDistance));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::LKnockback));
-                        skillset = skillset.with_skill(Skill::Hammer(HammerSkill::LRange));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Hammer))
+                            .with_skill(Skill::Hammer(HammerSkill::SsKnockback))
+                            .with_skill(Skill::Hammer(HammerSkill::SsDamage))
+                            .with_skill(Skill::Hammer(HammerSkill::SsSpeed))
+                            .with_skill(Skill::Hammer(HammerSkill::SsRegen))
+                            .with_skill(Skill::Hammer(HammerSkill::CKnockback))
+                            .with_skill(Skill::Hammer(HammerSkill::CDamage))
+                            .with_skill(Skill::Hammer(HammerSkill::CDrain))
+                            .with_skill(Skill::Hammer(HammerSkill::CSpeed))
+                            .with_skill(Skill::Hammer(HammerSkill::UnlockLeap))
+                            .with_skill(Skill::Hammer(HammerSkill::LDamage))
+                            .with_skill(Skill::Hammer(HammerSkill::LCost))
+                            .with_skill(Skill::Hammer(HammerSkill::LDistance))
+                            .with_skill(Skill::Hammer(HammerSkill::LKnockback))
+                            .with_skill(Skill::Hammer(HammerSkill::LRange))
                     },
                     Some(ToolKind::Bow) => {
                         // Bow
-                        skillset = skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Bow));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::BDamage));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::ProjSpeed));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::BRegen));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::CDamage));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::CKnockback));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::CProjSpeed));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::CDrain));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::CSpeed));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::CMove));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::UnlockRepeater));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::RDamage));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::RGlide));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::RArrows));
-                        skillset = skillset.with_skill(Skill::Bow(BowSkill::RCost));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Bow))
+                            .with_skill(Skill::Bow(BowSkill::BDamage))
+                            .with_skill(Skill::Bow(BowSkill::ProjSpeed))
+                            .with_skill(Skill::Bow(BowSkill::BRegen))
+                            .with_skill(Skill::Bow(BowSkill::CDamage))
+                            .with_skill(Skill::Bow(BowSkill::CKnockback))
+                            .with_skill(Skill::Bow(BowSkill::CProjSpeed))
+                            .with_skill(Skill::Bow(BowSkill::CDrain))
+                            .with_skill(Skill::Bow(BowSkill::CSpeed))
+                            .with_skill(Skill::Bow(BowSkill::CMove))
+                            .with_skill(Skill::Bow(BowSkill::UnlockRepeater))
+                            .with_skill(Skill::Bow(BowSkill::RDamage))
+                            .with_skill(Skill::Bow(BowSkill::RGlide))
+                            .with_skill(Skill::Bow(BowSkill::RArrows))
+                            .with_skill(Skill::Bow(BowSkill::RCost))
                     },
                     Some(ToolKind::Staff) => {
                         // Staff
-                        skillset =
-                            skillset.with_skill_group(SkillGroupType::Weapon(ToolKind::Staff));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::BExplosion));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::BDamage));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::BRegen));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::BRadius));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::FDamage));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::FRange));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::FDrain));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::FVelocity));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::UnlockShockwave));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::SDamage));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::SKnockback));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::SRange));
-                        skillset = skillset.with_skill(Skill::Staff(StaffSkill::SCost));
+                        Self::default()
+                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Staff))
+                            .with_skill(Skill::Staff(StaffSkill::BExplosion))
+                            .with_skill(Skill::Staff(StaffSkill::BDamage))
+                            .with_skill(Skill::Staff(StaffSkill::BRegen))
+                            .with_skill(Skill::Staff(StaffSkill::BRadius))
+                            .with_skill(Skill::Staff(StaffSkill::FDamage))
+                            .with_skill(Skill::Staff(StaffSkill::FRange))
+                            .with_skill(Skill::Staff(StaffSkill::FDrain))
+                            .with_skill(Skill::Staff(StaffSkill::FVelocity))
+                            .with_skill(Skill::Staff(StaffSkill::UnlockShockwave))
+                            .with_skill(Skill::Staff(StaffSkill::SDamage))
+                            .with_skill(Skill::Staff(StaffSkill::SKnockback))
+                            .with_skill(Skill::Staff(StaffSkill::SRange))
+                            .with_skill(Skill::Staff(StaffSkill::SCost))
                     },
-                    _ => {},
+                    _ => Self::default(),
                 }
             },
-            Some(Villager) | None => {},
+            Some(Villager) | None => Self::default(),
         }
-
-        skillset
     }
 
     pub fn with_skill(mut self, skill: Skill) -> Self {

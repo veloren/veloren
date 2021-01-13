@@ -92,7 +92,7 @@ pub enum SwordSkill {
     DSpeed,
     DInfinite,
     // Spin upgrades
-    SUnlockSpin,
+    UnlockSpin,
     SDamage,
     SSpeed,
     SCost,
@@ -113,7 +113,7 @@ pub enum AxeSkill {
     SSpeed,
     SCost,
     // Leap upgrades
-    LUnlockLeap,
+    UnlockLeap,
     LDamage,
     LKnockback,
     LCost,
@@ -133,7 +133,7 @@ pub enum HammerSkill {
     CDrain,
     CSpeed,
     // Leap upgrades
-    LUnlockLeap,
+    UnlockLeap,
     LDamage,
     LCost,
     LDistance,
@@ -635,24 +635,21 @@ mod tests {
         let mut skillset = SkillSet::default();
         skillset.unlock_skill_group(SkillGroupType::Weapon(ToolKind::Axe));
         skillset.add_skill_points(SkillGroupType::Weapon(ToolKind::Axe), 1);
-        skillset.unlock_skill(Skill::Axe(AxeSkill::LUnlockLeap));
+        skillset.unlock_skill(Skill::Axe(AxeSkill::UnlockLeap));
 
         assert_eq!(skillset.skill_groups[1].available_sp, 0);
         assert_eq!(skillset.skills.len(), 1);
         assert_eq!(
             skillset
                 .skills
-                .contains_key(&Skill::Axe(AxeSkill::LUnlockLeap)),
+                .contains_key(&Skill::Axe(AxeSkill::UnlockLeap)),
             true
         );
 
-        skillset.refund_skill(Skill::Axe(AxeSkill::LUnlockLeap));
+        skillset.refund_skill(Skill::Axe(AxeSkill::UnlockLeap));
 
         assert_eq!(skillset.skill_groups[1].available_sp, 1);
-        assert_eq!(
-            skillset.skills.get(&Skill::Axe(AxeSkill::LUnlockLeap)),
-            None
-        );
+        assert_eq!(skillset.skills.get(&Skill::Axe(AxeSkill::UnlockLeap)), None);
     }
 
     #[test]
@@ -678,14 +675,14 @@ mod tests {
         assert_eq!(skillset.skills.len(), 0);
 
         // Try unlocking a skill with enough skill points
-        skillset.unlock_skill(Skill::Axe(AxeSkill::LUnlockLeap));
+        skillset.unlock_skill(Skill::Axe(AxeSkill::UnlockLeap));
 
         assert_eq!(skillset.skill_groups[1].available_sp, 0);
         assert_eq!(skillset.skills.len(), 1);
         assert_eq!(
             skillset
                 .skills
-                .contains_key(&Skill::Axe(AxeSkill::LUnlockLeap)),
+                .contains_key(&Skill::Axe(AxeSkill::UnlockLeap)),
             true
         );
 

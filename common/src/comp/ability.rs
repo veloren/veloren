@@ -307,9 +307,9 @@ impl CharacterAbility {
         CharacterAbility::Roll {
             energy_cost: 150,
             buildup_duration: 100,
-            movement_duration: 250,
+            movement_duration: 180,
             recover_duration: 150,
-            roll_strength: 2.5,
+            roll_strength: 1.8,
             immune_melee: false,
         }
     }
@@ -1035,7 +1035,7 @@ impl CharacterAbility {
                         *energy_cost = (*energy_cost as f32 * 0.8_f32.powi(level.into())) as u32;
                     }
                     if let Some(level) = skills.get(&Skill::Roll(Strength)).copied().flatten() {
-                        *roll_strength *= 1.3_f32.powi(level.into());
+                        *roll_strength *= 1.2_f32.powi(level.into());
                     }
                     if let Some(level) = skills.get(&Skill::Roll(Duration)).copied().flatten() {
                         *movement_duration =

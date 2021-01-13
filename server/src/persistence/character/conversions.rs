@@ -5,7 +5,7 @@ use crate::persistence::{
 
 use crate::persistence::{
     error::Error,
-    json_models::{CharacterPosition, HumanoidBody},
+    json_models::{self, CharacterPosition, HumanoidBody},
 };
 use common::{
     character::CharacterId,
@@ -367,15 +367,7 @@ fn get_item_from_asset(item_definition_id: &str) -> Result<common::comp::Item, E
 fn convert_skill_groups_from_database(skill_groups: &[SkillGroup]) -> Vec<skills::SkillGroup> {
     let mut new_skill_groups = Vec::new();
     for skill_group in skill_groups.iter() {
-        let skill_group_type =
-            serde_json::de::from_str::<skills::SkillGroupType>(&skill_group.skill_group_type)
-                .map_err(|err| {
-                    Error::ConversionError(format!(
-                        "Error de-serializing skill group: {} err: {}",
-                        skill_group.skill_group_type, err
-                    ))
-                })
-                .unwrap();
+        let skill_group_type = json_models::db_string_to_skill_group(&skill_group.skill_group_type);
         let new_skill_group = skills::SkillGroup {
             skill_group_type,
             exp: skill_group.exp as u16,
@@ -390,28 +382,21 @@ fn convert_skill_groups_from_database(skill_groups: &[SkillGroup]) -> Vec<skills
 fn convert_skills_from_database(skills: &[Skill]) -> HashMap<skills::Skill, skills::Level> {
     let mut new_skills = HashMap::new();
     for skill in skills.iter() {
-        let new_skill = serde_json::de::from_str::<skills::Skill>(&skill.skill_type)
-            .map_err(|err| {
-                Error::ConversionError(format!(
-                    "Error de-serializing skill: {} err: {}",
-                    skill.skill_type, err
-                ))
-            })
-            .unwrap();
+        let new_skill = json_models::db_string_to_skill(&skill.skill_type);
         new_skills.insert(new_skill, skill.level.map(|l| l as u16));
     }
     new_skills
 }
 
 pub fn convert_skill_groups_to_database(
-    character_id: CharacterId,
+    entity_id: CharacterId,
     skill_groups: Vec<skills::SkillGroup>,
 ) -> Vec<SkillGroup> {
     let db_skill_groups: Vec<_> = skill_groups
         .into_iter()
         .map(|sg| SkillGroup {
-            character_id,
-            skill_group_type: serde_json::to_string(&sg.skill_group_type).unwrap(),
+            entity_id,
+            skill_group_type: json_models::skill_group_to_db_string(sg.skill_group_type),
             exp: sg.exp as i32,
             available_sp: sg.available_sp as i32,
             earned_sp: sg.earned_sp as i32,
@@ -421,14 +406,14 @@ pub fn convert_skill_groups_to_database(
 }
 
 pub fn convert_skills_to_database(
-    character_id: CharacterId,
+    entity_id: CharacterId,
     skills: HashMap<skills::Skill, skills::Level>,
 ) -> Vec<Skill> {
     let db_skills: Vec<_> = skills
         .iter()
         .map(|(s, l)| Skill {
-            character_id,
-            skill_type: serde_json::to_string(&s).unwrap(),
+            entity_id,
+            skill_type: json_models::skill_to_db_string(*s),
             level: l.map(|l| l as i32),
         })
         .collect();

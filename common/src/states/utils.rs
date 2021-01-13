@@ -491,7 +491,7 @@ pub fn handle_ability3_input(data: &JoinData, update: &mut StateUpdate) {
                                 .stats
                                 .skill_set
                                 .skills
-                                .contains_key(&Skill::Sword(SwordSkill::SUnlockSpin)) =>
+                                .contains_key(&Skill::Sword(SwordSkill::UnlockSpin)) =>
                         {
                             None
                         },
@@ -500,7 +500,7 @@ pub fn handle_ability3_input(data: &JoinData, update: &mut StateUpdate) {
                                 .stats
                                 .skill_set
                                 .skills
-                                .contains_key(&Skill::Axe(AxeSkill::LUnlockLeap)) =>
+                                .contains_key(&Skill::Axe(AxeSkill::UnlockLeap)) =>
                         {
                             None
                         },
@@ -509,7 +509,7 @@ pub fn handle_ability3_input(data: &JoinData, update: &mut StateUpdate) {
                                 .stats
                                 .skill_set
                                 .skills
-                                .contains_key(&Skill::Hammer(HammerSkill::LUnlockLeap)) =>
+                                .contains_key(&Skill::Hammer(HammerSkill::UnlockLeap)) =>
                         {
                             None
                         },
