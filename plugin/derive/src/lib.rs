@@ -14,6 +14,7 @@ pub fn event_handler(_args: TokenStream, item: TokenStream) -> TokenStream {
     let fn_return = sig.output; // comma separated args
 
     let out: proc_macro2::TokenStream = quote! {
+        #[allow(clippy::unnecessary_wraps)]
         #[no_mangle]
         pub fn #fn_name(intern__ptr: i32, intern__len: u32) -> i32 {
             let input = ::veloren_plugin_rt::read_input(intern__ptr,intern__len).unwrap();
