@@ -1,18 +1,10 @@
-check:
-  extends: .recompile-branch
-  stage: check
-  script:
-    - ln -s /dockercache/cache-all target
-    - cargo check --locked
-    - cargo check --examples --locked
-
+# cargo clippy is a superset of cargo check, so we don't check manually
 code-quality:
   extends: .recompile-branch
   stage: check
   script:
     - ln -s /dockercache/cache-all target
-    - cargo clippy -- -D warnings
-    - cargo clippy --tests -- -D warnings
+    - cargo clippy --tests --examples --benches --bins --locked -- -D warnings
     - cargo fmt --all -- --check
 
 security:
