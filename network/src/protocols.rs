@@ -4,8 +4,8 @@ use crate::{
     participant::C2pFrame,
     types::{Cid, Frame},
 };
-use async_std::{
-    io::prelude::*,
+use tokio::{
+    io::{AsyncReadExt, AsyncWriteExt},
     net::{TcpStream, UdpSocket},
 };
 
@@ -43,7 +43,8 @@ pub(crate) enum Protocols {
 
 #[derive(Debug)]
 pub(crate) struct TcpProtocol {
-    stream: TcpStream,
+    read_stream: tokio::sync::Mutex<tokio::net::tcp::OwnedReadHalf>,
+    write_stream: tokio::sync::Mutex<tokio::net::tcp::OwnedWriteHalf>,
     #[cfg(feature = "metrics")]
     metrics: Arc<NetworkMetrics>,
 }
@@ -63,14 +64,16 @@ impl TcpProtocol {
         stream: TcpStream,
         #[cfg(feature = "metrics")] metrics: Arc<NetworkMetrics>,
     ) -> Self {
+        let (read_stream, write_stream) = stream.into_split();
         Self {
-            stream,
+            read_stream: tokio::sync::Mutex::new(read_stream),
+            write_stream: tokio::sync::Mutex::new(write_stream),
             #[cfg(feature = "metrics")]
             metrics,
         }
     }
 
-    async fn read_frame<R: ReadExt + std::marker::Unpin>(
+    async fn read_frame<R: AsyncReadExt + std::marker::Unpin>(
         r: &mut R,
         mut end_receiver: &mut Fuse<oneshot::Receiver<()>>,
     ) -> Result<Frame, Option<std::io::Error>> {
@@ -167,11 +170,11 @@ impl TcpProtocol {
             .metrics
             .wire_in_throughput
             .with_label_values(&[&cid.to_string()]);
-        let mut stream = self.stream.clone();
+        let mut read_stream = self.read_stream.lock().await;
         let mut end_r = end_r.fuse();
 
         loop {
-            match Self::read_frame(&mut stream, &mut end_r).await {
+            match Self::read_frame(&mut *read_stream, &mut end_r).await {
                 Ok(frame) => {
                     #[cfg(feature = "metrics")]
                     {
@@ -209,7 +212,7 @@ impl TcpProtocol {
         trace!("Shutting down tcp read()");
     }
 
-    pub async fn write_frame<W: WriteExt + std::marker::Unpin>(
+    pub async fn write_frame<W: AsyncWriteExt + std::marker::Unpin>(
         w: &mut W,
         frame: Frame,
     ) -> Result<(), std::io::Error> {
@@ -270,7 +273,7 @@ impl TcpProtocol {
 
     pub async fn write_to_wire(&self, cid: Cid, mut c2w_frame_r: mpsc::UnboundedReceiver<Frame>) {
         trace!("Starting up tcp write()");
-        let mut stream = self.stream.clone();
+        let mut write_stream = self.write_stream.lock().await;
         #[cfg(feature = "metrics")]
         let mut metrics_cache = CidFrameCache::new(self.metrics.frames_wire_out_total.clone(), cid);
         #[cfg(feature = "metrics")]
@@ -294,7 +297,7 @@ impl TcpProtocol {
                     throughput_cache.inc_by(data.len() as u64);
                 }
             }
-            if let Err(e) = Self::write_frame(&mut stream, frame).await {
+            if let Err(e) = Self::write_frame(&mut *write_stream, frame).await {
                 info!(
                     ?e,
                     "Got an error writing to tcp, going to close this channel"
@@ -498,7 +501,7 @@ impl UdpProtocol {
 mod tests {
     use super::*;
     use crate::{metrics::NetworkMetrics, types::Pid};
-    use async_std::net;
+    use tokio::net;
     use futures::{executor::block_on, stream::StreamExt};
     use std::sync::Arc;
 
@@ -534,7 +537,7 @@ mod tests {
                 })
             });
             // Assert than we get some value back! Its a Handshake!
-            //async_std::task::sleep(std::time::Duration::from_millis(1000));
+            //tokio::task::sleep(std::time::Duration::from_millis(1000));
             let (cid_r, frame) = w2c_cid_frame_r.next().await.unwrap();
             assert_eq!(cid, cid_r);
             if let Ok(Frame::Handshake {

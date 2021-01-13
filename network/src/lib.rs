@@ -39,7 +39,7 @@
 //!
 //! # Examples
 //! ```rust
-//! use async_std::task::sleep;
+//! use tokio::task::sleep;
 //! use futures::{executor::block_on, join};
 //! use veloren_network::{Network, Pid, Promises, ProtocolAddr};
 //!

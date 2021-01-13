@@ -28,6 +28,7 @@ futures-util = "0.3.7"
 futures-executor = "0.3"
 futures-timer = "3.0"
 futures-channel = "0.3"
+tokio = { version = "1.0.1", default-features = false, features = ["rt"] }
 itertools = "0.9"
 lazy_static = "1.4.0"
 scan_fmt = { git = "https://github.com/Imberflur/scan_fmt" }

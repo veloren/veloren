@@ -8,7 +8,8 @@ use crate::{
     protocols::Protocols,
     types::{Cid, Frame, Pid, Prio, Promises, Sid},
 };
-use async_std::sync::{Mutex, RwLock};
+use tokio::sync::{Mutex, RwLock};
+use tokio::runtime::Runtime;
 use futures::{
     channel::{mpsc, oneshot},
     future::FutureExt,
@@ -71,6 +72,7 @@ pub struct BParticipant {
     remote_pid: Pid,
     remote_pid_string: String, //optimisation
     offset_sid: Sid,
+    runtime: Arc<Runtime>,
     channels: Arc<RwLock<HashMap<Cid, Mutex<ChannelInfo>>>>,
     streams: RwLock<HashMap<Sid, StreamInfo>>,
     running_mgr: AtomicUsize,
@@ -86,6 +88,7 @@ impl BParticipant {
     pub(crate) fn new(
         remote_pid: Pid,
         offset_sid: Sid,
+        runtime: Arc<Runtime>,
         #[cfg(feature = "metrics")] metrics: Arc<NetworkMetrics>,
     ) -> (
         Self,
@@ -120,6 +123,7 @@ impl BParticipant {
                 remote_pid,
                 remote_pid_string: remote_pid.to_string(),
                 offset_sid,
+                runtime,
                 channels: Arc::new(RwLock::new(HashMap::new())),
                 streams: RwLock::new(HashMap::new()),
                 running_mgr: AtomicUsize::new(0),
@@ -213,7 +217,7 @@ impl BParticipant {
                 .send((self.remote_pid, len as u64, /*  */ 0))
                 .await
                 .unwrap();
-            async_std::task::sleep(TICK_TIME).await;
+            tokio::time::sleep(TICK_TIME).await;
             i += 1;
             if i.rem_euclid(1000) == 0 {
                 trace!("Did 1000 ticks");
@@ -659,7 +663,7 @@ impl BParticipant {
         //Wait for other bparticipants mgr to close via AtomicUsize
         const SLEEP_TIME: Duration = Duration::from_millis(5);
         const ALLOWED_MANAGER: usize = 1;
-        async_std::task::sleep(SLEEP_TIME).await;
+        tokio::time::sleep(SLEEP_TIME).await;
         let mut i: u32 = 1;
         while self.running_mgr.load(Ordering::Relaxed) > ALLOWED_MANAGER {
             i += 1;
@@ -670,7 +674,7 @@ impl BParticipant {
                     self.running_mgr.load(Ordering::Relaxed) - ALLOWED_MANAGER
                 );
             }
-            async_std::task::sleep(SLEEP_TIME * i).await;
+            tokio::time::sleep(SLEEP_TIME * i).await;
         }
         trace!("All BParticipant mgr (except me) are shut down now");
 
@@ -843,6 +847,7 @@ impl BParticipant {
             prio,
             promises,
             send_closed,
+            Arc::clone(&self.runtime),
             a2p_msg_s,
             b2a_msg_recv_r,
             a2b_close_stream_s.clone(),

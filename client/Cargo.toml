@@ -21,6 +21,7 @@ uvth = "3.1.1"
 futures-util = "0.3.7"
 futures-executor = "0.3"
 futures-timer = "3.0"
+tokio = { version = "1.0.1", default-features = false, features = ["rt"] }
 image = { version = "0.23.12", default-features = false, features = ["png"] }
 num = "0.3.1"
 num_cpus = "1.10.1"

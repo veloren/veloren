@@ -82,6 +82,8 @@ impl Singleplayer {
         let editable_settings = server::EditableSettings::singleplayer(&server_data_dir);
 
         let thread_pool = client.map(|c| c.thread_pool().clone());
+        let cores = num_cpus::get();
+        let runtime = Arc::new(tokio::runtime::Builder::new_multi_thread().enable_all().worker_threads(if cores > 4 {cores-1} else {cores}).build().unwrap());
         let settings2 = settings.clone();
 
         let paused = Arc::new(AtomicBool::new(false));
@@ -92,7 +94,7 @@ impl Singleplayer {
         let thread = thread::spawn(move || {
             let mut server = None;
             if let Err(e) = result_sender.send(
-                match Server::new(settings2, editable_settings, &server_data_dir) {
+                match Server::new(settings2, editable_settings, &server_data_dir, runtime) {
                     Ok(s) => {
                         server = Some(s);
                         Ok(())

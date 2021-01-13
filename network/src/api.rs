@@ -8,7 +8,8 @@ use crate::{
     scheduler::Scheduler,
     types::{Mid, Pid, Prio, Promises, Sid},
 };
-use async_std::{io, sync::Mutex, task};
+use tokio::{io, sync::Mutex};
+use tokio::runtime::Runtime;
 use futures::{
     channel::{mpsc, oneshot},
     sink::SinkExt,
@@ -50,6 +51,7 @@ pub enum ProtocolAddr {
 pub struct Participant {
     local_pid: Pid,
     remote_pid: Pid,
+    runtime: Arc<Runtime>,
     a2b_stream_open_s: Mutex<mpsc::UnboundedSender<A2bStreamOpen>>,
     b2a_stream_opened_r: Mutex<mpsc::UnboundedReceiver<Stream>>,
     a2s_disconnect_s: A2sDisconnect,
@@ -76,6 +78,7 @@ pub struct Stream {
     prio: Prio,
     promises: Promises,
     send_closed: Arc<AtomicBool>,
+    runtime: Arc<Runtime>,
     a2b_msg_s: crossbeam_channel::Sender<(Prio, Sid, OutgoingMessage)>,
     b2a_msg_recv_r: Option<mpsc::UnboundedReceiver<IncomingMessage>>,
     a2b_close_stream_s: Option<mpsc::UnboundedSender<Sid>>,
@@ -150,9 +153,10 @@ pub enum StreamError {
 /// [`connected`]: Network::connected
 pub struct Network {
     local_pid: Pid,
+    runtime: Arc<Runtime>,
     participant_disconnect_sender: Mutex<HashMap<Pid, A2sDisconnect>>,
     listen_sender:
-        Mutex<mpsc::UnboundedSender<(ProtocolAddr, oneshot::Sender<async_std::io::Result<()>>)>>,
+        Mutex<mpsc::UnboundedSender<(ProtocolAddr, oneshot::Sender<tokio::io::Result<()>>)>>,
     connect_sender:
         Mutex<mpsc::UnboundedSender<(ProtocolAddr, oneshot::Sender<io::Result<Participant>>)>>,
     connected_receiver: Mutex<mpsc::UnboundedReceiver<Participant>>,
@@ -165,17 +169,12 @@ impl Network {
     /// # Arguments
     /// * `participant_id` - provide it by calling [`Pid::new()`], usually you
     ///   don't want to reuse a Pid for 2 `Networks`
+    /// * `runtime` - provide a tokio::Runtime, it's used to internally spawn tasks
     ///
     /// # Result
     /// * `Self` - returns a `Network` which can be `Send` to multiple areas of
     ///   your code, including multiple threads. This is the base strct of this
     ///   crate.
-    /// * `FnOnce` - you need to run the returning FnOnce exactly once, probably
-    ///   in it's own thread. this is NOT done internally, so that you are free
-    ///   to choose the threadpool implementation of your choice. We recommend
-    ///   using [`ThreadPool`] from [`uvth`] crate. This fn will run the
-    ///   Scheduler to handle all `Network` internals. Additional threads will
-    ///   be allocated on an internal async-aware threadpool
     ///
     /// # Examples
     /// ```rust
@@ -204,9 +203,10 @@ impl Network {
     /// [`Pid::new()`]: crate::types::Pid::new
     /// [`ThreadPool`]: https://docs.rs/uvth/newest/uvth/struct.ThreadPool.html
     /// [`uvth`]: https://docs.rs/uvth
-    pub fn new(participant_id: Pid) -> (Self, impl std::ops::FnOnce()) {
+    pub fn new(participant_id: Pid, runtime: Arc<Runtime>) -> Self {
         Self::internal_new(
             participant_id,
+            runtime,
             #[cfg(feature = "metrics")]
             None,
         )
@@ -232,42 +232,46 @@ impl Network {
     #[cfg(feature = "metrics")]
     pub fn new_with_registry(
         participant_id: Pid,
+        runtime: Arc<Runtime>,
         registry: &Registry,
-    ) -> (Self, impl std::ops::FnOnce()) {
-        Self::internal_new(participant_id, Some(registry))
+    ) -> Self {
+        Self::internal_new(participant_id, runtime, Some(registry))
     }
 
     fn internal_new(
         participant_id: Pid,
+        runtime: Arc<Runtime>,
         #[cfg(feature = "metrics")] registry: Option<&Registry>,
-    ) -> (Self, impl std::ops::FnOnce()) {
+    ) -> Self {
         let p = participant_id;
         debug!(?p, "Starting Network");
         let (scheduler, listen_sender, connect_sender, connected_receiver, shutdown_sender) =
             Scheduler::new(
                 participant_id,
+                Arc::clone(&runtime),
                 #[cfg(feature = "metrics")]
                 registry,
             );
-        (
-            Self {
-                local_pid: participant_id,
-                participant_disconnect_sender: Mutex::new(HashMap::new()),
-                listen_sender: Mutex::new(listen_sender),
-                connect_sender: Mutex::new(connect_sender),
-                connected_receiver: Mutex::new(connected_receiver),
-                shutdown_sender: Some(shutdown_sender),
-            },
-            move || {
+        runtime.spawn(
+            async move {
                 trace!(?p, "Starting scheduler in own thread");
-                let _handle = task::block_on(
+                let _handle = tokio::spawn(
                     scheduler
                         .run()
                         .instrument(tracing::info_span!("scheduler", ?p)),
                 );
                 trace!(?p, "Stopping scheduler and his own thread");
-            },
-        )
+            }
+        );
+        Self {
+            local_pid: participant_id,
+            runtime: runtime,
+            participant_disconnect_sender: Mutex::new(HashMap::new()),
+            listen_sender: Mutex::new(listen_sender),
+            connect_sender: Mutex::new(connect_sender),
+            connected_receiver: Mutex::new(connected_receiver),
+            shutdown_sender: Some(shutdown_sender),
+        }
     }
 
     /// starts listening on an [`ProtocolAddr`].
@@ -300,7 +304,7 @@ impl Network {
     ///
     /// [`connected`]: Network::connected
     pub async fn listen(&self, address: ProtocolAddr) -> Result<(), NetworkError> {
-        let (s2a_result_s, s2a_result_r) = oneshot::channel::<async_std::io::Result<()>>();
+        let (s2a_result_s, s2a_result_r) = oneshot::channel::<tokio::io::Result<()>>();
         debug!(?address, "listening on address");
         self.listen_sender
             .lock()
@@ -426,6 +430,7 @@ impl Participant {
     pub(crate) fn new(
         local_pid: Pid,
         remote_pid: Pid,
+        runtime: Arc<Runtime>,
         a2b_stream_open_s: mpsc::UnboundedSender<A2bStreamOpen>,
         b2a_stream_opened_r: mpsc::UnboundedReceiver<Stream>,
         a2s_disconnect_s: mpsc::UnboundedSender<(Pid, S2bShutdownBparticipant)>,
@@ -433,6 +438,7 @@ impl Participant {
         Self {
             local_pid,
             remote_pid,
+            runtime,
             a2b_stream_open_s: Mutex::new(a2b_stream_open_s),
             b2a_stream_opened_r: Mutex::new(b2a_stream_opened_r),
             a2s_disconnect_s: Arc::new(Mutex::new(Some(a2s_disconnect_s))),
@@ -655,6 +661,7 @@ impl Stream {
         prio: Prio,
         promises: Promises,
         send_closed: Arc<AtomicBool>,
+        runtime: Arc<Runtime>,
         a2b_msg_s: crossbeam_channel::Sender<(Prio, Sid, OutgoingMessage)>,
         b2a_msg_recv_r: mpsc::UnboundedReceiver<IncomingMessage>,
         a2b_close_stream_s: mpsc::UnboundedSender<Sid>,
@@ -666,6 +673,7 @@ impl Stream {
             prio,
             promises,
             send_closed,
+            runtime,
             a2b_msg_s,
             b2a_msg_recv_r: Some(b2a_msg_recv_r),
             a2b_close_stream_s: Some(a2b_close_stream_s),
@@ -960,7 +968,7 @@ impl Drop for Network {
             "Shutting down Participants of Network, while we still have metrics"
         );
         let mut finished_receiver_list = vec![];
-        task::block_on(async {
+        self.runtime.block_on(async {
             // we MUST avoid nested block_on, good that Network::Drop no longer triggers
             // Participant::Drop directly but just the BParticipant
             for (remote_pid, a2s_disconnect_s) in
@@ -1013,14 +1021,14 @@ impl Drop for Participant {
         let pid = self.remote_pid;
         debug!(?pid, "Shutting down Participant");
 
-        match task::block_on(self.a2s_disconnect_s.lock()).take() {
+        match self.runtime.block_on(self.a2s_disconnect_s.lock()).take() {
             None => trace!(
                 ?pid,
                 "Participant has been shutdown cleanly, no further waiting is required!"
             ),
             Some(mut a2s_disconnect_s) => {
                 debug!(?pid, "Disconnect from Scheduler");
-                task::block_on(async {
+                self.runtime.block_on(async {
                     let (finished_sender, finished_receiver) = oneshot::channel();
                     a2s_disconnect_s
                         .send((self.remote_pid, finished_sender))
@@ -1051,7 +1059,7 @@ impl Drop for Stream {
             let sid = self.sid;
             let pid = self.pid;
             debug!(?pid, ?sid, "Shutting down Stream");
-            task::block_on(self.a2b_close_stream_s.take().unwrap().send(self.sid))
+            self.runtime.block_on(self.a2b_close_stream_s.take().unwrap().send(self.sid))
                 .expect("bparticipant part of a gracefully shutdown must have crashed");
         } else {
             let sid = self.sid;

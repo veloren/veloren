@@ -7,10 +7,10 @@ use crate::{
     protocols::{Protocols, TcpProtocol, UdpProtocol},
     types::Pid,
 };
-use async_std::{io, net, sync::Mutex};
+use tokio::{io, net, sync::Mutex};
+use tokio::runtime::Runtime;
 use futures::{
     channel::{mpsc, oneshot},
-    executor::ThreadPool,
     future::FutureExt,
     select,
     sink::SinkExt,
@@ -68,9 +68,9 @@ struct ParticipantChannels {
 #[derive(Debug)]
 pub struct Scheduler {
     local_pid: Pid,
+    runtime: Arc<Runtime>,
     local_secret: u128,
     closed: AtomicBool,
-    pool: Arc<ThreadPool>,
     run_channels: Option<ControlChannels>,
     participant_channels: Arc<Mutex<Option<ParticipantChannels>>>,
     participants: Arc<Mutex<HashMap<Pid, ParticipantInfo>>>,
@@ -83,6 +83,7 @@ pub struct Scheduler {
 impl Scheduler {
     pub fn new(
         local_pid: Pid,
+        runtime: Arc<Runtime>,
         #[cfg(feature = "metrics")] registry: Option<&Registry>,
     ) -> (
         Self,
@@ -128,9 +129,9 @@ impl Scheduler {
         (
             Self {
                 local_pid,
+                runtime,
                 local_secret,
                 closed: AtomicBool::new(false),
-                pool: Arc::new(ThreadPool::new().unwrap()),
                 run_channels,
                 participant_channels: Arc::new(Mutex::new(Some(participant_channels))),
                 participants: Arc::new(Mutex::new(HashMap::new())),
@@ -247,7 +248,7 @@ impl Scheduler {
                         Arc::clone(&self.metrics),
                         udp_data_receiver,
                     );
-                    self.pool.spawn_ok(
+                    self.runtime.spawn(
                         Self::udp_single_channel_connect(Arc::clone(&socket), udp_data_sender)
                             .instrument(tracing::info_span!("udp", ?addr)),
                     );
@@ -377,27 +378,19 @@ impl Scheduler {
                     },
                 };
                 trace!(?addr, "Listener bound");
-                let mut incoming = listener.incoming();
                 let mut end_receiver = s2s_stop_listening_r.fuse();
-                while let Some(stream) = select! {
-                    next = incoming.next().fuse() => next,
+                while let Some(data) = select! {
+                    next = listener.accept().fuse() => Some(next),
                     _ = end_receiver => None,
                 } {
-                    let stream = match stream {
-                        Ok(s) => s,
+                    let (stream, remote_addr) = match data {
+                        Ok((s, p)) => (s, p),
                         Err(e) => {
                             warn!(?e, "TcpStream Error, ignoring connection attempt");
                             continue;
                         },
                     };
-                    let peer_addr = match stream.peer_addr() {
-                        Ok(s) => s,
-                        Err(e) => {
-                            warn!(?e, "TcpStream Error, ignoring connection attempt");
-                            continue;
-                        },
-                    };
-                    info!("Accepting Tcp from: {}", peer_addr);
+                    info!("Accepting Tcp from: {}", remote_addr);
                     let protocol = TcpProtocol::new(
                         stream,
                         #[cfg(feature = "metrics")]
@@ -505,13 +498,13 @@ impl Scheduler {
         // the UDP listening is done in another place.
         let cid = self.channel_ids.fetch_add(1, Ordering::Relaxed);
         let participants = Arc::clone(&self.participants);
+        let runtime = Arc::clone(&self.runtime);
         #[cfg(feature = "metrics")]
         let metrics = Arc::clone(&self.metrics);
-        let pool = Arc::clone(&self.pool);
         let local_pid = self.local_pid;
         let local_secret = self.local_secret;
         // this is necessary for UDP to work at all and to remove code duplication
-        self.pool.spawn_ok(
+        self.runtime.spawn(
             async move {
                 trace!(?cid, "Open channel and be ready for Handshake");
                 let handshake = Handshake::new(
@@ -545,6 +538,7 @@ impl Scheduler {
                             ) = BParticipant::new(
                                 pid,
                                 sid,
+                                Arc::clone(&runtime),
                                 #[cfg(feature = "metrics")]
                                 Arc::clone(&metrics),
                             );
@@ -552,6 +546,7 @@ impl Scheduler {
                             let participant = Participant::new(
                                 local_pid,
                                 pid,
+                                Arc::clone(&runtime),
                                 a2b_stream_open_s,
                                 b2a_stream_opened_r,
                                 participant_channels.a2s_disconnect_s,
@@ -566,7 +561,7 @@ impl Scheduler {
                             });
                             drop(participants);
                             trace!("dropped participants lock");
-                            pool.spawn_ok(
+                            runtime.spawn(
                                 bparticipant
                                     .run(participant_channels.b2s_prio_statistic_s)
                                     .instrument(tracing::info_span!("participant", ?pid)),

@@ -1,6 +1,6 @@
 [package]
 name = "veloren_network"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Marcel Märtens <marcel.cochem@googlemail.com>"]
 edition = "2018"
 
@@ -19,8 +19,7 @@ bincode = "1.3.1"
 serde = { version = "1.0" }
 #sending
 crossbeam-channel = "0.5"
-# NOTE: Upgrading async-std can trigger spontanious crashes for `network`ing. Consider elaborate tests before upgrading
-async-std = { version = "~1.5", default-features = false, features = ["std", "async-task", "default"] }
+tokio = { version = "1.2", default-features = false, features = ["io-util", "macros", "rt", "net", "time"] }
 #tracing and metrics
 tracing = { version = "0.1", default-features = false }
 tracing-futures = "0.2"

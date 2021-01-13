@@ -92,6 +92,7 @@ use std::{
 #[cfg(not(feature = "worldgen"))]
 use test_world::{IndexOwned, World};
 use tracing::{debug, error, info, trace};
+use tokio::runtime::Runtime;
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 
@@ -120,6 +121,7 @@ pub struct Server {
 
     connection_handler: ConnectionHandler,
 
+    runtime: Arc<Runtime>,
     thread_pool: ThreadPool,
 
     metrics: ServerMetrics,
@@ -136,6 +138,7 @@ impl Server {
         settings: Settings,
         editable_settings: EditableSettings,
         data_dir: &std::path::Path,
+        runtime: Arc<Runtime>,
     ) -> Result<Self, Error> {
         info!("Server is data dir is: {}", data_dir.display());
         if settings.auth_server_address.is_none() {
@@ -364,11 +367,10 @@ impl Server {
         let thread_pool = ThreadPoolBuilder::new()
             .name("veloren-worker".to_string())
             .build();
-        let (network, f) = Network::new_with_registry(Pid::new(), &metrics.registry());
+        let network = Network::new_with_registry(Pid::new(), Arc::clone(&runtime), &metrics.registry());
         metrics
             .run(settings.metrics_address)
             .expect("Failed to initialize server metrics submodule.");
-        thread_pool.execute(f);
         block_on(network.listen(ProtocolAddr::Tcp(settings.gameserver_address)))?;
         let connection_handler = ConnectionHandler::new(network);
 
@@ -386,6 +388,7 @@ impl Server {
 
             connection_handler,
 
+            runtime,
             thread_pool,
 
             metrics,
