@@ -48,19 +48,19 @@ pub struct Body {
 }
 
 #[derive(Associations, Identifiable, Insertable, Queryable, Debug)]
-#[primary_key(character_id, skill_type)]
+#[primary_key(entity_id, skill_type)]
 #[table_name = "skill"]
 pub struct Skill {
-    pub character_id: i64,
+    pub entity_id: i64,
     pub skill_type: String,
     pub level: Option<i32>,
 }
 
 #[derive(Associations, Identifiable, Insertable, Queryable, Debug)]
-#[primary_key(character_id, skill_group_type)]
+#[primary_key(entity_id, skill_group_type)]
 #[table_name = "skill_group"]
 pub struct SkillGroup {
-    pub character_id: i64,
+    pub entity_id: i64,
     pub skill_group_type: String,
     pub exp: i32,
     pub available_sp: i32,

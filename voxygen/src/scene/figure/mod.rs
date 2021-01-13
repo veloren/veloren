@@ -1073,7 +1073,7 @@ impl FigureMgr {
                         },
                         CharacterState::SpinMelee(s) => {
                             let stage_progress = match active_tool_kind {
-                                Some(ToolKind::Sword) => {
+                                Some(ToolKind::Axe | ToolKind::Sword) => {
                                     let stage_time = s.timer.as_secs_f64();
                                     match s.stage_section {
                                         StageSection::Buildup => {

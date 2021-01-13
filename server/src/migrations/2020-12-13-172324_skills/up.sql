@@ -53,5 +53,5 @@ CREATE TABLE skill (
 
 -- Inserts starting skill group for everyone
 INSERT INTO skill_group
-SELECT c.character_id, '"General"', 0, 0, 0
+SELECT c.character_id, 'General', 0, 0, 0
 FROM character c

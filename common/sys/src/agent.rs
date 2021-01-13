@@ -583,7 +583,7 @@ impl<'a> System<'a> for Sys {
                                                 } else if *powerup > 4.0 && energy.current() > 10 {
                                                     inputs.secondary.set_state(true);
                                                     *powerup += dt.0;
-                                                } else if stats.skill_set.skills.contains_key(&Skill::Axe(AxeSkill::LUnlockLeap)) && energy.current() > 800 && thread_rng().gen_bool(0.5) {
+                                                } else if stats.skill_set.skills.contains_key(&Skill::Axe(AxeSkill::UnlockLeap)) && energy.current() > 800 && thread_rng().gen_bool(0.5) {
                                                     inputs.ability3.set_state(true);
                                                     *powerup += dt.0;
                                                 } else {
@@ -632,7 +632,7 @@ impl<'a> System<'a> for Sys {
                                                 } else if *powerup > 2.0 {
                                                     inputs.secondary.set_state(true);
                                                     *powerup += dt.0;
-                                                } else if stats.skill_set.skills.contains_key(&Skill::Hammer(HammerSkill::LUnlockLeap)) && energy.current() > 700
+                                                } else if stats.skill_set.skills.contains_key(&Skill::Hammer(HammerSkill::UnlockLeap)) && energy.current() > 700
                                                     && thread_rng().gen_bool(0.9) {
                                                     inputs.ability3.set_state(true);
                                                     *powerup += dt.0;
@@ -662,7 +662,7 @@ impl<'a> System<'a> for Sys {
                                                             .try_normalized()
                                                             .unwrap_or(Vec2::zero())
                                                             * speed;
-                                                        if stats.skill_set.skills.contains_key(&Skill::Hammer(HammerSkill::LUnlockLeap)) && *powerup > 5.0 {
+                                                        if stats.skill_set.skills.contains_key(&Skill::Hammer(HammerSkill::UnlockLeap)) && *powerup > 5.0 {
                                                             inputs.ability3.set_state(true);
                                                             *powerup = 0.0;
                                                         } else {
@@ -690,7 +690,7 @@ impl<'a> System<'a> for Sys {
                                         Tactic::Sword => {
                                             if dist_sqrd < (MIN_ATTACK_DIST * scale).powi(2) {
                                                 inputs.move_dir = Vec2::zero();
-                                                if stats.skill_set.skills.contains_key(&Skill::Sword(SwordSkill::SUnlockSpin)) && *powerup < 2.0 && energy.current() > 600 {
+                                                if stats.skill_set.skills.contains_key(&Skill::Sword(SwordSkill::UnlockSpin)) && *powerup < 2.0 && energy.current() > 600 {
                                                     inputs.ability3.set_state(true);
                                                     *powerup += dt.0;
                                                 } else if *powerup > 2.0 {

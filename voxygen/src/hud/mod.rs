@@ -1152,7 +1152,7 @@ impl Hud {
                             300.0 - (display.timer as f64 - tweak!(2.0)) * tweak!(-300.0)
                         } else {
                             300.0
-                        };                        
+                        };
                         Image::new(self.imgs.level_up)
                             .w_h(328.0, 126.0)
                             .mid_top_with_margin_on(ui_widgets.window, offset)

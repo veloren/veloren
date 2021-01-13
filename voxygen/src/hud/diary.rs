@@ -1275,7 +1275,7 @@ impl<'a> Widget for Diary<'a> {
                     events.push(Event::UnlockSkill(skill));
                 };
                 // Bottom left skills
-                let skill = Skill::Sword(SUnlockSpin);
+                let skill = Skill::Sword(UnlockSpin);
                 if create_skill_button(
                     self.imgs.sword_whirlwind,
                     state.skills_bot_l[0],
@@ -1708,7 +1708,7 @@ impl<'a> Widget for Diary<'a> {
                     events.push(Event::UnlockSkill(skill));
                 };
                 // Bottom left skills
-                let skill = Skill::Axe(LUnlockLeap);
+                let skill = Skill::Axe(UnlockLeap);
                 if create_skill_button(
                     self.imgs.axespin,
                     state.skills_bot_l[0],
@@ -2102,7 +2102,7 @@ impl<'a> Widget for Diary<'a> {
                     events.push(Event::UnlockSkill(skill));
                 };
                 // Bottom left skills
-                let skill = Skill::Hammer(LUnlockLeap);
+                let skill = Skill::Hammer(UnlockLeap);
                 if create_skill_button(
                     self.imgs.hammergolf,
                     state.skills_bot_l[0],
