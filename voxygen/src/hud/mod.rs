@@ -2240,7 +2240,7 @@ impl Hud {
 
         // Don't put NPC messages in chat box.
         self.new_messages
-        .retain(|m| !matches!(m.chat_type, comp::ChatType::Npc(_, _)));
+            .retain(|m| !matches!(m.chat_type, comp::ChatType::Npc(_, _)));
 
         // Chat box
         match Chat::new(

@@ -139,32 +139,32 @@
             central: ("npc.eagle.male.tail"),
         )
     ),
-    (Snowyowl, Male): (
+    (Owl, Male): (
         head: (
             offset: (-3.5, -4.5, -4.0),
-            central: ("npc.snowyowl.male.head"),
+            central: ("npc.owl.male.head"),
         ),
         torso: (
             offset: (-3.5, -5.0, -3.0),
-            central: ("npc.snowyowl.male.torso"),
+            central: ("npc.owl.male.torso"),
         ),
         tail: (
             offset: (-2.5, -3.0, -2.0),
-            central: ("npc.snowyowl.male.tail"),
+            central: ("npc.owl.male.tail"),
         )
     ),
-    (Snowyowl, Female): (
+    (Owl, Female): (
         head: (
-            offset: (-3.5, -4.5, -4.0),
-            central: ("npc.snowyowl.male.head"),
+            offset: (-4.5, -4.5, -4.5),
+            central: ("npc.owl.female.head"),
         ),
         torso: (
-            offset: (-3.5, -5.0, -3.0),
-            central: ("npc.snowyowl.male.torso"),
+            offset: (-3.5, -5.0, -3.5),
+            central: ("npc.owl.female.torso"),
         ),
         tail: (
             offset: (-2.5, -3.0, -2.0),
-            central: ("npc.snowyowl.male.tail"),
+            central: ("npc.owl.female.tail"),
         )
     ),
     (Parrot, Male): (

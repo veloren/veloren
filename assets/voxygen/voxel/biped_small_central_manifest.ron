@@ -131,4 +131,136 @@
             central: ("weapon.spear.adlet"),
         ),
     ),
+    (Gnarling, Male): (
+        head: (
+            offset: (-6.5, -5.5, -4.5),
+            central: ("npc.gnarling.male.head"),
+        ),
+        chest: (
+            offset: (-4.5, -3.5, -2.5),
+            central: ("npc.gnarling.male.chest"),
+        ),
+        shorts: (
+            offset: (-3.5, -3.0, -2.5),
+            central: ("npc.gnarling.male.shorts"),
+        ),
+        tail: (
+            offset: (-1.5, -13.0, -3.0),
+            central: ("npc.gnarling.male.tail"),
+        ),
+        main: (
+            offset: (-0.5, -7.5, -5.0),
+            central: ("weapon.spear.adlet"),
+        ),
+    ),
+    (Gnarling, Female): (
+        head: (
+            offset: (-6.5, -5.5, -4.5),
+            central: ("npc.gnarling.male.head"),
+        ),
+        chest: (
+            offset: (-4.5, -3.5, -2.5),
+            central: ("npc.gnarling.male.chest"),
+        ),
+        shorts: (
+            offset: (-3.5, -3.0, -2.5),
+            central: ("npc.gnarling.male.shorts"),
+        ),
+        tail: (
+            offset: (-1.5, -13.0, -3.0),
+            central: ("npc.gnarling.male.tail"),
+        ),
+        main: (
+            offset: (-0.5, -7.5, -5.0),
+            central: ("weapon.spear.adlet"),
+        ),
+    ),
+    (Mandragora, Male): (
+        head: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        chest: (
+            offset: (-11.0, -11.0, -6.5),
+            central: ("npc.mandragora.male.chest"),
+        ),
+        shorts: (
+            offset: (-3.0, -3.0, -1.0),
+            central: ("npc.mandragora.male.shorts"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        main: (
+            offset: (-0.5, -7.5, -5.0),
+            central: ("weapon.spear.adlet"),
+        ),
+    ),
+    (Mandragora, Female): (
+        head: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        chest: (
+            offset: (-11.0, -11.0, -6.5),
+            central: ("npc.mandragora.male.chest"),
+        ),
+        shorts: (
+            offset: (-3.0, -3.0, -1.0),
+            central: ("npc.mandragora.male.shorts"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        main: (
+            offset: (-0.5, -7.5, -5.0),
+            central: ("weapon.spear.adlet"),
+        ),
+    ),
+    (Kappa, Male): (
+        head: (
+            offset: (-4.5, -5.0, -4.5),
+            central: ("npc.kappa.male.head"),
+        ),
+        chest: (
+            offset: (-6.5, -8.0, -7.0),
+            central: ("npc.kappa.male.chest"),
+        ),
+        shorts: (
+            offset: (-3.5, -4.0, -1.5),
+            central: ("npc.kappa.male.shorts"),
+        ),
+        tail: (
+            offset: (-2.5, -10.0, -5.0),
+            central: ("npc.kappa.male.tail"),
+        ),
+        main: (
+            offset: (-0.5, -7.5, -5.0),
+            central: ("weapon.spear.adlet"),
+        ),
+    ),
+    (Kappa, Female): (
+        head: (
+            offset: (-4.5, -5.0, -4.5),
+            central: ("npc.kappa.male.head"),
+        ),
+        chest: (
+            offset: (-6.5, -8.0, -7.0),
+            central: ("npc.kappa.male.chest"),
+        ),
+        shorts: (
+            offset: (-3.5, -4.0, -1.5),
+            central: ("npc.kappa.male.shorts"),
+        ),
+        tail: (
+            offset: (-2.5, -10.0, -5.0),
+            central: ("npc.kappa.male.tail"),
+        ),
+        main: (
+            offset: (-0.5, -7.5, -5.0),
+            central: ("weapon.spear.adlet"),
+        ),
+    ),
 })

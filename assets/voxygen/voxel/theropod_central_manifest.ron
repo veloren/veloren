@@ -299,4 +299,64 @@
             central: ("npc.raptor_wood.male.tail_back"),
         ),
     ),
+    (Sunlizard, Male): (
+        head: (
+            offset: (-12.5, -1.0, -12.5),
+            central: ("npc.sunlizard.male.head"),
+        ),
+        jaw: (
+            offset: (-2.5, 0.0, -1.0),
+            central: ("npc.sunlizard.male.jaw"),
+        ),
+        neck: (
+            offset: (-1.5, 0.0, -2.0),
+            central: ("npc.sunlizard.male.neck"),
+        ),
+        chest_front: (
+            offset: (-3.5, -3.0, -3.5),
+            central: ("npc.sunlizard.male.chest_front"),
+        ),
+        chest_back: (
+            offset: (-3.5, -10.0, -3.5),
+            central: ("npc.sunlizard.male.chest_back"),
+        ),
+        tail_front: (
+            offset: (-1.5, -11.0, -2.5),
+            central: ("npc.sunlizard.male.tail_front"),
+        ),
+        tail_back: (
+            offset: (-1.5, -30.0, -2.0),
+            central: ("npc.sunlizard.male.tail_back"),
+        ),
+    ),
+    (Sunlizard, Female): (
+        head: (
+            offset: (-12.5, -1.0, -12.5),
+            central: ("npc.sunlizard.male.head"),
+        ),
+        jaw: (
+            offset: (-2.5, 0.0, -1.0),
+            central: ("npc.sunlizard.male.jaw"),
+        ),
+        neck: (
+            offset: (-1.5, 0.0, -2.0),
+            central: ("npc.sunlizard.male.neck"),
+        ),
+        chest_front: (
+            offset: (-3.5, -3.0, -3.5),
+            central: ("npc.sunlizard.male.chest_front"),
+        ),
+        chest_back: (
+            offset: (-3.5, -10.0, -3.5),
+            central: ("npc.sunlizard.male.chest_back"),
+        ),
+        tail_front: (
+            offset: (-1.5, -11.0, -2.5),
+            central: ("npc.sunlizard.male.tail_front"),
+        ),
+        tail_back: (
+            offset: (-1.5, -30.0, -2.0),
+            central: ("npc.sunlizard.male.tail_back"),
+        ),
+    ),
 })

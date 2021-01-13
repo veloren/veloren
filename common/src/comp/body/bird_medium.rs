@@ -39,7 +39,7 @@ make_case_elim!(
         Goose = 2,
         Peacock = 3,
         Eagle = 4,
-        Snowyowl = 5,
+        Owl = 5,
         Parrot = 6,
         Cockatrice = 7,
     }
@@ -55,7 +55,7 @@ pub struct AllSpecies<SpeciesMeta> {
     pub goose: SpeciesMeta,
     pub peacock: SpeciesMeta,
     pub eagle: SpeciesMeta,
-    pub snowyowl: SpeciesMeta,
+    pub owl: SpeciesMeta,
     pub parrot: SpeciesMeta,
     pub cockatrice: SpeciesMeta,
 }
@@ -71,7 +71,7 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
             Species::Goose => &self.goose,
             Species::Peacock => &self.peacock,
             Species::Eagle => &self.eagle,
-            Species::Snowyowl => &self.snowyowl,
+            Species::Owl => &self.owl,
             Species::Parrot => &self.parrot,
             Species::Cockatrice => &self.cockatrice,
         }
@@ -84,7 +84,7 @@ pub const ALL_SPECIES: [Species; 8] = [
     Species::Goose,
     Species::Peacock,
     Species::Eagle,
-    Species::Snowyowl,
+    Species::Owl,
     Species::Parrot,
     Species::Cockatrice,
 ];

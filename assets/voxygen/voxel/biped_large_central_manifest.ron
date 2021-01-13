@@ -599,4 +599,64 @@
             central: ("weapon.staff.firestaff_mindflayer"),
         )
     ),
+    (Minotaur, Male): (
+        head: (
+            offset: (-6.5, 0.0, -8.0),
+            central: ("npc.minotaur.male.head"),
+        ),
+        torso_upper: (
+            offset: (-8.5, -8.0, -10.0),
+            central: ("npc.minotaur.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-5.5, -5.5, -14.0),
+            central: ("npc.minotaur.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        tail: (
+            offset: (-1.5, -17.0, -8.0),
+            central: ("npc.minotaur.male.tail"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        main: (
+            offset: (-5.5, -3.5, -4.0),
+            central: ("weapon.staff.firestaff_mindflayer"),
+        )
+    ),
+    (Minotaur, Female): (
+        head: (
+            offset: (-6.5, 0.0, -8.0),
+            central: ("npc.minotaur.male.head"),
+        ),
+        torso_upper: (
+            offset: (-8.5, -8.0, -10.0),
+            central: ("npc.minotaur.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-5.5, -5.5, -14.0),
+            central: ("npc.minotaur.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        tail: (
+            offset: (-1.5, -17.0, -8.0),
+            central: ("npc.minotaur.male.tail"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        main: (
+            offset: (-5.5, -3.5, -4.0),
+            central: ("weapon.staff.firestaff_mindflayer"),
+        )
+    ),
 })

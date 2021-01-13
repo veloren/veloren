@@ -134,12 +134,16 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
                     .with_body(match rng.gen_range(0, 4) {
-                        0 => {
-                            quadruped_medium::Body::random_with(rng, &quadruped_medium::Species::Mouflon).into()
-                        },
-                        1 => {
-                            quadruped_medium::Body::random_with(rng, &quadruped_medium::Species::Yak).into()
-                        },
+                        0 => quadruped_medium::Body::random_with(
+                            rng,
+                            &quadruped_medium::Species::Mouflon,
+                        )
+                        .into(),
+                        1 => quadruped_medium::Body::random_with(
+                            rng,
+                            &quadruped_medium::Species::Yak,
+                        )
+                        .into(),
                         _ => quadruped_medium::Body::random_with(
                             rng,
                             &quadruped_medium::Species::Highland,
@@ -160,8 +164,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                         0 => {
                             bird_medium::Body::random_with(rng, &bird_medium::Species::Eagle).into()
                         },
-                        1 => bird_medium::Body::random_with(rng, &bird_medium::Species::Snowyowl)
-                            .into(),
+                        1 => bird_medium::Body::random_with(rng, &bird_medium::Species::Owl).into(),
                         2 => quadruped_small::Body {
                             species: quadruped_small::Species::Fox,
                             body_type: quadruped_small::BodyType::Female,
@@ -278,10 +281,11 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                             &quadruped_medium::Species::Horse,
                         )
                         .into(),
-                        10 => {
-                            quadruped_medium::Body::random_with(rng, &quadruped_medium::Species::Cattle)
-                                .into()
-                        },
+                        10 => quadruped_medium::Body::random_with(
+                            rng,
+                            &quadruped_medium::Species::Cattle,
+                        )
+                        .into(),
                         _ => bird_medium::Body::random_with(rng, &bird_medium::Species::Chicken)
                             .into(),
                     })
@@ -668,7 +672,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                         )
                         .into(),
                         1 => quadruped_low::Body::random_with(rng, &quadruped_low::Species::Asp)
-                        .into(),
+                            .into(),
                         2 => {
                             theropod::Body::random_with(rng, &theropod::Species::Sandraptor).into()
                         },

@@ -714,4 +714,32 @@
             central: ("npc.hare.female.tail"),
         ),
     ),
+    (Dog, Male):(
+        head: (
+            offset: (-3.5, 0.0, -4.0),
+            central: ("npc.dog.male.head"),
+        ),
+        chest: (
+            offset: (-2.5, -5.5, -3.5),
+            central: ("npc.dog.male.chest"),
+        ),
+        tail: (
+            offset: (-1.5, -7.0, -1.0),
+            central: ("npc.dog.male.tail"),
+        ),
+    ),
+    (Dog, Female):(
+        head: (
+            offset: (-3.5, 0.0, -4.0),
+            central: ("npc.dog.female.head"),
+        ),
+        chest: (
+            offset: (-2.5, -5.5, -3.5),
+            central: ("npc.dog.female.chest"),
+        ),
+        tail: (
+            offset: (-1.5, -7.0, -1.0),
+            central: ("npc.dog.female.tail"),
+        ),
+    ),
 })

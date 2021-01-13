@@ -145,37 +145,37 @@
     ),
     (Asp, Male): (
         front_left: (
-            offset: (-11.0, 0.0, -7.0),
+            offset: (-17.0, 0.0, -14.0),
             lateral: ("npc.asp.male.foot_fl"),
         ),
         front_right: (
-            offset: (0.0, 0.0, -7.0),
+            offset: (0.0, 0.0, -14.0),
             lateral: ("npc.asp.male.foot_fr"),
         ),
         back_left: (
-            offset: (-9.0, 0.0, -7.0),
+            offset: (-7.5, 0.0, -6.5),
             lateral: ("npc.asp.male.foot_bl"),
         ),
         back_right: (
-            offset: (0.0, 0.0, -7.0),
+            offset: (0.0, 0.0, -6.5),
             lateral: ("npc.asp.male.foot_br"),
         ),
     ),
     (Asp, Female): (
         front_left: (
-            offset: (-11.0, 0.0, -7.0),
+            offset: (-17.0, 0.0, -14.0),
             lateral: ("npc.asp.male.foot_fl"),
         ),
         front_right: (
-            offset: (0.0, 0.0, -7.0),
+            offset: (0.0, 0.0, -14.0),
             lateral: ("npc.asp.male.foot_fr"),
         ),
         back_left: (
-            offset: (-9.0, 0.0, -7.0),
+            offset: (-7.5, 0.0, -6.5),
             lateral: ("npc.asp.male.foot_bl"),
         ),
         back_right: (
-            offset: (0.0, 0.0, -7.0),
+            offset: (0.0, 0.0, -6.5),
             lateral: ("npc.asp.male.foot_br"),
         ),
     ),
@@ -429,6 +429,42 @@
         back_right: (
             offset: (0.0, -7.5, -10.0),
             lateral: ("npc.lavadrake.male.foot_br"),
+        ),
+    ),
+    (Basilisk, Male): (
+        front_left: (
+            offset: (-17.0, 0.0, -9.0),
+            lateral: ("npc.basilisk.male.foot_fl"),
+        ),
+        front_right: (
+            offset: (0.0, 0.0, -9.0),
+            lateral: ("npc.basilisk.male.foot_fr"),
+        ),
+        back_left: (
+            offset: (-15.0, 0.0, -9.0),
+            lateral: ("npc.basilisk.male.foot_bl"),
+        ),
+        back_right: (
+            offset: (0.0, 0.0, -9.0),
+            lateral: ("npc.basilisk.male.foot_br"),
+        ),
+    ),
+    (Basilisk, Female): (
+        front_left: (
+            offset: (-17.0, 0.0, -9.0),
+            lateral: ("npc.basilisk.male.foot_fl"),
+        ),
+        front_right: (
+            offset: (0.0, 0.0, -9.0),
+            lateral: ("npc.basilisk.male.foot_fr"),
+        ),
+        back_left: (
+            offset: (-15.0, 0.0, -9.0),
+            lateral: ("npc.basilisk.male.foot_bl"),
+        ),
+        back_right: (
+            offset: (0.0, 0.0, -9.0),
+            lateral: ("npc.basilisk.male.foot_br"),
         ),
     ),
 })

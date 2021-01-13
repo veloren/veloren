@@ -745,6 +745,10 @@
             hare: (
                 keyword: "hare",
                 generic: "Hare"
+            ),
+            dog: (
+                keyword: "dog",
+                generic: "Dog"
             )
         )
     ),
@@ -776,9 +780,9 @@
                 keyword: "eagle",
                 generic: "Eagle"
             ),
-            snowyowl: (
-                keyword: "snowyowl",
-                generic: "Snowy Owl"
+            owl: (
+                keyword: "owl",
+                generic: "Owl"
             ),
             parrot: (
                 keyword: "parrot",
@@ -837,6 +841,10 @@
             mindflayer: (
                 keyword: "mindflayer",
                 generic: "Mindflayer"
+            ),
+            minotaur: (
+                keyword: "minotaur",
+                generic: "Minotaur"
             )
         )
     ),
@@ -885,6 +893,10 @@
             raptor_wood: (
                 keyword: "raptor_wood",
                 generic: "Wood Raptor"
+            ),
+            sunlizard: (
+                keyword: "sunlizard",
+                generic: "Sun Lizard"
             )
         )
     ),
@@ -928,6 +940,18 @@
             adlet: (
                 keyword: "adlet",
                 generic: "Adlet"
+            ),
+            gnarling: (
+                keyword: "gnarling",
+                generic: "Gnarling"
+            ),
+            mandragora: (
+                keyword: "mandragora",
+                generic: "Mandragora"
+            ),
+            kappa: (
+                keyword: "kappa",
+                generic: "Kappa"
             )
         )
     ),
@@ -1021,6 +1045,10 @@
             lavadrake: (
                 keyword: "lavadrake",
                 generic: "Lava Drake"
+            ),
+            basilisk: (
+                keyword: "basilisk",
+                generic: "Basilisk"
             )
         )
     )

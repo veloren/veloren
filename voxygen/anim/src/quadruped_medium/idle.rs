@@ -113,14 +113,12 @@ impl Animation for IdleAnimation {
         next.foot_fl.position =
             Vec3::new(-s_a.feet_f.0, s_a.feet_f.1, s_a.feet_f.2 + slower * -0.2);
 
-        next.foot_fr.position =
-            Vec3::new(s_a.feet_f.0, s_a.feet_f.1, s_a.feet_f.2 + slower * -0.2);
+        next.foot_fr.position = Vec3::new(s_a.feet_f.0, s_a.feet_f.1, s_a.feet_f.2 + slower * -0.2);
 
         next.foot_bl.position =
             Vec3::new(-s_a.feet_b.0, s_a.feet_b.1, s_a.feet_b.2 + slower * -0.2);
 
-        next.foot_br.position =
-            Vec3::new(s_a.feet_b.0, s_a.feet_b.1, s_a.feet_b.2 + slower * -0.2);
+        next.foot_br.position = Vec3::new(s_a.feet_b.0, s_a.feet_b.1, s_a.feet_b.2 + slower * -0.2);
 
         next
     }

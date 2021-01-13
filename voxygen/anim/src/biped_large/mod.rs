@@ -194,6 +194,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mightysaurok, _) => (6.0, 3.5),
                 (Slysaurok, _) => (6.0, 3.5),
                 (Mindflayer, _) => (5.0, 5.5),
+                (Minotaur, _) => (6.0, 3.0),
             },
             jaw: match (body.species, body.body_type) {
                 (Ogre, _) => (0.0, 0.0),
@@ -206,9 +207,10 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mightysaurok, _) => (1.0, -2.5),
                 (Slysaurok, _) => (1.0, -2.5),
                 (Mindflayer, _) => (0.0, 0.0),
+                (Minotaur, _) => (2.0, -4.0),
             },
             upper_torso: match (body.species, body.body_type) {
-                (Ogre, Male) => (0.0, 28.0),
+                (Ogre, Male) => (0.0, 27.5),
                 (Ogre, Female) => (0.0, 28.0),
                 (Cyclops, _) => (-2.0, 27.0),
                 (Wendigo, _) => (-1.0, 29.0),
@@ -219,6 +221,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mightysaurok, _) => (3.0, 23.0),
                 (Slysaurok, _) => (3.0, 23.0),
                 (Mindflayer, _) => (0.0, 30.5),
+                (Minotaur, _) => (-1.0, 27.5),
             },
             lower_torso: match (body.species, body.body_type) {
                 (Ogre, Male) => (1.0, -7.0),
@@ -232,12 +235,14 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mightysaurok, _) => (0.0, -6.0),
                 (Slysaurok, _) => (0.0, -6.0),
                 (Mindflayer, _) => (3.5, -19.5),
+                (Minotaur, _) => (1.5, -8.5),
             },
             tail: match (body.species, body.body_type) {
                 (Werewolf, _) => (-5.5, -2.0),
                 (Occultsaurok, _) => (-4.5, -6.0),
                 (Mightysaurok, _) => (-4.5, -6.0),
                 (Slysaurok, _) => (-4.5, -6.0),
+                (Minotaur, _) => (-3.0, -6.0),
                 _ => (0.0, 0.0),
             },
             shoulder: match (body.species, body.body_type) {
@@ -252,6 +257,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mightysaurok, _) => (7.5, 1.0, -1.5),
                 (Slysaurok, _) => (7.5, 1.0, -1.5),
                 (Mindflayer, _) => (8.0, 0.5, -1.0),
+                (Minotaur, _) => (10.0, 1.0, -4.0),
             },
             hand: match (body.species, body.body_type) {
                 (Ogre, Male) => (14.5, 0.0, -2.0),
@@ -265,6 +271,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mightysaurok, _) => (8.0, 1.5, -5.5),
                 (Slysaurok, _) => (8.0, 1.5, -5.5),
                 (Mindflayer, _) => (9.0, 0.5, -4.5),
+                (Minotaur, _) => (12.5, 0.5, -7.0),
             },
             leg: match (body.species, body.body_type) {
                 (Ogre, Male) => (0.0, 0.0, -4.0),
@@ -278,9 +285,10 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mightysaurok, _) => (3.0, 0.5, -6.0),
                 (Slysaurok, _) => (3.0, 0.5, -6.0),
                 (Mindflayer, _) => (6.0, -2.0, 6.5),
+                (Minotaur, _) => (5.0, 0.0, -6.0),
             },
             foot: match (body.species, body.body_type) {
-                (Ogre, Male) => (4.0, 1.0, -13.5),
+                (Ogre, Male) => (4.0, 1.0, -12.0),
                 (Ogre, Female) => (4.0, 0.5, -13.5),
                 (Cyclops, _) => (4.0, 0.5, -17.0),
                 (Wendigo, _) => (5.0, 2.5, -17.0),
@@ -291,6 +299,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mightysaurok, _) => (3.5, 2.0, -12.0),
                 (Slysaurok, _) => (3.5, 2.0, -12.0),
                 (Mindflayer, _) => (4.5, 1.5, -7.0),
+                (Minotaur, _) => (6.0, 4.5, -13.5),
             },
             shl: match (body.species, body.body_type) {
                 (Dullahan, _) => (-4.75, -11.0, 8.5, 1.47, -0.2, 0.0),

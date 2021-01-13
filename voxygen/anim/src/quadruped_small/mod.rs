@@ -129,6 +129,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Beaver, _) => (5.5, 0.0),
                 (Hare, Male) => (3.0, 2.0),
                 (Hare, Female) => (2.5, 3.0),
+                (Dog, _) => (3.0, 4.5),
             },
             chest: match (body.species, body.body_type) {
                 (Pig, _) => (0.0, 6.0),
@@ -157,6 +158,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Beaver, _) => (2.0, 6.0),
                 (Hare, Male) => (-2.0, 7.0),
                 (Hare, Female) => (-2.0, 6.0),
+                (Dog, _) => (-2.0, 9.5),
             },
             feet_f: match (body.species, body.body_type) {
                 (Pig, _) => (4.5, 3.5, -1.0),
@@ -185,6 +187,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Beaver, _) => (4.5, 4.5, -4.0),
                 (Hare, Male) => (3.0, 1.0, -3.0),
                 (Hare, Female) => (3.0, 0.5, -4.0),
+                (Dog, _) => (3.5, 3.0, -2.5),
             },
             feet_b: match (body.species, body.body_type) {
                 (Pig, _) => (3.5, -2.0, 0.0),
@@ -213,6 +216,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Beaver, _) => (4.0, -2.5, -3.0),
                 (Hare, Male) => (3.5, -1.0, -2.0),
                 (Hare, Female) => (3.5, -3.0, -2.0),
+                (Dog, _) => (3.0, -3.5, -2.5),
             },
             tail: match (body.species, body.body_type) {
                 (Pig, _) => (-4.5, 2.5),
@@ -241,6 +245,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Beaver, _) => (-6.5, -1.0),
                 (Hare, Male) => (-4.0, -1.0),
                 (Hare, Female) => (-4.0, 2.0),
+                (Dog, _) => (-5.0, 0.5),
             },
             scaler: match (body.species, body.body_type) {
                 (Pig, _) => (0.9),

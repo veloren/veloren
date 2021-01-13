@@ -90,6 +90,7 @@ impl Body {
                 quadruped_low::Species::Sandshark => 160.0,
                 quadruped_low::Species::Hakulaq => 140.0,
                 quadruped_low::Species::Lavadrake => 100.0,
+                quadruped_low::Species::Basilisk => 120.0,
             },
         }
     }

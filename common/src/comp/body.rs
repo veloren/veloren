@@ -257,6 +257,7 @@ impl Body {
                 theropod::Species::Snowraptor => 2.6,
                 theropod::Species::Sandraptor => 2.6,
                 theropod::Species::Woodraptor => 2.6,
+                theropod::Species::Sunlizard => 2.5,
                 _ => 8.0,
             },
             Body::BirdMedium(body) => match body.species {

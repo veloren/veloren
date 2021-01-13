@@ -917,4 +917,40 @@
             lateral: ("npc.hare.female.foot_br"),
         ),
     ),
+    (Dog, Male): (
+        left_front: (
+            offset: (-1.0, -1.5, -6.0),
+            lateral: ("npc.dog.male.foot_fl"),
+        ),
+        right_front: (
+            offset: (-1.0, -1.5, -6.0),
+            lateral: ("npc.dog.male.foot_fr"),
+        ),
+        left_back: (
+            offset: (-1.5, -2.0, -6.0),
+            lateral: ("npc.dog.male.foot_bl"),
+        ),
+        right_back: (
+            offset: (-1.5, -2.0, -6.0),
+            lateral: ("npc.dog.male.foot_br"),
+        ),
+    ),
+    (Dog, Female): (
+        left_front: (
+            offset: (-1.0, -1.5, -6.0),
+            lateral: ("npc.dog.female.foot_fl"),
+        ),
+        right_front: (
+            offset: (-1.0, -1.5, -6.0),
+            lateral: ("npc.dog.female.foot_fr"),
+        ),
+        left_back: (
+            offset: (-1.5, -2.0, -6.0),
+            lateral: ("npc.dog.female.foot_bl"),
+        ),
+        right_back: (
+            offset: (-1.5, -2.0, -6.0),
+            lateral: ("npc.dog.female.foot_br"),
+        ),
+    ),
 })
