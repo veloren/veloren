@@ -1,6 +1,7 @@
 use common::{
     comp::{
-        aura::AuraKey, buff, AuraChange, AuraKind, Auras, BuffKind, Buffs, CharacterState, Pos,
+        aura::AuraKey, buff, AuraChange, AuraKind, Auras, BuffKind, Buffs, CharacterState, Health,
+        Pos,
     },
     event::{EventBus, ServerEvent},
     resources::DeltaTime,
@@ -19,11 +20,12 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, CharacterState>,
         WriteStorage<'a, Auras>,
         WriteStorage<'a, Buffs>,
+        ReadStorage<'a, Health>,
     );
 
     fn run(
         &mut self,
-        (entities, dt, positions, server_bus, character_states, mut auras, mut buffs): Self::SystemData,
+        (entities, dt, positions, server_bus, character_states, mut auras, mut buffs, health): Self::SystemData,
     ) {
         let mut server_emitter = server_bus.emitter();
 
@@ -45,8 +47,20 @@ impl<'a> System<'a> for Sys {
                         expired_auras.push(key);
                     }
                 }
-                for (target_entity, target_pos, target_character_state_maybe, target_buffs) in
-                    (&entities, &positions, character_states.maybe(), &mut buffs).join()
+                for (
+                    target_entity,
+                    target_pos,
+                    target_character_state_maybe,
+                    target_buffs,
+                    health,
+                ) in (
+                    &entities,
+                    &positions,
+                    character_states.maybe(),
+                    &mut buffs,
+                    &health,
+                )
+                    .join()
                 {
                     // Ensure entity is within the aura radius
                     if target_pos.0.distance_squared(pos.0) < aura.radius.powi(2) {
@@ -67,10 +81,12 @@ impl<'a> System<'a> for Sys {
                                     // Conditions for different buffs are in this match
                                     // statement
                                     let apply_buff = match kind {
-                                        BuffKind::CampfireHeal => matches!(
-                                            target_character_state_maybe,
-                                            Some(CharacterState::Sit)
-                                        ),
+                                        BuffKind::CampfireHeal => {
+                                            matches!(
+                                                target_character_state_maybe,
+                                                Some(CharacterState::Sit)
+                                            ) && health.current() < health.maximum()
+                                        },
                                         // Add other specific buff conditions here
                                         _ => true,
                                     };
