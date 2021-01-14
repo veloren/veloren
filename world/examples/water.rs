@@ -375,20 +375,16 @@ fn main() {
             if is_camera {
                 focus.z += spd * scale;
                 samples_changed = true;
-            } else {
-                if (scale * 2.0).is_normal() {
-                    scale *= 2.0;
-                }
+            } else if (scale * 2.0).is_normal() {
+                scale *= 2.0;
             }
         }
         if win.is_key_down(minifb::Key::F) {
             if is_camera {
                 focus.z -= spd * scale;
                 samples_changed = true;
-            } else {
-                if (scale / 2.0).is_normal() {
-                    scale /= 2.0;
-                }
+            } else if (scale / 2.0).is_normal() {
+                scale /= 2.0;
             }
         }
 
