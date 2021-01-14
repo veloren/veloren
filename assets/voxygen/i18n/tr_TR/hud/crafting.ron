@@ -1,0 +1,16 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Turkish (Turkey)
+(
+    string_map: {
+        "hud.crafting": "Üretim",
+        "hud.crafting.recipes": "Tarifler",
+        "hud.crafting.ingredients": "Malzemeler:",
+        "hud.crafting.craft": "Üret",
+        "hud.crafting.tool_cata": "Gerektiriyor:",
+    },
+
+
+    vector_map: {
+    }
+)
