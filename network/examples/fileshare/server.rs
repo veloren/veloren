@@ -117,6 +117,7 @@ impl Server {
         trace!("Stop connect_manager");
     }
 
+    #[allow(clippy::eval_order_dependence)]
     async fn loop_participant(&self, p: Participant) {
         if let (Ok(cmd_out), Ok(file_out), Ok(cmd_in), Ok(file_in)) = (
             p.open(15, Promises::ORDERED | Promises::CONSISTENCY).await,
