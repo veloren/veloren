@@ -306,9 +306,9 @@ impl CharacterAbility {
     pub fn default_roll() -> CharacterAbility {
         CharacterAbility::Roll {
             energy_cost: 150,
-            buildup_duration: 100,
-            movement_duration: 180,
-            recover_duration: 150,
+            buildup_duration: 50,
+            movement_duration: 280,
+            recover_duration: 125,
             roll_strength: 1.8,
             immune_melee: false,
         }
