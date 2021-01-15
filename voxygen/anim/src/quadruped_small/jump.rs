@@ -23,7 +23,6 @@ impl Animation for JumpAnimation {
         let mut next = (*skeleton).clone();
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
-        next.head.orientation = Quaternion::rotation_z(-0.8) * Quaternion::rotation_x(0.5);
 
         next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1) * s_a.scaler / 11.0;
         next.chest.orientation = Quaternion::rotation_y(0.0);
@@ -42,7 +41,6 @@ impl Animation for JumpAnimation {
         next.leg_br.orientation = Quaternion::rotation_x(0.0);
 
         next.tail.position = Vec3::new(0.0, s_a.tail.0, s_a.tail.1);
-        next.tail.orientation = Quaternion::rotation_x(-0.3);
         next
     }
 }

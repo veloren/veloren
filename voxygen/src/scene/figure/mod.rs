@@ -1523,6 +1523,54 @@ impl FigureMgr {
                                 )
                             }
                         },
+                        CharacterState::Stunned(s) => {
+                            let stage_time = s.timer.as_secs_f64();
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                },
+                                _ => 0.0,
+                            };
+                            anim::quadruped_small::StunnedAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    vel.0.magnitude(),
+                                    time,
+                                    Some(s.stage_section),
+                                    state.state_time,
+                                ),
+                                stage_progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
+                        CharacterState::Staggered(s) => {
+                            let stage_time = s.timer.as_secs_f64();
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                },
+                                _ => 0.0,
+                            };
+                            anim::quadruped_small::StunnedAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    vel.0.magnitude(),
+                                    time,
+                                    Some(s.stage_section),
+                                    state.state_time,
+                                ),
+                                stage_progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         CharacterState::Sit { .. } => {
                             anim::quadruped_small::FeedAnimation::update_skeleton(
                                 &target_base,
@@ -1800,6 +1848,54 @@ impl FigureMgr {
                                 ),
                             }
                         },
+                        CharacterState::Stunned(s) => {
+                            let stage_time = s.timer.as_secs_f64();
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                },
+                                _ => 0.0,
+                            };
+                            anim::quadruped_medium::StunnedAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    vel.0.magnitude(),
+                                    time,
+                                    Some(s.stage_section),
+                                    state.state_time,
+                                ),
+                                stage_progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
+                        CharacterState::Staggered(s) => {
+                            let stage_time = s.timer.as_secs_f64();
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                },
+                                _ => 0.0,
+                            };
+                            anim::quadruped_medium::StunnedAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    vel.0.magnitude(),
+                                    time,
+                                    Some(s.stage_section),
+                                    state.state_time,
+                                ),
+                                stage_progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         CharacterState::Sit { .. } => {
                             anim::quadruped_medium::FeedAnimation::update_skeleton(
                                 &target_base,
@@ -1959,6 +2055,7 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
+
                         CharacterState::ChargedMelee(s) => {
                             let stage_time = s.timer.as_secs_f64();
 
@@ -1976,6 +2073,54 @@ impl FigureMgr {
                                 _ => 0.0,
                             };
                             anim::quadruped_low::TailwhipAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    vel.0.magnitude(),
+                                    time,
+                                    Some(s.stage_section),
+                                    state.state_time,
+                                ),
+                                stage_progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
+                        CharacterState::Stunned(s) => {
+                            let stage_time = s.timer.as_secs_f64();
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                },
+                                _ => 0.0,
+                            };
+                            anim::quadruped_low::StunnedAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    vel.0.magnitude(),
+                                    time,
+                                    Some(s.stage_section),
+                                    state.state_time,
+                                ),
+                                stage_progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
+                        CharacterState::Staggered(s) => {
+                            let stage_time = s.timer.as_secs_f64();
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                },
+                                _ => 0.0,
+                            };
+                            anim::quadruped_low::StunnedAnimation::update_skeleton(
                                 &target_base,
                                 (
                                     vel.0.magnitude(),

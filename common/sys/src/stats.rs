@@ -74,13 +74,11 @@ impl<'a> System<'a> for Sys {
         poises.set_event_emission(true);
 
         // Update stats
-        for (entity, uid, mut stats, mut health, mut poise, character_state, pos) in (
+        for (entity, uid, mut stats, mut health, pos) in (
             &entities,
             &uids,
             &mut stats.restrict_mut(),
             &mut healths.restrict_mut(),
-            &mut poises.restrict_mut(),
-            &mut character_states,
             &positions,
         )
             .join()
@@ -157,74 +155,6 @@ impl<'a> System<'a> for Sys {
                 energy.update_max_energy(Some(*body), energy_level);
                 let mut stat = stats.get_mut_unchecked();
                 stat.skill_set.modify_energy = false;
-            }
-
-            let was_wielded = character_state.is_wield();
-            let poise = poise.get_mut_unchecked();
-            match poise.poise_state() {
-                PoiseState::Normal => {},
-                PoiseState::Interrupted => {
-                    poise.reset();
-                    *character_state = CharacterState::Stunned(common::states::stunned::Data {
-                        static_data: common::states::stunned::StaticData {
-                            buildup_duration: Duration::from_millis(150),
-                            recover_duration: Duration::from_millis(150),
-                            movement_speed: 0.3,
-                        },
-                        timer: Duration::default(),
-                        stage_section: common::states::utils::StageSection::Buildup,
-                        was_wielded,
-                    });
-                },
-                PoiseState::Stunned => {
-                    poise.reset();
-                    *character_state = CharacterState::Stunned(common::states::stunned::Data {
-                        static_data: common::states::stunned::StaticData {
-                            buildup_duration: Duration::from_millis(500),
-                            recover_duration: Duration::from_millis(500),
-                            movement_speed: 0.1,
-                        },
-                        timer: Duration::default(),
-                        stage_section: common::states::utils::StageSection::Buildup,
-                        was_wielded,
-                    });
-                    server_event_emitter.emit(ServerEvent::Knockback {
-                        entity,
-                        impulse: 5.0 * poise.knockback(),
-                    });
-                },
-                PoiseState::Dazed => {
-                    poise.reset();
-                    *character_state = CharacterState::Staggered(common::states::staggered::Data {
-                        static_data: common::states::staggered::StaticData {
-                            buildup_duration: Duration::from_millis(1000),
-                            recover_duration: Duration::from_millis(1000),
-                        },
-                        timer: Duration::default(),
-                        stage_section: common::states::utils::StageSection::Buildup,
-                        was_wielded,
-                    });
-                    server_event_emitter.emit(ServerEvent::Knockback {
-                        entity,
-                        impulse: 10.0 * poise.knockback(),
-                    });
-                },
-                PoiseState::KnockedDown => {
-                    poise.reset();
-                    *character_state = CharacterState::Staggered(common::states::staggered::Data {
-                        static_data: common::states::staggered::StaticData {
-                            buildup_duration: Duration::from_millis(3000),
-                            recover_duration: Duration::from_millis(500),
-                        },
-                        timer: Duration::default(),
-                        stage_section: common::states::utils::StageSection::Buildup,
-                        was_wielded,
-                    });
-                    server_event_emitter.emit(ServerEvent::Knockback {
-                        entity,
-                        impulse: 10.0 * poise.knockback(),
-                    });
-                },
             }
         }
 
@@ -325,6 +255,79 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::Climb { .. }
                 | CharacterState::Stunned { .. }
                 | CharacterState::Staggered { .. } => {},
+            }
+        }
+
+        // Assign poise states
+        for (entity, mut character_state, mut poise) in
+            (&entities, &mut character_states, &mut poises.restrict_mut()).join()
+        {
+            let was_wielded = character_state.is_wield();
+            let poise = poise.get_mut_unchecked();
+            match poise.poise_state() {
+                PoiseState::Normal => {},
+                PoiseState::Interrupted => {
+                    poise.reset();
+                    *character_state = CharacterState::Stunned(common::states::stunned::Data {
+                        static_data: common::states::stunned::StaticData {
+                            buildup_duration: Duration::from_millis(150),
+                            recover_duration: Duration::from_millis(150),
+                            movement_speed: 0.3,
+                        },
+                        timer: Duration::default(),
+                        stage_section: common::states::utils::StageSection::Buildup,
+                        was_wielded,
+                    });
+                },
+                PoiseState::Stunned => {
+                    poise.reset();
+                    *character_state = CharacterState::Stunned(common::states::stunned::Data {
+                        static_data: common::states::stunned::StaticData {
+                            buildup_duration: Duration::from_millis(500),
+                            recover_duration: Duration::from_millis(500),
+                            movement_speed: 0.1,
+                        },
+                        timer: Duration::default(),
+                        stage_section: common::states::utils::StageSection::Buildup,
+                        was_wielded,
+                    });
+                    server_event_emitter.emit(ServerEvent::Knockback {
+                        entity,
+                        impulse: 5.0 * poise.knockback(),
+                    });
+                },
+                PoiseState::Dazed => {
+                    poise.reset();
+                    *character_state = CharacterState::Staggered(common::states::staggered::Data {
+                        static_data: common::states::staggered::StaticData {
+                            buildup_duration: Duration::from_millis(1000),
+                            recover_duration: Duration::from_millis(1000),
+                        },
+                        timer: Duration::default(),
+                        stage_section: common::states::utils::StageSection::Buildup,
+                        was_wielded,
+                    });
+                    server_event_emitter.emit(ServerEvent::Knockback {
+                        entity,
+                        impulse: 10.0 * poise.knockback(),
+                    });
+                },
+                PoiseState::KnockedDown => {
+                    poise.reset();
+                    *character_state = CharacterState::Staggered(common::states::staggered::Data {
+                        static_data: common::states::staggered::StaticData {
+                            buildup_duration: Duration::from_millis(3000),
+                            recover_duration: Duration::from_millis(500),
+                        },
+                        timer: Duration::default(),
+                        stage_section: common::states::utils::StageSection::Buildup,
+                        was_wielded,
+                    });
+                    server_event_emitter.emit(ServerEvent::Knockback {
+                        entity,
+                        impulse: 10.0 * poise.knockback(),
+                    });
+                },
             }
         }
         sys_metrics.stats_ns.store(

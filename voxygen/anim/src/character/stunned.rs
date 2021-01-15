@@ -52,7 +52,6 @@ impl Animation for StunnedAnimation {
         let mirror = (check - 0.5).signum() as f32;
         let movement1 = movement1base * pullback * mirror;
         let movement1abs = movement1base * pullback;
-        println!("wield {}", wield_status);
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
         next.head.orientation = Quaternion::rotation_z(movement1 * 0.3);

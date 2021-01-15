@@ -155,7 +155,7 @@ impl Damage {
                 HealthChange {
                     amount: -damage as i32,
                     cause: HealthSource::World,
-                },
+                }
             },
             DamageSource::Buff(_) => HealthChange {
                 amount: -damage as i32,
