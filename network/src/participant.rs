@@ -8,15 +8,7 @@ use crate::{
     protocols::Protocols,
     types::{Cid, Frame, Pid, Prio, Promises, Sid},
 };
-use tokio::sync::{Mutex, RwLock};
-use tokio::runtime::Runtime;
-use futures::{
-    channel::{mpsc, oneshot},
-    future::FutureExt,
-    select,
-    sink::SinkExt,
-    stream::StreamExt,
-};
+use futures_util::{FutureExt, StreamExt};
 use std::{
     collections::{HashMap, VecDeque},
     sync::{
@@ -25,6 +17,12 @@ use std::{
     },
     time::{Duration, Instant},
 };
+use tokio::{
+    runtime::Runtime,
+    select,
+    sync::{mpsc, oneshot, Mutex, RwLock},
+};
+use tokio_stream::wrappers::UnboundedReceiverStream;
 use tracing::*;
 use tracing_futures::Instrument;
 
@@ -47,13 +45,14 @@ struct StreamInfo {
     prio: Prio,
     promises: Promises,
     send_closed: Arc<AtomicBool>,
-    b2a_msg_recv_s: Mutex<mpsc::UnboundedSender<IncomingMessage>>,
+    b2a_msg_recv_s: Mutex<async_channel::Sender<IncomingMessage>>,
 }
 
 #[derive(Debug)]
 struct ControlChannels {
     a2b_stream_open_r: mpsc::UnboundedReceiver<A2bStreamOpen>,
     b2a_stream_opened_s: mpsc::UnboundedSender<Stream>,
+    b2b_close_stream_opened_sender_r: oneshot::Receiver<()>,
     s2b_create_channel_r: mpsc::UnboundedReceiver<S2bCreateChannel>,
     a2b_close_stream_r: mpsc::UnboundedReceiver<Sid>,
     a2b_close_stream_s: mpsc::UnboundedSender<Sid>,
@@ -63,7 +62,7 @@ struct ControlChannels {
 #[derive(Debug)]
 struct ShutdownInfo {
     //a2b_stream_open_r: mpsc::UnboundedReceiver<A2bStreamOpen>,
-    b2a_stream_opened_s: mpsc::UnboundedSender<Stream>,
+    b2b_close_stream_opened_sender_s: Option<oneshot::Sender<()>>,
     error: Option<ParticipantError>,
 }
 
@@ -84,6 +83,12 @@ pub struct BParticipant {
 }
 
 impl BParticipant {
+    const BANDWIDTH: u64 = 25_000_000;
+    const FRAMES_PER_TICK: u64 = Self::BANDWIDTH * Self::TICK_TIME_MS / 1000 / 1400 /*TCP FRAME*/;
+    const TICK_TIME: Duration = Duration::from_millis(Self::TICK_TIME_MS);
+    //in bit/s
+    const TICK_TIME_MS: u64 = 10;
+
     #[allow(clippy::type_complexity)]
     pub(crate) fn new(
         remote_pid: Pid,
@@ -97,21 +102,24 @@ impl BParticipant {
         mpsc::UnboundedSender<S2bCreateChannel>,
         oneshot::Sender<S2bShutdownBparticipant>,
     ) {
-        let (a2b_steam_open_s, a2b_stream_open_r) = mpsc::unbounded::<A2bStreamOpen>();
-        let (b2a_stream_opened_s, b2a_stream_opened_r) = mpsc::unbounded::<Stream>();
-        let (a2b_close_stream_s, a2b_close_stream_r) = mpsc::unbounded();
+        let (a2b_steam_open_s, a2b_stream_open_r) = mpsc::unbounded_channel::<A2bStreamOpen>();
+        let (b2a_stream_opened_s, b2a_stream_opened_r) = mpsc::unbounded_channel::<Stream>();
+        let (b2b_close_stream_opened_sender_s, b2b_close_stream_opened_sender_r) =
+            oneshot::channel();
+        let (a2b_close_stream_s, a2b_close_stream_r) = mpsc::unbounded_channel();
         let (s2b_shutdown_bparticipant_s, s2b_shutdown_bparticipant_r) = oneshot::channel();
-        let (s2b_create_channel_s, s2b_create_channel_r) = mpsc::unbounded();
+        let (s2b_create_channel_s, s2b_create_channel_r) = mpsc::unbounded_channel();
 
         let shutdown_info = RwLock::new(ShutdownInfo {
             //a2b_stream_open_r: a2b_stream_open_r.clone(),
-            b2a_stream_opened_s: b2a_stream_opened_s.clone(),
+            b2b_close_stream_opened_sender_s: Some(b2b_close_stream_opened_sender_s),
             error: None,
         });
 
         let run_channels = Some(ControlChannels {
             a2b_stream_open_r,
             b2a_stream_opened_s,
+            b2b_close_stream_opened_sender_r,
             s2b_create_channel_r,
             a2b_close_stream_r,
             a2b_close_stream_s,
@@ -147,7 +155,7 @@ impl BParticipant {
         let (shutdown_stream_close_mgr_sender, shutdown_stream_close_mgr_receiver) =
             oneshot::channel();
         let (shutdown_open_mgr_sender, shutdown_open_mgr_receiver) = oneshot::channel();
-        let (w2b_frames_s, w2b_frames_r) = mpsc::unbounded::<C2pFrame>();
+        let (w2b_frames_s, w2b_frames_r) = mpsc::unbounded_channel::<C2pFrame>();
         let (prios, a2p_msg_s, b2p_notify_empty_stream_s) = PrioManager::new(
             #[cfg(feature = "metrics")]
             Arc::clone(&self.metrics),
@@ -155,7 +163,7 @@ impl BParticipant {
         );
 
         let run_channels = self.run_channels.take().unwrap();
-        futures::join!(
+        tokio::join!(
             self.open_mgr(
                 run_channels.a2b_stream_open_r,
                 run_channels.a2b_close_stream_s.clone(),
@@ -165,6 +173,7 @@ impl BParticipant {
             self.handle_frames_mgr(
                 w2b_frames_r,
                 run_channels.b2a_stream_opened_s,
+                run_channels.b2b_close_stream_opened_sender_r,
                 run_channels.a2b_close_stream_s,
                 a2p_msg_s.clone(),
             ),
@@ -188,13 +197,11 @@ impl BParticipant {
         &self,
         mut prios: PrioManager,
         mut shutdown_send_mgr_receiver: oneshot::Receiver<oneshot::Sender<()>>,
-        mut b2s_prio_statistic_s: mpsc::UnboundedSender<B2sPrioStatistic>,
+        b2s_prio_statistic_s: mpsc::UnboundedSender<B2sPrioStatistic>,
     ) {
         //This time equals the MINIMUM Latency in average, so keep it down and //Todo:
         // make it configurable or switch to await E.g. Prio 0 = await, prio 50
         // wait for more messages
-        const TICK_TIME: Duration = Duration::from_millis(10);
-        const FRAMES_PER_TICK: usize = 10005;
         self.running_mgr.fetch_add(1, Ordering::Relaxed);
         let mut b2b_prios_flushed_s = None; //closing up
         trace!("Start send_mgr");
@@ -203,7 +210,9 @@ impl BParticipant {
         let mut i: u64 = 0;
         loop {
             let mut frames = VecDeque::new();
-            prios.fill_frames(FRAMES_PER_TICK, &mut frames).await;
+            prios
+                .fill_frames(Self::FRAMES_PER_TICK as usize, &mut frames)
+                .await;
             let len = frames.len();
             for (_, frame) in frames {
                 self.send_frame(
@@ -215,9 +224,8 @@ impl BParticipant {
             }
             b2s_prio_statistic_s
                 .send((self.remote_pid, len as u64, /*  */ 0))
-                .await
                 .unwrap();
-            tokio::time::sleep(TICK_TIME).await;
+            tokio::time::sleep(Self::TICK_TIME).await;
             i += 1;
             if i.rem_euclid(1000) == 0 {
                 trace!("Did 1000 ticks");
@@ -229,7 +237,7 @@ impl BParticipant {
                 break;
             }
             if b2b_prios_flushed_s.is_none() {
-                if let Some(prios_flushed_s) = shutdown_send_mgr_receiver.try_recv().unwrap() {
+                if let Ok(prios_flushed_s) = shutdown_send_mgr_receiver.try_recv() {
                     b2b_prios_flushed_s = Some(prios_flushed_s);
                 }
             }
@@ -252,8 +260,9 @@ impl BParticipant {
     ) -> bool {
         let mut drop_cid = None;
         // TODO: find out ideal channel here
+
         let res = if let Some(ci) = self.channels.read().await.values().next() {
-            let mut ci = ci.lock().await;
+            let ci = ci.lock().await;
             //we are increasing metrics without checking the result to please
             // borrow_checker. otherwise we would need to close `frame` what we
             // dont want!
@@ -261,7 +270,7 @@ impl BParticipant {
             frames_out_total_cache
                 .with_label_values(ci.cid, &frame)
                 .inc();
-            if let Err(e) = ci.b2w_frame_s.send(frame).await {
+            if let Err(e) = ci.b2w_frame_s.send(frame) {
                 let cid = ci.cid;
                 info!(?e, ?cid, "channel no longer available");
                 drop_cid = Some(cid);
@@ -294,7 +303,6 @@ impl BParticipant {
                 if let Err(e) = ci.b2r_read_shutdown.send(()) {
                     trace!(?cid, ?e, "seems like was already shut down");
                 }
-                ci.b2w_frame_s.close_channel();
             }
             //TODO FIXME tags: takeover channel multiple
             info!(
@@ -311,7 +319,8 @@ impl BParticipant {
     async fn handle_frames_mgr(
         &self,
         mut w2b_frames_r: mpsc::UnboundedReceiver<C2pFrame>,
-        mut b2a_stream_opened_s: mpsc::UnboundedSender<Stream>,
+        b2a_stream_opened_s: mpsc::UnboundedSender<Stream>,
+        b2b_close_stream_opened_sender_r: oneshot::Receiver<()>,
         a2b_close_stream_s: mpsc::UnboundedSender<Sid>,
         a2p_msg_s: crossbeam_channel::Sender<(Prio, Sid, OutgoingMessage)>,
     ) {
@@ -323,21 +332,24 @@ impl BParticipant {
         let mut dropped_instant = Instant::now();
         let mut dropped_cnt = 0u64;
         let mut dropped_sid = Sid::new(0);
+        let mut b2a_stream_opened_s = Some(b2a_stream_opened_s);
+        let mut b2b_close_stream_opened_sender_r = b2b_close_stream_opened_sender_r.fuse();
 
-        while let Some((cid, result_frame)) = w2b_frames_r.next().await {
+        while let Some((cid, result_frame)) = select!(
+            next = w2b_frames_r.recv().fuse() => next,
+            _ = &mut b2b_close_stream_opened_sender_r => {
+                b2a_stream_opened_s = None;
+                None
+            },
+        ) {
             //trace!(?result_frame, "handling frame");
             let frame = match result_frame {
                 Ok(frame) => frame,
                 Err(()) => {
-                    // The read protocol stopped, i need to make sure that write gets stopped
-                    debug!("read protocol was closed. Stopping write protocol");
-                    if let Some(ci) = self.channels.read().await.get(&cid) {
-                        let mut ci = ci.lock().await;
-                        ci.b2w_frame_s
-                            .close()
-                            .await
-                            .expect("couldn't stop write protocol");
-                    }
+                    // The read protocol stopped, i need to make sure that write gets stopped, can
+                    // drop channel as it's dead anyway
+                    debug!("read protocol was closed. Stopping channel");
+                    self.channels.write().await.remove(&cid);
                     continue;
                 },
             };
@@ -360,13 +372,18 @@ impl BParticipant {
                     let stream = self
                         .create_stream(sid, prio, promises, a2p_msg_s, &a2b_close_stream_s)
                         .await;
-                    if let Err(e) = b2a_stream_opened_s.send(stream).await {
-                        warn!(
-                            ?e,
-                            ?sid,
-                            "couldn't notify api::Participant that a stream got opened. Is the \
-                             participant already dropped?"
-                        );
+                    match &b2a_stream_opened_s {
+                        None => debug!("dropping openStream as Channel is already closing"),
+                        Some(s) => {
+                            if let Err(e) = s.send(stream) {
+                                warn!(
+                                    ?e,
+                                    ?sid,
+                                    "couldn't notify api::Participant that a stream got opened. \
+                                     Is the participant already dropped?"
+                                );
+                            }
+                        },
                     }
                 },
                 Frame::CloseStream { sid } => {
@@ -465,6 +482,7 @@ impl BParticipant {
     ) {
         self.running_mgr.fetch_add(1, Ordering::Relaxed);
         trace!("Start create_channel_mgr");
+        let s2b_create_channel_r = UnboundedReceiverStream::new(s2b_create_channel_r);
         s2b_create_channel_r
             .for_each_concurrent(
                 None,
@@ -549,8 +567,8 @@ impl BParticipant {
         let mut shutdown_open_mgr_receiver = shutdown_open_mgr_receiver.fuse();
         //from api or shutdown signal
         while let Some((prio, promises, p2a_return_stream)) = select! {
-            next = a2b_stream_open_r.next().fuse() => next,
-            _ = shutdown_open_mgr_receiver => None,
+            next = a2b_stream_open_r.recv().fuse() => next,
+            _ = &mut shutdown_open_mgr_receiver => None,
         } {
             debug!(?prio, ?promises, "Got request to open a new steam");
             //TODO: a2b_stream_open_r isn't closed on api_close yet. This needs to change.
@@ -657,7 +675,6 @@ impl BParticipant {
                      itself, ignoring"
                 );
             };
-            ci.b2w_frame_s.close_channel();
         }
 
         //Wait for other bparticipants mgr to close via AtomicUsize
@@ -712,8 +729,8 @@ impl BParticipant {
 
         //from api or shutdown signal
         while let Some(sid) = select! {
-            next = a2b_close_stream_r.next().fuse() => next,
-            sender = shutdown_stream_close_mgr_receiver => {
+            next = a2b_close_stream_r.recv().fuse() => next,
+            sender = &mut shutdown_stream_close_mgr_receiver => {
                 b2b_stream_close_shutdown_confirmed_s = Some(sender.unwrap());
                 None
             }
@@ -779,7 +796,7 @@ impl BParticipant {
             match self.streams.read().await.get(&sid) {
                 Some(si) => {
                     si.send_closed.store(true, Ordering::Relaxed);
-                    si.b2a_msg_recv_s.lock().await.close_channel();
+                    si.b2a_msg_recv_s.lock().await.close();
                 },
                 None => trace!(
                     "Couldn't find the stream, might be simultaneous close from local/remote"
@@ -828,7 +845,7 @@ impl BParticipant {
         a2p_msg_s: crossbeam_channel::Sender<(Prio, Sid, OutgoingMessage)>,
         a2b_close_stream_s: &mpsc::UnboundedSender<Sid>,
     ) -> Stream {
-        let (b2a_msg_recv_s, b2a_msg_recv_r) = mpsc::unbounded::<IncomingMessage>();
+        let (b2a_msg_recv_s, b2a_msg_recv_r) = async_channel::unbounded::<IncomingMessage>();
         let send_closed = Arc::new(AtomicBool::new(false));
         self.streams.write().await.insert(sid, StreamInfo {
             prio,
@@ -847,7 +864,6 @@ impl BParticipant {
             prio,
             promises,
             send_closed,
-            Arc::clone(&self.runtime),
             a2p_msg_s,
             b2a_msg_recv_r,
             a2b_close_stream_s.clone(),
@@ -860,7 +876,9 @@ impl BParticipant {
         if let Some(r) = reason {
             lock.error = Some(r);
         }
-        lock.b2a_stream_opened_s.close_channel();
+        lock.b2b_close_stream_opened_sender_s
+            .take()
+            .map(|s| s.send(()));
 
         debug!("Closing all streams for write");
         for (sid, si) in self.streams.read().await.iter() {
@@ -876,7 +894,7 @@ impl BParticipant {
         debug!("Closing all streams");
         for (sid, si) in self.streams.read().await.iter() {
             trace!(?sid, "Shutting down Stream");
-            si.b2a_msg_recv_s.lock().await.close_channel();
+            si.b2a_msg_recv_s.lock().await.close();
         }
     }
 }

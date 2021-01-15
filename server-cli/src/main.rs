@@ -129,9 +129,19 @@ fn main() -> io::Result<()> {
     let server_port = &server_settings.gameserver_address.port();
     let metrics_port = &server_settings.metrics_address.port();
     // Create server
-    let runtime = Arc::new(tokio::runtime::Builder::new_multi_thread().enable_all().build().unwrap());
-    let mut server = Server::new(server_settings, editable_settings, &server_data_dir, runtime)
-        .expect("Failed to create server instance!");
+    let runtime = Arc::new(
+        tokio::runtime::Builder::new_multi_thread()
+            .enable_all()
+            .build()
+            .unwrap(),
+    );
+    let mut server = Server::new(
+        server_settings,
+        editable_settings,
+        &server_data_dir,
+        runtime,
+    )
+    .expect("Failed to create server instance!");
 
     info!(
         ?server_port,

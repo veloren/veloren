@@ -83,7 +83,13 @@ impl Singleplayer {
 
         let thread_pool = client.map(|c| c.thread_pool().clone());
         let cores = num_cpus::get();
-        let runtime = Arc::new(tokio::runtime::Builder::new_multi_thread().enable_all().worker_threads(if cores > 4 {cores-1} else {cores}).build().unwrap());
+        let runtime = Arc::new(
+            tokio::runtime::Builder::new_multi_thread()
+                .enable_all()
+                .worker_threads(if cores > 4 { cores - 1 } else { cores })
+                .build()
+                .unwrap(),
+        );
         let settings2 = settings.clone();
 
         let paused = Arc::new(AtomicBool::new(false));

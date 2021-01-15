@@ -8,14 +8,16 @@ use crate::{
         VELOREN_NETWORK_VERSION,
     },
 };
-use futures::{
-    channel::{mpsc, oneshot},
-    join,
-    sink::SinkExt,
-    stream::StreamExt,
+use futures_core::task::Poll;
+use futures_util::{
+    task::{noop_waker, Context},
     FutureExt,
 };
 #[cfg(feature = "metrics")] use std::sync::Arc;
+use tokio::{
+    join,
+    sync::{mpsc, oneshot},
+};
 use tracing::*;
 
 pub(crate) struct Channel {
@@ -26,7 +28,7 @@ pub(crate) struct Channel {
 
 impl Channel {
     pub fn new(cid: u64) -> (Self, mpsc::UnboundedSender<Frame>, oneshot::Sender<()>) {
-        let (c2w_frame_s, c2w_frame_r) = mpsc::unbounded::<Frame>();
+        let (c2w_frame_s, c2w_frame_r) = mpsc::unbounded_channel::<Frame>();
         let (read_stop_sender, read_stop_receiver) = oneshot::channel();
         (
             Self {
@@ -52,7 +54,7 @@ impl Channel {
         let cnt = leftover_cid_frame.len();
         trace!(?cnt, "Reapplying leftovers");
         for cid_frame in leftover_cid_frame.drain(..) {
-            w2c_cid_frame_s.send(cid_frame).await.unwrap();
+            w2c_cid_frame_s.send(cid_frame).unwrap();
         }
         trace!(?cnt, "All leftovers reapplied");
 
@@ -115,8 +117,8 @@ impl Handshake {
     }
 
     pub async fn setup(self, protocol: &Protocols) -> Result<(Pid, Sid, u128, Vec<C2pFrame>), ()> {
-        let (c2w_frame_s, c2w_frame_r) = mpsc::unbounded::<Frame>();
-        let (mut w2c_cid_frame_s, mut w2c_cid_frame_r) = mpsc::unbounded::<C2pFrame>();
+        let (c2w_frame_s, c2w_frame_r) = mpsc::unbounded_channel::<Frame>();
+        let (mut w2c_cid_frame_s, mut w2c_cid_frame_r) = mpsc::unbounded_channel::<C2pFrame>();
 
         let (read_stop_sender, read_stop_receiver) = oneshot::channel();
         let handler_future =
@@ -142,8 +144,10 @@ impl Handshake {
 
         match res {
             Ok(res) => {
+                let fake_waker = noop_waker();
+                let mut ctx = Context::from_waker(&fake_waker);
                 let mut leftover_frames = vec![];
-                while let Ok(Some(cid_frame)) = w2c_cid_frame_r.try_next() {
+                while let Poll::Ready(Some(cid_frame)) = w2c_cid_frame_r.poll_recv(&mut ctx) {
                     leftover_frames.push(cid_frame);
                 }
                 let cnt = leftover_frames.len();
@@ -175,7 +179,7 @@ impl Handshake {
             self.send_handshake(&mut c2w_frame_s).await;
         }
 
-        let frame = w2c_cid_frame_r.next().await.map(|(_cid, frame)| frame);
+        let frame = w2c_cid_frame_r.recv().await.map(|(_cid, frame)| frame);
         #[cfg(feature = "metrics")]
         {
             if let Some(Ok(ref frame)) = frame {
@@ -254,7 +258,7 @@ impl Handshake {
             return Err(());
         }
 
-        let frame = w2c_cid_frame_r.next().await.map(|(_cid, frame)| frame);
+        let frame = w2c_cid_frame_r.recv().await.map(|(_cid, frame)| frame);
         let r = match frame {
             Some(Ok(Frame::Init { pid, secret })) => {
                 debug!(?pid, "Participant send their ID");
@@ -315,7 +319,6 @@ impl Handshake {
                 magic_number: VELOREN_MAGIC_NUMBER,
                 version: VELOREN_NETWORK_VERSION,
             })
-            .await
             .unwrap();
     }
 
@@ -330,7 +333,6 @@ impl Handshake {
                 pid: self.local_pid,
                 secret: self.secret,
             })
-            .await
             .unwrap();
     }
 
@@ -353,7 +355,7 @@ impl Handshake {
                 .with_label_values(&[&cid_string, "Shutdown"])
                 .inc();
         }
-        c2w_frame_s.send(Frame::Raw(data)).await.unwrap();
-        c2w_frame_s.send(Frame::Shutdown).await.unwrap();
+        c2w_frame_s.send(Frame::Raw(data)).unwrap();
+        c2w_frame_s.send(Frame::Shutdown).unwrap();
     }
 }

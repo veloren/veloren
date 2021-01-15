@@ -63,8 +63,8 @@ use std::{
     sync::Arc,
     time::{Duration, Instant},
 };
-use tracing::{debug, error, trace, warn};
 use tokio::runtime::Runtime;
+use tracing::{debug, error, trace, warn};
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 
@@ -187,7 +187,11 @@ pub struct CharacterList {
 
 impl Client {
     /// Create a new `Client`.
-    pub fn new<A: Into<SocketAddr>>(addr: A, view_distance: Option<u32>, runtime: Arc<Runtime>) -> Result<Self, Error> {
+    pub fn new<A: Into<SocketAddr>>(
+        addr: A,
+        view_distance: Option<u32>,
+        runtime: Arc<Runtime>,
+    ) -> Result<Self, Error> {
         let mut thread_pool = ThreadPoolBuilder::new()
             .name("veloren-worker".into())
             .build();

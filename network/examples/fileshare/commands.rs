@@ -1,9 +1,7 @@
-use async_std::{
-    fs,
-    path::{Path, PathBuf},
-};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
+use std::path::{Path, PathBuf};
+use tokio::fs;
 use veloren_network::{Participant, ProtocolAddr, Stream};
 
 use std::collections::HashMap;

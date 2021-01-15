@@ -11,9 +11,9 @@ use crate::{
     types::{Frame, Prio, Sid},
 };
 use crossbeam_channel::{unbounded, Receiver, Sender};
-use futures::channel::oneshot;
 use std::collections::{HashMap, HashSet, VecDeque};
 #[cfg(feature = "metrics")] use std::sync::Arc;
+use tokio::sync::oneshot;
 use tracing::trace;
 
 const PRIO_MAX: usize = 64;
@@ -289,8 +289,8 @@ mod tests {
         types::{Frame, Pid, Prio, Sid},
     };
     use crossbeam_channel::Sender;
-    use futures::{channel::oneshot, executor::block_on};
     use std::{collections::VecDeque, sync::Arc};
+    use tokio::{runtime::Runtime, sync::oneshot};
 
     const SIZE: u64 = OutgoingMessage::FRAME_DATA_SIZE;
     const USIZE: usize = OutgoingMessage::FRAME_DATA_SIZE as usize;
@@ -366,7 +366,9 @@ mod tests {
         let (mut mgr, msg_tx, _flush_tx) = mock_new();
         msg_tx.send(mock_out(16, 1337)).unwrap();
         let mut frames = VecDeque::new();
-        block_on(mgr.fill_frames(100, &mut frames));
+        Runtime::new()
+            .unwrap()
+            .block_on(mgr.fill_frames(100, &mut frames));
 
         assert_header(&mut frames, 1337, 3);
         assert_data(&mut frames, 0, vec![48, 49, 50]);
@@ -380,7 +382,9 @@ mod tests {
         msg_tx.send(mock_out(20, 42)).unwrap();
         let mut frames = VecDeque::new();
 
-        block_on(mgr.fill_frames(100, &mut frames));
+        Runtime::new()
+            .unwrap()
+            .block_on(mgr.fill_frames(100, &mut frames));
         assert_header(&mut frames, 1337, 3);
         assert_data(&mut frames, 0, vec![48, 49, 50]);
         assert_header(&mut frames, 42, 3);
@@ -394,7 +398,9 @@ mod tests {
         msg_tx.send(mock_out(20, 42)).unwrap();
         msg_tx.send(mock_out(16, 1337)).unwrap();
         let mut frames = VecDeque::new();
-        block_on(mgr.fill_frames(100, &mut frames));
+        Runtime::new()
+            .unwrap()
+            .block_on(mgr.fill_frames(100, &mut frames));
 
         assert_header(&mut frames, 1337, 3);
         assert_data(&mut frames, 0, vec![48, 49, 50]);
@@ -420,7 +426,9 @@ mod tests {
         msg_tx.send(mock_out(16, 11)).unwrap();
         msg_tx.send(mock_out(20, 13)).unwrap();
         let mut frames = VecDeque::new();
-        block_on(mgr.fill_frames(100, &mut frames));
+        Runtime::new()
+            .unwrap()
+            .block_on(mgr.fill_frames(100, &mut frames));
 
         for i in 1..14 {
             assert_header(&mut frames, i, 3);
@@ -447,13 +455,17 @@ mod tests {
         msg_tx.send(mock_out(20, 13)).unwrap();
 
         let mut frames = VecDeque::new();
-        block_on(mgr.fill_frames(3, &mut frames));
+        Runtime::new()
+            .unwrap()
+            .block_on(mgr.fill_frames(3, &mut frames));
         for i in 1..4 {
             assert_header(&mut frames, i, 3);
             assert_data(&mut frames, 0, vec![48, 49, 50]);
         }
         assert!(frames.is_empty());
-        block_on(mgr.fill_frames(11, &mut frames));
+        Runtime::new()
+            .unwrap()
+            .block_on(mgr.fill_frames(11, &mut frames));
         for i in 4..14 {
             assert_header(&mut frames, i, 3);
             assert_data(&mut frames, 0, vec![48, 49, 50]);
@@ -466,7 +478,9 @@ mod tests {
         let (mut mgr, msg_tx, _flush_tx) = mock_new();
         msg_tx.send(mock_out_large(16, 1)).unwrap();
         let mut frames = VecDeque::new();
-        block_on(mgr.fill_frames(100, &mut frames));
+        Runtime::new()
+            .unwrap()
+            .block_on(mgr.fill_frames(100, &mut frames));
 
         assert_header(&mut frames, 1, SIZE * 2 + 20);
         assert_data(&mut frames, 0, vec![48; USIZE]);
@@ -481,7 +495,9 @@ mod tests {
         msg_tx.send(mock_out_large(16, 1)).unwrap();
         msg_tx.send(mock_out_large(16, 2)).unwrap();
         let mut frames = VecDeque::new();
-        block_on(mgr.fill_frames(100, &mut frames));
+        Runtime::new()
+            .unwrap()
+            .block_on(mgr.fill_frames(100, &mut frames));
 
         assert_header(&mut frames, 1, SIZE * 2 + 20);
         assert_data(&mut frames, 0, vec![48; USIZE]);
@@ -500,14 +516,18 @@ mod tests {
         msg_tx.send(mock_out_large(16, 1)).unwrap();
         msg_tx.send(mock_out_large(16, 2)).unwrap();
         let mut frames = VecDeque::new();
-        block_on(mgr.fill_frames(2, &mut frames));
+        Runtime::new()
+            .unwrap()
+            .block_on(mgr.fill_frames(2, &mut frames));
 
         assert_header(&mut frames, 1, SIZE * 2 + 20);
         assert_data(&mut frames, 0, vec![48; USIZE]);
         assert_data(&mut frames, SIZE, vec![49; USIZE]);
 
         msg_tx.send(mock_out(0, 3)).unwrap();
-        block_on(mgr.fill_frames(100, &mut frames));
+        Runtime::new()
+            .unwrap()
+            .block_on(mgr.fill_frames(100, &mut frames));
 
         assert_header(&mut frames, 3, 3);
         assert_data(&mut frames, 0, vec![48, 49, 50]);
@@ -530,7 +550,9 @@ mod tests {
         msg_tx.send(mock_out(16, 2)).unwrap();
         msg_tx.send(mock_out(16, 2)).unwrap();
         let mut frames = VecDeque::new();
-        block_on(mgr.fill_frames(2000, &mut frames));
+        Runtime::new()
+            .unwrap()
+            .block_on(mgr.fill_frames(2000, &mut frames));
 
         assert_header(&mut frames, 2, 3);
         assert_data(&mut frames, 0, vec![48, 49, 50]);
@@ -549,13 +571,17 @@ mod tests {
             msg_tx.send(mock_out(16, 2)).unwrap();
         }
         let mut frames = VecDeque::new();
-        block_on(mgr.fill_frames(2000, &mut frames));
+        Runtime::new()
+            .unwrap()
+            .block_on(mgr.fill_frames(2000, &mut frames));
         //^unimportant frames, gonna be dropped
         msg_tx.send(mock_out(20, 1)).unwrap();
         msg_tx.send(mock_out(16, 2)).unwrap();
         msg_tx.send(mock_out(16, 2)).unwrap();
         let mut frames = VecDeque::new();
-        block_on(mgr.fill_frames(2000, &mut frames));
+        Runtime::new()
+            .unwrap()
+            .block_on(mgr.fill_frames(2000, &mut frames));
 
         //important in that test is, that after the first frames got cleared i reset
         // the Points even though 998 prio 16 messages have been send at this
@@ -589,7 +615,9 @@ mod tests {
             .unwrap();
 
         let mut frames = VecDeque::new();
-        block_on(mgr.fill_frames(2000, &mut frames));
+        Runtime::new()
+            .unwrap()
+            .block_on(mgr.fill_frames(2000, &mut frames));
 
         assert_header(&mut frames, 2, 7000);
         assert_data(&mut frames, 0, vec![1; USIZE]);
@@ -619,7 +647,9 @@ mod tests {
         msg_tx.send(mock_out(16, 8)).unwrap();
 
         let mut frames = VecDeque::new();
-        block_on(mgr.fill_frames(2000, &mut frames));
+        Runtime::new()
+            .unwrap()
+            .block_on(mgr.fill_frames(2000, &mut frames));
 
         assert_header(&mut frames, 2, 7000);
         assert_data(&mut frames, 0, vec![1; USIZE]);
@@ -651,7 +681,9 @@ mod tests {
         msg_tx.send(mock_out(20, 8)).unwrap();
 
         let mut frames = VecDeque::new();
-        block_on(mgr.fill_frames(2000, &mut frames));
+        Runtime::new()
+            .unwrap()
+            .block_on(mgr.fill_frames(2000, &mut frames));
 
         assert_header(&mut frames, 2, 7000);
         assert_data(&mut frames, 0, vec![1; USIZE]);

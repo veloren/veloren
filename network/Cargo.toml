@@ -20,12 +20,15 @@ serde = { version = "1.0" }
 #sending
 crossbeam-channel = "0.5"
 tokio = { version = "1.2", default-features = false, features = ["io-util", "macros", "rt", "net", "time"] }
+tokio-stream = { version = "0.1.2", default-features = false }
 #tracing and metrics
 tracing = { version = "0.1", default-features = false }
 tracing-futures = "0.2"
 prometheus = { version = "0.11", default-features = false, optional = true }
 #async
-futures = { version = "0.3", features = ["thread-pool"] }
+futures-core = { version = "0.3", default-features = false }
+futures-util = { version = "0.3", default-features = false, features = ["std"] }
+async-channel = "1.5.1" #use for .close() channels
 #mpsc channel registry
 lazy_static = { version = "1.4", default-features = false }
 rand = { version = "0.8" }
@@ -35,8 +38,8 @@ lz-fear = { version = "0.1.1", optional = true }
 
 [dev-dependencies]
 tracing-subscriber = { version = "0.2.3", default-features = false, features = ["env-filter", "fmt", "chrono", "ansi", "smallvec"] }
-# `uvth` needed for doc tests
-uvth = { version = ">= 3.0, <= 4.0", default-features = false }
+tokio = { version = "1.0.1", default-features = false, features = ["io-std", "fs", "rt-multi-thread"] }
+futures-util = { version = "0.3", default-features = false, features = ["sink", "std"] }
 clap = { version = "2.33", default-features = false }
 shellexpand = "2.0.0"
 tiny_http = "0.8.0"

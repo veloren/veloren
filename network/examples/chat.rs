@@ -3,10 +3,9 @@
 //! RUST_BACKTRACE=1 cargo run --example chat -- --trace=info --port 15006
 //! RUST_BACKTRACE=1 cargo run --example chat -- --trace=info --port 15006 --mode=client
 //! ```
-use async_std::{io, sync::RwLock};
 use clap::{App, Arg};
-use futures::executor::{block_on, ThreadPool};
 use std::{sync::Arc, thread, time::Duration};
+use tokio::{io, io::AsyncBufReadExt, runtime::Runtime, sync::RwLock};
 use tracing::*;
 use tracing_subscriber::EnvFilter;
 use veloren_network::{Network, Participant, Pid, Promises, ProtocolAddr};
@@ -100,18 +99,17 @@ fn main() {
 }
 
 fn server(address: ProtocolAddr) {
-    let (server, f) = Network::new(Pid::new());
+    let r = Arc::new(Runtime::new().unwrap());
+    let server = Network::new(Pid::new(), Arc::clone(&r));
     let server = Arc::new(server);
-    std::thread::spawn(f);
-    let pool = ThreadPool::new().unwrap();
     let participants = Arc::new(RwLock::new(Vec::new()));
-    block_on(async {
+    r.block_on(async {
         server.listen(address).await.unwrap();
         loop {
             let p1 = Arc::new(server.connected().await.unwrap());
             let server1 = server.clone();
             participants.write().await.push(p1.clone());
-            pool.spawn_ok(client_connection(server1, p1, participants.clone()));
+            tokio::spawn(client_connection(server1, p1, participants.clone()));
         }
     });
 }
@@ -144,27 +142,27 @@ async fn client_connection(
 }
 
 fn client(address: ProtocolAddr) {
-    let (client, f) = Network::new(Pid::new());
-    std::thread::spawn(f);
-    let pool = ThreadPool::new().unwrap();
+    let r = Arc::new(Runtime::new().unwrap());
+    let client = Network::new(Pid::new(), Arc::clone(&r));
 
-    block_on(async {
+    r.block_on(async {
         let p1 = client.connect(address.clone()).await.unwrap(); //remote representation of p1
         let mut s1 = p1
             .open(16, Promises::ORDERED | Promises::CONSISTENCY)
             .await
             .unwrap(); //remote representation of s1
+        let mut input_lines = io::BufReader::new(io::stdin());
         println!("Enter your username:");
         let mut username = String::new();
-        io::stdin().read_line(&mut username).await.unwrap();
+        input_lines.read_line(&mut username).await.unwrap();
         username = username.split_whitespace().collect();
         println!("Your username is: {}", username);
         println!("write /quit to close");
-        pool.spawn_ok(read_messages(p1));
+        tokio::spawn(read_messages(p1));
         s1.send(username).unwrap();
         loop {
             let mut line = String::new();
-            io::stdin().read_line(&mut line).await.unwrap();
+            input_lines.read_line(&mut line).await.unwrap();
             line = line.split_whitespace().collect();
             if line.as_str() == "/quit" {
                 println!("goodbye");

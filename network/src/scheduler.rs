@@ -7,15 +7,7 @@ use crate::{
     protocols::{Protocols, TcpProtocol, UdpProtocol},
     types::Pid,
 };
-use tokio::{io, net, sync::Mutex};
-use tokio::runtime::Runtime;
-use futures::{
-    channel::{mpsc, oneshot},
-    future::FutureExt,
-    select,
-    sink::SinkExt,
-    stream::StreamExt,
-};
+use futures_util::{FutureExt, StreamExt};
 #[cfg(feature = "metrics")]
 use prometheus::Registry;
 use rand::Rng;
@@ -26,6 +18,13 @@ use std::{
         Arc,
     },
 };
+use tokio::{
+    io, net,
+    runtime::Runtime,
+    select,
+    sync::{mpsc, oneshot, Mutex},
+};
+use tokio_stream::wrappers::UnboundedReceiverStream;
 use tracing::*;
 use tracing_futures::Instrument;
 
@@ -92,12 +91,13 @@ impl Scheduler {
         mpsc::UnboundedReceiver<Participant>,
         oneshot::Sender<()>,
     ) {
-        let (a2s_listen_s, a2s_listen_r) = mpsc::unbounded::<A2sListen>();
-        let (a2s_connect_s, a2s_connect_r) = mpsc::unbounded::<A2sConnect>();
-        let (s2a_connected_s, s2a_connected_r) = mpsc::unbounded::<Participant>();
+        let (a2s_listen_s, a2s_listen_r) = mpsc::unbounded_channel::<A2sListen>();
+        let (a2s_connect_s, a2s_connect_r) = mpsc::unbounded_channel::<A2sConnect>();
+        let (s2a_connected_s, s2a_connected_r) = mpsc::unbounded_channel::<Participant>();
         let (a2s_scheduler_shutdown_s, a2s_scheduler_shutdown_r) = oneshot::channel::<()>();
-        let (a2s_disconnect_s, a2s_disconnect_r) = mpsc::unbounded::<A2sDisconnect>();
-        let (b2s_prio_statistic_s, b2s_prio_statistic_r) = mpsc::unbounded::<B2sPrioStatistic>();
+        let (a2s_disconnect_s, a2s_disconnect_r) = mpsc::unbounded_channel::<A2sDisconnect>();
+        let (b2s_prio_statistic_s, b2s_prio_statistic_r) =
+            mpsc::unbounded_channel::<B2sPrioStatistic>();
 
         let run_channels = Some(ControlChannels {
             a2s_listen_r,
@@ -150,7 +150,7 @@ impl Scheduler {
     pub async fn run(mut self) {
         let run_channels = self.run_channels.take().unwrap();
 
-        futures::join!(
+        tokio::join!(
             self.listen_mgr(run_channels.a2s_listen_r),
             self.connect_mgr(run_channels.a2s_connect_r),
             self.disconnect_mgr(run_channels.a2s_disconnect_r),
@@ -161,6 +161,7 @@ impl Scheduler {
 
     async fn listen_mgr(&self, a2s_listen_r: mpsc::UnboundedReceiver<A2sListen>) {
         trace!("Start listen_mgr");
+        let a2s_listen_r = UnboundedReceiverStream::new(a2s_listen_r);
         a2s_listen_r
             .for_each_concurrent(None, |(address, s2a_listen_result_s)| {
                 let address = address;
@@ -197,7 +198,7 @@ impl Scheduler {
         )>,
     ) {
         trace!("Start connect_mgr");
-        while let Some((addr, pid_sender)) = a2s_connect_r.next().await {
+        while let Some((addr, pid_sender)) = a2s_connect_r.recv().await {
             let (protocol, handshake) = match addr {
                 ProtocolAddr::Tcp(addr) => {
                     #[cfg(feature = "metrics")]
@@ -240,7 +241,7 @@ impl Scheduler {
                         continue;
                     };
                     info!("Connecting Udp to: {}", addr);
-                    let (udp_data_sender, udp_data_receiver) = mpsc::unbounded::<Vec<u8>>();
+                    let (udp_data_sender, udp_data_receiver) = mpsc::unbounded_channel::<Vec<u8>>();
                     let protocol = UdpProtocol::new(
                         Arc::clone(&socket),
                         addr,
@@ -264,7 +265,7 @@ impl Scheduler {
 
     async fn disconnect_mgr(&self, mut a2s_disconnect_r: mpsc::UnboundedReceiver<A2sDisconnect>) {
         trace!("Start disconnect_mgr");
-        while let Some((pid, return_once_successful_shutdown)) = a2s_disconnect_r.next().await {
+        while let Some((pid, return_once_successful_shutdown)) = a2s_disconnect_r.recv().await {
             //Closing Participants is done the following way:
             // 1. We drop our senders and receivers
             // 2. we need to close BParticipant, this will drop its senderns and receivers
@@ -299,7 +300,7 @@ impl Scheduler {
         mut b2s_prio_statistic_r: mpsc::UnboundedReceiver<B2sPrioStatistic>,
     ) {
         trace!("Start prio_adj_mgr");
-        while let Some((_pid, _frame_cnt, _unused)) = b2s_prio_statistic_r.next().await {
+        while let Some((_pid, _frame_cnt, _unused)) = b2s_prio_statistic_r.recv().await {
 
             //TODO adjust prios in participants here!
         }
@@ -381,7 +382,7 @@ impl Scheduler {
                 let mut end_receiver = s2s_stop_listening_r.fuse();
                 while let Some(data) = select! {
                     next = listener.accept().fuse() => Some(next),
-                    _ = end_receiver => None,
+                    _ = &mut end_receiver => None,
                 } {
                     let (stream, remote_addr) = match data {
                         Ok((s, p)) => (s, p),
@@ -425,7 +426,7 @@ impl Scheduler {
                 let mut data = [0u8; UDP_MAXIMUM_SINGLE_PACKET_SIZE_EVER];
                 while let Ok((size, remote_addr)) = select! {
                     next = socket.recv_from(&mut data).fuse() => next,
-                    _ = end_receiver => Err(std::io::Error::new(std::io::ErrorKind::Other, "")),
+                    _ = &mut end_receiver => Err(std::io::Error::new(std::io::ErrorKind::Other, "")),
                 } {
                     let mut datavec = Vec::with_capacity(size);
                     datavec.extend_from_slice(&data[0..size]);
@@ -434,7 +435,8 @@ impl Scheduler {
                     #[allow(clippy::map_entry)]
                     if !listeners.contains_key(&remote_addr) {
                         info!("Accepting Udp from: {}", &remote_addr);
-                        let (udp_data_sender, udp_data_receiver) = mpsc::unbounded::<Vec<u8>>();
+                        let (udp_data_sender, udp_data_receiver) =
+                            mpsc::unbounded_channel::<Vec<u8>>();
                         listeners.insert(remote_addr, udp_data_sender);
                         let protocol = UdpProtocol::new(
                             Arc::clone(&socket),
@@ -447,7 +449,7 @@ impl Scheduler {
                             .await;
                     }
                     let udp_data_sender = listeners.get_mut(&remote_addr).unwrap();
-                    udp_data_sender.send(datavec).await.unwrap();
+                    udp_data_sender.send(datavec).unwrap();
                 }
             },
             _ => unimplemented!(),
@@ -457,7 +459,7 @@ impl Scheduler {
 
     async fn udp_single_channel_connect(
         socket: Arc<net::UdpSocket>,
-        mut w2p_udp_package_s: mpsc::UnboundedSender<Vec<u8>>,
+        w2p_udp_package_s: mpsc::UnboundedSender<Vec<u8>>,
     ) {
         let addr = socket.local_addr();
         trace!(?addr, "Start udp_single_channel_connect");
@@ -470,11 +472,11 @@ impl Scheduler {
         let mut data = [0u8; 9216];
         while let Ok(size) = select! {
             next = socket.recv(&mut data).fuse() => next,
-            _ = end_receiver => Err(std::io::Error::new(std::io::ErrorKind::Other, "")),
+            _ = &mut end_receiver => Err(std::io::Error::new(std::io::ErrorKind::Other, "")),
         } {
             let mut datavec = Vec::with_capacity(size);
             datavec.extend_from_slice(&data[0..size]);
-            w2p_udp_package_s.send(datavec).await.unwrap();
+            w2p_udp_package_s.send(datavec).unwrap();
         }
         trace!(?addr, "Stop udp_single_channel_connect");
     }
@@ -491,7 +493,7 @@ impl Scheduler {
           Contra: - DOS possibility because we answer first
                   - Speed, because otherwise the message can be send with the creation
         */
-        let mut participant_channels = self.participant_channels.lock().await.clone().unwrap();
+        let participant_channels = self.participant_channels.lock().await.clone().unwrap();
         // spawn is needed here, e.g. for TCP connect it would mean that only 1
         // participant can be in handshake phase ever! Someone could deadlock
         // the whole server easily for new clients UDP doesnt work at all, as
@@ -533,7 +535,7 @@ impl Scheduler {
                                 bparticipant,
                                 a2b_stream_open_s,
                                 b2a_stream_opened_r,
-                                mut s2b_create_channel_s,
+                                s2b_create_channel_s,
                                 s2b_shutdown_bparticipant_s,
                             ) = BParticipant::new(
                                 pid,
@@ -578,7 +580,6 @@ impl Scheduler {
                                     leftover_cid_frame,
                                     b2s_create_channel_done_s,
                                 ))
-                                .await
                                 .unwrap();
                             b2s_create_channel_done_r.await.unwrap();
                             if let Some(pid_oneshot) = s2a_return_pid_s {
@@ -589,7 +590,6 @@ impl Scheduler {
                                 participant_channels
                                     .s2a_connected_s
                                     .send(participant)
-                                    .await
                                     .unwrap();
                             }
                         } else {

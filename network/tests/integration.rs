@@ -1,5 +1,5 @@
-use async_std::task;
-use task::block_on;
+use std::sync::Arc;
+use tokio::runtime::Runtime;
 use veloren_network::{NetworkError, StreamError};
 mod helper;
 use helper::{network_participant_stream, tcp, udp};
@@ -10,23 +10,23 @@ use veloren_network::{Network, Pid, Promises, ProtocolAddr};
 #[ignore]
 fn network_20s() {
     let (_, _) = helper::setup(false, 0);
-    let (_n_a, _, _, _n_b, _, _) = block_on(network_participant_stream(tcp()));
+    let (_, _n_a, _, _, _n_b, _, _) = network_participant_stream(tcp());
     std::thread::sleep(std::time::Duration::from_secs(30));
 }
 
 #[test]
 fn stream_simple() {
     let (_, _) = helper::setup(false, 0);
-    let (_n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = block_on(network_participant_stream(tcp()));
+    let (r, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(tcp());
 
     s1_a.send("Hello World").unwrap();
-    assert_eq!(block_on(s1_b.recv()), Ok("Hello World".to_string()));
+    assert_eq!(r.block_on(s1_b.recv()), Ok("Hello World".to_string()));
 }
 
 #[test]
 fn stream_try_recv() {
     let (_, _) = helper::setup(false, 0);
-    let (_n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = block_on(network_participant_stream(tcp()));
+    let (_, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(tcp());
 
     s1_a.send(4242u32).unwrap();
     std::thread::sleep(std::time::Duration::from_secs(1));
@@ -36,47 +36,46 @@ fn stream_try_recv() {
 #[test]
 fn stream_simple_3msg() {
     let (_, _) = helper::setup(false, 0);
-    let (_n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = block_on(network_participant_stream(tcp()));
+    let (r, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(tcp());
 
     s1_a.send("Hello World").unwrap();
     s1_a.send(1337).unwrap();
-    assert_eq!(block_on(s1_b.recv()), Ok("Hello World".to_string()));
-    assert_eq!(block_on(s1_b.recv()), Ok(1337));
+    assert_eq!(r.block_on(s1_b.recv()), Ok("Hello World".to_string()));
+    assert_eq!(r.block_on(s1_b.recv()), Ok(1337));
     s1_a.send("3rdMessage").unwrap();
-    assert_eq!(block_on(s1_b.recv()), Ok("3rdMessage".to_string()));
+    assert_eq!(r.block_on(s1_b.recv()), Ok("3rdMessage".to_string()));
 }
 
 #[test]
 fn stream_simple_udp() {
     let (_, _) = helper::setup(false, 0);
-    let (_n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = block_on(network_participant_stream(udp()));
+    let (r, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(udp());
 
     s1_a.send("Hello World").unwrap();
-    assert_eq!(block_on(s1_b.recv()), Ok("Hello World".to_string()));
+    assert_eq!(r.block_on(s1_b.recv()), Ok("Hello World".to_string()));
 }
 
 #[test]
 fn stream_simple_udp_3msg() {
     let (_, _) = helper::setup(false, 0);
-    let (_n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = block_on(network_participant_stream(udp()));
+    let (r, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(udp());
 
     s1_a.send("Hello World").unwrap();
     s1_a.send(1337).unwrap();
-    assert_eq!(block_on(s1_b.recv()), Ok("Hello World".to_string()));
-    assert_eq!(block_on(s1_b.recv()), Ok(1337));
+    assert_eq!(r.block_on(s1_b.recv()), Ok("Hello World".to_string()));
+    assert_eq!(r.block_on(s1_b.recv()), Ok(1337));
     s1_a.send("3rdMessage").unwrap();
-    assert_eq!(block_on(s1_b.recv()), Ok("3rdMessage".to_string()));
+    assert_eq!(r.block_on(s1_b.recv()), Ok("3rdMessage".to_string()));
 }
 
 #[test]
 #[ignore]
 fn tcp_and_udp_2_connections() -> std::result::Result<(), Box<dyn std::error::Error>> {
     let (_, _) = helper::setup(false, 0);
-    let (network, f) = Network::new(Pid::new());
-    let (remote, fr) = Network::new(Pid::new());
-    std::thread::spawn(f);
-    std::thread::spawn(fr);
-    block_on(async {
+    let r = Arc::new(Runtime::new().unwrap());
+    let network = Network::new(Pid::new(), Arc::clone(&r));
+    let remote = Network::new(Pid::new(), Arc::clone(&r));
+    r.block_on(async {
         remote
             .listen(ProtocolAddr::Tcp("127.0.0.1:2000".parse().unwrap()))
             .await?;
@@ -97,18 +96,17 @@ fn tcp_and_udp_2_connections() -> std::result::Result<(), Box<dyn std::error::Er
 #[test]
 fn failed_listen_on_used_ports() -> std::result::Result<(), Box<dyn std::error::Error>> {
     let (_, _) = helper::setup(false, 0);
-    let (network, f) = Network::new(Pid::new());
-    std::thread::spawn(f);
+    let r = Arc::new(Runtime::new().unwrap());
+    let network = Network::new(Pid::new(), Arc::clone(&r));
     let udp1 = udp();
     let tcp1 = tcp();
-    block_on(network.listen(udp1.clone()))?;
-    block_on(network.listen(tcp1.clone()))?;
+    r.block_on(network.listen(udp1.clone()))?;
+    r.block_on(network.listen(tcp1.clone()))?;
     std::thread::sleep(std::time::Duration::from_millis(200));
 
-    let (network2, f2) = Network::new(Pid::new());
-    std::thread::spawn(f2);
-    let e1 = block_on(network2.listen(udp1));
-    let e2 = block_on(network2.listen(tcp1));
+    let network2 = Network::new(Pid::new(), Arc::clone(&r));
+    let e1 = r.block_on(network2.listen(udp1));
+    let e2 = r.block_on(network2.listen(tcp1));
     match e1 {
         Err(NetworkError::ListenFailed(e)) if e.kind() == ErrorKind::AddrInUse => (),
         _ => panic!(),
@@ -130,11 +128,10 @@ fn api_stream_send_main() -> std::result::Result<(), Box<dyn std::error::Error>>
     let (_, _) = helper::setup(false, 0);
     // Create a Network, listen on Port `1200` and wait for a Stream to be opened,
     // then answer `Hello World`
-    let (network, f) = Network::new(Pid::new());
-    let (remote, fr) = Network::new(Pid::new());
-    std::thread::spawn(f);
-    std::thread::spawn(fr);
-    block_on(async {
+    let r = Arc::new(Runtime::new().unwrap());
+    let network = Network::new(Pid::new(), Arc::clone(&r));
+    let remote = Network::new(Pid::new(), Arc::clone(&r));
+    r.block_on(async {
         network
             .listen(ProtocolAddr::Tcp("127.0.0.1:1200".parse().unwrap()))
             .await?;
@@ -158,11 +155,10 @@ fn api_stream_recv_main() -> std::result::Result<(), Box<dyn std::error::Error>>
     let (_, _) = helper::setup(false, 0);
     // Create a Network, listen on Port `1220` and wait for a Stream to be opened,
     // then listen on it
-    let (network, f) = Network::new(Pid::new());
-    let (remote, fr) = Network::new(Pid::new());
-    std::thread::spawn(f);
-    std::thread::spawn(fr);
-    block_on(async {
+    let r = Arc::new(Runtime::new().unwrap());
+    let network = Network::new(Pid::new(), Arc::clone(&r));
+    let remote = Network::new(Pid::new(), Arc::clone(&r));
+    r.block_on(async {
         network
             .listen(ProtocolAddr::Tcp("127.0.0.1:1220".parse().unwrap()))
             .await?;
@@ -184,10 +180,10 @@ fn api_stream_recv_main() -> std::result::Result<(), Box<dyn std::error::Error>>
 #[test]
 fn wrong_parse() {
     let (_, _) = helper::setup(false, 0);
-    let (_n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = block_on(network_participant_stream(tcp()));
+    let (r, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(tcp());
 
     s1_a.send(1337).unwrap();
-    match block_on(s1_b.recv::<String>()) {
+    match r.block_on(s1_b.recv::<String>()) {
         Err(StreamError::Deserialize(_)) => (),
         _ => panic!("this should fail, but it doesnt!"),
     }
@@ -196,7 +192,7 @@ fn wrong_parse() {
 #[test]
 fn multiple_try_recv() {
     let (_, _) = helper::setup(false, 0);
-    let (_n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = block_on(network_participant_stream(tcp()));
+    let (_, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(tcp());
 
     s1_a.send("asd").unwrap();
     s1_a.send(11u32).unwrap();

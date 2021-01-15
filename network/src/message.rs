@@ -256,8 +256,8 @@ impl std::fmt::Debug for MessageBuffer {
 #[cfg(test)]
 mod tests {
     use crate::{api::Stream, message::*};
-    use futures::channel::mpsc;
     use std::sync::{atomic::AtomicBool, Arc};
+    use tokio::sync::mpsc;
 
     fn stub_stream(compressed: bool) -> Stream {
         use crate::{api::*, types::*};
@@ -273,8 +273,8 @@ mod tests {
         let promises = Promises::empty();
 
         let (a2b_msg_s, _a2b_msg_r) = crossbeam_channel::unbounded();
-        let (_b2a_msg_recv_s, b2a_msg_recv_r) = mpsc::unbounded();
-        let (a2b_close_stream_s, _a2b_close_stream_r) = mpsc::unbounded();
+        let (_b2a_msg_recv_s, b2a_msg_recv_r) = async_channel::unbounded();
+        let (a2b_close_stream_s, _a2b_close_stream_r) = mpsc::unbounded_channel();
 
         Stream::new(
             Pid::fake(0),

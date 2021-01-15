@@ -4,19 +4,14 @@ use crate::{
     participant::C2pFrame,
     types::{Cid, Frame},
 };
+use futures_util::{future::Fuse, FutureExt};
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::{TcpStream, UdpSocket},
+    select,
+    sync::{mpsc, oneshot, Mutex},
 };
 
-use futures::{
-    channel::{mpsc, oneshot},
-    future::{Fuse, FutureExt},
-    lock::Mutex,
-    select,
-    sink::SinkExt,
-    stream::StreamExt,
-};
 use std::{convert::TryFrom, net::SocketAddr, sync::Arc};
 use tracing::*;
 
@@ -75,7 +70,7 @@ impl TcpProtocol {
 
     async fn read_frame<R: AsyncReadExt + std::marker::Unpin>(
         r: &mut R,
-        mut end_receiver: &mut Fuse<oneshot::Receiver<()>>,
+        end_receiver: &mut Fuse<oneshot::Receiver<()>>,
     ) -> Result<Frame, Option<std::io::Error>> {
         let handle = |read_result| match read_result {
             Ok(_) => Ok(()),
@@ -190,7 +185,6 @@ impl TcpProtocol {
                     }
                     w2c_cid_frame_s
                         .send((cid, Ok(frame)))
-                        .await
                         .expect("Channel or Participant seems no longer to exist");
                 },
                 Err(e_option) => {
@@ -201,7 +195,6 @@ impl TcpProtocol {
                         // need a explicit STOP here
                         w2c_cid_frame_s
                             .send((cid, Err(())))
-                            .await
                             .expect("Channel or Participant seems no longer to exist");
                     }
                     //None is clean shutdown
@@ -284,7 +277,7 @@ impl TcpProtocol {
         #[cfg(not(feature = "metrics"))]
         let _cid = cid;
 
-        while let Some(frame) = c2w_frame_r.next().await {
+        while let Some(frame) = c2w_frame_r.recv().await {
             #[cfg(feature = "metrics")]
             {
                 metrics_cache.with_label_values(&frame).inc();
@@ -343,15 +336,15 @@ impl UdpProtocol {
         let mut data_in = self.data_in.lock().await;
         let mut end_r = end_r.fuse();
         while let Some(bytes) = select! {
-            r = data_in.next().fuse() => match r {
+            r = data_in.recv().fuse() => match r {
                 Some(r) => Some(r),
                 None => {
                     info!("Udp read ended");
-                    w2c_cid_frame_s.send((cid, Err(()))).await.expect("Channel or Participant seems no longer to exist");
+                    w2c_cid_frame_s.send((cid, Err(()))).expect("Channel or Participant seems no longer to exist");
                     None
                 }
             },
-            _ = end_r => None,
+            _ = &mut end_r => None,
         } {
             trace!("Got raw UDP message with len: {}", bytes.len());
             let frame_no = bytes[0];
@@ -389,7 +382,7 @@ impl UdpProtocol {
             };
             #[cfg(feature = "metrics")]
             metrics_cache.with_label_values(&frame).inc();
-            w2c_cid_frame_s.send((cid, Ok(frame))).await.unwrap();
+            w2c_cid_frame_s.send((cid, Ok(frame))).unwrap();
         }
         trace!("Shutting down udp read()");
     }
@@ -406,7 +399,7 @@ impl UdpProtocol {
             .with_label_values(&[&cid.to_string()]);
         #[cfg(not(feature = "metrics"))]
         let _cid = cid;
-        while let Some(frame) = c2w_frame_r.next().await {
+        while let Some(frame) = c2w_frame_r.recv().await {
             #[cfg(feature = "metrics")]
             metrics_cache.with_label_values(&frame).inc();
             let len = match frame {
@@ -501,9 +494,8 @@ impl UdpProtocol {
 mod tests {
     use super::*;
     use crate::{metrics::NetworkMetrics, types::Pid};
-    use tokio::net;
-    use futures::{executor::block_on, stream::StreamExt};
     use std::sync::Arc;
+    use tokio::{net, runtime::Runtime, sync::mpsc};
 
     #[test]
     fn tcp_read_handshake() {
@@ -511,11 +503,11 @@ mod tests {
         let cid = 80085;
         let metrics = Arc::new(NetworkMetrics::new(&pid).unwrap());
         let addr = std::net::SocketAddrV4::new(std::net::Ipv4Addr::new(127, 0, 0, 1), 50500);
-        block_on(async {
+        Runtime::new().unwrap().block_on(async {
             let server = net::TcpListener::bind(addr).await.unwrap();
             let mut client = net::TcpStream::connect(addr).await.unwrap();
 
-            let s_stream = server.incoming().next().await.unwrap().unwrap();
+            let (s_stream, _) = server.accept().await.unwrap();
             let prot = TcpProtocol::new(s_stream, metrics);
 
             //Send Handshake
@@ -524,21 +516,21 @@ mod tests {
             client.write_all(&1337u32.to_le_bytes()).await.unwrap();
             client.write_all(&0u32.to_le_bytes()).await.unwrap();
             client.write_all(&42u32.to_le_bytes()).await.unwrap();
-            client.flush();
+            client.flush().await.unwrap();
 
             //handle data
-            let (mut w2c_cid_frame_s, mut w2c_cid_frame_r) = mpsc::unbounded::<C2pFrame>();
+            let (mut w2c_cid_frame_s, mut w2c_cid_frame_r) = mpsc::unbounded_channel::<C2pFrame>();
             let (read_stop_sender, read_stop_receiver) = oneshot::channel();
             let cid2 = cid;
             let t = std::thread::spawn(move || {
-                block_on(async {
+                Runtime::new().unwrap().block_on(async {
                     prot.read_from_wire(cid2, &mut w2c_cid_frame_s, read_stop_receiver)
                         .await;
                 })
             });
             // Assert than we get some value back! Its a Handshake!
             //tokio::task::sleep(std::time::Duration::from_millis(1000));
-            let (cid_r, frame) = w2c_cid_frame_r.next().await.unwrap();
+            let (cid_r, frame) = w2c_cid_frame_r.recv().await.unwrap();
             assert_eq!(cid, cid_r);
             if let Ok(Frame::Handshake {
                 magic_number,
@@ -561,11 +553,11 @@ mod tests {
         let cid = 80085;
         let metrics = Arc::new(NetworkMetrics::new(&pid).unwrap());
         let addr = std::net::SocketAddrV4::new(std::net::Ipv4Addr::new(127, 0, 0, 1), 50501);
-        block_on(async {
+        Runtime::new().unwrap().block_on(async {
             let server = net::TcpListener::bind(addr).await.unwrap();
             let mut client = net::TcpStream::connect(addr).await.unwrap();
 
-            let s_stream = server.incoming().next().await.unwrap().unwrap();
+            let (s_stream, _) = server.accept().await.unwrap();
             let prot = TcpProtocol::new(s_stream, metrics);
 
             //Send Handshake
@@ -573,19 +565,19 @@ mod tests {
                 .write_all("x4hrtzsektfhxugzdtz5r78gzrtzfhxfdthfthuzhfzzufasgasdfg".as_bytes())
                 .await
                 .unwrap();
-            client.flush();
+            client.flush().await.unwrap();
             //handle data
-            let (mut w2c_cid_frame_s, mut w2c_cid_frame_r) = mpsc::unbounded::<C2pFrame>();
+            let (mut w2c_cid_frame_s, mut w2c_cid_frame_r) = mpsc::unbounded_channel::<C2pFrame>();
             let (read_stop_sender, read_stop_receiver) = oneshot::channel();
             let cid2 = cid;
             let t = std::thread::spawn(move || {
-                block_on(async {
+                Runtime::new().unwrap().block_on(async {
                     prot.read_from_wire(cid2, &mut w2c_cid_frame_s, read_stop_receiver)
                         .await;
                 })
             });
             // Assert than we get some value back! Its a Raw!
-            let (cid_r, frame) = w2c_cid_frame_r.next().await.unwrap();
+            let (cid_r, frame) = w2c_cid_frame_r.recv().await.unwrap();
             assert_eq!(cid, cid_r);
             if let Ok(Frame::Raw(data)) = frame {
                 assert_eq!(&data.as_slice(), b"x4hrtzsektfhxugzdtz5r78gzrtzfhxf");

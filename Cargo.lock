@@ -249,6 +249,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "async-channel"
+version = "1.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "59740d83946db6a5af71ae25ddf9562c2b176b2ca42cf99a455f09f4a220d6b9"
+dependencies = [
+ "concurrent-queue",
+ "event-listener",
+ "futures-core",
+]
+
+[[package]]
 name = "atom"
 version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -451,6 +462,12 @@ name = "bytes"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b700ce4376041dcd0a327fd0097c41095743c4c8af8887265942faf1100bd040"
+
+[[package]]
+name = "cache-padded"
+version = "1.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "631ae5198c9be5e753e5cc215e1bd73c2b466a3565173db433f52bb9d3e66dba"
 
 [[package]]
 name = "calloop"
@@ -710,6 +727,15 @@ checksum = "cc4369b5e4c0cddf64ad8981c0111e7df4f7078f4d6ba98fb31f2e17c4c57b7e"
 dependencies = [
  "bytes 1.0.1",
  "memchr",
+]
+
+[[package]]
+name = "concurrent-queue"
+version = "1.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "30ed07550be01594c6026cff2a1d7fe9c8f683caa798e12b68694ac9e88286a3"
+dependencies = [
+ "cache-padded",
 ]
 
 [[package]]
@@ -1565,6 +1591,12 @@ checksum = "5337024b8293bdce5265dc9570ef6e608a34bfacbbc87fe1a5dcb5f1dac2f4e2"
 dependencies = [
  "num-traits",
 ]
+
+[[package]]
+name = "event-listener"
+version = "2.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f7531096570974c3a9dcf9e4b8e1cede1ec26cf5046219fb3b9d897503b9be59"
 
 [[package]]
 name = "fallible-iterator"
@@ -5120,6 +5152,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "tokio-stream"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1981ad97df782ab506a1f43bf82c967326960d278acf3bf8279809648c3ff3ea"
+dependencies = [
+ "futures-core",
+ "pin-project-lite 0.2.4",
+ "tokio 1.2.0",
+]
+
+[[package]]
 name = "tokio-util"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5463,17 +5506,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "uvth"
-version = "4.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1e5910f9106b96334c6cae1f1d77a764bda66ac4ca9f507f73259f184fe1bb6b"
-dependencies = [
- "crossbeam-channel 0.3.9",
- "log",
- "num_cpus",
-]
-
-[[package]]
 name = "vcpkg"
 version = "0.2.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5543,7 +5575,7 @@ dependencies = [
  "tokio 1.2.0",
  "tracing",
  "tracing-subscriber",
- "uvth 3.1.1",
+ "uvth",
  "vek 0.12.0",
  "veloren-common",
  "veloren-common-net",
@@ -5688,7 +5720,7 @@ dependencies = [
  "tiny_http",
  "tokio 1.2.0",
  "tracing",
- "uvth 3.1.1",
+ "uvth",
  "vek 0.12.0",
  "veloren-common",
  "veloren-common-net",
@@ -5774,7 +5806,7 @@ dependencies = [
  "tracing-subscriber",
  "tracing-tracy",
  "treeculler",
- "uvth 3.1.1",
+ "uvth",
  "vek 0.12.0",
  "veloren-client",
  "veloren-common",
@@ -5836,11 +5868,13 @@ dependencies = [
 name = "veloren_network"
 version = "0.3.0"
 dependencies = [
+ "async-channel",
  "bincode",
  "bitflags",
  "clap",
  "crossbeam-channel 0.5.0",
- "futures",
+ "futures-core",
+ "futures-util",
  "lazy_static",
  "lz-fear",
  "prometheus",
@@ -5849,10 +5883,10 @@ dependencies = [
  "shellexpand",
  "tiny_http",
  "tokio 1.2.0",
+ "tokio-stream",
  "tracing",
  "tracing-futures",
  "tracing-subscriber",
- "uvth 4.0.1",
 ]
 
 [[package]]

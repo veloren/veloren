@@ -72,7 +72,13 @@ impl ClientInit {
                     let mut last_err = None;
 
                     let cores = num_cpus::get();
-                    let runtime = Arc::new(tokio::runtime::Builder::new_multi_thread().enable_all().worker_threads(if cores > 4 {cores-1} else {cores}).build().unwrap());
+                    let runtime = Arc::new(
+                        tokio::runtime::Builder::new_multi_thread()
+                            .enable_all()
+                            .worker_threads(if cores > 4 { cores - 1 } else { cores })
+                            .build()
+                            .unwrap(),
+                    );
 
                     const FOUR_MINUTES_RETRIES: u64 = 48;
                     'tries: for _ in 0..FOUR_MINUTES_RETRIES {

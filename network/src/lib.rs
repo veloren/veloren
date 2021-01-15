@@ -39,8 +39,8 @@
 //!
 //! # Examples
 //! ```rust
-//! use tokio::task::sleep;
 //! use futures::{executor::block_on, join};
+//! use tokio::task::sleep;
 //! use veloren_network::{Network, Pid, Promises, ProtocolAddr};
 //!
 //! // Client

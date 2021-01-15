@@ -3,7 +3,14 @@
 #![deny(clippy::clone_on_ref_ptr)]
 
 use common::{clock::Clock, comp};
-use std::{io, net::ToSocketAddrs, sync::mpsc, thread, time::Duration};
+use std::{
+    io,
+    net::ToSocketAddrs,
+    sync::{mpsc, Arc},
+    thread,
+    time::Duration,
+};
+use tokio::runtime::Runtime;
 use tracing::{error, info};
 use veloren_client::{Client, Event};
 
@@ -37,6 +44,8 @@ fn main() {
     println!("Enter your password");
     let password = read_input();
 
+    let runtime = Arc::new(Runtime::new().unwrap());
+
     // Create a client.
     let mut client = Client::new(
         server_addr
@@ -45,6 +54,7 @@ fn main() {
             .next()
             .unwrap(),
         None,
+        runtime,
     )
     .expect("Failed to create client instance");
 

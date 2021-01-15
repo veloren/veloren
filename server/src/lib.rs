@@ -91,8 +91,8 @@ use std::{
 };
 #[cfg(not(feature = "worldgen"))]
 use test_world::{IndexOwned, World};
-use tracing::{debug, error, info, trace};
 use tokio::runtime::Runtime;
+use tracing::{debug, error, info, trace};
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 
@@ -121,7 +121,7 @@ pub struct Server {
 
     connection_handler: ConnectionHandler,
 
-    runtime: Arc<Runtime>,
+    _runtime: Arc<Runtime>,
     thread_pool: ThreadPool,
 
     metrics: ServerMetrics,
@@ -367,7 +367,8 @@ impl Server {
         let thread_pool = ThreadPoolBuilder::new()
             .name("veloren-worker".to_string())
             .build();
-        let network = Network::new_with_registry(Pid::new(), Arc::clone(&runtime), &metrics.registry());
+        let network =
+            Network::new_with_registry(Pid::new(), Arc::clone(&runtime), &metrics.registry());
         metrics
             .run(settings.metrics_address)
             .expect("Failed to initialize server metrics submodule.");
@@ -388,7 +389,7 @@ impl Server {
 
             connection_handler,
 
-            runtime,
+            _runtime: runtime,
             thread_pool,
 
             metrics,

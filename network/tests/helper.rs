@@ -1,10 +1,14 @@
 use lazy_static::*;
 use std::{
     net::SocketAddr,
-    sync::atomic::{AtomicU16, Ordering},
+    sync::{
+        atomic::{AtomicU16, Ordering},
+        Arc,
+    },
     thread,
     time::Duration,
 };
+use tokio::runtime::Runtime;
 use tracing::*;
 use tracing_subscriber::EnvFilter;
 use veloren_network::{Network, Participant, Pid, Promises, ProtocolAddr, Stream};
@@ -43,22 +47,32 @@ pub fn setup(tracing: bool, sleep: u64) -> (u64, u64) {
 }
 
 #[allow(dead_code)]
-pub async fn network_participant_stream(
+pub fn network_participant_stream(
     addr: ProtocolAddr,
-) -> (Network, Participant, Stream, Network, Participant, Stream) {
-    let (n_a, f_a) = Network::new(Pid::fake(0));
-    std::thread::spawn(f_a);
-    let (n_b, f_b) = Network::new(Pid::fake(1));
-    std::thread::spawn(f_b);
+) -> (
+    Arc<Runtime>,
+    Network,
+    Participant,
+    Stream,
+    Network,
+    Participant,
+    Stream,
+) {
+    let runtime = Arc::new(Runtime::new().unwrap());
+    let (n_a, p1_a, s1_a, n_b, p1_b, s1_b) = runtime.block_on(async {
+        let n_a = Network::new(Pid::fake(0), Arc::clone(&runtime));
+        let n_b = Network::new(Pid::fake(1), Arc::clone(&runtime));
 
-    n_a.listen(addr.clone()).await.unwrap();
-    let p1_b = n_b.connect(addr).await.unwrap();
-    let p1_a = n_a.connected().await.unwrap();
+        n_a.listen(addr.clone()).await.unwrap();
+        let p1_b = n_b.connect(addr).await.unwrap();
+        let p1_a = n_a.connected().await.unwrap();
 
-    let s1_a = p1_a.open(10, Promises::empty()).await.unwrap();
-    let s1_b = p1_b.opened().await.unwrap();
+        let s1_a = p1_a.open(10, Promises::empty()).await.unwrap();
+        let s1_b = p1_b.opened().await.unwrap();
 
-    (n_a, p1_a, s1_a, n_b, p1_b, s1_b)
+        (n_a, p1_a, s1_a, n_b, p1_b, s1_b)
+    });
+    (runtime, n_a, p1_a, s1_a, n_b, p1_b, s1_b)
 }
 
 #[allow(dead_code)]
