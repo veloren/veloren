@@ -27,8 +27,8 @@ impl Entity {
 
     pub fn get_body(&self) -> comp::Body {
         match self.rng(PERM_GENUS).gen::<f32>() {
-            //we want 75% birds, 25% humans for now
-            x if x < 0.75 => {
+            //we want 50% birds, 50% humans for now
+            x if x < 0.50 => {
                 let species = *(&comp::bird_medium::ALL_SPECIES)
                     .choose(&mut self.rng(PERM_SPECIES))
                     .unwrap();
