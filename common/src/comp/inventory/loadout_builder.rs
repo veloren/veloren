@@ -57,7 +57,7 @@ impl LoadoutBuilder {
             "common.items.armor.pants.rugged_pants",
         )))
         .feet(Some(Item::new_from_asset_expect(
-            "common.items.armor.starter.sandals_0",
+            "common.items.armor.foot.sandals_0",
         )))
         .lantern(Some(Item::new_from_asset_expect(
             "common.items.lantern.black_0",

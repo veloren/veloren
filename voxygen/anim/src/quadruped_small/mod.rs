@@ -3,11 +3,12 @@ pub mod feed;
 pub mod idle;
 pub mod jump;
 pub mod run;
+pub mod stunned;
 
 // Reexports
 pub use self::{
     alpha::AlphaAnimation, feed::FeedAnimation, idle::IdleAnimation, jump::JumpAnimation,
-    run::RunAnimation,
+    run::RunAnimation, stunned::StunnedAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};

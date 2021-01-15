@@ -6,13 +6,14 @@ pub mod idle;
 pub mod jump;
 pub mod run;
 pub mod shoot;
+pub mod stunned;
 pub mod tailwhip;
 
 // Reexports
 pub use self::{
     alpha::AlphaAnimation, beta::BetaAnimation, breathe::BreatheAnimation, dash::DashAnimation,
     idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation, shoot::ShootAnimation,
-    tailwhip::TailwhipAnimation,
+    stunned::StunnedAnimation, tailwhip::TailwhipAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};
