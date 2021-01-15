@@ -223,8 +223,16 @@ impl<'a> System<'a> for Sys {
                     match &mut agent.activity {
                         Activity::Idle { bearing, chaser } => {
                             if let Some(travel_to) = agent.rtsim_controller.travel_to {
-                                //if it has an rtsim destination and can fly then it should
-                                inputs.fly.set_state(traversal_config.can_fly);
+                                // if it has an rtsim destination and can fly then it should
+                                // if it is flying and bumps something above it then it should move down
+                                inputs.fly.set_state(traversal_config.can_fly && !terrain
+                                    .ray(
+                                        pos.0,
+                                        pos.0 + (Vec3::unit_z() * 3.0))
+                                    .until(Block::is_solid)
+                                    .cast()
+                                    .1
+                                    .map_or(true, |b| b.is_some()));
                                 if let Some((bearing, speed)) =
                                     chaser.chase(&*terrain, pos.0, vel.0, travel_to, TraversalConfig {
                                         min_tgt_dist: 1.25,
